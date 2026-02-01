@@ -2,9 +2,6 @@ const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 const { getStorage } = require('firebase-admin/storage');
 
-const db = admin.firestore();
-const storage = getStorage();
-
 /**
  * Server-side Backup Manager
  * Handles creating backups from Cloud Functions (scheduled/triggered).
@@ -13,8 +10,10 @@ class BackupManager {
     static async createBackup(organizationId, config = {}) {
         if (!organizationId) throw new Error('Organization ID required');
 
+        const db = admin.firestore();
+        const storage = getStorage();
         const backupId = `backup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        logger.log(`Starting backup ${backupId} for org ${organizationId}`);
+        logger.info(`Starting backup ${backupId} for org ${organizationId}`);
 
         // Default config if not provided
         const finalConfig = {
@@ -100,7 +99,7 @@ class BackupManager {
                 downloadUrl: url
             });
 
-            logger.log(`Backup ${backupId} completed successfully.`);
+            logger.info(`Backup ${backupId} completed successfully.`);
             return backupId;
 
         } catch (error) {

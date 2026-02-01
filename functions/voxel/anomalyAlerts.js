@@ -36,23 +36,23 @@ const SEVERITY_ORDER = ['critical', 'high', 'medium', 'low'];
 
 const SEVERITY_LABELS = {
     critical: 'Critique',
-    high: 'Eleve',
+    high: 'Élevé',
     medium: 'Moyen',
     low: 'Faible'
 };
 
 const ANOMALY_TYPE_LABELS = {
-    orphan_control: 'Controle orphelin',
-    circular_dependency: 'Dependance circulaire',
+    orphan_control: 'Contrôle orphelin',
+    circular_dependency: 'Dépendance circulaire',
     coverage_gap: 'Lacune de couverture',
-    stale_assessment: 'Evaluation obsolete',
-    compliance_drift: 'Derive de conformite',
-    orphan: 'Entite orpheline',
-    stale: 'Entite obsolete',
-    inconsistency: 'Incoherence',
+    stale_assessment: 'Évaluation obsolète',
+    compliance_drift: 'Dérive de conformité',
+    orphan: 'Entité orpheline',
+    stale: 'Entité obsolète',
+    inconsistency: 'Incohérence',
     cycle: 'Cycle',
     cluster: 'Cluster anormal',
-    trend: 'Tendance preoccupante'
+    trend: 'Tendance préoccupante'
 };
 
 // ============================================================================
@@ -429,7 +429,7 @@ exports.testAnomalyAlert = onCall({
             id: 'test-alert',
             type: 'coverage_gap',
             severity: 'medium',
-            message: 'Ceci est une alerte de test pour verifier la configuration.',
+            message: 'Ceci est une alerte de test pour vérifier la configuration.',
             nodeId: 'test-node'
         };
 

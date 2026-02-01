@@ -12,7 +12,7 @@ const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 
-const db = admin.firestore();
+// H3: db initialized inside handlers to avoid module-level initialization issues
 
 // Default targets for predictions
 const DEFAULT_TARGETS = [
@@ -274,6 +274,7 @@ const generateCompliancePredictions = onCall({
         throw new HttpsError('unauthenticated', 'User must be logged in.');
     }
 
+    const db = admin.firestore();
     const { organizationId } = request.data;
     const tokenOrgId = request.auth.token.organizationId;
 
@@ -294,7 +295,10 @@ const generateCompliancePredictions = onCall({
             return { success: true, predictionsGenerated: 0 };
         }
 
-        const batch = db.batch();
+        // H2: batch chunking to avoid 500-op limit
+        const BATCH_LIMIT = 450;
+        let batch = db.batch();
+        let batchCount = 0;
         let predictionsGenerated = 0;
 
         for (const scoreDoc of scoresSnapshot.docs) {
@@ -428,10 +432,19 @@ const generateCompliancePredictions = onCall({
                 .doc(scoreData.frameworkId);
 
             batch.set(predictionRef, predictionDoc);
+            batchCount++;
             predictionsGenerated++;
+
+            if (batchCount >= BATCH_LIMIT) {
+                await batch.commit();
+                batch = db.batch();
+                batchCount = 0;
+            }
         }
 
-        await batch.commit();
+        if (batchCount > 0) {
+            await batch.commit();
+        }
 
         logger.info(`Generated ${predictionsGenerated} predictions for org ${organizationId}`);
 
@@ -454,6 +467,7 @@ const generateRecommendedActions = onCall({
         throw new HttpsError('unauthenticated', 'User must be logged in.');
     }
 
+    const db = admin.firestore();
     const { organizationId } = request.data;
     const tokenOrgId = request.auth.token.organizationId;
 
@@ -577,36 +591,44 @@ const generateRecommendedActions = onCall({
             rank++;
         }
 
-        // Save actions to Firestore
-        const batch = db.batch();
+        // Save actions to Firestore (H2: batch chunking to avoid 500-op limit)
+        const BATCH_LIMIT = 450;
 
-        // Clear existing actions
+        // Clear existing actions in chunked batches
         const existingActionsSnapshot = await db
             .collection('organizations')
             .doc(organizationId)
             .collection('recommendedActions')
             .get();
 
-        for (const doc of existingActionsSnapshot.docs) {
-            batch.delete(doc.ref);
+        for (let i = 0; i < existingActionsSnapshot.docs.length; i += BATCH_LIMIT) {
+            const chunk = existingActionsSnapshot.docs.slice(i, i + BATCH_LIMIT);
+            const deleteBatch = db.batch();
+            for (const doc of chunk) {
+                deleteBatch.delete(doc.ref);
+            }
+            await deleteBatch.commit();
         }
 
-        // Add new actions
-        for (const action of actions) {
-            const actionRef = db
-                .collection('organizations')
-                .doc(organizationId)
-                .collection('recommendedActions')
-                .doc();
+        // Add new actions in chunked batches
+        for (let i = 0; i < actions.length; i += BATCH_LIMIT) {
+            const chunk = actions.slice(i, i + BATCH_LIMIT);
+            const addBatch = db.batch();
+            for (const action of chunk) {
+                const actionRef = db
+                    .collection('organizations')
+                    .doc(organizationId)
+                    .collection('recommendedActions')
+                    .doc();
 
-            batch.set(actionRef, {
-                ...action,
-                id: actionRef.id,
-                createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
+                addBatch.set(actionRef, {
+                    ...action,
+                    id: actionRef.id,
+                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
+            }
+            await addBatch.commit();
         }
-
-        await batch.commit();
 
         logger.info(`Generated ${actions.length} recommended actions for org ${organizationId}`);
 
@@ -626,6 +648,7 @@ const dailyPredictionRefresh = onSchedule({
     timeoutSeconds: 300,
     region: 'europe-west1',
 }, async () => {
+    const db = admin.firestore();
     logger.info('Starting daily prediction refresh...');
 
     try {
@@ -668,37 +691,57 @@ const recordScoreSnapshot = onSchedule({
     timeoutSeconds: 120,
     region: 'europe-west1',
 }, async () => {
+    const db = admin.firestore();
     logger.info('Recording daily score snapshots...');
 
     try {
-        const scoresSnapshot = await db.collection('complianceScores').get();
-        const batch = db.batch();
+        const orgsSnapshot = await db.collection('organizations').get();
         const now = new Date().toISOString();
+        let totalRecorded = 0;
 
-        for (const scoreDoc of scoresSnapshot.docs) {
-            const scoreData = scoreDoc.data();
+        for (const orgDoc of orgsSnapshot.docs) {
+            const organizationId = orgDoc.id;
+            const scoresSnapshot = await db.collection('organizations')
+                .doc(organizationId)
+                .collection('complianceScores')
+                .get();
 
-            const historyRef = db
-                .collection('organizations')
-                .doc(scoreData.organizationId)
-                .collection('complianceScoreHistory')
-                .doc();
+            // H2: batch chunking to avoid 500-op limit
+            const BATCH_LIMIT = 450;
+            const docs = scoresSnapshot.docs;
 
-            batch.set(historyRef, {
-                frameworkId: scoreData.frameworkId,
-                frameworkCode: scoreData.frameworkCode,
-                score: scoreData.score,
-                compliantCount: scoreData.fullyCompliant || 0,
-                partialCount: scoreData.partiallyCompliant || 0,
-                nonCompliantCount: scoreData.nonCompliant || 0,
-                totalCount: scoreData.totalRequirements || 0,
-                timestamp: now,
-            });
+            for (let i = 0; i < docs.length; i += BATCH_LIMIT) {
+                const chunk = docs.slice(i, i + BATCH_LIMIT);
+                const batch = db.batch();
+
+                for (const scoreDoc of chunk) {
+                    const scoreData = scoreDoc.data();
+
+                    const historyRef = db
+                        .collection('organizations')
+                        .doc(organizationId)
+                        .collection('complianceScoreHistory')
+                        .doc();
+
+                    batch.set(historyRef, {
+                        frameworkId: scoreData.frameworkId,
+                        frameworkCode: scoreData.frameworkCode,
+                        score: scoreData.score,
+                        compliantCount: scoreData.fullyCompliant || 0,
+                        partialCount: scoreData.partiallyCompliant || 0,
+                        nonCompliantCount: scoreData.nonCompliant || 0,
+                        totalCount: scoreData.totalRequirements || 0,
+                        timestamp: now,
+                    });
+                }
+
+                await batch.commit();
+            }
+
+            totalRecorded += scoresSnapshot.size;
         }
 
-        await batch.commit();
-
-        logger.info(`Recorded ${scoresSnapshot.size} score snapshots.`);
+        logger.info(`Recorded ${totalRecorded} score snapshots.`);
     } catch (error) {
         logger.error('Failed to record score snapshots:', error);
     }

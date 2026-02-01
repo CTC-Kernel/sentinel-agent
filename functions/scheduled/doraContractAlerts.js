@@ -17,6 +17,19 @@ const { defineString } = require("firebase-functions/params");
 
 const appBaseUrl = defineString("APP_BASE_URL", { default: "https://app.cyber-threat-consulting.com" });
 
+/**
+ * Escape HTML special characters to prevent XSS in email templates (H1 fix)
+ */
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // Expiration thresholds
 const DEFAULT_THRESHOLDS = {
     critical: 30,
@@ -78,13 +91,13 @@ function getContractExpirationEmailTemplate(orgName, expiringContracts, link) {
 
     const formatProviderRow = (contract) => `
         <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 12px; font-weight: 500;">${contract.providerName}</td>
+            <td style="padding: 12px; font-weight: 500;">${escapeHtml(contract.providerName)}</td>
             <td style="padding: 12px;">
                 <span style="display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 12px; font-weight: 600;
                     ${contract.category === 'critical' ? 'background-color: #fee2e2; color: #dc2626;' :
                       contract.category === 'important' ? 'background-color: #fef3c7; color: #d97706;' :
                       'background-color: #f1f5f9; color: #64748b;'}">
-                    ${contract.category}
+                    ${escapeHtml(contract.category)}
                 </span>
             </td>
             <td style="padding: 12px; text-align: center;">

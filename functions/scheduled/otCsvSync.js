@@ -12,12 +12,8 @@ const { logger } = require('firebase-functions');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const admin = require('firebase-admin');
 
-// Initialize admin if not already done
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
-
-const db = getFirestore();
+// H3: db initialized inside handlers to avoid module-level initialization issues
+// Removed redundant admin.initializeApp() - handled by main index.js
 
 // ============================================================================
 // Constants
@@ -74,6 +70,7 @@ exports.processOTConnectorSyncs = onSchedule(
   },
   async (event) => {
     logger.log('Starting OT Connector sync check');
+    const db = getFirestore();
 
     try {
       // Get all organizations
@@ -161,6 +158,8 @@ exports.triggerOTSync = onCall(
       throw new HttpsError('invalid-argument', 'organizationId and connectorId are required');
     }
 
+    const db = getFirestore();
+
     // Get connector
     const connectorRef = db
       .collection('organizations')
@@ -215,6 +214,7 @@ async function processCSVSync(
   triggeredBy,
   triggeredByUserId = null
 ) {
+  const db = getFirestore();
   const startTime = Date.now();
   const syncId = db
     .collection('organizations')

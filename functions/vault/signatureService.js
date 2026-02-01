@@ -10,9 +10,13 @@
 
 const { onCall, onRequest, HttpsError } = require('firebase-functions/v2/https');
 const { logger } = require('firebase-functions');
+const { defineSecret } = require('firebase-functions/params');
 const { getFirestore, FieldValue, Timestamp } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
 const crypto = require('crypto');
+
+// Secrets
+const signatureWebhookSecret = defineSecret('SIGNATURE_WEBHOOK_SECRET');
 
 const SIGNATURE_REQUESTS_COLLECTION = 'signatureRequests';
 const DOCUMENTS_COLLECTION = 'documents';
@@ -377,6 +381,7 @@ exports.handleSignatureWebhook = onRequest(
     region: 'europe-west1',
     timeoutSeconds: 60,
     memory: '256MiB',
+    secrets: [signatureWebhookSecret],
   },
   async (req, res) => {
     // Only allow POST
@@ -386,7 +391,7 @@ exports.handleSignatureWebhook = onRequest(
     }
 
     // Authenticate webhook request
-    const webhookSecret = process.env.SIGNATURE_WEBHOOK_SECRET;
+    const webhookSecret = signatureWebhookSecret.value();
     const providedSecret = req.headers['x-webhook-secret'];
     if (!webhookSecret || !providedSecret || providedSecret !== webhookSecret) {
       logger.warn('Unauthorized webhook attempt', { ip: req.ip });

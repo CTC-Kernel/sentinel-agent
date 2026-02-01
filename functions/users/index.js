@@ -6,11 +6,15 @@
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { logger } = require("firebase-functions");
+const { defineSecret } = require("firebase-functions/params");
 const { user } = require("firebase-functions/v1/auth");
 const admin = require("firebase-admin");
 const crypto = require("crypto");
 const cors = require("cors");
 const { checkCallableRateLimit } = require("../utils/rateLimiter");
+
+// Secrets
+const superAdminEmails = defineSecret("SUPER_ADMIN_EMAILS");
 
 // CORS Configuration for callable functions
 const corsOptions = {
@@ -302,7 +306,8 @@ exports.verifySuperAdmin = onCall({
     memory: '256MiB',
     timeoutSeconds: 60,
     region: 'europe-west1',
-    cors: corsOptions
+    cors: corsOptions,
+    secrets: [superAdminEmails]
 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError('unauthenticated', 'User must be logged in.');
@@ -315,8 +320,8 @@ exports.verifySuperAdmin = onCall({
     const email = request.auth.token.email;
     const isClaimSuperAdmin = request.auth.token.superAdmin === true;
 
-    // SECURITY: Super admin emails loaded from environment variable
-    const SUPER_ADMIN_EMAILS = (process.env.SUPER_ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+    // SECURITY: Super admin emails loaded from secret
+    const SUPER_ADMIN_EMAILS = (superAdminEmails.value() || '').split(',').map(e => e.trim()).filter(Boolean);
     const isBootstrapSuperAdmin = email && SUPER_ADMIN_EMAILS.includes(email);
 
     // Auto-grant superAdmin claim to bootstrap admins if not already set
@@ -351,7 +356,8 @@ exports.grantSuperAdmin = onCall({
     memory: '256MiB',
     timeoutSeconds: 60,
     region: 'europe-west1',
-    cors: corsOptions
+    cors: corsOptions,
+    secrets: [superAdminEmails]
 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError('unauthenticated', 'User must be logged in.');
@@ -367,8 +373,8 @@ exports.grantSuperAdmin = onCall({
 
     const callerEmail = request.auth.token.email;
     const callerIsClaimAdmin = request.auth.token.superAdmin === true;
-    // SECURITY: Super admin emails loaded from environment variable
-    const SUPER_ADMIN_EMAILS = (process.env.SUPER_ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+    // SECURITY: Super admin emails loaded from secret
+    const SUPER_ADMIN_EMAILS = (superAdminEmails.value() || '').split(',').map(e => e.trim()).filter(Boolean);
     const callerIsBootstrapAdmin = callerEmail && SUPER_ADMIN_EMAILS.includes(callerEmail);
 
     if (!callerIsClaimAdmin && !callerIsBootstrapAdmin) {
@@ -691,7 +697,7 @@ exports.deleteUserAccount = onCall({
 
                 if (!otherUsersSnap.empty) {
                     throw new HttpsError('failed-precondition',
-                        'Vous êtes propriétaire de l\'organisation. Transférez d\'abord la propriété à un autre administrateur avant de supprimer votre compte.');
+                        'Organization owner must transfer ownership before deleting account.');
                 }
                 // If sole member, org will be deleted below
             }
@@ -813,20 +819,21 @@ exports.deleteUserAccount = onCall({
 
         logger.info(`[GDPR] User data erasure completed for ${uid}`);
 
-        return { success: true, message: 'Toutes vos données personnelles ont été supprimées.' };
+        return { success: true, message: 'All personal data has been deleted.' };
 
     } catch (error) {
         logger.error(`[GDPR] User data erasure failed for ${uid}:`, error);
         if (error instanceof HttpsError) throw error;
-        throw new HttpsError('internal', 'Échec de la suppression du compte');
+        throw new HttpsError('internal', 'Account deletion failed');
     }
 });
 
 /**
  * Helper: Delete all documents in a collection where field matches userId
+ * Uses batch size of 450 to stay safely within Firestore's 500-operation limit
  */
 async function deleteUserCollectionData(db, collectionName, fieldName, userId) {
-    const batchSize = 500;
+    const batchSize = 450;
     while (true) {
         const snap = await db.collection(collectionName)
             .where(fieldName, '==', userId)
@@ -844,9 +851,10 @@ async function deleteUserCollectionData(db, collectionName, fieldName, userId) {
 /**
  * Helper: Anonymize documents in a collection where field matches userId
  * Sets the specified fields to anonymized values instead of deleting the documents
+ * Uses batch size of 450 to stay safely within Firestore's 500-operation limit
  */
 async function anonymizeCollectionData(db, collectionName, fieldName, userId, anonymizedFields) {
-    const batchSize = 500;
+    const batchSize = 450;
     while (true) {
         const snap = await db.collection(collectionName)
             .where(fieldName, '==', userId)
@@ -865,7 +873,7 @@ async function anonymizeCollectionData(db, collectionName, fieldName, userId, an
  * Helper: Anonymize comments - replace author info with generic "Utilisateur supprimé"
  */
 async function anonymizeUserComments(db, userId, organizationId) {
-    const batchSize = 500;
+    const batchSize = 450;
     while (true) {
         const snap = await db.collectionGroup('comments')
             .where('organizationId', '==', organizationId)
@@ -879,7 +887,7 @@ async function anonymizeUserComments(db, userId, organizationId) {
         snap.docs.forEach(doc => {
             batch.update(doc.ref, {
                 authorId: 'deleted_user',
-                authorName: 'Utilisateur supprimé',
+                authorName: 'deleted_user',
                 authorEmail: null
             });
         });
@@ -891,15 +899,16 @@ async function anonymizeUserComments(db, userId, organizationId) {
  * Helper: Anonymize ownership references in org data
  */
 async function anonymizeOwnedItems(db, userId, organizationId) {
+    const BATCH_LIMIT = 450;
+    const DELETED_USER_LABEL = 'deleted_user';
     const collectionsToAnonymize = ['assets', 'risks', 'documents', 'projects', 'incidents', 'audits'];
 
     for (const collName of collectionsToAnonymize) {
-        const batchSize = 500;
         while (true) {
             const snap = await db.collection(collName)
                 .where('organizationId', '==', organizationId)
                 .where('ownerId', '==', userId)
-                .limit(batchSize)
+                .limit(BATCH_LIMIT)
                 .get();
 
             if (snap.empty) break;
@@ -908,7 +917,7 @@ async function anonymizeOwnedItems(db, userId, organizationId) {
             snap.docs.forEach(doc => {
                 batch.update(doc.ref, {
                     ownerId: null,
-                    owner: 'Utilisateur supprimé',
+                    owner: DELETED_USER_LABEL,
                     ownerEmail: null
                 });
             });
@@ -917,13 +926,12 @@ async function anonymizeOwnedItems(db, userId, organizationId) {
     }
 
     // Anonymize controls (ownerId, createdBy)
-    const controlsBatchSize = 500;
     for (const fieldName of ['ownerId', 'createdBy']) {
         while (true) {
             const snap = await db.collection('controls')
                 .where('organizationId', '==', organizationId)
                 .where(fieldName, '==', userId)
-                .limit(controlsBatchSize)
+                .limit(BATCH_LIMIT)
                 .get();
 
             if (snap.empty) break;
@@ -932,7 +940,7 @@ async function anonymizeOwnedItems(db, userId, organizationId) {
             snap.docs.forEach(doc => {
                 batch.update(doc.ref, {
                     [fieldName]: null,
-                    owner: 'Utilisateur supprimé',
+                    owner: DELETED_USER_LABEL,
                     ownerEmail: null
                 });
             });
@@ -942,12 +950,11 @@ async function anonymizeOwnedItems(db, userId, organizationId) {
 
     // Anonymize suppliers (createdBy)
     {
-        const batchSize = 500;
         while (true) {
             const snap = await db.collection('suppliers')
                 .where('organizationId', '==', organizationId)
                 .where('createdBy', '==', userId)
-                .limit(batchSize)
+                .limit(BATCH_LIMIT)
                 .get();
 
             if (snap.empty) break;
@@ -956,7 +963,7 @@ async function anonymizeOwnedItems(db, userId, organizationId) {
             snap.docs.forEach(doc => {
                 batch.update(doc.ref, {
                     createdBy: null,
-                    owner: 'Utilisateur supprimé',
+                    owner: DELETED_USER_LABEL,
                     ownerEmail: null
                 });
             });
@@ -966,12 +973,11 @@ async function anonymizeOwnedItems(db, userId, organizationId) {
 
     // Anonymize processing_activities (managerId, createdBy)
     for (const fieldName of ['managerId', 'createdBy']) {
-        const batchSize = 500;
         while (true) {
             const snap = await db.collection('processing_activities')
                 .where('organizationId', '==', organizationId)
                 .where(fieldName, '==', userId)
-                .limit(batchSize)
+                .limit(BATCH_LIMIT)
                 .get();
 
             if (snap.empty) break;
@@ -980,7 +986,7 @@ async function anonymizeOwnedItems(db, userId, organizationId) {
             snap.docs.forEach(doc => {
                 batch.update(doc.ref, {
                     [fieldName]: null,
-                    owner: 'Utilisateur supprimé',
+                    owner: DELETED_USER_LABEL,
                     ownerEmail: null
                 });
             });
