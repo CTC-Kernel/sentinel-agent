@@ -40,7 +40,7 @@ export const useThreatIntelActions = () => {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     });
-  }, [addRiskRaw, user?.organizationId]);
+  }, [addRiskRaw, user]);
 
   return {
     threats: threats || [],

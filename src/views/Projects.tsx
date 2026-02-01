@@ -224,7 +224,7 @@ export const Projects: React.FC = () => {
         } catch {
             addToast(t('projects.toastReportError'), "error");
         }
-    }, [selectedProject, user, addToast, t]);
+    }, [selectedProject, user, addToast, t, organization]);
 
     const handleExportExecutiveReport = useCallback(async () => {
         if (!selectedProject) return;

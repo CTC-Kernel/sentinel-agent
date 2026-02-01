@@ -18,7 +18,7 @@ export const useFeedbackActions = () => {
       organizationId: user.organizationId,
       createdAt: serverTimestamp()
     });
-  }, [addFeedbackRaw, user?.organizationId]);
+  }, [addFeedbackRaw, user]);
 
   return {
     addFeedback,

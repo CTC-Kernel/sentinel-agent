@@ -78,10 +78,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (_err) {
             ErrorLogger.error(_err, 'AuthContext.refreshSession');
             setError(_err as Error);
-        } finally {
-            refreshingRef.current = false;
         }
-    }, []);
+    }, [setClaimsSynced]);
 
     const logout = useCallback(async () => {
         try {
@@ -457,7 +455,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
         };
-    }, [setUser, setTheme, logout, setOrganization]); // claimsSynced removed: read via claimsSyncedRef to avoid re-subscription loop
+    }, [setUser, setTheme, logout, setOrganization, setClaimsSynced]); // claimsSynced removed: read via claimsSyncedRef to avoid re-subscription loop
 
     // MFA State
     const [mfaSecret, setMfaSecret] = useState<TotpSecret | null>(null);

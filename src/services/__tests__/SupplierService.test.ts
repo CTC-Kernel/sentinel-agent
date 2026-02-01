@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 /**
  * SupplierService Tests
  * Story 14-1: Test Coverage 50%

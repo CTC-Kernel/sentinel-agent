@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 /**
  * DocumentService Tests
  * Story 13-4: Test Coverage Improvement

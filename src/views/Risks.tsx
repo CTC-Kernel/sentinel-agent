@@ -506,7 +506,6 @@ export const Risks: React.FC = () => {
                             onChange={(e) => setViewName(e.target.value)}
                             placeholder={t('risks.viewNamePlaceholder', { defaultValue: 'Nom de la vue...' })}
                             className="w-full px-4 py-2 rounded-xl border border-border bg-background text-foreground mb-4 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                            autoFocus
                             onKeyDown={(e) => { if (e.key === 'Enter') handleConfirmSaveView(); }}
                         />
                         <div className="flex gap-3 justify-end">

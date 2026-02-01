@@ -13,7 +13,7 @@ import {
 } from 'firebase/firestore';
 import { functions, db, auth } from '@/firebase';
 import { ErrorLogger } from './errorLogger';
-import { sanitizeData } from '../utils/dataSanitizer';
+
 
 // Constants
 const DOCUMENT_AUDIT_LOGS_COLLECTION = 'document_audit_logs';

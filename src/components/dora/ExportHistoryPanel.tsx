@@ -69,10 +69,9 @@ export const ExportHistoryPanel: React.FC<ExportHistoryPanelProps> = ({
             ErrorLogger.error(error, 'ExportHistoryPanel.deleteExport');
             toast.error(t('common.error'));
         } finally {
-            setDeletingId(null);
             setConfirmDeleteId(null);
         }
-    }, [t]);
+    }, [t, organization?.id]);
 
     const getFormatIcon = (format: ExportFormat) => {
         switch (format) {
