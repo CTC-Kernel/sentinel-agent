@@ -4,7 +4,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ReportConfigurationModal } from '../ReportConfigurationModal';
 
 // Mock Headless UI
@@ -111,7 +112,7 @@ describe('ReportConfigurationModal', () => {
 
             // Initially all sections are active (have specific border color)
             const risksButton = screen.getByText('Risques Cyber').closest('button');
-            expect(risksButton).toHaveClass('border-red-2000');
+            expect(risksButton).toHaveClass('border-red-200');
 
             // Click to toggle
             if (risksButton) fireEvent.click(risksButton);
@@ -142,27 +143,33 @@ describe('ReportConfigurationModal', () => {
             expect(mockOnClose).toHaveBeenCalled();
         });
 
-        it('calls onGenerate with config when generate clicked', () => {
+        it('calls onGenerate with config when generate clicked', async () => {
+            const user = userEvent.setup();
             render(<ReportConfigurationModal {...defaultProps} />);
 
-            fireEvent.click(screen.getByText('Générer le rapport'));
+            await user.click(screen.getByText('Générer le rapport'));
 
-            expect(mockOnGenerate).toHaveBeenCalledWith({
-                title: 'Rapport Exécutif Global',
-                includeRisks: true,
-                includeCompliance: true,
-                includeAudits: true,
-                includeProjects: true,
-                includeIncidents: true
+            await waitFor(() => {
+                expect(mockOnGenerate).toHaveBeenCalledWith({
+                    title: 'Rapport Exécutif Global',
+                    includeRisks: true,
+                    includeCompliance: true,
+                    includeAudits: true,
+                    includeProjects: true,
+                    includeIncidents: true
+                });
             });
         });
 
-        it('calls onClose after generate', () => {
+        it('calls onClose after generate', async () => {
+            const user = userEvent.setup();
             render(<ReportConfigurationModal {...defaultProps} />);
 
-            fireEvent.click(screen.getByText('Générer le rapport'));
+            await user.click(screen.getByText('Générer le rapport'));
 
-            expect(mockOnClose).toHaveBeenCalled();
+            await waitFor(() => {
+                expect(mockOnClose).toHaveBeenCalled();
+            });
         });
     });
 
@@ -176,36 +183,43 @@ describe('ReportConfigurationModal', () => {
             expect(screen.getByDisplayValue('New Title')).toBeInTheDocument();
         });
 
-        it('includes updated title in generate config', () => {
+        it('includes updated title in generate config', async () => {
+            const user = userEvent.setup();
             render(<ReportConfigurationModal {...defaultProps} />);
 
             const input = screen.getByDisplayValue('Rapport Exécutif Global');
-            fireEvent.change(input, { target: { value: 'Custom Report' } });
-            fireEvent.click(screen.getByText('Générer le rapport'));
+            await user.clear(input);
+            await user.type(input, 'Custom Report');
+            await user.click(screen.getByText('Générer le rapport'));
 
-            expect(mockOnGenerate).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    title: 'Custom Report'
-                })
-            );
+            await waitFor(() => {
+                expect(mockOnGenerate).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        title: 'Custom Report'
+                    })
+                );
+            });
         });
     });
 
     describe('section configuration', () => {
-        it('includes toggled sections in generate config', () => {
+        it('includes toggled sections in generate config', async () => {
+            const user = userEvent.setup();
             render(<ReportConfigurationModal {...defaultProps} />);
 
             // Toggle off Risques
             const risksButton = screen.getByText('Risques Cyber').closest('button');
-            if (risksButton) fireEvent.click(risksButton);
+            if (risksButton) await user.click(risksButton);
 
-            fireEvent.click(screen.getByText('Générer le rapport'));
+            await user.click(screen.getByText('Générer le rapport'));
 
-            expect(mockOnGenerate).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    includeRisks: false
-                })
-            );
+            await waitFor(() => {
+                expect(mockOnGenerate).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        includeRisks: false
+                    })
+                );
+            });
         });
     });
 });

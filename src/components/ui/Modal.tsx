@@ -17,6 +17,8 @@ interface ModalProps {
     unsavedChangesMessage?: string;
     /** If true, the modal content will scroll internally. Set to false for custom scrolling layouts. */
     scrollable?: boolean;
+    /** Optional ID of an element that labels the modal (for accessibility) */
+    ariaLabelledBy?: string;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -28,7 +30,8 @@ export const Modal: React.FC<ModalProps> = ({
     initialFocus,
     hasUnsavedChanges = false,
     unsavedChangesMessage,
-    scrollable = true
+    scrollable = true,
+    ...props
 }) => {
     const { t } = useStore();
     const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
@@ -53,7 +56,7 @@ export const Modal: React.FC<ModalProps> = ({
     return (
         <>
             <Transition.Root show={isOpen} as={Fragment}>
-                <Dialog as="div" className="relative z-modal" initialFocus={initialFocus} onClose={handleClose}>
+                <Dialog as="div" className="relative z-modal" initialFocus={initialFocus} onClose={handleClose} aria-labelledby={props.ariaLabelledBy}>
                     {/* FocusTrap and keyboard navigation are handled internally by Headless UI */}
                     <Transition.Child
                         as={Fragment}

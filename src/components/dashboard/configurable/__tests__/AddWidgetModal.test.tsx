@@ -9,6 +9,32 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AddWidgetModal } from '../AddWidgetModal';
 
+// Mock Headless UI
+vi.mock('@headlessui/react', () => {
+  const Dialog = ({ children, onClose, 'aria-labelledby': ariaLabelledBy }: { children: React.ReactNode; onClose: () => void; 'aria-labelledby'?: string }) => (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={ariaLabelledBy}
+    >
+      <button
+        data-testid="backdrop"
+        onClick={onClose}
+        className="fixed inset-0"
+        aria-hidden="true"
+      />
+      {children}
+    </div>
+  );
+  Dialog.Panel = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+  const Transition = ({ children, show }: { children: React.ReactNode; show?: boolean }) => (
+    show ? <>{children}</> : null
+  );
+  Transition.Root = Transition;
+  Transition.Child = ({ children }: { children: React.ReactNode }) => <>{children}</>;
+  return { Dialog, Transition };
+});
+
 // Mock createPortal to render in test container
 vi.mock('react-dom', async () => {
   const actual = await vi.importActual('react-dom');
@@ -191,11 +217,11 @@ describe('AddWidgetModal', () => {
       // Find the category filter buttons by their containing role and count
       const categoryButtons = screen.getAllByRole('button').filter(
         (btn) => btn.textContent?.includes('Tous') ||
-                 btn.textContent?.includes('Score & KPI') ||
-                 btn.textContent?.includes('Risques') ||
-                 btn.textContent?.includes('Actions') ||
-                 btn.textContent?.includes('Audits') ||
-                 btn.textContent?.includes('Autres')
+          btn.textContent?.includes('Score & KPI') ||
+          btn.textContent?.includes('Risques') ||
+          btn.textContent?.includes('Actions') ||
+          btn.textContent?.includes('Audits') ||
+          btn.textContent?.includes('Autres')
       );
 
       // Should have at least 6 category tabs (Tous + 5 categories)
@@ -506,11 +532,8 @@ describe('AddWidgetModal', () => {
 
       render(<AddWidgetModal {...defaultProps} onClose={onClose} />);
 
-      // Click backdrop (the outer fixed div)
-      const backdrop = document.querySelector('.bg-black\\/60');
-      if (backdrop) {
-        await user.click(backdrop);
-      }
+      // Click backdrop (mocked)
+      await user.click(screen.getByTestId('backdrop'));
 
       expect(onClose).toHaveBeenCalled();
     });

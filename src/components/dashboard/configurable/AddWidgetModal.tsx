@@ -257,6 +257,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
       onClose={handleClose}
       maxWidth="max-w-3xl"
       scrollable={false}
+      ariaLabelledBy="add-widget-title"
     >
       <div className="flex flex-col max-h-[85vh] h-full">
         {/* Header */}

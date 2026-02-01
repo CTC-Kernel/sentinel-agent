@@ -520,7 +520,12 @@ describe('NotificationService', () => {
 
     describe('markAsRead', () => {
         it('should mark a notification as read', async () => {
-            const { updateDoc, doc } = await import('firebase/firestore');
+            const { updateDoc, doc, getDoc } = await import('firebase/firestore');
+
+            vi.mocked(getDoc).mockResolvedValueOnce({
+                exists: () => true,
+                data: () => ({ organizationId: 'org-456' })
+            } as never);
 
             await NotificationService.markAsRead('notif-123', 'org-456');
 
@@ -529,8 +534,13 @@ describe('NotificationService', () => {
         });
 
         it('should handle errors gracefully', async () => {
-            const { updateDoc } = await import('firebase/firestore');
+            const { updateDoc, getDoc } = await import('firebase/firestore');
             const { ErrorLogger } = await import('../errorLogger');
+
+            vi.mocked(getDoc).mockResolvedValueOnce({
+                exists: () => true,
+                data: () => ({ organizationId: 'org-456' })
+            } as never);
 
             vi.mocked(updateDoc).mockRejectedValueOnce(new Error('Update failed'));
 
