@@ -16,6 +16,7 @@ import {
   Timestamp
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -317,7 +318,7 @@ export async function saveDocument(
     updatedAt: serverTimestamp()
   };
 
-  await setDoc(docRef, documentData);
+  await setDoc(docRef, sanitizeData(documentData));
   return docRef.id;
 }
 
@@ -401,12 +402,12 @@ export async function updateDocumentContent(
     documentId
   );
 
-  await updateDoc(docRef, {
+  await updateDoc(docRef, sanitizeData({
     content,
     sections,
     updatedAt: serverTimestamp(),
     updatedBy: userId
-  });
+  }));
 }
 
 /**
@@ -429,11 +430,11 @@ export async function updateDocumentStatus(
     documentId
   );
 
-  await updateDoc(docRef, {
+  await updateDoc(docRef, sanitizeData({
     status,
     updatedAt: serverTimestamp(),
     updatedBy: userId
-  });
+  }));
 }
 
 // ============================================================================

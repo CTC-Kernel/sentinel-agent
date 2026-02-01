@@ -10,6 +10,7 @@
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getRiskLevelFromScore, calculateRiskScore } from '../../utils/riskEvaluation';
+import { RISK_THRESHOLDS } from '../../constants/complianceConfig';
 
 export type { RiskLevel } from '../../utils/riskEvaluation';
 
@@ -90,9 +91,9 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
     // Get cell color based on position
     const getCellColor = (p: number, i: number): string => {
         const score = p * i;
-        if (score >= 15) return 'bg-error-text';
-        if (score >= 10) return 'bg-warning-text';
-        if (score >= 5) return 'bg-info-text';
+        if (score >= RISK_THRESHOLDS.CRITICAL) return 'bg-error-text';
+        if (score >= RISK_THRESHOLDS.HIGH) return 'bg-warning-text';
+        if (score >= RISK_THRESHOLDS.MEDIUM) return 'bg-info-text';
         return 'bg-success-text';
     };
 

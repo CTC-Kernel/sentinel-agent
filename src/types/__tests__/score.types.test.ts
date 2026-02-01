@@ -3,12 +3,12 @@ import {
   DEFAULT_SCORE_WEIGHTS,
   TREND_THRESHOLD,
   type TrendType,
-  type CategoryScore,
+  type WeightedCategoryScore as CategoryScore,
   type ScoreBreakdown,
   type FrameworkScores,
   type CalculationDetails,
-  type ComplianceScore,
-  type ScoreHistory,
+  type GlobalComplianceScore as ComplianceScore,
+  type GlobalScoreHistory as ScoreHistory,
   type ComplianceScoreHookResult,
 } from '../score.types';
 

@@ -13,6 +13,7 @@ import {
   VoxelNode,
   VoxelEdge,
 } from '../types/voxel';
+import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 import { Control, Risk } from '../types';
 import { useVoxelStore, voxelStoreActions } from '../stores/voxelStore';
 
@@ -62,9 +63,9 @@ const calculateSeverity = (
       // coverage_gap stores riskScore in nested context
       const contextData = (details.context || details) as Record<string, unknown>;
       const riskScore = contextData.riskScore as number;
-      if (riskScore >= 15) return 'critical';
-      if (riskScore >= 10) return 'high';
-      if (riskScore >= 5) return 'medium';
+      if (riskScore >= RISK_THRESHOLDS.CRITICAL) return 'critical';
+      if (riskScore >= RISK_THRESHOLDS.HIGH) return 'high';
+      if (riskScore >= RISK_THRESHOLDS.MEDIUM) return 'medium';
       return 'low';
     }
     case 'orphan_control':

@@ -16,6 +16,19 @@ const { defineString } = require("firebase-functions/params");
 
 const appBaseUrl = defineString("APP_BASE_URL", { default: "https://app.cyber-threat-consulting.com" });
 
+/**
+ * Escape HTML special characters to prevent XSS in email templates (H1 fix)
+ */
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // Thresholds
 const OFFLINE_THRESHOLD_MS = 3 * 60 * 1000; // 3 minutes - same as frontend
 const ERROR_THRESHOLD_MS = 30 * 60 * 1000; // 30 minutes - escalate to error
@@ -79,8 +92,8 @@ function formatTimeSince(lastHeartbeat) {
 function getAgentOfflineAlertTemplate(orgName, offlineAgents, link) {
     const agentRows = offlineAgents.slice(0, 10).map(agent => `
         <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 12px; font-weight: 500;">${agent.hostname || agent.name || agent.id}</td>
-            <td style="padding: 12px;">${agent.os || 'N/A'}</td>
+            <td style="padding: 12px; font-weight: 500;">${escapeHtml(agent.hostname || agent.name || agent.id)}</td>
+            <td style="padding: 12px;">${escapeHtml(agent.os || 'N/A')}</td>
             <td style="padding: 12px;">
                 <span style="display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 12px; font-weight: 600;
                     ${agent.computedStatus === 'error' ? 'background-color: #fee2e2; color: #dc2626;' : 'background-color: #fef3c7; color: #d97706;'}">
@@ -274,12 +287,14 @@ const checkAgentOfflineAlerts = onSchedule(
                         const link = `${appBaseUrl.value()}/#/settings?tab=agents`;
 
                         for (const adminEmail of adminEmails) {
-                            await db.collection("mail").add({
+                            // H6: Use mail_queue collection (consistent with other alert modules)
+                            await db.collection("mail_queue").add({
                                 to: adminEmail,
                                 message: {
-                                    subject: `⚠️ Sentinel GRC - ${offlineAgents.length} agent(s) hors ligne`,
+                                    subject: `Sentinel GRC - ${offlineAgents.length} agent(s) hors ligne`,
                                     html: getAgentOfflineAlertTemplate(orgName, offlineAgents, link),
                                 },
+                                type: 'AGENT_OFFLINE_ALERT',
                                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
                                 status: "PENDING",
                             });
@@ -288,20 +303,18 @@ const checkAgentOfflineAlerts = onSchedule(
                         logger.info(`Queued email alerts to ${adminEmails.length} admins`);
                     }
 
-                    // Create in-app notifications for all org admins
+                    // H6: Use top-level notifications collection (consistent with other modules)
                     for (const adminDoc of adminsSnapshot.docs) {
-                        await db
-                            .collection("users")
-                            .doc(adminDoc.id)
-                            .collection("notifications")
-                            .add({
+                        await db.collection("notifications").add({
+                                organizationId: orgId,
+                                userId: adminDoc.id,
                                 type: "agent_offline",
                                 title: `${offlineAgents.length} agent(s) hors ligne`,
-                                message: `Les agents suivants ne répondent plus : ${offlineAgents.slice(0, 3).map(a => a.hostname || a.name || a.id).join(", ")}${offlineAgents.length > 3 ? ` et ${offlineAgents.length - 3} autre(s)` : ""}`,
+                                message: `Les agents suivants ne répondent plus : ${offlineAgents.slice(0, 3).map(a => escapeHtml(a.hostname || a.name || a.id)).join(", ")}${offlineAgents.length > 3 ? ` et ${offlineAgents.length - 3} autre(s)` : ""}`,
                                 link: "/settings?tab=agents",
                                 read: false,
                                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                                data: {
+                                metadata: {
                                     agentIds: offlineAgents.map(a => a.id),
                                     count: offlineAgents.length,
                                 },

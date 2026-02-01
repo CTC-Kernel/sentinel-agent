@@ -57,7 +57,7 @@ export const useVulnerabilities = () => {
             }
         } catch (error) {
             ErrorLogger.warn((error as Error).message, 'useVulnerabilities.seedCisaKev');
-            // optional: toast
+            addToast(t('vulnerabilities.seedFailed', { defaultValue: 'Échec du chargement des données CISA KEV' }), 'error');
         }
     }, [user, addToast, demoMode, t]);
 
@@ -138,10 +138,10 @@ export const useVulnerabilities = () => {
                 if (!riskSnap.empty) {
                     // SECURITY FIX: Update ALL related risks, not just the first one
                     const updatePromises = riskSnap.docs.map(riskDoc =>
-                        updateDoc(doc(db, 'risks', riskDoc.id), {
+                        updateDoc(doc(db, 'risks', riskDoc.id), sanitizeData({
                             status: 'Traité',
                             updatedAt: serverTimestamp()
-                        })
+                        }))
                     );
                     await Promise.all(updatePromises);
                     const count = riskSnap.docs.length;
@@ -224,10 +224,10 @@ export const useVulnerabilities = () => {
             const riskRef = await addDoc(collection(db, 'risks'), sanitizeData(riskData));
 
             // Bidirectional linking
-            await updateDoc(doc(db, 'vulnerabilities', vuln.id), {
+            await updateDoc(doc(db, 'vulnerabilities', vuln.id), sanitizeData({
                 relatedRiskId: riskRef.id,
                 status: 'In Progress'
-            });
+            }));
 
             logAction(user, 'CREATE_RISK', 'Vulnerabilities', `Created Risk for Vuln ${vuln.cveId}`);
             addToast(t('vulnerabilities.toast.riskCreatedAndLinked', { defaultValue: "Risque créé et lié avec succès" }), "success");

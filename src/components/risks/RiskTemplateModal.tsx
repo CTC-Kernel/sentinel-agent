@@ -10,9 +10,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import { UserProfile } from '../../types';
+import { RISK_THRESHOLDS } from '../../constants/complianceConfig';
 
 const templateFormSchema = z.object({
-  owner: z.string().min(1, 'Le responsable est requis')
+  owner: z.string().min(1, 'Owner is required')
 });
 
 type TemplateFormData = z.infer<typeof templateFormSchema>;
@@ -193,9 +194,9 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                                             </span>
                                                             <div className="flex items-center gap-2">
                                                                 {/* <span className="text-slate-600">{risk.category || 'N/A'}</span> */}
-                                                                <span className={`px-2 py-0.5 rounded font-bold ${risk.score >= 15 ? 'bg-error-bg text-error-text dark:bg-error-bg/20 dark:text-error-text' :
-                                                                    risk.score >= 10 ? 'bg-warning-bg text-warning-text dark:bg-warning-bg/20 dark:text-warning-text' :
-                                                                        risk.score >= 5 ? 'bg-info-bg text-info-text dark:bg-info-bg/20 dark:text-info-text' :
+                                                                <span className={`px-2 py-0.5 rounded font-bold ${risk.score >= RISK_THRESHOLDS.CRITICAL ? 'bg-error-bg text-error-text dark:bg-error-bg/20 dark:text-error-text' :
+                                                                    risk.score >= RISK_THRESHOLDS.HIGH ? 'bg-warning-bg text-warning-text dark:bg-warning-bg/20 dark:text-warning-text' :
+                                                                        risk.score >= RISK_THRESHOLDS.MEDIUM ? 'bg-info-bg text-info-text dark:bg-info-bg/20 dark:text-info-text' :
                                                                             'bg-success-bg text-success-text dark:bg-success-bg/20 dark:text-success-text'
                                                                     }`}>
                                                                     {risk.score}

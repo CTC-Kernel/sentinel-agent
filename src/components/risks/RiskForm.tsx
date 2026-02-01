@@ -371,7 +371,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     <div className="p-4 bg-warning/10 border border-warning/20 rounded-xl flex items-center justify-between animate-fade-in">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-warning/20 rounded-lg"><History className="h-5 w-5 text-warning" /></div>
-                            <div><p className="font-bold text-warning text-sm">Brouillon non enregistré détecté</p><p className="text-xs text-muted-foreground">Un brouillon de ce formulaire a été trouvé. Voulez-vous le restaurer ?</p></div>
+                            <div><p className="font-bold text-warning text-sm">{t('risks.draftDetected', { defaultValue: 'Brouillon non enregistré détecté' })}</p><p className="text-xs text-muted-foreground">{t('risks.draftDetectedDesc', { defaultValue: 'Un brouillon de ce formulaire a été trouvé. Voulez-vous le restaurer ?' })}</p></div>
                         </div>
                         <div className="flex gap-2">
                             <Button type="button" variant="ghost" onClick={handleDiscardDraft} className="text-warning hover:bg-warning/10">Ignorer</Button>

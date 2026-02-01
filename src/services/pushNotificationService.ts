@@ -4,6 +4,7 @@
 import { messaging, VAPID_KEY, db, auth } from '../firebase';
 import { getToken, onMessage } from 'firebase/messaging';
 import { doc, setDoc, arrayUnion, getDoc } from 'firebase/firestore';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { ErrorLogger } from './errorLogger';
 
 export interface PushNotificationOptions {
@@ -87,9 +88,9 @@ export class PushNotificationService {
                 return;
             }
 
-            await setDoc(userRef, {
+            await setDoc(userRef, sanitizeData({
                 fcmTokens: arrayUnion(token)
-            }, { merge: true });
+            }), { merge: true });
         } catch (error) {
             ErrorLogger.error(error, 'PushNotificationService.saveTokenToDatabase');
         }

@@ -8,6 +8,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { Asset, Risk, Project, Audit, Incident, Supplier, Control, VoxelNode, VoxelNodeType, VoxelNodeStatus, AISuggestedLink } from '../types';
 import { ErrorLogger } from '../services/errorLogger';
 import { RISK_ACCEPTANCE_THRESHOLD } from '../constants/RiskConstants';
+import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 import { VoxelMesh } from './voxel/VoxelMesh';
 import { ModelLibraryProvider } from '../contexts/ModelLibraryContext';
 
@@ -431,8 +432,8 @@ const getNodeColor = (type: VoxelNodeType, status: VoxelNodeStatus, data?: Recor
     case 'asset': return '#3b82f6';
     case 'risk': {
       const score = (data as { score?: number })?.score ?? 0;
-      if (score >= 15) return '#ef4444';
-      if (score >= 10) return '#f59e0b';
+      if (score >= RISK_THRESHOLDS.CRITICAL) return '#ef4444';
+      if (score >= RISK_THRESHOLDS.HIGH) return '#f59e0b';
       return '#22c55e';
     }
     case 'project': return '#a855f7';
@@ -509,7 +510,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
       const x = (index % GRID_SIZE) * SPACING - (GRID_SIZE * SPACING) / 2;
       const z = Math.floor(index / GRID_SIZE) * SPACING - (GRID_SIZE * SPACING) / 2;
       const safeScore = Number.isFinite(risk.score) ? risk.score : 0;
-      const status: VoxelNodeStatus = safeScore >= 15 ? 'critical' : safeScore >= 10 ? 'warning' : 'normal';
+      const status: VoxelNodeStatus = safeScore >= RISK_THRESHOLDS.CRITICAL ? 'critical' : safeScore >= RISK_THRESHOLDS.HIGH ? 'warning' : 'normal';
       return {
         id: risk.id,
         type: 'risk' as const,

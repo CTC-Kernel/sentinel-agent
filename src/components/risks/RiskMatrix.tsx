@@ -4,6 +4,7 @@ import { Risk } from '../../types';
 import { motion } from 'framer-motion';
 import { Info } from '../ui/Icons';
 import { useLocale } from '@/hooks/useLocale';
+import { RISK_THRESHOLDS } from '../../constants/complianceConfig';
 
 interface RiskMatrixProps {
     risks: Risk[];
@@ -149,19 +150,19 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                                     let textStyle = "text-slate-300 dark:text-slate-300";
                                     let ringColor = "";
 
-                                    if (score >= 15) {
+                                    if (score >= RISK_THRESHOLDS.CRITICAL) {
                                         cellStyle = hasRisks
                                             ? "bg-gradient-to-br from-error-bg/80 to-error-bg/20 border-error-border/50 shadow-[inset_0_0_20px_rgba(225,29,72,0.05)]"
                                             : "bg-error-bg/30 dark:bg-error-bg/10 border-error-border/20";
                                         textStyle = hasRisks ? "text-error-text" : "text-error-text/30";
                                         ringColor = "ring-error-border";
-                                    } else if (score >= 10) {
+                                    } else if (score >= RISK_THRESHOLDS.HIGH) {
                                         cellStyle = hasRisks
                                             ? "bg-gradient-to-br from-warning-bg/80 to-warning-bg/20 border-warning-border/50 shadow-[inset_0_0_20px_rgba(217,119,6,0.05)]"
                                             : "bg-warning-bg/30 dark:bg-warning-bg/10 border-warning-border/20";
                                         textStyle = hasRisks ? "text-warning-text" : "text-warning-text/30";
                                         ringColor = "ring-warning-border";
-                                    } else if (score >= 5) {
+                                    } else if (score >= RISK_THRESHOLDS.MEDIUM) {
                                         cellStyle = hasRisks
                                             ? "bg-gradient-to-br from-info-bg/80 to-info-bg/20 border-info-border/50 shadow-[inset_0_0_20px_rgba(2,132,199,0.05)]"
                                             : "bg-info-bg/30 dark:bg-info-bg/10 border-info-border/20";

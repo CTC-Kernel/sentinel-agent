@@ -47,15 +47,15 @@ export const SecureFormExample: React.FC = () => {
       const errors: Record<string, string> = {};
 
       if (!values.name || values.name.length < 3) {
-        errors.name = 'Le nom doit contenir au moins 3 caractères';
+        errors.name = 'Name must be at least 3 characters';
       }
 
       if (!values.email) {
-        errors.email = 'L\'email est requis';
+        errors.email = 'Email is required';
       }
 
       if (!values.description || values.description.length < 10) {
-        errors.description = 'La description doit contenir au moins 10 caractères';
+        errors.description = 'Description must be at least 10 characters';
       }
 
       return errors;

@@ -11,13 +11,13 @@ import { Loader2, ShieldCheck, Mail, Lock, Building2, Ticket } from '../../../co
 import { toast } from '@/lib/toast';
 
 const registerSchema = z.object({
-    orgName: z.string().min(2, "Nom de l'organisation requis"),
-    siret: z.string().min(9, 'SIRET invalide').optional(), // Optional for international
-    email: z.string().email('Email invalide'),
-    password: z.string().min(8, 'Le mot de passe doit faire au moins 8 caractères'),
+    orgName: z.string().min(2, "Organization name is required"),
+    siret: z.string().min(9, 'Invalid SIRET').optional(), // Optional for international
+    email: z.string().email('Invalid email'),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
     confirmPassword: z.string()
 }).refine((data) => data.password === data.confirmPassword, {
-    message: "Les mots de passe ne correspondent pas",
+    message: "Passwords do not match",
     path: ["confirmPassword"],
 });
 

@@ -12,19 +12,19 @@ describe('Validation Utils', () => {
             const rules: ValidationRule = { required: true };
 
             it('should return error for empty string', () => {
-                expect(validateField('', rules)).toBe('Ce champ est requis');
+                expect(validateField('', rules)).toBe('This field is required');
             });
 
             it('should return error for whitespace only', () => {
-                expect(validateField('   ', rules)).toBe('Ce champ est requis');
+                expect(validateField('   ', rules)).toBe('This field is required');
             });
 
             it('should return error for null', () => {
-                expect(validateField(null, rules)).toBe('Ce champ est requis');
+                expect(validateField(null, rules)).toBe('This field is required');
             });
 
             it('should return error for undefined', () => {
-                expect(validateField(undefined, rules)).toBe('Ce champ est requis');
+                expect(validateField(undefined, rules)).toBe('This field is required');
             });
 
             it('should pass for non-empty value', () => {
@@ -48,7 +48,7 @@ describe('Validation Utils', () => {
             const rules: ValidationRule = { minLength: 5 };
 
             it('should fail for short string', () => {
-                expect(validateField('abc', rules)).toBe('Minimum 5 caractères requis');
+                expect(validateField('abc', rules)).toBe('Minimum 5 characters required');
             });
 
             it('should pass for exact length', () => {
@@ -64,7 +64,7 @@ describe('Validation Utils', () => {
             const rules: ValidationRule = { maxLength: 10 };
 
             it('should fail for long string', () => {
-                expect(validateField('12345678901', rules)).toBe('Maximum 10 caractères autorisés');
+                expect(validateField('12345678901', rules)).toBe('Maximum 10 characters allowed');
             });
 
             it('should pass for exact length', () => {
@@ -80,7 +80,7 @@ describe('Validation Utils', () => {
             const rules: ValidationRule = { pattern: /^[A-Z]{3}-\d{3}$/ };
 
             it('should fail for non-matching pattern', () => {
-                expect(validateField('abc-123', rules)).toBe('Format invalide');
+                expect(validateField('abc-123', rules)).toBe('Invalid format');
             });
 
             it('should pass for matching pattern', () => {
@@ -92,15 +92,15 @@ describe('Validation Utils', () => {
             const rules: ValidationRule = { email: true };
 
             it('should fail for invalid email', () => {
-                expect(validateField('not-an-email', rules)).toBe('Email invalide');
+                expect(validateField('not-an-email', rules)).toBe('Invalid email');
             });
 
             it('should fail for email without domain', () => {
-                expect(validateField('test@', rules)).toBe('Email invalide');
+                expect(validateField('test@', rules)).toBe('Invalid email');
             });
 
             it('should fail for email with spaces', () => {
-                expect(validateField('test @test.com', rules)).toBe('Email invalide');
+                expect(validateField('test @test.com', rules)).toBe('Invalid email');
             });
 
             it('should pass for valid email', () => {
@@ -116,11 +116,11 @@ describe('Validation Utils', () => {
             const rules: ValidationRule = { url: true };
 
             it('should fail for invalid url', () => {
-                expect(validateField('not-a-url', rules)).toBe('URL invalide');
+                expect(validateField('not-a-url', rules)).toBe('Invalid URL');
             });
 
             it('should fail for ftp url', () => {
-                expect(validateField('ftp://example.com', rules)).toBe('URL invalide');
+                expect(validateField('ftp://example.com', rules)).toBe('Invalid URL');
             });
 
             it('should pass for http url', () => {
@@ -139,7 +139,7 @@ describe('Validation Utils', () => {
         describe('numeric min/max rules', () => {
             it('should fail when below min', () => {
                 const rules: ValidationRule = { min: 10 };
-                expect(validateField(5, rules)).toBe('Valeur minimum : 10');
+                expect(validateField(5, rules)).toBe('Minimum value: 10');
             });
 
             it('should pass when at min', () => {
@@ -149,7 +149,7 @@ describe('Validation Utils', () => {
 
             it('should fail when above max', () => {
                 const rules: ValidationRule = { max: 100 };
-                expect(validateField(150, rules)).toBe('Valeur maximum : 100');
+                expect(validateField(150, rules)).toBe('Maximum value: 100');
             });
 
             it('should pass when at max', () => {
@@ -168,7 +168,7 @@ describe('Validation Utils', () => {
                 const rules: ValidationRule = {
                     custom: (val) => val === 'specific'
                 };
-                expect(validateField('other', rules)).toBe('Valeur invalide');
+                expect(validateField('other', rules)).toBe('Invalid value');
             });
 
             it('should pass when custom validator returns true', () => {
@@ -214,8 +214,8 @@ describe('Validation Utils', () => {
             const result = validateForm(data, rules);
 
             expect(result.isValid).toBe(false);
-            expect(result.errors.name).toBe('Ce champ est requis');
-            expect(result.errors.email).toBe('Email invalide');
+            expect(result.errors.name).toBe('This field is required');
+            expect(result.errors.email).toBe('Invalid email');
         });
 
         it('should only include fields with errors', () => {

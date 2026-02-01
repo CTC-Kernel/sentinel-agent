@@ -1,4 +1,5 @@
 import { Asset, Risk, Project, Audit, Document, Incident, Supplier } from '../types';
+import i18n from '../i18n';
 
 export interface ValidationError {
     field: string;
@@ -25,37 +26,37 @@ export const validateAsset = (asset: AssetValidationInput): ValidationError[] =>
     const errors: ValidationError[] = [];
 
     if (!asset.name?.trim()) {
-        errors.push({ field: 'name', message: 'Le nom est requis' });
+        errors.push({ field: 'name', message: i18n.t('validation.nameRequired', { defaultValue: 'Le nom est requis' }) });
     } else if ((asset.name?.length || 0) < 3) {
-        errors.push({ field: 'name', message: 'Le nom doit contenir au moins 3 caractères' });
+        errors.push({ field: 'name', message: i18n.t('validation.nameMinLength', { defaultValue: 'Le nom doit contenir au moins 3 caractères', count: 3 }) });
     }
 
     if (!asset.category?.trim()) {
-        errors.push({ field: 'category', message: 'La catégorie est requise' });
+        errors.push({ field: 'category', message: i18n.t('validation.categoryRequired', { defaultValue: 'La catégorie est requise' }) });
     }
 
     if (!asset.criticality?.trim()) {
-        errors.push({ field: 'criticality', message: 'La criticité est requise' });
+        errors.push({ field: 'criticality', message: i18n.t('validation.criticalityRequired', { defaultValue: 'La criticité est requise' }) });
     }
 
     if (asset.value !== undefined && asset.value <= 0) {
-        errors.push({ field: 'value', message: 'La valeur doit être supérieure à 0' });
+        errors.push({ field: 'value', message: i18n.t('validation.valuePositive', { defaultValue: 'La valeur doit être supérieure à 0' }) });
     }
 
     if ('type' in asset && !asset.type) {
-        errors.push({ field: 'type', message: 'Le type est requis' });
+        errors.push({ field: 'type', message: i18n.t('validation.typeRequired', { defaultValue: 'Le type est requis' }) });
     }
 
     if ('confidentiality' in asset && !asset.confidentiality) {
-        errors.push({ field: 'confidentiality', message: 'La confidentialité est requise' });
+        errors.push({ field: 'confidentiality', message: i18n.t('validation.confidentialityRequired', { defaultValue: 'La confidentialité est requise' }) });
     }
 
     if ('integrity' in asset && !asset.integrity) {
-        errors.push({ field: 'integrity', message: 'L\'intégrité est requise' });
+        errors.push({ field: 'integrity', message: i18n.t('validation.integrityRequired', { defaultValue: "L'intégrité est requise" }) });
     }
 
     if ('availability' in asset && !asset.availability) {
-        errors.push({ field: 'availability', message: 'La disponibilité est requise' });
+        errors.push({ field: 'availability', message: i18n.t('validation.availabilityRequired', { defaultValue: 'La disponibilité est requise' }) });
     }
 
     return errors;
@@ -68,19 +69,19 @@ export const validateRisk = (risk: Partial<Risk>): ValidationError[] => {
     const errors: ValidationError[] = [];
 
     if (!risk.threat?.trim()) {
-        errors.push({ field: 'threat', message: 'La menace est requise' });
+        errors.push({ field: 'threat', message: i18n.t('validation.threatRequired', { defaultValue: 'La menace est requise' }) });
     }
 
     if (!risk.category?.trim()) {
-        errors.push({ field: 'category', message: 'La catégorie est requise' });
+        errors.push({ field: 'category', message: i18n.t('validation.categoryRequired', { defaultValue: 'La catégorie est requise' }) });
     }
 
     if (risk.probability !== undefined && (risk.probability < 1 || risk.probability > 5)) {
-        errors.push({ field: 'probability', message: 'La probabilité doit être entre 1 et 5' });
+        errors.push({ field: 'probability', message: i18n.t('validation.probabilityRange', { defaultValue: 'La probabilité doit être entre 1 et 5' }) });
     }
 
     if (risk.impact !== undefined && (risk.impact < 1 || risk.impact > 5)) {
-        errors.push({ field: 'impact', message: "L'impact doit être entre 1 et 5" });
+        errors.push({ field: 'impact', message: i18n.t('validation.impactRange', { defaultValue: "L'impact doit être entre 1 et 5" }) });
     }
     return errors;
 };
@@ -92,18 +93,18 @@ export const validateProject = (project: Partial<Project>): ValidationError[] =>
     const errors: ValidationError[] = [];
 
     if (!project.name?.trim()) {
-        errors.push({ field: 'name', message: 'Le nom est requis' });
+        errors.push({ field: 'name', message: i18n.t('validation.nameRequired', { defaultValue: 'Le nom est requis' }) });
     }
 
     if (!project.status) {
-        errors.push({ field: 'status', message: 'Le statut est requis' });
+        errors.push({ field: 'status', message: i18n.t('validation.statusRequired', { defaultValue: 'Le statut est requis' }) });
     }
 
     if (project.startDate && project.dueDate) {
         const start = new Date(project.startDate);
         const end = new Date(project.dueDate);
         if (end < start) {
-            errors.push({ field: 'dueDate', message: 'La date de fin doit être après la date de début' });
+            errors.push({ field: 'dueDate', message: i18n.t('validation.endDateAfterStart', { defaultValue: 'La date de fin doit être après la date de début' }) });
         }
     }
 
@@ -117,19 +118,19 @@ export const validateAudit = (audit: Partial<Audit>): ValidationError[] => {
     const errors: ValidationError[] = [];
 
     if (!audit.name?.trim()) {
-        errors.push({ field: 'name', message: 'Le nom est requis' });
+        errors.push({ field: 'name', message: i18n.t('validation.nameRequired', { defaultValue: 'Le nom est requis' }) });
     }
 
     if (!audit.type) {
-        errors.push({ field: 'type', message: 'Le type est requis' });
+        errors.push({ field: 'type', message: i18n.t('validation.typeRequired', { defaultValue: 'Le type est requis' }) });
     }
 
     if (!audit.dateScheduled) {
-        errors.push({ field: 'dateScheduled', message: 'La date est requise' });
+        errors.push({ field: 'dateScheduled', message: i18n.t('validation.dateRequired', { defaultValue: 'La date est requise' }) });
     }
 
     if (!audit.auditor?.trim()) {
-        errors.push({ field: 'auditor', message: "L'auditeur est requis" });
+        errors.push({ field: 'auditor', message: i18n.t('validation.auditorRequired', { defaultValue: "L'auditeur est requis" }) });
     }
 
     return errors;
@@ -142,18 +143,18 @@ export const validateDocument = (document: Partial<Document>): ValidationError[]
     const errors: ValidationError[] = [];
 
     if (!document.title?.trim()) {
-        errors.push({ field: 'title', message: 'Le titre est requis' });
+        errors.push({ field: 'title', message: i18n.t('validation.titleRequired', { defaultValue: 'Le titre est requis' }) });
     }
 
     if (!document.type) {
-        errors.push({ field: 'type', message: 'Le type est requis' });
+        errors.push({ field: 'type', message: i18n.t('validation.typeRequired', { defaultValue: 'Le type est requis' }) });
     }
 
     if (document.nextReviewDate) {
         const reviewDate = new Date(document.nextReviewDate);
         const today = new Date();
         if (reviewDate < today) {
-            errors.push({ field: 'nextReviewDate', message: 'La date de révision doit être dans le futur' });
+            errors.push({ field: 'nextReviewDate', message: i18n.t('validation.dateFuture', { defaultValue: 'La date de révision doit être dans le futur' }) });
         }
     }
 
@@ -167,23 +168,23 @@ export const validateIncident = (incident: Partial<Incident>): ValidationError[]
     const errors: ValidationError[] = [];
 
     if (!incident.title?.trim()) {
-        errors.push({ field: 'title', message: 'Le titre est requis' });
+        errors.push({ field: 'title', message: i18n.t('validation.titleRequired', { defaultValue: 'Le titre est requis' }) });
     }
 
     if (!incident.description?.trim()) {
-        errors.push({ field: 'description', message: 'La description est requise' });
+        errors.push({ field: 'description', message: i18n.t('validation.descriptionRequired', { defaultValue: 'La description est requise' }) });
     }
 
     if (!incident.severity) {
-        errors.push({ field: 'severity', message: 'La sévérité est requise' });
+        errors.push({ field: 'severity', message: i18n.t('validation.severityRequired', { defaultValue: 'La sévérité est requise' }) });
     }
 
     if (!incident.category) {
-        errors.push({ field: 'category', message: 'La catégorie est requise' });
+        errors.push({ field: 'category', message: i18n.t('validation.categoryRequired', { defaultValue: 'La catégorie est requise' }) });
     }
 
     if (!incident.dateReported) {
-        errors.push({ field: 'dateReported', message: 'La date de détection est requise' });
+        errors.push({ field: 'dateReported', message: i18n.t('validation.detectionDateRequired', { defaultValue: 'La date de détection est requise' }) });
     }
 
     return errors;
@@ -196,19 +197,19 @@ export const validateSupplier = (supplier: Partial<Supplier>): ValidationError[]
     const errors: ValidationError[] = [];
 
     if (!supplier.name?.trim()) {
-        errors.push({ field: 'name', message: 'Le nom est requis' });
+        errors.push({ field: 'name', message: i18n.t('validation.nameRequired', { defaultValue: 'Le nom est requis' }) });
     }
 
     if (!supplier.category) {
-        errors.push({ field: 'category', message: 'La catégorie est requise' });
+        errors.push({ field: 'category', message: i18n.t('validation.categoryRequired', { defaultValue: 'La catégorie est requise' }) });
     }
 
     if (!supplier.criticality) {
-        errors.push({ field: 'criticality', message: 'La criticité est requise' });
+        errors.push({ field: 'criticality', message: i18n.t('validation.criticalityRequired', { defaultValue: 'La criticité est requise' }) });
     }
 
     if (supplier.contactEmail && !isValidEmail(supplier.contactEmail)) {
-        errors.push({ field: 'contactEmail', message: 'Email invalide' });
+        errors.push({ field: 'contactEmail', message: i18n.t('validation.invalidEmail', { defaultValue: 'Email invalide' }) });
     }
 
     return errors;
@@ -257,7 +258,7 @@ export const isValidFutureDate = (date: string): boolean => {
  */
 export const validateRequired = (value: unknown, fieldName: string): ValidationError | null => {
     if (value === undefined || value === null || value === '') {
-        return { field: fieldName, message: `${fieldName} est requis` };
+        return { field: fieldName, message: i18n.t('validation.fieldRequired', { defaultValue: `${fieldName} est requis`, field: fieldName }) };
     }
     return null;
 };
@@ -272,10 +273,10 @@ export const validateLength = (
     max?: number
 ): ValidationError | null => {
     if (min !== undefined && value.length < min) {
-        return { field: fieldName, message: `${fieldName} doit contenir au moins ${min} caractères` };
+        return { field: fieldName, message: i18n.t('validation.minLength', { defaultValue: `${fieldName} doit contenir au moins ${min} caractères`, field: fieldName, count: min }) };
     }
     if (max !== undefined && value.length > max) {
-        return { field: fieldName, message: `${fieldName} ne peut pas dépasser ${max} caractères` };
+        return { field: fieldName, message: i18n.t('validation.maxLength', { defaultValue: `${fieldName} ne doit pas dépasser ${max} caractères`, field: fieldName, count: max }) };
     }
     return null;
 };
@@ -290,10 +291,10 @@ export const validateRange = (
     max?: number
 ): ValidationError | null => {
     if (min !== undefined && value < min) {
-        return { field: fieldName, message: `${fieldName} doit être au moins ${min}` };
+        return { field: fieldName, message: i18n.t('validation.minValue', { defaultValue: `${fieldName} doit être au moins ${min}`, field: fieldName, min }) };
     }
     if (max !== undefined && value > max) {
-        return { field: fieldName, message: `${fieldName} ne peut pas dépasser ${max}` };
+        return { field: fieldName, message: i18n.t('validation.maxValue', { defaultValue: `${fieldName} ne doit pas dépasser ${max}`, field: fieldName, max }) };
     }
     return null;
 };

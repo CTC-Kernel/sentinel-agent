@@ -47,7 +47,6 @@
     "retry": "Erneut versuchen",
     "back": "Zurück",
     "closeMenu": "Menü schließen",
-    "mandatory": "Pflicht",
     "close": "Schließen",
     "agents": "Agenten",
     "threat-intelligence": "Bedrohungsinformationen",
@@ -139,7 +138,6 @@
     },
     "action": "Aktion",
     "address": "Adresse",
-    "all": "Alle",
     "done": "Erledigt",
     "and": "und",
     "category": "Kategorie",
@@ -219,7 +217,6 @@
     },
     "pricingTitle": "Pläne & Preise",
     "pricingSubtitle": "Flexible Lösungen zur Absicherung Ihres Unternehmens, vom Start-up bis zum Großkonzern.",
-    "operations": "Betrieb",
     "adminSec": "Admin & Sicherheit",
     "feat_dashboard": "Dashboards",
     "feat_projects": "Projekte",
@@ -593,9 +590,7 @@
       "scanQr": "QR-Code scannen",
       "verifyCode": "Verifizierungscode (6 Stellen)",
       "verify": "Verifizieren",
-      "cancel": "Abbrechen",
-      "mfaSuccess": "MFA erfolgreich aktiviert",
-      "mfaDisabled": "MFA deaktiviert"
+      "cancel": "Abbrechen"
     },
     "integrationsPage": {
       "googleCalendar": "Google Kalender",
@@ -692,12 +687,6 @@
       "management": "Verwaltung",
       "alerts": "Warnungen",
       "global": "Global"
-    },
-    "groups": {
-      "navigation": "Navigation",
-      "actions": "Aktionen",
-      "recentlyVisited": "Kürzlich besucht",
-      "search": "Suche"
     }
   },
   "risks": {
@@ -705,109 +694,38 @@
     "subtitle": "Identifizieren, bewerten und behandeln Sie Cyberrisiken.",
     "title_exec": "Risikoübersicht",
     "subtitle_exec": "Gesamtübersicht der kritischen Risiken und Exposition.",
-    "addRisk": "Risiko hinzufügen",
-    "editRisk": "Risiko bearbeiten",
     "newRisk": "Neues Risiko",
-    "name": "Risikoname",
-    "description": "Beschreibung",
-    "owner": "Eigentümer",
-    "scenario": "Szenario",
-    "category": "Kategorie",
-    "status": "Status",
-    "impact": "Auswirkung",
-    "likelihood": "Wahrscheinlichkeit",
-    "inherentRisk": "Bruttorisiko",
-    "residualRisk": "Nettorisiko",
-    "treatment": "Behandlung",
-    "treatmentPlan": "Behandlungsplan",
-    "controlEffectiveness": "Kontrollwirksamkeit",
-    "riskScore": "Risiko-Score",
-    "riskLevel": "Risikoniveau",
-    "mitigationActions": "Mitigationsmaßnahmen",
-    "acceptedBy": "Akzeptiert von",
-    "acceptedDate": "Akzeptierungsdatum",
-    "reviewDate": "Überprüfungsdatum",
-    "createdAt": "Erstellt am",
-    "updatedAt": "Aktualisiert am",
-    "linkedControls": "Verknüpfte Kontrollen",
-    "linkedAssets": "Verknüpfte Assets",
-    "noRisks": "Keine Risiken gefunden",
-    "noRisksDesc": "Beginnen Sie mit der Erstellung eines neuen Risikos.",
-    "deleteConfirm": "Sind Sie sicher, dass Sie dieses Risiko löschen möchten?",
-    "deleteSuccess": "Risiko erfolgreich gelöscht",
-    "createSuccess": "Risiko erfolgreich erstellt",
-    "updateSuccess": "Risiko erfolgreich aktualisiert",
-    "searchPlaceholder": "Risiken suchen...",
-    "filterByStatus": "Nach Status filtern",
-    "filterByCategory": "Nach Kategorie filtern",
-    "filterByOwner": "Nach Eigentümer filtern",
-    "exportCsv": "CSV exportieren",
-    "exportPdf": "PDF exportieren",
-    "riskMatrix": "Risikomatrix",
-    "riskRegister": "Risikoregister",
-    "riskHeatmap": "Risiko-Heatmap",
-    "topRisks": "Top-Risiken",
-    "riskTrend": "Risikotrend",
-    "totalRisks": "Gesamtrisiken",
-    "criticalRisks": "Kritische Risiken",
-    "highRisks": "Hohe Risiken",
-    "mediumRisks": "Mittlere Risiken",
-    "lowRisks": "Niedrige Risiken",
-    "acceptedRisks": "Akzeptierte Risiken",
-    "mitigatedRisks": "Mitigierte Risiken",
-    "transferredRisks": "Übertragene Risiken",
-    "avoidedRisks": "Vermiedene Risiken",
-    "gross": "Brutto",
-    "net": "Netto",
-    "brut": "Brutto",
-    "validation_justification": "Eine detaillierte Begründung ist erforderlich, um ein kritisches Risiko zu akzeptieren (Score ≥ 12).",
-    "statuses": {
+    "status": {
       "open": "Offen",
-      "in_progress": "In Bearbeitung",
-      "mitigated": "Mitigiert",
-      "accepted": "Akzeptiert",
-      "closed": "Geschlossen",
-      "identified": "Identifiziert",
-      "under_review": "In Überprüfung"
+      "processed": "Berücksichtigt",
+      "treated": "Behandelt",
+      "closed": "Abgeschlossen"
     },
-    "treatments": {
-      "mitigate": "Mitigieren",
-      "accept": "Akzeptieren",
-      "transfer": "Übertragen",
-      "avoid": "Vermeiden"
+    "impact": "Auswirkung",
+    "treatment": {
+      "actions_title": "Behandlungsmaßnahmen",
+      "progress": "Fortschritt",
+      "no_actions": "Keine Behandlungsmaßnahmen definiert. Fügen Sie Maßnahmen hinzu, um die Umsetzung des Plans zu verfolgen.",
+      "add_action": "Maßnahme hinzufügen",
+      "edit_action": "Maßnahme bearbeiten",
+      "delete_action": "Maßnahme löschen",
+      "new_action": "Neue Maßnahme",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "title_label": "Titel",
+      "description_label": "Beschreibung",
+      "owner_label": "Verantwortlicher",
+      "deadline_label": "Frist",
+      "status_label": "Status",
+      "not_assigned": "Nicht zugewiesen",
+      "late": "Überfällig",
+      "today": "Heute",
+      "placeholder_title": "z.B.: Sicherheitsrichtlinie aktualisieren",
+      "placeholder_description": "Beschreiben Sie die durchzuführende Maßnahme..."
     },
-    "categories": {
-      "operational": "Operationell",
-      "strategic": "Strategisch",
-      "financial": "Finanziell",
-      "compliance": "Compliance",
-      "technical": "Technisch",
-      "cyber": "Cyber",
-      "reputational": "Reputationsbezogen"
-    },
-    "form": {
-      "nameLabel": "Risikoname",
-      "namePlaceholder": "Risiko eingeben...",
-      "descriptionLabel": "Beschreibung",
-      "descriptionPlaceholder": "Risiko beschreiben...",
-      "scenarioLabel": "Bedrohungsszenario",
-      "scenarioPlaceholder": "Szenario beschreiben...",
-      "categoryLabel": "Kategorie",
-      "ownerLabel": "Risiko-Eigentümer",
-      "impactLabel": "Auswirkung",
-      "likelihoodLabel": "Wahrscheinlichkeit",
-      "treatmentLabel": "Behandlungsstrategie",
-      "statusLabel": "Status",
-      "linkedAssetsLabel": "Verknüpfte Assets",
-      "linkedControlsLabel": "Verknüpfte Kontrollen"
-    },
-    "inspector": {
-      "overview": "Übersicht",
-      "details": "Details",
-      "treatment": "Behandlung",
-      "history": "Verlauf",
-      "comments": "Kommentare"
-    },
+    "searchPlaceholder": "Risiken suchen...",
+    "exportCsv": "CSV exportieren",
+    "validation_justification": "Eine detaillierte Begründung ist erforderlich, um ein kritisches Risiko zu akzeptieren (Score ≥ 12).",
     "title_admin": "Risikoregister & Exposition",
     "subtitle_admin": "Steuern Sie Identifizierung, Bewertung und Behandlung kritischer Risiken.",
     "tabs": {
@@ -851,12 +769,6 @@
     "emptyDesc": "Ihr Risikoregister ist leer. Beginnen Sie mit dem Hinzufügen einer neuen Bedrohung.",
     "validation_residual": "Das Restrisiko (Ziel) darf nicht höher sein als das Bruttorisiko (inhärent).",
     "aiPrompt": "Analysieren Sie diese Liste von {{count}} Risiken. Geben Sie mir 3 Kernpunkte zu den Hauptbedrohungen und eine strategische Empfehlung. Kurzformat.",
-    "status": {
-      "open": "Offen",
-      "processed": "Berücksichtigt",
-      "treated": "Behandelt",
-      "closed": "Abgeschlossen"
-    },
     "frameworks": {
       "ISO27001": "ISO 27001",
       "iso27001": "ISO 27001",
@@ -871,77 +783,20 @@
       "accept": "Akzeptieren",
       "avoid": "Vermeiden",
       "transfer": "Übertragen"
-    },
-    "treatment": {
-      "actions_title": "Behandlungsmaßnahmen",
-      "progress": "Fortschritt",
-      "no_actions": "Keine Behandlungsmaßnahmen definiert. Fügen Sie Maßnahmen hinzu, um die Umsetzung des Plans zu verfolgen.",
-      "add_action": "Maßnahme hinzufügen",
-      "edit_action": "Maßnahme bearbeiten",
-      "delete_action": "Maßnahme löschen",
-      "new_action": "Neue Maßnahme",
-      "save": "Speichern",
-      "cancel": "Abbrechen",
-      "title_label": "Titel",
-      "description_label": "Beschreibung",
-      "owner_label": "Verantwortlicher",
-      "deadline_label": "Frist",
-      "status_label": "Status",
-      "not_assigned": "Nicht zugewiesen",
-      "late": "Überfällig",
-      "today": "Heute",
-      "placeholder_title": "z.B.: Sicherheitsrichtlinie aktualisieren",
-      "placeholder_description": "Beschreiben Sie die durchzuführende Maßnahme..."
     }
   },
   "assets": {
     "title": "Asset-Management",
-    "subtitle": "Inventar und Klassifizierung von Assets.",
-    "addAsset": "Asset hinzufügen",
     "editAsset": "Asset bearbeiten",
     "newAsset": "Neues Asset",
-    "name": "Asset-Name",
     "description": "Beschreibung",
-    "type": "Asset-Typ",
-    "category": "Kategorie",
-    "owner": "Eigentümer",
-    "location": "Standort",
-    "status": "Status",
-    "criticality": "Kritikalität",
-    "confidentiality": "Vertraulichkeit",
-    "integrity": "Integrität",
-    "availability": "Verfügbarkeit",
-    "value": "Wert",
-    "noAssets": "Keine Assets gefunden",
-    "noAssetsDesc": "Beginnen Sie mit der Erstellung eines neuen Assets.",
+    "status": {
+      "new": "Neu",
+      "inService": "In Betrieb"
+    },
     "deleteConfirm": "Sind Sie sicher, dass Sie dieses Asset löschen möchten?",
-    "deleteSuccess": "Asset erfolgreich gelöscht",
-    "createSuccess": "Asset erfolgreich erstellt",
-    "updateSuccess": "Asset erfolgreich aktualisiert",
     "searchPlaceholder": "Assets suchen...",
     "exportCsv": "CSV exportieren",
-    "totalAssets": "Gesamte Assets",
-    "criticalAssets": "Kritische Assets",
-    "types": {
-      "hardware": "Hardware",
-      "software": "Software",
-      "data": "Daten",
-      "service": "Dienst",
-      "personnel": "Personal",
-      "location": "Standort",
-      "network": "Netzwerk",
-      "server": "Server",
-      "application": "Anwendung",
-      "database": "Datenbank",
-      "SaaS": "SaaS"
-    },
-    "lifecycleStatuses": {
-      "active": "Aktiv",
-      "inactive": "Inaktiv",
-      "retired": "Außer Betrieb",
-      "in_service": "In Betrieb",
-      "maintenance": "Wartung"
-    },
     "new": "Neu",
     "createAsset": "Asset erstellen",
     "delete": "Löschen",
@@ -972,11 +827,16 @@
     "emptyDescSearch": "Kein Asset entspricht Ihrer Suche.",
     "advancedFilters": "Erweiterte Filter",
     "startTour": "Geführte Tour starten",
-    "status": {
-      "new": "Neu",
-      "inService": "In Betrieb"
-    },
-    "csvHeaders": ["Name", "Typ", "Status", "Kritikalität", "Eigentümer", "Standort", "Wert", "Garantieende"],
+    "csvHeaders": [
+      "Name",
+      "Typ",
+      "Status",
+      "Kritikalität",
+      "Eigentümer",
+      "Standort",
+      "Wert",
+      "Garantieende"
+    ],
     "warrantyExp": "Garantieablauf",
     "lifecycle": {
       "title": "Wartung & Lebenszyklus",
@@ -985,7 +845,12 @@
       "history": "Wartungsverlauf",
       "addMaintenance": "Wartung hinzufügen",
       "type": "Typ",
-      "types": { "preventive": "Präventiv", "corrective": "Korrektiv", "update": "Aktualisierung", "inspection": "Inspektion" },
+      "types": {
+        "preventive": "Präventiv",
+        "corrective": "Korrektiv",
+        "update": "Aktualisierung",
+        "inspection": "Inspektion"
+      },
       "description": "Details / Beschreibung",
       "technician": "Techniker",
       "cost": "Kosten (EUR)",
@@ -1067,44 +932,16 @@
       "nextDate": "Nächste Bewertung",
       "saving": "Wird gespeichert...",
       "save": "Speichern",
-      "methods": { "documentation": "Dokumentenprüfung", "interview": "Interview", "testing": "Technischer Test", "observation": "Beobachtung", "audit": "Internes Audit" }
+      "methods": {
+        "documentation": "Dokumentenprüfung",
+        "interview": "Interview",
+        "testing": "Technischer Test",
+        "observation": "Beobachtung",
+        "audit": "Internes Audit"
+      }
     },
-    "requirements": "Anforderungen",
-    "evidence": "Nachweise",
-    "score": "Compliance-Score",
-    "progress": "Fortschritt",
-    "status": "Status",
-    "framework": "Framework",
-    "domain": "Bereich",
-    "control": "Kontrolle",
-    "implemented": "Implementiert",
-    "partiallyImplemented": "Teilweise implementiert",
-    "notImplemented": "Nicht implementiert",
-    "notApplicable": "Nicht anwendbar",
-    "totalControls": "Gesamte Kontrollen",
-    "implementedControls": "Implementierte Kontrollen",
-    "pendingControls": "Ausstehende Kontrollen",
-    "complianceRate": "Compliance-Rate",
-    "lastReview": "Letzte Überprüfung",
-    "nextReview": "Nächste Überprüfung",
-    "addEvidence": "Nachweis hinzufügen",
-    "viewEvidence": "Nachweise ansehen",
-    "noEvidence": "Keine Nachweise",
-    "controlDetails": "Kontrolldetails",
-    "implementationStatus": "Implementierungsstatus",
-    "justification": "Begründung",
-    "linkedRisks": "Verknüpfte Risiken",
-    "linkedAssets": "Verknüpfte Assets",
     "riskCreated": "Risiko erstellt",
-    "auditCreated": "Audit erstellt",
-    "statuses": {
-      "non_started": "Nicht begonnen",
-      "in_progress": "In Bearbeitung",
-      "implemented": "Implementiert",
-      "partial": "Teilweise",
-      "not_applicable": "Nicht anwendbar",
-      "excluded": "Ausgeschlossen"
-    }
+    "auditCreated": "Audit erstellt"
   },
   "audits": {
     "title": "Audits",
@@ -1116,11 +953,9 @@
     "actions": {
       "assignPartner": "Partner zuweisen"
     },
-    "addAudit": "Audit hinzufügen",
     "editAudit": "Audit bearbeiten",
     "newAudit": "Neues Audit",
     "list": "Audit-Liste",
-    "name": "Audit-Name",
     "type": {
       "internal": "Intern",
       "external": "Extern (Zertifizierung)",
@@ -1133,22 +968,8 @@
       "completed": "Abgeschlossen",
       "finished": "Abgeschlossen"
     },
-    "startDate": "Startdatum",
-    "endDate": "Enddatum",
-    "auditor": "Auditor",
-    "scope": "Umfang",
     "findings": "Feststellungen",
-    "recommendations": "Empfehlungen",
-    "noAudits": "Keine Audits gefunden",
-    "noAuditsDesc": "Planen Sie Ihr erstes Audit.",
-    "deleteConfirm": "Sind Sie sicher, dass Sie dieses Audit löschen möchten?",
-    "deleteSuccess": "Audit erfolgreich gelöscht",
-    "createSuccess": "Audit erfolgreich erstellt",
-    "updateSuccess": "Audit erfolgreich aktualisiert",
     "searchPlaceholder": "Audits suchen...",
-    "totalAudits": "Gesamte Audits",
-    "plannedAudits": "Geplante Audits",
-    "completedAudits": "Abgeschlossene Audits",
     "tabs": {
       "dashboard": "Dashboard",
       "details": "Details",
@@ -1256,40 +1077,20 @@
           "low": "Niedrig"
         }
       }
-    },
-    "types": {
-      "internal": "Intern",
-      "external": "Extern",
-      "certification": "Zertifizierung",
-      "surveillance": "Überwachung",
-      "supplier": "Lieferant"
-    },
-    "statuses": {
-      "planned": "Geplant",
-      "in_progress": "In Bearbeitung",
-      "completed": "Abgeschlossen",
-      "cancelled": "Abgebrochen"
     }
   },
   "incidents": {
     "title": "Vorfallsmanagement",
     "subtitle": "Reagieren Sie auf Warnungen, qualifizieren Sie Vorfälle und steuern Sie die Krisenbewältigung.",
-    "addIncident": "Vorfall hinzufügen",
-    "editIncident": "Vorfall bearbeiten",
     "newIncident": "Neuer Vorfall",
     "declare": "Vorfall melden",
     "importSiem": "SIEM importieren",
-    "name": "Vorfallname",
-    "description": "Beschreibung",
-    "type": "Vorfalltyp",
-    "severity": "Schweregrad",
-    "reportedBy": "Gemeldet von",
-    "reportedDate": "Meldedatum",
-    "resolvedDate": "Lösungsdatum",
-    "assignedTo": "Zugewiesen an",
-    "rootCause": "Ursache",
-    "impact": "Auswirkung",
-    "resolution": "Lösung",
+    "severity": {
+      "critical": "Kritisch",
+      "high": "Hoch",
+      "medium": "Mittel",
+      "low": "Niedrig"
+    },
     "activeIncidents": "Aktive Vorfälle",
     "toTreat": "Zu behandeln",
     "critical": "Kritisch",
@@ -1304,16 +1105,10 @@
     "viewGrid": "Raster",
     "tools": "Werkzeuge",
     "simulateAttack": "Angriff simulieren",
-    "noIncidents": "Keine Vorfälle gefunden",
-    "noIncidentsDesc": "Keine aktiven Sicherheitsvorfälle.",
     "deleteTitle": "Vorfall löschen?",
     "deleteMessage": "Diese Aktion ist unwiderruflich.",
     "deleteBulkTitle": "Auswahl löschen?",
     "deleteBulkMessage": "Möchten Sie die ausgewählten Vorfälle löschen?",
-    "deleteConfirm": "Sind Sie sicher, dass Sie diesen Vorfall löschen möchten?",
-    "deleteSuccess": "Vorfall erfolgreich gelöscht",
-    "createSuccess": "Vorfall erfolgreich erstellt",
-    "updateSuccess": "Vorfall erfolgreich aktualisiert",
     "toastDeclared": "Vorfall gemeldet",
     "toastDeleted": "Vorfall gelöscht",
     "toastBulkDeleted": "Vorfälle gelöscht",
@@ -1322,33 +1117,10 @@
     "toastSim": "Simulation gestartet",
     "confirmDelete": "Löschen",
     "cancel": "Abbrechen",
-    "searchPlaceholder": "Vorfälle suchen...",
-    "totalIncidents": "Gesamte Vorfälle",
-    "openIncidents": "Offene Vorfälle",
-    "resolvedIncidents": "Gelöste Vorfälle",
     "status": {
       "new": "Neu",
       "analysis": "Analyse",
       "containment": "Eingedämmt",
-      "resolved": "Gelöst",
-      "closed": "Geschlossen"
-    },
-    "severity": {
-      "critical": "Kritisch",
-      "high": "Hoch",
-      "medium": "Mittel",
-      "low": "Niedrig"
-    },
-    "severities": {
-      "critical": "Kritisch",
-      "high": "Hoch",
-      "medium": "Mittel",
-      "low": "Niedrig"
-    },
-    "statuses": {
-      "open": "Offen",
-      "investigating": "Untersuchung",
-      "contained": "Eingedämmt",
       "resolved": "Gelöst",
       "closed": "Geschlossen"
     },
@@ -1392,27 +1164,10 @@
     "title_user": "Meine Lieferanten",
     "subtitle_user": "Sehen Sie die relevanten Lieferanten und Kontakte für Ihren Zuständigkeitsbereich ein.",
     "title_audit": "Zu auditierende Lieferanten",
-    "addSupplier": "Lieferant hinzufügen",
     "editSupplier": "Lieferant bearbeiten",
     "newSupplier": "Neuer Lieferant",
     "newSupplierSubtitle": "Neuen Drittanbieter hinzufügen",
-    "name": "Lieferantenname",
-    "type": "Typ",
-    "status": "Status",
-    "riskLevel": "Risikoniveau",
-    "contactName": "Ansprechpartner",
-    "contactEmail": "Kontakt-E-Mail",
-    "contractEnd": "Vertragsende",
-    "lastAssessment": "Letzte Bewertung",
-    "noSuppliers": "Keine Lieferanten gefunden",
-    "noSuppliersDesc": "Fügen Sie Ihren ersten Lieferanten hinzu.",
-    "deleteConfirm": "Sind Sie sicher, dass Sie diesen Lieferanten löschen möchten?",
-    "deleteSuccess": "Lieferant erfolgreich gelöscht",
-    "createSuccess": "Lieferant erfolgreich erstellt",
-    "updateSuccess": "Lieferant erfolgreich aktualisiert",
     "searchPlaceholder": "Lieferanten suchen...",
-    "totalSuppliers": "Gesamte Lieferanten",
-    "criticalSuppliers": "Kritische Lieferanten",
     "deleteTitle": "{name} löschen?",
     "deleteMessage": "Diese Aktion ist endgültig und löscht alle mit diesem Lieferanten verknüpften Daten.",
     "deleteWarning": "Achtung: Dieser Lieferant ist mit folgenden Elementen verknüpft:\n{details}\nDas Löschen entfernt den Lieferanten aus diesen Elementen.",
@@ -1467,23 +1222,14 @@
   "documents": {
     "title": "Dokumentenbasis",
     "subtitle": "Zentralisieren Sie Ihre Richtlinien, Verfahren und Nachweise (ISO 27001).",
-    "addDocument": "Dokument hinzufügen",
-    "uploadDocument": "Dokument hochladen",
     "newDocument": "Neues Dokument",
-    "name": "Dokumentname",
-    "type": "Dokumenttyp",
-    "status": "Status",
-    "version": "Version",
-    "owner": "Eigentümer",
-    "lastModified": "Zuletzt geändert",
-    "noDocuments": "Keine Dokumente gefunden",
-    "noDocumentsDesc": "Laden Sie Ihr erstes Dokument hoch.",
-    "deleteConfirm": "Sind Sie sicher, dass Sie dieses Dokument löschen möchten?",
-    "deleteSuccess": "Dokument erfolgreich gelöscht",
-    "createSuccess": "Dokument erfolgreich erstellt",
-    "updateSuccess": "Dokument erfolgreich aktualisiert",
+    "status": {
+      "draft": "Entwurf",
+      "inReview": "In Prüfung",
+      "approved": "Genehmigt",
+      "published": "Veröffentlicht"
+    },
     "searchPlaceholder": "Dokumente suchen...",
-    "totalDocuments": "Gesamte Dokumente",
     "overview": "Übersicht",
     "list": "Liste",
     "folderTree": "Verzeichnisstruktur",
@@ -1498,12 +1244,6 @@
     "published": "Veröffentlicht",
     "emptyTitle": "Keine Dokumente",
     "emptyDesc": "Beginnen Sie mit dem Hinzufügen einer Richtlinie oder eines Verfahrens.",
-    "status": {
-      "draft": "Entwurf",
-      "inReview": "In Prüfung",
-      "approved": "Genehmigt",
-      "published": "Veröffentlicht"
-    },
     "category": {
       "policy": "Richtlinie",
       "procedure": "Verfahren",
@@ -1519,29 +1259,13 @@
     "subtitle": "Verwalten Sie Ihre Sicherheitsprojekte und deren Compliance (Security by Design).",
     "newProject": "Neues Projekt",
     "editProject": "Projekt bearbeiten",
-    "addProject": "Projekt hinzufügen",
     "create": "Projekt erstellen",
     "createAction": "Erstellen",
     "createFromTemplate": "Aus Vorlage erstellen",
-    "name": "Projektname",
-    "description": "Beschreibung",
     "status": {
       "suspended": "Ausgesetzt"
     },
-    "startDate": "Startdatum",
-    "endDate": "Enddatum",
-    "manager": "Projektleiter",
-    "progress": "Fortschritt",
-    "noProjects": "Keine Projekte gefunden",
-    "noProjectsDesc": "Erstellen Sie Ihr erstes Projekt.",
-    "deleteConfirm": "Sind Sie sicher, dass Sie dieses Projekt löschen möchten?",
-    "deleteSuccess": "Projekt erfolgreich gelöscht",
-    "createSuccess": "Projekt erfolgreich erstellt",
-    "updateSuccess": "Projekt erfolgreich aktualisiert",
     "searchPlaceholder": "Projekte suchen...",
-    "totalProjects": "Gesamte Projekte",
-    "activeProjects": "Aktive Projekte",
-    "completedProjects": "Abgeschlossene Projekte",
     "emptyTitle": "Keine Projekte",
     "emptyDesc": "Starten Sie ein neues Projekt oder importieren Sie eines.",
     "overview": "Übersicht",
@@ -1589,15 +1313,8 @@
   "continuity": {
     "title": "Geschäftskontinuität",
     "subtitle": "Analysieren Sie die Auswirkungen (BIA) und bereiten Sie Ihre Notfallpläne (BCM/DRP) vor.",
-    "bia": "Business Impact Analyse",
-    "bcp": "Kontinuitätsplan",
-    "drp": "Disaster Recovery Plan",
     "rto": "RTO (Recovery Time Obj.)",
     "rpo": "RPO (Recovery Point Obj.)",
-    "mtpd": "MTPD",
-    "criticalProcesses": "Kritische Prozesse",
-    "recoveryStrategies": "Wiederherstellungsstrategien",
-    "testResults": "Testergebnisse",
     "newProcess": "Neuer Prozess",
     "createProcess": "Prozess erstellen",
     "editProcess": "Prozess bearbeiten",
@@ -1632,7 +1349,10 @@
       "bestPractices": "Best Practices"
     },
     "keywords": "Geschäftskontinuität, BCM, DRP, BIA, Krisenmanagement, Resilienz",
-    "placeholders": { "name": "z.B.: Online-Zahlung", "description": "Prozessbeschreibung..." },
+    "placeholders": {
+      "name": "z.B.: Online-Zahlung",
+      "description": "Prozessbeschreibung..."
+    },
     "assetsSupport": "Unterstützende Assets",
     "selectAssets": "Assets auswählen",
     "criticalDependencies": "Kritische Abhängigkeiten",
@@ -1675,12 +1395,6 @@
     "deleteTitle": "Aktivität löschen?",
     "deleteMessage": "Diese Aktion ist unwiderruflich.",
     "breadcrumb": "Datenschutz",
-    "dataMapping": "Datenmapping",
-    "processingActivities": "Verarbeitungstätigkeiten",
-    "dpia": "Datenschutz-Folgenabschätzung",
-    "dataSubjectRequests": "Betroffenenanfragen",
-    "consentManagement": "Einwilligungsmanagement",
-    "breachNotification": "Verletzungsmeldung",
     "newActivity": "Neue Aktivität",
     "newActivitySubtitle": "Neue Datenverarbeitung deklarieren",
     "registryLabel": "Verarbeitungsverzeichnis",
@@ -1700,17 +1414,8 @@
     "emptyDescription": "Ihr Verarbeitungsverzeichnis ist leer."
   },
   "dashboard": {
-    "title": "Dashboard",
-    "subtitle": "Übersicht Ihrer GRC-Postur.",
-    "welcome": "Willkommen zurück",
-    "overview": "Übersicht",
     "recentActivity": "Aktuelle Aktivität",
-    "quickActions": "Schnellaktionen",
     "complianceScore": "Compliance-Score",
-    "riskExposure": "Risikoexposition",
-    "openIncidents": "Offene Vorfälle",
-    "pendingTasks": "Ausstehende Aufgaben",
-    "upcomingAudits": "Anstehende Audits",
     "widgetCategories": {
       "scoreKpi": "Kennzahlen & Scores",
       "risks": "Risiken",
@@ -1745,34 +1450,90 @@
       "fleetMaturity": "Flottenreifegrad"
     },
     "widgets": {
-      "stats-overview": { "description": "Gesamtübersicht der Schlüsselindikatoren." },
-      "my-workspace": { "description": "Ihre Aufgaben und sofortigen Aktionen." },
-      "compliance-evolution": { "description": "Compliance-Entwicklung im Zeitverlauf." },
-      "health-check": { "description": "Globaler Systemzustand." },
-      "priority-risks": { "description": "Fokus auf die kritischsten Risiken." },
-      "recent-activity": { "description": "Letzte Aktionen auf der Plattform." },
-      "maturity-radar": { "description": "Reifegrad nach Bereich." },
-      "cyber-news": { "description": "Cybersicherheits-Nachrichtenfeed." },
-      "risk-heatmap": { "description": "Risikomatrix (Auswirkung x Wahrscheinlichkeit)." },
-      "audits-donut": { "description": "Aufteilung der Audits nach Status." },
-      "project-tasks": { "description": "Fortschritt der Projektaufgaben." },
-      "incidents-stats": { "description": "Metriken zu Sicherheitsvorfällen." },
-      "documents-stats": { "description": "Status der Dokumentenbasis." },
-      "compliance-progress": { "description": "Fortschritt der Compliance-Umsetzung." },
-      "asset-stats": { "description": "Verteilung und Kritikalität der Assets." },
-      "suppliers-stats": { "description": "Überwachung der Lieferanten und ihrer Compliance." },
-      "continuity-plans": { "description": "Status der Kontinuitätspläne und Übungen." },
-      "system-health": { "description": "Globaler Systemzustand." },
-      "nis2-dora-kpi": { "description": "Konfiguration der NIS2- und DORA-Standards." },
-      "compliance-score": { "description": "Globaler Compliance-Score." },
-      "executive-kpi": { "description": "Führungskennzahlen für die Geschäftsleitung." },
-      "rssi-critical-risks": { "description": "Fokus auf kritische Risiken für den CISO." },
-      "rssi-incidents": { "description": "Aktuelle Sicherheitsvorfälle." },
-      "rssi-actions": { "description": "Prioritäre Aktionen des CISO." },
-      "pm-actions-overdue": { "description": "Liste überfälliger Projektaktionen." },
-      "pm-timeline": { "description": "Zeitplan laufender Projekte." },
-      "pm-progress": { "description": "Globaler Projektfortschritt." },
-      "agent-maturity-radar": { "description": "360°-Ansicht des Reifegrads und Zustands der Agentenflotte." }
+      "stats-overview": {
+        "description": "Gesamtübersicht der Schlüsselindikatoren."
+      },
+      "my-workspace": {
+        "description": "Ihre Aufgaben und sofortigen Aktionen."
+      },
+      "compliance-evolution": {
+        "description": "Compliance-Entwicklung im Zeitverlauf."
+      },
+      "health-check": {
+        "description": "Globaler Systemzustand."
+      },
+      "priority-risks": {
+        "description": "Fokus auf die kritischsten Risiken."
+      },
+      "recent-activity": {
+        "description": "Letzte Aktionen auf der Plattform."
+      },
+      "maturity-radar": {
+        "description": "Reifegrad nach Bereich."
+      },
+      "cyber-news": {
+        "description": "Cybersicherheits-Nachrichtenfeed."
+      },
+      "risk-heatmap": {
+        "description": "Risikomatrix (Auswirkung x Wahrscheinlichkeit)."
+      },
+      "audits-donut": {
+        "description": "Aufteilung der Audits nach Status."
+      },
+      "project-tasks": {
+        "description": "Fortschritt der Projektaufgaben."
+      },
+      "incidents-stats": {
+        "description": "Metriken zu Sicherheitsvorfällen."
+      },
+      "documents-stats": {
+        "description": "Status der Dokumentenbasis."
+      },
+      "compliance-progress": {
+        "description": "Fortschritt der Compliance-Umsetzung."
+      },
+      "asset-stats": {
+        "description": "Verteilung und Kritikalität der Assets."
+      },
+      "suppliers-stats": {
+        "description": "Überwachung der Lieferanten und ihrer Compliance."
+      },
+      "continuity-plans": {
+        "description": "Status der Kontinuitätspläne und Übungen."
+      },
+      "system-health": {
+        "description": "Globaler Systemzustand."
+      },
+      "nis2-dora-kpi": {
+        "description": "Konfiguration der NIS2- und DORA-Standards."
+      },
+      "compliance-score": {
+        "description": "Globaler Compliance-Score."
+      },
+      "executive-kpi": {
+        "description": "Führungskennzahlen für die Geschäftsleitung."
+      },
+      "rssi-critical-risks": {
+        "description": "Fokus auf kritische Risiken für den CISO."
+      },
+      "rssi-incidents": {
+        "description": "Aktuelle Sicherheitsvorfälle."
+      },
+      "rssi-actions": {
+        "description": "Prioritäre Aktionen des CISO."
+      },
+      "pm-actions-overdue": {
+        "description": "Liste überfälliger Projektaktionen."
+      },
+      "pm-timeline": {
+        "description": "Zeitplan laufender Projekte."
+      },
+      "pm-progress": {
+        "description": "Globaler Projektfortschritt."
+      },
+      "agent-maturity-radar": {
+        "description": "360°-Ansicht des Reifegrads und Zustands der Agentenflotte."
+      }
     },
     "actions": {
       "USERS_CREATE": "Benutzer erstellt",
@@ -1937,11 +1698,19 @@
   },
   "notifications": {
     "title": "Benachrichtigungen",
-    "subtitle": "Bleiben Sie über wichtige Ereignisse informiert.",
-    "markAsRead": "Als gelesen markieren",
-    "markAllAsRead": "Alle als gelesen markieren",
-    "noNotifications": "Keine Benachrichtigungen",
-    "viewAll": "Alle anzeigen"
+    "subtitle": "Bleiben Sie über wichtige Aktivitäten informiert.",
+    "markAll": "Alle als gelesen markieren",
+    "searchPlaceholder": "Benachrichtigungen suchen...",
+    "filter": {
+      "all": "Alle",
+      "unread": "Ungelesen"
+    },
+    "empty": {
+      "title": "Keine Benachrichtigungen",
+      "desc": "Sie sind auf dem neuesten Stand! Keine neuen Aktivitäten zu melden.",
+      "descSearch": "Keine Ergebnisse für Ihre Suche."
+    },
+    "viewDetails": "Details anzeigen"
   },
   "auth": {
     "title": "Anmeldung",
@@ -1955,7 +1724,6 @@
     "apple": "Mit Apple fortfahren",
     "forgot": "Passwort vergessen?",
     "forgotPassword": "Passwort zurücksetzen",
-    "resetPassword": "Passwort zurücksetzen",
     "resetSent": "E-Mail zum Zurücksetzen gesendet",
     "success": "Anmeldung erfolgreich",
     "created": "Konto erfolgreich erstellt",
@@ -1971,22 +1739,10 @@
     "profileLoadError": "Profil konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
     "accessDeniedOtherOrg": "Sie haben keinen Zugriff auf Ressourcen einer anderen Organisation.",
     "insufficientPermissions": "Sie haben nicht die erforderlichen Berechtigungen, um auf diese Seite zuzugreifen.",
-    "backToLogin": "Zurück zur Anmeldung",
-    "createAccount": "Konto erstellen",
-    "alreadyHaveAccount": "Haben Sie bereits ein Konto?",
-    "dontHaveAccount": "Kein Konto?",
-    "confirmPassword": "Passwort bestätigen",
-    "agreeTerms": "Ich akzeptiere die Nutzungsbedingungen",
     "errors": {
-      "invalidCredentials": "Ungültige Anmeldedaten",
       "invalid": "Ungültige Anmeldedaten",
-      "emailRequired": "E-Mail ist erforderlich",
-      "passwordRequired": "Passwort ist erforderlich",
-      "passwordMismatch": "Passwörter stimmen nicht überein",
-      "weakPassword": "Passwort ist zu schwach",
       "weak": "Passwort ist zu schwach",
       "emailInUse": "E-Mail wird bereits verwendet",
-      "networkError": "Netzwerkfehler",
       "google": "Google-Anmeldefehler",
       "generic": "Ein Fehler ist aufgetreten",
       "userNotFound": "Benutzer nicht gefunden",
@@ -2564,10 +2320,8 @@
       "subtitle": "Er wird {org} beitreten.",
       "name": "Vollständiger Name (Optional)",
       "email": "Geschäftliche E-Mail",
-      "emailPlaceholder": "mitarbeiter@firma.de",
       "role": "Rolle",
       "department": "Abteilung",
-      "selectRole": "Rolle auswählen...",
       "send": "Senden",
       "cancel": "Abbrechen",
       "success": "Einladung per E-Mail gesendet",
@@ -2583,19 +2337,11 @@
     },
     "columns": {
       "name": "Name",
-      "member": "Mitglied",
       "email": "E-Mail",
       "role": "Rolle",
       "dept": "Abteilung",
       "status": "Status",
-      "lastLogin": "Letzte Anmeldung",
-      "lastActivity": "Letzte Aktivität",
-      "actions": "Aktionen"
-    },
-    "status": {
-      "active": "Aktiv",
-      "inactive": "Inaktiv",
-      "pending": "Ausstehend"
+      "lastLogin": "Letzte Anmeldung"
     },
     "delete": {
       "title": "Benutzer löschen?",
@@ -2611,25 +2357,8 @@
     "empty": {
       "title": "Keine Mitglieder gefunden",
       "descSearch": "Kein Mitglied entspricht Ihrer Suche.",
-      "desc": "Laden Sie Mitarbeiter ein, um zusammenzuarbeiten.",
-      "description": "Laden Sie Ihr Team ein, um zusammenzuarbeiten."
+      "desc": "Laden Sie Mitarbeiter ein, um zusammenzuarbeiten."
     }
-  },
-  "notifications": {
-    "title": "Benachrichtigungen",
-    "subtitle": "Bleiben Sie über wichtige Aktivitäten informiert.",
-    "markAll": "Alle als gelesen markieren",
-    "searchPlaceholder": "Benachrichtigungen suchen...",
-    "filter": {
-      "all": "Alle",
-      "unread": "Ungelesen"
-    },
-    "empty": {
-      "title": "Keine Benachrichtigungen",
-      "desc": "Sie sind auf dem neuesten Stand! Keine neuen Aktivitäten zu melden.",
-      "descSearch": "Keine Ergebnisse für Ihre Suche."
-    },
-    "viewDetails": "Details anzeigen"
   },
   "activity": {
     "title": "Aktivitätsprotokoll",
@@ -2647,27 +2376,12 @@
       "undefined": "Undefiniert",
       "today": "Heute",
       "week": "Diese Woche",
-      "month": "Diesen Monat",
-      "create": "Erstellung",
-      "update": "Änderung",
-      "delete": "Löschung",
-      "login": "Anmeldung"
+      "month": "Diesen Monat"
     },
     "stats": {
       "today": "Aktionen heute",
       "admins": "Admin-Aktionen",
       "critical": "Kritische Aktionen"
-    },
-    "columns": {
-      "date": "Datum",
-      "user": "Benutzer",
-      "action": "Aktion",
-      "resource": "Ressource",
-      "details": "Details"
-    },
-    "empty": {
-      "title": "Keine Aktivitäten",
-      "description": "Es wurden noch keine Aktivitäten aufgezeichnet."
     }
   },
   "notFound": {
@@ -2802,8 +2516,14 @@
     "seoDescription": "Erstellen und verwalten Sie Ihre Compliance-Berichte und Auditnachweise.",
     "keywords": "GRC-Berichte, ISO 27001 Audit, Compliance-Nachweise, CISO-Reporting, SoA",
     "scheduleThis": "Diesen Bericht planen",
-    "badges": { "recommended": "Empfohlen", "complete": "Vollständig" },
-    "deleteScheduled": { "title": "Planung löschen?", "message": "Möchten Sie die automatische Berichtserstellung wirklich beenden?" },
+    "badges": {
+      "recommended": "Empfohlen",
+      "complete": "Vollständig"
+    },
+    "deleteScheduled": {
+      "title": "Planung löschen?",
+      "message": "Möchten Sie die automatische Berichtserstellung wirklich beenden?"
+    },
     "newReport": "Neuer Bericht",
     "generating": "Bericht wird erstellt...",
     "success": "Bericht erfolgreich erstellt",
@@ -2820,8 +2540,17 @@
     "history": "Verlauf",
     "templates": "Vorlagen",
     "scheduled": "Geplant",
-    "categories": { "compliance": "Compliance-Pakete", "executive": "Führungsberichte" },
-    "cols": { "name": "Berichtsname", "date": "Datum", "version": "Version", "author": "Autor", "actions": "Aktionen" },
+    "categories": {
+      "compliance": "Compliance-Pakete",
+      "executive": "Führungsberichte"
+    },
+    "cols": {
+      "name": "Berichtsname",
+      "date": "Datum",
+      "version": "Version",
+      "author": "Autor",
+      "actions": "Aktionen"
+    },
     "pdf": {
       "title": "Globaler Governance-Bericht",
       "subtitle": "Führungszusammenfassung und Leistungsindikatoren",
@@ -2941,7 +2670,11 @@
     "noResultsFiltered": "Ändern Sie Ihre Filter, um Ergebnisse anzuzeigen",
     "errorLoading": "Ladefehler",
     "errorLoadingHint": "Anforderungen konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
-    "criticality": { "high": "Hoch", "medium": "Mittel", "low": "Niedrig" },
+    "criticality": {
+      "high": "Hoch",
+      "medium": "Mittel",
+      "low": "Niedrig"
+    },
     "mandatory": "Verpflichtend",
     "linkedControls": "verknüpfte Kontrolle",
     "linkedControls_plural": "verknüpfte Kontrollen",
@@ -2957,7 +2690,12 @@
     "iso27002Controls": "ISO 27002 Kontrollen",
     "effectivenessTitle": "Wirksamkeit der Kontrollen",
     "effectivenessDescription": "Bewertung der Reife der Sicherheitskontrollen (ISO 27002)",
-    "status": { "compliant": "Konform", "partial": "Teilweise", "non_compliant": "Nicht konform", "not_assessed": "Nicht bewertet" }
+    "status": {
+      "compliant": "Konform",
+      "partial": "Teilweise",
+      "non_compliant": "Nicht konform",
+      "not_assessed": "Nicht bewertet"
+    }
   },
   "mapping": {
     "title": "Cross-Framework-Kartierung",
@@ -2984,14 +2722,12 @@
     "noResultsSearch": "Ändern Sie Ihre Suche, um Ergebnisse zu sehen",
     "noControls": "Keine Kontrollen erstellt",
     "noMappings": "Keine Zuordnungen",
-    "coverage": { "full": "Vollständige Abdeckung", "partial": "Teilweise Abdeckung", "none": "Keine Abdeckung", "not_assessed": "Nicht bewertet" }
-  },
-  "errors": {
-    "operationFailed": "Vorgang fehlgeschlagen",
-    "createFailed": "Erstellung fehlgeschlagen",
-    "updateFailed": "Aktualisierung fehlgeschlagen",
-    "deleteFailed": "Löschung fehlgeschlagen",
-    "permissionDenied": "Berechtigung verweigert"
+    "coverage": {
+      "full": "Vollständige Abdeckung",
+      "partial": "Teilweise Abdeckung",
+      "none": "Keine Abdeckung",
+      "not_assessed": "Nicht bewertet"
+    }
   },
   "smsi": {
     "newProgram": "Neues Programm",
@@ -3003,22 +2739,58 @@
     "pdcaCycle": "PDCA-Zyklus",
     "report": "Bericht",
     "objective": "Ziel",
-    "tabs": { "overview": "Übersicht", "planning": "Planung", "maturity": "Reifegrad", "certification": "Zertifizierung" },
+    "tabs": {
+      "overview": "Übersicht",
+      "planning": "Planung",
+      "maturity": "Reifegrad",
+      "certification": "Zertifizierung"
+    },
     "maturity": {
       "title": "ISMS-Reifegrad",
       "subtitle": "Bewertung des ISO 27001-Reifegrads",
       "phases": "Scores nach PDCA-Phase",
       "downloadReport": "Bericht",
       "legend": "Reifegradskala",
-      "levels": { "initial": "Initial", "managed": "Gemanagt", "defined": "Definiert", "quantitatively": "Beherrscht", "optimizing": "Optimierend" }
+      "levels": {
+        "initial": "Initial",
+        "managed": "Gemanagt",
+        "defined": "Definiert",
+        "quantitatively": "Beherrscht",
+        "optimizing": "Optimierend"
+      }
     },
-    "certification": { "title": "Zertifizierungsbereitschaft", "ready": "Bereit", "notReady": "Aktionen erforderlich", "checklist": "Zertifizierungscheckliste", "blockers": "Blockierende Punkte", "warnings": "Aufmerksamkeitspunkte", "strengths": "Stärken" },
+    "certification": {
+      "title": "Zertifizierungsbereitschaft",
+      "ready": "Bereit",
+      "notReady": "Aktionen erforderlich",
+      "checklist": "Zertifizierungscheckliste",
+      "blockers": "Blockierende Punkte",
+      "warnings": "Aufmerksamkeitspunkte",
+      "strengths": "Stärken"
+    },
     "recommendations": {
       "title": "Verbesserungsempfehlungen",
-      "priority": { "critical": "Kritisch", "high": "Hoch", "medium": "Mittel", "low": "Niedrig" },
-      "category": { "governance": "Governance", "risk": "Risiken", "operations": "Betrieb", "improvement": "Verbesserung", "documentation": "Dokumentation" }
+      "priority": {
+        "critical": "Kritisch",
+        "high": "Hoch",
+        "medium": "Mittel",
+        "low": "Niedrig"
+      },
+      "category": {
+        "governance": "Governance",
+        "risk": "Risiken",
+        "operations": "Betrieb",
+        "improvement": "Verbesserung",
+        "documentation": "Dokumentation"
+      }
     },
-    "dimensions": { "title": "Sicherheitsdimensionen", "governance": "Governance", "riskManagement": "Risikomanagement", "assetProtection": "Asset-Schutz", "continuousImprovement": "Kontinuierliche Verbesserung" }
+    "dimensions": {
+      "title": "Sicherheitsdimensionen",
+      "governance": "Governance",
+      "riskManagement": "Risikomanagement",
+      "assetProtection": "Asset-Schutz",
+      "continuousImprovement": "Kontinuierliche Verbesserung"
+    }
   },
   "riskContext": {
     "title": "Risikokontext",
@@ -3031,44 +2803,177 @@
     "operational": "Betriebsbereit",
     "servicesStatus": "Dienststatus",
     "recentAlerts": "Aktuelle Warnungen",
-    "metrics": { "activeUsers": "Aktive Benutzer", "totalAccounts": "Gesamtkonten", "systemLoad": "Systemlast", "cpuUsage": "CPU", "memory": "Speicher", "ramAllocated": "RAM zugewiesen", "latency": "Latenz", "globalPing": "Globaler Ping" },
-    "alerts": { "networkLatency": "Hohe Netzwerklatenz", "networkLatencyDesc": "Latenzspitze > 300ms erkannt.", "twoHoursAgo": "Vor 2 Stunden", "backupComplete": "Sicherung abgeschlossen", "backupCompleteDesc": "Tägliche Sicherung erfolgreich.", "fourHoursAgo": "Vor 4 Stunden" }
+    "metrics": {
+      "activeUsers": "Aktive Benutzer",
+      "totalAccounts": "Gesamtkonten",
+      "systemLoad": "Systemlast",
+      "cpuUsage": "CPU",
+      "memory": "Speicher",
+      "ramAllocated": "RAM zugewiesen",
+      "latency": "Latenz",
+      "globalPing": "Globaler Ping"
+    },
+    "alerts": {
+      "networkLatency": "Hohe Netzwerklatenz",
+      "networkLatencyDesc": "Latenzspitze > 300ms erkannt.",
+      "twoHoursAgo": "Vor 2 Stunden",
+      "backupComplete": "Sicherung abgeschlossen",
+      "backupCompleteDesc": "Tägliche Sicherung erfolgreich.",
+      "fourHoursAgo": "Vor 4 Stunden"
+    }
   },
   "errorLogger": {
-    "UNKNOWN_ERROR": { "message": "Ein unerwarteter Fehler ist aufgetreten", "hint": "Versuchen Sie, die Seite zu aktualisieren.", "action": "Aktualisieren" },
-    "NETWORK_ERROR": { "message": "Verbindung nicht möglich", "hint": "Überprüfen Sie Ihre Internetverbindung.", "action": "Erneut versuchen" },
-    "PERMISSION_DENIED": { "message": "Zugriff verweigert", "hint": "Sie haben nicht die erforderlichen Berechtigungen.", "action": "Meine Rechte anzeigen" },
-    "MISSING_INDEX": { "message": "Konfiguration läuft", "hint": "Die Datenbank wird konfiguriert. Bitte warten." },
-    "AUTH_FAILED": { "message": "Anmeldung nicht möglich", "hint": "Überprüfen Sie Ihre Anmeldedaten.", "action": "Zurücksetzen" },
-    "AUTH_EXPIRED": { "message": "Sitzung abgelaufen", "hint": "Bitte melden Sie sich erneut an.", "action": "Erneut anmelden" },
-    "AUTH_INVALID_EMAIL": { "message": "Ungültige E-Mail", "hint": "Format: beispiel@domain.de" },
-    "AUTH_INVALID_PASSWORD": { "message": "Falsches Passwort", "hint": "Min. 8 Zeichen, ein Großbuchstabe und eine Zahl.", "action": "Passwort vergessen?" },
-    "INVITE_FAILED": { "message": "Einladung fehlgeschlagen", "hint": "E-Mail prüfen oder Benutzer ist bereits Mitglied." },
-    "FETCH_FAILED": { "message": "Laden nicht möglich", "hint": "Daten konnten nicht abgerufen werden.", "action": "Erneut versuchen" },
-    "CREATE_FAILED": { "message": "Erstellung nicht möglich", "hint": "Pflichtfelder prüfen." },
-    "UPDATE_FAILED": { "message": "Aktualisierung nicht möglich", "hint": "Änderungen konnten nicht gespeichert werden." },
-    "DELETE_FAILED": { "message": "Löschung nicht möglich", "hint": "Element möglicherweise mit anderen Daten verknüpft." },
-    "EMAIL_SEND_FAILED": { "message": "E-Mail nicht gesendet", "hint": "E-Mail-Adresse prüfen." },
-    "VALIDATION_FAILED": { "message": "Ungültige Daten", "hint": "Rot markierte Felder korrigieren." },
-    "REQUIRED_FIELD": { "message": "Pflichtfeld", "hint": "Dieses Feld muss ausgefüllt werden." },
-    "INVALID_FORMAT": { "message": "Falsches Format", "hint": "Erwartetes Format prüfen." },
-    "FILE_UPLOAD_FAILED": { "message": "Hochladen fehlgeschlagen", "hint": "Max. 10 MB, zulässiges Format prüfen." },
-    "FILE_TOO_LARGE": { "message": "Datei zu groß", "hint": "Max. 10 MB." },
-    "FILE_INVALID_TYPE": { "message": "Format nicht unterstützt", "hint": "PDF, DOC, DOCX, XLS, XLSX, PNG, JPG." },
-    "QUOTA_EXCEEDED": { "message": "Kontingent erreicht", "hint": "Plan-Limit erreicht.", "action": "Pläne anzeigen" },
-    "RATE_LIMIT_EXCEEDED": { "message": "Zu viele Anfragen", "hint": "Bitte warten." },
-    "ASSET_NOT_FOUND": { "message": "Asset nicht gefunden", "hint": "Möglicherweise gelöscht.", "action": "Alle Assets" },
-    "RISK_NOT_FOUND": { "message": "Risiko nicht gefunden", "hint": "Möglicherweise archiviert.", "action": "Risiken anzeigen" },
-    "PROJECT_NOT_FOUND": { "message": "Projekt nicht gefunden", "hint": "Dieses Projekt wurde möglicherweise gelöscht oder Sie haben keinen Zugriff.", "action": "Projekte anzeigen" },
-    "DOCUMENT_NOT_FOUND": { "message": "Dokument nicht gefunden", "hint": "Dieses Dokument wurde möglicherweise gelöscht oder verschoben.", "action": "Dokumente anzeigen" },
-    "AUDIT_NOT_FOUND": { "message": "Audit nicht gefunden", "hint": "Dieses Audit wurde möglicherweise gelöscht oder archiviert.", "action": "Audits anzeigen" },
-    "SCAN_FAILED": { "message": "Scan fehlgeschlagen", "hint": "Der Sicherheitsscan konnte nicht durchgeführt werden. Überprüfen Sie die Asset-Konfiguration.", "action": "Konfigurieren" },
-    "REPORT_GENERATION_FAILED": { "message": "Erstellung fehlgeschlagen", "hint": "Der Bericht konnte nicht erstellt werden. Stellen Sie sicher, dass alle erforderlichen Daten verfügbar sind." },
-    "AI_ERROR": { "message": "KI-Analyse nicht verfügbar", "hint": "Der Analysedienst ist vorübergehend nicht verfügbar. Bitte versuchen Sie es später erneut." },
-    "HIBP_FAILED": { "message": "Überprüfung nicht möglich", "hint": "Der Dienst zur Überprüfung von Datenlecks ist nicht verfügbar." },
-    "DELETE_ACCOUNT_FAILED": { "message": "Löschung nicht möglich", "hint": "Ihr Konto kann derzeit nicht gelöscht werden. Kontaktieren Sie den Support.", "action": "Support kontaktieren" },
-    "LINK_GEN_FAILED": { "message": "Link nicht erstellt", "hint": "Der Freigabelink konnte nicht erstellt werden. Bitte erneut versuchen." },
-    "PORTAL_ACCESS_FAILED": { "message": "Portalzugriff nicht möglich", "hint": "Überprüfen Sie, ob der Link gültig und nicht abgelaufen ist." }
+    "UNKNOWN_ERROR": {
+      "message": "Ein unerwarteter Fehler ist aufgetreten",
+      "hint": "Versuchen Sie, die Seite zu aktualisieren.",
+      "action": "Aktualisieren"
+    },
+    "NETWORK_ERROR": {
+      "message": "Verbindung nicht möglich",
+      "hint": "Überprüfen Sie Ihre Internetverbindung.",
+      "action": "Erneut versuchen"
+    },
+    "PERMISSION_DENIED": {
+      "message": "Zugriff verweigert",
+      "hint": "Sie haben nicht die erforderlichen Berechtigungen.",
+      "action": "Meine Rechte anzeigen"
+    },
+    "MISSING_INDEX": {
+      "message": "Konfiguration läuft",
+      "hint": "Die Datenbank wird konfiguriert. Bitte warten."
+    },
+    "AUTH_FAILED": {
+      "message": "Anmeldung nicht möglich",
+      "hint": "Überprüfen Sie Ihre Anmeldedaten.",
+      "action": "Zurücksetzen"
+    },
+    "AUTH_EXPIRED": {
+      "message": "Sitzung abgelaufen",
+      "hint": "Bitte melden Sie sich erneut an.",
+      "action": "Erneut anmelden"
+    },
+    "AUTH_INVALID_EMAIL": {
+      "message": "Ungültige E-Mail",
+      "hint": "Format: beispiel@domain.de"
+    },
+    "AUTH_INVALID_PASSWORD": {
+      "message": "Falsches Passwort",
+      "hint": "Min. 8 Zeichen, ein Großbuchstabe und eine Zahl.",
+      "action": "Passwort vergessen?"
+    },
+    "INVITE_FAILED": {
+      "message": "Einladung fehlgeschlagen",
+      "hint": "E-Mail prüfen oder Benutzer ist bereits Mitglied."
+    },
+    "FETCH_FAILED": {
+      "message": "Laden nicht möglich",
+      "hint": "Daten konnten nicht abgerufen werden.",
+      "action": "Erneut versuchen"
+    },
+    "CREATE_FAILED": {
+      "message": "Erstellung nicht möglich",
+      "hint": "Pflichtfelder prüfen."
+    },
+    "UPDATE_FAILED": {
+      "message": "Aktualisierung nicht möglich",
+      "hint": "Änderungen konnten nicht gespeichert werden."
+    },
+    "DELETE_FAILED": {
+      "message": "Löschung nicht möglich",
+      "hint": "Element möglicherweise mit anderen Daten verknüpft."
+    },
+    "EMAIL_SEND_FAILED": {
+      "message": "E-Mail nicht gesendet",
+      "hint": "E-Mail-Adresse prüfen."
+    },
+    "VALIDATION_FAILED": {
+      "message": "Ungültige Daten",
+      "hint": "Rot markierte Felder korrigieren."
+    },
+    "REQUIRED_FIELD": {
+      "message": "Pflichtfeld",
+      "hint": "Dieses Feld muss ausgefüllt werden."
+    },
+    "INVALID_FORMAT": {
+      "message": "Falsches Format",
+      "hint": "Erwartetes Format prüfen."
+    },
+    "FILE_UPLOAD_FAILED": {
+      "message": "Hochladen fehlgeschlagen",
+      "hint": "Max. 10 MB, zulässiges Format prüfen."
+    },
+    "FILE_TOO_LARGE": {
+      "message": "Datei zu groß",
+      "hint": "Max. 10 MB."
+    },
+    "FILE_INVALID_TYPE": {
+      "message": "Format nicht unterstützt",
+      "hint": "PDF, DOC, DOCX, XLS, XLSX, PNG, JPG."
+    },
+    "QUOTA_EXCEEDED": {
+      "message": "Kontingent erreicht",
+      "hint": "Plan-Limit erreicht.",
+      "action": "Pläne anzeigen"
+    },
+    "RATE_LIMIT_EXCEEDED": {
+      "message": "Zu viele Anfragen",
+      "hint": "Bitte warten."
+    },
+    "ASSET_NOT_FOUND": {
+      "message": "Asset nicht gefunden",
+      "hint": "Möglicherweise gelöscht.",
+      "action": "Alle Assets"
+    },
+    "RISK_NOT_FOUND": {
+      "message": "Risiko nicht gefunden",
+      "hint": "Möglicherweise archiviert.",
+      "action": "Risiken anzeigen"
+    },
+    "PROJECT_NOT_FOUND": {
+      "message": "Projekt nicht gefunden",
+      "hint": "Dieses Projekt wurde möglicherweise gelöscht oder Sie haben keinen Zugriff.",
+      "action": "Projekte anzeigen"
+    },
+    "DOCUMENT_NOT_FOUND": {
+      "message": "Dokument nicht gefunden",
+      "hint": "Dieses Dokument wurde möglicherweise gelöscht oder verschoben.",
+      "action": "Dokumente anzeigen"
+    },
+    "AUDIT_NOT_FOUND": {
+      "message": "Audit nicht gefunden",
+      "hint": "Dieses Audit wurde möglicherweise gelöscht oder archiviert.",
+      "action": "Audits anzeigen"
+    },
+    "SCAN_FAILED": {
+      "message": "Scan fehlgeschlagen",
+      "hint": "Der Sicherheitsscan konnte nicht durchgeführt werden. Überprüfen Sie die Asset-Konfiguration.",
+      "action": "Konfigurieren"
+    },
+    "REPORT_GENERATION_FAILED": {
+      "message": "Erstellung fehlgeschlagen",
+      "hint": "Der Bericht konnte nicht erstellt werden. Stellen Sie sicher, dass alle erforderlichen Daten verfügbar sind."
+    },
+    "AI_ERROR": {
+      "message": "KI-Analyse nicht verfügbar",
+      "hint": "Der Analysedienst ist vorübergehend nicht verfügbar. Bitte versuchen Sie es später erneut."
+    },
+    "HIBP_FAILED": {
+      "message": "Überprüfung nicht möglich",
+      "hint": "Der Dienst zur Überprüfung von Datenlecks ist nicht verfügbar."
+    },
+    "DELETE_ACCOUNT_FAILED": {
+      "message": "Löschung nicht möglich",
+      "hint": "Ihr Konto kann derzeit nicht gelöscht werden. Kontaktieren Sie den Support.",
+      "action": "Support kontaktieren"
+    },
+    "LINK_GEN_FAILED": {
+      "message": "Link nicht erstellt",
+      "hint": "Der Freigabelink konnte nicht erstellt werden. Bitte erneut versuchen."
+    },
+    "PORTAL_ACCESS_FAILED": {
+      "message": "Portalzugriff nicht möglich",
+      "hint": "Überprüfen Sie, ob der Link gültig und nicht abgelaufen ist."
+    }
   },
   "backup": {
     "title": "Sicherung & Wiederherstellung",
@@ -3092,10 +2997,39 @@
     "dryRunDesc": "Prüft die Integrität, ohne Daten zu ändern.",
     "deleteBackup": "Sicherung löschen",
     "deleteBackupConfirm": "Sind Sie sicher, dass Sie die Sicherung {{id}} löschen möchten?",
-    "tabs": { "backup": "Sichern", "restore": "Wiederherstellen" },
-    "collections": { "documents": "Dokumente", "assets": "Assets", "risks": "Risiken", "controls": "Kontrollen", "audits": "Audits", "projects": "Projekte", "suppliers": "Lieferanten", "incidents": "Vorfälle", "users": "Benutzer", "comments": "Kommentare" },
-    "success": { "created": "Sicherung erfolgreich erstellt", "scheduled": "Sicherung geplant ({{frequency}})", "simulationComplete": "Wiederherstellungssimulation erfolgreich", "restoreComplete": "Wiederherstellung abgeschlossen", "deleted": "Sicherung gelöscht" },
-    "errors": { "loadFailed": "Fehler beim Laden", "createFailed": "Fehler beim Erstellen", "scheduleFailed": "Fehler bei der Planung", "selectBackup": "Bitte wählen Sie eine Sicherung", "selectCollection": "Bitte wählen Sie mindestens eine Sammlung", "restoreFailed": "Fehler bei der Wiederherstellung", "deleteFailed": "Fehler beim Löschen", "downloadFailed": "Fehler beim Herunterladen" }
+    "tabs": {
+      "backup": "Sichern",
+      "restore": "Wiederherstellen"
+    },
+    "collections": {
+      "documents": "Dokumente",
+      "assets": "Assets",
+      "risks": "Risiken",
+      "controls": "Kontrollen",
+      "audits": "Audits",
+      "projects": "Projekte",
+      "suppliers": "Lieferanten",
+      "incidents": "Vorfälle",
+      "users": "Benutzer",
+      "comments": "Kommentare"
+    },
+    "success": {
+      "created": "Sicherung erfolgreich erstellt",
+      "scheduled": "Sicherung geplant ({{frequency}})",
+      "simulationComplete": "Wiederherstellungssimulation erfolgreich",
+      "restoreComplete": "Wiederherstellung abgeschlossen",
+      "deleted": "Sicherung gelöscht"
+    },
+    "errors": {
+      "loadFailed": "Fehler beim Laden",
+      "createFailed": "Fehler beim Erstellen",
+      "scheduleFailed": "Fehler bei der Planung",
+      "selectBackup": "Bitte wählen Sie eine Sicherung",
+      "selectCollection": "Bitte wählen Sie mindestens eine Sammlung",
+      "restoreFailed": "Fehler bei der Wiederherstellung",
+      "deleteFailed": "Fehler beim Löschen",
+      "downloadFailed": "Fehler beim Herunterladen"
+    }
   },
   "threatRegistry": {
     "title": "Bedrohungsbibliothek",
@@ -3107,16 +3041,44 @@
     "noThreatsFound": "Keine Bedrohungen gefunden",
     "noThreatsDesc": "Importieren Sie die Standardbibliothek oder erstellen Sie eine Bedrohung.",
     "importStandardAction": "Standardvorlagen importieren",
-    "form": { "title": "Titel", "description": "Beschreibung", "framework": "Framework", "field": "Bereich", "threat": "Bedrohung", "vulnerability": "Schwachstelle", "scenario": "Szenario", "probability": "Wahrscheinlichkeit", "impact": "Auswirkung", "strategy": "Standardstrategie" },
-    "confirm": { "importTitle": "Standardbibliothek importieren?", "importMessage": "Die Bibliothek enthält bereits Bedrohungen. Möchten Sie die Standardvorlagen wirklich importieren (Duplikate möglich)?", "deleteTitle": "Bedrohung löschen?", "deleteMessage": "Unwiderruflich." },
-    "actions": { "save": "Speichern", "create": "Erstellen", "cancel": "Abbrechen" }
+    "form": {
+      "title": "Titel",
+      "description": "Beschreibung",
+      "framework": "Framework",
+      "field": "Bereich",
+      "threat": "Bedrohung",
+      "vulnerability": "Schwachstelle",
+      "scenario": "Szenario",
+      "probability": "Wahrscheinlichkeit",
+      "impact": "Auswirkung",
+      "strategy": "Standardstrategie"
+    },
+    "confirm": {
+      "importTitle": "Standardbibliothek importieren?",
+      "importMessage": "Die Bibliothek enthält bereits Bedrohungen. Möchten Sie die Standardvorlagen wirklich importieren (Duplikate möglich)?",
+      "deleteTitle": "Bedrohung löschen?",
+      "deleteMessage": "Unwiderruflich."
+    },
+    "actions": {
+      "save": "Speichern",
+      "create": "Erstellen",
+      "cancel": "Abbrechen"
+    }
   },
   "integrations": {
     "title": "Integrationen",
     "subtitle": "Verbinden Sie Ihre Tools zur Automatisierung der Nachweissammlung.",
     "searchPlaceholder": "Integration suchen...",
-    "tabs": { "providers": "Konnektoren", "jobs": "Aufgaben & Scans" },
-    "categories": { "all": "Alle", "cloud": "Cloud", "code": "Code", "security": "Sicherheit" },
+    "tabs": {
+      "providers": "Konnektoren",
+      "jobs": "Aufgaben & Scans"
+    },
+    "categories": {
+      "all": "Alle",
+      "cloud": "Cloud",
+      "code": "Code",
+      "security": "Sicherheit"
+    },
     "connect": "Verbinden",
     "disconnect": "Trennen",
     "apiKeyModal": {
@@ -3129,10 +3091,27 @@
       "connecting": "Verbindung wird hergestellt..."
     },
     "testN8n": "N8N testen",
-    "n8n": { "testing": "N8N-Verbindungstest...", "success": "N8N-Verbindung erfolgreich!", "error": "N8N-Verbindungsfehler" },
-    "confirm": { "disconnectTitle": "Integration trennen", "disconnectMessage": "Möchten Sie {{provider}} wirklich trennen?", "disconnect": "Trennen" },
-    "success": { "connected": "Erfolgreich mit {{provider}} verbunden", "connectedDemo": "Mit {{provider}} verbunden (Demo)", "disconnected": "Von {{provider}} getrennt" },
-    "errors": { "noPermission": "Sie haben keine Berechtigung, Dienste zu verbinden.", "invalidApiKey": "Bitte geben Sie einen gültigen API-Schlüssel ein.", "connectFailed": "Verbindung zu {{provider}} fehlgeschlagen", "disconnectFailed": "Fehler beim Trennen" }
+    "n8n": {
+      "testing": "N8N-Verbindungstest...",
+      "success": "N8N-Verbindung erfolgreich!",
+      "error": "N8N-Verbindungsfehler"
+    },
+    "confirm": {
+      "disconnectTitle": "Integration trennen",
+      "disconnectMessage": "Möchten Sie {{provider}} wirklich trennen?",
+      "disconnect": "Trennen"
+    },
+    "success": {
+      "connected": "Erfolgreich mit {{provider}} verbunden",
+      "connectedDemo": "Mit {{provider}} verbunden (Demo)",
+      "disconnected": "Von {{provider}} getrennt"
+    },
+    "errors": {
+      "noPermission": "Sie haben keine Berechtigung, Dienste zu verbinden.",
+      "invalidApiKey": "Bitte geben Sie einen gültigen API-Schlüssel ein.",
+      "connectFailed": "Verbindung zu {{provider}} fehlgeschlagen",
+      "disconnectFailed": "Fehler beim Trennen"
+    }
   },
   "training": {
     "title": "Schulung & Sensibilisierung",
@@ -3140,32 +3119,93 @@
     "catalog": "Schulungskatalog",
     "campaigns": "Kampagnen",
     "myCourses": "Meine Schulungen",
-    "categories": { "security": "Sicherheit", "compliance": "Compliance", "awareness": "Sensibilisierung", "technical": "Technisch" },
-    "sources": { "anssi": "BSI", "cnil": "Datenschutzbehörde", "internal": "Intern", "external": "Extern" },
-    "contentTypes": { "video": "Video", "document": "Dokument", "quiz": "Quiz", "external_link": "Externer Link" },
-    "status": { "assigned": "Zugewiesen", "in_progress": "In Bearbeitung", "completed": "Abgeschlossen", "overdue": "Überfällig" },
-    "campaignStatus": { "draft": "Entwurf", "active": "Aktiv", "completed": "Abgeschlossen", "cancelled": "Abgebrochen" },
+    "categories": {
+      "security": "Sicherheit",
+      "compliance": "Compliance",
+      "awareness": "Sensibilisierung",
+      "technical": "Technisch"
+    },
+    "sources": {
+      "anssi": "BSI",
+      "cnil": "Datenschutzbehörde",
+      "internal": "Intern",
+      "external": "Extern"
+    },
+    "contentTypes": {
+      "video": "Video",
+      "document": "Dokument",
+      "quiz": "Quiz",
+      "external_link": "Externer Link"
+    },
+    "status": {
+      "assigned": "Zugewiesen",
+      "in_progress": "In Bearbeitung",
+      "completed": "Abgeschlossen",
+      "overdue": "Überfällig"
+    },
+    "campaignStatus": {
+      "draft": "Entwurf",
+      "active": "Aktiv",
+      "completed": "Abgeschlossen",
+      "cancelled": "Abgebrochen"
+    },
     "course": {
-      "title": "Titel", "description": "Beschreibung", "category": "Kategorie", "source": "Quelle",
-      "duration": "Dauer (Minuten)", "isRequired": "Pflichtschulung", "targetRoles": "Zielrollen",
-      "frameworkMappings": "Framework-Zuordnung", "content": "Inhalt", "contentUrl": "Inhalts-URL",
-      "create": "Schulung erstellen", "edit": "Schulung bearbeiten", "archive": "Schulung archivieren",
-      "passingScore": "Bestehungsscore (%)", "validityPeriod": "Gültigkeit (Monate)"
+      "title": "Titel",
+      "description": "Beschreibung",
+      "category": "Kategorie",
+      "source": "Quelle",
+      "duration": "Dauer (Minuten)",
+      "isRequired": "Pflichtschulung",
+      "targetRoles": "Zielrollen",
+      "frameworkMappings": "Framework-Zuordnung",
+      "content": "Inhalt",
+      "contentUrl": "Inhalts-URL",
+      "create": "Schulung erstellen",
+      "edit": "Schulung bearbeiten",
+      "archive": "Schulung archivieren",
+      "passingScore": "Bestehungsscore (%)",
+      "validityPeriod": "Gültigkeit (Monate)"
     },
     "assignment": {
-      "assign": "Zuweisen", "assignTo": "Zuweisen an", "selectUsers": "Benutzer auswählen",
-      "selectCourse": "Schulung auswählen", "dueDate": "Fälligkeitsdatum", "start": "Beginnen",
-      "continue": "Fortfahren", "markComplete": "Als abgeschlossen markieren",
-      "downloadCertificate": "Bescheinigung herunterladen", "score": "Score", "timeSpent": "Aufgewendete Zeit",
-      "selectDetails": "Zuweisungsdetails", "usersSelected": "Benutzer ausgewählt",
-      "preview": "Vorschau", "previewTitle": "Zuweisungsvorschau", "totalAssignments": "Zuweisungen",
-      "users": "Benutzer", "assignees": "Zugewiesene Personen",
-      "requiredWarningTitle": "Pflichtschulung", "requiredWarningDesc": "Diese Schulung ist als Pflicht markiert und wird in Compliance-Berichten verfolgt.",
-      "confirmAndAssign": "Bestätigen und zuweisen", "confirmTitle": "Zuweisung bestätigen",
+      "assign": "Zuweisen",
+      "assignTo": "Zuweisen an",
+      "selectUsers": "Benutzer auswählen",
+      "selectCourse": "Schulung auswählen",
+      "dueDate": "Fälligkeitsdatum",
+      "start": "Beginnen",
+      "continue": "Fortfahren",
+      "markComplete": "Als abgeschlossen markieren",
+      "downloadCertificate": "Bescheinigung herunterladen",
+      "score": "Score",
+      "timeSpent": "Aufgewendete Zeit",
+      "selectDetails": "Zuweisungsdetails",
+      "usersSelected": "Benutzer ausgewählt",
+      "preview": "Vorschau",
+      "previewTitle": "Zuweisungsvorschau",
+      "totalAssignments": "Zuweisungen",
+      "users": "Benutzer",
+      "assignees": "Zugewiesene Personen",
+      "requiredWarningTitle": "Pflichtschulung",
+      "requiredWarningDesc": "Diese Schulung ist als Pflicht markiert und wird in Compliance-Berichten verfolgt.",
+      "confirmAndAssign": "Bestätigen und zuweisen",
+      "confirmTitle": "Zuweisung bestätigen",
       "confirmDesc": "Sie weisen die Schulung \"{{course}}\" {{count}} Person(en) zu."
     },
-    "stats": { "total": "Gesamtschulungen", "completed": "Abgeschlossen", "inProgress": "In Bearbeitung", "overdue": "Überfällig", "completionRate": "Abschlussrate", "byDepartment": "Nach Abteilung", "trend": "30-Tage-Trend" },
-    "kpi": { "totalAssignments": "Zuweisungen gesamt", "completedAssignments": "Abgeschlossene Schulungen", "overdueAssignments": "Überfällig", "averageScore": "Durchschnittsscore" },
+    "stats": {
+      "total": "Gesamtschulungen",
+      "completed": "Abgeschlossen",
+      "inProgress": "In Bearbeitung",
+      "overdue": "Überfällig",
+      "completionRate": "Abschlussrate",
+      "byDepartment": "Nach Abteilung",
+      "trend": "30-Tage-Trend"
+    },
+    "kpi": {
+      "totalAssignments": "Zuweisungen gesamt",
+      "completedAssignments": "Abgeschlossene Schulungen",
+      "overdueAssignments": "Überfällig",
+      "averageScore": "Durchschnittsscore"
+    },
     "validation": {
       "contentRequired": "Der Inhalt ist gemäß dem gewählten Typ erforderlich",
       "dueDateFuture": "Das Fälligkeitsdatum muss in der Zukunft liegen",
@@ -3175,102 +3215,204 @@
       "scopeFilterRequired": "Bitte wählen Sie die Bereichskriterien"
     },
     "success": {
-      "courseCreated": "Schulung erfolgreich erstellt", "courseUpdated": "Schulung aktualisiert",
-      "courseArchived": "Schulung archiviert", "assignmentCreated": "Schulung erfolgreich zugewiesen",
+      "courseCreated": "Schulung erfolgreich erstellt",
+      "courseUpdated": "Schulung aktualisiert",
+      "courseArchived": "Schulung archiviert",
+      "assignmentCreated": "Schulung erfolgreich zugewiesen",
       "assignmentsCreated": "{{count}} Schulungen erfolgreich zugewiesen",
-      "assignmentDeleted": "Zuweisung gelöscht", "assignmentCompleted": "Schulung abgeschlossen! Herzlichen Glückwunsch!",
-      "trainingStarted": "Schulung gestartet", "campaignCreated": "Kampagne erfolgreich erstellt",
+      "assignmentDeleted": "Zuweisung gelöscht",
+      "assignmentCompleted": "Schulung abgeschlossen! Herzlichen Glückwunsch!",
+      "trainingStarted": "Schulung gestartet",
+      "campaignCreated": "Kampagne erfolgreich erstellt",
       "campaignLaunched": "Kampagne gestartet"
     },
     "errors": {
-      "loadFailed": "Fehler beim Laden der Schulungen", "createFailed": "Fehler beim Erstellen",
-      "updateFailed": "Fehler beim Aktualisieren", "assignFailed": "Fehler bei der Zuweisung",
-      "deleteFailed": "Fehler beim Löschen", "courseNotFound": "Schulung nicht gefunden",
-      "dashboardLoadFailed": "Fehler beim Laden des Dashboards", "reminderFailed": "Fehler beim Senden der Erinnerung"
+      "loadFailed": "Fehler beim Laden der Schulungen",
+      "createFailed": "Fehler beim Erstellen",
+      "updateFailed": "Fehler beim Aktualisieren",
+      "assignFailed": "Fehler bei der Zuweisung",
+      "deleteFailed": "Fehler beim Löschen",
+      "courseNotFound": "Schulung nicht gefunden",
+      "dashboardLoadFailed": "Fehler beim Laden des Dashboards",
+      "reminderFailed": "Fehler beim Senden der Erinnerung"
     },
     "empty": {
-      "catalog": "Keine Schulungen im Katalog", "catalogDesc": "Erstellen Sie Ihre erste Schulung.",
-      "assignments": "Keine zugewiesenen Schulungen", "assignmentsDesc": "Alle Ihre Schulungen sind aktuell!",
-      "campaigns": "Keine Kampagnen", "campaignsDesc": "Erstellen Sie eine Kampagne zur Schulung Ihrer Teams.",
-      "noResults": "Keine Ergebnisse", "noResultsDesc": "Versuchen Sie, Ihre Filter anzupassen.",
-      "noData": "Keine Daten verfügbar", "noDataDesc": "Daten erscheinen nach der Zuweisung von Schulungen.",
-      "noTrendData": "Keine aktuelle Aktivität", "noTrendDataDesc": "Trends erscheinen nach den ersten Zuweisungen."
+      "catalog": "Keine Schulungen im Katalog",
+      "catalogDesc": "Erstellen Sie Ihre erste Schulung.",
+      "assignments": "Keine zugewiesenen Schulungen",
+      "assignmentsDesc": "Alle Ihre Schulungen sind aktuell!",
+      "campaigns": "Keine Kampagnen",
+      "campaignsDesc": "Erstellen Sie eine Kampagne zur Schulung Ihrer Teams.",
+      "noResults": "Keine Ergebnisse",
+      "noResultsDesc": "Versuchen Sie, Ihre Filter anzupassen.",
+      "noData": "Keine Daten verfügbar",
+      "noDataDesc": "Daten erscheinen nach der Zuweisung von Schulungen.",
+      "noTrendData": "Keine aktuelle Aktivität",
+      "noTrendDataDesc": "Trends erscheinen nach den ersten Zuweisungen."
     },
     "myCoursesDesc": "Verfolgen Sie Ihren Fortschritt und absolvieren Sie Ihre zugewiesenen Schulungen.",
     "viewContent": "Inhalt anzeigen",
     "progress": "Fortschritt",
     "certificate": {
-      "title": "Schulungsbescheinigung", "download": "Bescheinigung herunterladen",
+      "title": "Schulungsbescheinigung",
+      "download": "Bescheinigung herunterladen",
       "comingSoon": "Bescheinigungen werden bald verfügbar sein.",
-      "generate": "Bescheinigung erstellen", "generated": "Bescheinigung erfolgreich erstellt",
-      "generating": "Bescheinigung wird erstellt...", "ready": "Bereit",
-      "notAvailable": "Bescheinigung nicht verfügbar", "completeFirst": "Schließen Sie die Schulung ab, um Ihre Bescheinigung zu erhalten",
+      "generate": "Bescheinigung erstellen",
+      "generated": "Bescheinigung erfolgreich erstellt",
+      "generating": "Bescheinigung wird erstellt...",
+      "ready": "Bereit",
+      "notAvailable": "Bescheinigung nicht verfügbar",
+      "completeFirst": "Schließen Sie die Schulung ab, um Ihre Bescheinigung zu erhalten",
       "description": "Erstellen Sie eine offizielle Schulungsbescheinigung für Ihre NIS2-Compliance-Unterlagen.",
-      "completedOn": "Schulung abgeschlossen am {{date}}", "verificationCode": "Verifizierungscode",
+      "completedOn": "Schulung abgeschlossen am {{date}}",
+      "verificationCode": "Verifizierungscode",
       "nis2Compliance": "Dokument konform mit Artikel 21.2(g) der NIS2-Richtlinie",
-      "error": "Fehler bei der Bescheinigungserstellung", "errorMessage": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+      "error": "Fehler bei der Bescheinigungserstellung",
+      "errorMessage": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
     },
     "dashboard": {
-      "title": "Schulungs-Dashboard", "description": "Übersicht der Schulungs-Compliance Ihrer Organisation",
-      "exportCSV": "CSV exportieren", "byDepartment": "Abschluss nach Abteilung",
-      "byDepartmentDesc": "Abschlussrate nach Team", "overdueTrainings": "Überfällige Schulungen",
-      "requiresAttention": "erfordern Maßnahmen", "daysOverdue": "Tage überfällig",
-      "remind": "Erinnern", "reminderSent": "Erinnerung erfolgreich gesendet",
+      "title": "Schulungs-Dashboard",
+      "description": "Übersicht der Schulungs-Compliance Ihrer Organisation",
+      "exportCSV": "CSV exportieren",
+      "byDepartment": "Abschluss nach Abteilung",
+      "byDepartmentDesc": "Abschlussrate nach Team",
+      "overdueTrainings": "Überfällige Schulungen",
+      "requiresAttention": "erfordern Maßnahmen",
+      "daysOverdue": "Tage überfällig",
+      "remind": "Erinnern",
+      "reminderSent": "Erinnerung erfolgreich gesendet",
       "reminderComingSoon": "Die Erinnerungsfunktion wird bald verfügbar sein",
-      "noOverdue": "Keine überfälligen Schulungen", "noOverdueDesc": "Alle Schulungen sind aktuell!",
-      "trend30Days": "30-Tage-Trend", "trend30DaysDesc": "Entwicklung der Zuweisungen und Abschlüsse",
-      "completed": "Abgeschlossen", "assigned": "Zugewiesen",
-      "completedLabel": "abgeschlossen", "assignedLabel": "zugewiesen"
+      "noOverdue": "Keine überfälligen Schulungen",
+      "noOverdueDesc": "Alle Schulungen sind aktuell!",
+      "trend30Days": "30-Tage-Trend",
+      "trend30DaysDesc": "Entwicklung der Zuweisungen und Abschlüsse",
+      "completed": "Abgeschlossen",
+      "assigned": "Zugewiesen",
+      "completedLabel": "abgeschlossen",
+      "assignedLabel": "zugewiesen"
     },
-    "nis2": { "article": "Artikel 21.2(g)", "description": "Grundlegende Cyberhygiene und Cybersicherheitsschulung" },
+    "nis2": {
+      "article": "Artikel 21.2(g)",
+      "description": "Grundlegende Cyberhygiene und Cybersicherheitsschulung"
+    },
     "form": {
-      "basicInfo": "Allgemeine Informationen", "titlePlaceholder": "z.B.: Phishing-Sensibilisierung",
+      "basicInfo": "Allgemeine Informationen",
+      "titlePlaceholder": "z.B.: Phishing-Sensibilisierung",
       "descriptionPlaceholder": "Beschreiben Sie den Inhalt und die Ziele dieser Schulung...",
-      "content": "Schulungsinhalt", "contentType": "Inhaltstyp", "contentUrl": "Inhalts-URL",
-      "externalUrl": "Externe URL", "videoDuration": "Videodauer (Minuten)",
-      "frameworkMappings": "Framework-Zuordnung", "selectRoles": "Zielrollen auswählen",
+      "content": "Schulungsinhalt",
+      "contentType": "Inhaltstyp",
+      "contentUrl": "Inhalts-URL",
+      "externalUrl": "Externe URL",
+      "videoDuration": "Videodauer (Minuten)",
+      "frameworkMappings": "Framework-Zuordnung",
+      "selectRoles": "Zielrollen auswählen",
       "rolesHint": "Wählen Sie die Rollen, für die diese Schulung gilt. Leer lassen für alle Benutzer.",
       "requiredHint": "Pflichtschulungen erscheinen im Dashboard der betroffenen Benutzer.",
-      "tags": "Schlagwörter", "tagsLabel": "Schlagwörter (kommagetrennt)",
-      "tagsPlaceholder": "z.B.: Phishing, Social Engineering, E-Mail", "quizId": "Quiz-Kennung"
+      "tags": "Schlagwörter",
+      "tagsLabel": "Schlagwörter (kommagetrennt)",
+      "tagsPlaceholder": "z.B.: Phishing, Social Engineering, E-Mail",
+      "quizId": "Quiz-Kennung"
     },
     "roles": {
-      "all": "Alle Benutzer", "executives": "Geschäftsführung", "managers": "Manager",
-      "it_staff": "IT-Team", "developers": "Entwickler", "security_team": "Sicherheitsteam",
-      "hr": "Personalwesen", "finance": "Finanzen", "operations": "Betrieb", "new_employees": "Neue Mitarbeiter"
+      "all": "Alle Benutzer",
+      "executives": "Geschäftsführung",
+      "managers": "Manager",
+      "it_staff": "IT-Team",
+      "developers": "Entwickler",
+      "security_team": "Sicherheitsteam",
+      "hr": "Personalwesen",
+      "finance": "Finanzen",
+      "operations": "Betrieb",
+      "new_employees": "Neue Mitarbeiter"
     },
     "campaign": {
-      "title": "Schulungskampagnen", "description": "Planen und verwalten Sie Ihre Sensibilisierungskampagnen",
-      "create": "Kampagne erstellen", "createTitle": "Neue Kampagne",
+      "title": "Schulungskampagnen",
+      "description": "Planen und verwalten Sie Ihre Sensibilisierungskampagnen",
+      "create": "Kampagne erstellen",
+      "createTitle": "Neue Kampagne",
       "createDesc": "Erstellen Sie eine Kampagne zur Schulung Ihrer Teams",
-      "createSuccess": "Kampagne erfolgreich erstellt", "searchPlaceholder": "Kampagne suchen...",
-      "name": "Kampagnenname", "namePlaceholder": "z.B.: Sensibilisierung Q1 2026",
+      "createSuccess": "Kampagne erfolgreich erstellt",
+      "searchPlaceholder": "Kampagne suchen...",
+      "name": "Kampagnenname",
+      "namePlaceholder": "z.B.: Sensibilisierung Q1 2026",
       "descriptionPlaceholder": "Beschreiben Sie die Ziele dieser Kampagne...",
-      "startDate": "Startdatum", "endDate": "Enddatum", "dates": "Zeitraum",
-      "recurrence": "Wiederholung", "recurrenceDesc": "Diese Kampagne automatisch wiederholen",
-      "viewDetails": "Details anzeigen", "launch": "Starten", "cancel": "Abbrechen",
-      "sendReminders": "Erinnerungen senden", "courses": "Schulungen",
-      "coursesSelected": "ausgewählte Schulungen", "selectCourses": "Schulungen auswählen",
-      "noCourses": "Keine Schulungen im Katalog verfügbar", "selectScope": "Bereich definieren",
-      "overdue": "überfällig", "daysRemaining": "Tage verbleibend",
-      "overallProgress": "Gesamtfortschritt", "assignmentsCompleted": "Zuweisungen abgeschlossen",
-      "includedCourses": "Enthaltene Schulungen", "reviewTitle": "Kampagnenübersicht",
-      "status": { "draft": "Entwurf", "active": "Aktiv", "completed": "Abgeschlossen", "cancelled": "Abgebrochen" },
-      "scope": { "all": "Alle Benutzer", "department": "Nach Abteilung", "role": "Nach Rolle" },
-      "scopeDesc": { "all": "Alle Benutzer der Organisation", "department": "Benutzer einer oder mehrerer Abteilungen", "role": "Benutzer mit einer bestimmten Rolle" },
-      "frequency": { "monthly": "Monatlich", "quarterly": "Vierteljährlich", "yearly": "Jährlich" },
+      "startDate": "Startdatum",
+      "endDate": "Enddatum",
+      "dates": "Zeitraum",
+      "recurrence": "Wiederholung",
+      "recurrenceDesc": "Diese Kampagne automatisch wiederholen",
+      "viewDetails": "Details anzeigen",
+      "launch": "Starten",
+      "cancel": "Abbrechen",
+      "sendReminders": "Erinnerungen senden",
+      "courses": "Schulungen",
+      "coursesSelected": "ausgewählte Schulungen",
+      "selectCourses": "Schulungen auswählen",
+      "noCourses": "Keine Schulungen im Katalog verfügbar",
+      "selectScope": "Bereich definieren",
+      "overdue": "überfällig",
+      "daysRemaining": "Tage verbleibend",
+      "overallProgress": "Gesamtfortschritt",
+      "assignmentsCompleted": "Zuweisungen abgeschlossen",
+      "includedCourses": "Enthaltene Schulungen",
+      "reviewTitle": "Kampagnenübersicht",
+      "status": {
+        "draft": "Entwurf",
+        "active": "Aktiv",
+        "completed": "Abgeschlossen",
+        "cancelled": "Abgebrochen"
+      },
+      "scope": {
+        "all": "Alle Benutzer",
+        "department": "Nach Abteilung",
+        "role": "Nach Rolle"
+      },
+      "scopeDesc": {
+        "all": "Alle Benutzer der Organisation",
+        "department": "Benutzer einer oder mehrerer Abteilungen",
+        "role": "Benutzer mit einer bestimmten Rolle"
+      },
+      "frequency": {
+        "monthly": "Monatlich",
+        "quarterly": "Vierteljährlich",
+        "yearly": "Jährlich"
+      },
       "steps": {
-        "info": "Informationen", "infoDesc": "Name und Daten der Kampagne",
-        "courses": "Schulungen", "coursesDesc": "Schulungen zur Aufnahme auswählen",
-        "scope": "Bereich", "scopeDesc": "Zielgruppe definieren",
-        "review": "Validierung", "reviewDesc": "Überprüfen und Kampagne erstellen"
+        "info": "Informationen",
+        "infoDesc": "Name und Daten der Kampagne",
+        "courses": "Schulungen",
+        "coursesDesc": "Schulungen zur Aufnahme auswählen",
+        "scope": "Bereich",
+        "scopeDesc": "Zielgruppe definieren",
+        "review": "Validierung",
+        "reviewDesc": "Überprüfen und Kampagne erstellen"
       }
     }
   },
   "agents": {
-    "widget": { "title": "Flottenreifegrad", "subtitle": "Übersicht des Agentenzustands und der Compliance", "noAgents": "Keine Agenten verfügbar", "allHealthy": "Alle Agenten gesund", "activeTooltip": "Agent aktiv und funktionsfähig", "offlineTooltip": "Agent offline", "errorTooltip": "Agent fehlerhaft", "machineCompliance": "Maschinen-Compliance", "avgScore": "Durchschnittsscore", "checkResults": "Prüfergebnisse", "manage": "Agenten verwalten", "viewDetails": "Details anzeigen" },
-    "status": { "active": "Aktiv", "offline": "Offline", "error": "Fehler" },
-    "checks": { "pass": "OK", "fail": "Fehlgeschlagen" },
+    "widget": {
+      "title": "Flottenreifegrad",
+      "subtitle": "Übersicht des Agentenzustands und der Compliance",
+      "noAgents": "Keine Agenten verfügbar",
+      "allHealthy": "Alle Agenten gesund",
+      "activeTooltip": "Agent aktiv und funktionsfähig",
+      "offlineTooltip": "Agent offline",
+      "errorTooltip": "Agent fehlerhaft",
+      "machineCompliance": "Maschinen-Compliance",
+      "avgScore": "Durchschnittsscore",
+      "checkResults": "Prüfergebnisse",
+      "manage": "Agenten verwalten",
+      "viewDetails": "Details anzeigen"
+    },
+    "status": {
+      "active": "Aktiv",
+      "offline": "Offline",
+      "error": "Fehler"
+    },
+    "checks": {
+      "pass": "OK",
+      "fail": "Fehlgeschlagen"
+    },
     "confirmDelete": "Sind Sie sicher, dass Sie diesen Agenten löschen möchten?",
     "syncRequested": "Synchronisierung angefordert",
     "enrollmentSuccess": "Agent erfolgreich registriert"
@@ -3700,7 +3842,12 @@
     }
   },
   "ebios": {
-    "stats": { "total": "Analysen gesamt", "inProgress": "In Bearbeitung", "completed": "Abgeschlossen", "avgProgress": "Durchschnittlicher Fortschritt" },
+    "stats": {
+      "total": "Analysen gesamt",
+      "inProgress": "In Bearbeitung",
+      "completed": "Abgeschlossen",
+      "avgProgress": "Durchschnittlicher Fortschritt"
+    },
     "createAnalysisSubtitle": "Neue EBIOS Risk Manager-Analyse",
     "title": "EBIOS Risk Manager",
     "description": "ANSSI-Methodik zur Cyber-Risikoanalyse",
@@ -3739,9 +3886,33 @@
     "workshop3ComingSoon": "Atelier 3 (Strategische Szenarien) wird demnächst verfügbar sein",
     "workshop4ComingSoon": "Atelier 4 (Operative Szenarien) wird demnächst verfügbar sein",
     "workshop5ComingSoon": "Atelier 5 (Risikobehandlung) wird demnächst verfügbar sein",
-    "status": { "draft": "Entwurf", "inProgress": "In Bearbeitung", "completed": "Abgeschlossen", "archived": "Archiviert" },
-    "sectors": { "finance": "Finanzen & Banken", "healthcare": "Gesundheitswesen", "energy": "Energie", "transport": "Transport", "telecommunications": "Telekommunikation", "government": "Öffentliche Verwaltung", "industry": "Industrie", "retail": "Handel", "other": "Sonstiges" },
-    "errors": { "fetchFailed": "Fehler beim Laden der Analysen", "createFailed": "Fehler beim Erstellen der Analyse", "saveFailed": "Fehler beim Speichern", "deleteFailed": "Fehler beim Löschen", "archiveFailed": "Fehler beim Archivieren", "notFound": "Analyse nicht gefunden", "workshopChangeFailed": "Fehler beim Atelierwechsel", "completeFailed": "Fehler beim Abschließen" },
+    "status": {
+      "draft": "Entwurf",
+      "inProgress": "In Bearbeitung",
+      "completed": "Abgeschlossen",
+      "archived": "Archiviert"
+    },
+    "sectors": {
+      "finance": "Finanzen & Banken",
+      "healthcare": "Gesundheitswesen",
+      "energy": "Energie",
+      "transport": "Transport",
+      "telecommunications": "Telekommunikation",
+      "government": "Öffentliche Verwaltung",
+      "industry": "Industrie",
+      "retail": "Handel",
+      "other": "Sonstiges"
+    },
+    "errors": {
+      "fetchFailed": "Fehler beim Laden der Analysen",
+      "createFailed": "Fehler beim Erstellen der Analyse",
+      "saveFailed": "Fehler beim Speichern",
+      "deleteFailed": "Fehler beim Löschen",
+      "archiveFailed": "Fehler beim Archivieren",
+      "notFound": "Analyse nicht gefunden",
+      "workshopChangeFailed": "Fehler beim Atelierwechsel",
+      "completeFailed": "Fehler beim Abschließen"
+    },
     "workshop1": {
       "importFromInventory": "Aus Inventar importieren",
       "missions": "Missionen",
@@ -3815,9 +3986,24 @@
       "retained": "Beibehalten",
       "notRetained": "Nicht beibehalten"
     },
-    "assetTypes": { "information": "Information", "process": "Prozess", "function": "Funktion" },
-    "supportingAssetTypes": { "hardware": "Hardware", "software": "Software", "network": "Netzwerk", "personnel": "Personal", "site": "Standort", "organization": "Organisation" },
-    "impactTypes": { "confidentiality": "Vertraulichkeit", "integrity": "Integrität", "availability": "Verfügbarkeit" },
+    "assetTypes": {
+      "information": "Information",
+      "process": "Prozess",
+      "function": "Funktion"
+    },
+    "supportingAssetTypes": {
+      "hardware": "Hardware",
+      "software": "Software",
+      "network": "Netzwerk",
+      "personnel": "Personal",
+      "site": "Standort",
+      "organization": "Organisation"
+    },
+    "impactTypes": {
+      "confidentiality": "Vertraulichkeit",
+      "integrity": "Integrität",
+      "availability": "Verfügbarkeit"
+    },
     "workshop3": {
       "ecosystem": "Ökosystem",
       "partyCount": "Beteiligte",
@@ -3929,7 +4115,12 @@
   },
   "otImport": {
     "title": "OT/ICS-Asset-Import",
-    "steps": { "upload": "Hochladen", "mapping": "Zuordnung", "preview": "Vorschau", "import": "Import" },
+    "steps": {
+      "upload": "Hochladen",
+      "mapping": "Zuordnung",
+      "preview": "Vorschau",
+      "import": "Import"
+    },
     "upload": {
       "dragDrop": "CSV-Datei hierher ziehen",
       "orClick": "oder klicken zum Auswählen",
@@ -3970,7 +4161,10 @@
       "warning": "Warnung",
       "showingFirst": "Anzeige der ersten 20 Zeilen von {{total}}"
     },
-    "importing": { "title": "Import läuft...", "description": "OT-Assets werden erstellt" },
+    "importing": {
+      "title": "Import läuft...",
+      "description": "OT-Assets werden erstellt"
+    },
     "complete": {
       "success": "Import abgeschlossen",
       "partial": "Teilimport",
@@ -3979,8 +4173,13 @@
       "failed": "Fehlgeschlagen",
       "errorDetails": "Fehlerdetails"
     },
-    "actions": { "import": "Importieren" },
-    "success": { "title": "Import erfolgreich", "description": "{{count}} OT-Assets importiert" },
+    "actions": {
+      "import": "Importieren"
+    },
+    "success": {
+      "title": "Import erfolgreich",
+      "description": "{{count}} OT-Assets importiert"
+    },
     "errors": {
       "emptyFile": "Leere Datei",
       "emptyFileDesc": "Die CSV-Datei enthält keine Daten",
@@ -3991,8 +4190,17 @@
       "importFailed": "Importfehler",
       "importFailedDesc": "Der Import ist fehlgeschlagen"
     },
-    "networkSegments": { "IT": "IT-Netzwerk", "OT": "OT-Netzwerk", "DMZ": "Demilitarisierte Zone" },
-    "criticality": { "safety": "Sicherheit", "production": "Produktion", "operations": "Betrieb", "monitoring": "Überwachung" }
+    "networkSegments": {
+      "IT": "IT-Netzwerk",
+      "OT": "OT-Netzwerk",
+      "DMZ": "Demilitarisierte Zone"
+    },
+    "criticality": {
+      "safety": "Sicherheit",
+      "production": "Produktion",
+      "operations": "Betrieb",
+      "monitoring": "Überwachung"
+    }
   },
   "otConnector": {
     "title": "OT-Konnektoren",
@@ -4020,9 +4228,21 @@
       "title": "Keine Konnektoren konfiguriert",
       "description": "Erstellen Sie einen Konnektor zur automatischen OT-Asset-Synchronisierung"
     },
-    "steps": { "type": "Typ", "config": "Konfiguration", "schedule": "Planung", "review": "Validierung" },
-    "fields": { "name": "Konnektorname", "description": "Beschreibung", "type": "Konnektortyp" },
-    "placeholders": { "name": "z.B.: Sync SCADA Produktion", "description": "Optionale Beschreibung..." },
+    "steps": {
+      "type": "Typ",
+      "config": "Konfiguration",
+      "schedule": "Planung",
+      "review": "Validierung"
+    },
+    "fields": {
+      "name": "Konnektorname",
+      "description": "Beschreibung",
+      "type": "Konnektortyp"
+    },
+    "placeholders": {
+      "name": "z.B.: Sync SCADA Produktion",
+      "description": "Optionale Beschreibung..."
+    },
     "csv": {
       "filePattern": "Dateimuster (Regex)",
       "filePatternHelp": "Regulärer Ausdruck zur Identifizierung von CSV-Dateien",
@@ -4049,7 +4269,12 @@
       "runTest": "Test starten",
       "validationErrors": "Validierungsfehler"
     },
-    "status": { "success": "Erfolgreich", "partial": "Teilweise", "failed": "Fehlgeschlagen", "running": "Läuft" },
+    "status": {
+      "success": "Erfolgreich",
+      "partial": "Teilweise",
+      "failed": "Fehlgeschlagen",
+      "running": "Läuft"
+    },
     "history": {
       "title": "Synchronisierungsverlauf",
       "totalSyncs": "Syncs gesamt",
@@ -4126,8 +4351,18 @@
       "monitoring": "Überwachung",
       "label": "Kritikalität"
     },
-    "nodes": { "otAsset": "OT-Asset", "itAsset": "IT-Asset", "dmzAsset": "DMZ-Asset", "assets": "Assets", "asset": "Asset" },
-    "zones": { "showBoundaries": "Grenzen anzeigen", "showLabels": "Beschriftungen anzeigen", "showGrid": "Raster anzeigen" }
+    "nodes": {
+      "otAsset": "OT-Asset",
+      "itAsset": "IT-Asset",
+      "dmzAsset": "DMZ-Asset",
+      "assets": "Assets",
+      "asset": "Asset"
+    },
+    "zones": {
+      "showBoundaries": "Grenzen anzeigen",
+      "showLabels": "Beschriftungen anzeigen",
+      "showGrid": "Raster anzeigen"
+    }
   },
   "otVulnerability": {
     "panelTitle": "OT-Schwachstelle",
@@ -4146,7 +4381,11 @@
     "noRemediations": "Keine Behebungsvorschläge verfügbar",
     "viewAdvisory": "Herstellerhinweis anzeigen",
     "lastUpdated": "Letzte Aktualisierung",
-    "category": { "immediate": "Sofort", "scheduled": "Geplant", "long-term": "Langfristig" },
+    "category": {
+      "immediate": "Sofort",
+      "scheduled": "Geplant",
+      "long-term": "Langfristig"
+    },
     "exposure": {
       "title": "OT-Exposition",
       "totalAffected": "Betroffene Assets",
@@ -4277,15 +4516,28 @@
     "calculatedAt": "Berechnet",
     "stable": "Stabil",
     "mitigatingFactors": "Abschwächungsfaktoren",
-    "risk": { "low": "Niedrig", "medium": "Mittel", "high": "Hoch", "critical": "Kritisch" },
-    "criticality": { "low": "Niedrige Kritikalität", "medium": "Mittlere Kritikalität", "high": "Hohe Kritikalität" },
+    "risk": {
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch",
+      "critical": "Kritisch"
+    },
+    "criticality": {
+      "low": "Niedrige Kritikalität",
+      "medium": "Mittlere Kritikalität",
+      "high": "Hohe Kritikalität"
+    },
     "averageScore": "Durchschnittsscore",
     "vendorsAssessed": "Bewertete Lieferanten",
     "highRisk": "Hohes/Kritisches Risiko",
     "lowRisk": "Niedriges Risiko",
     "allRisks": "Alle Risiken",
     "sortBy": "Sortieren nach",
-    "sort": { "score": "Score", "name": "Name", "trend": "Trend" },
+    "sort": {
+      "score": "Score",
+      "name": "Name",
+      "trend": "Trend"
+    },
     "assessments": "Bewertungen",
     "noVendors": "Keine Lieferanten entsprechen den Filtern",
     "riskLevel": "Risikoniveau",
@@ -4302,7 +4554,11 @@
   "vendorConcentration": {
     "title": "Lieferantenkonzentration",
     "subtitle": "Analysieren Sie Konzentrationsrisiken und identifizieren Sie einzelne Ausfallpunkte",
-    "level": { "low": "Niedrig", "moderate": "Moderat", "high": "Hoch" },
+    "level": {
+      "low": "Niedrig",
+      "moderate": "Moderat",
+      "high": "Hoch"
+    },
     "metrics": {
       "totalVendors": "Lieferanten gesamt",
       "active": "aktiv",
@@ -4312,8 +4568,14 @@
       "vendorsWithHighDep": "Lieferanten mit hoher Abhängigkeit",
       "concentrationLevel": "Konzentrationsniveau"
     },
-    "tabs": { "overview": "Übersicht", "matrix": "Matrix", "recommendations": "Empfehlungen" },
-    "categoryDistribution": { "title": "Verteilung nach Kategorie" },
+    "tabs": {
+      "overview": "Übersicht",
+      "matrix": "Matrix",
+      "recommendations": "Empfehlungen"
+    },
+    "categoryDistribution": {
+      "title": "Verteilung nach Kategorie"
+    },
     "chart": {
       "vendors": "Lieferanten",
       "vendor": "Lieferant(en)",
@@ -4324,7 +4586,10 @@
       "critical": "kritisch",
       "spofWarning": "Diese Kategorie weist einen einzelnen Ausfallpunkt auf"
     },
-    "spofAlerts": { "title": "SPOF-Warnungen", "alertCount": "Warnungen" },
+    "spofAlerts": {
+      "title": "SPOF-Warnungen",
+      "alertCount": "Warnungen"
+    },
     "spof": {
       "total": "SPOF gesamt",
       "criticalCount": "Kritisch",
@@ -4339,8 +4604,17 @@
       "viewAll": "Alle Warnungen anzeigen",
       "noSPOFs": "Keine Ausfallpunkte",
       "noSPOFsDescription": "Ihr Lieferantenportfolio ist gut diversifiziert",
-      "impact": { "critical": "Kritische Auswirkung", "high": "Hohe Auswirkung", "medium": "Mittlere Auswirkung", "low": "Niedrige Auswirkung" },
-      "urgency": { "immediate": "Sofortige Maßnahme", "shortTerm": "Kurzfristig", "longTerm": "Langfristig" }
+      "impact": {
+        "critical": "Kritische Auswirkung",
+        "high": "Hohe Auswirkung",
+        "medium": "Mittlere Auswirkung",
+        "low": "Niedrige Auswirkung"
+      },
+      "urgency": {
+        "immediate": "Sofortige Maßnahme",
+        "shortTerm": "Kurzfristig",
+        "longTerm": "Langfristig"
+      }
     },
     "trends": {
       "title": "Trends",
@@ -4351,7 +4625,10 @@
       "noChange": "Keine signifikante Änderung",
       "change": "Veränderung"
     },
-    "dependencyMatrix": { "title": "Abhängigkeitsmatrix", "description": "Visualisieren Sie Abhängigkeiten zwischen Lieferanten und Diensten" },
+    "dependencyMatrix": {
+      "title": "Abhängigkeitsmatrix",
+      "description": "Visualisieren Sie Abhängigkeiten zwischen Lieferanten und Diensten"
+    },
     "matrix": {
       "searchPlaceholder": "Lieferant suchen...",
       "criticalOnly": "Nur kritische",
@@ -4377,8 +4654,16 @@
       "potentialReduction": "Potenzielle Risikoreduktion um {{value}}%",
       "totalReduction": "Gesamtreduktion",
       "byPriority": "Nach Priorität",
-      "priority": { "high": "Hoch", "medium": "Mittel", "low": "Niedrig" },
-      "effort": { "low": "Geringer Aufwand", "medium": "Mittlerer Aufwand", "high": "Hoher Aufwand" },
+      "priority": {
+        "high": "Hoch",
+        "medium": "Mittel",
+        "low": "Niedrig"
+      },
+      "effort": {
+        "low": "Geringer Aufwand",
+        "medium": "Mittlerer Aufwand",
+        "high": "Hoher Aufwand"
+      },
       "riskReduction": "Risikoreduktion",
       "currentState": "Aktueller Zustand",
       "targetState": "Zielzustand",
@@ -4412,7 +4697,15 @@
     "emailHint": "Der Lieferantenkontakt erhält den auszufüllenden Fragebogen.",
     "startAssessment": "Bewertung starten",
     "assessmentCreated": "Bewertung erfolgreich erstellt",
-    "status": { "draft": "Entwurf", "sent": "Gesendet", "inProgress": "In Bearbeitung", "submitted": "Eingereicht", "reviewed": "Geprüft", "archived": "Archiviert", "expired": "Abgelaufen" },
+    "status": {
+      "draft": "Entwurf",
+      "sent": "Gesendet",
+      "inProgress": "In Bearbeitung",
+      "submitted": "Eingereicht",
+      "reviewed": "Geprüft",
+      "archived": "Archiviert",
+      "expired": "Abgelaufen"
+    },
     "allStatuses": "Alle",
     "noAssessments": "Keine Bewertungen",
     "noAssessmentsWithFilter": "Keine {{status}} Bewertungen",
@@ -4428,13 +4721,33 @@
     "reviewIn": "Prüfung in {{count}} Tagen",
     "nextReview": "Nächste Prüfung: {{date}}",
     "templates": {
-      "dora": { "title": "DORA-Bewertung", "description": "DORA-Compliance-Bewertung für IKT-Dienstleister gemäß Verordnung (EU) 2022/2554" },
-      "iso27001": { "title": "ISO 27001-Bewertung", "description": "Bewertung des ISMS gemäß ISO/IEC 27001:2022" },
-      "nis2": { "title": "NIS2-Bewertung", "description": "NIS2-Richtlinien-Compliance für wesentliche und wichtige Einrichtungen" },
-      "hds": { "title": "HDS-Bewertung", "description": "HDS-Zertifizierungsbewertung für Gesundheitsdaten-Hosting-Anbieter" },
-      "general": { "title": "Allgemeine Sicherheitsbewertung", "description": "Allgemeine Bewertung der Sicherheitspraktiken und Compliance des Lieferanten" }
+      "dora": {
+        "title": "DORA-Bewertung",
+        "description": "DORA-Compliance-Bewertung für IKT-Dienstleister gemäß Verordnung (EU) 2022/2554"
+      },
+      "iso27001": {
+        "title": "ISO 27001-Bewertung",
+        "description": "Bewertung des ISMS gemäß ISO/IEC 27001:2022"
+      },
+      "nis2": {
+        "title": "NIS2-Bewertung",
+        "description": "NIS2-Richtlinien-Compliance für wesentliche und wichtige Einrichtungen"
+      },
+      "hds": {
+        "title": "HDS-Bewertung",
+        "description": "HDS-Zertifizierungsbewertung für Gesundheitsdaten-Hosting-Anbieter"
+      },
+      "general": {
+        "title": "Allgemeine Sicherheitsbewertung",
+        "description": "Allgemeine Bewertung der Sicherheitspraktiken und Compliance des Lieferanten"
+      }
     },
-    "reviewCycles": { "quarterly": "Vierteljährlich (3 Monate)", "biAnnual": "Halbjährlich (6 Monate)", "annual": "Jährlich (12 Monate)", "custom": "Benutzerdefiniert" },
+    "reviewCycles": {
+      "quarterly": "Vierteljährlich (3 Monate)",
+      "biAnnual": "Halbjährlich (6 Monate)",
+      "annual": "Jährlich (12 Monate)",
+      "custom": "Benutzerdefiniert"
+    },
     "alerts": {
       "expirationWarning": "Die Bewertung von {{supplierName}} läuft in {{days}} Tagen ab",
       "reviewDue": "Die Prüfung von {{supplierName}} ist in {{days}} Tagen fällig",
@@ -4447,10 +4760,24 @@
     "title": "Risikoquantifizierung",
     "subtitle": "FAIR-Analyse und Monte-Carlo-Simulation",
     "analyses": "Analysen",
-    "actions": { "newAnalysis": "Neue Analyse", "runSimulation": "Simulation starten", "simulate": "Simulieren" },
-    "list": { "empty": "Keine FAIR-Analysen", "emptyDesc": "Erstellen Sie Ihre erste Finanzrisikoanalyse zur Quantifizierung Ihrer Cyberrisiken.", "noSimulation": "Noch nicht simuliert" },
-    "create": { "title": "Neue FAIR-Analyse", "description": "Konfigurieren Sie die Grundparameter zur Quantifizierung des finanziellen Risikos." },
-    "delete": { "title": "Diese Analyse löschen?", "description": "Diese Aktion ist unwiderruflich. Alle Simulationsergebnisse werden ebenfalls gelöscht." },
+    "actions": {
+      "newAnalysis": "Neue Analyse",
+      "runSimulation": "Simulation starten",
+      "simulate": "Simulieren"
+    },
+    "list": {
+      "empty": "Keine FAIR-Analysen",
+      "emptyDesc": "Erstellen Sie Ihre erste Finanzrisikoanalyse zur Quantifizierung Ihrer Cyberrisiken.",
+      "noSimulation": "Noch nicht simuliert"
+    },
+    "create": {
+      "title": "Neue FAIR-Analyse",
+      "description": "Konfigurieren Sie die Grundparameter zur Quantifizierung des finanziellen Risikos."
+    },
+    "delete": {
+      "title": "Diese Analyse löschen?",
+      "description": "Diese Aktion ist unwiderruflich. Alle Simulationsergebnisse werden ebenfalls gelöscht."
+    },
     "toast": {
       "created": "Analyse erstellt",
       "createdDesc": "Die FAIR-Analyse wurde erfolgreich erstellt.",
@@ -4483,7 +4810,13 @@
       "controlHelp": "Gesamtbewertung der Wirksamkeit Ihrer Sicherheitsmaßnahmen",
       "createAnalysis": "Analyse erstellen"
     },
-    "config": { "summary": "Konfiguration", "frequency": "Häufigkeit", "lossRange": "Verlustspanne", "controlStrength": "Kontrollstärke", "vulnerability": "Schwachstelle" },
+    "config": {
+      "summary": "Konfiguration",
+      "frequency": "Häufigkeit",
+      "lossRange": "Verlustspanne",
+      "controlStrength": "Kontrollstärke",
+      "vulnerability": "Schwachstelle"
+    },
     "noResults": "Keine Simulationsergebnisse",
     "noResultsDesc": "Starten Sie eine Monte-Carlo-Simulation zur Quantifizierung dieses Risikos.",
     "results": {

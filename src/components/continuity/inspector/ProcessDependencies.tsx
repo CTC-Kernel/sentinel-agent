@@ -3,6 +3,7 @@ import { useStore } from '../../../store';
 import { Server, Truck, AlertTriangle } from '../../ui/Icons';
 import { Badge } from '../../ui/Badge';
 import { Asset, Supplier, Risk } from '../../../types';
+import { RISK_THRESHOLDS } from '../../../constants/complianceConfig';
 
 interface ProcessDependenciesProps {
     linkedAssets: Asset[];
@@ -54,7 +55,7 @@ export const ProcessDependencies: React.FC<ProcessDependenciesProps> = ({ linked
                     {linkedRisks.length > 0 ? linkedRisks.map(r => (
                         <div key={r.id || 'unknown'} className="flex justify-between items-center p-4 bg-white dark:bg-white/5 rounded-3xl border border-border/40 dark:border-border/40 shadow-sm">
                             <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{r.threat}</span>
-                            <Badge status={r.score >= 15 ? 'error' : r.score >= 8 ? 'warning' : 'info'}>
+                            <Badge status={r.score >= RISK_THRESHOLDS.CRITICAL ? 'error' : r.score >= RISK_THRESHOLDS.HIGH ? 'warning' : 'info'}>
                                 Score: {r.score}/25
                             </Badge>
                         </div>

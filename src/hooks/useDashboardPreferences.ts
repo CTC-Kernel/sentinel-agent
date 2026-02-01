@@ -17,6 +17,7 @@ import {
 import { db } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
 import { getDefaultLayoutForRole } from '../config/dashboardDefaults';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type { UserRole } from '../utils/roleUtils';
 
 export interface WidgetLayout {
@@ -254,14 +255,14 @@ export const useDashboardPreferences = (
 
         await setDoc(
           docRef,
-          {
+          sanitizeData({
             userId: targetUserId,
             role: targetRole,
             layout,
             customized,
             updatedAt: serverTimestamp(),
             createdAt: serverTimestamp(),
-          },
+          }),
           { merge: true }
         );
 

@@ -19,6 +19,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type { SimulationResults } from '../types/fair';
 
 // ============================================================================
@@ -196,14 +197,14 @@ export class ROICalculatorService {
     userId: string,
     data: Omit<SecurityInvestment, 'id' | 'organizationId' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>
   ): Promise<string> {
-    const docRef = await addDoc(getInvestmentCollection(organizationId), {
+    const docRef = await addDoc(getInvestmentCollection(organizationId), sanitizeData({
       ...data,
       organizationId,
       createdAt: serverTimestamp(),
       createdBy: userId,
       updatedAt: serverTimestamp(),
       updatedBy: userId
-    });
+    }));
 
     return docRef.id;
   }
@@ -218,11 +219,11 @@ export class ROICalculatorService {
     updates: Partial<SecurityInvestment>
   ): Promise<void> {
     const docRef = doc(getInvestmentCollection(organizationId), investmentId);
-    await updateDoc(docRef, {
+    await updateDoc(docRef, sanitizeData({
       ...updates,
       updatedAt: serverTimestamp(),
       updatedBy: userId
-    });
+    }));
   }
 
   /**

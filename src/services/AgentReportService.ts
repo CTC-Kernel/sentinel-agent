@@ -28,6 +28,7 @@ import { httpsCallable } from 'firebase/functions';
 import { ref, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, functions, storage } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type {
     AgentReport,
     ReportConfig,
@@ -186,7 +187,7 @@ export async function generateReport(
         const now = new Date().toISOString();
 
         // Create report record
-        const reportDoc = await addDoc(getReportsCollection(organizationId), {
+        const reportDoc = await addDoc(getReportsCollection(organizationId), sanitizeData({
             organizationId,
             type: config.type,
             name: config.name,
@@ -202,7 +203,7 @@ export async function generateReport(
             },
             expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
             downloadCount: 0,
-        });
+        }));
 
         // Call Cloud Function to generate report
         const generateReportFn = httpsCallable(functions, 'generateAgentReport');
@@ -313,10 +314,10 @@ export async function getReportDownloadUrl(
         const url = await getDownloadURL(fileRef);
 
         // Update download count
-        await updateDoc(doc(getReportsCollection(organizationId), reportId), {
+        await updateDoc(doc(getReportsCollection(organizationId), reportId), sanitizeData({
             downloadCount: increment(1),
             lastDownloadedAt: new Date().toISOString(),
-        });
+        }));
 
         return url;
     } catch (error) {
@@ -349,14 +350,14 @@ export async function createSchedule(
         const tempSchedule = { ...schedule } as ScheduledReport;
         const nextRunAt = calculateNextRunDate(tempSchedule).toISOString();
 
-        const docRef = await addDoc(getSchedulesCollection(organizationId), {
+        const docRef = await addDoc(getSchedulesCollection(organizationId), sanitizeData({
             ...schedule,
             nextRunAt,
             runCount: 0,
             createdAt: now,
             updatedAt: now,
             createdBy: userId,
-        });
+        }));
 
         return docRef.id;
     } catch (error) {
@@ -389,10 +390,10 @@ export async function updateSchedule(
             }
         }
 
-        await updateDoc(doc(getSchedulesCollection(organizationId), scheduleId), {
+        await updateDoc(doc(getSchedulesCollection(organizationId), scheduleId), sanitizeData({
             ...updates,
             updatedAt: now,
-        });
+        }));
     } catch (error) {
         ErrorLogger.error(error, 'AgentReportService.updateSchedule', {
             component: 'AgentReportService',
@@ -494,11 +495,11 @@ export async function runScheduleNow(
         const reportId = await generateReport(organizationId, schedule.config, userId);
 
         // Update schedule with atomic increment
-        await updateDoc(doc(getSchedulesCollection(organizationId), scheduleId), {
+        await updateDoc(doc(getSchedulesCollection(organizationId), scheduleId), sanitizeData({
             lastRunAt: new Date().toISOString(),
             lastReportId: reportId,
             runCount: increment(1),
-        });
+        }));
 
         return reportId;
     } catch (error) {
@@ -555,10 +556,10 @@ export async function createTemplate(
     template: Omit<ReportTemplate, 'id' | 'isBuiltIn'>
 ): Promise<string> {
     try {
-        const docRef = await addDoc(getTemplatesCollection(organizationId), {
+        const docRef = await addDoc(getTemplatesCollection(organizationId), sanitizeData({
             ...template,
             isBuiltIn: false,
-        });
+        }));
         return docRef.id;
     } catch (error) {
         ErrorLogger.error(error, 'AgentReportService.createTemplate', {

@@ -23,6 +23,7 @@ import {
 import { functions, db } from '@/firebase';
 import { ErrorLogger } from './errorLogger';
 import { IntegrityService } from './integrityService';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type {
   SignatureRequest,
   SignatureStatus,
@@ -126,7 +127,7 @@ export const SignatureService = {
 
       const docRef = await addDoc(
         collection(db, SIGNATURE_REQUESTS_COLLECTION),
-        requestData
+        sanitizeData(requestData)
       );
 
       // If send immediately, notify first signer(s)
@@ -374,13 +375,13 @@ export const SignatureService = {
 
       // Update the request
       const docRef = doc(db, SIGNATURE_REQUESTS_COLLECTION, input.requestId);
-      await updateDoc(docRef, {
+      await updateDoc(docRef, sanitizeData({
         signers: updatedSigners,
         status: newStatus,
         updatedAt: Timestamp.now(),
         ...(allSigned && { completedAt: Timestamp.now() }),
         auditTrail: [...request.auditTrail, auditEvent],
-      });
+      }));
 
       // If completed, update document with signature info
       if (allSigned) {
@@ -451,12 +452,12 @@ export const SignatureService = {
       };
 
       const docRef = doc(db, SIGNATURE_REQUESTS_COLLECTION, requestId);
-      await updateDoc(docRef, {
+      await updateDoc(docRef, sanitizeData({
         signers: updatedSigners,
         status: 'rejected',
         updatedAt: Timestamp.now(),
         auditTrail: [...request.auditTrail, auditEvent],
-      });
+      }));
     } catch (error) {
       ErrorLogger.error(error, 'SignatureService.rejectSignature');
       throw error;
@@ -493,7 +494,7 @@ export const SignatureService = {
       };
 
       const docRef = doc(db, SIGNATURE_REQUESTS_COLLECTION, requestId);
-      await updateDoc(docRef, {
+      await updateDoc(docRef, sanitizeData({
         status: 'cancelled',
         updatedAt: Timestamp.now(),
         cancellation: {
@@ -502,7 +503,7 @@ export const SignatureService = {
           reason,
         },
         auditTrail: [...request.auditTrail, auditEvent],
-      });
+      }));
     } catch (error) {
       ErrorLogger.error(error, 'SignatureService.cancelSignatureRequest');
       throw error;
@@ -616,13 +617,13 @@ export const SignatureService = {
         }));
 
       const docRef = doc(db, 'documents', documentId);
-      await updateDoc(docRef, {
+      await updateDoc(docRef, sanitizeData({
         signatures,
         signatureRequestId: requestId,
         signatureStatus: 'signed',
         signedAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
-      });
+      }));
     } catch (error) {
       ErrorLogger.error(error, 'SignatureService.updateDocumentWithSignatures');
       // Don't throw - this is a best-effort update

@@ -93,7 +93,7 @@ export const useThreats = () => {
         try {
             // Ensure ID is not in the update payload
             const { id: _unused, ...safeUpdates } = updates;
-            await updateDoc(doc(db, 'threat_library', id), safeUpdates);
+            await updateDoc(doc(db, 'threat_library', id), sanitizeData(safeUpdates));
             addToast(t('threats.toast.updated', { defaultValue: "Menace modifiée" }), "success");
             return true;
         } catch (error) {

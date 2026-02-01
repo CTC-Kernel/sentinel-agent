@@ -23,6 +23,7 @@ import {
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type {
     DetectedAnomaly,
     AnomalyType,
@@ -322,19 +323,19 @@ export async function saveThresholdConfig(
 
             // Clear existing defaults in batch
             existingDefaults.forEach(docSnap => {
-                batch.update(docSnap.ref, { isDefault: false, updatedAt: now });
+                batch.update(docSnap.ref, sanitizeData({ isDefault: false, updatedAt: now }));
             });
         }
 
         // Add new config in same batch
         const newRef = doc(getThresholdsCollection(organizationId));
-        batch.set(newRef, {
+        batch.set(newRef, sanitizeData({
             ...config,
             isDefault: config.isDefault || false,
             createdAt: now,
             updatedAt: now,
             createdBy: userId,
-        });
+        }));
         await batch.commit();
 
         return newRef.id;
@@ -358,10 +359,10 @@ export async function updateThresholdConfig(
 ): Promise<void> {
     try {
         const docRef = doc(getThresholdsCollection(organizationId), configId);
-        await updateDoc(docRef, {
+        await updateDoc(docRef, sanitizeData({
             ...updates,
             updatedAt: new Date().toISOString(),
-        });
+        }));
     } catch (error) {
         ErrorLogger.error(error, 'AgentAnomalyService.updateThresholdConfig', {
             component: 'AgentAnomalyService',
@@ -387,11 +388,11 @@ export async function acknowledgeAnomaly(
 ): Promise<void> {
     try {
         const docRef = doc(getAnomaliesCollection(organizationId), anomalyId);
-        await updateDoc(docRef, {
+        await updateDoc(docRef, sanitizeData({
             status: 'acknowledged',
             acknowledgedBy: userId,
             acknowledgedAt: new Date().toISOString(),
-        });
+        }));
     } catch (error) {
         ErrorLogger.error(error, 'AgentAnomalyService.acknowledgeAnomaly', {
             component: 'AgentAnomalyService',
@@ -413,11 +414,11 @@ export async function investigateAnomaly(
 ): Promise<void> {
     try {
         const docRef = doc(getAnomaliesCollection(organizationId), anomalyId);
-        await updateDoc(docRef, {
+        await updateDoc(docRef, sanitizeData({
             status: 'investigating',
             acknowledgedBy: userId,
             acknowledgedAt: new Date().toISOString(),
-        });
+        }));
     } catch (error) {
         ErrorLogger.error(error, 'AgentAnomalyService.investigateAnomaly', {
             component: 'AgentAnomalyService',
@@ -440,12 +441,12 @@ export async function resolveAnomaly(
 ): Promise<void> {
     try {
         const docRef = doc(getAnomaliesCollection(organizationId), anomalyId);
-        await updateDoc(docRef, {
+        await updateDoc(docRef, sanitizeData({
             status: 'resolved',
             resolvedBy: userId,
             resolvedAt: new Date().toISOString(),
             resolutionNotes: notes || null,
-        });
+        }));
     } catch (error) {
         ErrorLogger.error(error, 'AgentAnomalyService.resolveAnomaly', {
             component: 'AgentAnomalyService',
@@ -468,12 +469,12 @@ export async function markFalsePositive(
 ): Promise<void> {
     try {
         const docRef = doc(getAnomaliesCollection(organizationId), anomalyId);
-        await updateDoc(docRef, {
+        await updateDoc(docRef, sanitizeData({
             status: 'false_positive',
             resolvedBy: userId,
             resolvedAt: new Date().toISOString(),
             resolutionNotes: notes || 'Marqué comme faux positif',
-        });
+        }));
     } catch (error) {
         ErrorLogger.error(error, 'AgentAnomalyService.markFalsePositive', {
             component: 'AgentAnomalyService',
@@ -496,11 +497,11 @@ export async function bulkAcknowledge(
     try {
         const BATCH_LIMIT = 400;
         const now = new Date().toISOString();
-        const updateData = {
+        const updateData = sanitizeData({
             status: 'acknowledged',
             acknowledgedBy: userId,
             acknowledgedAt: now,
-        };
+        });
 
         for (let i = 0; i < anomalyIds.length; i += BATCH_LIMIT) {
             const chunk = anomalyIds.slice(i, i + BATCH_LIMIT);
@@ -534,12 +535,12 @@ export async function bulkResolve(
     try {
         const BATCH_LIMIT = 400;
         const now = new Date().toISOString();
-        const updateData = {
+        const updateData = sanitizeData({
             status: 'resolved',
             resolvedBy: userId,
             resolvedAt: now,
             resolutionNotes: notes || null,
-        };
+        });
 
         for (let i = 0; i < anomalyIds.length; i += BATCH_LIMIT) {
             const chunk = anomalyIds.slice(i, i + BATCH_LIMIT);
@@ -596,10 +597,10 @@ export async function whitelistProcess(
         }
 
         const docRef = doc(getBaselinesCollection(organizationId), baseline.id);
-        await updateDoc(docRef, {
+        await updateDoc(docRef, sanitizeData({
             knownProcesses: updatedProcesses,
             lastRecalculated: new Date().toISOString(),
-        });
+        }));
     } catch (error) {
         ErrorLogger.error(error, 'AgentAnomalyService.whitelistProcess', {
             component: 'AgentAnomalyService',
@@ -652,10 +653,10 @@ export async function whitelistConnection(
         }
 
         const docRef = doc(getBaselinesCollection(organizationId), baseline.id);
-        await updateDoc(docRef, {
+        await updateDoc(docRef, sanitizeData({
             knownConnections: updatedConnections,
             lastRecalculated: new Date().toISOString(),
-        });
+        }));
     } catch (error) {
         ErrorLogger.error(error, 'AgentAnomalyService.whitelistConnection', {
             component: 'AgentAnomalyService',

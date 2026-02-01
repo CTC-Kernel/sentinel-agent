@@ -234,7 +234,7 @@ export class DocumentService {
         if (user.organizationId !== organizationId) throw new Error("Tenant mismatch");
 
         try {
-            const BATCH_SIZE = 500;
+            const BATCH_SIZE = 450;
             let batch = writeBatch(db);
             let count = 0;
             let batchCount = 0;

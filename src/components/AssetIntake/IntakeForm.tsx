@@ -25,8 +25,8 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
     const [users, setUsers] = useState<UserProfile[]>([]);
 
     const intakeSchema = z.object({
-        name: z.string().trim().min(1, "Le nom de l'équipement est requis"),
-        serialNumber: z.string().trim().min(1, "Le numéro de série est requis"),
+        name: z.string().trim().min(1, "Equipment name is required"),
+        serialNumber: z.string().trim().min(1, "Serial number is required"),
         userId: z.string().optional(),
         projectId: z.string().optional(),
         notes: z.string().trim().optional(),
@@ -96,7 +96,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
         setError(null);
 
         if (!orgId) {
-            setError("Organisation non identifiée. Lien invalide.");
+            setError("Organization not identified. Invalid link.");
             setLoading(false);
             return;
         }
@@ -113,7 +113,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
             clearDraft();
             onSuccess();
         } catch {
-            setError("Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.");
+            setError("An error occurred while saving. Please try again.");
         } finally {
             setLoading(false);
         }

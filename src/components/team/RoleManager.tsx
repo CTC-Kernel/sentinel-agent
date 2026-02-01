@@ -17,8 +17,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 const createRoleSchema = (t: (key: string, options?: { defaultValue: string }) => string) => z.object({
-    name: z.string().min(2, t('team.roles.validation.nameRequired', { defaultValue: 'Nom requis (min 2 caractères)' })).max(100, t('team.roles.validation.nameTooLong', { defaultValue: 'Nom trop long' })),
-    description: z.string().max(500, t('team.roles.validation.descriptionTooLong', { defaultValue: 'Description trop longue' })).optional(),
+    name: z.string().min(2, t('team.roles.validation.nameRequired', { defaultValue: 'Name required (min 2 characters)' })).max(100, t('team.roles.validation.nameTooLong', { defaultValue: 'Name is too long' })),
+    description: z.string().max(500, t('team.roles.validation.descriptionTooLong', { defaultValue: 'Description is too long' })).optional(),
     permissions: z.record(z.string(), z.array(z.string())).optional()
 });
 

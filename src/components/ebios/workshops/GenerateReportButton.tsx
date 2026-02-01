@@ -63,7 +63,7 @@ export const GenerateReportButton: React.FC<GenerateReportButtonProps> = ({
 
   const handleGenerateReport = async () => {
     if (!completionStatus.overall) {
-      setError('Veuillez compléter toutes les sections avant de générer le rapport.');
+      setError('Please complete all sections before generating the report.');
       return;
     }
 

@@ -72,7 +72,7 @@ export const CrisisProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 startedAt: serverTimestamp(),
                 activatedBy: user.uid,
                 updatedAt: serverTimestamp()
-            });
+            }, { merge: true });
             // State update will happen via onSnapshot
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'CrisisContext.activate');

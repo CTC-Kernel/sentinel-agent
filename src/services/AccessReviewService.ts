@@ -24,6 +24,7 @@ import {
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type {
   AccessReviewCampaign,
   AccessReview,
@@ -119,7 +120,7 @@ export class AccessReviewService {
         updatedBy: user.uid,
       };
 
-      const docRef = await addDoc(collection(db, CAMPAIGNS_COLLECTION), campaignData);
+      const docRef = await addDoc(collection(db, CAMPAIGNS_COLLECTION), sanitizeData(campaignData));
       return docRef.id;
     } catch (error) {
       ErrorLogger.error(error, 'AccessReviewService.createCampaign');
@@ -146,7 +147,7 @@ export class AccessReviewService {
         updateData.completedAt = Timestamp.now();
       }
 
-      await updateDoc(doc(db, CAMPAIGNS_COLLECTION, campaignId), updateData);
+      await updateDoc(doc(db, CAMPAIGNS_COLLECTION, campaignId), sanitizeData(updateData));
     } catch (error) {
       ErrorLogger.error(error, 'AccessReviewService.updateCampaignStatus');
       throw error;
@@ -194,17 +195,17 @@ export class AccessReviewService {
         };
 
         const reviewRef = doc(collection(db, REVIEWS_COLLECTION));
-        batch.set(reviewRef, reviewData);
+        batch.set(reviewRef, sanitizeData(reviewData));
         reviewCount++;
       }
 
       // Update campaign status and count
-      batch.update(campaignRef, {
+      batch.update(campaignRef, sanitizeData({
         status: 'active',
         totalReviews: reviewCount,
         updatedAt: Timestamp.now(),
         updatedBy: user.uid,
-      });
+      }));
 
       await batch.commit();
       return reviewCount;
@@ -295,13 +296,13 @@ export class AccessReviewService {
       }
 
       // Update review
-      await updateDoc(reviewRef, {
+      await updateDoc(reviewRef, sanitizeData({
         status: newStatus,
         decision: submission.decision,
         justification: submission.justification,
         reviewedAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
-      });
+      }));
 
       // Update campaign counts
       const campaignRef = doc(db, CAMPAIGNS_COLLECTION, review.campaignId);
@@ -328,7 +329,7 @@ export class AccessReviewService {
           updates.completedAt = Timestamp.now();
         }
 
-        await updateDoc(campaignRef, updates);
+        await updateDoc(campaignRef, sanitizeData(updates));
       }
     } catch (error) {
       ErrorLogger.error(error, 'AccessReviewService.submitReview');
@@ -398,12 +399,12 @@ export class AccessReviewService {
     user: UserProfile
   ): Promise<void> {
     try {
-      await updateDoc(doc(db, DORMANT_COLLECTION, accountId), {
+      await updateDoc(doc(db, DORMANT_COLLECTION, accountId), sanitizeData({
         status,
         statusReason: reason,
         statusChangedAt: Timestamp.now(),
         statusChangedBy: user.uid,
-      });
+      }));
     } catch (error) {
       ErrorLogger.error(error, 'AccessReviewService.updateDormantStatus');
       throw error;

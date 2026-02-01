@@ -3,6 +3,8 @@ import { httpsCallable, getFunctions } from 'firebase/functions';
 import { getApp } from 'firebase/app';
 import { ErrorLogger } from '../services/errorLogger';
 
+let tokenJustRefreshed = false;
+
 /**
  * Force refresh the current user's ID token to get updated custom claims
  */
@@ -15,7 +17,7 @@ export const refreshUserToken = async (): Promise<boolean> => {
 
         // Call the Cloud Function to update custom claims
         const app = getApp();
-        const functions = getFunctions(app);
+        const functions = getFunctions(app, 'europe-west1');
         const refreshToken = httpsCallable(functions, 'refreshUserToken');
 
         const result = await refreshToken();
@@ -55,10 +57,7 @@ export const hasCustomClaims = async (): Promise<boolean> => {
  */
 export const autoRefreshTokenIfNeeded = async (): Promise<void> => {
     try {
-        // Check if we just refreshed (to avoid infinite loop)
-        const justRefreshed = sessionStorage.getItem('tokenJustRefreshed');
-        if (justRefreshed === 'true') {
-            sessionStorage.removeItem('tokenJustRefreshed');
+        if (tokenJustRefreshed) {
             return;
         }
 
@@ -67,8 +66,8 @@ export const autoRefreshTokenIfNeeded = async (): Promise<void> => {
             const success = await refreshUserToken();
 
             if (success) {
-                // Mark that we just refreshed and reload to use new token
-                sessionStorage.setItem('tokenJustRefreshed', 'true');
+                tokenJustRefreshed = true;
+                setTimeout(() => { tokenJustRefreshed = false; }, 5000);
                 window.location.reload();
             }
         }

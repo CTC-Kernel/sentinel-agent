@@ -10,14 +10,15 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
+import { useTranslation } from 'react-i18next';
 
 // Generic schema for user submission (simplified version of Threat)
 const submissionSchema = z.object({
-    title: z.string().min(5, 'Le titre est trop court'),
+    title: z.string().min(5, 'Title is too short'),
     type: z.enum(['Ransomware', 'Phishing', 'Vulnerability', 'DDoS', 'Malware', 'Espionnage', 'Autre']),
     severity: z.enum(['Low', 'Medium', 'High', 'Critical']),
-    description: z.string().min(20, 'Veuillez décrire la menace plus en détail'),
-    country: z.string().min(2, 'Pays requis'),
+    description: z.string().min(20, 'Please describe the threat in more detail'),
+    country: z.string().min(2, 'Country is required'),
     iocs: z.string().optional() // Indicators of Compromise (domains, hashes, etc.)
 });
 
@@ -31,8 +32,9 @@ interface SubmitThreatDrawerProps {
 
 export const SubmitThreatDrawer: React.FC<SubmitThreatDrawerProps> = ({ isOpen, onClose, onSuccess }) => {
     const { user } = useStore();
+    const { t } = useTranslation();
     const { addCommunityThreat } = useThreatIntelActions();
-    const { control, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<SubmissionFormData>({
+    const { control, handleSubmit, formState: { errors, isSubmitting, isDirty }, reset } = useForm<SubmissionFormData>({
         resolver: zodResolver(submissionSchema),
         defaultValues: {
             type: 'Autre',
@@ -72,10 +74,11 @@ export const SubmitThreatDrawer: React.FC<SubmitThreatDrawerProps> = ({ isOpen, 
         <InspectorLayout
             isOpen={isOpen}
             onClose={onClose}
-            title="Signaler une Menace"
-            subtitle="Partagez une observation avec la communauté."
+            title={t('threats.submit.title', { defaultValue: 'Signaler une Menace' })}
+            subtitle={t('threats.submit.subtitle', { defaultValue: 'Partagez une observation avec la communauté.' })}
             width="max-w-4xl"
             icon={AlertTriangle}
+            hasUnsavedChanges={isDirty}
         >
             <form onSubmit={handleSubmit(onSubmit)} className="h-full flex flex-col">
                 <div className="flex-1 overflow-y-auto custom-scrollbar space-y-6">
@@ -84,7 +87,7 @@ export const SubmitThreatDrawer: React.FC<SubmitThreatDrawerProps> = ({ isOpen, 
                         control={control}
                         render={({ field }) => (
                             <FloatingLabelInput
-                                label="Titre de l'alerte"
+                                label={t('threats.fields.alertTitle', { defaultValue: "Titre de l'alerte" })}
                                 {...field}
                                 error={errors.title?.message}
                                 icon={AlertTriangle}
@@ -98,15 +101,15 @@ export const SubmitThreatDrawer: React.FC<SubmitThreatDrawerProps> = ({ isOpen, 
                             control={control}
                             render={({ field }) => (
                                 <CustomSelect
-                                    label="Type de menace"
+                                    label={t('threats.fields.threatType', { defaultValue: 'Type de menace' })}
                                     options={[
                                         { value: "Ransomware", label: "Ransomware" },
                                         { value: "Phishing", label: "Phishing" },
-                                        { value: "Vulnerability", label: "Vulnérabilité" },
+                                        { value: "Vulnerability", label: t('threats.options.vulnerability', { defaultValue: 'Vulnérabilité' }) },
                                         { value: "DDoS", label: "DDoS" },
                                         { value: "Malware", label: "Malware" },
-                                        { value: "Espionnage", label: "Espionnage" },
-                                        { value: "Autre", label: "Autre" }
+                                        { value: "Espionnage", label: t('threats.options.espionage', { defaultValue: 'Espionnage' }) },
+                                        { value: "Autre", label: t('threats.options.other', { defaultValue: 'Autre' }) }
                                     ]}
                                     value={field.value}
                                     onChange={field.onChange}
@@ -119,12 +122,12 @@ export const SubmitThreatDrawer: React.FC<SubmitThreatDrawerProps> = ({ isOpen, 
                             control={control}
                             render={({ field }) => (
                                 <CustomSelect
-                                    label="Sévérité"
+                                    label={t('threats.fields.severity', { defaultValue: 'Sévérité' })}
                                     options={[
-                                        { value: "Low", label: "Faible" },
-                                        { value: "Medium", label: "Moyenne" },
-                                        { value: "High", label: "Élevée" },
-                                        { value: "Critical", label: "Critique" }
+                                        { value: "Low", label: t('threats.severity.low', { defaultValue: 'Faible' }) },
+                                        { value: "Medium", label: t('threats.severity.medium', { defaultValue: 'Moyenne' }) },
+                                        { value: "High", label: t('threats.severity.high', { defaultValue: 'Élevée' }) },
+                                        { value: "Critical", label: t('threats.severity.critical', { defaultValue: 'Critique' }) }
                                     ]}
                                     value={field.value}
                                     onChange={field.onChange}
@@ -139,7 +142,7 @@ export const SubmitThreatDrawer: React.FC<SubmitThreatDrawerProps> = ({ isOpen, 
                         control={control}
                         render={({ field }) => (
                             <FloatingLabelInput
-                                label="Pays/Région ciblé(e)"
+                                label={t('threats.fields.targetCountry', { defaultValue: 'Pays/Région ciblé(e)' })}
                                 {...field}
                                 error={errors.country?.message}
                                 icon={Globe}
@@ -152,7 +155,7 @@ export const SubmitThreatDrawer: React.FC<SubmitThreatDrawerProps> = ({ isOpen, 
                         control={control}
                         render={({ field }) => (
                             <FloatingLabelInput
-                                label="Description détaillée"
+                                label={t('threats.fields.detailedDescription', { defaultValue: 'Description détaillée' })}
                                 {...field}
                                 error={errors.description?.message}
                                 textarea
@@ -166,11 +169,11 @@ export const SubmitThreatDrawer: React.FC<SubmitThreatDrawerProps> = ({ isOpen, 
                         control={control}
                         render={({ field }) => (
                             <FloatingLabelInput
-                                label="Indicateurs de Compromission (IOCs)"
+                                label={t('threats.fields.iocs', { defaultValue: 'Indicateurs de Compromission (IOCs)' })}
                                 {...field}
                                 textarea
                                 className="min-h-[80px] font-mono text-sm"
-                                placeholder="IPs, Domaines, Hashs..."
+                                placeholder={t('threats.fields.iocsPlaceholder', { defaultValue: 'IPs, Domaines, Hashs...' })}
                                 icon={Network}
                             />
                         )}
@@ -179,7 +182,7 @@ export const SubmitThreatDrawer: React.FC<SubmitThreatDrawerProps> = ({ isOpen, 
 
                 <div className="px-6 py-4 border-t border-border/40 dark:border-border/40 shrink-0 flex justify-end gap-3 bg-white dark:bg-slate-900 z-10">
                     <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
-                        Annuler
+                        {t('common.cancel', { defaultValue: 'Annuler' })}
                     </Button>
                     <Button
                         type="submit"
@@ -187,7 +190,7 @@ export const SubmitThreatDrawer: React.FC<SubmitThreatDrawerProps> = ({ isOpen, 
                         className="bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20 gap-2"
                     >
                         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                        Publier
+                        {t('threats.submit.publish', { defaultValue: 'Publier' })}
                     </Button>
                 </div>
             </form>

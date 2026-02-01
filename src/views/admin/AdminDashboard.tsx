@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '../../lib/utils';
+import { useStore } from '../../store';
+import { useNavigate } from 'react-router-dom';
 
 import { GlobalMetrics } from './components/GlobalMetrics';
 import { TenantList } from './components/TenantList';
@@ -8,7 +10,19 @@ import { SystemHealth } from './components/SystemHealth';
 import { AuditLogList } from './components/AuditLogList';
 
 const AdminDashboard: React.FC = () => {
+    const { user, t } = useStore();
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'overview' | 'tenants' | 'users' | 'system' | 'audit'>('overview');
+
+    useEffect(() => {
+        if (user?.role !== 'super_admin') {
+            navigate('/dashboard');
+        }
+    }, [user, navigate]);
+
+    if (user?.role !== 'super_admin') {
+        return <div className="p-8 text-center text-red-500">{t('common.accessDenied', { defaultValue: 'Access Denied' })}</div>;
+    }
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-8 animate-fade-in">

@@ -103,6 +103,12 @@ export const useDocumentActions = (usersList: UserProfile[] = [], onDeletedId?: 
         if (!user) return false;
         if (!canEditResource(user, 'Document', currentDoc.ownerId || currentDoc.owner)) return false;
 
+        // Prevent editing signed documents - signature integrity requires immutability
+        if (currentDoc.signatureStatus === 'signed') {
+            addToast(t('documents.toast.signedLocked', { defaultValue: "Ce document est signé et ne peut plus être modifié" }), "error");
+            return false;
+        }
+
         setIsSubmitting(true);
         try {
             const newUrl = data.storageProvider !== 'firebase' ? data.externalUrl : (data.fileUrl || currentDoc.url);
@@ -232,13 +238,13 @@ export const useDocumentActions = (usersList: UserProfile[] = [], onDeletedId?: 
         if (!canEditResource(user, 'Document')) return; // RBAC Check
 
         try {
-            const docRef = await addDoc(collection(db, 'document_folders'), {
+            const docRef = await addDoc(collection(db, 'document_folders'), sanitizeData({
                 organizationId: user.organizationId,
                 name,
                 parentId: parentId || null,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
-            });
+            }));
 
             await AuditLogService.logCreate(
                 user.organizationId,
@@ -269,10 +275,10 @@ export const useDocumentActions = (usersList: UserProfile[] = [], onDeletedId?: 
         }
 
         try {
-            await updateDoc(doc(db, 'document_folders', id), {
+            await updateDoc(doc(db, 'document_folders', id), sanitizeData({
                 name,
                 updatedAt: serverTimestamp()
-            });
+            }));
 
             await AuditLogService.logUpdate(
                 user.organizationId,
@@ -320,7 +326,7 @@ export const useDocumentActions = (usersList: UserProfile[] = [], onDeletedId?: 
             // Move documents to root
             const docsInFolder = documents.filter(d => d.folderId === id);
             for (const d of docsInFolder) {
-                await updateDoc(doc(db, 'documents', d.id), { folderId: null });
+                await updateDoc(doc(db, 'documents', d.id), sanitizeData({ folderId: null }));
             }
 
             await AuditLogService.logDelete(
@@ -343,9 +349,9 @@ export const useDocumentActions = (usersList: UserProfile[] = [], onDeletedId?: 
         if (size && user?.organizationId) {
             const orgRef = doc(db, 'organizations', user.organizationId);
             try {
-                await updateDoc(orgRef, {
+                await updateDoc(orgRef, sanitizeData({
                     storageUsed: increment(size)
-                });
+                }));
             } catch (e) {
                 ErrorLogger.error(e, "Documents.handleUploadSuccess");
             }

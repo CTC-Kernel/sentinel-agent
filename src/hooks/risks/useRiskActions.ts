@@ -17,9 +17,12 @@ import { UserProfile } from '../../types';
 import { createRiskDraftSchema, RISK_DRAFT_STATUS, RISK_PUBLISHED_STATUS } from '../../utils/riskDraftSchema';
 import { RiskService } from '../../services/RiskService';
 import { AuditLogService, CreateAuditLogInput } from '../../services/auditLogService';
+import { useLocale } from '../useLocale';
+import { isValidRiskTransition, RiskStatus } from '../../types/risks';
 
 export const useRiskActions = (onRefresh: () => void) => {
     const { t } = useStore();
+    const { locale } = useLocale();
     const { user } = useAuth();
     const [submitting, setSubmitting] = useState(false);
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
@@ -163,7 +166,7 @@ export const useRiskActions = (onRefresh: () => void) => {
         setSubmitting(true);
         try {
             // Validation with draft schema (only threat required)
-            const draftSchema = createRiskDraftSchema('fr');
+            const draftSchema = createRiskDraftSchema(locale);
             const validationResult = draftSchema.safeParse(data);
             if (!validationResult.success) {
                 const errorMessage = validationResult.error.issues[0]?.message || t('common.invalidData');
@@ -232,7 +235,7 @@ export const useRiskActions = (onRefresh: () => void) => {
         setSubmitting(true);
         try {
             // Validation with draft schema
-            const draftSchema = createRiskDraftSchema('fr');
+            const draftSchema = createRiskDraftSchema(locale);
             const validationResult = draftSchema.safeParse(data);
             if (!validationResult.success) {
                 const errorMessage = validationResult.error.issues[0]?.message || t('common.invalidData');
@@ -349,6 +352,15 @@ export const useRiskActions = (onRefresh: () => void) => {
         }
         setSubmitting(true);
         try {
+            // Validate risk status transition if status is changing
+            if (data.status && currentRisk?.status && data.status !== currentRisk.status) {
+                if (!isValidRiskTransition(currentRisk.status as RiskStatus, data.status as RiskStatus)) {
+                    toast.error(`Transition de statut invalide : ${currentRisk.status} vers ${data.status}`);
+                    setSubmitting(false);
+                    return false;
+                }
+            }
+
             const result = await RiskService.updateRisk(user as UserProfile, id, data, currentRisk);
 
             if (result.success) {

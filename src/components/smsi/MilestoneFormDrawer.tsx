@@ -21,10 +21,10 @@ import { cn } from '../../utils/cn';
 import { Users } from '../ui/Icons';
 
 const milestoneSchema = z.object({
-  name: z.string().min(3, 'Le nom doit contenir au moins 3 caractères'),
+  name: z.string().min(3, 'Name must be at least 3 characters'),
   description: z.string().optional(),
   phase: z.enum(['plan', 'do', 'check', 'act']),
-  dueDate: z.string().min(1, 'La date d\'échéance est requise'),
+  dueDate: z.string().min(1, 'Due date is required'),
   responsibleId: z.string().optional(),
 });
 
@@ -91,8 +91,8 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
     await onSubmit(data as MilestoneFormData);
   };
 
-  const title = milestone ? 'Modifier le jalon' : 'Nouveau jalon';
-  const subtitle = 'Définissez les détails du jalon SMSI';
+  const title = milestone ? t('milestones.edit.title', { defaultValue: 'Modifier le jalon' }) : t('milestones.create.title', { defaultValue: 'Nouveau jalon' });
+  const subtitle = t('milestones.form.subtitle', { defaultValue: 'Définissez les détails du jalon SMSI' });
 
   return (
     <Drawer
@@ -111,8 +111,8 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
         <div className="flex-1 space-y-6 pt-6 px-1">
           {/* Name */}
           <FloatingLabelInput
-            label="Nom du jalon"
-            placeholder="Ex: Rédaction de la politique SMSI"
+            label={t('milestones.fields.name', { defaultValue: 'Nom du jalon' })}
+            placeholder={t('milestones.fields.namePlaceholder', { defaultValue: 'Ex: Rédaction de la politique SMSI' })}
             required
             error={errors.name?.message}
             {...register('name')}
@@ -120,8 +120,8 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
 
           {/* Description */}
           <FloatingLabelTextarea
-            label="Description"
-            placeholder="Décrivez les objectifs et livrables attendus..."
+            label={t('milestones.fields.description', { defaultValue: 'Description' })}
+            placeholder={t('milestones.fields.descriptionPlaceholder', { defaultValue: 'Décrivez les objectifs et livrables attendus...' })}
             rows={3}
             error={errors.description?.message}
             {...register('description')}
@@ -130,7 +130,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
           {/* Phase Selection - Story 20.2 */}
           <div className="space-y-2">
             <h4 id="phase-label" className="text-sm font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
-              Phase PDCA *
+              {t('milestones.fields.pdcaPhase', { defaultValue: 'Phase PDCA' })} *
             </h4>
             <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-labelledby="phase-label">
               {(Object.keys(PHASE_CONFIG) as PDCAPhase[]).map((phase) => {
@@ -187,7 +187,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
           {/* Due Date */}
           <FloatingLabelInput
             type="date"
-            label="Date d'échéance"
+            label={t('milestones.fields.dueDate', { defaultValue: "Date d'échéance" })}
             required
             error={errors.dueDate?.message}
             {...register('dueDate')}
@@ -197,14 +197,14 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
           <div className="space-y-2">
             <label htmlFor="responsible-select" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
               <Users className="w-4 h-4" />
-              Responsable
+              {t('milestones.fields.responsible', { defaultValue: 'Responsable' })}
             </label>
             <select
               id="responsible-select"
               {...register('responsibleId')}
               className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-brand-400 focus:border-blue-500"
             >
-              <option value="">Non assigné</option>
+              <option value="">{t('milestones.fields.unassigned', { defaultValue: 'Non assigné' })}</option>
               {teamMembers.map((member) => (
                 <option key={member.id || 'unknown'} value={member.id}>
                   {member.displayName || member.email}
@@ -221,9 +221,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
           {/* Quick Tips */}
           <div className="p-4 rounded-3xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 dark:border-blue-800">
             <p className="text-sm text-blue-700 dark:text-blue-400">
-              <strong>Conseil :</strong> Définissez des jalons SMART (Spécifiques,
-              Mesurables, Atteignables, Réalistes, Temporellement définis) pour
-              un suivi efficace.
+              <strong>{t('milestones.tips.title', { defaultValue: 'Conseil :' })}</strong> {t('milestones.tips.smartDescription', { defaultValue: 'Définissez des jalons SMART (Spécifiques, Mesurables, Atteignables, Réalistes, Temporellement définis) pour un suivi efficace.' })}
             </p>
           </div>
         </div>

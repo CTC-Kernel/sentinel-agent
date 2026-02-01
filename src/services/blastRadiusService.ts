@@ -131,7 +131,6 @@ const IMPACT_THRESHOLDS = {
 const calculateImpact = (
   depth: number,
   edgeWeight: number,
-  _decayRate: number,
   customDecayRates?: number[]
 ): number => {
   const rates = customDecayRates || DEFAULT_DECAY_RATES;
@@ -288,7 +287,6 @@ export class BlastRadiusService {
       edgeTypes,
       includeNodeTypes,
     } = config;
-    const _decayRate = 0.25; // Default decay rate for impact calculation (used by calculateImpact)
 
     // Build adjacency list
     const adjacencyList = buildAdjacencyList(nodes, edges, bidirectional, edgeTypes);
@@ -317,7 +315,7 @@ export class BlastRadiusService {
 
       // Skip if already visited with better impact
       const existingVisit = visited.get(nodeId);
-      if (existingVisit && existingVisit.impact >= calculateImpact(depth, cumulativeWeight, _decayRate)) {
+      if (existingVisit && existingVisit.impact >= calculateImpact(depth, cumulativeWeight)) {
         continue;
       }
 
@@ -331,7 +329,7 @@ export class BlastRadiusService {
           continue;
         }
 
-        const impact = calculateImpact(depth, cumulativeWeight, _decayRate);
+        const impact = calculateImpact(depth, cumulativeWeight);
 
         // Skip if below minimum probability/impact threshold
         if (impact < minProbability) {

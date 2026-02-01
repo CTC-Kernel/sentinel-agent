@@ -5,8 +5,14 @@
  * @param obj The object to sanitize
  * @returns A new object with undefined values replaced by null
  */
-export const sanitizeData = <T>(obj: T): T => {
+const MAX_SANITIZE_DEPTH = 50;
+
+export const sanitizeData = <T>(obj: T, depth: number = 0): T => {
     if (obj === null || obj === undefined) {
+        return null as T;
+    }
+
+    if (depth >= MAX_SANITIZE_DEPTH) {
         return null as T;
     }
 
@@ -15,11 +21,10 @@ export const sanitizeData = <T>(obj: T): T => {
     }
 
     if (Array.isArray(obj)) {
-        return obj.map(item => sanitizeData(item)) as T;
+        return obj.map(item => sanitizeData(item, depth + 1)) as T;
     }
 
     if (typeof obj === 'object') {
-        // Handle Date objects (keep them as is)
         if (obj instanceof Date) {
             return obj as T;
         }
@@ -31,7 +36,7 @@ export const sanitizeData = <T>(obj: T): T => {
                 if (value === undefined) {
                     newObj[key] = null;
                 } else {
-                    newObj[key] = sanitizeData(value);
+                    newObj[key] = sanitizeData(value, depth + 1);
                 }
             }
         }

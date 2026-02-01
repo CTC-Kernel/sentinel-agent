@@ -215,7 +215,7 @@ export const PortalAuth: React.FC<PortalAuthProps> = ({
             <div className="flex justify-center gap-2 mb-6" onPaste={handlePaste}>
               {code.map((digit, index) => (
                 <input
-                  key={index || 'unknown'}
+                  key={index}
                   ref={(el) => { inputRefs.current[index] = el; }}
                   type="text"
                   inputMode="numeric"

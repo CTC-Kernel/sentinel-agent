@@ -214,8 +214,9 @@ export const useICTProviders = (
 
     // Delete provider
     const deleteProvider = useCallback(async (id: string): Promise<void> => {
-        return ICTProviderService.delete(id);
-    }, []);
+        if (!organization?.id) throw new Error('Organization not found');
+        return ICTProviderService.delete(id, organization.id);
+    }, [organization?.id]);
 
     // Get provider by ID
     const getProviderById = useCallback((id: string): ICTProvider | undefined => {

@@ -56,11 +56,11 @@ const PARTY_TYPE_ICONS: Record<EcosystemPartyType, typeof Users> = {
 
 // Form validation schema
 const ecosystemPartySchema = z.object({
-  name: z.string().min(2, 'Nom requis (min 2 caractères)'),
+  name: z.string().min(2, 'Name required (min 2 characters)'),
   description: z.string().optional(),
   type: z.string().refine(
     (val): val is EcosystemPartyType => PARTY_TYPES.includes(val as EcosystemPartyType),
-    { message: 'Type requis' }
+    { message: 'Type is required' }
   ),
   category: z.union([z.literal('internal'), z.literal('external')]),
   trustLevel: z.number().min(1).max(5),

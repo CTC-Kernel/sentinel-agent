@@ -120,11 +120,17 @@ export interface Risk {
     scenario?: string; // Scénario de risque (ISO 27005)
     framework?: Framework;
     vulnerability: string;
+    /** Inherent probability (before controls) */
     probability: 1 | 2 | 3 | 4 | 5;
+    /** Inherent impact (before controls) */
     impact: 1 | 2 | 3 | 4 | 5;
+    /** Inherent risk score = f(probability, impact), computed before mitigating controls */
     score: number;
+    /** Residual probability (after controls) - must be <= probability */
     residualProbability?: 1 | 2 | 3 | 4 | 5;
+    /** Residual impact (after controls) - must be <= impact */
     residualImpact?: 1 | 2 | 3 | 4 | 5;
+    /** Residual risk score = f(residualProbability, residualImpact), must be <= score */
     residualScore?: number;
     mitreTechniques?: MitreTechnique[];
     previousScore?: number;

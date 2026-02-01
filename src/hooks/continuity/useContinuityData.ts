@@ -56,38 +56,48 @@ export const useContinuityData = (organizationId?: string) => {
         // Firestore Realtime Listeners
         const unsubscribes: (() => void)[] = [];
 
+        // Track first snapshot receipt from the primary collection (processes) to set loading=false
+        let primarySnapshotReceived = false;
+
         const qProcesses = query(collection(db, 'business_processes'), where('organizationId', '==', organizationId));
-        unsubscribes.push(onSnapshot(qProcesses, (s) => setProcesses(s.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProcess)))));
+        unsubscribes.push(onSnapshot(qProcesses, (s) => {
+            if (mounted) {
+                setProcesses(s.docs.map(d => ({ id: d.id, ...d.data() } as BusinessProcess)));
+                if (!primarySnapshotReceived) {
+                    primarySnapshotReceived = true;
+                    setLoading(false);
+                }
+            }
+        }, () => {
+            if (mounted && !primarySnapshotReceived) {
+                primarySnapshotReceived = true;
+                setLoading(false);
+            }
+        }));
 
         const qDrills = query(collection(db, 'bcp_drills'), where('organizationId', '==', organizationId), orderBy('date', 'desc'));
-        unsubscribes.push(onSnapshot(qDrills, (s) => setDrills(s.docs.map(d => ({ id: d.id, ...d.data() } as BcpDrill)))));
+        unsubscribes.push(onSnapshot(qDrills, (s) => { if (mounted) setDrills(s.docs.map(d => ({ id: d.id, ...d.data() } as BcpDrill))); }));
 
         const qAssets = query(collection(db, 'assets'), where('organizationId', '==', organizationId));
-        unsubscribes.push(onSnapshot(qAssets, (s) => setAssets(s.docs.map(d => ({ id: d.id, ...d.data() } as Asset)))));
+        unsubscribes.push(onSnapshot(qAssets, (s) => { if (mounted) setAssets(s.docs.map(d => ({ id: d.id, ...d.data() } as Asset))); }));
 
         const qRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId));
-        unsubscribes.push(onSnapshot(qRisks, (s) => setRisks(s.docs.map(d => ({ id: d.id, ...d.data() } as Risk)))));
+        unsubscribes.push(onSnapshot(qRisks, (s) => { if (mounted) setRisks(s.docs.map(d => ({ id: d.id, ...d.data() } as Risk))); }));
 
         const qSuppliers = query(collection(db, 'suppliers'), where('organizationId', '==', organizationId));
-        unsubscribes.push(onSnapshot(qSuppliers, (s) => setSuppliers(s.docs.map(d => ({ id: d.id, ...d.data() } as Supplier)))));
+        unsubscribes.push(onSnapshot(qSuppliers, (s) => { if (mounted) setSuppliers(s.docs.map(d => ({ id: d.id, ...d.data() } as Supplier))); }));
 
         const qUsers = query(collection(db, 'users'), where('organizationId', '==', organizationId));
-        unsubscribes.push(onSnapshot(qUsers, (s) => setUsers(s.docs.map(d => ({ id: d.id, ...d.data() } as unknown as UserProfile)))));
+        unsubscribes.push(onSnapshot(qUsers, (s) => { if (mounted) setUsers(s.docs.map(d => ({ id: d.id, ...d.data() } as unknown as UserProfile))); }));
 
         const qIncidents = query(collection(db, 'incidents'), where('organizationId', '==', organizationId));
-        unsubscribes.push(onSnapshot(qIncidents, (s) => setIncidents(s.docs.map(d => ({ id: d.id, ...d.data() } as Incident)))));
+        unsubscribes.push(onSnapshot(qIncidents, (s) => { if (mounted) setIncidents(s.docs.map(d => ({ id: d.id, ...d.data() } as Incident))); }));
 
         const qTlpt = query(collection(db, 'tlpt_campaigns'), where('organizationId', '==', organizationId));
-        unsubscribes.push(onSnapshot(qTlpt, (s) => setTlptCampaigns(s.docs.map(d => ({ id: d.id, ...d.data() } as TlptCampaign)))));
+        unsubscribes.push(onSnapshot(qTlpt, (s) => { if (mounted) setTlptCampaigns(s.docs.map(d => ({ id: d.id, ...d.data() } as TlptCampaign))); }));
 
         const qPlans = query(collection(db, 'recovery_plans'), where('organizationId', '==', organizationId));
-        unsubscribes.push(onSnapshot(qPlans, (s) => setRecoveryPlans(s.docs.map(d => ({ id: d.id, ...d.data() } as RecoveryPlan)))));
-
-        // We assume loading finishes reasonably quickly for realtime listeners for now, 
-        // or effectively "stream" updates. For strict loading state, one would count initial loads.
-        // Simplification: set loading false after a short timeout or rely on initial empty state if appropriate.
-        // Better: Wait for first snapshot of at least processes?
-        setLoading(false);
+        unsubscribes.push(onSnapshot(qPlans, (s) => { if (mounted) setRecoveryPlans(s.docs.map(d => ({ id: d.id, ...d.data() } as RecoveryPlan))); }));
 
         return () => {
             mounted = false;

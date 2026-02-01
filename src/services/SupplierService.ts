@@ -87,7 +87,7 @@ export class SupplierService {
                     ErrorLogger.warn(`Access denied: Supplier ${supplierId} does not belong to organization ${organizationId}`, 'SupplierService.getById');
                     return null;
                 }
-                return supplier;
+                return { id: supplierDoc.id, ...supplierDoc.data() } as Supplier;
             }
             return null;
         } catch (error) {
@@ -257,6 +257,7 @@ export class SupplierService {
             // These are not "dependencies" but sub-resources, so we delete them to avoid orphans.
             const assessmentsQuery = query(
                 collection(db, 'supplierAssessments'),
+                where('organizationId', '==', user.organizationId),
                 where('supplierId', '==', supplierId)
             );
             const assessmentsSnap = await getDocs(assessmentsQuery);
@@ -268,6 +269,7 @@ export class SupplierService {
 
             const incidentsQuery = query(
                 collection(db, 'supplierIncidents'),
+                where('organizationId', '==', user.organizationId),
                 where('supplierId', '==', supplierId)
             );
             const incidentsSnap = await getDocs(incidentsQuery);
@@ -305,7 +307,7 @@ export class SupplierService {
         userDisplayName?: string
     ): Promise<number> {
         try {
-            const BATCH_SIZE = 500;
+            const BATCH_SIZE = 450;
             let batch = writeBatch(db);
             let count = 0;
             let batchCount = 0;
@@ -379,11 +381,12 @@ export class SupplierService {
     /**
      * Sync supplier to ICT Provider if marked as ICT Provider
      * @param supplierId - The supplier ID to sync
+     * @param organizationId - The organization ID (required for security)
      * @returns Promise<boolean> - True if sync was performed
      */
-    static async syncToICTProvider(supplierId: string): Promise<boolean> {
+    static async syncToICTProvider(supplierId: string, organizationId: string): Promise<boolean> {
         try {
-            return await SupplierDoraSyncService.syncSupplierToICTProvider(supplierId);
+            return await SupplierDoraSyncService.syncSupplierToICTProvider(supplierId, organizationId);
         } catch (error) {
             ErrorLogger.error(error, 'SupplierService.syncToICTProvider');
             throw error;
@@ -393,10 +396,11 @@ export class SupplierService {
     /**
      * Remove ICT Provider status from supplier
      * @param supplierId - The supplier ID
+     * @param organizationId - The organization ID (required for security)
      */
-    static async removeICTProviderStatus(supplierId: string): Promise<void> {
+    static async removeICTProviderStatus(supplierId: string, organizationId: string): Promise<void> {
         try {
-            await SupplierDoraSyncService.removeICTProviderStatus(supplierId);
+            await SupplierDoraSyncService.removeICTProviderStatus(supplierId, organizationId);
         } catch (error) {
             ErrorLogger.error(error, 'SupplierService.removeICTProviderStatus');
             throw error;

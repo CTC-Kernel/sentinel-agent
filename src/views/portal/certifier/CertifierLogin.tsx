@@ -12,8 +12,8 @@ import { MasterpieceBackground } from '../../../components/ui/MasterpieceBackgro
 import { ErrorLogger } from '../../../services/errorLogger';
 
 const loginSchema = z.object({
-    email: z.string().email('Email invalide'),
-    password: z.string().min(1, 'Mot de passe requis')
+    email: z.string().email('Invalid email'),
+    password: z.string().min(1, 'Password is required')
 });
 
 type LoginData = z.infer<typeof loginSchema>;
@@ -21,19 +21,32 @@ type LoginData = z.infer<typeof loginSchema>;
 export const CertifierLogin: React.FC = () => {
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
+    const [attempts, setAttempts] = useState(0);
+    const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
     const navigate = useNavigate();
     const { register, handleSubmit, formState: { errors } } = useForm<LoginData>({
         resolver: zodResolver(loginSchema)
     });
 
     const onSubmit = async (data: LoginData) => {
+        if (lockoutUntil && Date.now() < lockoutUntil) {
+            toast.error(t('auth.errors.tooManyAttempts', { defaultValue: 'Trop de tentatives. Veuillez patienter 30 secondes.' }));
+            return;
+        }
         setIsLoading(true);
         try {
             await signInWithEmailAndPassword(auth, data.email, data.password);
+            setAttempts(0);
             // Simple redirect after login/register
             toast.success(t('certifier.loginSuccess') || 'Connexion réussie', t('certifier.loginWelcome') || 'Bienvenue sur le portail certificateur');
             navigate('/portal/dashboard');
         } catch (error) {
+            const newAttempts = attempts + 1;
+            setAttempts(newAttempts);
+            if (newAttempts >= 5) {
+                setLockoutUntil(Date.now() + 30000); // 30 sec lockout
+                setAttempts(0);
+            }
             ErrorLogger.error(error, 'CertifierLogin.handleLogin');
             toast.error(t('auth.errors.invalid'));
         } finally {

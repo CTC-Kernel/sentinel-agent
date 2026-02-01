@@ -82,7 +82,7 @@ export interface ConcentrationMetrics {
 /**
  * Impact level for SPOF
  */
-export type ImpactLevel = 'low' | 'medium' | 'high' | 'critical';
+export type VendorImpactLevel = 'low' | 'medium' | 'high' | 'critical';
 
 /**
  * Single Point of Failure alert
@@ -92,7 +92,7 @@ export interface SPOFAlert {
   category: string;
   categoryLabel: string;
   vendor: VendorSummary;
-  impactLevel: ImpactLevel;
+  impactLevel: VendorImpactLevel;
   affectedServices: string[];
   affectedProcesses: string[];
   estimatedDowntimeRisk: string;
@@ -302,10 +302,10 @@ export function isSPOF(
 /**
  * Get impact level from affected services
  */
-export function getImpactLevel(
+export function getVendorImpactLevel(
   criticalServicesCount: number,
   totalServicesCount: number
-): ImpactLevel {
+): VendorImpactLevel {
   const criticalRatio = totalServicesCount > 0
     ? criticalServicesCount / totalServicesCount
     : 0;
@@ -319,7 +319,7 @@ export function getImpactLevel(
 /**
  * Get urgency level from impact
  */
-export function getUrgencyLevel(impactLevel: ImpactLevel): UrgencyLevel {
+export function getUrgencyLevel(impactLevel: VendorImpactLevel): UrgencyLevel {
   if (impactLevel === 'critical') return 'immediate';
   if (impactLevel === 'high') return 'short-term';
   return 'long-term';

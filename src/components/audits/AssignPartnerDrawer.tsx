@@ -87,8 +87,8 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
         <Drawer
             isOpen={isOpen}
             onClose={onClose}
-            title="Assigner à un partenaire"
-            subtitle={`Sélectionnez un partenaire certifié pour lui donner accès à l'audit "${auditName}".`}
+            title={t('assignPartner.title', { defaultValue: 'Assigner à un partenaire' })}
+            subtitle={t('assignPartner.subtitle', { defaultValue: `Sélectionnez un partenaire certifié pour lui donner accès à l'audit "${auditName}".` })}
             width="max-w-md"
         >
             <div className="flex flex-col h-full pt-6 px-1">
@@ -96,7 +96,7 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <input
                         type="text"
-                        placeholder="Rechercher un partenaire..."
+                        placeholder={t('assignPartner.searchPlaceholder', { defaultValue: 'Rechercher un partenaire...' })}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-border/40 rounded-3xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all"
@@ -110,10 +110,10 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                 ) : filteredPartners.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-center p-6 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-border/40 dark:border-border/40">
                         <Building2 className="w-10 h-10 text-slate-300 mb-3" />
-                        <p className="text-slate-600 dark:text-muted-foreground font-medium">Aucun partenaire trouvé</p>
+                        <p className="text-slate-600 dark:text-muted-foreground font-medium">{t('assignPartner.noPartnerFound', { defaultValue: 'Aucun partenaire trouvé' })}</p>
                         {partners.length === 0 && (
                             <p className="text-xs text-muted-foreground mt-1 max-w-[200px]">
-                                Invitez des partenaires depuis les réglages pour les voir apparaître ici.
+                                {t('assignPartner.invitePartners', { defaultValue: 'Invitez des partenaires depuis les réglages pour les voir apparaître ici.' })}
                             </p>
                         )}
                     </div>
@@ -143,7 +143,7 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                                     <Loader2 className="w-5 h-5 animate-spin text-brand-600 ml-3 shrink-0" />
                                 ) : (
                                     <span className="ml-3 shrink-0 text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg group-hover:bg-brand-50 group-hover:text-brand-600 dark:group-hover:bg-brand-900 dark:group-hover:text-brand-400 transition-colors">
-                                        Assigner
+                                        {t('assignPartner.assign', { defaultValue: 'Assigner' })}
                                     </span>
                                 )}
                             </button>
@@ -153,7 +153,7 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
 
                 <div className="pt-6 border-t border-border/40 dark:border-border/40 shrink-0">
                     <Button variant="ghost" onClick={onClose} className="w-full">
-                        Annuler
+                        {t('common.cancel', { defaultValue: 'Annuler' })}
                     </Button>
                 </div>
             </div>

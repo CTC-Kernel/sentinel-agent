@@ -3,6 +3,7 @@ import { db } from '../firebase';
 import { Audit, Project, Asset, BcpDrill, Incident } from '../types';
 import { parseISO } from 'date-fns';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 export interface CalendarEvent {
     id: string;
@@ -177,7 +178,7 @@ export const CalendarService = {
             };
 
             if (type === 'audit') {
-                await addDoc(collection(db, 'audits'), {
+                await addDoc(collection(db, 'audits'), sanitizeData({
                     name: title,
                     dateScheduled: start.toISOString(),
                     type: rest.subType || 'Interne',
@@ -188,9 +189,9 @@ export const CalendarService = {
                     relatedRiskIds: linkedRiskIds || [],
                     auditor: rest.auditor || 'Non assigné',
                     ...meta
-                });
+                }));
             } else if (type === 'project') {
-                await addDoc(collection(db, 'projects'), {
+                await addDoc(collection(db, 'projects'), sanitizeData({
                     name: title,
                     description: description || '',
                     dueDate: end.toISOString(),
@@ -201,26 +202,26 @@ export const CalendarService = {
                     relatedAssetIds: linkedAssetIds || [],
                     relatedRiskIds: linkedRiskIds || [],
                     ...meta
-                });
+                }));
             } else if (type === 'drill') {
-                await addDoc(collection(db, 'bcp_drills'), {
+                await addDoc(collection(db, 'bcp_drills'), sanitizeData({
                     type: rest.subType || 'Tabletop',
                     date: start.toISOString(),
                     result: '',
                     notes: description,
                     processId: rest.processId || 'General', // Needs to be linked to a process ideally
                     ...meta
-                });
+                }));
             } else if (type === 'maintenance' && linkedAssetIds && linkedAssetIds.length > 0) {
                 // Create maintenance record for EACH linked asset
                 const promises = linkedAssetIds.map((assetId: string) =>
-                    addDoc(collection(db, 'assets', assetId, 'maintenance'), {
+                    addDoc(collection(db, 'assets', assetId, 'maintenance'), sanitizeData({
                         date: start.toISOString(),
                         type: rest.subType || 'Préventive',
                         description: description || title,
                         technician: rest.technician || 'Non assigné',
                         ...meta
-                    })
+                    }))
                 );
                 await Promise.all(promises);
             }
@@ -259,7 +260,7 @@ export const CalendarService = {
                 updates.dateReported = start.toISOString();
             }
 
-            await updateDoc(docRef, updates);
+            await updateDoc(docRef, sanitizeData(updates));
             return true;
         } catch (error) {
             ErrorLogger.error(error, 'CalendarService.updateEvent');

@@ -264,6 +264,12 @@ export const DashboardWithQuickActions: React.FC = () => {
                     <motion.div variants={slideUpVariants}>
                         <AnimatePresence mode="popLayout">
                         {(() => {
+                            // NOTE: Dashboard view selection intentionally uses a mix of permission-based
+                            // and role-based checks. The first branch (AdminDashboardView) uses
+                            // hasPermission(user, 'Risk', 'manage') to catch both admin and super_admin
+                            // roles with management permissions. Subsequent branches fall back to
+                            // explicit role checks for direction, auditor, and project_manager views.
+                            // This is by design to ensure admins always get the full dashboard.
                             const role = user?.role || 'user';
 
                             if (hasPermission(user, 'Risk', 'manage')) {

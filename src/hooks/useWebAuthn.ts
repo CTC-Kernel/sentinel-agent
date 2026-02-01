@@ -13,6 +13,7 @@ import {
   StoredCredential,
 } from '../services/webAuthnService';
 import { ErrorLogger } from '../services/errorLogger';
+import { useStore } from '../store';
 
 interface UseWebAuthnReturn {
   /** Whether WebAuthn is supported in this browser */
@@ -54,6 +55,7 @@ interface UseWebAuthnReturn {
  * Hook for WebAuthn/Passkey functionality
  */
 export function useWebAuthn(): UseWebAuthnReturn {
+  const { t } = useStore();
   const [isSupported, setIsSupported] = useState(false);
   const [isPlatformAvailable, setIsPlatformAvailable] = useState(false);
   const [isAutofillAvailable, setIsAutofillAvailable] = useState(false);
@@ -63,20 +65,25 @@ export function useWebAuthn(): UseWebAuthnReturn {
 
   // Check browser support on mount
   useEffect(() => {
+    let cancelled = false;
     const checkSupport = async () => {
-      setIsSupported(WebAuthnService.isSupported());
+      const supported = WebAuthnService.isSupported();
+      if (cancelled) return;
+      setIsSupported(supported);
 
-      if (WebAuthnService.isSupported()) {
+      if (supported) {
         const [platform, autofill] = await Promise.all([
           WebAuthnService.isPlatformAuthenticatorAvailable(),
           WebAuthnService.isConditionalMediationAvailable()
         ]);
+        if (cancelled) return;
         setIsPlatformAvailable(platform);
         setIsAutofillAvailable(autofill);
       }
     };
 
     checkSupport();
+    return () => { cancelled = true; };
   }, []);
 
   /**
@@ -110,7 +117,7 @@ export function useWebAuthn(): UseWebAuthnReturn {
     authenticatorType: 'platform' | 'cross-platform' = 'platform'
   ): Promise<{ success: boolean; credentialId?: string; error?: string }> => {
     if (!isSupported) {
-      return { success: false, error: 'WebAuthn n\'est pas supporté par ce navigateur' };
+      return { success: false, error: t('webauthn.notSupported', { defaultValue: 'WebAuthn n\'est pas support\u00e9 par ce navigateur' }) };
     }
 
     setIsLoading(true);
@@ -151,8 +158,9 @@ export function useWebAuthn(): UseWebAuthnReturn {
       }) as PublicKeyCredential;
 
       if (!credential) {
-        setError('Création de credential annulée');
-        return { success: false, error: 'Création annulée' };
+        const msg = t('webauthn.creationCancelled', { defaultValue: 'Cr\u00e9ation annul\u00e9e' });
+        setError(msg);
+        return { success: false, error: msg };
       }
 
       // Verify and store
@@ -166,26 +174,29 @@ export function useWebAuthn(): UseWebAuthnReturn {
       if (result.success) {
         await refreshCredentials(userId);
       } else {
-        setError(result.error || 'Erreur de vérification');
+        setError(result.error || t('webauthn.verificationError', { defaultValue: 'Erreur de v\u00e9rification' }));
       }
 
       return result;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
+      const errorMessage = err instanceof Error ? err.message : t('webauthn.unknownError', { defaultValue: 'Erreur inconnue' });
 
       // Handle specific WebAuthn errors
       if (err instanceof DOMException) {
         if (err.name === 'NotAllowedError') {
-          setError('Opération annulée ou refusée par l\'utilisateur');
-          return { success: false, error: 'Opération annulée' };
+          const msg = t('webauthn.operationCancelled', { defaultValue: 'Op\u00e9ration annul\u00e9e' });
+          setError(t('webauthn.operationCancelledOrDenied', { defaultValue: 'Op\u00e9ration annul\u00e9e ou refus\u00e9e par l\'utilisateur' }));
+          return { success: false, error: msg };
         }
         if (err.name === 'InvalidStateError') {
-          setError('Cet appareil est déjà enregistré');
-          return { success: false, error: 'Appareil déjà enregistré' };
+          const msg = t('webauthn.deviceAlreadyRegistered', { defaultValue: 'Appareil d\u00e9j\u00e0 enregistr\u00e9' });
+          setError(msg);
+          return { success: false, error: msg };
         }
         if (err.name === 'NotSupportedError') {
-          setError('Aucun authentificateur compatible trouvé');
-          return { success: false, error: 'Authentificateur non supporté' };
+          const msg = t('webauthn.authenticatorNotSupported', { defaultValue: 'Authentificateur non support\u00e9' });
+          setError(t('webauthn.noCompatibleAuthenticator', { defaultValue: 'Aucun authentificateur compatible trouv\u00e9' }));
+          return { success: false, error: msg };
         }
       }
 
@@ -195,7 +206,7 @@ export function useWebAuthn(): UseWebAuthnReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [isSupported, refreshCredentials]);
+  }, [isSupported, refreshCredentials, t]);
 
   /**
    * Authenticate with passkey

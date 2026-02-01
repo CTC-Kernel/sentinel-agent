@@ -264,7 +264,7 @@ service cloud.firestore {
           request.resource.data.organizationId == orgId &&
           (canWrite(orgId) || ((isAuditor() || isProjectManager()) && belongsToOrganization(orgId))) &&
           isValidString(request.resource.data.name, 1, 200);
-        allow update: if canWrite(orgId) || ((isAuditor() || isProjectManager()) && belongsToOrganization(orgId));
+        allow update: if (canWrite(orgId) || ((isAuditor() || isProjectManager()) && belongsToOrganization(orgId))) && request.resource.data.organizationId == resource.data.organizationId;
         // Delete allowed for admins/owners via UI
         allow delete: if canDelete(orgId);
       }
@@ -560,9 +560,8 @@ service cloud.firestore {
         request.resource.data.userEmail == request.auth.token.email &&
         (!('status' in request.resource.data) || request.resource.data.status == 'pending');
       allow update: if belongsToOrganization(resource.data.organizationId) && (isAdmin() || isOrgOwner(resource.data.organizationId))
-        && (!('status' in request.resource.data) || request.resource.data.status == resource.data.status)
-        && (!('approvedBy' in request.resource.data) || request.resource.data.approvedBy == resource.data.approvedBy)
-        && (!('rejectedBy' in request.resource.data) || request.resource.data.rejectedBy == resource.data.rejectedBy);
+        && (!('approvedBy' in request.resource.data) || request.resource.data.approvedBy == resource.data.approvedBy || canWrite(resource.data.organizationId))
+        && (!('rejectedBy' in request.resource.data) || request.resource.data.rejectedBy == resource.data.rejectedBy || canWrite(resource.data.organizationId));
       allow delete: if belongsToOrganization(resource.data.organizationId) && (isAdmin() || isOrgOwner(resource.data.organizationId));
     }
 
@@ -573,6 +572,8 @@ service cloud.firestore {
         belongsToOrganization(resource.data.organizationId)
       );
       allow create: if isAuthenticated() && (isAdmin() || isOrgOwner(request.resource.data.organizationId)) && request.resource.data.organizationId == getUserData().organizationId;
+      // Allow invited user to update invitation status (accept/decline)
+      allow update: if isAuthenticated() && request.auth.token.email == resource.data.email;
       allow delete: if isAuthenticated() && (
         ((isAdmin() || isOrgOwner(resource.data.organizationId)) && belongsToOrganization(resource.data.organizationId)) ||
         request.auth.token.email == resource.data.email
@@ -648,6 +649,8 @@ service cloud.firestore {
 
       allow update: if canWrite(resource.data.organizationId) &&
         request.resource.data.organizationId == resource.data.organizationId &&
+        (!('createdAt' in request.resource.data.diff(resource.data).affectedKeys()) || request.resource.data.createdAt == resource.data.createdAt) &&
+        (!('createdBy' in request.resource.data.diff(resource.data).affectedKeys()) || request.resource.data.createdBy == resource.data.createdBy) &&
         (!('threat' in request.resource.data) || isValidString(request.resource.data.threat, 1, 500)) &&
         (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000)) &&
         // Hardening
@@ -675,10 +678,10 @@ service cloud.firestore {
     // across organizations in certifier/partner scenarios. sourceOrgId identifies the
     // organization that owns/created the relationship for tenant isolation.
     match /relationships/{relId} {
-      allow read: if isAuthenticated() && resource.data.sourceOrgId == request.auth.token.organizationId;
-      allow create: if isAuthenticated() && request.resource.data.sourceOrgId == request.auth.token.organizationId;
-      allow update: if isAuthenticated() && resource.data.sourceOrgId == request.auth.token.organizationId;
-      allow delete: if isAuthenticated() && resource.data.sourceOrgId == request.auth.token.organizationId;
+      allow read: if isAuthenticated() && belongsToOrganization(resource.data.sourceOrgId);
+      allow create: if isAuthenticated() && belongsToOrganization(request.resource.data.sourceOrgId);
+      allow update: if isAuthenticated() && belongsToOrganization(resource.data.sourceOrgId);
+      allow delete: if isAuthenticated() && belongsToOrganization(resource.data.sourceOrgId);
     }
 
     match /threats/{threatId} {
@@ -700,11 +703,11 @@ service cloud.firestore {
         request.resource.data.organizationId == resource.data.organizationId;
       allow delete: if canDelete(resource.data.organizationId);
       
-      // Keep old rule for SuperAdmin global write if needed, or subsume it?
-      // If SuperAdmin wants to write global, they omit organizationId?
-      // Strict rule: SuperAdmin can write anything.
-      // Combined:
-      allow write: if isAuthenticated() && isSuperAdmin(); 
+      // SuperAdmin write: Must still enforce tenant isolation for org-scoped threats.
+      // Global threats (no organizationId) can only be written by super admins.
+      allow write: if isAuthenticated() && isSuperAdmin() && (
+        !('organizationId' in request.resource.data) || belongsToOrganization(request.resource.data.organizationId)
+      );
     }
     
     // Controls
@@ -1058,9 +1061,9 @@ service cloud.firestore {
     // Project Milestones
     match /project_milestones/{milestoneId} {
       allow read: if canRead(resource.data.organizationId);
-      allow create: if isAuthenticated() && 
+      allow create: if isAuthenticated() &&
         request.resource.data.organizationId == getUserData().organizationId &&
-        (canWrite(request.resource.data.organizationId) || isProjectManager());
+        (canWrite(request.resource.data.organizationId) || (isProjectManager() && belongsToOrganization(request.resource.data.organizationId)));
       allow update: if (canWrite(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId))) &&
         request.resource.data.organizationId == resource.data.organizationId;
       allow delete: if canDelete(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId));
@@ -1069,9 +1072,9 @@ service cloud.firestore {
     // Actions
     match /actions/{actionId} {
       allow read: if canRead(resource.data.organizationId);
-      allow create: if isAuthenticated() && 
+      allow create: if isAuthenticated() &&
         request.resource.data.organizationId == getUserData().organizationId &&
-        (canWrite(request.resource.data.organizationId) || isProjectManager());
+        (canWrite(request.resource.data.organizationId) || (isProjectManager() && belongsToOrganization(request.resource.data.organizationId)));
       // Allow update by Admin/Owner/PM OR the assignee (e.g. to mark as complete)
       allow update: if (canWrite(resource.data.organizationId) ||
         (isProjectManager() && belongsToOrganization(resource.data.organizationId)) ||
@@ -1101,10 +1104,12 @@ service cloud.firestore {
     }
 
     // Stats History
+    // SECURITY: Restricted creation to admin/RSSI roles via canWrite
     match /stats_history/{statId} {
       allow read: if canRead(resource.data.organizationId);
-      allow create: if isAuthenticated() && 
-        request.resource.data.organizationId == getUserData().organizationId;
+      allow create: if isAuthenticated() &&
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
       allow update: if false;
       allow delete: if false;
     }
@@ -1113,7 +1118,8 @@ service cloud.firestore {
     match /{collection}/{docId}/comments/{commentId} {
       allow read: if canRead(get(/databases/$(database)/documents/$(collection)/$(docId)).data.organizationId);
       allow create: if isAuthenticated() &&
-        belongsToOrganization(get(/databases/$(database)/documents/$(collection)/$(docId)).data.organizationId);
+        belongsToOrganization(get(/databases/$(database)/documents/$(collection)/$(docId)).data.organizationId) &&
+        request.resource.data.userId == request.auth.uid;
       allow update: if isAuthenticated() &&
         belongsToOrganization(get(/databases/$(database)/documents/$(collection)/$(docId)).data.organizationId) &&
         request.auth.uid == resource.data.userId;
@@ -1126,11 +1132,9 @@ service cloud.firestore {
     }
     
     // Notifications
+    // SECURITY: Users can only read their own notifications (not all org notifications)
     match /notifications/{notificationId} {
-      allow read: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid ||
-        belongsToOrganization(resource.data.organizationId)
-      );
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
       // Allow creation if:
       // 1. Authenticated
       // 2. Creating for someone in the same organization
@@ -1148,26 +1152,28 @@ service cloud.firestore {
     }
 
     // Backups
+    // SECURITY: Auditors removed from create - auditors should have read-only access
     match /backups/{backupId} {
       allow read: if canRead(resource.data.organizationId);
-      allow create: if isAuthenticated() && 
+      allow create: if isAuthenticated() &&
         request.resource.data.organizationId == getUserData().organizationId &&
-        (isAdmin() || isAuditor() || isOrgOwner(request.resource.data.organizationId));
+        (isAdmin() || isOrgOwner(request.resource.data.organizationId));
       allow update: if canWrite(resource.data.organizationId) &&
         request.resource.data.organizationId == resource.data.organizationId;
       allow delete: if canDelete(resource.data.organizationId);
     }
 
     // Backup Schedules
+    // SECURITY: Auditors removed from create/update - auditors should have read-only access
     match /backup_schedules/{scheduleId} {
-      allow read: if isAuthenticated() && 
+      allow read: if isAuthenticated() &&
         resource.data.organizationId == getUserData().organizationId;
-      allow create: if isAuthenticated() && 
+      allow create: if isAuthenticated() &&
         request.resource.data.organizationId == getUserData().organizationId &&
-        (isAdmin() || isAuditor() || isOrgOwner(request.resource.data.organizationId));
+        (isAdmin() || isOrgOwner(request.resource.data.organizationId));
       allow update: if isAuthenticated() &&
         resource.data.organizationId == getUserData().organizationId &&
-        (isAdmin() || isAuditor() || isOrgOwner(resource.data.organizationId)) &&
+        (isAdmin() || isOrgOwner(resource.data.organizationId)) &&
         request.resource.data.organizationId == resource.data.organizationId;
       allow delete: if canDelete(resource.data.organizationId);
     }
@@ -1461,9 +1467,12 @@ service cloud.firestore {
     }
 
     // Security Anomalies (written by client securityAnomalyService)
+    // SECURITY: Added userId verification to prevent spoofing
     match /security_anomalies/{docId} {
       allow read: if isAuthenticated() && (isSuperAdmin() || (isAdmin() && belongsToOrganization(resource.data.organizationId)));
-      allow create: if isAuthenticated() && request.resource.data.organizationId == getUserData().organizationId;
+      allow create: if isAuthenticated() &&
+        request.resource.data.organizationId == getUserData().organizationId &&
+        request.resource.data.userId == request.auth.uid;
     }
 
     // Questionnaire Responses (written by client)
@@ -1517,9 +1526,12 @@ service cloud.firestore {
     }
 
     // Audit Logs (written by client AdminService)
+    // SECURITY: Added userId verification to ensure users can only create logs attributed to themselves
     match /audit_logs/{logId} {
       allow read: if isAuthenticated() && (isSuperAdmin() || (isAdmin() && belongsToOrganization(resource.data.organizationId)));
-      allow create: if isAuthenticated() && request.resource.data.organizationId == getUserData().organizationId;
+      allow create: if isAuthenticated() &&
+        request.resource.data.organizationId == getUserData().organizationId &&
+        request.resource.data.userId == request.auth.uid;
     }
 
     // Archived Documents (created by Retention Engine Cloud Function)

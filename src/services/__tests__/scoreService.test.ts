@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ScoreService } from '../scoreService';
-import type { ScoreHistory, ScoreBreakdown } from '../../types/score.types';
+import type { GlobalScoreHistory as ScoreHistory, ScoreBreakdown } from '../../types/score.types';
 
 // Mock Firebase
 vi.mock('../../firebase', () => ({

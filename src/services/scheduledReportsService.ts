@@ -10,12 +10,14 @@ import {
     addDoc,
     updateDoc,
     deleteDoc,
+    getDoc,
     query,
     where,
     orderBy,
     getDocs
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { sanitizeData } from '../utils/dataSanitizer';
 import {
     ScheduledReport,
     ScheduledReportFormData,
@@ -74,7 +76,7 @@ export async function createScheduledReport(
         status: 'active'
     };
 
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), reportData);
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), sanitizeData(reportData));
 
     return {
         id: docRef.id,
@@ -87,9 +89,16 @@ export async function createScheduledReport(
  */
 export async function updateScheduledReport(
     reportId: string,
+    organizationId: string,
     data: Partial<ScheduledReportFormData>
 ): Promise<void> {
     const docRef = doc(db, COLLECTION_NAME, reportId);
+
+    // Verify ownership before update
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists() || docSnap.data()?.organizationId !== organizationId) {
+        throw new Error('Not authorized');
+    }
 
     const updateData: Record<string, unknown> = {
         ...data,
@@ -106,7 +115,7 @@ export async function updateScheduledReport(
         updateData.nextRunAt = nextRunAt.toISOString();
     }
 
-    await updateDoc(docRef, updateData);
+    await updateDoc(docRef, sanitizeData(updateData));
 }
 
 /**
@@ -130,14 +139,21 @@ export async function toggleScheduledReportStatus(
         // For now, just set the status
     }
 
-    await updateDoc(docRef, updateData);
+    await updateDoc(docRef, sanitizeData(updateData));
 }
 
 /**
  * Delete a scheduled report
  */
-export async function deleteScheduledReport(reportId: string): Promise<void> {
+export async function deleteScheduledReport(reportId: string, organizationId: string): Promise<void> {
     const docRef = doc(db, COLLECTION_NAME, reportId);
+
+    // Verify ownership before delete
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists() || docSnap.data()?.organizationId !== organizationId) {
+        throw new Error('Not authorized');
+    }
+
     await deleteDoc(docRef);
 }
 
@@ -156,11 +172,11 @@ export async function markReportAsRun(
         now
     );
 
-    await updateDoc(docRef, {
+    await updateDoc(docRef, sanitizeData({
         lastRunAt: now.toISOString(),
         nextRunAt: nextRunAt.toISOString(),
         updatedAt: now.toISOString()
-    });
+    }));
 }
 
 export const ScheduledReportsService = {

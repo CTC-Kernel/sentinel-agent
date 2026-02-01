@@ -13,6 +13,25 @@ export const AUDIT_STATUSES = [
 export type AuditStatus = typeof AUDIT_STATUSES[number];
 
 /**
+ * Audit status state machine - defines valid transitions
+ * Workflow: Planifie -> En cours -> Termine -> Valide
+ * Prevents skipping steps or going backwards.
+ */
+export const VALID_AUDIT_TRANSITIONS: Record<AuditStatus, AuditStatus[]> = {
+    'Planifié': ['En cours'],
+    'En cours': ['Terminé'],
+    'Terminé': ['Validé'],
+    'Validé': [] // Terminal state
+};
+
+/**
+ * Check if an audit status transition is valid
+ */
+export function isValidAuditTransition(from: AuditStatus, to: AuditStatus): boolean {
+    return VALID_AUDIT_TRANSITIONS[from]?.includes(to) ?? false;
+}
+
+/**
  * Finding types (category of finding)
  */
 export const FINDING_TYPES = [

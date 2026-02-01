@@ -1,15 +1,16 @@
 import pino from 'pino';
 
-const level = process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug');
+const level = import.meta.env.VITE_LOG_LEVEL || (import.meta.env.MODE === 'production' ? 'info' : 'debug');
 
 const base = {
   app: 'sentinel-grc',
-  env: process.env.NODE_ENV || 'development'
+  env: import.meta.env.MODE || 'development'
 };
 
 export const logger = pino({
   level,
   base,
+  browser: { asObject: true },
   redact: ['req.headers.authorization', 'req.body.password'],
   timestamp: pino.stdTimeFunctions.isoTime
 });

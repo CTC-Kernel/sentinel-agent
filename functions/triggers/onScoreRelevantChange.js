@@ -162,8 +162,8 @@ async function executeQueuedRecalculation(organizationId) {
         totalDocuments: documentsResult.total,
         compliantFindings: auditsResult.compliant,
         totalFindings: auditsResult.total,
-        completedTraining: trainingResult.completed,
-        totalTraining: trainingResult.total,
+        completedTrainings: trainingResult.completed,
+        totalTrainings: trainingResult.total,
       },
     };
 

@@ -25,6 +25,7 @@ import {
 import { db } from '@/firebase';
 import type { LegalHold, LegalHoldStatus } from '@/types/vault';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 const LEGAL_HOLDS_COLLECTION = 'legalHolds';
 const DOCUMENTS_COLLECTION = 'documents';
@@ -68,7 +69,7 @@ export async function createLegalHold(
     // Create the legal hold
     const holdRef = await addDoc(
       collection(db, LEGAL_HOLDS_COLLECTION),
-      holdData
+      sanitizeData(holdData)
     );
 
     // Update all affected documents to mark them as under legal hold
@@ -77,11 +78,11 @@ export async function createLegalHold(
 
       for (const docId of documentIds) {
         const docRef = doc(db, DOCUMENTS_COLLECTION, docId);
-        batch.update(docRef, {
+        batch.update(docRef, sanitizeData({
           legalHoldIds: arrayUnion(holdRef.id),
           isUnderHold: true,
           updatedAt: now,
-        });
+        }));
       }
 
       await batch.commit();
@@ -122,14 +123,14 @@ export async function releaseLegalHold(
     const now = Timestamp.now();
 
     // Update the legal hold
-    await updateDoc(holdRef, {
+    await updateDoc(holdRef, sanitizeData({
       status: 'released' as LegalHoldStatus,
       releasedBy,
       releasedAt: now,
       releaseReason,
       updatedAt: now,
       updatedBy: releasedBy,
-    });
+    }));
 
     // Remove hold from affected documents
     if (holdData.documentIds && holdData.documentIds.length > 0) {
@@ -145,11 +146,11 @@ export async function releaseLegalHold(
             (id: string) => id !== holdId
           );
 
-          batch.update(docRef, {
+          batch.update(docRef, sanitizeData({
             legalHoldIds: arrayRemove(holdId),
             isUnderHold: remainingHolds.length > 0,
             updatedAt: now,
-          });
+          }));
         }
       }
 
@@ -261,20 +262,20 @@ export async function addDocumentToHold(
     const batch = writeBatch(db);
 
     // Update the legal hold
-    batch.update(holdRef, {
+    batch.update(holdRef, sanitizeData({
       documentIds: arrayUnion(documentId),
       affectedDocumentIds: arrayUnion(documentId),
       updatedAt: now,
       updatedBy,
-    });
+    }));
 
     // Update the document
     const docRef = doc(db, DOCUMENTS_COLLECTION, documentId);
-    batch.update(docRef, {
+    batch.update(docRef, sanitizeData({
       legalHoldIds: arrayUnion(holdId),
       isUnderHold: true,
       updatedAt: now,
-    });
+    }));
 
     await batch.commit();
   } catch (error) {
@@ -313,12 +314,12 @@ export async function removeDocumentFromHold(
     const batch = writeBatch(db);
 
     // Update the legal hold
-    batch.update(holdRef, {
+    batch.update(holdRef, sanitizeData({
       documentIds: arrayRemove(documentId),
       affectedDocumentIds: arrayRemove(documentId),
       updatedAt: now,
       updatedBy,
-    });
+    }));
 
     // Update the document - check if it has other holds
     const docRef = doc(db, DOCUMENTS_COLLECTION, documentId);
@@ -330,11 +331,11 @@ export async function removeDocumentFromHold(
         (id: string) => id !== holdId
       );
 
-      batch.update(docRef, {
+      batch.update(docRef, sanitizeData({
         legalHoldIds: arrayRemove(holdId),
         isUnderHold: remainingHolds.length > 0,
         updatedAt: now,
-      });
+      }));
     }
 
     await batch.commit();
@@ -441,7 +442,7 @@ export async function updateLegalHold(
       updateData.expiresAt = updates.expiresAt ? Timestamp.fromDate(updates.expiresAt) : null;
     }
 
-    await updateDoc(holdRef, updateData);
+    await updateDoc(holdRef, sanitizeData(updateData));
   } catch (error) {
     ErrorLogger.error(error, 'LegalHoldService.updateLegalHold');
     throw error;

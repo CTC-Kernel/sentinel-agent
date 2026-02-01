@@ -20,6 +20,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type {
   ConcentrationMetrics,
   CategoryConcentration,
@@ -35,14 +36,14 @@ import type {
   VendorDependency,
   ConcentrationFilters,
   DependencyLevel,
-  ImpactLevel,
+  VendorImpactLevel,
 } from '../types/vendorConcentration';
 import {
   calculateHHI,
   getHHILevel,
   getDependencyLevel,
   isSPOF,
-  getImpactLevel,
+  getVendorImpactLevel,
   getUrgencyLevel,
   getCategoryLabel,
 } from '../types/vendorConcentration';
@@ -300,7 +301,7 @@ export class VendorConcentrationService {
         if (category.hasSPOF && category.dominantVendor) {
           const vendor = category.dominantVendor;
           const criticalCount = vendor.criticalServicesCount;
-          const impactLevel = getImpactLevel(criticalCount, vendor.servicesCount);
+          const impactLevel = getVendorImpactLevel(criticalCount, vendor.servicesCount);
 
           // Get affected services and processes from the vendor data
           const supplierData = await this.getSupplierDetails(organizationId, vendor.supplierId);
@@ -322,7 +323,7 @@ export class VendorConcentrationService {
       }
 
       // Sort by impact level
-      const impactOrder: Record<ImpactLevel, number> = {
+      const impactOrder: Record<VendorImpactLevel, number> = {
         critical: 0,
         high: 1,
         medium: 2,
@@ -346,8 +347,8 @@ export class VendorConcentrationService {
   /**
    * Estimate downtime risk based on impact level
    */
-  private static estimateDowntimeRisk(impactLevel: ImpactLevel): string {
-    const risks: Record<ImpactLevel, string> = {
+  private static estimateDowntimeRisk(impactLevel: VendorImpactLevel): string {
+    const risks: Record<VendorImpactLevel, string> = {
       critical: '> 24 hours',
       high: '4-24 hours',
       medium: '1-4 hours',
@@ -908,17 +909,17 @@ export class VendorConcentrationService {
       // Save to trends collection for historical tracking
       const trendId = `${organizationId}-${Date.now()}`;
       const trendRef = doc(db, this.TRENDS_COLLECTION, trendId);
-      await setDoc(trendRef, {
+      await setDoc(trendRef, sanitizeData({
         ...metrics,
         calculatedAt: Timestamp.now(),
-      });
+      }));
 
       // Save current metrics
       const metricsRef = doc(db, this.METRICS_COLLECTION, organizationId);
-      await setDoc(metricsRef, {
+      await setDoc(metricsRef, sanitizeData({
         ...metrics,
         calculatedAt: Timestamp.now(),
-      });
+      }));
     } catch {
       ErrorLogger.warn('Failed to save concentration metrics', 'VendorConcentrationService.saveMetrics');
     }

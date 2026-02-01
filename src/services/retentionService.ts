@@ -20,6 +20,7 @@ import {
 } from 'firebase/firestore';
 import { addDays, differenceInDays, isBefore } from 'date-fns';
 import { db } from '@/firebase';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type {
   RetentionPolicy,
   RetentionAction,
@@ -76,7 +77,7 @@ export async function createPolicy(
 
     const policyRef = await addDoc(
       collection(db, RETENTION_POLICIES_COLLECTION),
-      policyData
+      sanitizeData(policyData)
     );
 
     return {
@@ -94,6 +95,7 @@ export async function createPolicy(
  */
 export async function updatePolicy(
   policyId: string,
+  organizationId: string,
   updatedBy: string,
   updates: {
     name?: string;
@@ -118,6 +120,11 @@ export async function updatePolicy(
       throw new Error('Retention policy not found');
     }
 
+    // Verify organizationId ownership
+    if (policySnap.data()?.organizationId !== organizationId) {
+      throw new Error('Not authorized: organization mismatch');
+    }
+
     const updateData: Record<string, unknown> = {
       updatedAt: Timestamp.now(),
       updatedBy,
@@ -136,7 +143,7 @@ export async function updatePolicy(
     if (updates.isActive !== undefined) updateData.isActive = updates.isActive;
     if (updates.priority !== undefined) updateData.priority = updates.priority;
 
-    await updateDoc(policyRef, updateData);
+    await updateDoc(policyRef, sanitizeData(updateData));
   } catch (error) {
     ErrorLogger.error(error, 'RetentionService.updatePolicy');
     throw error;
@@ -146,9 +153,15 @@ export async function updatePolicy(
 /**
  * Delete a retention policy
  */
-export async function deletePolicy(policyId: string): Promise<void> {
+export async function deletePolicy(policyId: string, organizationId: string): Promise<void> {
   try {
     const policyRef = doc(db, RETENTION_POLICIES_COLLECTION, policyId);
+    const policySnap = await getDoc(policyRef);
+
+    if (!policySnap.exists() || policySnap.data()?.organizationId !== organizationId) {
+      throw new Error('Not authorized: policy not found or organization mismatch');
+    }
+
     await deleteDoc(policyRef);
   } catch (error) {
     ErrorLogger.error(error, 'RetentionService.deletePolicy');
@@ -199,13 +212,18 @@ export async function getPolicies(
 /**
  * Get a single retention policy
  */
-export async function getPolicy(policyId: string): Promise<RetentionPolicy | null> {
+export async function getPolicy(policyId: string, organizationId: string): Promise<RetentionPolicy | null> {
   try {
     const policyRef = doc(db, RETENTION_POLICIES_COLLECTION, policyId);
     const policySnap = await getDoc(policyRef);
 
     if (!policySnap.exists()) {
       return null;
+    }
+
+    // Verify organizationId ownership
+    if (policySnap.data()?.organizationId !== organizationId) {
+      throw new Error('Not authorized: organization mismatch');
     }
 
     return {

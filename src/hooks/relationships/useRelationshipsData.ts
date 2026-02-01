@@ -3,6 +3,7 @@ import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Asset, Risk, Control } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
+import { useStore } from '../../store';
 
 interface Node {
   id: string;
@@ -30,11 +31,15 @@ export const useRelationshipsData = (
   width: number,
   height: number
 ): RelationshipsData => {
+  const { user } = useStore();
   const [nodes, setNodes] = useState<Node[]>([]);
   const [links, setLinks] = useState<Link[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user?.organizationId) return;
+
+    const orgId = user.organizationId;
     const fetchData = async () => {
       setLoading(true);
       const newNodes: Node[] = [];
@@ -44,13 +49,13 @@ export const useRelationshipsData = (
 
       try {
         if (rootType === 'Asset') {
-          const assetSnap = await getDocs(query(collection(db, 'assets'), where('__name__', '==', rootId)));
+          const assetSnap = await getDocs(query(collection(db, 'assets'), where('__name__', '==', rootId), where('organizationId', '==', orgId)));
           if (assetSnap.empty) return;
           const asset = { id: assetSnap.docs[0].id, ...assetSnap.docs[0].data() } as Asset;
 
           newNodes.push({ id: asset.id, type: 'Asset', label: asset.name, x: cx, y: cy, data: asset });
 
-          const risksSnap = await getDocs(query(collection(db, 'risks'), where('assetId', '==', rootId), limit(20)));
+          const risksSnap = await getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId), where('assetId', '==', rootId), limit(20)));
           const risks = risksSnap.docs.map(d => ({ id: d.id, ...d.data() } as Risk));
 
           risks.forEach((risk, i) => {
@@ -63,14 +68,14 @@ export const useRelationshipsData = (
           });
 
         } else if (rootType === 'Risk') {
-          const riskSnap = await getDocs(query(collection(db, 'risks'), where('__name__', '==', rootId)));
+          const riskSnap = await getDocs(query(collection(db, 'risks'), where('__name__', '==', rootId), where('organizationId', '==', orgId)));
           if (riskSnap.empty) return;
           const risk = { id: riskSnap.docs[0].id, ...riskSnap.docs[0].data() } as Risk;
 
           newNodes.push({ id: risk.id, type: 'Risk', label: risk.threat, x: cx, y: cy, data: risk });
 
           if (risk.assetId) {
-            const assetSnap = await getDocs(query(collection(db, 'assets'), where('__name__', '==', risk.assetId)));
+            const assetSnap = await getDocs(query(collection(db, 'assets'), where('__name__', '==', risk.assetId), where('organizationId', '==', orgId)));
             if (!assetSnap.empty) {
               const asset = assetSnap.docs[0].data() as Asset;
               newNodes.push({ id: risk.assetId, type: 'Asset', label: asset.name, x: cx - 200, y: cy, data: asset });
@@ -86,7 +91,7 @@ export const useRelationshipsData = (
               }
 
               for (const chunk of chunks) {
-                const controlsSnap = await getDocs(query(collection(db, 'controls'), where('__name__', 'in', chunk)));
+                const controlsSnap = await getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId), where('__name__', 'in', chunk)));
                 const controls = controlsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Control));
 
                 controls.forEach((control, i) => {
@@ -112,7 +117,7 @@ export const useRelationshipsData = (
     };
 
     fetchData();
-  }, [rootId, rootType, width, height]);
+  }, [rootId, rootType, width, height, user?.organizationId]);
 
   return { nodes, links, loading };
 };

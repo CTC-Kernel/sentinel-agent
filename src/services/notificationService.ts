@@ -131,10 +131,11 @@ export class NotificationService {
     /**
      * Get unread notifications for a user
      */
-    static async getUnread(userId: string): Promise<Notification[]> {
+    static async getUnread(userId: string, organizationId: string): Promise<Notification[]> {
         try {
             const q = query(
                 collection(db, 'notifications'),
+                where('organizationId', '==', organizationId),
                 where('userId', '==', userId),
                 where('read', '==', false),
                 orderBy('createdAt', 'desc'),
@@ -161,10 +162,11 @@ export class NotificationService {
     /**
      * Get all notifications for a user
      */
-    static async getAll(userId: string, limitCount: number = 50): Promise<Notification[]> {
+    static async getAll(userId: string, organizationId: string, limitCount: number = 50): Promise<Notification[]> {
         try {
             const q = query(
                 collection(db, 'notifications'),
+                where('organizationId', '==', organizationId),
                 where('userId', '==', userId),
                 orderBy('createdAt', 'desc'),
                 limit(limitCount)
@@ -237,10 +239,11 @@ export class NotificationService {
     /**
      * Subscribe to notifications for a user (Real-time)
      */
-    static subscribeToNotifications(userId: string, callback: (notifications: Notification[]) => void): () => void {
+    static subscribeToNotifications(userId: string, organizationId: string, callback: (notifications: Notification[]) => void): () => void {
         try {
             const q = query(
                 collection(db, 'notifications'),
+                where('organizationId', '==', organizationId),
                 where('userId', '==', userId),
                 orderBy('createdAt', 'desc'),
                 limit(100)

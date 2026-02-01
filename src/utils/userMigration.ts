@@ -19,7 +19,7 @@ export const fixAllUsers = async (): Promise<{
 }> => {
     try {
         const app = getApp();
-        const functions = getFunctions(app);
+        const functions = getFunctions(app, 'europe-west1');
         const fixAllUsersFunc = httpsCallable(functions, 'fixAllUsers');
 
         const result = await fixAllUsersFunc();

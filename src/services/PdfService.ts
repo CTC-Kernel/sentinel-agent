@@ -1621,7 +1621,8 @@ export class PdfService {
         currentY += 8;
 
         selectedFramework.domains.forEach((domain) => {
-            const coverage = 0; // TODO: Pass actual per-domain control coverage via _data
+            const domainCoverage = _data?.domainCoverage as Record<string, number> | undefined;
+            const coverage = domainCoverage?.[domain] ?? 0;
             const progressWidth = width - 60;
             const progressHeight = 6;
 

@@ -4,7 +4,7 @@ import { Criticality, Project, Supplier, Document, UserProfile } from '../types'
 
 // Schema for Risk Import
 const importedRiskSchema = z.object({
-    threat: z.string().min(1, "La menace est requise"),
+    threat: z.string().min(1, "Threat is required"),
     vulnerability: z.string().optional().default(''),
     probability: z.preprocess((val) => parseNumber(val, 1, 5, 1), z.number().min(1).max(5)),
     impact: z.preprocess((val) => parseNumber(val, 1, 5, 1), z.number().min(1).max(5)),

@@ -54,7 +54,7 @@ export interface UseLocaleReturn {
     integer?: boolean;
   }) => ReturnType<typeof createLocalizedNumberSchema>;
   /** Translate a key */
-  t: (key: string, ...args: unknown[]) => string;
+  t: (key: string, defaultValueOrOptions?: string | Record<string, unknown>) => string;
 }
 
 /**
@@ -82,6 +82,7 @@ export interface UseLocaleReturn {
  */
 export function useLocale(): UseLocaleReturn {
   const language = useStore((state) => state.language);
+  const t = useStore((state) => state.t) as UseLocaleReturn['t'];
 
   // Memoize the locale config
   const config = useMemo(() => getLocaleConfig(language), [language]);
@@ -155,6 +156,6 @@ export function useLocale(): UseLocaleReturn {
     zodMessages,
     createDateSchema,
     createNumberSchema,
-    t: (id: string, ..._args: unknown[]): string => id, // Placeholder translation function
+    t,
   };
 }

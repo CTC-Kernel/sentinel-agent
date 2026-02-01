@@ -64,6 +64,8 @@ export const Risks: React.FC = () => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
     const [importModalOpen, setImportModalOpen] = useState(false);
+    const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+    const [viewName, setViewName] = useState('');
     const [confirmData, setConfirmData] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [initialFormData, setInitialFormData] = useState<Partial<RiskFormData> | undefined>(undefined);
     const [isFormDirty, setIsFormDirty] = useState(false);
@@ -136,17 +138,22 @@ export const Risks: React.FC = () => {
     }, [activeFilters.status, activeFilters.category, activeFilters.criticality, activeViewId, savedViews]);
 
     const handleSaveView = () => {
-        const name = prompt('Nom de la vue :');
-        if (!name) return;
+        setShowSaveViewModal(true);
+    };
+
+    const handleConfirmSaveView = () => {
+        if (!viewName.trim()) return;
         const newView: SavedView = {
             id: `custom-${Date.now()}`,
-            name,
+            name: viewName.trim(),
             filters: { status: activeFilters.status, category: activeFilters.category, criticality: activeFilters.criticality }
         };
         const updated = [...savedViews, newView];
         setSavedViews(updated);
         setActiveViewId(newView.id);
         localStorage.setItem('sentinel_risk_views', JSON.stringify(updated));
+        setShowSaveViewModal(false);
+        setViewName('');
     };
 
     const handleViewSelect = (view: SavedView) => {
@@ -487,6 +494,32 @@ export const Risks: React.FC = () => {
                 importRisks={importRisks}
             />
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData(prev => ({ ...prev, isOpen: false }))} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
+
+            {/* Save View Modal */}
+            {showSaveViewModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <div className="bg-card rounded-2xl p-6 max-w-md mx-4 shadow-apple-xl border border-border/50">
+                        <h3 className="text-lg font-semibold mb-4">{t('risks.saveViewTitle', { defaultValue: 'Enregistrer la vue' })}</h3>
+                        <input
+                            type="text"
+                            value={viewName}
+                            onChange={(e) => setViewName(e.target.value)}
+                            placeholder={t('risks.viewNamePlaceholder', { defaultValue: 'Nom de la vue...' })}
+                            className="w-full px-4 py-2 rounded-xl border border-border bg-background text-foreground mb-4 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            autoFocus
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleConfirmSaveView(); }}
+                        />
+                        <div className="flex gap-3 justify-end">
+                            <button onClick={() => { setShowSaveViewModal(false); setViewName(''); }} className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
+                                {t('common.cancel', { defaultValue: 'Annuler' })}
+                            </button>
+                            <button onClick={handleConfirmSaveView} disabled={!viewName.trim()} className="px-4 py-2 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
+                                {t('common.save', { defaultValue: 'Enregistrer' })}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </motion.div>
     );
 };

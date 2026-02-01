@@ -20,6 +20,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type {
   HomologationDossier,
   HomologationLevel,
@@ -316,11 +317,11 @@ export async function createDossier(
     updatedBy: userId
   };
 
-  await setDoc(docRef, {
+  await setDoc(docRef, sanitizeData({
     ...dossier,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
-  });
+  }));
 
   return dossier;
 }
@@ -404,11 +405,11 @@ export async function updateDossier(
 ): Promise<void> {
   const docRef = getHomologationDoc(organizationId, dossierId);
 
-  await updateDoc(docRef, {
+  await updateDoc(docRef, sanitizeData({
     ...input,
     updatedAt: serverTimestamp(),
     updatedBy: userId
-  });
+  }));
 }
 
 /**
@@ -442,7 +443,7 @@ export async function updateDossierStatus(
     }
   }
 
-  await updateDoc(docRef, updates);
+  await updateDoc(docRef, sanitizeData(updates));
 }
 
 /**
@@ -471,11 +472,11 @@ export async function updateDocumentStatus(
     return doc;
   });
 
-  await updateDoc(getHomologationDoc(organizationId, dossierId), {
+  await updateDoc(getHomologationDoc(organizationId, dossierId), sanitizeData({
     documents: updatedDocuments,
     updatedAt: serverTimestamp(),
     updatedBy: userId
-  });
+  }));
 }
 
 /**
@@ -1048,7 +1049,7 @@ export async function unlinkEbiosAnalysis(
   const currentHistory = dossier.ebiosLinkHistory ?? [];
   const docRef = getHomologationDoc(organizationId, dossierId);
 
-  await updateDoc(docRef, {
+  await updateDoc(docRef, sanitizeData({
     linkedEbiosAnalysisId: null,
     ebiosSnapshot: null,
     ebiosLastSyncedAt: null,
@@ -1056,7 +1057,7 @@ export async function unlinkEbiosAnalysis(
     ebiosLinkHistory: [...currentHistory, historyEntry],
     updatedAt: serverTimestamp(),
     updatedBy: userId
-  });
+  }));
 }
 
 /**

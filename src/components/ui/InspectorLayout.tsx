@@ -3,7 +3,7 @@ import { Drawer } from './Drawer';
 import { ScrollableTabs } from './ScrollableTabs';
 import { LoadingIndicator } from './LoadingIndicator';
 import { LucideIcon } from './Icons';
-import { useStore } from '../../store';
+import { useTranslation } from 'react-i18next';
 
 interface TabItem {
     id: string;
@@ -57,7 +57,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
     hasUnsavedChanges = false, // Default to false
     tabsAriaLabel
 }) => {
-    const { t } = useStore();
+    const { t } = useTranslation();
     return (
         <Drawer
             isOpen={isOpen}
@@ -110,7 +110,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
                 <div className={`flex-1 ${disableContentScroll ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar'} ${disableContentPadding ? '' : 'px-6 py-8'}`}>
                     {loading ? (
                         <div className="flex items-center justify-center h-full min-h-[400px]">
-                            <LoadingIndicator type="pulse" message={t('common.ui.loading')} />
+                            <LoadingIndicator type="pulse" message={t('common.loading', { defaultValue: 'Chargement...' })} />
                         </div>
                     ) : (
                         <div key={activeTab || 'unknown'} className="animate-in fade-in duration-300 slide-in-from-bottom-2 h-full">

@@ -27,17 +27,17 @@ import { GRAVITY_SCALE } from '../../../data/ebiosLibrary';
 
 // Form validation schema
 const strategicScenarioSchema = z.object({
-  name: z.string().min(3, 'Nom requis (min 3 caractères)'),
+  name: z.string().min(3, 'Name required (min 3 characters)'),
   description: z.string().optional(),
-  srOvPairId: z.string().min(1, 'Couple SR/OV requis'),
+  srOvPairId: z.string().min(1, 'SR/OV pair is required'),
   attackPathIds: z.array(z.string()),
-  fearedEventIds: z.array(z.string()).min(1, 'Au moins un événement redouté requis'),
+  fearedEventIds: z.array(z.string()).min(1, 'At least one feared event is required'),
   gravity: z.number().min(1).max(4),
   gravityJustification: z.string().optional(),
 }).refine(
   (data) => data.gravity < 3 || (data.gravityJustification && data.gravityJustification.length >= 10),
   {
-    message: 'Justification requise pour gravité ≥ 3 (min 10 caractères)',
+    message: 'Justification required for gravity >= 3 (min 10 characters)',
     path: ['gravityJustification'],
   }
 );

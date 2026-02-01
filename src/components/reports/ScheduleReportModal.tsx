@@ -108,13 +108,13 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
         // Validate recipients
         const validRecipients = data.recipients.filter(r => r.trim());
         if (validRecipients.length === 0) {
-            setFormError('Veuillez ajouter au moins un destinataire');
+            setFormError('Please add at least one recipient');
             return;
         }
 
         const invalidEmails = validRecipients.filter(r => !validateEmail(r));
         if (invalidEmails.length > 0) {
-            setFormError(`Adresse email invalide: ${invalidEmails[0]}`);
+            setFormError(`Invalid email address: ${invalidEmails[0]}`);
             return;
         }
 

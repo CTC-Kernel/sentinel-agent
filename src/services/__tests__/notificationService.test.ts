@@ -421,7 +421,7 @@ describe('NotificationService', () => {
                 ]
             } as never);
 
-            const notifications = await NotificationService.getUnread('user-123');
+            const notifications = await NotificationService.getUnread('user-123', 'org-123');
 
             expect(notifications).toHaveLength(2);
             expect(notifications[0].id).toBe('notif-1');
@@ -433,7 +433,7 @@ describe('NotificationService', () => {
 
             vi.mocked(getDocs).mockRejectedValueOnce(new Error('DB Error'));
 
-            const notifications = await NotificationService.getUnread('user-123');
+            const notifications = await NotificationService.getUnread('user-123', 'org-123');
 
             expect(notifications).toEqual([]);
             expect(ErrorLogger.error).toHaveBeenCalled();
@@ -457,7 +457,7 @@ describe('NotificationService', () => {
                 ]
             } as never);
 
-            const notifications = await NotificationService.getUnread('user-123');
+            const notifications = await NotificationService.getUnread('user-123', 'org-123');
 
             expect(notifications).toHaveLength(1);
         });
@@ -492,7 +492,7 @@ describe('NotificationService', () => {
                 ]
             } as never);
 
-            const notifications = await NotificationService.getAll('user-123');
+            const notifications = await NotificationService.getAll('user-123', 'org-123');
 
             expect(notifications).toHaveLength(2);
         });
@@ -502,7 +502,7 @@ describe('NotificationService', () => {
 
             vi.mocked(getDocs).mockResolvedValueOnce({ docs: [] } as never);
 
-            await NotificationService.getAll('user-123', 10);
+            await NotificationService.getAll('user-123', 'org-123', 10);
 
             expect(limit).toHaveBeenCalledWith(10);
         });
@@ -512,7 +512,7 @@ describe('NotificationService', () => {
 
             vi.mocked(getDocs).mockRejectedValueOnce(new Error('DB Error'));
 
-            const notifications = await NotificationService.getAll('user-123');
+            const notifications = await NotificationService.getAll('user-123', 'org-123');
 
             expect(notifications).toEqual([]);
         });
@@ -608,7 +608,7 @@ describe('NotificationService', () => {
             vi.mocked(onSnapshot).mockReturnValueOnce(mockUnsubscribe);
 
             const callback = vi.fn();
-            const unsubscribe = NotificationService.subscribeToNotifications('user-123', callback);
+            const unsubscribe = NotificationService.subscribeToNotifications('user-123', 'org-123', callback);
 
             expect(onSnapshot).toHaveBeenCalled();
             expect(typeof unsubscribe).toBe('function');
@@ -624,7 +624,7 @@ describe('NotificationService', () => {
             });
 
             const callback = vi.fn();
-            NotificationService.subscribeToNotifications('user-123', callback);
+            NotificationService.subscribeToNotifications('user-123', 'org-123', callback);
 
             // Simulate snapshot
             if (snapshotCallback) {
@@ -659,7 +659,7 @@ describe('NotificationService', () => {
             });
 
             const callback = vi.fn();
-            const unsubscribe = NotificationService.subscribeToNotifications('user-123', callback);
+            const unsubscribe = NotificationService.subscribeToNotifications('user-123', 'org-123', callback);
 
             expect(typeof unsubscribe).toBe('function');
             // Should not throw when called

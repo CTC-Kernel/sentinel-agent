@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getRiskSummaryStats } from '../riskExportUtils';
 import { Risk } from '../../types';
-import { RISK_COLORS, STATUS_COLORS } from '../../constants/colors';
+import { RISK_COLORS } from '../../constants/colors';
 
 // Mock ExcelExportService
 vi.mock('../../services/excelExportService', () => ({
@@ -68,12 +68,12 @@ describe('riskExportUtils', () => {
 
         it('should categorize risks by criticality levels', () => {
             const risks = [
-                createMockRisk(3, 'Ouvert'),   // Faible (1-9)
-                createMockRisk(9, 'Ouvert'),   // Faible (1-9)
-                createMockRisk(10, 'Ouvert'),  // Moyen (10-14)
-                createMockRisk(15, 'Ouvert'),  // Élevé (15-19)
-                createMockRisk(20, 'Ouvert'),  // Critique (20+)
-                createMockRisk(25, 'Ouvert'),  // Critique (20+)
+                createMockRisk(2, 'Ouvert'),   // Faible (< 5)
+                createMockRisk(4, 'Ouvert'),   // Faible (< 5)
+                createMockRisk(7, 'Ouvert'),   // Moyen (5-9)
+                createMockRisk(12, 'Ouvert'),  // Élevé (10-14)
+                createMockRisk(15, 'Ouvert'),  // Critique (>= 15)
+                createMockRisk(20, 'Ouvert'),  // Critique (>= 15)
             ];
 
             const result = getRiskSummaryStats(risks);
@@ -125,14 +125,14 @@ describe('riskExportUtils', () => {
 
         it('should handle boundary score values correctly', () => {
             const risks = [
-                createMockRisk(1, 'Ouvert'),   // Faible boundary
-                createMockRisk(9, 'Ouvert'),   // Faible boundary
-                createMockRisk(10, 'Ouvert'),   // Moyen boundary
-                createMockRisk(14, 'Ouvert'),   // Moyen boundary
-                createMockRisk(15, 'Ouvert'),  // Élevé boundary
-                createMockRisk(19, 'Ouvert'),  // Élevé boundary
-                createMockRisk(20, 'Ouvert'),  // Critique boundary
-                createMockRisk(25, 'Ouvert'),  // Critique boundary
+                createMockRisk(1, 'Ouvert'),   // Faible boundary (< 5)
+                createMockRisk(4, 'Ouvert'),   // Faible boundary (< 5)
+                createMockRisk(5, 'Ouvert'),   // Moyen boundary (>= 5)
+                createMockRisk(9, 'Ouvert'),   // Moyen boundary (< 10)
+                createMockRisk(10, 'Ouvert'),  // Élevé boundary (>= 10)
+                createMockRisk(14, 'Ouvert'),  // Élevé boundary (< 15)
+                createMockRisk(15, 'Ouvert'),  // Critique boundary (>= 15)
+                createMockRisk(25, 'Ouvert'),  // Critique boundary (>= 15)
             ];
 
             const result = getRiskSummaryStats(risks);

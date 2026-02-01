@@ -128,6 +128,12 @@ export const Agents: React.FC = () => {
         });
     }, [agents, searchQuery, statusFilter]);
 
+    // Permission gate
+    const canRead = hasPermission(user, 'Agent', 'read');
+    if (!canRead) {
+        return <div className="p-8 text-center text-muted-foreground">{t('common.accessDenied', { defaultValue: 'Accès refusé' })}</div>;
+    }
+
     if (loading) {
         return (
             <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10 p-6">
@@ -163,7 +169,7 @@ export const Agents: React.FC = () => {
                     </div>
                     <h3 className="text-lg font-semibold mb-2">{t('agents.noAgents', { defaultValue: 'Aucun agent enrôlé' })}</h3>
                     <p className="text-muted-foreground max-w-md mb-6">
-                        Déployez Sentinel Agent sur vos endpoints pour commencer la supervision de conformité en temps réel.
+                        {t('agents.emptyState.description', { defaultValue: "Déployez Sentinel Agent sur vos endpoints pour commencer la supervision de conformité en temps réel." })}
                     </p>
                     <Button onClick={() => navigate('/settings?tab=agents')}>
                         <Download className="h-4 w-4 mr-2" />
@@ -226,7 +232,7 @@ export const Agents: React.FC = () => {
                         >
                             <PageHeader
                                 title="Sentinel Agents"
-                                subtitle="Gestion et déploiement de la flotte d'agents Sentinel"
+                                subtitle={t('agents.subtitle', { defaultValue: "Gestion et déploiement de la flotte d'agents Sentinel" })}
                                 icon={
                                     <img
                                         src="/images/IA.png"
@@ -244,7 +250,7 @@ export const Agents: React.FC = () => {
                                             data-tour="agents-download"
                                         >
                                             <Download className="h-4 w-4" />
-                                            <span className="hidden sm:inline">Télécharger Agent</span>
+                                            <span className="hidden sm:inline">{t('agents.downloadAgent', { defaultValue: 'Télécharger Agent' })}</span>
                                         </Button>
                                         <Button
                                             variant="outline"
@@ -253,7 +259,7 @@ export const Agents: React.FC = () => {
                                             onClick={() => setActiveTab('policies')}
                                         >
                                             <Settings className="h-4 w-4" />
-                                            <span className="hidden sm:inline">Configuration</span>
+                                            <span className="hidden sm:inline">{t('agents.configuration', { defaultValue: 'Configuration' })}</span>
                                         </Button>
                                     </div>
                                 }
@@ -270,7 +276,7 @@ export const Agents: React.FC = () => {
                                     <div className="relative flex-1 max-w-md">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Input
-                                            placeholder="Rechercher un agent..."
+                                            placeholder={t('agents.searchPlaceholder', { defaultValue: 'Rechercher un agent...' })}
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             className="pl-9"
@@ -387,6 +393,13 @@ export const Agents: React.FC = () => {
                                 />
                             </div>
 
+                            {filteredAgents.length === 0 && !loading && !error && agents.length > 0 && (
+                                <div className="flex flex-col items-center justify-center py-12 text-center glass-premium rounded-2xl border border-dashed border-border/40">
+                                    <Search className="h-10 w-10 text-muted-foreground mb-3 opacity-30" />
+                                    <p className="text-muted-foreground font-medium">{t('agents.noMatchingAgents', { defaultValue: 'Aucun agent ne correspond a vos filtres' })}</p>
+                                </div>
+                            )}
+
                             {/* Compliance Heatmap - Only show when we have agents */}
                             {agents.length > 0 && (
                                 <motion.div variants={slideUpVariants}>
@@ -477,7 +490,7 @@ export const Agents: React.FC = () => {
                 onClose={handleCloseLiveView}
                 width="max-w-4xl"
                 title={selectedAgent ? (selectedAgent.name || selectedAgent.hostname || 'Agent') : 'Agent'}
-                subtitle="Monitoring en temps réel"
+                subtitle={t('agents.liveView.subtitle', { defaultValue: 'Monitoring en temps réel' })}
             >
                 {selectedAgent && (
                     <AgentLiveView

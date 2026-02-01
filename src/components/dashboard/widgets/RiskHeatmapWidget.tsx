@@ -9,6 +9,7 @@ import { useFirestoreCollection } from '../../../hooks/useFirestore';
 import { Risk } from '../../../types';
 import { where } from 'firebase/firestore';
 import { useStore } from '../../../store';
+import { RISK_THRESHOLDS } from '../../../constants/complianceConfig';
 import { Loader2, AlertTriangle, ArrowRight, Target, ShieldCheck } from '../../ui/Icons';
 import { cn } from '../../../lib/utils';
 import { EmptyState } from '../../ui/EmptyState';
@@ -41,9 +42,9 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
             matrix[4 - p][i]++; // Invert Y axis for visualization (5 top)
 
             const score = (5 - (4 - p)) * (i + 1);
-            if (score >= 15) critical++;
-            else if (score >= 10) high++;
-            else if (score >= 5) medium++;
+            if (score >= RISK_THRESHOLDS.CRITICAL) critical++;
+            else if (score >= RISK_THRESHOLDS.HIGH) high++;
+            else if (score >= RISK_THRESHOLDS.MEDIUM) medium++;
             else low++;
         });
 
@@ -56,13 +57,13 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
         let bgColor = '';
         let glowColor = '';
 
-        if (score >= 15) {
+        if (score >= RISK_THRESHOLDS.CRITICAL) {
             bgColor = 'bg-gradient-to-br from-red-500 to-red-600';
             glowColor = 'shadow-red-500/40';
-        } else if (score >= 10) {
+        } else if (score >= RISK_THRESHOLDS.HIGH) {
             bgColor = 'bg-gradient-to-br from-orange-400 to-orange-500';
             glowColor = 'shadow-orange-500/30';
-        } else if (score >= 5) {
+        } else if (score >= RISK_THRESHOLDS.MEDIUM) {
             bgColor = 'bg-gradient-to-br from-yellow-400 to-amber-500';
             glowColor = 'shadow-amber-500/30';
         } else {

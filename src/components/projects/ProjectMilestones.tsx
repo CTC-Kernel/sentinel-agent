@@ -18,9 +18,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 const milestoneSchema = z.object({
-    title: z.string().min(3, 'Titre requis (min 3 caractères)').max(200, 'Titre trop long'),
-    description: z.string().max(1000, 'Description trop longue').optional(),
-    targetDate: z.string().min(1, 'Date cible requise'),
+    title: z.string().min(3, 'Title required (min 3 characters)').max(200, 'Title is too long'),
+    description: z.string().max(1000, 'Description is too long').optional(),
+    targetDate: z.string().min(1, 'Target date is required'),
     status: z.enum(['pending', 'achieved', 'missed']).optional(),
     linkedTaskIds: z.array(z.string()).optional()
 });

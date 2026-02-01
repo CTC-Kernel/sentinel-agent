@@ -36,7 +36,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const setTheme = useStore(s => s.setTheme);
 
     const [isBlocked, setIsBlocked] = useState(isAppCheckFailed);
-    const [claimsSynced, setClaimsSynced] = useState(false);
+    const [claimsSynced, setClaimsSyncedState] = useState(false);
+    const claimsSyncedRef = useRef(false);
+    const setClaimsSynced = useCallback((value: boolean) => {
+        claimsSyncedRef.current = value;
+        setClaimsSyncedState(value);
+    }, []);
 
     const loadingRef = useRef(loading);
     const firebaseUserUidRef = useRef<string | undefined>(firebaseUser?.uid);
@@ -45,9 +50,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loadingRef.current = loading;
     }, [loading]);
 
-    // Fonction pour rafraîchir le token et les claims
+    const refreshingRef = useRef(false);
+
     const refreshSession = useCallback(async () => {
         if (!auth.currentUser) return;
+        if (refreshingRef.current) return;
+        refreshingRef.current = true;
         try {
             // Force le rafraîchissement du token
             await auth.currentUser.getIdToken(true);
@@ -70,6 +78,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (_err) {
             ErrorLogger.error(_err, 'AuthContext.refreshSession');
             setError(_err as Error);
+        } finally {
+            refreshingRef.current = false;
         }
     }, []);
 
@@ -259,7 +269,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                             if (userData.organizationId) {
                                 // Optimization: Skip check if we already verified this orgId for this session
-                                if (lastVerifiedOrgIdRef.current === userData.organizationId && claimsSynced) {
+                                if (lastVerifiedOrgIdRef.current === userData.organizationId && claimsSyncedRef.current) {
                                     // already synced
                                 } else {
                                     // Vérifier si le token actuel a le bon claim
@@ -447,7 +457,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
         };
-    }, [setUser, setTheme, logout, setOrganization, claimsSynced]);
+    }, [setUser, setTheme, logout, setOrganization]); // claimsSynced removed: read via claimsSyncedRef to avoid re-subscription loop
 
     // MFA State
     const [mfaSecret, setMfaSecret] = useState<TotpSecret | null>(null);

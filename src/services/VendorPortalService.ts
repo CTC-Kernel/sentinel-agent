@@ -20,6 +20,7 @@ import {
 } from 'firebase/firestore';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ErrorLogger } from './errorLogger';
+import { sendEmail } from './emailService';
 import {
   VendorPortalAccess,
   CreatePortalAccessInput,
@@ -200,9 +201,23 @@ export class VendorPortalService {
         verificationCodeExpiresAt: expiresAt,
       }));
 
-      // TODO: Send email via Cloud Function with the plaintext code
-      // The code is only sent via email and never returned to the client
-      return true; // Code sent via email - never return to client
+      // Send the verification code via Cloud Function email service
+      const accessData = docSnap.data();
+      await sendEmail(null, {
+        to: accessData.vendorEmail,
+        subject: 'Sentinel GRC - Code de vérification du portail fournisseur',
+        html: `
+          <h2>Code de vérification</h2>
+          <p>Votre code de vérification pour accéder au portail fournisseur Sentinel GRC est :</p>
+          <p style="font-size: 24px; font-weight: bold; letter-spacing: 4px; padding: 16px; background: #f3f4f6; border-radius: 8px; text-align: center;">${code}</p>
+          <p>Ce code expire dans ${VERIFICATION_CODE_EXPIRY_MINUTES} minutes.</p>
+          <p>Si vous n'avez pas demandé ce code, ignorez cet email.</p>
+        `,
+        type: 'GENERIC',
+        metadata: { accessId, vendorEmail: accessData.vendorEmail },
+      });
+
+      return true;
     } catch (error) {
       ErrorLogger.error(error, 'VendorPortalService.sendVerificationCode');
       throw error;
@@ -498,8 +513,27 @@ export class VendorPortalService {
         ErrorLogger.warn('Scoring calculation failed', 'VendorPortalService.submitPortalQuestionnaire');
       }
 
-      // TODO: Send notification to RSSI
-      // TODO: Send confirmation email to vendor
+      // Send confirmation email to vendor
+      try {
+        await sendEmail(null, {
+          to: access.vendorEmail,
+          subject: 'Sentinel GRC - Questionnaire fournisseur soumis',
+          html: `
+            <h2>Questionnaire soumis avec succès</h2>
+            <p>Votre questionnaire d'évaluation fournisseur a bien été soumis.</p>
+            <p>L'équipe sécurité de l'organisation examinera vos réponses et vous contactera si nécessaire.</p>
+            <p>Merci pour votre collaboration.</p>
+          `,
+          type: 'SUPPLIER_REVIEW',
+          metadata: { assessmentId: access.assessmentId, vendorEmail: access.vendorEmail },
+        });
+      } catch {
+        // Log but don't fail the submission
+        ErrorLogger.warn('Vendor confirmation email failed', 'VendorPortalService.submitPortalQuestionnaire');
+      }
+
+      // Notification to RSSI is handled by NotificationService triggers
+      // (Cloud Functions listen to questionnaire_responses status changes)
     } catch (error) {
       ErrorLogger.error(error, 'VendorPortalService.submitPortalQuestionnaire');
       throw error;

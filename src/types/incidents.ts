@@ -93,6 +93,13 @@ export interface Incident {
     detectedAt?: string;
     impact?: string;
     updatedAt?: string;
+    // DORA Art. 19 - Incident Reporting Deadlines (computed from dateReported)
+    /** Initial notification deadline: dateReported + 4 hours */
+    initialNotificationDeadline?: string;
+    /** Intermediate report deadline: dateReported + 72 hours */
+    intermediateReportDeadline?: string;
+    /** Final report deadline: dateReported + 1 month (30 days) */
+    finalReportDeadline?: string;
     // Masterpiece enhancements
     history?: { date: string; user: string; action: string; details: string }[];
     tags?: string[];

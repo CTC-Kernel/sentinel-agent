@@ -22,3 +22,15 @@ export * from './homologation';
 export * from './framework';
 export * from './compliance';
 export * from './training';
+// Note: vendorAssessment uses VendorAssessmentStatus (renamed to avoid conflict with compliance.ts AssessmentStatus)
+export * from './vendorAssessment';
+// Note: vendorConcentration uses VendorImpactLevel (renamed to avoid conflict with incidents.ts ImpactLevel)
+export * from './vendorConcentration';
+export * from './vendorPortal';
+// Note: vendorScoring exports RiskLevel which may conflict - import directly from './vendorScoring' if needed
+// export * from './vendorScoring';
+export * from './certificates';
+// Note: accessReview exports CampaignStatus which conflicts with training.ts - import directly from './accessReview' if needed
+// export * from './accessReview';
+export * from './agent';
+export * from './vault';

@@ -76,7 +76,7 @@ const DEFAULT_PROGRESS: ProgressMetrics = {
 /**
  * Status values that count as "completed"
  */
-const COMPLETED_STATUSES = ['done', 'completed', 'Termine', 'Valide', 'Approuve'];
+const COMPLETED_STATUSES = ['done', 'completed', 'Terminé', 'Validé', 'Approuvé'];
 
 /**
  * Calculate trend based on percentage comparison
@@ -210,7 +210,7 @@ export function useProjectProgress(
         const totalDocuments = documentsSnap.size;
         const completedDocuments = documentsSnap.docs.filter((doc) => {
           const status = doc.data().status;
-          return COMPLETED_STATUSES.includes(status) || status === 'published' || status === 'Publie';
+          return COMPLETED_STATUSES.includes(status) || status === 'published' || status === 'Publié';
         }).length;
 
         // Calculate actions progress

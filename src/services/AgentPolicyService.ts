@@ -32,6 +32,7 @@ import {
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type {
     AgentGroup,
     AgentPolicy,
@@ -178,15 +179,13 @@ export async function createGroup(
     userId: string
 ): Promise<string> {
     try {
-        const now = new Date().toISOString();
-
-        const docRef = await addDoc(getGroupsCollection(organizationId), {
+        const docRef = await addDoc(getGroupsCollection(organizationId), sanitizeData({
             ...group,
             agentCount: group.agentIds?.length || 0,
-            createdAt: now,
-            updatedAt: now,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
             createdBy: userId,
-        });
+        }));
 
         return docRef.id;
     } catch (error) {
@@ -213,7 +212,7 @@ export async function updateGroup(
         if (updates.agentIds) {
             updateData.agentCount = updates.agentIds.length;
         }
-        await updateDoc(docRef, updateData);
+        await updateDoc(docRef, sanitizeData(updateData));
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.updateGroup', {
             component: 'AgentPolicyService',
@@ -262,10 +261,22 @@ export async function addAgentsToGroup(
 ): Promise<void> {
     try {
         const groupRef = doc(getGroupsCollection(organizationId), groupId);
-        await updateDoc(groupRef, {
-            agentIds: arrayUnion(...agentIds),
-            agentCount: increment(agentIds.length),
-            updatedAt: serverTimestamp(),
+
+        // Use transaction to compute actual delta and avoid count drift
+        await runTransaction(db, async (transaction) => {
+            const groupSnap = await transaction.get(groupRef);
+            if (!groupSnap.exists()) {
+                throw new Error('Group not found');
+            }
+            const currentAgentIds: string[] = groupSnap.data().agentIds || [];
+            const newAgents = agentIds.filter(id => !currentAgentIds.includes(id));
+            if (newAgents.length === 0) return;
+
+            transaction.update(groupRef, {
+                agentIds: arrayUnion(...newAgents),
+                agentCount: increment(newAgents.length),
+                updatedAt: serverTimestamp(),
+            });
         });
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.addAgentsToGroup', {
@@ -288,10 +299,22 @@ export async function removeAgentsFromGroup(
 ): Promise<void> {
     try {
         const groupRef = doc(getGroupsCollection(organizationId), groupId);
-        await updateDoc(groupRef, {
-            agentIds: arrayRemove(...agentIds),
-            agentCount: increment(-agentIds.length),
-            updatedAt: serverTimestamp(),
+
+        // Use transaction to compute actual delta and avoid count drift
+        await runTransaction(db, async (transaction) => {
+            const groupSnap = await transaction.get(groupRef);
+            if (!groupSnap.exists()) {
+                throw new Error('Group not found');
+            }
+            const currentAgentIds: string[] = groupSnap.data().agentIds || [];
+            const removedAgents = agentIds.filter(id => currentAgentIds.includes(id));
+            if (removedAgents.length === 0) return;
+
+            transaction.update(groupRef, {
+                agentIds: arrayRemove(...removedAgents),
+                agentCount: increment(-removedAgents.length),
+                updatedAt: serverTimestamp(),
+            });
         });
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.removeAgentsFromGroup', {
@@ -438,26 +461,24 @@ export async function createPolicy(
     userId: string
 ): Promise<string> {
     try {
-        const now = new Date().toISOString();
-
-        const docRef = await addDoc(getPoliciesCollection(organizationId), {
+        const docRef = await addDoc(getPoliciesCollection(organizationId), sanitizeData({
             ...policy,
             version: 1,
-            createdAt: now,
-            updatedAt: now,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
             createdBy: userId,
-        });
+        }));
 
         // Record history
-        await addDoc(getPolicyHistoryCollection(organizationId), {
+        await addDoc(getPolicyHistoryCollection(organizationId), sanitizeData({
             policyId: docRef.id,
             changeType: 'created',
             previousVersion: 0,
             newVersion: 1,
             changedRules: [],
             changedBy: userId,
-            changedAt: now,
-        });
+            changedAt: serverTimestamp(),
+        }));
 
         return docRef.id;
     } catch (error) {
@@ -503,16 +524,16 @@ export async function updatePolicy(
                 }
             }
 
-            transaction.update(policyRef, {
+            transaction.update(policyRef, sanitizeData({
                 ...updates,
                 version: newVersion,
                 updatedAt: serverTimestamp(),
                 updatedBy: userId,
-            });
+            }));
 
             // Add history entry in same transaction
             const historyRef = doc(collection(db, 'organizations', organizationId, 'policyHistory'));
-            transaction.set(historyRef, {
+            transaction.set(historyRef, sanitizeData({
                 policyId,
                 action: 'updated',
                 changeType: 'updated',
@@ -524,7 +545,7 @@ export async function updatePolicy(
                 changedBy: userId,
                 changedAt: serverTimestamp(),
                 reason,
-            });
+            }));
         });
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.updatePolicy', {
@@ -557,7 +578,7 @@ export async function deletePolicy(
         const batch = writeBatch(db);
         batch.delete(policyRef);
         const historyRef = doc(collection(db, 'organizations', organizationId, 'policyHistory'));
-        batch.set(historyRef, {
+        batch.set(historyRef, sanitizeData({
             policyId,
             action: 'deleted',
             changeType: 'deleted',
@@ -567,7 +588,7 @@ export async function deletePolicy(
             changedRules: [],
             changedBy: userId || 'unknown',
             changedAt: serverTimestamp(),
-        });
+        }));
         await batch.commit();
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.deletePolicy', {
@@ -592,9 +613,9 @@ export async function togglePolicy(
     try {
         const batch = writeBatch(db);
         const policyRef = doc(getPoliciesCollection(organizationId), policyId);
-        batch.update(policyRef, { isEnabled: enabled, updatedAt: serverTimestamp(), updatedBy: userId });
+        batch.update(policyRef, sanitizeData({ isEnabled: enabled, updatedAt: serverTimestamp(), updatedBy: userId }));
         const historyRef = doc(collection(db, 'organizations', organizationId, 'policyHistory'));
-        batch.set(historyRef, {
+        batch.set(historyRef, sanitizeData({
             policyId,
             action: enabled ? 'activated' : 'deactivated',
             changeType: enabled ? 'enabled' : 'disabled',
@@ -603,7 +624,7 @@ export async function togglePolicy(
             changedRules: [],
             changedAt: serverTimestamp(),
             changedBy: userId,
-        });
+        }));
         await batch.commit();
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.togglePolicy', {
@@ -947,11 +968,11 @@ export async function initializeDefaultsIfNeeded(
 
         if (groupsSnapshot.empty) {
             const defaultGroup = createDefaultGroup(organizationId, userId);
-            await addDoc(getGroupsCollection(organizationId), {
+            await addDoc(getGroupsCollection(organizationId), sanitizeData({
                 ...defaultGroup,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            });
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            }));
         }
 
         // Check for existing default global policy
@@ -966,11 +987,11 @@ export async function initializeDefaultsIfNeeded(
 
         if (policiesSnapshot.empty) {
             const defaultPolicy = createDefaultGlobalPolicy(organizationId, userId);
-            await addDoc(getPoliciesCollection(organizationId), {
+            await addDoc(getPoliciesCollection(organizationId), sanitizeData({
                 ...defaultPolicy,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            });
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            }));
         }
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.initializeDefaultsIfNeeded', {

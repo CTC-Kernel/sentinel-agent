@@ -8,8 +8,8 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { ScoreService } from '../services/scoreService';
 import { ErrorLogger } from '../services/errorLogger';
 import type {
-  ComplianceScore,
-  ScoreHistory,
+  GlobalComplianceScore as ComplianceScore,
+  GlobalScoreHistory as ScoreHistory,
   ScoreBreakdown,
   TrendType,
   ComplianceScoreHookResult,

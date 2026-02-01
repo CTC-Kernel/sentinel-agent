@@ -368,7 +368,7 @@ export function useMappingMutations() {
       return FrameworkService.createMapping({
         ...mapping,
         organizationId,
-      });
+      }, organizationId);
     },
     onSuccess: (_, variables) => {
       if (organizationId) {
@@ -393,7 +393,8 @@ export function useMappingMutations() {
       mappingId: string;
       updates: Partial<Pick<ControlMapping, 'coveragePercentage' | 'coverageStatus' | 'notes' | 'isValidated'>>;
     }) => {
-      return FrameworkService.updateMapping(mappingId, updates);
+      if (!organizationId) throw new Error('User not authenticated');
+      return FrameworkService.updateMapping(mappingId, organizationId, updates);
     },
     onSuccess: () => {
       // Invalidate all mapping queries
@@ -409,7 +410,8 @@ export function useMappingMutations() {
 
   const deleteMutation = useMutation({
     mutationFn: async (mappingId: string) => {
-      return FrameworkService.deleteMapping(mappingId);
+      if (!organizationId) throw new Error('User not authenticated');
+      return FrameworkService.deleteMapping(mappingId, organizationId);
     },
     onSuccess: () => {
       // Invalidate all mapping queries

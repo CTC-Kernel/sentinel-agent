@@ -21,10 +21,10 @@ import { LIKELIHOOD_SCALE } from '../../../data/ebiosLibrary';
 
 // Form validation schema
 const attackPathSchema = z.object({
-  name: z.string().min(2, 'Nom requis (min 2 caractères)'),
+  name: z.string().min(2, 'Name required (min 2 characters)'),
   description: z.string().optional(),
-  sourcePartyId: z.string().min(1, 'Source requise'),
-  targetAssetId: z.string().min(1, 'Cible requise'),
+  sourcePartyId: z.string().min(1, 'Source is required'),
+  targetAssetId: z.string().min(1, 'Target is required'),
   intermediatePartyIds: z.array(z.string()),
   likelihood: z.number().min(1).max(4),
   complexity: z.number().min(1).max(4),

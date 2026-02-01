@@ -105,7 +105,7 @@ export const CyberNewsWidget: React.FC = () => {
                     <div className="space-y-3">
                         {displayNews.map((item, index) => (
                             <a
-                                key={`news-${index || 'unknown'}`}
+                                key={`news-${index}`}
                                 href={item.link}
                                 target="_blank"
                                 rel="noopener noreferrer"

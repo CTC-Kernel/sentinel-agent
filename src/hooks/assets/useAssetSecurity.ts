@@ -82,7 +82,7 @@ export function useAssetSecurity(asset: Asset | null) {
                 owner: user.email,
                 // tags: ['CVE', 'Auto-generated'], // Removed as not in Risk interface
                 createdAt: serverTimestamp() as unknown as string,
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp() as unknown as string
             };
 
             await addDoc(collection(db, 'risks'), sanitizeData(newRisk));

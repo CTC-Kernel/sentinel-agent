@@ -63,10 +63,10 @@ describe('EncryptionService', () => {
     beforeEach(async () => {
         vi.clearAllMocks();
         vi.resetModules();
-        // Reset env
-        import.meta.env.VITE_ENCRYPTION_KEY = 'test-encryption-key';
-        import.meta.env.DEV = true;
-        import.meta.env.PROD = false;
+        // Reset env - cast to bypass readonly for testing
+        (import.meta.env as Record<string, unknown>).VITE_ENCRYPTION_KEY = 'test-encryption-key';
+        (import.meta.env as Record<string, unknown>).DEV = true;
+        (import.meta.env as Record<string, unknown>).PROD = false;
     });
 
     describe('encrypt', () => {

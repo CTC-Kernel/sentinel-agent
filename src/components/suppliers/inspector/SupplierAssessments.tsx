@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { ClipboardList, ChevronRight, Clock, CheckCircle2, AlertTriangle, Calendar, Filter, RefreshCw } from '../../ui/Icons';
 import { EmptyState } from '../../ui/EmptyState';
 import { SupplierQuestionnaireResponse } from '../../../types';
-import { EnhancedAssessmentResponse, AssessmentStatus, getDaysUntil } from '../../../types/vendorAssessment';
+import { EnhancedAssessmentResponse, VendorAssessmentStatus, getDaysUntil } from '../../../types/vendorAssessment';
 import { Button } from '../../ui/button';
 import { useTranslation } from 'react-i18next';
 
@@ -14,7 +14,7 @@ interface SupplierAssessmentsProps {
 }
 
 // Status options for filter
-const STATUS_OPTIONS: (AssessmentStatus | 'all')[] = ['all', 'Draft', 'Sent', 'In Progress', 'Submitted', 'Reviewed', 'Archived', 'Expired'];
+const STATUS_OPTIONS: (VendorAssessmentStatus | 'all')[] = ['all', 'Draft', 'Sent', 'In Progress', 'Submitted', 'Reviewed', 'Archived', 'Expired'];
 
 const getStatusColorClasses = (status: string): string => {
   switch (status) {
@@ -154,7 +154,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
   onViewAssessment,
 }) => {
   const { t } = useTranslation();
-  const [statusFilter, setStatusFilter] = useState<AssessmentStatus | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<VendorAssessmentStatus | 'all'>('all');
 
   // Filter assessments
   const filteredAssessments = useMemo(() => {

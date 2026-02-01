@@ -99,16 +99,22 @@ const mockGetDocs = vi.fn().mockResolvedValue({
     ]
 });
 const mockDeleteDoc = vi.fn().mockResolvedValue(undefined);
+const mockGetDoc = vi.fn().mockResolvedValue({
+    exists: () => true,
+    data: () => ({ organizationId: 'org-1' })
+});
 
 vi.mock('firebase/firestore', () => ({
     collection: vi.fn(),
     addDoc: () => mockAddDoc(),
     getDocs: () => mockGetDocs(),
+    getDoc: (...args: unknown[]) => mockGetDoc(...args),
     query: vi.fn(),
     where: vi.fn(),
     orderBy: vi.fn(),
     deleteDoc: () => mockDeleteDoc(),
     doc: vi.fn(),
+    limit: vi.fn(),
     Timestamp: { now: () => ({ toDate: () => new Date() }) }
 }));
 
@@ -592,7 +598,7 @@ describe('DORAExportService', () => {
 
     describe('deleteExportRecord', () => {
         it('should delete export record', async () => {
-            await DORAExportService.deleteExportRecord('export-1');
+            await DORAExportService.deleteExportRecord('export-1', 'org-1');
 
             expect(mockDeleteDoc).toHaveBeenCalled();
         });

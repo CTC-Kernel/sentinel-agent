@@ -2,8 +2,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { doc, onSnapshot, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
+import { sanitizeData } from '../../utils/dataSanitizer';
 import { ChatMessage } from '../../services/aiService';
 import { aiService } from '../../services/aiService';
+import { useStore } from '../../store';
 
 type FirestoreTimestampLike = { toDate?: () => Date };
 type FirestoreMessage = {
@@ -15,6 +17,7 @@ type FirestoreMessage = {
 };
 
 export const useAIConversation = (userId: string | undefined, enabled: boolean = true) => {
+  const { user } = useStore();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
@@ -25,10 +28,11 @@ export const useAIConversation = (userId: string | undefined, enabled: boolean =
   ]);
 
   // Conversation reference (single 'default' conversation per user)
+  // Guard: only create ref if user has an organizationId
   const conversationRef = useMemo(() => {
-    if (!userId || !enabled) return null;
+    if (!userId || !enabled || !user?.organizationId) return null;
     return doc(db, 'users', userId, 'conversations', 'default');
-  }, [userId, enabled]);
+  }, [userId, enabled, user?.organizationId]);
 
   // Load messages from Firestore with real-time updates
   useEffect(() => {
@@ -89,10 +93,11 @@ export const useAIConversation = (userId: string | undefined, enabled: boolean =
     }
 
     try {
-      await updateDoc(conversationRef, {
+      await updateDoc(conversationRef, sanitizeData({
         messages: arrayUnion(message),
+        organizationId: user?.organizationId,
         updatedAt: serverTimestamp()
-      });
+      }));
     } catch (error) {
       ErrorLogger.error(error, 'useAIConversation.addMessage');
       throw error;

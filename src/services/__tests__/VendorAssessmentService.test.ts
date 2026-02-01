@@ -10,7 +10,7 @@ import {
   isAssessmentExpired,
   getDaysUntil,
   getReviewCycleLabel,
-  getAssessmentStatusColor,
+  getVendorAssessmentStatusColor,
   calculateCompletionPercentage,
   EnhancedAssessmentResponse,
 } from '../../types/vendorAssessment';
@@ -175,15 +175,15 @@ describe('getReviewCycleLabel', () => {
 // Status Color Tests
 // ============================================================================
 
-describe('getAssessmentStatusColor', () => {
+describe('getVendorAssessmentStatusColor', () => {
   it('returns correct color for each status', () => {
-    expect(getAssessmentStatusColor('Draft')).toBe('gray');
-    expect(getAssessmentStatusColor('Sent')).toBe('blue');
-    expect(getAssessmentStatusColor('In Progress')).toBe('indigo');
-    expect(getAssessmentStatusColor('Submitted')).toBe('purple');
-    expect(getAssessmentStatusColor('Reviewed')).toBe('green');
-    expect(getAssessmentStatusColor('Archived')).toBe('gray');
-    expect(getAssessmentStatusColor('Expired')).toBe('red');
+    expect(getVendorAssessmentStatusColor('Draft')).toBe('gray');
+    expect(getVendorAssessmentStatusColor('Sent')).toBe('blue');
+    expect(getVendorAssessmentStatusColor('In Progress')).toBe('indigo');
+    expect(getVendorAssessmentStatusColor('Submitted')).toBe('purple');
+    expect(getVendorAssessmentStatusColor('Reviewed')).toBe('green');
+    expect(getVendorAssessmentStatusColor('Archived')).toBe('gray');
+    expect(getVendorAssessmentStatusColor('Expired')).toBe('red');
   });
 });
 

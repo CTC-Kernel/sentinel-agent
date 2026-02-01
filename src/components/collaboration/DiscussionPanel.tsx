@@ -147,7 +147,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
     }, [comments, user]);
 
     const commentSchema = z.object({
-        content: z.string().min(1, 'Le commentaire ne peut pas être vide').max(1000)
+        content: z.string().min(1, 'Comment cannot be empty').max(1000)
     });
 
     type CommentFormData = z.infer<typeof commentSchema>;

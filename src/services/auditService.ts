@@ -3,6 +3,7 @@ import { db } from '../firebase';
 import { Finding, AuditChecklist, Audit } from '../types';
 import { ErrorLogger } from './errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
+import { AuditLogService } from './auditLogService';
 
 export interface AuditDetails {
     findings: Finding[];
@@ -239,6 +240,16 @@ export class AuditService {
             // 5. Delete the audit itself
             await deleteDoc(doc(db, 'audits', auditId));
 
+            // 6. Audit log for the deletion
+            await AuditLogService.logDelete(
+                organizationId,
+                { id: options.userId, name: options.userEmail, email: options.userEmail },
+                'audit',
+                auditId,
+                { name: options.auditName, deletedAt: new Date().toISOString() },
+                options.auditName
+            );
+
         } catch (error) {
             ErrorLogger.error(error, 'AuditService.deleteAuditWithCascade');
             throw error;
@@ -255,7 +266,7 @@ export class AuditService {
         defaultAuditor: string
     ): Promise<void> {
         try {
-            const BATCH_SIZE = 500;
+            const BATCH_SIZE = 450;
 
             // Split audits into chunks of 500
             for (let i = 0; i < audits.length; i += BATCH_SIZE) {
@@ -293,7 +304,7 @@ export class AuditService {
         userId: string
     ): Promise<number> {
         try {
-            const BATCH_SIZE = 500;
+            const BATCH_SIZE = 450;
             let batch = writeBatch(db);
             let count = 0;
             let batchCount = 0;

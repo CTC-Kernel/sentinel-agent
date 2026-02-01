@@ -19,7 +19,7 @@ export interface ValidationErrors {
 // Validate a single field
 export const validateField = (value: unknown, rules: ValidationRule): string | undefined => {
     if (rules.required && (!value || (typeof value === 'string' && !value.trim()))) {
-        return rules.message || 'Ce champ est requis';
+        return rules.message || 'This field is required';
     }
 
     if (!value) return undefined; // If not required and empty, it's valid
@@ -27,37 +27,37 @@ export const validateField = (value: unknown, rules: ValidationRule): string | u
     const stringValue = String(value);
 
     if (rules.minLength && stringValue.length < rules.minLength) {
-        return rules.message || `Minimum ${rules.minLength} caractères requis`;
+        return rules.message || `Minimum ${rules.minLength} characters required`;
     }
 
     if (rules.maxLength && stringValue.length > rules.maxLength) {
-        return rules.message || `Maximum ${rules.maxLength} caractères autorisés`;
+        return rules.message || `Maximum ${rules.maxLength} characters allowed`;
     }
 
     if (rules.pattern && !rules.pattern.test(stringValue)) {
-        return rules.message || 'Format invalide';
+        return rules.message || 'Invalid format';
     }
 
     if (rules.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
-        return rules.message || 'Email invalide';
+        return rules.message || 'Invalid email';
     }
 
     if (rules.url && !/^https?:\/\/.+/.test(stringValue)) {
-        return rules.message || 'URL invalide';
+        return rules.message || 'Invalid URL';
     }
 
     if (typeof value === 'number') {
         if (rules.min !== undefined && value < rules.min) {
-            return rules.message || `Valeur minimum : ${rules.min}`;
+            return rules.message || `Minimum value: ${rules.min}`;
         }
 
         if (rules.max !== undefined && value > rules.max) {
-            return rules.message || `Valeur maximum : ${rules.max}`;
+            return rules.message || `Maximum value: ${rules.max}`;
         }
     }
 
     if (rules.custom && !rules.custom(value)) {
-        return rules.message || 'Valeur invalide';
+        return rules.message || 'Invalid value';
     }
 
     return undefined;

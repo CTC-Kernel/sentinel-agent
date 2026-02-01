@@ -14,7 +14,7 @@ export type TrendType = 'up' | 'down' | 'stable';
 /**
  * Category score with its weight in the global calculation
  */
-export interface CategoryScore {
+export interface WeightedCategoryScore {
   /** Score for this category (0-100) */
   score: number;
   /** Weight applied in global score calculation (0-1) */
@@ -26,11 +26,11 @@ export interface CategoryScore {
  * Updated weights (NIS2-TRN-011): controls 35%, risks 25%, audits 20%, docs 10%, training 10%
  */
 export interface ScoreBreakdown {
-  risks: CategoryScore;
-  controls: CategoryScore;
-  documents: CategoryScore;
-  audits: CategoryScore;
-  training?: CategoryScore; // NIS2 Art. 21.2(g) - Formation & Sensibilisation
+  risks: WeightedCategoryScore;
+  controls: WeightedCategoryScore;
+  documents: WeightedCategoryScore;
+  audits: WeightedCategoryScore;
+  training?: WeightedCategoryScore; // NIS2 Art. 21.2(g) - Formation & Sensibilisation
 }
 
 /**
@@ -64,7 +64,7 @@ export interface CalculationDetails {
  * Main ComplianceScore interface (ADR-003)
  * Stored at: organizations/{organizationId}/complianceScores/current
  */
-export interface ComplianceScore {
+export interface GlobalComplianceScore {
   /** Global compliance score (0-100) */
   global: number;
   /** Scores broken down by framework */
@@ -83,7 +83,7 @@ export interface ComplianceScore {
  * Historical score entry for trend tracking
  * Stored at: organizations/{organizationId}/complianceScores/current/history/{YYYY-MM-DD}
  */
-export interface ScoreHistory {
+export interface GlobalScoreHistory {
   /** Date of this historical entry (YYYY-MM-DD format) */
   date: string;
   /** Global score at this date */
@@ -99,13 +99,13 @@ export interface ScoreHistory {
  */
 export interface ComplianceScoreHookResult {
   /** Current compliance score data */
-  score: ComplianceScore | null;
+  score: GlobalComplianceScore | null;
   /** Category breakdown */
   breakdown: ScoreBreakdown | null;
   /** Current trend direction */
   trend: TrendType | null;
   /** Historical scores for charting */
-  history: ScoreHistory[];
+  history: GlobalScoreHistory[];
   /** Loading state */
   loading: boolean;
   /** Error if any */

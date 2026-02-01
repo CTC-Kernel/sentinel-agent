@@ -1,8 +1,8 @@
-export const formatDate = (date: string | Date | undefined | null): string => {
+export const formatDate = (date: string | Date | undefined | null, locale: string = 'fr-FR'): string => {
     if (!date) return '-';
     try {
         const d = new Date(date);
-        return new Intl.DateTimeFormat('fr-FR', {
+        return new Intl.DateTimeFormat(locale, {
             day: '2-digit',
             month: 'short',
             year: 'numeric'
@@ -12,11 +12,11 @@ export const formatDate = (date: string | Date | undefined | null): string => {
     }
 };
 
-export const formatDateTime = (date: string | Date | undefined | null): string => {
+export const formatDateTime = (date: string | Date | undefined | null, locale: string = 'fr-FR'): string => {
     if (!date) return '-';
     try {
         const d = new Date(date);
-        return new Intl.DateTimeFormat('fr-FR', {
+        return new Intl.DateTimeFormat(locale, {
             day: '2-digit',
             month: 'short',
             year: 'numeric',

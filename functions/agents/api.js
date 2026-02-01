@@ -7,11 +7,16 @@
 
 const { onRequest } = require('firebase-functions/v2/https');
 const { logger } = require('firebase-functions');
+const { defineString } = require('firebase-functions/params');
 const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
+
+// Configuration parameters
+const agentServerUrl = defineString('AGENT_SERVER_URL', { default: '' });
+const functionsUrl = defineString('FUNCTIONS_URL', { default: '' });
 
 // Import vulnerability and incident handlers
 const { uploadVulnerabilities } = require('./vulnerabilities');
@@ -30,6 +35,8 @@ const db = admin.firestore();
 const rateLimitMap = new Map();
 const RATE_LIMIT_WINDOW = 60000; // 1 minute
 const RATE_LIMIT_MAX = 120; // requests per window
+const RATE_LIMIT_MAX_ENTRIES = 1000;
+const RATE_LIMIT_MAX_AGE = 60 * 60 * 1000; // 1 hour
 
 function rateLimit(key, max = RATE_LIMIT_MAX) {
     const now = Date.now();
@@ -40,10 +47,11 @@ function rateLimit(key, max = RATE_LIMIT_MAX) {
     }
     entry.count++;
     rateLimitMap.set(key, entry);
-    // Clean old entries periodically
-    if (rateLimitMap.size > 10000) {
+    if (rateLimitMap.size > RATE_LIMIT_MAX_ENTRIES) {
         for (const [k, v] of rateLimitMap) {
-            if (now > v.resetAt) rateLimitMap.delete(k);
+            if (now > v.resetAt || (now - v.resetAt + RATE_LIMIT_WINDOW) > RATE_LIMIT_MAX_AGE) {
+                rateLimitMap.delete(k);
+            }
         }
     }
     return entry.count > max;
@@ -342,6 +350,8 @@ app.post('/v1/agents/enroll', async (req, res) => {
         const clientKey = generatePlaceholderKey();
 
         // Create agent document
+        // NOTE: clientKey is stored server-side as it's used as shared secret for HMAC signature validation.
+        // The clientCertificate and clientKey are both shared between agent and server for auth.
         const agentData = {
             id: agentId,
             name: hostname,
@@ -1514,8 +1524,8 @@ app.post('/v1/organizations/:orgId/enrollment-tokens/:tokenId/qr', validateFireb
         }
 
         // Build the QR payload - this is what the agent scans
-        const serverUrl = process.env.AGENT_SERVER_URL
-            || process.env.FUNCTIONS_URL
+        const serverUrl = agentServerUrl.value()
+            || functionsUrl.value()
             || `https://${process.env.GCLOUD_PROJECT ? 'europe-west1-' + process.env.GCLOUD_PROJECT : 'europe-west1-sentinel-grc-a8701'}.cloudfunctions.net/agentApi`;
 
         const qrPayload = {

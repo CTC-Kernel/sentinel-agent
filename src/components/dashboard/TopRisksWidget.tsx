@@ -2,6 +2,7 @@ import React from 'react';
 import { Risk } from '../../types';
 import { ShieldAlert, ArrowRight, CheckCircle2 } from '../ui/Icons';
 import { RISK_LEVELS } from '../../constants/RiskConstants';
+import { RISK_THRESHOLDS } from '../../constants/complianceConfig';
 
 interface TopRisksWidgetProps {
     risks: Risk[];
@@ -39,8 +40,8 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
                         <div key={risk.id || 'unknown'} className="group p-4 bg-card/40 hover:bg-card border border-border/60 rounded-2xl transition-all cursor-pointer">
                             <div className="flex justify-between items-start mb-2">
                                 <h4 className="text-sm font-bold text-foreground line-clamp-1">{risk.threat}</h4>
-                                <span className={`flex items-center justify-center w-6 h-6 rounded-lg text-xs font-bold ${risk.score >= 15 ? 'bg-destructive/10 text-destructive' :
-                                    risk.score >= 10 ? 'bg-warning/10 text-warning' :
+                                <span className={`flex items-center justify-center w-6 h-6 rounded-lg text-xs font-bold ${risk.score >= RISK_THRESHOLDS.CRITICAL ? 'bg-destructive/10 text-destructive' :
+                                    risk.score >= RISK_THRESHOLDS.HIGH ? 'bg-warning/10 text-warning' :
                                         'bg-warning/10 text-warning'
                                     }`}>
                                     {risk.score}

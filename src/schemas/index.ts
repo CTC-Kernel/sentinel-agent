@@ -11,25 +11,25 @@ import { z } from 'zod';
 
 export const RiskSchema = z.object({
   threat: z.string()
-    .min(3, "La menace doit contenir au moins 3 caractères")
-    .max(200, "La menace ne peut pas dépasser 200 caractères"),
+    .min(3, "Threat must be at least 3 characters")
+    .max(200, "Threat must not exceed 200 characters"),
 
   vulnerability: z.string()
-    .min(3, "La vulnérabilité doit contenir au moins 3 caractères")
-    .max(500, "La vulnérabilité ne peut pas dépasser 500 caractères"),
+    .min(3, "Vulnerability must be at least 3 characters")
+    .max(500, "Vulnerability must not exceed 500 characters"),
 
   assetId: z.string()
-    .min(1, "L'actif est obligatoire"),
+    .min(1, "Asset is required"),
 
   probability: z.number()
-    .int("La probabilité doit être un entier")
-    .min(1, "La probabilité doit être entre 1 et 5")
-    .max(5, "La probabilité doit être entre 1 et 5"),
+    .int("Probability must be an integer")
+    .min(1, "Probability must be between 1 and 5")
+    .max(5, "Probability must be between 1 and 5"),
 
   impact: z.number()
-    .int("L'impact doit être un entier")
-    .min(1, "L'impact doit être entre 1 et 5")
-    .max(5, "L'impact doit être entre 1 et 5"),
+    .int("Impact must be an integer")
+    .min(1, "Impact must be between 1 and 5")
+    .max(5, "Impact must be between 1 and 5"),
 
   residualProbability: z.number().int().min(1).max(5),
   residualImpact: z.number().int().min(1).max(5),
@@ -37,7 +37,7 @@ export const RiskSchema = z.object({
   strategy: z.enum(['Atténuer', 'Accepter', 'Transférer', 'Éviter']),
   status: z.enum(['Ouvert', 'En cours', 'Fermé']),
 
-  owner: z.string().min(2, "Le propriétaire est obligatoire"),
+  owner: z.string().min(2, "Owner is required"),
 
   mitigationControlIds: z.array(z.string()).optional(),
   description: z.string().optional(),
@@ -53,16 +53,16 @@ export type RiskFormData = z.infer<typeof RiskSchema>;
 
 export const AssetSchema = z.object({
   name: z.string()
-    .min(2, "Le nom doit contenir au moins 2 caractères")
-    .max(100, "Le nom ne peut pas dépasser 100 caractères"),
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name must not exceed 100 characters"),
 
   type: z.enum([
     'Serveur', 'Poste de travail', 'Application', 'Base de données',
     'Réseau', 'Sauvegarde', 'Personnel', 'Locaux', 'Données', 'Service', 'Autre'
   ]),
 
-  owner: z.string().min(2, "Le propriétaire est obligatoire"),
-  location: z.string().min(2, "La localisation est obligatoire"),
+  owner: z.string().min(2, "Owner is required"),
+  location: z.string().min(2, "Location is required"),
 
   confidentiality: z.enum(['Publique', 'Interne', 'Confidentielle', 'Strictement confidentielle']),
   integrity: z.enum(['Faible', 'Moyenne', 'Élevée', 'Critique']),
@@ -70,7 +70,7 @@ export const AssetSchema = z.object({
 
   description: z.string().optional(),
   purchaseDate: z.string().optional(),
-  purchasePrice: z.number().nonnegative("Le prix ne peut pas être négatif").optional(),
+  purchasePrice: z.number().nonnegative("Price cannot be negative").optional(),
   lifecycleStatus: z.enum(['Neuf', 'Production', 'Maintenance', 'Obsolète', 'Retiré']).optional(),
   currentValue: z.number().nonnegative().optional()
 });
@@ -82,13 +82,13 @@ export type AssetFormData = z.infer<typeof AssetSchema>;
 // ============================================================================
 
 export const ProjectSchema = z.object({
-  name: z.string().min(3, "Le nom doit contenir au moins 3 caractères").max(100),
-  description: z.string().min(10, "La description doit contenir au moins 10 caractères").max(1000),
-  manager: z.string().min(2, "Le responsable est obligatoire"),
-  startDate: z.string().min(1, "La date de début est obligatoire"),
-  endDate: z.string().min(1, "La date de fin est obligatoire"),
+  name: z.string().min(3, "Name must be at least 3 characters").max(100),
+  description: z.string().min(10, "Description must be at least 10 characters").max(1000),
+  manager: z.string().min(2, "Manager is required"),
+  startDate: z.string().min(1, "Start date is required"),
+  endDate: z.string().min(1, "End date is required"),
   status: z.enum(['Planifié', 'En cours', 'Terminé', 'Annulé']),
-  budget: z.number().nonnegative("Le budget ne peut pas être négatif").optional(),
+  budget: z.number().nonnegative("Budget cannot be negative").optional(),
   progress: z.number().min(0).max(100).optional(),
   relatedRiskIds: z.array(z.string()).optional(),
   relatedControlIds: z.array(z.string()).optional(),
@@ -102,12 +102,12 @@ export type ProjectFormData = z.infer<typeof ProjectSchema>;
 // ============================================================================
 
 export const DocumentSchema = z.object({
-  title: z.string().min(3, "Le titre doit contenir au moins 3 caractères").max(200),
+  title: z.string().min(3, "Title must be at least 3 characters").max(200),
   type: z.enum(['Politique', 'Procédure', 'Preuve', 'Rapport', 'Guide', 'Formulaire', 'Autre']),
-  version: z.string().regex(/^\d+\.\d+$/, "La version doit être au format X.Y").optional().default("1.0"),
+  version: z.string().regex(/^\d+\.\d+$/, "Version must be in X.Y format").optional().default("1.0"),
   status: z.enum(['Brouillon', 'Revue', 'Approuvé', 'Publié', 'Archivé']),
-  owner: z.string().min(2, "Le propriétaire est obligatoire"),
-  url: z.string().url("L'URL doit être valide").optional(),
+  owner: z.string().min(2, "Owner is required"),
+  url: z.string().url("Invalid URL").optional(),
   nextReviewDate: z.string().optional(),
   relatedControlIds: z.array(z.string()).optional(),
   relatedAssetIds: z.array(z.string()).optional(),
@@ -121,10 +121,10 @@ export type DocumentFormData = z.infer<typeof DocumentSchema>;
 // ============================================================================
 
 export const AuditSchema = z.object({
-  name: z.string().min(3, "Le nom doit contenir au moins 3 caractères").max(150),
+  name: z.string().min(3, "Name must be at least 3 characters").max(150),
   type: z.enum(['Interne', 'Externe', 'Certification']),
-  auditor: z.string().min(2, "L'auditeur est obligatoire"),
-  dateScheduled: z.string().min(1, "La date planifiée est obligatoire"),
+  auditor: z.string().min(2, "Auditor is required"),
+  dateScheduled: z.string().min(1, "Scheduled date is required"),
   status: z.enum(['Planifié', 'En cours', 'Terminé', 'Annulé']),
   scope: z.string().optional(),
   relatedAssetIds: z.array(z.string()).optional(),
@@ -138,7 +138,7 @@ export type AuditFormData = z.infer<typeof AuditSchema>;
 // ============================================================================
 
 export const FindingSchema = z.object({
-  description: z.string().min(10, "La description doit contenir au moins 10 caractères").max(1000),
+  description: z.string().min(10, "Description must be at least 10 characters").max(1000),
   type: z.enum(['Majeure', 'Mineure', 'Observation']),
   status: z.enum(['Ouvert', 'En cours', 'Résolu', 'Fermé']),
   relatedControlId: z.string().optional(),
@@ -153,16 +153,16 @@ export type FindingFormData = z.infer<typeof FindingSchema>;
 // ============================================================================
 
 export const IncidentSchema = z.object({
-  title: z.string().min(5, "Le titre doit contenir au moins 5 caractères").max(150),
+  title: z.string().min(5, "Title must be at least 5 characters").max(150),
   category: z.enum([
     'Cyberattaque', 'Fuite de données', 'Panne système',
     'Erreur humaine', 'Accès non autorisé', 'Perte/Vol', 'Autre'
   ]),
   severity: z.enum(['Faible', 'Moyenne', 'Élevée', 'Critique']),
   status: z.enum(['Nouveau', 'Investigation', 'Résolu', 'Fermé']),
-  description: z.string().min(20, "La description doit contenir au moins 20 caractères").max(2000),
-  dateReported: z.string().min(1, "La date de signalement est obligatoire"),
-  reportedBy: z.string().min(2, "Le rapporteur est obligatoire"),
+  description: z.string().min(20, "Description must be at least 20 characters").max(2000),
+  dateReported: z.string().min(1, "Report date is required"),
+  reportedBy: z.string().min(2, "Reporter is required"),
   affectedAssetIds: z.array(z.string()).optional()
 });
 
@@ -173,15 +173,15 @@ export type IncidentFormData = z.infer<typeof IncidentSchema>;
 // ============================================================================
 
 export const SupplierSchema = z.object({
-  name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
+  name: z.string().min(2, "Name must be at least 2 characters").max(100),
   type: z.enum(['Fournisseur', 'Sous-traitant', 'Partenaire', 'Prestataire']),
   criticality: z.enum(['Faible', 'Moyenne', 'Élevée', 'Critique']),
-  contact: z.string().min(2, "Le contact est obligatoire"),
-  email: z.string().email("Email invalide"),
+  contact: z.string().min(2, "Contact is required"),
+  email: z.string().email("Invalid email"),
   phone: z.string().optional(),
   contractStartDate: z.string().optional(),
   contractEndDate: z.string().optional(),
-  services: z.string().min(5, "La description des services doit contenir au moins 5 caractères").max(500)
+  services: z.string().min(5, "Service description must be at least 5 characters").max(500)
 });
 
 export type SupplierFormData = z.infer<typeof SupplierSchema>;
@@ -208,7 +208,7 @@ export function validateData<T>(
       );
       return { success: false, errors };
     }
-    return { success: false, errors: ["Erreur de validation inconnue"] };
+    return { success: false, errors: ["Unknown validation error"] };
   }
 }
 
@@ -225,8 +225,8 @@ export function getValidationError<T>(
   } catch (error) {
     // ErrorLogger not required for validation (handled by caller)
     if (error instanceof z.ZodError) {
-      return error.issues[0]?.message || "Données invalides";
+      return error.issues[0]?.message || "Invalid data";
     }
-    return "Erreur de validation";
+    return "Validation error";
   }
 }

@@ -126,7 +126,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                             </span>
                         </div>
                         <div className="flex items-center gap-1.5 text-sm text-slate-500">
-                            <span className="mr-1">Propriétaire:</span>
+                            <span className="mr-1">{t('documents.inspector.owner', { defaultValue: 'Propriétaire:' })}</span>
                             <img
                                 src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
                                 alt={selectedDocument.owner}
@@ -148,7 +148,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                                 className="flex items-center gap-2 bg-slate-900 dark:bg-slate-800 text-white hover:bg-slate-800 shadow-sm font-medium"
                             >
                                 <Eye className="w-4 h-4" />
-                                {selectedDocument.isSecure ? "Consultation Sécurisée" : "Visualiser"}
+                                {selectedDocument.isSecure ? t('documents.inspector.secureView', { defaultValue: 'Consultation Sécurisée' }) : t('documents.inspector.view', { defaultValue: 'Visualiser' })}
                             </Button>
                         )}
                     </div>
@@ -174,10 +174,10 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
 
                 <ScrollableTabs
                     tabs={[
-                        { id: 'details', label: 'Détails', icon: FileText },
-                        { id: 'versions', label: 'Versions', icon: List },
-                        { id: 'history', label: 'Historique', icon: History },
-                        { id: 'comments', label: 'Commentaires', icon: MessageSquare }
+                        { id: 'details', label: t('documents.inspector.tabDetails', { defaultValue: 'Détails' }), icon: FileText },
+                        { id: 'versions', label: t('documents.inspector.tabVersions', { defaultValue: 'Versions' }), icon: List },
+                        { id: 'history', label: t('documents.inspector.tabHistory', { defaultValue: 'Historique' }), icon: History },
+                        { id: 'comments', label: t('documents.inspector.tabComments', { defaultValue: 'Commentaires' }), icon: MessageSquare }
                     ]}
                     activeTab={activeTab}
                     onTabChange={(id) => setActiveTab(id as 'details' | 'versions' | 'history' | 'comments')}

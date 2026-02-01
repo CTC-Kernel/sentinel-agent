@@ -21,6 +21,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type {
   OTConnector,
   OTConnectorType,
@@ -174,11 +175,11 @@ export async function createConnector(
       createdBy: userId
     };
 
-    await setDoc(docRef, {
+    await setDoc(docRef, sanitizeData({
       ...connector,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
-    });
+    }));
 
     return {
       id: docRef.id,
@@ -234,7 +235,7 @@ export async function updateConnector(
       updateData.schedule = schedule;
     }
 
-    await updateDoc(docRef, updateData);
+    await updateDoc(docRef, sanitizeData(updateData));
   } catch (error) {
     ErrorLogger.error(error, 'OTConnectorService.updateConnector', {
       component: 'OTConnectorService',
@@ -294,7 +295,7 @@ export async function updateConnectorStatus(
       updateData.errorMessage = null;
     }
 
-    await updateDoc(docRef, updateData);
+    await updateDoc(docRef, sanitizeData(updateData));
   } catch (error) {
     ErrorLogger.error(error, 'OTConnectorService.updateConnectorStatus', {
       component: 'OTConnectorService',
@@ -328,11 +329,11 @@ export async function activateConnector(
 
   // Recalculate next run
   if (connector.schedule.type !== 'manual') {
-    await updateDoc(doc(getConnectorsCollection(organizationId), connectorId), {
+    await updateDoc(doc(getConnectorsCollection(organizationId), connectorId), sanitizeData({
       status: 'active',
       'schedule.nextRun': calculateNextRun(connector.schedule),
       updatedAt: serverTimestamp()
-    });
+    }));
   } else {
     await updateConnectorStatus(organizationId, connectorId, 'active');
   }
@@ -384,14 +385,14 @@ export async function recordSyncResult(
   try {
     const docRef = doc(getSyncHistoryCollection(organizationId, connectorId));
 
-    await setDoc(docRef, {
+    await setDoc(docRef, sanitizeData({
       ...result,
       connectorId,
       startedAt: result.startedAt
-    });
+    }));
 
     // Update connector with last sync info
-    await updateDoc(doc(getConnectorsCollection(organizationId), connectorId), {
+    await updateDoc(doc(getConnectorsCollection(organizationId), connectorId), sanitizeData({
       lastSync: {
         id: docRef.id,
         completedAt: result.completedAt,
@@ -403,7 +404,7 @@ export async function recordSyncResult(
         ? result.errors[0].message
         : null,
       updatedAt: serverTimestamp()
-    });
+    }));
 
     return docRef.id;
   } catch (error) {

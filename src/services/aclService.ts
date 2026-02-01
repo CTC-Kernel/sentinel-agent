@@ -7,6 +7,7 @@
 
 import { Timestamp, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase';
+import { sanitizeData } from '@/utils/dataSanitizer';
 import type { DocumentACL, DocumentPermission } from '@/types/vault';
 import type { Document } from '@/types/documents';
 import { canAccessClassification } from './vaultConfig';
@@ -301,7 +302,7 @@ export async function grantAccess(
       permissions: [...filteredPermissions, permission],
     };
 
-    await updateDoc(docRef, { acl: updatedAcl });
+    await updateDoc(docRef, sanitizeData({ acl: updatedAcl }));
   } catch (error) {
     ErrorLogger.error(error, 'AclService.grantAccess');
     throw error;
@@ -345,7 +346,7 @@ export async function revokeAccess(
       permissions: updatedPermissions,
     };
 
-    await updateDoc(docRef, { acl: updatedAcl });
+    await updateDoc(docRef, sanitizeData({ acl: updatedAcl }));
   } catch (error) {
     ErrorLogger.error(error, 'AclService.revokeAccess');
     throw error;
@@ -378,7 +379,7 @@ export async function updateAclSettings(
       defaultAccess,
     };
 
-    await updateDoc(docRef, { acl: updatedAcl });
+    await updateDoc(docRef, sanitizeData({ acl: updatedAcl }));
   } catch (error) {
     ErrorLogger.error(error, 'AclService.updateAclSettings');
     throw error;
@@ -491,7 +492,7 @@ export async function cleanupExpiredPermissions(documentId: string): Promise<num
         permissions: validPermissions,
       };
 
-      await updateDoc(docRef, { acl: updatedAcl });
+      await updateDoc(docRef, sanitizeData({ acl: updatedAcl }));
     }
 
     return removedCount;

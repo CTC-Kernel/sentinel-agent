@@ -76,8 +76,14 @@ const Settings: React.FC = () => {
                 return hasPermission(user, 'Partner', 'manage')
                     ? <PartnerManagement />
                     : <AccessDenied />;
-            case 'integrations': return <IntegrationSettings />;
-            case 'agents': return <AgentManagement />;
+            case 'integrations':
+                return hasPermission(user, 'Settings', 'manage')
+                    ? <IntegrationSettings />
+                    : <AccessDenied />;
+            case 'agents':
+                return hasPermission(user, 'Settings', 'manage')
+                    ? <AgentManagement />
+                    : <AccessDenied />;
             default: return <ProfileSettings />;
         }
     };

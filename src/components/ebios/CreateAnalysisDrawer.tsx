@@ -27,7 +27,7 @@ export const CreateAnalysisDrawer: React.FC<CreateAnalysisDrawerProps> = ({
     const {
         register,
         handleSubmit,
-        formState: { errors },
+        formState: { errors, isDirty },
         reset,
         control
     } = useZodForm({
@@ -71,6 +71,7 @@ export const CreateAnalysisDrawer: React.FC<CreateAnalysisDrawerProps> = ({
             subtitle={t('ebios.createAnalysisInfo')}
             width="max-w-6xl"
             icon={Shield}
+            hasUnsavedChanges={isDirty}
         >
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full">
                 <div className="flex-1 space-y-8 pt-2 max-w-5xl mx-auto w-full">

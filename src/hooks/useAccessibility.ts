@@ -1,16 +1,20 @@
-import React from 'react';
+import React, { useId, useCallback, useRef } from 'react';
 
 /**
  * Hook pour améliorer l'accessibilité ARIA
  * Fournit des utilitaires pour ajouter automatiquement des labels et rôles
  */
 export const useAccessibility = () => {
+  const reactId = useId();
+  const counterRef = useRef(0);
+
   /**
-   * Génère un ID unique pour les éléments ARIA
+   * Génère un ID unique et stable pour les éléments ARIA
+   * Uses React 18's useId() for SSR-safe stable IDs
    */
-  const generateId = (prefix: string) => {
-    return `${prefix}-${Math.random().toString(36).substr(2, 9)}`;
-  };
+  const generateId = useCallback((prefix: string) => {
+    return `${prefix}-${reactId}-${counterRef.current++}`;
+  }, [reactId]);
 
   /**
    * Props ARIA pour les boutons sans texte visible

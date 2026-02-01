@@ -67,7 +67,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                     validationErrors.push({
                         row: index + 1,
                         field: field.label,
-                        message: `${field.label} est requis`
+                        message: `${field.label} is required`
                     });
                 }
 
@@ -75,7 +75,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                     validationErrors.push({
                         row: index + 1,
                         field: field.label,
-                        message: `${field.label} doit être un email valide`
+                        message: `${field.label} must be a valid email`
                     });
                 }
 
@@ -83,7 +83,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                     validationErrors.push({
                         row: index + 1,
                         field: field.label,
-                        message: `${field.label} doit être un nombre`
+                        message: `${field.label} must be a number`
                     });
                 }
             });

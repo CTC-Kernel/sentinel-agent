@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ComplianceScoreWidget } from '../ComplianceScoreWidget';
-import type { ComplianceScore, ScoreHistory } from '../../../types/score.types';
+import type { GlobalComplianceScore as ComplianceScore, GlobalScoreHistory as ScoreHistory } from '../../../types/score.types';
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({

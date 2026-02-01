@@ -81,7 +81,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                         {loading ? (
                             // Loading Skeletons
                             Array.from({ length: 3 }).map((_, i) => (
-                                <div key={i || 'unknown'} className="bg-background/40 p-4 rounded-xl border border-border/40 shadow-sm space-y-3">
+                                <div key={i} className="bg-background/40 p-4 rounded-xl border border-border/40 shadow-sm space-y-3">
                                     <div className="flex justify-between">
                                         <Skeleton className="h-4 w-16 rounded-full" />
                                         <Skeleton className="h-3 w-12 rounded" />

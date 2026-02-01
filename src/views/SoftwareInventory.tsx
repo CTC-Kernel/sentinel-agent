@@ -478,6 +478,12 @@ export const SoftwareInventory: React.FC = () => {
         label: formatCategoryLabel(cat)
     }));
 
+    // Permission gate
+    const canRead = hasPermission(user, 'Agent', 'read');
+    if (!canRead) {
+        return <div className="p-8 text-center text-muted-foreground">{t('common.accessDenied', { defaultValue: 'Accès refusé' })}</div>;
+    }
+
     if (loading && !stats) {
         return (
             <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10 p-6">

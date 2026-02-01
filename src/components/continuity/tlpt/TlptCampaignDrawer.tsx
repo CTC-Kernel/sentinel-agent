@@ -11,6 +11,7 @@ import { CustomSelect } from '../../ui/CustomSelect';
 import { DatePicker } from '../../ui/DatePicker';
 import { ConfirmModal } from '../../ui/ConfirmModal';
 import { Loader2, ArrowRight, Trash, FileText, AlertTriangle } from '../../ui/Icons';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
     isOpen: boolean;
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit, initialData, title, isLoading, onDelete }) => {
+    const { t } = useTranslation();
     const { control, handleSubmit, reset, formState: { errors, isDirty } } = useForm<TlptFormData>({
         resolver: zodResolver(tlptSchema),
         defaultValues: {
@@ -71,8 +73,8 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
     };
 
     const tabs = initialData ? [
-        { id: 'details', label: 'Informations', icon: FileText },
-        { id: 'findings', label: 'Constatations', icon: AlertTriangle }
+        { id: 'details', label: t('tlpt.tabs.details', { defaultValue: 'Informations' }), icon: FileText },
+        { id: 'findings', label: t('tlpt.tabs.findings', { defaultValue: 'Constatations' }), icon: AlertTriangle }
     ] : [];
 
     const footer = (
@@ -85,10 +87,10 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                     className="mr-auto text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
                 >
                     <Trash className="w-4 h-4 mr-2" />
-                    Supprimer
+                    {t('common.delete', { defaultValue: 'Supprimer' })}
                 </Button>
             )}
-            <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
+            <Button type="button" variant="ghost" onClick={onClose}>{t('common.cancel', { defaultValue: 'Annuler' })}</Button>
             <Button
                 type="submit"
                 form="tlpt-form"
@@ -96,7 +98,7 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                 className="bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20"
             >
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ArrowRight className="w-4 h-4 mr-2" />}
-                {initialData ? "Mettre à jour" : "Créer la campagne"}
+                {initialData ? t('common.update', { defaultValue: 'Mettre à jour' }) : t('tlpt.create.submit', { defaultValue: 'Créer la campagne' })}
             </Button>
         </div>
     );
@@ -105,8 +107,8 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
         <InspectorLayout
             isOpen={isOpen}
             onClose={onClose}
-            title={title || (initialData ? "Modifier Campagne TLPT" : "Nouvelle Campagne TLPT")}
-            subtitle={initialData ? "Gérez les détails, le périmètre et les résultats de l'exercice." : "Planifiez une nouvelle campagne de tests."}
+            title={title || (initialData ? t('tlpt.edit.title', { defaultValue: 'Modifier Campagne TLPT' }) : t('tlpt.create.title', { defaultValue: 'Nouvelle Campagne TLPT' }))}
+            subtitle={initialData ? t('tlpt.edit.subtitle', { defaultValue: "Gérez les détails, le périmètre et les résultats de l'exercice." }) : t('tlpt.create.subtitle', { defaultValue: 'Planifiez une nouvelle campagne de tests.' })}
             width={activeTab === 'findings' ? 'max-w-4xl' : 'max-w-xl'}
             icon={AlertTriangle} // Or another relevant icon
             tabs={tabs}
@@ -123,7 +125,7 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                             control={control}
                             render={({ field }) => (
                                 <FloatingLabelInput
-                                    label="Nom de la campagne"
+                                    label={t('tlpt.fields.campaignName', { defaultValue: 'Nom de la campagne' })}
                                     {...field}
                                     error={errors.name?.message}
                                 />
@@ -134,13 +136,13 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                             control={control}
                             render={({ field }) => (
                                 <CustomSelect
-                                    label="Statut"
+                                    label={t('tlpt.fields.status', { defaultValue: 'Statut' })}
                                     options={[
-                                        { value: "Planned", label: "Planifié" },
-                                        { value: "In Progress", label: "En cours" },
-                                        { value: "Analysis", label: "Analyse" },
-                                        { value: "Remediation", label: "Remédiation" },
-                                        { value: "Closed", label: "Clôturé" }
+                                        { value: "Planned", label: t('tlpt.status.planned', { defaultValue: 'Planifié' }) },
+                                        { value: "In Progress", label: t('tlpt.status.inProgress', { defaultValue: 'En cours' }) },
+                                        { value: "Analysis", label: t('tlpt.status.analysis', { defaultValue: 'Analyse' }) },
+                                        { value: "Remediation", label: t('tlpt.status.remediation', { defaultValue: 'Remédiation' }) },
+                                        { value: "Closed", label: t('tlpt.status.closed', { defaultValue: 'Clôturé' }) }
                                     ]}
                                     value={field.value}
                                     onChange={field.onChange}
@@ -156,12 +158,12 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                             control={control}
                             render={({ field }) => (
                                 <CustomSelect
-                                    label="Méthodologie"
+                                    label={t('tlpt.fields.methodology', { defaultValue: 'Méthodologie' })}
                                     options={[
                                         { value: "TIBER-EU", label: "TIBER-EU" },
                                         { value: "Red Team", label: "Red Team" },
                                         { value: "Purple Team", label: "Purple Team" },
-                                        { value: "Other", label: "Autre" }
+                                        { value: "Other", label: t('tlpt.options.other', { defaultValue: 'Autre' }) }
                                     ]}
                                     value={field.value}
                                     onChange={field.onChange}
@@ -174,7 +176,7 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                             control={control}
                             render={({ field }) => (
                                 <FloatingLabelInput
-                                    label="Prestataire / Auditeur"
+                                    label={t('tlpt.fields.provider', { defaultValue: 'Prestataire / Auditeur' })}
                                     {...field}
                                     error={errors.provider?.message}
                                 />
@@ -188,7 +190,7 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                             control={control}
                             render={({ field }) => (
                                 <FloatingLabelInput
-                                    label="Périmètre (Scope)"
+                                    label={t('tlpt.fields.scope', { defaultValue: 'Périmètre (Scope)' })}
                                     {...field}
                                     error={errors.scope?.message}
                                 />
@@ -202,7 +204,7 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                             control={control}
                             render={({ field }) => (
                                 <DatePicker
-                                    label="Date de début"
+                                    label={t('tlpt.fields.startDate', { defaultValue: 'Date de début' })}
                                     value={field.value}
                                     onChange={field.onChange}
                                     error={errors.startDate?.message}
@@ -214,7 +216,7 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                             control={control}
                             render={({ field }) => (
                                 <DatePicker
-                                    label="Date de fin (estimée)"
+                                    label={t('tlpt.fields.endDate', { defaultValue: 'Date de fin (estimée)' })}
                                     value={field.value}
                                     onChange={field.onChange}
                                 />
@@ -228,7 +230,7 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                             control={control}
                             render={({ field }) => (
                                 <FloatingLabelInput
-                                    label="Notes & Observations"
+                                    label={t('tlpt.fields.notes', { defaultValue: 'Notes & Observations' })}
                                     {...field}
                                     textarea
                                     className="min-h-[120px]"
@@ -256,11 +258,11 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                         }
                     }
                 }}
-                title="Supprimer la campagne"
-                message="Êtes-vous sûr de vouloir supprimer cette campagne TLPT ? Cette action est irréversible."
+                title={t('tlpt.delete.title', { defaultValue: 'Supprimer la campagne' })}
+                message={t('tlpt.delete.message', { defaultValue: 'Êtes-vous sûr de vouloir supprimer cette campagne TLPT ? Cette action est irréversible.' })}
                 type="danger"
-                confirmText="Supprimer"
-                cancelText="Annuler"
+                confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
+                cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
                 loading={isDeleting}
                 closeOnConfirm={false}
             />

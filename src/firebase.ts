@@ -106,6 +106,14 @@ if (typeof window !== 'undefined' && import.meta.env.MODE !== 'test' && import.m
   } catch (error) {
     isAppCheckFailed = true;
     ErrorLogger.warn('App Check initialization failed - potential Ad Blocker interference', 'firebase.ts', { metadata: { error } });
+    // Retry App Check after 30 seconds in case it was a transient failure
+    setTimeout(() => {
+      if (appCheck) {
+        getToken(appCheck, /* forceRefresh */ true)
+          .then(() => { isAppCheckFailed = false; })
+          .catch(() => { /* remain failed */ });
+      }
+    }, 30000);
   }
 }
 
@@ -207,7 +215,7 @@ export const initializeAnalytics = async (): Promise<Analytics | null> => {
   if (hasAnalyticsConsent()) {
     await initializeAnalytics();
   }
-})();
+})().catch(err => console.warn('Analytics init failed:', err));
 
 // Initialisation de la messagerie (Sécurisée avec détection de fonctionnalités)
 let messaging: Messaging | null = null;

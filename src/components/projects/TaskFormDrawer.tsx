@@ -10,6 +10,7 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { projectTaskSchema, ProjectTaskFormData } from '../../schemas/projectSchema';
 import { Button } from '../ui/button';
+import { useTranslation } from 'react-i18next';
 
 interface TaskFormDrawerProps {
     isOpen: boolean;
@@ -30,6 +31,8 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
     availableTasks = [],
     availableUsers = []
 }) => {
+    const { t } = useTranslation();
+
     const {
         register,
         handleSubmit,
@@ -105,8 +108,8 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
         <InspectorLayout
             isOpen={isOpen}
             onClose={handleClose}
-            title={existingTask ? 'Modifier la tâche' : 'Nouvelle tâche'}
-            subtitle="Définissez les détails de la tâche du projet"
+            title={existingTask ? t('tasks.edit.title', { defaultValue: 'Modifier la tâche' }) : t('tasks.create.title', { defaultValue: 'Nouvelle tâche' })}
+            subtitle={t('tasks.form.subtitle', { defaultValue: 'Définissez les détails de la tâche du projet' })}
             width="max-w-4xl"
             hasUnsavedChanges={isFormDirty}
             icon={Target}
@@ -120,7 +123,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                             control={control}
                             render={({ field }) => (
                                 <FloatingLabelInput
-                                    label="Titre de la tâche"
+                                    label={t('tasks.fields.title', { defaultValue: 'Titre de la tâche' })}
                                     value={field.value}
                                     onChange={field.onChange}
                                     error={errors.title?.message}
@@ -136,7 +139,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                             control={control}
                             render={({ field }) => (
                                 <FloatingLabelInput
-                                    label="Description"
+                                    label={t('tasks.fields.description', { defaultValue: 'Description' })}
                                     value={field.value || ''}
                                     onChange={field.onChange}
                                     textarea
@@ -153,12 +156,12 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                                 control={control}
                                 render={({ field }) => (
                                     <CustomSelect
-                                        label="Statut"
+                                        label={t('tasks.fields.status', { defaultValue: 'Statut' })}
                                         options={[
-                                            { value: "A faire", label: "À faire" },
-                                            { value: "En cours", label: "En cours" },
-                                            { value: "Terminé", label: "Terminé" },
-                                            { value: "Bloqué", label: "Bloqué" }
+                                            { value: "A faire", label: t('tasks.status.todo', { defaultValue: 'À faire' }) },
+                                            { value: "En cours", label: t('tasks.status.inProgress', { defaultValue: 'En cours' }) },
+                                            { value: "Terminé", label: t('tasks.status.done', { defaultValue: 'Terminé' }) },
+                                            { value: "Bloqué", label: t('tasks.status.blocked', { defaultValue: 'Bloqué' }) }
                                         ]}
                                         value={field.value}
                                         onChange={field.onChange}
@@ -173,11 +176,11 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                                 control={control}
                                 render={({ field }) => (
                                     <CustomSelect
-                                        label="Priorité"
+                                        label={t('tasks.fields.priority', { defaultValue: 'Priorité' })}
                                         options={[
-                                            { value: "low", label: "Basse" },
-                                            { value: "medium", label: "Moyenne" },
-                                            { value: "high", label: "Haute" }
+                                            { value: "low", label: t('tasks.priority.low', { defaultValue: 'Basse' }) },
+                                            { value: "medium", label: t('tasks.priority.medium', { defaultValue: 'Moyenne' }) },
+                                            { value: "high", label: t('tasks.priority.high', { defaultValue: 'Haute' }) }
                                         ]}
                                         value={field.value}
                                         onChange={field.onChange}
@@ -195,7 +198,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                                 control={control}
                                 render={({ field }) => (
                                     <CustomSelect
-                                        label="Assigné à"
+                                        label={t('tasks.fields.assignee', { defaultValue: 'Assigné à' })}
                                         options={availableUsers.map(u => ({ value: u.displayName, label: u.displayName }))}
                                         value={field.value || ''}
                                         onChange={(val) => {
@@ -203,7 +206,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                                             const selectedUser = availableUsers.find(u => u.displayName === val);
                                             setValue('assigneeId', selectedUser?.uid || '');
                                         }}
-                                        placeholder="Non assigné"
+                                        placeholder={t('tasks.fields.unassigned', { defaultValue: 'Non assigné' })}
                                     />
                                 )}
                             />
@@ -215,7 +218,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                                 control={control}
                                 render={({ field }) => (
                                     <DatePicker
-                                        label="Date de début"
+                                        label={t('tasks.fields.startDate', { defaultValue: 'Date de début' })}
                                         value={field.value || ''}
                                         onChange={field.onChange}
                                     />
@@ -243,7 +246,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                                 control={control}
                                 render={({ field }) => (
                                     <DatePicker
-                                        label="Date d'échéance"
+                                        label={t('tasks.fields.dueDate', { defaultValue: "Date d'échéance" })}
                                         value={field.value || ''}
                                         onChange={field.onChange}
                                     />
@@ -260,7 +263,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                                 control={control}
                                 render={({ field }) => (
                                     <FloatingLabelInput
-                                        label="Heures estimées"
+                                        label={t('tasks.fields.estimatedHours', { defaultValue: 'Heures estimées' })}
                                         type="number"
                                         value={field.value?.toString() || ''}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(parseFloat(e.target.value))}
@@ -276,7 +279,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                                 control={control}
                                 render={({ field }) => (
                                     <FloatingLabelInput
-                                        label="Heures réelles"
+                                        label={t('tasks.fields.actualHours', { defaultValue: 'Heures réelles' })}
                                         type="number"
                                         value={field.value?.toString() || ''}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(parseFloat(e.target.value))}
@@ -291,14 +294,14 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                     <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-3xl border border-border/40 dark:border-white/5">
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-muted-foreground mb-2 flex items-center gap-2">
                             <Target className="h-3.5 w-3.5" />
-                            Progression ({progress}%)
+                            {t('tasks.fields.progress', { defaultValue: 'Progression' })} ({progress}%)
                         </label>
                         <input {...register('progress', { valueAsNumber: true })}
                             type="range"
                             min="0"
                             max="100"
                             className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 accent-brand-600"
-                            aria-label="Progression de la tâche"
+                            aria-label={t('tasks.fields.progressAriaLabel', { defaultValue: 'Progression de la tâche' })}
                         />
                         {errors.progress && <p className="text-red-500 text-xs mt-1">{errors.progress.message}</p>}
                     </div>
@@ -311,7 +314,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                                 control={control}
                                 render={({ field }) => (
                                     <CustomSelect
-                                        label="Dépendances (Tâches bloquantes)"
+                                        label={t('tasks.fields.dependencies', { defaultValue: 'Dépendances (Tâches bloquantes)' })}
                                         options={availableTasks.filter(t => t.id !== existingTask?.id).map(t => ({ value: t.id, label: t.title }))}
                                         value={field.value || []}
                                         onChange={field.onChange}
@@ -331,13 +334,13 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
                         onClick={handleClose}
                         disabled={isSubmitting}
                     >
-                        Annuler
+                        {t('common.cancel', { defaultValue: 'Annuler' })}
                     </Button>
                     <Button
                         type="submit"
                         isLoading={isSubmitting}
                     >
-                        {existingTask ? 'Mettre à jour' : 'Créer la tâche'}
+                        {existingTask ? t('common.update', { defaultValue: 'Mettre à jour' }) : t('tasks.create.submit', { defaultValue: 'Créer la tâche' })}
                     </Button>
                 </div>
             </form>

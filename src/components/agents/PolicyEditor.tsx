@@ -332,10 +332,10 @@ const PolicyForm: React.FC<{
         // Validate
         const validationErrors = validatePolicyRules(rules);
         if (!name.trim()) {
-            validationErrors.push('Le nom est requis');
+            validationErrors.push('Name is required');
         }
         if (scope === 'group' && targetGroupIds.length === 0) {
-            validationErrors.push('Sélectionnez au moins un groupe cible');
+            validationErrors.push('Select at least one target group');
         }
 
         if (validationErrors.length > 0) {
@@ -393,12 +393,12 @@ const PolicyForm: React.FC<{
                         <Input
                             id="policyName"
                             value={name}
-                            onChange={(e) => { setName(e.target.value); setErrors(prev => prev.filter(e => e !== 'Le nom est requis')); }}
+                            onChange={(e) => { setName(e.target.value); setErrors(prev => prev.filter(e => e !== 'Name is required')); }}
                             placeholder="Nom de la politique"
-                            className={cn(errors.includes('Le nom est requis') && 'border-destructive ring-destructive/20')}
+                            className={cn(errors.includes('Name is required') && 'border-destructive ring-destructive/20')}
                         />
-                        {errors.includes('Le nom est requis') && (
-                            <p className="text-destructive text-xs mt-1">Le nom est requis</p>
+                        {errors.includes('Name is required') && (
+                            <p className="text-destructive text-xs mt-1">Name is required</p>
                         )}
                     </div>
                     <div>

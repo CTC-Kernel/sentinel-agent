@@ -25,6 +25,7 @@ import {
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type {
   Certificate,
   CertificateFormData,
@@ -154,7 +155,7 @@ export class CertificateService {
         updatedBy: user.uid,
       };
 
-      const docRef = await addDoc(collection(db, COLLECTION), certificateData);
+      const docRef = await addDoc(collection(db, COLLECTION), sanitizeData(certificateData));
       return docRef.id;
     } catch (error) {
       ErrorLogger.error(error, 'CertificateService.createCertificate');
@@ -198,7 +199,7 @@ export class CertificateService {
         updateData.status = calculateStatus(validTo);
       }
 
-      await updateDoc(docRef, updateData);
+      await updateDoc(docRef, sanitizeData(updateData));
     } catch (error) {
       ErrorLogger.error(error, 'CertificateService.updateCertificate');
       throw error;
@@ -284,7 +285,7 @@ export class CertificateService {
         };
 
         const docRef = doc(collection(db, COLLECTION));
-        batch.set(docRef, certificateData);
+        batch.set(docRef, sanitizeData(certificateData));
         success++;
         batchCount++;
 
@@ -457,10 +458,10 @@ export class CertificateService {
 
         const newStatus = calculateStatus(cert.validTo);
         if (newStatus !== cert.status) {
-          batch.update(doc(db, COLLECTION, cert.id), {
+          batch.update(doc(db, COLLECTION, cert.id), sanitizeData({
             status: newStatus,
             updatedAt: Timestamp.now(),
-          });
+          }));
           updated++;
           batchCount++;
 

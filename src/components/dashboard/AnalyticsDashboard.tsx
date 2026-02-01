@@ -190,7 +190,7 @@ export const AnalyticsDashboard: React.FC = () => {
                 return (
                     <Badge
                         variant="soft"
-                        status={value >= 15 ? 'error' : value >= 10 ? 'warning' : 'success'}
+                        status={value >= RISK_THRESHOLDS.CRITICAL ? 'error' : value >= RISK_THRESHOLDS.HIGH ? 'warning' : 'success'}
                     >
                         {value}
                     </Badge>

@@ -17,9 +17,9 @@ import type { OperationalScenario, StrategicScenario } from '../../../types/ebio
 
 // Form schema
 const operationalScenarioSchema = z.object({
-  name: z.string().min(5, 'Nom requis (min 5 caractères)'),
-  description: z.string().min(10, 'Description requise (min 10 caractères)'),
-  strategicScenarioId: z.string().min(1, 'Scénario stratégique requis'),
+  name: z.string().min(5, 'Name required (min 5 characters)'),
+  description: z.string().min(10, 'Description required (min 10 characters)'),
+  strategicScenarioId: z.string().min(1, 'Strategic scenario is required'),
 });
 
 type OperationalScenarioFormData = z.infer<typeof operationalScenarioSchema>;

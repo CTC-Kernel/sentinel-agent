@@ -46,7 +46,8 @@ import {
 import { SENTINEL_PALETTE } from '../theme/chartTheme';
 
 export const Reports: React.FC = () => {
-    const { user, t, organization, addToast, activeFramework } = useStore();
+    const { user, t, organization, addToast, activeFramework, language } = useStore();
+    const dateLocale = language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : 'fr-FR';
     const [activeTab, setActiveTab] = useState('templates');
     const [loadingAction, setLoadingAction] = useState(false);
     const [showConfigModal, setShowConfigModal] = useState(false);
@@ -135,7 +136,8 @@ export const Reports: React.FC = () => {
         if (!deleteConfirm.reportId) return;
 
         try {
-            await ScheduledReportsService.deleteScheduledReport(deleteConfirm.reportId);
+            if (!user?.organizationId) throw new Error('Organization not found');
+            await ScheduledReportsService.deleteScheduledReport(deleteConfirm.reportId, user.organizationId);
             addToast(t('reports.toast.deleteSuccess'), 'success');
             setDeleteConfirm({ isOpen: false, reportId: null });
             fetchScheduledReports();
@@ -564,7 +566,7 @@ export const Reports: React.FC = () => {
                                     </div>
 
                                     <div className="text-xs text-muted-foreground mb-4">
-                                        {t('reports.scheduledSection.nextRun')}: {new Date(report.nextRunAt).toLocaleDateString('fr-FR', {
+                                        {t('reports.scheduledSection.nextRun')}: {new Date(report.nextRunAt).toLocaleDateString(dateLocale, {
                                             day: 'numeric',
                                             month: 'short',
                                             year: 'numeric'

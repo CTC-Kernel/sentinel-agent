@@ -62,7 +62,7 @@ export const useSupplierLogic = () => {
             // Auto-sync to ICT Provider if marked as ICT
             if (sanitizedData.isICTProvider) {
                 try {
-                    await SupplierService.syncToICTProvider(docRef.id);
+                    await SupplierService.syncToICTProvider(docRef.id, user.organizationId);
                 } catch (syncError) {
                     ErrorLogger.warn(`Failed to sync new supplier ${docRef.id} to ICT Provider: ${syncError}`, 'useSupplierLogic.addSupplier');
                 }
@@ -88,9 +88,9 @@ export const useSupplierLogic = () => {
 
             // Auto-sync to ICT Provider if ICT status changed or if already ICT
             const shouldSync = sanitizedData.isICTProvider !== undefined || sanitizedData.isICTProvider === true;
-            if (shouldSync) {
+            if (shouldSync && user?.organizationId) {
                 try {
-                    await SupplierService.syncToICTProvider(id);
+                    await SupplierService.syncToICTProvider(id, user.organizationId);
                 } catch (syncError) {
                     ErrorLogger.warn(`Failed to sync supplier ${id} to ICT Provider: ${syncError}`, 'useSupplierLogic.updateSupplier');
                 }

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck - TODO: Tests need updating - service API signatures changed
 /**
  * SupplierService Tests
  * Story 14-1: Test Coverage 50%
@@ -19,6 +18,7 @@ vi.mock('firebase/firestore', () => ({
     addDoc: vi.fn(() => Promise.resolve({ id: 'new-assessment-id' })),
     updateDoc: vi.fn(() => Promise.resolve()),
     getDocs: vi.fn(),
+    getDoc: vi.fn(() => Promise.resolve({ exists: () => true, data: () => ({ name: 'Test Supplier', riskLevel: 'Medium' }) })),
     deleteDoc: vi.fn(() => Promise.resolve()),
     query: vi.fn(),
     where: vi.fn(),
@@ -44,15 +44,35 @@ vi.mock('../FunctionsService', () => ({
 }));
 
 vi.mock('../../utils/dataSanitizer', () => ({
-    sanitizeData: vi.fn((data) => data),
+    sanitizeData: vi.fn((data: unknown) => data),
+}));
+
+vi.mock('../auditLogService', () => ({
+    AuditLogService: {
+        logDelete: vi.fn().mockResolvedValue(undefined),
+        logCreate: vi.fn().mockResolvedValue(undefined),
+        logStatusChange: vi.fn().mockResolvedValue(undefined),
+    },
+}));
+
+vi.mock('../SupplierDoraSyncService', () => ({
+    SupplierDoraSyncService: {
+        syncToICTProvider: vi.fn().mockResolvedValue(true),
+    },
 }));
 
 import { addDoc, updateDoc, getDocs, deleteDoc, writeBatch } from 'firebase/firestore';
 import { FunctionsService } from '../FunctionsService';
-import { SupplierQuestionnaireResponse, QuestionnaireTemplate } from '../../types';
+import type { SupplierQuestionnaireResponse, QuestionnaireTemplate } from '../../types';
 
-// TODO: Tests need updating - service API signatures changed
-describe.skip('SupplierService', () => {
+const mockServiceUser = {
+    uid: 'user-1',
+    email: 'user@test.com',
+    displayName: 'John Doe',
+    organizationId: 'org-1',
+};
+
+describe('SupplierService', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
@@ -244,7 +264,7 @@ describe.skip('SupplierService', () => {
 
     describe('updateSupplierRiskFromAssessment', () => {
         it('should set risk level to Critical for score < 50', async () => {
-            await SupplierService.updateSupplierRiskFromAssessment('supplier-1', 30);
+            await SupplierService.updateSupplierRiskFromAssessment('supplier-1', 30, mockServiceUser);
 
             expect(updateDoc).toHaveBeenCalledWith(
                 expect.anything(),
@@ -256,7 +276,7 @@ describe.skip('SupplierService', () => {
         });
 
         it('should set risk level to High for score 50-69', async () => {
-            await SupplierService.updateSupplierRiskFromAssessment('supplier-1', 60);
+            await SupplierService.updateSupplierRiskFromAssessment('supplier-1', 60, mockServiceUser);
 
             expect(updateDoc).toHaveBeenCalledWith(
                 expect.anything(),
@@ -267,7 +287,7 @@ describe.skip('SupplierService', () => {
         });
 
         it('should set risk level to Medium for score 70-84', async () => {
-            await SupplierService.updateSupplierRiskFromAssessment('supplier-1', 75);
+            await SupplierService.updateSupplierRiskFromAssessment('supplier-1', 75, mockServiceUser);
 
             expect(updateDoc).toHaveBeenCalledWith(
                 expect.anything(),
@@ -278,7 +298,7 @@ describe.skip('SupplierService', () => {
         });
 
         it('should set risk level to Low for score >= 85', async () => {
-            await SupplierService.updateSupplierRiskFromAssessment('supplier-1', 90);
+            await SupplierService.updateSupplierRiskFromAssessment('supplier-1', 90, mockServiceUser);
 
             expect(updateDoc).toHaveBeenCalledWith(
                 expect.anything(),
@@ -292,7 +312,7 @@ describe.skip('SupplierService', () => {
             vi.mocked(updateDoc).mockRejectedValue(new Error('Update failed'));
 
             await expect(
-                SupplierService.updateSupplierRiskFromAssessment('supplier-1', 50)
+                SupplierService.updateSupplierRiskFromAssessment('supplier-1', 50, mockServiceUser)
             ).rejects.toThrow('Update failed');
         });
     });
@@ -314,7 +334,8 @@ describe.skip('SupplierService', () => {
                 'org-1',
                 'supplier-1',
                 'Test Supplier',
-                template
+                template,
+                mockServiceUser
             );
 
             expect(result).toBe('new-assessment-id');
@@ -334,7 +355,7 @@ describe.skip('SupplierService', () => {
             vi.mocked(addDoc).mockRejectedValue(new Error('Create failed'));
 
             await expect(
-                SupplierService.createAssessment('org-1', 'supplier-1', 'Test', {} as QuestionnaireTemplate)
+                SupplierService.createAssessment('org-1', 'supplier-1', 'Test', {} as QuestionnaireTemplate, mockServiceUser)
             ).rejects.toThrow('Create failed');
         });
     });
@@ -400,7 +421,7 @@ describe.skip('SupplierService', () => {
                     docs: [{ id: 'incident-1', ref: { id: 'incident-1' } }],
                 } as never);
 
-            await SupplierService.deleteSupplierWithCascade('supplier-1');
+            await SupplierService.deleteSupplierWithCascade('supplier-1', mockServiceUser);
 
             expect(FunctionsService.deleteResource).toHaveBeenCalledWith('suppliers', 'supplier-1');
             expect(deleteDoc).toHaveBeenCalledTimes(2); // 1 assessment + 1 incident
@@ -410,7 +431,7 @@ describe.skip('SupplierService', () => {
             vi.mocked(FunctionsService.deleteResource).mockRejectedValue(new Error('Delete blocked'));
 
             await expect(
-                SupplierService.deleteSupplierWithCascade('supplier-1')
+                SupplierService.deleteSupplierWithCascade('supplier-1', mockServiceUser)
             ).rejects.toThrow('Delete blocked');
         });
     });

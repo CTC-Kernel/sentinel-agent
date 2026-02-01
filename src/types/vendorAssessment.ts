@@ -15,7 +15,7 @@ import { SupplierQuestionnaireResponse, QuestionnaireSection } from './business'
  * Status Flow: Draft → Sent → In Progress → Submitted → Reviewed → Archived
  *              In Progress → Expired (if past due date without completion)
  */
-export type AssessmentStatus =
+export type VendorAssessmentStatus =
   | 'Draft'
   | 'Sent'
   | 'In Progress'
@@ -45,7 +45,7 @@ export type ReviewAlertThreshold = typeof REVIEW_ALERT_THRESHOLDS[number];
  */
 export interface EnhancedAssessmentResponse extends Omit<SupplierQuestionnaireResponse, 'status'> {
   /** Extended status including Expired */
-  status: AssessmentStatus;
+  status: VendorAssessmentStatus;
 
   /** Date when assessment expires if not completed */
   expirationDate?: string;
@@ -69,15 +69,15 @@ export interface EnhancedAssessmentResponse extends Omit<SupplierQuestionnaireRe
   completionPercentage?: number;
 
   /** History of status changes */
-  statusHistory?: AssessmentStatusChange[];
+  statusHistory?: VendorAssessmentStatusChange[];
 }
 
 /**
  * Record of status change for audit trail
  */
-export interface AssessmentStatusChange {
-  fromStatus: AssessmentStatus;
-  toStatus: AssessmentStatus;
+export interface VendorAssessmentStatusChange {
+  fromStatus: VendorAssessmentStatus;
+  toStatus: VendorAssessmentStatus;
   changedAt: string;
   changedBy: string;
   reason?: string;
@@ -175,7 +175,7 @@ export interface AssessmentScheduleOptions {
  */
 export interface AssessmentMetrics {
   total: number;
-  byStatus: Record<AssessmentStatus, number>;
+  byStatus: Record<VendorAssessmentStatus, number>;
   byFramework: Record<string, number>;
   averageScore: number;
   averageCompletionTime: number; // in days
@@ -247,7 +247,7 @@ export interface AssessmentAlert {
  * Filters for assessment list view
  */
 export interface AssessmentFilters {
-  status?: AssessmentStatus[];
+  status?: VendorAssessmentStatus[];
   framework?: string[];
   riskLevel?: ('Low' | 'Medium' | 'High' | 'Critical')[];
   supplierId?: string;
@@ -358,8 +358,8 @@ export function getReviewCycleLabel(cycle: ReviewCycle, customDays?: number): st
 /**
  * Get status color for UI display
  */
-export function getAssessmentStatusColor(status: AssessmentStatus): string {
-  const colors: Record<AssessmentStatus, string> = {
+export function getVendorAssessmentStatusColor(status: VendorAssessmentStatus): string {
+  const colors: Record<VendorAssessmentStatus, string> = {
     'Draft': 'gray',
     'Sent': 'blue',
     'In Progress': 'indigo',

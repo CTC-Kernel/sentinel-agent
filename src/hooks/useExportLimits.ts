@@ -35,7 +35,8 @@ export const useExportLimits = () => {
             }
         };
 
-        const upgradeMessage = upgradeMessages[planRequired][planId] || '';
+        const messages = upgradeMessages[planRequired];
+        const upgradeMessage = messages ? (messages[planId] || '') : '';
 
         return {
             canExport,

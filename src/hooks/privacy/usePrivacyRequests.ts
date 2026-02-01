@@ -4,7 +4,7 @@ import { PrivacyService } from '../../services/PrivacyService';
 import { PrivacyRequest, UserProfile } from '../../types';
 import { useStore } from '../../store';
 import { hasPermission } from '../../utils/permissions';
-// import { ErrorLogger } from '../../services/errorLogger';
+import { ErrorLogger } from '../../services/errorLogger';
 
 export function usePrivacyRequests() {
     const { user, addToast, t } = useStore();
@@ -26,8 +26,8 @@ export function usePrivacyRequests() {
                 return new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime();
             });
             setRequests(sorted);
-        } catch {
-            // ErrorLogger.handleErrorWithToast(_error, 'usePrivacyRequests.fetchRequests');
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'usePrivacyRequests.fetchRequests');
         } finally {
             setLoading(false);
         }

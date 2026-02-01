@@ -21,8 +21,9 @@ import {
 import { ICTProviderService } from './ICTProviderService';
 import { parseDate, formatDateISO } from '../utils/dateUtils';
 import { db } from '../firebase';
-import { collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, Timestamp, getDoc, limit as firestoreLimit } from 'firebase/firestore';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 /**
  * Export format types
@@ -413,11 +414,11 @@ export class DORAExportService {
         record: Omit<DORAExportRecord, 'id' | 'organizationId'>
     ): Promise<string> {
         try {
-            const docRef = await addDoc(collection(db, 'dora_exports'), {
+            const docRef = await addDoc(collection(db, 'dora_exports'), sanitizeData({
                 ...record,
                 organizationId,
                 createdAt: Timestamp.now()
-            });
+            }));
             return docRef.id;
         } catch (error: unknown) {
             ErrorLogger.error(error, 'DORAExportService.saveExportRecord');
@@ -428,16 +429,17 @@ export class DORAExportService {
     /**
      * Get export history for an organization
      */
-    static async getExportHistory(organizationId: string, limit = 50): Promise<DORAExportRecord[]> {
+    static async getExportHistory(organizationId: string, limitParam = 50): Promise<DORAExportRecord[]> {
         try {
             const q = query(
                 collection(db, 'dora_exports'),
                 where('organizationId', '==', organizationId),
-                orderBy('exportedAt', 'desc')
+                orderBy('exportedAt', 'desc'),
+                firestoreLimit(limitParam)
             );
 
             const snapshot = await getDocs(q);
-            return snapshot.docs.slice(0, limit).map(doc => ({
+            return snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             } as DORAExportRecord));
@@ -450,8 +452,12 @@ export class DORAExportService {
     /**
      * Delete export record (admin only)
      */
-    static async deleteExportRecord(exportId: string): Promise<void> {
+    static async deleteExportRecord(exportId: string, organizationId: string): Promise<void> {
         try {
+            const docSnap = await getDoc(doc(db, 'dora_exports', exportId));
+            if (!docSnap.exists() || docSnap.data()?.organizationId !== organizationId) {
+                throw new Error('Not authorized');
+            }
             await deleteDoc(doc(db, 'dora_exports', exportId));
         } catch (error: unknown) {
             ErrorLogger.error(error, 'DORAExportService.deleteExportRecord');

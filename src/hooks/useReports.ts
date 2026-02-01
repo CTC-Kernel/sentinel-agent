@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
-import { collection, addDoc, deleteDoc, doc, getDocs, query, where, limit, QueryDocumentSnapshot, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, getDoc, getDocs, query, where, limit, QueryDocumentSnapshot, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { logAction } from '../services/logger';
 import { Incident, Document } from '../types';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 export const useReports = () => {
     const { user, addToast, t } = useStore();
@@ -32,7 +33,7 @@ export const useReports = () => {
                 owner: user.displayName || user.email || 'Système',
                 organizationId: user.organizationId,
                 createdAt: serverTimestamp(),
-                updatedAt: new Date().toISOString(),
+                updatedAt: serverTimestamp(),
                 version: '1.0',
                 size: blob.size,
                 status: 'Validé',
@@ -41,7 +42,7 @@ export const useReports = () => {
                 watermarkEnabled: false
             };
 
-            const docRef = await addDoc(collection(db, 'documents'), docData);
+            const docRef = await addDoc(collection(db, 'documents'), sanitizeData(docData));
 
             await logAction(user, 'CREATE', 'Document', `Generated Report: ${title}`);
             addToast(t('reports.successSaved'), "success");
@@ -59,6 +60,11 @@ export const useReports = () => {
         if (!user?.organizationId) return;
         setLoading(true);
         try {
+            // SECURITY: Verify report belongs to user's organization before deleting
+            const reportDoc = await getDoc(doc(db, 'documents', id));
+            if (!reportDoc.exists() || reportDoc.data()?.organizationId !== user.organizationId) {
+                throw new Error('Access denied');
+            }
             await deleteDoc(doc(db, 'documents', id));
             await logAction(user, 'DELETE', 'Document', `Deleted Report: ${id}`);
             addToast(t('reports.deleteSuccess'), "success");

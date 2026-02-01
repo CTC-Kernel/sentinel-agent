@@ -4,6 +4,7 @@
  */
 export const isSafeUrl = (url: string): boolean => {
   if (!url) return false;
+  if (url.length > 2048) return false;
 
   // Allow relative paths
   if (url.startsWith('/')) return true;

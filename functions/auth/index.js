@@ -383,10 +383,10 @@ exports.updateSsoSettings = onCall({
     }
 
     const token = request.auth.token;
-    const organizationId = request.auth.token.organizationId || request.data?.organizationId;
+    const organizationId = request.auth.token.organizationId;
 
     if (!organizationId) {
-        throw new HttpsError('invalid-argument', 'Organization ID is required.');
+        throw new HttpsError('failed-precondition', 'Organization ID not found in token');
     }
 
     if (!canManageSsoSettings(token) || token.organizationId !== organizationId) {
@@ -480,10 +480,10 @@ exports.requestPasswordReset = onCall({
     try {
         const link = await admin.auth().generatePasswordResetLink(email);
 
-        let userName = 'Utilisateur';
+        let userName = 'User';
         try {
             const userRecord = await admin.auth().getUserByEmail(email);
-            userName = userRecord.displayName || 'Utilisateur';
+            userName = userRecord.displayName || 'User';
         } catch (e) {
             logger.warn(`Could not fetch user details for ${email}`, e);
         }

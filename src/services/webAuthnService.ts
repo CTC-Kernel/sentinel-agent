@@ -25,6 +25,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 // ============================================================================
 // Types
@@ -524,9 +525,9 @@ class WebAuthnServiceClass {
       }
 
       const credentialsRef = collection(db, 'webauthn_credentials');
-      await setDoc(doc(credentialsRef, credentialId), {
+      await setDoc(doc(credentialsRef, credentialId), sanitizeData({
         deviceName: newName
-      }, { merge: true });
+      }), { merge: true });
 
       return true;
     } catch (error) {
@@ -560,13 +561,13 @@ class WebAuthnServiceClass {
     const challengeDoc = doc(challengesRef, `${userId}_${type}`);
 
     const now = Date.now();
-    await setDoc(challengeDoc, {
+    await setDoc(challengeDoc, sanitizeData({
       challenge,
       userId,
       type,
       createdAt: serverTimestamp(),
       expiresAt: Timestamp.fromMillis(now + CHALLENGE_TTL_MS)
-    });
+    }));
   }
 
   /**
@@ -614,10 +615,10 @@ class WebAuthnServiceClass {
     credential: Omit<StoredCredential, 'createdAt'>
   ): Promise<void> {
     const credentialsRef = collection(db, 'webauthn_credentials');
-    await setDoc(doc(credentialsRef, credential.credentialId), {
+    await setDoc(doc(credentialsRef, credential.credentialId), sanitizeData({
       ...credential,
       createdAt: serverTimestamp()
-    });
+    }));
   }
 
   /**
@@ -643,10 +644,10 @@ class WebAuthnServiceClass {
    */
   private async updateCredentialUsage(credentialId: string, counter: number): Promise<void> {
     const credentialsRef = collection(db, 'webauthn_credentials');
-    await setDoc(doc(credentialsRef, credentialId), {
+    await setDoc(doc(credentialsRef, credentialId), sanitizeData({
       counter,
       lastUsedAt: serverTimestamp()
-    }, { merge: true });
+    }), { merge: true });
   }
 
   // ============================================================================

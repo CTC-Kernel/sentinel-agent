@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useFirestoreCollection } from './useFirestore';
 import { Threat, TrustRelationship } from '../types';
-import { orderBy, limit, increment } from 'firebase/firestore';
+import { orderBy, limit, increment, where } from 'firebase/firestore';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { ErrorLogger } from '../services/errorLogger';
@@ -23,13 +23,13 @@ export const useThreatIntelligence = () => {
         data: threatsRaw,
         loading: threatsLoadingRaw,
         update: updateThreat
-    } = useFirestoreCollection<Threat>('threats', [orderBy('timestamp', 'desc'), limit(100)], { realtime: true, enabled: !demoMode });
+    } = useFirestoreCollection<Threat>('threats', [where('organizationId', '==', myOrgId), orderBy('timestamp', 'desc'), limit(100)], { realtime: true, enabled: !demoMode && !!user?.organizationId });
 
     const {
         data: partnersRaw,
         update: updateRelationship,
         remove: removeRelationship
-    } = useFirestoreCollection<TrustRelationship>('relationships', [], { realtime: true, enabled: !demoMode });
+    } = useFirestoreCollection<TrustRelationship>('relationships', [where('organizationId', '==', myOrgId)], { realtime: true, enabled: !demoMode && !!user?.organizationId });
 
     // Load Mock Data
     useEffect(() => {

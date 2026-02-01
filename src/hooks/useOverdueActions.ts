@@ -5,7 +5,7 @@
  * Per FR10: "Les project managers peuvent voir l'avancement du projet de conformite"
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   collection,
   query,
@@ -131,8 +131,10 @@ export function useOverdueActions(
   const [fetchedTenantId, setFetchedTenantId] = useState<string | null>(null);
   const [isRefetching, setIsRefetching] = useState(false);
 
-  // Derived loading state
-  const loading = (!!tenantId && tenantId !== fetchedTenantId) || isRefetching;
+  const loading = useMemo(
+    () => (!!tenantId && tenantId !== fetchedTenantId) || isRefetching,
+    [tenantId, fetchedTenantId, isRefetching]
+  );
 
   const [refreshKey, setRefreshKey] = useState(0);
 

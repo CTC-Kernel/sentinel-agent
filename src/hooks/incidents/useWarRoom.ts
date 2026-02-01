@@ -5,6 +5,7 @@ import { useFirestoreCollection } from '../useFirestore';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import { db } from '../../firebase';
+import { sanitizeData } from '../../utils/dataSanitizer';
 
 export interface WarRoomMessage {
     id: string;
@@ -98,13 +99,13 @@ export const useWarRoom = (incidentId: string) => {
             lastActive: serverTimestamp()
         };
 
-        setDoc(presenceRef, presenceData).catch(err =>
+        setDoc(presenceRef, sanitizeData(presenceData)).catch(err =>
             ErrorLogger.warn('Failed to set presence', 'useWarRoom.presence', { metadata: { error: err } })
         );
 
         // Update last active every 30 seconds
         const heartbeatInterval = setInterval(() => {
-            setDoc(presenceRef, { lastActive: serverTimestamp() }, { merge: true }).catch((err) => ErrorLogger.debug(err, 'useWarRoom'));
+            setDoc(presenceRef, sanitizeData({ lastActive: serverTimestamp() }), { merge: true }).catch((err) => ErrorLogger.debug(err, 'useWarRoom'));
         }, 30000);
 
         // Listen to presence changes
@@ -126,11 +127,15 @@ export const useWarRoom = (incidentId: string) => {
             ErrorLogger.warn('Presence listener error', 'useWarRoom.presence', { metadata: { error: err } });
         });
 
-        // Cleanup on unmount
+        // Cleanup on unmount with delayed deletion to handle React StrictMode
+        // double-mount and fast remounts. The 2-second delay allows a remount
+        // to re-establish presence before the old cleanup deletes it.
         return () => {
             clearInterval(heartbeatInterval);
             unsubscribe();
-            deleteDoc(presenceRef).catch((err) => ErrorLogger.debug(err, 'useWarRoom'));
+            setTimeout(() => {
+                deleteDoc(presenceRef).catch((err) => ErrorLogger.debug(err, 'useWarRoom'));
+            }, 2000);
         };
     }, [incidentId, demoMode, user, presencePath]);
 
@@ -208,10 +213,10 @@ export const useWarRoom = (incidentId: string) => {
         }
 
         try {
-            await add({
+            await add(sanitizeData({
                 ...newMessage,
                 timestamp: serverTimestamp()
-            });
+            }));
         } catch (error) {
             ErrorLogger.error(error, 'useWarRoom.sendMessage');
             throw error;
@@ -240,10 +245,10 @@ export const useWarRoom = (incidentId: string) => {
         }
 
         try {
-            await addDoc(collection(db, collectionPath), {
+            await addDoc(collection(db, collectionPath), sanitizeData({
                 ...systemMessage,
                 timestamp: serverTimestamp()
-            });
+            }));
         } catch (error) {
             ErrorLogger.error(error, 'useWarRoom.sendSystemMessage');
         }

@@ -58,7 +58,7 @@ export class MigrationService {
         log(`🔍 Analyse de la collection: ${colName}...`);
 
         const snap = await getDocs(collection(db, colName));
-        const batch = writeBatch(db);
+        let batch = writeBatch(db);
         let batchCount = 0;
         let fixedInCol = 0;
 
@@ -92,6 +92,7 @@ export class MigrationService {
 
           if (batchCount >= 400) {
             await batch.commit();
+            batch = writeBatch(db);
             batchCount = 0;
           }
         }

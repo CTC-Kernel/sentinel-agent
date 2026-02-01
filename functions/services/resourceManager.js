@@ -7,8 +7,12 @@ const { logger } = require('firebase-functions');
  * Encapsulates referential integrity logic server-side.
  */
 class ResourceManager {
-    constructor() {
-        this.db = admin.firestore();
+    /**
+     * Get Firestore instance (lazy, avoids cold-start issues with module-level init)
+     * @returns {admin.firestore.Firestore}
+     */
+    get db() {
+        return admin.firestore();
     }
 
     /**

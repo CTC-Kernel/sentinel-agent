@@ -208,7 +208,7 @@ export class ProjectService {
         userDisplayName: string
     ): Promise<number> {
         try {
-            const BATCH_SIZE = 500;
+            const BATCH_SIZE = 450;
             let batch = writeBatch(db);
             let count = 0;
             let batchCount = 0;

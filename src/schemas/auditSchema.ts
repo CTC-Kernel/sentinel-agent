@@ -3,13 +3,13 @@ import { AUDIT_STATUSES } from '../types/audits';
 import { FRAMEWORKS } from '../constants/frameworks';
 
 export const auditSchema = z.object({
-    name: z.string().trim().min(1, "Le nom de l'audit est requis").max(200, "Le nom est trop long (max 200)"),
+    name: z.string().trim().min(1, "Audit name is required").max(200, "Name is too long (max 200)"),
     type: z.enum(['Interne', 'Externe', 'Certification', 'Fournisseur']),
-    auditor: z.string().trim().min(1, "L'auditeur est requis").max(100, "Nom trop long"),
-    dateScheduled: z.string().min(1, "La date est requise"),
+    auditor: z.string().trim().min(1, "Auditor is required").max(100, "Name is too long"),
+    dateScheduled: z.string().min(1, "Date is required"),
     status: z.enum(AUDIT_STATUSES),
-    description: z.string().trim().max(5000, "La description est trop longue").optional(),
-    scope: z.string().trim().max(5000, "Le périmètre est trop long").optional(),
+    description: z.string().trim().max(5000, "Description is too long").optional(),
+    scope: z.string().trim().max(5000, "Scope is too long").optional(),
     framework: z.enum(FRAMEWORKS).optional(),
     relatedAssetIds: z.array(z.string()).optional(),
     relatedRiskIds: z.array(z.string()).optional(),

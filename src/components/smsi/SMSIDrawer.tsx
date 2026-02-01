@@ -12,7 +12,7 @@ import { FieldValues } from 'react-hook-form';
 import { SMSIProgram } from '../../types/ebios';
 
 const smsiSchema = z.object({
-    name: z.string().min(1, 'Le nom est requis'),
+    name: z.string().min(1),
     description: z.string().optional(),
     targetCertificationDate: z.string().optional(),
     isCertified: z.boolean().optional(),
@@ -22,20 +22,26 @@ const smsiSchema = z.object({
 const PROGRAM_TEMPLATES = [
     {
         id: 'standard',
-        name: 'Implémentation Standard ISO 27001',
-        description: 'Cycle complet PDCA avec tous les jalons classiques.',
+        nameKey: 'smsi.drawer.templateStandardName',
+        nameDefault: 'Implémentation Standard ISO 27001',
+        descKey: 'smsi.drawer.templateStandardDesc',
+        descDefault: 'Cycle complet PDCA avec tous les jalons classiques.',
         icon: Shield
     },
     {
         id: 'fast-track',
-        name: 'Fast Track (Startup/PME)',
-        description: 'Focus sur les risques critiques et contrôles essentiels.',
+        nameKey: 'smsi.drawer.templateFastTrackName',
+        nameDefault: 'Fast Track (Startup/PME)',
+        descKey: 'smsi.drawer.templateFastTrackDesc',
+        descDefault: 'Focus sur les risques critiques et contrôles essentiels.',
         icon: Clock
     },
     {
         id: 'maintenance',
-        name: 'Maintien & Amélioration',
-        description: 'Pour les organisations déjà certifiées (Cycle annuel).',
+        nameKey: 'smsi.drawer.templateMaintenanceName',
+        nameDefault: 'Maintien & Amélioration',
+        descKey: 'smsi.drawer.templateMaintenanceDesc',
+        descDefault: 'Pour les organisations déjà certifiées (Cycle annuel).',
         icon: Settings
     }
 ] as const;
@@ -60,7 +66,7 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
     const { t } = useStore();
     const isEditing = !!program;
 
-    const { register, handleSubmit, formState: { errors }, reset, watch, setValue } = useZodForm({
+    const { register, handleSubmit, formState: { errors, isDirty }, reset, watch, setValue } = useZodForm({
         schema: smsiSchema,
         defaultValues: {
             name: program?.name || '',
@@ -99,12 +105,13 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
             title={title}
             subtitle={subtitle}
             width="max-w-xl"
+            hasUnsavedChanges={isDirty}
         >
             <form id="smsi-form" onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col h-full">
                 <div className="flex-1 space-y-6 pt-6 px-1">
                     <FloatingLabelInput
                         label={t('common.name')}
-                        placeholder="Ex: Certification ISO 27001 - 2025"
+                        placeholder={t('smsi.drawer.namePlaceholder', { defaultValue: 'Ex: Certification ISO 27001 - 2025' })}
                         required
                         error={errors.name?.message}
                         {...register('name')}
@@ -112,7 +119,7 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
 
                     <FloatingLabelTextarea
                         label={t('common.description')}
-                        placeholder="Description du périmètre et des objectifs..."
+                        placeholder={t('smsi.drawer.descriptionPlaceholder', { defaultValue: 'Description du périmètre et des objectifs...' })}
                         rows={4}
                         error={errors.description?.message}
                         {...register('description')}
@@ -128,7 +135,7 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
                     {!isEditing && (
                         <div className="pt-4">
                             <h4 id="template-label" className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-                                Modèle de programme
+                                {t('smsi.drawer.programTemplate', { defaultValue: 'Modèle de programme' })}
                             </h4>
                             <div className="grid gap-3" role="radiogroup" aria-labelledby="template-label">
                                 {PROGRAM_TEMPLATES.map((template) => (
@@ -156,10 +163,10 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
                                                 "text-sm font-medium mb-0.5",
                                                 selectedTemplate === template.id ? "text-brand-900 dark:text-brand-100" : "text-slate-900 dark:text-white"
                                             )}>
-                                                {template.name}
+                                                {t(template.nameKey, { defaultValue: template.nameDefault })}
                                             </h4>
                                             <p className="text-xs text-slate-500 dark:text-muted-foreground">
-                                                {template.description}
+                                                {t(template.descKey, { defaultValue: template.descDefault })}
                                             </p>
                                         </div>
                                         {selectedTemplate === template.id && (

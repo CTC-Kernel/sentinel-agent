@@ -37,6 +37,7 @@ import { useActiveFrameworks } from '../hooks/useFrameworks';
 import { aiService } from '../services/aiService';
 import { ErrorLogger } from '../services/errorLogger';
 import { hasPermission } from '../utils/permissions';
+import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 
 import { VoxelGuide } from '../components/VoxelGuide';
 const VoxelStudio = React.lazy(() => import('../components/VoxelStudio').then(m => ({ default: m.VoxelStudio })));
@@ -400,7 +401,7 @@ export const VoxelView: React.FC = () => {
       const score = Number.isFinite(risk.score) ? risk.score : 0;
       nodes.push({
         id: risk.id, type: 'risk', label: risk.threat || 'Risk',
-        status: score >= 15 ? 'critical' : score >= 10 ? 'warning' : 'normal',
+        status: score >= RISK_THRESHOLDS.CRITICAL ? 'critical' : score >= RISK_THRESHOLDS.HIGH ? 'warning' : 'normal',
         position: { x: 0, y: 0, z: 0 }, size: 1,
         data: risk as unknown as Record<string, unknown>,
         connections: risk.assetId ? [risk.assetId] : [],

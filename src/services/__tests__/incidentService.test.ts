@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck - TODO: Tests need updating - service API signatures changed
 /**
  * IncidentService Tests
  * Story 14-1: Test Coverage 50%
@@ -7,6 +6,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { IncidentService } from '../incidentService';
+import type { UserProfile } from '../../types';
 
 // Mock Firebase
 vi.mock('../../firebase', () => ({
@@ -39,14 +39,36 @@ vi.mock('../FunctionsService', () => ({
 }));
 
 vi.mock('../../utils/dataSanitizer', () => ({
-    sanitizeData: vi.fn((data) => data),
+    sanitizeData: vi.fn((data: unknown) => data),
 }));
 
-import { addDoc, writeBatch } from 'firebase/firestore';
+vi.mock('../auditLogService', () => ({
+    AuditLogService: {
+        logDelete: vi.fn().mockResolvedValue(undefined),
+        logCreate: vi.fn().mockResolvedValue(undefined),
+    },
+}));
+
+vi.mock('../../utils/permissions', () => ({
+    canDeleteResource: vi.fn().mockReturnValue(true),
+    canEditResource: vi.fn().mockReturnValue(true),
+}));
+
+import { writeBatch } from 'firebase/firestore';
 import { FunctionsService } from '../FunctionsService';
 
-// TODO: Tests need updating - service API signatures changed
-describe.skip('IncidentService', () => {
+const mockUser: UserProfile = {
+    uid: 'user-1',
+    email: 'user@test.com',
+    displayName: 'John Doe',
+    role: 'admin',
+    organizationId: 'org-1',
+    organizationName: 'Test Org',
+    theme: 'light',
+    createdAt: '',
+};
+
+describe('IncidentService', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
@@ -56,22 +78,10 @@ describe.skip('IncidentService', () => {
             await IncidentService.deleteIncidentWithLog({
                 incidentId: 'incident-1',
                 organizationId: 'org-1',
-                userId: 'user-1',
-                userEmail: 'user@test.com',
+                user: mockUser,
             });
 
             expect(FunctionsService.deleteResource).toHaveBeenCalledWith('incidents', 'incident-1');
-            expect(addDoc).toHaveBeenCalledWith(
-                expect.anything(),
-                expect.objectContaining({
-                    organizationId: 'org-1',
-                    action: 'DELETE',
-                    resource: 'Incident',
-                    userId: 'user-1',
-                    userEmail: 'user@test.com',
-                    severity: 'critical',
-                })
-            );
         });
 
         it('should handle deletion errors', async () => {
@@ -81,8 +91,7 @@ describe.skip('IncidentService', () => {
                 IncidentService.deleteIncidentWithLog({
                     incidentId: 'incident-1',
                     organizationId: 'org-1',
-                    userId: 'user-1',
-                    userEmail: 'user@test.com',
+                    user: mockUser,
                 })
             ).rejects.toThrow('Delete failed');
         });
@@ -96,8 +105,7 @@ describe.skip('IncidentService', () => {
             await IncidentService.bulkDeleteIncidents(
                 incidentIds,
                 'org-1',
-                'user-1',
-                'user@test.com'
+                mockUser
             );
 
             expect(FunctionsService.deleteResource).toHaveBeenCalledTimes(3);
@@ -110,8 +118,7 @@ describe.skip('IncidentService', () => {
                 IncidentService.bulkDeleteIncidents(
                     ['incident-1'],
                     'org-1',
-                    'user-1',
-                    'user@test.com'
+                    mockUser
                 )
             ).rejects.toThrow('Bulk delete failed');
         });
@@ -127,8 +134,7 @@ describe.skip('IncidentService', () => {
             const result = await IncidentService.importIncidentsFromCSV(
                 csvData,
                 'org-1',
-                'user-1',
-                'John Doe'
+                mockUser
             );
 
             expect(result).toBe(2);
@@ -143,8 +149,7 @@ describe.skip('IncidentService', () => {
             const result = await IncidentService.importIncidentsFromCSV(
                 csvData,
                 'org-1',
-                'user-1',
-                'John Doe'
+                mockUser
             );
 
             expect(result).toBe(1);
@@ -153,15 +158,14 @@ describe.skip('IncidentService', () => {
         it('should skip rows without title', async () => {
             const csvData = [
                 { Titre: 'Incident 1', Description: 'Desc 1' },
-                { Description: 'No title' },
+                { Titre: '', Description: 'No title' },
                 { Titre: 'Incident 3', Description: 'Desc 3' },
             ];
 
             const result = await IncidentService.importIncidentsFromCSV(
-                csvData as any[], // eslint-disable-line @typescript-eslint/no-explicit-any
+                csvData,
                 'org-1',
-                'user-1',
-                'John Doe'
+                mockUser
             );
 
             expect(result).toBe(2);
@@ -183,8 +187,7 @@ describe.skip('IncidentService', () => {
             await IncidentService.importIncidentsFromCSV(
                 csvData,
                 'org-1',
-                'user-1',
-                'John Doe'
+                mockUser
             );
 
             // Check that severity is normalized
@@ -209,8 +212,7 @@ describe.skip('IncidentService', () => {
             const result = await IncidentService.importIncidentsFromCSV(
                 csvData,
                 'org-1',
-                'user-1',
-                'John Doe'
+                mockUser
             );
 
             expect(result).toBe(0);
@@ -227,7 +229,7 @@ describe.skip('IncidentService', () => {
             const csvData = [{ Titre: 'Incident 1' }];
 
             await expect(
-                IncidentService.importIncidentsFromCSV(csvData, 'org-1', 'user-1', 'John')
+                IncidentService.importIncidentsFromCSV(csvData, 'org-1', mockUser)
             ).rejects.toThrow('Batch commit failed');
         });
     });

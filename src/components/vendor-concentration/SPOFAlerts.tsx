@@ -18,7 +18,7 @@ import {
   ExternalLink,
   type LucideIcon,
 } from '../ui/Icons';
-import type { SPOFSummary, SPOFAlert, ImpactLevel, UrgencyLevel } from '../../types/vendorConcentration';
+import type { SPOFSummary, SPOFAlert, VendorImpactLevel, UrgencyLevel } from '../../types/vendorConcentration';
 
 // ============================================================================
 // Types
@@ -35,13 +35,13 @@ interface SPOFAlertsProps {
 // ============================================================================
 
 interface ImpactBadgeProps {
-  level: ImpactLevel;
+  level: VendorImpactLevel;
 }
 
 const ImpactBadge: React.FC<ImpactBadgeProps> = ({ level }) => {
   const { t } = useTranslation();
 
-  const styles: Record<ImpactLevel, string> = {
+  const styles: Record<VendorImpactLevel, string> = {
     critical: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
     high: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
     medium: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',

@@ -19,8 +19,8 @@ type FeedbackType = 'bug' | 'feature' | 'improvement' | 'other';
 
 const feedbackSchema = z.object({
     type: z.enum(['bug', 'feature', 'improvement', 'other']),
-    title: z.string().min(3, 'Le titre doit faire au moins 3 caractères').max(200, 'Titre trop long'),
-    description: z.string().min(10, 'Description trop courte (min 10 caractères)').max(2000, 'Description trop longue'),
+    title: z.string().min(3, 'Title must be at least 3 characters').max(200, 'Title is too long'),
+    description: z.string().min(10, 'Description is too short (min 10 characters)').max(2000, 'Description is too long'),
     priority: z.enum(['low', 'medium', 'high'])
 });
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { TrendSparkline } from '../TrendSparkline';
-import type { ScoreHistory } from '../../../types/score.types';
+import type { GlobalScoreHistory as ScoreHistory } from '../../../types/score.types';
 
 // Mock useStore
 vi.mock('../../../store', () => ({

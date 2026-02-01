@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc, Timestamp, getDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc, Timestamp, getDoc, serverTimestamp, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Incident } from '../types';
 import { logAction } from './logger';
@@ -322,49 +322,48 @@ export class IncidentPlaybookService {
       const response = await this.getResponseByDocId(responseId);
       if (!response) throw new Error('Response introuvable');
 
-      const updates: Partial<IncidentResponse> = {};
+      const responseRef = doc(db, this.RESPONSES_COLLECTION, responseId);
+      const atomicUpdates: Record<string, unknown> = {
+        updatedAt: serverTimestamp(),
+      };
 
       if (completed) {
-        updates.completedSteps = [...response.completedSteps, stepId];
-        updates.currentStepIndex = Math.min(response.currentStepIndex + 1, 100);
+        // Use arrayUnion to avoid race conditions
+        atomicUpdates.completedSteps = arrayUnion(stepId);
+        atomicUpdates.currentStepIndex = Math.min(response.currentStepIndex + 1, 100);
 
-        // Add timeline event
-        updates.timeline = [
-          ...response.timeline,
-          {
-            id: `step_${stepId} _completed`,
-            timestamp: new Date().toISOString(),
-            type: 'step_completed',
-            description: `Step ${stepId} completed`,
-            metadata: { evidence, note }
-          }
-        ];
+        const timelineEntry: TimelineEvent = {
+          id: `step_${stepId}_completed`,
+          timestamp: new Date().toISOString(),
+          type: 'step_completed',
+          description: `Step ${stepId} completed`,
+          metadata: { evidence, note }
+        };
+        atomicUpdates.timeline = arrayUnion(timelineEntry);
       }
 
       if (evidence) {
-        updates.evidence = { ...response.evidence, ...evidence };
+        atomicUpdates.evidence = { ...response.evidence, ...evidence };
       }
 
       if (note) {
-        updates.notes = [
-          ...response.notes,
-          {
-            id: `note_${Date.now()} `,
-            userId: userId || 'unknown',
-            userName: userName || 'Unknown User',
-            content: note,
-            createdAt: serverTimestamp() as unknown as string,
-            category: 'action'
-          }
-        ];
+        const noteEntry: ResponseNote = {
+          id: `note_${Date.now()}`,
+          userId: userId || 'unknown',
+          userName: userName || 'Unknown User',
+          content: note,
+          createdAt: new Date().toISOString(),
+          category: 'action'
+        };
+        atomicUpdates.notes = arrayUnion(noteEntry);
       }
 
-      await updateDoc(doc(db, this.RESPONSES_COLLECTION, responseId), sanitizeData(updates));
+      await updateDoc(responseRef, sanitizeData(atomicUpdates));
 
       // Update incident playbook steps
       const incidentRef = doc(db, 'incidents', response.incidentId);
       await updateDoc(incidentRef, {
-        playbookStepsCompleted: updates.completedSteps || response.completedSteps
+        playbookStepsCompleted: [...response.completedSteps, ...(completed ? [stepId] : [])]
       });
 
     } catch (error) {
@@ -382,21 +381,19 @@ export class IncidentPlaybookService {
       const response = await this.getResponseByDocId(responseId);
       if (!response) throw new Error('Response introuvable');
 
-      const updates: Partial<IncidentResponse> = {
-        assignedTo: [...response.assignedTo, ...escalatedTo],
-        timeline: [
-          ...response.timeline,
-          {
-            id: `escalation_${Date.now()} `,
-            timestamp: new Date().toISOString(),
-            type: 'escalation',
-            description: `Incident escalated: ${reason} `,
-            metadata: { escalatedTo, reason }
-          }
-        ]
+      const escalationTimeline: TimelineEvent = {
+        id: `escalation_${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        type: 'escalation',
+        description: `Incident escalated: ${reason}`,
+        metadata: { escalatedTo, reason }
       };
 
-      await updateDoc(doc(db, this.RESPONSES_COLLECTION, responseId), sanitizeData(updates));
+      // Use arrayUnion for atomic updates to avoid race conditions
+      await updateDoc(doc(db, this.RESPONSES_COLLECTION, responseId), {
+        assignedTo: arrayUnion(...escalatedTo),
+        timeline: arrayUnion(escalationTimeline),
+      });
 
       // Update incident severity if needed
       await updateDoc(doc(db, 'incidents', response.incidentId), {

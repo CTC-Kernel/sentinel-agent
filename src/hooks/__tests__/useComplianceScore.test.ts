@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { useComplianceScore, useRecalculateScore } from '../useComplianceScore';
 import { ScoreService } from '../../services/scoreService';
-import type { ComplianceScore, ScoreHistory } from '../../types/score.types';
+import type { GlobalComplianceScore as ComplianceScore, GlobalScoreHistory as ScoreHistory } from '../../types/score.types';
 
 // Mock ScoreService
 vi.mock('../../services/scoreService', () => ({

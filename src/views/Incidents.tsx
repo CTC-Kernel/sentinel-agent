@@ -75,6 +75,12 @@ export const Incidents: React.FC = () => {
     const [severityFilter, setSeverityFilter] = useState('');
     const [activeTab, setActiveTab] = usePersistedState<string>('incidents-active-tab', 'overview');
     const [isFormDirty, setIsFormDirty] = useState(false);
+
+    useEffect(() => {
+        setFilter('');
+        setStatusFilter('');
+        setSeverityFilter('');
+    }, [activeTab]);
     const pendingSelectId = useRef<string | null>(null);
 
     // Optimized Data Hooks
@@ -456,7 +462,7 @@ export const Incidents: React.FC = () => {
                             searchQuery={filter}
                             onSearchChange={setFilter}
                             onRefresh={refreshIncidents}
-                            searchPlaceholder={t('risks.searchPlaceholder')}
+                            searchPlaceholder={t('incidents.searchPlaceholder', { defaultValue: 'Rechercher un incident...' })}
                             viewMode={viewMode}
                             onViewModeChange={handleViewModeChange}
                             actions={
@@ -542,22 +548,22 @@ export const Incidents: React.FC = () => {
                                                                     </button>
                                                                 )}
                                                             </Menu.Item>
+                                                            <Menu.Item>
+                                                                {({ active }) => (
+                                                                    <button
+                                                                        onClick={() => setCsvImportOpen(true)}
+                                                                        className={cn(
+                                                                            "group flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-normal ease-apple",
+                                                                            active ? "bg-primary text-primary-foreground shadow-md" : "text-foreground hover:bg-muted/50"
+                                                                        )}
+                                                                    >
+                                                                        <ListIcon className={cn("mr-2.5 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
+                                                                        {t('common.importCsv')}
+                                                                    </button>
+                                                                )}
+                                                            </Menu.Item>
                                                         </>
                                                     )}
-                                                    <Menu.Item>
-                                                        {({ active }) => (
-                                                            <button
-                                                                onClick={() => setCsvImportOpen(true)}
-                                                                className={cn(
-                                                                    "group flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-normal ease-apple",
-                                                                    active ? "bg-primary text-primary-foreground shadow-md" : "text-foreground hover:bg-muted/50"
-                                                                )}
-                                                            >
-                                                                <ListIcon className={cn("mr-2.5 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
-                                                                {t('common.importCsv')}
-                                                            </button>
-                                                        )}
-                                                    </Menu.Item>
                                                     <Menu.Item>
                                                         {({ active }) => (
                                                             <button
@@ -604,7 +610,6 @@ export const Incidents: React.FC = () => {
                                         onEdit={(inc) => {
                                             setSelectedIncident(inc);
                                             setCreationMode(false);
-                                            setSelectedIncident(inc);
                                         }}
                                         onDelete={initiateDelete}
                                         canEdit={canEdit}

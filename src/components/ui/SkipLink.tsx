@@ -25,7 +25,7 @@ export const SkipLink: React.FC = () => {
       "
       tabIndex={0}
     >
-      {t('common.skipToMainContent', { defaultValue: 'Aller au contenu principal' })}
+      {t('a11y.skipToContent', { defaultValue: 'Aller au contenu principal' })}
     </a>
   );
 };
@@ -43,9 +43,9 @@ interface SkipLinksProps {
 export const SkipLinks: React.FC<SkipLinksProps> = ({ links }) => {
   const { t } = useTranslation();
   const defaultLinks = [
-    { href: '#main-content', label: t('common.skipToMainContent', { defaultValue: 'Aller au contenu principal' }) },
-    { href: '#navigation', label: t('common.skipToNavigation', { defaultValue: 'Aller à la navigation' }) },
-    { href: '#search', label: t('common.skipToSearch', { defaultValue: 'Aller à la recherche' }) },
+    { href: '#main-content', label: t('a11y.skipToContent', { defaultValue: 'Aller au contenu principal' }) },
+    { href: '#navigation', label: t('a11y.skipToNav', { defaultValue: 'Aller à la navigation' }) },
+    { href: '#search', label: t('a11y.skipToSearch', { defaultValue: 'Aller à la recherche' }) },
   ];
 
   const skipLinks = links || defaultLinks;

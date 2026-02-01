@@ -27,13 +27,13 @@ import { useZodForm } from '../hooks/useZodForm';
 import { z } from 'zod';
 
 const threatSchema = z.object({
-    name: z.string().trim().min(1, 'Le titre est requis').max(100),
-    description: z.string().trim().min(1, 'La description est requise'),
-    framework: z.string().trim().min(1, 'Le cadre est requis'),
-    field: z.string().trim().min(1, 'Le domaine est requis'),
-    threat: z.string().trim().min(1, 'La menace est requise'),
-    vulnerability: z.string().trim().min(1, 'La vulnérabilité est requise'),
-    scenario: z.string().trim().min(1, 'Le scénario est requis'),
+    name: z.string().trim().min(1, 'Title is required').max(100),
+    description: z.string().trim().min(1, 'Description is required'),
+    framework: z.string().trim().min(1, 'Framework is required'),
+    field: z.string().trim().min(1, 'Domain is required'),
+    threat: z.string().trim().min(1, 'Threat is required'),
+    vulnerability: z.string().trim().min(1, 'Vulnerability is required'),
+    scenario: z.string().trim().min(1, 'Scenario is required'),
     probability: z.number().min(1).max(5),
     impact: z.number().min(1).max(5),
     strategy: z.enum(['Accepter', 'Atténuer', 'Transférer', 'Éviter'] as const)

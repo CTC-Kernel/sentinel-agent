@@ -3,13 +3,15 @@ import { collection, onSnapshot, orderBy, query, where } from 'firebase/firestor
 import { db } from '../../firebase';
 import { DocumentVersion } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
+import { useStore } from '../../store';
 
 export const useDocumentVersions = (documentId: string | null, enabled: boolean = true) => {
+  const { user } = useStore();
   const [versions, setVersions] = useState<DocumentVersion[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!enabled || !documentId) {
+    if (!enabled || !documentId || !user?.organizationId) {
       setTimeout(() => {
         setVersions(prev => prev.length > 0 ? [] : prev);
         setLoading(prev => prev ? false : prev);
@@ -20,6 +22,7 @@ export const useDocumentVersions = (documentId: string | null, enabled: boolean 
     setTimeout(() => setLoading(true), 0);
     const qVersions = query(
       collection(db, 'document_versions'),
+      where('organizationId', '==', user.organizationId),
       where('documentId', '==', documentId),
       orderBy('uploadedAt', 'desc')
     );
@@ -37,7 +40,7 @@ export const useDocumentVersions = (documentId: string | null, enabled: boolean 
     );
 
     return () => unsubscribe();
-  }, [documentId, enabled]);
+  }, [documentId, enabled, user?.organizationId]);
 
   return { versions, loading };
 };

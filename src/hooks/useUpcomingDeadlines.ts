@@ -192,8 +192,10 @@ export function useUpcomingDeadlines(
         futureDate.setDate(futureDate.getDate() + daysAhead);
 
         // Query for pending actions with due dates in range
+        // Using root 'actions' collection with organizationId filter (aligned with useOverdueActions)
         const actionsQuery = query(
-          collection(db, `tenants/${tenantId}/actions`),
+          collection(db, 'actions'),
+          where('organizationId', '==', tenantId),
           where('status', 'in', PENDING_ACTION_STATUSES),
           orderBy('dueDate', 'asc'),
           limit(maxItems * 2) // Fetch more to filter

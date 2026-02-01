@@ -298,7 +298,7 @@ describe.skip('IntakeForm', () => {
             fireEvent.click(submitButton);
 
             await waitFor(() => {
-                expect(screen.getByText("Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.")).toBeInTheDocument();
+                expect(screen.getByText("An error occurred while saving. Please try again.")).toBeInTheDocument();
             });
         });
 
@@ -309,7 +309,7 @@ describe.skip('IntakeForm', () => {
             fireEvent.click(submitButton);
 
             await waitFor(() => {
-                expect(screen.getByText('Organisation non identifiée. Lien invalide.')).toBeInTheDocument();
+                expect(screen.getByText('Organization not identified. Invalid link.')).toBeInTheDocument();
             });
         });
     });

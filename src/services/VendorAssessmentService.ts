@@ -25,7 +25,7 @@ import { ErrorLogger } from './errorLogger';
 import { QuestionnaireTemplate } from '../types/business';
 import {
   EnhancedAssessmentResponse,
-  AssessmentStatus,
+  VendorAssessmentStatus,
   ReviewCycle,
   AssessmentMetrics,
   UpcomingReview,
@@ -85,8 +85,8 @@ export class VendorAssessmentService {
           sections: templateData.sections,
           isDefault: templateData.metadata.id === 'general-security',
           isSystem: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
           createdBy: userId,
         };
 
@@ -212,6 +212,8 @@ export class VendorAssessmentService {
         answers: {},
         overallScore: 0,
         completionPercentage: 0,
+        createdAt: serverTimestamp() as unknown as string,
+        updatedAt: serverTimestamp() as unknown as string,
         sentDate: now,
         dueDate: input.dueDate,
         expirationDate: input.expirationDate,
@@ -255,9 +257,9 @@ export class VendorAssessmentService {
   /**
    * Update assessment status with history tracking
    */
-  static async updateAssessmentStatus(
+  static async updateVendorAssessmentStatus(
     assessmentId: string,
-    newStatus: AssessmentStatus,
+    newStatus: VendorAssessmentStatus,
     changedBy: string,
     reason?: string
   ): Promise<void> {
@@ -283,7 +285,7 @@ export class VendorAssessmentService {
       const updates: Partial<EnhancedAssessmentResponse> = {
         status: newStatus,
         statusHistory,
-        updatedAt: new Date().toISOString(),
+        updatedAt: serverTimestamp(),
       };
 
       // Set dates based on status change
@@ -305,7 +307,7 @@ export class VendorAssessmentService {
 
       await updateDoc(docRef, sanitizeData(updates));
     } catch (error) {
-      ErrorLogger.error(error, 'VendorAssessmentService.updateAssessmentStatus');
+      ErrorLogger.error(error, 'VendorAssessmentService.updateVendorAssessmentStatus');
       throw error;
     }
   }
@@ -516,7 +518,7 @@ export class VendorAssessmentService {
       })) as (EnhancedAssessmentResponse & { id: string })[];
 
       // Initialize status counts
-      const byStatus: Record<AssessmentStatus, number> = {
+      const byStatus: Record<VendorAssessmentStatus, number> = {
         'Draft': 0,
         'Sent': 0,
         'In Progress': 0,
@@ -663,7 +665,7 @@ export class VendorAssessmentService {
 
         // Update assessment with new alertsSent
         if (alertsSent.length !== (assessment.alertsSent?.length || 0)) {
-          batch.update(docSnap.ref, { alertsSent });
+          batch.update(docSnap.ref, sanitizeData({ alertsSent }));
         }
       }
 

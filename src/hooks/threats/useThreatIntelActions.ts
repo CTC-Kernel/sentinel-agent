@@ -33,12 +33,14 @@ export const useThreatIntelActions = () => {
   );
 
   const addRisk = useCallback(async (data: Partial<Risk>) => {
+    if (!user?.organizationId) throw new Error('Missing organizationId');
     return addRiskRaw({
       ...data,
+      organizationId: user.organizationId,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     });
-  }, [addRiskRaw]);
+  }, [addRiskRaw, user?.organizationId]);
 
   return {
     threats: threats || [],

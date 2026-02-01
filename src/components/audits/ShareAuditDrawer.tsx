@@ -21,8 +21,8 @@ interface ShareAuditDrawerProps {
 }
 
 const shareSchema = z.object({
-    email: z.string().email('Email invalide'),
-    organization: z.string().min(2, 'Nom requis'),
+    email: z.string().email(),
+    organization: z.string().min(2),
     expiryDays: z.number().min(1).max(90)
 });
 
@@ -34,7 +34,7 @@ export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onCl
     const [generatedLink, setGeneratedLink] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
 
-    const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<ShareFormData>({
+    const { register, handleSubmit, formState: { errors, isDirty }, reset, setValue, watch } = useForm<ShareFormData>({
         resolver: zodResolver(shareSchema),
         defaultValues: { expiryDays: 30 }
     });
@@ -78,10 +78,10 @@ export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onCl
     };
 
     const expiryOptions = [
-        { value: '7', label: '7 jours' },
-        { value: '15', label: '15 jours' },
-        { value: '30', label: '30 jours' },
-        { value: '60', label: '60 jours' },
+        { value: '7', label: t('audits.share.days', { defaultValue: '7 jours', count: 7 }) },
+        { value: '15', label: t('audits.share.days', { defaultValue: '15 jours', count: 15 }) },
+        { value: '30', label: t('audits.share.days', { defaultValue: '30 jours', count: 30 }) },
+        { value: '60', label: t('audits.share.days', { defaultValue: '60 jours', count: 60 }) },
     ];
 
     return (
@@ -91,6 +91,7 @@ export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onCl
             title={t('audits.share.title', { defaultValue: "Partager l'audit" })}
             subtitle={auditName}
             width="max-w-md"
+            hasUnsavedChanges={isDirty}
         >
             <div className="p-6 space-y-6">
                 {!generatedLink ? (

@@ -10,6 +10,7 @@
 import { collection, doc, addDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 /**
  * Supported audit actions
@@ -516,7 +517,7 @@ export class AuditLogService {
                 timestamp: serverTimestamp()
             };
 
-            const docRef = await addDoc(collection(db, 'system_logs'), entry);
+            const docRef = await addDoc(collection(db, 'system_logs'), sanitizeData(entry));
             return docRef.id;
         } catch (error) {
             ErrorLogger.error(error, 'AuditLogService.log', {
@@ -810,7 +811,7 @@ export class AuditLogService {
                     };
 
                     const docRef = doc(collection(db, 'system_logs'));
-                    batch.set(docRef, entry);
+                    batch.set(docRef, sanitizeData(entry));
                 }
 
                 await batch.commit();

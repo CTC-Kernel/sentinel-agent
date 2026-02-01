@@ -276,6 +276,8 @@ export const hasPermission = (
 // Human‑readable role names (French)
 export const getRoleName = (role: Role): string => {
     switch (role) {
+        case 'super_admin':
+            return 'Super Administrateur';
         case 'admin':
             return 'Administrateur';
         case 'rssi':
@@ -296,6 +298,8 @@ export const getRoleName = (role: Role): string => {
 // Descriptions for each role
 export const getRoleDescription = (role: Role): string => {
     switch (role) {
+        case 'super_admin':
+            return "Accès complet à toutes les fonctionnalités et à l'administration du système";
         case 'admin':
             return "Accès complet à toutes les fonctionnalités et paramètres du système.";
         case 'rssi':
@@ -303,9 +307,9 @@ export const getRoleDescription = (role: Role): string => {
         case 'auditor':
             return "Effectue les audits internes et externes, vérifie la conformité ISO 27001.";
         case 'project_manager':
-            return "Gère les projets SSI, planifie les jalons et suit l’avancement.";
+            return "Gère les projets SSI, planifie les jalons et suit l'avancement.";
         case 'direction':
-            return "Supervise l’ensemble des activités de conformité et de sécurité.";
+            return "Supervise l'ensemble des activités de conformité et de sécurité.";
         case 'user':
             return "Utilise l'application avec des droits limités selon les besoins métier.";
         default:

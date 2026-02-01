@@ -15,8 +15,6 @@ const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/
 const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
 
-const db = admin.firestore();
-
 // Délais NIS2 en millisecondes
 const NIS2_DEADLINES = {
     INITIAL_NOTIFICATION: 24 * 60 * 60 * 1000,      // 24 heures
@@ -56,6 +54,7 @@ function formatTimeRemaining(ms) {
  */
 async function sendNIS2Alert(incident, organizationId, alertType, timeRemaining) {
     const { NotificationManager } = require('../services/notificationManager');
+    const db = admin.firestore();
 
     // Récupérer les RSSI et admins de l'organisation
     const usersSnap = await db.collection('users')
@@ -127,7 +126,10 @@ exports.nis2DeadlineChecker = onSchedule({
     logger.info("Starting NIS2 deadline check...");
 
     try {
+        const db = admin.firestore();
+
         // Récupérer tous les incidents significatifs non fermés
+        // SECURITY (C4): Using collectionGroup requires verifying organizationId on each doc
         const incidentsSnap = await db.collectionGroup('incidents')
             .where('isSignificant', '==', true)
             .where('status', 'not-in', ['Fermé'])
@@ -140,8 +142,19 @@ exports.nis2DeadlineChecker = onSchedule({
 
         logger.info(`Checking ${incidentsSnap.size} significant incidents...`);
 
+        // Get valid organization IDs to verify cross-tenant isolation
+        const orgsSnap = await db.collection('organizations').get();
+        const validOrgIds = new Set(orgsSnap.docs.map(d => d.id));
+
         for (const doc of incidentsSnap.docs) {
             const incident = { id: doc.id, ...doc.data() };
+
+            // SECURITY: Verify organizationId exists and is a valid organization
+            if (!incident.organizationId || !validOrgIds.has(incident.organizationId)) {
+                logger.warn(`Incident ${doc.id} has invalid or missing organizationId, skipping`);
+                continue;
+            }
+
             const detectedAt = incident.detectedAt || incident.dateReported;
 
             if (!detectedAt) {

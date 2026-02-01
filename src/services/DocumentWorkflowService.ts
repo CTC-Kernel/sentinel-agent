@@ -4,6 +4,7 @@ import { Document, UserProfile, WorkflowHistoryItem } from '../types';
 import { DocumentStatus, isValidDocumentTransition } from '../types/documents';
 import { logAction } from './logger';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 /**
  * Document status constants for workflow operations
@@ -37,8 +38,22 @@ export class DocumentWorkflowService {
         );
     }
 
+    /**
+     * Guard: signed documents are immutable - no further workflow transitions allowed.
+     * Signature integrity requires that the document content and status remain unchanged after signing.
+     */
+    private static assertNotSigned(document: Document): void {
+        if (document.signatureStatus === 'signed') {
+            throw new Error("Ce document est signé et verrouillé. Aucune modification n'est autorisée.");
+        }
+    }
+
     static async submitForReview(document: Document, user: UserProfile, reviewers: string[], comment?: string) {
         try {
+            if (document.organizationId !== user.organizationId) {
+                throw new Error('Access denied: organization mismatch');
+            }
+            this.assertNotSigned(document);
             // Validate transition
             if (!this.validateTransition(document.status || Status.DRAFT, Status.IN_REVIEW)) {
                 throw new Error(`Transition invalide de ${document.status} vers ${Status.IN_REVIEW}`);
@@ -56,13 +71,13 @@ export class DocumentWorkflowService {
                 step: 'En revue'
             };
 
-            await updateDoc(doc(db, 'documents', document.id), {
+            await updateDoc(doc(db, 'documents', document.id), sanitizeData({
                 status: Status.IN_REVIEW,
                 workflowStatus: 'Review',
                 reviewers: sanitizedReviewers,
                 workflowHistory: arrayUnion(historyItem),
                 updatedAt: serverTimestamp()
-            });
+            }));
 
             await logAction(user, 'WORKFLOW', 'Document', `Document submitted for review: ${document.title} `);
         } catch (error) {
@@ -73,6 +88,10 @@ export class DocumentWorkflowService {
 
     static async approveDocument(document: Document, user: UserProfile, comment?: string) {
         try {
+            if (document.organizationId !== user.organizationId) {
+                throw new Error('Access denied: organization mismatch');
+            }
+            this.assertNotSigned(document);
             // Validate transition
             if (!this.validateTransition(document.status || Status.IN_REVIEW, Status.APPROVED)) {
                 throw new Error(`Transition invalide de ${document.status} vers ${Status.APPROVED}`);
@@ -89,12 +108,12 @@ export class DocumentWorkflowService {
                 step: 'Approbation'
             };
 
-            await updateDoc(doc(db, 'documents', document.id), {
+            await updateDoc(doc(db, 'documents', document.id), sanitizeData({
                 status: Status.APPROVED,
                 workflowStatus: 'Approved',
                 workflowHistory: arrayUnion(historyItem),
                 updatedAt: serverTimestamp()
-            });
+            }));
 
             await logAction(user, 'WORKFLOW', 'Document', `Document approved: ${document.title} `);
         } catch (error) {
@@ -107,6 +126,10 @@ export class DocumentWorkflowService {
         if (!comment) throw new Error("Un commentaire est requis pour le rejet.");
 
         try {
+            if (document.organizationId !== user.organizationId) {
+                throw new Error('Access denied: organization mismatch');
+            }
+            this.assertNotSigned(document);
             // Validate transition
             if (!this.validateTransition(document.status || Status.IN_REVIEW, Status.REJECTED)) {
                 throw new Error(`Transition invalide de ${document.status} vers ${Status.REJECTED}`);
@@ -123,12 +146,12 @@ export class DocumentWorkflowService {
                 step: 'En revue'
             };
 
-            await updateDoc(doc(db, 'documents', document.id), {
+            await updateDoc(doc(db, 'documents', document.id), sanitizeData({
                 status: Status.REJECTED,
                 workflowStatus: 'Rejected',
                 workflowHistory: arrayUnion(historyItem),
                 updatedAt: serverTimestamp()
-            });
+            }));
 
             await logAction(user, 'WORKFLOW', 'Document', `Document rejected: ${document.title} `);
         } catch (error) {
@@ -139,6 +162,10 @@ export class DocumentWorkflowService {
 
     static async publishDocument(document: Document, user: UserProfile) {
         try {
+            if (document.organizationId !== user.organizationId) {
+                throw new Error('Access denied: organization mismatch');
+            }
+            this.assertNotSigned(document);
             // Validate transition
             if (!this.validateTransition(document.status || Status.APPROVED, Status.PUBLISHED)) {
                 throw new Error(`Transition invalide de ${document.status} vers ${Status.PUBLISHED}`);
@@ -155,13 +182,13 @@ export class DocumentWorkflowService {
                 step: 'Publication'
             };
 
-            await updateDoc(doc(db, 'documents', document.id), {
+            await updateDoc(doc(db, 'documents', document.id), sanitizeData({
                 status: Status.PUBLISHED,
                 workflowStatus: 'Approved',
                 publishedAt: serverTimestamp(),
                 workflowHistory: arrayUnion(historyItem),
                 updatedAt: serverTimestamp()
-            });
+            }));
 
             await logAction(user, 'WORKFLOW', 'Document', `Document published: ${document.title} `);
         } catch (error) {
@@ -172,6 +199,10 @@ export class DocumentWorkflowService {
 
     static async archiveDocument(document: Document, user: UserProfile, reason?: string) {
         try {
+            if (document.organizationId !== user.organizationId) {
+                throw new Error('Access denied: organization mismatch');
+            }
+            this.assertNotSigned(document);
             // Can archive from any state except already archived
             if (document.status === 'Archivé') {
                 throw new Error('Document déjà archivé');
@@ -188,13 +219,13 @@ export class DocumentWorkflowService {
                 step: 'Archive'
             };
 
-            await updateDoc(doc(db, 'documents', document.id), {
+            await updateDoc(doc(db, 'documents', document.id), sanitizeData({
                 status: Status.ARCHIVED,
                 workflowStatus: 'Archived',
                 archivedAt: serverTimestamp(),
                 workflowHistory: arrayUnion(historyItem),
                 updatedAt: serverTimestamp()
-            });
+            }));
 
             await logAction(user, 'WORKFLOW', 'Document', `Document archived: ${document.title} `);
         } catch (error) {
@@ -205,6 +236,10 @@ export class DocumentWorkflowService {
 
     static async revertToDraft(document: Document, user: UserProfile, reason?: string) {
         try {
+            if (document.organizationId !== user.organizationId) {
+                throw new Error('Access denied: organization mismatch');
+            }
+            this.assertNotSigned(document);
             // Only allow revert from Rejected or In Review
             if (![Status.REJECTED, Status.IN_REVIEW].includes(document.status as DocumentStatus)) {
                 throw new Error(`Impossible de revenir en brouillon depuis ${document.status}`);
@@ -221,13 +256,13 @@ export class DocumentWorkflowService {
                 step: 'Brouillon'
             };
 
-            await updateDoc(doc(db, 'documents', document.id), {
+            await updateDoc(doc(db, 'documents', document.id), sanitizeData({
                 status: Status.DRAFT,
                 workflowStatus: 'Draft',
                 reviewers: [],
                 workflowHistory: arrayUnion(historyItem),
                 updatedAt: serverTimestamp()
-            });
+            }));
 
             await logAction(user, 'WORKFLOW', 'Document', `Document reverted to draft: ${document.title} `);
         } catch (error) {

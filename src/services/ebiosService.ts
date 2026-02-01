@@ -22,6 +22,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type {
   EbiosAnalysis,
   EbiosWorkshopNumber,
@@ -92,7 +93,7 @@ export class EbiosService {
         contributesToGlobalScore: true,
       };
 
-      await setDoc(analysisRef, analysis);
+      await setDoc(analysisRef, sanitizeData(analysis));
 
       return analysis;
     } catch (error) {
@@ -185,11 +186,11 @@ export class EbiosService {
     try {
       const analysisRef = doc(db, 'organizations', organizationId, 'ebiosAnalyses', analysisId);
 
-      await updateDoc(analysisRef, {
+      await updateDoc(analysisRef, sanitizeData({
         ...data,
         updatedAt: new Date().toISOString(),
         updatedBy: userId,
-      });
+      }));
     } catch (error) {
       ErrorLogger.error(error, 'EbiosService.updateAnalysis', {
         component: 'EbiosService',
@@ -282,7 +283,7 @@ export class EbiosService {
       const currentStatus = analysis.workshops[workshopNumber].status;
       const newStatus = currentStatus === 'not_started' ? 'in_progress' : currentStatus;
 
-      await updateDoc(analysisRef, {
+      await updateDoc(analysisRef, sanitizeData({
         [`workshops.${workshopNumber}.data`]: mergedData,
         [`workshops.${workshopNumber}.status`]: newStatus,
         [`workshops.${workshopNumber}.startedAt`]: currentStatus === 'not_started'
@@ -291,7 +292,7 @@ export class EbiosService {
         status: analysis.status === 'draft' ? 'in_progress' : analysis.status,
         updatedAt: new Date().toISOString(),
         updatedBy: userId,
-      });
+      }));
     } catch (error) {
       ErrorLogger.error(error, 'EbiosService.saveWorkshopData', {
         component: 'EbiosService',
@@ -342,14 +343,14 @@ export class EbiosService {
       // Determine analysis status
       const analysisStatus = workshopNumber === 5 ? 'completed' : 'in_progress';
 
-      await updateDoc(analysisRef, {
+      await updateDoc(analysisRef, sanitizeData({
         workshops: updatedWorkshops,
         currentWorkshop: nextWorkshop,
         completionPercentage,
         status: analysisStatus,
         updatedAt: now,
         updatedBy: userId,
-      });
+      }));
     } catch (error) {
       ErrorLogger.error(error, 'EbiosService.completeWorkshop', {
         component: 'EbiosService',
@@ -374,13 +375,13 @@ export class EbiosService {
       const analysisRef = doc(db, 'organizations', organizationId, 'ebiosAnalyses', analysisId);
       const now = new Date().toISOString();
 
-      await updateDoc(analysisRef, {
+      await updateDoc(analysisRef, sanitizeData({
         [`workshops.${workshopNumber}.status`]: 'validated',
         [`workshops.${workshopNumber}.validatedBy`]: userId,
         [`workshops.${workshopNumber}.validatedAt`]: now,
         updatedAt: now,
         updatedBy: userId,
-      });
+      }));
     } catch (error) {
       ErrorLogger.error(error, 'EbiosService.validateWorkshop', {
         component: 'EbiosService',
@@ -415,11 +416,11 @@ export class EbiosService {
 
       const analysisRef = doc(db, 'organizations', organizationId, 'ebiosAnalyses', analysisId);
 
-      await updateDoc(analysisRef, {
+      await updateDoc(analysisRef, sanitizeData({
         currentWorkshop: targetWorkshop,
         updatedAt: new Date().toISOString(),
         updatedBy: userId,
-      });
+      }));
     } catch (error) {
       ErrorLogger.error(error, 'EbiosService.navigateToWorkshop', {
         component: 'EbiosService',
@@ -491,7 +492,7 @@ export class EbiosService {
         createdAt: now,
       };
 
-      await setDoc(sourceRef, source);
+      await setDoc(sourceRef, sanitizeData(source));
 
       return source;
     } catch (error) {
@@ -605,7 +606,7 @@ export class EbiosService {
         createdBy: userId,
       };
 
-      await setDoc(programRef, program);
+      await setDoc(programRef, sanitizeData(program));
 
       // Generate milestones based on template
       await this.generateMilestonesForTemplate(organizationId, data.template || 'standard');
@@ -669,7 +670,7 @@ export class EbiosService {
         createdAt: now,
       };
 
-      await setDoc(milestoneRef, milestone);
+      await setDoc(milestoneRef, sanitizeData(milestone));
 
       return milestone;
     } catch (error) {
@@ -710,7 +711,7 @@ export class EbiosService {
         updates.completedAt = new Date().toISOString();
       }
 
-      await updateDoc(milestoneRef, updates);
+      await updateDoc(milestoneRef, sanitizeData(updates));
     } catch (error) {
       ErrorLogger.error(error, 'EbiosService.updateMilestoneStatus', {
         component: 'EbiosService',
@@ -746,7 +747,7 @@ export class EbiosService {
         updatedAt: new Date().toISOString(),
       };
 
-      await updateDoc(milestoneRef, updates);
+      await updateDoc(milestoneRef, sanitizeData(updates));
 
       const updatedDoc = await getDoc(milestoneRef);
       return { id: updatedDoc.id, ...updatedDoc.data() } as Milestone;
@@ -781,7 +782,7 @@ export class EbiosService {
         updates[`phases.${phase}`] = phaseData;
       }
 
-      await updateDoc(programRef, updates);
+      await updateDoc(programRef, sanitizeData(updates));
     } catch (error) {
       ErrorLogger.error(error, 'EbiosService.updateSMSIProgramPhase', {
         component: 'EbiosService',
@@ -803,10 +804,10 @@ export class EbiosService {
     try {
       const programRef = doc(db, 'organizations', organizationId, 'smsiProgram', 'current');
 
-      await updateDoc(programRef, {
+      await updateDoc(programRef, sanitizeData({
         ...data,
         updatedAt: new Date().toISOString(),
-      });
+      }));
 
       const updatedSnap = await getDoc(programRef);
       return updatedSnap.data() as SMSIProgram;
@@ -981,7 +982,7 @@ export class EbiosService {
         updatedAt: now,
       };
 
-      await setDoc(contextRef, context);
+      await setDoc(contextRef, sanitizeData(context));
 
       return context;
     } catch (error) {
@@ -1026,7 +1027,7 @@ export class EbiosService {
         workshops: original.workshops
       };
 
-      await setDoc(analysisRef, newAnalysis);
+      await setDoc(analysisRef, sanitizeData(newAnalysis));
       return newAnalysis;
     } catch (error) {
       ErrorLogger.error(error, 'EbiosService.duplicateAnalysis', {

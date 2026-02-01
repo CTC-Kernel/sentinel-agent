@@ -41,7 +41,7 @@ import { Button } from '../components/ui/button';
 import { OnboardingService } from '../services/onboardingService';
 
 export const Projects: React.FC = () => {
-    const { user, addToast, t } = useStore();
+    const { user, addToast, t, organization } = useStore();
 
     // Start module tour
     React.useEffect(() => {
@@ -218,7 +218,7 @@ export const Projects: React.FC = () => {
             PdfService.generateProjectExecutiveReport(selectedProject, {
                 title: selectedProject.name,
                 author: user?.displayName || 'Utilisateur',
-                organizationName: user?.organizationId || 'Sentinel'
+                organizationName: organization?.name || user?.organizationName || 'Sentinel GRC'
             });
             addToast(t('projects.toastReportSuccess'), "success");
         } catch {
@@ -340,7 +340,7 @@ export const Projects: React.FC = () => {
 
                             {/* Secondary Actions Menu */}
                             <Menu as="div" className="relative inline-block text-left">
-                                <Menu.Button as={Button} variant="ghost" size="icon" className="border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 shadow-sm">
+                                <Menu.Button as={Button} variant="ghost" size="icon" aria-label={t('common.actions.title')} className="border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 shadow-sm">
                                     <MoreVertical className="h-5 w-5" />
                                 </Menu.Button>
                                 <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-70 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-70 scale-100" leaveTo="transform opacity-0 scale-95">

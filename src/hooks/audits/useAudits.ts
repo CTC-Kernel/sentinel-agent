@@ -200,12 +200,12 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
                 relatedProjectIds: preSelectedProjectId ? [preSelectedProjectId] : (cleanData.relatedProjectIds || [])
             };
 
-            const docRef = await addDoc(collection(db, 'audits'), newDocData);
+            const docRef = await addDoc(collection(db, 'audits'), sanitizeData(newDocData));
 
             if (preSelectedProjectId) {
                 const projectDoc = await getDoc(doc(db, 'projects', preSelectedProjectId));
                 if (projectDoc.exists() && projectDoc.data()?.organizationId === user?.organizationId) {
-                    await updateDoc(doc(db, 'projects', preSelectedProjectId), { relatedAuditIds: arrayUnion(docRef.id) });
+                    await updateDoc(doc(db, 'projects', preSelectedProjectId), sanitizeData({ relatedAuditIds: arrayUnion(docRef.id) }));
                 }
             }
 

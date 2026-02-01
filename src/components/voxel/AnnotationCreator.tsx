@@ -168,17 +168,17 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
   // Handle save
   const handleSave = useCallback(async () => {
     if (!content.trim()) {
-      setError('Le contenu est requis');
+      setError('Content is required');
       return;
     }
 
     if (!author) {
-      setError('Vous devez etre connecte');
+      setError('You must be logged in');
       return;
     }
 
     if (!editingAnnotation && !position) {
-      setError('Position requise pour une nouvelle annotation');
+      setError('Position is required for a new annotation');
       return;
     }
 

@@ -1,4 +1,4 @@
-import React, { useDeferredValue, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useDeferredValue, useMemo, useRef, useState } from 'react';
 import { cn } from '../lib/utils';
 import { useSearchParams } from 'react-router-dom';
 import { SEO } from '../components/SEO';
@@ -147,6 +147,10 @@ const Assets: React.FC = () => {
 
     // Pagination
     const { currentPage, paginatedItems, setCurrentPage, setItemsPerPage, totalItems, itemsPerPage } = usePagination(filteredAssets, 20);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filteredAssets.length, setCurrentPage]);
 
     // Handlers
     const handleOpenInspector = React.useCallback((asset?: Asset) => {

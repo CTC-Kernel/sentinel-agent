@@ -34,17 +34,14 @@ exports.generateAgentReport = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    // SECURITY (C5): Only trust organizationId from auth token, never from request data
+    const organizationId = request.auth?.token?.organizationId;
     const { reportId, config } = request.data;
 
     if (!reportId || !organizationId || !config) {
       throw new HttpsError('invalid-argument', 'reportId, organizationId, and config are required');
     }
 
-    // SECURITY: Validate organizationId consistency between token and request data
-    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
-      throw new HttpsError('permission-denied', 'Organization mismatch');
-    }
 
     const userDoc = await db.collection('users').doc(auth.uid).get();
     const userData = userDoc.data();
@@ -196,17 +193,14 @@ exports.fetchComplianceReportData = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    // SECURITY (C5): Only trust organizationId from auth token, never from request data
+    const organizationId = request.auth?.token?.organizationId;
     const { filters, dateRange } = request.data;
 
     if (!organizationId) {
       throw new HttpsError('invalid-argument', 'organizationId is required');
     }
 
-    // SECURITY: Validate organizationId consistency between token and request data
-    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
-      throw new HttpsError('permission-denied', 'Organization mismatch');
-    }
 
     const userDoc = await db.collection('users').doc(auth.uid).get();
     const userData = userDoc.data();
@@ -238,17 +232,14 @@ exports.fetchFleetHealthReportData = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    // SECURITY (C5): Only trust organizationId from auth token, never from request data
+    const organizationId = request.auth?.token?.organizationId;
     const { filters, dateRange } = request.data;
 
     if (!organizationId) {
       throw new HttpsError('invalid-argument', 'organizationId is required');
     }
 
-    // SECURITY: Validate organizationId consistency between token and request data
-    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
-      throw new HttpsError('permission-denied', 'Organization mismatch');
-    }
 
     const userDoc = await db.collection('users').doc(auth.uid).get();
     const userData = userDoc.data();
@@ -280,17 +271,14 @@ exports.fetchExecutiveSummaryData = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
-    const organizationId = request.auth?.token?.organizationId || request.data?.organizationId;
+    // SECURITY (C5): Only trust organizationId from auth token, never from request data
+    const organizationId = request.auth?.token?.organizationId;
     const { dateRange } = request.data;
 
     if (!organizationId) {
       throw new HttpsError('invalid-argument', 'organizationId is required');
     }
 
-    // SECURITY: Validate organizationId consistency between token and request data
-    if (request.auth?.token?.organizationId && request.data?.organizationId && request.auth.token.organizationId !== request.data.organizationId) {
-      throw new HttpsError('permission-denied', 'Organization mismatch');
-    }
 
     const userDoc = await db.collection('users').doc(auth.uid).get();
     const userData = userDoc.data();

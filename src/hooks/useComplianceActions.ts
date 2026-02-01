@@ -30,9 +30,16 @@ export const useComplianceActions = (user: UserProfile | null) => {
             }
 
             // SECURITY: IDOR protection - verify control belongs to user's organization
-            if (controlOrganizationId && controlOrganizationId !== user?.organizationId) {
+            // If controlOrganizationId is not provided, fetch it from Firestore
+            let resolvedOrgId = controlOrganizationId;
+            if (!resolvedOrgId) {
+                const { getDoc } = await import('firebase/firestore');
+                const controlDoc = await getDoc(doc(db, 'controls', controlId));
+                resolvedOrgId = controlDoc.data()?.organizationId as string | undefined;
+            }
+            if (!resolvedOrgId || resolvedOrgId !== user?.organizationId) {
                 ErrorLogger.warn('IDOR attempt: control update across organizations', 'useComplianceActions.updateControl', {
-                    metadata: { attemptedBy: user?.uid, targetControl: controlId, targetOrg: controlOrganizationId, callerOrg: user?.organizationId }
+                    metadata: { attemptedBy: user?.uid, targetControl: controlId, targetOrg: resolvedOrgId, callerOrg: user?.organizationId }
                 });
                 toast.error(t('compliance.controlNotFound') || "Contrôle non trouvé");
                 return false;
@@ -414,7 +421,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
             const ref = await addDoc(collection(db, 'audits'), sanitizeData({
                 ...auditData,
                 organizationId: user?.organizationId, // Ensure org isolation
-                status: 'Planned',
+                status: 'Planifié',
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
                 createdBy: user?.uid

@@ -6,7 +6,7 @@
 
 import { useMemo } from 'react';
 import { cn } from '../../lib/utils';
-import type { ScoreHistory, TrendType } from '../../types/score.types';
+import type { GlobalScoreHistory as ScoreHistory, TrendType } from '../../types/score.types';
 import { getScoreHexColor } from '../../utils/scoreUtils';
 import { useStore } from '../../store';
 

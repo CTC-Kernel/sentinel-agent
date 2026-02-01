@@ -33,7 +33,7 @@ export interface UserProfile {
     organizationId?: string;
     organizationName?: string;
     email: string;
-    role: 'super_admin' | 'admin' | 'auditor' | 'user' | 'rssi' | 'project_manager' | 'direction';
+    role: 'super_admin' | 'admin' | 'auditor' | 'user' | 'rssi' | 'project_manager' | 'direction' | 'certifier';
     displayName: string;
     department?: string;
     photoURL?: string | null;
@@ -66,7 +66,7 @@ export interface CustomRole {
 export interface Invitation {
     id: string;
     email: string;
-    role: 'admin' | 'auditor' | 'user';
+    role: 'admin' | 'auditor' | 'user' | 'rssi' | 'project_manager' | 'direction';
     department: string;
     organizationId: string;
     organizationName: string;

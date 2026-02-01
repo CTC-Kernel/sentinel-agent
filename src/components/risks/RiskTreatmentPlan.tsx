@@ -121,9 +121,9 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
         // Calculate default due date if not present
         if (!initial.dueDate && risk.createdAt) {
             try {
-                const days = SLA_DAYS[risk.score >= 15 ? Criticality.CRITICAL :
-                    risk.score >= 10 ? Criticality.HIGH :
-                        risk.score >= 5 ? Criticality.MEDIUM : Criticality.LOW] || 90;
+                const days = SLA_DAYS[risk.score >= RISK_THRESHOLDS.CRITICAL ? Criticality.CRITICAL :
+                    risk.score >= RISK_THRESHOLDS.HIGH ? Criticality.HIGH :
+                        risk.score >= RISK_THRESHOLDS.MEDIUM ? Criticality.MEDIUM : Criticality.LOW] || 90;
 
                 const createdAtDate = parseISO(risk.createdAt);
                 if (!isNaN(createdAtDate.getTime())) {

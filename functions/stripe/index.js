@@ -96,9 +96,6 @@ exports.createCheckoutSession = onCall({
     }
 
     // Verify user belongs to organization and is admin/owner
-    const userDoc = await db.collection("users").doc(request.auth.uid).get();
-    const userData = userDoc.data();
-
     const orgRef = db.collection("organizations").doc(organizationId);
     const orgSnap = await orgRef.get();
 
@@ -108,7 +105,8 @@ exports.createCheckoutSession = onCall({
     const orgData = orgSnap.data();
 
     if (orgData.ownerId !== request.auth.uid) {
-        if (userData.role !== 'admin' || userData.organizationId !== organizationId) {
+        const tokenRole = request.auth.token.role;
+        if (!['admin'].includes(tokenRole) && !request.auth.token.superAdmin) {
             throw new HttpsError("permission-denied", "Only admins of this organization or owners can manage billing.");
         }
     }
@@ -118,7 +116,7 @@ exports.createCheckoutSession = onCall({
 
         if (!customerId) {
             const customer = await stripe.customers.create({
-                email: userData.email,
+                email: request.auth.token.email,
                 metadata: {
                     organizationId: organizationId,
                     firebaseUid: request.auth.uid
@@ -171,11 +169,12 @@ exports.createPortalSession = onCall({
         throw new HttpsError("unauthenticated", "User must be logged in.");
     }
 
-    const { organizationId, returnUrl } = request.data;
+    const organizationId = request.auth.token.organizationId;
+    const { returnUrl } = request.data;
 
     if (!organizationId) {
-        logger.error("No organizationId provided");
-        throw new HttpsError("invalid-argument", "Organization ID is required");
+        logger.error("No organizationId found in auth token");
+        throw new HttpsError("failed-precondition", "Organization ID not found in token");
     }
 
     logger.info(`Fetching organization: ${organizationId}`);
@@ -189,13 +188,10 @@ exports.createPortalSession = onCall({
 
     const orgData = orgSnap.data();
 
-    // Check if user is admin or owner
-    const userRef = admin.firestore().collection("users").doc(request.auth.uid);
-    const userSnap = await userRef.get();
-    const userData = userSnap.data();
-
+    // Check if user is admin or owner (using token claims)
     if (orgData.ownerId !== request.auth.uid) {
-        if (userData?.role !== 'admin' || userData?.organizationId !== organizationId) {
+        const tokenRole = request.auth.token.role;
+        if (!['admin'].includes(tokenRole) && !request.auth.token.superAdmin) {
             throw new HttpsError("permission-denied", "Only admins of this organization or owners can access billing portal.");
         }
     }

@@ -79,33 +79,39 @@ service firebase.storage {
     // Exports - organization-based, read-only after creation
     match /exports/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow create: if belongsToOrg(orgId) && canWriteStandard() && isValidFileSize(50);
+      allow create: if belongsToOrg(orgId) && canWriteStandard() && isValidFileSize(50) && request.resource.contentType.matches('application/pdf|application/zip|application/.*document.*|application/vnd.*|text/csv|application/json');
       allow update, delete: if false;
     }
 
     // Backups - Highly Restricted
     match /backups/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId) && canWriteCritical();
-      allow write: if belongsToOrg(orgId) && canWriteCritical() && isValidFileSize(500); // 500MB limit
+      allow write: if belongsToOrg(orgId) && canWriteCritical() && isValidFileSize(500) && request.resource.contentType.matches('application/json|application/zip|application/gzip|application/x-gzip'); // 500MB limit
     }
 
     // Organizations - General storage
     match /organizations/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow write: if belongsToOrg(orgId) && canWriteCritical() && isValidFileSize(50); // 50MB limit
+      allow write: if belongsToOrg(orgId) && canWriteCritical() && isValidFileSize(50) && request.resource.contentType.matches('image/.*|application/pdf|application/.*document.*|application/vnd.*|text/.*'); // 50MB limit
     }
 
     // Agent Releases - Authenticated read for downloads, admin-only write
     // Note: Cloud Functions use signed URLs for secure downloads
+    // INTENTIONAL: releases are shared across all orgs (not org-scoped).
+    // These are platform-level binaries (agent installers, update packages) that are
+    // identical for all organizations. Org isolation is not required here because
+    // no tenant-specific data is stored in this path.
     match /releases/{allPaths=**} {
       allow read: if isAuthenticated(); // Authenticated downloads via signed URLs from Cloud Function
-      allow write: if isAuthenticated() && canWriteCritical(); // Admin/RSSI only for uploads
+      allow write: if isAuthenticated() && canWriteCritical() && isValidFileSize(200) && request.resource.contentType.matches('application/.*|text/.*'); // Admin/RSSI only for uploads
     }
 
     // Agent Downloads - Authenticated read for agent installers
+    // INTENTIONAL: agent downloads are shared across all orgs (not org-scoped).
+    // Same rationale as /releases above - platform-level binaries, no tenant data.
     match /agents/downloads/{allPaths=**} {
       allow read: if isAuthenticated(); // Authenticated downloads for agent installers
-      allow write: if isAuthenticated() && canWriteCritical(); // Admin/RSSI only for uploads
+      allow write: if isAuthenticated() && canWriteCritical() && isValidFileSize(500) && request.resource.contentType.matches('application/.*|text/.*'); // Admin/RSSI only for uploads
     }
   }
 }

@@ -4,7 +4,7 @@
  * Tabbed form for creating/editing ICT Providers
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Controller, useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
@@ -38,6 +38,7 @@ interface ICTProviderFormProps {
     isEditing?: boolean;
     isLoading?: boolean;
     readOnly?: boolean;
+    onDirtyChange?: (isDirty: boolean) => void;
 }
 
 type TabId = 'general' | 'services' | 'contract' | 'compliance' | 'risk';
@@ -48,7 +49,8 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
     initialData,
     isEditing = false,
     isLoading = false,
-    readOnly = false
+    readOnly = false,
+    onDirtyChange
 }) => {
     'use no memo'; // Opt-out of React Compiler - react-hook-form's watch() is incompatible
     const { t } = useTranslation();
@@ -96,12 +98,17 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
         handleSubmit,
         watch,
         reset,
-        formState: { errors }
+        formState: { errors, isDirty }
     } = useForm<ICTProviderFormData>({
         resolver: zodResolver(ictProviderSchema) as never,
         defaultValues,
         mode: 'onChange'
     });
+
+    // Notify parent of dirty state changes
+    useEffect(() => {
+        onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     // Persistence Hook
     const { clearDraft } = useFormPersistence<ICTProviderFormData>('sentinel_ict_provider_draft_new', {

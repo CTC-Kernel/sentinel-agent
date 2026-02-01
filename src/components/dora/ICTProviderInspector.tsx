@@ -163,7 +163,7 @@ export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
                             </div>
                         ))}
                         {(!provider.services || provider.services.length === 0) && (
-                            <p className="text-sm text-slate-500 dark:text-slate-300 italic">Aucun service defini</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-300 italic">{t('dora.provider.noServices', { defaultValue: 'Aucun service defini' })}</p>
                         )}
                     </div>
                 </section>
@@ -223,7 +223,7 @@ export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
                                     UE
                                 </Badge>
                             ) : (
-                                <Badge status="warning" variant="soft" size="sm">Hors UE</Badge>
+                                <Badge status="warning" variant="soft" size="sm">{t('dora.compliance.outsideEU', { defaultValue: 'Hors UE' })}</Badge>
                             )}
                         </div>
                         {provider.compliance?.headquartersCountry && (
@@ -290,7 +290,7 @@ export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
                     <section>
                         <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-3 flex items-center gap-2">
                             <Building2 className="w-4 h-4" />
-                            Contact
+                            {t('dora.provider.contact', { defaultValue: 'Contact' })}
                         </h3>
                         <div className="space-y-2">
                             {provider.contactName && (

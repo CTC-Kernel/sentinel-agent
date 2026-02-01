@@ -22,13 +22,13 @@ import { RISK_SOURCE_CATEGORY_LABELS } from '../../../data/ebiosLibrary';
 
 // Form validation schema
 const customRiskSourceSchema = z.object({
-  code: z.string().min(1, 'Code requis').max(10, 'Code trop long'),
-  name: z.string().min(3, 'Nom requis (min 3 caractères)'),
+  code: z.string().min(1, 'Code is required').max(10, 'Code is too long'),
+  name: z.string().min(3, 'Name required (min 3 characters)'),
   category: z.string().refine(
     (val): val is RiskSourceCategory => RISK_SOURCE_CATEGORIES.includes(val as RiskSourceCategory),
-    { message: 'Catégorie requise' }
+    { message: 'Category is required' }
   ),
-  description: z.string().min(10, 'Description requise (min 10 caractères)'),
+  description: z.string().min(10, 'Description required (min 10 characters)'),
   motivation: z.string().optional(),
   resources: z.string().optional(),
 });
@@ -89,7 +89,7 @@ export const CustomRiskSourceForm: React.FC<CustomRiskSourceFormProps> = ({
   const onSubmit = (data: CustomRiskSourceFormData) => {
     // Check for duplicate codes (except when editing the same source)
     if (!isEditing && existingCodes.includes(data.code)) {
-      setError('code', { message: 'Ce code existe déjà' });
+      setError('code', { message: 'This code already exists' });
       return;
     }
 

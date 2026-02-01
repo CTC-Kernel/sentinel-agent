@@ -7,10 +7,8 @@ import { ErrorLogger } from '../services/errorLogger';
 import {
     collection,
     query,
-    where,
     orderBy,
     limit,
-    onSnapshot,
     getDocs,
     Timestamp
 } from 'firebase/firestore';
@@ -156,6 +154,7 @@ export function useAgentData(options: UseAgentDataOptions = {}): AgentDataSummar
 
     // Subscribe to recent results
     // Also needs to wait for claimsSynced for organization subcollections
+    // Uses org-scoped agent paths instead of collectionGroup to prevent cross-tenant queries
     useEffect(() => {
         if (demoMode) {
             // Demo mode: provide mock results asynchronously to avoid cascading renders
@@ -201,48 +200,84 @@ export function useAgentData(options: UseAgentDataOptions = {}): AgentDataSummar
         // Wait for custom claims to be synced before subscribing
         if (!claimsSynced) return;
 
-        // Query results from all agents using collectionGroup on 'results' subcollections
-        const resultsQuery = query(
-            collectionGroup(db, 'results'),
-            where('organizationId', '==', user.organizationId),
-            orderBy('createdAt', 'desc'),
-            limit(resultsLimit)
-        );
+        // Wait for agents to load before querying their results subcollections
+        if (agents.length === 0) return;
 
-        const unsubscribe = onSnapshot(
-            resultsQuery,
-            (snapshot) => {
-                const results = snapshot.docs.map(doc => {
-                    const data = doc.data();
-                    return {
-                        id: doc.id,
-                        checkId: data.checkId,
-                        framework: data.framework,
-                        controlId: data.controlId,
-                        status: data.status,
-                        evidence: data.evidence || {},
-                        timestamp: data.timestamp instanceof Timestamp
-                            ? data.timestamp.toDate().toISOString()
-                            : data.timestamp,
-                        durationMs: data.durationMs || 0,
-                        createdAt: data.createdAt instanceof Timestamp
-                            ? data.createdAt.toDate().toISOString()
-                            : data.createdAt,
-                    } as AgentResult;
-                });
-                setRecentResults(results);
-            },
-            (err) => {
-                // Silently fail for results - not critical
-                ErrorLogger.error(err, 'useAgentData.subscribeToResults', {
-                    component: 'useAgentData',
-                    organizationId: user.organizationId
-                });
+        let cancelled = false;
+
+        // Query results from each agent's org-scoped subcollection
+        // Path: organizations/{orgId}/agents/{agentId}/results
+        const fetchResults = async () => {
+            try {
+                const allResults: AgentResult[] = [];
+                const perAgentLimit = Math.max(5, Math.ceil(resultsLimit / agents.length));
+
+                await Promise.all(agents.map(async (agent) => {
+                    try {
+                        const resultsRef = collection(
+                            db,
+                            'organizations',
+                            user.organizationId!,
+                            'agents',
+                            agent.id,
+                            'results'
+                        );
+                        const resultsQuery = query(
+                            resultsRef,
+                            orderBy('createdAt', 'desc'),
+                            limit(perAgentLimit)
+                        );
+                        const snapshot = await getDocs(resultsQuery);
+                        snapshot.docs.forEach(docSnap => {
+                            const data = docSnap.data();
+                            allResults.push({
+                                id: docSnap.id,
+                                checkId: data.checkId,
+                                framework: data.framework,
+                                controlId: data.controlId,
+                                status: data.status,
+                                evidence: data.evidence || {},
+                                timestamp: data.timestamp instanceof Timestamp
+                                    ? data.timestamp.toDate().toISOString()
+                                    : data.timestamp,
+                                durationMs: data.durationMs || 0,
+                                createdAt: data.createdAt instanceof Timestamp
+                                    ? data.createdAt.toDate().toISOString()
+                                    : data.createdAt,
+                            } as AgentResult);
+                        });
+                    } catch (err) {
+                        // Individual agent failure should not break the entire results fetch
+                        ErrorLogger.error(err, 'useAgentData.fetchAgentResults', {
+                            component: 'useAgentData',
+                            metadata: { agentId: agent.id }
+                        });
+                    }
+                }));
+
+                if (!cancelled) {
+                    // Sort by createdAt descending and limit total results
+                    allResults.sort((a, b) => {
+                        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                        return timeB - timeA;
+                    });
+                    setRecentResults(allResults.slice(0, resultsLimit));
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    ErrorLogger.error(err, 'useAgentData.fetchResults', {
+                        component: 'useAgentData',
+                        organizationId: user.organizationId
+                    });
+                }
             }
-        );
+        };
 
-        return () => unsubscribe();
-    }, [user?.organizationId, includeResults, resultsLimit, demoMode, claimsSynced]);
+        fetchResults();
+
+        return () => { cancelled = true; };
+    }, [user?.organizationId, includeResults, resultsLimit, demoMode, claimsSynced, agents]);
 
     // Compute summary statistics
     const summary = useMemo((): AgentDataSummary => {

@@ -92,6 +92,11 @@ export interface Document {
     legalHoldIds?: string[];
     isUnderHold?: boolean;
     acl?: DocumentACL;
+    // Signature locking fields (set by SignatureService when all signers have signed)
+    /** Status set to 'signed' when all signatures are collected - document becomes immutable */
+    signatureStatus?: 'signed';
+    signatureRequestId?: string;
+    signedAt?: string;
 }
 
 export interface DocumentFolder {

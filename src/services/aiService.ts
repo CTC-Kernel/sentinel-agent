@@ -1,5 +1,6 @@
 import { doc, setDoc, serverTimestamp, Timestamp, FieldValue } from 'firebase/firestore';
 import { db, functions } from '../firebase';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { httpsCallable } from "firebase/functions";
 import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLink, AIInsight } from "../types";
 import { ErrorLogger } from "./errorLogger";
@@ -76,7 +77,7 @@ export const aiService = {
     async initConversation(userId: string): Promise<void> {
         try {
             const conversationRef = doc(db, 'conversations_ai', userId);
-            await setDoc(conversationRef, {
+            await setDoc(conversationRef, sanitizeData({
                 messages: [{
                     id: 'welcome',
                     role: 'assistant',
@@ -85,7 +86,7 @@ export const aiService = {
                 }],
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
-            }, { merge: true });
+            }), { merge: true });
         } catch (_error) {
             ErrorLogger.error(_error, 'aiService.initConversation');
             throw _error;
@@ -95,13 +96,13 @@ export const aiService = {
     async saveMessages(userId: string, messages: ChatMessage[]): Promise<void> {
         try {
             const conversationRef = doc(db, 'conversations_ai', userId);
-            await setDoc(conversationRef, {
+            await setDoc(conversationRef, sanitizeData({
                 messages: messages.map(m => ({
                     ...m,
                     timestamp: m.timestamp instanceof Date ? Timestamp.fromDate(m.timestamp) : m.timestamp
                 })),
                 updatedAt: serverTimestamp()
-            }, { merge: true });
+            }), { merge: true });
         } catch (_error) {
             ErrorLogger.error(_error, 'aiService.saveMessages');
             throw _error;

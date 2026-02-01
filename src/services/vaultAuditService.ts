@@ -11,8 +11,9 @@ import {
   addDoc,
   serverTimestamp,
 } from 'firebase/firestore';
-import { functions, db } from '@/firebase';
+import { functions, db, auth } from '@/firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 // Constants
 const DOCUMENT_AUDIT_LOGS_COLLECTION = 'document_audit_logs';
@@ -345,17 +346,25 @@ export const VaultAuditService = {
     documentId: string,
     organizationId: string,
     action: DocumentAction,
-    userId: string,
-    userEmail: string,
+    _userId: string,
+    _userEmail: string,
     details: Record<string, unknown> = {}
   ): Promise<string | null> {
     try {
+      // Validate authentication - use auth.currentUser instead of passed userId to prevent forgery
+      if (!auth.currentUser) {
+        throw new Error('Not authenticated');
+      }
+
+      const authenticatedUserId = auth.currentUser.uid;
+      const authenticatedEmail = auth.currentUser.email || '';
+
       const logEntry = {
         documentId,
         organizationId,
         action,
-        userId,
-        userEmail,
+        userId: authenticatedUserId,
+        userEmail: authenticatedEmail,
         timestamp: serverTimestamp(),
         details,
         metadata: {

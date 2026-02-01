@@ -24,13 +24,13 @@ type ImpactType = typeof IMPACT_TYPES[number];
 
 // Form validation schema
 const customObjectiveSchema = z.object({
-  code: z.string().min(1, 'Code requis').max(10, 'Code trop long'),
-  name: z.string().min(3, 'Nom requis (min 3 caractères)'),
+  code: z.string().min(1, 'Code is required').max(10, 'Code is too long'),
+  name: z.string().min(3, 'Name required (min 3 characters)'),
   impactType: z.string().refine(
     (val): val is ImpactType => IMPACT_TYPES.includes(val as ImpactType),
-    { message: 'Type d\'impact requis' }
+    { message: 'Impact type is required' }
   ),
-  description: z.string().min(10, 'Description requise (min 10 caractères)'),
+  description: z.string().min(10, 'Description required (min 10 characters)'),
 });
 
 type CustomObjectiveFormData = z.infer<typeof customObjectiveSchema>;
@@ -85,7 +85,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
   const onSubmit = (data: CustomObjectiveFormData) => {
     // Check for duplicate codes (except when editing the same objective)
     if (!isEditing && existingCodes.includes(data.code)) {
-      setError('code', { message: 'Ce code existe déjà' });
+      setError('code', { message: 'This code already exists' });
       return;
     }
 

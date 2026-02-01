@@ -56,7 +56,7 @@ export const useAuditDetails = (
             });
 
             const newCount = findings.length + 1;
-            await updateDoc(doc(db, 'audits', selectedAudit.id), { findingsCount: newCount });
+            await updateDoc(doc(db, 'audits', selectedAudit.id), sanitizeData({ findingsCount: newCount }));
             refreshAudits();
             fetchDetails(); // Reload findings
             addToast(t('audits.toast.findingAdded', { defaultValue: "Constat ajouté" }), "success");
@@ -72,7 +72,7 @@ export const useAuditDetails = (
         try {
             await deleteDoc(doc(db, 'findings', findingId));
             const newCount = Math.max(0, findings.length - 1);
-            await updateDoc(doc(db, 'audits', selectedAudit.id), { findingsCount: newCount });
+            await updateDoc(doc(db, 'audits', selectedAudit.id), sanitizeData({ findingsCount: newCount }));
             refreshAudits();
             setFindings(prev => prev.filter(f => f.id !== findingId));
             addToast(t('audits.toast.findingDeleted', { defaultValue: "Constat supprimé" }), "info");
@@ -117,7 +117,7 @@ export const useAuditDetails = (
             });
 
             if (checklist) {
-                await updateDoc(doc(db, 'audit_checklists', checklist.id), { questions: newChecklistData.questions });
+                await updateDoc(doc(db, 'audit_checklists', checklist.id), sanitizeData({ questions: newChecklistData.questions }));
                 setChecklist({ ...checklist, questions });
             } else {
                 const ref = await addDoc(collection(db, 'audit_checklists'), newChecklistData);
@@ -172,7 +172,7 @@ export const useAuditDetails = (
                 const currentEvidenceIds = finding.evidenceIds || [];
                 const updatedEvidenceIds = [...currentEvidenceIds, docRef.id];
 
-                await updateDoc(findingRef, { evidenceIds: updatedEvidenceIds });
+                await updateDoc(findingRef, sanitizeData({ evidenceIds: updatedEvidenceIds }));
 
                 // Update local state
                 setFindings(prev => prev.map(f => f.id === findingId ? { ...f, evidenceIds: updatedEvidenceIds } : f));
@@ -290,7 +290,7 @@ export const useAuditDetails = (
         if (!selectedAudit || !user?.organizationId) return;
         setIsValidating(true);
         try {
-            await updateDoc(doc(db, 'audits', selectedAudit.id), { status: newStatus, updatedAt: serverTimestamp(), updatedBy: user.uid });
+            await updateDoc(doc(db, 'audits', selectedAudit.id), sanitizeData({ status: newStatus, updatedAt: serverTimestamp(), updatedBy: user.uid }));
             await logAction(user, 'UPDATE', 'Audit', `Statut audit modifié: ${selectedAudit.name} → ${newStatus}`);
             // Contextual guidance toast based on target status
             if (newStatus === 'En cours') {
@@ -313,7 +313,7 @@ export const useAuditDetails = (
         }
         setIsValidating(true);
         try {
-            await updateDoc(doc(db, 'audits', selectedAudit.id), { status: 'Validé' });
+            await updateDoc(doc(db, 'audits', selectedAudit.id), sanitizeData({ status: 'Validé' }));
             await logAction(user, 'VALIDATE', 'Audit', `Audit validé: ${selectedAudit.name}`);
             addToast(t('audits.statusGuidance.validated', { defaultValue: 'Audit validé. Il est maintenant archivé.' }), 'success');
             refreshAudits();

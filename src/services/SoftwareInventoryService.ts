@@ -23,9 +23,11 @@ import {
     getDoc,
     setDoc,
     QueryDocumentSnapshot,
+    serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import {
     SoftwareInventoryEntry,
     SoftwareVersion,
@@ -431,10 +433,10 @@ export async function upsertSoftwareFromAgent(
         let added = 0;
         let updated = 0;
 
-        // Pre-fetch all existing software for this organization to avoid N+1 queries
+        // Pre-fetch all existing software for this organization that include this agent
         const existingQuery = query(
             getSoftwareCollection(organizationId),
-            where('agentId', '==', agentId)
+            where('agentIds', 'array-contains', agentId)
         );
         const existingSnapshot = await getDocs(existingQuery);
         const existingByName = new Map<string, QueryDocumentSnapshot>();
@@ -577,9 +579,9 @@ export async function upsertSoftwareFromAgent(
             const batch = writeBatch(db);
             for (const op of chunk) {
                 if (op.action === 'set') {
-                    batch.set(op.ref, op.data);
+                    batch.set(op.ref, sanitizeData(op.data));
                 } else {
-                    batch.update(op.ref, op.data);
+                    batch.update(op.ref, sanitizeData(op.data));
                 }
             }
             await batch.commit();
@@ -630,16 +632,16 @@ export async function updateAuthorizationStatus(
             existingData.agentCount / (totalAgentCount || 1)
         );
 
-        await updateDoc(softwareRef, {
+        await updateDoc(softwareRef, sanitizeData({
             authorizationStatus: status,
             authorizedBy: userId,
-            authorizedAt: new Date().toISOString(),
+            authorizedAt: serverTimestamp(),
             authorizationNotes: notes || null,
             riskScore: newRiskScore,
             riskLevel: getRiskLevel(newRiskScore),
             'riskFactors.unauthorizedScore': unauthorizedScore,
             updatedAt: Timestamp.now(),
-        });
+        }));
     } catch (error) {
         ErrorLogger.error(error as Error, 'SoftwareInventoryService.updateAuthorizationStatus', {
             component: 'SoftwareInventoryService',
@@ -671,10 +673,10 @@ export async function createAuthorizationRequest(
             requesterEmail: userEmail,
             justification,
             status: 'pending',
-            createdAt: new Date().toISOString(),
+            createdAt: serverTimestamp() as unknown as string,
         };
 
-        const docRef = await addDoc(getAuthRequestsCollection(organizationId), request);
+        const docRef = await addDoc(getAuthRequestsCollection(organizationId), sanitizeData(request));
         return docRef.id;
     } catch (error) {
         ErrorLogger.error(error as Error, 'SoftwareInventoryService.createAuthorizationRequest', {
@@ -708,12 +710,12 @@ export async function reviewAuthorizationRequest(
         const requestData = requestDoc.data();
 
         // Update request
-        await updateDoc(requestRef, {
+        await updateDoc(requestRef, sanitizeData({
             status: approved ? 'approved' : 'rejected',
             reviewedBy: reviewerId,
-            reviewedAt: new Date().toISOString(),
+            reviewedAt: serverTimestamp(),
             reviewNotes: notes || null,
-        });
+        }));
 
         // Update software authorization status
         await updateAuthorizationStatus(
@@ -765,14 +767,14 @@ export async function linkCvesToSoftware(
             existingData.agentCount / (totalAgentCount || 1)
         );
 
-        await updateDoc(softwareRef, {
+        await updateDoc(softwareRef, sanitizeData({
             linkedCveIds: allCveIds,
             hasVulnerabilities: allCveIds.length > 0,
             vulnerabilitySummary,
             riskScore: newRiskScore,
             riskLevel: getRiskLevel(newRiskScore),
             updatedAt: Timestamp.now(),
-        });
+        }));
     } catch (error) {
         ErrorLogger.error(error as Error, 'SoftwareInventoryService.linkCvesToSoftware', {
             component: 'SoftwareInventoryService',
@@ -864,7 +866,7 @@ export async function updateCISBaseline(
             scoreHistory,
         };
 
-        await setDoc(baselineRef, baseline);
+        await setDoc(baselineRef, sanitizeData(baseline));
     } catch (error) {
         ErrorLogger.error(error as Error, 'SoftwareInventoryService.updateCISBaseline', {
             component: 'SoftwareInventoryService',

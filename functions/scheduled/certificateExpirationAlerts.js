@@ -18,6 +18,19 @@ const { defineString } = require("firebase-functions/params");
 
 const appBaseUrl = defineString("APP_BASE_URL", { default: "https://app.cyber-threat-consulting.com" });
 
+/**
+ * Escape HTML special characters to prevent XSS in email templates (H1 fix)
+ */
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // Expiration thresholds (days)
 const DEFAULT_THRESHOLDS = {
     critical: 7,
@@ -103,16 +116,16 @@ function getCertificateExpirationEmailTemplate(orgName, expiringCerts, link) {
 
     const formatCertRow = (cert) => `
         <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 12px; font-weight: 500;">${cert.name}</td>
+            <td style="padding: 12px; font-weight: 500;">${escapeHtml(cert.name)}</td>
             <td style="padding: 12px;">
                 <span style="display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 12px; font-weight: 600;
                     ${cert.type === 'ssl_tls' ? 'background-color: #dbeafe; color: #2563eb;' :
                       cert.type === 'code_signing' ? 'background-color: #f3e8ff; color: #7c3aed;' :
                       'background-color: #f1f5f9; color: #64748b;'}">
-                    ${cert.type}
+                    ${escapeHtml(cert.type)}
                 </span>
             </td>
-            <td style="padding: 12px;">${cert.commonName}</td>
+            <td style="padding: 12px;">${escapeHtml(cert.commonName)}</td>
             <td style="padding: 12px; text-align: center;">
                 ${cert.daysRemaining <= 0 ?
                     '<span style="color: #6b7280; font-weight: 600;">Expiré</span>' :

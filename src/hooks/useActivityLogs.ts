@@ -5,6 +5,18 @@ import { SystemLog } from '../types';
 import { useStore } from '../store';
 import { toast } from '@/lib/toast';
 
+function safeTimestamp(ts: unknown): string {
+    if (!ts) return new Date().toISOString();
+    if (typeof ts === 'string') return ts;
+    if (ts && typeof ts === 'object' && 'toDate' in ts && typeof (ts as { toDate: () => Date }).toDate === 'function') {
+        return (ts as { toDate: () => Date }).toDate().toISOString();
+    }
+    if (ts && typeof ts === 'object' && 'seconds' in ts) {
+        return new Date((ts as { seconds: number }).seconds * 1000).toISOString();
+    }
+    return new Date().toISOString();
+}
+
 export const useActivityLogs = (limitCount: number = 50) => {
     const { user, t } = useStore();
     const [logs, setLogs] = useState<SystemLog[]>([]);
@@ -60,28 +72,17 @@ export const useActivityLogs = (limitCount: number = 50) => {
         // Date Range
         if (filter.dateRange && filter.dateRange !== 'all') {
             const now = new Date();
-            const logDate = (timestamp: unknown): Date => {
-                if (!timestamp) return new Date();
-                if (typeof timestamp === 'string') return new Date(timestamp);
-                if (timestamp instanceof Date) return timestamp;
-                if (timestamp && typeof timestamp === 'object' && 'toDate' in timestamp && typeof (timestamp as { toDate: () => Date }).toDate === 'function') {
-                    return (timestamp as { toDate: () => Date }).toDate();
-                }
-                if (timestamp && typeof timestamp === 'object' && 'seconds' in timestamp) {
-                    return new Date((timestamp as { seconds: number }).seconds * 1000);
-                }
-                return new Date();
-            };
 
             if (filter.dateRange === 'today') {
-                const startOfToday = new Date(now.setHours(0, 0, 0, 0));
-                result = result.filter(l => logDate(l.timestamp) >= startOfToday);
+                const startOfToday = new Date(now);
+                startOfToday.setHours(0, 0, 0, 0);
+                result = result.filter(l => new Date(safeTimestamp(l.timestamp)) >= startOfToday);
             } else if (filter.dateRange === 'week') {
                 const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                result = result.filter(l => logDate(l.timestamp) >= weekAgo);
+                result = result.filter(l => new Date(safeTimestamp(l.timestamp)) >= weekAgo);
             } else if (filter.dateRange === 'month') {
                 const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-                result = result.filter(l => logDate(l.timestamp) >= monthAgo);
+                result = result.filter(l => new Date(safeTimestamp(l.timestamp)) >= monthAgo);
             }
         }
 
@@ -129,16 +130,7 @@ export const useActivityLogs = (limitCount: number = 50) => {
                 today.setHours(0, 0, 0, 0);
 
                 const logsToday = recentLogs.filter(l => {
-                    const ts = l.timestamp as { seconds: number } | string | Date;
-                    let date: Date;
-                    if (ts && typeof ts === 'object' && 'seconds' in ts) {
-                        date = new Date(ts.seconds * 1000);
-                    } else if (typeof ts === 'string') {
-                        date = new Date(ts);
-                    } else {
-                        date = new Date(); // Fallback
-                    }
-                    return date >= today;
+                    return new Date(safeTimestamp(l.timestamp)) >= today;
                 });
 
                 const uniqueUsers = new Set(recentLogs.map(l => l.userEmail)).size;
@@ -185,20 +177,7 @@ export const useActivityLogs = (limitCount: number = 50) => {
         const csvContent = [
             headers.join(','),
             ...filteredLogs.map(log => {
-                const ts = log.timestamp as unknown;
-                const safeTimestamp = (t: unknown): string => {
-                    if (!t) return new Date().toISOString();
-                    if (typeof t === 'string') return t;
-                    if (t instanceof Date) return t.toISOString();
-                    if (t && typeof t === 'object' && 'toDate' in t && typeof (t as { toDate: () => Date }).toDate === 'function') {
-                        return (t as { toDate: () => Date }).toDate().toISOString();
-                    }
-                    if (t && typeof t === 'object' && 'seconds' in t) {
-                        return new Date((t as { seconds: number }).seconds * 1000).toISOString();
-                    }
-                    return new Date().toISOString();
-                };
-                const date = new Date(safeTimestamp(ts)).toLocaleString();
+                const date = new Date(safeTimestamp(log.timestamp)).toLocaleString();
                 return [
                     `"${date}"`,
                     `"${log.userEmail}"`,

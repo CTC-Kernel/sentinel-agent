@@ -13,6 +13,7 @@ import {
 import { Audit, Control, Risk, Asset, Project } from '../../../types';
 import { Badge } from '../../ui/Badge';
 import { Button } from '../../ui/button';
+import { RISK_THRESHOLDS } from '../../../constants/complianceConfig';
 
 interface AuditLinkedItemsProps {
     audit: Audit;
@@ -51,9 +52,9 @@ function getControlStatusStyle(status: string): { icon: React.ReactNode; color: 
  * Get risk level from score
  */
 function getRiskLevelFromScore(score: number): string {
-    if (score >= 15) return 'Critique';
-    if (score >= 10) return 'Élevé';
-    if (score >= 5) return 'Moyen';
+    if (score >= RISK_THRESHOLDS.CRITICAL) return 'Critique';
+    if (score >= RISK_THRESHOLDS.HIGH) return 'Élevé';
+    if (score >= RISK_THRESHOLDS.MEDIUM) return 'Moyen';
     return 'Faible';
 }
 
@@ -61,9 +62,9 @@ function getRiskLevelFromScore(score: number): string {
  * Get risk level badge styling
  */
 function getRiskLevelStyle(score: number): 'error' | 'warning' | 'info' | 'success' {
-    if (score >= 15) return 'error';
-    if (score >= 10) return 'error';
-    if (score >= 5) return 'warning';
+    if (score >= RISK_THRESHOLDS.CRITICAL) return 'error';
+    if (score >= RISK_THRESHOLDS.HIGH) return 'error';
+    if (score >= RISK_THRESHOLDS.MEDIUM) return 'warning';
     return 'success';
 }
 

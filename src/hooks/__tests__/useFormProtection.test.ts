@@ -73,7 +73,7 @@ describe('useFormProtection', () => {
                 result.current.setFieldValue('name', '');
             });
 
-            expect(result.current.errors.name).toBe('Ce champ est requis');
+            expect(result.current.errors.name).toBe('This field is required');
         });
 
         it('does not validate field if not touched', () => {
@@ -108,7 +108,7 @@ describe('useFormProtection', () => {
                 result.current.setFieldTouched('name');
             });
 
-            expect(result.current.errors.name).toBe('Ce champ est requis');
+            expect(result.current.errors.name).toBe('This field is required');
         });
 
         it('shows error for whitespace-only string', () => {
@@ -121,7 +121,7 @@ describe('useFormProtection', () => {
                 result.current.setFieldTouched('name');
             });
 
-            expect(result.current.errors.name).toBe('Ce champ ne peut pas être vide');
+            expect(result.current.errors.name).toBe('This field cannot be empty');
         });
 
         it('no error for valid value', () => {
@@ -165,7 +165,7 @@ describe('useFormProtection', () => {
             });
 
             expect(isValid!).toBe(false);
-            expect(result.current.errors.name).toBe('Ce champ est requis');
+            expect(result.current.errors.name).toBe('This field is required');
         });
 
         it('marks all fields as touched', () => {

@@ -17,6 +17,7 @@ import { toast } from '@/lib/toast';
 import { Framework } from '../types';
 import { AuditLogService } from '../services/auditLogService';
 import { canEditResource } from '../utils/permissions';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 export const useComplianceDataSeeder = () => {
     const { user, t } = useStore();
@@ -60,7 +61,7 @@ export const useComplianceDataSeeder = () => {
 
             for (const control of seedData) {
                 const newDocRef = doc(controlsCol);
-                batch.set(newDocRef, {
+                batch.set(newDocRef, sanitizeData({
                     code: control.code,
                     name: control.name,
                     description: control.name, // Use name as description if missing
@@ -72,7 +73,7 @@ export const useComplianceDataSeeder = () => {
                     updatedAt: serverTimestamp(),
                     riskLevel: 'Faible',
                     maturity: 0
-                });
+                }));
                 count++;
             }
 

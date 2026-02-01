@@ -26,6 +26,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 // ============================================================================
 // Types
@@ -168,10 +169,10 @@ class SecurityAnomalyDetectionService {
       const failedLoginRef = collection(db, 'security_failed_logins');
 
       // Store the failed login event
-      await addDoc(failedLoginRef, {
+      await addDoc(failedLoginRef, sanitizeData({
         ...event,
         timestamp: serverTimestamp()
-      });
+      }));
 
       // Check for brute force attack on this account
       const bruteForceAnomaly = await this.checkBruteForce(event.email, event.organizationId);
@@ -557,7 +558,7 @@ class SecurityAnomalyDetectionService {
         detectedAt: serverTimestamp()
       };
 
-      const docRef = await addDoc(anomalyRef, fullAnomaly);
+      const docRef = await addDoc(anomalyRef, sanitizeData(fullAnomaly));
 
       ErrorLogger.warn(`Security anomaly detected: ${anomaly.type}`, 'SecurityAnomalyService', {
         metadata: {
@@ -655,7 +656,7 @@ class SecurityAnomalyDetectionService {
         }
       }
 
-      await setDoc(anomalyRef, updateData, { merge: true });
+      await setDoc(anomalyRef, sanitizeData(updateData), { merge: true });
 
       ErrorLogger.info(`Anomaly ${anomalyId} updated to ${status}`, 'SecurityAnomalyService');
 

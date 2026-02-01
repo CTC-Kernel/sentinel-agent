@@ -10,6 +10,7 @@ import { FloatingLabelInput } from '../../ui/FloatingLabelInput';
 import { RiskTreatmentPlan } from '../RiskTreatmentPlan';
 import { Risk } from '../../../types';
 import { RiskFormTreatmentTabProps } from './riskFormTypes';
+import { RISK_ACCEPTANCE_THRESHOLD } from '../../../constants/RiskConstants';
 
 export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.memo(({
     control,
@@ -37,7 +38,7 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
 
     const [searchTerm, setSearchTerm] = useState('');
 
-    const showJustification = strategy === 'Accepter' && (probability * impact) >= 12;
+    const showJustification = strategy === 'Accepter' && (probability * impact) >= RISK_ACCEPTANCE_THRESHOLD;
 
     return (
         <div className="space-y-8 bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium">

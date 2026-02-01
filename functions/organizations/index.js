@@ -167,25 +167,25 @@ exports.createOrganization = onCall({
 
         // Firestore permission errors
         if (errorCode.includes('permission-denied') || errorMessage.includes('PERMISSION_DENIED')) {
-            throw new HttpsError('permission-denied', 'Permissions insuffisantes. Contactez l\'administrateur.');
+            throw new HttpsError('permission-denied', 'Insufficient permissions. Contact your administrator.');
         }
 
         // Network/connectivity errors
         if (errorCode.includes('unavailable') || errorMessage.includes('UNAVAILABLE')) {
-            throw new HttpsError('unavailable', 'Service temporairement indisponible. Réessayez dans quelques instants.');
+            throw new HttpsError('unavailable', 'Service temporarily unavailable. Please retry shortly.');
         }
 
         // Auth errors
         if (errorCode.includes('auth/') || errorMessage.includes('auth')) {
-            throw new HttpsError('unauthenticated', 'Session expirée. Veuillez vous reconnecter.');
+            throw new HttpsError('unauthenticated', 'Session expired. Please sign in again.');
         }
 
         // Quota errors
         if (errorCode.includes('resource-exhausted')) {
-            throw new HttpsError('resource-exhausted', 'Quota dépassé. Réessayez plus tard.');
+            throw new HttpsError('resource-exhausted', 'Quota exceeded. Please retry later.');
         }
 
-        throw new HttpsError('internal', 'Une erreur interne est survenue lors de la création de l\'organisation.');
+        throw new HttpsError('internal', 'An internal error occurred while creating the organization.');
     }
 });
 
@@ -213,7 +213,7 @@ exports.deleteOrganization = onCall({
     } catch (error) {
         logger.error(`Delete Organization Failed`, error);
         if (error.message && error.message.includes('Permission denied')) {
-            throw new HttpsError('permission-denied', 'Permissions insuffisantes pour supprimer cette organisation.');
+            throw new HttpsError('permission-denied', 'Insufficient permissions to delete this organization.');
         }
         throw new HttpsError('internal', 'Deletion failed.');
     }
@@ -444,12 +444,12 @@ exports.submitKioskAsset = onCall({
     const assetData = {
         name,
         serialNumber,
-        type: 'Materiel',
+        type: 'hardware',
         hardwareType: hardwareType || 'Laptop',
         organizationId: orgId,
         hardware: hardware || {},
-        status: 'En stock',
-        criticality: 'Moyenne',
+        status: 'in_stock',
+        criticality: 'medium',
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         source: 'Kiosk Intake',

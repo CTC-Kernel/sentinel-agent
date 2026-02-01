@@ -5,12 +5,20 @@ import { EmailTemplateService } from './EmailTemplateService';
  * Génère du HTML compatible avec les clients mails (Outlook, Gmail, Apple Mail) via EmailTemplateService.
  */
 
+/**
+ * Escape HTML special characters to prevent XSS in email templates
+ */
+function escapeHtml(str: string): string {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
 export const getInvitationTemplate = (inviterName: string, role: string, link: string) => {
   return EmailTemplateService.generateHtml({
     title: 'Invitation à rejoindre Sentinel GRC',
     content: `
       <p>Bonjour,</p>
-      <p><strong>${inviterName}</strong> vous invite à rejoindre l'espace de travail <strong>Sentinel GRC</strong> en tant que <strong>${role}</strong>.</p>
+      <p><strong>${escapeHtml(inviterName)}</strong> vous invite à rejoindre l'espace de travail <strong>Sentinel GRC</strong> en tant que <strong>${escapeHtml(role)}</strong>.</p>
       <div class="highlight-box">
         <p style="margin: 0; font-size: 14px; color: #64748b;">En acceptant cette invitation, vous accéderez à une plateforme de pilotage SSI dédiée à la gestion des risques, des contrôles ISO 27001 et des plans d'actions.</p>
       </div>
@@ -28,13 +36,13 @@ export const getIncidentAlertTemplate = (title: string, severity: string, report
     title: '⚠️ Nouvel Incident de Sécurité',
     content: `
       <div class="alert-box ${alertClass}">
-        <h3 style="margin: 0; font-size: 16px;">Sévérité : ${severity}</h3>
+        <h3 style="margin: 0; font-size: 16px;">Sévérité : ${escapeHtml(severity)}</h3>
       </div>
-      <p>Un incident a été déclaré par <strong>${reporter}</strong>.</p>
+      <p>Un incident a été déclaré par <strong>${escapeHtml(reporter)}</strong>.</p>
       <table class="data-table">
         <tr>
           <td>Titre</td>
-          <td>${title}</td>
+          <td>${escapeHtml(title)}</td>
         </tr>
         <tr>
           <td>Date</td>
@@ -52,8 +60,8 @@ export const getDocumentReviewTemplate = (docTitle: string, ownerName: string, d
   return EmailTemplateService.generateHtml({
     title: 'Révision Documentaire Requise',
     content: `
-      <p>Bonjour ${ownerName},</p>
-      <p>Le document <strong>"${docTitle}"</strong> arrive à échéance de révision.</p>
+      <p>Bonjour ${escapeHtml(ownerName)},</p>
+      <p>Le document <strong>"${escapeHtml(docTitle)}"</strong> arrive à échéance de révision.</p>
       <div class="highlight-box" style="text-align: center;">
         <span style="font-size: 12px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 1px;">Date d'échéance</span>
         <div style="font-size: 18px; font-weight: 600; color: #0f172a; margin-top: 4px;">${new Date(dueDate).toLocaleDateString()}</div>
@@ -69,9 +77,9 @@ export const getTaskAssignmentTemplate = (taskTitle: string, projectName: string
   return EmailTemplateService.generateHtml({
     title: 'Nouvelle tâche assignée',
     content: `
-      <p>Une nouvelle tâche vous a été assignée dans le projet <strong>${projectName}</strong> géré par ${manager}.</p>
+      <p>Une nouvelle tâche vous a été assignée dans le projet <strong>${escapeHtml(projectName)}</strong> géré par ${escapeHtml(manager)}.</p>
       <div class="alert-box alert-info">
-        <h3 style="margin: 0; font-size: 16px;">${taskTitle}</h3>
+        <h3 style="margin: 0; font-size: 16px;">${escapeHtml(taskTitle)}</h3>
       </div>
     `,
     actionLabel: "Voir la tâche",
@@ -83,10 +91,10 @@ export const getAuditReminderTemplate = (auditName: string, auditorName: string,
   return EmailTemplateService.generateHtml({
     title: '📋 Rappel d\'Audit Planifié',
     content: `
-      <p>Bonjour ${auditorName},</p>
+      <p>Bonjour ${escapeHtml(auditorName)},</p>
       <p>Un audit est planifié dans les prochains jours et nécessite votre attention.</p>
       <div class="alert-box alert-info">
-        <h3 style="margin: 0 0 8px 0; font-size: 16px;">${auditName}</h3>
+        <h3 style="margin: 0 0 8px 0; font-size: 16px;">${escapeHtml(auditName)}</h3>
         <p style="margin: 0; font-size: 14px;">Date prévue : <strong>${new Date(scheduledDate).toLocaleDateString()}</strong></p>
       </div>
       <p>Assurez-vous d'avoir préparé tous les documents et preuves nécessaires pour cet audit.</p>
@@ -100,10 +108,10 @@ export const getRiskTreatmentDueTemplate = (riskTitle: string, dueDate: string, 
   return EmailTemplateService.generateHtml({
     title: '⏰ Échéance de Traitement de Risque',
     content: `
-      <p>Bonjour ${responsiblePerson},</p>
+      <p>Bonjour ${escapeHtml(responsiblePerson)},</p>
       <p>Le plan de traitement du risque suivant arrive à échéance :</p>
       <div class="alert-box alert-warning">
-        <h3 style="margin: 0; font-size: 16px;">${riskTitle}</h3>
+        <h3 style="margin: 0; font-size: 16px;">${escapeHtml(riskTitle)}</h3>
         <p style="margin: 8px 0 0 0;">Date limite : <strong>${new Date(dueDate).toLocaleDateString()}</strong></p>
       </div>
       <p>Veuillez mettre à jour le statut du traitement ou demander une extension si nécessaire.</p>
@@ -124,11 +132,11 @@ export const getComplianceAlertTemplate = (controlCode: string, controlName: str
       <table class="data-table">
         <tr>
           <td>Contrôle</td>
-          <td>${controlCode} - ${controlName}</td>
+          <td>${escapeHtml(controlCode)} - ${escapeHtml(controlName)}</td>
         </tr>
         <tr>
           <td>Problème</td>
-          <td style="color: #dc2626;">${issue}</td>
+          <td style="color: #dc2626;">${escapeHtml(issue)}</td>
         </tr>
       </table>
       <p>La conformité ISO 27001 exige une résolution rapide de cette non-conformité.</p>
@@ -142,7 +150,7 @@ export const getPasswordResetTemplate = (userName: string, resetLink: string) =>
   return EmailTemplateService.generateHtml({
     title: 'Réinitialisation de votre mot de passe',
     content: `
-      <p>Bonjour ${userName},</p>
+      <p>Bonjour ${escapeHtml(userName)},</p>
       <p>Nous avons reçu une demande de réinitialisation de votre mot de passe pour votre compte Sentinel GRC.</p>
       <div class="alert-box alert-warning">
         <p style="margin: 0; font-size: 13px;">Pour des raisons de sécurité, ce lien est valide pendant 1 heure uniquement et ne peut être utilisé qu'une seule fois.</p>
@@ -159,17 +167,17 @@ export const getWelcomeEmailTemplate = (userName: string, organizationName: stri
     title: 'Bienvenue sur Sentinel GRC',
     content: `
       <p style="text-align: center; margin: 0 0 24px 0; color: #4b5563;">Votre espace de pilotage de la sécurité et de la conformité est prêt.</p>
-      <p>Bonjour ${userName},</p>
+      <p>Bonjour ${escapeHtml(userName)},</p>
       <p>Votre compte Sentinel GRC a été créé avec succès. Vous pouvez dès à présent structurer votre programme SSI, suivre vos risques et piloter vos audits ISO 27001.</p>
       <div class="highlight-box">
         <table class="data-table" style="margin: 0;">
           <tr>
             <td>Organisation</td>
-            <td>${organizationName}</td>
+            <td>${escapeHtml(organizationName)}</td>
           </tr>
           <tr>
             <td>Rôle</td>
-            <td style="color: #4F46E5;">${role}</td>
+            <td style="color: #4F46E5;">${escapeHtml(role)}</td>
           </tr>
         </table>
       </div>
@@ -184,7 +192,7 @@ export const getWeeklyDigestTemplate = (userName: string, stats: { newRisks: num
   return EmailTemplateService.generateHtml({
     title: 'Résumé hebdomadaire',
     content: `
-      <p>Bonjour ${userName},</p>
+      <p>Bonjour ${escapeHtml(userName)},</p>
       <p>Voici les principaux indicateurs de la semaine sur Sentinel GRC :</p>
       <table width="100%" style="margin: 24px 0; border-spacing: 12px;">
         <tr>
@@ -222,8 +230,8 @@ export const getSupplierReviewTemplate = (supplierName: string, criticality: str
     content: `
       <p>Un fournisseur critique nécessite une révision de sécurité.</p>
       <div class="alert-box ${alertClass}">
-        <h3 style="margin: 0 0 8px 0; font-size: 18px;">${supplierName}</h3>
-        <p style="margin: 0; font-size: 14px;">Criticité : <strong>${criticality}</strong></p>
+        <h3 style="margin: 0 0 8px 0; font-size: 18px;">${escapeHtml(supplierName)}</h3>
+        <p style="margin: 0; font-size: 14px;">Criticité : <strong>${escapeHtml(criticality)}</strong></p>
         <p style="margin: 8px 0 0 0; font-size: 14px;">Dernière révision : ${new Date(lastReviewDate).toLocaleDateString()}</p>
       </div>
       <p>Conformément à la politique de gestion des tiers, une révision annuelle est requise pour tous les fournisseurs critiques.</p>
@@ -235,14 +243,14 @@ export const getSupplierReviewTemplate = (supplierName: string, criticality: str
 
 export const getContactMessageTemplate = (name: string, email: string, subject: string, message: string) => {
   return EmailTemplateService.generateHtml({
-    title: `Nouveau message de contact : ${subject}`,
+    title: `Nouveau message de contact : ${escapeHtml(subject)}`,
     content: `
-      <p><strong>Nom:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Sujet:</strong> ${subject}</p>
+      <p><strong>Nom:</strong> ${escapeHtml(name)}</p>
+      <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+      <p><strong>Sujet:</strong> ${escapeHtml(subject)}</p>
       <br/>
       <p><strong>Message:</strong></p>
-      <p>${message.replace(/\n/g, '<br>')}</p>
+      <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>
     `,
     footerText: "Ce message a été envoyé via le formulaire de contact de l'application."
   });
@@ -253,7 +261,7 @@ export const getJoinRequestTemplate = (requesterName: string, requesterEmail: st
     title: '👤 Nouvelle demande d\'accès',
     content: `
       <p>Bonjour,</p>
-      <p><strong>${requesterName}</strong> (${requesterEmail}) souhaite rejoindre votre organisation <strong>${orgName}</strong>.</p>
+      <p><strong>${escapeHtml(requesterName)}</strong> (${escapeHtml(requesterEmail)}) souhaite rejoindre votre organisation <strong>${escapeHtml(orgName)}</strong>.</p>
       <div class="highlight-box">
         <p style="margin: 0; color: #64748b; font-size: 14px;">Veuillez examiner cette demande dans votre tableau de bord.</p>
       </div>
@@ -267,8 +275,8 @@ export const getJoinRequestApprovedTemplate = (userName: string, orgName: string
   return EmailTemplateService.generateHtml({
     title: '✅ Demande approuvée !',
     content: `
-      <p>Bonjour ${userName},</p>
-      <p>Votre demande pour rejoindre <strong>${orgName}</strong> a été acceptée.</p>
+      <p>Bonjour ${escapeHtml(userName)},</p>
+      <p>Votre demande pour rejoindre <strong>${escapeHtml(orgName)}</strong> a été acceptée.</p>
       <p>Vous avez maintenant accès à l'espace de travail de l'organisation.</p>
     `,
     actionLabel: "Accéder à mon espace",
@@ -280,8 +288,8 @@ export const getJoinRequestRejectedTemplate = (userName: string, orgName: string
   return EmailTemplateService.generateHtml({
     title: '❌ Demande refusée',
     content: `
-      <p>Bonjour ${userName},</p>
-      <p>Votre demande pour rejoindre <strong>${orgName}</strong> a été refusée par un administrateur.</p>
+      <p>Bonjour ${escapeHtml(userName)},</p>
+      <p>Votre demande pour rejoindre <strong>${escapeHtml(orgName)}</strong> a été refusée par un administrateur.</p>
       <p>Si vous pensez qu'il s'agit d'une erreur, veuillez contacter directement l'administrateur de l'organisation.</p>
     `
   });
@@ -291,8 +299,8 @@ export const getMaintenanceTemplate = (assetName: string, maintenanceDate: strin
   return EmailTemplateService.generateHtml({
     title: '🛠️ Maintenance Planifiée',
     content: `
-      <p>Bonjour ${ownerName},</p>
-      <p>Une maintenance est prévue prochainement pour l'actif <strong>${assetName}</strong>.</p>
+      <p>Bonjour ${escapeHtml(ownerName)},</p>
+      <p>Une maintenance est prévue prochainement pour l'actif <strong>${escapeHtml(assetName)}</strong>.</p>
       <div class="highlight-box" style="text-align: center;">
         <span style="font-size: 12px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 1px;">Date de maintenance</span>
         <div style="font-size: 18px; font-weight: 600; color: #0f172a; margin-top: 4px;">${new Date(maintenanceDate).toLocaleDateString()}</div>
@@ -309,7 +317,7 @@ export const getAuditInvitationTemplate = (inviterName: string, auditName: strin
     title: 'Invitation à collaborer sur un audit',
     content: `
       <p>Bonjour,</p>
-      <p><strong>${inviterName}</strong> vous invite à participer à l'audit <strong>"${auditName}"</strong> en tant que <strong>${role}</strong>.</p>
+      <p><strong>${escapeHtml(inviterName)}</strong> vous invite à participer à l'audit <strong>"${escapeHtml(auditName)}"</strong> en tant que <strong>${escapeHtml(role)}</strong>.</p>
       <div class="highlight-box">
         <p style="margin: 0; color: #64748b; font-size: 14px;">Vous aurez accès aux constats, aux preuves et à la checklist associée afin de contribuer à l'évaluation et à la conformité ISO 27001.</p>
       </div>

@@ -281,7 +281,7 @@ describe('FrameworkService', () => {
         coverageStatus: 'partial' as const,
       };
 
-      const result = await FrameworkService.createMapping(mapping);
+      const result = await FrameworkService.createMapping(mapping, 'org-123');
 
       expect(result.id).toBe('mock-doc-id');
       expect(result.controlId).toBe('ctrl-001');
@@ -294,7 +294,12 @@ describe('FrameworkService', () => {
     it('should update a mapping', async () => {
       mockUpdateDoc.mockResolvedValueOnce(undefined);
 
-      await FrameworkService.updateMapping('mapping-1', {
+      mockGetDoc.mockResolvedValueOnce({
+        exists: () => true,
+        data: () => ({ organizationId: 'org-123' }),
+      });
+
+      await FrameworkService.updateMapping('mapping-1', 'org-123', {
         coveragePercentage: 100,
         coverageStatus: 'full',
         isValidated: true,
@@ -308,7 +313,12 @@ describe('FrameworkService', () => {
     it('should delete a mapping', async () => {
       mockDeleteDoc.mockResolvedValueOnce(undefined);
 
-      await FrameworkService.deleteMapping('mapping-1');
+      mockGetDoc.mockResolvedValueOnce({
+        exists: () => true,
+        data: () => ({ organizationId: 'org-123' }),
+      });
+
+      await FrameworkService.deleteMapping('mapping-1', 'org-123');
 
       expect(mockDeleteDoc).toHaveBeenCalledTimes(1);
     });

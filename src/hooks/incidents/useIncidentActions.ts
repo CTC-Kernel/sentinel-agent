@@ -7,7 +7,7 @@ import { NotificationService } from '../../services/notificationService';
 import { hybridService } from '../../services/hybridService';
 import { IncidentService } from '../../services/incidentService';
 import { Incident, Criticality, UserProfile } from '../../types';
-import { IncidentStatus, isValidIncidentTransition, VALID_INCIDENT_TRANSITIONS } from '../../types/incidents';
+import { IncidentStatus, isValidIncidentTransition, VALID_INCIDENT_TRANSITIONS, DORA_REPORTING_TIMELINES } from '../../types/incidents';
 import { IncidentFormData, incidentSchema } from '../../schemas/incidentSchema';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { SecurityEvent } from '../../services/integrationService';
@@ -29,17 +29,28 @@ export const useIncidentActions = () => {
         setLoading(true);
         try {
             const incidentData = sanitizeData({ ...data });
+            // dateAnalysis, dateContained, dateResolved use client-side ISO strings intentionally:
+            // these represent when the user/analyst marked the phase, not when Firestore received the write.
             const now = new Date().toISOString();
 
             if (incidentData.status === 'Analyse' && !incidentData.dateAnalysis) incidentData.dateAnalysis = now;
             if (incidentData.status === 'Contenu' && !incidentData.dateContained) incidentData.dateContained = now;
             if ((incidentData.status === 'Résolu' || incidentData.status === 'Fermé') && !incidentData.dateResolved) incidentData.dateResolved = now;
 
-            const docRef = await addDoc(collection(db, 'incidents'), {
+            // DORA Art. 19: Compute reporting deadlines for major ICT incidents
+            const reportedTime = new Date(now).getTime();
+            const doraDeadlines = {
+                initialNotificationDeadline: new Date(reportedTime + DORA_REPORTING_TIMELINES.INITIAL_NOTIFICATION).toISOString(),
+                intermediateReportDeadline: new Date(reportedTime + DORA_REPORTING_TIMELINES.INTERMEDIATE_REPORT).toISOString(),
+                finalReportDeadline: new Date(reportedTime + DORA_REPORTING_TIMELINES.FINAL_REPORT).toISOString(),
+            };
+
+            const docRef = await addDoc(collection(db, 'incidents'), sanitizeData({
                 ...incidentData,
+                ...doraDeadlines,
                 organizationId: user.organizationId,
                 dateReported: serverTimestamp()
-            });
+            }));
 
             // GRC Audit Log
             await AuditLogService.logCreate(
@@ -122,13 +133,15 @@ export const useIncidentActions = () => {
             }
 
             const incidentData = sanitizeData({ ...data });
+            // dateAnalysis, dateContained, dateResolved use client-side ISO strings intentionally:
+            // these represent when the user/analyst marked the phase, not when Firestore received the write.
             const now = new Date().toISOString();
 
             if (incidentData.status === 'Analyse' && !incidentData.dateAnalysis) incidentData.dateAnalysis = now;
             if (incidentData.status === 'Contenu' && !incidentData.dateContained) incidentData.dateContained = now;
             if ((incidentData.status === 'Résolu' || incidentData.status === 'Fermé') && !incidentData.dateResolved) incidentData.dateResolved = now;
 
-            await updateDoc(doc(db, 'incidents', id), incidentData);
+            await updateDoc(doc(db, 'incidents', id), sanitizeData({ ...incidentData, updatedAt: serverTimestamp() }));
 
             // GRC Audit Log
             await AuditLogService.logUpdate(
@@ -312,6 +325,7 @@ export const useIncidentActions = () => {
                 dateAnalysis: serverTimestamp() as unknown as string,
                 dateContained: serverTimestamp() as unknown as string,
                 financialImpact: 0,
+                // history[].date uses client-side ISO strings: serverTimestamp() cannot be used inside Firestore arrays
                 history: [
                     { date: new Date().toISOString(), user: 'Sentinel AI', action: 'DETECTION', details: `Signature match: ${scenario.category} behavior detected.` },
                     { date: new Date(Date.now() + 5000).toISOString(), user: 'Sentinel AI', action: 'CONTAINMENT', details: 'Automated response: Host isolation triggers.' }
@@ -320,7 +334,7 @@ export const useIncidentActions = () => {
                 playbookId: 'playbook-standard'
             };
 
-            const docRef = await addDoc(collection(db, 'incidents'), attackData);
+            const docRef = await addDoc(collection(db, 'incidents'), sanitizeData(attackData));
 
             await hybridService.logCriticalEvent({
                 action: 'SIMULATION',

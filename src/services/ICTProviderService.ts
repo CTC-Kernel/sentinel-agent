@@ -99,7 +99,7 @@ export class ICTProviderService {
     /**
      * Get a single ICT Provider by ID
      */
-    static async getById(providerId: string, organizationId?: string): Promise<ICTProvider | null> {
+    static async getById(providerId: string, organizationId: string): Promise<ICTProvider | null> {
         try {
             const docRef = doc(db, this.COLLECTION, providerId);
             const docSnap = await getDoc(docRef);
@@ -110,8 +110,8 @@ export class ICTProviderService {
 
             const data = docSnap.data();
 
-            // Verify organization ownership if organizationId provided
-            if (organizationId && data.organizationId !== organizationId) {
+            // Always verify organization ownership
+            if (data.organizationId !== organizationId) {
                 ErrorLogger.warn('IDOR attempt: ICT provider org mismatch', 'ICTProviderService.getById');
                 return null;
             }
@@ -188,8 +188,15 @@ export class ICTProviderService {
     /**
      * Delete an ICT Provider via Cloud Functions (for cascade handling)
      */
-    static async delete(providerId: string): Promise<void> {
+    static async delete(providerId: string, organizationId: string): Promise<void> {
         try {
+            // Verify organization ownership before deletion
+            const docRef = doc(db, this.COLLECTION, providerId);
+            const docSnap = await getDoc(docRef);
+            if (!docSnap.exists() || docSnap.data()?.organizationId !== organizationId) {
+                throw new Error('ICT Provider not found or access denied');
+            }
+
             await FunctionsService.deleteResource(this.COLLECTION, providerId);
         } catch (error) {
             ErrorLogger.error(error, 'ICTProviderService.delete');
@@ -386,7 +393,7 @@ export class ICTProviderService {
         userId: string
     ): Promise<{ imported: number; errors: string[] }> {
         try {
-            const BATCH_SIZE = 500;
+            const BATCH_SIZE = 450;
             let batch = writeBatch(db);
             let count = 0;
             let batchCount = 0;

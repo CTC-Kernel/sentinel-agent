@@ -1,6 +1,7 @@
 import { collection, query, where, getCountFromServer, getDoc, doc, setDoc, Query, DocumentData } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { RISK_THRESHOLDS, CONTROL_STATUS } from '../constants/complianceConfig';
 
 export interface DashboardCounts {
@@ -213,12 +214,12 @@ export class DashboardService {
      */
     static async saveExecutiveSummary(organizationId: string, summary: string, generatedAt: string, metricsSnapshot?: { compliance: number }): Promise<boolean> {
         try {
-            await setDoc(doc(db, 'dashboard_summaries', organizationId), {
+            await setDoc(doc(db, 'dashboard_summaries', organizationId), sanitizeData({
                 summary,
                 generatedAt,
                 metricsSnapshot,
                 updatedAt: new Date().toISOString()
-            }, { merge: true });
+            }), { merge: true });
             return true;
         } catch (_error) {
             ErrorLogger.error(_error, 'DashboardService.saveExecutiveSummary');

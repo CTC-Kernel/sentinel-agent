@@ -62,7 +62,7 @@ export const ExportHistoryPanel: React.FC<ExportHistoryPanelProps> = ({
     const handleDelete = useCallback(async (exportId: string) => {
         setDeletingId(exportId);
         try {
-            await DORAExportService.deleteExportRecord(exportId);
+            await DORAExportService.deleteExportRecord(exportId, organization?.id || '');
             setExports(prev => prev.filter(e => e.id !== exportId));
             toast.success(t('dora.export.deleted'));
         } catch (error) {

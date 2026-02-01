@@ -9,7 +9,7 @@
 import { ICTProvider, ICTCriticality } from '../types/dora';
 import { parseDate } from '../utils/dateUtils';
 import { db } from '../firebase';
-import { collection, query, where, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { ErrorLogger } from './errorLogger';
 
 /**
@@ -255,7 +255,7 @@ export class ContractExpirationService {
             await setDoc(configRef, {
                 ...DEFAULT_ALERT_CONFIG,
                 ...config,
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             }, { merge: true });
         } catch (error) {
             ErrorLogger.error(error, 'ContractExpirationService.saveAlertConfig');

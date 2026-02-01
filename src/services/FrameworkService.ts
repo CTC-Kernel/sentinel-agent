@@ -26,6 +26,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type {
   RegulatoryFramework,
   Requirement,
@@ -394,9 +395,15 @@ export class FrameworkService {
    * Create a control mapping
    */
   static async createMapping(
-    mapping: Omit<ControlMapping, 'id' | 'createdAt' | 'updatedAt'>
+    mapping: Omit<ControlMapping, 'id' | 'createdAt' | 'updatedAt'>,
+    callerOrganizationId: string
   ): Promise<ControlMapping> {
     try {
+      // Verify caller's organizationId matches the mapping's organizationId
+      if (mapping.organizationId !== callerOrganizationId) {
+        throw new Error('Access denied: organization mismatch');
+      }
+
       const mappingRef = doc(collection(db, 'controlMappings'));
       const now = new Date().toISOString();
 
@@ -407,7 +414,7 @@ export class FrameworkService {
         updatedAt: now,
       };
 
-      await setDoc(mappingRef, newMapping);
+      await setDoc(mappingRef, sanitizeData(newMapping));
       return newMapping;
     } catch (error) {
       ErrorLogger.error(error, 'FrameworkService.createMapping', {
@@ -424,14 +431,22 @@ export class FrameworkService {
    */
   static async updateMapping(
     mappingId: string,
+    organizationId: string,
     updates: Partial<Pick<ControlMapping, 'coveragePercentage' | 'coverageStatus' | 'notes' | 'isValidated'>>
   ): Promise<void> {
     try {
       const docRef = doc(db, 'controlMappings', mappingId);
-      await updateDoc(docRef, {
+
+      // Fetch and verify organizationId before mutation
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists() || docSnap.data()?.organizationId !== organizationId) {
+        throw new Error('Access denied: mapping not found or organization mismatch');
+      }
+
+      await updateDoc(docRef, sanitizeData({
         ...updates,
         updatedAt: new Date().toISOString(),
-      });
+      }));
     } catch (error) {
       ErrorLogger.error(error, 'FrameworkService.updateMapping', {
         component: 'FrameworkService',
@@ -445,9 +460,16 @@ export class FrameworkService {
   /**
    * Delete a control mapping
    */
-  static async deleteMapping(mappingId: string): Promise<void> {
+  static async deleteMapping(mappingId: string, organizationId: string): Promise<void> {
     try {
       const docRef = doc(db, 'controlMappings', mappingId);
+
+      // Fetch and verify organizationId before deletion
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists() || docSnap.data()?.organizationId !== organizationId) {
+        throw new Error('Access denied: mapping not found or organization mismatch');
+      }
+
       await deleteDoc(docRef);
     } catch (error) {
       ErrorLogger.error(error, 'FrameworkService.deleteMapping', {
@@ -546,7 +568,7 @@ export class FrameworkService {
         notes: options?.notes,
       };
 
-      await setDoc(docRef, activeFramework);
+      await setDoc(docRef, sanitizeData(activeFramework));
       return activeFramework;
     } catch (error) {
       ErrorLogger.error(error, 'FrameworkService.activateFramework', {
@@ -677,23 +699,30 @@ export class FrameworkService {
     mappings: Omit<ControlMapping, 'id' | 'createdAt' | 'updatedAt'>[]
   ): Promise<ControlMapping[]> {
     try {
-      const batch = writeBatch(db);
+      const BATCH_SIZE = 450;
       const now = new Date().toISOString();
       const createdMappings: ControlMapping[] = [];
 
-      for (const mapping of mappings) {
-        const mappingRef = doc(collection(db, 'controlMappings'));
-        const newMapping: ControlMapping = {
-          ...mapping,
-          id: mappingRef.id,
-          createdAt: now,
-          updatedAt: now,
-        };
-        batch.set(mappingRef, newMapping);
-        createdMappings.push(newMapping);
+      // Split mappings into chunks to respect Firestore batch limit
+      for (let i = 0; i < mappings.length; i += BATCH_SIZE) {
+        const chunk = mappings.slice(i, i + BATCH_SIZE);
+        const batch = writeBatch(db);
+
+        for (const mapping of chunk) {
+          const mappingRef = doc(collection(db, 'controlMappings'));
+          const newMapping: ControlMapping = {
+            ...mapping,
+            id: mappingRef.id,
+            createdAt: now,
+            updatedAt: now,
+          };
+          batch.set(mappingRef, sanitizeData(newMapping));
+          createdMappings.push(newMapping);
+        }
+
+        await batch.commit();
       }
 
-      await batch.commit();
       return createdMappings;
     } catch (error) {
       ErrorLogger.error(error, 'FrameworkService.batchCreateMappings', {

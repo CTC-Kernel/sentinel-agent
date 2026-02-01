@@ -12,10 +12,10 @@ import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 
 const contactSchema = z.object({
-    name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
-    email: z.string().email('Adresse email invalide'),
-    subject: z.string().min(3, 'Le sujet doit contenir au moins 3 caractères'),
-    message: z.string().min(10, 'Le message doit contenir au moins 10 caractères')
+    name: z.string().min(2, 'Name must be at least 2 characters'),
+    email: z.string().email('Invalid email address'),
+    subject: z.string().min(3, 'Subject must be at least 3 characters'),
+    message: z.string().min(10, 'Message must be at least 10 characters')
 });
 
 type ContactFormData = z.infer<typeof contactSchema>;

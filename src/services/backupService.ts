@@ -67,7 +67,7 @@ export class BackupService {
 
     try {
       // Créer le document de métadonnées
-      await setDoc(doc(db, this.BACKUP_COLLECTION, backupId), metadata);
+      await setDoc(doc(db, this.BACKUP_COLLECTION, backupId), sanitizeData(metadata));
 
       // Collecter les données
       const backupData: Record<string, unknown[]> = {};
@@ -96,21 +96,21 @@ export class BackupService {
       const downloadUrl = await getDownloadURL(backupRef);
 
       // Mettre à jour les métadonnées
-      await updateDoc(doc(db, this.BACKUP_COLLECTION, backupId), {
+      await updateDoc(doc(db, this.BACKUP_COLLECTION, backupId), sanitizeData({
         status: 'completed',
         size: totalSize,
         downloadUrl
-      });
+      }));
 
       await logAction(user, 'CREATE', 'Backup', `Backup créé: ${backupId}`);
       return backupId;
 
     } catch (error) {
       ErrorLogger.error(error, 'BackupService.createBackup');
-      await updateDoc(doc(db, this.BACKUP_COLLECTION, backupId), {
+      await updateDoc(doc(db, this.BACKUP_COLLECTION, backupId), sanitizeData({
         status: 'failed',
         error: error instanceof Error ? error.message : 'Erreur inconnue'
-      });
+      }));
       throw error;
     }
   }
@@ -267,7 +267,14 @@ export class BackupService {
   }
 
   static async getBackupUrl(user: UserProfile, backupId: string): Promise<string> {
+    this.checkPermission(user);
     if (!user.organizationId) throw new Error('Organisation non définie');
+
+    // Verify backup belongs to user's organization
+    const backupDoc = await getDoc(doc(db, this.BACKUP_COLLECTION, backupId));
+    if (!backupDoc.exists() || backupDoc.data()?.organizationId !== user.organizationId) {
+      throw new Error('Backup introuvable ou accès non autorisé');
+    }
 
     const backupRef = ref(storage, `backups/${user.organizationId}/${backupId}.json`);
     return await getDownloadURL(backupRef);
@@ -322,7 +329,7 @@ export class BackupService {
       updatedAt: serverTimestamp()
     };
 
-    await setDoc(doc(db, 'backup_schedules', scheduleId), scheduleData);
+    await setDoc(doc(db, 'backup_schedules', scheduleId), sanitizeData(scheduleData));
 
     await logAction(user, 'SCHEDULE', 'Backup', `Backup programmé: ${frequency}`);
   }
@@ -352,10 +359,10 @@ export class BackupService {
         await this.createBackup(user, schedule.config);
 
         // Update schedule
-        await updateDoc(doc(db, 'backup_schedules', `schedule_${user.organizationId}`), {
+        await updateDoc(doc(db, 'backup_schedules', `schedule_${user.organizationId}`), sanitizeData({
           lastBackup: now.toISOString(),
           nextBackup: this.calculateNextBackup(schedule.frequency).toISOString()
-        });
+        }));
       }
     } catch (error) {
       ErrorLogger.error(error, 'BackupService.checkScheduledBackups');

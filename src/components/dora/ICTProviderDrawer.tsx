@@ -28,6 +28,7 @@ export const ICTProviderDrawer: React.FC<ICTProviderDrawerProps> = ({
 }) => {
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
+    const [isDirty, setIsDirty] = useState(false);
     const { createProvider, updateProvider } = useICTProviders();
 
     const isEditing = !!provider;
@@ -110,6 +111,7 @@ export const ICTProviderDrawer: React.FC<ICTProviderDrawerProps> = ({
             subtitle={t('dora.subtitle')}
             width="max-w-4xl"
             icon={isEditing ? undefined : undefined} // Add icon if available
+            hasUnsavedChanges={isDirty}
         >
             <ICTProviderForm
                 onSubmit={handleSubmit}
@@ -117,6 +119,7 @@ export const ICTProviderDrawer: React.FC<ICTProviderDrawerProps> = ({
                 initialData={initialData}
                 isEditing={isEditing}
                 isLoading={isLoading}
+                onDirtyChange={setIsDirty}
             />
         </InspectorLayout>
     );

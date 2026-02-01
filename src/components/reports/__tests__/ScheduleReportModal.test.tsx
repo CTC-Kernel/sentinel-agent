@@ -223,7 +223,7 @@ describe('ScheduleReportModal', () => {
             fireEvent.click(screen.getByText('Planifier'));
 
             await waitFor(() => {
-                expect(screen.getByText('Veuillez ajouter au moins un destinataire')).toBeInTheDocument();
+                expect(screen.getByText('Please add at least one recipient')).toBeInTheDocument();
             });
         });
 
@@ -241,7 +241,7 @@ describe('ScheduleReportModal', () => {
             fireEvent.click(screen.getByText('Planifier'));
 
             await waitFor(() => {
-                expect(screen.getByText('Adresse email invalide: invalid-email')).toBeInTheDocument();
+                expect(screen.getByText('Invalid email address: invalid-email')).toBeInTheDocument();
             });
         });
     });

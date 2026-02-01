@@ -6,6 +6,7 @@ import { logAction } from '../../services/logger';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
 import { canEditResource } from '../../utils/permissions';
+import { sanitizeData } from '../../utils/dataSanitizer';
 import { validateUrl } from '../../utils/urlValidation';
 // EncryptionService import removed
 import { PDFDocument, rgb, degrees, StandardFonts } from 'pdf-lib';
@@ -48,6 +49,13 @@ export const useDocumentWorkflow = (usersList: UserProfile[]) => {
             updates = { status: 'Rejeté', workflowStatus: 'Rejected' };
             logMsg = t('documents.workflow.rejected', { defaultValue: 'Document rejeté' });
         } else if (action === 'sign') {
+            // TODO: Upload signature images to Firebase Storage instead of storing base64 directly in Firestore.
+            // Base64 PNGs can be large and inflate Firestore document size significantly.
+            if (signatureImage && signatureImage.length > 50 * 1024) {
+                ErrorLogger.warn('Signature image exceeds 50KB, consider uploading to Firebase Storage', 'useDocumentWorkflow.handleWorkflowAction', {
+                    metadata: { signatureSizeBytes: signatureImage.length, documentId: docItem.id }
+                });
+            }
             const newSignature = {
                 userId: user.uid,
                 date: new Date().toISOString(),
@@ -64,7 +72,7 @@ export const useDocumentWorkflow = (usersList: UserProfile[]) => {
         }
 
         try {
-            await updateDoc(doc(db, 'documents', docItem.id), { ...updates, updatedAt: serverTimestamp() });
+            await updateDoc(doc(db, 'documents', docItem.id), sanitizeData({ ...updates, updatedAt: serverTimestamp() }));
             await logAction(user, 'WORKFLOW', 'Document', `${logMsg}: ${docItem.title}`);
 
             const updatedDoc = { ...docItem, ...updates };

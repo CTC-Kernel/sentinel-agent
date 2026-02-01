@@ -16,12 +16,12 @@ import { InspectorLayout } from '../ui/InspectorLayout';
 import { Button } from '../ui/button';
 
 const createEventSchema = z.object({
-    title: z.string().min(3, "Le titre doit contenir au moins 3 caractères"),
+    title: z.string().min(3, "Title must be at least 3 characters"),
     description: z.string().optional(),
     start: z.string(), // ISO Date string
-    startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Format d'heure invalide"),
+    startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format"),
     end: z.string(), // ISO Date string
-    endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Format d'heure invalide"),
+    endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format"),
     subType: z.string().optional(),
     manager: z.string().optional(),
     auditor: z.string().optional(),
@@ -34,7 +34,7 @@ const createEventSchema = z.object({
     const end = new Date(`${data.end}T${data.endTime}`);
     return end >= start;
 }, {
-    message: "La date de fin doit être postérieure à la date de début",
+    message: "End date must be after start date",
     path: ["end"], // Focus error on end date
 });
 
@@ -72,7 +72,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
         control,
         reset,
         setValue,
-        formState: { errors, isSubmitting }
+        formState: { errors, isSubmitting, isDirty }
     } = useForm<CreateEventFormData>({
         resolver: zodResolver(createEventSchema) as Resolver<CreateEventFormData>,
         defaultValues: {
@@ -147,10 +147,11 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
         <InspectorLayout
             isOpen={isOpen}
             onClose={onClose}
-            title="Nouvel Événement"
-            subtitle="Planifiez une nouvelle activité ou échéance"
+            title={t('events.create.title', { defaultValue: 'Nouvel Événement' })}
+            subtitle={t('events.create.subtitle', { defaultValue: 'Planifiez une nouvelle activité ou échéance' })}
             width="max-w-6xl"
             icon={LinkIcon}
+            hasUnsavedChanges={isDirty}
         >
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full">
                 <div className="space-y-6 max-w-5xl mx-auto w-full">
@@ -161,7 +162,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                             <button
                                 type="button"
                                 key={type || 'unknown'}
-                                aria-label={`Sélectionner le type ${type}`}
+                                aria-label={t('events.create.selectType', { defaultValue: `Sélectionner le type ${type}`, type })}
                                 aria-pressed={eventType === type}
                                 onClick={() => setEventType(type)}
                                 className={`flex-1 py-2.5 px-4 rounded-2xl text-sm font-medium transition-all capitalize ${eventType === type
@@ -169,7 +170,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                                     : 'text-slate-600 dark:text-muted-foreground hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50'
                                     }`}
                             >
-                                {type === 'drill' ? 'Exercice BCP' : type}
+                                {type === 'drill' ? t('events.types.drill', { defaultValue: 'Exercice BCP' }) : type}
                             </button>
                         ))}
                     </div>
@@ -181,10 +182,10 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                             control={control}
                             render={({ field }) => (
                                 <FloatingLabelInput
-                                    label="Titre"
+                                    label={t('events.fields.title', { defaultValue: 'Titre' })}
                                     value={field.value}
                                     onChange={field.onChange}
-                                    placeholder="Ex: Audit ISO 27001, Maintenance Serveur..."
+                                    placeholder={t('events.fields.titlePlaceholder', { defaultValue: 'Ex: Audit ISO 27001, Maintenance Serveur...' })}
                                     error={errors.title?.message}
                                 />
                             )}
@@ -193,7 +194,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div>
-                            <div className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Date de début</div>
+                            <div className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t('events.fields.startDate', { defaultValue: 'Date de début' })}</div>
                             <div className="flex gap-2">
                                 <div className="flex-1">
                                     <Controller
@@ -226,7 +227,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                             </div>
                         </div>
                         <div>
-                            <div className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Date de fin / Échéance</div>
+                            <div className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t('events.fields.endDate', { defaultValue: 'Date de fin / Échéance' })}</div>
                             <div className="flex gap-2">
                                 <div className="flex-1">
                                     <Controller
@@ -270,11 +271,11 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                                     control={control}
                                     render={({ field }) => (
                                         <CustomSelect
-                                            label="Type d'audit"
+                                            label={t('events.fields.auditType', { defaultValue: "Type d'audit" })}
                                             options={[
-                                                { value: "Interne", label: "Interne" },
-                                                { value: "Externe", label: "Externe" },
-                                                { value: "Certification", label: "Certification" }
+                                                { value: "Interne", label: t('events.options.internal', { defaultValue: 'Interne' }) },
+                                                { value: "Externe", label: t('events.options.external', { defaultValue: 'Externe' }) },
+                                                { value: "Certification", label: t('events.options.certification', { defaultValue: 'Certification' }) }
                                             ]}
                                             value={field.value || ''}
                                             onChange={field.onChange}
@@ -288,7 +289,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                                     control={control}
                                     render={({ field }) => (
                                         <FloatingLabelInput
-                                            label="Auditeur"
+                                            label={t('events.fields.auditor', { defaultValue: 'Auditeur' })}
                                             value={field.value || ''}
                                             onChange={field.onChange}
                                         />
@@ -306,11 +307,11 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                                     control={control}
                                     render={({ field }) => (
                                         <CustomSelect
-                                            label="Type de maintenance"
+                                            label={t('events.fields.maintenanceType', { defaultValue: 'Type de maintenance' })}
                                             options={[
-                                                { value: "Préventive", label: "Préventive" },
-                                                { value: "Corrective", label: "Corrective" },
-                                                { value: "Mise à jour", label: "Mise à jour" }
+                                                { value: "Préventive", label: t('events.options.preventive', { defaultValue: 'Préventive' }) },
+                                                { value: "Corrective", label: t('events.options.corrective', { defaultValue: 'Corrective' }) },
+                                                { value: "Mise à jour", label: t('events.options.update', { defaultValue: 'Mise à jour' }) }
                                             ]}
                                             value={field.value || ''}
                                             onChange={field.onChange}
@@ -324,7 +325,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                                     control={control}
                                     render={({ field }) => (
                                         <FloatingLabelInput
-                                            label="Technicien"
+                                            label={t('events.fields.technician', { defaultValue: 'Technicien' })}
                                             value={field.value || ''}
                                             onChange={field.onChange}
                                         />
@@ -338,7 +339,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                     <div className="border-t border-border/40 dark:border-border/40 pt-6">
                         <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center">
                             <LinkIcon className="h-4 w-4 mr-2 text-brand-500" />
-                            Lier des éléments
+                            {t('events.fields.linkElements', { defaultValue: 'Lier des éléments' })}
                         </h4>
 
                         <div className="space-y-6">
@@ -349,12 +350,12 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                                     name="linkedAssetIds"
                                     render={({ field }) => (
                                         <CustomSelect
-                                            label="Actifs concernés"
+                                            label={t('events.fields.relatedAssets', { defaultValue: 'Actifs concernés' })}
                                             value={field.value}
                                             onChange={field.onChange}
                                             options={assets.map(a => ({ value: a.id, label: a.name }))}
                                             multiple
-                                            placeholder="Sélectionner des actifs..."
+                                            placeholder={t('events.fields.selectAssets', { defaultValue: 'Sélectionner des actifs...' })}
                                         />
                                     )}
                                 />
@@ -367,12 +368,12 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                                     name="linkedRiskIds"
                                     render={({ field }) => (
                                         <CustomSelect
-                                            label="Risques associés"
+                                            label={t('events.fields.relatedRisks', { defaultValue: 'Risques associés' })}
                                             value={field.value}
                                             onChange={field.onChange}
                                             options={risks.map(r => ({ value: r.id, label: r.threat }))}
                                             multiple
-                                            placeholder="Sélectionner des risques..."
+                                            placeholder={t('events.fields.selectRisks', { defaultValue: 'Sélectionner des risques...' })}
                                         />
                                     )}
                                 />
@@ -388,7 +389,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                                 className="rounded border-border/40 text-brand-600 focus-visible:ring-brand-500 w-5 h-5"
                                 {...register('allDay')}
                             />
-                            <label htmlFor="allDay" className="text-sm text-slate-700 dark:text-slate-300 cursor-pointer select-none">Toute la journée</label>
+                            <label htmlFor="allDay" className="text-sm text-slate-700 dark:text-slate-300 cursor-pointer select-none">{t('events.fields.allDay', { defaultValue: 'Toute la journée' })}</label>
                         </div>
                         {isGoogleConnected && (
                             <div className="flex items-center gap-2">
@@ -400,7 +401,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                                     className="rounded border-border/40 text-brand-600 focus-visible:ring-brand-500 w-5 h-5"
                                 />
                                 <label htmlFor="syncGoogle" className="text-sm text-slate-700 dark:text-slate-300 flex items-center cursor-pointer select-none">
-                                    Sync Google
+                                    {t('events.fields.syncGoogle', { defaultValue: 'Sync Google' })}
                                     <img src="https://www.google.com/favicon.ico" alt="Google" className="w-3 h-3 ml-1.5 opacity-70" />
                                 </label>
                             </div>
@@ -413,11 +414,11 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                             control={control}
                             render={({ field }) => (
                                 <FloatingLabelInput
-                                    label="Description détaillée"
+                                    label={t('events.fields.detailedDescription', { defaultValue: 'Description détaillée' })}
                                     value={field.value || ''}
                                     onChange={field.onChange}
                                     textarea
-                                    placeholder="Détails supplémentaires..."
+                                    placeholder={t('events.fields.descriptionPlaceholder', { defaultValue: 'Détails supplémentaires...' })}
                                     error={errors.description?.message}
                                 />
                             )}
@@ -432,13 +433,13 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                         onClick={onClose}
                         disabled={isSubmitting}
                     >
-                        Annuler
+                        {t('common.cancel', { defaultValue: 'Annuler' })}
                     </Button>
                     <Button
                         type="submit"
                         isLoading={isSubmitting}
                     >
-                        Créer Événement
+                        {t('events.create.submit', { defaultValue: 'Créer Événement' })}
                     </Button>
                 </div>
             </form>

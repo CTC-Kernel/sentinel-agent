@@ -74,6 +74,7 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
                     onFocus={handleFocus}
                     onBlur={handleBlur}
                     onChange={handleChange}
+                    aria-label={label}
                     aria-invalid={!!error}
                     aria-describedby={describedBy}
                     aria-required={props.required}

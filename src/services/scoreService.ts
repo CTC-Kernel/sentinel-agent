@@ -18,8 +18,8 @@ import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
 import { COMPLIANCE_WEIGHTS, TREND_THRESHOLD } from '../constants/complianceConfig';
 import type {
-  ComplianceScore,
-  ScoreHistory,
+  GlobalComplianceScore as ComplianceScore,
+  GlobalScoreHistory as ScoreHistory,
   ScoreBreakdown,
   TrendType,
 } from '../types/score.types';

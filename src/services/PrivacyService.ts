@@ -1,5 +1,5 @@
 import { db } from '../firebase';
-import { collection, doc, addDoc, updateDoc, deleteDoc, setDoc, getDocs, query, where, writeBatch, limit, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, addDoc, updateDoc, deleteDoc, setDoc, getDocs, getDoc, query, where, writeBatch, limit, serverTimestamp } from 'firebase/firestore';
 import { ProcessingActivity, UserProfile, SystemLog, PrivacyRequest } from '../types';
 import { ErrorLogger } from './errorLogger';
 import { logAction } from './logger';
@@ -78,6 +78,12 @@ export const PrivacyService = {
 
     async deleteActivity(id: string, activityName: string, user: UserProfile): Promise<void> {
         try {
+            // Verify organizationId before delete (IDOR protection)
+            const docSnap = await getDoc(doc(db, 'processing_activities', id));
+            if (!docSnap.exists() || docSnap.data()?.organizationId !== user.organizationId) {
+                throw new Error('Not authorized: activity not found or organization mismatch');
+            }
+
             await deleteDoc(doc(db, 'processing_activities', id));
             await logAction(
                 user,
@@ -94,7 +100,7 @@ export const PrivacyService = {
     },
 
     async importActivities(activities: Omit<ProcessingActivity, 'id'>[], user: UserProfile): Promise<number> {
-        const BATCH_SIZE = 500;
+        const BATCH_SIZE = 450;
         let batch = writeBatch(db);
         let count = 0;
         let batchCount = 0;
@@ -230,14 +236,16 @@ export const PrivacyService = {
 
     async createRequest(request: Omit<PrivacyRequest, 'id'>, user: UserProfile): Promise<string> {
         try {
-            const now = new Date();
-            const deadline = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+            const submissionDate = request.submissionDate ? new Date(request.submissionDate) : new Date();
+            // GDPR Art. 12(3): response must be provided within one month (30 calendar days)
+            const dueDate = new Date(submissionDate.getTime() + 30 * 24 * 60 * 60 * 1000);
 
             const requestData = {
                 ...sanitizeData(request),
+                submissionDate: submissionDate.toISOString(),
+                dueDate: dueDate.toISOString(),
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
-                deadline: deadline.toISOString()
             };
 
             const docRef = await addDoc(collection(db, 'privacy_requests'), requestData);
@@ -278,6 +286,12 @@ export const PrivacyService = {
 
     async deleteRequest(id: string, user: UserProfile): Promise<void> {
         try {
+            // Verify organizationId before delete (IDOR protection)
+            const docSnap = await getDoc(doc(db, 'privacy_requests', id));
+            if (!docSnap.exists() || docSnap.data()?.organizationId !== user.organizationId) {
+                throw new Error('Not authorized: request not found or organization mismatch');
+            }
+
             await deleteDoc(doc(db, 'privacy_requests', id));
             await logAction(
                 user,

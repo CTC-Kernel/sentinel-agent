@@ -21,6 +21,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { AgentResult } from '../types/agent';
 import {
     AgentEvidence,
@@ -488,7 +489,7 @@ export async function createEvidenceFromResult(
                 reviewed: false,
             };
 
-            const docRef = await addDoc(getEvidenceCollection(organizationId), evidenceData);
+            const docRef = await addDoc(getEvidenceCollection(organizationId), sanitizeData(evidenceData));
 
             createdEvidence.push({
                 ...evidenceData,
@@ -523,12 +524,12 @@ export async function reviewEvidence(
     try {
         const evidenceRef = doc(getEvidenceCollection(organizationId), evidenceId);
 
-        await updateDoc(evidenceRef, {
+        await updateDoc(evidenceRef, sanitizeData({
             reviewed: true,
             reviewedBy,
             reviewedAt: Timestamp.now(),
             reviewNotes: notes || null,
-        });
+        }));
     } catch (error) {
         ErrorLogger.error(error as Error, 'AgentEvidenceService.reviewEvidence', {
             component: 'AgentEvidenceService',

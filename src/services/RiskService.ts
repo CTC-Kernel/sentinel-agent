@@ -11,6 +11,7 @@ import { DependencyService } from './dependencyService';
 import { FunctionsService } from './FunctionsService';
 import { AuditLogService } from './auditLogService';
 import { NotificationService } from './notificationService';
+import { isValidRiskTransition, RiskStatus } from '../types/risks';
 
 export class RiskService {
 
@@ -123,6 +124,13 @@ export class RiskService {
 
         const logic = this.validateLogic({ ...currentRisk, ...data });
         if (!logic.valid) return { success: false, error: logic.error };
+
+        // Validate risk status transition if status is changing
+        if (data.status && currentRisk?.status && data.status !== currentRisk.status) {
+            if (!isValidRiskTransition(currentRisk.status as RiskStatus, data.status as RiskStatus)) {
+                return { success: false, error: 'Invalid risk status transition' };
+            }
+        }
 
         try {
             const calculated = RiskCalculator.parseRiskValues({ ...currentRisk, ...data });

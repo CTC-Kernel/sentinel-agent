@@ -236,7 +236,7 @@ export function CustomViewManager({
    */
   const handleSave = useCallback(async () => {
     if (!formName.trim()) {
-      setError('Le nom est requis');
+      setError('Name is required');
       return;
     }
 
@@ -250,10 +250,10 @@ export function CustomViewManager({
         setFormName('');
         setFormDescription('');
       } else {
-        setError('Impossible de sauvegarder la vue');
+        setError('Unable to save the view');
       }
     } catch {
-      setError('Une erreur est survenue');
+      setError('An error occurred');
     } finally {
       setIsSaving(false);
     }
@@ -264,7 +264,7 @@ export function CustomViewManager({
    */
   const handleUpdate = useCallback(async () => {
     if (!editingView || !formName.trim()) {
-      setError('Le nom est requis');
+      setError('Name is required');
       return;
     }
 
@@ -283,7 +283,7 @@ export function CustomViewManager({
         setError('Impossible de mettre a jour la vue');
       }
     } catch {
-      setError('Une erreur est survenue');
+      setError('An error occurred');
     } finally {
       setIsSaving(false);
     }

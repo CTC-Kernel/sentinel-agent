@@ -1,6 +1,7 @@
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
 import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { Threat, Vulnerability } from '../types';
 import { ErrorLogger } from './errorLogger';
 
@@ -308,11 +309,11 @@ export class ThreatFeedService {
                 const snap = await getDocs(q);
 
                 if (snap.empty) {
-                    await addDoc(collection(db, 'vulnerabilities'), {
+                    await addDoc(collection(db, 'vulnerabilities'), sanitizeData({
                         ...v,
                         organizationId,
                         createdAt: serverTimestamp()
-                    });
+                    }));
                     vulnsAdded++;
                 }
             }
@@ -327,13 +328,13 @@ export class ThreatFeedService {
                 const snap = await getDocs(q);
 
                 if (snap.empty) {
-                    await addDoc(collection(db, 'threats'), {
+                    await addDoc(collection(db, 'threats'), sanitizeData({
                         ...t,
                         organizationId,
                         votes: 0,
                         comments: 0,
                         createdAt: serverTimestamp()
-                    });
+                    }));
                     threatsAdded++;
                 }
             }
@@ -369,10 +370,10 @@ export class ThreatFeedService {
             // Seed Threats
             for (const t of mockThreats) {
                 // Simple duplicate check (optional for demo data, but good practice)
-                await addDoc(collection(db, 'threats'), {
+                await addDoc(collection(db, 'threats'), sanitizeData({
                     ...t,
                     createdAt: serverTimestamp()
-                });
+                }));
                 threatsAdded++;
             }
 
@@ -386,10 +387,10 @@ export class ThreatFeedService {
                 const snap = await getDocs(q);
 
                 if (snap.empty) {
-                    await addDoc(collection(db, 'vulnerabilities'), {
+                    await addDoc(collection(db, 'vulnerabilities'), sanitizeData({
                         ...v,
                         createdAt: serverTimestamp()
-                    });
+                    }));
                     vulnsAdded++;
                 }
             }

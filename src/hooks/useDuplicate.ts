@@ -7,13 +7,14 @@
  * @module useDuplicate
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from './useAuth';
 import { useLocale } from './useLocale';
 import { logAction } from '../services/logger';
 import { ErrorLogger } from '../services/errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type { SupportedLocale } from '../config/localeConfig';
 
 /**
@@ -93,11 +94,15 @@ export function useDuplicate<T extends { id: string }>(
   const {
     collectionName,
     nameField,
-    resetFields = {},
+    resetFields: resetFieldsRaw,
     entityType = 'Entity',
     onSuccess,
     onError,
   } = options;
+
+  // Memoize resetFields to avoid unstable dependency in useCallback
+  const resetFieldsKey = JSON.stringify(resetFieldsRaw);
+  const resetFields = useMemo(() => resetFieldsRaw ?? ({} as Partial<T>), [resetFieldsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { user } = useAuth();
   const { locale } = useLocale();
@@ -151,7 +156,7 @@ export function useDuplicate<T extends { id: string }>(
         // Create the new document
         const docRef = await addDoc(
           collection(db, collectionName),
-          duplicateData
+          sanitizeData(duplicateData)
         );
 
         // Audit log

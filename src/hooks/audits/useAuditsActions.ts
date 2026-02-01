@@ -3,6 +3,7 @@ import { where, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../useAuth';
 import { useCallback } from 'react';
 import { Questionnaire, EvidenceRequest, UserProfile, Document, Audit, QuestionnaireResponse } from '../../types';
+import { AuditStatus, isValidAuditTransition, VALID_AUDIT_TRANSITIONS } from '../../types/audits';
 import { hasPermission } from '../../utils/permissions';
 import { AuditLogService } from '../../services/auditLogService';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -76,11 +77,27 @@ export const useAuditsActions = () => {
     }
   }, [addAuditRaw, user, t]);
 
-  const updateAudit = useCallback(async (id: string, data: Partial<Audit>) => {
+  const updateAudit = useCallback(async (id: string, data: Partial<Audit>, currentAudit?: Audit) => {
     if (!user?.organizationId) return;
     if (!hasPermission(user, 'Audit', 'update')) {
       toast.error(t('audits.notAuthorizedUpdate') || "Non autorisé à modifier cet audit");
       return;
+    }
+
+    // Validate audit status transition if status is being changed
+    if (data.status && currentAudit?.status && data.status !== currentAudit.status) {
+      const isValid = isValidAuditTransition(
+        currentAudit.status as AuditStatus,
+        data.status as AuditStatus
+      );
+      if (!isValid) {
+        const validTargets = VALID_AUDIT_TRANSITIONS[currentAudit.status as AuditStatus] || [];
+        const validList = validTargets.length > 0 ? validTargets.join(', ') : 'aucune';
+        toast.error(
+          `Transition de statut invalide: ${currentAudit.status} \u2192 ${data.status}. Transitions possibles: ${validList}`
+        );
+        return;
+      }
     }
 
     try {

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck - TODO: Tests need updating - service API signatures changed
 /**
  * DocumentService Tests
  * Story 13-4: Test Coverage Improvement
@@ -7,6 +6,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DocumentService } from '../documentService';
+import type { UserProfile } from '../../types';
 
 // Mock Firebase
 vi.mock('../../firebase', () => ({
@@ -43,11 +43,37 @@ vi.mock('../FunctionsService', () => ({
     },
 }));
 
+vi.mock('../auditLogService', () => ({
+    AuditLogService: {
+        logDelete: vi.fn().mockResolvedValue(undefined),
+        logCreate: vi.fn().mockResolvedValue(undefined),
+    },
+}));
+
+vi.mock('../../utils/dataSanitizer', () => ({
+    sanitizeData: vi.fn((data: unknown) => data),
+}));
+
+vi.mock('../../utils/permissions', () => ({
+    canDeleteResource: vi.fn().mockReturnValue(true),
+    canEditResource: vi.fn().mockReturnValue(true),
+}));
+
 import { getDocs } from 'firebase/firestore';
 import { FunctionsService } from '../FunctionsService';
 
-// TODO: Tests need updating - service API signatures changed
-describe.skip('DocumentService', () => {
+const mockUser: UserProfile = {
+    uid: 'user-1',
+    email: 'user@test.com',
+    displayName: 'Test User',
+    role: 'admin',
+    organizationId: 'org-1',
+    organizationName: 'Test Org',
+    theme: 'light',
+    createdAt: '',
+};
+
+describe('DocumentService', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
@@ -138,8 +164,7 @@ describe.skip('DocumentService', () => {
                 documentId: 'doc-1',
                 documentTitle: 'Test Doc',
                 organizationId: 'org-1',
-                userId: 'user-1',
-                userEmail: 'user@test.com',
+                user: mockUser,
             });
 
             expect(FunctionsService.deleteResource).toHaveBeenCalledWith('documents', 'doc-1');
@@ -161,8 +186,7 @@ describe.skip('DocumentService', () => {
                     documentId: 'doc-1',
                     documentTitle: 'Test Doc',
                     organizationId: 'org-1',
-                    userId: 'user-1',
-                    userEmail: 'user@test.com',
+                    user: mockUser,
                 })
             ).rejects.toThrow('Delete failed');
         });
@@ -176,10 +200,9 @@ describe.skip('DocumentService', () => {
             ];
 
             const result = await DocumentService.importDocumentsFromCSV(
-                csvData as any[], // eslint-disable-line @typescript-eslint/no-explicit-any
+                csvData,
                 'org-1',
-                'user-1',
-                'Test User'
+                mockUser
             );
 
             expect(result).toBe(2);
@@ -193,10 +216,9 @@ describe.skip('DocumentService', () => {
             ];
 
             const result = await DocumentService.importDocumentsFromCSV(
-                csvData as any[], // eslint-disable-line @typescript-eslint/no-explicit-any
+                csvData as Record<string, string>[],
                 'org-1',
-                'user-1',
-                'Test User'
+                mockUser
             );
 
             expect(result).toBe(1); // Only first row has valid Titre
@@ -209,10 +231,9 @@ describe.skip('DocumentService', () => {
             ];
 
             const result = await DocumentService.importDocumentsFromCSV(
-                csvData as any[], // eslint-disable-line @typescript-eslint/no-explicit-any
+                csvData as Record<string, string>[],
                 'org-1',
-                'user-1',
-                'Test User'
+                mockUser
             );
 
             expect(result).toBe(0);

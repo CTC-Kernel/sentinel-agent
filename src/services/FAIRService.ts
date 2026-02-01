@@ -21,6 +21,7 @@ import {
   Timestamp
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type {
   FAIRModelConfig,
   FAIRSimpleFormValues,
@@ -117,11 +118,11 @@ export class FAIRService {
     riskId?: string
   ): Promise<string> {
     const config = this.convertSimpleToConfig(values, organizationId, userId, riskId);
-    const docRef = await addDoc(getConfigCollection(organizationId), {
+    const docRef = await addDoc(getConfigCollection(organizationId), sanitizeData({
       ...config,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
-    });
+    }));
 
     return docRef.id;
   }
@@ -136,11 +137,11 @@ export class FAIRService {
     riskId?: string
   ): Promise<string> {
     const config = this.convertStandardToConfig(values, organizationId, userId, riskId);
-    const docRef = await addDoc(getConfigCollection(organizationId), {
+    const docRef = await addDoc(getConfigCollection(organizationId), sanitizeData({
       ...config,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
-    });
+    }));
 
     return docRef.id;
   }
@@ -155,11 +156,11 @@ export class FAIRService {
     riskId?: string
   ): Promise<string> {
     const config = this.convertAdvancedToConfig(values, organizationId, userId, riskId);
-    const docRef = await addDoc(getConfigCollection(organizationId), {
+    const docRef = await addDoc(getConfigCollection(organizationId), sanitizeData({
       ...config,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
-    });
+    }));
 
     return docRef.id;
   }
@@ -174,11 +175,11 @@ export class FAIRService {
     updates: Partial<FAIRModelConfig>
   ): Promise<void> {
     const docRef = doc(getConfigCollection(organizationId), configId);
-    await updateDoc(docRef, {
+    await updateDoc(docRef, sanitizeData({
       ...updates,
       updatedAt: serverTimestamp(),
       updatedBy: userId
-    });
+    }));
   }
 
   /**
@@ -204,14 +205,14 @@ export class FAIRService {
     if (!existing) throw new Error('Configuration not found');
 
     const { id: _id, lastSimulation: _sim, createdAt: _created, ...rest } = existing;
-    const docRef = await addDoc(getConfigCollection(organizationId), {
+    const docRef = await addDoc(getConfigCollection(organizationId), sanitizeData({
       ...rest,
       name: `${rest.name} (Copy)`,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       createdBy: userId,
       updatedBy: userId
-    });
+    }));
 
     return docRef.id;
   }
@@ -257,11 +258,11 @@ export class FAIRService {
       ...preset.defaultValues
     };
 
-    const docRef = await addDoc(getConfigCollection(organizationId), {
+    const docRef = await addDoc(getConfigCollection(organizationId), sanitizeData({
       ...config,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
-    });
+    }));
 
     return docRef.id;
   }
@@ -278,20 +279,20 @@ export class FAIRService {
     configId: string,
     results: Omit<SimulationResults, 'id' | 'runAt'>
   ): Promise<string> {
-    const docRef = await addDoc(getResultsCollection(organizationId, configId), {
+    const docRef = await addDoc(getResultsCollection(organizationId, configId), sanitizeData({
       ...results,
       runAt: serverTimestamp()
-    });
+    }));
 
     // Update the config with latest simulation
-    await updateDoc(doc(getConfigCollection(organizationId), configId), {
+    await updateDoc(doc(getConfigCollection(organizationId), configId), sanitizeData({
       lastSimulation: {
         ...results,
         id: docRef.id,
         runAt: Timestamp.now()
       },
       updatedAt: serverTimestamp()
-    });
+    }));
 
     return docRef.id;
   }

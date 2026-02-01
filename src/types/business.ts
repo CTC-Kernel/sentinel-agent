@@ -107,7 +107,9 @@ export interface BusinessProcess {
     name: string;
     description: string;
     owner: string;
+    /** Recovery Time Objective - human-readable duration string (e.g. "4h", "24h", "30m"). Stored as string for display flexibility; parse with parseRtoDuration() for numeric comparisons. */
     rto: string;
+    /** Recovery Point Objective - human-readable duration string (e.g. "1h", "24h", "15m"). Stored as string for display flexibility; parse with parseRtoDuration() for numeric comparisons. */
     rpo: string;
     priority: 'Critique' | 'Élevée' | 'Moyenne' | 'Faible';
     supportingAssetIds: string[];
@@ -152,6 +154,28 @@ export interface SharingPreferences {
     defaultScope: 'public' | 'community' | 'trusted_only' | 'private';
     anonymizeIdentity: boolean;
     autoShareHighSeverity: boolean;
+}
+
+/**
+ * Parse a human-readable RTO/RPO duration string to minutes.
+ * Supports formats: "4h", "30m", "1d", "24h", "2h30m".
+ * Returns NaN if the format is unrecognized.
+ */
+export function parseRtoDuration(value: string): number {
+    if (!value) return NaN;
+    const normalized = value.trim().toLowerCase();
+    let totalMinutes = 0;
+    const dayMatch = normalized.match(/(\d+)\s*d/);
+    const hourMatch = normalized.match(/(\d+)\s*h/);
+    const minMatch = normalized.match(/(\d+)\s*m/);
+    if (dayMatch) totalMinutes += parseInt(dayMatch[1], 10) * 24 * 60;
+    if (hourMatch) totalMinutes += parseInt(hourMatch[1], 10) * 60;
+    if (minMatch) totalMinutes += parseInt(minMatch[1], 10);
+    if (!dayMatch && !hourMatch && !minMatch) {
+        const num = parseFloat(normalized);
+        return isNaN(num) ? NaN : num * 60; // assume hours if bare number
+    }
+    return totalMinutes;
 }
 
 export interface ContinuitySuggestion {

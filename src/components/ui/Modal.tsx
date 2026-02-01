@@ -33,7 +33,7 @@ export const Modal: React.FC<ModalProps> = ({
     scrollable = true,
     ...props
 }) => {
-    const { t } = useStore();
+    const { t } = useTranslation();
     const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
 
     const handleClose = React.useCallback(() => {
@@ -92,7 +92,7 @@ export const Modal: React.FC<ModalProps> = ({
                                                 variant="ghost"
                                                 size="icon"
                                                 className="rounded-full hover:bg-slate-500/10 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground dark:text-slate-300 dark:hover:text-white"
-                                                aria-label={t('common.ui.close')}
+                                                aria-label={t('common.close', { defaultValue: 'Fermer' })}
                                             >
                                                 <X className="w-5 h-5" aria-hidden="true" />
                                             </Button>
@@ -143,10 +143,10 @@ export const Modal: React.FC<ModalProps> = ({
                                         </div>
                                         <div className="flex-1">
                                             <Dialog.Title className="text-lg font-semibold text-foreground">
-                                                {t('common.ui.unsavedChanges.title')}
+                                                {t('common.unsavedChanges', { defaultValue: 'Modifications non sauvegardées' })}
                                             </Dialog.Title>
                                             <p className="mt-2 text-sm text-muted-foreground">
-                                                {unsavedChangesMessage || t('common.ui.unsavedChanges.message')}
+                                                {unsavedChangesMessage || t('common.unsavedChangesMessage', { defaultValue: 'Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter ?' })}
                                             </p>
                                         </div>
                                     </div>
@@ -155,13 +155,13 @@ export const Modal: React.FC<ModalProps> = ({
                                             variant="ghost"
                                             onClick={handleCancelClose}
                                         >
-                                            {t('common.ui.unsavedChanges.continue')}
+                                            {t('common.continueEditing', { defaultValue: "Continuer l'édition" })}
                                         </Button>
                                         <Button
                                             variant="destructive"
                                             onClick={handleConfirmClose}
                                         >
-                                            {t('common.ui.unsavedChanges.discard')}
+                                            {t('common.leaveWithoutSaving', { defaultValue: 'Quitter sans sauvegarder' })}
                                         </Button>
                                     </div>
                                 </Dialog.Panel>

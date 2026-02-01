@@ -2,6 +2,7 @@ import { Component, ErrorInfo, ReactNode } from 'react';
 import { Shield, RefreshCw, Home } from './ui/Icons';
 import { Button } from './ui/button';
 import { MasterpieceBackground } from './ui/MasterpieceBackground';
+import i18n from '../i18n';
 
 interface Props {
     children: ReactNode;
@@ -46,13 +47,15 @@ export class ErrorBoundary extends Component<Props, State> {
                         </div>
 
                         <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-4 font-display tracking-tight">
-                            {isPermissionError ? 'Accès Refusé' : 'Une erreur est survenue'}
+                            {isPermissionError
+                                ? i18n.t('errorBoundary.accessDenied', { defaultValue: 'Accès Refusé' })
+                                : i18n.t('errorBoundary.errorOccurred', { defaultValue: 'Une erreur est survenue' })}
                         </h1>
 
                         <p className="text-lg text-slate-600 dark:text-muted-foreground mb-10 leading-relaxed font-light">
                             {isPermissionError
-                                ? "Vous n'avez pas les permissions nécessaires pour accéder à cette ressource."
-                                : "Une erreur inattendue s'est produite. Notre équipe a été notifiée."}
+                                ? i18n.t('errorBoundary.permissionDenied', { defaultValue: "Vous n'avez pas les permissions nécessaires pour accéder à cette ressource." })
+                                : i18n.t('errorBoundary.unexpectedError', { defaultValue: "Une erreur inattendue s'est produite. Notre équipe a été notifiée." })}
                         </p>
 
                         <div className="flex flex-col gap-4">
@@ -61,7 +64,7 @@ export class ErrorBoundary extends Component<Props, State> {
                                 className="w-full text-base py-6 rounded-3xl font-bold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 transition-all duration-300"
                             >
                                 <RefreshCw className="mr-2 h-5 w-5" />
-                                Recharger la page
+                                {i18n.t('errorBoundary.reloadPage', { defaultValue: 'Recharger la page' })}
                             </Button>
 
                             <Button
@@ -70,7 +73,7 @@ export class ErrorBoundary extends Component<Props, State> {
                                 className="w-full text-base py-6 rounded-3xl font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
                             >
                                 <Home className="mr-2 h-5 w-5" />
-                                Retour au tableau de bord
+                                {i18n.t('errorBoundary.backToDashboard', { defaultValue: 'Retour au tableau de bord' })}
                             </Button>
                         </div>
 

@@ -1,5 +1,6 @@
 import { ErrorLogger } from './errorLogger';
 import { auth, db } from '../firebase';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { User } from 'firebase/auth';
 import {
   collection,
@@ -308,11 +309,11 @@ class SessionMonitoringService {
 
       if (sameDeviceSession && this.sessionLimitConfig.allowSameDevice) {
         // Update existing session for same device
-        await setDoc(doc(sessionsRef, sameDeviceSession.id), {
+        await setDoc(doc(sessionsRef, sameDeviceSession.id), sanitizeData({
           ...sameDeviceSession,
           lastActivity: serverTimestamp(),
           isCurrent: true
-        });
+        }));
 
         this.currentSessionId = sameDeviceSession.id;
         return { allowed: true, sessionId: sameDeviceSession.id };
@@ -397,7 +398,7 @@ class SessionMonitoringService {
         isCurrent: true
       };
 
-      await setDoc(doc(sessionsRef, sessionId), newSession);
+      await setDoc(doc(sessionsRef, sessionId), sanitizeData(newSession));
       this.currentSessionId = sessionId;
 
       ErrorLogger.info('Session registered', 'SessionMonitoring', {
@@ -446,9 +447,9 @@ class SessionMonitoringService {
       const sessionsRef = collection(db, 'active_sessions');
       const sessionDoc = doc(sessionsRef, this.currentSessionId);
 
-      await setDoc(sessionDoc, {
+      await setDoc(sessionDoc, sanitizeData({
         lastActivity: serverTimestamp()
-      }, { merge: true });
+      }), { merge: true });
     } catch {
       // Silent fail - don't interrupt user experience
       ErrorLogger.warn('Failed to update session activity', 'SessionMonitoring');

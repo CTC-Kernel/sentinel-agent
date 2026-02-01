@@ -19,9 +19,10 @@ import {
 } from '@/stores/viewPresets';
 import type { ViewPreset } from '@/types/voxel';
 import { useAuth } from '@/hooks/useAuth';
-import { doc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { ErrorLogger } from '@/services/errorLogger';
+import { sanitizeData } from '@/utils/dataSanitizer';
 
 // ============================================================================
 // Types
@@ -197,11 +198,11 @@ export function useViewPresets(): UseViewPresetsReturn {
 
     try {
       const docRef = doc(collection(db, CUSTOM_VIEWS_COLLECTION), customView.id);
-      await setDoc(docRef, {
+      await setDoc(docRef, sanitizeData({
         ...customView,
         createdAt: customView.createdAt.toISOString(),
         updatedAt: customView.updatedAt.toISOString(),
-      });
+      }));
 
       setCustomViews(prev => [customView, ...prev]);
       return customView;
@@ -225,9 +226,9 @@ export function useViewPresets(): UseViewPresetsReturn {
       const docRef = doc(db, CUSTOM_VIEWS_COLLECTION, id);
       const updateData = {
         ...updates,
-        updatedAt: new Date().toISOString(),
+        updatedAt: serverTimestamp(),
       };
-      await updateDoc(docRef, updateData);
+      await updateDoc(docRef, sanitizeData(updateData));
 
       setCustomViews(prev => prev.map(v =>
         v.id === id ? { ...v, ...updates, updatedAt: new Date() } : v

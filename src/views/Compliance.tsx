@@ -268,8 +268,7 @@ export const Compliance: React.FC = () => {
 
         if (type === 'project' && controlContext) {
             // Vérifier si le contrôle est déjà lié à un projet
-            const isLinkedToProject = controlContext.linkedProjectId &&
-                controlContext.linkedProjectId === controlContext.id;
+            const isLinkedToProject = !!controlContext.linkedProjectId;
 
             if (isLinkedToProject) {
                 addToast(t('compliance.controlAlreadyLinked') || 'Ce contrôle est déjà lié à un projet', 'info');
@@ -279,8 +278,7 @@ export const Compliance: React.FC = () => {
 
         if (type === 'audit' && controlContext) {
             // Vérifier si le contrôle est déjà lié à un audit
-            const isLinkedToAudit = controlContext.linkedAuditId &&
-                controlContext.linkedAuditId === controlContext.id;
+            const isLinkedToAudit = !!controlContext.linkedAuditId;
 
             if (isLinkedToAudit) {
                 addToast(t('compliance.controlAlreadyLinked') || 'Ce contrôle est déjà lié à un audit', 'info');
@@ -485,6 +483,7 @@ export const Compliance: React.FC = () => {
                                 <Button
                                     variant="outline"
                                     size="sm"
+                                    aria-pressed={showMissingEvidence}
                                     onClick={() => setShowMissingEvidence(!showMissingEvidence)}
                                     className={`transition-all ${showMissingEvidence
                                         ? 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400'

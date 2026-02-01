@@ -133,7 +133,7 @@ export const useProjectLogic = () => {
                     createdAt: serverTimestamp()
                 };
 
-                batch.set(newProjectRef, newProjectData);
+                batch.set(newProjectRef, sanitizeData(newProjectData));
 
                 // Use ProjectService to sync new project links
                 ProjectService.syncNewProjectLinks(
@@ -249,7 +249,7 @@ export const useProjectLogic = () => {
         const progress = tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0;
 
         try {
-            await updateDoc(doc(db, 'projects', project.id), { tasks, progress });
+            await updateDoc(doc(db, 'projects', project.id), sanitizeData({ tasks, progress }));
 
             // Not logging every task update to avoid spam, but could if critical
             // AuditLogService.logUpdate(...) 

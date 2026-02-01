@@ -1,12 +1,36 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const { logger } = require("firebase-functions");
+const { defineSecret } = require("firebase-functions/params");
 const sgMail = require("@sendgrid/mail");
 const { getCertifierInvitationHtml, getAuditAssignmentHtml } = require('./services/emailTemplates');
 
+// Secrets
+const sendgridApiKey = defineSecret("SENDGRID_API_KEY");
+const sendgridSender = defineSecret("SENDGRID_SENDER");
+
+/**
+ * Sanitize HTML to remove dangerous elements as a defense-in-depth measure
+ */
+function sanitizeHtml(html) {
+    if (!html || typeof html !== 'string') return '';
+    return html
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+        .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+        .replace(/<embed\b[^>]*\/?>/gi, '')
+        .replace(/\bon\w+\s*=\s*"[^"]*"/gi, '')
+        .replace(/\bon\w+\s*=\s*'[^']*'/gi, '')
+        .replace(/\bon\w+\s*=\s*[^\s>]*/gi, '')
+        .replace(/href\s*=\s*"javascript:[^"]*"/gi, '')
+        .replace(/href\s*=\s*'javascript:[^']*'/gi, '')
+        .replace(/src\s*=\s*"data:[^"]*"/gi, '')
+        .replace(/src\s*=\s*'data:[^']*'/gi, '');
+}
+
 // Helper to send email safely
 const sendEmail = async (to, subject, html, text) => {
-    const apiKey = process.env.SENDGRID_API_KEY;
+    const apiKey = sendgridApiKey.value();
     if (!apiKey) {
         logger.warn("SENDGRID_API_KEY missing. Email not sent.");
         logger.info(`[MOCK EMAIL] To: ${to}, Subject: ${subject}`);
@@ -16,10 +40,10 @@ const sendEmail = async (to, subject, html, text) => {
     sgMail.setApiKey(apiKey);
     const msg = {
         to,
-        from: process.env.SENDGRID_SENDER || 'noreply@sentinel-grc.com',
+        from: sendgridSender.value() || 'noreply@sentinel-grc.com',
         subject,
         text: text || 'Notification Sentinel GRC',
-        html
+        html: sanitizeHtml(html)
     };
 
     try {
@@ -34,7 +58,7 @@ const sendEmail = async (to, subject, html, text) => {
 };
 
 // 1. Invite a Certifier Partner
-exports.inviteCertifier = onCall(async (request) => {
+exports.inviteCertifier = onCall({ secrets: [sendgridApiKey, sendgridSender] }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
 
     const role = request.auth.token.role;
@@ -227,7 +251,7 @@ exports.getCertifierDashboard = onCall(async (request) => {
 // ... prior imports ...
 
 // New Function: Assign Audit to Partner
-exports.assignAuditToPartner = onCall(async (request) => {
+exports.assignAuditToPartner = onCall({ secrets: [sendgridApiKey, sendgridSender] }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
 
     const { auditId, partnerId, partnerName } = request.data;

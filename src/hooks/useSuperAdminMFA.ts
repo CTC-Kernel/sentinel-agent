@@ -67,9 +67,12 @@ export function useSuperAdminMFA() {
     // Check if user has MFA enabled
     const mfaEnabled = await hasMFAEnabled();
     if (!mfaEnabled) {
-      // If MFA is not enabled, warn but allow (consider enforcing MFA for super admins)
-      addToast(t('superAdmin.toast.mfaNotEnabled', { defaultValue: 'Attention: MFA non activé. Il est recommandé d\'activer la MFA pour les actions super admin.' }), 'info');
-      return true;
+      // SECURITY: MFA is required for super admin actions - deny if not enrolled
+      ErrorLogger.error(new Error('Super admin MFA not enabled'), 'useSuperAdminMFA.requireMFAVerification', {
+        metadata: { userId: user?.uid }
+      });
+      addToast(t('superAdmin.toast.mfaRequired', { defaultValue: 'MFA obligatoire pour les actions super admin. Veuillez activer la MFA dans vos paramètres.' }), 'error');
+      return false;
     }
 
     // Open MFA verification modal and wait for result
@@ -132,11 +135,9 @@ export function useSuperAdminMFA() {
 
       const firebaseError = error as { code?: string; message?: string };
       if (firebaseError.code === 'functions/not-found') {
-        // Fallback: if the Cloud Function doesn't exist, trust the user has MFA
-        // This is a temporary measure - the function should be implemented
-        verificationState.resolve?.(true);
-        setVerificationState(prev => ({ ...prev, isOpen: false, resolve: null }));
-        addToast(t('superAdmin.toast.mfaLegacy', { defaultValue: 'Vérification MFA (mode legacy)' }), 'info');
+        // SECURITY: Do NOT bypass MFA when Cloud Function is missing - deny the action
+        ErrorLogger.error(new Error('MFA verification Cloud Function not deployed'), 'useSuperAdminMFA.handleVerifyMFA');
+        setVerificationError(t('superAdmin.mfa.serviceUnavailable', { defaultValue: 'Service de vérification MFA indisponible. Contactez l\'administrateur.' }));
       } else {
         setVerificationError(firebaseError.message || t('superAdmin.mfa.verificationError', { defaultValue: 'Erreur de vérification MFA' }));
       }

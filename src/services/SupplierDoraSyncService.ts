@@ -14,7 +14,8 @@ import { SupplierService } from './SupplierService';
 import { ICTProviderService } from './ICTProviderService';
 import { ErrorLogger } from './errorLogger';
 import { db } from '../firebase';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 export class SupplierDoraSyncService {
     private static readonly SYNC_COLLECTION = 'supplier_dora_sync';
@@ -26,21 +27,10 @@ export class SupplierDoraSyncService {
      * @param organizationId - The organization ID (required for security)
      * @returns Promise<boolean> - True if sync was performed, false if not needed
      */
-    static async syncSupplierToICTProvider(supplierId: string, organizationId?: string): Promise<boolean> {
+    static async syncSupplierToICTProvider(supplierId: string, organizationId: string): Promise<boolean> {
         try {
-            // If organizationId not provided, we need to get it from the supplier document directly
-            // This is a security fallback - caller should always provide organizationId when known
-            let supplier: Supplier | null = null;
-            if (organizationId) {
-                supplier = await SupplierService.getById(supplierId, organizationId);
-            } else {
-                // Direct fetch without org validation (legacy support - to be deprecated)
-                const supplierDoc = await getDoc(doc(db, 'suppliers', supplierId));
-                if (supplierDoc.exists()) {
-                    supplier = supplierDoc.data() as Supplier;
-                }
-                ErrorLogger.warn('syncSupplierToICTProvider called without organizationId - using legacy fallback', 'SupplierDoraSyncService');
-            }
+            // Verify the supplier exists and belongs to the organization
+            const supplier: Supplier | null = await SupplierService.getById(supplierId, organizationId);
             if (!supplier) {
                 ErrorLogger.warn(`Supplier ${supplierId} not found for DORA sync`, 'SupplierDoraSyncService.syncSupplierToICTProvider');
                 return false;
@@ -267,10 +257,10 @@ export class SupplierDoraSyncService {
      */
     private static async updateSyncTimestamp(supplierId: string): Promise<void> {
         try {
-            await updateDoc(doc(db, this.SYNC_COLLECTION, supplierId), {
-                [this.SYNC_FIELD]: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            });
+            await updateDoc(doc(db, this.SYNC_COLLECTION, supplierId), sanitizeData({
+                [this.SYNC_FIELD]: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            }));
         } catch {
             ErrorLogger.warn(`Failed to update sync timestamp for supplier ${supplierId}`, 'SupplierDoraSyncService.updateSyncTimestamp');
         }
@@ -283,10 +273,10 @@ export class SupplierDoraSyncService {
      */
     private static async linkSupplierToICTProvider(supplierId: string, ictProviderId: string): Promise<void> {
         try {
-            await updateDoc(doc(db, 'suppliers', supplierId), {
+            await updateDoc(doc(db, 'suppliers', supplierId), sanitizeData({
                 linkedICTProviderId: ictProviderId,
-                updatedAt: new Date().toISOString()
-            });
+                updatedAt: serverTimestamp()
+            }));
         } catch (error) {
             ErrorLogger.error(error, 'SupplierDoraSyncService.linkSupplierToICTProvider', { metadata: { supplierId, ictProviderId } });
         }
@@ -297,20 +287,10 @@ export class SupplierDoraSyncService {
      * @param supplierId - The supplier ID
      * @param organizationId - The organization ID (required for security)
      */
-    static async removeICTProviderStatus(supplierId: string, organizationId?: string): Promise<void> {
+    static async removeICTProviderStatus(supplierId: string, organizationId: string): Promise<void> {
         try {
-            // First verify the supplier exists and belongs to the organization
-            let supplier: Supplier | null = null;
-            if (organizationId) {
-                supplier = await SupplierService.getById(supplierId, organizationId);
-            } else {
-                // Direct fetch without org validation (legacy support - to be deprecated)
-                const supplierDoc = await getDoc(doc(db, 'suppliers', supplierId));
-                if (supplierDoc.exists()) {
-                    supplier = supplierDoc.data() as Supplier;
-                }
-                ErrorLogger.warn('removeICTProviderStatus called without organizationId - using legacy fallback', 'SupplierDoraSyncService');
-            }
+            // Verify the supplier exists and belongs to the organization
+            const supplier: Supplier | null = await SupplierService.getById(supplierId, organizationId);
 
             if (!supplier) {
                 ErrorLogger.warn(`Supplier ${supplierId} not found or access denied`, 'SupplierDoraSyncService.removeICTProviderStatus');
@@ -318,11 +298,11 @@ export class SupplierDoraSyncService {
             }
 
             // Update supplier to remove ICT Provider status
-            await updateDoc(doc(db, 'suppliers', supplierId), {
+            await updateDoc(doc(db, 'suppliers', supplierId), sanitizeData({
                 isICTProvider: false,
                 linkedICTProviderId: null,
-                updatedAt: new Date().toISOString()
-            });
+                updatedAt: serverTimestamp()
+            }));
 
             // Find and deactivate corresponding ICT Provider
             const providers = await ICTProviderService.getAll(supplier.organizationId);

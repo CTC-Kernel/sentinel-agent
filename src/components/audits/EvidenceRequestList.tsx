@@ -49,8 +49,8 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
     const { update: updateControl } = useFirestoreCollection('controls', [], { enabled: false });
 
     const requestSchema = z.object({
-        title: z.string().min(1, 'Le titre est requis').max(100),
-        description: z.string().min(1, 'La description est requise'),
+        title: z.string().min(1, 'Title is required').max(100),
+        description: z.string().min(1, 'Description is required'),
         assignedTo: z.string().optional(),
         dueDate: z.string().optional(),
         relatedControlId: z.string().optional()

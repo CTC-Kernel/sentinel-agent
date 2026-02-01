@@ -16,10 +16,10 @@ export const useFormProtection = <T extends Record<string, unknown>>(initialData
   const validateField = useCallback((_name: keyof T, value: unknown) => {
     // Validation basique - à personnaliser selon les besoins
     if (!value && value !== 0) {
-      return 'Ce champ est requis';
+      return 'This field is required';
     }
     if (typeof value === 'string' && value.trim().length === 0) {
-      return 'Ce champ ne peut pas être vide';
+      return 'This field cannot be empty';
     }
     return null;
   }, []);

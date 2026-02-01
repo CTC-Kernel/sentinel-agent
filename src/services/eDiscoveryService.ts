@@ -24,6 +24,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type { DocumentAction } from './vaultAuditService';
 import type { ClassificationLevel } from '@/types/vault';
 
@@ -326,11 +327,11 @@ export const EDiscoveryService = {
         isPublic: options?.isPublic || false,
       };
 
-      const docRef = await addDoc(collection(db, EDISCOVERY_SEARCHES_COLLECTION), {
+      const docRef = await addDoc(collection(db, EDISCOVERY_SEARCHES_COLLECTION), sanitizeData({
         ...savedSearch,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-      });
+      }));
 
       return docRef.id;
     } catch (error) {
@@ -430,10 +431,10 @@ export const EDiscoveryService = {
   ): Promise<void> {
     try {
       const docRef = doc(db, EDISCOVERY_SEARCHES_COLLECTION, searchId);
-      await updateDoc(docRef, {
+      await updateDoc(docRef, sanitizeData({
         ...updates,
         updatedAt: serverTimestamp(),
-      });
+      }));
     } catch (error) {
       ErrorLogger.error(error, 'EDiscoveryService.updateSearchQuery');
       throw new Error('Echec de la mise a jour de la recherche');
@@ -463,10 +464,10 @@ export const EDiscoveryService = {
 
       if (docSnap.exists()) {
         const currentCount = docSnap.data().runCount || 0;
-        await updateDoc(docRef, {
+        await updateDoc(docRef, sanitizeData({
           runCount: currentCount + 1,
           lastRunAt: serverTimestamp(),
-        });
+        }));
       }
     } catch (error) {
       // Non-critical, just log

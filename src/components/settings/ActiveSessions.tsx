@@ -22,6 +22,8 @@ export const ActiveSessions: React.FC = () => {
     const { t, addToast } = useStore();
     const [showRevokeAllConfirm, setShowRevokeAllConfirm] = useState(false);
 
+    // TODO: Replace with real session data from Firebase Auth
+    // Currently using mock data - session management is cosmetic only
     const [sessions, setSessions] = useState<Session[]>(() => [
         {
             id: '1',

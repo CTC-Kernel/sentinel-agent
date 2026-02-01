@@ -1,7 +1,8 @@
-import { doc, updateDoc, collection, query, where, getCountFromServer, addDoc, orderBy, limit, getDocs } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, getCountFromServer, addDoc, orderBy, limit, getDocs, serverTimestamp } from 'firebase/firestore';
 import { db, functions, auth } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { PlanType, PlanLimits } from '../types';
 import { useStore } from '../store';
 
@@ -52,15 +53,15 @@ export const AdminService = {
             }
             const storeUser = useStore.getState().user;
 
-            await addDoc(collection(db, 'audit_logs'), {
-                timestamp: new Date().toISOString(),
+            await addDoc(collection(db, 'audit_logs'), sanitizeData({
+                timestamp: serverTimestamp(),
                 actorId: currentUser.uid,
                 actorEmail: currentUser.email,
                 organizationId: storeUser?.organizationId || '',
                 action,
                 targetId,
                 metadata
-            });
+            }));
         } catch (error) {
             ErrorLogger.error(error as Error, 'AdminService.logAction');
         }
@@ -96,10 +97,10 @@ export const AdminService = {
         const caller = requireSuperAdmin();
         try {
             const orgRef = doc(db, 'organizations', orgId);
-            await updateDoc(orgRef, {
+            await updateDoc(orgRef, sanitizeData({
                 isActive: isActive,
-                updatedAt: new Date().toISOString()
-            });
+                updatedAt: serverTimestamp()
+            }));
 
             await AdminService.logAction(
                 isActive ? 'TENANT_ACTIVATE' : 'TENANT_SUSPEND',
@@ -161,14 +162,14 @@ export const AdminService = {
 
             const updateData: Record<string, unknown> = {
                 'subscription.planId': plan,
-                'updatedAt': new Date().toISOString()
+                'updatedAt': serverTimestamp()
             };
 
             if (limits.maxUsers !== undefined) updateData['subscription.customLimits.maxUsers'] = limits.maxUsers;
             if (limits.maxProjects !== undefined) updateData['subscription.customLimits.maxProjects'] = limits.maxProjects;
             if (limits.maxStorageGB !== undefined) updateData['subscription.customLimits.maxStorageGB'] = limits.maxStorageGB;
 
-            await updateDoc(orgRef, updateData);
+            await updateDoc(orgRef, sanitizeData(updateData));
 
             await AdminService.logAction('SUBSCRIPTION_UPDATE', orgId, { plan, limits });
         } catch (error) {

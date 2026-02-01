@@ -65,6 +65,11 @@ export const useStore = create<AppState>((set) => ({
     return { theme };
   }),
   setLanguage: (lang) => {
+    const supportedLanguages = ['fr', 'en', 'de'] as const;
+    if (!supportedLanguages.includes(lang as typeof supportedLanguages[number])) {
+      console.warn(`Unsupported language "${lang}", defaulting to "fr"`);
+      lang = 'fr';
+    }
     try { localStorage.setItem('language', lang); } catch { /* ignore */ }
     i18n.changeLanguage(lang);
     set({ language: lang });

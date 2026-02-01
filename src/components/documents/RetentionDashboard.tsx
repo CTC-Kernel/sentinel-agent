@@ -221,7 +221,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
       }
 
       if (editingPolicy) {
-        await updatePolicy(editingPolicy.id, user.uid, {
+        await updatePolicy(editingPolicy.id, organizationId!, user.uid, {
           name: formData.name,
           description: formData.description || undefined,
           retentionDays: formData.retentionDays,
@@ -271,7 +271,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
     if (!policyToDelete) return;
 
     try {
-      await deletePolicy(policyToDelete.id);
+      await deletePolicy(policyToDelete.id, organizationId!);
       toast.success(t('retention.success.deleted', 'Politique supprimee'));
       setDeleteDialogOpen(false);
       setPolicyToDelete(null);
