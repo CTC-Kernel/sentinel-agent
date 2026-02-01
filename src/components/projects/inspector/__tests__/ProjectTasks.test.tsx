@@ -72,7 +72,7 @@ vi.mock('../../TaskFormDrawer', () => ({
         <div data-testid="task-form-modal">
             <button onClick={onClose} data-testid="close-modal">Close</button>
             <button
-                onClick={() => onSubmit({ title: 'New Task', status: 'A faire' })}
+                onClick={() => onSubmit({ title: 'New Task', status: 'À faire' })}
                 data-testid="submit-task"
             >
                 Submit
@@ -145,7 +145,7 @@ describe('ProjectTasks', () => {
             id: 'task-3',
             title: 'Write tests',
             description: 'Add unit tests',
-            status: 'A faire',
+            status: 'À faire',
             startDate: '2024-02-01',
             dueDate: '2024-02-15',
             assigneeId: 'user-1',
@@ -213,7 +213,7 @@ describe('ProjectTasks', () => {
             render(<ProjectTasks {...defaultProps} />);
 
             // Kanban columns should be visible
-            expect(screen.getByTestId('kanban-column-A-faire')).toBeInTheDocument();
+            expect(screen.getByTestId('kanban-column-À-faire')).toBeInTheDocument();
             expect(screen.getByTestId('kanban-column-En-cours')).toBeInTheDocument();
             expect(screen.getByTestId('kanban-column-Terminé')).toBeInTheDocument();
         });
@@ -292,7 +292,7 @@ describe('ProjectTasks', () => {
         it('renders three kanban columns', () => {
             render(<ProjectTasks {...defaultProps} />);
 
-            expect(screen.getByTestId('kanban-column-A-faire')).toBeInTheDocument();
+            expect(screen.getByTestId('kanban-column-À-faire')).toBeInTheDocument();
             expect(screen.getByTestId('kanban-column-En-cours')).toBeInTheDocument();
             expect(screen.getByTestId('kanban-column-Terminé')).toBeInTheDocument();
         });

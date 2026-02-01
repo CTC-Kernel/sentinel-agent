@@ -76,7 +76,7 @@ const NODE_TYPE_ICONS: Record<VoxelNodeType, React.FC<{ className?: string }>> =
 const NODE_TYPE_LABELS: Record<VoxelNodeType, string> = {
   asset: 'Actifs',
   risk: 'Risques',
-  control: 'Controles',
+  control: 'Contrôles',
   incident: 'Incidents',
   supplier: 'Fournisseurs',
   project: 'Projets',
@@ -281,7 +281,7 @@ const WhatIfBuilder: React.FC<{
 
   return (
     <div className="space-y-3 p-3 bg-white/5 rounded-3xl border border-border/40">
-      <div className="text-xs text-white/70 font-medium">Scenario What-If</div>
+      <div className="text-xs text-white/70 font-medium">Scénario What-If</div>
 
       <div className="space-y-2">
         <select
@@ -289,8 +289,8 @@ const WhatIfBuilder: React.FC<{
           onChange={(e) => setScenarioType(e.target.value as WhatIfScenario['type'])}
           className="w-full bg-white/5 border border-border/40 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500"
         >
-          <option value="remove_node">Supprimer un controle</option>
-          <option value="add_node">Ajouter un controle</option>
+          <option value="remove_node">Supprimer un contrôle</option>
+          <option value="add_node">Ajouter un contrôle</option>
           <option value="modify_weight">Modifier poids connexion</option>
         </select>
 
@@ -314,7 +314,7 @@ const WhatIfBuilder: React.FC<{
           disabled={!selectedNodeId}
           className="w-full px-4 py-2 bg-brand-500 hover:bg-brand-600 disabled:bg-white/10 disabled:text-white/30 text-white text-sm font-medium rounded-lg transition-colors"
         >
-          Appliquer le scenario
+          Appliquer le scénario
         </button>
       </div>
     </div>
@@ -400,15 +400,15 @@ const BlastRadiusHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) 
     <div className="space-y-3 text-xs text-white/70">
       <div className="flex gap-2">
         <span className="w-5 h-5 rounded bg-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">1</span>
-        <p><strong className="text-white">Simulation d'impact</strong> - Cliquez sur un noeud dans la vue 3D pour voir tous les elements qui seraient affectes en cas de defaillance.</p>
+        <p><strong className="text-white">Simulation d'impact</strong> - Cliquez sur un noeud dans la vue 3D pour voir tous les éléments qui seraient affectés en cas de défaillance.</p>
       </div>
       <div className="flex gap-2">
         <span className="w-5 h-5 rounded bg-brand-100 flex items-center justify-center text-brand-400 shrink-0">2</span>
-        <p><strong className="text-white">Statistiques</strong> - Visualisez le nombre de noeuds impactes, la profondeur de propagation et l'impact metier global.</p>
+        <p><strong className="text-white">Statistiques</strong> - Visualisez le nombre de noeuds impactés, la profondeur de propagation et l'impact métier global.</p>
       </div>
       <div className="flex gap-2">
         <span className="w-5 h-5 rounded bg-info/20 flex items-center justify-center text-info shrink-0">3</span>
-        <p><strong className="text-white">Scenario What-If</strong> - Simulez la suppression d'un controle pour evaluer l'impact sur votre posture de securite.</p>
+        <p><strong className="text-white">Scénario What-If</strong> - Simulez la suppression d'un contrôle pour évaluer l'impact sur votre posture de sécurité.</p>
       </div>
       <div className="flex gap-2">
         <span className="w-5 h-5 rounded bg-slate-500/20 flex items-center justify-center text-slate-400 shrink-0">4</span>
@@ -416,7 +416,7 @@ const BlastRadiusHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) 
       </div>
       <div className="flex gap-2">
         <span className="w-5 h-5 rounded bg-success/20 flex items-center justify-center text-success shrink-0">5</span>
-        <p><strong className="text-white">Export</strong> - Generez des rapports PDF ou CSV pour partager vos analyses avec votre equipe.</p>
+        <p><strong className="text-white">Export</strong> - Générez des rapports PDF ou CSV pour partager vos analyses avec votre équipe.</p>
       </div>
     </div>
   </motion.div>
@@ -535,7 +535,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                   <div>
                     <h2 className="text-lg font-bold text-white">Blast Radius</h2>
                     <p className="text-xs text-white/50">
-                      {mode === 'blast-radius' ? 'Simulation d\'impact' : mode === 'root-cause' ? 'Analyse cause racine' : 'Scenario What-If'}
+                      {mode === 'blast-radius' ? 'Simulation d\'impact' : mode === 'root-cause' ? 'Analyse cause racine' : 'Scénario What-If'}
                     </p>
                   </div>
                 </div>
@@ -569,7 +569,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
               <div className="p-5 border-b border-border/40 shrink-0">
                 <div className="grid grid-cols-2 gap-3">
                   <StatsCard
-                    label="Noeuds impactes"
+                    label="Noeuds impactés"
                     value={stats.totalAffected}
                     icon={Layers}
                     color="text-brand-400"
@@ -594,7 +594,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                   <div className={`rounded-3xl p-3 border ${businessImpactColors.bg} ${businessImpactColors.border}`}>
                     <div className="flex items-center gap-2 mb-1">
                       <BarChart3 className={`h-4 w-4 ${businessImpactColors.text}`} />
-                      <span className="text-xs text-white/50">Impact metier</span>
+                      <span className="text-xs text-white/50">Impact métier</span>
                     </div>
                     <span className={`text-xl font-bold uppercase ${businessImpactColors.text}`}>
                       {businessImpact}
@@ -606,7 +606,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                 <div className="mt-3 flex gap-2">
                   {[
                     { label: 'Critique', count: stats.criticalCount, color: IMPACT_COLORS.critical },
-                    { label: 'Eleve', count: stats.highCount, color: IMPACT_COLORS.high },
+                    { label: 'Élevé', count: stats.highCount, color: IMPACT_COLORS.high },
                     { label: 'Moyen', count: stats.mediumCount, color: IMPACT_COLORS.medium },
                     { label: 'Faible', count: stats.lowCount, color: IMPACT_COLORS.low },
                   ].map(({ label, count, color }) => (
@@ -716,7 +716,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
               >
                 <span className="flex items-center gap-2 text-sm font-medium">
                   <GitBranch className="h-4 w-4" />
-                  Scenario What-If
+                  Scénario What-If
                 </span>
                 {showWhatIf ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </button>
@@ -735,7 +735,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                         onClick={onClearWhatIf}
                         className="mt-2 w-full px-3 py-2 text-xs text-white/60 hover:text-white bg-white/5 rounded-lg"
                       >
-                        Effacer le scenario
+                        Effacer le scénario
                       </button>
                     )}
                   </motion.div>
@@ -805,7 +805,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                     </motion.div>
                     <span className={`text-xs font-medium ${whatIfResult.impactDelta < 0 ? 'text-green-400' : 'text-brand-400'
                       }`}>
-                      {whatIfResult.impactDelta < 0 ? 'Amelioration detectee !' : 'Comparaison What-If'}
+                      {whatIfResult.impactDelta < 0 ? 'Amélioration détectée !' : 'Comparaison What-If'}
                     </span>
                   </div>
 
@@ -838,7 +838,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                         {(Math.abs(whatIfResult.impactDelta) * 100).toFixed(0)}%
                       </motion.div>
                       <div className="text-[11px] text-white/50">
-                        {whatIfResult.impactDelta < 0 ? 'Reduction d\'impact' : 'Augmentation d\'impact'}
+                        {whatIfResult.impactDelta < 0 ? 'Réduction d\'impact' : 'Augmentation d\'impact'}
                       </div>
                     </div>
                   </motion.div>
@@ -876,7 +876,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                       <div className="text-sm font-bold text-green-400">
                         {whatIfResult.noLongerAffected.length}
                       </div>
-                      <div className="text-[11px] text-white/40">Proteges</div>
+                      <div className="text-[11px] text-white/40">Protégés</div>
                     </motion.div>
                   </div>
 
@@ -890,7 +890,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                     >
                       <Shield className="h-4 w-4 text-green-400" />
                       <span className="text-xs text-green-300">
-                        Excellente mitigation ! {whatIfResult.noLongerAffected.length} elements proteges.
+                        Excellente mitigation ! {whatIfResult.noLongerAffected.length} éléments protégés.
                       </span>
                     </motion.div>
                   )}
@@ -926,7 +926,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                 onClick={onClearResults}
                 className="w-full px-4 py-2 text-sm text-white/50 hover:text-white hover:bg-white/5 rounded-3xl transition-colors"
               >
-                Effacer les resultats
+                Effacer les résultats
               </button>
             </div>
           </motion.aside>

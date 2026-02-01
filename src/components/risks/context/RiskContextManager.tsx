@@ -51,7 +51,6 @@ const TABS: TabConfig[] = [
 ];
 
 export const RiskContextManager: React.FC = () => {
-  const { config } = useLocale();
   const {
     riskContext,
     loading,
@@ -364,6 +363,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
   isSaving
 }) => {
   const { t } = useStore();
+  const { config } = useLocale();
   const [description, setDescription] = useState(data.description || '');
   const [showAddForm, setShowAddForm] = useState(false);
   const [newRegulation, setNewRegulation] = useState({

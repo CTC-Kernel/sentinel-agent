@@ -63,6 +63,7 @@ const DetailView: React.FC<DetailViewProps> = ({
   simulating
 }) => {
   const { t } = useTranslation();
+  const { config: localeConfig } = useLocale();
 
   return (
     <div className="space-y-6">
@@ -109,9 +110,9 @@ const DetailView: React.FC<DetailViewProps> = ({
           <div>
             <p className="text-muted-foreground">{t('fair.config.lossRange', { defaultValue: 'Loss range' })}</p>
             <p className="font-medium">
-              {new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: config.primaryLossMagnitude.currency, notation: 'compact' }).format(config.primaryLossMagnitude.distribution.min)}
+              {new Intl.NumberFormat(localeConfig.intlLocale, { style: 'currency', currency: config.primaryLossMagnitude.currency, notation: 'compact' }).format(config.primaryLossMagnitude.distribution.min)}
               {' - '}
-              {new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: config.primaryLossMagnitude.currency, notation: 'compact' }).format(config.primaryLossMagnitude.distribution.max)}
+              {new Intl.NumberFormat(localeConfig.intlLocale, { style: 'currency', currency: config.primaryLossMagnitude.currency, notation: 'compact' }).format(config.primaryLossMagnitude.distribution.max)}
             </p>
           </div>
           <div>
@@ -166,7 +167,6 @@ interface FinancialRiskProps {
 
 export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false }) => {
   const { t } = useTranslation();
-  const { config } = useLocale();
   const {
     configurations,
     selectedConfig,

@@ -63,9 +63,8 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
   mode = 'full',
   disabled = false
 }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { config } = useLocale();
-  const isEnglish = i18n.language === 'en';
   const { organization } = useStore();
   const { user } = useAuth();
 

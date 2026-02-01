@@ -1,5 +1,5 @@
 import { Control } from '../types';
-import { RISK_THRESHOLDS, CONTROL_STATUS, PARTIAL_CONTROL_WEIGHT } from '../constants/complianceConfig';
+import { RISK_THRESHOLDS, CONTROL_STATUS, PARTIAL_CONTROL_WEIGHT, EXCLUDED_STATUSES, type ControlStatus } from '../constants/complianceConfig';
 
 /**
  * Risk level classification based on score
@@ -58,8 +58,8 @@ export function calculateRiskScore(impact: number, probability: number): number 
 /**
  * Status values that should be excluded from mitigation calculation
  * These controls are not meant to contribute to risk mitigation
+ * Uses canonical EXCLUDED_STATUSES from complianceConfig
  */
-const EXCLUDED_STATUSES = ['Non applicable', 'Exclu', 'Inactif', 'Non appliqué'];
 
 /**
  * Calculate mitigation coverage percentage based on control implementation status
@@ -68,7 +68,7 @@ const EXCLUDED_STATUSES = ['Non applicable', 'Exclu', 'Inactif', 'Non appliqué'
 export function calculateMitigationCoverage(linkedControls: Control[]): number {
     // Filter out controls that shouldn't be counted in coverage calculation
     const applicableControls = linkedControls.filter(
-        ctrl => !EXCLUDED_STATUSES.includes(ctrl.status)
+        ctrl => !EXCLUDED_STATUSES.includes(ctrl.status as ControlStatus)
     );
 
     if (applicableControls.length === 0) return 0;

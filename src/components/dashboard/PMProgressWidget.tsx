@@ -319,7 +319,7 @@ function ErrorState({
         )}
       >
         <RefreshCw className="w-4 h-4" aria-hidden="true" />
-        Reessayer
+        Réessayer
       </button>
     </div>
   );

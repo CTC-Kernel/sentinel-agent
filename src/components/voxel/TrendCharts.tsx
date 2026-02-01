@@ -30,7 +30,7 @@ import {
   ShieldAlert,
   CheckCircle2,
 } from '../ui/Icons';
-import { format, parseISO, subDays } from 'date-fns';
+import { format, parseISO, subDays, type Locale } from 'date-fns';
 import { useLocale } from '@/hooks/useLocale';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -128,7 +128,8 @@ function linearRegression(data: { x: number; y: number }[]): {
 function generatePredictions(
   data: TrendDataPoint[],
   metric: MetricType,
-  daysToPredict: number
+  daysToPredict: number,
+  dateFnsLocale: Locale
 ): { predictions: TrendDataPoint[]; warning: TrendWarning | null } {
   if (data.length < 7) return { predictions: [], warning: null };
 
@@ -183,7 +184,7 @@ function generatePredictions(
   } else if (metric === 'compliance' && slope < -0.5) {
     warning = {
       metric,
-      message: `La conformite pourrait baisser a ${predictedValue}% dans les ${daysToPredict} prochains jours`,
+      message: `La conformité pourrait baisser à ${predictedValue}% dans les ${daysToPredict} prochains jours`,
       severity: predictedValue < 70 ? 'critical' : 'warning',
     };
   }
@@ -401,7 +402,7 @@ export function TrendCharts({
 
         setData(trendData);
       } else {
-        setError('Impossible de charger les donnees');
+        setError('Impossible de charger les données');
       }
     } catch (err) {
       ErrorLogger.error(err, 'TrendCharts.fetchTrendData');
@@ -427,7 +428,7 @@ export function TrendCharts({
     const allPredictions: TrendDataPoint[] = [];
 
     metrics.forEach((metric) => {
-      const { predictions, warning } = generatePredictions(data, metric, predictionDays);
+      const { predictions, warning } = generatePredictions(data, metric, predictionDays, dateFnsLocale);
       if (warning) warnings.push(warning);
 
       // Merge predictions
@@ -502,7 +503,7 @@ export function TrendCharts({
             <AlertTriangle className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
             <p className="text-muted-foreground">{error}</p>
             <Button variant="outline" className="mt-4" onClick={fetchTrendData}>
-              Reessayer
+              Réessayer
             </Button>
           </div>
         </CardContent>
@@ -520,8 +521,8 @@ export function TrendCharts({
               Tendances Voxel
             </CardTitle>
             <CardDescription>
-              Evolution des metriques sur {timeRange === '1y' ? '1 an' : `${daysForRange} jours`}
-              {showPredictions && ' + predictions'}
+              Évolution des métriques sur {timeRange === '1y' ? '1 an' : `${daysForRange} jours`}
+              {showPredictions && ' + prédictions'}
             </CardDescription>
           </div>
           <TimeRangeSelector value={timeRange} onChange={setTimeRange} />

@@ -49,9 +49,9 @@ function NotAuthorizedState() {
     <div className="rounded-lg border bg-card p-6">
       <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
         <AlertCircle className="w-8 h-8 mb-2 text-warning" aria-hidden="true" />
-        <p className="text-sm font-medium">Acces non autorise</p>
+        <p className="text-sm font-medium">Accès non autorisé</p>
         <p className="text-xs mt-1">
-          Cette vue est reservee aux responsables securite (RSSI)
+          Cette vue est réservée aux responsables sécurité (RSSI)
         </p>
       </div>
     </div>
@@ -104,7 +104,7 @@ export function RSSIDashboardWidget({
       {/* Dashboard Title */}
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-foreground">
-          Vue Securite (RSSI)
+          Vue Sécurité (RSSI)
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
           Risques critiques, incidents actifs et actions en cours

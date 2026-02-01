@@ -23,7 +23,6 @@ export const SMSIMilestoneList: React.FC<SMSIMilestoneListProps> = ({
     onAddMilestone,
     filterPhase
 }) => {
-    const { config } = useLocale();
     const displayedMilestones = filterPhase
         ? milestones.filter(m => m.phase === filterPhase)
         : milestones;
@@ -74,6 +73,7 @@ interface MilestoneCardProps {
 }
 
 const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClick }) => {
+    const { config } = useLocale();
     const phaseConfig = PHASE_CONFIG[milestone.phase];
     const statusConfig = MILESTONE_STATUS_CONFIG[milestone.status];
     const phaseStyle = PHASE_STYLES[milestone.phase];

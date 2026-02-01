@@ -71,7 +71,7 @@ const SIZE_CONFIG = {
  * Format due date for display
  */
 function formatDueDate(dateString: string): string {
-  if (!dateString) return 'Sans echeance';
+  if (!dateString) return 'Sans échéance';
   try {
     const date = new Date(dateString);
     return date.toLocaleDateString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, {
@@ -228,10 +228,10 @@ function EmptyState({ size, daysAhead }: { size: 'sm' | 'md' | 'lg'; daysAhead: 
     >
       <CalendarCheck className="w-8 h-8 mb-2 text-green-500" aria-hidden="true" />
       <p className={cn('font-medium text-green-600 dark:text-green-400', sizeConfig.itemText)}>
-        Aucune echeance proche
+        Aucune échéance proche
       </p>
       <p className="text-xs mt-1">
-        Pas d'echeance dans les {daysAhead} prochains jours
+        Pas d'échéance dans les {daysAhead} prochains jours
       </p>
     </div>
   );
@@ -271,7 +271,7 @@ function ErrorState({
         )}
       >
         <RefreshCw className="w-4 h-4" aria-hidden="true" />
-        Reessayer
+        Réessayer
       </button>
     </div>
   );
@@ -325,7 +325,7 @@ export function PMTimelineWidget({
     <div
       className={cn('rounded-lg border bg-card', sizeConfig.padding, className)}
       role="region"
-      aria-label="Echeances a venir"
+      aria-label="Échéances à venir"
     >
       {/* Header with count */}
       <div className="mb-4">
@@ -347,7 +347,7 @@ export function PMTimelineWidget({
           )}
         </div>
         <h3 className={cn('font-semibold text-foreground', sizeConfig.title)}>
-          Echeances a Venir
+          Échéances à Venir
         </h3>
         <p className="text-xs text-muted-foreground mt-0.5">
           Prochaines {daysAhead} jours
@@ -383,7 +383,7 @@ export function PMTimelineWidget({
             'focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:ring-offset-2'
           )}
         >
-          Voir toutes les echeances ({count})
+          Voir toutes les échéances ({count})
         </button>
       )}
     </div>

@@ -98,6 +98,7 @@ const ReplyItem: React.FC<{
   onEdit: (reply: AnnotationReply) => void;
   onDelete: (replyId: string) => void;
 }> = ({ reply, currentUserId, onEdit, onDelete }) => {
+  const { config } = useLocale();
   const [showActions, setShowActions] = useState(false);
   const isOwner = currentUserId === reply.author.id;
   const createdDate = new Date(reply.createdAt);

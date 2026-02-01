@@ -286,7 +286,7 @@ describe('projectTaskSchema', () => {
     });
 
     describe('status validation', () => {
-        it.each(['A faire', 'En cours', 'Terminé', 'Bloqué'] as const)(
+        it.each(['À faire', 'En cours', 'Terminé', 'Bloqué'] as const)(
             'accepts valid status: %s',
             (status) => {
                 const result = projectTaskSchema.safeParse({ ...validTask, status });
@@ -294,11 +294,11 @@ describe('projectTaskSchema', () => {
             }
         );
 
-        it('defaults to A faire', () => {
+        it('defaults to À faire', () => {
             const result = projectTaskSchema.safeParse(validTask);
             expect(result.success).toBe(true);
             if (result.success) {
-                expect(result.data.status).toBe('A faire');
+                expect(result.data.status).toBe('À faire');
             }
         });
 

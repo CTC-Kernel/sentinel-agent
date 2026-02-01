@@ -47,7 +47,7 @@ import {
 import { SENTINEL_PALETTE } from '../theme/chartTheme';
 
 export const Reports: React.FC = () => {
-    const { user, t, organization, addToast, activeFramework, language } = useStore();
+    const { user, t, organization, addToast, activeFramework } = useStore();
     const { config } = useLocale();
     const dateLocale = config.intlLocale;
     const [activeTab, setActiveTab] = useState('templates');

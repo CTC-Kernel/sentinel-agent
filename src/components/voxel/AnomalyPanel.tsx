@@ -69,14 +69,14 @@ const SEVERITY_CONFIG: Record<
 };
 
 const ANOMALY_TYPE_LABELS: Record<VoxelAnomalyType, string> = {
-  orphan_control: 'Controle orphelin',
-  circular_dependency: 'Dependance circulaire',
+  orphan_control: 'Contrôle orphelin',
+  circular_dependency: 'Dépendance circulaire',
   coverage_gap: 'Lacune de couverture',
-  stale_assessment: 'Evaluation obsolete',
-  compliance_drift: 'Derive de conformite',
-  orphan: 'Entite orpheline',
-  stale: 'Entite obsolete',
-  inconsistency: 'Incoherence',
+  stale_assessment: 'Évaluation obsolète',
+  compliance_drift: 'Dérive de conformité',
+  orphan: 'Entité orpheline',
+  stale: 'Entité obsolète',
+  inconsistency: 'Incohérence',
   cycle: 'Cycle',
   cluster: 'Cluster anormal',
   trend: 'Tendance',
@@ -175,7 +175,7 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
           )}
 
           <p className="text-[11px] text-white/30 mt-2">
-            Detecte le{' '}
+            Détecté le{' '}
             {anomaly.detectedAt instanceof Date
               ? anomaly.detectedAt.toLocaleDateString(localeConfig.intlLocale)
               : new Date(anomaly.detectedAt).toLocaleDateString(localeConfig.intlLocale)}
@@ -252,7 +252,7 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
                     className="w-full px-4 py-2.5 text-left text-sm text-brand-400 hover:bg-white/5 flex items-center gap-2"
                   >
                     <ListTodo className="h-4 w-4" />
-                    Creer une tache
+                    Créer une tâche
                   </button>
                 )}
               </motion.div>
@@ -482,7 +482,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
                   <div>
                     <h2 className="text-lg font-bold text-white">Anomalies</h2>
                     <p className="text-xs text-white/50">
-                      {activeAnomalies.length} detectee{activeAnomalies.length !== 1 ? 's' : ''}
+                      {activeAnomalies.length} détectée{activeAnomalies.length !== 1 ? 's' : ''}
                     </p>
                   </div>
                 </div>
@@ -653,11 +653,11 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
                     <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
                       <Check className="h-8 w-8 text-green-500" />
                     </div>
-                    <p className="text-white/60 text-sm">Aucune anomalie detectee</p>
+                    <p className="text-white/60 text-sm">Aucune anomalie détectée</p>
                     <p className="text-white/40 text-xs mt-1">
                       {severityFilter.length > 0 || typeFilter.length > 0
                         ? 'Essayez de modifier les filtres'
-                        : 'Votre systeme est sain'}
+                        : 'Votre système est sain'}
                     </p>
                   </motion.div>
                 ) : (

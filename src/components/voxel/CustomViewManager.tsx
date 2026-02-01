@@ -112,6 +112,7 @@ function CustomViewCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const { dateFnsLocale } = useLocale();
   return (
     <div className="group border rounded-lg p-4 hover:border-primary/50 transition-colors">
       <div className="flex items-start justify-between gap-2">
@@ -192,7 +193,6 @@ export function CustomViewManager({
   initialMode = 'list',
 }: CustomViewManagerProps) {
   const { t } = useStore();
-  const { dateFnsLocale } = useLocale();
   const {
     customViews,
     isLoadingCustomViews,

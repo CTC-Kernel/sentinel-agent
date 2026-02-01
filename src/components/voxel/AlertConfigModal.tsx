@@ -41,39 +41,39 @@ const ANOMALY_TYPE_INFO: Record<
   { label: string; description: string }
 > = {
   orphan_control: {
-    label: 'Controle orphelin',
-    description: 'Controles non lies a des risques',
+    label: 'Contrôle orphelin',
+    description: 'Contrôles non liés à des risques',
   },
   circular_dependency: {
-    label: 'Dependance circulaire',
-    description: 'Cycles dans les relations risques/controles',
+    label: 'Dépendance circulaire',
+    description: 'Cycles dans les relations risques/contrôles',
   },
   coverage_gap: {
     label: 'Lacune de couverture',
-    description: 'Risques sans controles de mitigation',
+    description: 'Risques sans contrôles de mitigation',
   },
   stale_assessment: {
-    label: 'Evaluation obsolete',
-    description: 'Entites non evaluees depuis plus de 90 jours',
+    label: 'Évaluation obsolète',
+    description: 'Entités non évaluées depuis plus de 90 jours',
   },
   compliance_drift: {
-    label: 'Derive de conformite',
-    description: 'Efficacite des controles sous le seuil',
+    label: 'Dérive de conformité',
+    description: 'Efficacité des contrôles sous le seuil',
   },
   orphan: {
-    label: 'Entite orpheline',
-    description: 'Entites sans relations',
+    label: 'Entité orpheline',
+    description: 'Entités sans relations',
   },
   stale: {
-    label: 'Entite obsolete',
-    description: 'Entites non mises a jour',
+    label: 'Entité obsolète',
+    description: 'Entités non mises à jour',
   },
   inconsistency: {
-    label: 'Incoherence',
-    description: 'Incoherences dans les donnees',
+    label: 'Incohérence',
+    description: 'Incohérences dans les données',
   },
   cycle: {
-    label: 'Cycle detecte',
+    label: 'Cycle détecté',
     description: 'Cycles dans le graphe',
   },
   cluster: {
@@ -81,8 +81,8 @@ const ANOMALY_TYPE_INFO: Record<
     description: 'Regroupements suspects',
   },
   trend: {
-    label: 'Tendance preoccupante',
-    description: 'Evolution negative detectee',
+    label: 'Tendance préoccupante',
+    description: 'Évolution négative détectée',
   },
 };
 
@@ -175,7 +175,7 @@ const ThresholdRow: React.FC<ThresholdRowProps> = ({ threshold, onChange }) => {
           {threshold.enabled && (
             <div className="mt-3">
               <span className="text-[11px] text-white/40 uppercase tracking-wider">
-                Severite minimum
+                Sévérité minimum
               </span>
               <div className="flex gap-1 mt-1.5">
                 {SEVERITY_LEVELS.map((severity) => {
@@ -340,7 +340,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                       Configuration des Alertes
                     </h2>
                     <p className="text-xs text-white/50">
-                      Gerez les notifications d'anomalies
+                      Gérez les notifications d'anomalies
                     </p>
                   </div>
                 </div>
@@ -475,7 +475,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                     className="flex items-center gap-1 text-[11px] text-white/40 hover:text-white/60 transition-colors"
                   >
                     <RotateCcw className="h-3 w-3" />
-                    Reinitialiser
+                    Réinitialiser
                   </button>
                 </div>
                 <div className="space-y-3">
@@ -494,7 +494,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
             <div className="p-6 border-t border-border/40 shrink-0">
               <div className="flex items-center justify-between">
                 <p className="text-xs text-white/40">
-                  {hasChanges ? 'Modifications non sauvegardees' : 'Aucune modification'}
+                  {hasChanges ? 'Modifications non sauvegardées' : 'Aucune modification'}
                 </p>
                 <div className="flex gap-3">
                   <button

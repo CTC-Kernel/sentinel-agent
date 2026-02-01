@@ -536,7 +536,7 @@ describe('ReportEnrichmentService', () => {
                 tasks: [
                     { id: '1', title: 'Task 1', status: 'Terminé', assignee: '', dueDate: '' },
                     { id: '2', title: 'Task 2', status: 'En cours', assignee: '', dueDate: '' },
-                    { id: '3', title: 'Task 3', status: 'A faire', assignee: '', dueDate: '' },
+                    { id: '3', title: 'Task 3', status: 'À faire', assignee: '', dueDate: '' },
                     { id: '4', title: 'Task 4', status: 'Terminé', assignee: '', dueDate: '' }
                 ]
             });

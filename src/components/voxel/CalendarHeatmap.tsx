@@ -125,6 +125,7 @@ function DayCell({
   onClick: () => void;
   isSelected: boolean;
 }) {
+  const { dateFnsLocale } = useLocale();
   const isFutureDate = isFuture(date);
   const isTodayDate = isToday(date);
 

@@ -4,6 +4,8 @@
  * Story 37-3: Automated Vendor Scoring
  */
 
+import { TREND_THRESHOLD } from '../constants/complianceConfig';
+
 // ============================================================================
 // Risk Level Types
 // ============================================================================
@@ -385,7 +387,7 @@ export function calculateTrend(
     ? Math.round((Math.abs(diff) / previousScore) * 100)
     : 0;
 
-  if (Math.abs(diff) < 5) {
+  if (Math.abs(diff) < TREND_THRESHOLD) {
     return { direction: 'stable', percentage: 0 };
   }
 
