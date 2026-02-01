@@ -58,7 +58,7 @@ const sendEmail = async (to, subject, html, text) => {
 };
 
 // 1. Invite a Certifier Partner
-exports.inviteCertifier = onCall({ secrets: [sendgridApiKey, sendgridSender] }, async (request) => {
+exports.inviteCertifier = onCall({ region: 'europe-west1', secrets: [sendgridApiKey, sendgridSender] }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
 
     const role = request.auth.token.role;
@@ -101,7 +101,7 @@ exports.inviteCertifier = onCall({ secrets: [sendgridApiKey, sendgridSender] }, 
         // Send Email
         const htmlContent = getCertifierInvitationHtml(inviteData.tenantName, message, link);
 
-        await sendEmail(email, 'Invitation de Partenariat - Sentinel GRC', htmlContent, message);
+        await sendEmail(email, 'Partnership Invitation - Sentinel GRC', htmlContent, message);
 
         return { success: true };
     } catch (error) {
@@ -112,7 +112,7 @@ exports.inviteCertifier = onCall({ secrets: [sendgridApiKey, sendgridSender] }, 
 
 // 2. Register/Create Certifier Organization
 // This would be called AFTER Firebase Auth Signup, to initialize the Org doc as a Certifier
-exports.createCertifierOrganization = onCall(async (request) => {
+exports.createCertifierOrganization = onCall({ region: 'europe-west1' }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
 
     const { name, siret } = request.data;
@@ -153,11 +153,18 @@ exports.createCertifierOrganization = onCall(async (request) => {
 });
 
 // 3. Link/Accept Partnership (Called by Certifier when accepting invite)
-exports.acceptPartnership = onCall(async (request) => {
+exports.acceptPartnership = onCall({ region: 'europe-west1' }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
 
-    // We assume the user is logged in as a Certifier
-    const { inviteId } = request.data; // passed from email link ideally
+    // Role check: only admin or certifier roles can accept partnerships
+    // Normalize to lowercase to handle case mismatches (e.g. 'ADMIN' vs 'admin', 'CERTIFIER' vs 'certifier')
+    const callerRole = (request.auth.token.role || '').toLowerCase();
+    const callerType = (request.auth.token.type || '').toLowerCase();
+    if (!['admin', 'certifier'].includes(callerRole) && callerType !== 'certifier' && !request.auth.token.superAdmin) {
+        throw new HttpsError('permission-denied', 'Only admins or certifiers can accept partnerships.');
+    }
+
+    const { inviteId } = request.data;
     const certifierOrgId = request.auth.token.organizationId;
 
     if (!certifierOrgId) throw new HttpsError('failed-precondition', 'Must have an organization');
@@ -169,7 +176,16 @@ exports.acceptPartnership = onCall(async (request) => {
         const invite = await inviteRef.get();
 
         if (!invite.exists) throw new HttpsError('not-found', 'Invite not found');
-        if (invite.data().status !== 'PENDING') throw new HttpsError('failed-precondition', 'Invite not pending');
+
+        const inviteData = invite.data();
+        if (inviteData.status !== 'PENDING') {
+            throw new HttpsError('failed-precondition', 'Invite is no longer pending');
+        }
+        // Verify the invite is intended for this certifier
+        const callerEmail = request.auth.token.email;
+        if (inviteData.contactEmail && callerEmail && inviteData.contactEmail.toLowerCase() !== callerEmail.toLowerCase()) {
+            throw new HttpsError('permission-denied', 'This invite is not addressed to your email');
+        }
 
         await inviteRef.update({
             status: 'ACTIVE',
@@ -186,7 +202,7 @@ exports.acceptPartnership = onCall(async (request) => {
 });
 
 // 4. Certifier Dashboard Logic
-exports.getCertifierDashboard = onCall(async (request) => {
+exports.getCertifierDashboard = onCall({ region: 'europe-west1' }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
 
     const certifierOrgId = request.auth.token.organizationId;
@@ -199,6 +215,7 @@ exports.getCertifierDashboard = onCall(async (request) => {
         const clientsSnap = await db.collection('partnerships')
             .where('certifierId', '==', certifierOrgId)
             .where('status', '==', 'ACTIVE')
+            .limit(1000)
             .get();
 
         const clients = clientsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -212,6 +229,7 @@ exports.getCertifierDashboard = onCall(async (request) => {
         const sharesSnap = await db.collection('audit_shares')
             .where('targetOrgId', '==', certifierOrgId)
             .where('revoked', '==', false)
+            .limit(1000)
             .get();
 
         const assignments = [];
@@ -251,8 +269,14 @@ exports.getCertifierDashboard = onCall(async (request) => {
 // ... prior imports ...
 
 // New Function: Assign Audit to Partner
-exports.assignAuditToPartner = onCall({ secrets: [sendgridApiKey, sendgridSender] }, async (request) => {
+exports.assignAuditToPartner = onCall({ region: 'europe-west1', secrets: [sendgridApiKey, sendgridSender] }, async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
+
+    // Role check: only admins can assign audits to partners
+    const callerRole = (request.auth.token.role || '').toLowerCase();
+    if (!['admin'].includes(callerRole) && !request.auth.token.superAdmin) {
+        throw new HttpsError('permission-denied', 'Only admins can assign audits to partners.');
+    }
 
     const { auditId, partnerId, partnerName } = request.data;
     const organizationId = request.auth.token.organizationId;
@@ -297,7 +321,7 @@ exports.assignAuditToPartner = onCall({ secrets: [sendgridApiKey, sendgridSender
         if (partnerEmail) {
             const link = `https://sentinel-grc.web.app/#/portal/audit/${token}`; // Or dashboard link
             const htmlContent = getAuditAssignmentHtml(shareData.organizationId, link);
-            await sendEmail(partnerEmail, 'Nouvel Audit Assigné - Sentinel GRC', htmlContent, `Un nouvel audit vous a été assigné.`);
+            await sendEmail(partnerEmail, 'New Audit Assignment - Sentinel GRC', htmlContent, `A new audit has been assigned to you.`);
         } else {
             logger.warn(`No email found for partner ${partnerId}`);
         }

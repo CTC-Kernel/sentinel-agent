@@ -323,10 +323,9 @@ exports.callGeminiGenerateContent = onCall({
 
     try {
         // Check and increment usage
-        const userDoc = await admin.firestore().collection('users').doc(uid).get();
-        const userData = userDoc.data();
-        if (userData?.organizationId) {
-            await checkAndIncrementAiUsage(uid, userData.organizationId);
+        const organizationId = request.auth.token.organizationId;
+        if (organizationId) {
+            await checkAndIncrementAiUsage(uid, organizationId);
         }
 
         const runGenerate = async (name) => {
@@ -436,10 +435,9 @@ exports.callGeminiChat = onCall({
 
     try {
         // Check and increment usage
-        const userDoc = await admin.firestore().collection('users').doc(uid).get();
-        const userData = userDoc.data();
-        if (userData?.organizationId) {
-            await checkAndIncrementAiUsage(uid, userData.organizationId);
+        const organizationId = request.auth.token.organizationId;
+        if (organizationId) {
+            await checkAndIncrementAiUsage(uid, organizationId);
         }
 
         const runChat = async (name) => {

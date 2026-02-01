@@ -78,6 +78,12 @@ exports.initiateSignature = onCall(
         throw new HttpsError('permission-denied', 'Only the creator can initiate the request');
       }
 
+      // Verify organization membership
+      const userOrgId = request.auth.token.organizationId;
+      if (requestData.organizationId !== userOrgId) {
+        throw new HttpsError('permission-denied', 'Access denied to this organization');
+      }
+
       // Verify request is in draft status
       if (requestData.status !== 'draft') {
         throw new HttpsError('failed-precondition', 'Request has already been initiated');
@@ -283,8 +289,11 @@ exports.sendSignatureNotifications = onCall(
 
       const requestData = requestSnap.data();
 
-      // Verify organization
-      if (organizationId && requestData.organizationId !== organizationId) {
+      // Verify organization - organizationId is mandatory
+      if (!organizationId) {
+        throw new HttpsError('invalid-argument', 'organizationId is required');
+      }
+      if (requestData.organizationId !== organizationId) {
         throw new HttpsError('permission-denied', 'Access denied');
       }
 
@@ -393,7 +402,9 @@ exports.handleSignatureWebhook = onRequest(
     // Authenticate webhook request
     const webhookSecret = signatureWebhookSecret.value();
     const providedSecret = req.headers['x-webhook-secret'];
-    if (!webhookSecret || !providedSecret || providedSecret !== webhookSecret) {
+    if (!webhookSecret || !providedSecret ||
+        providedSecret.length !== webhookSecret.length ||
+        !crypto.timingSafeEqual(Buffer.from(providedSecret), Buffer.from(webhookSecret))) {
       logger.warn('Unauthorized webhook attempt', { ip: req.ip });
       res.status(401).json({ error: 'Unauthorized' });
       return;
@@ -402,7 +413,7 @@ exports.handleSignatureWebhook = onRequest(
     const db = getFirestore();
 
     try {
-      const { provider, event, externalId, data } = req.body;
+      const { provider, event, externalId, data, organizationId } = req.body;
 
       if (!provider || !event || !externalId) {
         res.status(400).json({ error: 'Missing required fields' });
@@ -410,10 +421,17 @@ exports.handleSignatureWebhook = onRequest(
       }
 
       // Find the signature request by external ID
-      const requestsQuery = await db
+      let requestsQueryBuilder = db
         .collection(SIGNATURE_REQUESTS_COLLECTION)
         .where('externalId', '==', externalId)
-        .where('provider', '==', provider)
+        .where('provider', '==', provider);
+
+      // Add organizationId filter if available in webhook payload
+      if (organizationId) {
+        requestsQueryBuilder = requestsQueryBuilder.where('organizationId', '==', organizationId);
+      }
+
+      const requestsQuery = await requestsQueryBuilder
         .limit(1)
         .get();
 
@@ -576,7 +594,7 @@ exports.generateSignedDocumentCertificate = onCall(
         .map((s) => ({
           signerName: s.name,
           signerEmail: s.email,
-          signerRole: s.role || 'Signataire',
+          signerRole: s.role || 'Signer',
           signedAt: s.signedAt?.toDate?.()?.toISOString() || null,
           signatureHash: s.signatureData?.signatureHash,
           signatureType: s.signatureData?.type,
@@ -614,7 +632,7 @@ exports.generateSignedDocumentCertificate = onCall(
         },
         signatures,
         signerCount: signatures.length,
-        legalDisclaimer: `Ce certificat atteste que le document référencé a été signé électroniquement par les signataires listés ci-dessus. Chaque signature est liée cryptographiquement au contenu du document au moment de la signature. Toute modification du document après signature invalidera les hashes cryptographiques.`,
+        legalDisclaimer: `This certificate attests that the referenced document has been electronically signed by the designated parties.`,
       };
 
       // Log certificate generation

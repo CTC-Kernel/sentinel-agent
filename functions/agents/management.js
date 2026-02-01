@@ -36,17 +36,6 @@ exports.listAgents = onCall(
 
 
     try {
-      // Verify user has access
-      const userDoc = await db.collection('users').doc(auth.uid).get();
-      if (!userDoc.exists) {
-        throw new HttpsError('permission-denied', 'User not found');
-      }
-
-      const userData = userDoc.data();
-      if (userData.organizationId !== organizationId) {
-        throw new HttpsError('permission-denied', 'Access denied to this organization');
-      }
-
       let agentsQuery = db
         .collection('organizations')
         .doc(organizationId)
@@ -135,17 +124,6 @@ exports.getAgentDetails = onCall(
 
 
     try {
-      // Verify user has access
-      const userDoc = await db.collection('users').doc(auth.uid).get();
-      if (!userDoc.exists) {
-        throw new HttpsError('permission-denied', 'User not found');
-      }
-
-      const userData = userDoc.data();
-      if (userData.organizationId !== organizationId) {
-        throw new HttpsError('permission-denied', 'Access denied to this organization');
-      }
-
       const agentDoc = await db
         .collection('organizations')
         .doc(organizationId)
@@ -282,11 +260,12 @@ exports.getAgentComplianceResults = onCall(
         throw new HttpsError('permission-denied', 'Access denied');
       }
 
-      // Get all agents
+      // Get all agents (limited to prevent unbounded reads)
       const agentsSnapshot = await db
         .collection('organizations')
         .doc(organizationId)
         .collection('agents')
+        .limit(500)
         .get();
 
       // For each agent, get latest results (in parallel, batched in chunks of 10)
@@ -363,17 +342,6 @@ exports.deleteAgent = onCall(
 
 
     try {
-      // Verify user has access
-      const userDoc = await db.collection('users').doc(auth.uid).get();
-      if (!userDoc.exists) {
-        throw new HttpsError('permission-denied', 'User not found');
-      }
-
-      const userData = userDoc.data();
-      if (userData.organizationId !== organizationId) {
-        throw new HttpsError('permission-denied', 'Access denied to this organization');
-      }
-
       if (!request.auth.token.role || !['admin', 'manager'].includes(request.auth.token.role)) {
         throw new HttpsError('permission-denied', 'Insufficient permissions');
       }

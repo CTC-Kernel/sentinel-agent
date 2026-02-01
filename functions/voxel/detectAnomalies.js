@@ -22,6 +22,9 @@ const STALE_THRESHOLD_DAYS = 90;
 const EFFECTIVENESS_THRESHOLD = 50; // Below this % is considered compliance drift
 const BATCH_SIZE = 500;
 
+// Risk score thresholds (aligned with frontend src/constants/complianceConfig.ts)
+const RISK_THRESHOLDS = { CRITICAL: 15, HIGH: 10, MEDIUM: 5, LOW: 0 };
+
 /**
  * Severity calculation based on anomaly type and context
  */
@@ -31,9 +34,9 @@ const calculateSeverity = (type, context = {}) => {
             return 'critical'; // Always critical - system integrity issue
         case 'coverage_gap':
             // Severity based on risk score
-            if (context.riskScore >= 15) return 'critical';
-            if (context.riskScore >= 10) return 'high';
-            if (context.riskScore >= 5) return 'medium';
+            if (context.riskScore >= RISK_THRESHOLDS.CRITICAL) return 'critical';
+            if (context.riskScore >= RISK_THRESHOLDS.HIGH) return 'high';
+            if (context.riskScore >= RISK_THRESHOLDS.MEDIUM) return 'medium';
             return 'low';
         case 'orphan_control':
             return 'medium'; // Potential waste, but not urgent
