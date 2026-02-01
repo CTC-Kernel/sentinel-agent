@@ -219,28 +219,22 @@ exports.sendEmail = onCall({
         throw new HttpsError('unauthenticated', 'User must be logged in to send emails.');
     }
 
+    // Validate organization
+    const organizationId = request.auth.token.organizationId;
+    if (!organizationId) throw new HttpsError('failed-precondition', 'User must belong to an organization.');
+    // Role check - only admin/rssi can send emails
+    const role = request.auth.token.role;
+    if (!['admin', 'rssi', 'project_manager'].includes(role) && !request.auth.token.superAdmin) {
+        throw new HttpsError('permission-denied', 'Insufficient permissions to send emails.');
+    }
+    // Rate limiting
+    checkCallableRateLimit(request, 'standard');
+
     const { to, subject, html, type, metadata } = request.data;
 
     if (!to || !subject || !html) {
         throw new HttpsError('invalid-argument', 'Missing required email fields (to, subject, html).');
     }
-
-    // SECURITY: Role and Ownership checks
-    // Only allow admins to send generic emails, or enforce specific types
-    const callerDoc = await admin.firestore().collection('users').doc(request.auth.uid).get();
-    const callerData = callerDoc.data();
-
-    if (!callerData || callerData.organizationId !== metadata?.organizationId && callerData.role !== 'super_admin') {
-        // Enforce that you can only send emails for your own organization
-        // If no orgId in metadata, it's a suspicious call
-        if (!metadata?.organizationId) {
-            throw new HttpsError('permission-denied', 'Missing organization context for email.');
-        }
-        throw new HttpsError('permission-denied', 'You do not have permission to send emails for this organization.');
-    }
-
-    // Rate Limit Check
-    checkCallableRateLimit(request, 'standard');
 
     try {
         await admin.firestore().collection('mail_queue').add({
@@ -254,8 +248,9 @@ exports.sendEmail = onCall({
                 ...metadata,
                 senderUid: request.auth.uid,
                 senderEmail: request.auth.token.email,
-                organizationId: callerData.organizationId
+                organizationId: organizationId
             },
+            organizationId: organizationId,
             status: 'PENDING',
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         });
@@ -279,22 +274,22 @@ exports.scheduleEmail = onCall({
         throw new HttpsError('unauthenticated', 'User must be logged in to schedule emails.');
     }
 
+    // Validate organization
+    const organizationId = request.auth.token.organizationId;
+    if (!organizationId) throw new HttpsError('failed-precondition', 'User must belong to an organization.');
+    // Role check - only admin/rssi can send emails
+    const role = request.auth.token.role;
+    if (!['admin', 'rssi', 'project_manager'].includes(role) && !request.auth.token.superAdmin) {
+        throw new HttpsError('permission-denied', 'Insufficient permissions to send emails.');
+    }
+    // Rate limiting
+    checkCallableRateLimit(request, 'standard');
+
     const { to, subject, html, type, scheduledFor, metadata } = request.data;
 
     if (!to || !subject || !html || !scheduledFor) {
         throw new HttpsError('invalid-argument', 'Missing required fields.');
     }
-
-    // SECURITY: Role and Ownership checks
-    const callerDoc = await admin.firestore().collection('users').doc(request.auth.uid).get();
-    const callerData = callerDoc.data();
-
-    if (!callerData || (metadata?.organizationId && callerData.organizationId !== metadata.organizationId && callerData.role !== 'super_admin')) {
-        throw new HttpsError('permission-denied', 'You do not have permission to schedule emails for this organization.');
-    }
-
-    // Rate Limit Check
-    checkCallableRateLimit(request, 'standard');
 
     try {
         await admin.firestore().collection('scheduled_emails').add({
@@ -308,8 +303,9 @@ exports.scheduleEmail = onCall({
                 ...metadata,
                 senderUid: request.auth.uid,
                 senderEmail: request.auth.token.email,
-                organizationId: callerData.organizationId
+                organizationId: organizationId
             },
+            organizationId: organizationId,
             status: 'SCHEDULED',
             scheduledFor: scheduledFor,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
