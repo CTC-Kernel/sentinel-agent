@@ -18,7 +18,31 @@ vi.mock('date-fns', () => ({
 }));
 
 vi.mock('date-fns/locale', () => ({
-    fr: {}
+    fr: { code: 'fr' },
+    enUS: { code: 'en' },
+    de: { code: 'de' },
+}));
+
+// Mock useStore
+vi.mock('../../../store', () => ({
+    useStore: (selector?: (s: Record<string, unknown>) => unknown) => {
+        const state: Record<string, unknown> = {
+            user: { uid: 'user-1', organizationId: 'org-1' },
+            language: 'fr' as const,
+            t: (key: string, opts?: Record<string, unknown>) => (opts?.defaultValue as string) || key,
+        };
+        return selector ? selector(state) : state;
+    }
+}));
+
+// Mock useLocale hook
+vi.mock('../../../hooks/useLocale', () => ({
+    useLocale: () => ({
+        dateFnsLocale: undefined,
+        locale: 'en',
+        config: { intlLocale: 'en-US' },
+        t: (key: string, opts?: Record<string, unknown>) => (opts?.defaultValue as string) || key
+    })
 }));
 
 // Mock DataTable

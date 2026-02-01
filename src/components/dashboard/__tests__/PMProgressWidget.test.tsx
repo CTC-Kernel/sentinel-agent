@@ -68,7 +68,7 @@ describe('PMProgressWidget', () => {
   it('should render all category progress bars', () => {
     render(<PMProgressWidget organizationId="org-123" />);
 
-    expect(screen.getByText('Controles')).toBeInTheDocument();
+    expect(screen.getByText('Contrôles')).toBeInTheDocument();
     expect(screen.getByText('Documents')).toBeInTheDocument();
     expect(screen.getByText('Actions')).toBeInTheDocument();
     expect(screen.getByText('Jalons')).toBeInTheDocument();

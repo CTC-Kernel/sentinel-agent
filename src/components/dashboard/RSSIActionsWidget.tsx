@@ -70,7 +70,7 @@ const SIZE_CONFIG = {
  * Format due date for display
  */
 function formatDueDate(dateString: string): string {
-  if (!dateString) return 'Sans echeance';
+  if (!dateString) return 'Sans échéance';
   try {
     const date = new Date(dateString);
     return date.toLocaleDateString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, {
@@ -125,7 +125,7 @@ function ActionItem({
         colors.border,
         sizeConfig.itemPadding
       )}
-      aria-label={`Action: ${action.title}, Echeance: ${getDueStatusLabel(action)}, ${action.isOverdue ? 'En retard' : ''}`}
+      aria-label={`Action: ${action.title}, Échéance: ${getDueStatusLabel(action)}, ${action.isOverdue ? 'En retard' : ''}`}
     >
       <div className="flex-1 text-left min-w-0">
         <div
@@ -204,7 +204,7 @@ function EmptyState({ size }: { size: 'sm' | 'md' | 'lg' }) {
     >
       <CheckCircle className="w-8 h-8 mb-2 text-success" aria-hidden="true" />
       <p className={sizeConfig.itemText}>Aucune action en attente</p>
-      <p className="text-xs mt-1">Toutes les actions sont completees</p>
+      <p className="text-xs mt-1">Toutes les actions sont complétées</p>
     </div>
   );
 }
@@ -243,7 +243,7 @@ function ErrorState({
         )}
       >
         <RefreshCw className="w-4 h-4" aria-hidden="true" />
-        Reessayer
+        Réessayer
       </button>
     </div>
   );
@@ -297,7 +297,7 @@ export function RSSIActionsWidget({
     <div
       className={cn('rounded-lg border bg-card', sizeConfig.padding, className)}
       role="region"
-      aria-label="Actions assignees"
+      aria-label="Actions assignées"
     >
       {/* Header with count */}
       <div className="mb-4">
@@ -318,10 +318,10 @@ export function RSSIActionsWidget({
           )}
         </div>
         <h3 className={cn('font-semibold text-foreground', sizeConfig.title)}>
-          Actions Assignees
+          Actions Assignées
         </h3>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Actions en attente triees par echeance
+          Actions en attente triées par échéance
         </p>
       </div>
 

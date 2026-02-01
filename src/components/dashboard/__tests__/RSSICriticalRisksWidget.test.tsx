@@ -125,7 +125,7 @@ describe('RSSICriticalRisksWidget', () => {
     render(<RSSICriticalRisksWidget organizationId="org-123" />);
 
     expect(screen.getByText('Aucun risque critique')).toBeInTheDocument();
-    expect(screen.getByText('Tous les risques sont sous controle')).toBeInTheDocument();
+    expect(screen.getByText('Tous les risques sont sous contrôle')).toBeInTheDocument();
   });
 
   it('should show error state and allow retry', () => {
@@ -143,7 +143,7 @@ describe('RSSICriticalRisksWidget', () => {
 
     expect(screen.getByText('Erreur de connexion')).toBeInTheDocument();
 
-    const retryButton = screen.getByText('Reessayer');
+    const retryButton = screen.getByText('Réessayer');
     fireEvent.click(retryButton);
 
     expect(mockRefetch).toHaveBeenCalled();

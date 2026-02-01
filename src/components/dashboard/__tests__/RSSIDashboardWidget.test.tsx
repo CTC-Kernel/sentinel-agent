@@ -62,15 +62,15 @@ describe('RSSIDashboardWidget', () => {
   it('should show not authorized message for regular user', () => {
     render(<RSSIDashboardWidget organizationId="org-123" user={mockRegularUser} />);
 
-    expect(screen.getByText('Acces non autorise')).toBeInTheDocument();
-    expect(screen.getByText('Cette vue est reservee aux responsables securite (RSSI)')).toBeInTheDocument();
+    expect(screen.getByText('Accès non autorisé')).toBeInTheDocument();
+    expect(screen.getByText('Cette vue est réservée aux responsables sécurité (RSSI)')).toBeInTheDocument();
     expect(screen.queryByTestId('risks-widget')).not.toBeInTheDocument();
   });
 
   it('should show not authorized when user is null', () => {
     render(<RSSIDashboardWidget organizationId="org-123" user={null} />);
 
-    expect(screen.getByText('Acces non autorise')).toBeInTheDocument();
+    expect(screen.getByText('Accès non autorisé')).toBeInTheDocument();
   });
 
   it('should skip role check when skipRoleCheck is true', () => {
@@ -90,7 +90,7 @@ describe('RSSIDashboardWidget', () => {
   it('should display dashboard title', () => {
     render(<RSSIDashboardWidget organizationId="org-123" user={mockRSSIUser} />);
 
-    expect(screen.getByText('Vue Securite (RSSI)')).toBeInTheDocument();
+    expect(screen.getByText('Vue Sécurité (RSSI)')).toBeInTheDocument();
     expect(screen.getByText('Risques critiques, incidents actifs et actions en cours')).toBeInTheDocument();
   });
 

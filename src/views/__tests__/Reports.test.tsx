@@ -10,28 +10,33 @@ import { HelmetProvider } from 'react-helmet-async';
 // ---------------------------------------------------------------------
 
 vi.mock('../../store', () => ({
-    useStore: vi.fn().mockReturnValue({
-        user: { uid: 'test-user', organizationId: 'test-org', role: 'admin' },
-        organization: { ownerId: 'test-user', logoUrl: 'logo.png' },
-        addToast: vi.fn(),
-        t: (k: string) => {
-            const translations: Record<string, string> = {
-                'reports.title': 'Rapports',
-                'reports.templates': 'Modèles',
-                'reports.history': 'Historique',
-                'reports.scheduled': 'Planifiés',
-                'reports.templateCards.iso27001.title': 'Pack ISO 27001',
-                'reports.templateCards.gdpr.title': 'Pack RGPD',
-                'reports.templateCards.custom.title': 'Personnalisé',
-                'reports.templateCards.iso27001.desc': 'Générez un pack de conformité complet ISO 27001',
-                'reports.templateCards.gdpr.desc': 'Générez un pack de conformité RGPD',
-                'reports.templateCards.custom.desc': 'Créez un rapport personnalisé',
-                'reports.templateCards.iso27001.button': 'Générer',
-                'reports.templateCards.gdpr.button': 'Générer',
-                'reports.templateCards.custom.button': 'Générer'
-            };
-            return translations[k] || k;
-        }
+    useStore: vi.fn((selector?: (s: unknown) => unknown) => {
+        const state = {
+            user: { uid: 'test-user', organizationId: 'test-org', role: 'admin' },
+            organization: { ownerId: 'test-user', logoUrl: 'logo.png' },
+            addToast: vi.fn(),
+            activeFramework: null,
+            language: 'fr' as const,
+            t: (k: string) => {
+                const translations: Record<string, string> = {
+                    'reports.title': 'Rapports',
+                    'reports.templates': 'Modèles',
+                    'reports.history': 'Historique',
+                    'reports.scheduled': 'Planifiés',
+                    'reports.templateCards.iso27001.title': 'Pack ISO 27001',
+                    'reports.templateCards.gdpr.title': 'Pack RGPD',
+                    'reports.templateCards.custom.title': 'Personnalisé',
+                    'reports.templateCards.iso27001.desc': 'Générez un pack de conformité complet ISO 27001',
+                    'reports.templateCards.gdpr.desc': 'Générez un pack de conformité RGPD',
+                    'reports.templateCards.custom.desc': 'Créez un rapport personnalisé',
+                    'reports.templateCards.iso27001.button': 'Générer',
+                    'reports.templateCards.gdpr.button': 'Générer',
+                    'reports.templateCards.custom.button': 'Générer'
+                };
+                return translations[k] || k;
+            }
+        };
+        return selector ? selector(state) : state;
     }),
 }));
 

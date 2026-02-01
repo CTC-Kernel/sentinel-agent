@@ -557,7 +557,7 @@ export function TrendCharts({
               icon={AlertTriangle}
             />
             <MetricSummary
-              label="Conformite"
+              label="Conformité"
               value={summaries.compliance.value}
               change={summaries.compliance.change}
               trend={summaries.compliance.trend}
@@ -598,7 +598,7 @@ export function TrendCharts({
                   stroke={chartColors.predicted}
                   strokeDasharray="3 3"
                   label={{
-                    value: 'Predictions',
+                    value: 'Prédictions',
                     position: 'top',
                     fontSize: 10,
                     fill: 'hsl(var(--muted-foreground))',
@@ -634,7 +634,7 @@ export function TrendCharts({
                     strokeWidth={2}
                     strokeDasharray="5 5"
                     dot={false}
-                    name="Noeuds (prediction)"
+                    name="Noeuds (prédiction)"
                     connectNulls
                   />
                   <Line
@@ -644,7 +644,7 @@ export function TrendCharts({
                     strokeWidth={2}
                     strokeDasharray="5 5"
                     dot={false}
-                    name="Anomalies (prediction)"
+                    name="Anomalies (prédiction)"
                     connectNulls
                   />
                 </>
@@ -655,7 +655,7 @@ export function TrendCharts({
 
         {/* Compliance chart (separate for clarity) */}
         <div className="h-48 min-h-48">
-          <p className="text-sm font-medium mb-2">Evolution de la conformite</p>
+          <p className="text-sm font-medium mb-2">Évolution de la conformité</p>
           <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
             <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
               <defs>
@@ -686,7 +686,7 @@ export function TrendCharts({
                 stroke={chartColors.compliance}
                 fill={`url(#${gradientId}-compliance)`}
                 strokeWidth={2}
-                name="Conformite"
+                name="Conformité"
               />
 
               {showPredictions && (
@@ -697,7 +697,7 @@ export function TrendCharts({
                   strokeWidth={2}
                   strokeDasharray="5 5"
                   dot={false}
-                  name="Conformite (prediction)"
+                  name="Conformité (prédiction)"
                   connectNulls
                 />
               )}

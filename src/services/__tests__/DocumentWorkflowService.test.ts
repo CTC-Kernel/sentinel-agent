@@ -5,7 +5,9 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { DocumentReference } from 'firebase/firestore';
 import { DocumentWorkflowService } from '../DocumentWorkflowService';
+import { Document, UserProfile } from '../../types';
 import { logAction } from '../logger';
 
 // Mock dependencies
@@ -68,7 +70,7 @@ describe('DocumentWorkflowService', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         vi.mocked(updateDoc).mockResolvedValue(undefined);
-        vi.mocked(doc).mockReturnValue({ id: 'mock-doc-ref' } as any);
+        vi.mocked(doc).mockReturnValue({ id: 'mock-doc-ref' } as unknown as DocumentReference);
     });
 
     describe('submitForReview', () => {
@@ -77,7 +79,7 @@ describe('DocumentWorkflowService', () => {
             const user = createMockUser('reviewer-user');
             const reviewers = ['reviewer-1', 'reviewer-2'];
 
-            await DocumentWorkflowService.submitForReview(docData as any, user as any, reviewers);
+            await DocumentWorkflowService.submitForReview(docData as unknown as Document, user as unknown as UserProfile, reviewers);
 
             expect(updateDoc).toHaveBeenCalled();
             expect(logAction).toHaveBeenCalled();
@@ -89,7 +91,7 @@ describe('DocumentWorkflowService', () => {
             const reviewers = ['reviewer-1'];
 
             await expect(
-                DocumentWorkflowService.submitForReview(docData as any, user as any, reviewers)
+                DocumentWorkflowService.submitForReview(docData as unknown as Document, user as unknown as UserProfile, reviewers)
             ).rejects.toThrow('Transition invalide');
         });
 
@@ -100,7 +102,7 @@ describe('DocumentWorkflowService', () => {
             const reviewers = ['user-123', 'owner-123'];
 
             await expect(
-                DocumentWorkflowService.submitForReview(docData as any, user as any, reviewers)
+                DocumentWorkflowService.submitForReview(docData as unknown as Document, user as unknown as UserProfile, reviewers)
             ).rejects.toThrow('Sélectionnez au moins un reviewer');
         });
 
@@ -110,7 +112,7 @@ describe('DocumentWorkflowService', () => {
             // Mixed valid and invalid reviewers
             const reviewers = ['valid-1', 'user-456', '', null, 'valid-2'] as string[];
 
-            await DocumentWorkflowService.submitForReview(docData as any, user as any, reviewers);
+            await DocumentWorkflowService.submitForReview(docData as unknown as Document, user as unknown as UserProfile, reviewers);
 
             expect(updateDoc).toHaveBeenCalled();
         });
@@ -121,7 +123,7 @@ describe('DocumentWorkflowService', () => {
             const reviewers = ['reviewer-1'];
             const comment = 'Please review this document';
 
-            await DocumentWorkflowService.submitForReview(docData as any, user as any, reviewers, comment);
+            await DocumentWorkflowService.submitForReview(docData as unknown as Document, user as unknown as UserProfile, reviewers, comment);
 
             expect(updateDoc).toHaveBeenCalled();
         });
@@ -132,7 +134,7 @@ describe('DocumentWorkflowService', () => {
             const docData = createMockDocument('En revue');
             const user = createMockUser();
 
-            await DocumentWorkflowService.approveDocument(docData as any, user as any);
+            await DocumentWorkflowService.approveDocument(docData as unknown as Document, user as unknown as UserProfile);
 
             expect(updateDoc).toHaveBeenCalled();
             expect(logAction).toHaveBeenCalled();
@@ -143,7 +145,7 @@ describe('DocumentWorkflowService', () => {
             const user = createMockUser();
 
             await expect(
-                DocumentWorkflowService.approveDocument(docData as any, user as any)
+                DocumentWorkflowService.approveDocument(docData as unknown as Document, user as unknown as UserProfile)
             ).rejects.toThrow('Transition invalide');
         });
 
@@ -152,7 +154,7 @@ describe('DocumentWorkflowService', () => {
             const user = createMockUser();
             const comment = 'Looks good, approved';
 
-            await DocumentWorkflowService.approveDocument(docData as any, user as any, comment);
+            await DocumentWorkflowService.approveDocument(docData as unknown as Document, user as unknown as UserProfile, comment);
 
             expect(updateDoc).toHaveBeenCalled();
         });
@@ -164,7 +166,7 @@ describe('DocumentWorkflowService', () => {
             const user = createMockUser();
             const comment = 'Needs revision';
 
-            await DocumentWorkflowService.rejectDocument(docData as any, user as any, comment);
+            await DocumentWorkflowService.rejectDocument(docData as unknown as Document, user as unknown as UserProfile, comment);
 
             expect(updateDoc).toHaveBeenCalled();
             expect(logAction).toHaveBeenCalled();
@@ -175,7 +177,7 @@ describe('DocumentWorkflowService', () => {
             const user = createMockUser();
 
             await expect(
-                DocumentWorkflowService.rejectDocument(docData as any, user as any, '')
+                DocumentWorkflowService.rejectDocument(docData as unknown as Document, user as unknown as UserProfile, '')
             ).rejects.toThrow('Un commentaire est requis');
         });
 
@@ -184,7 +186,7 @@ describe('DocumentWorkflowService', () => {
             const user = createMockUser();
 
             await expect(
-                DocumentWorkflowService.rejectDocument(docData as any, user as any, 'Comment')
+                DocumentWorkflowService.rejectDocument(docData as unknown as Document, user as unknown as UserProfile, 'Comment')
             ).rejects.toThrow('Transition invalide');
         });
     });
@@ -194,7 +196,7 @@ describe('DocumentWorkflowService', () => {
             const docData = createMockDocument('Approuvé');
             const user = createMockUser();
 
-            await DocumentWorkflowService.publishDocument(docData as any, user as any);
+            await DocumentWorkflowService.publishDocument(docData as unknown as Document, user as unknown as UserProfile);
 
             expect(updateDoc).toHaveBeenCalled();
             expect(logAction).toHaveBeenCalled();
@@ -205,7 +207,7 @@ describe('DocumentWorkflowService', () => {
             const user = createMockUser();
 
             await expect(
-                DocumentWorkflowService.publishDocument(docData as any, user as any)
+                DocumentWorkflowService.publishDocument(docData as unknown as Document, user as unknown as UserProfile)
             ).rejects.toThrow('Transition invalide');
         });
     });
@@ -215,7 +217,7 @@ describe('DocumentWorkflowService', () => {
             const docData = createMockDocument('Publié');
             const user = createMockUser();
 
-            await DocumentWorkflowService.archiveDocument(docData as any, user as any);
+            await DocumentWorkflowService.archiveDocument(docData as unknown as Document, user as unknown as UserProfile);
 
             expect(updateDoc).toHaveBeenCalled();
             expect(logAction).toHaveBeenCalled();
@@ -226,7 +228,7 @@ describe('DocumentWorkflowService', () => {
             const user = createMockUser();
             const reason = 'No longer relevant';
 
-            await DocumentWorkflowService.archiveDocument(docData as any, user as any, reason);
+            await DocumentWorkflowService.archiveDocument(docData as unknown as Document, user as unknown as UserProfile, reason);
 
             expect(updateDoc).toHaveBeenCalled();
         });
@@ -236,7 +238,7 @@ describe('DocumentWorkflowService', () => {
             const user = createMockUser();
 
             await expect(
-                DocumentWorkflowService.archiveDocument(docData as any, user as any)
+                DocumentWorkflowService.archiveDocument(docData as unknown as Document, user as unknown as UserProfile)
             ).rejects.toThrow('Document déjà archivé');
         });
 
@@ -245,7 +247,7 @@ describe('DocumentWorkflowService', () => {
             const user = createMockUser();
 
             // Archive should work from any state except Archivé
-            await DocumentWorkflowService.archiveDocument(docData as any, user as any);
+            await DocumentWorkflowService.archiveDocument(docData as unknown as Document, user as unknown as UserProfile);
 
             expect(updateDoc).toHaveBeenCalled();
         });
@@ -256,7 +258,7 @@ describe('DocumentWorkflowService', () => {
             const docData = createMockDocument('Rejeté');
             const user = createMockUser();
 
-            await DocumentWorkflowService.revertToDraft(docData as any, user as any);
+            await DocumentWorkflowService.revertToDraft(docData as unknown as Document, user as unknown as UserProfile);
 
             expect(updateDoc).toHaveBeenCalled();
             expect(logAction).toHaveBeenCalled();
@@ -266,7 +268,7 @@ describe('DocumentWorkflowService', () => {
             const docData = createMockDocument('En revue');
             const user = createMockUser();
 
-            await DocumentWorkflowService.revertToDraft(docData as any, user as any);
+            await DocumentWorkflowService.revertToDraft(docData as unknown as Document, user as unknown as UserProfile);
 
             expect(updateDoc).toHaveBeenCalled();
         });
@@ -276,7 +278,7 @@ describe('DocumentWorkflowService', () => {
             const user = createMockUser();
             const reason = 'Starting over';
 
-            await DocumentWorkflowService.revertToDraft(docData as any, user as any, reason);
+            await DocumentWorkflowService.revertToDraft(docData as unknown as Document, user as unknown as UserProfile, reason);
 
             expect(updateDoc).toHaveBeenCalled();
         });
@@ -286,7 +288,7 @@ describe('DocumentWorkflowService', () => {
             const user = createMockUser();
 
             await expect(
-                DocumentWorkflowService.revertToDraft(docData as any, user as any)
+                DocumentWorkflowService.revertToDraft(docData as unknown as Document, user as unknown as UserProfile)
             ).rejects.toThrow('Impossible de revenir en brouillon');
         });
 
@@ -295,7 +297,7 @@ describe('DocumentWorkflowService', () => {
             const user = createMockUser();
 
             await expect(
-                DocumentWorkflowService.revertToDraft(docData as any, user as any)
+                DocumentWorkflowService.revertToDraft(docData as unknown as Document, user as unknown as UserProfile)
             ).rejects.toThrow('Impossible de revenir en brouillon');
         });
     });
@@ -310,7 +312,7 @@ describe('DocumentWorkflowService', () => {
             const reviewers = ['reviewer-1'];
 
             await expect(
-                DocumentWorkflowService.submitForReview(docData as any, user as any, reviewers)
+                DocumentWorkflowService.submitForReview(docData as unknown as Document, user as unknown as UserProfile, reviewers)
             ).rejects.toThrow('Database error');
 
             expect(ErrorLogger.error).toHaveBeenCalled();
@@ -324,7 +326,7 @@ describe('DocumentWorkflowService', () => {
             const user = createMockUser();
 
             await expect(
-                DocumentWorkflowService.approveDocument(docData as any, user as any)
+                DocumentWorkflowService.approveDocument(docData as unknown as Document, user as unknown as UserProfile)
             ).rejects.toThrow('Database error');
 
             expect(ErrorLogger.error).toHaveBeenCalled();
@@ -342,7 +344,7 @@ describe('DocumentWorkflowService', () => {
             };
             const reviewers = ['reviewer-1'];
 
-            await DocumentWorkflowService.submitForReview(docData as any, user as any, reviewers);
+            await DocumentWorkflowService.submitForReview(docData as unknown as Document, user as unknown as UserProfile, reviewers);
 
             expect(updateDoc).toHaveBeenCalled();
         });
@@ -356,7 +358,7 @@ describe('DocumentWorkflowService', () => {
                 // No displayName
             };
 
-            await DocumentWorkflowService.approveDocument(docData as any, user as any);
+            await DocumentWorkflowService.approveDocument(docData as unknown as Document, user as unknown as UserProfile);
 
             expect(updateDoc).toHaveBeenCalled();
         });

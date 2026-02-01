@@ -15,16 +15,21 @@ const mockBatchSet = vi.fn();
 const mockBatchUpdate = vi.fn();
 const mockBatchCommit = vi.fn();
 
+const mockGetDocs = vi.fn();
 vi.mock('firebase/firestore', () => ({
     collection: vi.fn(),
     addDoc: (...args: unknown[]) => mockAddDoc(...args),
     updateDoc: (...args: unknown[]) => mockUpdateDoc(...args),
     deleteDoc: (...args: unknown[]) => mockDeleteDoc(...args),
-    doc: vi.fn(() => ({ id: 'mock-doc-id' })),
+    doc: vi.fn(() => ({ id: 'mock-doc-id', ref: { id: 'mock-doc-id' } })),
+    query: vi.fn(),
+    where: vi.fn(),
+    getDocs: (...args: unknown[]) => mockGetDocs(...args),
     writeBatch: () => ({
         set: mockBatchSet,
         update: mockBatchUpdate,
-        commit: mockBatchCommit
+        commit: mockBatchCommit,
+        delete: vi.fn()
     }),
     serverTimestamp: () => 'server-timestamp'
 }));
@@ -93,6 +98,7 @@ describe('useContinuity', () => {
         mockUpdateDoc.mockResolvedValue(undefined);
         mockDeleteDoc.mockResolvedValue(undefined);
         mockBatchCommit.mockResolvedValue(undefined);
+        mockGetDocs.mockResolvedValue({ empty: true, docs: [] });
     });
 
     describe('initialization', () => {

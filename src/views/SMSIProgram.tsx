@@ -53,7 +53,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 
 export const SMSIProgramView: React.FC = () => {
   const { t } = useTranslation();
-  const { config } = useLocale();
+  const { config: localeConfig } = useLocale();
   const {
     program,
     milestones,
@@ -313,7 +313,7 @@ export const SMSIProgramView: React.FC = () => {
             {program.targetCertificationDate && (
               <Badge variant="outline" className="gap-1.5">
                 <Calendar className="w-3.5 h-3.5" />
-                {t('smsi.objective') || 'Objectif'}: {new Date(program.targetCertificationDate).toLocaleDateString(config.intlLocale)}
+                {t('smsi.objective') || 'Objectif'}: {new Date(program.targetCertificationDate).toLocaleDateString(localeConfig.intlLocale)}
               </Badge>
             )}
             <Badge
@@ -499,6 +499,7 @@ interface SMSITimelineProps {
 
 const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSelect, getPhaseProgress }) => {
   const { t } = useTranslation();
+  const { config: localeConfig } = useLocale();
   const phases: PDCAPhase[] = ['plan', 'do', 'check', 'act'];
 
   // Group milestones by phase
@@ -603,7 +604,7 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
                             "font-medium",
                             isOverdue ? "text-red-600 dark:text-red-400" : "text-muted-foreground"
                           )}>
-                            {new Date(milestone.dueDate).toLocaleDateString(config.intlLocale)}
+                            {new Date(milestone.dueDate).toLocaleDateString(localeConfig.intlLocale)}
                           </div>
                         </div>
                       </motion.div>

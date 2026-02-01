@@ -250,7 +250,7 @@ describe('useResourceLogs', () => {
 
             await waitFor(() => {
                 expect(mockToastError).toHaveBeenCalledWith(
-                    expect.stringContaining("charger l'historique")
+                    expect.stringContaining("Failed to load history")
                 );
             });
         });

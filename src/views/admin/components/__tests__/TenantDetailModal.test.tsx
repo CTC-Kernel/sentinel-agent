@@ -233,14 +233,14 @@ describe('TenantDetailModal', () => {
 
         it('should display Active status for active tenant', async () => {
             render(<TenantDetailModal {...defaultProps} />);
-            expect(screen.getByText('Active')).toBeInTheDocument();
+            expect(screen.getByText('Actif')).toBeInTheDocument();
             await screen.findByText('8');
         });
 
         it('should display Suspended status for inactive tenant', async () => {
             const inactiveTenant = { ...mockTenant, isActive: false };
             render(<TenantDetailModal {...defaultProps} tenant={inactiveTenant} />);
-            expect(screen.getByText('Suspended')).toBeInTheDocument();
+            expect(screen.getByText('Suspendu')).toBeInTheDocument();
             await screen.findByText('8');
         });
 
@@ -282,7 +282,7 @@ describe('TenantDetailModal', () => {
             render(<TenantDetailModal {...defaultProps} />);
 
             await waitFor(() => {
-                expect(mockToastError).toHaveBeenCalledWith('Failed to load statistics');
+                expect(mockToastError).toHaveBeenCalledWith('Erreur de chargement des statistiques');
             });
         });
     });
@@ -290,14 +290,14 @@ describe('TenantDetailModal', () => {
     describe('Toggle Status', () => {
         it('should show Suspend button for active tenant', async () => {
             render(<TenantDetailModal {...defaultProps} />);
-            expect(screen.getByText('Suspend')).toBeInTheDocument();
+            expect(screen.getByText('Suspendre')).toBeInTheDocument();
             await screen.findByText('8');
         });
 
         it('should show Activate button for suspended tenant', async () => {
             const inactiveTenant = { ...mockTenant, isActive: false };
             render(<TenantDetailModal {...defaultProps} tenant={inactiveTenant} />);
-            expect(screen.getByText('Activate')).toBeInTheDocument();
+            expect(screen.getByText('Activer')).toBeInTheDocument();
             await screen.findByText('8');
         });
 
@@ -306,7 +306,7 @@ describe('TenantDetailModal', () => {
             await screen.findByText('8');
 
             // Click Suspend to open the confirmation modal
-            await clickButton('Suspend');
+            await clickButton('Suspendre');
 
             // Confirm the modal
             const confirmButton = screen.getByTestId('confirm-modal-confirm');
@@ -321,13 +321,13 @@ describe('TenantDetailModal', () => {
             render(<TenantDetailModal {...defaultProps} />);
             await screen.findByText('8');
 
-            await clickButton('Suspend');
+            await clickButton('Suspendre');
 
             const confirmButton = screen.getByTestId('confirm-modal-confirm');
             fireEvent.click(confirmButton);
 
             await waitFor(() => {
-                expect(mockToastSuccess).toHaveBeenCalledWith('Tenant suspended successfully');
+                expect(mockToastSuccess).toHaveBeenCalledWith('Tenant suspendu avec succès');
             });
         });
 
@@ -335,7 +335,7 @@ describe('TenantDetailModal', () => {
             render(<TenantDetailModal {...defaultProps} />);
             await screen.findByText('8');
 
-            await clickButton('Suspend');
+            await clickButton('Suspendre');
 
             const confirmButton = screen.getByTestId('confirm-modal-confirm');
             fireEvent.click(confirmButton);
@@ -349,7 +349,7 @@ describe('TenantDetailModal', () => {
             render(<TenantDetailModal {...defaultProps} />);
             await screen.findByText('8');
 
-            await clickButton('Suspend');
+            await clickButton('Suspendre');
 
             const confirmButton = screen.getByTestId('confirm-modal-confirm');
             fireEvent.click(confirmButton);
@@ -364,7 +364,7 @@ describe('TenantDetailModal', () => {
             await screen.findByText('8');
 
             // Click Suspend to open the confirmation modal
-            await clickButton('Suspend');
+            await clickButton('Suspendre');
 
             // Cancel the confirmation
             if (confirmModalCancelCallback) {
@@ -380,13 +380,13 @@ describe('TenantDetailModal', () => {
             render(<TenantDetailModal {...defaultProps} />);
             await screen.findByText('8');
 
-            await clickButton('Suspend');
+            await clickButton('Suspendre');
 
             const confirmButton = screen.getByTestId('confirm-modal-confirm');
             fireEvent.click(confirmButton);
 
             await waitFor(() => {
-                expect(mockToastError).toHaveBeenCalledWith('Failed to update status');
+                expect(mockToastError).toHaveBeenCalledWith('Erreur de mise à jour du statut');
             });
         });
     });
@@ -394,19 +394,19 @@ describe('TenantDetailModal', () => {
     describe('Subscription Form', () => {
         it('should display plan selector label', async () => {
             render(<TenantDetailModal {...defaultProps} />);
-            expect(screen.getByText('Current Plan')).toBeInTheDocument();
+            expect(screen.getByText('Plan Actuel')).toBeInTheDocument();
             await screen.findByText('8');
         });
 
         it('should display max users label', async () => {
             render(<TenantDetailModal {...defaultProps} />);
-            expect(screen.getByText('Max Users')).toBeInTheDocument();
+            expect(screen.getByText('Utilisateurs Max')).toBeInTheDocument();
             await screen.findByText('8');
         });
 
         it('should display max projects label', async () => {
             render(<TenantDetailModal {...defaultProps} />);
-            expect(screen.getByText('Max Projects')).toBeInTheDocument();
+            expect(screen.getByText('Projets Max')).toBeInTheDocument();
             await screen.findByText('8');
         });
 
@@ -453,7 +453,7 @@ describe('TenantDetailModal', () => {
             render(<TenantDetailModal {...defaultProps} />);
             await screen.findByText('8');
 
-            const saveButton = screen.getByText('Save Changes');
+            const saveButton = screen.getByText('Enregistrer');
             fireEvent.click(saveButton);
 
             await waitFor(() => {
@@ -472,11 +472,11 @@ describe('TenantDetailModal', () => {
             render(<TenantDetailModal {...defaultProps} />);
             await screen.findByText('8');
 
-            const saveButton = screen.getByText('Save Changes');
+            const saveButton = screen.getByText('Enregistrer');
             fireEvent.click(saveButton);
 
             await waitFor(() => {
-                expect(mockToastSuccess).toHaveBeenCalledWith('Subscription updated successfully');
+                expect(mockToastSuccess).toHaveBeenCalledWith('Abonnement mis à jour avec succès');
             });
         });
 
@@ -484,7 +484,7 @@ describe('TenantDetailModal', () => {
             render(<TenantDetailModal {...defaultProps} />);
             await screen.findByText('8');
 
-            const saveButton = screen.getByText('Save Changes');
+            const saveButton = screen.getByText('Enregistrer');
             fireEvent.click(saveButton);
 
             await waitFor(() => {
@@ -498,11 +498,11 @@ describe('TenantDetailModal', () => {
             render(<TenantDetailModal {...defaultProps} />);
             await screen.findByText('8');
 
-            const saveButton = screen.getByText('Save Changes');
+            const saveButton = screen.getByText('Enregistrer');
             fireEvent.click(saveButton);
 
             await waitFor(() => {
-                expect(mockToastError).toHaveBeenCalledWith('Failed to update');
+                expect(mockToastError).toHaveBeenCalledWith('Erreur de mise à jour');
             });
         });
     });
@@ -518,13 +518,13 @@ describe('TenantDetailModal', () => {
     describe('Tabs', () => {
         it('should render Overview tab', async () => {
             render(<TenantDetailModal {...defaultProps} />);
-            expect(screen.getByText('Overview')).toBeInTheDocument();
+            expect(screen.getByText('Vue d\'ensemble')).toBeInTheDocument();
             await screen.findByText('8');
         });
 
         it('should render Subscription tab', async () => {
             render(<TenantDetailModal {...defaultProps} />);
-            expect(screen.getByText('Subscription')).toBeInTheDocument();
+            expect(screen.getByText('Abonnement')).toBeInTheDocument();
             await screen.findByText('8');
         });
     });
@@ -532,19 +532,19 @@ describe('TenantDetailModal', () => {
     describe('Danger Zone', () => {
         it('should display danger zone section', async () => {
             render(<TenantDetailModal {...defaultProps} />);
-            expect(screen.getByText('Danger Zone')).toBeInTheDocument();
+            expect(screen.getByText('Zone Dangereuse')).toBeInTheDocument();
             await screen.findByText('8');
         });
 
         it('should display suspend organization text', async () => {
             render(<TenantDetailModal {...defaultProps} />);
-            expect(screen.getByText('Suspend Organization')).toBeInTheDocument();
+            expect(screen.getByText('Suspendre l\'Organisation')).toBeInTheDocument();
             await screen.findByText('8');
         });
 
         it('should display warning text', async () => {
             render(<TenantDetailModal {...defaultProps} />);
-            expect(screen.getByText('Stop all access immediately.')).toBeInTheDocument();
+            expect(screen.getByText('Couper tous les accès immédiatement.')).toBeInTheDocument();
             await screen.findByText('8');
         });
     });

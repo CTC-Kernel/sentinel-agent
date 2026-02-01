@@ -344,14 +344,14 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
         isOpen={!!dossierToDelete}
         onClose={() => setDossierToDelete(null)}
         onConfirm={handleDeleteDossier}
-        title={t('homologation.confirmDelete', { defaultValue: 'Confirm deletion' })}
+        title={t('homologation.confirmDelete', { defaultValue: 'Confirmer la suppression' })}
         message={t(
           'homologation.confirmDeleteDesc',
-          { defaultValue: 'Are you sure you want to delete the dossier "{{name}}"? This action is irreversible.', name: dossierToDelete?.name }
+          { defaultValue: 'Êtes-vous sûr de vouloir supprimer le dossier "{{name}}" ? Cette action est irréversible.', name: dossierToDelete?.name }
         )}
         type="danger"
-        confirmText={t('common.delete', { defaultValue: 'Delete' })}
-        cancelText={t('common.cancel', { defaultValue: 'Cancel' })}
+        confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
+        cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
       />
 
       {/* Renewal Dialog */}

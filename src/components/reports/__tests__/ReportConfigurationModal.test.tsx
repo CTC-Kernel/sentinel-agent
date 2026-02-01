@@ -8,6 +8,15 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ReportConfigurationModal } from '../ReportConfigurationModal';
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string, opts?: Record<string, unknown>) => (opts?.defaultValue as string) || key,
+        i18n: { language: 'en', changeLanguage: vi.fn() }
+    }),
+    Trans: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 // Mock Headless UI
 vi.mock('@headlessui/react', () => {
     const Dialog = ({ children, onClose }: { children: React.ReactNode; onClose: () => void }) => (
@@ -126,7 +135,7 @@ describe('ReportConfigurationModal', () => {
         it('renders cancel button', () => {
             render(<ReportConfigurationModal {...defaultProps} />);
 
-            expect(screen.getByText('Annuler')).toBeInTheDocument();
+            expect(screen.getByText('Cancel')).toBeInTheDocument();
         });
 
         it('renders generate button', () => {
@@ -138,7 +147,7 @@ describe('ReportConfigurationModal', () => {
         it('calls onClose when cancel clicked', () => {
             render(<ReportConfigurationModal {...defaultProps} />);
 
-            fireEvent.click(screen.getByText('Annuler'));
+            fireEvent.click(screen.getByText('Cancel'));
 
             expect(mockOnClose).toHaveBeenCalled();
         });

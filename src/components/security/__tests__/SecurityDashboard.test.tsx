@@ -7,6 +7,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { SecurityDashboard, SecurityWidgetCompact } from '../SecurityDashboard';
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string, opts?: Record<string, unknown>) => (opts?.defaultValue as string) || key,
+        i18n: { language: 'en', changeLanguage: vi.fn() }
+    }),
+    Trans: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 // Mock SessionMonitor
 vi.mock('../../../services/sessionMonitoringService', () => ({
     SessionMonitor: {
@@ -48,7 +57,7 @@ describe('SecurityDashboard', () => {
         it('shows loading message initially', () => {
             render(<SecurityDashboard />);
 
-            expect(screen.getByText('Chargement des métriques de sécurité...')).toBeInTheDocument();
+            expect(screen.getByText('Loading security metrics...')).toBeInTheDocument();
         });
     });
 
@@ -57,7 +66,7 @@ describe('SecurityDashboard', () => {
             render(<SecurityDashboard />);
 
             await waitFor(() => {
-                expect(screen.getByText('Tableau de Bord Sécurité BMAD')).toBeInTheDocument();
+                expect(screen.getByText('BMAD Security Dashboard')).toBeInTheDocument();
             });
         });
 

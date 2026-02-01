@@ -565,7 +565,7 @@ describe('useInspector', () => {
 
             expect(result.current.breadcrumbs).toEqual([
                 { label: 'Asset', onClick: expect.any(Function) },
-                { label: 'Nouveau' }
+                { label: 'New' }
             ]);
         });
 

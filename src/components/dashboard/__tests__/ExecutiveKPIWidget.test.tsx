@@ -58,9 +58,9 @@ describe('ExecutiveKPIWidget', () => {
   it('should render all 3 KPI cards', () => {
     render(<ExecutiveKPIWidget organizationId="org-123" />);
 
-    expect(screen.getByText('Sante Conformite')).toBeInTheDocument();
+    expect(screen.getByText('Santé Conformité')).toBeInTheDocument();
     expect(screen.getByText("Points d'Attention")).toBeInTheDocument();
-    expect(screen.getByText('Controles Actifs')).toBeInTheDocument();
+    expect(screen.getByText('Contrôles Actifs')).toBeInTheDocument();
   });
 
   it('should display correct values', () => {
@@ -120,7 +120,7 @@ describe('ExecutiveKPIWidget', () => {
     render(<ExecutiveKPIWidget organizationId="org-123" />);
 
     expect(screen.getByText('Test error')).toBeInTheDocument();
-    expect(screen.getByText('Reessayer')).toBeInTheDocument();
+    expect(screen.getByText('Réessayer')).toBeInTheDocument();
   });
 
   it('should call refetch when retry button is clicked', async () => {
@@ -136,7 +136,7 @@ describe('ExecutiveKPIWidget', () => {
 
     render(<ExecutiveKPIWidget organizationId="org-123" />);
 
-    const retryButton = screen.getByText('Reessayer');
+    const retryButton = screen.getByText('Réessayer');
     fireEvent.click(retryButton);
 
     expect(mockRefetch).toHaveBeenCalled();
@@ -150,7 +150,7 @@ describe('ExecutiveKPIWidget', () => {
     );
 
     // Click on Score Global card - find the button overlay by its accessible name
-    const scoreCard = screen.getByRole('button', { name: /Sante Conformite/i });
+    const scoreCard = screen.getByRole('button', { name: /Santé Conformité/i });
     fireEvent.click(scoreCard);
 
     expect(handleClick).toHaveBeenCalledWith('score_global');
@@ -183,7 +183,7 @@ describe('ExecutiveKPIWidget', () => {
 
     render(<ExecutiveKPIWidget organizationId="org-123" />);
 
-    expect(screen.getByText('1 necessite votre attention')).toBeInTheDocument();
+    expect(screen.getByText('1 nécessite votre attention')).toBeInTheDocument();
   });
 
   it('should display correct subtitle for multiple critical risks', () => {
@@ -198,7 +198,7 @@ describe('ExecutiveKPIWidget', () => {
 
     render(<ExecutiveKPIWidget organizationId="org-123" />);
 
-    expect(screen.getByText('5 necessitent votre attention')).toBeInTheDocument();
+    expect(screen.getByText('5 nécessitent votre attention')).toBeInTheDocument();
   });
 
   it('should display correct subtitle for zero ongoing audits', () => {
@@ -213,7 +213,7 @@ describe('ExecutiveKPIWidget', () => {
 
     render(<ExecutiveKPIWidget organizationId="org-123" />);
 
-    expect(screen.getByText('Aucun controle en cours')).toBeInTheDocument();
+    expect(screen.getByText('Aucun contrôle en cours')).toBeInTheDocument();
   });
 
   it('should display correct subtitle for one ongoing audit', () => {
@@ -228,7 +228,7 @@ describe('ExecutiveKPIWidget', () => {
 
     render(<ExecutiveKPIWidget organizationId="org-123" />);
 
-    expect(screen.getByText('1 verification en cours')).toBeInTheDocument();
+    expect(screen.getByText('1 vérification en cours')).toBeInTheDocument();
   });
 
   it('should apply custom className', () => {
@@ -257,7 +257,7 @@ describe('ExecutiveKPIWidget', () => {
 
     expect(screen.getByRole('region')).toHaveAttribute(
       'aria-label',
-      'Indicateurs cles de performance'
+      'Indicateurs clés de performance'
     );
   });
 });

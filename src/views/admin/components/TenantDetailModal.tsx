@@ -35,7 +35,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
             setStats(data);
         } catch (error) {
             ErrorLogger.error(error, 'TenantDetailModal.loadStats');
-            toast.error(t('admin.toast.statsLoadFailed', { defaultValue: 'Failed to load statistics' }));
+            toast.error(t('admin.toast.statsLoadFailed', { defaultValue: 'Erreur de chargement des statistiques' }));
         } finally {
             setLoading(false);
         }
@@ -61,11 +61,11 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
         setProcessing(true);
         try {
             await AdminService.toggleTenantStatus(tenant.id, newStatus);
-            toast.success(t('admin.toast.tenantStatusUpdated', { defaultValue: `Tenant ${newStatus ? 'activated' : 'suspended'} successfully`, status: newStatus ? 'activated' : 'suspended' }));
+            toast.success(t('admin.toast.tenantStatusUpdated', { defaultValue: `Tenant ${newStatus ? 'activé' : 'suspendu'} avec succès`, status: newStatus ? 'activé' : 'suspendu' }));
             onUpdate();
             onClose();
         } catch {
-            toast.error(t('admin.toast.statusUpdateFailed', { defaultValue: 'Failed to update status' }));
+            toast.error(t('admin.toast.statusUpdateFailed', { defaultValue: 'Erreur de mise à jour du statut' }));
         } finally {
             setProcessing(false);
             setShowToggleStatusConfirm(false);
@@ -80,10 +80,10 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                 maxUsers,
                 maxProjects
             });
-            toast.success(t('admin.toast.subscriptionUpdated', { defaultValue: 'Subscription updated successfully' }));
+            toast.success(t('admin.toast.subscriptionUpdated', { defaultValue: 'Abonnement mis à jour avec succès' }));
             onUpdate();
         } catch {
-            toast.error(t('admin.toast.updateFailed', { defaultValue: 'Failed to update' }));
+            toast.error(t('admin.toast.updateFailed', { defaultValue: 'Erreur de mise à jour' }));
         } finally {
             setProcessing(false);
         }
@@ -132,7 +132,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                             <span className="text-sm text-muted-foreground font-mono">{tenant.id}</span>
                                             <span className={`px-2 py-0.5 text-[11px] rounded-full uppercase font-bold tracking-wide ${isTenantActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-50 text-red-400'
                                                 }`}>
-                                                {isTenantActive ? 'Active' : 'Suspended'}
+                                                {isTenantActive ? 'Actif' : 'Suspendu'}
                                             </span>
                                         </div>
                                     </div>
@@ -145,7 +145,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                             <Tab.Group>
                                 <div className="border-b border-slate-800 bg-slate-900/50 px-6">
                                     <Tab.List className="flex space-x-6">
-                                        {['Overview', 'Subscription'].map((category) => (
+                                        {['Vue d\'ensemble', 'Abonnement'].map((category) => (
                                             <Tab
                                                 key={category || 'unknown'}
                                                 className={({ selected }) =>
@@ -167,7 +167,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                         <div className="grid grid-cols-3 gap-4">
                                             <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
                                                 <p className="text-xs text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-1 flex items-center">
-                                                    <Users className="w-3 h-3 mr-1.5" /> Users
+                                                    <Users className="w-3 h-3 mr-1.5" /> Utilisateurs
                                                 </p>
                                                 {loading ? (
                                                     <div className="h-6 w-12 bg-slate-700 rounded animate-pulse" />
@@ -177,7 +177,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                             </div>
                                             <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
                                                 <p className="text-xs text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-1 flex items-center">
-                                                    <Shield className="w-3 h-3 mr-1.5" /> Projects
+                                                    <Shield className="w-3 h-3 mr-1.5" /> Projets
                                                 </p>
                                                 {loading ? (
                                                     <div className="h-6 w-12 bg-slate-700 rounded animate-pulse" />
@@ -187,7 +187,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                             </div>
                                             <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
                                                 <p className="text-xs text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-1 flex items-center">
-                                                    <Database className="w-3 h-3 mr-1.5" /> Storage
+                                                    <Database className="w-3 h-3 mr-1.5" /> Stockage
                                                 </p>
                                                 <p className="text-2xl font-bold text-white">--</p>
                                             </div>
@@ -196,13 +196,13 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                         <div className="bg-red-50 dark:bg-red-900/30 border border-red-500/20 rounded-xl p-6">
                                             <h4 className="text-red-400 font-medium flex items-center mb-4">
                                                 <AlertTriangle className="w-4 h-4 mr-2" />
-                                                Danger Zone
+                                                Zone Dangereuse
                                             </h4>
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="text-sm text-slate-300 font-medium">Suspend Organization</p>
+                                                    <p className="text-sm text-slate-300 font-medium">Suspendre l'Organisation</p>
                                                     <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
-                                                        Stop all access immediately.
+                                                        Couper tous les accès immédiatement.
                                                     </p>
                                                 </div>
                                                 <button
@@ -210,7 +210,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                     disabled={processing}
                                                     className="px-4 py-2 rounded-lg text-sm font-medium bg-red-50 hover:bg-red-500/20 text-red-500 border border-red-500/20 transition-colors"
                                                 >
-                                                    {isTenantActive ? 'Suspend' : 'Activate'}
+                                                    {isTenantActive ? 'Suspendre' : 'Activer'}
                                                 </button>
                                             </div>
                                         </div>
@@ -226,7 +226,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
 
                                             <div className="space-y-4">
                                                 <div>
-                                                    <label htmlFor="plan-select" className="block text-sm font-medium text-muted-foreground mb-1.5">Current Plan</label>
+                                                    <label htmlFor="plan-select" className="block text-sm font-medium text-muted-foreground mb-1.5">Plan Actuel</label>
                                                     <select
                                                         id="plan-select"
                                                         value={plan}
@@ -241,7 +241,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
 
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div>
-                                                        <label htmlFor="max-users-input" className="block text-sm font-medium text-muted-foreground mb-1.5">Max Users</label>
+                                                        <label htmlFor="max-users-input" className="block text-sm font-medium text-muted-foreground mb-1.5">Utilisateurs Max</label>
                                                         <input
                                                             id="max-users-input"
                                                             type="number"
@@ -254,7 +254,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label htmlFor="max-projects-input" className="block text-sm font-medium text-muted-foreground mb-1.5">Max Projects</label>
+                                                        <label htmlFor="max-projects-input" className="block text-sm font-medium text-muted-foreground mb-1.5">Projets Max</label>
                                                         <input
                                                             id="max-projects-input"
                                                             type="number"
@@ -276,7 +276,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                     className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
                                                 >
                                                     <Save className="w-4 h-4 mr-2" />
-                                                    Save Changes
+                                                    Enregistrer
                                                 </button>
                                             </div>
                                         </div>
@@ -292,11 +292,11 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                 isOpen={showToggleStatusConfirm}
                 onClose={() => setShowToggleStatusConfirm(false)}
                 onConfirm={handleToggleStatus}
-                title={isTenantActive ? 'Suspend Tenant' : 'Activate Tenant'}
-                message={`Are you sure you want to ${isTenantActive ? 'suspend' : 'activate'} this tenant? ${isTenantActive ? 'All users will lose access immediately.' : 'Users will regain access.'}`}
+                title={isTenantActive ? 'Suspendre le Tenant' : 'Activer le Tenant'}
+                message={`Êtes-vous sûr de vouloir ${isTenantActive ? 'suspendre' : 'activer'} ce tenant ? ${isTenantActive ? 'Tous les utilisateurs perdront leur accès immédiatement.' : 'Les utilisateurs retrouveront leur accès.'}`}
                 type="danger"
-                confirmText={isTenantActive ? 'Suspend' : 'Activate'}
-                cancelText="Cancel"
+                confirmText={isTenantActive ? 'Suspendre' : 'Activer'}
+                cancelText="Annuler"
                 loading={processing}
                 closeOnConfirm={false}
             />

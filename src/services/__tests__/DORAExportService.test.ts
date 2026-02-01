@@ -115,7 +115,8 @@ vi.mock('firebase/firestore', () => ({
     deleteDoc: () => mockDeleteDoc(),
     doc: vi.fn(),
     limit: vi.fn(),
-    Timestamp: { now: () => ({ toDate: () => new Date() }) }
+    Timestamp: { now: () => ({ toDate: () => new Date() }) },
+    serverTimestamp: vi.fn(() => 'mock-server-timestamp')
 }));
 
 // Mock ICTProviderService

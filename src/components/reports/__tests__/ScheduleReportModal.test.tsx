@@ -8,6 +8,25 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { ScheduleReportModal } from '../ScheduleReportModal';
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string, opts?: Record<string, unknown>) => (opts?.defaultValue as string) || key,
+        i18n: { language: 'en', changeLanguage: vi.fn() }
+    }),
+    Trans: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+// Mock useLocale hook
+vi.mock('../../../hooks/useLocale', () => ({
+    useLocale: () => ({
+        dateFnsLocale: undefined,
+        locale: 'en',
+        config: { intlLocale: 'en-US' },
+        t: (key: string, opts?: Record<string, unknown>) => (opts?.defaultValue as string) || key
+    })
+}));
+
 // Mock Headless UI
 vi.mock('@headlessui/react', () => {
     const Dialog = ({ children, onClose }: { children: React.ReactNode; onClose: () => void }) => (
@@ -161,7 +180,7 @@ describe('ScheduleReportModal', () => {
         it('renders add recipient button', () => {
             render(<ScheduleReportModal {...defaultProps} />);
 
-            expect(screen.getByText('Ajouter un destinataire')).toBeInTheDocument();
+            expect(screen.getByText('Add recipient')).toBeInTheDocument();
         });
 
         it.skip('adds recipient when button clicked', async () => {
@@ -169,7 +188,7 @@ describe('ScheduleReportModal', () => {
             render(<ScheduleReportModal {...defaultProps} />);
 
             await act(async () => {
-                const addButton = screen.getByText('Ajouter un destinataire').closest('button');
+                const addButton = screen.getByText('Add recipient').closest('button');
                 if (addButton) {
                     await user.click(addButton);
                 }

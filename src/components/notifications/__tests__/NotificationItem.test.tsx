@@ -15,7 +15,9 @@ vi.mock('date-fns', () => ({
 }));
 
 vi.mock('date-fns/locale', () => ({
-    fr: {}
+    fr: { code: 'fr' },
+    enUS: { code: 'en' },
+    de: { code: 'de' },
 }));
 
 describe('NotificationItem', () => {

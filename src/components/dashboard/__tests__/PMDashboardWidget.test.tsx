@@ -62,15 +62,15 @@ describe('PMDashboardWidget', () => {
   it('should show not authorized message for regular user', () => {
     render(<PMDashboardWidget organizationId="org-123" user={mockRegularUser} />);
 
-    expect(screen.getByText('Acces non autorise')).toBeInTheDocument();
-    expect(screen.getByText('Cette vue est reservee aux chefs de projet')).toBeInTheDocument();
+    expect(screen.getByText('Accès non autorisé')).toBeInTheDocument();
+    expect(screen.getByText('Cette vue est réservée aux chefs de projet')).toBeInTheDocument();
     expect(screen.queryByTestId('progress-widget')).not.toBeInTheDocument();
   });
 
   it('should show not authorized when user is null', () => {
     render(<PMDashboardWidget organizationId="org-123" user={null} />);
 
-    expect(screen.getByText('Acces non autorise')).toBeInTheDocument();
+    expect(screen.getByText('Accès non autorisé')).toBeInTheDocument();
   });
 
   it('should skip role check when skipRoleCheck is true', () => {
@@ -91,7 +91,7 @@ describe('PMDashboardWidget', () => {
     render(<PMDashboardWidget organizationId="org-123" user={mockPMUser} />);
 
     expect(screen.getByText('Vue Chef de Projet')).toBeInTheDocument();
-    expect(screen.getByText('Progression du projet, echeances et actions en retard')).toBeInTheDocument();
+    expect(screen.getByText('Progression du projet, échéances et actions en retard')).toBeInTheDocument();
   });
 
   it('should have accessible region role', () => {

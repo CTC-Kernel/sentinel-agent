@@ -83,7 +83,7 @@ describe('AuditPlannerService', () => {
 
                 const suggestions = AuditPlannerService.generateAuditSuggestions(risks, []);
 
-                expect(suggestions[0].priority).toBe('High');
+                expect(suggestions[0].priority).toBe('Élevée');
             });
 
             it('suggests medium priority for high risks (score 12-19)', () => {
@@ -91,7 +91,7 @@ describe('AuditPlannerService', () => {
 
                 const suggestions = AuditPlannerService.generateAuditSuggestions(risks, []);
 
-                expect(suggestions[0].priority).toBe('Medium');
+                expect(suggestions[0].priority).toBe('Moyenne');
             });
 
             it('does not suggest for closed risks', () => {
@@ -136,7 +136,7 @@ describe('AuditPlannerService', () => {
 
                 expect(suggestions.length).toBe(1);
                 expect(suggestions[0].name).toContain('Revue de Sécurité');
-                expect(suggestions[0].priority).toBe('High');
+                expect(suggestions[0].priority).toBe('Élevée');
             });
 
             it('suggests audits for critical integrity assets', () => {
@@ -201,7 +201,7 @@ describe('AuditPlannerService', () => {
                 const isoAudit = suggestions.find(s => s.name.includes('ISO 27001'));
                 expect(isoAudit).toBeDefined();
                 expect(isoAudit?.type).toBe('Certification');
-                expect(isoAudit?.priority).toBe('High');
+                expect(isoAudit?.priority).toBe('Élevée');
             });
 
             it('schedules ISO audit within 1 month', () => {

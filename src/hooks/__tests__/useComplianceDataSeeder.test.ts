@@ -206,7 +206,9 @@ describe('useComplianceDataSeeder', () => {
             });
 
             expect(mockToastError).toHaveBeenCalledWith(
-                'compliance.noSeedData'
+                expect.objectContaining({
+                    defaultValue: expect.stringContaining('No seed data available for HDS'),
+                })
             );
             expect(mockBatchSet).not.toHaveBeenCalled();
         });
@@ -243,7 +245,9 @@ describe('useComplianceDataSeeder', () => {
             });
 
             expect(mockToastError).toHaveBeenCalledWith(
-                'compliance.importError'
+                expect.objectContaining({
+                    defaultValue: 'Error importing data',
+                })
             );
         });
     });

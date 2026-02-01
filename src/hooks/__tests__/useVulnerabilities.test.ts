@@ -261,6 +261,12 @@ describe('useVulnerabilities', () => {
     });
 
     describe('deleteVulnerability', () => {
+        beforeEach(() => {
+            // Reset mockUpdateDoc and mockGetDocs for cascade cleanup in deleteVulnerability
+            mockUpdateDoc.mockResolvedValue(undefined);
+            mockGetDocs.mockResolvedValue({ empty: true, docs: [] });
+        });
+
         it('deletes vulnerability from Firestore', async () => {
             mockDeleteDoc.mockResolvedValue(undefined);
 

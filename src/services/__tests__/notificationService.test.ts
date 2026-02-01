@@ -551,40 +551,54 @@ describe('NotificationService', () => {
     });
 
     describe('markAllAsRead', () => {
-        it('should mark all unread notifications as read for a user', async () => {
-            const { getDocs, updateDoc } = await import('firebase/firestore');
+        it('should mark all unread notifications as read for a user using writeBatch', async () => {
+            const { getDocs, writeBatch } = await import('firebase/firestore');
+
+            const mockBatchUpdate = vi.fn();
+            const mockBatchCommit = vi.fn().mockResolvedValue(undefined);
+            vi.mocked(writeBatch).mockReturnValue({
+                update: mockBatchUpdate,
+                commit: mockBatchCommit,
+            } as never);
 
             vi.mocked(getDocs).mockResolvedValueOnce({
                 docs: [
                     { id: 'notif-1', ref: { id: 'notif-1' } },
                     { id: 'notif-2', ref: { id: 'notif-2' } },
                     { id: 'notif-3', ref: { id: 'notif-3' } }
-                ]
+                ],
+                empty: false
             } as never);
 
             await NotificationService.markAllAsRead('user-123', 'org-456');
 
-            expect(updateDoc).toHaveBeenCalledTimes(3);
+            expect(writeBatch).toHaveBeenCalled();
+            expect(mockBatchUpdate).toHaveBeenCalledTimes(3);
+            expect(mockBatchCommit).toHaveBeenCalledTimes(1);
         });
 
-        it('should handle individual update failures gracefully', async () => {
-            const { getDocs, updateDoc } = await import('firebase/firestore');
+        it('should handle batch commit failures gracefully', async () => {
+            const { getDocs, writeBatch } = await import('firebase/firestore');
             const { ErrorLogger } = await import('../errorLogger');
+
+            const mockBatchUpdate = vi.fn();
+            const mockBatchCommit = vi.fn().mockRejectedValue(new Error('Batch commit failed'));
+            vi.mocked(writeBatch).mockReturnValue({
+                update: mockBatchUpdate,
+                commit: mockBatchCommit,
+            } as never);
 
             vi.mocked(getDocs).mockResolvedValueOnce({
                 docs: [
                     { id: 'notif-1', ref: { id: 'notif-1' } },
                     { id: 'notif-2', ref: { id: 'notif-2' } }
-                ]
+                ],
+                empty: false
             } as never);
-
-            vi.mocked(updateDoc)
-                .mockResolvedValueOnce(undefined)
-                .mockRejectedValueOnce(new Error('Update failed'));
 
             await NotificationService.markAllAsRead('user-123', 'org-456');
 
-            // Should log error for failed update
+            // Should log error for failed batch commit
             expect(ErrorLogger.error).toHaveBeenCalled();
         });
 

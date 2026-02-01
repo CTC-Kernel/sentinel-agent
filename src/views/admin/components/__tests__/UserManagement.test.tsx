@@ -71,21 +71,21 @@ describe('UserManagement', () => {
         it('should render the component with search form', () => {
             render(<UserManagement />);
 
-            expect(screen.getByText('Global User Lookup')).toBeInTheDocument();
-            expect(screen.getByPlaceholderText('Enter user email...')).toBeInTheDocument();
-            expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument();
+            expect(screen.getByText("Recherche Globale d'Utilisateurs")).toBeInTheDocument();
+            expect(screen.getByPlaceholderText("Saisir l'email de l'utilisateur...")).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: 'Rechercher' })).toBeInTheDocument();
         });
 
         it('should render description text', () => {
             render(<UserManagement />);
 
-            expect(screen.getByText('Search for any user across all organizations by email.')).toBeInTheDocument();
+            expect(screen.getByText('Rechercher un utilisateur par email dans toutes les organisations.')).toBeInTheDocument();
         });
 
         it('should have disabled search button when input is empty', () => {
             render(<UserManagement />);
 
-            const searchButton = screen.getByRole('button', { name: 'Search' });
+            const searchButton = screen.getByRole('button', { name: 'Rechercher' });
             expect(searchButton).toBeDisabled();
         });
     });
@@ -94,17 +94,17 @@ describe('UserManagement', () => {
         it('should enable search button when input has value', () => {
             render(<UserManagement />);
 
-            const searchInput = screen.getByPlaceholderText('Enter user email...');
+            const searchInput = screen.getByPlaceholderText("Saisir l'email de l'utilisateur...");
             fireEvent.change(searchInput, { target: { value: 'test' } });
 
-            const searchButton = screen.getByRole('button', { name: 'Search' });
+            const searchButton = screen.getByRole('button', { name: 'Rechercher' });
             expect(searchButton).not.toBeDisabled();
         });
 
         it('should search and display users on form submit', async () => {
             render(<UserManagement />);
 
-            const searchInput = screen.getByPlaceholderText('Enter user email...');
+            const searchInput = screen.getByPlaceholderText("Saisir l'email de l'utilisateur...");
             fireEvent.change(searchInput, { target: { value: 'admin' } });
 
             const form = searchInput.closest('form')!;
@@ -119,7 +119,7 @@ describe('UserManagement', () => {
         it('should display all search results', async () => {
             render(<UserManagement />);
 
-            const searchInput = screen.getByPlaceholderText('Enter user email...');
+            const searchInput = screen.getByPlaceholderText("Saisir l'email de l'utilisateur...");
             fireEvent.change(searchInput, { target: { value: 'company' } });
 
             const form = searchInput.closest('form')!;
@@ -134,14 +134,14 @@ describe('UserManagement', () => {
         it('should show results count after search', async () => {
             render(<UserManagement />);
 
-            const searchInput = screen.getByPlaceholderText('Enter user email...');
+            const searchInput = screen.getByPlaceholderText("Saisir l'email de l'utilisateur...");
             fireEvent.change(searchInput, { target: { value: 'test' } });
 
             const form = searchInput.closest('form')!;
             fireEvent.submit(form);
 
             await waitFor(() => {
-                expect(screen.getByText(/Results \(2\)/)).toBeInTheDocument();
+                expect(screen.getByText(/Résultats \(2\)/)).toBeInTheDocument();
             });
         });
     });
@@ -152,14 +152,14 @@ describe('UserManagement', () => {
 
             render(<UserManagement />);
 
-            const searchInput = screen.getByPlaceholderText('Enter user email...');
+            const searchInput = screen.getByPlaceholderText("Saisir l'email de l'utilisateur...");
             fireEvent.change(searchInput, { target: { value: 'nonexistent' } });
 
             const form = searchInput.closest('form')!;
             fireEvent.submit(form);
 
             await waitFor(() => {
-                expect(screen.getByText(/No users found matching/)).toBeInTheDocument();
+                expect(screen.getByText(/Aucun utilisateur trouvé pour/)).toBeInTheDocument();
             });
         });
     });
@@ -171,7 +171,7 @@ describe('UserManagement', () => {
 
             render(<UserManagement />);
 
-            const searchInput = screen.getByPlaceholderText('Enter user email...');
+            const searchInput = screen.getByPlaceholderText("Saisir l'email de l'utilisateur...");
             fireEvent.change(searchInput, { target: { value: 'test' } });
 
             const form = searchInput.closest('form')!;
@@ -192,17 +192,17 @@ describe('UserManagement', () => {
 
             render(<UserManagement />);
 
-            const searchInput = screen.getByPlaceholderText('Enter user email...');
+            const searchInput = screen.getByPlaceholderText("Saisir l'email de l'utilisateur...");
             fireEvent.change(searchInput, { target: { value: 'test' } });
 
             const form = searchInput.closest('form')!;
             fireEvent.submit(form);
 
             // Button text should change to "Searching..."
-            expect(screen.getByRole('button', { name: 'Searching...' })).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: 'Recherche...' })).toBeInTheDocument();
 
             await waitFor(() => {
-                expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument();
+                expect(screen.getByRole('button', { name: 'Rechercher' })).toBeInTheDocument();
             });
         });
     });
@@ -211,7 +211,7 @@ describe('UserManagement', () => {
         it('should show admin badge for admin users', async () => {
             render(<UserManagement />);
 
-            const searchInput = screen.getByPlaceholderText('Enter user email...');
+            const searchInput = screen.getByPlaceholderText("Saisir l'email de l'utilisateur...");
             fireEvent.change(searchInput, { target: { value: 'admin' } });
 
             const form = searchInput.closest('form')!;
@@ -228,7 +228,7 @@ describe('UserManagement', () => {
         it('should not search with empty input', async () => {
             render(<UserManagement />);
 
-            const searchInput = screen.getByPlaceholderText('Enter user email...');
+            const searchInput = screen.getByPlaceholderText("Saisir l'email de l'utilisateur...");
             const form = searchInput.closest('form')!;
             fireEvent.submit(form);
 
@@ -239,7 +239,7 @@ describe('UserManagement', () => {
         it('should not search with only whitespace', async () => {
             render(<UserManagement />);
 
-            const searchInput = screen.getByPlaceholderText('Enter user email...');
+            const searchInput = screen.getByPlaceholderText("Saisir l'email de l'utilisateur...");
             fireEvent.change(searchInput, { target: { value: '   ' } });
 
             const form = searchInput.closest('form')!;

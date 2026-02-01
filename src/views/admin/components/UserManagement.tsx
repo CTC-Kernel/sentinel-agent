@@ -27,7 +27,7 @@ export const UserManagement: React.FC = () => {
             window.location.href = '/dashboard';
         } catch (err) {
             ErrorLogger.error(err, 'UserManagement.impersonate');
-            addToast(t('admin.toast.impersonationFailed', { defaultValue: 'Impersonation failed' }), 'error');
+            addToast(t('admin.toast.impersonationFailed', { defaultValue: 'Échec de la connexion en tant qu\'utilisateur' }), 'error');
         } finally {
             setImpersonateTarget(null);
         }
@@ -66,8 +66,8 @@ export const UserManagement: React.FC = () => {
     return (
         <div className="space-y-6 animate-fade-in">
             <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-8 text-center max-w-2xl mx-auto">
-                <h3 className="text-xl font-bold text-white mb-2">Global User Lookup</h3>
-                <p className="text-muted-foreground mb-6">Search for any user across all organizations by email.</p>
+                <h3 className="text-xl font-bold text-white mb-2">Recherche Globale d'Utilisateurs</h3>
+                <p className="text-muted-foreground mb-6">Rechercher un utilisateur par email dans toutes les organisations.</p>
 
                 <form onSubmit={handleSearch} className="relative">
                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" />
@@ -75,7 +75,7 @@ export const UserManagement: React.FC = () => {
                         type="text"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Enter user email..."
+                        placeholder="Saisir l'email de l'utilisateur..."
                         className="w-full pl-12 pr-4 py-3 bg-slate-950/50 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-brand-500 text-white placeholder:text-slate-600"
                     />
                     <button
@@ -83,14 +83,14 @@ export const UserManagement: React.FC = () => {
                         disabled={loading || !searchTerm}
                         className="absolute right-2 top-2 bottom-2 px-4 bg-brand-600 hover:bg-brand-500 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:hover:bg-brand-600 text-white rounded-lg font-medium transition-colors"
                     >
-                        {loading ? 'Searching...' : 'Search'}
+                        {loading ? 'Recherche...' : 'Rechercher'}
                     </button>
                 </form>
             </div>
 
             {hasSearched && (
                 <div className="space-y-4">
-                    <h4 className="text-sm font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider ml-1">Results ({users.length})</h4>
+                    <h4 className="text-sm font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider ml-1">Résultats ({users.length})</h4>
 
                     <div className="grid gap-4">
                         {users.map(user => (
@@ -120,7 +120,7 @@ export const UserManagement: React.FC = () => {
                                 <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-70 transition-opacity">
                                     <button
                                         className="p-2.5 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors"
-                                        title="Impersonate User"
+                                        title="Se connecter en tant que"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             setImpersonateTarget(user);
@@ -137,7 +137,7 @@ export const UserManagement: React.FC = () => {
 
                         {users.length === 0 && !loading && (
                             <div className="text-center py-12 text-slate-500 dark:text-slate-300 bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
-                                No users found matching "{searchTerm}"
+                                Aucun utilisateur trouvé pour "{searchTerm}"
                             </div>
                         )}
                     </div>
@@ -148,11 +148,11 @@ export const UserManagement: React.FC = () => {
                 isOpen={impersonateTarget !== null}
                 onClose={() => setImpersonateTarget(null)}
                 onConfirm={() => impersonateTarget && handleImpersonate(impersonateTarget)}
-                title="Impersonate User"
-                message={`Are you sure you want to login as ${impersonateTarget?.email}?`}
+                title="Se connecter en tant qu'utilisateur"
+                message={`Êtes-vous sûr de vouloir vous connecter en tant que ${impersonateTarget?.email} ?`}
                 type="warning"
-                confirmText="Login as User"
-                cancelText="Cancel"
+                confirmText="Se connecter"
+                cancelText="Annuler"
             />
         </div>
     );

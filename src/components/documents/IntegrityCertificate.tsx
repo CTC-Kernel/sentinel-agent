@@ -209,21 +209,7 @@ export function IntegrityCertificate({
     setHistoryOpen(!historyOpen);
   }, [historyOpen, loadHistory]);
 
-  const handleDownloadCertificate = useCallback(async () => {
-    setGeneratingPdf(true);
-    try {
-      const certificate = await IntegrityService.generateCertificate(documentId);
-      generatePdfCertificate(certificate);
-      toast.success(t('integrity.certificateDownloaded') || 'Certificat téléchargé');
-    } catch (error) {
-      ErrorLogger.error(error, 'IntegrityCertificate.generateCertificate');
-      toast.error(t('integrity.certificateGenerationFailed') || 'Échec de la génération du certificat');
-    } finally {
-      setGeneratingPdf(false);
-    }
-  }, [documentId, t]);
-
-  const generatePdfCertificate = (cert: CertificateType) => {
+  const generatePdfCertificate = useCallback((cert: CertificateType) => {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -391,7 +377,21 @@ export function IntegrityCertificate({
     // Save
     const filename = `certificat-integrite-${cert.document.name.replace(/[^a-z0-9]/gi, '_')}-${format(new Date(), 'yyyyMMdd')}.pdf`;
     doc.save(filename);
-  };
+  }, [dateFnsLocale]);
+
+  const handleDownloadCertificate = useCallback(async () => {
+    setGeneratingPdf(true);
+    try {
+      const certificate = await IntegrityService.generateCertificate(documentId);
+      generatePdfCertificate(certificate);
+      toast.success(t('integrity.certificateDownloaded') || 'Certificat téléchargé');
+    } catch (error) {
+      ErrorLogger.error(error, 'IntegrityCertificate.generateCertificate');
+      toast.error(t('integrity.certificateGenerationFailed') || 'Échec de la génération du certificat');
+    } finally {
+      setGeneratingPdf(false);
+    }
+  }, [documentId, t, generatePdfCertificate]);
 
   // Get status configuration
   const status = integrity?.status || 'unknown';

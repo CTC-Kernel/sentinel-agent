@@ -101,8 +101,8 @@ describe('PMActionsOverdueWidget', () => {
   it('should display assignee names when present', () => {
     render(<PMActionsOverdueWidget organizationId="org-123" />);
 
-    expect(screen.getByText('Assigne a: Jean Dupont')).toBeInTheDocument();
-    expect(screen.getByText('Assigne a: Marie Martin')).toBeInTheDocument();
+    expect(screen.getByText('Assigné à: Jean Dupont')).toBeInTheDocument();
+    expect(screen.getByText('Assigné à: Marie Martin')).toBeInTheDocument();
   });
 
   it('should show "En retard" badges', () => {

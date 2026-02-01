@@ -21,6 +21,7 @@ vi.mock('firebase/firestore', () => ({
         set: mockBatchSet,
         commit: mockBatchCommit,
     })),
+    serverTimestamp: vi.fn(() => ({ _type: 'serverTimestamp' })),
 }));
 
 vi.mock('../errorLogger', () => ({

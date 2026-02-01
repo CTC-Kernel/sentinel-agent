@@ -18,7 +18,7 @@ vi.mock('firebase/firestore', () => ({
     addDoc: vi.fn(() => Promise.resolve({ id: 'new-assessment-id' })),
     updateDoc: vi.fn(() => Promise.resolve()),
     getDocs: vi.fn(),
-    getDoc: vi.fn(() => Promise.resolve({ exists: () => true, data: () => ({ name: 'Test Supplier', riskLevel: 'Medium' }) })),
+    getDoc: vi.fn(() => Promise.resolve({ exists: () => true, data: () => ({ name: 'Test Supplier', riskLevel: 'Medium', organizationId: 'org-1' }), id: 'supplier-1' })),
     deleteDoc: vi.fn(() => Promise.resolve()),
     query: vi.fn(),
     where: vi.fn(),

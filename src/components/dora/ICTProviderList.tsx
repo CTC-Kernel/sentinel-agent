@@ -98,7 +98,7 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
         } catch {
             return '-';
         }
-    }, [locale]);
+    }, [locale, dateFnsLocale]);
 
     const isReassessmentDue = (provider: ICTProvider, thresholdDays: number = 365): boolean => {
         const lastAssessment = parseDate(provider.riskAssessment?.lastAssessment);

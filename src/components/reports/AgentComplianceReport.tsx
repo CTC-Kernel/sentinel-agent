@@ -321,7 +321,7 @@ export const AgentComplianceReport: React.FC<AgentComplianceReportProps> = ({
         };
 
         fetchData();
-    }, [user?.organizationId, filters, dateRange]);
+    }, [user?.organizationId, filters, dateRange, t]);
 
     // Handle export
     const handleExport = async (format: ExportFormat) => {

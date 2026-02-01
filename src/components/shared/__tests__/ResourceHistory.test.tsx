@@ -7,6 +7,25 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ResourceHistory } from '../ResourceHistory';
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string, opts?: Record<string, unknown>) => (opts?.defaultValue as string) || key,
+        i18n: { language: 'en', changeLanguage: vi.fn() }
+    }),
+    Trans: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+// Mock useLocale hook
+vi.mock('../../../hooks/useLocale', () => ({
+    useLocale: () => ({
+        dateFnsLocale: undefined,
+        locale: 'en',
+        config: { intlLocale: 'en-US' },
+        t: (key: string, opts?: Record<string, unknown>) => (opts?.defaultValue as string) || key
+    })
+}));
+
 // Mock useResourceLogs hook
 const mockLoadMore = vi.fn();
 vi.mock('../../../hooks/useResourceLogs', () => ({
@@ -48,7 +67,7 @@ describe('ResourceHistory', () => {
 
             render(<ResourceHistory {...defaultProps} />);
 
-            expect(screen.getByText(/Chargement de l'historique/)).toBeInTheDocument();
+            expect(screen.getByText(/Loading history/)).toBeInTheDocument();
         });
     });
 
@@ -56,7 +75,7 @@ describe('ResourceHistory', () => {
         it('shows empty state when no logs', () => {
             render(<ResourceHistory {...defaultProps} />);
 
-            expect(screen.getByText('Aucun historique disponible pour cet élément.')).toBeInTheDocument();
+            expect(screen.getByText('No history available for this item.')).toBeInTheDocument();
         });
     });
 
@@ -92,7 +111,7 @@ describe('ResourceHistory', () => {
 
             render(<ResourceHistory {...defaultProps} />);
 
-            expect(screen.getByText('Historique des Modifications')).toBeInTheDocument();
+            expect(screen.getByText('Change History')).toBeInTheDocument();
         });
 
         it('shows log actions', () => {
@@ -164,7 +183,7 @@ describe('ResourceHistory', () => {
 
             render(<ResourceHistory {...defaultProps} />);
 
-            expect(screen.getByText("Voir plus d'historique")).toBeInTheDocument();
+            expect(screen.getByText('View more history')).toBeInTheDocument();
         });
 
         it('calls loadMore when button clicked', () => {
@@ -177,7 +196,7 @@ describe('ResourceHistory', () => {
 
             render(<ResourceHistory {...defaultProps} />);
 
-            fireEvent.click(screen.getByText("Voir plus d'historique"));
+            fireEvent.click(screen.getByText('View more history'));
 
             expect(mockLoadMore).toHaveBeenCalled();
         });
@@ -192,7 +211,7 @@ describe('ResourceHistory', () => {
 
             render(<ResourceHistory {...defaultProps} />);
 
-            expect(screen.getByText('Chargement...')).toBeInTheDocument();
+            expect(screen.getByText('Loading...')).toBeInTheDocument();
         });
 
         it('hides load more button when no more logs', () => {
@@ -205,7 +224,7 @@ describe('ResourceHistory', () => {
 
             render(<ResourceHistory {...defaultProps} />);
 
-            expect(screen.queryByText("Voir plus d'historique")).not.toBeInTheDocument();
+            expect(screen.queryByText('View more history')).not.toBeInTheDocument();
         });
     });
 
@@ -285,7 +304,7 @@ describe('ResourceHistory', () => {
 
             render(<ResourceHistory {...defaultProps} />);
 
-            expect(screen.getByText(/janvier/)).toBeInTheDocument();
+            expect(screen.getByText(/January/)).toBeInTheDocument();
         });
 
         it('handles string timestamp', () => {

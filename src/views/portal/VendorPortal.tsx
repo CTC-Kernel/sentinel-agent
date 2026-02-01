@@ -182,10 +182,10 @@ export const VendorPortal: React.FC = () => {
           <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
         </div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
-          {t('vendorPortal.submitted', 'Questionnaire Submitted')}
+          {t('vendorPortal.submitted', 'Questionnaire Soumis')}
         </h1>
         <p className="text-slate-600 dark:text-muted-foreground mb-6">
-          {t('vendorPortal.submittedMessage', 'Thank you for completing the security questionnaire. Your responses have been recorded.')}
+          {t('vendorPortal.submittedMessage', 'Merci d\'avoir complété le questionnaire de sécurité. Vos réponses ont été enregistrées.')}
         </p>
         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-white/10 w-full">
           <div className="flex items-center gap-3">

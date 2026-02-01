@@ -133,7 +133,7 @@ describe('BlastRadiusPanel', () => {
 
   it('renders What-If section correctly', () => {
     render(<BlastRadiusPanel {...defaultProps} />);
-    expect(screen.getByText('Scenario What-If')).toBeInTheDocument();
+    expect(screen.getByText('Scénario What-If')).toBeInTheDocument();
   });
 
   it('does not crash when props are minimal/empty', () => {

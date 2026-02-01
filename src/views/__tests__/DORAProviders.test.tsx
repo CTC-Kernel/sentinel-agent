@@ -102,6 +102,20 @@ vi.mock('../../services/errorLogger', () => ({
   }
 }));
 
+vi.mock('../../store', () => ({
+  useStore: () => ({
+    user: { uid: 'test-user', role: 'admin', organizationId: 'org-1' },
+  }),
+}));
+
+vi.mock('../../utils/permissions', () => ({
+  canEditResource: vi.fn().mockReturnValue(true),
+}));
+
+vi.mock('../../components/ui/ConfirmModal', () => ({
+  ConfirmModal: () => null,
+}));
+
 const renderComponent = () => {
   return render(
     <BrowserRouter>

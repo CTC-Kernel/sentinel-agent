@@ -247,12 +247,24 @@ describe('EbiosService', () => {
 
   describe('deleteAnalysis', () => {
     it('should delete an analysis', async () => {
+      // Mock getDocs for cascade: 2 subcollections + 1 homologation query = 3 calls
+      mockGetDocs
+        .mockResolvedValueOnce({ empty: true, docs: [] })   // threatSources subcollection
+        .mockResolvedValueOnce({ empty: true, docs: [] })   // attackScenarios subcollection
+        .mockResolvedValueOnce({ empty: true, docs: [] });  // homologations query
+
       await EbiosService.deleteAnalysis(organizationId, 'analysis-to-delete');
 
       expect(mockDeleteDoc).toHaveBeenCalledTimes(1);
     });
 
     it('should handle deletion errors', async () => {
+      // Mock getDocs for cascade: 2 subcollections + 1 homologation query = 3 calls
+      mockGetDocs
+        .mockResolvedValueOnce({ empty: true, docs: [] })
+        .mockResolvedValueOnce({ empty: true, docs: [] })
+        .mockResolvedValueOnce({ empty: true, docs: [] });
+
       mockDeleteDoc.mockRejectedValueOnce(new Error('Delete failed'));
 
       await expect(

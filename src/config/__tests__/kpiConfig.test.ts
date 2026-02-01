@@ -17,9 +17,9 @@ describe('kpiConfig', () => {
     });
 
     it('should have simple French labels without jargon', () => {
-      expect(KPI_DEFINITIONS.score_global.title).toBe('Sante Conformite');
+      expect(KPI_DEFINITIONS.score_global.title).toBe('Santé Conformité');
       expect(KPI_DEFINITIONS.risques_critiques.title).toBe("Points d'Attention");
-      expect(KPI_DEFINITIONS.audits_en_cours.title).toBe('Controles Actifs');
+      expect(KPI_DEFINITIONS.audits_en_cours.title).toBe('Contrôles Actifs');
     });
 
     it('should have i18n keys for future multilingual support', () => {

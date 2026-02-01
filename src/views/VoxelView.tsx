@@ -32,7 +32,6 @@ import {
 
 import { useAuth } from '../hooks/useAuth';
 import { useStore } from '../store';
-import { useLocale } from '@/hooks/useLocale';
 import { useVoxels } from '../hooks/useVoxels';
 import { useActiveFrameworks } from '../hooks/useFrameworks';
 import { aiService } from '../services/aiService';
@@ -96,17 +95,17 @@ const DETAIL_ROUTES: Record<LayerType, string> = {
 // Utility Functions
 // ============================================================================
 
-const formatSafeDate = (date: unknown): string => {
+const formatSafeDate = (date: unknown, locale = 'fr-FR'): string => {
   if (!date) return '—';
   try {
     if (typeof date === 'object' && date !== null && 'seconds' in date) {
       const ts = date as { seconds: number };
-      return new Date(ts.seconds * 1000).toLocaleDateString(config.intlLocale);
+      return new Date(ts.seconds * 1000).toLocaleDateString(locale);
     }
-    if (date instanceof Date) return date.toLocaleDateString(config.intlLocale);
+    if (date instanceof Date) return date.toLocaleDateString(locale);
     if (typeof date === 'string') {
       const d = new Date(date);
-      return isNaN(d.getTime()) ? date : d.toLocaleDateString(config.intlLocale);
+      return isNaN(d.getTime()) ? date : d.toLocaleDateString(locale);
     }
     return String(date);
   } catch {
@@ -258,7 +257,6 @@ const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selecte
 export const VoxelView: React.FC = () => {
   const { user } = useAuth();
   const { addToast, activeFramework, setActiveFramework, t } = useStore();
-  const { config } = useLocale();
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -829,9 +827,9 @@ export const VoxelView: React.FC = () => {
                 value={activeFramework || ''}
                 onChange={(e) => setActiveFramework(e.target.value || null)}
                 className="bg-transparent text-[11px] font-medium text-white outline-none cursor-pointer border-none focus:ring-0 px-1"
-                aria-label={t('voxel.selectFramework', { defaultValue: 'Select a framework' })}
+                aria-label={t('voxel.selectFramework', { defaultValue: 'Sélectionner un référentiel' })}
               >
-                <option value="" className="bg-slate-900">{t('voxel.allFrameworks', { defaultValue: 'All frameworks' })}</option>
+                <option value="" className="bg-slate-900">{t('voxel.allFrameworks', { defaultValue: 'Tous les référentiels' })}</option>
                 {activeFrameworks?.map(af => (
                   <option key={af.frameworkId || 'unknown'} value={af.frameworkCode} className="bg-slate-900">
                     {af.frameworkCode}
@@ -1095,7 +1093,7 @@ export const VoxelView: React.FC = () => {
                     type="text"
                     value={commandSearch}
                     onChange={e => setCommandSearch(e.target.value)}
-                    placeholder={t('voxel.searchNode', { defaultValue: 'Search for a node...' })}
+                    placeholder={t('voxel.searchNode', { defaultValue: 'Rechercher un noeud...' })}
                     className="flex-1 bg-transparent text-white text-lg placeholder:text-white/30 outline-none"
                   />
                   <kbd className="px-2 py-1 rounded bg-white/10 text-xs text-white/40">ESC</kbd>
@@ -1106,7 +1104,7 @@ export const VoxelView: React.FC = () => {
                   {commandPaletteResults.length === 0 ? (
                     <div className="py-8 text-center text-white/40">
                       <Target className="w-8 h-8 mx-auto mb-2 opacity-60" />
-                      <p>{t('voxel.noResults', { defaultValue: 'No results found' })}</p>
+                      <p>{t('voxel.noResults', { defaultValue: 'Aucun résultat trouvé' })}</p>
                     </div>
                   ) : (
                     <div className="space-y-1">

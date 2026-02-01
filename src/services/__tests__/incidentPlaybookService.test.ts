@@ -17,6 +17,10 @@ const mockGetDocs = vi.fn();
 const mockGetDoc = vi.fn();
 const mockUpdateDoc = vi.fn();
 const mockDeleteDoc = vi.fn();
+const mockBatchSet = vi.fn();
+const mockBatchUpdate = vi.fn();
+const mockBatchDelete = vi.fn();
+const mockBatchCommit = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('firebase/firestore', () => ({
     collection: vi.fn(() => 'mock-collection'),
@@ -32,7 +36,8 @@ vi.mock('firebase/firestore', () => ({
         now: vi.fn(() => ({ seconds: Date.now() / 1000, nanoseconds: 0 }))
     },
     serverTimestamp: vi.fn(() => new Date().toISOString()),
-    arrayUnion: vi.fn((...args) => args)
+    arrayUnion: vi.fn((...args) => args),
+    writeBatch: vi.fn(() => ({ set: mockBatchSet, update: mockBatchUpdate, delete: mockBatchDelete, commit: mockBatchCommit })),
 }));
 
 // Mock Logger
@@ -114,6 +119,7 @@ const mockPlaybook: IncidentPlaybook = {
 describe('IncidentPlaybookService', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        mockBatchCommit.mockResolvedValue(undefined);
     });
 
     afterEach(() => {
@@ -122,19 +128,17 @@ describe('IncidentPlaybookService', () => {
 
     describe('createPlaybook', () => {
         it('should create a new playbook', async () => {
-            mockAddDoc.mockResolvedValue({ id: 'new-playbook-123' });
-
             const { id, ...playbookData } = mockPlaybook;
             void id; // Mark as used
             const result = await IncidentPlaybookService.createPlaybook(playbookData, 'org-123');
 
-            expect(mockAddDoc).toHaveBeenCalled();
-            expect(result).toBe('new-playbook-123');
+            expect(mockBatchSet).toHaveBeenCalled();
+            expect(mockBatchCommit).toHaveBeenCalled();
+            expect(result).toBe('mock-doc-id');
         });
 
         it('should log the creation action', async () => {
             const { logAction } = await import('../logger');
-            mockAddDoc.mockResolvedValue({ id: 'new-playbook-123' });
 
             const playbookData = { ...mockPlaybook };
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -151,7 +155,7 @@ describe('IncidentPlaybookService', () => {
 
         it('should throw and log error on failure', async () => {
             const { ErrorLogger } = await import('../errorLogger');
-            mockAddDoc.mockRejectedValue(new Error('Create failed'));
+            mockBatchCommit.mockRejectedValueOnce(new Error('Create failed'));
 
             const playbookData = { ...mockPlaybook };
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -320,9 +324,6 @@ describe('IncidentPlaybookService', () => {
         });
 
         it('should create a new incident response', async () => {
-            mockAddDoc.mockResolvedValue({ id: 'response-123' });
-            mockUpdateDoc.mockResolvedValue(undefined);
-
             const result = await IncidentPlaybookService.initiateResponse(
                 'incident-456',
                 'playbook-123',
@@ -330,13 +331,12 @@ describe('IncidentPlaybookService', () => {
                 'org-123'
             );
 
-            expect(result).toBe('response-123');
+            expect(mockBatchSet).toHaveBeenCalled();
+            expect(mockBatchCommit).toHaveBeenCalled();
+            expect(result).toBe('mock-doc-id');
         });
 
         it('should update incident status', async () => {
-            mockAddDoc.mockResolvedValue({ id: 'response-123' });
-            mockUpdateDoc.mockResolvedValue(undefined);
-
             await IncidentPlaybookService.initiateResponse(
                 'incident-456',
                 'playbook-123',
@@ -344,7 +344,7 @@ describe('IncidentPlaybookService', () => {
                 'org-123'
             );
 
-            expect(mockUpdateDoc).toHaveBeenCalledWith(
+            expect(mockBatchUpdate).toHaveBeenCalledWith(
                 expect.anything(),
                 expect.objectContaining({ status: 'Analyse' })
             );
@@ -360,7 +360,7 @@ describe('IncidentPlaybookService', () => {
 
         it('should throw and log error on failure', async () => {
             const { ErrorLogger } = await import('../errorLogger');
-            mockAddDoc.mockRejectedValue(new Error('Create failed'));
+            mockBatchCommit.mockRejectedValueOnce(new Error('Create failed'));
 
             await expect(
                 IncidentPlaybookService.initiateResponse('incident-456', 'playbook-123', ['user-1'], 'org-123')
@@ -447,20 +447,17 @@ describe('IncidentPlaybookService', () => {
         });
 
         it('should update step completion status', async () => {
-            mockUpdateDoc.mockResolvedValue(undefined);
-
             await IncidentPlaybookService.updateStepProgress(
                 'response-123',
                 'step-1',
                 true
             );
 
-            expect(mockUpdateDoc).toHaveBeenCalled();
+            expect(mockBatchUpdate).toHaveBeenCalled();
+            expect(mockBatchCommit).toHaveBeenCalled();
         });
 
         it('should add evidence when provided', async () => {
-            mockUpdateDoc.mockResolvedValue(undefined);
-
             await IncidentPlaybookService.updateStepProgress(
                 'response-123',
                 'step-1',
@@ -468,7 +465,7 @@ describe('IncidentPlaybookService', () => {
                 { screenshot: 'url-to-screenshot' }
             );
 
-            expect(mockUpdateDoc).toHaveBeenCalledWith(
+            expect(mockBatchUpdate).toHaveBeenCalledWith(
                 expect.anything(),
                 expect.objectContaining({
                     evidence: expect.objectContaining({ screenshot: 'url-to-screenshot' })
@@ -477,8 +474,6 @@ describe('IncidentPlaybookService', () => {
         });
 
         it('should add note when provided', async () => {
-            mockUpdateDoc.mockResolvedValue(undefined);
-
             await IncidentPlaybookService.updateStepProgress(
                 'response-123',
                 'step-1',
@@ -489,7 +484,8 @@ describe('IncidentPlaybookService', () => {
                 'John Doe'
             );
 
-            expect(mockUpdateDoc).toHaveBeenCalledWith(
+            // notes is set via arrayUnion which is mocked to return its args
+            expect(mockBatchUpdate).toHaveBeenCalledWith(
                 expect.anything(),
                 expect.objectContaining({
                     notes: expect.arrayContaining([

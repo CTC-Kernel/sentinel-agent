@@ -141,7 +141,7 @@ describe('RSSIIncidentsWidget', () => {
     render(<RSSIIncidentsWidget organizationId="org-123" />);
 
     expect(screen.getByText('Aucun incident actif')).toBeInTheDocument();
-    expect(screen.getByText('Tout est sous controle')).toBeInTheDocument();
+    expect(screen.getByText('Tout est sous contrôle')).toBeInTheDocument();
   });
 
   it('should show error state and allow retry', () => {
@@ -159,7 +159,7 @@ describe('RSSIIncidentsWidget', () => {
 
     expect(screen.getByText('Erreur de connexion')).toBeInTheDocument();
 
-    const retryButton = screen.getByText('Reessayer');
+    const retryButton = screen.getByText('Réessayer');
     fireEvent.click(retryButton);
 
     expect(mockRefetch).toHaveBeenCalled();

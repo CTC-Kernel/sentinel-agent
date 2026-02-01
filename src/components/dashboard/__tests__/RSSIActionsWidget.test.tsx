@@ -75,7 +75,7 @@ describe('RSSIActionsWidget', () => {
     render(<RSSIActionsWidget organizationId="org-123" />);
 
     expect(screen.getByText('3')).toBeInTheDocument();
-    expect(screen.getByText('Actions Assignees')).toBeInTheDocument();
+    expect(screen.getByText('Actions Assignées')).toBeInTheDocument();
   });
 
   it('should display overdue count when there are overdue actions', () => {
@@ -157,7 +157,7 @@ describe('RSSIActionsWidget', () => {
     render(<RSSIActionsWidget organizationId="org-123" />);
 
     expect(screen.getByText('Aucune action en attente')).toBeInTheDocument();
-    expect(screen.getByText('Toutes les actions sont completees')).toBeInTheDocument();
+    expect(screen.getByText('Toutes les actions sont complétées')).toBeInTheDocument();
   });
 
   it('should show error state and allow retry', () => {
@@ -176,7 +176,7 @@ describe('RSSIActionsWidget', () => {
 
     expect(screen.getByText('Erreur de connexion')).toBeInTheDocument();
 
-    const retryButton = screen.getByText('Reessayer');
+    const retryButton = screen.getByText('Réessayer');
     fireEvent.click(retryButton);
 
     expect(mockRefetch).toHaveBeenCalled();
@@ -185,7 +185,7 @@ describe('RSSIActionsWidget', () => {
   it('should have accessible region role', () => {
     render(<RSSIActionsWidget organizationId="org-123" />);
 
-    expect(screen.getByRole('region')).toHaveAttribute('aria-label', 'Actions assignees');
+    expect(screen.getByRole('region')).toHaveAttribute('aria-label', 'Actions assignées');
   });
 
   it('should render different sizes', () => {

@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { isSafeUrl, validateUrl } from '../urlValidation';
+import { isSafeUrl, isSafeBlobUrl, validateUrl } from '../urlValidation';
 
 describe('URL Validation', () => {
     describe('isSafeUrl', () => {
@@ -59,14 +59,32 @@ describe('URL Validation', () => {
             expect(isSafeUrl('TEL:0123456789')).toBe(true);
         });
 
-        it('should allow blob: URLs', () => {
-            expect(isSafeUrl('blob:https://example.com/uuid')).toBe(true);
+        it('should block blob: URLs (use isSafeBlobUrl instead)', () => {
+            expect(isSafeUrl('blob:https://example.com/uuid')).toBe(false);
         });
 
         it('should block unknown schemes', () => {
             expect(isSafeUrl('ftp://example.com')).toBe(false);
             expect(isSafeUrl('file:///etc/passwd')).toBe(false);
             expect(isSafeUrl('custom://something')).toBe(false);
+        });
+    });
+
+    describe('isSafeBlobUrl', () => {
+        it('should allow blob: URLs with https origin', () => {
+            expect(isSafeBlobUrl('blob:https://example.com/uuid')).toBe(true);
+        });
+
+        it('should allow blob: URLs with http origin', () => {
+            expect(isSafeBlobUrl('blob:http://example.com/uuid')).toBe(true);
+        });
+
+        it('should reject non-blob URLs', () => {
+            expect(isSafeBlobUrl('https://example.com')).toBe(false);
+        });
+
+        it('should reject empty string', () => {
+            expect(isSafeBlobUrl('')).toBe(false);
         });
     });
 

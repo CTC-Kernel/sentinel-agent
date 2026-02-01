@@ -209,23 +209,23 @@ const TimeMachineHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) 
     <div className="space-y-3 text-xs text-white/70">
       <div className="flex gap-2">
         <span className="w-5 h-5 rounded bg-brand-100 flex items-center justify-center text-brand-400 shrink-0">1</span>
-        <p><strong className="text-white">Navigation temporelle</strong> - Utilisez le calendrier ou le slider pour naviguer dans l'historique de votre graphe (jusqu'a 90 jours).</p>
+        <p><strong className="text-white">Navigation temporelle</strong> - Utilisez le calendrier ou le slider pour naviguer dans l'historique de votre graphe (jusqu'à 90 jours).</p>
       </div>
       <div className="flex gap-2">
         <span className="w-5 h-5 rounded bg-brand-100 flex items-center justify-center text-brand-400 shrink-0">2</span>
-        <p><strong className="text-white">Snapshots quotidiens</strong> - Chaque jour, un snapshot capture l'etat de vos noeuds, connexions, anomalies et metriques de conformite.</p>
+        <p><strong className="text-white">Snapshots quotidiens</strong> - Chaque jour, un snapshot capture l'état de vos noeuds, connexions, anomalies et métriques de conformité.</p>
       </div>
       <div className="flex gap-2">
         <span className="w-5 h-5 rounded bg-brand-100 flex items-center justify-center text-brand-400 shrink-0">3</span>
-        <p><strong className="text-white">Mode comparaison</strong> - Cliquez sur "Comparer" pour voir les differences entre deux dates et identifier les tendances.</p>
+        <p><strong className="text-white">Mode comparaison</strong> - Cliquez sur "Comparer" pour voir les différences entre deux dates et identifier les tendances.</p>
       </div>
       <div className="flex gap-2">
         <span className="w-5 h-5 rounded bg-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">4</span>
-        <p><strong className="text-white">Indicateurs delta</strong> - Les fleches vertes/rouges montrent l'evolution par rapport a la date de comparaison.</p>
+        <p><strong className="text-white">Indicateurs delta</strong> - Les fleches vertes/rouges montrent l'évolution par rapport à la date de comparaison.</p>
       </div>
       <div className="flex gap-2">
         <span className="w-5 h-5 rounded bg-success/20 flex items-center justify-center text-success shrink-0">5</span>
-        <p><strong className="text-white">Lecture seule</strong> - Les donnees historiques sont preservees et ne peuvent pas etre modifiees.</p>
+        <p><strong className="text-white">Lecture seule</strong> - Les données historiques sont préservées et ne peuvent pas être modifiées.</p>
       </div>
     </div>
   </motion.div>
@@ -635,7 +635,7 @@ export function TimeMachine({
                         delta={delta?.nodes.byType.risk}
                       />
                       <MetricCard
-                        label="Controles"
+                        label="Contrôles"
                         value={snapshot.metrics.nodes.byType.control || 0}
                         delta={delta?.nodes.byType.control}
                       />
@@ -697,15 +697,15 @@ export function TimeMachine({
                   {/* Compliance */}
                   {snapshot.metrics.compliance && (
                     <div>
-                      <h3 className="text-sm font-medium mb-3">Conformite</h3>
+                      <h3 className="text-sm font-medium mb-3">Conformité</h3>
                       <div className="grid grid-cols-2 gap-3">
                         <MetricCard
-                          label="Taux d'implementation"
+                          label="Taux d'implémentation"
                           value={`${snapshot.metrics.compliance.implementationRate}%`}
                           delta={delta?.compliance?.implementationRate}
                         />
                         <MetricCard
-                          label="Efficacite moyenne"
+                          label="Efficacité moyenne"
                           value={`${snapshot.metrics.compliance.averageEffectiveness}%`}
                           delta={delta?.compliance?.averageEffectiveness}
                         />

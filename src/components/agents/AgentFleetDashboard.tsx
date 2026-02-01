@@ -209,7 +209,7 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
                 isPlaceholder: i < 6
             };
         });
-    }, [stats.avgScore]);
+    }, [stats.avgScore, config.intlLocale]);
 
     if (loading) {
         return (

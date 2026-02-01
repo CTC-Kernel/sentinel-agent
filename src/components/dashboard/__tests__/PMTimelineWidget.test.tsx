@@ -98,7 +98,7 @@ describe('PMTimelineWidget', () => {
     render(<PMTimelineWidget organizationId="org-123" />);
 
     expect(screen.getByText('3')).toBeInTheDocument();
-    expect(screen.getByText('Echeances a Venir')).toBeInTheDocument();
+    expect(screen.getByText('Échéances à Venir')).toBeInTheDocument();
   });
 
   it('should display due soon count', () => {
@@ -133,7 +133,7 @@ describe('PMTimelineWidget', () => {
   it('should have accessible region role', () => {
     render(<PMTimelineWidget organizationId="org-123" />);
 
-    expect(screen.getByRole('region')).toHaveAttribute('aria-label', 'Echeances a venir');
+    expect(screen.getByRole('region')).toHaveAttribute('aria-label', 'Échéances à venir');
   });
 
   it('should call onItemClick when item is clicked', async () => {
@@ -161,7 +161,7 @@ describe('PMTimelineWidget', () => {
       />
     );
 
-    expect(screen.getByText('Voir toutes les echeances (3)')).toBeInTheDocument();
+    expect(screen.getByText('Voir toutes les échéances (3)')).toBeInTheDocument();
   });
 
   it('should apply custom className', () => {

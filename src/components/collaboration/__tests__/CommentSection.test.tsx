@@ -9,14 +9,19 @@ import { CommentSection } from '../CommentSection';
 
 // Mock useStore
 vi.mock('../../../store', () => ({
-    useStore: () => ({
-        user: {
-            uid: 'user-1',
-            displayName: 'Test User',
-            email: 'test@example.com',
-            organizationId: 'org-1'
-        }
-    })
+    useStore: (selector?: (s: Record<string, unknown>) => unknown) => {
+        const state: Record<string, unknown> = {
+            user: {
+                uid: 'user-1',
+                displayName: 'Test User',
+                email: 'test@example.com',
+                organizationId: 'org-1'
+            },
+            language: 'fr' as const,
+            t: (key: string) => key,
+        };
+        return selector ? selector(state) : state;
+    }
 }));
 
 // Mock useFirestoreCollection
@@ -55,7 +60,9 @@ vi.mock('date-fns', () => ({
 }));
 
 vi.mock('date-fns/locale', () => ({
-    fr: {}
+    fr: { code: 'fr' },
+    enUS: { code: 'en' },
+    de: { code: 'de' },
 }));
 
 // Mock ErrorLogger

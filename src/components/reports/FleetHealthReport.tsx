@@ -363,7 +363,7 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
         };
 
         fetchData();
-    }, [user?.organizationId, filters, dateRange]);
+    }, [user?.organizationId, filters, dateRange, t]);
 
     // Handle export
     const handleExport = async (format: ExportFormat) => {

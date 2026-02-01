@@ -249,14 +249,14 @@ describe('ScoreService', () => {
       expect(result).toBe('stable');
     });
 
-    it('should return stable at exactly +5 boundary', () => {
+    it('should return up at exactly +5 boundary (percentage change)', () => {
       const history: ScoreHistory[] = [
         { date: '2026-01-08', global: 70 },
         { date: '2026-01-09', global: 70 },
       ];
-      // avg = 70, current = 75, diff = 5 (not > 5)
+      // avg = 70, current = 75, percentChange = ((75-70)/70)*100 = 7.14% > 5
       const result = ScoreService.calculateTrend(75, history);
-      expect(result).toBe('stable');
+      expect(result).toBe('up');
     });
 
     it('should return up at just above +5 boundary', () => {

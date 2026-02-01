@@ -98,8 +98,8 @@ function getDORARiskAlertTemplate(orgName, highRiskCount, reassessmentCount, pro
             </td>
             <td style="padding: 12px; text-align: center;">${p.riskAssessment?.concentration || 0}%</td>
             <td style="padding: 12px;">
-                ${p.isHighRisk ? '<span style="color: #dc2626; font-weight: 600;">High Risk</span>' : ''}
-                ${p.isReassessmentDue ? '<span style="color: #d97706; font-weight: 600;">Reassessment Due</span>' : ''}
+                ${p.isHighRisk ? '<span style="color: #dc2626; font-weight: 600;">Risque Élevé</span>' : ''}
+                ${p.isReassessmentDue ? '<span style="color: #d97706; font-weight: 600;">Réévaluation Requise</span>' : ''}
             </td>
         </tr>
     `).join('');

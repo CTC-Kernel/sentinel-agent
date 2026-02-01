@@ -243,14 +243,14 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
       <body>
         <div class="cert">
           <h1>Certificat de Formation</h1>
-          <p class="subtitle">Sentinel GRC - Conformite NIS2</p>
+          <p class="subtitle">Sentinel GRC - Conformité NIS2</p>
           <div class="divider"></div>
           <p style="color:#64748b;">Ce certificat atteste que</p>
           <p class="name">${userName}</p>
-          <p style="color:#64748b;">a complete avec succes la formation</p>
+          <p style="color:#64748b;">a complété avec succès la formation</p>
           <p class="course">${courseName}</p>
           <div class="divider"></div>
-          <p class="date">Date de completion : ${completedDate}</p>
+          <p class="date">Date de complétion : ${completedDate}</p>
         </div>
         <script>window.onload = function() { window.print(); };</script>
       </body>

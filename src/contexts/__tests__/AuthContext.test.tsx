@@ -59,7 +59,9 @@ vi.mock('../../firebase', () => ({
         currentUser: null,
     },
     db: {},
+    functions: {},
     isAppCheckFailed: false,
+    onAppCheckRecovery: vi.fn(() => vi.fn()),
 }));
 
 // Mock store

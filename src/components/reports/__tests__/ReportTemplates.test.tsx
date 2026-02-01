@@ -7,6 +7,15 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ReportTemplates } from '../ReportTemplates';
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string, opts?: Record<string, unknown>) => (opts?.defaultValue as string) || key,
+        i18n: { language: 'en', changeLanguage: vi.fn() }
+    }),
+    Trans: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
     motion: {
@@ -21,13 +30,13 @@ describe('ReportTemplates', () => {
         it('renders library header', () => {
             render(<ReportTemplates />);
 
-            expect(screen.getByText('Bibliothèque de Modèles')).toBeInTheDocument();
+            expect(screen.getByText('Template Library')).toBeInTheDocument();
         });
 
         it('renders create template button', () => {
             render(<ReportTemplates />);
 
-            expect(screen.getByText('Créer un modèle')).toBeInTheDocument();
+            expect(screen.getByText('Create Template')).toBeInTheDocument();
         });
 
         it('renders description text', () => {

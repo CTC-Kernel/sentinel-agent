@@ -42,12 +42,16 @@ vi.mock('../../hooks/useAuth', () => ({
 
 // Mock store
 vi.mock('../../store', () => ({
-    useStore: () => ({
-        addToast: vi.fn(),
-        t: (key: string, options?: Record<string, unknown>) => {
-            if (options && 'defaultValue' in options) return (options as { defaultValue: string }).defaultValue;
-            return key;
-        },
+    useStore: vi.fn((selector?: (s: unknown) => unknown) => {
+        const state = {
+            addToast: vi.fn(),
+            language: 'fr' as const,
+            t: (key: string, options?: Record<string, unknown>) => {
+                if (options && 'defaultValue' in options) return (options as { defaultValue: string }).defaultValue;
+                return key;
+            },
+        };
+        return selector ? selector(state) : state;
     }),
 }));
 

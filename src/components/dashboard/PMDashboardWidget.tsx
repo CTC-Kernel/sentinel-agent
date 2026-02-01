@@ -32,7 +32,7 @@ export interface PMDashboardWidgetProps {
   onTimelineItemClick?: (itemId: string) => void;
   /** Handler when clicking an overdue action */
   onActionClick?: (actionId: string) => void;
-  /** Handler when clicking "Voir toutes les echeances" */
+  /** Handler when clicking "Voir toutes les échéances" */
   onViewAllDeadlinesClick?: () => void;
   /** Handler when clicking "Voir toutes les actions en retard" */
   onViewAllOverdueClick?: () => void;
@@ -50,9 +50,9 @@ function NotAuthorizedState() {
     <div className="rounded-lg border bg-card p-6">
       <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
         <AlertCircle className="w-8 h-8 mb-2 text-orange-500" aria-hidden="true" />
-        <p className="text-sm font-medium">Acces non autorise</p>
+        <p className="text-sm font-medium">Accès non autorisé</p>
         <p className="text-xs mt-1">
-          Cette vue est reservee aux chefs de projet
+          Cette vue est réservée aux chefs de projet
         </p>
       </div>
     </div>
@@ -108,7 +108,7 @@ export function PMDashboardWidget({
           Vue Chef de Projet
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Progression du projet, echeances et actions en retard
+          Progression du projet, échéances et actions en retard
         </p>
       </div>
 

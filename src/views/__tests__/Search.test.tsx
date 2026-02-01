@@ -40,6 +40,21 @@ vi.mock('../../hooks/useGlobalSearch', () => ({
     })
 }));
 
+// Mock store
+vi.mock('../../store', () => ({
+    useStore: () => ({
+        t: (key: string, options?: Record<string, unknown>) => {
+            if (options && 'defaultValue' in options) return (options as { defaultValue: string }).defaultValue;
+            return key;
+        },
+    }),
+}));
+
+// Mock constants
+vi.mock('../../constants/complianceConfig', () => ({
+    RISK_THRESHOLDS: { HIGH: 15, MEDIUM: 8 },
+}));
+
 // Mock components
 vi.mock('../../components/ui/MasterpieceBackground', () => ({
     MasterpieceBackground: () => <div data-testid="masterpiece-background" />
@@ -102,7 +117,7 @@ describe('Search View', () => {
         renderComponent();
 
         const seo = screen.getByTestId('seo');
-        expect(seo).toHaveAttribute('data-title', 'Recherche Avancée');
+        expect(seo).toHaveAttribute('data-title', 'Advanced Search');
     });
 
     it('should render MasterpieceBackground', () => {
@@ -114,13 +129,13 @@ describe('Search View', () => {
     it('should render search input', () => {
         renderComponent();
 
-        expect(screen.getByPlaceholderText(/Rechercher/)).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/Search/)).toBeInTheDocument();
     });
 
     it('should update search query on input change', async () => {
         renderComponent();
 
-        const input = screen.getByPlaceholderText(/Rechercher/);
+        const input = screen.getByPlaceholderText(/Search/);
         fireEvent.change(input, { target: { value: 'test query' } });
 
         expect(input).toHaveValue('test query');
@@ -129,7 +144,7 @@ describe('Search View', () => {
     it('should debounce search and call performSearch', async () => {
         renderComponent();
 
-        const input = screen.getByPlaceholderText(/Rechercher/);
+        const input = screen.getByPlaceholderText(/Search/);
         fireEvent.change(input, { target: { value: 'test' } });
 
         // Fast-forward debounce timer
@@ -141,7 +156,7 @@ describe('Search View', () => {
     it('should clear results when query is too short', async () => {
         renderComponent();
 
-        const input = screen.getByPlaceholderText(/Rechercher/);
+        const input = screen.getByPlaceholderText(/Search/);
         fireEvent.change(input, { target: { value: 'a' } });
 
         // Fast-forward debounce timer
@@ -153,11 +168,11 @@ describe('Search View', () => {
     it('should render filter tabs', () => {
         renderComponent();
 
-        expect(screen.getByText('Tout')).toBeInTheDocument();
-        expect(screen.getByText('Actifs')).toBeInTheDocument();
-        expect(screen.getByText('Risques')).toBeInTheDocument();
+        expect(screen.getByText('All')).toBeInTheDocument();
+        expect(screen.getByText('Assets')).toBeInTheDocument();
+        expect(screen.getByText('Risks')).toBeInTheDocument();
         expect(screen.getByText('Documents')).toBeInTheDocument();
-        expect(screen.getByText('Projets')).toBeInTheDocument();
+        expect(screen.getByText('Projects')).toBeInTheDocument();
     });
 
     it('should toggle advanced search panel', () => {
@@ -167,7 +182,7 @@ describe('Search View', () => {
         expect(screen.queryByTestId('advanced-search')).not.toBeInTheDocument();
 
         // Click filter button to show advanced search
-        const filterButton = screen.getByLabelText('Filtres');
+        const filterButton = screen.getByLabelText('Filters');
         fireEvent.click(filterButton);
 
         expect(screen.getByTestId('advanced-search')).toBeInTheDocument();

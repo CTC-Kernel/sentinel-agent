@@ -81,11 +81,26 @@ vi.mock('../../../services/googleCalendarService', () => ({
 
 // Mock store
 vi.mock('../../../store', () => ({
-    useStore: () => ({
-        user: {
-            uid: 'user-1',
-            organizationId: 'org-1'
-        }
+    useStore: (selector?: (s: Record<string, unknown>) => unknown) => {
+        const state: Record<string, unknown> = {
+            user: {
+                uid: 'user-1',
+                organizationId: 'org-1'
+            },
+            language: 'en' as const,
+            t: (key: string, opts?: Record<string, unknown>) => (opts?.defaultValue as string) || key,
+        };
+        return selector ? selector(state) : state;
+    }
+}));
+
+// Mock useLocale hook
+vi.mock('../../../hooks/useLocale', () => ({
+    useLocale: () => ({
+        dateFnsLocale: undefined,
+        locale: 'en',
+        config: { intlLocale: 'en-US' },
+        t: (key: string, opts?: Record<string, unknown>) => (opts?.defaultValue as string) || key
     })
 }));
 

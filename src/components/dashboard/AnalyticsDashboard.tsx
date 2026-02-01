@@ -161,7 +161,7 @@ export const AnalyticsDashboard: React.FC = () => {
         };
 
         fetchHistory();
-    }, [user?.organizationId, timeRange, risks, incidents, controls, assets.length]);
+    }, [user?.organizationId, timeRange, risks, incidents, controls, assets.length, config.intlLocale]);
 
     // Risk distribution by category
     const risksByCategory: CategoryData[] = useMemo(() => {

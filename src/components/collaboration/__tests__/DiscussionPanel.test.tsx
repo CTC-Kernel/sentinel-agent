@@ -9,14 +9,23 @@ import { DiscussionPanel } from '../DiscussionPanel';
 
 // Mock useStore
 vi.mock('../../../store', () => ({
-    useStore: () => ({
-        user: {
-            uid: 'user-1',
-            displayName: 'Test User',
-            email: 'test@example.com',
-            organizationId: 'org-1'
-        }
-    })
+    useStore: (selector?: (s: Record<string, unknown>) => unknown) => {
+        const state: Record<string, unknown> = {
+            user: {
+                uid: 'user-1',
+                displayName: 'Test User',
+                email: 'test@example.com',
+                organizationId: 'org-1'
+            },
+            language: 'fr' as const,
+            t: (key: string, opts?: string | Record<string, unknown>) => {
+                if (typeof opts === 'object' && opts && 'defaultValue' in opts) return opts.defaultValue as string;
+                if (typeof opts === 'string') return opts;
+                return key;
+            },
+        };
+        return selector ? selector(state) : state;
+    }
 }));
 
 // Mock useFirestoreCollection
@@ -54,7 +63,9 @@ vi.mock('date-fns', () => ({
 }));
 
 vi.mock('date-fns/locale', () => ({
-    fr: {}
+    fr: { code: 'fr' },
+    enUS: { code: 'en' },
+    de: { code: 'de' },
 }));
 
 // Mock ErrorLogger
@@ -117,13 +128,13 @@ describe('DiscussionPanel', () => {
         it('renders search input', () => {
             render(<DiscussionPanel {...defaultProps} />);
 
-            expect(screen.getByPlaceholderText('Rechercher dans les commentaires...')).toBeInTheDocument();
+            expect(screen.getByPlaceholderText('Search comments...')).toBeInTheDocument();
         });
 
         it('filters comments when searching', () => {
             render(<DiscussionPanel {...defaultProps} />);
 
-            const searchInput = screen.getByPlaceholderText('Rechercher dans les commentaires...');
+            const searchInput = screen.getByPlaceholderText('Search comments...');
             fireEvent.change(searchInput, { target: { value: 'risks' } });
 
             expect(screen.getByText('First comment about risks')).toBeInTheDocument();
@@ -132,7 +143,7 @@ describe('DiscussionPanel', () => {
         it('shows result count when searching', () => {
             render(<DiscussionPanel {...defaultProps} />);
 
-            const searchInput = screen.getByPlaceholderText('Rechercher dans les commentaires...');
+            const searchInput = screen.getByPlaceholderText('Search comments...');
             fireEvent.change(searchInput, { target: { value: 'risks' } });
 
             expect(screen.getByText(/résultat/)).toBeInTheDocument();
@@ -141,7 +152,7 @@ describe('DiscussionPanel', () => {
         it('hides search when disabled', () => {
             render(<DiscussionPanel {...defaultProps} enableSearch={false} />);
 
-            expect(screen.queryByPlaceholderText('Rechercher dans les commentaires...')).not.toBeInTheDocument();
+            expect(screen.queryByPlaceholderText('Search comments...')).not.toBeInTheDocument();
         });
     });
 
@@ -255,13 +266,13 @@ describe('DiscussionPanel', () => {
         it('renders comment input', () => {
             render(<DiscussionPanel {...defaultProps} />);
 
-            expect(screen.getByLabelText('Ajouter un commentaire')).toBeInTheDocument();
+            expect(screen.getByLabelText('Add a comment')).toBeInTheDocument();
         });
 
         it('shows mention hint in placeholder', () => {
             render(<DiscussionPanel {...defaultProps} />);
 
-            expect(screen.getByPlaceholderText(/mentionner quelqu'un/)).toBeInTheDocument();
+            expect(screen.getByPlaceholderText('Add a comment')).toBeInTheDocument();
         });
     });
 

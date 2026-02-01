@@ -318,7 +318,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
     return [
       {
         title: 'Vue d\'ensemble',
-        notes: `Total: ${nodes.length} noeuds dans le systeme`,
+        notes: `Total: ${nodes.length} noeuds dans le système`,
       },
       ...criticalNodes.slice(0, 5).map((node) => ({
         title: node.label || `Noeud ${node.id}`,
@@ -326,8 +326,8 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
         focusNodeId: node.id,
       })),
       {
-        title: 'Resume',
-        notes: `${criticalNodes.length} elements critiques identifies`,
+        title: 'Résumé',
+        notes: `${criticalNodes.length} éléments critiques identifiés`,
       },
     ];
   }, [slides, nodes]);

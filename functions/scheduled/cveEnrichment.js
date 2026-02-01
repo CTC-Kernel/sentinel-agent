@@ -186,10 +186,10 @@ function calculateRiskScore(cvssScore, epssProbability, affectedAgentCount, isKn
  * Map CVSS score to severity
  */
 function cvssToSeverity(score) {
-    if (score >= 9.0) return 'Critical';
-    if (score >= 7.0) return 'High';
-    if (score >= 4.0) return 'Medium';
-    return 'Low';
+    if (score >= 9.0) return 'Critique';
+    if (score >= 7.0) return 'Élevé';
+    if (score >= 4.0) return 'Moyen';
+    return 'Faible';
 }
 
 /**
@@ -361,7 +361,7 @@ const dailyCveEnrichment = onSchedule({
                             type: 'kev_vulnerability',
                             title: `Vulnérabilité activement exploitée: ${cveId}`,
                             message: `La vulnérabilité ${cveId} est dans le catalogue KEV de CISA. Remédiation urgente requise.`,
-                            severity: 'Critical',
+                            severity: 'Critique',
                             source: 'cve_enrichment',
                             vulnerabilityId: vulnDoc.id,
                             cveId,

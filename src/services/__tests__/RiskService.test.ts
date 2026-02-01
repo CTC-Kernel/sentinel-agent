@@ -211,7 +211,7 @@ describe('RiskService', () => {
             });
 
             expect(result.success).toBe(false);
-            expect(result.error).toBe('Permission refusée');
+            expect(result.error).toBe('Permission denied');
             expect(addDoc).not.toHaveBeenCalled();
         });
 
@@ -223,7 +223,7 @@ describe('RiskService', () => {
             });
 
             expect(result.success).toBe(false);
-            expect(result.error).toBe('Permission refusée');
+            expect(result.error).toBe('Permission denied');
         });
 
         it('should reject creation when schema validation fails', async () => {
@@ -260,7 +260,7 @@ describe('RiskService', () => {
             });
 
             expect(result.success).toBe(false);
-            expect(result.error).toContain('Erreur');
+            expect(result.error).toContain('Error');
         });
     });
 
@@ -283,7 +283,7 @@ describe('RiskService', () => {
             const result = await RiskService.updateRisk(mockRegularUser, 'risk-1', { status: 'Fermé' });
 
             expect(result.success).toBe(false);
-            expect(result.error).toBe('Permission refusée');
+            expect(result.error).toBe('Permission denied');
         });
 
         it('should reject update when IDOR check fails (different organization)', async () => {
@@ -313,7 +313,7 @@ describe('RiskService', () => {
             const result = await RiskService.updateRisk(mockAdminUser, 'risk-1', { status: 'Fermé' }, mockRisk);
 
             expect(result.success).toBe(false);
-            expect(result.error).toContain('Erreur');
+            expect(result.error).toContain('Error');
         });
     });
 
@@ -331,7 +331,7 @@ describe('RiskService', () => {
             const result = await RiskService.deleteRisk(mockRegularUser, 'risk-1');
 
             expect(result.success).toBe(false);
-            expect(result.error).toBe('Permission refusée');
+            expect(result.error).toBe('Permission denied');
         });
 
         it('should reject deletion when IDOR check fails', async () => {

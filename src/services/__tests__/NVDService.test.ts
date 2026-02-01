@@ -869,8 +869,8 @@ describe('NVDService', () => {
                 'mock-collection',
                 expect.objectContaining({
                     severity: 'Medium',
-                    score: undefined,
-                    cvssVector: undefined
+                    score: null,
+                    cvssVector: null
                 })
             );
         });
