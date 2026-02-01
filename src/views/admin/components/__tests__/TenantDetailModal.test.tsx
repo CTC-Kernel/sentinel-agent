@@ -34,16 +34,18 @@ vi.mock('../../../../lib/toast', () => ({
 }));
 
 // Mock store with useTranslation
+const mockT = (key: string, options?: Record<string, unknown>) => {
+    // Return defaultValue if provided, otherwise return the key
+    if (options && 'defaultValue' in options) {
+        return (options as { defaultValue?: string }).defaultValue || key;
+    }
+    return key;
+};
+
 vi.mock('../../../../store', () => ({
     useStore: () => ({
         language: 'fr',
-        t: (key: string, options?: Record<string, unknown>) => {
-            // Return defaultValue if provided, otherwise return the key
-            if (options && 'defaultValue' in options) {
-                return (options as { defaultValue?: string }).defaultValue || key;
-            }
-            return key;
-        },
+        t: mockT,
     }),
 }));
 
@@ -301,17 +303,14 @@ describe('TenantDetailModal', () => {
 
         it('should call toggleTenantStatus when suspend button clicked and confirmed', async () => {
             render(<TenantDetailModal {...defaultProps} />);
+            await screen.findByText('8');
 
             // Click Suspend to open the confirmation modal
-            await act(async () => {
-                await clickButton('Suspend');
-            });
+            await clickButton('Suspend');
 
             // Confirm the modal
             const confirmButton = screen.getByTestId('confirm-modal-confirm');
-            await act(async () => {
-                fireEvent.click(confirmButton);
-            });
+            fireEvent.click(confirmButton);
 
             await waitFor(() => {
                 expect(mockToggleTenantStatus).toHaveBeenCalledWith('tenant-123', false);
@@ -320,15 +319,12 @@ describe('TenantDetailModal', () => {
 
         it('should show success toast after status toggle', async () => {
             render(<TenantDetailModal {...defaultProps} />);
+            await screen.findByText('8');
 
-            await act(async () => {
-                await clickButton('Suspend');
-            });
+            await clickButton('Suspend');
 
             const confirmButton = screen.getByTestId('confirm-modal-confirm');
-            await act(async () => {
-                fireEvent.click(confirmButton);
-            });
+            fireEvent.click(confirmButton);
 
             await waitFor(() => {
                 expect(mockToastSuccess).toHaveBeenCalledWith('Tenant activé avec succès');
@@ -337,15 +333,12 @@ describe('TenantDetailModal', () => {
 
         it('should call onUpdate after status toggle', async () => {
             render(<TenantDetailModal {...defaultProps} />);
+            await screen.findByText('8');
 
-            await act(async () => {
-                await clickButton('Suspend');
-            });
+            await clickButton('Suspend');
 
             const confirmButton = screen.getByTestId('confirm-modal-confirm');
-            await act(async () => {
-                fireEvent.click(confirmButton);
-            });
+            fireEvent.click(confirmButton);
 
             await waitFor(() => {
                 expect(mockOnUpdate).toHaveBeenCalled();
@@ -354,15 +347,12 @@ describe('TenantDetailModal', () => {
 
         it('should call onClose after status toggle', async () => {
             render(<TenantDetailModal {...defaultProps} />);
+            await screen.findByText('8');
 
-            await act(async () => {
-                await clickButton('Suspend');
-            });
+            await clickButton('Suspend');
 
             const confirmButton = screen.getByTestId('confirm-modal-confirm');
-            await act(async () => {
-                fireEvent.click(confirmButton);
-            });
+            fireEvent.click(confirmButton);
 
             await waitFor(() => {
                 expect(mockOnClose).toHaveBeenCalled();
@@ -371,17 +361,14 @@ describe('TenantDetailModal', () => {
 
         it('should not toggle if user cancels confirmation', async () => {
             render(<TenantDetailModal {...defaultProps} />);
+            await screen.findByText('8');
 
             // Click Suspend to open the confirmation modal
-            await act(async () => {
-                await clickButton('Suspend');
-            });
+            await clickButton('Suspend');
 
             // Cancel the confirmation
             if (confirmModalCancelCallback) {
-                await act(async () => {
-                    confirmModalCancelCallback!();
-                });
+                confirmModalCancelCallback();
             }
 
             expect(mockToggleTenantStatus).not.toHaveBeenCalled();
@@ -391,15 +378,12 @@ describe('TenantDetailModal', () => {
             mockToggleTenantStatus.mockRejectedValue(new Error('Toggle failed'));
 
             render(<TenantDetailModal {...defaultProps} />);
+            await screen.findByText('8');
 
-            await act(async () => {
-                await clickButton('Suspend');
-            });
+            await clickButton('Suspend');
 
             const confirmButton = screen.getByTestId('confirm-modal-confirm');
-            await act(async () => {
-                fireEvent.click(confirmButton);
-            });
+            fireEvent.click(confirmButton);
 
             await waitFor(() => {
                 expect(mockToastError).toHaveBeenCalledWith('Échec de la mise à jour du statut');
@@ -444,9 +428,10 @@ describe('TenantDetailModal', () => {
 
         it('should update plan when changed', async () => {
             render(<TenantDetailModal {...defaultProps} />);
+            await screen.findByText('8');
 
             const planSelect = screen.getAllByRole('combobox')[0];
-            await userEvent.selectOptions(planSelect, 'enterprise');
+            fireEvent.change(planSelect, { target: { value: 'enterprise' } });
 
             expect((planSelect as HTMLSelectElement).value).toBe('enterprise');
             await screen.findByText('8');
@@ -454,11 +439,11 @@ describe('TenantDetailModal', () => {
 
         it('should update max users when changed', async () => {
             render(<TenantDetailModal {...defaultProps} />);
+            await screen.findByText('8');
 
             const numberInputs = screen.getAllByRole('spinbutton');
             const maxUsersInput = numberInputs[0];
-            await userEvent.clear(maxUsersInput);
-            await userEvent.type(maxUsersInput, '20');
+            fireEvent.change(maxUsersInput, { target: { value: '20' } });
 
             expect((maxUsersInput as HTMLInputElement).value).toBe('20');
             await screen.findByText('8');
@@ -466,11 +451,10 @@ describe('TenantDetailModal', () => {
 
         it('should save subscription when save button clicked', async () => {
             render(<TenantDetailModal {...defaultProps} />);
+            await screen.findByText('8');
 
             const saveButton = screen.getByText('Save Changes');
-            await act(async () => {
-                fireEvent.click(saveButton);
-            });
+            fireEvent.click(saveButton);
 
             await waitFor(() => {
                 expect(mockUpdateTenantSubscription).toHaveBeenCalledWith(
@@ -486,11 +470,10 @@ describe('TenantDetailModal', () => {
 
         it('should show success toast after saving subscription', async () => {
             render(<TenantDetailModal {...defaultProps} />);
+            await screen.findByText('8');
 
             const saveButton = screen.getByText('Save Changes');
-            await act(async () => {
-                fireEvent.click(saveButton);
-            });
+            fireEvent.click(saveButton);
 
             await waitFor(() => {
                 expect(mockToastSuccess).toHaveBeenCalledWith('Abonnement mis à jour avec succès');
@@ -499,11 +482,10 @@ describe('TenantDetailModal', () => {
 
         it('should call onUpdate after saving subscription', async () => {
             render(<TenantDetailModal {...defaultProps} />);
+            await screen.findByText('8');
 
             const saveButton = screen.getByText('Save Changes');
-            await act(async () => {
-                fireEvent.click(saveButton);
-            });
+            fireEvent.click(saveButton);
 
             await waitFor(() => {
                 expect(mockOnUpdate).toHaveBeenCalled();
@@ -514,6 +496,7 @@ describe('TenantDetailModal', () => {
             mockUpdateTenantSubscription.mockRejectedValue(new Error('Update failed'));
 
             render(<TenantDetailModal {...defaultProps} />);
+            await screen.findByText('8');
 
             const saveButton = screen.getByText('Save Changes');
             fireEvent.click(saveButton);

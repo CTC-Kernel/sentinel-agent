@@ -246,7 +246,10 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                             id="max-users-input"
                                                             type="number"
                                                             value={maxUsers}
-                                                            onChange={(e) => setMaxUsers(parseInt(e.target.value))}
+                                                            onChange={(e) => {
+                                                                const val = parseInt(e.target.value);
+                                                                setMaxUsers(isNaN(val) ? 0 : val);
+                                                            }}
                                                             className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-brand-500 focus:outline-none"
                                                         />
                                                     </div>
@@ -256,7 +259,10 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                             id="max-projects-input"
                                                             type="number"
                                                             value={maxProjects}
-                                                            onChange={(e) => setMaxProjects(parseInt(e.target.value))}
+                                                            onChange={(e) => {
+                                                                const val = parseInt(e.target.value);
+                                                                setMaxProjects(isNaN(val) ? 0 : val);
+                                                            }}
                                                             className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-brand-500 focus:outline-none"
                                                         />
                                                     </div>
