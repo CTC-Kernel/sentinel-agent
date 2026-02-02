@@ -5,6 +5,7 @@
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
+const { checkCallableRateLimit } = require('../utils/rateLimiter');
 
 const db = admin.firestore();
 
@@ -53,6 +54,8 @@ exports.getAgentResults = onCall(
     if (!agentId || !organizationId) {
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
     }
+
+    checkCallableRateLimit(request, 'standard');
 
     try {
       let query = db

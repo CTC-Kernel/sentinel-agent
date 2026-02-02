@@ -5,6 +5,7 @@
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
+const { checkCallableRateLimit } = require('../utils/rateLimiter');
 
 const db = admin.firestore();
 
@@ -47,6 +48,8 @@ exports.updateAgentConfig = onCall(
       throw new HttpsError('invalid-argument', 'agentId, organizationId, and config are required');
     }
 
+    checkCallableRateLimit(request, 'admin');
+
     if (!['admin', 'rssi'].includes(request.auth.token.role)) {
       throw new HttpsError('permission-denied', 'Admin or RSSI role required');
     }
@@ -72,9 +75,22 @@ exports.updateAgentConfig = onCall(
         'offline_mode_days',
       ];
 
+      // Value type and range validation
+      const fieldValidators = {
+        check_interval_secs: (v) => typeof v === 'number' && Number.isInteger(v) && v >= 60 && v <= 86400,
+        heartbeat_interval_secs: (v) => typeof v === 'number' && Number.isInteger(v) && v >= 10 && v <= 3600,
+        log_level: (v) => typeof v === 'string' && ['error', 'warn', 'info', 'debug', 'trace'].includes(v),
+        enabled_checks: (v) => Array.isArray(v) && v.every(item => typeof item === 'string' && item.length <= 100),
+        offline_mode_days: (v) => typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= 365,
+      };
+
       const sanitizedConfig = {};
       for (const key of allowedFields) {
         if (config[key] !== undefined) {
+          const validator = fieldValidators[key];
+          if (validator && !validator(config[key])) {
+            throw new HttpsError('invalid-argument', `Invalid value for ${key}`);
+          }
           sanitizedConfig[key] = config[key];
         }
       }

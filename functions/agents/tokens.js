@@ -6,6 +6,7 @@ const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
+const { checkCallableRateLimit } = require('../utils/rateLimiter');
 
 const db = admin.firestore();
 
@@ -30,6 +31,8 @@ exports.generateEnrollmentToken = onCall(
     if (!organizationId) {
       throw new HttpsError('permission-denied', 'Organization not found in token');
     }
+
+    checkCallableRateLimit(request, 'admin');
 
     try {
       // Verify user role from token claims
@@ -112,6 +115,8 @@ exports.listEnrollmentTokens = onCall(
     if (!organizationId) {
       throw new HttpsError('permission-denied', 'Organization not found in token');
     }
+
+    checkCallableRateLimit(request, 'standard');
 
     try {
       // Verify user role from token claims
@@ -205,6 +210,8 @@ exports.revokeEnrollmentToken = onCall(
     if (!tokenId) {
       throw new HttpsError('invalid-argument', 'tokenId is required');
     }
+
+    checkCallableRateLimit(request, 'admin');
 
     try {
       // Verify user role from token claims

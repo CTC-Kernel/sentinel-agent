@@ -11,6 +11,7 @@ const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
+const { checkCallableRateLimit } = require('../utils/rateLimiter');
 
 const db = admin.firestore();
 const storage = admin.storage();
@@ -42,6 +43,7 @@ exports.generateAgentReport = onCall(
       throw new HttpsError('invalid-argument', 'reportId, organizationId, and config are required');
     }
 
+    checkCallableRateLimit(request, 'heavy');
 
     try {
       const startTime = Date.now();
@@ -195,6 +197,13 @@ exports.fetchComplianceReportData = onCall(
       throw new HttpsError('invalid-argument', 'organizationId is required');
     }
 
+    checkCallableRateLimit(request, 'standard');
+
+    // Role check: report data requires at least auditor role
+    const userRole = request.auth?.token?.role;
+    if (!userRole || !['admin', 'rssi', 'manager', 'auditor'].includes(userRole)) {
+      throw new HttpsError('permission-denied', 'Insufficient permissions to access report data');
+    }
 
     try {
       return await fetchComplianceData(organizationId, filters || {}, dateRange || {});
@@ -228,6 +237,12 @@ exports.fetchFleetHealthReportData = onCall(
       throw new HttpsError('invalid-argument', 'organizationId is required');
     }
 
+    checkCallableRateLimit(request, 'standard');
+
+    const userRole2 = request.auth?.token?.role;
+    if (!userRole2 || !['admin', 'rssi', 'manager', 'auditor'].includes(userRole2)) {
+      throw new HttpsError('permission-denied', 'Insufficient permissions to access report data');
+    }
 
     try {
       return await fetchFleetHealthData(organizationId, filters || {}, dateRange || {});
@@ -261,6 +276,12 @@ exports.fetchExecutiveSummaryData = onCall(
       throw new HttpsError('invalid-argument', 'organizationId is required');
     }
 
+    checkCallableRateLimit(request, 'standard');
+
+    const userRole3 = request.auth?.token?.role;
+    if (!userRole3 || !['admin', 'rssi', 'manager', 'auditor'].includes(userRole3)) {
+      throw new HttpsError('permission-denied', 'Insufficient permissions to access report data');
+    }
 
     try {
       return await fetchExecutiveData(organizationId, dateRange || {});
@@ -291,8 +312,8 @@ exports.processScheduledReports = onSchedule(
     try {
       const now = new Date();
 
-      // Get all organizations
-      const orgsSnapshot = await db.collection('organizations').get();
+      // Get organizations (bounded to prevent runaway reads)
+      const orgsSnapshot = await db.collection('organizations').limit(500).get();
 
       for (const orgDoc of orgsSnapshot.docs) {
         const organizationId = orgDoc.id;
@@ -386,8 +407,8 @@ exports.cleanupExpiredReports = onSchedule(
       const now = new Date().toISOString();
       const bucket = storage.bucket();
 
-      // Get all organizations
-      const orgsSnapshot = await db.collection('organizations').get();
+      // Get organizations (bounded to prevent runaway reads)
+      const orgsSnapshot = await db.collection('organizations').limit(500).get();
 
       let totalDeleted = 0;
 

@@ -165,17 +165,19 @@ async function validateAgentAuth(req, res, next) {
             return res.status(401).json({ error: 'Request timestamp invalid or expired' });
         }
 
-        // Get agent's secret key (derived from client key)
-        const clientKey = agentData.clientKey;
-        if (!clientKey) {
-            logger.warn(`Agent ${agentId} has no client key for signature validation`);
+        // Get agent's HMAC secret for signature validation
+        // Uses the stored hmacSecret (dedicated secret, NOT the private key)
+        const hmacSecret = agentData.hmacSecret;
+        if (!hmacSecret) {
+            logger.warn(`Agent ${agentId} has no HMAC secret for signature validation. ` +
+                'Agent may need re-enrollment to generate an HMAC secret.');
             return res.status(401).json({ error: 'Agent signature key not configured' });
         }
 
         // Compute expected signature: HMAC-SHA256(timestamp + method + path + body)
         const signaturePayload = `${requestTimestamp}:${req.method}:${req.path}:${JSON.stringify(req.body || {})}`;
         const expectedSignature = crypto
-            .createHmac('sha256', Buffer.from(clientKey, 'base64'))
+            .createHmac('sha256', Buffer.from(hmacSecret, 'base64'))
             .update(signaturePayload)
             .digest('hex');
 
@@ -322,24 +324,6 @@ app.post('/v1/agents/enroll', async (req, res) => {
 
         const organizationId = tokenValidation.data.organizationId;
 
-        // Check if agent with same machine_id already exists
-        const existingAgent = await db
-            .collection('organizations')
-            .doc(organizationId)
-            .collection('agents')
-            .where('machineId', '==', machine_id)
-            .limit(1)
-            .get();
-
-        if (!existingAgent.empty) {
-            return res.status(200).json({
-                agent_id: existingAgent.docs[0].id,
-                organization_id: organizationId,
-                status: 'already_enrolled',
-                message: 'Agent already registered with this machine_id',
-            });
-        }
-
         // Generate new agent ID
         const agentId = uuidv4();
 
@@ -350,38 +334,71 @@ app.post('/v1/agents/enroll', async (req, res) => {
         const serverCertificate = generatePlaceholderCert('server');
         const clientCertificate = generatePlaceholderCert('client', agentId);
         const clientKey = generatePlaceholderKey();
+        // Generate a dedicated HMAC secret for signature-based auth (stored server-side)
+        const hmacSecret = crypto.randomBytes(32).toString('base64');
 
-        // Create agent document
-        // clientKey intentionally NOT stored (security) - only returned once to the agent
-        const agentData = {
-            id: agentId,
-            name: hostname,
-            hostname,
-            os: os.toLowerCase(),
-            osVersion: os_version || '',
-            machineId: machine_id,
-            version: agent_version || '0.0.0',
-            status: 'Actif',
-            lastHeartbeat: admin.firestore.FieldValue.serverTimestamp(),
-            enrolledAt: admin.firestore.FieldValue.serverTimestamp(),
-            enrolledWithToken: tokenDoc.id,
-            ipAddress: req.ip || '',
-            organizationId,
-            serverCertificate,
-            clientCertificate,
-            certificateExpiresAt: certificateExpiresAt.toISOString(),
-            config: getDefaultAgentConfig(),
-            complianceScore: null,
-            lastCheckAt: null,
-            pendingSyncCount: 0,
-        };
+        // Use a transaction to atomically check machine_id uniqueness and create agent (TOCTOU fix)
+        const enrollmentResult = await db.runTransaction(async (transaction) => {
+            // Check if agent with same machine_id already exists (inside transaction)
+            const existingAgentSnapshot = await transaction.get(
+                db.collection('organizations')
+                  .doc(organizationId)
+                  .collection('agents')
+                  .where('machineId', '==', machine_id)
+                  .limit(1)
+            );
 
-        await db
-            .collection('organizations')
-            .doc(organizationId)
-            .collection('agents')
-            .doc(agentId)
-            .set(agentData);
+            if (!existingAgentSnapshot.empty) {
+                return {
+                    alreadyExists: true,
+                    existingAgentId: existingAgentSnapshot.docs[0].id,
+                };
+            }
+
+            // SECURITY: clientKey intentionally NOT stored — only returned once to the agent
+            // hmacSecret IS stored — it's a dedicated server-side secret for HMAC validation
+            const agentData = {
+                id: agentId,
+                name: hostname,
+                hostname,
+                os: os.toLowerCase(),
+                osVersion: os_version || '',
+                machineId: machine_id,
+                version: agent_version || '0.0.0',
+                status: 'active',
+                lastHeartbeat: admin.firestore.FieldValue.serverTimestamp(),
+                enrolledAt: admin.firestore.FieldValue.serverTimestamp(),
+                enrolledWithToken: tokenDoc.id,
+                ipAddress: req.ip || '',
+                organizationId,
+                serverCertificate,
+                clientCertificate,
+                hmacSecret,
+                certificateExpiresAt: certificateExpiresAt.toISOString(),
+                config: getDefaultAgentConfig(),
+                complianceScore: null,
+                lastCheckAt: null,
+                pendingSyncCount: 0,
+            };
+
+            const agentRef = db
+                .collection('organizations')
+                .doc(organizationId)
+                .collection('agents')
+                .doc(agentId);
+            transaction.set(agentRef, agentData);
+
+            return { alreadyExists: false };
+        });
+
+        if (enrollmentResult.alreadyExists) {
+            return res.status(200).json({
+                agent_id: enrollmentResult.existingAgentId,
+                organization_id: organizationId,
+                status: 'already_enrolled',
+                message: 'Agent already registered with this machine_id',
+            });
+        }
 
         // Token usage count already updated in transaction above
 
@@ -405,6 +422,7 @@ app.post('/v1/agents/enroll', async (req, res) => {
             server_certificate: serverCertificate,
             client_certificate: clientCertificate,
             client_key: clientKey,
+            hmac_secret: hmacSecret,
             certificate_expires_at: certificateExpiresAt.toISOString(),
             config: agentData.config,
         });
@@ -1355,9 +1373,9 @@ app.post('/v1/agents/:agentId/certificate/renew', validateAgentAuth, async (req,
         const serverCertificate = agentData.serverCertificate || generatePlaceholderCert('server');
 
         // Update agent document with new certificates
+        // SECURITY: clientKey intentionally NOT stored — only returned to the agent
         await agentDoc.ref.update({
             clientCertificate,
-            clientKey,
             certificateExpiresAt: certificateExpiresAt.toISOString(),
             lastCertificateRenewal: admin.firestore.FieldValue.serverTimestamp(),
         });
@@ -1409,12 +1427,16 @@ app.post('/v1/agents/:agentId/re-enroll', validateAgentAuth, async (req, res) =>
         const serverCertificate = generatePlaceholderCert('server');
         const clientCertificate = generatePlaceholderCert('client', agentId);
         const clientKey = generatePlaceholderKey();
+        // Regenerate HMAC secret on re-enrollment
+        const hmacSecret = crypto.randomBytes(32).toString('base64');
 
         // Update agent document
+        // SECURITY: clientKey intentionally NOT stored — only returned to the agent
+        // hmacSecret IS stored — dedicated server-side secret for HMAC validation
         const updateData = {
             serverCertificate,
             clientCertificate,
-            clientKey,
+            hmacSecret,
             certificateExpiresAt: certificateExpiresAt.toISOString(),
             status: 'active',
             lastHeartbeat: admin.firestore.FieldValue.serverTimestamp(),
@@ -1447,6 +1469,7 @@ app.post('/v1/agents/:agentId/re-enroll', validateAgentAuth, async (req, res) =>
             server_certificate: serverCertificate,
             client_certificate: clientCertificate,
             client_key: clientKey,
+            hmac_secret: hmacSecret,
             certificate_expires_at: certificateExpiresAt.toISOString(),
             config: agentData.config || getDefaultAgentConfig(),
         });
