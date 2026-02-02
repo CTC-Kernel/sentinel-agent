@@ -92,51 +92,37 @@ jobs:
         env:
           VERSION: ${{ env.RELEASE_VERSION }}
 
-      - name: Build PKG
+      - name: Build and Notarize PKG
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          NOTARIZE: true
+          VERSION: ${{ env.RELEASE_VERSION }}
         run: |
-          VERSION="${{ env.RELEASE_VERSION }}"
-          APP_BUNDLE="target/release/Sentinel Agent.app"
-          PKG_PATH="target/release/SentinelAgent-${VERSION}.pkg"
-
-          # Create PKG from the .app bundle
-          pkgbuild --root "$(dirname "$APP_BUNDLE")" \
-            --filter '.*\.dmg$' \
-            --filter '.*\.sha256$' \
-            --filter '.*\.pkg$' \
-            --filter '.*-latest\.dmg$' \
-            --filter '.*dmg-temp.*' \
-            --component-plist /dev/null \
-            --identifier "com.cyber-threat-consulting.sentinel-agent" \
-            --version "$VERSION" \
-            --install-location "/Applications" \
-            "$PKG_PATH" 2>&1 || {
-              # Fallback: use flat package from app bundle directory
-              TEMP_PKG_ROOT=$(mktemp -d)
-              cp -R "$APP_BUNDLE" "$TEMP_PKG_ROOT/"
-              pkgbuild --root "$TEMP_PKG_ROOT" \
-                --identifier "com.cyber-threat-consulting.sentinel-agent" \
-                --version "$VERSION" \
-                --install-location "/Applications" \
-                "$PKG_PATH"
-              rm -rf "$TEMP_PKG_ROOT"
-            }
-
-          echo "PKG created: $PKG_PATH ($(du -h "$PKG_PATH" | cut -f1))"
-
-      - name: Sign PKG
-        run: |
-          VERSION="${{ env.RELEASE_VERSION }}"
-          PKG_PATH="target/release/SentinelAgent-${VERSION}.pkg"
-
+          # Discover identities from the imported keychain
+          SIGNING_IDENTITY=$(security find-identity -v | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
           INSTALLER_IDENTITY=$(security find-identity -v | grep "Developer ID Installer" | head -1 | awk -F'"' '{print $2}')
-          if [ -n "$INSTALLER_IDENTITY" ]; then
-            SIGNED_PKG="target/release/SentinelAgent-${VERSION}-signed.pkg"
-            productsign --sign "$INSTALLER_IDENTITY" "$PKG_PATH" "$SIGNED_PKG"
-            mv "$SIGNED_PKG" "$PKG_PATH"
-            echo "PKG signed with: $INSTALLER_IDENTITY"
-          else
-            echo "::warning::No Developer ID Installer certificate found, PKG unsigned"
+          
+          echo "Discovered Singing Identity: $SIGNING_IDENTITY"
+          echo "Discovered Installer Identity: $INSTALLER_IDENTITY"
+          
+          if [ -z "$SIGNING_IDENTITY" ]; then
+            echo "::error::Developer ID Application certificate not found in keychain!"
+            exit 1
           fi
+          
+          # Make scripts executable
+          chmod +x create-macos-developer-signed-installer.sh
+          
+          # Run the robust installer script
+          # Pass the found identities explicitly
+          SIGNING_IDENTITY="$SIGNING_IDENTITY" \
+          INSTALLER_IDENTITY="$INSTALLER_IDENTITY" \
+          ./create-macos-developer-signed-installer.sh
+          
+          # Move the output to target/release for artifact upload
+          mv "dist/SentinelAgent-${VERSION}.pkg" "target/release/"
 
       - name: Notarize DMG
         continue-on-error: true
@@ -160,28 +146,6 @@ jobs:
             echo "::warning::DMG notarization timed out."
           fi
 
-      - name: Notarize PKG
-        continue-on-error: true
-        timeout-minutes: 35
-        env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          VERSION="${{ env.RELEASE_VERSION }}"
-          PKG_PATH="target/release/SentinelAgent-${VERSION}.pkg"
-          echo "Notarizing $PKG_PATH..."
-
-          if xcrun notarytool submit "$PKG_PATH" \
-            --apple-id "$APPLE_ID" \
-            --password "$APPLE_APP_PASSWORD" \
-            --team-id "$APPLE_TEAM_ID" \
-            --wait --timeout 30m; then
-            xcrun stapler staple "$PKG_PATH"
-            echo "PKG notarization complete!"
-          else
-            echo "::warning::PKG notarization timed out."
-          fi
 
       - name: Generate checksums
         run: |

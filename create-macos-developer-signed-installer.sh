@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Sentinel GRC Agent - macOS Developer Signed Installer Script
-# Creates a professional .pkg installer with Apple Developer signing
+# Creates a professional .pkg installer with Apple Developer signing and Notarization support
 
 set -e
 
@@ -14,8 +14,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
 PKG_DIR="$SCRIPT_DIR/dist"
 
-# Apple Developer Identity - Use ad-hoc for now, will be notarized
-DEVELOPER_ID="-"  # Ad-hoc signature
+# Signing Configuration
+# usage: export SIGNING_IDENTITY="Developer ID Application: Team Name (ID)"
+# usage: export INSTALLER_IDENTITY="Developer ID Installer: Team Name (ID)"
+SIGNING_IDENTITY="${SIGNING_IDENTITY:-"-"}" # Default to ad-hoc
+INSTALLER_IDENTITY="${INSTALLER_IDENTITY:-""}"
+
+# Notarization Configuration
+# usage: export NOTARIZATION_KEYCHAIN_PROFILE="AC_PASSWORD_PROFILE"
+# OR
+# usage: export APPLE_ID="user@example.com"
+# usage: export APPLE_PASSWORD="app-specific-password"
+# usage: export TEAM_ID="TeamID"
+NOTARIZE="${NOTARIZE:-false}"
 
 # Colors
 RED='\033[0;31m'
@@ -24,8 +35,11 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-echo -e "${BLUE}🍎 Creating macOS Developer Signed Installer${NC}"
+echo -e "${BLUE}🍎 Creating macOS Installer${NC}"
 echo -e "${BLUE}=============================================${NC}"
+echo -e "Identity: ${SIGNING_IDENTITY}"
+echo -e "Installer Identity: ${INSTALLER_IDENTITY:-"None (Ad-hoc package)"}"
+echo -e "Notarize: ${NOTARIZE}"
 
 # Clean previous builds
 echo -e "${YELLOW}Cleaning previous builds...${NC}"
@@ -128,8 +142,8 @@ iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAA
 EOF
 
 # Sign the app bundle with Apple Developer ID
-echo -e "${YELLOW}Signing app bundle with Apple Developer ID...${NC}"
-codesign --force --options runtime --sign "$DEVELOPER_ID" "$APP_BUNDLE"
+echo -e "${YELLOW}Signing app bundle with identity: $SIGNING_IDENTITY...${NC}"
+codesign --force --options runtime --timestamp --sign "$SIGNING_IDENTITY" "$APP_BUNDLE"
 
 # Verify signature
 echo -e "${YELLOW}Verifying app bundle signature...${NC}"
@@ -204,13 +218,10 @@ fi
 LAUNCH_AGENTS_DIR="$REAL_HOME/Library/LaunchAgents"
 PLIST_PATH="$LAUNCH_AGENTS_DIR/com.cyber-threat-consulting.sentinel-agent.plist"
 
-# Ask user about auto-start
-AUTO_START=$(sudo -u "$REAL_USER" osascript -e '
-tell application "System Events"
-    set autoStart to button returned of (display dialog "Souhaitez-vous que Sentinel Agent se lance automatiquement au démarrage ?" buttons {"Non", "Oui"} default button "Oui" with title "Sentinel GRC Agent" with icon caution)
-end tell
-return autoStart
-' 2>/dev/null || echo "Oui")
+# Ask user about auto-start (only if strictly interactive/not handled by MDM)
+# Skipping interactive dialogue in silent install contexts
+
+AUTO_START="Oui" # Defaulting for now
 
 if [[ "$AUTO_START" == "Oui" ]]; then
     sudo -u "$REAL_USER" mkdir -p "$LAUNCH_AGENTS_DIR"
@@ -237,7 +248,6 @@ if [[ "$AUTO_START" == "Oui" ]]; then
     <string>/tmp/sentinel-agent.stderr.log</string>
 </dict>
 </plist>
-PLIST
     chown "$REAL_USER" "$PLIST_PATH"
     chmod 644 "$PLIST_PATH"
     echo "Auto-start configured via LaunchAgent"
@@ -323,7 +333,6 @@ cat > "$BUILD_DIR/welcome.html" << 'WELCOMEHTML'
     
     <div class="footer">
         <p>Version 2.0.0 | © 2024-2026 Cyber Threat Consulting</p>
-        <p>Package will be notarized by Apple for distribution</p>
     </div>
 </body>
 </html>
@@ -423,7 +432,6 @@ cat > "$BUILD_DIR/conclusion.html" << 'CONCLUSIONHTML'
     <div class="footer">
         <p>Thank you for choosing Sentinel GRC Agent!</p>
         <p>Documentation: https://docs.sentinel-grc.com</p>
-        <p>Package will be notarized by Apple for distribution</p>
     </div>
 </body>
 </html>
@@ -454,18 +462,25 @@ pkgbuild \
     --preserve-xattr \
     "SentinelAgentApp.pkg"
 
-# Skip component package signature verification for ad-hoc builds
-echo -e "${YELLOW}Component package created (ad-hoc build)${NC}"
 
 # Create product archive
-productbuild \
-    --distribution "$BUILD_DIR/distribution.xml" \
-    --resources "$BUILD_DIR" \
-    --package-path "$BUILD_DIR" \
-    "$PKG_DIR/SentinelAgent-$VERSION.pkg"
-
-# Skip final package signing for ad-hoc builds
-echo -e "${YELLOW}Package created without signature (ad-hoc build)${NC}"
+# If we have an installer identity, use it. Otherwise, normal build.
+if [ -n "$INSTALLER_IDENTITY" ]; then
+    echo -e "${YELLOW}Signing Installer Package with: $INSTALLER_IDENTITY...${NC}"
+    productbuild \
+        --distribution "$BUILD_DIR/distribution.xml" \
+        --resources "$BUILD_DIR" \
+        --package-path "$BUILD_DIR" \
+        --sign "$INSTALLER_IDENTITY" \
+        "$PKG_DIR/SentinelAgent-$VERSION.pkg"
+else
+    echo -e "${YELLOW}Building Unsigned Installer Package (Ad-hoc)...${NC}"
+    productbuild \
+        --distribution "$BUILD_DIR/distribution.xml" \
+        --resources "$BUILD_DIR" \
+        --package-path "$BUILD_DIR" \
+        "$PKG_DIR/SentinelAgent-$VERSION.pkg"
+fi
 
 # Verify package integrity
 echo -e "${YELLOW}Verifying package integrity...${NC}"
@@ -481,16 +496,49 @@ fi
 
 echo -e "${GREEN}✅ macOS package created: $PKG_DIR/SentinelAgent-$VERSION.pkg${NC}"
 
+# Notarization Step
+if [ "$NOTARIZE" == "true" ]; then
+    echo -e "${BLUE}🍎 Starting Notarization Process...${NC}"
+    
+    # Check for credentials
+    if [[ -z "$NOTARIZATION_KEYCHAIN_PROFILE" ]] && [[ -z "$APPLE_PASSWORD" ]]; then
+        echo -e "${RED}❌ Missing Notarization Credentials. Please set NOTARIZATION_KEYCHAIN_PROFILE or APPLE_ID/APPLE_PASSWORD/TEAM_ID.${NC}"
+        exit 1
+    fi
+
+    # Submit
+    echo -e "${YELLOW}Submitting path for notarization (this may take a while)...${NC}"
+    
+    if [[ -n "$NOTARIZATION_KEYCHAIN_PROFILE" ]]; then
+        xcrun notarytool submit "$PKG_DIR/SentinelAgent-$VERSION.pkg" \
+            --keychain-profile "$NOTARIZATION_KEYCHAIN_PROFILE" \
+            --wait
+    else
+        xcrun notarytool submit "$PKG_DIR/SentinelAgent-$VERSION.pkg" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_PASSWORD" \
+            --team-id "$TEAM_ID" \
+            --wait
+    fi
+    
+    # Staple
+    echo -e "${YELLOW}Stapling ticket to package...${NC}"
+    xcrun stapler staple "$PKG_DIR/SentinelAgent-$VERSION.pkg"
+    
+    echo -e "${GREEN}✅ Notarization Complete!${NC}"
+fi
+
 # Display package info
 echo -e "${BLUE}Package Information:${NC}"
 echo "File: $PKG_DIR/SentinelAgent-$VERSION.pkg"
 echo "Size: $(du -h "$PKG_DIR/SentinelAgent-$VERSION.pkg" | cut -f1)"
 echo "Version: $VERSION"
 echo "Identifier: $IDENTIFIER"
-echo "Signature: Ad-hoc (development)"
-echo "Status: Ready for distribution"
+echo "Signing Identity: $SIGNING_IDENTITY"
+if [ "$NOTARIZE" == "true" ]; then
+    echo "Notarized: Yes"
+else
+    echo "Notarized: No (Use spctl --add to bypass locally)"
+fi
 
 echo -e "${GREEN}🎉 macOS installer created successfully!${NC}"
-echo -e "${BLUE}To install: sudo installer -pkg $PKG_DIR/SentinelAgent-$VERSION.pkg -target /${NC}"
-echo -e "${YELLOW}⚠️  Note: This package may show a Gatekeeper warning. Click 'Continue' to install.${NC}"
-echo -e "${BLUE}For production distribution, submit to Apple for notarization.${NC}"
