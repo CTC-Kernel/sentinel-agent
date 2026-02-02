@@ -1,6 +1,20 @@
 {
     "indexes": [
         {
+            "collectionGroup": "enrollmentTokens",
+            "queryScope": "COLLECTION_GROUP",
+            "fields": [
+                {
+                    "fieldPath": "token",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "revoked",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
             "collectionGroup": "system_logs",
             "queryScope": "COLLECTION",
             "fields": [
