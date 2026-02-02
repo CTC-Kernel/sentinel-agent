@@ -23,14 +23,14 @@ const AgentDownloads: React.FC = () => {
     {
       platform: 'macOS',
       version: '2.0.0',
-      size: '9.3MB',
-      url: '/downloads/agents/SentinelAgent.pkg',
-      status: 'coming-soon',
+      size: '24MB',
+      url: '/releases/agent/macos/latest',
+      status: 'available',
       icon: <Apple className="w-8 h-8" />,
       instructions: [
         'APPLE SILICON & INTEL (pkg)',
-        'BIENTÔT DISPONIBLE',
-        'Download the SentinelAgent-2.0.0.pkg file',
+        'STABLE RELEASE',
+        'Download the SentinelAgent-latest.pkg file',
         'Double-click the package to open the installer',
         'Follow the installation wizard steps'
       ]
@@ -54,13 +54,13 @@ const AgentDownloads: React.FC = () => {
       platform: 'Linux DEB',
       version: '2.0.0',
       size: '9.3MB',
-      url: '/releases/agent/sentinel-agent_latest_amd64.deb',
+      url: '/releases/agent/linux_deb/latest',
       status: 'available',
       icon: <Package className="w-8 h-8" />,
       instructions: [
-        'DEBIAN / UBUNTU',
+        'DEBIAN / UBUNTU (arm64)',
         'Download the .deb package',
-        'Install: sudo dpkg -i sentinel-agent_latest_amd64.deb',
+        'Install: sudo dpkg -i sentinel-agent_latest_arm64.deb',
         'Start: sudo systemctl start sentinel-agent'
       ]
     },
@@ -68,7 +68,7 @@ const AgentDownloads: React.FC = () => {
       platform: 'Linux RPM',
       version: '2.0.0',
       size: '9.3MB',
-      url: '/releases/agent/sentinel-agent-latest.x86_64.rpm',
+      url: '/releases/agent/linux_rpm/latest',
       status: 'available',
       icon: <Package className="w-8 h-8" />,
       instructions: [
@@ -222,17 +222,17 @@ const AgentDownloads: React.FC = () => {
           <div className="space-y-2">
             <h4 className="font-medium">Direct Downloads</h4>
             <div className="space-y-1 text-sm">
-              <a href="/releases/agent/SentinelAgentSetup-latest.msi" className="text-primary hover:underline block">
+              <a href="/releases/agent/macos/latest" className="text-primary hover:underline block">
+                🍎 macOS (.pkg) - 24MB
+              </a>
+              <a href="/releases/agent/windows/latest" className="text-primary hover:underline block">
                 🪟 Windows (.msi) - 8.5MB
               </a>
-              <a href="/releases/agent/sentinel-agent_latest_amd64.deb" className="text-primary hover:underline block">
+              <a href="/releases/agent/linux_deb/latest" className="text-primary hover:underline block">
                 🐧 Linux DEB (.deb) - 9.3MB
               </a>
-              <a href="/releases/agent/sentinel-agent-latest.x86_64.rpm" className="text-primary hover:underline block">
+              <a href="/releases/agent/linux_rpm/latest" className="text-primary hover:underline block">
                 🐧 Linux RPM (.rpm) - 9.3MB
-              </a>
-              <a href="/downloads/agents/SentinelAgent.pkg" className="text-muted-foreground cursor-not-allowed block">
-                🍎 macOS (.pkg) - BIENTÔT
               </a>
             </div>
           </div>

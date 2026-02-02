@@ -5,14 +5,14 @@
       "filename": "SentinelAgent-latest.pkg",
       "format": "pkg",
       "size": 19873792,
-      "sha256": "",
+      "sha256": "5019167c993981510408e3ca660ce2b8eea66a0ab27c86c1af2a3b90e0cbfc8b",
       "minOsVersion": "11.0",
       "architecture": "universal",
       "releaseDate": "2026-02-02",
-      "status": "coming-soon",
+      "status": "available",
       "changelog": [
         "APPLE SILICON & INTEL (pkg)",
-        "BIENTÔT DISPONIBLE",
+        "STABLE RELEASE",
         "New egui desktop GUI with dashboard, compliance, sync pages",
         "Enrollment wizard with QR code support"
       ]
@@ -33,14 +33,15 @@
     },
     "linux_deb": {
       "version": "2.0.0",
-      "filename": "sentinel-agent_latest_amd64.deb",
+      "filename": "sentinel-agent_latest_arm64.deb",
       "format": "deb",
       "size": 9751756,
+      "sha256": "d567a8ec7226efaf9ea1b20dd8c7c9bed2207d99b3ad133e841617c516419e5e",
       "minOsVersion": "Ubuntu 20.04 / Debian 11",
-      "architecture": "amd64",
+      "architecture": "arm64",
       "releaseDate": "2026-02-02",
       "changelog": [
-        "DEBIAN / UBUNTU",
+        "DEBIAN / UBUNTU (arm64)",
         "New egui desktop GUI",
         "DEB package with automatic dependency resolution"
       ]
