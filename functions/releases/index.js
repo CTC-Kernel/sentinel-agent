@@ -33,11 +33,11 @@ const RELEASE_CONFIG = {
                 displayName: 'Windows (MSI)',
             },
             macos: {
-                filename: 'SentinelAgent-{version}.dmg',
-                latestFilename: 'SentinelAgent-latest.dmg',
-                checksumFilename: 'SentinelAgent-{version}.dmg.sha256',
-                contentType: 'application/x-apple-diskimage',
-                displayName: 'macOS (DMG)',
+                filename: 'SentinelAgent-{version}.pkg',
+                latestFilename: 'SentinelAgent-latest.pkg',
+                checksumFilename: 'SentinelAgent-{version}.pkg.sha256',
+                contentType: 'application/vnd.apple.installer+xml',
+                displayName: 'macOS (PKG)',
             },
             linux_deb: {
                 filename: 'sentinel-agent_{version}_amd64.deb',
