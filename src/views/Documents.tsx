@@ -449,7 +449,7 @@ export const Documents: React.FC = () => {
                 />
             </div>
 
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence mode="wait">
                 {/* Overview Tab - Charts Dashboard */}
                 {activeTab === 'overview' && (
                     <motion.div

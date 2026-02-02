@@ -112,7 +112,7 @@ const Settings: React.FC = () => {
 
             <SettingsLayout currentTab={activeTab} onTabChange={setActiveTab}>
                 <SettingsErrorBoundary onReset={() => setActiveTab('profile')}>
-                    <AnimatePresence mode="popLayout">
+                    <AnimatePresence mode="wait">
                         <motion.div
                             key={activeTab || 'unknown'}
                             initial={{ opacity: 0, y: 10 }}

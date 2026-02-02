@@ -44,20 +44,24 @@ export const AgentSetup: React.FC = () => {
         sessionStorage.removeItem(RETURN_KEY);
 
         let cancelled = false;
-        setTokenLoading(true);
-        AgentService.generateEnrollmentToken(organizationId)
-            .then(result => {
+
+        const generateToken = async () => {
+            setTokenLoading(true);
+            try {
+                const result = await AgentService.generateEnrollmentToken(organizationId);
                 if (!cancelled) setTokenValue(result.token || null);
-            })
-            .catch(err => {
+            } catch (err) {
                 if (!cancelled) {
                     setTokenError(t('agentSetup.errors.tokenGeneration', { defaultValue: 'Impossible de generer le token. Reessayez.' }));
                     ErrorLogger.error(err, 'AgentSetup.generateToken');
                 }
-            })
-            .finally(() => {
+            } finally {
                 if (!cancelled) setTokenLoading(false);
-            });
+            }
+        };
+
+        generateToken();
+
         return () => { cancelled = true; };
     }, [hasOrganization, organizationId, t]);
 

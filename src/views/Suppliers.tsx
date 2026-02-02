@@ -496,7 +496,7 @@ export const Suppliers: React.FC = () => {
                 />
             </motion.div>
 
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence mode="wait">
                 {activeTab === 'overview' && (
                     <motion.div
                         key="overview"

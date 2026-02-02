@@ -262,7 +262,7 @@ export const DashboardWithQuickActions: React.FC = () => {
                     )}
 
                     <motion.div variants={slideUpVariants}>
-                        <AnimatePresence mode="popLayout">
+                        <AnimatePresence mode="wait">
                         {(() => {
                             // NOTE: Dashboard view selection intentionally uses a mix of permission-based
                             // and role-based checks. The first branch (AdminDashboardView) uses

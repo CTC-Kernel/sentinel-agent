@@ -329,7 +329,7 @@ export const Training: React.FC = () => {
         )}
 
         {/* Content */}
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence mode="wait">
           <motion.div
             key={viewState.type === 'list' ? activeTab : viewState.type || 'unknown'}
             initial={{ opacity: 0, y: 10 }}

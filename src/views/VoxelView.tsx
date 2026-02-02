@@ -214,7 +214,7 @@ const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selecte
     </div>
 
     {/* Center - Selected Node (hidden on small screens) */}
-    <AnimatePresence mode="popLayout">
+    <AnimatePresence mode="wait">
       {selectedNode && (
         <motion.div
           key={selectedNode.id || 'unknown'}

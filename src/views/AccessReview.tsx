@@ -256,7 +256,7 @@ export const AccessReview: React.FC = () => {
       </motion.div>
 
       {/* Content */}
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence mode="wait">
         {activeTab === 'dashboard' && (
           <motion.div
             key="dashboard"

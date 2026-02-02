@@ -8,6 +8,7 @@ const SelectContext = React.createContext<{
     onValueChange?: (value: string) => void
     open?: boolean
     setOpen?: (open: boolean) => void
+    listboxId?: string
 } | null>(null)
 
 interface SelectProps {
@@ -37,8 +38,10 @@ const Select: React.FC<SelectProps> = ({ children, value, onValueChange, default
         onOpenChange?.(o)
     }
 
+    const listboxId = React.useId()
+
     return (
-        <SelectContext.Provider value={{ value: currentValue, onValueChange: handleValueChange, open: currentOpen, setOpen: handleOpenChange }}>
+        <SelectContext.Provider value={{ value: currentValue, onValueChange: handleValueChange, open: currentOpen, setOpen: handleOpenChange, listboxId }}>
             <div className="relative inline-block w-full text-left">
                 {children}
             </div>
@@ -50,7 +53,7 @@ const SelectTrigger = React.forwardRef<
     HTMLButtonElement,
     React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, children, ...props }, ref) => {
-    const { open, setOpen } = React.useContext(SelectContext)!
+    const { open, setOpen, listboxId } = React.useContext(SelectContext)!
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -78,6 +81,7 @@ const SelectTrigger = React.forwardRef<
             ref={ref}
             role="combobox"
             aria-expanded={open}
+            aria-controls={listboxId}
             aria-haspopup="listbox"
             className={cn(
                 "flex h-10 w-full items-center justify-between rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground",
@@ -109,7 +113,7 @@ const SelectContent = React.forwardRef<
     HTMLDivElement,
     React.HTMLAttributes<HTMLDivElement> & { position?: "popper" | "item-aligned" }
 >(({ className, children, position = "popper", ...props }, ref) => {
-    const { open, setOpen } = React.useContext(SelectContext)!
+    const { open, setOpen, listboxId } = React.useContext(SelectContext)!
     if (!open) return null
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -148,7 +152,9 @@ const SelectContent = React.forwardRef<
     return (
         <div
             ref={ref}
+            id={listboxId}
             role="listbox"
+            tabIndex={-1}
             className={cn(
                 "absolute z-dropdown min-w-[8rem] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-apple-md animate-in fade-in-0 zoom-in-95",
                 position === "popper" && "translate-y-1",

@@ -99,7 +99,7 @@ export const Notifications: React.FC = () => {
             </div>
 
             {/* Notifications List */}
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence mode="wait">
                 {filteredNotifications.length > 0 ? (
                     <div className="space-y-4">
                         {filteredNotifications.map(notif => (

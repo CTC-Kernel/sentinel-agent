@@ -439,7 +439,7 @@ export const Incidents: React.FC = () => {
                 onDownloadTemplate={handleDownloadTemplate}
             />
 
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
                 {activeTab === 'overview' ? (
                     <motion.div
                         key="overview"

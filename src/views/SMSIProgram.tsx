@@ -352,7 +352,7 @@ export const SMSIProgramView: React.FC = () => {
         </GlassCard>
       )}
 
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence mode="wait">
         {activeTab === 'overview' && (
           <motion.div
             key="overview"
