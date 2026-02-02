@@ -11,6 +11,7 @@ const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
+const { checkCallableRateLimit } = require('../utils/rateLimiter');
 
 const db = admin.firestore();
 
@@ -519,6 +520,8 @@ exports.recalculateAgentBaseline = onCall({
         throw new HttpsError('invalid-argument', 'organizationId and agentId are required.');
     }
 
+    checkCallableRateLimit(request, 'heavy');
+
     try {
         // Get agent info
         const agentDoc = await db
@@ -718,6 +721,8 @@ exports.runAnomalyDetection = onCall({
     if (!organizationId) {
         throw new HttpsError('invalid-argument', 'organizationId is required.');
     }
+
+    checkCallableRateLimit(request, 'heavy');
 
     try {
         // Get threshold config
