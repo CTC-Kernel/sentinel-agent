@@ -2036,13 +2036,13 @@
       "sending": "Envoi..."
     },
     "footer": {
-      "terms": "Conditions",
-      "privacy": "Confidentialité",
+      "terms": "Conditions d'utilisation",
+      "privacy": "Politique de confidentialité",
       "legal": "Mentions Légales",
       "cgv": "CGV",
-      "developedBy": "Développé par Cyber Threat Consulting",
-      "apply": "S'applique à cyber-threat-consulting.com et sous-domaines.",
-      "recaptcha": "Protégé par reCAPTCHA"
+      "developedBy": "Développé par",
+      "apply": "s'appliquent.",
+      "recaptcha": "Ce site est protégé par reCAPTCHA et la"
     }
   },
   "audits": {

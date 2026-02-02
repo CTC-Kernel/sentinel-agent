@@ -247,8 +247,6 @@ export function RSSICriticalRisksWidget({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-    >
-    <div
       className={cn('rounded-3xl glass-premium border border-border/40', sizeConfig.padding, className)}
       role="region"
       aria-label="Risques critiques"
@@ -297,7 +295,6 @@ export function RSSICriticalRisksWidget({
           Voir tous les risques
         </button>
       )}
-    </div>
     </motion.div>
   );
 }

@@ -106,7 +106,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
     };
 
     return (
-        <AuroraBackground className="h-screen py-4 sm:py-0 px-4 flex flex-col bg-background text-foreground relative font-sans selection:bg-primary/30 selection:text-primary overflow-hidden">
+        <AuroraBackground className="min-h-screen py-4 sm:py-0 px-4 flex flex-col bg-background text-foreground relative font-sans selection:bg-primary/30 selection:text-primary">
             <div className="absolute top-4 right-4 z-modal">
                 <ThemeToggle />
             </div>
