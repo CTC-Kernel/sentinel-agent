@@ -1,0 +1,2 @@
+9999a7cb52fe7c0bbd046148420fc042b0f897031803f8ac749b740816eeeaff  target/release/SentinelAgent-2.0.0.dmg
+4e5b3f7b715ee518c2622b593911b56acbc6425cd6dc28d669566b6bdcaf91fa  dist/SentinelAgent.pkg

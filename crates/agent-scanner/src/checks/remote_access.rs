@@ -16,7 +16,7 @@ use std::process::Command;
 use tracing::debug;
 
 /// Check ID for remote access security.
-pub const CHECK_ID: &str = "remote_access";
+pub const CHECK_ID: &str = "remote_access_secure";
 
 /// Remote access security status.
 #[derive(Debug, Clone, Serialize, Deserialize)]

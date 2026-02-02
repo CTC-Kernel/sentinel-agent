@@ -16,17 +16,16 @@ use tokio::sync::watch;
 use tracing::{debug, info, warn};
 
 /// API response for configuration download.
+///
+/// The Cloud Function returns a flat JSON object with config keys at the top level
+/// (e.g. `check_interval_secs`, `rules`, `config_version`).
+/// We use `#[serde(flatten)]` to capture all fields into the config map.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct ConfigResponse {
-    /// Configuration key-value pairs.
+    /// Configuration key-value pairs (flattened from the top-level response).
+    #[serde(flatten)]
     pub config: HashMap<String, serde_json::Value>,
-    /// Configuration version.
-    #[serde(default)]
-    pub version: Option<String>,
-    /// Server timestamp.
-    #[serde(default)]
-    pub timestamp: Option<DateTime<Utc>>,
 }
 
 /// Result of a configuration sync operation.
@@ -103,10 +102,13 @@ impl ConfigSyncService {
         let path = format!("/v1/agents/{}/config", agent_id);
         let response: ConfigResponse = self.client.get(&path).await?;
 
-        debug!(
-            "Downloaded config from server (version: {:?})",
-            response.version
-        );
+        // Extract version from the flat response (server sends config_version)
+        let version = response
+            .config
+            .get("config_version")
+            .and_then(|v| v.as_u64().map(|n| n.to_string()).or_else(|| v.as_str().map(String::from)));
+
+        debug!("Downloaded config from server (version: {:?})", version);
 
         // Convert JSON values to strings for storage
         let remote_config: HashMap<String, String> = response
@@ -155,7 +157,7 @@ impl ConfigSyncService {
             updated: merge_result.updated,
             skipped: merge_result.skipped,
             skipped_keys: merge_result.skipped_keys,
-            version: response.version,
+            version,
             synced_at: Utc::now(),
             changed,
         })
@@ -258,33 +260,33 @@ mod tests {
 
     #[test]
     fn test_config_response_deserialization() {
+        // Server returns flat config (matching Cloud Function format)
         let json = r#"{
-            "config": {
-                "check_interval_secs": 3600,
-                "heartbeat_interval_secs": 300,
-                "enabled_checks": ["disk_encryption", "antivirus"],
-                "log_level": "info"
-            },
-            "version": "1.0.0"
+            "config_version": 1,
+            "check_interval_secs": 3600,
+            "heartbeat_interval_secs": 300,
+            "enabled_checks": ["disk_encryption", "antivirus"],
+            "log_level": "info",
+            "rules_version": 1,
+            "rules": []
         }"#;
 
         let response: ConfigResponse = serde_json::from_str(json).unwrap();
-        assert_eq!(response.config.len(), 4);
-        assert_eq!(response.version, Some("1.0.0".to_string()));
+        assert_eq!(response.config.len(), 7);
 
         let interval = response.config.get("check_interval_secs").unwrap();
         assert_eq!(interval.as_i64(), Some(3600));
+
+        let version = response.config.get("config_version").unwrap();
+        assert_eq!(version.as_u64(), Some(1));
     }
 
     #[test]
     fn test_config_response_minimal() {
-        let json = r#"{
-            "config": {}
-        }"#;
+        let json = r#"{}"#;
 
         let response: ConfigResponse = serde_json::from_str(json).unwrap();
         assert!(response.config.is_empty());
-        assert!(response.version.is_none());
     }
 
     #[test]

@@ -15,7 +15,7 @@ use std::process::Command;
 use tracing::debug;
 
 /// Check ID for antivirus status.
-pub const CHECK_ID: &str = "antivirus_status";
+pub const CHECK_ID: &str = "antivirus_active";
 
 /// Maximum age for definitions to be considered current (7 days).
 #[allow(dead_code)]

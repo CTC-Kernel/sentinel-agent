@@ -16,7 +16,7 @@ use std::process::Command;
 use tracing::debug;
 
 /// Check ID for MFA configuration.
-pub const CHECK_ID: &str = "mfa_config";
+pub const CHECK_ID: &str = "mfa_enabled";
 
 /// MFA configuration status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
