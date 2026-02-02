@@ -173,8 +173,8 @@ async function uploadVulnerabilities(req, res, agentId, agentDoc, agentData) {
                 opCount++;
                 createdCount++;
 
-                // Alert on critical severity
-                if (severity === 'critical') {
+                // Alert on critical severity (compare against French-mapped string)
+                if (severity === 'Critique') {
                     const alertRef = db
                         .collection('organizations')
                         .doc(organizationId)

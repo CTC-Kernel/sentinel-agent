@@ -10,6 +10,7 @@ const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { onDocumentWritten } = require('firebase-functions/v2/firestore');
 const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
+const { checkCallableRateLimit } = require('../utils/rateLimiter');
 
 const db = admin.firestore();
 
@@ -44,6 +45,7 @@ exports.deployAgentPolicy = onCall(
       throw new HttpsError('invalid-argument', 'policyId and organizationId are required');
     }
 
+    checkCallableRateLimit(request, 'admin');
 
     const userRole = request.auth.token.role;
     if (!userRole || !['admin', 'manager'].includes(userRole)) {
@@ -222,6 +224,13 @@ exports.rollbackAgentPolicy = onCall(
       throw new HttpsError('invalid-argument', 'deploymentId and organizationId are required');
     }
 
+    checkCallableRateLimit(request, 'admin');
+
+    // SECURITY: Require admin or manager role for policy rollback
+    const userRole = request.auth.token.role;
+    if (!userRole || !['admin', 'manager'].includes(userRole)) {
+      throw new HttpsError('permission-denied', 'Insufficient permissions for policy rollback');
+    }
 
     try {
       // Get the deployment
@@ -309,6 +318,8 @@ exports.getEffectivePolicy = onCall(
     if (!agentId || !organizationId) {
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
     }
+
+    checkCallableRateLimit(request, 'standard');
 
     try {
       // Get the agent
@@ -408,8 +419,8 @@ exports.autoAssignAgentsToGroups = onSchedule(
     logger.log('Starting auto-assign agents to groups...');
 
     try {
-      // Get all organizations
-      const orgsSnapshot = await db.collection('organizations').get();
+      // Get organizations (bounded to prevent runaway reads)
+      const orgsSnapshot = await db.collection('organizations').limit(500).get();
 
       for (const orgDoc of orgsSnapshot.docs) {
         const organizationId = orgDoc.id;
@@ -596,6 +607,8 @@ exports.validatePolicyRules = onCall(
     if (!rules || !Array.isArray(rules)) {
       throw new HttpsError('invalid-argument', 'rules array is required');
     }
+
+    checkCallableRateLimit(request, 'standard');
 
     const errors = [];
     const warnings = [];

@@ -81,6 +81,23 @@ exports.enrollAgent = onRequest(
         });
       }
 
+      // Input length validation to prevent abuse
+      if (typeof hostname !== 'string' || hostname.length > 255) {
+        return res.status(400).json({ error: 'hostname must be a string of 255 characters or less' });
+      }
+      if (typeof os !== 'string' || os.length > 64) {
+        return res.status(400).json({ error: 'os must be a string of 64 characters or less' });
+      }
+      if (typeof machine_id !== 'string' || machine_id.length > 256) {
+        return res.status(400).json({ error: 'machine_id must be a string of 256 characters or less' });
+      }
+      if (os_version && (typeof os_version !== 'string' || os_version.length > 128)) {
+        return res.status(400).json({ error: 'os_version must be a string of 128 characters or less' });
+      }
+      if (agent_version && (typeof agent_version !== 'string' || agent_version.length > 32)) {
+        return res.status(400).json({ error: 'agent_version must be a string of 32 characters or less' });
+      }
+
       if (!organization_id) {
         return res.status(400).json({ error: 'organization_id is required' });
       }

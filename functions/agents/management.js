@@ -5,6 +5,7 @@
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
+const { checkCallableRateLimit } = require('../utils/rateLimiter');
 
 const db = admin.firestore();
 
@@ -34,6 +35,7 @@ exports.listAgents = onCall(
       throw new HttpsError('invalid-argument', 'organizationId is required');
     }
 
+    checkCallableRateLimit(request, 'standard');
 
     try {
       let agentsQuery = db
@@ -122,6 +124,7 @@ exports.getAgentDetails = onCall(
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
     }
 
+    checkCallableRateLimit(request, 'standard');
 
     try {
       const agentDoc = await db
@@ -254,6 +257,7 @@ exports.getAgentComplianceResults = onCall(
       throw new HttpsError('invalid-argument', 'organizationId is required');
     }
 
+    checkCallableRateLimit(request, 'standard');
 
     try {
       if (!['admin', 'rssi'].includes(request.auth.token.role)) {
@@ -340,6 +344,7 @@ exports.deleteAgent = onCall(
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
     }
 
+    checkCallableRateLimit(request, 'admin');
 
     try {
       if (!request.auth.token.role || !['admin', 'manager'].includes(request.auth.token.role)) {
