@@ -41,6 +41,13 @@
                 <key>NSExceptionRequiresForwardSecrecy</key>
                 <true/>
             </dict>
+            <key>europe-west1-sentinel-grc-a8701.cloudfunctions.net</key>
+            <dict>
+                <key>NSExceptionMinimumTLSVersion</key>
+                <string>TLSv1.3</string>
+                <key>NSExceptionRequiresForwardSecrecy</key>
+                <true/>
+            </dict>
             <key>firebasestorage.googleapis.com</key>
             <dict>
                 <key>NSExceptionMinimumTLSVersion</key>
