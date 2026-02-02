@@ -23,24 +23,14 @@ pub fn card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) {
         .shadow(shadow)
         .show(ui, |ui| {
             add_contents(ui);
-            
-            // Inner Light (Bevel) - Glass effect
-            if is_dark {
-                ui.painter().rect_stroke(
-                    ui.min_rect().shrink(1.0),
-                    CornerRadius::same(theme::CARD_ROUNDING),
-                    Stroke::new(1.0, Color32::from_white_alpha(15)), // Subtle white inner glow
-                    StrokeKind::Inside,
-                );
-            }
         });
 
     // Hover effect: slight border highlight
     if ui.rect_contains_pointer(frame_resp.response.rect) {
         let hover_stroke = if is_dark {
-            Stroke::new(1.0, Color32::from_white_alpha(30))
+            Stroke::new(1.0, Color32::from_white_alpha(20))
         } else {
-            Stroke::new(1.0, Color32::from_black_alpha(20))
+            Stroke::new(1.0, Color32::from_black_alpha(15))
         };
         
         ui.painter().rect_stroke(

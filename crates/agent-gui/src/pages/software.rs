@@ -183,7 +183,7 @@ impl SoftwarePage {
                 use egui_extras::{Column, TableBuilder};
 
                 let table = TableBuilder::new(ui)
-                    .striped(true)
+                    .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
                     .column(Column::initial(150.0).range(100.0..=400.0).at_least(100.0))
@@ -385,7 +385,7 @@ impl SoftwarePage {
                 use egui_extras::{Column, TableBuilder};
 
                 let table = TableBuilder::new(ui)
-                    .striped(true)
+                    .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
                     .column(Column::initial(180.0).range(120.0..=400.0).at_least(120.0))

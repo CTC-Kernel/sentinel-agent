@@ -146,7 +146,7 @@ impl SyncPage {
                 use egui_extras::{Column, TableBuilder};
 
                 let table = TableBuilder::new(ui)
-                    .striped(true)
+                    .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
                     .column(Column::initial(32.0).at_least(24.0)) // Status icon

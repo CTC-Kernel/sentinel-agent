@@ -292,10 +292,25 @@ impl Sidebar {
                 } else {
                     theme::bg_elevated().linear_multiply(0.5)
                 };
-                ui.painter().rect_filled(
-                    rect.shrink2(Vec2::new(8.0, 2.0)), // Slightly tighter vertical shrink
+                
+                // Active item gets a subtle glass border
+                let stroke = if is_current {
+                     crate::widgets::card::card_stroke(ui) // Reuse consistent card stroke or make a custom one
+                } else {
+                    egui::Stroke::NONE
+                };
+
+                let rect_shrunk = rect.shrink2(Vec2::new(8.0, 2.0));
+                
+                ui.painter().rect(
+                    rect_shrunk,
                     CornerRadius::same(theme::BUTTON_ROUNDING),
                     fill,
+                    if is_current {
+                        egui::Stroke::new(1.0, theme::border().linear_multiply(1.5))
+                    } else {
+                        egui::Stroke::NONE
+                    },
                 );
             }
 

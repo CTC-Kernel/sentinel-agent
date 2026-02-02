@@ -352,9 +352,14 @@ impl AuthenticatedClient {
             credentials.agent_id
         );
 
+        // Inject organization ID from credentials into config
+        // This ensures the X-Organization-Id header is set correctly
+        let mut config = self.config.clone();
+        config.organization_id = Some(credentials.organization_id.to_string());
+
         // Try mTLS first, fall back to header-based auth
         let client = match HttpClient::with_mtls(
-            &self.config,
+            &config,
             &credentials.client_certificate,
             &credentials.client_private_key,
         ) {
@@ -364,7 +369,7 @@ impl AuthenticatedClient {
             }
             Err(e) => {
                 debug!("mTLS not available ({}), using header-based auth", e);
-                HttpClient::with_header_auth(&self.config, &credentials.client_certificate)?
+                HttpClient::with_header_auth(&config, &credentials.client_certificate)?
             }
         };
 

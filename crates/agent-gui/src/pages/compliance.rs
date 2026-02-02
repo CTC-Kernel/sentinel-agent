@@ -197,14 +197,31 @@ impl CompliancePage {
             ui.add_space(theme::SPACE_MD);
 
             if filtered.is_empty() {
-                widgets::empty_state(
-                    ui,
-                    icons::COMPLIANCE,
-                    "Aucune v\u{00e9}rification correspondante",
-                    Some(
-                        "Modifiez vos filtres ou lancez une analyse pour v\u{00e9}rifier la conformit\u{00e9}.",
-                    ),
-                );
+                // Smart Empty State
+                if state.compliance_status_filter == Some(1) { // Filter = Fail
+                     widgets::protected_state(
+                        ui,
+                        icons::SHIELD_CHECK,
+                        "Conformité Totale",
+                        "Tous les contrôles respectent la politique de sécurité.",
+                    );
+                } else if state.checks.is_empty() {
+                     widgets::empty_state(
+                        ui,
+                        icons::COMPLIANCE,
+                        "Aucune politique",
+                        Some("En attente de synchronisation des politiques..."),
+                    );
+                } else {
+                    widgets::empty_state(
+                        ui,
+                        icons::COMPLIANCE,
+                        "Aucune vérification correspondante",
+                        Some(
+                            "Modifiez vos filtres pour voir les résultats.",
+                        ),
+                    );
+                }
             } else if state.compliance_group_by == 0 {
                 // Flat table
                 Self::render_check_table(ui, state, &filtered, &pending_command);
@@ -293,7 +310,7 @@ impl CompliancePage {
             .collect();
 
         let table = TableBuilder::new(ui)
-            .striped(true)
+            .striped(false)
             .resizable(true)
             .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
             .column(Column::initial(180.0).range(120.0..=400.0).at_least(120.0))
