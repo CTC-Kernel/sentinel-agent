@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { addDoc, collection, deleteDoc, doc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, updateDoc, increment, serverTimestamp, arrayUnion } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Document, DocumentFolder, UserProfile } from '../../types';
 import { DocumentFormData } from '../../schemas/documentSchema';
@@ -443,6 +443,80 @@ export const useDocumentActions = (usersList: UserProfile[] = [], onDeletedId?: 
         }
     };
 
+    const handleWorkflowAction = async (documentId: string, action: 'approuver' | 'rejeter' | 'soumettre', comment?: string, currentDoc?: Document) => {
+        if (!user || !user.organizationId) return false;
+        // Basic permission check - ideally should be granular based on role/workflow step
+        if (!canEditResource(user, 'Document')) return false;
+
+        setIsSubmitting(true);
+        try {
+            // Fetch current doc if not provided
+            let docData = currentDoc;
+            if (!docData) {
+                const { getDoc } = await import('firebase/firestore');
+                const snap = await getDoc(doc(db, 'documents', documentId));
+                if (snap.exists()) {
+                    docData = snap.data() as Document;
+                }
+            }
+
+            if (!docData) throw new Error("Document not found");
+
+            const updates: Partial<Document> = {
+                updatedAt: serverTimestamp() as any
+            };
+
+            // Workflow State Machine (Simple version)
+            // 'Brouillon' -> 'En revue' -> 'Approuvé'
+            // For now, let's assume 'approuver' sets status to 'Approuvé' directly for simplified flow in Compliance
+            // But we should respect the valid transitions if possible.
+            // Given the audit requirement: "Validation auditeur", we want to mark it as Valid/Approved.
+
+            if (action === 'approuver') {
+                updates.status = 'Approuvé';
+                updates.approvers = arrayUnion(user.uid) as any;
+            } else if (action === 'rejeter') {
+                updates.status = 'Rejeté';
+            } else if (action === 'soumettre') {
+                updates.status = 'En revue';
+            }
+
+            // Add history item
+            const historyItem = {
+                id: crypto.randomUUID(),
+                date: new Date().toISOString(),
+                userId: user.uid,
+                userName: user.displayName || user.email || 'Unknown',
+                action,
+                comment,
+                version: docData.version,
+                step: updates.status as any || docData.status
+            };
+
+            updates.workflowHistory = arrayUnion(historyItem) as any;
+
+            await updateDoc(doc(db, 'documents', documentId), updates);
+
+            await AuditLogService.logUpdate(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+                'document',
+                documentId,
+                { status: docData.status },
+                { status: updates.status },
+                docData.title
+            );
+
+            addToast(t('documents.toast.statusUpdated', { defaultValue: "Statut mis à jour" }), "success");
+            return true;
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Documents.handleWorkflowAction', 'UPDATE_FAILED');
+            return false;
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return {
         handleCreate,
         handleUpdate,
@@ -454,6 +528,7 @@ export const useDocumentActions = (usersList: UserProfile[] = [], onDeletedId?: 
         sendReviewReminder,
         handleExportCSV,
         importDocuments,
+        handleWorkflowAction,
         isSubmitting,
         isExportingCSV,
         confirmData,

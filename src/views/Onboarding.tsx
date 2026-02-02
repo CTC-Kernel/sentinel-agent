@@ -34,16 +34,9 @@ const frameworkDisplayNames: Record<string, string> = {
 };
 
 export const Onboarding: React.FC = () => {
-    const { user, setUser, addToast, t } = useStore();
-    // Removed direct auth import, relying on useAuth or useStore user
-    // Ideally useAuth().user should be the source, but useStore.user is the hydrated profile.
-    // If we need logic on the firebase auth user object, useAuth exposes it?
-    // Let's check if useAuth exposes 'auth' itself or current user.
-    // Usually useAuth returns { user, loading, error, ... }
-    const { refreshSession, user: authUser } = useAuth();
-
-    // We used to have: const currentUser = auth.currentUser;
-    // We can replace it with authUser (from useAuth)
+    // Standardized Auth: rely on useAuth for user state, useStore for UI/App state
+    const { setUser, addToast, t } = useStore();
+    const { user, refreshSession } = useAuth();
 
     const navigate = useNavigate();
 
@@ -354,21 +347,19 @@ export const Onboarding: React.FC = () => {
     };
 
     const handleStep1: SubmitHandler<OnboardingFormData> = async (data) => {
-        // Use user from Store (which is usually updated by UseAuth) or potentially authUser from hook
-        const targetUser = user || authUser;
-
-        if (!targetUser || !targetUser.uid) {
+        // Use standardized user from useAuth
+        if (!user || !user.uid) {
             setError(t('onboarding.toasts.userUnidentified'));
             addToast(t('onboarding.toasts.userUnidentified'), "error");
             return;
         }
 
         // Check if user already has an organization
-        if (targetUser.organizationId) {
+        if (user.organizationId) {
             setError(t('onboarding.toasts.alreadyHasOrg'));
             addToast(t('onboarding.toasts.alreadyHasOrg'), "info");
             // Redirect to dashboard if already onboarded
-            if (targetUser.onboardingCompleted) {
+            if (user.onboardingCompleted) {
                 navigate('/', { replace: true });
             }
             return;
@@ -1023,7 +1014,7 @@ export const Onboarding: React.FC = () => {
                                                         <h3 className="font-bold text-slate-900 dark:text-white">{t('onboarding.actions.autoScan')}</h3>
                                                         <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">{t('onboarding.actions.autoScanDesc')}</p>
                                                         <div className="mt-4">
-                                                            <Button variant="link" size="sm" onClick={(e) => { e.stopPropagation(); setManualMode(true); }} aria-label="Ajouter manuellement un actif" className="text-xs text-brand-600 font-bold hover:underline h-auto px-0">{t('onboarding.actions.manualAdd')}</Button>
+                                                            <Button variant="link" size="sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); setManualMode(true); }} aria-label="Ajouter manuellement un actif" className="text-xs text-brand-600 font-bold hover:underline h-auto px-0">{t('onboarding.actions.manualAdd')}</Button>
                                                         </div>
                                                     </div>
                                                 )

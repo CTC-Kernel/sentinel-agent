@@ -584,7 +584,12 @@ export const Compliance: React.FC = () => {
                 canEdit={canEdit}
                 projectInitialData={projectInitialData}
                 onProjectSubmit={handleProjectCreation}
-                actions={complianceActions}
+                actions={{
+                    ...complianceActions,
+                    onValidateEvidence: async (did, action) => {
+                        return await documentActions.handleWorkflowAction(did, action);
+                    }
+                }}
                 onUploadEvidence={() => setUploadWizardOpen(true)}
                 enabledFrameworks={organization?.enabledFrameworks}
             />

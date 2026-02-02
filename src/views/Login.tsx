@@ -105,8 +105,16 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
         }
     };
 
+    useEffect(() => {
+        // Prevent body scroll to avoid double scrollbars
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, []);
+
     return (
-        <AuroraBackground className="min-h-screen py-4 sm:py-0 px-4 flex flex-col bg-background text-foreground relative font-sans selection:bg-primary/30 selection:text-primary">
+        <AuroraBackground className="h-[100dvh] overflow-y-auto overflow-x-hidden py-4 sm:py-0 px-4 flex flex-col bg-background text-foreground relative font-sans selection:bg-primary/30 selection:text-primary">
             <div className="absolute top-4 right-4 z-modal">
                 <ThemeToggle />
             </div>

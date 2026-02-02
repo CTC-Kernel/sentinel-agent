@@ -4,7 +4,7 @@ import { Button } from '../../ui/button';
 import { CustomSelect } from '../../ui/CustomSelect';
 import { Skeleton } from '../../ui/Skeleton';
 import { ConfirmModal } from '../../ui/ConfirmModal';
-import { FileText, Paperclip, ExternalLink, X, Upload, Loader2 } from '../../ui/Icons';
+import { FileText, Paperclip, ExternalLink, X, Upload, Loader2, Check, ShieldCheck } from '../../ui/Icons';
 import { EmptyState } from '../../ui/EmptyState';
 import { formatDate } from '@/utils/date';
 import { useLocale } from '@/hooks/useLocale';
@@ -18,6 +18,7 @@ interface ComplianceEvidenceProps {
         handleLinkDocument: (c: Control, did: string) => Promise<void>;
         handleUnlinkDocument: (c: Control, did: string) => Promise<void>;
         onUploadEvidence: (c: Control) => void;
+        onValidateEvidence?: (did: string, action: 'approuver' | 'rejeter') => Promise<boolean>;
     };
 }
 
@@ -28,9 +29,10 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
     handlers
 }) => {
     const { t } = useLocale();
-    const { updating, handleLinkDocument, handleUnlinkDocument, onUploadEvidence } = handlers;
+    const { updating, handleLinkDocument, handleUnlinkDocument, onUploadEvidence, onValidateEvidence } = handlers;
     const [unlinkTarget, setUnlinkTarget] = useState<string | null>(null);
     const [linkingDocId, setLinkingDocId] = useState<string | null>(null);
+    const [validatingDocId, setValidatingDocId] = useState<string | null>(null);
 
     // Safe array access
     const safeDocuments = documents ?? [];
@@ -49,6 +51,17 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
             await handleLinkDocument(control, docId);
         } finally {
             setLinkingDocId(null);
+        }
+    };
+
+    const handleValidate = async (docId: string) => {
+        if (onValidateEvidence) {
+            setValidatingDocId(docId);
+            try {
+                await onValidateEvidence(docId, 'approuver');
+            } finally {
+                setValidatingDocId(null);
+            }
         }
     };
 
@@ -86,16 +99,38 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
                     {control.evidenceIds?.map(docId => {
                         const doc = safeDocuments.find(d => d.id === docId);
                         if (!doc) return null;
+                        const isValidated = doc.status === 'Approuvé';
+                        const isValidating = validatingDocId === docId;
+
                         return (
                             <div key={docId || 'unknown'} className="flex items-center p-3 bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl hover:shadow-md transition-all">
-                                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg mr-3">
-                                    <FileText className="h-5 w-5" />
+                                <div className={`p-2 rounded-lg mr-3 ${isValidated ? 'bg-success-bg text-success-text' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'}`}>
+                                    {isValidated ? <ShieldCheck className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">{doc.title}</h4>
-                                    <p className="text-xs text-slate-500">{formatDate(doc.createdAt)}</p>
+                                    <div className="flex items-center gap-2">
+                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">{doc.title}</h4>
+                                        {isValidated && (
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-success-bg text-success-text border border-success-border/30">
+                                                <Check className="h-3 w-3 mr-1" />
+                                                Validé
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-slate-500">{formatDate(doc.createdAt)} • {doc.owner}</p>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 items-center">
+                                    {!isValidated && onValidateEvidence && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleValidate(docId)}
+                                            disabled={isValidating || updating}
+                                            className="text-xs font-bold text-brand-600 hover:text-brand-700 hover:bg-brand-50"
+                                        >
+                                            {isValidating ? <Loader2 className="h-3 w-3 animate-spin" /> : "Valider"}
+                                        </Button>
+                                    )}
                                     <a href={doc.url} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-500 dark:text-slate-300 hover:text-brand-600 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors">
                                         <ExternalLink className="h-4 w-4" />
                                     </a>

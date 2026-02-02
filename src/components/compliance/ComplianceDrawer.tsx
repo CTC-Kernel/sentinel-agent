@@ -1,4 +1,5 @@
 import React from 'react';
+// Force IDE re-index
 import { useStore } from '../../store';
 import { Drawer } from '../ui/Drawer';
 import { InspectorLayout } from '../ui/InspectorLayout';
@@ -30,6 +31,7 @@ interface ComplianceActions {
     createRisk: (riskData: Record<string, unknown>) => Promise<string | null>;
     createAudit: (auditData: Record<string, unknown>) => Promise<string | null>;
     updateControl: (controlId: string, updates: Partial<Control>, successMessage?: string, skipValidation?: boolean) => Promise<boolean>;
+    onValidateEvidence?: (documentId: string, action: 'approuver' | 'rejeter') => Promise<boolean>;
 }
 
 interface ComplianceDrawerProps {

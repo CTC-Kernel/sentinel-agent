@@ -41,6 +41,7 @@ interface ComplianceInspectorProps {
         onUploadEvidence: (c: Control) => void;
         handleMapFramework?: (c: Control, f: Framework) => Promise<void>;
         handleUnmapFramework?: (c: Control, f: Framework) => Promise<void>;
+        onValidateEvidence?: (did: string, action: 'approuver' | 'rejeter') => Promise<boolean>;
     };
     onDirtyChange?: (isDirty: boolean) => void;
 }

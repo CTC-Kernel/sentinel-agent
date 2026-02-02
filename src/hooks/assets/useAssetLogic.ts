@@ -213,6 +213,10 @@ export const useAssetLogic = (enabled = true) => {
         return await DependencyService.checkAssetDependencies(assetId, user.organizationId);
     };
 
+    // Check if we hit the hard limit of the query
+    const limitReached = useMemo(() => {
+        return (assets?.length || 0) >= 1000;
+    }, [assets]);
 
     return {
         assets,
@@ -224,6 +228,7 @@ export const useAssetLogic = (enabled = true) => {
         bulkDeleteAssets,
         checkDependencies,
         isSubmitting,
-        refreshAssets
+        refreshAssets,
+        limitReached // New flag for UI
     };
 };

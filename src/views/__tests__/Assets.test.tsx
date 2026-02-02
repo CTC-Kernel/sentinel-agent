@@ -32,12 +32,12 @@ const mockStoreInstance = {
     user: { organizationId: 'test-org', role: 'admin' },
     addToast: vi.fn(),
     demoMode: false,
-    t: (k: string) => k,
+    t: (k: string, opts?: { defaultValue?: string }) => opts?.defaultValue || k,
     getState: () => ({
         user: { organizationId: 'test-org', role: 'admin' },
         addToast: vi.fn(),
         demoMode: false,
-        t: (k: string) => k,
+        t: (k: string, opts?: { defaultValue?: string }) => opts?.defaultValue || k,
     })
 };
 
@@ -154,6 +154,10 @@ vi.mock('../../components/assets/AssetDashboard', () => ({
     AssetDashboard: () => <div data-testid="asset-dashboard" />
 }));
 
+vi.mock('../../components/settings/EnrollAgentModal', () => ({
+    EnrollAgentModal: () => <div data-testid="enroll-agent-modal" />
+}));
+
 describe('Assets View', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -229,5 +233,14 @@ describe('Assets View', () => {
             </AuthProvider>
         );
         expect(screen.getByText('Test Laptop')).toBeInTheDocument();
+    });
+
+    it('renders the Install Agent button', () => {
+        render(
+            <AuthProvider>
+                <Assets />
+            </AuthProvider>
+        );
+        expect(screen.getByText('Installer Agent')).toBeInTheDocument();
     });
 });

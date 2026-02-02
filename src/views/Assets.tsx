@@ -22,7 +22,7 @@ import { AssetDashboard } from '../components/assets/AssetDashboard';
 import { useAssetLogic } from '../hooks/assets/useAssetLogic';
 import { useAuth } from '../hooks/useAuth';
 import { useAssetDependencies } from '../hooks/assets/useAssetDependencies';
-import { FileSpreadsheet, Link, Plus, Filter, HelpCircle, BrainCircuit, MoreVertical, List, LayoutGrid, Upload, LayoutDashboard } from '../components/ui/Icons';
+import { FileSpreadsheet, Link, Plus, Filter, HelpCircle, BrainCircuit, MoreVertical, List, LayoutGrid, Upload, LayoutDashboard, AlertTriangle } from '../components/ui/Icons';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { CsvParser } from '../utils/csvUtils';
@@ -35,6 +35,11 @@ import { Menu, Transition } from '@headlessui/react';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { AnimatePresence } from 'framer-motion';
+import { EnrollAgentModal } from '../components/settings/EnrollAgentModal';
+import { AgentService } from '../services/AgentService';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase';
+import { Server } from 'lucide-react';
 
 const Assets: React.FC = () => {
     const { user, t } = useStore();
@@ -51,9 +56,16 @@ const Assets: React.FC = () => {
     const [importModalOpen, setImportModalOpen] = useState(false);
     const pendingSelectId = useRef<string | null>(null);
 
+    // Agent Enrollment State
+    const [showEnrollment, setShowEnrollment] = useState(false);
+    const [enrollmentToken, setEnrollmentToken] = useState<string | null>(null);
+    const [releaseInfo, setReleaseInfo] = useState<any | null>(null);
+    const [loadingReleases, setLoadingReleases] = useState(false);
+    const [generatingToken, setGeneratingToken] = useState(false);
+
     // Dependencies and Loading Logic...
     // (Preserve existing lines 48-58)
-    const { assets, loading: assetsLoading, createAsset, updateAsset, deleteAsset, bulkDeleteAssets, checkDependencies } = useAssetLogic(claimsSynced);
+    const { assets, loading: assetsLoading, createAsset, updateAsset, deleteAsset, bulkDeleteAssets, checkDependencies, limitReached } = useAssetLogic(claimsSynced);
     const shouldLoadDependencies = inspectorOpen || importModalOpen;
     const { usersList, suppliers, processes, loading: depsLoading } = useAssetDependencies({
         fetchUsers: (shouldLoadDependencies || viewMode === 'list') && claimsSynced,
@@ -351,6 +363,38 @@ const Assets: React.FC = () => {
         ImportService.downloadAssetTemplate(t);
     }, [t]);
 
+    const handleOpenEnrollment = React.useCallback(async () => {
+        if (!user?.organizationId) return;
+
+        setShowEnrollment(true);
+
+        // Fetch releases if not loaded
+        if (!releaseInfo) {
+            setLoadingReleases(true);
+            try {
+                const getReleaseInfo = httpsCallable<{ product: string }, any>(functions, 'getReleaseInfo');
+                const result = await getReleaseInfo({ product: 'agent' });
+                setReleaseInfo(result.data);
+            } catch (error) {
+                console.error('Failed to fetch releases', error);
+                // Fallback handled by modal or empty state, but let's set a default or just stop loading
+            } finally {
+                setLoadingReleases(false);
+            }
+        }
+
+        // Generate token
+        setGeneratingToken(true);
+        try {
+            const result = await AgentService.generateEnrollmentToken(user.organizationId);
+            setEnrollmentToken(result.token || null);
+        } catch (error) {
+            toast.error(t('agents.tokenGenerationFailed') || "Erreur lors de la génération du token");
+        } finally {
+            setGeneratingToken(false);
+        }
+    }, [user?.organizationId, releaseInfo, t]);
+
     const tabs = [
         { id: 'overview', label: t('common.overview'), icon: LayoutDashboard },
         { id: 'assets', label: t('assets.title'), icon: List, count: assets.length }
@@ -415,6 +459,15 @@ const Assets: React.FC = () => {
                                     </Button>
                                 </div>
                             )}
+
+                            {limitReached && !reachedAssetLimit && (
+                                <div className="mb-4 rounded-4xl border border-info/30 bg-info/10 text-info px-4 py-3 text-sm font-semibold flex items-center gap-3 backdrop-blur-md shadow-lg shadow-info/10">
+                                    <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+                                    <span>
+                                        {t('assets.displayLimitReached', { defaultValue: "Affichage limité aux 1000 premiers actifs. Utilisez la recherche pour affiner les résultats." })}
+                                    </span>
+                                </div>
+                            )}
                             <AssetDashboard
                                 assets={filteredAssets}
                                 onFilterChange={handleFilterChange}
@@ -476,6 +529,21 @@ const Assets: React.FC = () => {
                                                 <Filter className="h-5 w-5" />
                                             </Button>
                                             <div className="h-6 w-px bg-border mx-1" />
+
+                                            {canEdit && (
+                                                <CustomTooltip content={t('assets.installAgent', { defaultValue: 'Installer un Agent' })}>
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={handleOpenEnrollment}
+                                                        disabled={generatingToken}
+                                                        isLoading={generatingToken}
+                                                        className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-muted/50 transition-all shadow-sm text-slate-600 dark:text-slate-300"
+                                                    >
+                                                        <Server className="h-4 w-4 mr-2" />
+                                                        <span className="hidden xl:inline">{t('assets.installAgent', { defaultValue: 'Installer Agent' })}</span>
+                                                    </Button>
+                                                </CustomTooltip>
+                                            )}
 
                                             {canEdit && (
                                                 <CustomTooltip content={t('assets.createAsset')}>
@@ -643,6 +711,14 @@ const Assets: React.FC = () => {
 
                 />
             </div >
+
+            <EnrollAgentModal
+                isOpen={showEnrollment}
+                onClose={() => setShowEnrollment(false)}
+                enrollmentToken={enrollmentToken}
+                releaseInfo={releaseInfo}
+                loadingReleases={loadingReleases}
+            />
         </motion.div >
     );
 };
