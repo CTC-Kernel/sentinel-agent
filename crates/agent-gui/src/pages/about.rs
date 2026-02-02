@@ -71,43 +71,49 @@ impl AboutPage {
         ui.horizontal_top(|ui| {
             ui.spacing_mut().item_spacing.x = col_gap;
             ui.vertical(|ui| {
-            ui.set_width(col_w);
-            // System info
-            widgets::card(ui, |ui| {
-                ui.label(
-                    egui::RichText::new("SYST\u{00c8}ME")
-                        .font(theme::font_small())
-                        .color(theme::text_tertiary())
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE_MD);
+                ui.set_width(col_w);
+                // System info
+                widgets::card(ui, |ui| {
+                    ui.label(
+                        egui::RichText::new("SYST\u{00c8}ME")
+                            .font(theme::font_small())
+                            .color(theme::text_tertiary())
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE_MD);
 
-                Self::info_row(ui, "OS", &format!(
-                    "{} {}",
-                    std::env::consts::OS,
-                    std::env::consts::ARCH
-                ), icons::ARROW_RIGHT);
-                Self::info_row(ui, "Runtime", "Rust v1.80+", icons::ARROW_RIGHT);
-                Self::info_row(ui, "Package", env!("CARGO_PKG_VERSION"), icons::ARROW_RIGHT);
-            });
+                    Self::info_row(
+                        ui,
+                        "OS",
+                        &format!("{} {}", std::env::consts::OS, std::env::consts::ARCH),
+                        icons::ARROW_RIGHT,
+                    );
+                    Self::info_row(ui, "Runtime", "Rust v1.80+", icons::ARROW_RIGHT);
+                    Self::info_row(ui, "Package", env!("CARGO_PKG_VERSION"), icons::ARROW_RIGHT);
+                });
             }); // end left vertical
 
             // Links
             ui.vertical(|ui| {
-            ui.set_width(col_w);
-            widgets::card(ui, |ui| {
-                ui.label(
-                    egui::RichText::new("RESSOURCES")
-                        .font(theme::font_small())
-                        .color(theme::text_tertiary())
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE_MD);
+                ui.set_width(col_w);
+                widgets::card(ui, |ui| {
+                    ui.label(
+                        egui::RichText::new("RESSOURCES")
+                            .font(theme::font_small())
+                            .color(theme::text_tertiary())
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE_MD);
 
-                Self::link_row(ui, "Site officiel", branding::WEBSITE, icons::ARROW_RIGHT);
-                Self::link_row(ui, "Documentation", branding::GUIDE, icons::ARROW_RIGHT);
-                Self::link_row(ui, "Support", &format!("mailto:{}", branding::EMAIL), icons::ARROW_RIGHT);
-            });
+                    Self::link_row(ui, "Site officiel", branding::WEBSITE, icons::ARROW_RIGHT);
+                    Self::link_row(ui, "Documentation", branding::GUIDE, icons::ARROW_RIGHT);
+                    Self::link_row(
+                        ui,
+                        "Support",
+                        &format!("mailto:{}", branding::EMAIL),
+                        icons::ARROW_RIGHT,
+                    );
+                });
             }); // end right vertical
         });
 
@@ -139,14 +145,18 @@ impl AboutPage {
                 .color(theme::text_tertiary()),
             );
         });
-        
+
         ui.add_space(theme::SPACE_XL);
     }
 
     fn info_row(ui: &mut Ui, label: &str, value: &str, icon: &str) {
         ui.horizontal(|ui| {
             ui.set_min_height(28.0);
-            ui.label(egui::RichText::new(icon).color(theme::text_tertiary()).strong());
+            ui.label(
+                egui::RichText::new(icon)
+                    .color(theme::text_tertiary())
+                    .strong(),
+            );
             ui.add_space(4.0);
             ui.label(
                 egui::RichText::new(label)
@@ -167,7 +177,11 @@ impl AboutPage {
     fn link_row(ui: &mut Ui, label: &str, url: &str, icon: &str) {
         ui.horizontal(|ui| {
             ui.set_min_height(28.0);
-            ui.label(egui::RichText::new(icon).color(theme::text_tertiary()).strong());
+            ui.label(
+                egui::RichText::new(icon)
+                    .color(theme::text_tertiary())
+                    .strong(),
+            );
             ui.add_space(4.0);
             ui.label(
                 egui::RichText::new(label)

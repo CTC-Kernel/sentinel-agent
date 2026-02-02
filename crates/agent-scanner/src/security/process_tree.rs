@@ -54,29 +54,60 @@ pub struct SuspiciousProcessEvent {
 const SUSPICIOUS_PATTERNS: &[(&str, &str, u8)] = &[
     // (pattern, reason, confidence)
     ("powershell.*-enc", "Encoded PowerShell command", 85),
-    ("powershell.*-e ", "Encoded PowerShell command (short flag)", 80),
-    ("powershell.*downloadstring", "PowerShell download execution", 90),
-    ("powershell.*invoke-webrequest", "PowerShell web request", 70),
+    (
+        "powershell.*-e ",
+        "Encoded PowerShell command (short flag)",
+        80,
+    ),
+    (
+        "powershell.*downloadstring",
+        "PowerShell download execution",
+        90,
+    ),
+    (
+        "powershell.*invoke-webrequest",
+        "PowerShell web request",
+        70,
+    ),
     ("cmd.*/c.*curl.*|.*bash", "Download and execute chain", 90),
     ("cmd.*/c.*wget.*|.*sh", "Download and execute chain", 90),
     ("python.*-c.*import.*socket", "Python reverse shell", 85),
-    ("python.*-c.*import.*subprocess", "Python subprocess execution", 60),
+    (
+        "python.*-c.*import.*subprocess",
+        "Python subprocess execution",
+        60,
+    ),
     ("bash.*-i.*>&.*/dev/tcp", "Bash reverse shell", 95),
     ("nc.*-e.*/bin", "Netcat reverse shell", 95),
     ("curl.*|.*bash", "Curl pipe to bash", 80),
     ("wget.*|.*sh", "Wget pipe to shell", 80),
     ("/tmp/.*&&.*chmod.*+x", "Temp directory execute", 75),
-    ("certutil.*-urlcache", "Certutil download (Windows LOLBin)", 85),
+    (
+        "certutil.*-urlcache",
+        "Certutil download (Windows LOLBin)",
+        85,
+    ),
     ("mshta.*http", "MSHTA remote execution", 90),
-    ("regsvr32.*/s.*/n.*/u.*scrobj", "Regsvr32 script execution", 90),
+    (
+        "regsvr32.*/s.*/n.*/u.*scrobj",
+        "Regsvr32 script execution",
+        90,
+    ),
     ("bitsadmin.*transfer", "BITSAdmin download", 75),
 ];
 
 /// Office application names (for detecting macro execution).
 const OFFICE_APPS: &[&str] = &[
-    "winword", "excel", "powerpnt", "outlook", "msaccess",
-    "WINWORD.EXE", "EXCEL.EXE", "POWERPNT.EXE",
-    "libreoffice", "soffice",
+    "winword",
+    "excel",
+    "powerpnt",
+    "outlook",
+    "msaccess",
+    "WINWORD.EXE",
+    "EXCEL.EXE",
+    "POWERPNT.EXE",
+    "libreoffice",
+    "soffice",
 ];
 
 /// Process tree analyzer.
@@ -171,9 +202,7 @@ impl ProcessTreeAnalyzer {
                 .map(|s| s.to_string_lossy())
                 .collect::<Vec<_>>()
                 .join(" ");
-            let exe = process
-                .exe()
-                .map(|p| p.to_string_lossy().to_string());
+            let exe = process.exe().map(|p| p.to_string_lossy().to_string());
 
             let parent_pid = process.parent().map(|p| p.as_u32());
 

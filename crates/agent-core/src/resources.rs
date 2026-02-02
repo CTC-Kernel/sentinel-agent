@@ -32,8 +32,8 @@ impl Default for ResourceLimits {
     fn default() -> Self {
         Self {
             // egui render loop + OpenGL poll uses 5-12% CPU on macOS even when idle
-            max_cpu_idle: 15.0,                  // 15% idle (egui+OpenGL render loop headroom)
-            max_cpu_active: 25.0,                // 25% during active scans
+            max_cpu_idle: 15.0,   // 15% idle (egui+OpenGL render loop headroom)
+            max_cpu_active: 25.0, // 25% during active scans
             max_memory_bytes: 300 * 1024 * 1024, // 300 MB (egui+OpenGL context needs ~200MB)
             max_disk_iops: 50,
             max_startup_ms: 10000, // 10 seconds
@@ -317,9 +317,7 @@ pub struct AdaptiveScheduler {
 impl AdaptiveScheduler {
     /// Create a new adaptive scheduler with the given base interval.
     pub fn new(base_interval_secs: u64) -> Self {
-        Self {
-            base_interval_secs,
-        }
+        Self { base_interval_secs }
     }
 
     /// Get the adjusted scan interval based on current battery state.
@@ -378,11 +376,16 @@ fn get_battery_state() -> BatteryState {
 
     for battery in batteries.flatten() {
         if battery.state() == battery::State::Discharging {
-            let pct = battery.state_of_charge().get::<battery::units::ratio::percent>();
+            let pct = battery
+                .state_of_charge()
+                .get::<battery::units::ratio::percent>();
             return BatteryState::Discharging(pct as f64);
         }
         // If any battery is charging or full, we're on AC
-        if matches!(battery.state(), battery::State::Charging | battery::State::Full) {
+        if matches!(
+            battery.state(),
+            battery::State::Charging | battery::State::Full
+        ) {
             return BatteryState::AcPower;
         }
     }
@@ -405,8 +408,8 @@ impl ResourceGuardian {
     /// Create a new resource guardian with default budgets.
     pub fn new() -> Self {
         Self {
-            cpu_budget_percent: 5.0,   // 5% CPU max
-            memory_budget_mb: 150,      // 150 MB max
+            cpu_budget_percent: 5.0, // 5% CPU max
+            memory_budget_mb: 150,   // 150 MB max
             throttle_active: std::sync::atomic::AtomicBool::new(false),
         }
     }
@@ -422,7 +425,8 @@ impl ResourceGuardian {
 
     /// Check if throttling should be active.
     pub fn should_throttle(&self) -> bool {
-        self.throttle_active.load(std::sync::atomic::Ordering::Acquire)
+        self.throttle_active
+            .load(std::sync::atomic::Ordering::Acquire)
     }
 
     /// Check current resource usage and enforce budgets.
@@ -431,18 +435,20 @@ impl ResourceGuardian {
         let memory_mb = memory_bytes / (1024 * 1024);
         let cpu_pct = get_cpu_usage();
 
-        let over_budget = cpu_pct > self.cpu_budget_percent as f64
-            || memory_mb > self.memory_budget_mb;
+        let over_budget =
+            cpu_pct > self.cpu_budget_percent as f64 || memory_mb > self.memory_budget_mb;
 
         if over_budget && !self.should_throttle() {
             warn!(
                 "Resource guardian: agent over budget (CPU: {:.1}%/{:.1}%, MEM: {}MB/{}MB). Throttling.",
                 cpu_pct, self.cpu_budget_percent, memory_mb, self.memory_budget_mb
             );
-            self.throttle_active.store(true, std::sync::atomic::Ordering::Release);
+            self.throttle_active
+                .store(true, std::sync::atomic::Ordering::Release);
         } else if !over_budget && self.should_throttle() {
             info!("Resource guardian: back within budget. Releasing throttle.");
-            self.throttle_active.store(false, std::sync::atomic::Ordering::Release);
+            self.throttle_active
+                .store(false, std::sync::atomic::Ordering::Release);
         }
     }
 
@@ -588,13 +594,19 @@ fn get_system_memory() -> (u64, u64) {
         let mut available = 0u64;
         for line in content.lines() {
             if line.starts_with("MemTotal:") {
-                total = line.split_whitespace().nth(1)
+                total = line
+                    .split_whitespace()
+                    .nth(1)
                     .and_then(|v| v.parse::<u64>().ok())
-                    .unwrap_or(0) * 1024; // kB to bytes
+                    .unwrap_or(0)
+                    * 1024; // kB to bytes
             } else if line.starts_with("MemAvailable:") {
-                available = line.split_whitespace().nth(1)
+                available = line
+                    .split_whitespace()
+                    .nth(1)
                     .and_then(|v| v.parse::<u64>().ok())
-                    .unwrap_or(0) * 1024;
+                    .unwrap_or(0)
+                    * 1024;
             }
         }
         let used = total.saturating_sub(available);

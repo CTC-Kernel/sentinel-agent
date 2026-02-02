@@ -57,7 +57,8 @@ pub fn validate_policy(policy: &FimPolicy) -> Vec<String> {
     }
 
     if policy.debounce_ms < 100 {
-        warnings.push("Debounce interval is very low (<100ms), may cause high CPU usage".to_string());
+        warnings
+            .push("Debounce interval is very low (<100ms), may cause high CPU usage".to_string());
     }
 
     warnings

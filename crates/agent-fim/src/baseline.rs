@@ -94,10 +94,7 @@ impl BaselineManager {
 
     /// Remove a path from the baseline (e.g., when file is deleted).
     pub fn remove(&self, path: &Path) -> Option<FimBaseline> {
-        self.baselines
-            .write()
-            .ok()
-            .and_then(|mut b| b.remove(path))
+        self.baselines.write().ok().and_then(|mut b| b.remove(path))
     }
 
     /// Get the total number of baselined files.

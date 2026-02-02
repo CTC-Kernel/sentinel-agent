@@ -1,11 +1,11 @@
 //! Network Discovery page -- scan, discover, and propose assets.
 
-use egui::Ui;
-use egui_extras::{Column, TableBuilder};
 use crate::app::AppState;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
+use egui::Ui;
+use egui_extras::{Column, TableBuilder};
 
 pub struct DiscoveryPage;
 
@@ -59,10 +59,8 @@ impl DiscoveryPage {
                     ui.add_space(theme::SPACE_SM);
                     let progress = state.discovery_progress;
                     let bar_width = 200.0;
-                    let (bar_rect, _) = ui.allocate_exact_size(
-                        egui::Vec2::new(bar_width, 6.0),
-                        egui::Sense::hover(),
-                    );
+                    let (bar_rect, _) = ui
+                        .allocate_exact_size(egui::Vec2::new(bar_width, 6.0), egui::Sense::hover());
                     if ui.is_rect_visible(bar_rect) {
                         ui.painter().rect_filled(
                             bar_rect,
@@ -188,20 +186,38 @@ impl DiscoveryPage {
 
                 table
                     .header(28.0, |mut header| {
-                        header.col(|ui| { ui.strong("IP"); });
-                        header.col(|ui| { ui.strong("HOSTNAME"); });
-                        header.col(|ui| { ui.strong("MAC"); });
-                        header.col(|ui| { ui.strong("VENDOR"); });
-                        header.col(|ui| { ui.strong("TYPE"); });
-                        header.col(|ui| { ui.strong("PORTS"); });
-                        header.col(|ui| { ui.strong("ACTIONS"); });
+                        header.col(|ui| {
+                            ui.strong("IP");
+                        });
+                        header.col(|ui| {
+                            ui.strong("HOSTNAME");
+                        });
+                        header.col(|ui| {
+                            ui.strong("MAC");
+                        });
+                        header.col(|ui| {
+                            ui.strong("VENDOR");
+                        });
+                        header.col(|ui| {
+                            ui.strong("TYPE");
+                        });
+                        header.col(|ui| {
+                            ui.strong("PORTS");
+                        });
+                        header.col(|ui| {
+                            ui.strong("ACTIONS");
+                        });
                     })
                     .body(|body| {
                         body.rows(32.0, filtered.len(), |mut row| {
                             let device = &state.discovered_devices[filtered[row.index()]];
 
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(&device.ip).font(theme::font_mono()).color(theme::text_primary()));
+                                ui.label(
+                                    egui::RichText::new(&device.ip)
+                                        .font(theme::font_mono())
+                                        .color(theme::text_primary()),
+                                );
                             });
                             row.col(|ui| {
                                 let text = device.hostname.as_deref().unwrap_or("-");
@@ -209,7 +225,11 @@ impl DiscoveryPage {
                             });
                             row.col(|ui| {
                                 let text = device.mac.as_deref().unwrap_or("-");
-                                ui.label(egui::RichText::new(text).font(theme::font_mono()).color(theme::text_tertiary()));
+                                ui.label(
+                                    egui::RichText::new(text)
+                                        .font(theme::font_mono())
+                                        .color(theme::text_tertiary()),
+                                );
                             });
                             row.col(|ui| {
                                 let text = device.vendor.as_deref().unwrap_or("Inconnu");
@@ -217,19 +237,33 @@ impl DiscoveryPage {
                             });
                             row.col(|ui| {
                                 let (label, color) = device_type_badge(&device.device_type);
-                                let badge = egui::Button::new(egui::RichText::new(label).font(theme::font_small()).color(color))
-                                    .fill(color.linear_multiply(0.15))
-                                    .corner_radius(egui::CornerRadius::same(4))
-                                    .sense(egui::Sense::hover());
+                                let badge = egui::Button::new(
+                                    egui::RichText::new(label)
+                                        .font(theme::font_small())
+                                        .color(color),
+                                )
+                                .fill(color.linear_multiply(0.15))
+                                .corner_radius(egui::CornerRadius::same(4))
+                                .sense(egui::Sense::hover());
                                 ui.add(badge);
                             });
                             row.col(|ui| {
                                 let ports_str = if device.open_ports.is_empty() {
                                     "-".to_string()
                                 } else {
-                                    device.open_ports.iter().take(4).map(|p| p.to_string()).collect::<Vec<_>>().join(", ")
+                                    device
+                                        .open_ports
+                                        .iter()
+                                        .take(4)
+                                        .map(|p| p.to_string())
+                                        .collect::<Vec<_>>()
+                                        .join(", ")
                                 };
-                                ui.label(egui::RichText::new(&ports_str).font(theme::font_mono()).color(theme::text_tertiary()));
+                                ui.label(
+                                    egui::RichText::new(&ports_str)
+                                        .font(theme::font_mono())
+                                        .color(theme::text_tertiary()),
+                                );
                             });
                             row.col(|ui| {
                                 let propose_btn = egui::Button::new(
@@ -269,7 +303,11 @@ impl DiscoveryPage {
                     d.mac.clone().unwrap_or_default(),
                     d.vendor.clone().unwrap_or_default(),
                     d.device_type.clone(),
-                    d.open_ports.iter().map(|p| p.to_string()).collect::<Vec<_>>().join(", "),
+                    d.open_ports
+                        .iter()
+                        .map(|p| p.to_string())
+                        .collect::<Vec<_>>()
+                        .join(", "),
                 ]
             })
             .collect();

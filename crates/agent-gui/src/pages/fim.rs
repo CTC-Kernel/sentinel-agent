@@ -24,11 +24,7 @@ impl FimPage {
         // ── Summary cards row ───────────────────────────────────────────
         let monitored = state.fim_monitored_count;
         let changes_today = state.fim_changes_today;
-        let active_alerts = state
-            .fim_alerts
-            .iter()
-            .filter(|a| !a.acknowledged)
-            .count();
+        let active_alerts = state.fim_alerts.iter().filter(|a| !a.acknowledged).count();
 
         let card_gap = theme::SPACE_SM;
         let card_w = (ui.available_width() - card_gap * 2.0) / 3.0;
@@ -48,7 +44,11 @@ impl FimPage {
                 card_w,
                 "MODIFICATIONS AUJOURD\u{2019}HUI",
                 &changes_today.to_string(),
-                if changes_today > 0 { theme::WARNING } else { theme::text_tertiary() },
+                if changes_today > 0 {
+                    theme::WARNING
+                } else {
+                    theme::text_tertiary()
+                },
                 icons::CLOCK,
             );
             Self::summary_card(
@@ -56,7 +56,11 @@ impl FimPage {
                 card_w,
                 "ALERTES ACTIVES",
                 &active_alerts.to_string(),
-                if active_alerts > 0 { theme::ERROR } else { theme::text_tertiary() },
+                if active_alerts > 0 {
+                    theme::ERROR
+                } else {
+                    theme::text_tertiary()
+                },
                 icons::WARNING,
             );
         });
@@ -76,11 +80,8 @@ impl FimPage {
             .enumerate()
             .filter(|(_, a)| {
                 if !search_lower.is_empty() {
-                    let haystack = format!(
-                        "{} {}",
-                        a.path.to_lowercase(),
-                        a.change_type.to_lowercase(),
-                    );
+                    let haystack =
+                        format!("{} {}", a.path.to_lowercase(), a.change_type.to_lowercase(),);
                     if !haystack.contains(&search_lower) {
                         return false;
                     }
@@ -139,7 +140,9 @@ impl FimPage {
                     ui,
                     "\u{f15b}",
                     "Aucun \u{00e9}v\u{00e9}nement",
-                    Some("La surveillance FIM n\u{2019}a d\u{00e9}tect\u{00e9} aucune modification."),
+                    Some(
+                        "La surveillance FIM n\u{2019}a d\u{00e9}tect\u{00e9} aucune modification.",
+                    ),
                 );
             } else {
                 use egui_extras::{Column, TableBuilder};
@@ -148,17 +151,25 @@ impl FimPage {
                     .striped(true)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(140.0).at_least(100.0))   // Timestamp
-                    .column(Column::remainder().at_least(180.0))      // File path
-                    .column(Column::initial(120.0).at_least(90.0))    // Change type
-                    .column(Column::initial(100.0).at_least(80.0));   // Action
+                    .column(Column::initial(140.0).at_least(100.0)) // Timestamp
+                    .column(Column::remainder().at_least(180.0)) // File path
+                    .column(Column::initial(120.0).at_least(90.0)) // Change type
+                    .column(Column::initial(100.0).at_least(80.0)); // Action
 
                 table
                     .header(28.0, |mut header| {
-                        header.col(|ui| { ui.strong("HORODATAGE"); });
-                        header.col(|ui| { ui.strong("FICHIER"); });
-                        header.col(|ui| { ui.strong("TYPE"); });
-                        header.col(|ui| { ui.strong("ACTION"); });
+                        header.col(|ui| {
+                            ui.strong("HORODATAGE");
+                        });
+                        header.col(|ui| {
+                            ui.strong("FICHIER");
+                        });
+                        header.col(|ui| {
+                            ui.strong("TYPE");
+                        });
+                        header.col(|ui| {
+                            ui.strong("ACTION");
+                        });
                     })
                     .body(|body| {
                         body.rows(44.0, filtered.len(), |mut row| {
@@ -189,7 +200,8 @@ impl FimPage {
                                     egui::RichText::new(format!("\u{f15b}  {}", display_path))
                                         .font(theme::font_body())
                                         .color(theme::text_primary()),
-                                ).on_hover_text(path);
+                                )
+                                .on_hover_text(path);
                             });
 
                             // Change type badge
@@ -204,9 +216,12 @@ impl FimPage {
                                 let alert = &state.fim_alerts[idx];
                                 if alert.acknowledged {
                                     ui.label(
-                                        egui::RichText::new(format!("{}  Acquitt\u{00e9}", icons::CIRCLE_CHECK))
-                                            .font(theme::font_small())
-                                            .color(theme::text_tertiary()),
+                                        egui::RichText::new(format!(
+                                            "{}  Acquitt\u{00e9}",
+                                            icons::CIRCLE_CHECK
+                                        ))
+                                        .font(theme::font_small())
+                                        .color(theme::text_tertiary()),
                                     );
                                 } else {
                                     let btn = egui::Button::new(
@@ -216,11 +231,14 @@ impl FimPage {
                                             .strong(),
                                     )
                                     .fill(theme::ACCENT)
-                                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                                    .corner_radius(
+                                        egui::CornerRadius::same(theme::BUTTON_ROUNDING),
+                                    );
                                     if ui.add(btn).clicked() {
                                         let alert_id = state.fim_alerts[idx].id.clone();
                                         state.fim_alerts[idx].acknowledged = true;
-                                        command = Some(GuiCommand::AcknowledgeFimAlert { alert_id });
+                                        command =
+                                            Some(GuiCommand::AcknowledgeFimAlert { alert_id });
                                     }
                                 }
                             });
@@ -249,12 +267,7 @@ impl FimPage {
             widgets::card(ui, |ui| {
                 ui.horizontal(|ui| {
                     ui.vertical(|ui| {
-                        ui.label(
-                            egui::RichText::new(value)
-                                .size(24.0)
-                                .color(color)
-                                .strong(),
-                        );
+                        ui.label(egui::RichText::new(value).size(24.0).color(color).strong());
                         ui.label(
                             egui::RichText::new(label)
                                 .font(theme::font_small())

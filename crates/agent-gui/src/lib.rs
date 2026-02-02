@@ -15,9 +15,11 @@ pub mod events;
 #[cfg(feature = "render")]
 pub mod app;
 #[cfg(feature = "render")]
-pub mod icons;
-#[cfg(feature = "render")]
 pub mod enrollment;
+#[cfg(feature = "render")]
+pub mod export;
+#[cfg(feature = "render")]
+pub mod icons;
 #[cfg(feature = "render")]
 pub mod pages;
 #[cfg(feature = "render")]
@@ -26,8 +28,6 @@ pub mod theme;
 pub mod tray_bridge;
 #[cfg(feature = "render")]
 pub mod widgets;
-#[cfg(feature = "render")]
-pub mod export;
 
 #[cfg(feature = "render")]
 pub use app::SentinelApp;

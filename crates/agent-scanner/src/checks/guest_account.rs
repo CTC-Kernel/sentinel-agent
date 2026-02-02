@@ -71,10 +71,7 @@ impl GuestAccountCheck {
             .args(["user", "Guest"])
             .output()
             .map_err(|e| {
-                ScannerError::CheckExecution(format!(
-                    "Failed to query Guest account: {}",
-                    e
-                ))
+                ScannerError::CheckExecution(format!("Failed to query Guest account: {}", e))
             })?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
@@ -94,9 +91,7 @@ impl GuestAccountCheck {
         // Parse "Account active" line
         let account_active = raw_output
             .lines()
-            .any(|line| {
-                line.contains("Account active") && line.to_lowercase().contains("yes")
-            });
+            .any(|line| line.contains("Account active") && line.to_lowercase().contains("yes"));
 
         Ok(GuestAccountStatus {
             guest_disabled: !account_active,
@@ -141,9 +136,7 @@ impl GuestAccountCheck {
         }
 
         // Check if guest account is locked via passwd -S
-        let lock_output = Command::new("passwd")
-            .args(["-S", "guest"])
-            .output();
+        let lock_output = Command::new("passwd").args(["-S", "guest"]).output();
 
         let account_locked = match lock_output {
             Ok(output) => {

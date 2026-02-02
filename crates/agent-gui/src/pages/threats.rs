@@ -36,7 +36,9 @@ impl ThreatsPage {
         widgets::page_header(
             ui,
             "Menaces",
-            Some("Vue consolid\u{00e9}e des menaces et \u{00e9}v\u{00e9}nements de s\u{00e9}curit\u{00e9}"),
+            Some(
+                "Vue consolid\u{00e9}e des menaces et \u{00e9}v\u{00e9}nements de s\u{00e9}curit\u{00e9}",
+            ),
         );
         ui.add_space(theme::SPACE_LG);
 
@@ -56,7 +58,11 @@ impl ThreatsPage {
                 card_w,
                 "PROCESSUS SUSPECTS",
                 &process_count.to_string(),
-                if process_count > 0 { theme::ERROR } else { theme::text_tertiary() },
+                if process_count > 0 {
+                    theme::ERROR
+                } else {
+                    theme::text_tertiary()
+                },
                 icons::BUG,
             );
             Self::summary_card(
@@ -64,7 +70,11 @@ impl ThreatsPage {
                 card_w,
                 "\u{00c9}V\u{00c9}NEMENTS USB",
                 &usb_count.to_string(),
-                if usb_count > 0 { theme::WARNING } else { theme::text_tertiary() },
+                if usb_count > 0 {
+                    theme::WARNING
+                } else {
+                    theme::text_tertiary()
+                },
                 icons::PLUG,
             );
             Self::summary_card(
@@ -72,7 +82,11 @@ impl ThreatsPage {
                 card_w,
                 "ALERTES FIM",
                 &fim_unack_count.to_string(),
-                if fim_unack_count > 0 { theme::WARNING } else { theme::text_tertiary() },
+                if fim_unack_count > 0 {
+                    theme::WARNING
+                } else {
+                    theme::text_tertiary()
+                },
                 icons::EYE,
             );
             Self::summary_card(
@@ -160,7 +174,9 @@ impl ThreatsPage {
                     ui,
                     icons::LOCK,
                     "Aucune menace d\u{00e9}tect\u{00e9}e",
-                    Some("Le syst\u{00e8}me ne pr\u{00e9}sente aucun \u{00e9}v\u{00e9}nement de s\u{00e9}curit\u{00e9} suspect."),
+                    Some(
+                        "Le syst\u{00e8}me ne pr\u{00e9}sente aucun \u{00e9}v\u{00e9}nement de s\u{00e9}curit\u{00e9} suspect.",
+                    ),
                 );
             } else {
                 for threat in &threats {
@@ -259,7 +275,11 @@ impl ThreatsPage {
                 description: format!(
                     "Changement d\u{00e9}tect\u{00e9} : {}{}",
                     Self::change_type_label(&f.change_type),
-                    if f.acknowledged { " (acquitt\u{00e9})" } else { "" },
+                    if f.acknowledged {
+                        " (acquitt\u{00e9})"
+                    } else {
+                        ""
+                    },
                 ),
                 timestamp: f.timestamp,
                 confidence: None,
@@ -315,11 +335,7 @@ impl ThreatsPage {
             .show(ui, |ui| {
                 ui.horizontal(|ui| {
                     // Severity icon
-                    ui.label(
-                        egui::RichText::new(sev_icon)
-                            .size(20.0)
-                            .color(sev_color),
-                    );
+                    ui.label(egui::RichText::new(sev_icon).size(20.0).color(sev_color));
 
                     ui.add_space(theme::SPACE_SM);
 
@@ -368,11 +384,7 @@ impl ThreatsPage {
                             } else {
                                 theme::INFO
                             };
-                            widgets::status_badge(
-                                ui,
-                                &format!("{}%", conf),
-                                conf_color,
-                            );
+                            widgets::status_badge(ui, &format!("{}%", conf), conf_color);
                         }
                     });
                 });
@@ -393,12 +405,7 @@ impl ThreatsPage {
             widgets::card(ui, |ui| {
                 ui.horizontal(|ui| {
                     ui.vertical(|ui| {
-                        ui.label(
-                            egui::RichText::new(value)
-                                .size(24.0)
-                                .color(color)
-                                .strong(),
-                        );
+                        ui.label(egui::RichText::new(value).size(24.0).color(color).strong());
                         ui.label(
                             egui::RichText::new(label)
                                 .font(theme::font_small())
@@ -406,16 +413,13 @@ impl ThreatsPage {
                                 .strong(),
                         );
                     });
-                    ui.with_layout(
-                        egui::Layout::right_to_left(egui::Align::Center),
-                        |ui| {
-                            ui.label(
-                                egui::RichText::new(icon)
-                                    .size(28.0)
-                                    .color(color.linear_multiply(0.4)),
-                            );
-                        },
-                    );
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.label(
+                            egui::RichText::new(icon)
+                                .size(28.0)
+                                .color(color.linear_multiply(0.4)),
+                        );
+                    });
                 });
             });
         });

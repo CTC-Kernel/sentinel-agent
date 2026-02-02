@@ -248,10 +248,7 @@ impl ApiClient {
     }
 
     /// Add authentication headers to a request builder.
-    fn authenticate(
-        &self,
-        builder: reqwest::RequestBuilder,
-    ) -> reqwest::RequestBuilder {
+    fn authenticate(&self, builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
         let mut builder = if let Some(ref cert) = self.client_certificate {
             builder.header("X-Agent-Certificate", cert)
         } else {

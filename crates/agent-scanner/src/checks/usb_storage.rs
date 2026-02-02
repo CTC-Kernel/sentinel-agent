@@ -85,10 +85,7 @@ impl UsbStorageCheck {
             ])
             .output()
             .map_err(|e| {
-                ScannerError::CheckExecution(format!(
-                    "Failed to query USBSTOR registry: {}",
-                    e
-                ))
+                ScannerError::CheckExecution(format!("Failed to query USBSTOR registry: {}", e))
             })?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
@@ -165,9 +162,7 @@ impl UsbStorageCheck {
         // Check if usb-storage module is loaded
         let lsmod_output = Command::new("lsmod")
             .output()
-            .map_err(|e| {
-                ScannerError::CheckExecution(format!("Failed to run lsmod: {}", e))
-            })?;
+            .map_err(|e| ScannerError::CheckExecution(format!("Failed to run lsmod: {}", e)))?;
 
         let lsmod_result = String::from_utf8_lossy(&lsmod_output.stdout).to_string();
         status
@@ -181,9 +176,7 @@ impl UsbStorageCheck {
         status.module_loaded = Some(module_loaded);
 
         if module_loaded {
-            status
-                .raw_output
-                .push_str("usb_storage module is loaded\n");
+            status.raw_output.push_str("usb_storage module is loaded\n");
         } else {
             status
                 .raw_output
@@ -204,8 +197,10 @@ impl UsbStorageCheck {
                                 if line_trimmed.starts_with('#') {
                                     continue;
                                 }
-                                if (line_trimmed.contains("blacklist") && line_trimmed.contains("usb-storage"))
-                                    || (line_trimmed.contains("blacklist") && line_trimmed.contains("usb_storage"))
+                                if (line_trimmed.contains("blacklist")
+                                    && line_trimmed.contains("usb-storage"))
+                                    || (line_trimmed.contains("blacklist")
+                                        && line_trimmed.contains("usb_storage"))
                                     || (line_trimmed.contains("install usb-storage /bin/true"))
                                     || (line_trimmed.contains("install usb_storage /bin/true"))
                                     || (line_trimmed.contains("install usb-storage /bin/false"))
@@ -237,9 +232,9 @@ impl UsbStorageCheck {
         }
 
         if !status.blocked {
-            status.issues.push(
-                "USB mass storage module is loaded and not blacklisted".to_string(),
-            );
+            status
+                .issues
+                .push("USB mass storage module is loaded and not blacklisted".to_string());
         }
 
         Ok(status)
@@ -281,20 +276,17 @@ impl UsbStorageCheck {
                     || combined.to_lowercase().contains("block")
                     || combined.to_lowercase().contains("disallow"));
 
-            let has_removable_media_restriction =
-                combined.to_lowercase().contains("removable")
-                    && (combined.to_lowercase().contains("restrict")
-                        || combined.to_lowercase().contains("block"));
+            let has_removable_media_restriction = combined.to_lowercase().contains("removable")
+                && (combined.to_lowercase().contains("restrict")
+                    || combined.to_lowercase().contains("block"));
 
-            let has_storage_restriction =
-                combined.to_lowercase().contains("allowexternalstorage")
-                    || combined.to_lowercase().contains("mass-storage");
+            let has_storage_restriction = combined.to_lowercase().contains("allowexternalstorage")
+                || combined.to_lowercase().contains("mass-storage");
 
             if has_usb_restriction || has_removable_media_restriction || has_storage_restriction {
                 status.blocked = true;
                 status.mdm_restricted = Some(true);
-                status.block_method =
-                    Some("MDM profile restricting USB storage".to_string());
+                status.block_method = Some("MDM profile restricting USB storage".to_string());
             } else {
                 status.mdm_restricted = Some(false);
             }
@@ -311,10 +303,9 @@ impl UsbStorageCheck {
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!(
-                "\n=== profiles list ===\n{}\n",
-                result.trim()
-            ));
+            status
+                .raw_output
+                .push_str(&format!("\n=== profiles list ===\n{}\n", result.trim()));
         }
 
         if !status.blocked {
@@ -373,10 +364,7 @@ impl Check for UsbStorageCheck {
             Ok(CheckOutput::pass(
                 format!(
                     "USB mass storage is blocked: {}",
-                    status
-                        .block_method
-                        .as_deref()
-                        .unwrap_or("policy enforced")
+                    status.block_method.as_deref().unwrap_or("policy enforced")
                 ),
                 raw_data,
             ))

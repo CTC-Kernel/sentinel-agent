@@ -20,7 +20,9 @@ impl CompliancePage {
         widgets::page_header(
             ui,
             "Conformit\u{00e9}",
-            Some("R\u{00e9}sultats des v\u{00e9}rifications de s\u{00e9}curit\u{00e9} et respect des politiques"),
+            Some(
+                "R\u{00e9}sultats des v\u{00e9}rifications de s\u{00e9}curit\u{00e9} et respect des politiques",
+            ),
         );
         ui.add_space(theme::SPACE_LG);
 
@@ -29,10 +31,38 @@ impl CompliancePage {
         let card_w = (ui.available_width() - card_gap * 3.0) / 4.0;
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = card_gap;
-            Self::summary_card(ui, card_w, "TOTAL", &state.policy.total_policies.to_string(), theme::text_primary(), icons::SQUARE);
-            Self::summary_card(ui, card_w, "CONFORME", &state.policy.passing.to_string(), theme::SUCCESS, icons::CIRCLE_CHECK);
-            Self::summary_card(ui, card_w, "NON-CONFORME", &state.policy.failing.to_string(), theme::ERROR, icons::CIRCLE_XMARK);
-            Self::summary_card(ui, card_w, "ERREURS", &state.policy.errors.to_string(), theme::WARNING, icons::WARNING);
+            Self::summary_card(
+                ui,
+                card_w,
+                "TOTAL",
+                &state.policy.total_policies.to_string(),
+                theme::text_primary(),
+                icons::SQUARE,
+            );
+            Self::summary_card(
+                ui,
+                card_w,
+                "CONFORME",
+                &state.policy.passing.to_string(),
+                theme::SUCCESS,
+                icons::CIRCLE_CHECK,
+            );
+            Self::summary_card(
+                ui,
+                card_w,
+                "NON-CONFORME",
+                &state.policy.failing.to_string(),
+                theme::ERROR,
+                icons::CIRCLE_XMARK,
+            );
+            Self::summary_card(
+                ui,
+                card_w,
+                "ERREURS",
+                &state.policy.errors.to_string(),
+                theme::WARNING,
+                icons::WARNING,
+            );
         });
 
         ui.add_space(theme::SPACE_LG);
@@ -72,12 +102,15 @@ impl CompliancePage {
 
         let result_count = filtered.len();
 
-        let toggled = widgets::SearchFilterBar::new(&mut state.compliance_search, "Rechercher (nom, cat\u{00e9}gorie, ID)...")
-            .chip("CONFORME", pass_active, theme::SUCCESS)
-            .chip("NON-CONFORME", fail_active, theme::ERROR)
-            .chip("ERREUR", err_active, theme::WARNING)
-            .result_count(result_count)
-            .show(ui);
+        let toggled = widgets::SearchFilterBar::new(
+            &mut state.compliance_search,
+            "Rechercher (nom, cat\u{00e9}gorie, ID)...",
+        )
+        .chip("CONFORME", pass_active, theme::SUCCESS)
+        .chip("NON-CONFORME", fail_active, theme::ERROR)
+        .chip("ERREUR", err_active, theme::WARNING)
+        .result_count(result_count)
+        .show(ui);
 
         if let Some(idx) = toggled {
             let target: Option<u8> = match idx {
@@ -168,7 +201,9 @@ impl CompliancePage {
                     ui,
                     icons::COMPLIANCE,
                     "Aucune v\u{00e9}rification correspondante",
-                    Some("Modifiez vos filtres ou lancez une analyse pour v\u{00e9}rifier la conformit\u{00e9}."),
+                    Some(
+                        "Modifiez vos filtres ou lancez une analyse pour v\u{00e9}rifier la conformit\u{00e9}.",
+                    ),
                 );
             } else if state.compliance_group_by == 0 {
                 // Flat table
@@ -238,7 +273,12 @@ impl CompliancePage {
         map.into_iter().collect()
     }
 
-    fn render_check_table(ui: &mut Ui, state: &AppState, indices: &[usize], pending_command: &RefCell<Option<GuiCommand>>) {
+    fn render_check_table(
+        ui: &mut Ui,
+        state: &AppState,
+        indices: &[usize],
+        pending_command: &RefCell<Option<GuiCommand>>,
+    ) {
         use egui_extras::{Column, TableBuilder};
 
         // Pre-compute expanded states
@@ -502,12 +542,7 @@ impl CompliancePage {
             widgets::card(ui, |ui| {
                 ui.horizontal(|ui| {
                     ui.vertical(|ui| {
-                        ui.label(
-                            egui::RichText::new(value)
-                                .size(24.0)
-                                .color(color)
-                                .strong(),
-                        );
+                        ui.label(egui::RichText::new(value).size(24.0).color(color).strong());
                         ui.label(
                             egui::RichText::new(label)
                                 .font(theme::font_small())
@@ -541,7 +576,9 @@ impl CompliancePage {
 
 fn remediation_hint(category: &str) -> &'static str {
     match category {
-        "encryption" => "Activez le chiffrement du disque (FileVault) dans les Preferences Systeme.",
+        "encryption" => {
+            "Activez le chiffrement du disque (FileVault) dans les Preferences Systeme."
+        }
         "firewall" => "Activez le pare-feu dans Preferences Systeme > Securite.",
         "updates" => "Installez les mises a jour en attente.",
         "antivirus" => "Verifiez que votre solution antivirus est active et a jour.",

@@ -96,7 +96,12 @@ impl TerminalPage {
                 } else {
                     0
                 };
-                Self::stat_item(ui, "\u{00c9}v./min", &epm.to_string(), theme::text_secondary());
+                Self::stat_item(
+                    ui,
+                    "\u{00c9}v./min",
+                    &epm.to_string(),
+                    theme::text_secondary(),
+                );
 
                 ui.add_space(theme::SPACE_LG);
 
@@ -151,7 +156,11 @@ impl TerminalPage {
                     let btn_text = egui::RichText::new(*name)
                         .font(theme::font_small())
                         .strong()
-                        .color(if selected { theme::text_on_accent() } else { color });
+                        .color(if selected {
+                            theme::text_on_accent()
+                        } else {
+                            color
+                        });
 
                     let btn = egui::Button::new(btn_text)
                         .fill(if selected {
@@ -241,9 +250,9 @@ impl TerminalPage {
                     .max_scroll_height(400.0)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
                     .column(Column::initial(100.0).at_least(80.0)) // Heure
-                    .column(Column::initial(70.0).at_least(60.0))  // Niveau
+                    .column(Column::initial(70.0).at_least(60.0)) // Niveau
                     .column(Column::initial(150.0).at_least(100.0)) // Cible
-                    .column(Column::remainder());                  // Message
+                    .column(Column::remainder()); // Message
 
                 table
                     .header(28.0, |mut header| {
@@ -268,20 +277,36 @@ impl TerminalPage {
                             let target_short = shorten_target(&entry.target);
 
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(&ts).font(theme::font_mono()).color(theme::text_tertiary()));
+                                ui.label(
+                                    egui::RichText::new(&ts)
+                                        .font(theme::font_mono())
+                                        .color(theme::text_tertiary()),
+                                );
                             });
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(format!("{:5}", entry.level)).font(theme::font_mono()).color(color).strong());
+                                ui.label(
+                                    egui::RichText::new(format!("{:5}", entry.level))
+                                        .font(theme::font_mono())
+                                        .color(color)
+                                        .strong(),
+                                );
                             });
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(target_short).font(theme::font_mono()).color(theme::ACCENT_LIGHT.linear_multiply(0.6)));
+                                ui.label(
+                                    egui::RichText::new(target_short)
+                                        .font(theme::font_mono())
+                                        .color(theme::ACCENT_LIGHT.linear_multiply(0.6)),
+                                );
                             });
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(&entry.message).font(theme::font_mono()).color(theme::text_primary()));
+                                ui.label(
+                                    egui::RichText::new(&entry.message)
+                                        .font(theme::font_mono())
+                                        .color(theme::text_primary()),
+                                );
                             });
                         });
                     });
-
             });
     }
 }
@@ -289,8 +314,5 @@ impl TerminalPage {
 /// Shorten a module target path for display.
 /// e.g. "agent_core::api_client" -> "api_client"
 fn shorten_target(target: &str) -> &str {
-    target
-        .rsplit("::")
-        .next()
-        .unwrap_or(target)
+    target.rsplit("::").next().unwrap_or(target)
 }

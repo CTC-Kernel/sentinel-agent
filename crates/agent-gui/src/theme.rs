@@ -56,29 +56,41 @@ pub const INFO: Color32 = Color32::from_rgb(75, 163, 204); // #4ba3cc
 /// Window / app background.
 #[inline]
 pub fn bg_primary() -> Color32 {
-    if is_dark_mode() { Color32::from_rgb(18, 18, 20) }
-    else { Color32::from_rgb(246, 246, 248) }
+    if is_dark_mode() {
+        Color32::from_rgb(18, 18, 20)
+    } else {
+        Color32::from_rgb(246, 246, 248)
+    }
 }
 
 /// Card / panel background.
 #[inline]
 pub fn bg_secondary() -> Color32 {
-    if is_dark_mode() { Color32::from_rgb(28, 28, 30) }
-    else { Color32::WHITE }
+    if is_dark_mode() {
+        Color32::from_rgb(28, 28, 30)
+    } else {
+        Color32::WHITE
+    }
 }
 
 /// Elevated surface (hover, modal).
 #[inline]
 pub fn bg_elevated() -> Color32 {
-    if is_dark_mode() { Color32::from_rgb(38, 38, 40) }
-    else { Color32::from_rgb(232, 232, 236) }
+    if is_dark_mode() {
+        Color32::from_rgb(38, 38, 40)
+    } else {
+        Color32::from_rgb(232, 232, 236)
+    }
 }
 
 /// Sidebar background.
 #[inline]
 pub fn bg_sidebar() -> Color32 {
-    if is_dark_mode() { Color32::from_rgb(14, 14, 16) }
-    else { Color32::from_rgb(240, 240, 242) }
+    if is_dark_mode() {
+        Color32::from_rgb(14, 14, 16)
+    } else {
+        Color32::from_rgb(240, 240, 242)
+    }
 }
 
 // ============================================================================
@@ -88,22 +100,31 @@ pub fn bg_sidebar() -> Color32 {
 /// Primary text (high emphasis).
 #[inline]
 pub fn text_primary() -> Color32 {
-    if is_dark_mode() { Color32::WHITE }
-    else { Color32::from_rgb(26, 26, 28) }
+    if is_dark_mode() {
+        Color32::WHITE
+    } else {
+        Color32::from_rgb(26, 26, 28)
+    }
 }
 
 /// Secondary text (medium emphasis).
 #[inline]
 pub fn text_secondary() -> Color32 {
-    if is_dark_mode() { Color32::from_rgb(174, 174, 178) }
-    else { Color32::from_rgb(107, 107, 112) }
+    if is_dark_mode() {
+        Color32::from_rgb(174, 174, 178)
+    } else {
+        Color32::from_rgb(107, 107, 112)
+    }
 }
 
 /// Tertiary / disabled text.
 #[inline]
 pub fn text_tertiary() -> Color32 {
-    if is_dark_mode() { Color32::from_rgb(99, 99, 102) }
-    else { Color32::from_rgb(158, 158, 163) }
+    if is_dark_mode() {
+        Color32::from_rgb(99, 99, 102)
+    } else {
+        Color32::from_rgb(158, 158, 163)
+    }
 }
 
 /// Text on accent background (white in both themes).
@@ -119,15 +140,21 @@ pub fn text_on_accent() -> Color32 {
 /// Subtle border.
 #[inline]
 pub fn border() -> Color32 {
-    if is_dark_mode() { Color32::from_rgb(54, 54, 56) }
-    else { Color32::from_rgb(216, 216, 220) }
+    if is_dark_mode() {
+        Color32::from_rgb(54, 54, 56)
+    } else {
+        Color32::from_rgb(216, 216, 220)
+    }
 }
 
 /// Separator line.
 #[inline]
 pub fn separator() -> Color32 {
-    if is_dark_mode() { Color32::from_rgb(44, 44, 48) }
-    else { Color32::from_rgb(226, 226, 230) }
+    if is_dark_mode() {
+        Color32::from_rgb(44, 44, 48)
+    } else {
+        Color32::from_rgb(226, 226, 230)
+    }
 }
 
 // ============================================================================
@@ -279,7 +306,11 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     style.spacing.indent = SPACE;
 
     // Visuals
-    let mut visuals = if dark { Visuals::dark() } else { Visuals::light() };
+    let mut visuals = if dark {
+        Visuals::dark()
+    } else {
+        Visuals::light()
+    };
 
     // Panel
     visuals.panel_fill = bg_primary();
@@ -316,11 +347,23 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
 
     // Window
     visuals.window_corner_radius = CornerRadius::same(CARD_ROUNDING);
-    visuals.window_shadow = if dark { premium_shadow(16, 80) } else { premium_shadow(8, 30) };
-    visuals.window_stroke = if dark { Stroke::NONE } else { Stroke::new(0.5, border()) };
+    visuals.window_shadow = if dark {
+        premium_shadow(16, 80)
+    } else {
+        premium_shadow(8, 30)
+    };
+    visuals.window_stroke = if dark {
+        Stroke::NONE
+    } else {
+        Stroke::new(0.5, border())
+    };
 
     // Misc
-    visuals.popup_shadow = if dark { premium_shadow(8, 60) } else { premium_shadow(4, 20) };
+    visuals.popup_shadow = if dark {
+        premium_shadow(8, 60)
+    } else {
+        premium_shadow(4, 20)
+    };
     visuals.resize_corner_size = 8.0;
     visuals.hyperlink_color = ACCENT_LIGHT;
     visuals.faint_bg_color = bg_elevated();

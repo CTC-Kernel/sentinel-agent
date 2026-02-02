@@ -18,7 +18,9 @@ impl SyncPage {
         widgets::page_header(
             ui,
             "Synchronisation",
-            Some("Gestion de la connectivit\u{00e9} et transfert de donn\u{00e9}es avec le serveur"),
+            Some(
+                "Gestion de la connectivit\u{00e9} et transfert de donn\u{00e9}es avec le serveur",
+            ),
         );
         ui.add_space(theme::SPACE_LG);
 
@@ -33,15 +35,27 @@ impl SyncPage {
                 );
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     if state.sync_in_progress {
-                        widgets::status_badge(ui, &format!("{} SYNCHRONISATION...", icons::SYNC), theme::INFO);
+                        widgets::status_badge(
+                            ui,
+                            &format!("{} SYNCHRONISATION...", icons::SYNC),
+                            theme::INFO,
+                        );
                     } else if state.summary.pending_sync_count > 0 {
                         widgets::status_badge(
                             ui,
-                            &format!("{} {} EN ATTENTE", icons::ARROW_UP, state.summary.pending_sync_count),
+                            &format!(
+                                "{} {} EN ATTENTE",
+                                icons::ARROW_UP,
+                                state.summary.pending_sync_count
+                            ),
                             theme::WARNING,
                         );
                     } else {
-                        widgets::status_badge(ui, &format!("{} \u{00c0} JOUR", icons::CHECK), theme::SUCCESS);
+                        widgets::status_badge(
+                            ui,
+                            &format!("{} \u{00c0} JOUR", icons::CHECK),
+                            theme::SUCCESS,
+                        );
                     }
                 });
             });
@@ -57,18 +71,23 @@ impl SyncPage {
                                 .color(theme::text_secondary()),
                         );
                         ui.label(
-                            egui::RichText::new(ts.format("%d/%m/%Y \u{00e0} %H:%M:%S").to_string())
-                                .font(theme::font_body())
-                                .color(theme::text_primary())
-                                .strong(),
+                            egui::RichText::new(
+                                ts.format("%d/%m/%Y \u{00e0} %H:%M:%S").to_string(),
+                            )
+                            .font(theme::font_body())
+                            .color(theme::text_primary())
+                            .strong(),
                         );
                     } else {
-                        ui.label(egui::RichText::new("Aucune synchronisation effectu\u{00e9}e").color(theme::text_tertiary()));
+                        ui.label(
+                            egui::RichText::new("Aucune synchronisation effectu\u{00e9}e")
+                                .color(theme::text_tertiary()),
+                        );
                     }
                 });
-                
+
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                     // Force sync button
+                    // Force sync button
                     let btn = egui::Button::new(
                         egui::RichText::new(format!("{}  SYNCHRONISER MAINTENANT", icons::SYNC))
                             .font(theme::font_body())
@@ -149,7 +168,7 @@ impl SyncPage {
                     .body(|body| {
                         body.rows(32.0, state.sync_history.len(), |mut row| {
                             let entry = &state.sync_history[row.index()];
-                            
+
                             row.col(|ui| {
                                 let (icon, color) = if entry.success {
                                     (icons::CIRCLE_CHECK, theme::SUCCESS)
@@ -158,15 +177,17 @@ impl SyncPage {
                                 };
                                 ui.label(egui::RichText::new(icon).size(18.0).color(color));
                             });
-                            
+
                             row.col(|ui| {
                                 ui.label(
-                                    egui::RichText::new(entry.timestamp.format("%H:%M:%S").to_string())
-                                        .font(theme::font_mono())
-                                        .color(theme::text_tertiary()),
+                                    egui::RichText::new(
+                                        entry.timestamp.format("%H:%M:%S").to_string(),
+                                    )
+                                    .font(theme::font_mono())
+                                    .color(theme::text_tertiary()),
                                 );
                             });
-                            
+
                             row.col(|ui| {
                                 ui.label(
                                     egui::RichText::new(&entry.message)
@@ -178,7 +199,7 @@ impl SyncPage {
                     });
             }
         });
-        
+
         ui.add_space(theme::SPACE_XL);
 
         command

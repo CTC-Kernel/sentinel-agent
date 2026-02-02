@@ -83,10 +83,7 @@ impl BrowserSecurityCheck {
             ])
             .output()
             .map_err(|e| {
-                ScannerError::CheckExecution(format!(
-                    "Failed to query Chrome policies: {}",
-                    e
-                ))
+                ScannerError::CheckExecution(format!("Failed to query Chrome policies: {}", e))
             })?;
 
         let chrome_raw = String::from_utf8_lossy(&chrome_output.stdout).to_string();
@@ -102,26 +99,22 @@ impl BrowserSecurityCheck {
             policy_sources.push("Registry (HKLM\\SOFTWARE\\Policies\\Google\\Chrome)".to_string());
 
             // Parse the value - REG_DWORD 0x1 means enabled
-            let sb_enabled = chrome_raw
-                .lines()
-                .any(|line| {
-                    line.contains("SafeBrowsingEnabled")
-                        && (line.contains("0x1") || line.trim().ends_with("1"))
-                });
+            let sb_enabled = chrome_raw.lines().any(|line| {
+                line.contains("SafeBrowsingEnabled")
+                    && (line.contains("0x1") || line.trim().ends_with("1"))
+            });
             safe_browsing_enabled = Some(sb_enabled);
         }
 
         // Check Edge enterprise policies
         if let Ok(edge_output) = Command::new("reg")
-            .args([
-                "query",
-                r"HKLM\SOFTWARE\Policies\Microsoft\Edge",
-            ])
+            .args(["query", r"HKLM\SOFTWARE\Policies\Microsoft\Edge"])
             .output()
         {
             if edge_output.status.success() {
                 managed_browsers.push("Microsoft Edge".to_string());
-                policy_sources.push("Registry (HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge)".to_string());
+                policy_sources
+                    .push("Registry (HKLM\\SOFTWARE\\Policies\\Microsoft\\Edge)".to_string());
                 let edge_raw = String::from_utf8_lossy(&edge_output.stdout).to_string();
                 raw_output.push_str(&format!("=== Edge Policies ===\n{}\n", edge_raw.trim()));
             }
@@ -222,10 +215,7 @@ impl BrowserSecurityCheck {
             .args(["read", "com.google.Chrome", "SafeBrowsingEnabled"])
             .output()
             .map_err(|e| {
-                ScannerError::CheckExecution(format!(
-                    "Failed to read Chrome preferences: {}",
-                    e
-                ))
+                ScannerError::CheckExecution(format!("Failed to read Chrome preferences: {}", e))
             })?;
 
         let chrome_raw = String::from_utf8_lossy(&chrome_output.stdout).to_string();

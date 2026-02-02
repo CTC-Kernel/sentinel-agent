@@ -180,12 +180,7 @@ impl MonitoringPage {
             widgets::card(ui, |ui| {
                 ui.horizontal(|ui| {
                     ui.vertical(|ui| {
-                        ui.label(
-                            egui::RichText::new(value)
-                                .size(24.0)
-                                .color(color)
-                                .strong(),
-                        );
+                        ui.label(egui::RichText::new(value).size(24.0).color(color).strong());
                         ui.label(
                             egui::RichText::new(label)
                                 .font(theme::font_small())
@@ -193,16 +188,13 @@ impl MonitoringPage {
                                 .strong(),
                         );
                     });
-                    ui.with_layout(
-                        egui::Layout::right_to_left(egui::Align::Center),
-                        |ui| {
-                            ui.label(
-                                egui::RichText::new(icon)
-                                    .size(28.0)
-                                    .color(color.linear_multiply(0.4)),
-                            );
-                        },
-                    );
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.label(
+                            egui::RichText::new(icon)
+                                .size(28.0)
+                                .color(color.linear_multiply(0.4)),
+                        );
+                    });
                 });
             });
         });
@@ -234,8 +226,10 @@ impl MonitoringPage {
 
             if history.is_empty() {
                 // Empty state
-                let (rect, _) =
-                    ui.allocate_exact_size(egui::vec2(ui.available_width(), height), egui::Sense::empty());
+                let (rect, _) = ui.allocate_exact_size(
+                    egui::vec2(ui.available_width(), height),
+                    egui::Sense::empty(),
+                );
                 let painter = ui.painter_at(rect);
                 painter.rect_filled(
                     rect,
@@ -251,10 +245,7 @@ impl MonitoringPage {
                 );
             } else {
                 let points = PlotPoints::new(history.to_vec());
-                let mut line = Line::new(points)
-                    .color(line_color)
-                    .width(2.0)
-                    .name(title);
+                let mut line = Line::new(points).color(line_color).width(2.0).name(title);
 
                 if fill {
                     line = line.fill(0.0);

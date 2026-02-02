@@ -27,7 +27,9 @@ use agent_common::config::AgentConfig;
 use agent_common::constants::{AGENT_VERSION, DEFAULT_HEARTBEAT_INTERVAL_SECS};
 use agent_common::error::CommonError;
 use agent_common::types::CheckSeverity;
-use agent_network::{DiscoveryConfig, NetworkDiscovery, NetworkManager, NetworkSecurityAlert, NetworkSnapshot};
+use agent_network::{
+    DiscoveryConfig, NetworkDiscovery, NetworkManager, NetworkSecurityAlert, NetworkSnapshot,
+};
 use agent_scanner::{
     CheckExecutionResult, CheckRegistry, CheckRunner, CheckScoreInput, ComplianceScore,
     ScanSummary, ScanType, ScoreCalculator, SecurityMonitor, SecurityScanResult,
@@ -35,33 +37,31 @@ use agent_scanner::{
     checks::{
         AdminAccountsCheck, AntivirusCheck, AuditLoggingCheck, AutoLoginCheck, BackupCheck,
         BluetoothCheck, BrowserSecurityCheck, DiskEncryptionCheck, FirewallCheck,
-        GuestAccountCheck, Ipv6ConfigCheck, KernelHardeningCheck, LogRotationCheck,
-        MfaCheck, ObsoleteProtocolsCheck, PasswordPolicyCheck,
-        RemoteAccessCheck, SessionLockCheck, SystemUpdatesCheck, TimeSyncCheck,
-        UsbStorageCheck,
+        GuestAccountCheck, Ipv6ConfigCheck, KernelHardeningCheck, LogRotationCheck, MfaCheck,
+        ObsoleteProtocolsCheck, PasswordPolicyCheck, RemoteAccessCheck, SessionLockCheck,
+        SystemUpdatesCheck, TimeSyncCheck, UsbStorageCheck,
     },
 };
 use agent_storage::{
     CheckResult as StorageCheckResult, CheckResultsRepository, CheckRule as StorageCheckRule,
-    CheckRulesRepository, CheckStatus as StorageCheckStatus, Database,
-    Severity as StorageSeverity,
+    CheckRulesRepository, CheckStatus as StorageCheckStatus, Database, Severity as StorageSeverity,
 };
 use agent_sync::{AuthenticatedClient, ConfigSyncService, ResultUploader, RuleSyncService};
 use api_client::{ApiClient, EnrollmentRequest, HeartbeatRequest};
 use resources::ResourceMonitor;
-use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 use tokio::sync::RwLock;
 use tracing::{debug, info, warn};
 
-#[cfg(feature = "gui")]
-use agent_gui::events::AgentEvent;
 #[cfg(feature = "gui")]
 use agent_gui::dto::{
     AgentSummary, GuiAgentStatus, GuiCheckResult, GuiCheckStatus, GuiDiscoveredDevice,
     GuiNetworkConnection, GuiNetworkInterface, GuiNotification, GuiResourceUsage,
     GuiSoftwarePackage, GuiVulnerabilityFinding, GuiVulnerabilitySummary,
 };
+#[cfg(feature = "gui")]
+use agent_gui::events::AgentEvent;
 
 /// Default vulnerability scan interval (6 hours).
 const DEFAULT_VULN_SCAN_INTERVAL_SECS: u64 = 6 * 60 * 60;
@@ -217,7 +217,11 @@ impl RuntimeHandle {
     /// Propose a discovered device as an asset.
     pub fn propose_asset(&self, ip: String, hostname: Option<String>, device_type: String) {
         if let Ok(mut proposals) = self.pending_asset_proposals.lock() {
-            proposals.push(ProposeAssetData { ip, hostname, device_type });
+            proposals.push(ProposeAssetData {
+                ip,
+                hostname,
+                device_type,
+            });
         }
     }
 
@@ -515,7 +519,9 @@ impl AgentRuntime {
     fn snapshot_to_gui_network(
         snapshot: &agent_network::types::NetworkSnapshot,
     ) -> (Vec<GuiNetworkInterface>, Vec<GuiNetworkConnection>) {
-        use agent_network::types::{ConnectionProtocol, ConnectionState, InterfaceStatus, InterfaceType};
+        use agent_network::types::{
+            ConnectionProtocol, ConnectionState, InterfaceStatus, InterfaceType,
+        };
 
         let interfaces = snapshot
             .interfaces
@@ -638,16 +644,17 @@ impl AgentRuntime {
         // Check if we have an agent ID in config
         if let Some(ref agent_id) = self.config.agent_id {
             client.set_agent_id(agent_id.clone());
-            
+
             // Try to restore organization ID from stored credentials
             if let Some(ref db) = self.db {
-                let auth_client = agent_sync::AuthenticatedClient::new(self.config.clone(), db.clone());
+                let auth_client =
+                    agent_sync::AuthenticatedClient::new(self.config.clone(), db.clone());
                 if let Ok(organization_id) = auth_client.organization_id().await {
                     client.set_organization_id(organization_id.to_string());
                     info!("Restored organization ID: {}", organization_id);
                 }
             }
-            
+
             info!("Using existing agent ID: {}", agent_id);
             return Ok(());
         }
@@ -783,10 +790,7 @@ impl AgentRuntime {
             let rule_sync = self.rule_sync.read().await;
             if let Some(ref rule_sync) = *rule_sync {
                 match rule_sync.sync_rules().await {
-                    Ok(result) => info!(
-                        "Rule sync complete: {} rules synced",
-                        result.rules_synced
-                    ),
+                    Ok(result) => info!("Rule sync complete: {} rules synced", result.rules_synced),
                     Err(e) => warn!("Rule sync failed: {}", e),
                 }
             }
@@ -1095,11 +1099,7 @@ impl AgentRuntime {
                             def.frameworks.clone(),
                         )
                     }
-                    None => (
-                        CheckSeverity::Medium,
-                        "general".to_string(),
-                        vec![],
-                    ),
+                    None => (CheckSeverity::Medium, "general".to_string(), vec![]),
                 };
                 CheckScoreInput {
                     result: exec_result.result.clone(),
@@ -1162,12 +1162,14 @@ impl AgentRuntime {
                 storage_result = storage_result.with_raw_data(json_str);
             }
 
-            storage_result =
-                storage_result.with_duration_ms(common_result.duration_ms as i64);
+            storage_result = storage_result.with_duration_ms(common_result.duration_ms as i64);
 
             match repo.insert(&storage_result).await {
                 Ok(_) => stored += 1,
-                Err(e) => warn!("Failed to store check result for {}: {}", common_result.check_id, e),
+                Err(e) => warn!(
+                    "Failed to store check result for {}: {}",
+                    common_result.check_id, e
+                ),
             }
         }
 
@@ -1194,7 +1196,9 @@ impl AgentRuntime {
         let (db, auth_client) = match (&self.db, &self.authenticated_client) {
             (Some(db), Some(client)) => (db.clone(), client.clone()),
             _ => {
-                debug!("Database or authenticated client not available, skipping sync service init");
+                debug!(
+                    "Database or authenticated client not available, skipping sync service init"
+                );
                 return;
             }
         };
@@ -1579,7 +1583,10 @@ impl AgentRuntime {
                             let severity = if count > 0 { "warning" } else { "info" };
                             self.emit_notification(
                                 "Scan vulnérabilités terminé",
-                                &format!("{} vulnérabilités détectées sur {} paquets", count, result.packages_scanned),
+                                &format!(
+                                    "{} vulnérabilités détectées sur {} paquets",
+                                    count, result.packages_scanned
+                                ),
                                 severity,
                             );
                             // Emit vulnerability summary to GUI
@@ -1617,7 +1624,11 @@ impl AgentRuntime {
                     Err(e) => {
                         warn!("Vulnerability scan failed: {}", e);
                         #[cfg(feature = "gui")]
-                        self.emit_notification("Scan vulnérabilités échoué", &format!("{}", e), "error");
+                        self.emit_notification(
+                            "Scan vulnérabilités échoué",
+                            &format!("{}", e),
+                            "error",
+                        );
                     }
                 }
                 #[cfg(feature = "gui")]
@@ -1641,7 +1652,11 @@ impl AgentRuntime {
                             );
                         } else {
                             #[cfg(feature = "gui")]
-                            self.emit_notification("Scan sécurité", "Aucun incident détecté", "info");
+                            self.emit_notification(
+                                "Scan sécurité",
+                                "Aucun incident détecté",
+                                "info",
+                            );
                         }
                     }
                     Err(e) => {
@@ -1665,7 +1680,8 @@ impl AgentRuntime {
                                 primary_ip: snapshot.primary_ip.clone(),
                                 primary_mac: snapshot.primary_mac.clone(),
                             });
-                            let (interfaces, connections) = Self::snapshot_to_gui_network(&snapshot);
+                            let (interfaces, connections) =
+                                Self::snapshot_to_gui_network(&snapshot);
                             self.emit_gui_event(AgentEvent::NetworkDetailUpdate {
                                 interfaces,
                                 connections,
@@ -1706,7 +1722,8 @@ impl AgentRuntime {
                                 primary_ip: snapshot.primary_ip.clone(),
                                 primary_mac: snapshot.primary_mac.clone(),
                             });
-                            let (interfaces, connections) = Self::snapshot_to_gui_network(&snapshot);
+                            let (interfaces, connections) =
+                                Self::snapshot_to_gui_network(&snapshot);
                             self.emit_gui_event(AgentEvent::NetworkDetailUpdate {
                                 interfaces,
                                 connections,
@@ -1743,7 +1760,9 @@ impl AgentRuntime {
                         match self.run_network_security_detection(&snapshot).await {
                             Ok(alerts) => {
                                 #[cfg(feature = "gui")]
-                                { alert_count = alerts.len() as u32; }
+                                {
+                                    alert_count = alerts.len() as u32;
+                                }
                                 for alert in alerts {
                                     if let Err(e) = self.upload_network_alert(&alert).await {
                                         warn!("Failed to upload network alert: {}", e);
@@ -1763,7 +1782,8 @@ impl AgentRuntime {
                                 primary_ip: snapshot.primary_ip.clone(),
                                 primary_mac: snapshot.primary_mac.clone(),
                             });
-                            let (interfaces, connections) = Self::snapshot_to_gui_network(&snapshot);
+                            let (interfaces, connections) =
+                                Self::snapshot_to_gui_network(&snapshot);
                             self.emit_gui_event(AgentEvent::NetworkDetailUpdate {
                                 interfaces,
                                 connections,
@@ -1780,8 +1800,7 @@ impl AgentRuntime {
             }
 
             // Run compliance checks if interval has passed
-            if last_compliance_check_time.elapsed().as_secs()
-                >= self.compliance_check_interval_secs
+            if last_compliance_check_time.elapsed().as_secs() >= self.compliance_check_interval_secs
             {
                 is_active = true;
                 #[cfg(feature = "gui")]
@@ -1803,9 +1822,7 @@ impl AgentRuntime {
                     // Emit individual check results to GUI
                     for exec_result in &check_results {
                         let gui_result = self.execution_result_to_gui(exec_result);
-                        self.emit_gui_event(AgentEvent::CheckCompleted {
-                            result: gui_result,
-                        });
+                        self.emit_gui_event(AgentEvent::CheckCompleted { result: gui_result });
                     }
                     last_check_at = Some(chrono::Utc::now());
                     self.scanning.store(false, Ordering::Release);
@@ -1815,7 +1832,11 @@ impl AgentRuntime {
                             "Score: {:.1}% ({} passés, {} échoués)",
                             score.score, score.passed_count, score.failed_count
                         ),
-                        if score.score >= 80.0 { "info" } else { "warning" },
+                        if score.score >= 80.0 {
+                            "info"
+                        } else {
+                            "warning"
+                        },
                     );
                     self.emit_status_update(last_check_at, compliance_score);
                 }
@@ -1850,13 +1871,19 @@ impl AgentRuntime {
                 match self.run_vulnerability_scan().await {
                     Ok(result) => {
                         let count = result.vulnerabilities.len();
-                        info!("Force vuln check: {} findings from {} packages", count, result.packages_scanned);
+                        info!(
+                            "Force vuln check: {} findings from {} packages",
+                            count, result.packages_scanned
+                        );
                         self.upload_software_from_scan(&result).await;
                         #[cfg(feature = "gui")]
                         {
                             self.emit_notification(
                                 "Scan vulnérabilités",
-                                &format!("{} vulnérabilités sur {} paquets", count, result.packages_scanned),
+                                &format!(
+                                    "{} vulnérabilités sur {} paquets",
+                                    count, result.packages_scanned
+                                ),
                                 if count > 0 { "warning" } else { "info" },
                             );
                             // Emit vulnerability summary to GUI
@@ -1893,7 +1920,11 @@ impl AgentRuntime {
                     Err(e) => {
                         warn!("Force vuln check failed: {}", e);
                         #[cfg(feature = "gui")]
-                        self.emit_notification("Scan vulnérabilités échoué", &format!("{}", e), "error");
+                        self.emit_notification(
+                            "Scan vulnérabilités échoué",
+                            &format!("{}", e),
+                            "error",
+                        );
                     }
                 }
 
@@ -1909,9 +1940,7 @@ impl AgentRuntime {
                     // Emit individual check results to GUI
                     for exec_result in &check_results {
                         let gui_result = self.execution_result_to_gui(exec_result);
-                        self.emit_gui_event(AgentEvent::CheckCompleted {
-                            result: gui_result,
-                        });
+                        self.emit_gui_event(AgentEvent::CheckCompleted { result: gui_result });
                     }
                     last_check_at = Some(chrono::Utc::now());
                     self.emit_notification(
@@ -1920,7 +1949,11 @@ impl AgentRuntime {
                             "Score: {:.1}% ({} passés, {} échoués)",
                             score.score, score.passed_count, score.failed_count
                         ),
-                        if score.score >= 80.0 { "info" } else { "warning" },
+                        if score.score >= 80.0 {
+                            "info"
+                        } else {
+                            "warning"
+                        },
                     );
                     self.scanning.store(false, Ordering::Release);
                     self.emit_status_update(last_check_at, compliance_score);
@@ -1951,7 +1984,11 @@ impl AgentRuntime {
                         info!("Force sync heartbeat sent");
                         #[cfg(feature = "gui")]
                         {
-                            self.emit_notification("Synchronisation", "Données synchronisées avec succès", "info");
+                            self.emit_notification(
+                                "Synchronisation",
+                                "Données synchronisées avec succès",
+                                "info",
+                            );
                             self.emit_gui_event(AgentEvent::SyncStatus {
                                 syncing: false,
                                 pending_count: 0,
@@ -1964,7 +2001,11 @@ impl AgentRuntime {
                         warn!("Force sync heartbeat failed: {}", e);
                         #[cfg(feature = "gui")]
                         {
-                            self.emit_notification("Synchronisation échouée", &format!("{}", e), "error");
+                            self.emit_notification(
+                                "Synchronisation échouée",
+                                &format!("{}", e),
+                                "error",
+                            );
                             self.emit_gui_event(AgentEvent::SyncStatus {
                                 syncing: false,
                                 pending_count: 0,

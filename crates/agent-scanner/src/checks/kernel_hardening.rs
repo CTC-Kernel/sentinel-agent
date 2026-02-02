@@ -62,9 +62,7 @@ impl KernelHardeningCheck {
     pub fn new() -> Self {
         let definition = CheckDefinitionBuilder::new(CHECK_ID)
             .name("Kernel Hardening")
-            .description(
-                "Check kernel security settings (ASLR, exec-shield, IP forwarding)",
-            )
+            .description("Check kernel security settings (ASLR, exec-shield, IP forwarding)")
             .category(CheckCategory::KernelSecurity)
             .severity(CheckSeverity::High)
             .framework("CIS")
@@ -101,9 +99,7 @@ impl KernelHardeningCheck {
         let dep_output = Command::new("wmic")
             .args(["OS", "get", "DataExecutionPrevention_Available"])
             .output()
-            .map_err(|e| {
-                ScannerError::CheckExecution(format!("Failed to check DEP: {}", e))
-            })?;
+            .map_err(|e| ScannerError::CheckExecution(format!("Failed to check DEP: {}", e)))?;
 
         let dep_result = String::from_utf8_lossy(&dep_output.stdout).to_string();
         status
@@ -410,10 +406,7 @@ impl Check for KernelHardeningCheck {
             ))
         } else {
             Ok(CheckOutput::fail(
-                format!(
-                    "Kernel hardening issues: {}",
-                    status.issues.join("; ")
-                ),
+                format!("Kernel hardening issues: {}", status.issues.join("; ")),
                 raw_data,
             ))
         }

@@ -5,8 +5,8 @@
 
 use crate::error::{NetworkError, NetworkResult};
 use std::net::Ipv4Addr;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::process::Command;
 use tokio::sync::Semaphore;
 use tracing::{debug, trace, warn};
@@ -55,9 +55,11 @@ impl PingSweeper {
                 break;
             }
 
-            let permit = semaphore.clone().acquire_owned().await.map_err(|e| {
-                NetworkError::Discovery(format!("Semaphore error: {}", e))
-            })?;
+            let permit = semaphore
+                .clone()
+                .acquire_owned()
+                .await
+                .map_err(|e| NetworkError::Discovery(format!("Semaphore error: {}", e)))?;
             let cancel_clone = cancel.clone();
 
             let handle = tokio::spawn(async move {
@@ -90,7 +92,11 @@ impl PingSweeper {
             }
         }
 
-        debug!("Ping sweep complete: {}/{} hosts alive", alive_hosts.len(), total);
+        debug!(
+            "Ping sweep complete: {}/{} hosts alive",
+            alive_hosts.len(),
+            total
+        );
         Ok(alive_hosts)
     }
 
