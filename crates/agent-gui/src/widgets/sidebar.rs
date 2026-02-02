@@ -1,17 +1,25 @@
 //! Navigation sidebar widget.
 
+use chrono::{DateTime, Utc};
 use egui::{CornerRadius, Margin, Ui, Vec2};
 
 use crate::app::Page;
 use crate::icons;
 use crate::theme;
 
+/// Sync state passed to the sidebar for the status indicator.
+pub struct SidebarSyncState {
+    pub syncing: bool,
+    pub last_sync_at: Option<DateTime<Utc>>,
+    pub error: Option<String>,
+}
+
 /// Navigation sidebar.
 pub struct Sidebar;
 
 impl Sidebar {
     /// Render the sidebar. Returns the newly selected page, if any.
-    pub fn show(ui: &mut Ui, current: &Page, scanning: bool, unread_notifications: u32) -> Option<Page> {
+    pub fn show(ui: &mut Ui, current: &Page, scanning: bool, unread_notifications: u32, sync_state: &SidebarSyncState) -> Option<Page> {
         let mut selected: Option<Page> = None;
 
         egui::Frame {
@@ -143,13 +151,17 @@ impl Sidebar {
 
                     // Flexible spacer: push bottom items down when space allows,
                     // but never overlap -- ScrollArea handles overflow.
-                    let bottom_height = 42.0 * 2.0 + theme::SPACE_SM + theme::SPACE_XL + 2.0;
+                    let sync_height = 44.0; // dot+label + timestamp + spacing
+                    let bottom_height = sync_height + 42.0 * 2.0 + theme::SPACE_SM * 2.0 + theme::SPACE_XL + 2.0;
                     let remaining = ui.available_height() - bottom_height;
                     if remaining > 0.0 {
                         ui.add_space(remaining);
                     } else {
                         ui.add_space(theme::SPACE);
                     }
+
+                    Self::sync_indicator(ui, sync_state);
+                    ui.add_space(theme::SPACE_SM);
 
                     ui.separator();
                     ui.add_space(theme::SPACE_SM);
@@ -260,5 +272,91 @@ impl Sidebar {
         }
 
         response.clicked()
+    }
+
+    /// Premium sync status indicator with animated dot, label, and relative timestamp.
+    fn sync_indicator(ui: &mut Ui, state: &SidebarSyncState) {
+        let now = Utc::now();
+        let t = ui.input(|i| i.time);
+
+        // Determine visual state
+        let (dot_color, label, pulse_speed): (egui::Color32, &str, f64) = if state.syncing {
+            (theme::ACCENT, "Synchronisation...", 3.0)
+        } else if state.error.is_some() {
+            (theme::ERROR, "Erreur sync", 0.0)
+        } else if let Some(last) = state.last_sync_at {
+            let age_secs = (now - last).num_seconds();
+            if age_secs < 300 {
+                (theme::SUCCESS, "Synchronis\u{00e9}", 1.0)
+            } else {
+                (theme::WARNING, "En attente", 0.0)
+            }
+        } else {
+            (theme::text_tertiary(), "Non synchronis\u{00e9}", 0.0)
+        };
+
+        // Pulse animation (cosine ease)
+        let alpha = if pulse_speed > 0.0 {
+            0.5 + 0.5 * (t * pulse_speed * std::f64::consts::TAU).cos() as f32
+        } else {
+            1.0
+        };
+
+        // Row 1: dot + label
+        let row_response = ui.horizontal(|ui| {
+            ui.add_space(theme::SPACE_MD + 8.0);
+            // Animated dot
+            let (dot_rect, _) = ui.allocate_exact_size(Vec2::new(8.0, 8.0), egui::Sense::empty());
+            ui.painter().circle_filled(
+                dot_rect.center(),
+                4.0,
+                dot_color.linear_multiply(alpha),
+            );
+            // Subtle glow on synced/syncing
+            if pulse_speed > 0.0 {
+                ui.painter().circle_filled(
+                    dot_rect.center(),
+                    6.0,
+                    dot_color.linear_multiply(alpha * 0.15),
+                );
+            }
+            ui.add_space(theme::SPACE_XS);
+            ui.label(
+                egui::RichText::new(label)
+                    .font(theme::font_small())
+                    .color(theme::text_secondary()),
+            );
+        });
+
+        // Tooltip on error
+        if let Some(ref err) = state.error {
+            row_response.response.on_hover_text(err);
+        }
+
+        // Row 2: relative timestamp
+        if let Some(last) = state.last_sync_at {
+            ui.horizontal(|ui| {
+                ui.add_space(theme::SPACE_MD + 8.0 + 8.0 + theme::SPACE_XS);
+                ui.label(
+                    egui::RichText::new(Self::relative_time_fr(now, last))
+                        .font(theme::font_small())
+                        .color(theme::text_tertiary()),
+                );
+            });
+        }
+    }
+
+    /// Format a relative time difference in French.
+    fn relative_time_fr(now: DateTime<Utc>, then: DateTime<Utc>) -> String {
+        let secs = (now - then).num_seconds().max(0);
+        if secs < 60 {
+            "\u{00e0} l'instant".into()
+        } else if secs < 3600 {
+            format!("il y a {} min", secs / 60)
+        } else if secs < 86400 {
+            format!("il y a {} h", secs / 3600)
+        } else {
+            format!("il y a {} j", secs / 86400)
+        }
     }
 }

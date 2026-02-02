@@ -6,7 +6,7 @@ mod empty_state;
 mod header;
 mod resource_bar;
 mod search_filter_bar;
-mod sidebar;
+pub mod sidebar;
 mod status_badge;
 
 pub use card::card;
