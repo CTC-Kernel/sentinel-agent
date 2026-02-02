@@ -1,7 +1,7 @@
 //! Navigation sidebar widget.
 
 use chrono::{DateTime, Utc};
-use egui::{CornerRadius, Margin, Ui, Vec2};
+use egui::{Color32, CornerRadius, Margin, Ui, Vec2};
 
 use crate::app::Page;
 use crate::icons;
@@ -29,13 +29,46 @@ impl Sidebar {
         let mut selected: Option<Page> = None;
 
         egui::Frame {
-            fill: theme::bg_sidebar(),
+            fill: egui::Color32::TRANSPARENT, // We paint manually
             inner_margin: Margin::same(0),
             ..Default::default()
         }
         .show(ui, |ui| {
             ui.set_min_width(theme::SIDEBAR_WIDTH);
             ui.set_max_width(theme::SIDEBAR_WIDTH);
+
+            // Paint gradient background
+            let rect = ui.max_rect();
+            let is_dark = theme::is_dark_mode();
+            
+            if ui.is_rect_visible(rect) {
+                use egui::epaint::{Mesh, Vertex};
+                let mut mesh = Mesh::default();
+                
+                let (top_col, bot_col) = if is_dark {
+                    (
+                        Color32::from_rgb(25, 25, 30), // Lighter top (Spotlight)
+                        Color32::from_rgb(5, 5, 8)     // Deep bottom
+                    )
+                } else {
+                    (
+                         Color32::from_rgb(245, 245, 250),
+                         Color32::from_rgb(230, 230, 235)
+                    )
+                };
+
+                // Tricky: we need correct indices for 2 triangles forming the rect
+                let idx = mesh.vertices.len() as u32;
+                mesh.vertices.push(Vertex { pos: rect.left_top(), uv: Default::default(), color: top_col });
+                mesh.vertices.push(Vertex { pos: rect.right_top(), uv: Default::default(), color: top_col });
+                mesh.vertices.push(Vertex { pos: rect.right_bottom(), uv: Default::default(), color: bot_col });
+                mesh.vertices.push(Vertex { pos: rect.left_bottom(), uv: Default::default(), color: bot_col });
+                
+                mesh.add_triangle(idx, idx + 1, idx + 2);
+                mesh.add_triangle(idx + 2, idx + 3, idx);
+                
+                ui.painter().add(mesh);
+            }
 
             egui::ScrollArea::vertical()
                 .auto_shrink(egui::Vec2b::new(false, false))
@@ -260,27 +293,19 @@ impl Sidebar {
                     theme::bg_elevated().linear_multiply(0.5)
                 };
                 ui.painter().rect_filled(
-                    rect.shrink2(Vec2::new(8.0, 4.0)),
+                    rect.shrink2(Vec2::new(8.0, 2.0)), // Slightly tighter vertical shrink
                     CornerRadius::same(theme::BUTTON_ROUNDING),
                     fill,
                 );
             }
 
-            // Selected indicator (vertical bar)
-            if is_current {
-                let bar_rect = egui::Rect::from_min_max(
-                    rect.left_top() + Vec2::new(4.0, 10.0),
-                    rect.left_bottom() + Vec2::new(7.0, -10.0),
-                );
-                ui.painter()
-                    .rect_filled(bar_rect, CornerRadius::same(1), theme::ACCENT);
-            }
+            // Icon and label - centered vertically
+            // Removed vertical bar for cleaner macOS look
 
-            // Icon and label - placed manually to avoid interaction deadzones
-            let icon_pos = rect.left_top() + Vec2::new(20.0, 21.0);
+            let icon_pos = rect.left_center() + Vec2::new(20.0, -8.0); // Adjust Y to center icon
             ui.painter().text(
                 icon_pos,
-                egui::Align2::LEFT_CENTER,
+                egui::Align2::LEFT_TOP,
                 icon,
                 egui::FontId::proportional(16.0),
                 if is_current {
@@ -290,10 +315,10 @@ impl Sidebar {
                 },
             );
 
-            let label_pos = rect.left_top() + Vec2::new(20.0 + 16.0 + 8.0, 21.0);
+            let label_pos = rect.left_center() + Vec2::new(20.0 + 16.0 + 10.0, -6.5); // Adjust Y to center text
             ui.painter().text(
                 label_pos,
-                egui::Align2::LEFT_CENTER,
+                egui::Align2::LEFT_TOP,
                 label,
                 theme::font_body(),
                 text_color,
