@@ -172,6 +172,7 @@ impl Default for AgentConfig {
             fim_ignore_patterns: None,
             usb_monitoring: true,
             usb_block_mass_storage: true,
+            organization_id: None,
             client_certificate: None,
             client_key: None,
         }
@@ -438,6 +439,7 @@ mod tests {
                 username: Some("user".to_string()),
                 password: Some("pass".to_string()),
             }),
+            organization_id: None,
             client_certificate: None,
             client_key: None,
             fim_watched_paths: None,
