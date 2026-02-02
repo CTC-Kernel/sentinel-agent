@@ -37,9 +37,11 @@ jobs:
             echo "version=$CARGO_VERSION" >> "$GITHUB_OUTPUT"
           fi
 
-  # Build macOS universal binary and DMG
+  # ═══════════════════════════════════════════════════════════════════
+  # macOS — Universal binary + DMG + PKG (signed + notarized)
+  # ═══════════════════════════════════════════════════════════════════
   build-macos:
-    name: Build macOS
+    name: Build macOS (DMG + PKG)
     runs-on: macos-latest
     needs: [version]
     env:
@@ -52,10 +54,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Build ARM64
-        run: cargo build --release --package agent-core --features gui --target aarch64-apple-darwin
+        run: cargo build --release --package agent-core --target aarch64-apple-darwin
 
       - name: Build x86_64
-        run: cargo build --release --package agent-core --features gui --target x86_64-apple-darwin
+        run: cargo build --release --package agent-core --target x86_64-apple-darwin
 
       - name: Create universal binary
         run: |
@@ -70,24 +72,18 @@ jobs:
           APPLE_CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
         run: |
-          # Create temporary keychain
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
 
-          # Create keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
-          # Import certificate
           echo "$APPLE_CERTIFICATE_P12" | base64 --decode > $RUNNER_TEMP/certificate.p12
           security import $RUNNER_TEMP/certificate.p12 -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
-
-          # Set keychain search list
           security list-keychain -d user -s "$KEYCHAIN_PATH" $(security list-keychain -d user | tr -d '"')
-
-          # Allow codesign to access keychain
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          rm $RUNNER_TEMP/certificate.p12
 
       - name: Build DMG
         run: |
@@ -95,6 +91,52 @@ jobs:
           VERSION="${{ env.RELEASE_VERSION }}" ./scripts/build-macos.sh
         env:
           VERSION: ${{ env.RELEASE_VERSION }}
+
+      - name: Build PKG
+        run: |
+          VERSION="${{ env.RELEASE_VERSION }}"
+          APP_BUNDLE="target/release/Sentinel Agent.app"
+          PKG_PATH="target/release/SentinelAgent-${VERSION}.pkg"
+
+          # Create PKG from the .app bundle
+          pkgbuild --root "$(dirname "$APP_BUNDLE")" \
+            --filter '.*\.dmg$' \
+            --filter '.*\.sha256$' \
+            --filter '.*\.pkg$' \
+            --filter '.*-latest\.dmg$' \
+            --filter '.*dmg-temp.*' \
+            --component-plist /dev/null \
+            --identifier "com.cyber-threat-consulting.sentinel-agent" \
+            --version "$VERSION" \
+            --install-location "/Applications" \
+            "$PKG_PATH" 2>&1 || {
+              # Fallback: use flat package from app bundle directory
+              TEMP_PKG_ROOT=$(mktemp -d)
+              cp -R "$APP_BUNDLE" "$TEMP_PKG_ROOT/"
+              pkgbuild --root "$TEMP_PKG_ROOT" \
+                --identifier "com.cyber-threat-consulting.sentinel-agent" \
+                --version "$VERSION" \
+                --install-location "/Applications" \
+                "$PKG_PATH"
+              rm -rf "$TEMP_PKG_ROOT"
+            }
+
+          echo "PKG created: $PKG_PATH ($(du -h "$PKG_PATH" | cut -f1))"
+
+      - name: Sign PKG
+        run: |
+          VERSION="${{ env.RELEASE_VERSION }}"
+          PKG_PATH="target/release/SentinelAgent-${VERSION}.pkg"
+
+          INSTALLER_IDENTITY=$(security find-identity -v | grep "Developer ID Installer" | head -1 | awk -F'"' '{print $2}')
+          if [ -n "$INSTALLER_IDENTITY" ]; then
+            SIGNED_PKG="target/release/SentinelAgent-${VERSION}-signed.pkg"
+            productsign --sign "$INSTALLER_IDENTITY" "$PKG_PATH" "$SIGNED_PKG"
+            mv "$SIGNED_PKG" "$PKG_PATH"
+            echo "PKG signed with: $INSTALLER_IDENTITY"
+          else
+            echo "::warning::No Developer ID Installer certificate found, PKG unsigned"
+          fi
 
       - name: Notarize DMG
         continue-on-error: true
@@ -104,46 +146,62 @@ jobs:
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          DMG_PATH=$(ls target/release/*.dmg | grep -v latest | head -1)
+          DMG_PATH=$(ls target/release/SentinelAgent-*.dmg | grep -v latest | head -1)
           echo "Notarizing $DMG_PATH..."
 
-          # Submit and wait up to 30 minutes
           if xcrun notarytool submit "$DMG_PATH" \
             --apple-id "$APPLE_ID" \
             --password "$APPLE_APP_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
             --wait --timeout 30m; then
-
-            # Staple the ticket
             xcrun stapler staple "$DMG_PATH"
-            echo "Notarization complete!"
-
-            # Also staple the latest copy
-            LATEST_DMG=$(ls target/release/*-latest.dmg 2>/dev/null || true)
-            if [ -n "$LATEST_DMG" ]; then
-              xcrun stapler staple "$LATEST_DMG"
-            fi
+            echo "DMG notarization complete!"
           else
-            echo "::warning::Notarization timed out. DMG is signed but not notarized."
-            echo "Users can still install by right-clicking and selecting 'Open', then going to System Preferences > Security."
+            echo "::warning::DMG notarization timed out."
+          fi
+
+      - name: Notarize PKG
+        continue-on-error: true
+        timeout-minutes: 35
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          VERSION="${{ env.RELEASE_VERSION }}"
+          PKG_PATH="target/release/SentinelAgent-${VERSION}.pkg"
+          echo "Notarizing $PKG_PATH..."
+
+          if xcrun notarytool submit "$PKG_PATH" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait --timeout 30m; then
+            xcrun stapler staple "$PKG_PATH"
+            echo "PKG notarization complete!"
+          else
+            echo "::warning::PKG notarization timed out."
           fi
 
       - name: Generate checksums
         run: |
+          VERSION="${{ env.RELEASE_VERSION }}"
           cd target/release
-          for f in *.dmg; do
-            shasum -a 256 "$f" > "$f.sha256"
-          done
+          shasum -a 256 "SentinelAgent-${VERSION}.dmg" "SentinelAgent-${VERSION}.pkg" > SHA256SUMS-macos.txt
+          cat SHA256SUMS-macos.txt
 
-      - name: Upload DMG artifact
+      - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: sentinel-agent-macos-dmg
+          name: sentinel-agent-macos
           path: |
-            target/release/*.dmg
-            target/release/*.sha256
+            target/release/SentinelAgent-*.dmg
+            target/release/SentinelAgent-*.pkg
+            target/release/SHA256SUMS-macos.txt
 
-  # Build Windows MSI installer
+  # ═══════════════════════════════════════════════════════════════════
+  # Windows — MSI installer via WiX v4
+  # ═══════════════════════════════════════════════════════════════════
   build-windows:
     name: Build Windows MSI
     runs-on: windows-latest
@@ -166,7 +224,7 @@ jobs:
         shell: pwsh
 
       - name: Build release binary
-        run: cargo build --release --package agent-core --features gui
+        run: cargo build --release --package agent-core
         env:
           OPENSSL_DIR: C:\vcpkg\installed\x64-windows-static
           OPENSSL_INCLUDE_DIR: C:\vcpkg\installed\x64-windows-static\include
@@ -182,32 +240,37 @@ jobs:
       - name: Build MSI
         run: |
           $version = "${{ env.RELEASE_VERSION }}"
-          wix build -d "TargetDir=.\target\release" -d "Version=$version" -d "AssetsDir=.\assets\icons" -o "target/release/SentinelAgentSetup-$version.msi" wix/main.wxs -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext
-        shell: pwsh
-
-      - name: Create latest copy
-        run: |
-          $version = "${{ env.RELEASE_VERSION }}"
-          Copy-Item "target/release/SentinelAgentSetup-$version.msi" "target/release/SentinelAgentSetup-latest.msi"
+          wix build `
+            -d "TargetDir=.\target\release" `
+            -d "Version=$version" `
+            -d "AssetsDir=.\assets\icons" `
+            -o "target\release\SentinelAgentSetup-$version.msi" `
+            wix/main.wxs `
+            -ext WixToolset.UI.wixext `
+            -ext WixToolset.Util.wixext
+          echo "MSI created: SentinelAgentSetup-$version.msi"
         shell: pwsh
 
       - name: Generate checksums
         run: |
           $version = "${{ env.RELEASE_VERSION }}"
-          cd target/release
-          Get-FileHash "SentinelAgentSetup-$version.msi" -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  SentinelAgentSetup-$version.msi" } | Out-File -Encoding ASCII "SentinelAgentSetup-$version.msi.sha256"
-          Get-FileHash "SentinelAgentSetup-latest.msi" -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  SentinelAgentSetup-latest.msi" } | Out-File -Encoding ASCII "SentinelAgentSetup-latest.msi.sha256"
+          cd target\release
+          $hash = Get-FileHash "SentinelAgentSetup-$version.msi" -Algorithm SHA256
+          "$($hash.Hash.ToLower())  SentinelAgentSetup-$version.msi" | Out-File -Encoding ASCII "SHA256SUMS-windows.txt"
+          Get-Content "SHA256SUMS-windows.txt"
         shell: pwsh
 
-      - name: Upload MSI artifact
+      - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: sentinel-agent-windows-msi
+          name: sentinel-agent-windows
           path: |
-            target/release/*.msi
-            target/release/*.sha256
+            target/release/SentinelAgentSetup-*.msi
+            target/release/SHA256SUMS-windows.txt
 
-  # Build Linux DEB package
+  # ═══════════════════════════════════════════════════════════════════
+  # Linux — DEB package (Debian/Ubuntu)
+  # ═══════════════════════════════════════════════════════════════════
   build-deb:
     name: Build Linux DEB
     runs-on: ubuntu-latest
@@ -231,32 +294,30 @@ jobs:
         run: cargo install cargo-deb
 
       - name: Build release binary
-        run: cargo build --release --package agent-core --features gui
+        run: cargo build --release --package agent-core
 
       - name: Build DEB package
         run: cargo deb --package agent-core --no-build
 
-      - name: Create latest copy
-        run: |
-          VERSION="${{ env.RELEASE_VERSION }}"
-          cp target/debian/sentinel-agent_*.deb target/debian/sentinel-agent_latest_amd64.deb
-
       - name: Generate checksums
         run: |
           cd target/debian
-          for f in *.deb; do
-            sha256sum "$f" > "$f.sha256"
+          for f in sentinel-agent_*.deb; do
+            sha256sum "$f" >> SHA256SUMS-linux-deb.txt
           done
+          cat SHA256SUMS-linux-deb.txt
 
-      - name: Upload DEB artifact
+      - name: Upload DEB artifacts
         uses: actions/upload-artifact@v4
         with:
           name: sentinel-agent-linux-deb
           path: |
-            target/debian/*.deb
-            target/debian/*.sha256
+            target/debian/sentinel-agent_*.deb
+            target/debian/SHA256SUMS-linux-deb.txt
 
-  # Build Linux RPM package
+  # ═══════════════════════════════════════════════════════════════════
+  # Linux — RPM package (RHEL/Fedora/CentOS)
+  # ═══════════════════════════════════════════════════════════════════
   build-rpm:
     name: Build Linux RPM
     runs-on: ubuntu-latest
@@ -280,7 +341,7 @@ jobs:
         run: cargo install cargo-generate-rpm
 
       - name: Build release binary
-        run: cargo build --release --package agent-core --features gui
+        run: cargo build --release --package agent-core
 
       - name: Strip binary
         run: strip target/release/agent-core
@@ -288,26 +349,25 @@ jobs:
       - name: Build RPM package
         run: cargo generate-rpm -p crates/agent-core
 
-      - name: Create latest copy
-        run: |
-          cp target/generate-rpm/sentinel-agent-*.rpm target/generate-rpm/sentinel-agent-latest.x86_64.rpm
-
       - name: Generate checksums
         run: |
           cd target/generate-rpm
-          for f in *.rpm; do
-            sha256sum "$f" > "$f.sha256"
+          for f in sentinel-agent-*.rpm; do
+            sha256sum "$f" >> SHA256SUMS-linux-rpm.txt
           done
+          cat SHA256SUMS-linux-rpm.txt
 
-      - name: Upload RPM artifact
+      - name: Upload RPM artifacts
         uses: actions/upload-artifact@v4
         with:
           name: sentinel-agent-linux-rpm
           path: |
-            target/generate-rpm/*.rpm
-            target/generate-rpm/*.sha256
+            target/generate-rpm/sentinel-agent-*.rpm
+            target/generate-rpm/SHA256SUMS-linux-rpm.txt
 
-  # Upload all artifacts to Firebase Storage
+  # ═══════════════════════════════════════════════════════════════════
+  # Upload all artifacts to Firebase Storage + GitHub Release
+  # ═══════════════════════════════════════════════════════════════════
   upload-releases:
     name: Upload to Firebase Storage
     runs-on: ubuntu-latest
@@ -321,6 +381,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+
+      - name: List artifacts
+        run: find artifacts -type f | sort
 
       - name: Setup Google Cloud CLI
         uses: google-github-actions/setup-gcloud@v2
@@ -336,53 +399,94 @@ jobs:
           VERSION="${{ env.RELEASE_VERSION }}"
           BUCKET="gs://sentinel-grc-a8701.firebasestorage.app/releases/agent"
 
-          # Upload macOS DMG to correct path structure
-          for f in artifacts/sentinel-agent-macos-dmg/*.dmg; do
-            gsutil cp "$f" "$BUCKET/macos/"
+          echo "=== Uploading macOS packages ==="
+          for f in artifacts/sentinel-agent-macos/SentinelAgent-*.dmg; do
+            [ -f "$f" ] && gsutil cp "$f" "$BUCKET/macos/"
           done
-          for f in artifacts/sentinel-agent-macos-dmg/*.sha256; do
-            gsutil cp "$f" "$BUCKET/macos/" 2>/dev/null || true
+          for f in artifacts/sentinel-agent-macos/SentinelAgent-*.pkg; do
+            [ -f "$f" ] && gsutil cp "$f" "$BUCKET/macos/"
           done
+          [ -f "artifacts/sentinel-agent-macos/SHA256SUMS-macos.txt" ] && \
+            gsutil cp "artifacts/sentinel-agent-macos/SHA256SUMS-macos.txt" "$BUCKET/macos/SHA256SUMS.txt"
 
-          # Upload Windows MSI to correct path structure
-          for f in artifacts/sentinel-agent-windows-msi/*.msi; do
-            gsutil cp "$f" "$BUCKET/windows/"
+          echo "=== Uploading Windows packages ==="
+          for f in artifacts/sentinel-agent-windows/SentinelAgentSetup-*.msi; do
+            [ -f "$f" ] && gsutil cp "$f" "$BUCKET/windows/"
           done
-          for f in artifacts/sentinel-agent-windows-msi/*.sha256; do
-            gsutil cp "$f" "$BUCKET/windows/" 2>/dev/null || true
-          done
+          [ -f "artifacts/sentinel-agent-windows/SHA256SUMS-windows.txt" ] && \
+            gsutil cp "artifacts/sentinel-agent-windows/SHA256SUMS-windows.txt" "$BUCKET/windows/SHA256SUMS.txt"
 
-          # Upload Linux DEB to correct path structure
-          for f in artifacts/sentinel-agent-linux-deb/*.deb; do
-            gsutil cp "$f" "$BUCKET/linux_deb/"
+          echo "=== Uploading Linux DEB packages ==="
+          for f in artifacts/sentinel-agent-linux-deb/sentinel-agent_*.deb; do
+            [ -f "$f" ] && gsutil cp "$f" "$BUCKET/linux_deb/"
           done
-          for f in artifacts/sentinel-agent-linux-deb/*.sha256; do
-            gsutil cp "$f" "$BUCKET/linux_deb/" 2>/dev/null || true
-          done
+          [ -f "artifacts/sentinel-agent-linux-deb/SHA256SUMS-linux-deb.txt" ] && \
+            gsutil cp "artifacts/sentinel-agent-linux-deb/SHA256SUMS-linux-deb.txt" "$BUCKET/linux_deb/SHA256SUMS.txt"
 
-          # Upload Linux RPM to correct path structure
-          for f in artifacts/sentinel-agent-linux-rpm/*.rpm; do
-            gsutil cp "$f" "$BUCKET/linux_rpm/"
+          echo "=== Uploading Linux RPM packages ==="
+          for f in artifacts/sentinel-agent-linux-rpm/sentinel-agent-*.rpm; do
+            [ -f "$f" ] && gsutil cp "$f" "$BUCKET/linux_rpm/"
           done
-          for f in artifacts/sentinel-agent-linux-rpm/*.sha256; do
-            gsutil cp "$f" "$BUCKET/linux_rpm/" 2>/dev/null || true
-          done
+          [ -f "artifacts/sentinel-agent-linux-rpm/SHA256SUMS-linux-rpm.txt" ] && \
+            gsutil cp "artifacts/sentinel-agent-linux-rpm/SHA256SUMS-linux-rpm.txt" "$BUCKET/linux_rpm/SHA256SUMS.txt"
 
-          echo "All releases uploaded to Firebase Storage with correct path structure"
+          echo "=== Setting content types ==="
+          gsutil -m setmeta -h "Content-Type:application/x-apple-diskimage" "$BUCKET/macos/SentinelAgent-*.dmg" 2>/dev/null || true
+          gsutil -m setmeta -h "Content-Type:application/vnd.apple.installer+xml" "$BUCKET/macos/SentinelAgent-*.pkg" 2>/dev/null || true
+          gsutil -m setmeta -h "Content-Type:application/x-msi" "$BUCKET/windows/SentinelAgentSetup-*.msi" 2>/dev/null || true
+          gsutil -m setmeta -h "Content-Type:application/vnd.debian.binary-package" "$BUCKET/linux_deb/sentinel-agent_*.deb" 2>/dev/null || true
+          gsutil -m setmeta -h "Content-Type:application/x-rpm" "$BUCKET/linux_rpm/sentinel-agent-*.rpm" 2>/dev/null || true
+          gsutil -m setmeta -h "Content-Type:text/plain" "$BUCKET/*/SHA256SUMS.txt" 2>/dev/null || true
+
+          echo ""
+          echo "=== Upload complete ==="
+          echo "All releases uploaded to Firebase Storage"
+
+      - name: Verify uploads
+        run: |
+          BUCKET="gs://sentinel-grc-a8701.firebasestorage.app/releases/agent"
+          echo "=== Firebase Storage contents ==="
+          gsutil ls -l "$BUCKET/macos/" 2>/dev/null || echo "(no macos files)"
+          gsutil ls -l "$BUCKET/windows/" 2>/dev/null || echo "(no windows files)"
+          gsutil ls -l "$BUCKET/linux_deb/" 2>/dev/null || echo "(no linux_deb files)"
+          gsutil ls -l "$BUCKET/linux_rpm/" 2>/dev/null || echo "(no linux_rpm files)"
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
+          name: "Sentinel Agent v${{ env.RELEASE_VERSION }}"
+          body: |
+            ## Sentinel GRC Agent v${{ env.RELEASE_VERSION }}
+
+            ### Downloads
+
+            | Platform | Package | Format |
+            |----------|---------|--------|
+            | macOS (Universal) | `SentinelAgent-${{ env.RELEASE_VERSION }}.dmg` | DMG |
+            | macOS (Universal) | `SentinelAgent-${{ env.RELEASE_VERSION }}.pkg` | PKG |
+            | Windows x64 | `SentinelAgentSetup-${{ env.RELEASE_VERSION }}.msi` | MSI |
+            | Linux (Debian/Ubuntu) | `sentinel-agent_${{ env.RELEASE_VERSION }}_amd64.deb` | DEB |
+            | Linux (RHEL/Fedora) | `sentinel-agent-${{ env.RELEASE_VERSION }}.x86_64.rpm` | RPM |
+
+            ### Installation
+
+            **macOS**: Open the DMG and drag to Applications, or double-click the PKG.
+            **Windows**: Run the MSI installer as Administrator.
+            **Linux (DEB)**: `sudo dpkg -i sentinel-agent_${{ env.RELEASE_VERSION }}_amd64.deb`
+            **Linux (RPM)**: `sudo rpm -i sentinel-agent-${{ env.RELEASE_VERSION }}.x86_64.rpm`
+
+            Then enroll: `sentinel-agent enroll --token <YOUR_TOKEN>`
           files: |
-            artifacts/sentinel-agent-macos-dmg/*.dmg
-            artifacts/sentinel-agent-macos-dmg/*.sha256
-            artifacts/sentinel-agent-windows-msi/*.msi
-            artifacts/sentinel-agent-windows-msi/*.sha256
-            artifacts/sentinel-agent-linux-deb/*.deb
-            artifacts/sentinel-agent-linux-deb/*.sha256
-            artifacts/sentinel-agent-linux-rpm/*.rpm
-            artifacts/sentinel-agent-linux-rpm/*.sha256
+            artifacts/sentinel-agent-macos/SentinelAgent-*.dmg
+            artifacts/sentinel-agent-macos/SentinelAgent-*.pkg
+            artifacts/sentinel-agent-macos/SHA256SUMS-macos.txt
+            artifacts/sentinel-agent-windows/SentinelAgentSetup-*.msi
+            artifacts/sentinel-agent-windows/SHA256SUMS-windows.txt
+            artifacts/sentinel-agent-linux-deb/sentinel-agent_*.deb
+            artifacts/sentinel-agent-linux-deb/SHA256SUMS-linux-deb.txt
+            artifacts/sentinel-agent-linux-rpm/sentinel-agent-*.rpm
+            artifacts/sentinel-agent-linux-rpm/SHA256SUMS-linux-rpm.txt
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
