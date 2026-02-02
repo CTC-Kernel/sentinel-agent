@@ -4,8 +4,7 @@ import { Button } from '../../ui/button';
 import { CustomSelect } from '../../ui/CustomSelect';
 import { Skeleton } from '../../ui/Skeleton';
 import { ConfirmModal } from '../../ui/ConfirmModal';
-import { FileText, Paperclip, ExternalLink, X, Upload, Loader2, Check, ShieldCheck } from '../../ui/Icons';
-import { EmptyState } from '../../ui/EmptyState';
+import { Upload, X, ShieldCheck, FileText, Check, ExternalLink, Loader2 } from '../../ui/Icons';
 import { formatDate } from '@/utils/date';
 import { useLocale } from '@/hooks/useLocale';
 
@@ -31,12 +30,13 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
     const { t } = useLocale();
     const { updating, handleLinkDocument, handleUnlinkDocument, onUploadEvidence, onValidateEvidence } = handlers;
     const [unlinkTarget, setUnlinkTarget] = useState<string | null>(null);
-    const [linkingDocId, setLinkingDocId] = useState<string | null>(null);
     const [validatingDocId, setValidatingDocId] = useState<string | null>(null);
+    const [activeAction, setActiveAction] = useState<'approuver' | 'rejeter' | null>(null);
 
     // Safe array access
     const safeDocuments = documents ?? [];
     const isDocumentsLoading = !documents;
+    const availableDocs = safeDocuments.filter(d => !control.evidenceIds?.includes(d.id));
 
     const handleConfirmUnlink = async () => {
         if (unlinkTarget) {
@@ -46,21 +46,22 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
     };
 
     const handleLinkWithLoading = async (docId: string) => {
-        setLinkingDocId(docId);
         try {
             await handleLinkDocument(control, docId);
         } finally {
-            setLinkingDocId(null);
+            // State removed
         }
     };
 
-    const handleValidate = async (docId: string) => {
+    const handleValidate = async (docId: string, action: 'approuver' | 'rejeter' = 'approuver') => {
         if (onValidateEvidence) {
             setValidatingDocId(docId);
+            setActiveAction(action);
             try {
-                await onValidateEvidence(docId, 'approuver');
+                await onValidateEvidence(docId, action);
             } finally {
                 setValidatingDocId(null);
+                setActiveAction(null);
             }
         }
     };
@@ -83,7 +84,7 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
         <div className="max-w-3xl mx-auto space-y-6">
             <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-bold text-slate-900 dark:text-white">Preuves documentaires</h3>
+                    <h3 className="font-bold text-slate-900 dark:text-white">{t('compliance.documentaryEvidence', { defaultValue: 'Preuves documentaires' })}</h3>
                     {canEdit && (
                         <Button
                             onClick={() => onUploadEvidence(control)}
@@ -91,7 +92,7 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
                             className="text-xs font-bold shadow-sm"
                         >
                             <Upload className="h-3 w-3 mr-1.5" />
-                            Ajouter une preuve
+                            {t('compliance.addEvidence', { defaultValue: 'Ajouter une preuve' })}
                         </Button>
                     )}
                 </div>
@@ -100,11 +101,12 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
                         const doc = safeDocuments.find(d => d.id === docId);
                         if (!doc) return null;
                         const isValidated = doc.status === 'Approuvé';
+                        const isRejected = doc.status === 'Rejeté';
                         const isValidating = validatingDocId === docId;
 
                         return (
                             <div key={docId || 'unknown'} className="flex items-center p-3 bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl hover:shadow-md transition-all">
-                                <div className={`p-2 rounded-lg mr-3 ${isValidated ? 'bg-success-bg text-success-text' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'}`}>
+                                <div className={`p-2 rounded-lg mr-3 ${isValidated ? 'bg-success-bg text-success-text' : isRejected ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'}`}>
                                     {isValidated ? <ShieldCheck className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -113,23 +115,40 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
                                         {isValidated && (
                                             <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-success-bg text-success-text border border-success-border/30">
                                                 <Check className="h-3 w-3 mr-1" />
-                                                Validé
+                                                {t('compliance.validated', { defaultValue: 'Validé' })}
+                                            </span>
+                                        )}
+                                        {isRejected && (
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-600 border border-red-200">
+                                                <X className="h-3 w-3 mr-1" />
+                                                {t('compliance.rejected', { defaultValue: 'Rejeté' })}
                                             </span>
                                         )}
                                     </div>
                                     <p className="text-xs text-slate-500">{formatDate(doc.createdAt)} • {doc.owner}</p>
                                 </div>
                                 <div className="flex gap-2 items-center">
-                                    {!isValidated && onValidateEvidence && (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleValidate(docId)}
-                                            disabled={isValidating || updating}
-                                            className="text-xs font-bold text-brand-600 hover:text-brand-700 hover:bg-brand-50"
-                                        >
-                                            {isValidating ? <Loader2 className="h-3 w-3 animate-spin" /> : "Valider"}
-                                        </Button>
+                                    {!isValidated && !isRejected && onValidateEvidence && (
+                                        <div className="flex items-center gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleValidate(docId, 'approuver')}
+                                                disabled={isValidating || updating}
+                                                className="text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                            >
+                                                {isValidating && activeAction === 'approuver' ? <Loader2 className="h-3 w-3 animate-spin" /> : t('compliance.validate', { defaultValue: 'Valider' })}
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleValidate(docId, 'rejeter')}
+                                                disabled={isValidating || updating}
+                                                className="text-xs font-bold text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            >
+                                                {isValidating && activeAction === 'rejeter' ? <Loader2 className="h-3 w-3 animate-spin" /> : t('compliance.reject', { defaultValue: 'Rejeter' })}
+                                            </Button>
+                                        </div>
                                     )}
                                     <a href={doc.url} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-500 dark:text-slate-300 hover:text-brand-600 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors">
                                         <ExternalLink className="h-4 w-4" />
@@ -144,20 +163,24 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
                         );
                     })}
                     {(!control.evidenceIds || control.evidenceIds.length === 0) && (
-                        <div>
-                            <EmptyState icon={Paperclip} title={t('compliance.noEvidence', { defaultValue: 'Aucune preuve' })} description={t('compliance.linkDocumentsForCompliance', { defaultValue: 'Liez des documents pour prouver la conformité.' })} compact />
+                        <div className="flex flex-col items-center justify-center p-12 bg-slate-50/50 dark:bg-black/10 rounded-4xl border-2 border-dashed border-border/40 dark:border-border/40">
+                            <div className="w-16 h-16 bg-white dark:bg-white/5 rounded-full flex items-center justify-center shadow-sm mb-4">
+                                <FileText className="h-8 w-8 text-slate-300" />
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-1">{t('compliance.noEvidence', { defaultValue: 'Aucune preuve' })}</h3>
+                            <p className="text-xs text-slate-500 text-center max-w-[200px] mb-6">
+                                {t('compliance.linkDocumentsForCompliance', { defaultValue: 'Liez des documents pour prouver la conformité.' })}
+                            </p>
                             {canEdit && (
-                                <div className="flex justify-center mt-4">
-                                    <Button
-                                        onClick={() => onUploadEvidence(control)}
-                                        size="sm"
-                                        variant="outline"
-                                        className="text-xs font-bold"
-                                    >
-                                        <Upload className="h-3 w-3 mr-1.5" />
-                                        {t('compliance.addEvidence', { defaultValue: 'Ajouter une preuve' })}
-                                    </Button>
-                                </div>
+                                <Button
+                                    onClick={() => onUploadEvidence(control)}
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-xs font-bold"
+                                >
+                                    <Upload className="h-3 w-3 mr-1.5" />
+                                    {t('compliance.addEvidence', { defaultValue: 'Ajouter une preuve' })}
+                                </Button>
                             )}
                         </div>
                     )}
@@ -165,14 +188,23 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
 
                 {canEdit && (
                     <div className="mt-6 pt-6 border-t border-border/40 dark:border-white/5">
-                        <CustomSelect
-                            label={t('compliance.addExistingEvidence', { defaultValue: 'Ajouter une preuve existante' })}
-                            value=""
-                            onChange={(val) => handleLinkWithLoading(val as string)}
-                            options={safeDocuments.filter(d => !control.evidenceIds?.includes(d.id)).map(d => ({ value: d.id, label: d.title }))}
-                            placeholder={t('compliance.selectDocument', { defaultValue: 'Sélectionner un document...' })}
-                            disabled={updating || !!linkingDocId}
-                        />
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-slate-400" />
+                                <h4 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 tracking-widest">{t('compliance.addExistingEvidence', { defaultValue: 'Ajouter une preuve existante' })}</h4>
+                            </div>
+                        </div>
+
+                        <div className="pt-2">
+                            <CustomSelect
+                                label=""
+                                value=""
+                                onChange={(val) => handleLinkWithLoading(val as string)}
+                                options={availableDocs.map(d => ({ value: d.id, label: d.title }))}
+                                placeholder={t('compliance.selectDocument', { defaultValue: 'Sélectionner un document...' })}
+                                disabled={updating || availableDocs.length === 0}
+                            />
+                        </div>
                     </div>
                 )}
             </div>

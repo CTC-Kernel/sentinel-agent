@@ -1348,9 +1348,16 @@
       "assessment": "Évaluation",
       "treatment": "Traitement & Contrôles"
     },
+    "form": {
+      "framework": "Référentiel / Standard",
+      "frameworkPlaceholder": "Sélectionner un référentiel...",
+      "asset": "Actif Principal Concerné",
+      "owner": "Propriétaire du Risque",
+      "processes": "Processus Métier Impactés",
+      "suppliers": "Fournisseurs / Tiers Concernés"
+    },
     "overview": "Vue d'ensemble",
     "registry": "Registre",
-    "matrix": "Matrice",
     "financial": "Risques Financiers",
     "searchPlaceholder": "Rechercher une menace, vulnérabilité...",
     "framework": "Référentiel",
@@ -1405,9 +1412,71 @@
     },
     "strategies": {
       "reduce": "Réduire",
+      "mitigate": "Atténuer",
       "accept": "Accepter",
       "avoid": "Éviter",
       "transfer": "Transférer"
+    },
+    "sla": {
+      "onTrack": "Dans les temps",
+      "atRisk": "À risque",
+      "breached": "Échéance dépassée",
+      "onTrack_desc": "Le plan de traitement suit le calendrier prévu.",
+      "atRisk_desc": "Le plan de traitement approche de son échéance sans action majeure.",
+      "breached_desc": "La date limite de traitement est dépassée."
+    },
+    "dashboard": {
+      "kpi": {
+        "total": "Total Risques",
+        "critical": "Risques Critiques",
+        "treatmentRate": "Taux de Traitement",
+        "reductionRate": "Taux de Réduction",
+        "residualValue": "Valeur Résiduelle",
+        "reductionTarget": "Objectif de Réduction"
+      },
+      "charts": {
+        "distribution": "Répartition par Criticité",
+        "evolution": "Évolution du Score de Risque",
+        "inherentVsResidual": "Inhérent vs Résiduel",
+        "treatmentStatus": "Statut de Traitement"
+      }
+    },
+    "matrix": {
+      "title": "Matrice des Risques",
+      "description": "Visualisation de l'exposition aux risques selon la norme ISO 27005.",
+      "clickToFilter": "Cliquez sur une case pour filtrer les risques associés.",
+      "inherentRisk": "Risque Inhérent",
+      "residualRisk": "Risque Résiduel",
+      "probabilityAxis": "Probabilité",
+      "impactAxis": "Impact",
+      "level": "Niveau",
+      "risksLabel": "Risques",
+      "infoFooter": "La matrice des risques permet de visualiser la répartition de vos risques selon leur criticité. La zone rouge représente les risques inacceptables nécessitant une action immédiate. La zone verte représente les risques acceptables ou sous contrôle.",
+      "legend": {
+        "low": "Faible",
+        "medium": "Moyen",
+        "high": "Élevé",
+        "critical": "Critique"
+      },
+      "probability": {
+        "veryHigh": "Très Élevé",
+        "high": "Élevé",
+        "medium": "Moyen",
+        "low": "Faible",
+        "veryLow": "Très Faible",
+        "certain": "Certain",
+        "probable": "Probable",
+        "possible": "Possible",
+        "improbable": "Improbable",
+        "rare": "Rare"
+      },
+      "impact": {
+        "negligible": "Négligeable",
+        "minor": "Mineur",
+        "moderate": "Modéré",
+        "major": "Majeur",
+        "critical": "Critique"
+      }
     },
     "treatment": {
       "actions_title": "Actions de traitement",
@@ -2252,7 +2321,57 @@
         "observation": "Observation",
         "audit": "Audit interne"
       }
-    }
+    },
+    "tabs": {
+      "details": "Détails",
+      "evidence": "Preuves",
+      "linkedItems": "Éléments Liés",
+      "discussion": "Discussion",
+      "history": "Historique"
+    },
+    "documentaryEvidence": "Preuves documentaires",
+    "addEvidence": "Ajouter une preuve",
+    "validated": "Validé",
+    "validate": "Valider",
+    "reject": "Rejeter",
+    "addExistingEvidence": "Ajouter une preuve existante",
+    "selectDocument": "Sélectionner un document...",
+    "unlinkEvidenceTitle": "Délier la preuve",
+    "unlinkEvidenceMessage": "Êtes-vous sûr de vouloir délier ce document ? Le document ne sera pas supprimé.",
+    "unlinkConfirm": "Délier",
+    "unlinkDocument": "Délier le document",
+    "noEvidence": "Aucune preuve",
+    "linkDocumentsForCompliance": "Liez des documents pour prouver la conformité.",
+    "implementationStatus": "Statut d'implémentation",
+    "status": {
+      "notStarted": "Non commencé",
+      "inProgress": "En cours",
+      "partial": "Partiel",
+      "implemented": "Implémenté",
+      "planned": "Planifié",
+      "overdue": "En retard",
+      "notApplicable": "Non applicable",
+      "excluded": "Exclu"
+    },
+    "changeStatusTo": "Changer le statut à {{status}}",
+    "statusUpdated": "Statut mis à jour",
+    "responsible": "Responsable",
+    "assignedTo": "Assigné à",
+    "selectResponsible": "Sélectionner un responsable...",
+    "notAssigned": "Non assigné",
+    "satisfiedFrameworks": "Référentiels Satisfaits",
+    "frameworksCount": "{{count}} référentiel(s)",
+    "primary": "principal",
+    "removeFramework": "Retirer {{name}}",
+    "addFramework": "Ajouter un référentiel...",
+    "onlySatisfiesPrimary": "Ce contrôle ne satisfait que son référentiel principal.",
+    "justificationPolicy": "Justification / Politique",
+    "justificationPlaceholder": "Décrivez comment ce contrôle est implémenté...",
+    "justificationSaved": "Justification enregistrée",
+    "linkControlToProject": "Lier ce contrôle au projet",
+    "linkControlToProjectAria": "Lier le contrôle au projet {{project}}",
+    "alreadyLinked": "Déjà lié",
+    "linkNow": "Lier maintenant"
   },
   "requirements": {
     "title": "Exigences",

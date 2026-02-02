@@ -2,12 +2,14 @@ import React from 'react';
 import { Risk } from '../../types';
 import { motion } from 'framer-motion';
 import { RISK_THRESHOLDS } from '../../constants/complianceConfig';
+import { useLocale } from '@/hooks/useLocale';
 
 interface RiskHeatmapProps {
     risks: Risk[];
 }
 
 export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({ risks }) => {
+    const { t } = useLocale();
 
     // 1. Aggregate risks by coordinate (p, i)
     const matrixData = React.useMemo(() => {
@@ -31,10 +33,10 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({ risks }) => {
 
     const getCellSeverityLabel = (p: number, i: number) => {
         const score = p * i;
-        if (score >= RISK_THRESHOLDS.CRITICAL) return 'Critique';
-        if (score >= RISK_THRESHOLDS.HIGH) return 'Élevé';
-        if (score >= RISK_THRESHOLDS.MEDIUM) return 'Moyen';
-        return 'Faible';
+        if (score >= RISK_THRESHOLDS.CRITICAL) return t('risks.matrix.legend.critical', { defaultValue: 'Critique' });
+        if (score >= RISK_THRESHOLDS.HIGH) return t('risks.matrix.legend.high', { defaultValue: 'Élevé' });
+        if (score >= RISK_THRESHOLDS.MEDIUM) return t('risks.matrix.legend.medium', { defaultValue: 'Moyen' });
+        return t('risks.matrix.legend.low', { defaultValue: 'Faible' });
     };
 
     return (
@@ -42,12 +44,12 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({ risks }) => {
             <div className="relative">
                 {/* Y-Axis Label */}
                 <div className="absolute -left-8 top-1/2 -translate-y-1/2 -rotate-90 text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest text-center w-32">
-                    Probabilité
+                    {t('risks.matrix.probabilityAxis', { defaultValue: 'Probabilité' })}
                 </div>
 
                 {/* X-Axis Label */}
                 <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest text-center w-32">
-                    Impact
+                    {t('risks.matrix.impactAxis', { defaultValue: 'Impact' })}
                 </div>
 
                 {/* The Grid */}
@@ -71,8 +73,8 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({ risks }) => {
                                             }
                                         `}
                                         whileHover={hasData ? { scale: 1.1, zIndex: 10 } : undefined}
-                                        title={`Prob: ${p}, Imp: ${i} | ${count} Risques`}
-                                        aria-label={`${getCellSeverityLabel(p, i)}: ${count} risque${count !== 1 ? 's' : ''}, Probabilité ${p}, Impact ${i}`}
+                                        title={`${t('risks.matrix.probabilityAxis')}: ${p}, ${t('risks.matrix.impactAxis')}: ${i} | ${count} ${t('risks.matrix.risksLabel')}`}
+                                        aria-label={`${getCellSeverityLabel(p, i)}: ${count} ${t('common.risks', { defaultValue: 'risque' })}${count !== 1 ? 's' : ''}, ${t('risks.matrix.probabilityAxis')} ${p}, ${t('risks.matrix.impactAxis')} ${i}`}
                                     >
                                         <span className={hasData ? 'visible' : 'invisible'}>
                                             {count}
@@ -88,16 +90,16 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({ risks }) => {
             {/* Legend */}
             <div className="mt-8 flex gap-4 text-[11px] font-medium text-slate-500 dark:text-muted-foreground">
                 <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded bg-success-text" /> Faible
+                    <div className="w-2.5 h-2.5 rounded bg-success-text" /> {t('risks.matrix.legend.low', { defaultValue: 'Faible' })}
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded bg-info-text" /> Moyen
+                    <div className="w-2.5 h-2.5 rounded bg-info-text" /> {t('risks.matrix.legend.medium', { defaultValue: 'Moyen' })}
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded bg-warning-text" /> Élevé
+                    <div className="w-2.5 h-2.5 rounded bg-warning-text" /> {t('risks.matrix.legend.high', { defaultValue: 'Élevé' })}
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded bg-error-text" /> Critique
+                    <div className="w-2.5 h-2.5 rounded bg-error-text" /> {t('risks.matrix.legend.critical', { defaultValue: 'Critique' })}
                 </div>
             </div>
         </div>

@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { RiskHeatmap } from './RiskHeatmap';
 import { RiskResidualChart } from './RiskResidualChart';
 import { RiskTreatmentChart } from './RiskTreatmentChart';
+import { useLocale } from '@/hooks/useLocale';
+import { RiskStrategy } from '@/constants/RiskConstants';
 import {
     RadialBarChart, RadialBar, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend,
     Sector
@@ -55,6 +57,7 @@ const renderActiveShape = (props: any) => {
 };
 
 export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
+    const { t } = useLocale();
     const [activePieIndex, setActivePieIndex] = useState<number | null>(null);
 
     // Calculate metrics using centralized RISK_THRESHOLDS
@@ -65,7 +68,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
         const medium = risks.filter(r => r.score >= RISK_THRESHOLDS.MEDIUM && r.score < RISK_THRESHOLDS.HIGH).length;
         const low = risks.filter(r => r.score < RISK_THRESHOLDS.MEDIUM).length;
 
-        const treated = risks.filter(r => r.strategy && r.strategy !== 'Accepter').length;
+        const treated = risks.filter(r => r.strategy && r.strategy !== RiskStrategy.ACCEPT).length;
         const treatmentRate = total > 0 ? Math.round((treated / total) * 100) : 0;
 
         const avgScore = total > 0 ? risks.reduce((acc, r) => acc + r.score, 0) / total : 0;
@@ -77,11 +80,11 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
 
     // Distribution data for interactive pie
     const distributionData = useMemo(() => [
-        { name: 'Critique', value: metrics.critical, color: SEVERITY_COLORS.critical },
-        { name: 'Élevé', value: metrics.high, color: SEVERITY_COLORS.high },
-        { name: 'Moyen', value: metrics.medium, color: SEVERITY_COLORS.medium },
-        { name: 'Faible', value: metrics.low, color: SEVERITY_COLORS.low }
-    ].filter(d => d.value > 0), [metrics]);
+        { name: t('risks.matrix.legend.critical', { defaultValue: 'Critique' }), value: metrics.critical, color: SEVERITY_COLORS.critical },
+        { name: t('risks.matrix.legend.high', { defaultValue: 'Élevé' }), value: metrics.high, color: SEVERITY_COLORS.high },
+        { name: t('risks.matrix.legend.medium', { defaultValue: 'Moyen' }), value: metrics.medium, color: SEVERITY_COLORS.medium },
+        { name: t('risks.matrix.legend.low', { defaultValue: 'Faible' }), value: metrics.low, color: SEVERITY_COLORS.low }
+    ].filter(d => d.value > 0), [metrics, t]);
 
     // Gauge data for RadialBarChart
     const gaugeData = [
@@ -129,7 +132,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                         <div className="p-2 bg-brand-50 rounded-3xl">
                             <Shield className="h-4 w-4 text-brand-500" />
                         </div>
-                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Taux Traitement</span>
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('risks.dashboard.kpi.treatmentRate', { defaultValue: 'Taux Traitement' })}</span>
                     </div>
                     <div className="h-[140px] relative">
                         <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
@@ -171,7 +174,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                         <div className="p-2 bg-emerald-500/10 rounded-3xl">
                             <TrendingUp className="h-4 w-4 text-emerald-500" />
                         </div>
-                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Réduction Risque</span>
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('risks.dashboard.kpi.reductionRate', { defaultValue: 'Réduction Risque' })}</span>
                     </div>
                     <div className="h-[140px] relative">
                         <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
@@ -209,10 +212,10 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                     className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-4"
                 >
                     {[
-                        { label: 'Total', value: metrics.total, icon: Target, color: 'brand', gradient: 'from-brand-500 to-brand-400' },
-                        { label: 'Critiques', value: metrics.critical, icon: AlertTriangle, color: 'red', gradient: 'from-red-500 to-red-400' },
+                        { label: t('common.all', { defaultValue: 'Total' }), value: metrics.total, icon: Target, color: 'brand', gradient: 'from-brand-500 to-brand-400' },
+                        { label: t('risks.dashboard.kpi.critical', { defaultValue: 'Critiques' }), value: metrics.critical, icon: AlertTriangle, color: 'red', gradient: 'from-red-500 to-red-400' },
                         { label: 'Score Moy.', value: metrics.avgScore.toFixed(1), icon: Zap, color: 'amber', gradient: 'from-amber-500 to-amber-400' },
-                        { label: 'Résiduel', value: metrics.avgResidual.toFixed(1), icon: Shield, color: 'emerald', gradient: 'from-emerald-500 to-emerald-400' }
+                        { label: t('risks.dashboard.kpi.residualValue', { defaultValue: 'Résiduel' }), value: metrics.avgResidual.toFixed(1), icon: Shield, color: 'emerald', gradient: 'from-emerald-500 to-emerald-400' }
                     ].map((item, idx) => (
                         <div
                             key={idx || 'unknown'}
@@ -245,7 +248,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                         <div className="p-2 bg-brand-50 rounded-3xl">
                             <Activity className="w-4 h-4 text-brand-500" />
                         </div>
-                        Cartographie des Risques
+                        {t('risks.matrix.title', { defaultValue: 'Cartographie des Risques' })}
                     </h3>
                     <RiskHeatmap risks={risks} />
                 </motion.div>
@@ -262,7 +265,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                         <div className="p-2 bg-orange-500/10 rounded-3xl">
                             <AlertTriangle className="w-4 h-4 text-orange-500" />
                         </div>
-                        Distribution par Niveau
+                        {t('risks.dashboard.charts.distribution', { defaultValue: 'Distribution par Niveau' })}
                     </h3>
                     <div className="h-[280px]">
                         <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
@@ -324,7 +327,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                     <div className="p-2 bg-success-bg rounded-3xl">
                         <Layers className="w-4 h-4 text-success-text" />
                     </div>
-                    Avancement des Traitements
+                    {t('risks.dashboard.charts.treatmentStatus', { defaultValue: 'Avancement des Traitements' })}
                 </h3>
                 <RiskTreatmentChart risks={risks} />
             </motion.div>
@@ -343,8 +346,8 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                         <TrendingUp className="h-5 w-5 text-brand-500" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-lg text-foreground">Réduction du Risque (Inhérent vs Résiduel)</h3>
-                        <p className="text-xs text-muted-foreground">Impact des mesures de sécurité par catégorie</p>
+                        <h3 className="font-bold text-lg text-foreground">{t('risks.dashboard.charts.inherentVsResidual', { defaultValue: 'Réduction du Risque (Inhérent vs Résiduel)' })}</h3>
+                        <p className="text-xs text-muted-foreground">{t('risks.matrix.description', { defaultValue: 'Impact des mesures de sécurité par catégorie' })}</p>
                     </div>
                 </div>
 
@@ -366,8 +369,8 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                             <AlertTriangle className="h-5 w-5 text-error-text" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-lg text-foreground">Top Risques Critiques</h3>
-                            <p className="text-xs text-muted-foreground">Actions prioritaires requises</p>
+                            <h3 className="font-bold text-lg text-foreground">{t('dashboard.insightRisks', { defaultValue: 'Top Risques Critiques' })}</h3>
+                            <p className="text-xs text-muted-foreground">{t('risks.dashboardStatDesc', { defaultValue: 'Actions prioritaires requises' })}</p>
                         </div>
                     </div>
 
@@ -395,7 +398,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                                             </span>
                                         </div>
                                         <span className="text-[11px] text-muted-foreground">
-                                            {risk.treatmentDeadline ? new Date(risk.treatmentDeadline).toLocaleDateString() : 'Pas d\'échéance'}
+                                            {risk.treatmentDeadline ? new Date(risk.treatmentDeadline).toLocaleDateString() : t('risks.treatment.noDeadline', { defaultValue: 'Pas d\'échéance' })}
                                         </span>
                                     </div>
                                     <h5 className="font-bold text-sm text-foreground mb-1 line-clamp-2 group-hover:text-error-text transition-colors">
@@ -405,12 +408,12 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
 
                                     <div className="mt-auto pt-3 border-t border-border/50 flex justify-between items-center">
                                         <span className={`text-[11px] uppercase font-bold px-2 py-1 rounded-md
-                                            ${risk.strategy === 'Atténuer' ? 'bg-info-bg text-info-text' :
-                                                risk.strategy === 'Transférer' ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/20 dark:text-violet-400' :
-                                                    risk.strategy === 'Éviter' ? 'bg-success-bg text-success-text' :
+                                            ${risk.strategy === RiskStrategy.MITIGATE ? 'bg-info-bg text-info-text' :
+                                                risk.strategy === RiskStrategy.TRANSFER ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/20 dark:text-violet-400' :
+                                                    risk.strategy === RiskStrategy.AVOID ? 'bg-success-bg text-success-text' :
                                                         'bg-warning-bg text-warning-text'
                                             }`}>
-                                            {risk.strategy || 'Non défini'}
+                                            {risk.strategy || t('common.unknown', { defaultValue: 'Non défini' })}
                                         </span>
                                         {risk.residualScore !== undefined && (
                                             <span className="text-[11px] text-muted-foreground">

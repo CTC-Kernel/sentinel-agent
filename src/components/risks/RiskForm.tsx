@@ -5,7 +5,8 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useLocale } from '@/hooks/useLocale';
+import { RiskStrategy } from '@/constants/RiskConstants';
 import { useWatch, FieldErrors } from 'react-hook-form';
 import { useZodForm } from '../../hooks/useZodForm';
 import { toast } from '@/lib/toast';
@@ -83,7 +84,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     autoSaveDebounceMs = 30000,
     onDirtyChange
 }) => {
-    const { t } = useTranslation();
+    const { t } = useLocale();
 
     // State
     const [isDraft, setIsDraft] = useState(() => initialDraftMode || (existingRisk?.status === RISK_DRAFT_STATUS));
@@ -127,7 +128,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             impact: initialData?.impact || 3,
             residualProbability: initialData?.residualProbability || 3,
             residualImpact: initialData?.residualImpact || 3,
-            strategy: initialData?.strategy || 'Atténuer',
+            strategy: initialData?.strategy || RiskStrategy.MITIGATE,
             status: initialData?.status || 'Ouvert',
             ownerId: initialData?.ownerId || '',
             mitigationControlIds: initialData?.mitigationControlIds || [],
@@ -388,7 +389,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     {activeTab === 'context' && <RiskFormContextTab control={control} errors={errors} assets={assets} usersList={usersList} processes={processes} suppliers={suppliers} framework={framework || 'ISO27005'} setValue={setValue} readOnly={readOnly} />}
                     {activeTab === 'identification' && <RiskFormIdentificationTab control={control} errors={errors} assets={assets} getValues={getValues} setValue={setValue} showLibraryModal={showLibraryModal} setShowLibraryModal={setShowLibraryModal} readOnly={readOnly} />}
                     {activeTab === 'assessment' && <RiskFormAssessmentTab probability={probability ?? 3} impact={impact ?? 3} residualProbability={residualProbability ?? 3} residualImpact={residualImpact ?? 3} setValue={setValue} control={control} errors={errors} readOnly={readOnly} />}
-                    {activeTab === 'treatment' && <RiskFormTreatmentTab control={control} errors={errors} existingRisk={existingRisk} controls={controls} usersList={usersList} getValues={getValues} setValue={setValue} strategy={strategy || 'Atténuer'} probability={probability ?? 3} impact={impact ?? 3} mitigationControlIds={mitigationControlIds || []} suggestedControlIds={suggestedControlIds} readOnly={readOnly} />}
+                    {activeTab === 'treatment' && <RiskFormTreatmentTab control={control} errors={errors} existingRisk={existingRisk} controls={controls} usersList={usersList} getValues={getValues} setValue={setValue} strategy={(strategy as RiskStrategy) || RiskStrategy.MITIGATE} probability={probability ?? 3} impact={impact ?? 3} mitigationControlIds={mitigationControlIds || []} suggestedControlIds={suggestedControlIds} readOnly={readOnly} />}
                     {activeTab === 'history' && existingRisk?.id && <div className="space-y-6 bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium"><ResourceHistory resourceId={existingRisk.id} resourceType="Risk" /></div>}
                 </fieldset>
                 {activeTab === 'history' && !existingRisk?.id && <div className="p-8 text-center text-slate-500">{t('riskForm.saveToSeeHistory', { defaultValue: 'Veuillez enregistrer le risque pour voir l\'historique.' })}</div>}

@@ -17,11 +17,11 @@ import { TimelineView } from '../shared/TimelineView';
 import { Risk, RiskTreatment, Asset, Control, Project, Audit, Supplier, MitreTechnique, UserProfile, BusinessProcess } from '../../types';
 import { integrationService } from '../../services/integrationService';
 import { toast } from '@/lib/toast';
-import { useStore } from '../../store';
 import { Button } from '../ui/button';
 import { ConfirmModal } from '../ui/ConfirmModal';
 
 import { useInspector } from '../../hooks/useInspector';
+import { useLocale } from '@/hooks/useLocale';
 
 // Sub-components
 import { RiskGeneralDetails } from './inspector/RiskGeneralDetails';
@@ -53,20 +53,20 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
     canEdit, demoMode, onUpdate, onDelete, onDuplicate
 }) => {
     const navigate = useNavigate();
-    const { t } = useStore();
+    const { t } = useLocale();
 
     // Memoize tabs configuration early for use in hook
     const tabs = React.useMemo(() => [
-        { id: 'details', label: 'Détails', icon: ShieldAlert },
-        { id: 'treatment', label: 'Traitement', icon: CheckCircle2 },
-        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { id: 'projects', label: 'Projets', icon: FolderKanban },
-        { id: 'audits', label: 'Audits', icon: CheckCircle2 },
-        { id: 'history', label: 'Historique', icon: History },
-        { id: 'comments', label: 'Discussion', icon: MessageSquare },
-        { id: 'graph', label: 'Graphe', icon: Network },
-        { id: 'threats', label: 'Menaces', icon: ShieldAlert }
-    ], []);
+        { id: 'details', label: t('common.details', { defaultValue: 'Détails' }), icon: ShieldAlert },
+        { id: 'treatment', label: t('risks.tabs.treatment', { defaultValue: 'Traitement' }), icon: CheckCircle2 },
+        { id: 'dashboard', label: t('common.overview', { defaultValue: 'Dashboard' }), icon: LayoutDashboard },
+        { id: 'projects', label: t('common.projects', { defaultValue: 'Projets' }), icon: FolderKanban },
+        { id: 'audits', label: t('common.audits', { defaultValue: 'Audits' }), icon: CheckCircle2 },
+        { id: 'history', label: t('common.history', { defaultValue: 'Historique' }), icon: History },
+        { id: 'comments', label: t('compliance.discussion', { defaultValue: 'Discussion' }), icon: MessageSquare },
+        { id: 'graph', label: t('compliance.tabs.graph', { defaultValue: 'Graphe' }), icon: Network },
+        { id: 'threats', label: t('risks.tabs.identification', { defaultValue: 'Menaces' }), icon: ShieldAlert }
+    ], [t]);
 
     // Use standardized hook
     const {
@@ -113,10 +113,10 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         // so we manually reset tab/edit mode here.
     }, [onClose, isEditing, exitEditMode, setActiveTab]);
 
-    const getAssetName = React.useCallback((id?: string) => assets.find(a => a.id === id)?.name || 'Actif inconnu', [assets]);
+    const getAssetName = React.useCallback((id?: string) => assets.find(a => a.id === id)?.name || t('common.unknown', { defaultValue: 'Actif inconnu' }), [assets, t]);
 
     const getOwnerName = React.useCallback((ownerId?: string) => {
-        if (!ownerId) return 'Non assigné';
+        if (!ownerId) return t('treatment.not_assigned', { defaultValue: 'Non assigné' });
         // If ownerId looks like a UID (long string), try to find user
         const user = usersList.find(u => u.uid === ownerId);
         return user ? (user.displayName || user.email) : ownerId;
@@ -219,33 +219,33 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
             actions={
                 !isEditing && canEdit ? (
                     <div className="flex gap-2">
-                        <CustomTooltip content="Dupliquer">
+                        <CustomTooltip content={t('common.copy', { defaultValue: 'Dupliquer' })}>
                             <Button
                                 variant="outline"
                                 size="icon"
                                 onClick={handleDuplicate}
-                                aria-label="Dupliquer le risque"
+                                aria-label={t('common.copy', { defaultValue: 'Dupliquer le risque' })}
                             >
                                 <Copy className="h-4 w-4" />
                             </Button>
                         </CustomTooltip>
-                        <CustomTooltip content="Modifier">
+                        <CustomTooltip content={t('common.edit', { defaultValue: 'Modifier' })}>
                             <Button
                                 variant="outline"
                                 size="icon"
                                 onClick={handleEditStart}
-                                aria-label="Modifier le risque"
+                                aria-label={t('common.edit', { defaultValue: 'Modifier le risque' })}
                             >
                                 <Edit className="h-4 w-4" />
                             </Button>
                         </CustomTooltip>
-                        <CustomTooltip content="Supprimer">
+                        <CustomTooltip content={t('common.delete', { defaultValue: 'Supprimer' })}>
                             <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={handleDeleteRisk}
                                 className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
-                                aria-label="Supprimer le risque"
+                                aria-label={t('common.delete', { defaultValue: 'Supprimer le risque' })}
                             >
                                 <Trash2 className="h-4 w-4" />
                             </Button>
@@ -334,7 +334,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                             <DiscussionPanel
                                 collectionName="risks"
                                 documentId={risk.id}
-                                title={`Discussion - ${risk.threat}`}
+                                title={`${t('compliance.discussion', { defaultValue: 'Discussion' })} - ${risk.threat}`}
                                 enableSearch={true}
                                 enableFilters={true}
                                 enableExport={true}

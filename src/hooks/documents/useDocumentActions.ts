@@ -462,8 +462,8 @@ export const useDocumentActions = (usersList: UserProfile[] = [], onDeletedId?: 
 
             if (!docData) throw new Error("Document not found");
 
-            const updates: Partial<Document> = {
-                updatedAt: serverTimestamp() as any
+            const updates: Record<string, unknown> = {
+                updatedAt: serverTimestamp()
             };
 
             // Workflow State Machine (Simple version)
@@ -474,7 +474,7 @@ export const useDocumentActions = (usersList: UserProfile[] = [], onDeletedId?: 
 
             if (action === 'approuver') {
                 updates.status = 'Approuvé';
-                updates.approvers = arrayUnion(user.uid) as any;
+                updates.approvers = arrayUnion(user.uid);
             } else if (action === 'rejeter') {
                 updates.status = 'Rejeté';
             } else if (action === 'soumettre') {
@@ -490,10 +490,10 @@ export const useDocumentActions = (usersList: UserProfile[] = [], onDeletedId?: 
                 action,
                 comment,
                 version: docData.version,
-                step: updates.status as any || docData.status
+                step: (updates.status as string) || docData.status
             };
 
-            updates.workflowHistory = arrayUnion(historyItem) as any;
+            updates.workflowHistory = arrayUnion(historyItem);
 
             await updateDoc(doc(db, 'documents', documentId), updates);
 

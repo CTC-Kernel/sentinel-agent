@@ -56,7 +56,7 @@ export const useTeamData = (enabled = true) => {
 
   const updateUser = useCallback(async (id: string, data: Partial<UserProfile>) => {
     // Find absolute user to get previous state
-    const targetUser = users.find(u => (u as any).id === id || u.uid === id);
+    const targetUser = users.find(u => u.uid === id);
     const oldRole = targetUser?.role;
 
     // Perform update

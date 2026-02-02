@@ -4,13 +4,13 @@
  */
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import { useLocale } from '@/hooks/useLocale';
 import { Controller } from 'react-hook-form';
 import { FileText, BookOpen } from '../../ui/Icons';
 import { FloatingLabelInput } from '../../ui/FloatingLabelInput';
 import { RichTextEditor } from '../../ui/RichTextEditor';
 import { AIAssistButton } from '../../ai/AIAssistButton';
-import { STANDARD_THREATS } from '../../../data/riskConstants';
+import { STANDARD_THREATS } from '@/constants/RiskConstants';
 import { RiskFormIdentificationTabProps } from './riskFormTypes';
 
 export const RiskFormIdentificationTab: React.FC<RiskFormIdentificationTabProps> = React.memo(({
@@ -21,7 +21,7 @@ export const RiskFormIdentificationTab: React.FC<RiskFormIdentificationTabProps>
     setValue,
     setShowLibraryModal,
 }) => {
-    const { t } = useTranslation();
+    const { t } = useLocale();
 
     return (
         <div className="space-y-6 bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium glass-premium">

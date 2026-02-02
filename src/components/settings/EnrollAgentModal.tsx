@@ -22,7 +22,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { EnrollmentTokenPanel } from '../agents/EnrollmentTokenPanel';
 
-interface PlatformInfo {
+export interface PlatformInfo {
     displayName: string;
     available: boolean;
     downloadUrl: string;
@@ -31,7 +31,7 @@ interface PlatformInfo {
     fileSize?: string;
 }
 
-interface ReleaseInfo {
+export interface ReleaseInfo {
     product: string;
     currentVersion: string;
     releaseDate?: string;

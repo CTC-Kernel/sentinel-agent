@@ -173,7 +173,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                         <DiscussionPanel
                             collectionName="controls"
                             documentId={control.id}
-                            title={`Discussion - ${control.code} ${control.name}`}
+                            title={`${t('compliance.discussion', { defaultValue: 'Discussion' })} - ${control.code} ${control.name}`}
                             enableSearch={true}
                             enableFilters={true}
                             enableExport={true}

@@ -7,6 +7,7 @@ import { Badge } from '../ui/Badge';
 import { Button } from '../ui/button';
 import { TreatmentActionsList } from './TreatmentActionsList';
 import { RISK_THRESHOLDS, CONTROL_STATUS } from '../../constants/complianceConfig';
+import { RiskStrategy, RISK_STRATEGY_LABELS, SlaStatus, SLA_STATUS_LABELS } from '@/constants/RiskConstants';
 
 
 interface RiskTreatmentPlanProps {
@@ -19,7 +20,7 @@ interface RiskTreatmentPlanProps {
 }
 
 export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUpdate, onRiskUpdate, users, controls = [], onDirtyChange }) => {
-    const { dateFnsLocale } = useLocale();
+    const { t, dateFnsLocale } = useLocale();
     // Default SLAs (in days)
     const SLA_DAYS = {
         [Criticality.CRITICAL]: 7,
@@ -29,22 +30,22 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
     };
 
     // Helper to calculate SLA status
-    const calculateSLAStatus = (dueDate: string | undefined, status: string): 'On Track' | 'At Risk' | 'Breached' => {
-        if (!dueDate) return 'On Track';
+    const calculateSLAStatus = (dueDate: string | undefined, status: string): SlaStatus => {
+        if (!dueDate) return SlaStatus.ON_TRACK;
 
         const today = new Date();
         const due = parseISO(dueDate);
 
         if (isAfter(today, due) && status !== 'Terminé') {
-            return 'Breached';
+            return SlaStatus.BREACHED;
         } else if (status !== 'Terminé') {
             // Warning if within 3 days
             const warningDate = addDays(today, 3);
             if (isAfter(warningDate, due)) {
-                return 'At Risk';
+                return SlaStatus.AT_RISK;
             }
         }
-        return 'On Track';
+        return SlaStatus.ON_TRACK;
     };
 
     // Warning confirmation for accepting critical risks
@@ -115,7 +116,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
     const [treatment, setTreatment] = useState<RiskTreatment>(() => {
         const initial: RiskTreatment = risk.treatment ? { ...risk.treatment } : {
-            strategy: risk.strategy || 'Atténuer',
+            strategy: (risk.strategy as RiskStrategy) || RiskStrategy.MITIGATE,
             status: 'Planifié',
             description: '',
             ownerId: risk.ownerId
@@ -148,7 +149,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
     // Monitor dirty state for main treatment fields
     React.useEffect(() => {
         const isDirty = (
-            treatment.strategy !== (risk.treatment?.strategy || risk.strategy || 'Atténuer') ||
+            treatment.strategy !== (risk.treatment?.strategy || risk.strategy || RiskStrategy.MITIGATE) ||
             treatment.status !== (risk.treatment?.status || 'Planifié') ||
             treatment.ownerId !== (risk.treatment?.ownerId || risk.ownerId) ||
             treatment.dueDate !== risk.treatment?.dueDate ||
@@ -227,14 +228,14 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                         <CheckCircle2 className="h-5 w-5 text-brand-500" />
                         Plan de Traitement
                     </h3>
-                    {treatment.slaStatus === 'Breached' && (
+                    {treatment.slaStatus === SlaStatus.BREACHED && (
                         <span className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-bold flex items-center gap-1 border border-red-200">
-                            <AlertTriangle className="h-3 w-3" /> SLA Dépassé
+                            <AlertTriangle className="h-3 w-3" /> {t(SLA_STATUS_LABELS[SlaStatus.BREACHED], { defaultValue: 'SLA Dépassé' })}
                         </span>
                     )}
-                    {treatment.slaStatus === 'At Risk' && (
+                    {treatment.slaStatus === SlaStatus.AT_RISK && (
                         <span className="px-3 py-1 bg-warning-bg text-warning-text rounded-full text-xs font-bold flex items-center gap-1 border border-warning-border">
-                            <Clock className="h-3 w-3" /> SLA À Risque
+                            <Clock className="h-3 w-3" /> {t(SLA_STATUS_LABELS[SlaStatus.AT_RISK], { defaultValue: 'SLA À Risque' })}
                         </span>
                     )}
                 </div>
@@ -248,8 +249,8 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                 id="risk-strategy"
                                 value={treatment.strategy}
                                 onChange={(e) => {
-                                    const value = e.target.value;
-                                    if (value === 'Accepter' && risk.score >= RISK_THRESHOLDS.CRITICAL) {
+                                    const value = e.target.value as RiskStrategy;
+                                    if (value === RiskStrategy.ACCEPT && risk.score >= RISK_THRESHOLDS.CRITICAL) {
                                         setShowAcceptWarning(true);
                                     } else {
                                         setShowAcceptWarning(false);
@@ -258,10 +259,10 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                 }}
                                 className="w-full appearance-none rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none"
                             >
-                                <option value="Atténuer">Atténuer (Réduire)</option>
-                                <option value="Transférer">Transférer (Assurance/Sous-traitance)</option>
-                                <option value="Éviter">Éviter (Supprimer l'activité)</option>
-                                <option value="Accepter">Accepter (Risque résiduel)</option>
+                                <option value={RiskStrategy.MITIGATE}>{t(RISK_STRATEGY_LABELS[RiskStrategy.MITIGATE])}</option>
+                                <option value={RiskStrategy.TRANSFER}>{t(RISK_STRATEGY_LABELS[RiskStrategy.TRANSFER])}</option>
+                                <option value={RiskStrategy.AVOID}>{t(RISK_STRATEGY_LABELS[RiskStrategy.AVOID])}</option>
+                                <option value={RiskStrategy.ACCEPT}>{t(RISK_STRATEGY_LABELS[RiskStrategy.ACCEPT])}</option>
                             </select>
                             <AlertTriangle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none group-hover:text-brand-500 transition-colors" />
                         </div>
@@ -284,7 +285,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                         <Button
                                             size="sm"
                                             variant="ghost"
-                                            onClick={() => { handleChange('strategy', 'Atténuer'); setShowAcceptWarning(false); }}
+                                            onClick={() => { handleChange('strategy', RiskStrategy.MITIGATE); setShowAcceptWarning(false); }}
                                             className="text-xs h-7 px-3 rounded-xl"
                                         >
                                             Annuler
@@ -346,7 +347,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                 value={treatment.dueDate || ''}
                                 onChange={(e) => handleChange('dueDate', e.target.value)}
                                 type="date"
-                                className={`w-full pl-10 pr-4 rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none ${treatment.slaStatus === 'Breached' ? 'border-red-500 text-red-600' : ''
+                                className={`w-full pl-10 pr-4 rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none ${treatment.slaStatus === SlaStatus.BREACHED ? 'border-red-500 text-red-600' : ''
                                     }`}
                             />
                         </div>

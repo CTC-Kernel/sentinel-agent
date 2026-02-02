@@ -4,13 +4,13 @@
  */
 
 import React, { useCallback, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useLocale } from '@/hooks/useLocale';
+import { RiskStrategy, RISK_ACCEPTANCE_THRESHOLD } from '@/constants/RiskConstants';
 import { Layers, AlertTriangle, Shield, Sparkles, Search } from '../../ui/Icons';
 import { FloatingLabelInput } from '../../ui/FloatingLabelInput';
 import { RiskTreatmentPlan } from '../RiskTreatmentPlan';
 import { Risk } from '../../../types';
 import { RiskFormTreatmentTabProps } from './riskFormTypes';
-import { RISK_ACCEPTANCE_THRESHOLD } from '../../../constants/RiskConstants';
 import { CONTROL_STATUS } from '../../../constants/complianceConfig';
 
 export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.memo(({
@@ -27,7 +27,7 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
     mitigationControlIds,
     suggestedControlIds,
 }) => {
-    const { t } = useTranslation();
+    const { t } = useLocale();
     const toggleControlSelection = useCallback((controlId: string) => {
         const currentIds = getValues('mitigationControlIds') || [];
         if (currentIds.includes(controlId)) {
@@ -39,7 +39,7 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
 
     const [searchTerm, setSearchTerm] = useState('');
 
-    const showJustification = strategy === 'Accepter' && (probability * impact) >= RISK_ACCEPTANCE_THRESHOLD;
+    const showJustification = strategy === RiskStrategy.ACCEPT && (probability * impact) >= RISK_ACCEPTANCE_THRESHOLD;
 
     return (
         <div className="space-y-8 bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium">
@@ -56,14 +56,14 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
                     setValue('treatment', treatment, { shouldDirty: true });
                     if (treatment.strategy) setValue('strategy', treatment.strategy, { shouldDirty: true });
                     if (treatment.status) {
-                        const statusMap: Record<string, string> = {
+                        const statusMap: Record<string, 'Ouvert' | 'En cours' | 'Fermé'> = {
                             'Terminé': 'Fermé',
                             'En cours': 'En cours',
                             'Planifié': 'Ouvert',
                             'Retard': 'En cours'
                         };
                         const mappedStatus = statusMap[treatment.status] || 'Ouvert';
-                        setValue('status', mappedStatus as Risk['status'], { shouldDirty: true });
+                        setValue('status', mappedStatus, { shouldDirty: true });
                     }
                 }}
             />

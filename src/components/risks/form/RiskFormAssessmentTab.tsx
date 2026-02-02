@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import { useLocale } from '@/hooks/useLocale';
 import { Activity, AlertTriangle } from '../../ui/Icons';
 import { RiskMatrixSelector } from '../RiskMatrixSelector';
 import { Risk } from '../../../types';
@@ -18,7 +18,7 @@ export const RiskFormAssessmentTab: React.FC<RiskFormAssessmentTabProps> = React
     setValue,
     readOnly,
 }) => {
-    const { t } = useTranslation();
+    const { t } = useLocale();
     const showResidualWarning = (residualProbability && residualImpact && probability && impact) &&
         (residualProbability * residualImpact > probability * impact);
 

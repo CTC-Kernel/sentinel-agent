@@ -11,7 +11,7 @@ import { CustomSelect } from '../ui/CustomSelect';
 import { Button } from '../ui/button';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { ObsidianService } from '../../services/ObsidianService';
-import { useStore } from '../../store';
+import { useLocale } from '@/hooks/useLocale';
 import { Risk } from '../../types';
 import { FilterPill } from '../ui/FilterPill';
 
@@ -83,7 +83,7 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
     onClearFilter,
     onClearAll
 }) => {
-    const { t } = useStore();
+    const { t } = useLocale();
 
     return (
         <PremiumPageControl
@@ -215,7 +215,7 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
                                     <span className="hidden xl:inline">{isAnalyzing ? t('risks.analyzing') : t('risks.aiAnalysis')}</span>
                                 </Button>
                             </CustomTooltip>
-                            <CustomTooltip content="Créer un nouveau risque">
+                            <CustomTooltip content={t('risks.newRisk', { defaultValue: 'Créer un nouveau risque' })}>
                                 <Button
                                     data-tour="risks-create"
                                     onClick={handleCreateRisk}

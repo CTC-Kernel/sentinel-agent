@@ -35,7 +35,7 @@ import { Menu, Transition } from '@headlessui/react';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { AnimatePresence } from 'framer-motion';
-import { EnrollAgentModal } from '../components/settings/EnrollAgentModal';
+import { EnrollAgentModal, ReleaseInfo } from '../components/settings/EnrollAgentModal';
 import { AgentService } from '../services/AgentService';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebase';
@@ -59,7 +59,7 @@ const Assets: React.FC = () => {
     // Agent Enrollment State
     const [showEnrollment, setShowEnrollment] = useState(false);
     const [enrollmentToken, setEnrollmentToken] = useState<string | null>(null);
-    const [releaseInfo, setReleaseInfo] = useState<any | null>(null);
+    const [releaseInfo, setReleaseInfo] = useState<ReleaseInfo | null>(null);
     const [loadingReleases, setLoadingReleases] = useState(false);
     const [generatingToken, setGeneratingToken] = useState(false);
 
@@ -372,11 +372,11 @@ const Assets: React.FC = () => {
         if (!releaseInfo) {
             setLoadingReleases(true);
             try {
-                const getReleaseInfo = httpsCallable<{ product: string }, any>(functions, 'getReleaseInfo');
+                const getReleaseInfo = httpsCallable<{ product: string }, ReleaseInfo>(functions, 'getReleaseInfo');
                 const result = await getReleaseInfo({ product: 'agent' });
                 setReleaseInfo(result.data);
-            } catch (error) {
-                console.error('Failed to fetch releases', error);
+            } catch {
+                console.error('Failed to fetch releases');
                 // Fallback handled by modal or empty state, but let's set a default or just stop loading
             } finally {
                 setLoadingReleases(false);
@@ -388,7 +388,7 @@ const Assets: React.FC = () => {
         try {
             const result = await AgentService.generateEnrollmentToken(user.organizationId);
             setEnrollmentToken(result.token || null);
-        } catch (error) {
+        } catch {
             toast.error(t('agents.tokenGenerationFailed') || "Erreur lors de la génération du token");
         } finally {
             setGeneratingToken(false);

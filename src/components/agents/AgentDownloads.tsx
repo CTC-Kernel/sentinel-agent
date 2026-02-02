@@ -25,59 +25,57 @@ const AgentDownloads: React.FC = () => {
       version: '2.0.0',
       size: '9.3MB',
       url: '/downloads/agents/SentinelAgent.pkg',
-      status: 'available',
+      status: 'coming-soon',
       icon: <Apple className="w-8 h-8" />,
       instructions: [
+        'APPLE SILICON & INTEL (pkg)',
+        'BIENTÔT DISPONIBLE',
         'Download the SentinelAgent-2.0.0.pkg file',
         'Double-click the package to open the installer',
-        'Follow the installation wizard steps',
-        'Launch Sentinel Agent from Applications',
-        'Enroll with your organization token'
-      ]
-    },
-    {
-      platform: 'Linux',
-      version: '2.0.0',
-      size: '9.3MB',
-      url: '/downloads/agents/sentinel-agent-2.0.0-amd64.tar.gz',
-      status: 'available',
-      icon: <Monitor className="w-8 h-8" />,
-      instructions: [
-        'Download the tar.gz package',
-        'Extract: tar -xzf sentinel-agent-2.0.0-amd64.tar.gz',
-        'Run: sudo ./install-sentinel-agent.sh',
-        'Enroll: sudo -u sentinel /opt/sentinel-grc/bin/sentinel-agent enroll --token YOUR_TOKEN',
-        'Start: sudo systemctl start sentinel-agent'
+        'Follow the installation wizard steps'
       ]
     },
     {
       platform: 'Windows',
       version: '2.0.0',
       size: '8.5MB',
-      url: '/downloads/agents/SentinelAgentSetup-latest.msi',
+      url: '/releases/agent/SentinelAgentSetup-latest.msi',
       status: 'available',
       icon: <Monitor className="w-8 h-8" />,
       instructions: [
+        'INSTALLATEUR .MSI',
         'Download the SentinelAgentSetup-latest.msi file',
         'Run the installer as Administrator',
         'Follow the installation wizard',
-        'Launch from Start Menu',
-        'Enroll with your organization token'
+        'Launch from Start Menu'
       ]
     },
     {
-      platform: 'Android',
+      platform: 'Linux DEB',
       version: '2.0.0',
-      size: '8.5MB',
-      url: '/downloads/agents/sentinel-agent-2.0.0.apk',
+      size: '9.3MB',
+      url: '/releases/agent/sentinel-agent_latest_amd64.deb',
       status: 'available',
       icon: <Package className="w-8 h-8" />,
       instructions: [
-        'Download the .apk file',
-        'Enable "Install from unknown sources" in settings',
-        'Install the APK',
-        'Launch the app',
-        'Enroll with your organization token'
+        'DEBIAN / UBUNTU',
+        'Download the .deb package',
+        'Install: sudo dpkg -i sentinel-agent_latest_amd64.deb',
+        'Start: sudo systemctl start sentinel-agent'
+      ]
+    },
+    {
+      platform: 'Linux RPM',
+      version: '2.0.0',
+      size: '9.3MB',
+      url: '/releases/agent/sentinel-agent-latest.x86_64.rpm',
+      status: 'available',
+      icon: <Package className="w-8 h-8" />,
+      instructions: [
+        'RHEL / FEDORA',
+        'Download the .rpm package',
+        'Install: sudo rpm -i sentinel-agent-latest.x86_64.rpm',
+        'Start: sudo systemctl start sentinel-agent'
       ]
     }
   ];
@@ -101,7 +99,7 @@ const AgentDownloads: React.FC = () => {
           <Shield className="w-5 h-5" />
           <span className="font-medium">Agent Downloads</span>
         </motion.div>
-        
+
         <motion.h1
           variants={slideUpVariants}
           initial="hidden"
@@ -111,7 +109,7 @@ const AgentDownloads: React.FC = () => {
         >
           Sentinel GRC Agent Downloads
         </motion.h1>
-        
+
         <motion.p
           variants={slideUpVariants}
           initial="hidden"
@@ -145,7 +143,7 @@ const AgentDownloads: React.FC = () => {
                       <span className="text-sm text-muted-foreground">v{download.version}</span>
                       <span className="text-sm text-muted-foreground">•</span>
                       <span className="text-sm text-muted-foreground">{download.size}</span>
-                      <Badge 
+                      <Badge
                         variant={download.status === 'available' ? 'default' : 'outline'}
                         className="ml-2"
                       >
@@ -154,7 +152,7 @@ const AgentDownloads: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {download.status === 'available' ? (
                   <CheckCircle className="w-5 h-5 text-success" />
                 ) : (
@@ -180,7 +178,7 @@ const AgentDownloads: React.FC = () => {
                     <Download className="w-4 h-4 mr-2" />
                     {download.status === 'available' ? 'Download' : 'Coming Soon'}
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     onClick={() => setSelectedPlatform(selectedPlatform === download.platform ? null : download.platform)}
@@ -224,18 +222,21 @@ const AgentDownloads: React.FC = () => {
           <div className="space-y-2">
             <h4 className="font-medium">Direct Downloads</h4>
             <div className="space-y-1 text-sm">
-              <a href="/downloads/agents/SentinelAgent.pkg" className="text-primary hover:underline block">
-                🍎 macOS (.pkg) - 9.3MB
+              <a href="/releases/agent/SentinelAgentSetup-latest.msi" className="text-primary hover:underline block">
+                🪟 Windows (.msi) - 8.5MB
               </a>
-              <a href="/downloads/agents/sentinel-agent-2.0.0-amd64.tar.gz" className="text-primary hover:underline block">
-                🐧 Linux (.tar.gz) - 9.3MB
+              <a href="/releases/agent/sentinel-agent_latest_amd64.deb" className="text-primary hover:underline block">
+                🐧 Linux DEB (.deb) - 9.3MB
               </a>
-              <a href="/downloads/agents/sentinel-agent-2.0.0.apk" className="text-primary hover:underline block">
-                📱 Android (.apk) - 8.5MB
+              <a href="/releases/agent/sentinel-agent-latest.x86_64.rpm" className="text-primary hover:underline block">
+                🐧 Linux RPM (.rpm) - 9.3MB
+              </a>
+              <a href="/downloads/agents/SentinelAgent.pkg" className="text-muted-foreground cursor-not-allowed block">
+                🍎 macOS (.pkg) - BIENTÔT
               </a>
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <h4 className="font-medium">Documentation</h4>
             <div className="space-y-1 text-sm">

@@ -9,34 +9,25 @@
       "minOsVersion": "11.0",
       "architecture": "universal",
       "releaseDate": "2026-02-02",
+      "status": "coming-soon",
       "changelog": [
+        "APPLE SILICON & INTEL (pkg)",
+        "BIENTÔT DISPONIBLE",
         "New egui desktop GUI with dashboard, compliance, sync pages",
-        "Software inventory page with vulnerability badges",
-        "Vulnerabilities detail page with CVE and CVSS display",
-        "Enrollment wizard with QR code and copy-paste token support",
-        "System tray integration with minimize-to-tray",
-        "mTLS authentication with header-based fallback",
-        "Backup/restore and machine migration support",
-        "Certificate renewal and key rotation",
-        "Offline mode with 7-day sync queue",
-        "File Integrity Monitoring (FIM) with BLAKE3 hashing",
-        "10 new CIS benchmark compliance checks",
-        "Real-time monitoring charts with egui_plot",
-        "Light/dark theme toggle",
-        "Remediation engine with dry-run preview"
+        "Enrollment wizard with QR code support"
       ]
     },
     "windows": {
       "version": "2.0.0",
       "filename": "SentinelAgentSetup-latest.msi",
       "format": "msi",
+      "size": 8912896,
       "minOsVersion": "10",
       "architecture": "x64",
-      "releaseDate": "2026-01-29",
+      "releaseDate": "2026-02-02",
       "changelog": [
-        "New egui desktop GUI with dashboard, compliance, sync pages",
-        "Enrollment wizard with QR code and copy-paste token support",
-        "System tray integration with minimize-to-tray",
+        "INSTALLATEUR .MSI",
+        "New egui desktop GUI",
         "Windows MSI installer with service registration"
       ]
     },
@@ -44,13 +35,13 @@
       "version": "2.0.0",
       "filename": "sentinel-agent_latest_amd64.deb",
       "format": "deb",
+      "size": 9751756,
       "minOsVersion": "Ubuntu 20.04 / Debian 11",
       "architecture": "amd64",
-      "releaseDate": "2026-01-29",
+      "releaseDate": "2026-02-02",
       "changelog": [
-        "New egui desktop GUI with dashboard, compliance, sync pages",
-        "Enrollment wizard with copy-paste token support",
-        "Systemd service integration",
+        "DEBIAN / UBUNTU",
+        "New egui desktop GUI",
         "DEB package with automatic dependency resolution"
       ]
     },
@@ -58,13 +49,13 @@
       "version": "2.0.0",
       "filename": "sentinel-agent-latest.x86_64.rpm",
       "format": "rpm",
+      "size": 9751756,
       "minOsVersion": "RHEL 8 / Fedora 36",
       "architecture": "x86_64",
-      "releaseDate": "2026-01-29",
+      "releaseDate": "2026-02-02",
       "changelog": [
-        "New egui desktop GUI with dashboard, compliance, sync pages",
-        "Enrollment wizard with copy-paste token support",
-        "Systemd service integration",
+        "RHEL / FEDORA",
+        "New egui desktop GUI",
         "RPM package for RHEL/Fedora/CentOS"
       ]
     }

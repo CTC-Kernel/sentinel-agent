@@ -75,9 +75,15 @@ vi.mock('../../../ai/AIAssistButton', () => ({
     )
 }));
 
-// Mock riskConstants
-vi.mock('../../../../data/riskConstants', () => ({
-    STANDARD_THREATS: ['Ransomware', 'Phishing', 'DDoS Attack', 'Data Breach']
+// Mock RiskConstants
+vi.mock('@/constants/RiskConstants', () => ({
+    STANDARD_THREATS: ['Ransomware', 'Phishing', 'DDoS Attack', 'Data Breach'],
+    RiskStrategy: {
+        MITIGATE: 'Atténuer',
+        TRANSFER: 'Transférer',
+        AVOID: 'Éviter',
+        ACCEPT: 'Accepter'
+    }
 }));
 
 import type { Asset } from '../../../../types';

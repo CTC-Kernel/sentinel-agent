@@ -125,14 +125,14 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                 </div>
 
                 <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden">
-                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">Responsable</h3>
+                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">{t('compliance.responsible', { defaultValue: 'Responsable' })}</h3>
                     {canEdit ? (
                         <CustomSelect
-                            label="Assigné à"
+                            label={t('compliance.assignedTo', { defaultValue: 'Assigné à' })}
                             value={control.assigneeId || ''}
                             onChange={(val) => handleAssign(control, val as string)}
                             options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email || u.uid }))}
-                            placeholder="Sélectionner un responsable..."
+                            placeholder={t('compliance.selectResponsible', { defaultValue: 'Sélectionner un responsable...' })}
                             disabled={updating}
                         />
                     ) : (
@@ -141,7 +141,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                                 <User className="h-4 w-4" />
                             </div>
                             <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                                {usersList.find(u => u.uid === control.assigneeId)?.displayName || 'Non assigné'}
+                                {usersList.find(u => u.uid === control.assigneeId)?.displayName || t('compliance.notAssigned', { defaultValue: 'Non assigné' })}
                             </span>
                         </div>
                     )}
@@ -153,10 +153,10 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <Layers className="h-4 w-4 text-slate-500" />
-                        <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 tracking-widest">Référentiels Satisfaits</h3>
+                        <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 tracking-widest">{t('compliance.satisfiedFrameworks', { defaultValue: 'Référentiels Satisfaits' })}</h3>
                     </div>
                     <span className="text-xs text-muted-foreground">
-                        {1 + (control.mappedFrameworks?.length || 0)} référentiel(s)
+                        {t('compliance.frameworksCount', { defaultValue: '{{count}} référentiel(s)', count: 1 + (control.mappedFrameworks?.length || 0) })}
                     </span>
                 </div>
 
@@ -166,7 +166,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-500 text-white border border-brand-600">
                             <span className="w-1.5 h-1.5 rounded-full bg-white" />
                             {getFrameworkLabel(control.framework)}
-                            <span className="text-[11px] text-brand-100 ml-1">(principal)</span>
+                            <span className="text-[11px] text-brand-100 ml-1">({t('compliance.primary', { defaultValue: 'principal' })})</span>
                         </span>
                     )}
 
@@ -182,7 +182,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                                     onClick={() => handleUnmapFramework(control, fw)}
                                     className="ml-1 p-0.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
                                     disabled={updating}
-                                    aria-label={`Retirer ${getFrameworkLabel(fw)}`}
+                                    aria-label={t('compliance.removeFramework', { defaultValue: 'Retirer {{name}}', name: getFrameworkLabel(fw) })}
                                 >
                                     <X className="h-3 w-3" />
                                 </button>
@@ -202,7 +202,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                                 if (val) handleMapFramework(control, val as Framework);
                             }}
                             options={availableFrameworks.map(f => ({ value: f.id, label: f.label }))}
-                            placeholder="Ajouter un référentiel..."
+                            placeholder={t('compliance.addFramework', { defaultValue: 'Ajouter un référentiel...' })}
                             disabled={updating}
                         />
                     </div>
@@ -210,19 +210,19 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
 
                 {availableFrameworks.length === 0 && !control.mappedFrameworks?.length && (
                     <p className="text-xs text-muted-foreground italic mt-2">
-                        Ce contrôle ne satisfait que son référentiel principal.
+                        {t('compliance.onlySatisfiesPrimary', { defaultValue: 'Ce contrôle ne satisfait que son référentiel principal.' })}
                     </p>
                 )}
             </div>
 
             {/* Justification Area */}
             <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm">
-                <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">Justification / Politique</h3>
+                <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">{t('compliance.justificationPolicy', { defaultValue: 'Justification / Politique' })}</h3>
                 {canEdit ? (
                     <>
                         <textarea
                             className="w-full min-h-[120px] bg-slate-50 dark:bg-black/20 border border-border/40 dark:border-border/40 rounded-3xl p-4 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all resize-y disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
-                            placeholder="Décrivez comment ce contrôle est implémenté..."
+                            placeholder={t('compliance.justificationPlaceholder', { defaultValue: 'Décrivez comment ce contrôle est implémenté...' })}
                             value={justification}
                             onChange={(e) => setJustification(e.target.value)}
                             onBlur={saveJustification}
@@ -250,7 +250,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                     </>
                 ) : (
                     <div className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
-                        {control.justification || <span className="text-muted-foreground italic">Aucune justification fournie.</span>}
+                        {control.justification || <span className="text-muted-foreground italic">{t('compliance.noJustification', { defaultValue: 'Aucune justification fournie.' })}</span>}
                     </div>
                 )}
             </div>

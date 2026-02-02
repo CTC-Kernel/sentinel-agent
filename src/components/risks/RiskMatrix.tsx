@@ -182,8 +182,8 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                                             content={
                                                 <div className="text-center">
                                                     <div className="font-bold">Score: {score}</div>
-                                                    <div className="text-xs opacity-80">{count} Risque(s)</div>
-                                                    <div className="text-[11px] mt-1 text-muted-foreground">P:{probObj.val} x I:{impactObj.val}</div>
+                                                    <div className="text-xs opacity-80">{count} {t('risks.matrix.risksLabel', { defaultValue: 'Risque(s)' })}</div>
+                                                    <div className="text-[11px] mt-1 text-muted-foreground">{t('risks.matrix.probabilityAxis')}: {probObj.val} x {t('risks.matrix.impactAxis')}: {impactObj.val}</div>
                                                 </div>
                                             }
                                         >
