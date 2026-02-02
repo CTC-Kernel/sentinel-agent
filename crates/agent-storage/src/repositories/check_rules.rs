@@ -87,6 +87,16 @@ pub struct CheckRule {
     pub created_at: DateTime<Utc>,
     /// Last update timestamp.
     pub updated_at: DateTime<Utc>,
+    /// Command to execute for this check.
+    pub check_command: Option<String>,
+    /// Expected result of the check command.
+    pub expected_result: Option<String>,
+    /// Remediation instructions if the check fails.
+    pub remediation: Option<String>,
+    /// Platforms this rule applies to (stored as JSON array).
+    pub platforms: Option<Vec<String>>,
+    /// Associated control identifier.
+    pub control_id: Option<String>,
 }
 
 impl CheckRule {
@@ -113,6 +123,11 @@ impl CheckRule {
             version: version.into(),
             created_at: now,
             updated_at: now,
+            check_command: None,
+            expected_result: None,
+            remediation: None,
+            platforms: None,
+            control_id: None,
         }
     }
 
@@ -137,6 +152,36 @@ impl CheckRule {
     /// Set enabled status.
     pub fn with_enabled(mut self, enabled: bool) -> Self {
         self.enabled = enabled;
+        self
+    }
+
+    /// Set the check command.
+    pub fn with_check_command(mut self, check_command: impl Into<String>) -> Self {
+        self.check_command = Some(check_command.into());
+        self
+    }
+
+    /// Set the expected result.
+    pub fn with_expected_result(mut self, expected_result: impl Into<String>) -> Self {
+        self.expected_result = Some(expected_result.into());
+        self
+    }
+
+    /// Set the remediation instructions.
+    pub fn with_remediation(mut self, remediation: impl Into<String>) -> Self {
+        self.remediation = Some(remediation.into());
+        self
+    }
+
+    /// Set the platforms.
+    pub fn with_platforms(mut self, platforms: Vec<String>) -> Self {
+        self.platforms = Some(platforms);
+        self
+    }
+
+    /// Set the control ID.
+    pub fn with_control_id(mut self, control_id: impl Into<String>) -> Self {
+        self.control_id = Some(control_id.into());
         self
     }
 }
@@ -183,6 +228,14 @@ impl<'a> CheckRulesRepository<'a> {
         let version = rule.version.clone();
         let created_at = rule.created_at.to_rfc3339();
         let updated_at = rule.updated_at.to_rfc3339();
+        let check_command = rule.check_command.clone();
+        let expected_result = rule.expected_result.clone();
+        let remediation = rule.remediation.clone();
+        let platforms = rule
+            .platforms
+            .as_ref()
+            .map(|p| serde_json::to_string(p).unwrap_or_else(|_| "[]".to_string()));
+        let control_id = rule.control_id.clone();
 
         self.db
             .with_connection(move |conn| {
@@ -190,8 +243,9 @@ impl<'a> CheckRulesRepository<'a> {
                     r#"
                     INSERT OR REPLACE INTO check_rules
                     (id, name, description, category, severity, enabled, check_type,
-                     parameters, frameworks, version, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     parameters, frameworks, version, created_at, updated_at,
+                     check_command, expected_result, remediation, platforms, control_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     "#,
                     rusqlite::params![
                         id,
@@ -205,7 +259,12 @@ impl<'a> CheckRulesRepository<'a> {
                         frameworks,
                         version,
                         created_at,
-                        updated_at
+                        updated_at,
+                        check_command,
+                        expected_result,
+                        remediation,
+                        platforms,
+                        control_id,
                     ],
                 )
                 .map_err(|e| StorageError::Query(format!("Failed to upsert check rule: {}", e)))?;
@@ -236,13 +295,18 @@ impl<'a> CheckRulesRepository<'a> {
                         .map(|p| serde_json::to_string(p).unwrap_or_default());
                     let frameworks = serde_json::to_string(&rule.frameworks)
                         .unwrap_or_else(|_| "[]".to_string());
+                    let platforms = rule
+                        .platforms
+                        .as_ref()
+                        .map(|p| serde_json::to_string(p).unwrap_or_else(|_| "[]".to_string()));
 
                     tx.execute(
                         r#"
                         INSERT OR REPLACE INTO check_rules
                         (id, name, description, category, severity, enabled, check_type,
-                         parameters, frameworks, version, created_at, updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                         parameters, frameworks, version, created_at, updated_at,
+                         check_command, expected_result, remediation, platforms, control_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         "#,
                         rusqlite::params![
                             rule.id,
@@ -257,6 +321,11 @@ impl<'a> CheckRulesRepository<'a> {
                             rule.version,
                             rule.created_at.to_rfc3339(),
                             rule.updated_at.to_rfc3339(),
+                            rule.check_command,
+                            rule.expected_result,
+                            rule.remediation,
+                            platforms,
+                            rule.control_id,
                         ],
                     )
                     .map_err(|e| {
@@ -284,7 +353,8 @@ impl<'a> CheckRulesRepository<'a> {
                     .prepare(
                         r#"
                         SELECT id, name, description, category, severity, enabled, check_type,
-                               parameters, frameworks, version, created_at, updated_at
+                               parameters, frameworks, version, created_at, updated_at,
+                               check_command, expected_result, remediation, platforms, control_id
                         FROM check_rules
                         WHERE id = ?
                         "#,
@@ -311,7 +381,8 @@ impl<'a> CheckRulesRepository<'a> {
                     .prepare(
                         r#"
                         SELECT id, name, description, category, severity, enabled, check_type,
-                               parameters, frameworks, version, created_at, updated_at
+                               parameters, frameworks, version, created_at, updated_at,
+                               check_command, expected_result, remediation, platforms, control_id
                         FROM check_rules
                         ORDER BY category, severity DESC, name
                         "#,
@@ -339,7 +410,8 @@ impl<'a> CheckRulesRepository<'a> {
                     .prepare(
                         r#"
                         SELECT id, name, description, category, severity, enabled, check_type,
-                               parameters, frameworks, version, created_at, updated_at
+                               parameters, frameworks, version, created_at, updated_at,
+                               check_command, expected_result, remediation, platforms, control_id
                         FROM check_rules
                         WHERE enabled = 1
                         ORDER BY category, severity DESC, name
@@ -370,7 +442,8 @@ impl<'a> CheckRulesRepository<'a> {
                     .prepare(
                         r#"
                         SELECT id, name, description, category, severity, enabled, check_type,
-                               parameters, frameworks, version, created_at, updated_at
+                               parameters, frameworks, version, created_at, updated_at,
+                               check_command, expected_result, remediation, platforms, control_id
                         FROM check_rules
                         WHERE frameworks LIKE ?
                         ORDER BY category, severity DESC, name
@@ -401,7 +474,8 @@ impl<'a> CheckRulesRepository<'a> {
                     .prepare(
                         r#"
                         SELECT id, name, description, category, severity, enabled, check_type,
-                               parameters, frameworks, version, created_at, updated_at
+                               parameters, frameworks, version, created_at, updated_at,
+                               check_command, expected_result, remediation, platforms, control_id
                         FROM check_rules
                         WHERE category = ?
                         ORDER BY severity DESC, name
@@ -620,6 +694,9 @@ impl<'a> CheckRulesRepository<'a> {
             .map(|dt| dt.with_timezone(&Utc))
             .unwrap_or_else(|_| Utc::now());
 
+        let platforms_str: Option<String> = row.get(15)?;
+        let platforms = platforms_str.and_then(|s| serde_json::from_str(&s).ok());
+
         Ok(CheckRule {
             id: row.get(0)?,
             name: row.get(1)?,
@@ -633,6 +710,11 @@ impl<'a> CheckRulesRepository<'a> {
             version: row.get(9)?,
             created_at,
             updated_at,
+            check_command: row.get(12)?,
+            expected_result: row.get(13)?,
+            remediation: row.get(14)?,
+            platforms,
+            control_id: row.get(16)?,
         })
     }
 }

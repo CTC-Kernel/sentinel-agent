@@ -132,7 +132,7 @@ impl CartographyPage {
         painter.rect_filled(
             rect,
             egui::CornerRadius::same(theme::CARD_ROUNDING),
-            Color32::from_rgb(12, 12, 14),
+            theme::bg_deep(),
         );
 
         // Handle pan

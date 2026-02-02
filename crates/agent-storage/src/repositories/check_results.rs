@@ -192,6 +192,10 @@ pub struct CheckResultsRepository<'a> {
     db: &'a Database,
 }
 
+/// Maximum number of check results to store locally.
+/// Prevents unbounded growth during extended offline periods.
+pub const MAX_CHECK_RESULTS_SIZE: usize = 10_000;
+
 impl<'a> CheckResultsRepository<'a> {
     /// Create a new repository instance.
     pub fn new(db: &'a Database) -> Self {
@@ -201,18 +205,42 @@ impl<'a> CheckResultsRepository<'a> {
     /// Insert a new check result.
     ///
     /// Returns the ID of the inserted record.
+    ///
+    /// # Overflow Protection
+    ///
+    /// If the total number of results exceeds `MAX_CHECK_RESULTS_SIZE`, the oldest
+    /// results are automatically deleted to prevent unbounded storage growth.
     pub async fn insert(&self, result: &CheckResult) -> StorageResult<i64> {
         let check_rule_id = result.check_rule_id.clone();
         let status = result.status.as_str().to_string();
         let score = result.score;
         let message = result.message.clone();
         let raw_data = result.raw_data.clone();
-        let executed_at = result.executed_at.to_rfc3339();
+        let executed_at = result.executed_at.format("%Y-%m-%dT%H:%M:%SZ").to_string();
         let duration_ms = result.duration_ms;
         let synced = if result.synced { 1 } else { 0 };
 
         self.db
             .with_connection(|conn| {
+                // Check current count for overflow protection
+                let current_count: i64 = conn
+                    .query_row("SELECT COUNT(*) FROM check_results", [], |row| row.get(0))
+                    .map_err(|e| StorageError::Query(format!("Failed to count results: {}", e)))?;
+
+                if current_count >= MAX_CHECK_RESULTS_SIZE as i64 {
+                    let excess = (current_count - MAX_CHECK_RESULTS_SIZE as i64) + 1;
+                    debug!(
+                        "Check results limit reached ({}/{}). Evicting {} oldest results.",
+                        current_count, MAX_CHECK_RESULTS_SIZE, excess
+                    );
+
+                    conn.execute(
+                        "DELETE FROM check_results WHERE id IN (SELECT id FROM check_results ORDER BY executed_at ASC LIMIT ?)",
+                        [excess],
+                    )
+                    .map_err(|e| StorageError::Query(format!("Failed to evict old results: {}", e)))?;
+                }
+
                 conn.execute(
                     r#"
                     INSERT INTO check_results

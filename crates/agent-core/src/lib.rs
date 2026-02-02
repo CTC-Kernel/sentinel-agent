@@ -751,6 +751,14 @@ impl AgentRuntime {
 
         // Process server commands
         for cmd in &response.commands {
+            if !cmd.is_valid() {
+                warn!(
+                    "Rejecting unknown/disallowed server command type '{}' (id={})",
+                    cmd.command_type, cmd.id
+                );
+                continue;
+            }
+
             match cmd.command_type.as_str() {
                 "force_sync" => {
                     info!("Server command: force_sync ({})", cmd.id);
@@ -2141,11 +2149,55 @@ impl AgentRuntime {
             tokio::select! {
                 _ = tokio::time::sleep(tokio::time::Duration::from_secs(1)) => {}
                 _ = self.wait_for_shutdown() => {
-                    info!("Shutdown signal received");
+                    info!("Shutdown signal received, initiating graceful exit sequence...");
                     break;
                 }
             }
         }
+
+        // --- Graceful Shutdown Sequence ---
+        info!("Performing final cleanup and data flush...");
+
+        // 1. Flush pending check results
+        info!("Flushing pending check results to server...");
+        self.upload_check_results().await;
+
+        // 2. Send final 'offline' heartbeat if possible
+        let api_client = self.api_client.read().await;
+        if let Some(client) = api_client.as_ref() {
+            let usage = self.resource_monitor.get_usage();
+            let hostname = hostname::get()
+                .map(|h| h.to_string_lossy().to_string())
+                .unwrap_or_else(|_| "unknown".to_string());
+
+            let request = HeartbeatRequest {
+                timestamp: chrono::Utc::now().to_rfc3339(),
+                agent_version: AGENT_VERSION.to_string(),
+                status: "offline".to_string(), // Mark as offline gracefully
+                hostname: hostname.clone(),
+                os_info: format!("{} {}", std::env::consts::OS, get_os_version()),
+                cpu_percent: usage.cpu_percent,
+                memory_bytes: usage.memory_bytes,
+                memory_percent: resources::get_system_resources().memory_percent,
+                memory_total_bytes: resources::get_system_resources().memory_total_bytes,
+                disk_percent: resources::get_system_resources().disk_percent,
+                disk_used_bytes: resources::get_system_resources().disk_used_bytes,
+                disk_total_bytes: resources::get_system_resources().disk_total_bytes,
+                uptime_seconds: usage.uptime_ms / 1000,
+                ip_address: None,
+                last_check_at: last_compliance_check_at.map(|dt| dt.to_rfc3339()),
+                compliance_score,
+                pending_sync_count: 0,
+                self_check_result: None,
+            };
+
+            if let Err(e) = client.send_heartbeat(request).await {
+                debug!("Could not send final offline heartbeat: {}", e);
+            }
+        }
+
+        // 3. Close database handle (implicit by Drop, but we can log it)
+        info!("Closing database and terminating runtime.");
 
         info!("Agent shutdown complete");
         Ok(())

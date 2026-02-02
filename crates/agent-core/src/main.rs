@@ -78,6 +78,25 @@ enum Commands {
 }
 
 fn main() -> ExitCode {
+    // Install a panic hook early so panics are always logged to stderr and
+    // never silently swallowed (e.g. in background threads).
+    std::panic::set_hook(Box::new(|panic_info| {
+        let payload = if let Some(s) = panic_info.payload().downcast_ref::<&str>() {
+            s.to_string()
+        } else if let Some(s) = panic_info.payload().downcast_ref::<String>() {
+            s.clone()
+        } else {
+            "Unknown panic".to_string()
+        };
+        let location = panic_info
+            .location()
+            .map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
+            .unwrap_or_else(|| "unknown".to_string());
+        eprintln!("PANIC at {}: {}", location, payload);
+        // Try to flush logs before exit
+        std::process::exit(1);
+    }));
+
     let cli = Cli::parse();
 
     // Handle --service flag (called by SCM/systemd)
@@ -376,7 +395,13 @@ fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> Ex
     };
 
     // Create runtime for enrollment check
-    let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
+    let rt = match tokio::runtime::Runtime::new() {
+        Ok(rt) => rt,
+        Err(e) => {
+            error!("Failed to create Tokio runtime: {}", e);
+            return ExitCode::FAILURE;
+        }
+    };
 
     // Check if enrolled
     let enrollment_manager = EnrollmentManager::new(&config, &db);
@@ -462,7 +487,13 @@ fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> Ex
     if no_tray {
         // Headless mode
         info!("Running in headless mode (no tray icon)");
-        let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
+        let rt = match tokio::runtime::Runtime::new() {
+            Ok(rt) => rt,
+            Err(e) => {
+                error!("Failed to create Tokio runtime: {}", e);
+                return ExitCode::FAILURE;
+            }
+        };
         match rt.block_on(runtime.run()) {
             Ok(()) => ExitCode::SUCCESS,
             Err(e) => {
@@ -478,7 +509,13 @@ fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> Ex
         #[cfg(not(feature = "tray"))]
         {
             info!("Tray feature not enabled, running in headless mode");
-            let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
+            let rt = match tokio::runtime::Runtime::new() {
+                Ok(rt) => rt,
+                Err(e) => {
+                    error!("Failed to create Tokio runtime: {}", e);
+                    return ExitCode::FAILURE;
+                }
+            };
             match rt.block_on(runtime.run()) {
                 Ok(()) => ExitCode::SUCCESS,
                 Err(e) => {
@@ -517,7 +554,13 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
                 e
             );
             // Fall back to headless mode
-            let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
+            let rt = match tokio::runtime::Runtime::new() {
+                Ok(rt) => rt,
+                Err(e) => {
+                    error!("Failed to create Tokio runtime: {}", e);
+                    return ExitCode::FAILURE;
+                }
+            };
             return match rt.block_on(runtime.run()) {
                 Ok(()) => ExitCode::SUCCESS,
                 Err(e) => {
@@ -529,7 +572,13 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
     };
 
     // Create Tokio runtime for async operations
-    let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
+    let rt = match tokio::runtime::Runtime::new() {
+        Ok(rt) => rt,
+        Err(e) => {
+            error!("Failed to create Tokio runtime: {}", e);
+            return ExitCode::FAILURE;
+        }
+    };
 
     // Spawn the agent loop in a background task
     // Note: We use _ prefix because event_loop.run() never returns,
@@ -595,7 +644,13 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
     // Spawn background thread for runtime + enrollment
     let bg_event_tx = event_tx.clone();
     std::thread::spawn(move || {
-        let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
+        let rt = match tokio::runtime::Runtime::new() {
+            Ok(rt) => rt,
+            Err(e) => {
+                tracing::error!("Failed to create Tokio runtime in GUI background thread: {}", e);
+                return;
+            }
+        };
         rt.block_on(async move {
             let mut config = config;
 
@@ -853,11 +908,12 @@ async fn wait_for_finish(rx: &std::sync::mpsc::Receiver<agent_gui::enrollment::E
 
 /// Set up Ctrl+C handler for graceful shutdown.
 fn ctrlc_handler(shutdown: agent_core::ShutdownSignal) {
-    ctrlc::handle(move || {
+    if let Err(e) = ctrlc::handle(move || {
         info!("Received Ctrl+C, initiating shutdown...");
         shutdown.store(true, std::sync::atomic::Ordering::SeqCst);
-    })
-    .expect("Failed to set Ctrl+C handler");
+    }) {
+        warn!("Failed to set Ctrl+C handler: {}. Agent may not shut down gracefully on signal.", e);
+    }
 }
 
 /// Show enrollment dialog to get token from user.
@@ -1031,57 +1087,79 @@ mod ctrlc {
         {
             use std::thread;
             thread::spawn(move || {
-                let mut signals = signal_hook::iterator::Signals::new([
+                let mut signals = match signal_hook::iterator::Signals::new([
                     signal_hook::consts::SIGINT,
                     signal_hook::consts::SIGTERM,
-                ])
-                .expect("Failed to create signal iterator");
+                    signal_hook::consts::SIGHUP,
+                ]) {
+                    Ok(s) => s,
+                    Err(e) => {
+                        eprintln!("Failed to create signal iterator: {}. Signal handling disabled.", e);
+                        return;
+                    }
+                };
 
-                // Wait for the first signal
-                if signals.forever().next().is_some() {
+                for sig in signals.forever() {
+                    match sig {
+                        signal_hook::consts::SIGINT => {
+                            eprintln!("Received SIGINT (Ctrl+C), initiating graceful shutdown...");
+                        }
+                        signal_hook::consts::SIGTERM => {
+                            eprintln!("Received SIGTERM, initiating graceful shutdown...");
+                        }
+                        signal_hook::consts::SIGHUP => {
+                            eprintln!("Received SIGHUP, initiating graceful shutdown...");
+                        }
+                        _ => {
+                            eprintln!("Received signal {}, initiating graceful shutdown...", sig);
+                        }
+                    }
                     handler();
+                    break;
                 }
             });
         }
 
         #[cfg(windows)]
         {
-            use std::thread;
+            use windows::Win32::System::Console::{
+                SetConsoleCtrlHandler, PHANDLER_ROUTINE,
+            };
 
             // Store the handler in a thread-safe way
-            // SAFETY: We only set this once, protected by HANDLER_SET
             unsafe {
                 HANDLER_CALLBACK = Some(Box::new(handler));
             }
 
-            // Spawn a thread to monitor the shutdown flag
-            thread::spawn(|| {
-                while !SHUTDOWN_FLAG.load(Ordering::SeqCst) {
-                    std::thread::sleep(std::time::Duration::from_millis(100));
-                }
-                // SAFETY: Handler is set before this thread starts
-                unsafe {
+            // Console control handler function
+            unsafe extern "system" fn console_handler(ctrl_type: u32) -> windows::Win32::Foundation::BOOL {
+                // CTRL_C_EVENT = 0, CTRL_BREAK_EVENT = 1, CTRL_CLOSE_EVENT = 2
+                // CTRL_LOGOFF_EVENT = 5, CTRL_SHUTDOWN_EVENT = 6
+                if ctrl_type <= 2 || ctrl_type == 5 || ctrl_type == 6 {
+                    SHUTDOWN_FLAG.store(true, Ordering::SeqCst);
+                    
+                    // Trigger the callback if it exists
                     if let Some(ref callback) = HANDLER_CALLBACK {
                         callback();
                     }
+                    
+                    return true.into(); // TRUE - we handled it
                 }
-            });
-
-            // Set up console control handler (defined but not currently used)
-            #[allow(dead_code)]
-            extern "system" fn console_handler(ctrl_type: u32) -> i32 {
-                // CTRL_C_EVENT = 0, CTRL_BREAK_EVENT = 1, CTRL_CLOSE_EVENT = 2
-                if ctrl_type <= 2 {
-                    SHUTDOWN_FLAG.store(true, Ordering::SeqCst);
-                    return 1; // TRUE - we handled it
-                }
-                0 // FALSE - pass to next handler
+                false.into() // FALSE - pass to next handler
             }
 
-            // SetConsoleCtrlHandler via windows crate would be ideal,
-            // but for simplicity we use the signal-hook approach on Windows too
-            // if available, or fall back to a polling approach
-            let _ = console_handler; // Suppress unused warning
+            unsafe {
+                if SetConsoleCtrlHandler(Some(console_handler as PHANDLER_ROUTINE), true).is_err() {
+                    eprintln!("Failed to set Windows console control handler.");
+                }
+            }
+
+            // Also support the polling thread as a backup for non-console environments (like services)
+            std::thread::spawn(|| {
+                while !SHUTDOWN_FLAG.load(Ordering::SeqCst) {
+                    std::thread::sleep(std::time::Duration::from_millis(500));
+                }
+            });
         }
 
         Ok(())
