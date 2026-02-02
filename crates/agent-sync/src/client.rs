@@ -41,9 +41,15 @@ impl HttpClient {
             .user_agent(format!("{}/{}", AGENT_NAME, AGENT_VERSION));
 
         // Configure TLS verification
+        // SECURITY: Disabling TLS verification is only allowed in debug builds
+        #[cfg(debug_assertions)]
         if !config.tls_verify {
-            debug!("TLS verification disabled (development mode)");
+            debug!("TLS verification disabled (development mode — debug build only)");
             builder = builder.danger_accept_invalid_certs(true);
+        }
+        #[cfg(not(debug_assertions))]
+        if !config.tls_verify {
+            tracing::warn!("tls_verify=false is ignored in release builds for security");
         }
 
         // Configure custom CA certificate if provided
@@ -98,9 +104,14 @@ impl HttpClient {
             .min_tls_version(MIN_TLS_VERSION)
             .user_agent(format!("{}/{}", AGENT_NAME, AGENT_VERSION));
 
+        #[cfg(debug_assertions)]
         if !config.tls_verify {
-            debug!("TLS verification disabled (development mode)");
+            debug!("TLS verification disabled (development mode — debug build only)");
             builder = builder.danger_accept_invalid_certs(true);
+        }
+        #[cfg(not(debug_assertions))]
+        if !config.tls_verify {
+            tracing::warn!("tls_verify=false is ignored in release builds for security");
         }
 
         if let Some(ref ca_path) = config.ca_cert_path {
@@ -160,10 +171,15 @@ impl HttpClient {
             .user_agent(format!("{}/{}", AGENT_NAME, AGENT_VERSION))
             .identity(identity);
 
-        // Configure TLS verification
+        // SECURITY: Disabling TLS verification is only allowed in debug builds
+        #[cfg(debug_assertions)]
         if !config.tls_verify {
-            debug!("TLS verification disabled (development mode)");
+            debug!("TLS verification disabled (development mode — debug build only)");
             builder = builder.danger_accept_invalid_certs(true);
+        }
+        #[cfg(not(debug_assertions))]
+        if !config.tls_verify {
+            tracing::warn!("tls_verify=false is ignored in release builds for security");
         }
 
         // Configure custom CA certificate if provided

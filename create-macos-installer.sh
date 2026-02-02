@@ -81,7 +81,24 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << EOF
     <key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsArbitraryLoads</key>
-        <true/>
+        <false/>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>sentinel-grc-v2-prod.web.app</key>
+            <dict>
+                <key>NSExceptionMinimumTLSVersion</key>
+                <string>TLSv1.3</string>
+                <key>NSExceptionRequiresForwardSecrecy</key>
+                <true/>
+            </dict>
+            <key>firebasestorage.googleapis.com</key>
+            <dict>
+                <key>NSExceptionMinimumTLSVersion</key>
+                <string>TLSv1.3</string>
+                <key>NSExceptionRequiresForwardSecrecy</key>
+                <true/>
+            </dict>
+        </dict>
     </dict>
     <key>NSPrivacyAccessedAPITypes</key>
     <array>
@@ -135,40 +152,83 @@ cat > "$BUILD_DIR/postinstall" << 'POSTINSTALL'
 
 # Sentinel Agent Post-install Script
 
+# Detect the real logged-in user (not root)
+REAL_USER=$(/usr/bin/stat -f%Su /dev/console)
+REAL_HOME=$(/usr/bin/dscl . -read /Users/"$REAL_USER" NFSHomeDirectory | awk '{print $2}')
+
+echo "Installing for user: $REAL_USER (home: $REAL_HOME)"
+
 # Create symbolic link for command line usage
 if [[ ! -L "/usr/local/bin/sentinel-agent" ]]; then
     mkdir -p "/usr/local/bin"
-    ln -s "/Applications/SentinelAgent.app/Contents/MacOS/SentinelAgent" "/usr/local/bin/sentinel-agent"
+    ln -sf "/Applications/SentinelAgent.app/Contents/MacOS/SentinelAgent" "/usr/local/bin/sentinel-agent"
 fi
 
-# Create default configuration
-CONFIG_DIR="$HOME/Library/Application Support/Sentinel GRC"
-mkdir -p "$CONFIG_DIR"
+# Create default configuration in user directory
+CONFIG_DIR="$REAL_HOME/Library/Application Support/Sentinel GRC"
+sudo -u "$REAL_USER" mkdir -p "$CONFIG_DIR"
 
 if [[ ! -f "$CONFIG_DIR/agent.json" ]]; then
-    cat > "$CONFIG_DIR/agent.json" << 'CONFIG'
+    cat > "$CONFIG_DIR/agent.json" << CONFIG
 {
     "server_url": "https://sentinel-grc-v2-prod.web.app",
     "check_interval_secs": 3600,
     "heartbeat_interval_secs": 60,
     "log_level": "info",
     "tls_verify": true,
-    "data_dir": "$HOME/Library/Application Support/Sentinel GRC"
+    "data_dir": "$CONFIG_DIR"
 }
 CONFIG
+    chown "$REAL_USER" "$CONFIG_DIR/agent.json"
     chmod 600 "$CONFIG_DIR/agent.json"
 fi
 
-# Ask user about auto-start
-osascript << 'APPLESCRIPT'
-tell application "System Events"
-    set autoStart to button returned of (display dialog "Would you like Sentinel Agent to start automatically when you log in?" buttons {"No", "Yes"} default button "Yes")
-end tell
+# Create LaunchAgent plist for auto-start at login
+LAUNCH_AGENTS_DIR="$REAL_HOME/Library/LaunchAgents"
+PLIST_PATH="$LAUNCH_AGENTS_DIR/com.cyber-threat-consulting.sentinel-agent.plist"
 
-if autoStart is "Yes" then
-    do shell script "osascript -e 'tell application \"System Events\" to make login item at end with properties {path:\"/Applications/SentinelAgent.app\", hidden:false}'"
-end if
-APPLESCRIPT
+# Ask user about auto-start
+AUTO_START=$(sudo -u "$REAL_USER" osascript -e '
+tell application "System Events"
+    set autoStart to button returned of (display dialog "Souhaitez-vous que Sentinel Agent se lance automatiquement au démarrage ?" buttons {"Non", "Oui"} default button "Oui" with title "Sentinel GRC Agent" with icon caution)
+end tell
+return autoStart
+' 2>/dev/null || echo "Oui")
+
+if [[ "$AUTO_START" == "Oui" ]]; then
+    sudo -u "$REAL_USER" mkdir -p "$LAUNCH_AGENTS_DIR"
+    cat > "$PLIST_PATH" << PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.cyber-threat-consulting.sentinel-agent</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Applications/SentinelAgent.app/Contents/MacOS/SentinelAgent</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <false/>
+    <key>ProcessType</key>
+    <string>Interactive</string>
+    <key>StandardOutPath</key>
+    <string>/tmp/sentinel-agent.stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/sentinel-agent.stderr.log</string>
+</dict>
+</plist>
+PLIST
+    chown "$REAL_USER" "$PLIST_PATH"
+    chmod 644 "$PLIST_PATH"
+    echo "Auto-start configured via LaunchAgent"
+fi
+
+# Launch the application now
+echo "Launching Sentinel Agent..."
+sudo -u "$REAL_USER" open "/Applications/SentinelAgent.app"
 
 echo "Installation completed successfully!"
 exit 0
@@ -178,44 +238,30 @@ chmod +x "$BUILD_DIR/postinstall"
 
 # Create distribution definition
 echo -e "${YELLOW}Creating distribution definition...${NC}"
-cat > "$BUILD_DIR/distribution.xml" << 'DISTXML'
+cat > "$BUILD_DIR/distribution.xml" << DISTXML
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="1.0">
     <title>Sentinel GRC Agent</title>
-    <organization>Sentinel GRC</organization>
+    <organization>Cyber Threat Consulting</organization>
     <domains enable_anywhere="true" />
-    
+
     <options rootVolumeOnly="false" />
-    
+
     <welcome file="welcome.html" mime-type="text/html" />
     <license file="license.html" mime-type="text/html" />
     <conclusion file="conclusion.html" mime-type="text/html" />
-    
+
     <background file="background.png" alignment="center" scaling="proportional" />
-    
+
     <choices-outline>
-        <line choice="sentinel_agent">
-            <line choice="agent_app">
-                <line choice="agent_cli" />
-            </line>
-        </line>
+        <line choice="sentinel_agent" />
     </choices-outline>
-    
-    <choice id="sentinel_agent" title="Sentinel GRC Agent" description="Install Sentinel GRC Agent for endpoint compliance monitoring">
-        <pkg-ref id="com.sentinel.agent.pkg"/>
+
+    <choice id="sentinel_agent" title="Sentinel GRC Agent v$VERSION" description="Application de monitoring de conformité pour la plateforme Sentinel GRC. Inclut l'application, les outils CLI et le lancement automatique.">
+        <pkg-ref id="com.sentinel.agent.app"/>
     </choice>
-    
-    <choice id="agent_app" title="Application" description="Install the Sentinel Agent application">
-        <pkg-ref id="com.sentinel.agent.app.pkg"/>
-    </choice>
-    
-    <choice id="agent_cli" title="Command Line Tools" description="Install command line tools and symbolic links">
-        <pkg-ref id="com.sentinel.agent.cli.pkg"/>
-    </choice>
-    
-    <pkg-ref id="com.sentinel.agent.pkg" version="$VERSION" onConclusion="none">SentinelAgent.pkg</pkg-ref>
-    <pkg-ref id="com.sentinel.agent.app.pkg" version="$VERSION" onConclusion="none">SentinelAgentApp.pkg</pkg-ref>
-    <pkg-ref id="com.sentinel.agent.cli.pkg" version="$VERSION" onConclusion="none">SentinelAgentCLI.pkg</pkg-ref>
+
+    <pkg-ref id="com.sentinel.agent.app" version="$VERSION" onConclusion="none">SentinelAgentApp.pkg</pkg-ref>
 </installer-gui-script>
 DISTXML
 
@@ -362,9 +408,16 @@ EOF
 echo -e "${YELLOW}Building macOS package...${NC}"
 cd "$BUILD_DIR"
 
+# Create payload directory with .app bundle inside
+# (pkgbuild --root copies its contents to --install-location,
+#  so we need a wrapper dir containing SentinelAgent.app)
+PAYLOAD_DIR="$BUILD_DIR/payload"
+mkdir -p "$PAYLOAD_DIR"
+cp -R "$APP_BUNDLE" "$PAYLOAD_DIR/SentinelAgent.app"
+
 # Create component package
 pkgbuild \
-    --root "$APP_BUNDLE" \
+    --root "$PAYLOAD_DIR" \
     --identifier "$IDENTIFIER.app" \
     --version "$VERSION" \
     --install-location "$INSTALL_LOCATION" \

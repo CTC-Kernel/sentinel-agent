@@ -204,6 +204,7 @@ cat > "$BUILD_DIR/SentinelAgent.wxs" << EOF
         <File Id="ServiceExe" 
               Source="sentinel-agent.exe" />
         
+        <!-- SECURITY: Use Virtual Service Account (least privilege) instead of LocalSystem -->
         <ServiceInstall Id="AgentService"
                      Type="ownProcess"
                      Vital="yes"
@@ -211,7 +212,7 @@ cat > "$BUILD_DIR/SentinelAgent.wxs" << EOF
                      DisplayName="Sentinel GRC Agent"
                      Description="Endpoint compliance monitoring agent for Sentinel GRC platform"
                      Start="auto"
-                     Account="LocalSystem"
+                     Account="NT SERVICE\SentinelAgentService"
                      ErrorControl="normal"
                      Interactive="no">
           <ServiceDependency Id="Tcpip" />

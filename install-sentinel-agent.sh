@@ -42,6 +42,24 @@ if [[ ! -f "$DEB_PACKAGE" ]]; then
     exit 1
 fi
 
+# Verify package integrity (M14: package integrity verification)
+SHA256_FILE="${DEB_PACKAGE}.sha256"
+if [[ -f "$SHA256_FILE" ]]; then
+    echo -e "${YELLOW}Verifying package integrity (SHA-256)...${NC}"
+    if sha256sum --check "$SHA256_FILE" --status 2>/dev/null; then
+        echo -e "${GREEN}✅ Package integrity verified${NC}"
+    else
+        echo -e "${RED}❌ Package integrity check FAILED!${NC}"
+        echo "The package may have been tampered with. Aborting installation."
+        echo "Expected checksum from: $SHA256_FILE"
+        echo "Actual checksum: $(sha256sum "$DEB_PACKAGE")"
+        exit 1
+    fi
+else
+    echo -e "${YELLOW}⚠️  No SHA-256 checksum file found (${SHA256_FILE}).${NC}"
+    echo -e "${YELLOW}   Skipping integrity verification. For production, provide a .sha256 file.${NC}"
+fi
+
 echo -e "${YELLOW}Installing dependencies...${NC}"
 apt-get update
 apt-get install -y \

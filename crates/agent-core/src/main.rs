@@ -390,9 +390,10 @@ fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> Ex
         let credentials_repo = CredentialsRepository::new(&db);
         if let Ok(Some(creds)) = rt.block_on(credentials_repo.load()) {
             config.agent_id = Some(creds.agent_id.to_string());
+            config.organization_id = Some(creds.organization_id.to_string());
             config.client_certificate = Some(creds.client_certificate.clone());
             config.client_key = Some(creds.client_private_key.clone());
-            info!("Loaded agent credentials from database: {}", creds.agent_id);
+            info!("Loaded agent credentials from database: agent={}, org={}", creds.agent_id, creds.organization_id);
         }
     }
 

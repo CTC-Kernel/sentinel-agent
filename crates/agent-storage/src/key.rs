@@ -9,7 +9,7 @@ use crate::error::{StorageError, StorageResult};
 use agent_common::config::AgentConfig;
 use std::fs;
 use std::path::{Path, PathBuf};
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
 /// Length of the encryption key in bytes (256 bits for AES-256).
 const KEY_LENGTH: usize = 32;
@@ -76,82 +76,23 @@ impl KeyManager {
         AgentConfig::platform_data_dir().join(KEY_FILE_NAME)
     }
 
-    /// Generate a new random encryption key.
+    /// Generate a new random encryption key using a CSPRNG.
     fn generate_key() -> [u8; KEY_LENGTH] {
+        use getrandom::getrandom;
+
         let mut key = [0u8; KEY_LENGTH];
 
-        #[cfg(unix)]
-        {
-            // Use /dev/urandom for cryptographically secure random bytes
-            use std::io::Read;
-            if let Ok(mut urandom) = fs::File::open("/dev/urandom")
-                && urandom.read_exact(&mut key).is_ok()
-            {
-                debug!("Generated key using /dev/urandom");
-                return key;
-            }
-
-            // Fallback: combine machine ID with time-based entropy
-            warn!("Failed to read /dev/urandom, using fallback key generation");
-            if let Ok(machine_id) = fs::read_to_string("/etc/machine-id") {
-                let machine_bytes = machine_id.trim().as_bytes();
-                for (i, &byte) in machine_bytes.iter().take(KEY_LENGTH).enumerate() {
-                    key[i] ^= byte;
-                }
-            }
-
-            use std::time::{SystemTime, UNIX_EPOCH};
-            let now = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap_or_default();
-            let time_bytes = now.as_nanos().to_le_bytes();
-            for (i, &byte) in time_bytes.iter().enumerate() {
-                key[i % KEY_LENGTH] ^= byte;
-            }
-            let pid_bytes = std::process::id().to_le_bytes();
-            for (i, &byte) in pid_bytes.iter().enumerate() {
-                key[(i + 16) % KEY_LENGTH] ^= byte;
-            }
+        if let Err(e) = getrandom(&mut key) {
+            // getrandom should never fail on supported platforms.
+            // If it does, we must NOT fall back to a weak key — fail loudly.
+            panic!(
+                "CRITICAL: Failed to generate cryptographic key via getrandom: {}. \
+                 Cannot start agent without secure key generation.",
+                e
+            );
         }
 
-        #[cfg(windows)]
-        {
-            // Use BCryptGenRandom for cryptographically secure random bytes
-            use windows::Win32::Security::Cryptography::{
-                BCRYPT_USE_SYSTEM_PREFERRED_RNG, BCryptGenRandom,
-            };
-
-            unsafe {
-                let result = BCryptGenRandom(None, &mut key, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
-                if result.is_ok() {
-                    debug!("Generated key using BCryptGenRandom");
-                    return key;
-                }
-            }
-
-            // Fallback if BCryptGenRandom fails (should not happen on modern Windows)
-            warn!("BCryptGenRandom failed, using time-based fallback");
-            use std::time::{SystemTime, UNIX_EPOCH};
-            let now = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap_or_default();
-            let time_bytes = now.as_nanos().to_le_bytes();
-            for (i, &byte) in time_bytes.iter().enumerate() {
-                key[i % KEY_LENGTH] ^= byte;
-            }
-            let pid_bytes = std::process::id().to_le_bytes();
-            for (i, &byte) in pid_bytes.iter().enumerate() {
-                key[(i + 16) % KEY_LENGTH] ^= byte;
-            }
-        }
-
-        // Ensure key is not all zeros
-        if key.iter().all(|&b| b == 0) {
-            warn!("Key generation produced all zeros, using fallback");
-            key = *b"fallback_key_should_not_be_used_";
-        }
-
-        debug!("Generated new encryption key");
+        debug!("Generated new encryption key using getrandom CSPRNG");
         key
     }
 

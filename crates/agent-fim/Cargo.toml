@@ -1,0 +1,24 @@
+[package]
+name = "agent-fim"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "File Integrity Monitoring engine for Sentinel GRC Agent"
+
+[dependencies]
+agent-common = { path = "../agent-common" }
+notify.workspace = true
+tokio.workspace = true
+blake3.workspace = true
+sha2.workspace = true
+hex.workspace = true
+walkdir.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+tracing.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

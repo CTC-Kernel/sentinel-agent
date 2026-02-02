@@ -69,7 +69,7 @@ impl EnrollmentWizard {
         let mut command = None;
 
         egui::Frame::new()
-            .fill(theme::BG_PRIMARY)
+            .fill(theme::bg_primary())
             .inner_margin(egui::Margin::same(32))
             .show(ui, |ui| {
                 ui.vertical_centered(|ui| {
@@ -121,7 +121,7 @@ impl EnrollmentWizard {
                          administrateur.",
                     )
                     .font(theme::font_body())
-                    .color(theme::TEXT_SECONDARY),
+                    .color(theme::text_secondary()),
                 );
 
                 ui.add_space(theme::SPACE_LG);
@@ -129,7 +129,7 @@ impl EnrollmentWizard {
                 let btn = egui::Button::new(
                     egui::RichText::new("Commencer l'enr\u{00f4}lement")
                         .font(theme::font_body())
-                        .color(theme::TEXT_ON_ACCENT),
+                        .color(theme::text_on_accent()),
                 )
                 .fill(theme::ACCENT)
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
@@ -155,7 +155,7 @@ impl EnrollmentWizard {
             ui.label(
                 egui::RichText::new("Entrer le token d'enr\u{00f4}lement")
                     .font(theme::font_heading())
-                    .color(theme::TEXT_PRIMARY),
+                    .color(theme::text_primary()),
             );
             ui.add_space(theme::SPACE);
 
@@ -182,7 +182,7 @@ impl EnrollmentWizard {
                          copier le texte.",
                     )
                     .font(theme::font_small())
-                    .color(theme::TEXT_SECONDARY),
+                    .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_SM);
 
@@ -199,7 +199,7 @@ impl EnrollmentWizard {
                          > Agents > Enr\u{00f4}ler un Agent.",
                     )
                     .font(theme::font_small())
-                    .color(theme::TEXT_SECONDARY),
+                    .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_SM);
 
@@ -216,9 +216,9 @@ impl EnrollmentWizard {
                 let cancel_btn = egui::Button::new(
                     egui::RichText::new("Annuler")
                         .font(theme::font_body())
-                        .color(theme::TEXT_SECONDARY),
+                        .color(theme::text_secondary()),
                 )
-                .fill(theme::BG_ELEVATED)
+                .fill(theme::bg_elevated())
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
 
                 if ui.add(cancel_btn).clicked() {
@@ -236,7 +236,7 @@ impl EnrollmentWizard {
                 let enroll_btn = egui::Button::new(
                     egui::RichText::new("Enr\u{00f4}ler")
                         .font(theme::font_body())
-                        .color(theme::TEXT_ON_ACCENT),
+                        .color(theme::text_on_accent()),
                 )
                 .fill(theme::ACCENT)
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
@@ -271,13 +271,13 @@ impl EnrollmentWizard {
                 ui.label(
                     egui::RichText::new(message)
                         .font(theme::font_body())
-                        .color(theme::TEXT_PRIMARY),
+                        .color(theme::text_primary()),
                 );
                 ui.add_space(theme::SPACE);
                 ui.label(
                     egui::RichText::new("Veuillez patienter...")
                         .font(theme::font_small())
-                        .color(theme::TEXT_SECONDARY),
+                        .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_LG);
             });
@@ -320,7 +320,7 @@ impl EnrollmentWizard {
                 ui.label(
                     egui::RichText::new(message)
                         .font(theme::font_body())
-                        .color(theme::TEXT_SECONDARY),
+                        .color(theme::text_secondary()),
                 );
 
                 ui.add_space(theme::SPACE_LG);
@@ -333,7 +333,7 @@ impl EnrollmentWizard {
                 let btn = egui::Button::new(
                     egui::RichText::new(btn_text)
                         .font(theme::font_body())
-                        .color(theme::TEXT_ON_ACCENT),
+                        .color(theme::text_on_accent()),
                 )
                 .fill(if success {
                     theme::ACCENT
@@ -380,7 +380,7 @@ impl EnrollmentWizard {
                 let color = if i <= current_idx {
                     theme::ACCENT
                 } else {
-                    theme::TEXT_TERTIARY
+                    theme::text_tertiary()
                 };
 
                 ui.label(
@@ -393,7 +393,7 @@ impl EnrollmentWizard {
                     ui.label(
                         egui::RichText::new(format!(" {} ", icons::ARROW_RIGHT))
                             .font(theme::font_small())
-                            .color(theme::TEXT_TERTIARY),
+                            .color(theme::text_tertiary()),
                     );
                 }
             }

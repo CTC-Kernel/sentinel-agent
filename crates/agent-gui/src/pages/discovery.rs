@@ -39,7 +39,7 @@ impl DiscoveryPage {
                     egui::RichText::new(btn_label)
                         .font(theme::font_body())
                         .strong()
-                        .color(theme::TEXT_ON_ACCENT),
+                        .color(theme::text_on_accent()),
                 )
                 .fill(btn_color)
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
@@ -67,7 +67,7 @@ impl DiscoveryPage {
                         ui.painter().rect_filled(
                             bar_rect,
                             egui::CornerRadius::same(3),
-                            theme::BG_ELEVATED,
+                            theme::bg_elevated(),
                         );
                         let fill_rect = egui::Rect::from_min_size(
                             bar_rect.min,
@@ -83,7 +83,7 @@ impl DiscoveryPage {
                     ui.label(
                         egui::RichText::new(&state.discovery_phase)
                             .font(theme::font_small())
-                            .color(theme::TEXT_SECONDARY),
+                            .color(theme::text_secondary()),
                     );
                 }
 
@@ -94,7 +94,7 @@ impl DiscoveryPage {
                         state.discovered_devices.len()
                     ))
                     .font(theme::font_body())
-                    .color(theme::TEXT_SECONDARY),
+                    .color(theme::text_secondary()),
                 );
             });
         });
@@ -139,9 +139,9 @@ impl DiscoveryPage {
                 let export_btn = egui::Button::new(
                     egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
                         .font(theme::font_small())
-                        .color(theme::TEXT_SECONDARY),
+                        .color(theme::text_secondary()),
                 )
-                .fill(theme::BG_ELEVATED)
+                .fill(theme::bg_elevated())
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
                 if ui.add(export_btn).clicked() {
                     Self::export_csv(state, &filtered);
@@ -159,7 +159,7 @@ impl DiscoveryPage {
                     ui.label(
                         egui::RichText::new("Aucun appareil d\u{00e9}couvert")
                             .font(theme::font_heading())
-                            .color(theme::TEXT_TERTIARY),
+                            .color(theme::text_tertiary()),
                     );
                     ui.add_space(theme::SPACE_SM);
                     ui.label(
@@ -167,7 +167,7 @@ impl DiscoveryPage {
                             "Lancez un scan pour cartographier votre r\u{00e9}seau",
                         )
                         .font(theme::font_body())
-                        .color(theme::TEXT_TERTIARY),
+                        .color(theme::text_tertiary()),
                     );
                     ui.add_space(theme::SPACE_XL * 2.0);
                 });
@@ -201,7 +201,7 @@ impl DiscoveryPage {
                             let device = &state.discovered_devices[filtered[row.index()]];
 
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(&device.ip).font(theme::font_mono()).color(theme::TEXT_PRIMARY));
+                                ui.label(egui::RichText::new(&device.ip).font(theme::font_mono()).color(theme::text_primary()));
                             });
                             row.col(|ui| {
                                 let text = device.hostname.as_deref().unwrap_or("-");
@@ -209,7 +209,7 @@ impl DiscoveryPage {
                             });
                             row.col(|ui| {
                                 let text = device.mac.as_deref().unwrap_or("-");
-                                ui.label(egui::RichText::new(text).font(theme::font_mono()).color(theme::TEXT_TERTIARY));
+                                ui.label(egui::RichText::new(text).font(theme::font_mono()).color(theme::text_tertiary()));
                             });
                             row.col(|ui| {
                                 let text = device.vendor.as_deref().unwrap_or("Inconnu");
@@ -229,7 +229,7 @@ impl DiscoveryPage {
                                 } else {
                                     device.open_ports.iter().take(4).map(|p| p.to_string()).collect::<Vec<_>>().join(", ")
                                 };
-                                ui.label(egui::RichText::new(&ports_str).font(theme::font_mono()).color(theme::TEXT_TERTIARY));
+                                ui.label(egui::RichText::new(&ports_str).font(theme::font_mono()).color(theme::text_tertiary()));
                             });
                             row.col(|ui| {
                                 let propose_btn = egui::Button::new(
@@ -284,11 +284,11 @@ fn device_type_badge(device_type: &str) -> (&str, egui::Color32) {
     match device_type {
         "router" => ("Routeur", theme::ACCENT),
         "server" => ("Serveur", theme::SUCCESS),
-        "workstation" => ("Poste", theme::TEXT_PRIMARY),
-        "printer" => ("Imprimante", theme::TEXT_TERTIARY),
+        "workstation" => ("Poste", theme::text_primary()),
+        "printer" => ("Imprimante", theme::text_tertiary()),
         "iot" => ("IoT", theme::WARNING),
         "phone" => ("T\u{00e9}l\u{00e9}phone", theme::ACCENT_LIGHT),
         "switch" => ("Switch", theme::INFO),
-        _ => ("Inconnu", theme::TEXT_SECONDARY),
+        _ => ("Inconnu", theme::text_secondary()),
     }
 }

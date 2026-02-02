@@ -67,3 +67,15 @@ pub const PAUSE: &str = "\u{f04c}"; // fa-pause
 pub const PLUS: &str = "\u{f067}"; // fa-plus
 pub const LAYER_GROUP: &str = "\u{f5fd}"; // fa-layer-group
 pub const PLUG: &str = "\u{f1e6}"; // fa-plug
+
+// ── New pages / features ────────────────────────────────────────────
+pub const CHART_LINE: &str = "\u{f201}"; // fa-chart-line (monitoring)
+pub const FILE_SHIELD: &str = "\u{e4f0}"; // fa-file-shield (FIM)
+pub const SKULL: &str = "\u{f54c}"; // fa-skull-crossbones (threats)
+pub const SHIELD_VIRUS: &str = "\u{e06c}"; // fa-shield-virus
+pub const USB: &str = "\u{f287}"; // fa-usb
+pub const MICROCHIP: &str = "\u{f2db}"; // fa-microchip
+pub const MEMORY: &str = "\u{f538}"; // fa-memory
+pub const HARD_DRIVE: &str = "\u{f0a0}"; // fa-hard-drive
+pub const FILE: &str = "\u{f15b}"; // fa-file
+pub const WRENCH_FA: &str = "\u{f7d9}"; // fa-screwdriver-wrench (remediation)

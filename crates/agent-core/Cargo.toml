@@ -7,11 +7,12 @@ publish = false
 description = "Sentinel GRC endpoint compliance monitoring agent"
 
 [features]
-default = ["tray", "gui"]
+default = ["tray", "gui", "fim"]
 # Enable system tray GUI (macOS/Windows desktop mode)
 tray = ["dep:tray-icon", "dep:muda", "dep:image", "dep:open", "dep:tao"]
 # Enable v2 desktop GUI features (Tauri-based)
 gui = ["agent-gui", "agent-persistence"]
+fim = ["agent-fim"]
 
 [dependencies]
 agent-common = { path = "../agent-common" }
@@ -21,7 +22,12 @@ agent-storage = { path = "../agent-storage" }
 agent-sync = { path = "../agent-sync" }
 agent-gui = { path = "../agent-gui", optional = true }
 agent-persistence = { path = "../agent-persistence", optional = true }
+agent-fim = { path = "../agent-fim", optional = true }
 tokio.workspace = true
+rayon.workspace = true
+battery.workspace = true
+sysinfo.workspace = true
+blake3.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 anyhow.workspace = true

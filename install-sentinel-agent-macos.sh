@@ -1,6 +1,22 @@
 #!/bin/bash
 
+set -e
+
 echo "Installing Sentinel GRC Agent for macOS..."
+
+# Verify package integrity if checksum file exists
+if [[ -f "SentinelAgent.app.sha256" ]]; then
+    echo "Verifying package integrity (SHA-256)..."
+    if shasum -a 256 --check "SentinelAgent.app.sha256" --status 2>/dev/null; then
+        echo "✅ Package integrity verified"
+    else
+        echo "❌ Package integrity check FAILED!"
+        echo "The package may have been tampered with. Aborting installation."
+        exit 1
+    fi
+else
+    echo "⚠️  No SHA-256 checksum file found. Skipping integrity verification."
+fi
 
 # Create application directory
 sudo mkdir -p "/Applications/Sentinel GRC"

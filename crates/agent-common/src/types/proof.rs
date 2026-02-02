@@ -112,19 +112,13 @@ pub struct ProofMetadata {
 }
 
 /// Compute SHA-256 hash of a string.
-///
-/// This is a placeholder implementation. In production, use a proper
-/// cryptographic library.
 fn compute_sha256(data: &str) -> String {
-    use std::collections::hash_map::DefaultHasher;
-    use std::hash::{Hash, Hasher};
+    use sha2::{Digest, Sha256};
 
-    // NOTE: This is NOT a real SHA-256 implementation!
-    // It's a placeholder for the story. Real implementation should use
-    // ring or sha2 crate.
-    let mut hasher = DefaultHasher::new();
-    data.hash(&mut hasher);
-    format!("{:016x}", hasher.finish())
+    let mut hasher = Sha256::new();
+    hasher.update(data.as_bytes());
+    let result = hasher.finalize();
+    hex::encode(result)
 }
 
 #[cfg(test)]

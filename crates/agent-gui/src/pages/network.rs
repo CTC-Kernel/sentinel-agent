@@ -51,7 +51,7 @@ impl NetworkPage {
             ui.label(
                 egui::RichText::new("INTERFACES R\u{00c9}SEAU")
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -61,7 +61,7 @@ impl NetworkPage {
                 if state.primary_ip.is_none() && state.primary_mac.is_none() {
                     ui.vertical_centered(|ui| {
                         ui.add_space(theme::SPACE_MD);
-                        ui.label(egui::RichText::new("Aucune donn\u{00e9}e r\u{00e9}seau").color(theme::TEXT_TERTIARY));
+                        ui.label(egui::RichText::new("Aucune donn\u{00e9}e r\u{00e9}seau").color(theme::text_tertiary()));
                         ui.add_space(theme::SPACE_MD);
                     });
                 } else {
@@ -101,26 +101,26 @@ impl NetworkPage {
                         body.rows(32.0, state.network_interface_list.len(), |mut row| {
                             let iface = &state.network_interface_list[row.index()];
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(&iface.name).font(theme::font_mono()).color(theme::TEXT_PRIMARY).strong());
+                                ui.label(egui::RichText::new(&iface.name).font(theme::font_mono()).color(theme::text_primary()).strong());
                             });
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(&iface.interface_type).font(theme::font_small()).color(theme::TEXT_SECONDARY));
+                                ui.label(egui::RichText::new(&iface.interface_type).font(theme::font_small()).color(theme::text_secondary()));
                             });
                             row.col(|ui| {
                                 let (label, color) = if iface.status == "up" {
                                     ("UP", theme::SUCCESS)
                                 } else {
-                                    ("DOWN", theme::TEXT_TERTIARY)
+                                    ("DOWN", theme::text_tertiary())
                                 };
                                 widgets::status_badge(ui, label, color);
                             });
                             row.col(|ui| {
                                 let addrs = iface.ipv4_addresses.join(", ");
-                                ui.label(egui::RichText::new(if addrs.is_empty() { "--" } else { &addrs }).font(theme::font_mono()).color(theme::TEXT_SECONDARY));
+                                ui.label(egui::RichText::new(if addrs.is_empty() { "--" } else { &addrs }).font(theme::font_mono()).color(theme::text_secondary()));
                             });
                             row.col(|ui| {
                                 let mac = iface.mac_address.as_deref().unwrap_or("--");
-                                ui.label(egui::RichText::new(mac).font(theme::font_mono()).color(theme::TEXT_TERTIARY));
+                                ui.label(egui::RichText::new(mac).font(theme::font_mono()).color(theme::text_tertiary()));
                             });
                         });
                     });
@@ -135,7 +135,7 @@ impl NetworkPage {
                 ui.label(
                     egui::RichText::new("CONNEXIONS ACTIVES")
                         .font(theme::font_small())
-                        .color(theme::TEXT_TERTIARY)
+                        .color(theme::text_tertiary())
                         .strong(),
                 );
             });
@@ -144,7 +144,7 @@ impl NetworkPage {
             if state.network_connection_list.is_empty() {
                 ui.vertical_centered(|ui| {
                     ui.add_space(theme::SPACE_MD);
-                    ui.label(egui::RichText::new("Aucune connexion recens\u{00e9}e").color(theme::TEXT_TERTIARY));
+                    ui.label(egui::RichText::new("Aucune connexion recens\u{00e9}e").color(theme::text_tertiary()));
                     ui.add_space(theme::SPACE_MD);
                 });
             } else {
@@ -204,10 +204,10 @@ impl NetworkPage {
                         body.rows(28.0, filtered.len(), |mut row| {
                             let conn = &state.network_connection_list[filtered[row.index()]];
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(&conn.protocol).font(theme::font_mono()).color(theme::TEXT_SECONDARY));
+                                ui.label(egui::RichText::new(&conn.protocol).font(theme::font_mono()).color(theme::text_secondary()));
                             });
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(format!("{}:{}", conn.local_address, conn.local_port)).font(theme::font_mono()).color(theme::TEXT_PRIMARY));
+                                ui.label(egui::RichText::new(format!("{}:{}", conn.local_address, conn.local_port)).font(theme::font_mono()).color(theme::text_primary()));
                             });
                             row.col(|ui| {
                                 let remote = match (&conn.remote_address, conn.remote_port) {
@@ -215,20 +215,20 @@ impl NetworkPage {
                                     (Some(addr), None) => addr.clone(),
                                     _ => "--".to_string(),
                                 };
-                                ui.label(egui::RichText::new(remote).font(theme::font_mono()).color(theme::TEXT_SECONDARY));
+                                ui.label(egui::RichText::new(remote).font(theme::font_mono()).color(theme::text_secondary()));
                             });
                             row.col(|ui| {
                                 let color = match conn.state.as_str() {
                                     "ESTABLISHED" => theme::SUCCESS,
                                     "LISTEN" => theme::INFO,
                                     "CLOSE_WAIT" | "TIME_WAIT" => theme::WARNING,
-                                    _ => theme::TEXT_TERTIARY,
+                                    _ => theme::text_tertiary(),
                                 };
                                 ui.label(egui::RichText::new(&conn.state).font(theme::font_small()).color(color).strong());
                             });
                             row.col(|ui| {
                                 let proc_name = conn.process_name.as_deref().unwrap_or("--");
-                                ui.label(egui::RichText::new(proc_name).font(theme::font_small()).color(theme::TEXT_TERTIARY));
+                                ui.label(egui::RichText::new(proc_name).font(theme::font_small()).color(theme::text_tertiary()));
                             });
                         });
                     });
@@ -242,7 +242,7 @@ impl NetworkPage {
             ui.label(
                 egui::RichText::new("S\u{00c9}CURIT\u{00c9}")
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -253,13 +253,13 @@ impl NetworkPage {
                     ui.label(egui::RichText::new(icons::CIRCLE_CHECK).size(48.0).color(theme::SUCCESS.linear_multiply(0.4)));
                     ui.add_space(theme::SPACE_SM);
                     ui.label(egui::RichText::new("AUCUNE MENACE").font(theme::font_small()).color(theme::SUCCESS).strong());
-                    ui.label(egui::RichText::new("Le trafic r\u{00e9}seau semble sain").font(theme::font_small()).color(theme::TEXT_TERTIARY));
+                    ui.label(egui::RichText::new("Le trafic r\u{00e9}seau semble sain").font(theme::font_small()).color(theme::text_tertiary()));
                 } else {
                     ui.add_space(theme::SPACE_SM);
                     ui.label(egui::RichText::new(icons::WARNING).size(48.0).color(theme::ERROR.linear_multiply(0.4)));
                     ui.add_space(theme::SPACE_SM);
                     ui.label(egui::RichText::new(format!("{} ALERTE(S)", state.network_alerts)).font(theme::font_small()).color(theme::ERROR).strong());
-                    ui.label(egui::RichText::new("Actions requises imm\u{00e9}diatement").font(theme::font_small()).color(theme::TEXT_TERTIARY));
+                    ui.label(egui::RichText::new("Actions requises imm\u{00e9}diatement").font(theme::font_small()).color(theme::text_tertiary()));
                 }
             });
         });
@@ -282,7 +282,7 @@ impl NetworkPage {
                         ui.label(
                             egui::RichText::new(label)
                                 .font(theme::font_small())
-                                .color(theme::TEXT_TERTIARY)
+                                .color(theme::text_tertiary())
                                 .strong(),
                         );
                     });
@@ -302,13 +302,13 @@ impl NetworkPage {
             ui.label(
                 egui::RichText::new(label)
                     .font(theme::font_body())
-                    .color(theme::TEXT_SECONDARY),
+                    .color(theme::text_secondary()),
             );
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.label(
                     egui::RichText::new(value)
                         .font(theme::font_mono())
-                        .color(theme::TEXT_PRIMARY)
+                        .color(theme::text_primary())
                         .strong(),
                 );
             });

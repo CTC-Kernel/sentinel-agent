@@ -93,9 +93,9 @@ impl SoftwarePage {
         let card_w = (ui.available_width() - card_gap * 2.0) / 3.0;
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = card_gap;
-            Self::summary_card(ui, card_w, "TOTAL", &total.to_string(), theme::TEXT_PRIMARY, icons::CUBE);
+            Self::summary_card(ui, card_w, "TOTAL", &total.to_string(), theme::text_primary(), icons::CUBE);
             Self::summary_card(ui, card_w, "\u{00c0} JOUR", &up_to_date.to_string(), theme::SUCCESS, icons::CIRCLE_CHECK);
-            Self::summary_card(ui, card_w, "OBSOL\u{00c8}TES", &outdated.to_string(), if outdated > 0 { theme::WARNING } else { theme::TEXT_TERTIARY }, icons::ARROW_UP);
+            Self::summary_card(ui, card_w, "OBSOL\u{00c8}TES", &outdated.to_string(), if outdated > 0 { theme::WARNING } else { theme::text_tertiary() }, icons::ARROW_UP);
         });
 
         ui.add_space(theme::SPACE_MD);
@@ -112,9 +112,9 @@ impl SoftwarePage {
                 let export_btn = egui::Button::new(
                     egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
                         .font(theme::font_small())
-                        .color(theme::TEXT_SECONDARY),
+                        .color(theme::text_secondary()),
                 )
-                .fill(theme::BG_ELEVATED)
+                .fill(theme::bg_elevated())
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
                 if ui.add(export_btn).clicked() {
                     Self::export_packages_csv(state, &filtered);
@@ -129,7 +129,7 @@ impl SoftwarePage {
             ui.label(
                 egui::RichText::new("PAQUETS HOMEBREW")
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -166,14 +166,14 @@ impl SoftwarePage {
                         body.rows(40.0, filtered.len(), |mut row| {
                             let pkg = &state.software_packages[filtered[row.index()]];
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(&pkg.name).font(theme::font_body()).color(theme::TEXT_PRIMARY).strong());
+                                ui.label(egui::RichText::new(&pkg.name).font(theme::font_body()).color(theme::text_primary()).strong());
                             });
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(&pkg.version).font(theme::font_mono()).color(theme::TEXT_SECONDARY));
+                                ui.label(egui::RichText::new(&pkg.version).font(theme::font_mono()).color(theme::text_secondary()));
                             });
                             row.col(|ui| {
                                 let publisher = pkg.publisher.as_deref().unwrap_or("--");
-                                ui.label(egui::RichText::new(publisher).font(theme::font_small()).color(theme::TEXT_TERTIARY));
+                                ui.label(egui::RichText::new(publisher).font(theme::font_small()).color(theme::text_tertiary()));
                             });
                             row.col(|ui| {
                                 if pkg.up_to_date {
@@ -187,10 +187,10 @@ impl SoftwarePage {
                                     if !pkg.up_to_date {
                                         ui.label(egui::RichText::new(format!("{} {}", icons::ARROW_RIGHT, latest)).font(theme::font_mono()).color(theme::ACCENT_LIGHT).strong());
                                     } else {
-                                        ui.label(egui::RichText::new("--").color(theme::TEXT_TERTIARY));
+                                        ui.label(egui::RichText::new("--").color(theme::text_tertiary()));
                                     }
                                 } else {
-                                    ui.label(egui::RichText::new("--").color(theme::TEXT_TERTIARY));
+                                    ui.label(egui::RichText::new("--").color(theme::text_tertiary()));
                                 }
                             });
                         });
@@ -229,8 +229,8 @@ impl SoftwarePage {
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = card_gap;
             Self::summary_card(ui, card_w, "APPLICATIONS", &total.to_string(), theme::ACCENT, icons::CUBE);
-            Self::summary_card(ui, card_w, "SOURCE", "macOS", theme::TEXT_SECONDARY, icons::SETTINGS);
-            Self::summary_card(ui, card_w, "R\u{00c9}PERTOIRE", "/Applications", theme::TEXT_SECONDARY, icons::DATABASE);
+            Self::summary_card(ui, card_w, "SOURCE", "macOS", theme::text_secondary(), icons::SETTINGS);
+            Self::summary_card(ui, card_w, "R\u{00c9}PERTOIRE", "/Applications", theme::text_secondary(), icons::DATABASE);
         });
 
         ui.add_space(theme::SPACE_MD);
@@ -247,9 +247,9 @@ impl SoftwarePage {
                 let export_btn = egui::Button::new(
                     egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
                         .font(theme::font_small())
-                        .color(theme::TEXT_SECONDARY),
+                        .color(theme::text_secondary()),
                 )
-                .fill(theme::BG_ELEVATED)
+                .fill(theme::bg_elevated())
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
                 if ui.add(export_btn).clicked() {
                     Self::export_apps_csv(state, &filtered);
@@ -263,7 +263,7 @@ impl SoftwarePage {
             ui.label(
                 egui::RichText::new("APPLICATIONS macOS")
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -298,13 +298,13 @@ impl SoftwarePage {
                         body.rows(36.0, filtered.len(), |mut row| {
                             let app = &state.macos_apps[filtered[row.index()]];
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(&app.name).font(theme::font_body()).color(theme::TEXT_PRIMARY).strong());
+                                ui.label(egui::RichText::new(&app.name).font(theme::font_body()).color(theme::text_primary()).strong());
                             });
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(&app.version).font(theme::font_mono()).color(theme::TEXT_SECONDARY));
+                                ui.label(egui::RichText::new(&app.version).font(theme::font_mono()).color(theme::text_secondary()));
                             });
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(&app.bundle_id).font(theme::font_mono()).color(theme::TEXT_TERTIARY));
+                                ui.label(egui::RichText::new(&app.bundle_id).font(theme::font_mono()).color(theme::text_tertiary()));
                             });
                             row.col(|ui| {
                                 let pub_text = if app.publisher.len() > 50 {
@@ -312,7 +312,7 @@ impl SoftwarePage {
                                 } else {
                                     app.publisher.clone()
                                 };
-                                ui.label(egui::RichText::new(pub_text).font(theme::font_small()).color(theme::TEXT_TERTIARY));
+                                ui.label(egui::RichText::new(pub_text).font(theme::font_small()).color(theme::text_tertiary()));
                             });
                         });
                     });
@@ -367,8 +367,8 @@ impl SoftwarePage {
     // -- Shared helpers --
 
     fn tab_button(ui: &mut Ui, label: &str, active: bool) -> bool {
-        let text_color = if active { theme::TEXT_ON_ACCENT } else { theme::TEXT_SECONDARY };
-        let bg = if active { theme::ACCENT } else { theme::BG_ELEVATED };
+        let text_color = if active { theme::text_on_accent() } else { theme::text_secondary() };
+        let bg = if active { theme::ACCENT } else { theme::bg_elevated() };
         let btn = egui::Button::new(
             egui::RichText::new(label)
                 .font(theme::font_body())
@@ -396,7 +396,7 @@ impl SoftwarePage {
                         ui.label(
                             egui::RichText::new(label)
                                 .font(theme::font_small())
-                                .color(theme::TEXT_TERTIARY)
+                                .color(theme::text_tertiary())
                                 .strong(),
                         );
                     });

@@ -222,7 +222,7 @@ impl ApiClient {
             agent_id: config.agent_id.clone(),
             client_certificate: config.client_certificate.clone(),
             client_key: config.client_key.clone(),
-            organization_id: None, // Will be set after enrollment
+            organization_id: config.organization_id.clone(),
         })
     }
 

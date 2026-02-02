@@ -122,6 +122,28 @@ pub enum AgentEvent {
         /// Number of devices found so far.
         devices_found: usize,
     },
+    /// File integrity alert.
+    FimAlert {
+        /// The FIM alert.
+        alert: crate::dto::GuiFimAlert,
+    },
+    /// USB device event.
+    UsbEvent {
+        /// The USB event.
+        event: crate::dto::GuiUsbEvent,
+    },
+    /// Suspicious process detected.
+    SuspiciousProcess {
+        /// The suspicious process event.
+        process: crate::dto::GuiSuspiciousProcess,
+    },
+    /// FIM statistics update.
+    FimStats {
+        /// Number of monitored files.
+        monitored_count: u32,
+        /// Number of changes today.
+        changes_today: u32,
+    },
     /// Agent is shutting down.
     ShuttingDown,
 }
@@ -171,6 +193,21 @@ pub enum GuiCommand {
     SetLogLevel {
         /// Log level (0=ERROR, 1=WARN, 2=INFO, 3=DEBUG, 4=TRACE).
         level: u8,
+    },
+    /// Execute remediation for a check.
+    Remediate {
+        /// Check ID to remediate.
+        check_id: String,
+    },
+    /// Preview remediation (dry-run).
+    RemediatePreview {
+        /// Check ID to preview remediation for.
+        check_id: String,
+    },
+    /// Acknowledge a FIM alert.
+    AcknowledgeFimAlert {
+        /// Alert ID.
+        alert_id: String,
     },
 }
 
