@@ -24,10 +24,7 @@ impl DeviceResolver {
     /// Attempt reverse DNS lookup for an IP address.
     pub async fn resolve_hostname(&self, ip: &str) -> Option<String> {
         // Try the system `host` command for reverse DNS
-        let result = Command::new("host")
-            .arg(ip)
-            .output()
-            .await;
+        let result = Command::new("host").arg(ip).output().await;
 
         match result {
             Ok(output) if output.status.success() => {
@@ -94,16 +91,21 @@ impl DeviceResolver {
         }
 
         // Vendor-based router detection
-        let router_vendors = ["cisco", "ubiquiti", "netgear", "tp-link", "mikrotik", "juniper", "aruba"];
+        let router_vendors = [
+            "cisco", "ubiquiti", "netgear", "tp-link", "mikrotik", "juniper", "aruba",
+        ];
         if router_vendors.iter().any(|v| vendor_lower.contains(v)) {
             return DeviceType::Router;
         }
 
         // Printer detection: vendor + printer ports
         let printer_ports = [9100, 515, 631];
-        if (vendor_lower.contains("hp") || vendor_lower.contains("canon")
-            || vendor_lower.contains("epson") || vendor_lower.contains("brother")
-            || vendor_lower.contains("xerox") || vendor_lower.contains("lexmark"))
+        if (vendor_lower.contains("hp")
+            || vendor_lower.contains("canon")
+            || vendor_lower.contains("epson")
+            || vendor_lower.contains("brother")
+            || vendor_lower.contains("xerox")
+            || vendor_lower.contains("lexmark"))
             && open_ports.iter().any(|p| printer_ports.contains(p))
         {
             return DeviceType::Printer;
@@ -116,7 +118,10 @@ impl DeviceResolver {
 
         // Server detection: common server ports
         let server_ports = [22, 80, 443, 8080, 8443, 3306, 5432, 6379, 27017];
-        let server_port_count = open_ports.iter().filter(|p| server_ports.contains(p)).count();
+        let server_port_count = open_ports
+            .iter()
+            .filter(|p| server_ports.contains(p))
+            .count();
         if server_port_count >= 2 {
             return DeviceType::Server;
         }
@@ -131,7 +136,14 @@ impl DeviceResolver {
 
         // Workstation detection: common desktop/laptop vendors
         let workstation_vendors = [
-            "apple", "dell", "lenovo", "microsoft", "asus", "acer", "samsung", "intel",
+            "apple",
+            "dell",
+            "lenovo",
+            "microsoft",
+            "asus",
+            "acer",
+            "samsung",
+            "intel",
         ];
         if workstation_vendors.iter().any(|v| vendor_lower.contains(v)) {
             return DeviceType::Workstation;
@@ -139,8 +151,16 @@ impl DeviceResolver {
 
         // IoT detection
         let iot_vendors = [
-            "raspberry", "espressif", "arduino", "nest", "ring", "sonos",
-            "philips", "tuya", "shelly", "wyze",
+            "raspberry",
+            "espressif",
+            "arduino",
+            "nest",
+            "ring",
+            "sonos",
+            "philips",
+            "tuya",
+            "shelly",
+            "wyze",
         ];
         if iot_vendors.iter().any(|v| vendor_lower.contains(v)) {
             return DeviceType::IoT;
@@ -360,25 +380,37 @@ mod tests {
     #[test]
     fn test_lookup_vendor_apple() {
         let resolver = DeviceResolver::new();
-        assert_eq!(resolver.lookup_vendor("AC:DE:48:11:22:33"), Some("Apple".to_string()));
+        assert_eq!(
+            resolver.lookup_vendor("AC:DE:48:11:22:33"),
+            Some("Apple".to_string())
+        );
     }
 
     #[test]
     fn test_lookup_vendor_vmware() {
         let resolver = DeviceResolver::new();
-        assert_eq!(resolver.lookup_vendor("00:50:56:aa:bb:cc"), Some("VMware".to_string()));
+        assert_eq!(
+            resolver.lookup_vendor("00:50:56:aa:bb:cc"),
+            Some("VMware".to_string())
+        );
     }
 
     #[test]
     fn test_lookup_vendor_cisco() {
         let resolver = DeviceResolver::new();
-        assert_eq!(resolver.lookup_vendor("00:1B:44:aa:bb:cc"), Some("Cisco".to_string()));
+        assert_eq!(
+            resolver.lookup_vendor("00:1B:44:aa:bb:cc"),
+            Some("Cisco".to_string())
+        );
     }
 
     #[test]
     fn test_lookup_vendor_raspberry_pi() {
         let resolver = DeviceResolver::new();
-        assert_eq!(resolver.lookup_vendor("B8:27:EB:00:11:22"), Some("Raspberry Pi".to_string()));
+        assert_eq!(
+            resolver.lookup_vendor("B8:27:EB:00:11:22"),
+            Some("Raspberry Pi".to_string())
+        );
     }
 
     #[test]
@@ -390,7 +422,10 @@ mod tests {
     #[test]
     fn test_lookup_vendor_case_insensitive() {
         let resolver = DeviceResolver::new();
-        assert_eq!(resolver.lookup_vendor("ac:de:48:11:22:33"), Some("Apple".to_string()));
+        assert_eq!(
+            resolver.lookup_vendor("ac:de:48:11:22:33"),
+            Some("Apple".to_string())
+        );
     }
 
     #[test]

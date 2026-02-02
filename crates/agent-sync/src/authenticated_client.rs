@@ -347,7 +347,10 @@ impl AuthenticatedClient {
             );
         }
 
-        debug!("Creating authenticated client for agent {}", credentials.agent_id);
+        debug!(
+            "Creating authenticated client for agent {}",
+            credentials.agent_id
+        );
 
         // Try mTLS first, fall back to header-based auth
         let client = match HttpClient::with_mtls(
@@ -360,14 +363,8 @@ impl AuthenticatedClient {
                 client
             }
             Err(e) => {
-                debug!(
-                    "mTLS not available ({}), using header-based auth",
-                    e
-                );
-                HttpClient::with_header_auth(
-                    &self.config,
-                    &credentials.client_certificate,
-                )?
+                debug!("mTLS not available ({}), using header-based auth", e);
+                HttpClient::with_header_auth(&self.config, &credentials.client_certificate)?
             }
         };
 

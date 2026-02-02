@@ -81,9 +81,7 @@ impl LogRotationCheck {
         let output = Command::new("wevtutil")
             .args(["gl", "System"])
             .output()
-            .map_err(|e| {
-                ScannerError::CheckExecution(format!("Failed to run wevtutil: {}", e))
-            })?;
+            .map_err(|e| ScannerError::CheckExecution(format!("Failed to run wevtutil: {}", e)))?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
         let stderr = String::from_utf8_lossy(&output.stderr).to_string();
@@ -132,16 +130,11 @@ impl LogRotationCheck {
 
         // Also check Application and Security logs
         for log_name in &["Application", "Security"] {
-            if let Ok(log_output) = Command::new("wevtutil")
-                .args(["gl", log_name])
-                .output()
-            {
+            if let Ok(log_output) = Command::new("wevtutil").args(["gl", log_name]).output() {
                 let log_result = String::from_utf8_lossy(&log_output.stdout).to_string();
-                status.raw_output.push_str(&format!(
-                    "\n=== {} Log ===\n{}",
-                    log_name,
-                    log_result
-                ));
+                status
+                    .raw_output
+                    .push_str(&format!("\n=== {} Log ===\n{}", log_name, log_result));
             }
         }
 
@@ -187,9 +180,7 @@ impl LogRotationCheck {
         status.tool_installed = which_output.status.success() && !which_result.trim().is_empty();
 
         if !status.tool_installed {
-            status
-                .issues
-                .push("logrotate is not installed".to_string());
+            status.issues.push("logrotate is not installed".to_string());
             return Ok(status);
         }
 
@@ -316,9 +307,9 @@ impl LogRotationCheck {
         }
 
         if !status.configured {
-            status
-                .issues
-                .push("No log rotation configuration found (newsyslog.conf or asl.conf)".to_string());
+            status.issues.push(
+                "No log rotation configuration found (newsyslog.conf or asl.conf)".to_string(),
+            );
         }
 
         Ok(status)
@@ -386,10 +377,7 @@ impl Check for LogRotationCheck {
             ))
         } else {
             Ok(CheckOutput::fail(
-                format!(
-                    "Log rotation issues: {}",
-                    status.issues.join("; ")
-                ),
+                format!("Log rotation issues: {}", status.issues.join("; ")),
                 raw_data,
             ))
         }

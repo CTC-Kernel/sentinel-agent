@@ -3,15 +3,15 @@
 //! Uses inotify (Linux), FSEvents (macOS), or ReadDirectoryChanges (Windows)
 //! to detect file system changes in real time.
 
-use crate::baseline::BaselineManager;
 use crate::FimError;
+use crate::baseline::BaselineManager;
 use agent_common::types::{FimAlert, FimChangeType, FimPolicy};
 use chrono::Utc;
 use notify::{Config, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 use tracing::{debug, info, warn};
@@ -206,13 +206,7 @@ mod tests {
             &PathBuf::from("/var/log/syslog.log"),
             &patterns
         ));
-        assert!(is_ignored_path(
-            &PathBuf::from("/tmp/file.tmp"),
-            &patterns
-        ));
-        assert!(!is_ignored_path(
-            &PathBuf::from("/etc/passwd"),
-            &patterns
-        ));
+        assert!(is_ignored_path(&PathBuf::from("/tmp/file.tmp"), &patterns));
+        assert!(!is_ignored_path(&PathBuf::from("/etc/passwd"), &patterns));
     }
 }

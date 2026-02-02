@@ -294,7 +294,9 @@ impl EnrollmentWizard {
 
                 if success {
                     ui.label(
-                        egui::RichText::new(icons::CIRCLE_CHECK).font(egui::FontId::proportional(48.0)).color(theme::SUCCESS),
+                        egui::RichText::new(icons::CIRCLE_CHECK)
+                            .font(egui::FontId::proportional(48.0))
+                            .color(theme::SUCCESS),
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(
@@ -305,7 +307,9 @@ impl EnrollmentWizard {
                     );
                 } else {
                     ui.label(
-                        egui::RichText::new(icons::CIRCLE_XMARK).font(egui::FontId::proportional(48.0)).color(theme::ERROR),
+                        egui::RichText::new(icons::CIRCLE_XMARK)
+                            .font(egui::FontId::proportional(48.0))
+                            .color(theme::ERROR),
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(

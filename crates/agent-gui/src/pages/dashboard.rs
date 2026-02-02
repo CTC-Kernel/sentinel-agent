@@ -16,7 +16,11 @@ impl DashboardPage {
         let mut command: Option<GuiCommand> = None;
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(ui, "Tableau de bord", Some("Vue d'ensemble de la conformit\u{00e9} et de la sant\u{00e9} de l'agent"));
+        widgets::page_header(
+            ui,
+            "Tableau de bord",
+            Some("Vue d'ensemble de la conformit\u{00e9} et de la sant\u{00e9} de l'agent"),
+        );
 
         ui.add_space(theme::SPACE_MD);
 
@@ -61,103 +65,106 @@ impl DashboardPage {
         ui.horizontal_top(|ui| {
             ui.spacing_mut().item_spacing.x = gap;
             ui.vertical(|ui| {
-            ui.set_width(left_w);
-            // Status card
-            widgets::card(ui, |ui| {
-                ui.label(
-                    egui::RichText::new("STATUT DE L'AGENT")
-                        .font(theme::font_small())
-                        .color(theme::text_tertiary())
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE_MD);
-
-                ui.horizontal(|ui| {
-                    let (status_text, status_color) = match state.summary.status {
-                        GuiAgentStatus::Connected => ("Connect\u{00e9}", theme::SUCCESS),
-                        GuiAgentStatus::Disconnected => {
-                            ("D\u{00e9}connect\u{00e9}", theme::WARNING)
-                        }
-                        GuiAgentStatus::Paused => ("En pause", theme::text_tertiary()),
-                        GuiAgentStatus::Scanning => ("Analyse en cours", theme::INFO),
-                        GuiAgentStatus::Error => ("Erreur", theme::ERROR),
-                        GuiAgentStatus::Starting => ("D\u{00e9}marrage", theme::text_secondary()),
-                    };
-                    widgets::status_badge(ui, status_text, status_color);
-                });
-
-                ui.add_space(theme::SPACE_MD);
-                ui.separator();
-                ui.add_space(theme::SPACE_MD);
-
-                ui.vertical(|ui| {
-                    Self::info_row(ui, "Version", &state.summary.version);
-                    Self::info_row(ui, "H\u{00f4}te", &state.summary.hostname);
-                    if let Some(ref id) = state.summary.agent_id {
-                        Self::info_row(ui, "ID Agent", &id[..8.min(id.len())]);
-                    }
-                    if let Some(ref org) = state.summary.organization {
-                        Self::info_row(ui, "Organisation", org);
-                    }
-
-                    ui.add_space(theme::SPACE_SM);
-                    if let Some(ts) = state.summary.last_check_at {
-                        Self::info_row(
-                            ui,
-                            "Derni\u{00e8}re v\u{00e9}rif.",
-                            &ts.format("%d/%m/%Y %H:%M").to_string(),
-                        );
-                    }
-                    if let Some(ts) = state.summary.last_sync_at {
-                        Self::info_row(
-                            ui,
-                            "Derni\u{00e8}re synchro",
-                            &ts.format("%d/%m/%Y %H:%M").to_string(),
-                        );
-                    }
-                });
-            });
-            }); // end left vertical
-
-            // Compliance gauge card
-            ui.vertical(|ui| {
-            ui.set_width(right_w);
-            widgets::card(ui, |ui| {
-                ui.vertical_centered(|ui| {
+                ui.set_width(left_w);
+                // Status card
+                widgets::card(ui, |ui| {
                     ui.label(
-                        egui::RichText::new("SCORE GLOBAL")
+                        egui::RichText::new("STATUT DE L'AGENT")
                             .font(theme::font_small())
                             .color(theme::text_tertiary())
                             .strong(),
                     );
                     ui.add_space(theme::SPACE_MD);
-                    widgets::compliance_gauge(ui, state.summary.compliance_score, 72.0);
-                    ui.add_space(theme::SPACE_SM);
 
-                    // Trending indicator
-                    if let (Some(current), Some(previous)) =
-                        (state.summary.compliance_score, state.previous_compliance_score)
-                    {
-                        let diff = current - previous;
-                        if diff.abs() > 0.1 {
-                            let (arrow, color) = if diff > 0.0 {
-                                (icons::ARROW_UP, theme::SUCCESS)
-                            } else {
-                                (icons::ARROW_DOWN, theme::ERROR)
-                            };
-                            ui.label(
-                                egui::RichText::new(format!(
-                                    "{} {:.1}% depuis le dernier scan",
-                                    arrow,
-                                    diff.abs()
-                                ))
-                                .font(theme::font_small())
-                                .color(color),
+                    ui.horizontal(|ui| {
+                        let (status_text, status_color) = match state.summary.status {
+                            GuiAgentStatus::Connected => ("Connect\u{00e9}", theme::SUCCESS),
+                            GuiAgentStatus::Disconnected => {
+                                ("D\u{00e9}connect\u{00e9}", theme::WARNING)
+                            }
+                            GuiAgentStatus::Paused => ("En pause", theme::text_tertiary()),
+                            GuiAgentStatus::Scanning => ("Analyse en cours", theme::INFO),
+                            GuiAgentStatus::Error => ("Erreur", theme::ERROR),
+                            GuiAgentStatus::Starting => {
+                                ("D\u{00e9}marrage", theme::text_secondary())
+                            }
+                        };
+                        widgets::status_badge(ui, status_text, status_color);
+                    });
+
+                    ui.add_space(theme::SPACE_MD);
+                    ui.separator();
+                    ui.add_space(theme::SPACE_MD);
+
+                    ui.vertical(|ui| {
+                        Self::info_row(ui, "Version", &state.summary.version);
+                        Self::info_row(ui, "H\u{00f4}te", &state.summary.hostname);
+                        if let Some(ref id) = state.summary.agent_id {
+                            Self::info_row(ui, "ID Agent", &id[..8.min(id.len())]);
+                        }
+                        if let Some(ref org) = state.summary.organization {
+                            Self::info_row(ui, "Organisation", org);
+                        }
+
+                        ui.add_space(theme::SPACE_SM);
+                        if let Some(ts) = state.summary.last_check_at {
+                            Self::info_row(
+                                ui,
+                                "Derni\u{00e8}re v\u{00e9}rif.",
+                                &ts.format("%d/%m/%Y %H:%M").to_string(),
                             );
                         }
-                    }
+                        if let Some(ts) = state.summary.last_sync_at {
+                            Self::info_row(
+                                ui,
+                                "Derni\u{00e8}re synchro",
+                                &ts.format("%d/%m/%Y %H:%M").to_string(),
+                            );
+                        }
+                    });
                 });
-            });
+            }); // end left vertical
+
+            // Compliance gauge card
+            ui.vertical(|ui| {
+                ui.set_width(right_w);
+                widgets::card(ui, |ui| {
+                    ui.vertical_centered(|ui| {
+                        ui.label(
+                            egui::RichText::new("SCORE GLOBAL")
+                                .font(theme::font_small())
+                                .color(theme::text_tertiary())
+                                .strong(),
+                        );
+                        ui.add_space(theme::SPACE_MD);
+                        widgets::compliance_gauge(ui, state.summary.compliance_score, 72.0);
+                        ui.add_space(theme::SPACE_SM);
+
+                        // Trending indicator
+                        if let (Some(current), Some(previous)) = (
+                            state.summary.compliance_score,
+                            state.previous_compliance_score,
+                        ) {
+                            let diff = current - previous;
+                            if diff.abs() > 0.1 {
+                                let (arrow, color) = if diff > 0.0 {
+                                    (icons::ARROW_UP, theme::SUCCESS)
+                                } else {
+                                    (icons::ARROW_DOWN, theme::ERROR)
+                                };
+                                ui.label(
+                                    egui::RichText::new(format!(
+                                        "{} {:.1}% depuis le dernier scan",
+                                        arrow,
+                                        diff.abs()
+                                    ))
+                                    .font(theme::font_small())
+                                    .color(color),
+                                );
+                            }
+                        }
+                    });
+                });
             }); // end right vertical
         });
 
@@ -216,83 +223,94 @@ impl DashboardPage {
         ui.horizontal_top(|ui| {
             ui.spacing_mut().item_spacing.x = gap;
             ui.vertical(|ui| {
-            ui.set_width(res_w);
-            // Resource usage
-            widgets::card(ui, |ui| {
-                ui.label(
-                    egui::RichText::new("RESSOURCES SYST\u{00c8}ME")
-                        .font(theme::font_small())
-                        .color(theme::text_tertiary())
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE_MD);
+                ui.set_width(res_w);
+                // Resource usage
+                widgets::card(ui, |ui| {
+                    ui.label(
+                        egui::RichText::new("RESSOURCES SYST\u{00c8}ME")
+                            .font(theme::font_small())
+                            .color(theme::text_tertiary())
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE_MD);
 
-                widgets::resource_bar(
-                    ui,
-                    "CPU",
-                    &format!("{:.1}%", state.resources.cpu_percent),
-                    (state.resources.cpu_percent / 100.0) as f32,
-                );
-                ui.add_space(theme::SPACE_MD);
-                widgets::resource_bar(
-                    ui,
-                    "M\u{00e9}moire",
-                    &format!(
-                        "{:.1}% ({:.0} / {:.0} Mo)",
-                        state.resources.memory_percent,
-                        state.resources.memory_used_mb,
-                        state.resources.memory_total_mb,
-                    ),
-                    (state.resources.memory_percent / 100.0) as f32,
-                );
-                ui.add_space(theme::SPACE_MD);
-                widgets::resource_bar(
-                    ui,
-                    "Disque",
-                    &format!("{:.1}%", state.resources.disk_percent),
-                    (state.resources.disk_percent / 100.0) as f32,
-                );
-            });
+                    widgets::resource_bar(
+                        ui,
+                        "CPU",
+                        &format!("{:.1}%", state.resources.cpu_percent),
+                        (state.resources.cpu_percent / 100.0) as f32,
+                    );
+                    ui.add_space(theme::SPACE_MD);
+                    widgets::resource_bar(
+                        ui,
+                        "M\u{00e9}moire",
+                        &format!(
+                            "{:.1}% ({:.0} / {:.0} Mo)",
+                            state.resources.memory_percent,
+                            state.resources.memory_used_mb,
+                            state.resources.memory_total_mb,
+                        ),
+                        (state.resources.memory_percent / 100.0) as f32,
+                    );
+                    ui.add_space(theme::SPACE_MD);
+                    widgets::resource_bar(
+                        ui,
+                        "Disque",
+                        &format!("{:.1}%", state.resources.disk_percent),
+                        (state.resources.disk_percent / 100.0) as f32,
+                    );
+                });
             }); // end resource vertical
 
             // Vulnerability summary
             ui.vertical(|ui| {
-            ui.set_width(vuln_w);
-            widgets::card(ui, |ui| {
-                ui.label(
-                    egui::RichText::new("VULN\u{00c9}RABILIT\u{00c9}S")
-                        .font(theme::font_small())
-                        .color(theme::text_tertiary())
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE_MD);
-
-                if let Some(ref vuln) = state.vulnerability_summary {
-                    ui.horizontal(|ui| {
-                        Self::vuln_count(ui, "Critique", vuln.critical, theme::ERROR);
-                        ui.add_space(theme::SPACE_LG);
-                        Self::vuln_count(ui, "\u{00c9}lev\u{00e9}e", vuln.high, theme::WARNING);
-                        ui.add_space(theme::SPACE_LG);
-                        Self::vuln_count(ui, "Moyenne", vuln.medium, theme::INFO);
-                    });
-
+                ui.set_width(vuln_w);
+                widgets::card(ui, |ui| {
+                    ui.label(
+                        egui::RichText::new("VULN\u{00c9}RABILIT\u{00c9}S")
+                            .font(theme::font_small())
+                            .color(theme::text_tertiary())
+                            .strong(),
+                    );
                     ui.add_space(theme::SPACE_MD);
-                    ui.separator();
-                    ui.add_space(theme::SPACE_SM);
 
-                    if let Some(ts) = vuln.last_scan_at {
+                    if let Some(ref vuln) = state.vulnerability_summary {
                         ui.horizontal(|ui| {
-                            ui.label(egui::RichText::new("Dernier scan :").font(theme::font_small()).color(theme::text_tertiary()));
-                            ui.label(egui::RichText::new(ts.format("%d/%m/%Y %H:%M").to_string()).font(theme::font_small()).color(theme::text_secondary()));
+                            Self::vuln_count(ui, "Critique", vuln.critical, theme::ERROR);
+                            ui.add_space(theme::SPACE_LG);
+                            Self::vuln_count(ui, "\u{00c9}lev\u{00e9}e", vuln.high, theme::WARNING);
+                            ui.add_space(theme::SPACE_LG);
+                            Self::vuln_count(ui, "Moyenne", vuln.medium, theme::INFO);
+                        });
+
+                        ui.add_space(theme::SPACE_MD);
+                        ui.separator();
+                        ui.add_space(theme::SPACE_SM);
+
+                        if let Some(ts) = vuln.last_scan_at {
+                            ui.horizontal(|ui| {
+                                ui.label(
+                                    egui::RichText::new("Dernier scan :")
+                                        .font(theme::font_small())
+                                        .color(theme::text_tertiary()),
+                                );
+                                ui.label(
+                                    egui::RichText::new(ts.format("%d/%m/%Y %H:%M").to_string())
+                                        .font(theme::font_small())
+                                        .color(theme::text_secondary()),
+                                );
+                            });
+                        }
+                    } else {
+                        ui.add_space(theme::SPACE_MD);
+                        ui.vertical_centered(|ui| {
+                            ui.label(
+                                egui::RichText::new("Aucun scan r\u{00e9}cent")
+                                    .color(theme::text_tertiary()),
+                            );
                         });
                     }
-                } else {
-                    ui.add_space(theme::SPACE_MD);
-                    ui.vertical_centered(|ui| {
-                        ui.label(egui::RichText::new("Aucun scan r\u{00e9}cent").color(theme::text_tertiary()));
-                    });
-                }
-            });
+                });
             }); // end vuln vertical
         });
 
@@ -302,13 +320,10 @@ impl DashboardPage {
         if !state.notifications.is_empty() {
             widgets::card(ui, |ui| {
                 ui.label(
-                    egui::RichText::new(format!(
-                        "{}  NOTIFICATIONS R\u{00c9}CENTES",
-                        icons::BELL
-                    ))
-                    .font(theme::font_small())
-                    .color(theme::text_tertiary())
-                    .strong(),
+                    egui::RichText::new(format!("{}  NOTIFICATIONS R\u{00c9}CENTES", icons::BELL))
+                        .font(theme::font_small())
+                        .color(theme::text_tertiary())
+                        .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
 
@@ -323,18 +338,13 @@ impl DashboardPage {
                                 .color(theme::text_primary())
                                 .strong(),
                         );
-                        ui.with_layout(
-                            egui::Layout::right_to_left(egui::Align::Center),
-                            |ui| {
-                                ui.label(
-                                    egui::RichText::new(
-                                        notif.timestamp.format("%H:%M").to_string(),
-                                    )
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.label(
+                                egui::RichText::new(notif.timestamp.format("%H:%M").to_string())
                                     .font(theme::font_small())
                                     .color(theme::text_tertiary()),
-                                );
-                            },
-                        );
+                            );
+                        });
                     });
                     ui.add_space(theme::SPACE_XS);
                 }
@@ -355,7 +365,9 @@ impl DashboardPage {
             if state.logs.is_empty() {
                 ui.add_space(theme::SPACE_MD);
                 ui.vertical_centered(|ui| {
-                    ui.label(egui::RichText::new("Aucun log disponible").color(theme::text_tertiary()));
+                    ui.label(
+                        egui::RichText::new("Aucun log disponible").color(theme::text_tertiary()),
+                    );
                 });
                 ui.add_space(theme::SPACE_MD);
             } else {

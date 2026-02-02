@@ -252,7 +252,9 @@ impl UsbMonitor {
 
         let mut devices = Vec::new();
         for item in &parsed {
-            let name = item["FriendlyName"].as_str().unwrap_or("Unknown USB Device");
+            let name = item["FriendlyName"]
+                .as_str()
+                .unwrap_or("Unknown USB Device");
             let instance_id = item["InstanceId"].as_str().unwrap_or("");
 
             // Parse VID/PID from InstanceId (e.g., "USB\VID_046D&PID_C52B\...")

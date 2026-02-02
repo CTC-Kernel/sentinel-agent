@@ -32,11 +32,12 @@ pub fn export_csv(headers: &[&str], rows: &[Vec<String>], path: &Path) -> Result
 
     // Ensure parent directory exists
     if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).map_err(|e| format!("Impossible de creer le dossier: {}", e))?;
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("Impossible de creer le dossier: {}", e))?;
     }
 
-    let mut file =
-        std::fs::File::create(path).map_err(|e| format!("Impossible de creer le fichier: {}", e))?;
+    let mut file = std::fs::File::create(path)
+        .map_err(|e| format!("Impossible de creer le fichier: {}", e))?;
     file.write_all(content.as_bytes())
         .map_err(|e| format!("Erreur d'ecriture: {}", e))?;
 

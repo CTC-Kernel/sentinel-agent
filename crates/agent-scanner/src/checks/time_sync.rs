@@ -76,9 +76,7 @@ impl TimeSyncCheck {
         let output = Command::new("w32tm")
             .args(["/query", "/status"])
             .output()
-            .map_err(|e| {
-                ScannerError::CheckExecution(format!("Failed to run w32tm: {}", e))
-            })?;
+            .map_err(|e| ScannerError::CheckExecution(format!("Failed to run w32tm: {}", e)))?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
         let stderr = String::from_utf8_lossy(&output.stderr).to_string();
@@ -115,7 +113,8 @@ impl TimeSyncCheck {
                 if let Some(value) = line.split(':').last() {
                     let leap = value.trim().to_string();
                     // "0(no warning)" means synchronized
-                    status.synchronized = leap.contains("0") || leap.to_lowercase().contains("no warning");
+                    status.synchronized =
+                        leap.contains("0") || leap.to_lowercase().contains("no warning");
                     status.leap_status = Some(leap);
                 }
             }
@@ -306,10 +305,7 @@ impl TimeSyncCheck {
             .clone()
             .unwrap_or_else(|| "time.apple.com".to_string());
 
-        if let Ok(output) = Command::new("sntp")
-            .args(["-d", &ntp_server])
-            .output()
-        {
+        if let Ok(output) = Command::new("sntp").args(["-d", &ntp_server]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             status.raw_output.push_str(&format!(
@@ -392,18 +388,12 @@ impl Check for TimeSyncCheck {
             }
 
             Ok(CheckOutput::pass(
-                format!(
-                    "Time is properly synchronized: {}",
-                    details.join(", ")
-                ),
+                format!("Time is properly synchronized: {}", details.join(", ")),
                 raw_data,
             ))
         } else {
             Ok(CheckOutput::fail(
-                format!(
-                    "Time synchronization issues: {}",
-                    status.issues.join("; ")
-                ),
+                format!("Time synchronization issues: {}", status.issues.join("; ")),
                 raw_data,
             ))
         }

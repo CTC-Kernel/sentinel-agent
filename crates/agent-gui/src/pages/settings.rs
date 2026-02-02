@@ -15,7 +15,11 @@ impl SettingsPage {
         let mut command = None;
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(ui, "Configuration", Some("Gestion des param\u{00e8}tres de l'agent et contr\u{00f4}le du service"));
+        widgets::page_header(
+            ui,
+            "Configuration",
+            Some("Gestion des param\u{00e8}tres de l'agent et contr\u{00f4}le du service"),
+        );
         ui.add_space(theme::SPACE_LG);
 
         // Agent controls
@@ -30,9 +34,15 @@ impl SettingsPage {
 
             ui.horizontal(|ui| {
                 let (label, cmd) = if state.is_paused {
-                    (format!("{}  REPRENDRE L'AGENT", icons::PLAY), GuiCommand::Resume)
+                    (
+                        format!("{}  REPRENDRE L'AGENT", icons::PLAY),
+                        GuiCommand::Resume,
+                    )
                 } else {
-                    (format!("{}  METTRE EN PAUSE", icons::STOP), GuiCommand::Pause)
+                    (
+                        format!("{}  METTRE EN PAUSE", icons::STOP),
+                        GuiCommand::Pause,
+                    )
                 };
 
                 let btn_color = if state.is_paused {
@@ -201,8 +211,16 @@ impl SettingsPage {
             ui.add_space(theme::SPACE_MD);
 
             ui.horizontal(|ui| {
-                let mode_label = if state.dark_mode { "Mode sombre" } else { "Mode clair" };
-                let mode_icon = if state.dark_mode { icons::CIRCLE } else { icons::CIRCLE_CHECK };
+                let mode_label = if state.dark_mode {
+                    "Mode sombre"
+                } else {
+                    "Mode clair"
+                };
+                let mode_icon = if state.dark_mode {
+                    icons::CIRCLE
+                } else {
+                    icons::CIRCLE_CHECK
+                };
                 ui.label(
                     egui::RichText::new(format!("{}  {}", mode_icon, mode_label))
                         .font(theme::font_body())
@@ -213,9 +231,11 @@ impl SettingsPage {
             });
             ui.add_space(theme::SPACE_XS);
             ui.label(
-                egui::RichText::new("Basculez entre le th\u{00e8}me sombre et le th\u{00e8}me clair.")
-                    .font(theme::font_small())
-                    .color(theme::text_tertiary()),
+                egui::RichText::new(
+                    "Basculez entre le th\u{00e8}me sombre et le th\u{00e8}me clair.",
+                )
+                .font(theme::font_small())
+                .color(theme::text_tertiary()),
             );
         });
 
@@ -380,7 +400,11 @@ impl SettingsPage {
     fn setting_row(ui: &mut Ui, label: &str, value: &str, icon: &str) {
         ui.horizontal(|ui| {
             ui.set_min_height(32.0);
-            ui.label(egui::RichText::new(icon).color(theme::text_tertiary()).strong());
+            ui.label(
+                egui::RichText::new(icon)
+                    .color(theme::text_tertiary())
+                    .strong(),
+            );
             ui.add_space(4.0);
             ui.label(
                 egui::RichText::new(label)

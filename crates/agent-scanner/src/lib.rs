@@ -71,14 +71,14 @@ pub use proof::{ProofGenerator, compute_sha256, verify_sha256};
 pub use runner::{CheckExecutionResult, CheckRunner, RunnerConfig, ScanSummary};
 pub use scheduler::{Scheduler, SchedulerConfig, SchedulerEvent, SchedulerState, SchedulerStatus};
 pub use score::{CheckScoreInput, ComplianceScore, ScoreCalculator, ScoringConfig};
+pub use security::process_tree::{ProcessTreeAnalyzer, SuspiciousProcessEvent};
+pub use security::usb_monitor::UsbMonitor;
 pub use security::{
     IncidentSeverity, IncidentType, SecurityIncident, SecurityMonitor, SecurityScanResult,
 };
-pub use security::process_tree::{ProcessTreeAnalyzer, SuspiciousProcessEvent};
-pub use security::usb_monitor::UsbMonitor;
+pub use vulnerability::package_scanner::InstalledPackage;
 pub use vulnerability::{
     ScanType, Severity, VulnerabilityFinding, VulnerabilityScanResult, VulnerabilityScanner,
 };
-pub use vulnerability::package_scanner::InstalledPackage;
 
 pub mod remediation;

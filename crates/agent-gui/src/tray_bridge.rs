@@ -36,7 +36,12 @@ impl TrayBridge {
     /// Create the tray icon and menu.
     pub fn new() -> Result<Self, String> {
         let show_item = MenuItem::with_id(ids::SHOW, "Ouvrir Sentinel Agent", true, None);
-        let check_item = MenuItem::with_id(ids::CHECK, "V\u{00e9}rifier la conformit\u{00e9}", true, None);
+        let check_item = MenuItem::with_id(
+            ids::CHECK,
+            "V\u{00e9}rifier la conformit\u{00e9}",
+            true,
+            None,
+        );
         let sync_item = MenuItem::with_id(ids::SYNC, "Synchroniser les donn\u{00e9}es", true, None);
         let quit_item = MenuItem::with_id(ids::QUIT, "Quitter", true, None);
 

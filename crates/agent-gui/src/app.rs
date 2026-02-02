@@ -50,7 +50,9 @@ mod macos_dock {
 
     /// Hide the app from the macOS Dock (Accessory policy).
     pub fn hide_dock_icon() {
-        unsafe { set_activation_policy(1); }
+        unsafe {
+            set_activation_policy(1);
+        }
     }
 
     /// Show the app in the macOS Dock (Regular policy) and activate it.
@@ -69,8 +71,8 @@ mod macos_dock {
 use eframe::egui;
 
 use crate::dto::{
-    AgentSummary, GuiAgentStatus, GuiCheckResult, GuiLogEntry, GuiPolicySummary,
-    GuiResourceUsage, GuiSoftwarePackage, GuiVulnerabilityFinding, GuiVulnerabilitySummary,
+    AgentSummary, GuiAgentStatus, GuiCheckResult, GuiLogEntry, GuiPolicySummary, GuiResourceUsage,
+    GuiSoftwarePackage, GuiVulnerabilityFinding, GuiVulnerabilitySummary,
 };
 use crate::enrollment::{EnrollmentCommand, EnrollmentWizard};
 use crate::events::{AgentEvent, GuiCommand};
@@ -173,7 +175,7 @@ pub struct AppState {
     pub server_url: String,
     pub check_interval_secs: u64,
     pub heartbeat_interval_secs: u64,
-    pub log_level: u8,    // 0=ERROR, 1=WARN, 2=INFO, 3=DEBUG, 4=TRACE
+    pub log_level: u8, // 0=ERROR, 1=WARN, 2=INFO, 3=DEBUG, 4=TRACE
     pub dark_mode: bool,
 
     // Software page tab state (0=Packages, 1=Applications)
@@ -452,16 +454,24 @@ impl SentinelApp {
                     // Truncate to 300 data points
                     const MAX_HISTORY: usize = 300;
                     if self.state.cpu_history.len() > MAX_HISTORY {
-                        self.state.cpu_history.drain(..self.state.cpu_history.len() - MAX_HISTORY);
+                        self.state
+                            .cpu_history
+                            .drain(..self.state.cpu_history.len() - MAX_HISTORY);
                     }
                     if self.state.memory_history.len() > MAX_HISTORY {
-                        self.state.memory_history.drain(..self.state.memory_history.len() - MAX_HISTORY);
+                        self.state
+                            .memory_history
+                            .drain(..self.state.memory_history.len() - MAX_HISTORY);
                     }
                     if self.state.disk_io_history.len() > MAX_HISTORY {
-                        self.state.disk_io_history.drain(..self.state.disk_io_history.len() - MAX_HISTORY);
+                        self.state
+                            .disk_io_history
+                            .drain(..self.state.disk_io_history.len() - MAX_HISTORY);
                     }
                     if self.state.network_io_history.len() > MAX_HISTORY {
-                        self.state.network_io_history.drain(..self.state.network_io_history.len() - MAX_HISTORY);
+                        self.state
+                            .network_io_history
+                            .drain(..self.state.network_io_history.len() - MAX_HISTORY);
                     }
                     self.state.resources = usage;
                 }
@@ -552,7 +562,11 @@ impl SentinelApp {
                     self.state.discovery_phase = "Termin\u{00e9}".to_string();
                     self.state.graph_layout = None; // Force graph re-layout
                 }
-                AgentEvent::DiscoveryProgress { phase, progress, devices_found: _ } => {
+                AgentEvent::DiscoveryProgress {
+                    phase,
+                    progress,
+                    devices_found: _,
+                } => {
                     self.state.discovery_phase = phase;
                     self.state.discovery_progress = progress;
                     // Don't reset devices here, they come in DiscoveryUpdate
@@ -579,7 +593,10 @@ impl SentinelApp {
                     self.state.suspicious_processes.insert(0, process);
                     self.state.suspicious_processes.truncate(200);
                 }
-                AgentEvent::FimStats { monitored_count, changes_today } => {
+                AgentEvent::FimStats {
+                    monitored_count,
+                    changes_today,
+                } => {
                     self.state.fim_monitored_count = monitored_count;
                     self.state.fim_changes_today = changes_today;
                 }
@@ -746,7 +763,11 @@ impl eframe::App for SentinelApp {
         // Sidebar
         egui::SidePanel::left("sidebar")
             .exact_width(theme::SIDEBAR_WIDTH)
-            .frame(egui::Frame::new().fill(theme::bg_sidebar()).stroke(egui::Stroke::new(0.5, theme::border())))
+            .frame(
+                egui::Frame::new()
+                    .fill(theme::bg_sidebar())
+                    .stroke(egui::Stroke::new(0.5, theme::border())),
+            )
             .show(ctx, |ui| {
                 let scanning = self.state.summary.status == crate::dto::GuiAgentStatus::Scanning;
                 let sync_state = widgets::sidebar::SidebarSyncState {
@@ -754,7 +775,13 @@ impl eframe::App for SentinelApp {
                     last_sync_at: self.state.summary.last_sync_at,
                     error: self.state.sync_error.clone(),
                 };
-                if let Some(new_page) = widgets::Sidebar::show(ui, &self.page, scanning, self.state.unread_notification_count, &sync_state) {
+                if let Some(new_page) = widgets::Sidebar::show(
+                    ui,
+                    &self.page,
+                    scanning,
+                    self.state.unread_notification_count,
+                    &sync_state,
+                ) {
                     self.page = new_page;
                 }
             });
@@ -783,69 +810,73 @@ impl eframe::App for SentinelApp {
                                 top: 0,
                                 bottom: 0,
                             })
-                            .show(ui, |ui| {
-                                match self.page {
-                                    Page::Dashboard => {
-                                        if let Some(cmd) = pages::DashboardPage::show(ui, &self.state) {
-                                            self.send_command(cmd);
+                            .show(ui, |ui| match self.page {
+                                Page::Dashboard => {
+                                    if let Some(cmd) = pages::DashboardPage::show(ui, &self.state) {
+                                        self.send_command(cmd);
+                                    }
+                                }
+                                Page::Monitoring => {
+                                    pages::MonitoringPage::show(ui, &self.state);
+                                }
+                                Page::Compliance => {
+                                    if let Some(cmd) =
+                                        pages::CompliancePage::show(ui, &mut self.state)
+                                    {
+                                        self.send_command(cmd);
+                                    }
+                                }
+                                Page::Software => {
+                                    pages::SoftwarePage::show(ui, &mut self.state);
+                                }
+                                Page::Vulnerabilities => {
+                                    pages::VulnerabilitiesPage::show(ui, &mut self.state);
+                                }
+                                Page::FileIntegrity => {
+                                    if let Some(cmd) = pages::FimPage::show(ui, &mut self.state) {
+                                        self.send_command(cmd);
+                                    }
+                                }
+                                Page::Threats => {
+                                    pages::ThreatsPage::show(ui, &mut self.state);
+                                }
+                                Page::Network => {
+                                    pages::NetworkPage::show(ui, &mut self.state);
+                                }
+                                Page::Sync => {
+                                    if let Some(cmd) = pages::SyncPage::show(ui, &self.state) {
+                                        self.send_command(cmd);
+                                    }
+                                }
+                                Page::Terminal => {
+                                    pages::TerminalPage::show(ui, &mut self.state);
+                                }
+                                Page::Discovery => {
+                                    if let Some(cmd) =
+                                        pages::DiscoveryPage::show(ui, &mut self.state)
+                                    {
+                                        self.send_command(cmd);
+                                    }
+                                }
+                                Page::Cartography => {
+                                    pages::CartographyPage::show(ui, &mut self.state);
+                                }
+                                Page::Notifications => {
+                                    pages::NotificationsPage::show(ui, &mut self.state);
+                                }
+                                Page::Settings => {
+                                    if let Some(cmd) =
+                                        pages::SettingsPage::show(ui, &mut self.state)
+                                    {
+                                        if matches!(cmd, GuiCommand::Shutdown) {
+                                            self.quit_requested = true;
+                                            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                                         }
+                                        self.send_command(cmd);
                                     }
-                                    Page::Monitoring => {
-                                        pages::MonitoringPage::show(ui, &self.state);
-                                    }
-                                    Page::Compliance => {
-                                        if let Some(cmd) = pages::CompliancePage::show(ui, &mut self.state) {
-                                            self.send_command(cmd);
-                                        }
-                                    }
-                                    Page::Software => {
-                                        pages::SoftwarePage::show(ui, &mut self.state);
-                                    }
-                                    Page::Vulnerabilities => {
-                                        pages::VulnerabilitiesPage::show(ui, &mut self.state);
-                                    }
-                                    Page::FileIntegrity => {
-                                        if let Some(cmd) = pages::FimPage::show(ui, &mut self.state) {
-                                            self.send_command(cmd);
-                                        }
-                                    }
-                                    Page::Threats => {
-                                        pages::ThreatsPage::show(ui, &mut self.state);
-                                    }
-                                    Page::Network => {
-                                        pages::NetworkPage::show(ui, &mut self.state);
-                                    }
-                                    Page::Sync => {
-                                        if let Some(cmd) = pages::SyncPage::show(ui, &self.state) {
-                                            self.send_command(cmd);
-                                        }
-                                    }
-                                    Page::Terminal => {
-                                        pages::TerminalPage::show(ui, &mut self.state);
-                                    }
-                                    Page::Discovery => {
-                                        if let Some(cmd) = pages::DiscoveryPage::show(ui, &mut self.state) {
-                                            self.send_command(cmd);
-                                        }
-                                    }
-                                    Page::Cartography => {
-                                        pages::CartographyPage::show(ui, &mut self.state);
-                                    }
-                                    Page::Notifications => {
-                                        pages::NotificationsPage::show(ui, &mut self.state);
-                                    }
-                                    Page::Settings => {
-                                        if let Some(cmd) = pages::SettingsPage::show(ui, &mut self.state) {
-                                            if matches!(cmd, GuiCommand::Shutdown) {
-                                                self.quit_requested = true;
-                                                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
-                                            }
-                                            self.send_command(cmd);
-                                        }
-                                    }
-                                    Page::About => {
-                                        pages::AboutPage::show(ui);
-                                    }
+                                }
+                                Page::About => {
+                                    pages::AboutPage::show(ui);
                                 }
                             });
                     });
@@ -996,9 +1027,21 @@ fn scan_macos_apps() -> Vec<crate::dto::GuiMacOsApp> {
 
                 apps.push(crate::dto::GuiMacOsApp {
                     name,
-                    version: if version.is_empty() { "--".to_string() } else { version },
-                    bundle_id: if bundle_id.is_empty() { "--".to_string() } else { bundle_id },
-                    publisher: if publisher.is_empty() { "--".to_string() } else { publisher },
+                    version: if version.is_empty() {
+                        "--".to_string()
+                    } else {
+                        version
+                    },
+                    bundle_id: if bundle_id.is_empty() {
+                        "--".to_string()
+                    } else {
+                        bundle_id
+                    },
+                    publisher: if publisher.is_empty() {
+                        "--".to_string()
+                    } else {
+                        publisher
+                    },
                     path: path.to_string_lossy().to_string(),
                 });
             }

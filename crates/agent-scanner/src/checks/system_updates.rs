@@ -480,10 +480,15 @@ impl SystemUpdatesCheck {
             }
             Ok(Err(e)) => {
                 warn!("softwareupdate command failed: {}", e);
-                status.raw_output.push_str(&format!("softwareupdate error: {}\n", e));
+                status
+                    .raw_output
+                    .push_str(&format!("softwareupdate error: {}\n", e));
             }
             Err(_) => {
-                warn!("softwareupdate --list timed out after {}s", UPDATE_CMD_TIMEOUT_SECS);
+                warn!(
+                    "softwareupdate --list timed out after {}s",
+                    UPDATE_CMD_TIMEOUT_SECS
+                );
                 status.raw_output.push_str(&format!(
                     "softwareupdate --list timed out after {}s\n",
                     UPDATE_CMD_TIMEOUT_SECS
