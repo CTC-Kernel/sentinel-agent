@@ -147,8 +147,12 @@ exports.getAgentMetricsHistory = onCall(
 
       const metrics = metricsSnapshot.docs.map(doc => {
         const data = doc.data();
+        const metricTimestamp = data.timestamp?.toDate?.().toISOString();
+        if (!metricTimestamp) {
+          console.warn(`Metrics missing agent timestamp for agent ${agentId}`);
+        }
         return {
-          timestamp: data.timestamp?.toDate?.().toISOString() || new Date().toISOString(),
+          timestamp: metricTimestamp || new Date().toISOString(),
           cpuPercent: data.cpuPercent || 0,
           memoryPercent: data.memoryPercent || 0,
           memoryBytes: data.memoryBytes || 0,

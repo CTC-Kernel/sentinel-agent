@@ -7,6 +7,7 @@ const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 const { v4: uuidv4 } = require('uuid');
 const { checkRateLimit } = require('../utils/rateLimiter');
+const { encrypt } = require('../utils/encryption');
 
 const db = admin.firestore();
 
@@ -136,7 +137,7 @@ exports.enrollAgent = onRequest(
       // Use transaction to prevent TOCTOU race condition on machineId uniqueness
       const enrollmentResult = await db.runTransaction(async (transaction) => {
         // Check if agent with same machine_id already exists (inside transaction)
-        const existingAgent = await db
+        const existingAgentSnapshot = await db
           .collection('organizations')
           .doc(organizationId)
           .collection('agents')
@@ -144,29 +145,73 @@ exports.enrollAgent = onRequest(
           .limit(1)
           .get();
 
-        if (!existingAgent.empty) {
-          // Do NOT return certificates for existing agents (credential leak prevention)
-          return {
-            existing: true,
-            response: {
-              agent_id: existingAgent.docs[0].id,
-              organization_id: organizationId,
-              status: 'already_enrolled',
-              message: 'Agent already registered with this machine_id',
-            },
-          };
-        }
-
-        // Generate new agent ID
-        const agentId = uuidv4();
-
         // Generate certificates (simplified - in production use proper PKI)
         const certificateExpiresAt = new Date();
         certificateExpiresAt.setFullYear(certificateExpiresAt.getFullYear() + 1);
 
+        if (!existingAgentSnapshot.empty) {
+          // Re-enroll existing agent: update credentials and metadata, preserve agentId and historical data
+          const existingAgentDoc = existingAgentSnapshot.docs[0];
+          const existingAgentId = existingAgentDoc.id;
+          const existingAgentData = existingAgentDoc.data();
+
+          const serverCertificate = generatePlaceholderCert('server');
+          const clientCertificate = generatePlaceholderCert('client', existingAgentId);
+          const clientKey = generatePlaceholderKey();
+          const crypto = require('crypto');
+          const rawHmacSecret = crypto.randomBytes(32).toString('base64');
+          const hmacSecret = encrypt(rawHmacSecret);
+
+          // Update existing agent document with fresh enrollment data
+          const agentRef = db
+            .collection('organizations')
+            .doc(organizationId)
+            .collection('agents')
+            .doc(existingAgentId);
+
+          transaction.update(agentRef, {
+            hostname,
+            os: os.toLowerCase(),
+            osVersion: os_version || existingAgentData.osVersion || '',
+            version: agent_version || existingAgentData.version || '0.0.0',
+            status: 'active',
+            lastHeartbeat: admin.firestore.FieldValue.serverTimestamp(),
+            reEnrolledAt: admin.firestore.FieldValue.serverTimestamp(),
+            enrolledWithToken: tokenDoc.id,
+            ipAddress: req.ip || req.headers['x-forwarded-for'] || '',
+            serverCertificate,
+            clientCertificate,
+            hmacSecret,
+            certificateExpiresAt: certificateExpiresAt.toISOString(),
+            config: getDefaultAgentConfig(),
+          });
+
+          // Update token usage count inside transaction
+          transaction.update(tokenDoc.ref, {
+            usedCount: admin.firestore.FieldValue.increment(1),
+            lastUsedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+
+          return {
+            reEnrolled: true,
+            agentId: existingAgentId,
+            serverCertificate,
+            clientCertificate,
+            clientKey,
+            hmacSecret: rawHmacSecret, // Return raw to agent
+            certificateExpiresAt: certificateExpiresAt.toISOString(),
+          };
+        }
+
+        // Generate new agent ID for brand-new enrollment
+        const agentId = uuidv4();
+
         const serverCertificate = generatePlaceholderCert('server');
         const clientCertificate = generatePlaceholderCert('client', agentId);
         const clientKey = generatePlaceholderKey();
+        const crypto = require('crypto');
+        const rawHmacSecret = crypto.randomBytes(32).toString('base64');
+        const hmacSecret = encrypt(rawHmacSecret);
 
         // Create agent document inside transaction
         const agentRef = db
@@ -194,6 +239,7 @@ exports.enrollAgent = onRequest(
           organizationId,
           serverCertificate,
           clientCertificate,
+          hmacSecret,
           certificateExpiresAt: certificateExpiresAt.toISOString(),
           config: getDefaultAgentConfig(),
           complianceScore: null,
@@ -210,26 +256,23 @@ exports.enrollAgent = onRequest(
         });
 
         return {
-          existing: false,
+          reEnrolled: false,
           agentId,
           agentData,
           serverCertificate,
           clientCertificate,
           clientKey,
+          hmacSecret: rawHmacSecret, // Return raw to agent
           certificateExpiresAt: certificateExpiresAt.toISOString(),
         };
       });
 
-      // Handle existing agent (return early)
-      if (enrollmentResult.existing) {
-        return res.status(200).json(enrollmentResult.response);
-      }
+      const { agentId, serverCertificate, clientCertificate, clientKey, hmacSecret: responseHmacSecret, certificateExpiresAt } = enrollmentResult;
 
-      const { agentId, serverCertificate, clientCertificate, clientKey, certificateExpiresAt } = enrollmentResult;
-
-      // Log enrollment
+      // Log enrollment or re-enrollment
+      const auditType = enrollmentResult.reEnrolled ? 'agent_re_enrolled' : 'agent_enrolled';
       await db.collection('organizations').doc(organizationId).collection('auditLogs').add({
-        type: 'agent_enrolled',
+        type: auditType,
         agentId,
         hostname,
         os,
@@ -239,16 +282,22 @@ exports.enrollAgent = onRequest(
         timestamp: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      logger.info(`Agent enrolled: ${agentId} for org ${organizationId}`);
+      if (enrollmentResult.reEnrolled) {
+        logger.info(`Agent re-enrolled (existing machineId): ${agentId} for org ${organizationId}`);
+      } else {
+        logger.info(`Agent enrolled: ${agentId} for org ${organizationId}`);
+      }
 
-      return res.status(201).json({
+      return res.status(enrollmentResult.reEnrolled ? 200 : 201).json({
         agent_id: agentId,
         organization_id: organizationId,
         server_certificate: serverCertificate,
         client_certificate: clientCertificate,
         client_key: clientKey,
+        hmac_secret: responseHmacSecret,
         certificate_expires_at: certificateExpiresAt,
         config: getDefaultAgentConfig(),
+        status: enrollmentResult.reEnrolled ? 're_enrolled' : 'enrolled',
       });
     } catch (error) {
       logger.error('Enrollment error:', error);
