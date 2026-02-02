@@ -749,7 +749,12 @@ impl eframe::App for SentinelApp {
             .frame(egui::Frame::new().fill(theme::bg_sidebar()).stroke(egui::Stroke::new(0.5, theme::border())))
             .show(ctx, |ui| {
                 let scanning = self.state.summary.status == crate::dto::GuiAgentStatus::Scanning;
-                if let Some(new_page) = widgets::Sidebar::show(ui, &self.page, scanning, self.state.unread_notification_count) {
+                let sync_state = widgets::sidebar::SidebarSyncState {
+                    syncing: self.state.sync_in_progress,
+                    last_sync_at: self.state.summary.last_sync_at,
+                    error: self.state.sync_error.clone(),
+                };
+                if let Some(new_page) = widgets::Sidebar::show(ui, &self.page, scanning, self.state.unread_notification_count, &sync_state) {
                     self.page = new_page;
                 }
             });
