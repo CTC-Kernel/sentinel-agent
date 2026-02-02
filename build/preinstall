@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Sentinel Agent Pre-install Script
+
+# Check if older version exists
+if [[ -d "/Applications/SentinelAgent.app" ]]; then
+    echo "Removing previous installation..."
+    rm -rf "/Applications/SentinelAgent.app"
+fi
+
+# Create directories
+mkdir -p "/Library/Application Support/Sentinel GRC"
+mkdir -p "/var/log/sentinel"
+
+# Set permissions
+chmod 755 "/Library/Application Support/Sentinel GRC"
+chmod 755 "/var/log/sentinel"
+
+exit 0

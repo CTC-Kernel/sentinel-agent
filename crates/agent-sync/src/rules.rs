@@ -60,6 +60,21 @@ pub struct ApiCheckRule {
     /// Last update timestamp.
     #[serde(default = "Utc::now")]
     pub updated_at: DateTime<Utc>,
+    /// Command to execute for this check.
+    #[serde(default)]
+    pub check_command: Option<String>,
+    /// Expected result of the check command.
+    #[serde(default)]
+    pub expected_result: Option<String>,
+    /// Remediation instructions if the check fails.
+    #[serde(default)]
+    pub remediation: Option<String>,
+    /// Platforms this rule applies to.
+    #[serde(default)]
+    pub platforms: Option<Vec<String>>,
+    /// Associated control identifier.
+    #[serde(default)]
+    pub control_id: Option<String>,
 }
 
 fn default_enabled() -> bool {
@@ -83,6 +98,11 @@ impl From<ApiCheckRule> for CheckRule {
             version: api.version,
             created_at: api.created_at,
             updated_at: api.updated_at,
+            check_command: api.check_command,
+            expected_result: api.expected_result,
+            remediation: api.remediation,
+            platforms: api.platforms,
+            control_id: api.control_id,
         }
     }
 }
