@@ -103,7 +103,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload }) => {
         </div>
         <div className="flex justify-between">
           <span className="text-slate-500 dark:text-slate-400">HHI</span>
-          <span className={`font-medium ${data.hhi > 2500 ? 'text-red-600' : data.hhi > 1500 ? 'text-yellow-600' : 'text-green-600'
+          <span className={`font-medium ${data.hhi > 2500 ? 'text-error-text' : data.hhi > 1500 ? 'text-warning-text' : 'text-success-text'
             }`}>
             {Math.round(data.hhi)}
           </span>
@@ -145,7 +145,7 @@ const CustomLabel: React.FC<CustomLabelProps> = ({
     <text
       x={x}
       y={y}
-      fill="white"
+      fill="hsl(var(--card-foreground))"
       textAnchor="middle"
       dominantBaseline="central"
       className="text-xs font-medium"

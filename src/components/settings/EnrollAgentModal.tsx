@@ -271,7 +271,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                                         <DownloadButton
                                             platform="macos"
                                             label="macOS"
-                                            sublabel="APPLE SILICON & INTEL"
+                                            sublabel="INSTALLATEUR .PKG"
                                             icon={<Cpu className="w-5 h-5 text-slate-600 dark:text-slate-300" />}
                                             available={releaseInfo?.platforms?.macos?.available ?? false}
                                             downloadUrl={releaseInfo?.platforms?.macos?.downloadUrl}

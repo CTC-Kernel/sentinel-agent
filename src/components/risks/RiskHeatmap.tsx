@@ -29,6 +29,14 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({ risks }) => {
         return 'bg-success-text/90 dark:bg-success-text/80'; // Low
     };
 
+    const getCellSeverityLabel = (p: number, i: number) => {
+        const score = p * i;
+        if (score >= RISK_THRESHOLDS.CRITICAL) return 'Critique';
+        if (score >= RISK_THRESHOLDS.HIGH) return 'Élevé';
+        if (score >= RISK_THRESHOLDS.MEDIUM) return 'Moyen';
+        return 'Faible';
+    };
+
     return (
         <div className="flex flex-col items-center justify-center p-4">
             <div className="relative">
@@ -64,6 +72,7 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({ risks }) => {
                                         `}
                                         whileHover={hasData ? { scale: 1.1, zIndex: 10 } : undefined}
                                         title={`Prob: ${p}, Imp: ${i} | ${count} Risques`}
+                                        aria-label={`${getCellSeverityLabel(p, i)}: ${count} risque${count !== 1 ? 's' : ''}, Probabilité ${p}, Impact ${i}`}
                                     >
                                         <span className={hasData ? 'visible' : 'invisible'}>
                                             {count}

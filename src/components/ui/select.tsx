@@ -51,9 +51,30 @@ const SelectTrigger = React.forwardRef<
     React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, children, ...props }, ref) => {
     const { open, setOpen } = React.useContext(SelectContext)!
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault()
+            if (!open) {
+                setOpen?.(true)
+            }
+        }
+        if (e.key === 'Escape' && open) {
+            e.preventDefault()
+            setOpen?.(false)
+        }
+        if (e.key === 'Home' || e.key === 'End') {
+            e.preventDefault()
+            if (!open) {
+                setOpen?.(true)
+            }
+        }
+    }
+
     return (
         <button
             onClick={() => setOpen?.(!open)}
+            onKeyDown={handleKeyDown}
             ref={ref}
             role="combobox"
             aria-expanded={open}
@@ -110,6 +131,18 @@ const SelectContent = React.forwardRef<
             }
             items[nextIndex]?.focus()
         }
+        if (e.key === 'Home') {
+            e.preventDefault()
+            const container = e.currentTarget
+            const items = Array.from(container.querySelectorAll<HTMLElement>('[role="option"]'))
+            if (items.length > 0) items[0]?.focus()
+        }
+        if (e.key === 'End') {
+            e.preventDefault()
+            const container = e.currentTarget
+            const items = Array.from(container.querySelectorAll<HTMLElement>('[role="option"]'))
+            if (items.length > 0) items[items.length - 1]?.focus()
+        }
     }
 
     return (
@@ -117,7 +150,7 @@ const SelectContent = React.forwardRef<
             ref={ref}
             role="listbox"
             className={cn(
-                "absolute z-dropdown min-w-[8rem] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-elevation-md animate-in fade-in-0 zoom-in-95",
+                "absolute z-dropdown min-w-[8rem] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-apple-md animate-in fade-in-0 zoom-in-95",
                 position === "popper" && "translate-y-1",
                 className
             )}

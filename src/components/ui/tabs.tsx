@@ -71,6 +71,7 @@ const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
         return (
             <button
                 ref={ref}
+                id={`tab-${value}`}
                 role="tab"
                 aria-selected={isActive}
                 data-state={isActive ? "active" : "inactive"}
@@ -110,6 +111,7 @@ const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
             <div
                 ref={ref}
                 role="tabpanel"
+                aria-labelledby={`tab-${value}`}
                 data-state={isActive ? "active" : "inactive"}
                 style={{
                     display: isActive ? 'block' : 'none'

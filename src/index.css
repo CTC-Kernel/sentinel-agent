@@ -55,8 +55,8 @@
 
   /* Premium Scrollbar Styling */
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-track {
@@ -267,39 +267,25 @@ h6 {
 }
 
 .glass-panel-lite {
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   transition: all 0.2s var(--ease-apple);
 }
 
-.dark .glass-panel-lite {
-  background: rgba(15, 23, 42, 0.4);
-}
-
 /* Premium Input Styles - Glass Effect */
 .glass-input {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--glass-bg);
   backdrop-filter: blur(12px);
   border: 1px solid hsl(var(--border));
   transition: all 0.2s var(--ease-apple);
   border-radius: var(--radius-md);
 }
 
-.dark .glass-input {
-  background: rgba(15, 23, 42, 0.4);
-  border: 1px solid var(--glass-border);
-}
-
 .glass-input:focus-within {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--glass-bg);
   border-color: hsl(var(--primary) / 0.5);
   box-shadow: 0 0 0 4px hsl(var(--primary) / 0.1);
-}
-
-.dark .glass-input:focus-within {
-  background: rgba(15, 23, 42, 0.8);
-  box-shadow: 0 0 0 4px hsl(var(--primary) / 0.15);
 }
 
 /* ===== SCROLLBARS ===== */

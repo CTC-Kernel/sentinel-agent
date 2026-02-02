@@ -252,8 +252,8 @@ export function ScoreGauge({
               'absolute -top-1 -right-1 rounded-full font-bold',
               deltaBadgeClass,
               delta > 0
-                ? 'bg-green-100 text-green-600 dark:text-green-400 dark:bg-green-900/50 dark:text-green-400'
-                : 'bg-red-100 text-red-600 dark:text-red-400 dark:bg-red-50 dark:bg-red-9000 dark:text-red-400'
+                ? 'bg-success-bg text-success-text'
+                : 'bg-error-bg text-error-text'
             )}
           >
             {delta > 0 ? '+' : ''}{delta}

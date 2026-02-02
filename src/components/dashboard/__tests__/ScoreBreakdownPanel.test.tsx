@@ -122,7 +122,7 @@ describe('ScoreBreakdownPanel', () => {
     );
 
     // Each category has a progress bar
-    const progressBars = container.querySelectorAll('.h-2.bg-slate-200');
+    const progressBars = container.querySelectorAll('.h-2.bg-muted');
     expect(progressBars.length).toBe(4);
   });
 });

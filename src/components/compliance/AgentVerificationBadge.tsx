@@ -42,33 +42,33 @@ export const AgentVerificationBadge: React.FC<AgentVerificationBadgeProps> = ({
             case 'pass':
                 return {
                     icon: CheckCircle2,
-                    color: 'text-green-600 dark:text-green-400',
-                    bgColor: 'bg-green-50 dark:bg-green-900/20',
-                    borderColor: 'border-green-200 dark:border-green-900/30',
+                    color: 'text-success-text',
+                    bgColor: 'bg-success-bg',
+                    borderColor: 'border-success-border',
                     label: 'OK'
                 };
             case 'fail':
                 return {
                     icon: XCircle,
-                    color: 'text-red-600 dark:text-red-400',
-                    bgColor: 'bg-red-50 dark:bg-red-900/20',
-                    borderColor: 'border-red-200 dark:border-red-900/30',
+                    color: 'text-error-text',
+                    bgColor: 'bg-error-bg',
+                    borderColor: 'border-error-border',
                     label: 'Fail'
                 };
             case 'error':
                 return {
                     icon: AlertTriangle,
-                    color: 'text-yellow-600 dark:text-yellow-400',
-                    bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
-                    borderColor: 'border-yellow-200 dark:border-yellow-900/30',
+                    color: 'text-warning-text',
+                    bgColor: 'bg-warning-bg',
+                    borderColor: 'border-warning-border',
                     label: 'Error'
                 };
             default:
                 return {
                     icon: Clock,
-                    color: 'text-slate-500 dark:text-slate-300',
-                    bgColor: 'bg-slate-50 dark:bg-slate-800/50',
-                    borderColor: 'border-border/40 dark:border-slate-700',
+                    color: 'text-muted-foreground',
+                    bgColor: 'bg-muted',
+                    borderColor: 'border-border',
                     label: 'N/A'
                 };
         }
@@ -134,10 +134,10 @@ export const AgentVerificationIndicator: React.FC<{
 
     const getStatusColor = () => {
         switch (status) {
-            case 'pass': return 'bg-green-500';
-            case 'fail': return 'bg-red-500';
-            case 'error': return 'bg-yellow-500';
-            default: return 'bg-slate-400';
+            case 'pass': return 'bg-success';
+            case 'fail': return 'bg-error';
+            case 'error': return 'bg-warning';
+            default: return 'bg-muted-foreground';
         }
     };
 

@@ -54,14 +54,14 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
             <div className={`
                 relative flex items-center w-full rounded-3xl border transition-all duration-200 backdrop-blur-sm
                 ${error
-                    ? 'border-red-500/60 bg-red-50 dark:bg-red-50'
+                    ? 'border-destructive/60 bg-destructive/5'
                     : isFocused
                         ? 'border-brand-500 bg-white/80 dark:bg-white/5 shadow-glow ring-2 ring-brand-300'
                         : 'border-border/40 dark:border-border/40 bg-white/50 dark:bg-white/5 hover:border-brand-300 dark:hover:border-white/20'
                 }
             `}>
                 {Icon && (
-                    <div className={`pl-4 ${error ? 'text-red-500' : isFocused ? 'text-brand-500' : 'text-slate-500'}`}>
+                    <div className={`pl-4 ${error ? 'text-destructive' : isFocused ? 'text-brand-500' : 'text-slate-500'}`}>
                         <Icon className="h-5 w-5" />
                     </div>
                 )}
@@ -105,7 +105,7 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
                             : 'top-3.5 text-sm font-medium'
                         }
                         ${error
-                            ? 'text-red-500'
+                            ? 'text-destructive'
                             : isFocused
                                 ? 'text-brand-600 dark:text-brand-500'
                                 : 'text-slate-500 dark:text-slate-300'
@@ -126,7 +126,7 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
                         exit={{ opacity: 0, y: -5, height: 0 }}
                         transition={{ duration: 0.2 }}
                         id={errorId}
-                        className="text-red-500 text-xs mt-1.5 ml-1 font-medium overflow-hidden"
+                        className="text-destructive text-xs mt-1.5 ml-1 font-medium overflow-hidden"
                     >
                         {error}
                     </motion.p>

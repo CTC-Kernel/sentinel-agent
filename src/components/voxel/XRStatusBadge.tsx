@@ -110,7 +110,7 @@ const StatusIndicator: React.FC<StatusIndicatorProps> = ({ supported, label }) =
     <div
       className={`
         w-4 h-4 rounded-full flex items-center justify-center
-        ${supported ? 'bg-green-500/20 text-green-400' : 'bg-slate-500/20 text-slate-500'}
+        ${supported ? 'bg-success-bg text-success-text' : 'bg-muted text-muted-foreground'}
       `}
     >
       {supported ? <CheckIcon className="w-2.5 h-2.5" /> : <XIcon className="w-2.5 h-2.5" />}
@@ -216,10 +216,10 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
 
   // Status color
   const statusColor = useMemo(() => {
-    if (status.isDetecting) return 'bg-amber-500/20 text-amber-400';
-    if (status.error) return 'bg-red-500/20 text-red-400';
-    if (status.vrSupported || status.arSupported) return 'bg-green-500/20 text-green-400';
-    return 'bg-slate-500/20 text-slate-400';
+    if (status.isDetecting) return 'bg-warning-bg text-warning-text';
+    if (status.error) return 'bg-error-bg text-error-text';
+    if (status.vrSupported || status.arSupported) return 'bg-success-bg text-success-text';
+    return 'bg-muted text-muted-foreground';
   }, [status]);
 
   // If not available, show minimal indicator

@@ -206,7 +206,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     </filter>
                     <linearGradient id="healthGradient" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor={metrics.healthScore >= 70 ? SENTINEL_PALETTE.success : metrics.healthScore >= 40 ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical} />
-                        <stop offset="100%" stopColor={metrics.healthScore >= 70 ? '#10b981' : metrics.healthScore >= 40 ? '#f59e0b' : '#ef4444'} />
+                        <stop offset="100%" stopColor={metrics.healthScore >= 70 ? 'hsl(var(--success))' : metrics.healthScore >= 40 ? 'hsl(var(--warning))' : 'hsl(var(--error))'} />
                     </linearGradient>
                     <linearGradient id="assetAcqGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0.8} />

@@ -59,14 +59,14 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
                             >
                                 <defs>
                                     <linearGradient id="incidentGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.8} />
-                                        <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.2} />
+                                        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.8} />
+                                        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" strokeOpacity={0.2} />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--muted-foreground)', fontSize: 10, fontWeight: 700 }} dy={10} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--muted-foreground)', fontSize: 10, fontWeight: 700 }} allowDecimals={false} />
-                                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'var(--primary)', opacity: 0.05 }} wrapperStyle={{ outline: 'none' }} />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.2} />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 700 }} dy={10} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 700 }} allowDecimals={false} />
+                                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--primary))', opacity: 0.05 }} wrapperStyle={{ outline: 'none' }} />
                                 <Bar dataKey="count" fill="url(#incidentGradient)" radius={[6, 6, 0, 0]} barSize={24} />
                             </BarChart>
                         </ResponsiveContainer>

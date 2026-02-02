@@ -54,11 +54,11 @@ export const NotificationCenter: React.FC = () => {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 10 }}
                         transition={{ duration: 0.1 }}
-                        className="absolute right-0 mt-2 w-[90vw] sm:w-96 max-w-[384px] max-h-[80vh] bg-white dark:bg-slate-950 rounded-3xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.4)] border border-white/20 dark:border-border/40 overflow-hidden z-dropdown flex flex-col origin-top-right ring-1 ring-white/20 dark:ring-white/5"
+                        className="absolute right-0 mt-2 w-[90vw] sm:w-96 max-w-[384px] max-h-[80vh] glass-premium bg-background/95 rounded-3xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.4)] border border-white/20 dark:border-border/40 overflow-hidden z-dropdown flex flex-col origin-top-right ring-1 ring-white/20 dark:ring-white/5"
                     >
                         {/* Header */}
                         <div className="p-4 border-b border-border/40 dark:border-border/40 flex items-center justify-between bg-gradient-to-br from-slate-50/50 to-white/30 dark:from-slate-800/30 dark:to-slate-900/20 shrink-0">
-                            <h3 className="font-semibold text-slate-900 dark:text-white">Notifications</h3>
+                            <h3 className="font-semibold text-foreground">Notifications</h3>
                             <div className="flex gap-2">
                                 <Tooltip content={filter === 'unread' ? t('notifications.showAll', { defaultValue: 'Afficher tout' }) : t('notifications.filterUnread', { defaultValue: 'Filtrer les non-lus' })}>
                                     <button
@@ -98,7 +98,7 @@ export const NotificationCenter: React.FC = () => {
                                     <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-800 flex items-center justify-center mb-3">
                                         <Bell className="h-6 w-6 text-brand-600 dark:text-brand-400" />
                                     </div>
-                                    <p className="text-slate-900 dark:text-white font-medium mb-1">Aucune notification</p>
+                                    <p className="text-foreground font-medium mb-1">Aucune notification</p>
                                     <p className="text-xs text-slate-500 dark:text-slate-300 max-w-[200px]">
                                         {filter === 'unread' ? t('notifications.allRead', { defaultValue: "Vous êtes à jour ! Tout a été lu." }) : t('notifications.noNotifications', { defaultValue: "C'est calme par ici..." })}
                                     </p>

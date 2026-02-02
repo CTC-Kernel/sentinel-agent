@@ -71,7 +71,7 @@ export const Drawer: React.FC<DrawerProps> = ({
     return createPortal(
         <>
             <Transition.Root show={isOpen} as={React.Fragment}>
-                <Dialog as="div" className="relative z-voxel-ui" onClose={handleClose}>
+                <Dialog as="div" className="relative z-modal" onClose={handleClose}>
                     <Transition.Child
                         as={React.Fragment}
                         enter="duration-400"
@@ -82,7 +82,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                         leaveTo="opacity-0"
                     >
                         <div
-                            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+                            className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]"
                             style={{ transition: `opacity 400ms ${APPLE_EASING}` }}
                         />
                     </Transition.Child>
@@ -139,7 +139,7 @@ export const Drawer: React.FC<DrawerProps> = ({
 
             {/* Unsaved Changes Confirmation Dialog */}
             <Transition.Root show={showConfirmDialog} as={React.Fragment}>
-                <Dialog as="div" className="relative z-voxel-panel" onClose={handleCancelClose}>
+                <Dialog as="div" className="relative z-dropdown" onClose={handleCancelClose}>
                     <Transition.Child
                         as={React.Fragment}
                         enter="ease-out duration-300"

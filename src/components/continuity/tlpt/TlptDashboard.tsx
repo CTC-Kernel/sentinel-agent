@@ -134,11 +134,11 @@ export const TlptDashboard: React.FC<Props> = ({ campaigns, loading, onAdd, onUp
 
 function getStatusColor(status: string) {
     switch (status) {
-        case 'Planned': return 'bg-blue-100 text-blue-700 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-300';
-        case 'In Progress': return 'bg-amber-100 text-amber-700 dark:text-amber-400 dark:bg-amber-900/30 dark:text-amber-300';
-        case 'Analysis': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
-        case 'Remediation': return 'bg-orange-100 text-orange-700 dark:text-orange-400 dark:bg-orange-900/30 dark:text-orange-300';
-        case 'Closed': return 'bg-green-100 text-green-700 dark:text-green-400 dark:bg-green-900/30 dark:text-green-300';
-        default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700';
+        case 'Planned': return 'bg-info-bg text-info-text';
+        case 'In Progress': return 'bg-warning-bg text-warning-text';
+        case 'Analysis': return 'bg-info-bg text-info-text';
+        case 'Remediation': return 'bg-warning-bg text-warning-text';
+        case 'Closed': return 'bg-success-bg text-success-text';
+        default: return 'bg-muted text-muted-foreground';
     }
 }

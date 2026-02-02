@@ -13,6 +13,7 @@ import {
   type IncidentListItem,
 } from '../../hooks/useActiveIncidents';
 import { ChevronRight, AlertCircle, RefreshCw, ShieldAlert } from '../ui/Icons';
+import { motion } from 'framer-motion';
 import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig';
 import i18n from '../../i18n';
 
@@ -100,7 +101,7 @@ function IncidentItem({
       type="button"
       onClick={onClick}
       className={cn(
-        'w-full flex items-center justify-between rounded-lg border transition-all',
+        'w-full flex items-center justify-between rounded-2xl border transition-all',
         'hover:shadow-sm hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-offset-2 focus-visible:ring-brand-500',
         colors.bg,
         colors.border,
@@ -263,8 +264,13 @@ export function RSSIIncidentsWidget({
   }
 
   return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    >
     <div
-      className={cn('rounded-xl glass-panel', sizeConfig.padding, className)}
+      className={cn('rounded-3xl glass-premium border border-border/40', sizeConfig.padding, className)}
       role="region"
       aria-label="Incidents actifs"
     >
@@ -319,6 +325,7 @@ export function RSSIIncidentsWidget({
         </button>
       )}
     </div>
+    </motion.div>
   );
 }
 

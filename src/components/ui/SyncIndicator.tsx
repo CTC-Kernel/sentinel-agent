@@ -21,9 +21,9 @@ export const SyncIndicator: React.FC = () => {
 
     return (
         <Tooltip content={`${t('common.synced') || "Synchronisé"} (${lastSynced?.toLocaleTimeString()})`} position="bottom">
-            <div className="flex items-center gap-2 px-2 py-1.5 text-success-600 dark:text-success-400 rounded-full text-xs font-medium hover:bg-success-50 dark:hover:bg-success-900/10 transition-colors cursor-help">
+            <div className="flex items-center gap-2 px-2 py-1.5 text-success-text rounded-full text-xs font-medium hover:bg-success-bg transition-colors cursor-help">
                 <Cloud className="h-4 w-4" />
-                <span className="hidden lg:inline text-success-600/80 dark:text-success-400/80">{t('common.saved') || "Sauvegardé"}</span>
+                <span className="hidden lg:inline text-success-text/80">{t('common.saved') || "Sauvegardé"}</span>
             </div>
         </Tooltip>
     );

@@ -79,11 +79,11 @@ const PLAN_CONFIG: Record<PlanType | 'unknown', {
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bgColor: string; pulse?: boolean }> = {
-    active: { label: 'Actif', color: 'text-success-600 dark:text-success-400', bgColor: 'bg-success-500', pulse: false },
-    trialing: { label: 'Essai', color: 'text-amber-600 dark:text-amber-400', bgColor: 'bg-amber-500', pulse: true },
-    past_due: { label: 'Impayé', color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-500', pulse: true },
-    canceled: { label: 'Annulé', color: 'text-slate-500', bgColor: 'bg-slate-400', pulse: false },
-    incomplete: { label: 'Incomplet', color: 'text-amber-600 dark:text-amber-400', bgColor: 'bg-amber-500', pulse: false },
+    active: { label: 'Actif', color: 'text-success-text', bgColor: 'bg-success', pulse: false },
+    trialing: { label: 'Essai', color: 'text-warning-text', bgColor: 'bg-warning', pulse: true },
+    past_due: { label: 'Impayé', color: 'text-error-text', bgColor: 'bg-error', pulse: true },
+    canceled: { label: 'Annulé', color: 'text-slate-500', bgColor: 'bg-muted-foreground', pulse: false },
+    incomplete: { label: 'Incomplet', color: 'text-warning-text', bgColor: 'bg-warning', pulse: false },
 };
 
 export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', compact = false }) => {
@@ -183,8 +183,8 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
                     <div className="flex items-center gap-1 mt-0.5">
                         {statusConfig.pulse ? (
                             <span className="relative flex h-1.5 w-1.5">
-                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isPastDue ? 'bg-red-400' : 'bg-amber-400'} opacity-75`}></span>
-                                <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${isPastDue ? 'bg-red-500' : 'bg-amber-500'}`}></span>
+                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isPastDue ? 'bg-error' : 'bg-warning'} opacity-75`}></span>
+                                <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${isPastDue ? 'bg-error' : 'bg-warning'}`}></span>
                             </span>
                         ) : (
                             <span className={`inline-flex rounded-full h-1.5 w-1.5 ${statusConfig.bgColor}`}></span>

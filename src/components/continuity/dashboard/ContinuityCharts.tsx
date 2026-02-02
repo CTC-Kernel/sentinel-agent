@@ -142,7 +142,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                     </filter>
                     <linearGradient id="continuitySuccessGradient" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor={drillSuccessRate >= 80 ? SENTINEL_PALETTE.success : drillSuccessRate >= 50 ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical} />
-                        <stop offset="100%" stopColor={drillSuccessRate >= 80 ? '#10b981' : drillSuccessRate >= 50 ? '#f59e0b' : '#ef4444'} />
+                        <stop offset="100%" stopColor={drillSuccessRate >= 80 ? SENTINEL_PALETTE.success : drillSuccessRate >= 50 ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical} />
                     </linearGradient>
                     <linearGradient id="gradientSuccess" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor={SENTINEL_PALETTE.success} stopOpacity={0.8} />

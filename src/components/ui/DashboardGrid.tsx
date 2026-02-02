@@ -91,6 +91,7 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
       <motion.button
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
+        aria-label="Personnaliser le tableau de bord"
         className="fixed bottom-8 right-8 w-14 h-14 bg-brand-500 text-white rounded-full shadow-lg hover:bg-brand-600 transition-colors flex items-center justify-center"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
@@ -203,7 +204,7 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="absolute top-full left-0 mt-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-lg shadow-lg p-2 z-dropdown"
+          className="absolute top-full left-0 mt-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-lg shadow-apple-xl p-2 z-dropdown"
         >
           <div className="flex gap-1">
             {(['small', 'medium', 'large', 'full'] as const).map((size) => (

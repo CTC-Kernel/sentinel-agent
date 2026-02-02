@@ -435,28 +435,28 @@ export const InteractiveTimeline: React.FC = () => {
             {/* Custom CSS for timeline - using harmonized palette colors */}
             <style>{`
         .timeline-incident .vis-item {
-          background-color: #d64545;
-          border-color: #c03030;
+          background-color: hsl(var(--error));
+          border-color: hsl(var(--error));
           color: white;
         }
         .timeline-audit .vis-item {
-          background-color: #4a7fc7;
-          border-color: #3a6fb7;
+          background-color: hsl(var(--primary));
+          border-color: hsl(var(--primary));
           color: white;
         }
         .timeline-project .vis-item {
-          background-color: #9b6dd7;
-          border-color: #8b5dc7;
+          background-color: hsl(var(--secondary));
+          border-color: hsl(var(--secondary));
           color: white;
         }
         .timeline-risk .vis-item {
-          background-color: #c87f1a;
-          border-color: #b86f0a;
+          background-color: hsl(var(--warning));
+          border-color: hsl(var(--warning));
           color: white;
         }
         .timeline-document .vis-item {
-          background-color: #2d9d6a;
-          border-color: #1d8d5a;
+          background-color: hsl(var(--success));
+          border-color: hsl(var(--success));
           color: white;
         }
         .vis-item {
@@ -465,7 +465,7 @@ export const InteractiveTimeline: React.FC = () => {
           font-size: 12px;
         }
         .vis-item.vis-selected {
-          box-shadow: 0 0 0 3px rgba(74, 127, 199, 0.3);
+          box-shadow: 0 0 0 3px hsl(var(--primary) / 0.3);
         }
       `}</style>
         </div>

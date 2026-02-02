@@ -41,10 +41,10 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
     // Chart Data
     const chartData = useMemo(() => {
         const statusData = [
-            { name: t('audits.status.planned', { defaultValue: 'Planifié' }), value: audits.filter(a => a.status === 'Planifié').length, color: '#3B82F6' },
-            { name: t('audits.status.inProgress', { defaultValue: 'En cours' }), value: audits.filter(a => a.status === 'En cours').length, color: '#F59E0B' },
-            { name: t('audits.status.completed', { defaultValue: 'Terminé' }), value: audits.filter(a => a.status === 'Terminé').length, color: '#10B981' },
-            { name: t('audits.status.validated', { defaultValue: 'Validé' }), value: audits.filter(a => a.status === 'Validé').length, color: '#8B5CF6' },
+            { name: t('audits.status.planned', { defaultValue: 'Planifié' }), value: audits.filter(a => a.status === 'Planifié').length, color: 'hsl(var(--info))' },
+            { name: t('audits.status.inProgress', { defaultValue: 'En cours' }), value: audits.filter(a => a.status === 'En cours').length, color: 'hsl(var(--warning))' },
+            { name: t('audits.status.completed', { defaultValue: 'Terminé' }), value: audits.filter(a => a.status === 'Terminé').length, color: 'hsl(var(--success))' },
+            { name: t('audits.status.validated', { defaultValue: 'Validé' }), value: audits.filter(a => a.status === 'Validé').length, color: 'hsl(var(--secondary))' },
         ].filter(d => d.value > 0);
 
         const findingsByType = [

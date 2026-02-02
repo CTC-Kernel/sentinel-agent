@@ -87,11 +87,11 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                     type="text"
                     {...register('title')}
                     placeholder={t('risks.treatment.placeholder_title')}
-                    className={`w-full rounded-3xl border ${errors.title ? 'border-red-500' : 'border-border/40 dark:border-border/40'} bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none placeholder:text-muted-foreground`}
+                    className={`w-full rounded-3xl border ${errors.title ? 'border-destructive' : 'border-border/40 dark:border-border/40'} bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none placeholder:text-muted-foreground`}
                 />
 
                 {errors.title && (
-                    <p className="text-xs text-red-500">{errors.title.message}</p>
+                    <p className="text-xs text-destructive">{errors.title.message}</p>
                 )}
             </div>
 
@@ -109,7 +109,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
                 />
 
                 {errors.description && (
-                    <p className="text-xs text-red-500">{errors.description.message}</p>
+                    <p className="text-xs text-destructive">{errors.description.message}</p>
                 )}
             </div>
 

@@ -74,7 +74,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                                 cx="50%"
                                 cy="50%"
                                 r="45%"
-                                className={`${percentage >= 80 ? 'stroke-brand-500' : percentage >= 50 ? 'stroke-warning' : 'stroke-error'} fill-none`}
+                                className={`${percentage >= 75 ? 'stroke-success' : percentage >= 50 ? 'stroke-warning' : 'stroke-error'} fill-none`}
                                 strokeWidth="8"
                                 strokeLinecap="round"
                             />
@@ -85,7 +85,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                         </div>
                     </div>
                     {/* Pulsing indicator */}
-                    <div className={`absolute top-2 right-2 w-3 h-3 rounded-full border-2 border-white dark:border-slate-900 shadow-sm animate-pulse ${percentage >= 80 ? 'bg-brand-500' : percentage >= 50 ? 'bg-warning' : 'bg-error'}`} />
+                    <div className={`absolute top-2 right-2 w-3 h-3 rounded-full border-2 border-white dark:border-slate-900 shadow-sm animate-pulse ${percentage >= 75 ? 'bg-success' : percentage >= 50 ? 'bg-warning' : 'bg-error'}`} />
                 </div>
 
                 <div className="text-center md:text-left">
@@ -95,7 +95,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                     <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-4">
                         {trend !== undefined && (
                             <div className="flex items-center gap-2 px-3 py-1.5 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40">
-                                <div className="w-2 h-2 rounded-full bg-brand-500" />
+                                <div className="w-2 h-2 rounded-full bg-success" />
                                 <span className="text-xs font-bold text-foreground">
                                     {t('compliance.dashboard.vs30d')}:
                                     <span className="ml-1 text-brand-600 dark:text-brand-400">
@@ -107,7 +107,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-brand-500/10 rounded-2xl border border-brand-500/20">
                             <Award className="w-3.5 h-3.5 text-brand-500" />
                             <span className="text-xs font-bold text-brand-600 dark:text-brand-400">
-                                {percentage >= 80 ? t('compliance.dashboard.excellentLevel') : percentage >= 50 ? t('compliance.dashboard.acceptableLevel') : t('compliance.dashboard.priorityActionsRequired')}
+                                {percentage >= 75 ? t('compliance.dashboard.excellentLevel') : percentage >= 50 ? t('compliance.dashboard.acceptableLevel') : t('compliance.dashboard.priorityActionsRequired')}
                             </span>
                         </div>
                     </div>

@@ -379,7 +379,7 @@ export const BackupRestore: React.FC = () => {
                         </div>
                       ))}
                     </div>
-                    {restoreForm.formState.errors.collections && <p className="text-red-500 text-xs mt-1">{restoreForm.formState.errors.collections.message}</p>}
+                    {restoreForm.formState.errors.collections && <p className="text-destructive text-xs mt-1">{restoreForm.formState.errors.collections.message}</p>}
                   </div>
 
                   <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-700">

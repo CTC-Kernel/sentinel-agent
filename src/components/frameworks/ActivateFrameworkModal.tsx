@@ -59,7 +59,7 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
     <Transition.Root show={isOpen} as={React.Fragment}>
       <Dialog
         as="div"
-        className="relative z-voxel-panel"
+        className="relative z-modal"
         initialFocus={cancelButtonRef}
         onClose={handleClose}
       >
@@ -72,7 +72,7 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
           leaveFrom="opacity-70"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" />
+          <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">

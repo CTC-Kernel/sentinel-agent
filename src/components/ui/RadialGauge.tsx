@@ -38,7 +38,7 @@ export const RadialGauge: React.FC<RadialGaugeProps> = ({
     colorClass,
     className,
 }) => {
-    const percentage = Math.min((value / max) * 100, 100);
+    const percentage = (!max || max <= 0) ? 0 : Math.min((value / max) * 100, 100);
     const radius = (size - thickness) / 2;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (percentage / 100) * circumference;
@@ -47,9 +47,9 @@ export const RadialGauge: React.FC<RadialGaugeProps> = ({
     // Determine color based on value
     const getColorClass = () => {
         if (colorClass) return colorClass;
-        if (percentage >= 80) return 'text-success';
-        if (percentage >= 60) return 'text-warning';
-        return 'text-danger';
+        if (percentage >= 75) return 'text-success';
+        if (percentage >= 50) return 'text-warning';
+        return 'text-destructive';
     };
 
     // Generate accessible label

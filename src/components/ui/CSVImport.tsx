@@ -212,7 +212,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                 <div>
                                     <h3 className="font-bold text-lg text-slate-900 dark:text-white">Aperçu - {parsedData.length} lignes</h3>
                                     {errors.length > 0 && (
-                                        <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                                        <p className="text-sm text-destructive mt-1">
                                             {errors.length} erreur{errors.length > 1 ? 's' : ''} détectée{errors.length > 1 ? 's' : ''}
                                         </p>
                                     )}
@@ -235,17 +235,17 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                             {errors.length > 0 && (
                                 <div className="bg-red-50 dark:bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-800 dark:border-red-900/30 rounded-3xl p-4 space-y-2">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <AlertTriangle className="h-5 w-5 text-red-600" />
+                                        <AlertTriangle className="h-5 w-5 text-destructive" />
                                         <h4 className="font-bold text-red-900 dark:text-red-100">Erreurs de validation</h4>
                                     </div>
                                     <div className="max-h-40 overflow-y-auto space-y-1 custom-scrollbar">
                                         {errors.slice(0, 10).map((err, i) => (
-                                            <p key={`err-${i || 'unknown'}`} className="text-sm text-red-700 dark:text-red-300">
+                                            <p key={`err-${i || 'unknown'}`} className="text-sm text-destructive">
                                                 Ligne {err.row}: {err.message}
                                             </p>
                                         ))}
                                         {errors.length > 10 && (
-                                            <p className="text-xs text-red-600 dark:text-red-400 font-medium">
+                                            <p className="text-xs text-destructive font-medium">
                                                 ... et {errors.length - 10} autre{errors.length - 10 > 1 ? 's' : ''} erreur{errors.length - 10 > 1 ? 's' : ''}
                                             </p>
                                         )}

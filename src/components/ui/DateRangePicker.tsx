@@ -28,7 +28,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
             <div className={`
                 flex items-center gap-2 p-1 rounded-2xl border transition-all duration-200
                 ${error
-                    ? 'border-red-500 bg-red-500 dark:bg-red-50 dark:bg-red-900'
+                    ? 'border-destructive bg-destructive/5'
                     : 'border-border/40 dark:border-border/40 bg-slate-50/50 dark:bg-black/20 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-300'
                 }
             `}>
@@ -45,7 +45,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                 />
             </div>
             {error && (
-                <p className="text-red-500 text-xs mt-1.5 ml-1 font-medium animate-fade-in">
+                <p className="text-destructive text-xs mt-1.5 ml-1 font-medium animate-fade-in">
                     {error}
                 </p>
             )}

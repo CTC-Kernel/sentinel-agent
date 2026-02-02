@@ -43,8 +43,8 @@ const STATUS_COLORS: Record<string, string> = {
     'Publié': SENTINEL_PALETTE.success,
     'Approuvé': SENTINEL_PALETTE.success,
     'En revue': SENTINEL_PALETTE.warning,
-    'Brouillon': '#64748b',
-    'Archivé': '#94a3b8',
+    'Brouillon': 'hsl(var(--muted-foreground))',
+    'Archivé': 'hsl(var(--muted-foreground) / 0.6)',
     'Rejeté': SENTINEL_PALETTE.danger
 };
 
@@ -55,8 +55,8 @@ const TYPE_COLORS: Record<string, string> = {
     'Preuve': SENTINEL_PALETTE.secondary,
     'Contrat': SENTINEL_PALETTE.info,
     'Guide': SENTINEL_PALETTE.warning,
-    'Rapport': '#6b8fa3',
-    'Autre': '#94a3b8'
+    'Rapport': SENTINEL_PALETTE.series7,
+    'Autre': 'hsl(var(--muted-foreground) / 0.6)'
 };
 
 // Custom active shape for interactive pie chart
@@ -89,7 +89,7 @@ const renderActiveShape = (props: unknown) => {
 
     return (
         <g>
-            <text x={cx} y={cy} dy={-5} textAnchor="middle" className="fill-slate-900 dark:fill-white text-sm font-bold">
+            <text x={cx} y={cy} dy={-5} textAnchor="middle" className="fill-foreground text-sm font-bold">
                 {payload.name}
             </text>
             <text x={cx} y={cy} dy={15} textAnchor="middle" className="fill-slate-500 text-xs">
@@ -162,7 +162,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
             .map(([name, value]) => ({
                 name,
                 value,
-                color: STATUS_COLORS[name] || '#94a3b8',
+                color: STATUS_COLORS[name] || 'hsl(var(--muted-foreground) / 0.6)',
                 percent: documents.length > 0 ? value / documents.length : 0
             }))
             .filter(item => item.value > 0)
@@ -181,7 +181,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
             .map(([name, value]) => ({
                 name,
                 value,
-                color: TYPE_COLORS[name] || '#94a3b8',
+                color: TYPE_COLORS[name] || 'hsl(var(--muted-foreground) / 0.6)',
                 percent: documents.length > 0 ? value / documents.length : 0
             }))
             .filter(item => item.value > 0)

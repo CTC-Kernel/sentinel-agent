@@ -198,9 +198,9 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                                     )}
                                     style={{
                                         backgroundColor: idx <= currentPhaseIndex
-                                            ? phase === 'plan' ? '#3b82f6' :
-                                              phase === 'do' ? '#10b981' :
-                                              phase === 'check' ? '#f59e0b' : '#8b5cf6'
+                                            ? phase === 'plan' ? 'hsl(var(--primary))' :
+                                              phase === 'do' ? 'hsl(var(--success))' :
+                                              phase === 'check' ? 'hsl(var(--warning))' : SENTINEL_PALETTE.secondary
                                             : undefined
                                     }}
                                 />

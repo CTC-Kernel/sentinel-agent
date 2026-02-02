@@ -12,9 +12,10 @@ import { useIncidentDependencies } from '../hooks/incidents/useIncidentDependenc
 import { useIncidentExport } from '../hooks/incidents/useIncidentExport';
 
 import { PageHeader } from '../components/ui/PageHeader';
-import { Plus, Download, LayoutDashboard, List as ListIcon, MoreVertical, BrainCircuit, Siren, Loader } from '../components/ui/Icons';
+import { Plus, Download, LayoutDashboard, List as ListIcon, MoreVertical, BrainCircuit, Siren } from '../components/ui/Icons';
 
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
+import { Button } from '../components/ui/button';
 
 import { ErrorLogger } from '../services/errorLogger';
 import { useLocation, useSearchParams } from 'react-router-dom';
@@ -44,8 +45,9 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { OnboardingService } from '../services/onboardingService';
 
-// Inline Loader
-const Spinner = () => <div className="flex items-center justify-center p-8"><Loader className="w-8 h-8 animate-spin text-primary" /></div>;
+// Spinner from shared component
+import { Spinner as SpinnerIcon } from '@/components/ui/Spinner';
+const Spinner = () => <div className="flex items-center justify-center p-8"><SpinnerIcon size="lg" className="text-primary" /></div>;
 
 import { useAuth } from '../hooks/useAuth';
 
@@ -586,14 +588,14 @@ export const Incidents: React.FC = () => {
 
                                     {(canEdit || canCreate) && (
                                         <CustomTooltip content={t('incidents.declare')}>
-                                            <button
+                                            <Button
                                                 aria-label={t('incidents.declare')}
                                                 onClick={handleOpenCreate}
-                                                className="flex items-center px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-bold transition-all duration-normal ease-apple shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95"
+                                                className="flex items-center px-4 py-2 rounded-xl font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95"
                                             >
                                                 <Plus className="h-5 w-5 mr-2" />
                                                 <span className="hidden sm:inline uppercase tracking-wider text-xs">{t('incidents.declare')}</span>
-                                            </button>
+                                            </Button>
                                         </CustomTooltip>
                                     )}
                                 </>

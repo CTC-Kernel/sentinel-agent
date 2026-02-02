@@ -24,10 +24,10 @@ export const BackupList: React.FC<BackupListProps> = ({
     const { dateFnsLocale } = useLocale();
     const getStatusColor = (status: string): string => {
         switch (status) {
-            case 'completed': return 'text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400';
-            case 'creating': return 'text-blue-600 bg-blue-50 dark:bg-slate-900 dark:text-blue-400';
-            case 'failed': return 'text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400';
-            default: return 'text-slate-600 bg-slate-50 dark:bg-white/5 dark:text-slate-300';
+            case 'completed': return 'text-success-text bg-success-bg';
+            case 'creating': return 'text-info-text bg-info-bg';
+            case 'failed': return 'text-error-text bg-error-bg';
+            default: return 'text-muted-foreground bg-muted';
         }
     };
 

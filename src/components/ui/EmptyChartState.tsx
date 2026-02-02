@@ -50,7 +50,7 @@ export const EmptyChartState: React.FC<EmptyChartStateProps> = ({
                 className="relative mb-6"
             >
                 {/* Background decorative elements */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-brand-500/20 to-purple-500/20 rounded-full blur-2xl animate-pulse-slow" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-purple-500/20 rounded-full blur-2xl animate-pulse-slow" />
 
                 <div className="relative bg-card/50 backdrop-blur-sm p-6 rounded-full border border-border/50 shadow-inner group">
                     <motion.div

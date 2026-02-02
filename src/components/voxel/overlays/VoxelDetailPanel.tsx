@@ -187,10 +187,10 @@ interface RiskScoreIndicatorProps {
 
 const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, impact, score }) => {
   const getScoreColor = (s: number) => {
-    if (s >= RISK_THRESHOLDS.CRITICAL) return { color: '#EF4444', label: 'Critique' };
-    if (s >= RISK_THRESHOLDS.HIGH) return { color: '#F59E0B', label: 'Élevé' };
-    if (s >= RISK_THRESHOLDS.MEDIUM) return { color: '#FBBF24', label: 'Modéré' };
-    return { color: '#22C55E', label: 'Faible' };
+    if (s >= RISK_THRESHOLDS.CRITICAL) return { color: 'hsl(var(--error))', label: 'Critique' };
+    if (s >= RISK_THRESHOLDS.HIGH) return { color: 'hsl(var(--warning))', label: 'Élevé' };
+    if (s >= RISK_THRESHOLDS.MEDIUM) return { color: 'hsl(var(--warning))', label: 'Modéré' };
+    return { color: 'hsl(var(--success))', label: 'Faible' };
   };
 
   const scoreConfig = getScoreColor(score);
@@ -404,11 +404,11 @@ const ControlDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
   const framework = getDataString(data, 'framework');
 
   const getStatusColor = (s: string | null) => {
-    if (!s) return '#64748B';
+    if (!s) return 'hsl(var(--muted-foreground))';
     const lower = s.toLowerCase();
-    if (lower.includes('implémenté') || lower.includes('actif')) return '#22C55E';
-    if (lower.includes('partiel') || lower.includes('en cours')) return '#F59E0B';
-    return '#EF4444';
+    if (lower.includes('implémenté') || lower.includes('actif')) return 'hsl(var(--success))';
+    if (lower.includes('partiel') || lower.includes('en cours')) return 'hsl(var(--warning))';
+    return 'hsl(var(--error))';
   };
 
   return (
@@ -427,7 +427,7 @@ const ControlDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
               animate={{ width: `${effectiveness}%` }}
               transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
               style={{
-                background: effectiveness >= 80 ? '#22C55E' : effectiveness >= 50 ? '#F59E0B' : '#EF4444'
+                background: effectiveness >= 75 ? 'hsl(var(--success))' : effectiveness >= 50 ? 'hsl(var(--warning))' : 'hsl(var(--error))'
               }}
             />
           </div>
@@ -538,12 +538,12 @@ const IncidentDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
   const source = getDataString(data, 'source');
 
   const getSeverityColor = (s: string | null) => {
-    if (!s) return '#64748B';
+    if (!s) return 'hsl(var(--muted-foreground))';
     const lower = s.toLowerCase();
-    if (lower.includes('critique')) return '#EF4444';
-    if (lower.includes('élevé') || lower.includes('haute')) return '#F97316';
-    if (lower.includes('moyen') || lower.includes('modéré')) return '#F59E0B';
-    return '#22C55E';
+    if (lower.includes('critique')) return 'hsl(var(--error))';
+    if (lower.includes('élevé') || lower.includes('haute')) return 'hsl(var(--warning))';
+    if (lower.includes('moyen') || lower.includes('modéré')) return 'hsl(var(--warning))';
+    return 'hsl(var(--success))';
   };
 
   return (

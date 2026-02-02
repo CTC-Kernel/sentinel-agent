@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
-import { Menu, X, Search, Moon, Sun, User, Settings as SettingsIcon, LogOut, Command, Shield, MessageSquare, Globe } from '../ui/Icons';
+import { Menu, X, Search, Moon, Sun, User, Settings as SettingsIcon, LogOut, Command, Shield, MessageSquare, Globe, Info } from '../ui/Icons';
 import { NotificationCenter } from '../notifications/NotificationCenter';
 import { Spinner } from '../ui/Spinner';
 import { Button } from '../ui/button';
@@ -232,6 +232,16 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                         <span className="w-4 h-4 mr-3 flex items-center justify-center font-serif italic font-black border border-current rounded-full text-[11px]">€</span>
                                         {t('settings.plansAndBilling')}
                                     </Link>
+                                    <a
+                                        href="https://cyber-threat-consulting.com/about"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={() => setShowUserMenu(false)}
+                                        className="flex items-center px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted/50 rounded-lg transition-colors"
+                                    >
+                                        <Info className="h-4 w-4 mr-3 text-muted-foreground" />
+                                        {t('sidebar.about')}
+                                    </a>
                                     <button
                                         aria-label={t('common.giveFeedback', { defaultValue: 'Donner un avis' })}
                                         onClick={() => { setShowUserMenu(false); setShowFeedback(true); }}
@@ -260,7 +270,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                 </div>
             </div>
             <FeedbackModal isOpen={showFeedback} onClose={() => setShowFeedback(false)} />
-        </header>
+        </header >
     );
 };
 

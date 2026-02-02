@@ -219,7 +219,7 @@ export const GeminiAssistant: React.FC = () => {
 
     return (
         <div className={cn(
-            "fixed z-voxel-ui flex flex-col overflow-hidden transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) shadow-2xl",
+            "fixed z-modal flex flex-col overflow-hidden transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) shadow-2xl",
             // Mobile: Full screen, white background for readability
             "inset-0 w-full h-full rounded-none bg-white dark:bg-slate-900",
             // Desktop: Floating glassmorphism card

@@ -13,6 +13,7 @@ import {
   type RiskListItem,
 } from '../../hooks/useCriticalRisksList';
 import { ChevronRight, AlertTriangle, RefreshCw } from '../ui/Icons';
+import { motion } from 'framer-motion';
 
 /**
  * Props for RSSICriticalRisksWidget
@@ -83,7 +84,7 @@ function RiskItem({
       type="button"
       onClick={onClick}
       className={cn(
-        'w-full flex items-center justify-between rounded-lg border transition-all',
+        'w-full flex items-center justify-between rounded-2xl border transition-all',
         'hover:shadow-sm hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-offset-2 focus-visible:ring-brand-500',
         colors.bg,
         colors.border,
@@ -242,8 +243,13 @@ export function RSSICriticalRisksWidget({
   }
 
   return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    >
     <div
-      className={cn('rounded-xl glass-panel', sizeConfig.padding, className)}
+      className={cn('rounded-3xl glass-premium border border-border/40', sizeConfig.padding, className)}
       role="region"
       aria-label="Risques critiques"
     >
@@ -292,6 +298,7 @@ export function RSSICriticalRisksWidget({
         </button>
       )}
     </div>
+    </motion.div>
   );
 }
 

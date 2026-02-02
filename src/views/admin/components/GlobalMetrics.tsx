@@ -122,20 +122,20 @@ export const GlobalMetrics: React.FC = () => {
                         <AreaChart data={chartData}>
                             <defs>
                                 <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" vertical={false} />
                             <XAxis
                                 dataKey="name"
-                                stroke="#94a3b8"
+                                stroke="hsl(var(--muted-foreground))"
                                 fontSize={12}
                                 tickLine={false}
                                 axisLine={false}
                             />
                             <YAxis
-                                stroke="#94a3b8"
+                                stroke="hsl(var(--muted-foreground))"
                                 fontSize={12}
                                 tickLine={false}
                                 axisLine={false}
@@ -143,16 +143,16 @@ export const GlobalMetrics: React.FC = () => {
                             />
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: '#1e293b',
-                                    border: '1px solid #334155',
+                                    backgroundColor: 'hsl(var(--foreground))',
+                                    border: '1px solid hsl(var(--border))',
                                     borderRadius: '8px',
                                 }}
-                                itemStyle={{ color: '#e2e8f0' }}
+                                itemStyle={{ color: 'hsl(var(--border))' }}
                             />
                             <Area
                                 type="monotone"
                                 dataKey="value"
-                                stroke="#8b5cf6"
+                                stroke="hsl(var(--primary))"
                                 strokeWidth={2}
                                 fillOpacity={1}
                                 fill="url(#colorValue)"

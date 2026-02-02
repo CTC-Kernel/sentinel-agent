@@ -66,7 +66,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-    'Nouveau': '#a855f7',
+    'Nouveau': 'hsl(var(--secondary))',
     'Analyse': 'var(--primary)',
     'Contenu': 'var(--warning)',
     'Résolu': 'var(--success)',

@@ -321,7 +321,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
 
       {/* Exit Confirmation Modal */}
       {showExitConfirm && (
-        <div className="fixed inset-0 z-voxel-ui flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] animate-fade-in">
           <PremiumCard glass className="max-w-md w-full p-6 shadow-2xl border-border/40 rounded-3xl">
             <div className="flex items-center gap-3 mb-4 text-amber-500">
               <div className="p-2 bg-amber-50 rounded-lg">

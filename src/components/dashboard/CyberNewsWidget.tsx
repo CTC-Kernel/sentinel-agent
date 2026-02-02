@@ -89,6 +89,7 @@ export const CyberNewsWidget: React.FC = () => {
                     }}
                     className={`p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-primary ${loading ? 'animate-spin' : ''} focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50`}
                     title={t('dashboard.refresh')}
+                    aria-label="Rafraîchir"
                 >
                     <RefreshCw className="w-4 h-4" />
                 </button>

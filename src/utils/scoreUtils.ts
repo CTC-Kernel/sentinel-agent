@@ -37,11 +37,11 @@ export function getScoreTextColor(score: number): string {
   const level = getScoreLevel(score);
   switch (level) {
     case 'critical':
-      return 'text-red-500';
+      return 'text-error-text';
     case 'warning':
-      return 'text-orange-500';
+      return 'text-warning-text';
     case 'good':
-      return 'text-green-500';
+      return 'text-success-text';
   }
 }
 
@@ -54,11 +54,11 @@ export function getScoreStrokeColor(score: number): string {
   const level = getScoreLevel(score);
   switch (level) {
     case 'critical':
-      return 'stroke-red-500';
+      return 'stroke-error';
     case 'warning':
-      return 'stroke-orange-500';
+      return 'stroke-warning';
     case 'good':
-      return 'stroke-green-500';
+      return 'stroke-success';
   }
 }
 
@@ -71,11 +71,11 @@ export function getScoreBgColor(score: number): string {
   const level = getScoreLevel(score);
   switch (level) {
     case 'critical':
-      return 'bg-red-500';
+      return 'bg-error';
     case 'warning':
-      return 'bg-orange-500';
+      return 'bg-warning';
     case 'good':
-      return 'bg-green-500';
+      return 'bg-success';
   }
 }
 
@@ -88,11 +88,11 @@ export function getScoreBgLightColor(score: number): string {
   const level = getScoreLevel(score);
   switch (level) {
     case 'critical':
-      return 'bg-red-50 dark:bg-red-950';
+      return 'bg-error-bg';
     case 'warning':
-      return 'bg-orange-50 dark:bg-orange-950';
+      return 'bg-warning-bg';
     case 'good':
-      return 'bg-green-50 dark:bg-green-950';
+      return 'bg-success-bg';
   }
 }
 

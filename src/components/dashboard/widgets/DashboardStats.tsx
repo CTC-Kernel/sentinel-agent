@@ -213,7 +213,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         <Link to="/compliance" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-left outline-none" aria-label="Voir la conformité">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Conformité</span>
-                                <ShieldCheck className={`w-4 h-4 transition-colors ${effectiveComplianceScore >= 80 ? 'text-success group-hover/item:text-success/80' :
+                                <ShieldCheck className={`w-4 h-4 transition-colors ${effectiveComplianceScore >= 75 ? 'text-success group-hover/item:text-success/80' :
                                     effectiveComplianceScore >= 50 ? 'text-warning group-hover/item:text-warning/80' :
                                         'text-destructive group-hover/item:text-destructive/80'
                                     }`} />
@@ -228,7 +228,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                             stroke="currentColor" strokeWidth="4" fill="transparent"
                                             strokeDasharray={175.92}
                                             strokeDashoffset={175.92 - (175.92 * effectiveComplianceScore) / 100}
-                                            className={`${effectiveComplianceScore >= 80 ? 'text-success' :
+                                            className={`${effectiveComplianceScore >= 75 ? 'text-success' :
                                                 effectiveComplianceScore >= 50 ? 'text-warning' :
                                                     'text-destructive'
                                                 } transition-all duration-1000 ease-out`}
@@ -239,11 +239,11 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                 </div>
                                 <div className="text-right">
                                     <div className="text-xs text-slate-600 dark:text-muted-foreground">Score</div>
-                                    <div className={`text-sm font-bold ${effectiveComplianceScore >= 80 ? 'text-success-text dark:text-success' :
+                                    <div className={`text-sm font-bold ${effectiveComplianceScore >= 75 ? 'text-success-text dark:text-success' :
                                         effectiveComplianceScore >= 50 ? 'text-warning-text dark:text-warning' :
                                             'text-error-text dark:text-error'
                                         }`}>
-                                        {effectiveComplianceScore >= 80 ? 'Excellente' :
+                                        {effectiveComplianceScore >= 75 ? 'Excellente' :
                                             effectiveComplianceScore >= 50 ? 'Moyenne' :
                                                 'Faible'}
                                     </div>

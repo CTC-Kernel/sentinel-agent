@@ -57,7 +57,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
   return (
     <Transition.Root show={isOpen} as={React.Fragment}>
-      <Dialog as="div" className="relative z-voxel-panel" initialFocus={cancelButtonRef} onClose={onClose}>
+      <Dialog as="div" className="relative z-modal" initialFocus={cancelButtonRef} onClose={onClose}>
         {/* Headless UI handles FocusTrap and keyboard navigation */}
         <Transition.Child
           as={React.Fragment}
@@ -68,7 +68,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           leaveFrom="opacity-70"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" />
+          <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">

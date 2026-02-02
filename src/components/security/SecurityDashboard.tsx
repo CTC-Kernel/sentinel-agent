@@ -135,19 +135,19 @@ export const SecurityDashboard: React.FC = () => {
   };
 
   const getHealthColor = (score: number): string => {
-    if (score >= 90) return 'text-green-600 bg-green-100';
-    if (score >= 70) return 'text-yellow-600 bg-yellow-100';
-    if (score >= 50) return 'text-orange-600 bg-orange-100';
-    return 'text-red-600 bg-red-100';
+    if (score >= 90) return 'text-success-text bg-success-bg';
+    if (score >= 70) return 'text-warning-text bg-warning-bg';
+    if (score >= 50) return 'text-warning-text bg-warning-bg';
+    return 'text-error-text bg-error-bg';
   };
 
   const getSeverityColor = (severity: string): string => {
     switch (severity) {
-      case 'critical': return 'text-red-600 bg-red-100';
-      case 'high': return 'text-orange-600 bg-orange-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
-      case 'low': return 'text-blue-600 bg-blue-100';
-      default: return 'text-slate-600 bg-slate-100';
+      case 'critical': return 'text-error-text bg-error-bg';
+      case 'high': return 'text-warning-text bg-warning-bg';
+      case 'medium': return 'text-warning-text bg-warning-bg';
+      case 'low': return 'text-info-text bg-info-bg';
+      default: return 'text-muted-foreground bg-muted';
     }
   };
 
@@ -338,11 +338,11 @@ interface MetricCardProps {
 
 const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, color, subtitle }) => {
   const colorClasses = {
-    blue: 'text-blue-600 bg-blue-100',
-    green: 'text-green-600 bg-green-100',
-    red: 'text-red-600 bg-red-100',
-    orange: 'text-orange-600 bg-orange-100',
-    gray: 'text-slate-600 bg-slate-100'
+    blue: 'text-info-text bg-info-bg',
+    green: 'text-success-text bg-success-bg',
+    red: 'text-error-text bg-error-bg',
+    orange: 'text-warning-text bg-warning-bg',
+    gray: 'text-muted-foreground bg-muted'
   };
 
   return (

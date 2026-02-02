@@ -29,7 +29,6 @@ import { toast } from '@/lib/toast';
 import { canEditResource } from '../utils/permissions';
 import { useAuth } from '../hooks/useAuth';
 import { RiskDashboardSkeleton } from '../components/risks/RiskSkeletons';
-import { Loader } from '../components/ui/Icons';
 
 // Refactored Components
 import { RiskTabsContent } from '../components/risks/layout/RiskTabsContent';
@@ -39,8 +38,9 @@ const RiskIntelCard = React.lazy(() => import('../components/risks/dashboard/Ris
 const RiskForm = React.lazy(() => import('../components/risks/RiskForm').then(m => ({ default: m.RiskForm })));
 const RiskInspector = React.lazy(() => import('../components/risks/RiskInspector').then(m => ({ default: m.RiskInspector })));
 
-// Inline Loader
-const Spinner = () => <div className="flex items-center justify-center p-8"><Loader className="w-8 h-8 animate-spin text-primary" /></div>;
+// Spinner from shared component
+import { Spinner as SpinnerIcon } from '@/components/ui/Spinner';
+const Spinner = () => <div className="flex items-center justify-center p-8"><SpinnerIcon size="lg" className="text-primary" /></div>;
 
 type RiskTab = 'overview' | 'list' | 'matrix' | 'context' | 'financial' | 'ebios';
 

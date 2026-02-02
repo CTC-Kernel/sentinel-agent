@@ -49,8 +49,8 @@ export const RiskResidualChart: React.FC<RiskResidualChartProps> = ({ risks }) =
                         </linearGradient>
                     </defs>
                     <CartesianGrid {...CHART_STYLES.grid} vertical={false} strokeDasharray="3 3" />
-                    <XAxis dataKey="name" {...CHART_STYLES.axis} {...CHART_STYLES.xAxis} tick={{ fill: 'currentColor', opacity: 0.7 }} />
-                    <YAxis {...CHART_STYLES.axis} tick={{ fill: 'currentColor', opacity: 0.7 }} />
+                    <XAxis dataKey="name" {...CHART_STYLES.axis} {...CHART_STYLES.xAxis} tick={{ fill: 'hsl(var(--muted-foreground))', opacity: 0.7 }} />
+                    <YAxis {...CHART_STYLES.axis} tick={{ fill: 'hsl(var(--muted-foreground))', opacity: 0.7 }} />
                     <Tooltip
                         content={<ChartTooltip />}
                         cursor={{ fill: 'currentColor', opacity: 0.05 }}

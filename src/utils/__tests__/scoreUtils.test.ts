@@ -44,52 +44,52 @@ describe('scoreUtils', () => {
   });
 
   describe('getScoreTextColor', () => {
-    it('should return red for critical scores', () => {
-      expect(getScoreTextColor(30)).toBe('text-red-500');
+    it('should return error-text for critical scores', () => {
+      expect(getScoreTextColor(30)).toBe('text-error-text');
     });
 
-    it('should return orange for warning scores', () => {
-      expect(getScoreTextColor(60)).toBe('text-orange-500');
+    it('should return warning-text for warning scores', () => {
+      expect(getScoreTextColor(60)).toBe('text-warning-text');
     });
 
-    it('should return green for good scores', () => {
-      expect(getScoreTextColor(80)).toBe('text-green-500');
+    it('should return success-text for good scores', () => {
+      expect(getScoreTextColor(80)).toBe('text-success-text');
     });
   });
 
   describe('getScoreStrokeColor', () => {
-    it('should return stroke-red for critical scores', () => {
-      expect(getScoreStrokeColor(30)).toBe('stroke-red-500');
+    it('should return stroke-error for critical scores', () => {
+      expect(getScoreStrokeColor(30)).toBe('stroke-error');
     });
 
-    it('should return stroke-orange for warning scores', () => {
-      expect(getScoreStrokeColor(60)).toBe('stroke-orange-500');
+    it('should return stroke-warning for warning scores', () => {
+      expect(getScoreStrokeColor(60)).toBe('stroke-warning');
     });
 
-    it('should return stroke-green for good scores', () => {
-      expect(getScoreStrokeColor(80)).toBe('stroke-green-500');
+    it('should return stroke-success for good scores', () => {
+      expect(getScoreStrokeColor(80)).toBe('stroke-success');
     });
   });
 
   describe('getScoreBgColor', () => {
-    it('should return bg-red for critical scores', () => {
-      expect(getScoreBgColor(30)).toBe('bg-red-500');
+    it('should return bg-error for critical scores', () => {
+      expect(getScoreBgColor(30)).toBe('bg-error');
     });
 
-    it('should return bg-orange for warning scores', () => {
-      expect(getScoreBgColor(60)).toBe('bg-orange-500');
+    it('should return bg-warning for warning scores', () => {
+      expect(getScoreBgColor(60)).toBe('bg-warning');
     });
 
-    it('should return bg-green for good scores', () => {
-      expect(getScoreBgColor(80)).toBe('bg-green-500');
+    it('should return bg-success for good scores', () => {
+      expect(getScoreBgColor(80)).toBe('bg-success');
     });
   });
 
   describe('getScoreBgLightColor', () => {
-    it('should return light bg colors with dark mode variants', () => {
-      expect(getScoreBgLightColor(30)).toContain('bg-red-50');
-      expect(getScoreBgLightColor(60)).toContain('bg-orange-50');
-      expect(getScoreBgLightColor(80)).toContain('bg-green-50');
+    it('should return semantic bg colors for score levels', () => {
+      expect(getScoreBgLightColor(30)).toBe('bg-error-bg');
+      expect(getScoreBgLightColor(60)).toBe('bg-warning-bg');
+      expect(getScoreBgLightColor(80)).toBe('bg-success-bg');
     });
   });
 

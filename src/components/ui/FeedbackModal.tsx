@@ -94,7 +94,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
     };
 
     const modalContent = (
-        <div className="fixed inset-0 z-voxel-ui flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] animate-fade-in">
             <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg flex flex-col max-h-[90vh] shadow-2xl shadow-black/20 dark:shadow-black/50 animate-scale-in border border-border/40/80 dark:border-slate-700/50">
                 {/* Header - Solid background for clarity */}
                 <div className="p-6 border-b border-border/40 dark:border-slate-700/50 flex items-center justify-between shrink-0 bg-slate-50/80 dark:bg-slate-800/50 rounded-t-3xl">

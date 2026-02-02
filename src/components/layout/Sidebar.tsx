@@ -7,7 +7,7 @@ import {
   Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse,
   LogOut, Box, ChevronRight, Database, Calendar, Loader2, Bug, Globe,
   Scale, Shield, Printer, LucideIcon, RefreshCcw, X, Bot, GraduationCap,
-  UserCheck,
+  UserCheck, Info,
 } from '../ui/Icons';
 import { LegalModal } from '../ui/LegalModal';
 import { Button } from '../ui/button';
@@ -184,7 +184,12 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       >
         {/* Brand Logo */}
         <div className="h-16 flex items-center justify-between px-6 mb-4 border-b border-border/60">
-          <div className="flex items-center gap-3 group cursor-pointer select-none shine-effect">
+          <a
+            href="https://cyber-threat-consulting.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 group cursor-pointer select-none shine-effect"
+          >
             <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 ring-1 ring-white/10">
               <Lock className="h-5 w-5" strokeWidth={2.5} />
             </div>
@@ -192,7 +197,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
               <h1 className="text-[17px] font-extrabold font-display tracking-tight text-foreground leading-none">Sentinel</h1>
               <span className="text-[11px] font-bold text-muted-foreground tracking-[0.4em] mt-1 uppercase">GRC</span>
             </div>
-          </div>
+          </a>
           {/* Mobile Close Button */}
           <button
             aria-label={t('common.closeMenu')}
@@ -258,18 +263,21 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             to="/help"
             onClick={() => setMobileOpen(false)}
             className={({ isActive }) => `
-                group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary
+                group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary overflow-hidden
                 ${isActive
-                ? 'bg-muted text-foreground font-semibold border border-border/50'
-                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}
+                ? 'bg-gradient-primary text-primary-foreground shadow-lg shadow-primary/25'
+                : 'text-muted-foreground hover:bg-white/10 dark:hover:bg-white/5 hover:text-foreground hover:translate-x-1'}
               `}
           >
             {({ isActive }) => (
               <>
-                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${isActive ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'}`}>
-                  <HelpCircle className="h-4 w-4" strokeWidth={2} />
+                <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-200 ${isActive ? 'text-white bg-white/20' : 'text-nav-support group-hover:text-foreground'}`}>
+                  <HelpCircle className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                 </span>
-                <span className="flex-1 truncate">{t('common.helpCenter')}</span>
+                <span className="flex-1 truncate relative z-10">{t('common.helpCenter')}</span>
+                {isActive && (
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-5 rounded-full bg-white/70 shadow-sm" aria-hidden="true" />
+                )}
               </>
             )}
           </NavLink>
@@ -281,17 +289,21 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             to="/settings"
             data-tour="settings"
             className={({ isActive }) => `
-                group flex items-center gap-3 px-3 py-2.5 text-[13px] font-semibold rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary
-                ${isActive ? 'bg-background/60 text-foreground shadow-sm border border-border/40' : 'text-muted-foreground hover:bg-background/50 hover:text-foreground'}
+                group flex items-center gap-3 px-3 py-2.5 text-[13px] font-semibold rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary overflow-hidden
+                ${isActive ? 'bg-gradient-primary text-primary-foreground shadow-lg shadow-primary/25' : 'text-muted-foreground hover:bg-background/50 hover:text-foreground'}
               `}
           >
             {({ isActive }) => (
               <>
-                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${isActive ? 'bg-foreground text-background' : 'bg-muted text-muted-foreground group-hover:bg-background/80 group-hover:text-foreground'}`}>
-                  <Settings className="h-4 w-4" strokeWidth={2} />
+                <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-200 ${isActive ? 'text-white bg-white/20' : 'bg-muted text-muted-foreground group-hover:bg-background/80 group-hover:text-foreground'}`}>
+                  <Settings className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                 </span>
-                <span className="flex-1">{t('sidebar.settings')}</span>
-                <ChevronRight className={`h-3.5 w-3.5 transition-opacity duration-200 ${isActive ? 'opacity-80 text-foreground' : 'opacity-0 text-muted-foreground group-hover:opacity-70'}`} />
+                <span className="flex-1 relative z-10">{t('sidebar.settings')}</span>
+                {isActive ? (
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-5 rounded-full bg-white/70 shadow-sm" aria-hidden="true" />
+                ) : (
+                  <ChevronRight className="h-3.5 w-3.5 transition-opacity duration-200 opacity-0 text-muted-foreground group-hover:opacity-70" />
+                )}
               </>
             )}
           </NavLink>
@@ -307,7 +319,16 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             <span className="flex-1 text-left">{t('common.logout')}</span>
           </Button>
 
-          <div className="pt-2 border-t border-border/50 mt-2">
+          <div className="pt-2 border-t border-border/50 mt-2 space-y-1">
+            <a
+              href="https://cyber-threat-consulting.com/about"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-center gap-2 h-8 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors hover:bg-muted/50 rounded-lg no-underline"
+            >
+              <Info className="h-3 w-3" />
+              <span>{t('sidebar.about')}</span>
+            </a>
             <Button
               variant="ghost"
               size="sm"

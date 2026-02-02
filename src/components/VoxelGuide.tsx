@@ -121,21 +121,21 @@ const GUIDE_SECTIONS = [
                 <p className="text-xs text-muted-foreground">La taille et la couleur indiquent la criticité :</p>
                 <div className="space-y-2">
                     <div className="flex items-center gap-3 p-3 rounded-3xl bg-red-50 dark:bg-red-900/30 border border-red-500/20">
-                        <span className="w-4 h-4 rounded-full bg-red-500 animate-pulse" />
+                        <span className="w-4 h-4 rounded-full bg-error animate-pulse" />
                         <div>
                             <h4 className="text-sm font-medium text-red-400">Critique</h4>
                             <p className="text-xs text-muted-foreground">Risque score ≥15, Incident critique, Asset C/I/A critique</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-3xl bg-amber-50 dark:bg-amber-900/30 border border-amber-500/20">
-                        <span className="w-4 h-4 rounded-full bg-amber-500" />
+                        <span className="w-4 h-4 rounded-full bg-warning" />
                         <div>
                             <h4 className="text-sm font-medium text-amber-400">Alerte</h4>
                             <p className="text-xs text-muted-foreground">Risque score ≥10, Incident élevé, Projet en retard</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-3xl bg-emerald-500/10 border border-emerald-500/20">
-                        <span className="w-4 h-4 rounded-full bg-emerald-500" />
+                        <span className="w-4 h-4 rounded-full bg-success" />
                         <div>
                             <h4 className="text-sm font-medium text-emerald-400">Normal</h4>
                             <p className="text-xs text-muted-foreground">Éléments sans alerte particulière</p>

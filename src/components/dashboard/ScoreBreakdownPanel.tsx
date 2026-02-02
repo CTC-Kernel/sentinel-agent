@@ -49,11 +49,11 @@ function CategoryRow({ label, score, weight, details }: CategoryRowProps) {
       </div>
 
       {/* Mini progress bar */}
-      <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+      <div className="h-2 bg-muted rounded-full overflow-hidden">
         <div
           className={cn(
             'h-full rounded-full transition-all duration-500',
-            score < 50 ? 'bg-red-500' : score <= 75 ? 'bg-orange-500' : 'bg-green-500'
+            score < 50 ? 'bg-error' : score <= 75 ? 'bg-warning' : 'bg-success'
           )}
           style={{ width: `${Math.min(100, Math.max(0, score))}%` }}
         />

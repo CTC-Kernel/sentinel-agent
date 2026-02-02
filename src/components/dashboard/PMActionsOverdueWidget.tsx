@@ -13,6 +13,7 @@ import {
   type OverdueActionItem,
 } from '../../hooks/useOverdueActions';
 import { ChevronRight, Clock, AlertTriangle, RefreshCw, CheckCircle } from '../ui/Icons';
+import { motion } from 'framer-motion';
 import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig';
 import i18n from '../../i18n';
 
@@ -109,7 +110,7 @@ function ActionItem({
       type="button"
       onClick={onClick}
       className={cn(
-        'w-full flex items-center justify-between rounded-lg border transition-all',
+        'w-full flex items-center justify-between rounded-2xl border transition-all',
         'hover:shadow-sm hover:scale-[1.01] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500',
         colors.bg,
         colors.border,
@@ -170,7 +171,7 @@ function LoadingSkeleton({ size }: { size: 'sm' | 'md' | 'lg' }) {
   const sizeConfig = SIZE_CONFIG[size];
 
   return (
-    <div className={cn('rounded-lg border bg-card', sizeConfig.padding)}>
+    <div className={cn('rounded-3xl glass-premium border border-border/40', sizeConfig.padding)}>
       <div className="animate-pulse">
         <div className="h-8 w-16 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
         <div className="h-5 w-32 bg-slate-200 dark:bg-slate-700 rounded mb-4" />
@@ -284,15 +285,20 @@ export function PMActionsOverdueWidget({
   // Error state
   if (error) {
     return (
-      <div className={cn('rounded-lg border bg-card', sizeConfig.padding, className)}>
+      <div className={cn('rounded-3xl glass-premium border border-border/40', sizeConfig.padding, className)}>
         <ErrorState error={error} onRetry={refetch} size={size} />
       </div>
     );
   }
 
   return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    >
     <div
-      className={cn('rounded-lg border bg-card', sizeConfig.padding, className)}
+      className={cn('rounded-3xl glass-premium border border-border/40', sizeConfig.padding, className)}
       role="region"
       aria-label="Actions en retard"
     >
@@ -356,6 +362,7 @@ export function PMActionsOverdueWidget({
         </button>
       )}
     </div>
+    </motion.div>
   );
 }
 

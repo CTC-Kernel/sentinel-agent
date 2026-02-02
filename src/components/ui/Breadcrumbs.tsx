@@ -63,7 +63,7 @@ export const Breadcrumbs: React.FC = () => {
                 to="/"
                 className={cn(
                     "flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200",
-                    "text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+                    "text-muted-foreground hover:text-foreground hover:bg-accent"
                 )}
             >
                 <Home className="w-4 h-4" />
@@ -89,7 +89,7 @@ export const Breadcrumbs: React.FC = () => {
                             >
                                 {crumb.isLast ? (
                                     <span
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-slate-900 dark:text-white font-semibold bg-slate-100 dark:bg-white/10"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-foreground font-semibold bg-accent"
                                         aria-current="page"
                                     >
                                         {crumb.label}
@@ -99,7 +99,7 @@ export const Breadcrumbs: React.FC = () => {
                                         to={crumb.path}
                                         className={cn(
                                             "flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200",
-                                            "text-slate-600 dark:text-muted-foreground hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-50 dark:bg-brand-900"
+                                            "text-muted-foreground hover:text-brand-600 dark:hover:text-brand-400 hover:bg-accent"
                                         )}
                                     >
                                         {crumb.label}

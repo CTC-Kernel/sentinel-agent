@@ -46,17 +46,17 @@ const DropdownMenuContent = React.forwardRef<
     return (
         <Transition
             as={React.Fragment}
-            enter="transition ease-out duration-100"
+            enter="transition ease-out duration-200"
             enterFrom="transform opacity-0 scale-95"
             enterTo="transform opacity-100 scale-100"
-            leave="transition ease-in duration-75"
+            leave="transition ease-in duration-150"
             leaveFrom="transform opacity-100 scale-100"
             leaveTo="transform opacity-0 scale-95"
         >
             <MenuItems
                 ref={ref}
                 className={cn(
-                    "absolute z-dropdown mt-2 min-w-[8rem] overflow-hidden rounded-xl border bg-popover p-1 text-popover-foreground shadow-elevation-md focus:outline-none",
+                    "absolute z-dropdown mt-2 min-w-[8rem] overflow-hidden rounded-xl border bg-popover p-1 text-popover-foreground shadow-apple-md focus:outline-none",
                     align === "start" && "left-0",
                     align === "end" && "right-0",
                     align === "center" && "left-1/2 -translate-x-1/2",

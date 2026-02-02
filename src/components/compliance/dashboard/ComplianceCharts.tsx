@@ -152,7 +152,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                     </filter>
                     <linearGradient id="complianceScoreGradient" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor={overallScore >= 80 ? SENTINEL_PALETTE.success : overallScore >= 50 ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical} />
-                        <stop offset="100%" stopColor={overallScore >= 80 ? '#10b981' : overallScore >= 50 ? '#f59e0b' : '#ef4444'} />
+                        <stop offset="100%" stopColor={overallScore >= 80 ? SENTINEL_PALETTE.success : overallScore >= 50 ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical} />
                     </linearGradient>
                     <linearGradient id={barGradientPrimaryId} x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor={chartTheme.colors.primary} stopOpacity={1} />

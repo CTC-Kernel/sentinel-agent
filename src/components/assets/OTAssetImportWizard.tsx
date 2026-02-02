@@ -451,7 +451,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
             <p className="text-sm text-slate-500">{t('otImport.preview.warnings', 'Avertissements')}</p>
           </Card>
           <Card className="p-4 text-center">
-            <p className="text-2xl font-bold text-red-600">{previewStats.withErrors}</p>
+            <p className="text-2xl font-bold text-destructive">{previewStats.withErrors}</p>
             <p className="text-sm text-slate-500">{t('otImport.preview.errors', 'Erreurs')}</p>
           </Card>
         </div>
@@ -569,15 +569,15 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
             <p className="text-sm text-green-700">{t('otImport.complete.created', 'Créés')}</p>
           </Card>
           <Card className="p-4 text-center bg-red-50">
-            <p className="text-3xl font-bold text-red-600">{importResult.errorCount}</p>
-            <p className="text-sm text-red-700">{t('otImport.complete.failed', 'Échoués')}</p>
+            <p className="text-3xl font-bold text-destructive">{importResult.errorCount}</p>
+            <p className="text-sm text-destructive">{t('otImport.complete.failed', 'Échoués')}</p>
           </Card>
         </div>
 
         {/* Error details */}
         {importResult.errors.length > 0 && (
           <Card className="p-4 rounded-3xl border-border/40 shadow-sm">
-            <h4 className="font-medium text-red-700 dark:text-red-400 mb-2">
+            <h4 className="font-medium text-destructive mb-2">
               {t('otImport.complete.errorDetails', 'Détail des erreurs')}
             </h4>
             <div className="max-h-40 overflow-y-auto space-y-2">

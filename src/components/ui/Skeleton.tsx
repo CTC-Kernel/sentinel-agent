@@ -18,7 +18,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   noAnimation = false
 }) => {
   const variantClasses = {
-    default: 'rounded-lg',
+    default: 'rounded-2xl',
     text: 'rounded h-4',
     circular: 'rounded-full',
     rectangular: 'rounded-none'

@@ -37,26 +37,26 @@ const stateConfig: Record<EncryptionState, {
 }> = {
   encrypted: {
     icon: Lock,
-    color: 'text-green-600 dark:text-green-400',
-    bgColor: 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800 dark:border-green-800',
+    color: 'text-success-text',
+    bgColor: 'bg-success-bg border-success-border',
     labelKey: 'encrypted',
   },
   pending: {
     icon: Loader2,
-    color: 'text-warning-600 dark:text-warning-400',
-    bgColor: 'bg-warning-50 dark:bg-warning-950 border-warning-200 dark:border-warning-800',
+    color: 'text-warning-text',
+    bgColor: 'bg-warning-bg border-warning-border',
     labelKey: 'pending',
   },
   unencrypted: {
     icon: LockOpen,
-    color: 'text-slate-500 dark:text-slate-300',
-    bgColor: 'bg-slate-50 dark:bg-slate-900 border-border/40 dark:border-slate-700',
+    color: 'text-muted-foreground',
+    bgColor: 'bg-muted border-border',
     labelKey: 'unencrypted',
   },
   error: {
     icon: AlertTriangle,
-    color: 'text-red-600 dark:text-red-400',
-    bgColor: 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800 dark:border-red-800',
+    color: 'text-error-text',
+    bgColor: 'bg-error-bg border-error-border',
     labelKey: 'error',
   },
 };

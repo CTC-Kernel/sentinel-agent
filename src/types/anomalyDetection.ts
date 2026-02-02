@@ -57,11 +57,11 @@ export function getSeverityFromDeviation(deviationMultiplier: number): AnomalySe
  */
 export function getSeverityColor(severity: AnomalySeverity): string {
     switch (severity) {
-        case 'critical': return 'text-destructive';
-        case 'high': return 'text-orange-500';
-        case 'medium': return 'text-warning';
-        case 'low': return 'text-primary';
-        case 'info': return 'text-muted-foreground';
+        case 'critical': return 'text-error-text';
+        case 'high': return 'text-warning-text';
+        case 'medium': return 'text-warning-text';
+        case 'low': return 'text-info-text';
+        case 'info': return 'text-info-text';
     }
 }
 
@@ -70,11 +70,11 @@ export function getSeverityColor(severity: AnomalySeverity): string {
  */
 export function getSeverityBgColor(severity: AnomalySeverity): string {
     switch (severity) {
-        case 'critical': return 'bg-destructive/10';
-        case 'high': return 'bg-orange-500/10';
-        case 'medium': return 'bg-warning/10';
-        case 'low': return 'bg-primary/10';
-        case 'info': return 'bg-muted';
+        case 'critical': return 'bg-error-bg';
+        case 'high': return 'bg-warning-bg';
+        case 'medium': return 'bg-warning-bg';
+        case 'low': return 'bg-info-bg';
+        case 'info': return 'bg-info-bg';
     }
 }
 

@@ -45,33 +45,33 @@ const getScoreColor = getScoreTextColor;
 
 describe('ScoreGauge', () => {
   describe('getScoreColor', () => {
-    it('should return red for scores below 50', () => {
-      expect(getScoreColor(0)).toBe('text-red-500');
-      expect(getScoreColor(49)).toBe('text-red-500');
+    it('should return error-text for scores below 50', () => {
+      expect(getScoreColor(0)).toBe('text-error-text');
+      expect(getScoreColor(49)).toBe('text-error-text');
     });
 
-    it('should return orange for scores 50-75', () => {
-      expect(getScoreColor(50)).toBe('text-orange-500');
-      expect(getScoreColor(75)).toBe('text-orange-500');
+    it('should return warning-text for scores 50-75', () => {
+      expect(getScoreColor(50)).toBe('text-warning-text');
+      expect(getScoreColor(75)).toBe('text-warning-text');
     });
 
-    it('should return green for scores above 75', () => {
-      expect(getScoreColor(76)).toBe('text-green-500');
-      expect(getScoreColor(100)).toBe('text-green-500');
+    it('should return success-text for scores above 75', () => {
+      expect(getScoreColor(76)).toBe('text-success-text');
+      expect(getScoreColor(100)).toBe('text-success-text');
     });
   });
 
   describe('getScoreStrokeColor', () => {
-    it('should return stroke-red for scores below 50', () => {
-      expect(getScoreStrokeColor(30)).toBe('stroke-red-500');
+    it('should return stroke-error for scores below 50', () => {
+      expect(getScoreStrokeColor(30)).toBe('stroke-error');
     });
 
-    it('should return stroke-orange for scores 50-75', () => {
-      expect(getScoreStrokeColor(60)).toBe('stroke-orange-500');
+    it('should return stroke-warning for scores 50-75', () => {
+      expect(getScoreStrokeColor(60)).toBe('stroke-warning');
     });
 
-    it('should return stroke-green for scores above 75', () => {
-      expect(getScoreStrokeColor(80)).toBe('stroke-green-500');
+    it('should return stroke-success for scores above 75', () => {
+      expect(getScoreStrokeColor(80)).toBe('stroke-success');
     });
   });
 

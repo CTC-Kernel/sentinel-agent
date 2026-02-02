@@ -74,7 +74,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                 className={`
                     relative flex items-center w-full rounded-2xl border transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
                     ${error
-                        ? 'border-red-500 bg-red-500 dark:bg-red-50 dark:bg-red-900'
+                        ? 'border-destructive bg-destructive/5'
                         : isOpen
                             ? 'border-brand-500 ring-2 ring-brand-300 bg-white dark:bg-slate-800'
                             : 'border-border/40 dark:border-border/40 bg-slate-50/50 dark:bg-black/20 hover:border-border/40 dark:hover:border-white/20'
@@ -95,7 +95,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                             ? '-top-2.5 text-[11px] font-bold uppercase tracking-widest bg-white dark:bg-slate-900 px-1 rounded text-brand-600'
                             : 'top-3.5 text-sm font-medium text-slate-600'
                         }
-                        ${error ? '!text-red-500' : ''}
+                        ${error ? '!text-destructive' : ''}
                     `}
                 >
                     {label} {required && <span className="text-destructive">*</span>}
@@ -114,7 +114,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                         <div className="p-2 border-t border-border/40 dark:border-white/5 mt-2">
                             <button
                                 onClick={(e) => { e.stopPropagation(); onChange(undefined); setIsOpen(false); }}
-                                className="w-full py-2 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                                className="w-full py-2 text-xs font-bold text-destructive hover:bg-destructive/5 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
                             >
                                 Effacer la date
                             </button>
@@ -124,7 +124,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             )}
 
             {error && (
-                <p className="text-red-500 text-xs mt-1.5 ml-1 font-medium animate-fade-in">
+                <p className="text-destructive text-xs mt-1.5 ml-1 font-medium animate-fade-in">
                     {error}
                 </p>
             )}

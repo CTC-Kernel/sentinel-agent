@@ -474,7 +474,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
 
       {/* Confirmation dialog before completing the analysis */}
       {showCompleteConfirm && (
-        <div className="fixed inset-0 z-voxel-ui flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
+        <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
           <div className="glass-premium p-6 rounded-3xl border border-border/40 shadow-xl max-w-md w-full space-y-4">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">
               {t('ebios.confirmComplete') || t('ebios.finalizeAnalysis', { defaultValue: 'Finaliser l\'analyse' })}

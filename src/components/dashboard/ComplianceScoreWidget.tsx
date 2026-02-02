@@ -52,9 +52,9 @@ function WidgetSkeleton({ size = 'md' }: { size?: ScoreGaugeSize }) {
 function WidgetError({ error, onRetry }: { error: Error; onRetry?: () => void }) {
   return (
     <div className="flex flex-col items-center gap-3 text-center p-4">
-      <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 dark:bg-red-900 flex items-center justify-center">
+      <div className="w-12 h-12 rounded-full bg-error-bg flex items-center justify-center">
         <svg
-          className="w-6 h-6 text-red-500"
+          className="w-6 h-6 text-error"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"

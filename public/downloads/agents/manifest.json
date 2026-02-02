@@ -2,13 +2,13 @@
   "agents": {
     "macos": {
       "version": "2.0.0",
-      "filename": "SentinelAgent-latest.dmg",
-      "format": "dmg",
-      "size": 9890680,
-      "sha256": "f5ba35fd00b7aabbae1eb535c5fceb82938b6ccd1aa0d7668ff789cebd089e49",
+      "filename": "SentinelAgent-latest.pkg",
+      "format": "pkg",
+      "size": 19873792,
+      "sha256": "",
       "minOsVersion": "11.0",
       "architecture": "universal",
-      "releaseDate": "2026-01-30",
+      "releaseDate": "2026-02-02",
       "changelog": [
         "New egui desktop GUI with dashboard, compliance, sync pages",
         "Software inventory page with vulnerability badges",
@@ -18,7 +18,12 @@
         "mTLS authentication with header-based fallback",
         "Backup/restore and machine migration support",
         "Certificate renewal and key rotation",
-        "Offline mode with 7-day sync queue"
+        "Offline mode with 7-day sync queue",
+        "File Integrity Monitoring (FIM) with BLAKE3 hashing",
+        "10 new CIS benchmark compliance checks",
+        "Real-time monitoring charts with egui_plot",
+        "Light/dark theme toggle",
+        "Remediation engine with dry-run preview"
       ]
     },
     "windows": {

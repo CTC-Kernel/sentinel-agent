@@ -129,11 +129,11 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
                                         {f.type}
                                     </span>
                                     {f.severity && (
-                                        <span className={`px-2.5 py-1 text-xs font-bold rounded-lg ${f.severity === 'Critique' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-1 ring-purple-500/20' :
-                                                f.severity === 'Haute' ? 'bg-red-50 text-red-600 dark:text-red-400 ring-1 ring-red-500/20' :
-                                                    f.severity === 'Moyenne' ? 'bg-amber-50 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20' :
-                                                        f.severity === 'Faible' ? 'bg-blue-50 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/20' :
-                                                            'bg-slate-500/10 text-slate-600 dark:text-slate-300 ring-1 ring-slate-500/20'
+                                        <span className={`px-2.5 py-1 text-xs font-bold rounded-lg ${f.severity === 'Critique' ? 'bg-error-bg text-error-text ring-1 ring-error-border' :
+                                                f.severity === 'Haute' ? 'bg-warning-bg text-warning-text ring-1 ring-warning-border' :
+                                                    f.severity === 'Moyenne' ? 'bg-warning-bg text-warning-text ring-1 ring-warning-border' :
+                                                        f.severity === 'Faible' ? 'bg-success-bg text-success-text ring-1 ring-success-border' :
+                                                            'bg-muted text-muted-foreground ring-1 ring-border'
                                             }`}>
                                             {f.severity}
                                         </span>
