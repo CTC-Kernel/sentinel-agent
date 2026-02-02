@@ -32,7 +32,7 @@ const {
 // Import proof handler
 const { uploadProof } = require('./proofs');
 // Import encryption utility
-const { decrypt } = require('../utils/encryption');
+const { decrypt, encrypt } = require('../utils/encryption');
 
 const db = admin.firestore();
 
@@ -345,12 +345,58 @@ app.post('/v1/agents/enroll', async (req, res) => {
             );
 
             if (!existingAgentSnapshot.empty) {
-                // Agent already exists, return existing agent info
+                // Re-enrollment: Rotate keys and update agent
                 const existingAgent = existingAgentSnapshot.docs[0];
-                return { 
-                    alreadyExists: true, 
-                    existingAgentId: existingAgent.id,
-                    existingAgentData: existingAgent.data()
+                const existingAgentId = existingAgent.id;
+                const existingAgentData = existingAgent.data();
+
+                logger.info(`Re-enrolling existing agent: ${existingAgentId} (MachineID: ${machine_id})`);
+
+                const certificateExpiresAt = new Date();
+                certificateExpiresAt.setFullYear(certificateExpiresAt.getFullYear() + 1);
+
+                // Generate NEW credentials
+                const serverCertificate = generatePlaceholderCert('server');
+                const clientCertificate = generatePlaceholderCert('client', existingAgentId);
+                const clientKey = generatePlaceholderKey();
+                const hmacSecret = crypto.randomBytes(32).toString('base64');
+
+                // Update existing agent document
+                const agentRef = db.collection('organizations').doc(orgId).collection('agents').doc(existingAgentId);
+
+                transaction.update(agentRef, {
+                    hostname,
+                    os: os.toLowerCase(),
+                    osVersion: os_version || existingAgentData.osVersion || '',
+                    version: agent_version || existingAgentData.version || '0.0.0',
+                    status: 'active',
+                    lastHeartbeat: admin.firestore.FieldValue.serverTimestamp(),
+                    reEnrolledAt: admin.firestore.FieldValue.serverTimestamp(),
+                    enrolledWithToken: tokenDoc.id,
+                    ipAddress: req.ip || '',
+                    serverCertificate,
+                    clientCertificate,
+                    hmacSecret: encrypt(hmacSecret),
+                    certificateExpiresAt: certificateExpiresAt.toISOString(),
+                });
+
+                // Update token usage
+                transaction.update(tokenRef, {
+                    usedCount: admin.firestore.FieldValue.increment(1),
+                    lastUsedAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
+
+                return {
+                    reEnrolled: true,
+                    agentId: existingAgentId,
+                    agentData: {
+                        serverCertificate,
+                        clientCertificate,
+                        clientKey,
+                        certificateExpiresAt: certificateExpiresAt.toISOString(),
+                        config: existingAgentData.config || getDefaultAgentConfig(),
+                    },
+                    hmacSecret
                 };
             }
 
@@ -389,6 +435,19 @@ app.post('/v1/agents/enroll', async (req, res) => {
             transaction.create(agentRef, agentData);
             return { alreadyExists: false, agentId, agentData };
         });
+
+        if (enrollmentResult.reEnrolled) {
+            return res.status(200).json({
+                agent_id: enrollmentResult.agentId,
+                organization_id: orgId,
+                server_certificate: enrollmentResult.agentData.serverCertificate,
+                client_certificate: enrollmentResult.agentData.clientCertificate,
+                client_key: enrollmentResult.agentData.clientKey,
+                hmac_secret: enrollmentResult.hmacSecret,
+                certificate_expires_at: enrollmentResult.agentData.certificateExpiresAt,
+                config: enrollmentResult.agentData.config,
+            });
+        }
 
         if (enrollmentResult.alreadyExists) {
             return res.status(200).json({
