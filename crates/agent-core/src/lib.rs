@@ -895,8 +895,26 @@ impl AgentRuntime {
         let api_client = self.api_client.read().await;
         if let Some(ref client) = *api_client {
             match client.upload_software_inventory(&software).await {
-                Ok(_) => info!("Uploaded software inventory: {} packages", software.len()),
-                Err(e) => warn!("Failed to upload software inventory: {}", e),
+                Ok(_) => {
+                    info!("Uploaded software inventory: {} packages", software.len());
+                    #[cfg(feature = "gui")]
+                    self.emit_gui_event(AgentEvent::SyncStatus {
+                        syncing: false,
+                        pending_count: 0,
+                        last_sync_at: Some(chrono::Utc::now()),
+                        error: None,
+                    });
+                }
+                Err(e) => {
+                    warn!("Failed to upload software inventory: {}", e);
+                    #[cfg(feature = "gui")]
+                    self.emit_gui_event(AgentEvent::SyncStatus {
+                        syncing: false,
+                        pending_count: 0,
+                        last_sync_at: None,
+                        error: Some(format!("Software upload failed: {}", e)),
+                    });
+                }
             }
         }
     }
@@ -1484,6 +1502,13 @@ impl AgentRuntime {
                 }
                 if let Err(e) = self.upload_network_snapshot(&snapshot).await {
                     warn!("Failed to upload initial network snapshot: {}", e);
+                    #[cfg(feature = "gui")]
+                    self.emit_gui_event(AgentEvent::SyncStatus {
+                        syncing: false,
+                        pending_count: 0,
+                        last_sync_at: None,
+                        error: Some(format!("Network upload failed: {}", e)),
+                    });
                 }
                 // Run initial network security detection
                 match self.run_network_security_detection(&snapshot).await {
@@ -1648,6 +1673,13 @@ impl AgentRuntime {
                         }
                         if let Err(e) = self.upload_network_snapshot(&snapshot).await {
                             warn!("Failed to upload network snapshot: {}", e);
+                            #[cfg(feature = "gui")]
+                            self.emit_gui_event(AgentEvent::SyncStatus {
+                                syncing: false,
+                                pending_count: 0,
+                                last_sync_at: None,
+                                error: Some(format!("Network upload failed: {}", e)),
+                            });
                         }
                     }
                     Err(e) => {
@@ -1683,6 +1715,13 @@ impl AgentRuntime {
                         // Only upload connections portion
                         if let Err(e) = self.upload_network_snapshot(&snapshot).await {
                             warn!("Failed to upload network connections: {}", e);
+                            #[cfg(feature = "gui")]
+                            self.emit_gui_event(AgentEvent::SyncStatus {
+                                syncing: false,
+                                pending_count: 0,
+                                last_sync_at: None,
+                                error: Some(format!("Network upload failed: {}", e)),
+                            });
                         }
                     }
                     Err(e) => {
