@@ -80,7 +80,7 @@ impl Proof {
         // Hash components in order: check_result_id, data, timestamp
         hasher.update(check_result_id.to_le_bytes());
         hasher.update(data.as_bytes());
-        hasher.update(created_at.to_rfc3339().as_bytes());
+        hasher.update(created_at.format("%Y-%m-%dT%H:%M:%SZ").to_string().as_bytes());
 
         let result = hasher.finalize();
         hex::encode(result)
@@ -119,6 +119,10 @@ pub struct ProofsRepository<'a> {
     db: &'a Database,
 }
 
+/// Maximum number of proofs to store locally.
+/// Prevents unbounded growth during extended offline periods.
+pub const MAX_PROOFS_SIZE: usize = 10_000;
+
 impl<'a> ProofsRepository<'a> {
     /// Create a new repository instance.
     pub fn new(db: &'a Database) -> Self {
@@ -128,6 +132,11 @@ impl<'a> ProofsRepository<'a> {
     /// Insert a new proof.
     ///
     /// The proof's hash is verified before insertion to ensure data integrity.
+    ///
+    /// # Overflow Protection
+    ///
+    /// If the total number of proofs exceeds `MAX_PROOFS_SIZE`, the oldest
+    /// proofs are automatically deleted to prevent unbounded storage growth.
     pub async fn insert(&self, proof: &Proof) -> StorageResult<i64> {
         // Verify hash is valid before inserting
         if !proof.verify_integrity() {
@@ -139,11 +148,30 @@ impl<'a> ProofsRepository<'a> {
         let check_result_id = proof.check_result_id;
         let data = proof.data.clone();
         let hash = proof.hash.clone();
-        let created_at = proof.created_at.to_rfc3339();
+        let created_at = proof.created_at.format("%Y-%m-%dT%H:%M:%SZ").to_string();
         let synced = if proof.synced { 1 } else { 0 };
 
         self.db
             .with_connection(|conn| {
+                // Check current count for overflow protection
+                let current_count: i64 = conn
+                    .query_row("SELECT COUNT(*) FROM proofs", [], |row| row.get(0))
+                    .map_err(|e| StorageError::Query(format!("Failed to count proofs: {}", e)))?;
+
+                if current_count >= MAX_PROOFS_SIZE as i64 {
+                    let excess = (current_count - MAX_PROOFS_SIZE as i64) + 1;
+                    debug!(
+                        "Proofs limit reached ({}/{}). Evicting {} oldest proofs.",
+                        current_count, MAX_PROOFS_SIZE, excess
+                    );
+
+                    conn.execute(
+                        "DELETE FROM proofs WHERE id IN (SELECT id FROM proofs ORDER BY created_at ASC LIMIT ?)",
+                        [excess],
+                    )
+                    .map_err(|e| StorageError::Query(format!("Failed to evict old proofs: {}", e)))?;
+                }
+
                 conn.execute(
                     r#"
                     INSERT INTO proofs (check_result_id, data, hash, created_at, synced)

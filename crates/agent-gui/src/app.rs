@@ -409,6 +409,9 @@ impl SentinelApp {
     /// Decode embedded PNG app icon into egui IconData.
     fn load_app_icon() -> egui::IconData {
         static ICON_PNG: &[u8] = include_bytes!("../assets/app-icon.png");
+        // Safety: the PNG is embedded at compile time via include_bytes!, so it is
+        // always a valid image. This expect is unreachable unless the asset is corrupted
+        // at build time, which would be a build error.
         let img = image::load_from_memory(ICON_PNG).expect("embedded app icon is valid PNG");
         let rgba = img.to_rgba8();
         let (w, h) = rgba.dimensions();

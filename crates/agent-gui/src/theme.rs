@@ -48,6 +48,8 @@ pub const WARNING: Color32 = Color32::from_rgb(217, 160, 61); // #d9a03d
 pub const ERROR: Color32 = Color32::from_rgb(224, 96, 96); // #e06060
 /// Info cyan-blue.
 pub const INFO: Color32 = Color32::from_rgb(75, 163, 204); // #4ba3cc
+/// Severity-high amber (web app risk amber).
+pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(200, 127, 26); // #c87f1a
 
 // ============================================================================
 // Surface colors (dynamic – depends on active theme)
@@ -90,6 +92,16 @@ pub fn bg_sidebar() -> Color32 {
         Color32::from_rgb(14, 14, 16)
     } else {
         Color32::from_rgb(240, 240, 242)
+    }
+}
+
+/// Deep/inset background (terminal, canvas).
+#[inline]
+pub fn bg_deep() -> Color32 {
+    if is_dark_mode() {
+        Color32::from_rgb(10, 10, 12)
+    } else {
+        Color32::from_rgb(232, 232, 236)
     }
 }
 
@@ -420,7 +432,7 @@ pub fn status_color(status: &str) -> Color32 {
 pub fn severity_color(severity: &str) -> Color32 {
     match severity {
         "critical" => ERROR,
-        "high" => Color32::from_rgb(200, 127, 26), // #c87f1a – web app risk amber
+        "high" => SEVERITY_HIGH,
         "medium" => WARNING,
         "low" => INFO,
         "info" => text_secondary(),

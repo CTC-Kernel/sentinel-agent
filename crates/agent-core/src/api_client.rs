@@ -102,6 +102,15 @@ pub struct HeartbeatResponse {
     pub rules_changed: bool,
 }
 
+/// Allowed server command types. Any command not in this list will be rejected.
+const ALLOWED_COMMANDS: &[&str] = &[
+    "force_sync",
+    "run_checks",
+    "revoke",
+    "diagnostics",
+    "update",
+];
+
 /// Command from the server.
 #[derive(Debug, Deserialize)]
 pub struct AgentCommand {
@@ -110,6 +119,14 @@ pub struct AgentCommand {
     pub command_type: String,
     #[serde(default)]
     pub payload: serde_json::Value,
+}
+
+impl AgentCommand {
+    /// Validate that this command is an allowed type.
+    /// Returns true if the command_type is in the whitelist, false otherwise.
+    pub fn is_valid(&self) -> bool {
+        ALLOWED_COMMANDS.contains(&self.command_type.as_str())
+    }
 }
 
 /// Full configuration response from the server.

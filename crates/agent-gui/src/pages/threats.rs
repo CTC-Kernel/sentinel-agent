@@ -305,7 +305,7 @@ impl ThreatsPage {
     fn severity_display(severity: &str) -> (&'static str, egui::Color32) {
         match severity {
             "critical" => (icons::SEVERITY_CRITICAL, theme::ERROR),
-            "high" => (icons::SEVERITY_HIGH, egui::Color32::from_rgb(200, 127, 26)),
+            "high" => (icons::SEVERITY_HIGH, theme::SEVERITY_HIGH),
             "medium" => (icons::SEVERITY_MEDIUM, theme::WARNING),
             "low" => (icons::SEVERITY_LOW, theme::INFO),
             _ => (icons::SEVERITY_LOW, theme::text_tertiary()),
@@ -378,7 +378,7 @@ impl ThreatsPage {
                             let conf_color = if conf >= 90 {
                                 theme::ERROR
                             } else if conf >= 70 {
-                                egui::Color32::from_rgb(200, 127, 26)
+                                theme::SEVERITY_HIGH
                             } else if conf >= 40 {
                                 theme::WARNING
                             } else {
