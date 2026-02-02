@@ -36,6 +36,10 @@
         }
       },
       {
+        "source": "/downloads/**",
+        "destination": "/downloads/**"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
