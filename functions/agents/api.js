@@ -22,40 +22,22 @@ const functionsUrl = defineString('FUNCTIONS_URL', { default: '' });
 const { uploadVulnerabilities } = require('./vulnerabilities');
 const { reportIncident } = require('./incidents');
 // Import software inventory and CIS handlers
+// Import software inventory and CIS handlers
 const {
     uploadSoftwareInventory,
     uploadCISResults,
     getAuthorizedSoftware,
     getCISBenchmarks,
 } = require('./software');
+// Import proof handler
+const { uploadProof } = require('./proofs');
+// Import encryption utility
+const { decrypt } = require('../utils/encryption');
 
 const db = admin.firestore();
 
-// Simple rate limiter
-const rateLimitMap = new Map();
-const RATE_LIMIT_WINDOW = 60000; // 1 minute
-const RATE_LIMIT_MAX = 120; // requests per window
-const RATE_LIMIT_MAX_ENTRIES = 1000;
-const RATE_LIMIT_MAX_AGE = 60 * 60 * 1000; // 1 hour
-
-function rateLimit(key, max = RATE_LIMIT_MAX) {
-    const now = Date.now();
-    const entry = rateLimitMap.get(key) || { count: 0, resetAt: now + RATE_LIMIT_WINDOW };
-    if (now > entry.resetAt) {
-        entry.count = 0;
-        entry.resetAt = now + RATE_LIMIT_WINDOW;
-    }
-    entry.count++;
-    rateLimitMap.set(key, entry);
-    if (rateLimitMap.size > RATE_LIMIT_MAX_ENTRIES) {
-        for (const [k, v] of rateLimitMap) {
-            if (now > v.resetAt || (now - v.resetAt + RATE_LIMIT_WINDOW) > RATE_LIMIT_MAX_AGE) {
-                rateLimitMap.delete(k);
-            }
-        }
-    }
-    return entry.count > max;
-}
+// Rate Limiter Utility
+const { rateLimitMiddleware, checkRateLimit } = require('../utils/rateLimiter');
 
 // Express app for agent API
 const app = express();
@@ -84,12 +66,8 @@ app.use(cors({
 app.use(express.json({ limit: '1mb' }));
 
 // Rate limiting middleware for all API requests
-app.use((req, res, next) => {
-    if (rateLimit(`api:${req.ip}`, 120)) {
-        return res.status(429).json({ error: 'Rate limit exceeded' });
-    }
-    next();
-});
+// Rate limiting middleware for all API requests
+app.use(rateLimitMiddleware('standard'));
 
 // ============================================================================
 // Agent Authentication Middleware (FIXED: Added certificate/signature validation)
@@ -150,6 +128,16 @@ async function validateAgentAuth(req, res, next) {
             return res.status(401).json({ error: 'Invalid agent certificate' });
         }
 
+        // Per-agent rate limiting
+        const rateLimitResult = checkRateLimit(agentId, 'auth');
+        if (!rateLimitResult.allowed) {
+            logger.warn(`Agent rate limit exceeded for agent ${agentId}`);
+            return res.status(429).json({
+                error: 'Agent rate limit exceeded',
+                retryAfter: rateLimitResult.retryAfter
+            });
+        }
+
         return next();
     }
 
@@ -167,12 +155,16 @@ async function validateAgentAuth(req, res, next) {
 
         // Get agent's HMAC secret for signature validation
         // Uses the stored hmacSecret (dedicated secret, NOT the private key)
-        const hmacSecret = agentData.hmacSecret;
-        if (!hmacSecret) {
+        // Get agent's HMAC secret for signature validation
+        // Uses the stored hmacSecret (dedicated secret, NOT the private key)
+        // DECRYPT the secret before use
+        const encryptedSecret = agentData.hmacSecret;
+        if (!encryptedSecret) {
             logger.warn(`Agent ${agentId} has no HMAC secret for signature validation. ` +
                 'Agent may need re-enrollment to generate an HMAC secret.');
             return res.status(401).json({ error: 'Agent signature key not configured' });
         }
+        const hmacSecret = decrypt(encryptedSecret);
 
         // Compute expected signature: HMAC-SHA256(timestamp + method + path + body)
         const signaturePayload = `${requestTimestamp}:${req.method}:${req.path}:${JSON.stringify(req.body || {})}`;
@@ -198,6 +190,16 @@ async function validateAgentAuth(req, res, next) {
                 return res.status(401).json({ error: 'Invalid request signature' });
             }
 
+            // Per-agent rate limiting
+            const rateLimitResult = checkRateLimit(agentId, 'auth');
+            if (!rateLimitResult.allowed) {
+                logger.warn(`Agent rate limit exceeded for agent ${agentId}`);
+                return res.status(429).json({
+                    error: 'Agent rate limit exceeded',
+                    retryAfter: rateLimitResult.retryAfter
+                });
+            }
+
             return next();
         } catch (e) {
             logger.warn(`Signature comparison error for agent ${agentId}:`, e);
@@ -206,10 +208,6 @@ async function validateAgentAuth(req, res, next) {
     }
 
     // No authentication provided - reject
-    // NOTE: For backward compatibility during migration, you can temporarily allow unauthenticated
-    // requests by uncommenting the next line. Remove after all agents are updated.
-    // return next();
-
     logger.warn(`No authentication provided for agent ${agentId}`);
     return res.status(401).json({
         error: 'Authentication required',
@@ -242,8 +240,11 @@ async function logFailedAuthAttempt(organizationId, agentId, reason, ipAddress) 
 // ============================================================================
 app.post('/v1/agents/enroll', async (req, res) => {
     try {
-        if (rateLimit(req.ip, 10)) { // 10 enrollments per minute per IP
-            return res.status(429).json({ error: 'Too many requests' });
+        // Rate limit check handled by middleware or explicit check if needed for higher strictness
+        // Using 'auth' profile for enrollment to match 10/min limit
+        const rateLimitResult = checkRateLimit(req.ip, 'auth');
+        if (!rateLimitResult.allowed) {
+            return res.status(429).json({ error: 'Too many requests', retryAfter: rateLimitResult.retryAfter });
         }
 
         const {
@@ -342,10 +343,10 @@ app.post('/v1/agents/enroll', async (req, res) => {
             // Check if agent with same machine_id already exists (inside transaction)
             const existingAgentSnapshot = await transaction.get(
                 db.collection('organizations')
-                  .doc(organizationId)
-                  .collection('agents')
-                  .where('machineId', '==', machine_id)
-                  .limit(1)
+                    .doc(organizationId)
+                    .collection('agents')
+                    .where('machineId', '==', machine_id)
+                    .limit(1)
             );
 
             if (!existingAgentSnapshot.empty) {
@@ -759,6 +760,11 @@ app.post('/v1/agents/:agentId/results', validateAgentAuth, async (req, res) => {
                 continue;
             }
 
+            const agentTimestamp = item.executed_at || item.timestamp;
+            if (!agentTimestamp) {
+                console.warn(`Result missing timestamp for check ${checkId}, using server time`);
+            }
+
             const resultData = {
                 organizationId,
                 agentId,
@@ -766,12 +772,12 @@ app.post('/v1/agents/:agentId/results', validateAgentAuth, async (req, res) => {
                 framework: item.framework || null,
                 controlId: normalizeCheckId(item.control_id) || null,
                 status,
-                evidence: item.evidence || item.raw_data || {},
+                evidence: item.evidence || item.raw_data || null,
                 score: typeof item.score === 'number' ? item.score : null,
                 proofHash: item.proof_hash || null,
-                agentTimestamp: item.executed_at || item.timestamp || new Date().toISOString(),
+                agentTimestamp: agentTimestamp || new Date().toISOString(),
+                serverTimestamp: admin.firestore.FieldValue.serverTimestamp(),
                 durationMs: item.duration_ms || 0,
-                createdAt: admin.firestore.FieldValue.serverTimestamp(),
                 hostname: agentData.hostname,
                 machineId: agentData.machineId,
             };
@@ -779,6 +785,14 @@ app.post('/v1/agents/:agentId/results', validateAgentAuth, async (req, res) => {
             const docRef = resultsCollection.doc();
             batch.set(docRef, resultData);
             accepted++;
+            opCount++;
+
+            // If item has inline proof content (legacy or convenience), create a proof doc too
+            // But prefer the dedicated /proofs endpoint for large data
+            if (item.proof_content) {
+                // ... (Logic for inline proofs could go here, but omitted to encourage /proofs usage)
+            }
+
             opCount++;
 
             if (opCount >= BATCH_LIMIT) {
@@ -1706,6 +1720,15 @@ function generatePlaceholderKey() {
     });
     return Buffer.from(privateKey).toString('base64');
 }
+
+// Export the Express API as a Cloud Function
+// ============================================================================
+// Agent Proof Upload (SECURED with authentication middleware)
+// POST /v1/agents/:agentId/proofs
+// ============================================================================
+app.post('/v1/agents/:agentId/proofs', validateAgentAuth, async (req, res) => {
+    return uploadProof(req, res, req.params.agentId, req.agentDoc, req.agentData);
+});
 
 // Export the Express API as a Cloud Function
 exports.agentApi = onRequest(
