@@ -170,20 +170,27 @@ impl VulnerabilitiesPage {
             );
             ui.add_space(theme::SPACE_MD);
 
-            if filtered.is_empty() {
+            if state.vulnerability_findings.is_empty() {
+                 widgets::protected_state(
+                    ui,
+                    icons::SHIELD_CHECK,
+                    "Système Sain",
+                    "Aucune vulnérabilité connue détectée sur ce système.",
+                );
+            } else if filtered.is_empty() {
                 widgets::empty_state(
                     ui,
                     icons::VULNERABILITIES,
-                    "Aucune vuln\u{00e9}rabilit\u{00e9} correspondante",
+                    "Aucune vulnérabilité correspondante",
                     Some(
-                        "Modifiez vos filtres ou votre syst\u{00e8}me semble prot\u{00e9}g\u{00e9}.",
+                        "Modifiez vos filtres pour voir les résultats.",
                     ),
                 );
             } else {
                 use egui_extras::{Column, TableBuilder};
 
                 let table = TableBuilder::new(ui)
-                    .striped(true)
+                    .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
                     .column(Column::initial(100.0).at_least(80.0))

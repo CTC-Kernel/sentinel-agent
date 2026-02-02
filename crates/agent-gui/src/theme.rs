@@ -69,7 +69,7 @@ pub fn bg_primary() -> Color32 {
 #[inline]
 pub fn bg_secondary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(18, 18, 20) // Deep Gray
+        Color32::from_rgb(18, 18, 20) // Deep Graphite
     } else {
         Color32::WHITE
     }
@@ -149,13 +149,13 @@ pub fn text_on_accent() -> Color32 {
 // Border / separator (dynamic)
 // ============================================================================
 
-/// Subtle border.
+/// Subtle border (glassy).
 #[inline]
 pub fn border() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgba_premultiplied(255, 255, 255, 35) // Glass border (14% approx)
+        Color32::from_white_alpha(12) // Extremely subtle white
     } else {
-        Color32::from_rgba_premultiplied(0, 0, 0, 25) // Approx 10% black
+        Color32::from_black_alpha(10)
     }
 }
 
@@ -394,11 +394,10 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
 /// Helper for a premium deep shadow.
 pub fn premium_shadow(blur: u32, alpha: u8) -> Shadow {
     Shadow {
-        // Deep, luxurious shadow
-        offset: [0, (blur / 4) as i8], 
-        blur: (blur as f32 * 1.5) as u8, // Increased blur for diffusion
+        offset: [0, 4], // Slight vertical offset
+        blur: blur as u8,
         spread: 0,
-        color: Color32::from_black_alpha(if alpha > 200 { alpha } else { (alpha as f32 * 1.2) as u8 }), // Darker shadows
+        color: Color32::from_black_alpha(alpha),
     }
 }
 

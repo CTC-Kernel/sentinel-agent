@@ -111,7 +111,7 @@ impl NetworkPage {
                 use egui_extras::{Column, TableBuilder};
 
                 let table = TableBuilder::new(ui)
-                    .striped(true)
+                    .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
                     .column(Column::initial(80.0).at_least(60.0)) // Name
@@ -248,7 +248,7 @@ impl NetworkPage {
                 use egui_extras::{Column, TableBuilder};
 
                 let table = TableBuilder::new(ui)
-                    .striped(true)
+                    .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
                     .column(Column::initial(50.0).at_least(40.0)) // Protocol
@@ -348,23 +348,11 @@ impl NetworkPage {
 
             ui.vertical_centered(|ui| {
                 if state.network_alerts == 0 {
-                    ui.add_space(theme::SPACE_SM);
-                    ui.label(
-                        egui::RichText::new(icons::CIRCLE_CHECK)
-                            .size(48.0)
-                            .color(theme::SUCCESS.linear_multiply(0.4)),
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                    ui.label(
-                        egui::RichText::new("AUCUNE MENACE")
-                            .font(theme::font_small())
-                            .color(theme::SUCCESS)
-                            .strong(),
-                    );
-                    ui.label(
-                        egui::RichText::new("Le trafic r\u{00e9}seau semble sain")
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary()),
+                     widgets::protected_state(
+                        ui,
+                        icons::SHIELD_CHECK,
+                        "Réseau Sécurisé",
+                        "Le trafic est analysé en temps réel. Aucun flux malveillant détecté.",
                     );
                 } else {
                     ui.add_space(theme::SPACE_SM);

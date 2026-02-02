@@ -173,7 +173,7 @@ impl DiscoveryPage {
         } else if !filtered.is_empty() {
             widgets::card(ui, |ui| {
                 let table = TableBuilder::new(ui)
-                    .striped(true)
+                    .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
                     .column(Column::initial(100.0).at_least(80.0))

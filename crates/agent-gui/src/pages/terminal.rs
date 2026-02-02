@@ -245,7 +245,7 @@ impl TerminalPage {
                 }
 
                 let table = TableBuilder::new(ui)
-                    .striped(true)
+                    .striped(false)
                     .resizable(true)
                     .max_scroll_height(400.0)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
