@@ -148,6 +148,7 @@ dependencies = [
  "agent-storage",
  "agent-sync",
  "anyhow",
+ "base64",
  "battery",
  "blake3",
  "chrono",
