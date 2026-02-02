@@ -273,26 +273,21 @@ app.post('/v1/agents/enroll', async (req, res) => {
         }
 
         // Find and validate the enrollment token
-        // SECURITY: Require organizationId from request body to scope query to a specific org
-        const reqOrganizationId = req.body.organization_id || req.headers['x-organization-id'];
-        if (!reqOrganizationId) {
-            return res.status(400).json({ error: 'organization_id is required for enrollment' });
-        }
-
-        const tokensSnapshot = await db
-            .collection('organizations')
-            .doc(reqOrganizationId)
-            .collection('enrollmentTokens')
+        // Use the same logic as enrollment.js - token alone determines organization
+        const globalTokensSnapshot = await db
+            .collectionGroup('enrollmentTokens')
             .where('token', '==', enrollment_token)
             .where('revoked', '==', false)
             .limit(1)
             .get();
 
-        if (tokensSnapshot.empty) {
+        if (globalTokensSnapshot.empty) {
             return res.status(401).json({ error: 'Invalid or expired enrollment token' });
         }
 
-        const tokenDoc = tokensSnapshot.docs[0];
+        const tokenDoc = globalTokensSnapshot.docs[0];
+        // Extrapolate organizationId from token data (preferred) or document path
+        const orgId = tokenDoc.data().organizationId || tokenDoc.ref.parent.parent.id;
         const tokenData = tokenDoc.data();
         const tokenRef = tokenDoc.ref;
 
@@ -343,59 +338,62 @@ app.post('/v1/agents/enroll', async (req, res) => {
             // Check if agent with same machine_id already exists (inside transaction)
             const existingAgentSnapshot = await transaction.get(
                 db.collection('organizations')
-                    .doc(organizationId)
+                    .doc(orgId)
                     .collection('agents')
                     .where('machineId', '==', machine_id)
                     .limit(1)
             );
 
             if (!existingAgentSnapshot.empty) {
-                return {
-                    alreadyExists: true,
-                    existingAgentId: existingAgentSnapshot.docs[0].id,
+                // Agent already exists, return existing agent info
+                const existingAgent = existingAgentSnapshot.docs[0];
+                return { 
+                    alreadyExists: true, 
+                    existingAgentId: existingAgent.id,
+                    existingAgentData: existingAgent.data()
                 };
             }
 
-            // SECURITY: clientKey intentionally NOT stored — only returned once to the agent
-            // hmacSecret IS stored — it's a dedicated server-side secret for HMAC validation
+            // Generate new agent credentials
+            const agentId = uuidv4();
+            const certificateExpiresAt = new Date();
+            certificateExpiresAt.setFullYear(certificateExpiresAt.getFullYear() + 1);
+
+            // Generate certificates (placeholder - replace with real PKI in production)
+            const serverCertificate = generatePlaceholderCert('server');
+            const clientCertificate = generatePlaceholderCert('client', agentId);
+            const clientKey = generatePlaceholderKey();
+            const hmacSecret = crypto.randomBytes(32).toString('base64');
+
+            // Create agent document
+            const agentRef = db.collection('organizations').doc(orgId).collection('agents').doc(agentId);
             const agentData = {
-                id: agentId,
-                name: hostname,
                 hostname,
                 os: os.toLowerCase(),
                 osVersion: os_version || '',
-                machineId: machine_id,
                 version: agent_version || '0.0.0',
                 status: 'active',
                 lastHeartbeat: admin.firestore.FieldValue.serverTimestamp(),
                 enrolledAt: admin.firestore.FieldValue.serverTimestamp(),
                 enrolledWithToken: tokenDoc.id,
                 ipAddress: req.ip || '',
-                organizationId,
+                organizationId: orgId,
                 serverCertificate,
                 clientCertificate,
-                hmacSecret,
+                clientKey,
+                hmacSecret: encrypt(hmacSecret),
                 certificateExpiresAt: certificateExpiresAt.toISOString(),
-                config: getDefaultAgentConfig(),
-                complianceScore: null,
-                lastCheckAt: null,
-                pendingSyncCount: 0,
+                machineId: machine_id,
             };
 
-            const agentRef = db
-                .collection('organizations')
-                .doc(organizationId)
-                .collection('agents')
-                .doc(agentId);
-            transaction.set(agentRef, agentData);
-
-            return { alreadyExists: false };
+            transaction.create(agentRef, agentData);
+            return { alreadyExists: false, agentId, agentData };
         });
 
         if (enrollmentResult.alreadyExists) {
             return res.status(200).json({
                 agent_id: enrollmentResult.existingAgentId,
-                organization_id: organizationId,
+                organization_id: orgId,
                 status: 'already_enrolled',
                 message: 'Agent already registered with this machine_id',
             });
@@ -404,9 +402,9 @@ app.post('/v1/agents/enroll', async (req, res) => {
         // Token usage count already updated in transaction above
 
         // Log enrollment
-        await db.collection('organizations').doc(organizationId).collection('auditLogs').add({
+        await db.collection('organizations').doc(orgId).collection('auditLogs').add({
             type: 'agent_enrolled',
-            agentId,
+            agentId: enrollmentResult.agentId,
             hostname,
             os,
             machineId: machine_id,
@@ -415,17 +413,17 @@ app.post('/v1/agents/enroll', async (req, res) => {
             timestamp: admin.firestore.FieldValue.serverTimestamp(),
         });
 
-        logger.info(`Agent enrolled: ${agentId} for org ${organizationId}`);
+        logger.info(`Agent enrolled: ${enrollmentResult.agentId} for org ${orgId}`);
 
         return res.status(201).json({
-            agent_id: agentId,
-            organization_id: organizationId,
-            server_certificate: serverCertificate,
-            client_certificate: clientCertificate,
-            client_key: clientKey,
+            agent_id: enrollmentResult.agentId,
+            organization_id: orgId,
+            server_certificate: enrollmentResult.agentData.serverCertificate,
+            client_certificate: enrollmentResult.agentData.clientCertificate,
+            client_key: enrollmentResult.agentData.clientKey,
             hmac_secret: hmacSecret,
-            certificate_expires_at: certificateExpiresAt.toISOString(),
-            config: agentData.config,
+            certificate_expires_at: enrollmentResult.agentData.certificateExpiresAt,
+            config: enrollmentResult.agentData.config,
         });
     } catch (error) {
         logger.error('Enrollment error:', error);
