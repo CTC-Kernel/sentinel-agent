@@ -263,6 +263,8 @@ pub struct SelfCheckResult {
 #[serde(rename_all = "snake_case")]
 pub struct HeartbeatResponse {
     /// Server timestamp.
+    /// Accepts both 'timestamp' and 'server_time' (from Cloud Function).
+    #[serde(alias = "server_time")]
     pub timestamp: DateTime<Utc>,
 
     /// Commands for the agent to execute.
@@ -607,5 +609,25 @@ mod tests {
         assert_eq!(response.commands.len(), 2);
         assert!(response.config_changed);
         assert!(!response.rules_changed);
+    }
+
+    #[test]
+    fn test_heartbeat_response_server_time_alias() {
+        // Cloud Function sends 'server_time' instead of 'timestamp'
+        let json = r#"{
+            "acknowledged": true,
+            "server_time": "2026-01-23T12:00:00Z",
+            "commands": [],
+            "config_changed": false,
+            "rules_changed": false
+        }"#;
+
+        let response: HeartbeatResponse = serde_json::from_str(json).unwrap();
+        assert_eq!(
+            response.timestamp,
+            "2026-01-23T12:00:00Z".parse::<DateTime<Utc>>().unwrap()
+        );
+        assert!(response.commands.is_empty());
+        assert!(!response.config_changed);
     }
 }

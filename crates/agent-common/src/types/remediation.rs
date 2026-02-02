@@ -107,7 +107,7 @@ mod tests {
     #[test]
     fn test_remediation_action_serialization() {
         let action = RemediationAction {
-            check_id: "firewall_config".to_string(),
+            check_id: "firewall_active".to_string(),
             platform: "linux".to_string(),
             script: "ufw enable".to_string(),
             requires_reboot: false,
@@ -119,14 +119,14 @@ mod tests {
 
         let json = serde_json::to_string(&action).unwrap();
         let parsed: RemediationAction = serde_json::from_str(&json).unwrap();
-        assert_eq!(parsed.check_id, "firewall_config");
+        assert_eq!(parsed.check_id, "firewall_active");
         assert_eq!(parsed.risk_level, RemediationRisk::Moderate);
     }
 
     #[test]
     fn test_remediation_result_serialization() {
         let result = RemediationResult {
-            check_id: "firewall_config".to_string(),
+            check_id: "firewall_active".to_string(),
             status: RemediationStatus::Success,
             output: "Firewall enabled".to_string(),
             error: None,

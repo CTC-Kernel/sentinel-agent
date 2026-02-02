@@ -16,7 +16,7 @@ use std::process::Command;
 use tracing::debug;
 
 /// Check ID for session lock.
-pub const CHECK_ID: &str = "session_lock";
+pub const CHECK_ID: &str = "screen_lock";
 
 /// Maximum allowed timeout in minutes for compliance.
 const MAX_TIMEOUT_MINUTES: u32 = 15;

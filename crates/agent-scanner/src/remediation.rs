@@ -157,10 +157,10 @@ impl RemediationEngine {
     fn register_builtin_actions(&mut self) {
         // Firewall
         self.register(
-            "firewall_config",
+            "firewall_active",
             vec![
                 RemediationAction {
-                    check_id: "firewall_config".to_string(),
+                    check_id: "firewall_active".to_string(),
                     platform: "linux".to_string(),
                     script: "ufw --force enable".to_string(),
                     requires_reboot: false,
@@ -171,7 +171,7 @@ impl RemediationEngine {
                     rollback_script: Some("ufw disable".to_string()),
                 },
                 RemediationAction {
-                    check_id: "firewall_config".to_string(),
+                    check_id: "firewall_active".to_string(),
                     platform: "windows".to_string(),
                     script: "netsh advfirewall set allprofiles state on".to_string(),
                     requires_reboot: false,
@@ -183,7 +183,7 @@ impl RemediationEngine {
                     ),
                 },
                 RemediationAction {
-                    check_id: "firewall_config".to_string(),
+                    check_id: "firewall_active".to_string(),
                     platform: "macos".to_string(),
                     script: "/usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on"
                         .to_string(),
@@ -200,9 +200,9 @@ impl RemediationEngine {
         );
 
         // Session lock
-        self.register("session_lock", vec![
+        self.register("screen_lock", vec![
             RemediationAction {
-                check_id: "session_lock".to_string(),
+                check_id: "screen_lock".to_string(),
                 platform: "linux".to_string(),
                 script: "gsettings set org.gnome.desktop.session idle-delay 300 && gsettings set org.gnome.desktop.screensaver lock-enabled true".to_string(),
                 requires_reboot: false,
@@ -212,7 +212,7 @@ impl RemediationEngine {
                 rollback_script: None,
             },
             RemediationAction {
-                check_id: "session_lock".to_string(),
+                check_id: "screen_lock".to_string(),
                 platform: "windows".to_string(),
                 script: r#"powershell -NoProfile -Command "Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name 'InactivityTimeoutSecs' -Value 300""#.to_string(),
                 requires_reboot: false,
@@ -222,7 +222,7 @@ impl RemediationEngine {
                 rollback_script: None,
             },
             RemediationAction {
-                check_id: "session_lock".to_string(),
+                check_id: "screen_lock".to_string(),
                 platform: "macos".to_string(),
                 script: "defaults write com.apple.screensaver idleTime -int 300 && defaults write com.apple.screensaver askForPassword -int 1".to_string(),
                 requires_reboot: false,
@@ -235,10 +235,10 @@ impl RemediationEngine {
 
         // System updates
         self.register(
-            "system_updates",
+            "patches_current",
             vec![
                 RemediationAction {
-                    check_id: "system_updates".to_string(),
+                    check_id: "patches_current".to_string(),
                     platform: "linux".to_string(),
                     script: "apt update && apt list --upgradable".to_string(),
                     requires_reboot: false,
@@ -248,7 +248,7 @@ impl RemediationEngine {
                     rollback_script: None,
                 },
                 RemediationAction {
-                    check_id: "system_updates".to_string(),
+                    check_id: "patches_current".to_string(),
                     platform: "macos".to_string(),
                     script: "softwareupdate --list".to_string(),
                     requires_reboot: false,
@@ -436,7 +436,7 @@ mod tests {
     #[test]
     fn test_get_remediation() {
         let engine = RemediationEngine::new();
-        let actions = engine.get_remediation("firewall_config");
+        let actions = engine.get_remediation("firewall_active");
         assert!(actions.is_some());
         assert!(!actions.unwrap().is_empty());
     }
@@ -450,16 +450,16 @@ mod tests {
     #[test]
     fn test_dry_run() {
         let engine = RemediationEngine::new();
-        let actions = engine.get_remediation("firewall_config").unwrap();
+        let actions = engine.get_remediation("firewall_active").unwrap();
         let preview = engine.dry_run(&actions[0]);
         assert!(preview.contains("Remediation Preview"));
-        assert!(preview.contains("firewall_config"));
+        assert!(preview.contains("firewall_active"));
     }
 
     #[test]
     fn test_platform_remediation() {
         let engine = RemediationEngine::new();
-        let actions = engine.get_platform_remediation("firewall_config");
+        let actions = engine.get_platform_remediation("firewall_active");
         // Should have at most 1 action for the current platform
         assert!(actions.len() <= 1);
     }
@@ -468,8 +468,8 @@ mod tests {
     fn test_available_check_ids() {
         let engine = RemediationEngine::new();
         let ids = engine.available_check_ids();
-        assert!(ids.contains(&"firewall_config"));
-        assert!(ids.contains(&"session_lock"));
-        assert!(ids.contains(&"system_updates"));
+        assert!(ids.contains(&"firewall_active"));
+        assert!(ids.contains(&"screen_lock"));
+        assert!(ids.contains(&"patches_current"));
     }
 }
