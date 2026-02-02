@@ -120,7 +120,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         // If ownerId looks like a UID (long string), try to find user
         const user = usersList.find(u => u.uid === ownerId);
         return user ? (user.displayName || user.email) : ownerId;
-    }, [usersList]);
+    }, [usersList, t]);
 
     const handleLocalUpdate = React.useCallback(async (updates: Partial<Risk>) => {
         if (!risk) return;
