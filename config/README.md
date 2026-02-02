@@ -27,6 +27,14 @@ The agent automatically determines paths based on the operating system:
 | Database | `/var/lib/sentinel-grc/agent.db` |
 | Logs | `/var/log/sentinel-grc/` |
 
+### macOS
+
+| Path Type | Location |
+|-----------|----------|
+| Config File | `~/Library/Application Support/SentinelGRC/agent.json` |
+| Database | `~/Library/Application Support/SentinelGRC/agent.db` |
+| Logs | `~/Library/Application Support/SentinelGRC/logs/` |
+
 ## Environment Variables
 
 All configuration values can be overridden via environment variables with the `SENTINEL_` prefix:
@@ -38,6 +46,9 @@ All configuration values can be overridden via environment variables with the `S
 | `SENTINEL_LOG_LEVEL` | `log_level` | `debug` |
 | `SENTINEL_PROXY_URL` | `proxy.url` | `http://proxy:8080` |
 | `SENTINEL_PROXY_USERNAME` | `proxy.username` | `user` |
+| `SENTINEL_VULNERABILITY_SCAN_INTERVAL_SECS` | `vulnerability_scan_interval_secs` | `21600` |
+| `SENTINEL_SECURITY_SCAN_INTERVAL_SECS` | `security_scan_interval_secs` | `300` |
+| `SENTINEL_HEARTBEAT_INTERVAL_SECS` | `heartbeat_interval_secs` | `60` |
 
 ## Configuration Priority
 
