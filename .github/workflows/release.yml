@@ -54,10 +54,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Build ARM64
-        run: cargo build --release --package agent-core --target aarch64-apple-darwin
+        run: cargo build --release --features gui --package agent-core --target aarch64-apple-darwin
 
       - name: Build x86_64
-        run: cargo build --release --package agent-core --target x86_64-apple-darwin
+        run: cargo build --release --features gui --package agent-core --target x86_64-apple-darwin
 
       - name: Create universal binary
         run: |
@@ -224,7 +224,7 @@ jobs:
         shell: pwsh
 
       - name: Build release binary
-        run: cargo build --release --package agent-core
+        run: cargo build --release --features gui --package agent-core
         env:
           OPENSSL_DIR: C:\vcpkg\installed\x64-windows-static
           OPENSSL_INCLUDE_DIR: C:\vcpkg\installed\x64-windows-static\include
@@ -294,7 +294,7 @@ jobs:
         run: cargo install cargo-deb
 
       - name: Build release binary
-        run: cargo build --release --package agent-core
+        run: cargo build --release --features gui --package agent-core
 
       - name: Build DEB package
         run: cargo deb --package agent-core --no-build
@@ -341,7 +341,7 @@ jobs:
         run: cargo install cargo-generate-rpm
 
       - name: Build release binary
-        run: cargo build --release --package agent-core
+        run: cargo build --release --features gui --package agent-core
 
       - name: Strip binary
         run: strip target/release/agent-core

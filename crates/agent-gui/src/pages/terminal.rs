@@ -199,7 +199,7 @@ impl TerminalPage {
     // ------------------------------------------------------------------
 
     fn terminal_viewport(ui: &mut Ui, state: &mut AppState) {
-        let terminal_bg = Color32::from_rgb(10, 10, 12);
+        let terminal_bg = theme::bg_deep();
         let filter_level = state.terminal_filter_level;
         let search_lower = state.terminal_search.to_lowercase();
 

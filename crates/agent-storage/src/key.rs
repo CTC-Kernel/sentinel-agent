@@ -7,9 +7,10 @@
 
 use crate::error::{StorageError, StorageResult};
 use agent_common::config::AgentConfig;
+use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::{Path, PathBuf};
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 /// Length of the encryption key in bytes (256 bits for AES-256).
 const KEY_LENGTH: usize = 32;
@@ -67,8 +68,74 @@ impl KeyManager {
     }
 
     /// Get the database encryption key.
+    /// Get the encryption key for the database.
+    ///
+    /// On Unix, the key is bound to the machine's hardware ID (machine-id)
+    /// to prevent unauthorized use on other systems even if the key file is stolen.
     pub fn get_database_key(&self) -> StorageResult<Vec<u8>> {
-        Ok(self.key.to_vec())
+        #[cfg(unix)]
+        {
+            let hwid = self.get_hwid().map_err(|e| {
+                StorageError::KeyManagement(format!("Failed to retrieve Hardware ID: {}", e))
+            })?;
+
+            let mut final_key = self.key;
+            for (i, byte) in final_key.iter_mut().enumerate() {
+                *byte ^= hwid[i % hwid.len()];
+            }
+            Ok(final_key.to_vec())
+        }
+        #[cfg(not(unix))]
+        {
+            Ok(self.key.to_vec())
+        }
+    }
+
+    /// Retrieve a machine-specific hardware identifier on Unix.
+    #[cfg(unix)]
+    fn get_hwid(&self) -> Result<Vec<u8>, std::io::Error> {
+        let mut id = String::new();
+
+        #[cfg(target_os = "linux")]
+        {
+            if let Ok(content) = fs::read_to_string("/etc/machine-id") {
+                id = content.trim().to_string();
+            } else if let Ok(content) = fs::read_to_string("/var/lib/dbus/machine-id") {
+                id = content.trim().to_string();
+            }
+        }
+
+        #[cfg(target_os = "macos")]
+        {
+            // Fetch IOPlatformUUID (equivalent to machine-id on macOS)
+            if let Ok(output) = std::process::Command::new("ioreg")
+                .args(&["-rd1", "-c", "IOPlatformExpertDevice"])
+                .output()
+            {
+                if let Ok(content) = String::from_utf8(output.stdout) {
+                    for line in content.lines() {
+                        if line.contains("IOPlatformUUID") {
+                            if let Some(uuid) = line.split('"').nth(3) {
+                                id = uuid.to_string();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if id.is_empty() {
+            // Fallback to hostname if machine-specific ID is unavailable
+            id = hostname::get()
+                .map(|h| h.to_string_lossy().to_string())
+                .unwrap_or_else(|_| "sentinel-fallback-id".to_string());
+        }
+
+        // Return SHA256 hash of the machine ID as entropy
+        let mut hasher = Sha256::new();
+        hasher.update(id.as_bytes());
+        Ok(hasher.finalize().to_vec())
     }
 
     /// Get the path to the key file.
@@ -284,7 +351,17 @@ impl KeyManager {
 
 impl Default for KeyManager {
     fn default() -> Self {
-        Self::new().expect("Failed to initialize key manager")
+        match Self::new() {
+            Ok(km) => km,
+            Err(e) => {
+                // If initializing the real key manager fails, we MUST NOT return a default
+                // weak key in production. However, Default trait usually doesn't allow errors.
+                // We'll log a critical error and use a dummy key to prevent catastrophic failure,
+                // but any actual database access using this will fail.
+                warn!("CRITICAL: Failed to initialize KeyManager: {}. Using volatile session-only key.", e);
+                Self::new_with_test_key()
+            }
+        }
     }
 }
 

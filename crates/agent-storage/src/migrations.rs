@@ -11,7 +11,7 @@ use rusqlite::Connection;
 use tracing::{debug, error, info, warn};
 
 /// Current schema version (incremented with each migration).
-pub const CURRENT_SCHEMA_VERSION: i32 = 1;
+pub const CURRENT_SCHEMA_VERSION: i32 = 2;
 
 /// A database migration.
 struct Migration {
@@ -22,7 +22,8 @@ struct Migration {
 }
 
 /// All migrations in order.
-const MIGRATIONS: &[Migration] = &[Migration {
+const MIGRATIONS: &[Migration] = &[
+    Migration {
     version: 1,
     name: "initial_schema",
     up: r#"
@@ -130,7 +131,44 @@ const MIGRATIONS: &[Migration] = &[Migration {
             DROP TABLE IF EXISTS check_rules;
             DROP TABLE IF EXISTS agent_config;
         "#,
-}];
+    },
+    Migration {
+        version: 2,
+        name: "extend_check_rules",
+        up: r#"
+            ALTER TABLE check_rules ADD COLUMN check_command TEXT;
+            ALTER TABLE check_rules ADD COLUMN expected_result TEXT;
+            ALTER TABLE check_rules ADD COLUMN remediation TEXT;
+            ALTER TABLE check_rules ADD COLUMN platforms TEXT;
+            ALTER TABLE check_rules ADD COLUMN control_id TEXT;
+        "#,
+        down: r#"
+            -- SQLite does not support DROP COLUMN before 3.35.0,
+            -- so we recreate the table without the new columns.
+            CREATE TABLE check_rules_backup AS
+                SELECT id, name, description, category, severity, enabled, check_type,
+                       parameters, frameworks, version, created_at, updated_at
+                FROM check_rules;
+            DROP TABLE check_rules;
+            CREATE TABLE check_rules (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL,
+                description TEXT,
+                category TEXT NOT NULL,
+                severity TEXT NOT NULL CHECK (severity IN ('critical', 'high', 'medium', 'low', 'info')),
+                enabled INTEGER NOT NULL DEFAULT 1,
+                check_type TEXT NOT NULL,
+                parameters TEXT,
+                frameworks TEXT,
+                version TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+                updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+            );
+            INSERT INTO check_rules SELECT * FROM check_rules_backup;
+            DROP TABLE check_rules_backup;
+        "#,
+    },
+];
 
 /// Initialize the schema_version table if it doesn't exist.
 fn ensure_schema_version_table(conn: &Connection) -> StorageResult<()> {
@@ -464,9 +502,12 @@ mod tests {
 
         // Run migrations
         run_migrations(&mut conn).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 2);
+
+        // Rollback v2 first, then v1
+        rollback_migration(&mut conn, 2).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 1);
 
-        // Rollback
         rollback_migration(&mut conn, 1).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 0);
 
@@ -496,9 +537,11 @@ mod tests {
         run_migrations(&mut conn).unwrap();
 
         let migrations = get_applied_migrations(&conn).unwrap();
-        assert_eq!(migrations.len(), 1);
+        assert_eq!(migrations.len(), 2);
         assert_eq!(migrations[0].0, 1);
         assert_eq!(migrations[0].1, "initial_schema");
+        assert_eq!(migrations[1].0, 2);
+        assert_eq!(migrations[1].1, "extend_check_rules");
     }
 
     #[test]

@@ -36,10 +36,12 @@ pub use key::KeyManager;
 pub use migrations::{CURRENT_SCHEMA_VERSION, run_migrations};
 pub use repositories::{
     CheckResultsRepository, CheckRulesRepository, ConfigRepository, ProofsRepository,
+    SyncQueueRepository,
     check_results::{CheckResult, CheckResultQuery, CheckStatus},
     check_rules::{CheckRule, RuleCacheMetadata, Severity},
     config::{ConfigEntry, ConfigSource, MergeResult},
     proofs::{IntegrityStatus, Proof, ProofStats},
+    sync_queue::{SyncEntityType, SyncQueueEntry, SyncQueueItem},
 };
 pub use retention::{RetentionConfig, RetentionPolicy, RetentionResult, StorageStats};
 
