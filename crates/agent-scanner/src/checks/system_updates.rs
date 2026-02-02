@@ -17,7 +17,7 @@ use std::process::Command;
 use tracing::{debug, warn};
 
 /// Check ID for system updates.
-pub const CHECK_ID: &str = "system_updates";
+pub const CHECK_ID: &str = "patches_current";
 
 /// Maximum days security updates can be pending before non-compliance.
 const MAX_PENDING_DAYS: i64 = 7;

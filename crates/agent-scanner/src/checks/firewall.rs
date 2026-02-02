@@ -14,7 +14,7 @@ use std::process::Command;
 use tracing::debug;
 
 /// Check ID for firewall configuration.
-pub const CHECK_ID: &str = "firewall_config";
+pub const CHECK_ID: &str = "firewall_active";
 
 /// Firewall status details.
 #[derive(Debug, Clone, Serialize, Deserialize)]

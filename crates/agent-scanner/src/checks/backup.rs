@@ -17,7 +17,7 @@ use std::process::Command;
 use tracing::debug;
 
 /// Check ID for backup configuration.
-pub const CHECK_ID: &str = "backup_config";
+pub const CHECK_ID: &str = "backup_configured";
 
 /// Maximum days since last backup for compliance.
 const MAX_BACKUP_AGE_DAYS: i64 = 30;
