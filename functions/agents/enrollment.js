@@ -99,26 +99,45 @@ exports.enrollAgent = onRequest(
         return res.status(400).json({ error: 'agent_version must be a string of 32 characters or less' });
       }
 
-      if (!organization_id) {
-        return res.status(400).json({ error: 'organization_id is required' });
+      // Find the enrollment token - either scoped to provided org or globally
+      let tokenDoc;
+      let organizationId = organization_id;
+
+      if (organizationId) {
+        // Find and validate the enrollment token scoped to the specified organization
+        const tokensSnapshot = await db
+          .collection('organizations')
+          .doc(organizationId)
+          .collection('enrollmentTokens')
+          .where('token', '==', enrollment_token)
+          .where('revoked', '==', false)
+          .limit(1)
+          .get();
+
+        if (!tokensSnapshot.empty) {
+          tokenDoc = tokensSnapshot.docs[0];
+        }
+      } else {
+        // Fallback: Global lookup via collection group query
+        // This requires a composite index on 'token' and 'revoked' in collectionGroup scope
+        const globalTokensSnapshot = await db
+          .collectionGroup('enrollmentTokens')
+          .where('token', '==', enrollment_token)
+          .where('revoked', '==', false)
+          .limit(1)
+          .get();
+
+        if (!globalTokensSnapshot.empty) {
+          tokenDoc = globalTokensSnapshot.docs[0];
+          // Extrapolate organizationId from token data (preferred) or document path
+          organizationId = tokenDoc.data().organizationId || tokenDoc.ref.parent.parent.id;
+        }
       }
 
-      // Find and validate the enrollment token scoped to the specified organization
-      // Uses org-scoped subcollection instead of collectionGroup to prevent cross-org token scanning
-      const tokensSnapshot = await db
-        .collection('organizations')
-        .doc(organization_id)
-        .collection('enrollmentTokens')
-        .where('token', '==', enrollment_token)
-        .where('revoked', '==', false)
-        .limit(1)
-        .get();
-
-      if (tokensSnapshot.empty) {
+      if (!tokenDoc || !organizationId) {
         return res.status(401).json({ error: 'Invalid or expired enrollment token' });
       }
 
-      const tokenDoc = tokensSnapshot.docs[0];
       const tokenData = tokenDoc.data();
 
       // Check expiration
@@ -132,7 +151,7 @@ exports.enrollAgent = onRequest(
         return res.status(401).json({ error: 'Enrollment token usage limit reached' });
       }
 
-      const organizationId = tokenData.organizationId;
+      // organizationId is already determined above
 
       // Use transaction to prevent TOCTOU race condition on machineId uniqueness
       const enrollmentResult = await db.runTransaction(async (transaction) => {
