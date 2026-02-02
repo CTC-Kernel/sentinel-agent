@@ -243,7 +243,7 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
                     {/* Left: Main Stats */}
                     <div className="space-y-3">
                         <div className="flex items-center gap-2">
-                            <span className="inline-flex h-2 w-2 rounded-full bg-success animate-pulse shadow-glow shadow-success/30" />
+                            <span role="img" aria-label="Actif" className="inline-flex h-2 w-2 rounded-full bg-success animate-pulse shadow-glow shadow-success/30" />
                             <p className="text-[11px] font-black uppercase tracking-[0.25em] text-muted-foreground">
                                 Fleet d'agents
                             </p>
@@ -258,20 +258,20 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
                         </div>
                         <div className="flex items-center gap-6 text-sm">
                             <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-success" />
+                                <span role="img" aria-hidden="true" className="w-2 h-2 rounded-full bg-success" />
                                 <span className="text-muted-foreground">
                                     <strong className="text-foreground">{stats.active}</strong> actifs
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-muted-foreground" />
+                                <span role="img" aria-hidden="true" className="w-2 h-2 rounded-full bg-muted-foreground" />
                                 <span className="text-muted-foreground">
                                     <strong className="text-foreground">{stats.offline}</strong> hors ligne
                                 </span>
                             </div>
                             {stats.critical > 0 && (
-                                <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+                                <div className="flex items-center gap-2" role="alert">
+                                    <span role="img" aria-hidden="true" className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
                                     <span className="text-destructive font-medium">
                                         {stats.critical} critiques
                                     </span>

@@ -950,7 +950,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                                                                 task.isCompleted ? "text-slate-500 line-through" : "text-slate-900 dark:text-white"
                                                                             )}>
                                                                                 {task.title}
-                                                                                {task.isRequired && <span className="text-red-500 ml-1">*</span>}
+                                                                                {task.isRequired && <span className="text-destructive ml-1">*</span>}
                                                                             </div>
                                                                             <div className="text-xs text-slate-500 dark:text-muted-foreground mt-0.5">{task.description}</div>
                                                                         </div>

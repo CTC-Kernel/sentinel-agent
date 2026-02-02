@@ -40,7 +40,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black/50 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-modal flex items-start justify-center pt-20 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] animate-fade-in">
             <div className="w-full max-w-3xl mx-4 glass-premium rounded-3xl shadow-2xl border border-white/20 dark:border-border/40 overflow-hidden animate-slide-up">
                 {/* Header */}
                 <div className="p-6 border-b border-border/40 dark:border-border/40 bg-gradient-to-r from-brand-500/10 to-purple-500/10">

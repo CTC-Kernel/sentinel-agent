@@ -102,7 +102,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
     <div className="min-h-screen relative flex flex-col bg-slate-50/50 dark:bg-slate-900/50">
       <MasterpieceBackground />
       {/* Header */}
-      <header className="sticky top-0 z-50 glass-premium border-b border-border/40 shadow-sm backdrop-blur-xl">
+      <header className="sticky top-0 z-header glass-premium border-b border-border/40 shadow-sm backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Left: Back Button & Title */}
@@ -321,7 +321,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
 
       {/* Exit Confirmation Modal */}
       {showExitConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-voxel-ui flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
           <PremiumCard glass className="max-w-md w-full p-6 shadow-2xl border-border/40 rounded-3xl">
             <div className="flex items-center gap-3 mb-4 text-amber-500">
               <div className="p-2 bg-amber-50 rounded-lg">

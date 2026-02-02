@@ -118,7 +118,7 @@ const SecurityAnomalyBanner: React.FC<SecurityAnomalyBannerProps> = ({ count, on
   const anomalies = SessionMonitor.getAnomalies().filter(a => a.severity === 'critical');
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-red-600 text-white shadow-lg">
+    <div className="fixed top-0 left-0 right-0 z-toast bg-red-600 text-white shadow-lg">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

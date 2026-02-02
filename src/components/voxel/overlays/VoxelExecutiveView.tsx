@@ -358,7 +358,7 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-0 z-50 ${className}`}
+      className={`fixed inset-x-0 bottom-0 z-modal ${className}`}
       style={{
         background: 'linear-gradient(to top, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.9) 60%, transparent)',
         paddingTop: '60px',

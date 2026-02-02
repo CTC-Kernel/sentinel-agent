@@ -789,7 +789,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                         <div className="flex items-center justify-between mb-2">
                                                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-muted-foreground">
                                                                 {t('dora.risk.notes')}
-                                                                {isHighRisk && <span className="text-red-500 ml-1">*</span>}
+                                                                {isHighRisk && <span className="text-destructive ml-1">*</span>}
                                                             </label>
                                                             {isHighRisk && (
                                                                 <span className="text-xs text-red-500">

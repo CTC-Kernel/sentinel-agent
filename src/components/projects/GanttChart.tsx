@@ -171,7 +171,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
         const assignee = originalTask?.assignee;
 
         return (
-            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-border/40 dark:border-slate-700/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-4 min-w-[280px] transform transition-all duration-200 z-50 animate-scale-in">
+            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-border/40 dark:border-slate-700/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-4 min-w-[280px] transform transition-all duration-200 z-tooltip animate-scale-in">
                 <div className="flex items-center justify-between mb-3">
                     <div className="font-bold text-slate-800 dark:text-slate-200 dark:text-slate-100 text-sm truncate pr-4 flex-1">
                         {task.name}

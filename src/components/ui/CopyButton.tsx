@@ -174,7 +174,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
                             exit={{ opacity: 0, scale: 0.9 }}
                             transition={{ duration: 0.15 }}
                             className={cn(
-                                'absolute z-50 px-2 py-1 text-xs font-medium bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-md whitespace-nowrap pointer-events-none',
+                                'absolute z-tooltip px-2 py-1 text-xs font-medium bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-md whitespace-nowrap pointer-events-none',
                                 tooltipPositionClasses[tooltipPosition]
                             )}
                         >

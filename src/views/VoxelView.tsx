@@ -1075,7 +1075,7 @@ export const VoxelView: React.FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => { setShowCommandPalette(false); setCommandSearch(''); }}
-              className="fixed inset-0 z-voxel-panel bg-black/60 backdrop-blur-sm"
+              className="fixed inset-0 z-voxel-panel bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]"
             />
             {/* Palette */}
             <motion.div
@@ -1083,7 +1083,7 @@ export const VoxelView: React.FC = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 400 }}
-              className="fixed top-[20%] left-1/2 -translate-x-1/2 z-[210] w-full max-w-xl"
+              className="fixed top-[20%] left-1/2 -translate-x-1/2 z-voxel-panel w-full max-w-xl"
             >
               <div className="mx-4 overflow-hidden rounded-2xl bg-slate-900/95 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50">
                 {/* Search Input */}

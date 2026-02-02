@@ -54,7 +54,7 @@ const AgentDownloads: React.FC = () => {
       platform: 'Windows',
       version: '2.0.0',
       size: '8.5MB',
-      url: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/windows/SentinelAgentSetup-latest.msi',
+      url: '/downloads/agents/SentinelAgentSetup-latest.msi',
       status: 'available',
       icon: <Monitor className="w-8 h-8" />,
       instructions: [
@@ -69,7 +69,7 @@ const AgentDownloads: React.FC = () => {
       platform: 'Android',
       version: '2.0.0',
       size: '8.5MB',
-      url: 'https://sentinel-grc-a8711.web.app/downloads/agents/sentinel-agent-2.0.0.apk',
+      url: '/downloads/agents/sentinel-agent-2.0.0.apk',
       status: 'available',
       icon: <Package className="w-8 h-8" />,
       instructions: [
@@ -230,7 +230,7 @@ const AgentDownloads: React.FC = () => {
               <a href="/downloads/agents/sentinel-agent-2.0.0-amd64.tar.gz" className="text-primary hover:underline block">
                 🐧 Linux (.tar.gz) - 9.3MB
               </a>
-              <a href="https://sentinel-grc-a8711.web.app/downloads/agents/sentinel-agent-2.0.0.apk" className="text-primary hover:underline block">
+              <a href="/downloads/agents/sentinel-agent-2.0.0.apk" className="text-primary hover:underline block">
                 📱 Android (.apk) - 8.5MB
               </a>
             </div>

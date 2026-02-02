@@ -288,7 +288,7 @@ export const VoxelGuidedTour: React.FC<VoxelGuidedTourProps> = ({
   if (!hasStarted) {
     return (
       <div
-        className={`fixed inset-0 z-50 flex items-center justify-center ${className}`}
+        className={`fixed inset-0 z-modal flex items-center justify-center ${className}`}
         style={{ background: 'rgba(0, 0, 0, 0.7)' }}
       >
         <div
@@ -327,7 +327,7 @@ export const VoxelGuidedTour: React.FC<VoxelGuidedTourProps> = ({
   }
 
   return (
-    <div className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-50 ${className}`}>
+    <div className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-modal ${className}`}>
       <div
         className="w-96 rounded-3xl overflow-hidden"
         style={{

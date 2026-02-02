@@ -132,7 +132,7 @@ const Tooltip: React.FC<TooltipProps> = ({ visible, children }) => {
   if (!visible) return null;
 
   return (
-    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50">
+    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-tooltip">
       <div className="bg-slate-800 border border-border/40 rounded-lg px-3 py-2 shadow-xl min-w-[200px]">
         {children}
       </div>
@@ -206,9 +206,9 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
   const positionClasses = useMemo(() => {
     switch (position) {
       case 'fixed-bottom-right':
-        return 'fixed bottom-4 right-4 z-50';
+        return 'fixed bottom-4 right-4 z-modal';
       case 'fixed-bottom-left':
-        return 'fixed bottom-4 left-4 z-50';
+        return 'fixed bottom-4 left-4 z-modal';
       default:
         return '';
     }

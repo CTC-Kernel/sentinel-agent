@@ -123,7 +123,7 @@ function LoadingSkeleton({ size }: { size: 'sm' | 'md' | 'lg' }) {
   const sizeConfig = SIZE_CONFIG[size];
 
   return (
-    <div className={cn('rounded-lg border bg-card', sizeConfig.padding)}>
+    <div className={cn('rounded-xl glass-panel', sizeConfig.padding)}>
       <div className="animate-pulse">
         <div className="h-8 w-16 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
         <div className="h-5 w-32 bg-slate-200 dark:bg-slate-700 rounded mb-4" />
@@ -235,7 +235,7 @@ export function RSSICriticalRisksWidget({
   // Error state
   if (error) {
     return (
-      <div className={cn('rounded-lg border bg-card', sizeConfig.padding, className)}>
+      <div className={cn('rounded-xl glass-panel', sizeConfig.padding, className)}>
         <ErrorState error={error} onRetry={refetch} size={size} />
       </div>
     );
@@ -243,7 +243,7 @@ export function RSSICriticalRisksWidget({
 
   return (
     <div
-      className={cn('rounded-lg border bg-card', sizeConfig.padding, className)}
+      className={cn('rounded-xl glass-panel', sizeConfig.padding, className)}
       role="region"
       aria-label="Risques critiques"
     >

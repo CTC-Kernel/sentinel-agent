@@ -5097,5 +5097,42 @@
     "description": "Désolé, la page que vous recherchez semble avoir été déplacée, supprimée ou n'a jamais existé.",
     "backToDashboard": "Retour au Tableau de Bord",
     "report": "Signaler"
+  },
+  "agentSetup": {
+    "title": "Installer l'Agent Sentinel",
+    "subtitle": "Pour obtenir votre token d'enrôlement, connectez-vous ou créez un compte Sentinel GRC.",
+    "seoTitle": "Installation de l'Agent",
+    "seoDescription": "Obtenez votre token d'enrôlement pour installer l'agent Sentinel GRC.",
+    "goToDashboard": "Aller au tableau de bord",
+    "unauthenticated": {
+      "heading": "Commencez par vous authentifier",
+      "description": "Pour obtenir un token d'enrôlement, vous devez avoir un compte Sentinel GRC et une organisation configurée.",
+      "createAccount": "Créer un compte",
+      "createAccountDesc": "Nouveau sur Sentinel ? Créez un compte gratuit pour commencer.",
+      "signIn": "Se connecter",
+      "signInDesc": "Vous avez déjà un compte ? Connectez-vous pour obtenir votre token."
+    },
+    "needsOnboarding": {
+      "heading": "Configurez votre organisation",
+      "description": "Votre compte est actif mais vous devez terminer la configuration de votre organisation pour générer un token d'enrôlement.",
+      "goToOnboarding": "Configurer mon organisation"
+    },
+    "tokenReady": {
+      "heading": "Votre token d'enrôlement",
+      "description": "Utilisez ce token pour enrôler votre agent Sentinel.",
+      "generating": "Génération du token...",
+      "tokenLabel": "Token d'Installation",
+      "copyToken": "Copier le Token",
+      "tokenCopied": "Token copié !",
+      "commandCopied": "Commande copiée !",
+      "copyCommand": "Copier la commande",
+      "installCommand": "Commande d'installation",
+      "expiresNotice": "Expire dans 24 heures. Usage unique recommandé.",
+      "platformMacLinux": "Ouvrez un terminal",
+      "platformWindows": "PowerShell (Admin)"
+    },
+    "errors": {
+      "tokenGeneration": "Impossible de générer le token. Réessayez."
+    }
   }
 }

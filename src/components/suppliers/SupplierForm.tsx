@@ -292,7 +292,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
                         {/* Company Search Results */}
                         {searchResults.length > 0 && !readOnly && (
-                            <div className="col-span-1 md:col-span-2 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-border/40 dark:border-slate-700 overflow-hidden z-50 max-h-60 overflow-y-auto">
+                            <div className="col-span-1 md:col-span-2 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-border/40 dark:border-slate-700 overflow-hidden z-dropdown max-h-60 overflow-y-auto">
                                 {searchResults.map((company) => (
                                     <button
                                         key={company.siren || 'unknown'}

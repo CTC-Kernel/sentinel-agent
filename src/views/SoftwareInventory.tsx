@@ -253,7 +253,7 @@ const FilterDropdown: React.FC<{
                     <div
                         role="menu"
                         tabIndex={-1}
-                        className="absolute top-full left-0 mt-1 z-50 bg-popover border rounded-lg shadow-lg p-2 min-w-48"
+                        className="absolute top-full left-0 mt-1 z-dropdown bg-popover border rounded-lg shadow-lg p-2 min-w-48"
                         onKeyDown={(e) => { if (e.key === 'Escape') setIsOpen(false); }}
                     >
                         {options.map(option => (

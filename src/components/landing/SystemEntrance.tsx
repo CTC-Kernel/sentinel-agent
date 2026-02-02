@@ -70,7 +70,7 @@ export const SystemEntrance: React.FC = () => {
             </div>
 
             {/* Theme Toggle (Top Right) */}
-            <div className="absolute top-6 right-6 z-50">
+            <div className="absolute top-6 right-6 z-modal">
                 <ThemeToggle />
             </div>
 

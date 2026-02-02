@@ -58,7 +58,7 @@ const PopoverContent = React.forwardRef<
             <PopoverPanel
                 ref={ref}
                 className={cn(
-                    "absolute z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none",
+                    "absolute z-popover w-72 rounded-xl border bg-popover p-4 text-popover-foreground shadow-elevation-md outline-none",
                     align === "start" && "left-0",
                     align === "end" && "right-0",
                     align === "center" && "left-1/2 -translate-x-1/2",

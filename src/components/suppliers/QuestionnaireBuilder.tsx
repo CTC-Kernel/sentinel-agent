@@ -93,7 +93,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                 <div className="grid grid-cols-1 gap-4">
                     <div>
                         <label htmlFor="questionnaire-title" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            {t('suppliers.questionnaire.titleLabel', { defaultValue: 'Titre du Questionnaire' })} <span className="text-red-500">*</span>
+                            {t('suppliers.questionnaire.titleLabel', { defaultValue: 'Titre du Questionnaire' })} <span className="text-destructive">*</span>
                         </label>
                         <input
                             id="questionnaire-title"

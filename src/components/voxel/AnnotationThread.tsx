@@ -406,7 +406,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 50 }}
-        className="fixed right-4 top-20 bottom-4 w-[400px] z-50 flex flex-col glass-premium rounded-3xl shadow-apple-xl overflow-hidden border border-border/40"
+        className="fixed right-4 top-20 bottom-4 w-[400px] z-sidebar flex flex-col glass-premium rounded-3xl shadow-apple-xl overflow-hidden border border-border/40"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-slate-800/80 to-slate-900/80 border-b border-slate-700/50">

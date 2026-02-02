@@ -371,7 +371,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
             {t(`otImport.fields.${fieldName}`, fieldName)}
           </span>
           {isRequired && (
-            <span className="text-red-500 ml-1">*</span>
+            <span className="text-destructive ml-1">*</span>
           )}
         </div>
         <ChevronRight className="h-4 w-4 text-slate-400" />

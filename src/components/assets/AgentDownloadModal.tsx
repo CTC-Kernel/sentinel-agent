@@ -51,7 +51,7 @@ echo "Asset Enrolled Successfully!"
 
     return (
         <Transition.Root show={isOpen} as={React.Fragment}>
-            <Dialog as="div" className="relative z-[200]" initialFocus={cancelButtonRef} onClose={onClose}>
+            <Dialog as="div" className="relative z-voxel-panel" initialFocus={cancelButtonRef} onClose={onClose}>
                 <Transition.Child
                     as={React.Fragment}
                     enter="ease-out duration-300"

@@ -180,7 +180,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
     };
 
     return createPortal(
-        <div className="fixed bottom-0 left-6 lg:left-[284px] z-[9999] bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-t-xl rounded-b-none border border-border/40 dark:border-white/5 border-b-0 shadow-premium w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
+        <div className="fixed bottom-0 left-6 lg:left-[284px] z-supreme bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-t-xl rounded-b-none border border-border/40 dark:border-white/5 border-b-0 shadow-premium w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-muted/50 rounded-lg text-primary shadow-sm border border-border/40">

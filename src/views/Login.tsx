@@ -107,7 +107,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
 
     return (
         <AuroraBackground className="h-screen py-4 sm:py-0 px-4 flex flex-col bg-background text-foreground relative font-sans selection:bg-primary/30 selection:text-primary overflow-hidden">
-            <div className="absolute top-4 right-4 z-50">
+            <div className="absolute top-4 right-4 z-modal">
                 <ThemeToggle />
             </div>
 
@@ -398,7 +398,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
             {/* Reset Password Modal */}
             {
                 showResetModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="fixed inset-0 z-modal flex items-center justify-center bg-background/60 backdrop-blur-sm p-4 animate-fade-in">
                         <div className="bg-background rounded-3xl p-8 w-full max-w-md border border-muted shadow-2xl relative">
                             <Button variant="ghost" size="sm" onClick={() => setShowResetModal(false)} className="absolute top-6 right-6 text-muted-foreground hover:text-foreground p-2 h-auto rounded-full">
                                 <X className="h-5 w-5" />
@@ -444,7 +444,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
             {/* MFA Modal */}
             {
                 showMfaModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="fixed inset-0 z-modal flex items-center justify-center bg-background/60 backdrop-blur-sm p-4 animate-fade-in">
                         <div className="bg-background rounded-3xl p-8 w-full max-w-md border border-muted shadow-2xl relative">
                             <Button variant="ghost" size="sm" onClick={() => setShowMfaModal(false)} className="absolute top-6 right-6 text-muted-foreground hover:text-foreground p-2 h-auto rounded-full">
                                 <X className="h-5 w-5" />

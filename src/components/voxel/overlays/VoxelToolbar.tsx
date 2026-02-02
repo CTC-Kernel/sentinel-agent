@@ -120,7 +120,7 @@ export const VoxelToolbar: React.FC<VoxelToolbarProps> = ({
 
   return (
     <div
-      className={`absolute top-4 left-1/2 -translate-x-1/2 z-[100000] ${className}`}
+      className={`absolute top-4 left-1/2 -translate-x-1/2 z-voxel-ui ${className}`}
     >
       <div
         className="flex items-center gap-1 p-1.5 rounded-2xl"

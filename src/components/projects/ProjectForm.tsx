@@ -231,7 +231,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
     return (
         <form id={formId} ref={formRef} onSubmit={submitHandler} className="space-y-8 animate-fade-in relative">
             {isGenerating && (
-                <div className="absolute inset-0 bg-white/50 dark:bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm rounded-3xl">
+                <div className="absolute inset-0 bg-white/50 dark:bg-black/50 z-modal flex items-center justify-center backdrop-blur-sm rounded-3xl">
                     <Loader2 className="h-8 w-8 animate-spin text-brand-600" />
                 </div>
             )}

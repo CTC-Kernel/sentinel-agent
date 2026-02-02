@@ -415,7 +415,7 @@ export function TimeMachine({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm z-[100000]"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm z-voxel-ui"
             onClick={onClose}
             role="presentation"
             aria-hidden="true"
@@ -425,7 +425,7 @@ export function TimeMachine({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: '100%', opacity: 0 }}
             transition={{ type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }}
-            className="absolute inset-y-0 right-0 w-[400px] z-[100001] flex flex-col"
+            className="absolute inset-y-0 right-0 w-[400px] z-voxel-panel flex flex-col"
             style={{
               background: 'rgba(15, 23, 42, 0.95)',
               backdropFilter: 'blur(24px)',
@@ -493,7 +493,7 @@ export function TimeMachine({
                   </Button>
 
                   {isCalendarOpen && (
-                    <div className="absolute top-full left-0 z-50 mt-2 bg-background border rounded-md shadow-lg p-2">
+                    <div className="absolute top-full left-0 z-dropdown mt-2 bg-background border rounded-md shadow-lg p-2">
                       <CalendarPicker
                         mode="single"
                         selected={selectedDate}
@@ -582,7 +582,7 @@ export function TimeMachine({
                     </Button>
 
                     {isCompareCalendarOpen && (
-                      <div className="absolute top-full left-0 z-50 mt-2 bg-background border rounded-md shadow-lg p-2">
+                      <div className="absolute top-full left-0 z-dropdown mt-2 bg-background border rounded-md shadow-lg p-2">
                         <CalendarPicker
                           mode="single"
                           selected={compareDate || undefined}

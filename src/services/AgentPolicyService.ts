@@ -91,14 +91,22 @@ function docToGroup(d: QueryDocumentSnapshot): AgentGroup {
 function docToPolicy(d: QueryDocumentSnapshot): AgentPolicy {
     const data = d.data();
     return {
-        ...data,
         id: d.id,
-        rules: data.rules || [],
+        name: data.name || '',
+        description: data.description || '',
+        scope: data.scope || 'global',
+        priority: data.priority || 'medium',
+        rules: (data.rules || []) as PolicyRule[],
         version: data.version || 1,
         isActive: data.isActive ?? true,
+        isEnabled: data.isEnabled ?? true,
+        isDefault: data.isDefault ?? false,
+        targetGroupIds: data.targetGroupIds || [],
+        targetAgentIds: data.targetAgentIds || [],
+        createdBy: data.createdBy || '',
         createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-    } as unknown as AgentPolicy;
+    } as AgentPolicy;
 }
 
 // ============================================================================
@@ -433,14 +441,22 @@ export async function getPolicy(
 
         const data = snapshot.data();
         return {
-            ...data,
             id: snapshot.id,
-            rules: data.rules || [],
+            name: data.name || '',
+            description: data.description || '',
+            scope: data.scope || 'global',
+            priority: data.priority || 'medium',
+            rules: (data.rules || []) as PolicyRule[],
             version: data.version || 1,
             isActive: data.isActive ?? true,
+            isEnabled: data.isEnabled ?? true,
+            isDefault: data.isDefault ?? false,
+            targetGroupIds: data.targetGroupIds || [],
+            targetAgentIds: data.targetAgentIds || [],
+            createdBy: data.createdBy || '',
             createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
             updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-        } as unknown as AgentPolicy;
+        } as AgentPolicy;
     } catch (error) {
         ErrorLogger.error(error, 'AgentPolicyService.getPolicy', {
             component: 'AgentPolicyService',

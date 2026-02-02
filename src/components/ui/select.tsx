@@ -55,8 +55,11 @@ const SelectTrigger = React.forwardRef<
         <button
             onClick={() => setOpen?.(!open)}
             ref={ref}
+            role="combobox"
+            aria-expanded={open}
+            aria-haspopup="listbox"
             className={cn(
-                "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground",
+                "flex h-10 w-full items-center justify-between rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground",
                 className
             )}
             {...props}
@@ -85,17 +88,41 @@ const SelectContent = React.forwardRef<
     HTMLDivElement,
     React.HTMLAttributes<HTMLDivElement> & { position?: "popper" | "item-aligned" }
 >(({ className, children, position = "popper", ...props }, ref) => {
-    const { open } = React.useContext(SelectContext)!
+    const { open, setOpen } = React.useContext(SelectContext)!
     if (!open) return null
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === 'Escape') {
+            e.preventDefault()
+            setOpen?.(false)
+        }
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault()
+            const container = e.currentTarget
+            const items = Array.from(container.querySelectorAll<HTMLElement>('[role="option"]'))
+            if (items.length === 0) return
+            const currentIndex = items.findIndex((item) => item === document.activeElement)
+            let nextIndex: number
+            if (e.key === 'ArrowDown') {
+                nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0
+            } else {
+                nextIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1
+            }
+            items[nextIndex]?.focus()
+        }
+    }
+
     return (
         <div
             ref={ref}
+            role="listbox"
             className={cn(
-                "absolute z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95",
+                "absolute z-dropdown min-w-[8rem] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-elevation-md animate-in fade-in-0 zoom-in-95",
                 position === "popper" && "translate-y-1",
                 className
             )}
             style={{ top: "100%", left: 0, width: "100%" }}
+            onKeyDown={handleKeyDown}
             {...props}
         >
             <div className="p-1">{children}</div>
@@ -116,7 +143,7 @@ const SelectItem = React.forwardRef<
             tabIndex={0}
             aria-selected={value === currentValue}
             className={cn(
-                "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-60 hover:bg-accent hover:text-accent-foreground cursor-pointer",
+                "relative flex w-full cursor-default select-none items-center rounded-lg py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-60 hover:bg-accent hover:text-accent-foreground cursor-pointer",
                 className
             )}
             onClick={(e) => {

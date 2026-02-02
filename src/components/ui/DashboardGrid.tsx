@@ -203,7 +203,7 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="absolute top-full left-0 mt-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-lg shadow-lg p-2 z-50"
+          className="absolute top-full left-0 mt-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-lg shadow-lg p-2 z-dropdown"
         >
           <div className="flex gap-1">
             {(['small', 'medium', 'large', 'full'] as const).map((size) => (

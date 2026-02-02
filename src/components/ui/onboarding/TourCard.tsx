@@ -68,7 +68,7 @@ export const OnboardingCard: React.FC<OnboardingCardProps> = ({
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             style={{ width: style.width, position: 'absolute' }}
-            className="z-[10000] pointer-events-auto"
+            className="z-supreme pointer-events-auto"
         >
             <div className="relative overflow-hidden rounded-2xl border border-white/50 bg-white/95 shadow-2xl backdrop-blur-2xl dark:border-border/40 dark:bg-slate-900/90 ring-1 ring-black/5 dark:ring-white/10">
                 {/* Glossy Gradient Overlay - Subtle */}

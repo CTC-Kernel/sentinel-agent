@@ -55,7 +55,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
     if (!isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-max flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-max flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] animate-fade-in">
             <div className="glass-premium rounded-4xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-border/40 animate-scale-in relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 dark:from-white/10 dark:to-transparent pointer-events-none" />
                 {/* Header */}

@@ -56,7 +56,7 @@ const DropdownMenuContent = React.forwardRef<
             <MenuItems
                 ref={ref}
                 className={cn(
-                    "absolute z-50 mt-2 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md focus:outline-none",
+                    "absolute z-dropdown mt-2 min-w-[8rem] overflow-hidden rounded-xl border bg-popover p-1 text-popover-foreground shadow-elevation-md focus:outline-none",
                     align === "start" && "left-0",
                     align === "end" && "right-0",
                     align === "center" && "left-1/2 -translate-x-1/2",
@@ -85,7 +85,7 @@ const DropdownMenuItem = React.forwardRef<
                 <div
                     ref={ref}
                     className={cn(
-                        "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors",
+                        "relative flex cursor-default select-none items-center rounded-lg px-2 py-1.5 text-sm outline-none transition-colors",
                         active && "bg-accent text-accent-foreground",
                         disabled && "pointer-events-none opacity-60",
                         inset && "pl-8",

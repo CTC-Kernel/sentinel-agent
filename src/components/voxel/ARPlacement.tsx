@@ -252,7 +252,7 @@ export const PlacementControls: React.FC<PlacementControlsProps> = ({
   maxScale,
 }) => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 p-4 pointer-events-none z-50">
+    <div className="fixed bottom-0 left-0 right-0 p-4 pointer-events-none z-modal">
       <div className="max-w-md mx-auto flex flex-col gap-3 pointer-events-auto">
         {/* Scale slider (only when placed) */}
         {isPlaced && (

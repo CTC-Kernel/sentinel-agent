@@ -138,7 +138,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.3, ease: appleEasing }}
-            className="fixed right-0 top-0 h-full w-full max-w-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden flex flex-col"
+            className="fixed right-0 top-0 h-full w-full max-w-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl z-sidebar overflow-hidden flex flex-col"
           >
             {/* Header */}
             <div className="flex-shrink-0 px-6 py-4 border-b border-border/40 dark:border-border/40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">

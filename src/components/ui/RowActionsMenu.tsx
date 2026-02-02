@@ -128,7 +128,7 @@ export function RowActionsMenu({
                   'rounded-3xl overflow-hidden',
                   'bg-white dark:bg-slate-900',
                   'shadow-lg ring-1 ring-black/5 dark:ring-white/10',
-                  'focus:outline-none z-50',
+                  'focus:outline-none z-dropdown',
                   'divide-y divide-slate-100 dark:divide-slate-800'
                 )}
               >

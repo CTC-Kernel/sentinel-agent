@@ -345,14 +345,14 @@ export const Privacy: React.FC = () => {
             {/* Assessment View Overlay */}
             {
                 viewingAssessmentId && (
-                    <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 animate-in fade-in slide-in-from-bottom-10 duration-300 flex flex-col">
+                    <div className="fixed inset-0 z-modal bg-white dark:bg-slate-900 animate-in fade-in slide-in-from-bottom-10 duration-300 flex flex-col">
                         <button
                             aria-label="Close"
                             onClick={() => {
                                 setViewingAssessmentId(null);
                                 fetchActivities();
                             }}
-                            className="absolute top-4 right-4 z-50 p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            className="absolute top-4 right-4 z-modal p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                         >
                             <X className="w-6 h-6 text-slate-500" />
                         </button>

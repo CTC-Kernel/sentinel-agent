@@ -260,6 +260,7 @@ const AnomalyCard: React.FC<{
                     <input
                         type="checkbox"
                         checked={selected}
+                        aria-label={`Sélectionner l'anomalie: ${anomaly.title}`}
                         onChange={(e) => {
                             e.stopPropagation();
                             onSelect(e.target.checked);
@@ -269,7 +270,10 @@ const AnomalyCard: React.FC<{
                     />
 
                     {/* Severity Icon */}
-                    <div className={cn(
+                    <div
+                        role="img"
+                        aria-label={`Sévérité: ${anomaly.severity}`}
+                        className={cn(
                         'p-2 rounded-lg',
                         getSeverityBgColor(anomaly.severity)
                     )}>

@@ -129,7 +129,7 @@ export const MappingCell: React.FC<MappingCellProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 5, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-50 left-1/2 -translate-x-1/2 top-full mt-2 w-64 p-3 rounded-3xl bg-white dark:bg-slate-800 shadow-xl border border-border/40 dark:border-border/40"
+            className="absolute z-popover left-1/2 -translate-x-1/2 top-full mt-2 w-64 p-3 rounded-3xl bg-white dark:bg-slate-800 shadow-xl border border-border/40 dark:border-border/40"
           >
             {/* Arrow */}
             <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-white dark:bg-slate-800 border-l border-t border-border/40 dark:border-border/40 rotate-45" />

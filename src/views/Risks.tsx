@@ -497,7 +497,7 @@ export const Risks: React.FC = () => {
 
             {/* Save View Modal */}
             {showSaveViewModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/40 backdrop-blur-sm">
                     <div className="bg-card rounded-2xl p-6 max-w-md mx-4 shadow-apple-xl border border-border/50">
                         <h3 className="text-lg font-semibold mb-4">{t('risks.saveViewTitle', { defaultValue: 'Sauvegarder la vue' })}</h3>
                         <input

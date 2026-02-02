@@ -194,7 +194,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
                 leaveFrom="transform scale-100 opacity-70"
                 leaveTo="transform scale-95 opacity-0"
               >
-                <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right glass-premium rounded-2xl p-1 shadow-lg z-50 border border-border/40">
+                <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right glass-premium rounded-2xl p-1 shadow-lg z-dropdown border border-border/40">
                   {onAssign && (
                     <Menu.Item>
                       {({ active }) => (

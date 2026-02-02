@@ -216,7 +216,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                                         <div key={question.id || 'unknown'} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-border/40 dark:border-slate-700 shadow-sm">
                                             <label className="block text-base font-semibold text-slate-800 dark:text-slate-200 mb-2">
                                                 {question.text}
-                                                {question.required && <span className="text-red-500 ml-1">*</span>}
+                                                {question.required && <span className="text-destructive ml-1">*</span>}
                                             </label>
                                             {question.helperText && (
                                                 <p className="text-sm text-slate-500 dark:text-slate-300 mb-4">{question.helperText}</p>

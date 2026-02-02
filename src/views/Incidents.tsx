@@ -511,7 +511,7 @@ export const Incidents: React.FC = () => {
                                             leaveFrom="transform opacity-100 scale-100 translate-y-0"
                                             leaveTo="transform opacity-0 scale-95 translate-y-2"
                                         >
-                                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border/20 rounded-xl bg-background/95 backdrop-blur-xl text-popover-foreground shadow-premium ring-1 ring-border/40 focus:outline-none z-50 overflow-hidden">
+                                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border/20 rounded-xl bg-background/95 backdrop-blur-xl text-popover-foreground shadow-premium ring-1 ring-border/40 focus:outline-none z-dropdown overflow-hidden">
                                                 <div className="p-1.5 bg-[var(--glass-bg)]">
                                                     <div className="px-3 py-2 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-70">
                                                         {t('incidents.tools')}

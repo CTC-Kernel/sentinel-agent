@@ -26,6 +26,11 @@ const safeLogAuthEvent = (payload: Parameters<typeof logAuthAuditEvent>[0]) => {
     logAuthAuditEvent(payload).catch(() => undefined); // silent - audit logging failures are non-critical
 };
 
+const getPostAuthRedirect = (): string => {
+    if (sessionStorage.getItem('agent_setup_return')) return '#/agent-setup';
+    return '#/';
+};
+
 export const useAuthActions = () => {
     const { addToast, t } = useStore();
     const [loading, setLoading] = useState(false);
@@ -63,7 +68,7 @@ export const useAuthActions = () => {
 
                 if (result?.user) {
                     addToast(t('auth.success'), 'success');
-                    window.location.hash = '#/';
+                    window.location.hash = getPostAuthRedirect();
                 }
             } catch (_error: unknown) {
                 if (!isMounted) return;
@@ -175,7 +180,7 @@ export const useAuthActions = () => {
                         email: result.user?.email,
                         metadata: { platform: 'native' }
                     });
-                    window.location.hash = '#/';
+                    window.location.hash = getPostAuthRedirect();
                 } else {
                     throw new Error("No ID Token from Google");
                 }
@@ -190,7 +195,7 @@ export const useAuthActions = () => {
                         email: auth.currentUser?.email || undefined,
                         metadata: { platform: 'web', method: 'popup' }
                     });
-                    window.location.hash = '#/';
+                    window.location.hash = getPostAuthRedirect();
                 } catch (popupError) {
                     ErrorLogger.warn(popupError instanceof Error ? popupError.message : String(popupError), 'Auth.googlePopupFallback');
                     if (isPopupRecoverableError(popupError)) {
@@ -251,7 +256,7 @@ export const useAuthActions = () => {
                         email: result.user?.email,
                         metadata: { platform: 'native' }
                     });
-                    window.location.hash = '#/';
+                    window.location.hash = getPostAuthRedirect();
                 } else {
                     throw new Error('No ID Token from Apple');
                 }
@@ -268,7 +273,7 @@ export const useAuthActions = () => {
                         email: auth.currentUser?.email || undefined,
                         metadata: { platform: 'web', method: 'popup' }
                     });
-                    window.location.hash = '#/';
+                    window.location.hash = getPostAuthRedirect();
                 } catch (popupError) {
                     ErrorLogger.warn(popupError instanceof Error ? popupError.message : String(popupError), 'Auth.applePopupFallback');
                     if (isPopupRecoverableError(popupError)) {

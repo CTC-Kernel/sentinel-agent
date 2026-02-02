@@ -259,7 +259,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                         <tr>
                                             {fields.map(field => (
                                                 <th key={field.key || 'unknown'} className="px-4 py-3 text-left font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
-                                                    {field.label} {field.required && <span className="text-red-500">*</span>}
+                                                    {field.label} {field.required && <span className="text-destructive">*</span>}
                                                 </th>
                                             ))}
                                         </tr>

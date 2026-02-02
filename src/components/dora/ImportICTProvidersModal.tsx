@@ -123,7 +123,7 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
 
     return (
         <Transition.Root show={isOpen} as={React.Fragment}>
-            <Dialog as="div" className="relative z-50" onClose={handleClose}>
+            <Dialog as="div" className="relative z-modal" onClose={handleClose}>
                 <Transition.Child
                     as={React.Fragment}
                     enter="ease-out duration-300"
@@ -133,7 +133,7 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
                     leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" />
+                    <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 z-10 overflow-y-auto">

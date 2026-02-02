@@ -296,7 +296,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] z-modal flex items-center justify-center p-4">
             <div className="bg-white dark:bg-slate-900 w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
                 {/* Header */}
                 <div className="p-6 border-b border-border/40 dark:border-border/40 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
@@ -322,7 +322,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                                 <label className="text-base font-bold text-slate-800 dark:text-slate-200">
                                     <span className="text-slate-500 mr-2">{index + 1}.</span>
                                     {q.text}
-                                    {q.required && <span className="text-red-500 ml-1">*</span>}
+                                    {q.required && <span className="text-destructive ml-1">*</span>}
                                 </label>
                             </div>
                             <div className="pl-6">

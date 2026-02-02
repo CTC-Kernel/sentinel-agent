@@ -281,7 +281,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="fixed z-50 pointer-events-auto"
+        className="fixed z-modal pointer-events-auto"
         style={{
           left: `calc(50% + ${panelOffset.x}px)`,
           top: `calc(50% + ${panelOffset.y}px)`,

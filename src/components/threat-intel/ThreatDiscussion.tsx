@@ -14,7 +14,7 @@ interface ThreatDiscussionProps {
 export const ThreatDiscussion: React.FC<ThreatDiscussionProps> = ({ threatId, threatTitle, isOpen, onClose }) => {
     return (
         <Transition.Root show={isOpen} as={React.Fragment}>
-            <Dialog as="div" className="relative z-50" onClose={onClose}>
+            <Dialog as="div" className="relative z-modal" onClose={onClose}>
                 <Transition.Child
                     as={React.Fragment}
                     enter="ease-in-out duration-500"

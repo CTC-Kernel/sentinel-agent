@@ -425,7 +425,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
         </div>
 
         {/* Skeleton Header */}
-        <div className="sticky top-0 z-50 h-20 border-b border-white/10 glass-premium">
+        <div className="sticky top-0 z-header h-20 border-b border-white/10 glass-premium">
           <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
@@ -474,7 +474,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
 
       {/* Confirmation dialog before completing the analysis */}
       {showCompleteConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-voxel-ui flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
           <div className="glass-premium p-6 rounded-3xl border border-border/40 shadow-xl max-w-md w-full space-y-4">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">
               {t('ebios.confirmComplete') || t('ebios.finalizeAnalysis', { defaultValue: 'Finaliser l\'analyse' })}

@@ -260,7 +260,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
 
     return (
         <Transition appear show={isOpen} as={React.Fragment}>
-            <Dialog as="div" className="relative z-50" onClose={onClose}>
+            <Dialog as="div" className="relative z-modal" onClose={onClose}>
                 <Transition.Child
                     as={React.Fragment}
                     enter="ease-out duration-300"
@@ -270,7 +270,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                     leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
+                    <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 overflow-y-auto">

@@ -120,7 +120,7 @@ export const Modal: React.FC<ModalProps> = ({
                         leaveFrom="opacity-100"
                         leaveTo="opacity-0"
                     >
-                        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" />
+                        <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" />
                     </Transition.Child>
 
                     <div className="fixed inset-0 z-10 overflow-y-auto">

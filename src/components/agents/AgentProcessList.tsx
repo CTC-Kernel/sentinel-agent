@@ -310,7 +310,10 @@ export const AgentProcessList: React.FC<AgentProcessListProps> = ({
                                 >
                                     {/* Process name */}
                                     <div className="col-span-4 flex items-center gap-2 min-w-0">
-                                        <div className={cn(
+                                        <div
+                                            role="img"
+                                            aria-label={process.status === 'running' ? 'En cours' : process.status === 'sleeping' ? 'En veille' : process.status === 'zombie' ? 'Zombie' : 'Arrêté'}
+                                            className={cn(
                                             'w-2 h-2 rounded-full shrink-0',
                                             process.status === 'running' ? 'bg-success' :
                                                 process.status === 'sleeping' ? 'bg-muted-foreground' :

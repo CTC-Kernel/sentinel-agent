@@ -85,7 +85,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                     leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" />
+                    <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] transition-opacity" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 z-10 overflow-y-auto">

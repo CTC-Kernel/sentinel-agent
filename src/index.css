@@ -363,45 +363,8 @@ textarea:focus {
 }
 
 /* ===== ANIMATIONS ===== */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(12px);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    transform: skewX(-20deg) translateX(-150%);
-  }
-
-  100% {
-    transform: skewX(-20deg) translateX(250%);
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.4s var(--ease-apple) forwards;
-}
-
-.animate-slide-up {
-  animation: slideUp 0.5s var(--ease-apple) forwards;
-}
+/* fadeIn, slideUp, shimmer keyframes and animate-fade-in, animate-slide-up classes
+   are now defined in tailwind.config.js (keyframes + animation sections) */
 
 /* Enhanced Skeleton Shimmer Animation */
 @keyframes skeleton-loading {

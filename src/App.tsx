@@ -55,6 +55,7 @@ import { VersionCheck } from './components/VersionCheck';
 const Login = React.lazy(() => import('./views/Login').then(module => ({ default: module.Login })));
 const Onboarding = React.lazy(() => import('./views/Onboarding').then(module => ({ default: module.Onboarding })));
 const VerifyEmail = React.lazy(() => import('./views/VerifyEmail').then(module => ({ default: module.VerifyEmail })));
+const AgentSetup = React.lazy(() => import('./views/AgentSetup').then(module => ({ default: module.AgentSetup })));
 const ExternalAuditPortal = React.lazy(() => import('./views/portal/ExternalAuditPortal').then(module => ({ default: module.ExternalAuditPortal })));
 const ExternalAuditLayout = React.lazy(() => import('./views/layouts/ExternalAuditLayout').then(module => ({ default: module.ExternalAuditLayout })));
 const VendorPortal = React.lazy(() => import('./views/portal/VendorPortal').then(module => ({ default: module.VendorPortal })));
@@ -234,6 +235,9 @@ const AppInner: React.FC = () => {
                                 <VerifyEmail />
                             </AuthGuard>
                         } />
+
+                        {/* Agent Setup - Handles auth state internally */}
+                        <Route path="/agent-setup" element={<AgentSetup />} />
 
                         {/* Public Portal Routes - No AuthGuard, Token protected */}
                         <Route path="/portal" element={<ExternalAuditLayout />}>

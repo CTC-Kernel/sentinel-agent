@@ -158,7 +158,7 @@ export const ValidatedInput = forwardRef<HTMLInputElement, ValidatedInputProps>(
 
     // Build input classes
     const inputClasses = [
-      'block w-full rounded-md shadow-sm',
+      'block w-full rounded-xl shadow-sm',
       'px-3 py-2 text-sm',
       'bg-background',
       'text-foreground',

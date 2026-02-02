@@ -315,7 +315,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] z-modal"
           />
 
           {/* Modal */}
@@ -326,7 +326,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[600px] md:max-h-[80vh] bg-slate-900 rounded-2xl border border-border/40 shadow-2xl z-50 flex flex-col overflow-hidden"
+            className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[600px] md:max-h-[80vh] bg-slate-900 rounded-2xl border border-border/40 shadow-2xl z-modal flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="p-6 border-b border-border/40 shrink-0">

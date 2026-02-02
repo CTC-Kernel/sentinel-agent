@@ -265,7 +265,7 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
     // Render based on variant
     if (variant === 'modal') {
         return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
                 <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -284,7 +284,7 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
-                className="fixed bottom-6 right-6 z-50 w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-border/40 dark:border-border/40 p-4"
+                className="fixed bottom-6 right-6 z-toast w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-border/40 dark:border-border/40 p-4"
             >
                 {content}
             </motion.div>

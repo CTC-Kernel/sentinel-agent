@@ -80,7 +80,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
             {/* Title */}
             <div className="space-y-1.5">
                 <label htmlFor="action-title" className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-                    {t('risks.treatment.title_label')} <span className="text-red-500">*</span>
+                    {t('risks.treatment.title_label')} <span className="text-destructive">*</span>
                 </label>
                 <input
                     id="action-title"

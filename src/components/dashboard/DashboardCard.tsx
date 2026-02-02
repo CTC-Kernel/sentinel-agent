@@ -122,7 +122,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
             <div className="fixed inset-0 z-max flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
                 {/* Backdrop */}
                 <div
-                    className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity"
+                    className="absolute inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] transition-opacity"
                     onClick={onToggleExpand}
                     aria-hidden="true"
                 />

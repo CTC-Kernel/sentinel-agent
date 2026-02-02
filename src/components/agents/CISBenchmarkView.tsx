@@ -358,6 +358,8 @@ const FailedCheckCard: React.FC<{ check: CISCheckResult }> = ({ check }) => {
         <div className="border border-destructive/20 rounded-lg overflow-hidden">
             <button
                 onClick={() => setIsExpanded(!isExpanded)}
+                aria-expanded={isExpanded}
+                aria-label={`${isExpanded ? 'Masquer' : 'Afficher'} les détails du contrôle ${check.checkId}`}
                 className="w-full p-3 flex items-center gap-3 hover:bg-destructive/5 transition-colors"
             >
                 <XCircle className="h-4 w-4 text-destructive shrink-0" />

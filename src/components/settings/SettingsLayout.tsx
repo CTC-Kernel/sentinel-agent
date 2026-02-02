@@ -36,7 +36,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                 <nav className="sticky top-24 space-y-4 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto">
 
                     {/* Mobile: Glass Sticky Nav */}
-                    <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 sticky top-[4.5rem] z-50 pb-4 pt-2">
+                    <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 sticky top-[4.5rem] z-sticky pb-4 pt-2">
                         <div className="glass-premium p-1.5 rounded-3xl flex overflow-x-auto no-scrollbar gap-1 border border-border/40 shadow-apple backdrop-blur-xl snap-x">
                             {visibleTabs.map(tab => {
                                 const isActive = currentTab === tab.id;

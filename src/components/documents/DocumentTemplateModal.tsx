@@ -71,7 +71,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
 
     return (
         <Transition show={isOpen} as={React.Fragment}>
-            <Dialog onClose={onClose} className="relative z-50">
+            <Dialog onClose={onClose} className="relative z-modal">
                 <Transition.Child
                     as={React.Fragment}
                     enter="ease-out duration-300"
@@ -81,7 +81,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                     leaveFrom="opacity-70"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+                    <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 overflow-y-auto">

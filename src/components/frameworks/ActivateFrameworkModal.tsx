@@ -59,7 +59,7 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
     <Transition.Root show={isOpen} as={React.Fragment}>
       <Dialog
         as="div"
-        className="relative z-[200]"
+        className="relative z-voxel-panel"
         initialFocus={cancelButtonRef}
         onClose={handleClose}
       >

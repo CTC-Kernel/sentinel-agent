@@ -165,7 +165,7 @@ export const GeminiAssistant: React.FC = () => {
             <button
                 type="button"
                 onClick={() => planAiEnabled ? navigate('/settings') : navigate('/pricing')}
-                className="fixed bottom-4 right-4 md:bottom-6 md:right-6 p-4 bg-gradient-to-br from-slate-200 to-slate-100 text-slate-700 dark:text-slate-300 rounded-full shadow-2xl hover:shadow-slate-400/40 transition-all duration-300 z-50 group border border-white/40"
+                className="fixed bottom-4 right-4 md:bottom-6 md:right-6 p-4 bg-gradient-to-br from-slate-200 to-slate-100 text-slate-700 dark:text-slate-300 rounded-full shadow-2xl hover:shadow-slate-400/40 transition-all duration-300 z-modal group border border-white/40"
                 aria-label={planAiEnabled ? "Assistant IA désactivé par l'administrateur" : "Assistant IA réservé"}
             >
                 <span className="relative flex items-center gap-2 font-bold text-sm">
@@ -187,7 +187,7 @@ export const GeminiAssistant: React.FC = () => {
             <button
                 type="button"
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-4 right-4 md:bottom-8 md:right-8 z-50 group flex items-center justify-center"
+                className="fixed bottom-4 right-4 md:bottom-8 md:right-8 z-modal group flex items-center justify-center"
                 aria-label="Ouvrir l'assistant IA"
             >
                 {/* Holographic Ring Animation */}
@@ -219,7 +219,7 @@ export const GeminiAssistant: React.FC = () => {
 
     return (
         <div className={cn(
-            "fixed z-[100] flex flex-col overflow-hidden transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) shadow-2xl",
+            "fixed z-voxel-ui flex flex-col overflow-hidden transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) shadow-2xl",
             // Mobile: Full screen, white background for readability
             "inset-0 w-full h-full rounded-none bg-white dark:bg-slate-900",
             // Desktop: Floating glassmorphism card

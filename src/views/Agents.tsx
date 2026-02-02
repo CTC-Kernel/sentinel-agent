@@ -25,6 +25,7 @@ import AgentPolicies from './AgentPolicies';
 import SoftwareInventory from './SoftwareInventory';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
 import { ErrorLogger } from '../services/errorLogger';
+import { AgentErrorBoundary } from '../components/agents/AgentErrorBoundary';
 import { hasPermission } from '../utils/permissions';
 import { toast } from '@/lib/toast';
 
@@ -267,7 +268,9 @@ export const Agents: React.FC = () => {
 
                             {/* Fleet Dashboard with KPIs, OS Distribution, and Trends */}
                             <div data-tour="agents-stats">
-                                <AgentFleetDashboard agents={agents} loading={loading} complianceResults={complianceResults} />
+                                <AgentErrorBoundary componentName="AgentFleetDashboard">
+                                    <AgentFleetDashboard agents={agents} loading={loading} complianceResults={complianceResults} />
+                                </AgentErrorBoundary>
                             </div>
 
                             {/* Search, Filters, and View Mode */}
@@ -403,19 +406,21 @@ export const Agents: React.FC = () => {
                             {/* Compliance Heatmap - Only show when we have agents */}
                             {agents.length > 0 && (
                                 <motion.div variants={slideUpVariants}>
-                                    <AgentComplianceHeatmap
-                                        agents={filteredAgents}
-                                        results={complianceResults}
-                                        onAgentClick={handleAgentClick}
-                                        onCellClick={(agentId, checkId) => {
-                                            // Find the agent and open live view
-                                            const agent = agents.find(a => a.id === agentId);
-                                            if (agent) {
-                                                handleAgentClick(agent);
-                                            }
-                                            ErrorLogger.debug(`Cell clicked: ${agentId} ${checkId}`, 'Agents');
-                                        }}
-                                    />
+                                    <AgentErrorBoundary componentName="AgentComplianceHeatmap">
+                                        <AgentComplianceHeatmap
+                                            agents={filteredAgents}
+                                            results={complianceResults}
+                                            onAgentClick={handleAgentClick}
+                                            onCellClick={(agentId, checkId) => {
+                                                // Find the agent and open live view
+                                                const agent = agents.find(a => a.id === agentId);
+                                                if (agent) {
+                                                    handleAgentClick(agent);
+                                                }
+                                                ErrorLogger.debug(`Cell clicked: ${agentId} ${checkId}`, 'Agents');
+                                            }}
+                                        />
+                                    </AgentErrorBoundary>
                                 </motion.div>
                             )}
                         </motion.div>
@@ -431,13 +436,17 @@ export const Agents: React.FC = () => {
 
                     <TabsContent value="anomalies" key="anomalies" className="mt-0">
                         {user?.organizationId && (
-                            <AnomalyAlerts />
+                            <AgentErrorBoundary componentName="AnomalyAlerts">
+                                <AnomalyAlerts />
+                            </AgentErrorBoundary>
                         )}
                     </TabsContent>
 
                     <TabsContent value="baselines" key="baselines" className="mt-0">
                         {user?.organizationId && (
-                            <BehavioralBaseline showAllAgents />
+                            <AgentErrorBoundary componentName="BehavioralBaseline">
+                                <BehavioralBaseline showAllAgents />
+                            </AgentErrorBoundary>
                         )}
                     </TabsContent>
 
@@ -461,7 +470,7 @@ export const Agents: React.FC = () => {
 
             {/* Delete Confirmation Dialog */}
             {deleteConfirm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/40 backdrop-blur-sm">
                     <div className="bg-card rounded-2xl p-6 max-w-md mx-4 shadow-apple-xl border border-border/50">
                         <h3 className="text-lg font-semibold mb-2">{t('agents.deleteConfirm.title', { defaultValue: 'Confirmer la suppression' })}</h3>
                         <p className="text-muted-foreground mb-4">

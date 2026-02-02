@@ -487,7 +487,7 @@ const ARInstructions: React.FC<{ visible: boolean }> = ({ visible }) => {
   if (!visible) return null;
 
   return (
-    <div className="fixed top-4 left-4 right-4 z-50 pointer-events-none">
+    <div className="fixed top-4 left-4 right-4 z-modal pointer-events-none">
       <div className="bg-slate-900/90 backdrop-blur-md border border-white/20 rounded-3xl p-4 max-w-md mx-auto">
         <h3 className="text-white font-semibold text-sm mb-2">AR Mode Instructions</h3>
         <ul className="text-slate-300 text-xs space-y-1.5">

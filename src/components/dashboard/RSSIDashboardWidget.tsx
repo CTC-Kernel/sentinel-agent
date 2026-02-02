@@ -46,7 +46,7 @@ export interface RSSIDashboardWidgetProps {
  */
 function NotAuthorizedState() {
   return (
-    <div className="rounded-lg border bg-card p-6">
+    <div className="rounded-xl border bg-card p-6">
       <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
         <AlertCircle className="w-8 h-8 mb-2 text-warning" aria-hidden="true" />
         <p className="text-sm font-medium">Accès non autorisé</p>

@@ -43,7 +43,7 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
         <aside
             aria-label="Navigation latérale"
             className={`absolute inset-y-0 right-0 ${navCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-80 opacity-70'
-                } bg-slate-950/80 border-l border-border/40 backdrop-blur-2xl z-50 p-5 overflow-hidden transition-all duration-500 ease-custom-ease flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.3)]`}
+                } bg-slate-950/80 border-l border-border/40 backdrop-blur-2xl z-sidebar p-5 overflow-hidden transition-all duration-500 ease-custom-ease flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.3)]`}
         >
             <div className="flex items-center justify-between text-white mb-6 shrink-0">
                 <div className="flex items-center gap-3">

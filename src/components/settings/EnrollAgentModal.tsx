@@ -6,8 +6,6 @@ import { toast } from '@/lib/toast';
 import { useStore } from '../../store';
 import { useLocale } from '@/hooks/useLocale';
 import {
-    ShieldCheck,
-    Copy,
     Download,
     BookOpen,
     HelpCircle,
@@ -22,6 +20,7 @@ import {
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
+import { EnrollmentTokenPanel } from '../agents/EnrollmentTokenPanel';
 
 interface PlatformInfo {
     displayName: string;
@@ -157,7 +156,6 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
     releaseInfo,
     loadingReleases
 }) => {
-    const { t } = useStore();
     const { config } = useLocale();
     const [activeTab, setActiveTab] = useState<'download' | 'docs' | 'faq' | 'support'>('download');
     const [openFAQ, setOpenFAQ] = useState<number | null>(null);
@@ -193,66 +191,8 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
         >
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:divide-x divide-slate-200 dark:divide-white/10 min-h-[500px]">
                 {/* LEFT COLUMN: Token & Install (5 cols) */}
-                <div className="lg:col-span-5 p-6 space-y-6 bg-slate-50/50 dark:bg-white/5">
-
-                    {/* Token Card */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="p-2 bg-brand-50 rounded-lg text-brand-600 dark:text-brand-400">
-                                <ShieldCheck className="w-5 h-5" />
-                            </div>
-                            <h4 className="text-base font-bold text-slate-900 dark:text-white">Token d'Installation</h4>
-                        </div>
-
-                        <div className="p-4 bg-white dark:bg-slate-950 rounded-3xl border border-border/40 dark:border-border/40 shadow-sm">
-                            <div className="font-mono text-xs text-brand-600 dark:text-brand-400 break-all select-all text-center mb-3">
-                                {enrollmentToken}
-                            </div>
-                            <Button
-                                size="sm"
-                                className="w-full bg-brand-500 hover:bg-brand-600 text-white rounded-lg shadow-sm"
-                                onClick={() => {
-                                    navigator.clipboard.writeText(enrollmentToken || '');
-                                    toast.success(t('settings.agents.toast.tokenCopied', { defaultValue: "Token copié !" }));
-                                }}
-                            >
-                                <Copy className="w-3.5 h-3.5 mr-2" />
-                                Copier le Token
-                            </Button>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-300 text-center mt-2.5">
-                                Expire dans 24 heures. Usage unique recommandé.
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Quick Install Guide */}
-                    <div className="space-y-4 pt-4 border-t border-border/40 dark:border-border/40">
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <Terminal className="w-4 h-4 text-slate-500" />
-                            Commande d'installation
-                        </h4>
-
-                        <div className="relative group">
-                            <pre className="p-4 bg-slate-900 dark:bg-black rounded-3xl text-[11px] text-emerald-400 overflow-x-auto border border-slate-800 shadow-inner custom-scrollbar">
-                                <code>sentinel-agent enroll --token {enrollmentToken?.substring(0, 8)}...</code>
-                            </pre>
-                            <button
-                                onClick={() => {
-                                    navigator.clipboard.writeText(`sentinel-agent enroll --token ${enrollmentToken}`);
-                                    toast.success(t('settings.agents.toast.commandCopied', { defaultValue: "Commande copiée !" }));
-                                }}
-                                className="absolute right-2 top-2 p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors opacity-0 group-hover:opacity-70"
-                                title="Copier la commande"
-                            >
-                                <Copy className="w-3.5 h-3.5 text-white" />
-                            </button>
-                        </div>
-
-                        <div className="text-xs text-slate-500 dark:text-slate-300 space-y-2">
-                            <p><strong className="text-slate-700 dark:text-slate-200">macOS / Linux :</strong> Ouvrez un terminal</p>
-                            <p><strong className="text-slate-700 dark:text-slate-200">Windows :</strong> PowerShell (Admin)</p>
-                        </div>
-                    </div>
+                <div className="lg:col-span-5 p-6 bg-slate-50/50 dark:bg-white/5">
+                    <EnrollmentTokenPanel enrollmentToken={enrollmentToken} />
                 </div>
 
                 {/* RIGHT COLUMN: Resources (7 cols) */}

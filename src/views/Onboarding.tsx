@@ -168,7 +168,8 @@ export const Onboarding: React.FC = () => {
             setUser({ ...user, onboardingCompleted: true });
 
             if (selectedPlan === 'discovery') {
-                navigate('/');
+                const agentSetupReturn = sessionStorage.getItem('agent_setup_return');
+                navigate(agentSetupReturn ? '/agent-setup' : '/', { replace: true });
             }
         } catch (_error) {
             ErrorLogger.handleErrorWithToast(_error, 'Onboarding.handleFinalize', 'UPDATE_FAILED');
@@ -282,8 +283,9 @@ export const Onboarding: React.FC = () => {
     // Auto-detect step based on user state or REDIRECT if finished
     React.useEffect(() => {
         if (user?.onboardingCompleted) {
-            // If onboarding is already done, go to dashboard immediately
-            navigate('/', { replace: true });
+            // If onboarding is already done, go to dashboard (or agent-setup if returning)
+            const agentSetupReturn = sessionStorage.getItem('agent_setup_return');
+            navigate(agentSetupReturn ? '/agent-setup' : '/', { replace: true });
             return;
         }
 
@@ -297,7 +299,8 @@ export const Onboarding: React.FC = () => {
 
                         await refreshSession();
                         setUser({ ...user, onboardingCompleted: true });
-                        navigate('/', { replace: true });
+                        const agentReturn = sessionStorage.getItem('agent_setup_return');
+                        navigate(agentReturn ? '/agent-setup' : '/', { replace: true });
                     } catch (_error) {
                         ErrorLogger.handleErrorWithToast(_error, 'Onboarding.autoComplete', 'UPDATE_FAILED');
                     }

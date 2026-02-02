@@ -161,7 +161,10 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                     )}>
                         <OSIcon os={agent.os} className="w-4 h-4 text-foreground" />
                     </div>
-                    <div className={cn(
+                    <div
+                        role="img"
+                        aria-label={isActive ? 'Actif' : 'Hors ligne'}
+                        className={cn(
                         'absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-card',
                         isActive ? 'bg-success animate-pulse' : 'bg-muted-foreground'
                     )} />

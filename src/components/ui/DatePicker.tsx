@@ -98,7 +98,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                         ${error ? '!text-red-500' : ''}
                     `}
                 >
-                    {label} {required && <span className="text-red-500">*</span>}
+                    {label} {required && <span className="text-destructive">*</span>}
                 </label>
             </div>
 

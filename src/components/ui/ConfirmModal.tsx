@@ -57,7 +57,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
   return (
     <Transition.Root show={isOpen} as={React.Fragment}>
-      <Dialog as="div" className="relative z-[200]" initialFocus={cancelButtonRef} onClose={onClose}>
+      <Dialog as="div" className="relative z-voxel-panel" initialFocus={cancelButtonRef} onClose={onClose}>
         {/* Headless UI handles FocusTrap and keyboard navigation */}
         <Transition.Child
           as={React.Fragment}

@@ -944,9 +944,9 @@ const AcceptanceModal: React.FC<AcceptanceModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-modal flex items-center justify-center">
       <button
-        className="absolute inset-0 w-full h-full bg-black/50 backdrop-blur-sm border-0 cursor-pointer"
+        className="absolute inset-0 w-full h-full bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] border-0 cursor-pointer"
         onClick={onClose}
         aria-label="Fermer la boîte de dialogue"
       />

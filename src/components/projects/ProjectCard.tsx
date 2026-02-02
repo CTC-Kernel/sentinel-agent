@@ -31,7 +31,7 @@ interface ProjectCardProps {
 const ProjectCardTooltip = ({ content, children }: { content: string, children: React.ReactNode }) => (
     <div className="group/tooltip relative">
         {children}
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-slate-900 rounded opacity-0 group-hover/tooltip:opacity-70 pointer-events-none transition-opacity whitespace-nowrap z-50">
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-slate-900 rounded opacity-0 group-hover/tooltip:opacity-70 pointer-events-none transition-opacity whitespace-nowrap z-tooltip">
             {content}
         </div>
     </div>

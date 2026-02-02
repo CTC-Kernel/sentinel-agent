@@ -686,7 +686,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
 
       {/* Save Search Dialog */}
       {saveDialogOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-modal">
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl w-full max-w-md p-6">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
               Sauvegarder la recherche

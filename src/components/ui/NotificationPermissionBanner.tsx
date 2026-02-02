@@ -63,7 +63,7 @@ export const NotificationPermissionBanner: React.FC = () => {
     }
 
     return (
-        <div className="fixed bottom-6 right-6 z-50 max-w-md animate-slide-up">
+        <div className="fixed bottom-6 right-6 z-toast max-w-md animate-slide-up">
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-border/40 dark:border-border/40 p-6">
                 <div className="flex items-start gap-4">
                     <div className="p-3 bg-brand-50 dark:bg-brand-800 rounded-3xl">

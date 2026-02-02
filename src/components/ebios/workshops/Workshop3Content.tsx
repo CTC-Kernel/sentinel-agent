@@ -239,7 +239,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
     <div className="space-y-6">
       {/* Ecosystem Map Visualization (Story 17.5) */}
       {showEcosystemMap && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+        <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] animate-fade-in">
           <div className="relative w-full max-w-6xl h-[85vh] glass-premium rounded-3xl shadow-2xl border border-border/40 overflow-hidden animate-scale-in">
             <div className="absolute top-6 right-6 z-10">
               <button

@@ -112,7 +112,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
   const assetTypes: Asset['type'][] = ['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
       <PremiumCard glass className="max-w-2xl w-full max-h-[85vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-slate-700/50">

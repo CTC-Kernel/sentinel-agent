@@ -4900,5 +4900,42 @@
     "ale": "ALE",
     "var95": "VaR 95%",
     "trend": "Trend"
+  },
+  "agentSetup": {
+    "title": "Sentinel Agent installieren",
+    "subtitle": "Melden Sie sich an oder erstellen Sie ein Sentinel GRC-Konto, um Ihren Enrollment-Token zu erhalten.",
+    "seoTitle": "Agent-Installation",
+    "seoDescription": "Holen Sie sich Ihren Enrollment-Token zur Installation des Sentinel GRC Agents.",
+    "goToDashboard": "Zum Dashboard",
+    "unauthenticated": {
+      "heading": "Authentifizieren Sie sich zuerst",
+      "description": "Um einen Enrollment-Token zu erhalten, benötigen Sie ein Sentinel GRC-Konto und eine konfigurierte Organisation.",
+      "createAccount": "Konto erstellen",
+      "createAccountDesc": "Neu bei Sentinel? Erstellen Sie ein kostenloses Konto.",
+      "signIn": "Anmelden",
+      "signInDesc": "Sie haben bereits ein Konto? Melden Sie sich an, um Ihren Token zu erhalten."
+    },
+    "needsOnboarding": {
+      "heading": "Organisation einrichten",
+      "description": "Ihr Konto ist aktiv, aber Sie müssen die Einrichtung Ihrer Organisation abschließen, um einen Enrollment-Token zu generieren.",
+      "goToOnboarding": "Organisation einrichten"
+    },
+    "tokenReady": {
+      "heading": "Ihr Enrollment-Token",
+      "description": "Verwenden Sie diesen Token, um Ihren Sentinel Agent zu registrieren.",
+      "generating": "Token wird generiert...",
+      "tokenLabel": "Installations-Token",
+      "copyToken": "Token kopieren",
+      "tokenCopied": "Token kopiert!",
+      "commandCopied": "Befehl kopiert!",
+      "copyCommand": "Befehl kopieren",
+      "installCommand": "Installationsbefehl",
+      "expiresNotice": "Läuft in 24 Stunden ab. Einmalige Verwendung empfohlen.",
+      "platformMacLinux": "Terminal öffnen",
+      "platformWindows": "PowerShell (Admin)"
+    },
+    "errors": {
+      "tokenGeneration": "Token konnte nicht generiert werden. Bitte versuchen Sie es erneut."
+    }
   }
 }

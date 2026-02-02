@@ -50,23 +50,32 @@ function validateAgentMetrics(data: Record<string, unknown>): Record<string, unk
     // Validate CPU - log if value exceeds 100% (indicates agent bug)
     if (typeof data.cpuPercent === 'number') {
         if (data.cpuPercent > 100) {
-            console.warn(`[AgentService] Anomalous CPU value detected: ${data.cpuPercent}% (agent: ${data.hostname || data.machineId}) - capping at 100%`);
+            ErrorLogger.warn('Anomalous CPU value detected - capping at 100%', 'AgentService.validateAgentMetrics', {
+                component: 'AgentService',
+                metadata: { value: data.cpuPercent },
+            });
         }
         validated.cpuPercent = Math.min(100, Math.max(0, data.cpuPercent));
     }
-    
+
     // Validate Memory - log if value exceeds 100%
     if (typeof data.memoryPercent === 'number') {
         if (data.memoryPercent > 100) {
-            console.warn(`[AgentService] Anomalous memory value detected: ${data.memoryPercent}% (agent: ${data.hostname || data.machineId}) - capping at 100%`);
+            ErrorLogger.warn('Anomalous memory value detected - capping at 100%', 'AgentService.validateAgentMetrics', {
+                component: 'AgentService',
+                metadata: { value: data.memoryPercent },
+            });
         }
         validated.memoryPercent = Math.min(100, Math.max(0, data.memoryPercent));
     }
-    
+
     // Validate Disk - log if value exceeds 100%
     if (typeof data.diskPercent === 'number') {
         if (data.diskPercent > 100) {
-            console.warn(`[AgentService] Anomalous disk value detected: ${data.diskPercent}% (agent: ${data.hostname || data.machineId}) - capping at 100%`);
+            ErrorLogger.warn('Anomalous disk value detected - capping at 100%', 'AgentService.validateAgentMetrics', {
+                component: 'AgentService',
+                metadata: { value: data.diskPercent },
+            });
         }
         validated.diskPercent = Math.min(100, Math.max(0, data.diskPercent));
     }

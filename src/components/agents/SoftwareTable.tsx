@@ -151,6 +151,8 @@ const SoftwareRow: React.FC<{
                             e.stopPropagation();
                             onToggleExpand();
                         }}
+                        aria-expanded={isExpanded}
+                        aria-label={isExpanded ? 'Réduire les détails' : 'Afficher les détails'}
                         className="p-1 hover:bg-muted rounded"
                     >
                         {isExpanded ? (

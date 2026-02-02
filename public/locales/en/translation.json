@@ -4936,5 +4936,42 @@
     "description": "Sorry, the page you are looking for seems to have been moved, deleted, or never existed.",
     "backToDashboard": "Back to Dashboard",
     "report": "Report"
+  },
+  "agentSetup": {
+    "title": "Install Sentinel Agent",
+    "subtitle": "To get your enrollment token, sign in or create a Sentinel GRC account.",
+    "seoTitle": "Agent Installation",
+    "seoDescription": "Get your enrollment token to install the Sentinel GRC agent.",
+    "goToDashboard": "Go to dashboard",
+    "unauthenticated": {
+      "heading": "Start by authenticating",
+      "description": "To get an enrollment token, you need a Sentinel GRC account and a configured organization.",
+      "createAccount": "Create an account",
+      "createAccountDesc": "New to Sentinel? Create a free account to get started.",
+      "signIn": "Sign in",
+      "signInDesc": "Already have an account? Sign in to get your token."
+    },
+    "needsOnboarding": {
+      "heading": "Set up your organization",
+      "description": "Your account is active but you need to complete your organization setup to generate an enrollment token.",
+      "goToOnboarding": "Set up my organization"
+    },
+    "tokenReady": {
+      "heading": "Your enrollment token",
+      "description": "Use this token to enroll your Sentinel agent.",
+      "generating": "Generating token...",
+      "tokenLabel": "Installation Token",
+      "copyToken": "Copy Token",
+      "tokenCopied": "Token copied!",
+      "commandCopied": "Command copied!",
+      "copyCommand": "Copy command",
+      "installCommand": "Installation command",
+      "expiresNotice": "Expires in 24 hours. Single use recommended.",
+      "platformMacLinux": "Open a terminal",
+      "platformWindows": "PowerShell (Admin)"
+    },
+    "errors": {
+      "tokenGeneration": "Unable to generate token. Please try again."
+    }
   }
 }

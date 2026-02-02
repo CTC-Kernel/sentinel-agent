@@ -192,7 +192,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
 
                         {/* Dropdown Menu */}
                         {showUserMenu && (
-                            <div className="absolute right-0 mt-3 w-64 bg-popover border border-[var(--glass-border)] rounded-xl overflow-hidden z-50 animate-scale-in origin-top-right shadow-premium ring-1 ring-white/5">
+                            <div className="absolute right-0 mt-3 w-64 bg-popover border border-[var(--glass-border)] rounded-xl overflow-hidden z-dropdown animate-scale-in origin-top-right shadow-premium ring-1 ring-white/5">
                                 <div className="p-4 bg-muted/30 border-b border-border/40">
                                     <p className="text-sm font-bold text-foreground truncate">{user?.displayName}</p>
                                     <p className="text-xs text-muted-foreground truncate mt-0.5">{user?.email}</p>

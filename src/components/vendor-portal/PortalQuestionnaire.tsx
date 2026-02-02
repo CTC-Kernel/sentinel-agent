@@ -356,7 +356,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           <div className="flex items-start justify-between gap-4 mb-4">
             <p className="text-slate-900 dark:text-white font-medium">
               {question.text}
-              {question.required && <span className="text-red-500 ml-1">*</span>}
+              {question.required && <span className="text-destructive ml-1">*</span>}
             </p>
             {question.helperText && (
               <button
