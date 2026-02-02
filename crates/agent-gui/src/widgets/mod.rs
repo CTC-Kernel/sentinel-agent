@@ -18,3 +18,6 @@ pub use resource_bar::resource_bar;
 pub use search_filter_bar::SearchFilterBar;
 pub use sidebar::Sidebar;
 pub use status_badge::status_badge;
+
+mod protected_state;
+pub use protected_state::protected_state;

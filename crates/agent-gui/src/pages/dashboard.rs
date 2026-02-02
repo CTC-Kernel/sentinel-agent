@@ -419,20 +419,41 @@ impl DashboardPage {
     }
 
     fn vuln_count(ui: &mut Ui, label: &str, count: u32, color: egui::Color32) {
-        ui.vertical(|ui| {
-            ui.label(
-                egui::RichText::new(count.to_string())
-                    .size(24.0)
-                    .color(color)
-                    .strong(),
+        let (rect, _resp) = ui.allocate_exact_size(Vec2::new(80.0, 70.0), egui::Sense::hover());
+        
+        if ui.is_rect_visible(rect) {
+            // Background with subtle tint
+            ui.painter().rect_filled(
+                rect,
+                egui::CornerRadius::same(theme::BADGE_ROUNDING),
+                color.linear_multiply(0.1),
             );
-            ui.label(
-                egui::RichText::new(label.to_uppercase())
-                    .font(theme::font_small())
-                    .color(theme::text_tertiary())
-                    .strong(),
+            
+            // Border
+            ui.painter().rect_stroke(
+                rect,
+                egui::CornerRadius::same(theme::BADGE_ROUNDING),
+                egui::Stroke::new(1.0, color.linear_multiply(0.3)),
             );
-        });
+            
+            // Count
+            ui.painter().text(
+                rect.center() - Vec2::new(0.0, 8.0),
+                egui::Align2::CENTER_CENTER,
+                count.to_string(),
+                egui::FontId::proportional(28.0),
+                color,
+            );
+            
+            // Label
+            ui.painter().text(
+                rect.center() + Vec2::new(0.0, 14.0),
+                egui::Align2::CENTER_CENTER,
+                label.to_uppercase(),
+                egui::FontId::proportional(10.0),
+                color.linear_multiply(0.8),
+            );
+        }
     }
 
     fn info_row(ui: &mut Ui, label: &str, value: &str) {

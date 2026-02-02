@@ -135,20 +135,25 @@ impl FimPage {
             );
             ui.add_space(theme::SPACE_MD);
 
-            if filtered.is_empty() {
+            if state.fim_alerts.is_empty() {
+                 widgets::protected_state(
+                    ui,
+                    icons::FILE_SHIELD, // or SHIELD_CHECK
+                    "Intégrité Confirmée",
+                    "Tous les fichiers critiques sont sous surveillance. Aucune anomalie.",
+                );
+            } else if filtered.is_empty() {
                 widgets::empty_state(
                     ui,
-                    "\u{f15b}",
-                    "Aucun \u{00e9}v\u{00e9}nement",
-                    Some(
-                        "La surveillance FIM n\u{2019}a d\u{00e9}tect\u{00e9} aucune modification.",
-                    ),
+                    icons::FILTER,
+                    "Aucun résultat",
+                    Some("Aucun événement ne correspond à vos critères de recherche."),
                 );
             } else {
                 use egui_extras::{Column, TableBuilder};
 
                 let table = TableBuilder::new(ui)
-                    .striped(true)
+                    .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
                     .column(Column::initial(140.0).at_least(100.0)) // Timestamp
