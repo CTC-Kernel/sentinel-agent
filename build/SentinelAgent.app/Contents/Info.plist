@@ -16,6 +16,8 @@
     <string>2.0.0</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon.icns</string>
     <key>LSUIElement</key>
     <true/>
     <key>NSHighResolutionCapable</key>
@@ -24,5 +26,36 @@
     <true/>
     <key>NSRequiresAquaSystemAppearance</key>
     <false/>
+    <key>LSBackgroundOnly</key>
+    <false/>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>sentinel-grc-v2-prod.web.app</key>
+            <dict>
+                <key>NSExceptionMinimumTLSVersion</key>
+                <string>TLSv1.3</string>
+                <key>NSExceptionRequiresForwardSecrecy</key>
+                <true/>
+            </dict>
+            <key>firebasestorage.googleapis.com</key>
+            <dict>
+                <key>NSExceptionMinimumTLSVersion</key>
+                <string>TLSv1.3</string>
+                <key>NSExceptionRequiresForwardSecrecy</key>
+                <true/>
+            </dict>
+        </dict>
+    </dict>
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <string>NSPrivacyAccessedAPITypeSystemBootTime</string>
+        <string>NSPrivacyAccessedAPITypeFileTimestamp</string>
+        <string>NSPrivacyAccessedAPITypeNetwork</string>
+        <string>NSPrivacyAccessedAPITypeSystemUptime</string>
+    </array>
 </dict>
 </plist>

@@ -50,7 +50,6 @@ impl KeyManager {
     }
 
     /// Create a key manager with a specific key (for testing).
-    #[cfg(any(test, feature = "test-utils"))]
     pub fn new_with_test_key() -> Self {
         Self {
             // Exactly 32 bytes for AES-256
@@ -59,7 +58,6 @@ impl KeyManager {
     }
 
     /// Create a key manager with a specific key.
-    #[cfg(any(test, feature = "test-utils"))]
     pub fn new_with_key(key: &[u8]) -> Self {
         let mut key_array = [0u8; KEY_LENGTH];
         let len = key.len().min(KEY_LENGTH);
@@ -252,16 +250,16 @@ impl KeyManager {
     #[cfg(unix)]
     fn store_key(path: &Path, key: &[u8; KEY_LENGTH]) -> StorageResult<()> {
         // Ensure parent directory exists
-        if let Some(parent) = path.parent()
-            && !parent.exists()
-        {
-            fs::create_dir_all(parent).map_err(|e| {
-                StorageError::KeyManagement(format!(
-                    "Failed to create key directory {}: {}",
-                    parent.display(),
-                    e
-                ))
-            })?;
+        if let Some(parent) = path.parent() {
+            if !parent.exists() {
+                fs::create_dir_all(parent).map_err(|e| {
+                    StorageError::KeyManagement(format!(
+                        "Failed to create key directory {}: {}",
+                        parent.display(),
+                        e
+                    ))
+                })?;
+            }
         }
 
         // Write the key
