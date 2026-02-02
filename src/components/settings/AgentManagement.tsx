@@ -443,13 +443,13 @@ export const AgentManagement: React.FC = () => {
                 setReleaseInfo({
                     product: 'agent',
                     currentVersion: '2.0.0',
-                    releaseDate: '2026-01-29',
+                    releaseDate: '2026-02-02',
                     changelogUrl: 'https://github.com/CTC-Kernel/sentinel-agent/releases',
                     platforms: {
-                        windows: { displayName: 'Windows (MSI)', available: true, downloadUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/windows/SentinelAgentSetup-latest.msi', directUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/windows/SentinelAgentSetup-latest.msi' },
-                        macos: { displayName: 'macOS (PKG)', available: true, downloadUrl: 'https://sentinel-grc-a8701.web.app/downloads/agents/SentinelAgent.pkg', directUrl: 'https://sentinel-grc-a8701.web.app/downloads/agents/SentinelAgent.pkg' },
-                        linux_deb: { displayName: 'Linux (DEB)', available: true, downloadUrl: '/releases/agent/linux_deb/latest', directUrl: null },
-                        linux_rpm: { displayName: 'Linux (RPM)', available: true, downloadUrl: '/releases/agent/linux_rpm/latest', directUrl: null },
+                        windows: { displayName: 'Windows (MSI)', available: true, downloadUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/windows/SentinelAgentSetup-2.0.0.msi', directUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/windows/SentinelAgentSetup-2.0.0.msi' },
+                        macos: { displayName: 'macOS (PKG)', available: true, downloadUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/macos/SentinelAgent-2.0.0.pkg', directUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/macos/SentinelAgent-2.0.0.pkg' },
+                        linux_deb: { displayName: 'Linux (DEB)', available: true, downloadUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/linux_deb/sentinel-agent_2.0.0_arm64.deb', directUrl: null },
+                        linux_rpm: { displayName: 'Linux (RPM)', available: true, downloadUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/linux_rpm/sentinel-agent-2.0.0.x86_64.rpm', directUrl: null },
                     },
                     mobile: {
                         ios: { available: true, appStoreUrl: '#', comingSoon: true },
