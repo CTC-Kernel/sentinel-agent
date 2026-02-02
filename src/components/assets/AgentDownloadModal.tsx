@@ -24,26 +24,7 @@ export const AgentDownloadModal: React.FC<AgentDownloadModalProps> = ({
             return;
         }
 
-        // Fallback simulation
-        const scriptContent = `#!/bin/bash
-# Sentinel Agent Installer
-# Generated for: ${assetName || 'Unknown Asset'}
-echo "Installing Sentinel Agent..."
-sleep 1
-echo "Connecting to Sentinel Core..."
-sleep 1
-echo "Asset Enrolled Successfully!"
-`;
-        const blob = new Blob([scriptContent], { type: 'text/x-shellscript' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `sentinel-agent-installer-${assetName?.replace(/\s+/g, '-').toLowerCase() || 'generic'}.sh`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-
+        window.location.href = '/agents/download';
         onClose();
     };
 
