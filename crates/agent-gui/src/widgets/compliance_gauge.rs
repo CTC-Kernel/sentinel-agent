@@ -15,18 +15,19 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
     let center = rect.center();
     let painter = ui.painter_at(rect);
 
-    let track_color = theme::border();
-    let stroke_width = 6.0;
+    let track_color = theme::bg_elevated().linear_multiply(0.8); // Subtle track
+    let stroke_width = 8.0;
 
     // Background track (full circle).
-    painter.circle_stroke(center, radius, egui::Stroke::new(stroke_width, track_color));
+    ui.painter().circle_stroke(center, radius, egui::Stroke::new(stroke_width, track_color));
 
     match score {
         Some(value) => {
             let clamped = value.clamp(0.0, 100.0);
             let color = theme::score_color(clamped);
 
-            // Arc from top (-PI/2) clockwise.
+            // Glow effect (behind the main arc)
+            // We draw a thicker, lower-opacity arc first
             let start_angle = -PI / 2.0;
             let sweep = (clamped / 100.0) * 2.0 * PI;
             let segments = 64;
@@ -43,7 +44,13 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
                 .collect();
 
             if points.len() >= 2 {
-                painter.add(egui::Shape::line(
+                // Glow
+                ui.painter().add(egui::Shape::line(
+                    points.clone(),
+                    egui::Stroke::new(stroke_width + 6.0, color.linear_multiply(0.3)),
+                ));
+                // Main Arc
+                ui.painter().add(egui::Shape::line(
                     points,
                     egui::Stroke::new(stroke_width, color),
                 ));

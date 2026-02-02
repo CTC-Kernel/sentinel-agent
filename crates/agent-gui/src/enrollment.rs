@@ -3,8 +3,8 @@
 //! Steps:
 //! 1. Bienvenue (welcome)
 //! 2. Saisie du token (token entry or QR scan)
-//! 3. Enr\u{00f4}lement en cours (progress)
-//! 4. Termin\u{00e9} (success/failure)
+//! 3. Enrôlemen in cours (progress)
+//! 4. Terminé (success/failure)
 
 use egui::Ui;
 
@@ -68,29 +68,93 @@ impl EnrollmentWizard {
     pub fn show(&mut self, ui: &mut Ui) -> Option<EnrollmentCommand> {
         let mut command = None;
 
+        // Paint gradient background
+        let rect = ui.max_rect();
+        let is_dark = theme::is_dark_mode();
+        
+        if ui.is_rect_visible(rect) {
+            use egui::epaint::{Mesh, Vertex};
+            let mut mesh = Mesh::default();
+            
+            let (center_col, outer_col) = if is_dark {
+                (
+                    egui::Color32::from_rgb(20, 25, 35), // Slight blueish center
+                    egui::Color32::from_rgb(5, 5, 5)     // Deep outer
+                )
+            } else {
+                (
+                     egui::Color32::from_rgb(250, 250, 255),
+                     egui::Color32::from_rgb(240, 240, 245)
+                )
+            };
+
+            // Stick to the vertical spotlight for consistency with Sidebar.
+            let top_col = center_col;
+            let bot_col = outer_col;
+
+            let idx = mesh.vertices.len() as u32;
+            mesh.vertices.push(Vertex { pos: rect.left_top(), uv: Default::default(), color: top_col });
+            mesh.vertices.push(Vertex { pos: rect.right_top(), uv: Default::default(), color: top_col });
+            mesh.vertices.push(Vertex { pos: rect.right_bottom(), uv: Default::default(), color: bot_col });
+            mesh.vertices.push(Vertex { pos: rect.left_bottom(), uv: Default::default(), color: bot_col });
+            
+            mesh.add_triangle(idx, idx + 1, idx + 2);
+            mesh.add_triangle(idx + 2, idx + 3, idx);
+            
+            ui.painter().add(mesh);
+        }
+
         egui::Frame::new()
-            .fill(theme::bg_primary())
+            .fill(egui::Color32::TRANSPARENT)
             .inner_margin(egui::Margin::same(32))
             .show(ui, |ui| {
                 ui.vertical_centered(|ui| {
+                    ui.add_space(theme::SPACE_XL);
+                    
+                    // Hero Image (IA.png) with Glow
+                    // Load image from bytes
+                    let image = egui::Image::from_bytes(
+                        "bytes://ia.png",
+                        include_bytes!("../assets/IA.png"),
+                    )
+                    .max_width(120.0)
+                    .corner_radius(egui::CornerRadius::same(10));
+
+                    let image_response = ui.add(image);
+                    
+                    // Simple glow effect behind/around logo
+                    if is_dark {
+                        let center = image_response.rect.center();
+                        let radius = 80.0; // Slightly larger for image
+                        let color = theme::ACCENT.linear_multiply(0.10); // Subtle glow
+                        
+                        // Paint on background layer to ensure it's behind the image
+                        ui.ctx().layer_painter(egui::LayerId::background()).circle_filled(center, radius, color);
+                    }
+
+                    ui.add_space(theme::SPACE_LG);
+
                     // Step indicator
                     Self::step_indicator(ui, &self.step);
                     ui.add_space(theme::SPACE_LG);
-
-                    match &self.step {
-                        EnrollmentStep::Welcome => {
-                            command = self.show_welcome(ui);
+ 
+                    // ScrollArea for content protection
+                    egui::ScrollArea::vertical().show(ui, |ui| {
+                        match &self.step {
+                            EnrollmentStep::Welcome => {
+                                command = self.show_welcome(ui);
+                            }
+                            EnrollmentStep::TokenEntry => {
+                                command = self.show_token_entry(ui);
+                            }
+                            EnrollmentStep::InProgress => {
+                                Self::show_progress(ui, &self.progress_message);
+                            }
+                            EnrollmentStep::Complete { success, message } => {
+                                command = Self::show_complete(ui, *success, message);
+                            }
                         }
-                        EnrollmentStep::TokenEntry => {
-                            command = self.show_token_entry(ui);
-                        }
-                        EnrollmentStep::InProgress => {
-                            Self::show_progress(ui, &self.progress_message);
-                        }
-                        EnrollmentStep::Complete { success, message } => {
-                            command = Self::show_complete(ui, *success, message);
-                        }
-                    }
+                    });
                 });
             });
 
@@ -107,7 +171,7 @@ impl EnrollmentWizard {
 
                 ui.label(
                     egui::RichText::new("Bienvenue dans Sentinel Agent")
-                        .font(egui::FontId::proportional(24.0))
+                        .font(theme::font_comex()) // Larger, bolder title
                         .color(theme::ACCENT)
                         .strong(),
                 );
@@ -115,27 +179,19 @@ impl EnrollmentWizard {
 
                 ui.label(
                     egui::RichText::new(
-                        "Pour commencer, vous devez enr\u{00f4}ler cet agent aupr\u{00e8}s de \
+                        "Pour commencer, vous devez enrôler cet agent auprès de \
                          votre plateforme Sentinel GRC.\n\n\
-                         Vous aurez besoin du token d'enr\u{00f4}lement fourni par votre \
+                         Vous aurez besoin du token d'enrôlement fourni par votre \
                          administrateur.",
                     )
                     .font(theme::font_body())
-                    .color(theme::text_secondary()),
+                    .color(theme::text_secondary())
+                    .line_height(Some(20.0)), // Better readability
                 );
 
                 ui.add_space(theme::SPACE_LG);
 
-                let btn = egui::Button::new(
-                    egui::RichText::new("Commencer l'enr\u{00f4}lement")
-                        .font(theme::font_body())
-                        .color(theme::text_on_accent()),
-                )
-                .fill(theme::ACCENT)
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
-                .min_size(egui::Vec2::new(220.0, 40.0));
-
-                if ui.add(btn).clicked() {
+                if widgets::button::primary_button(ui, "Commencer l'enrôlement").clicked() {
                     self.step = EnrollmentStep::TokenEntry;
                 }
 
@@ -149,113 +205,227 @@ impl EnrollmentWizard {
     fn show_token_entry(&mut self, ui: &mut Ui) -> Option<EnrollmentCommand> {
         let mut command = None;
 
-        widgets::card(ui, |ui| {
-            ui.set_max_width(480.0);
+        ui.add_space(theme::SPACE_XL);
+        
+        // CENTERING CONTAINER: Glass Card
+        ui.vertical_centered(|ui| {
+            ui.set_max_width(420.0); // Restrict width for "Card" look
 
-            ui.label(
-                egui::RichText::new("Entrer le token d'enr\u{00f4}lement")
-                    .font(theme::font_heading())
-                    .color(theme::text_primary()),
-            );
-            ui.add_space(theme::SPACE);
+            // Glass Card Frame
+            let is_dark = theme::is_dark_mode();
+            
+            // OPAQUE BLACK for premium contrast
+            let card_bg = if is_dark { 
+                egui::Color32::from_hex("#0A0A0A").unwrap_or(egui::Color32::BLACK) 
+            } else { 
+                egui::Color32::WHITE 
+            };
+            
+            // ULTRA SUBTLE BORDER: 5-8% opacity only
+            let card_stroke = egui::Stroke::new(1.0, egui::Color32::from_white_alpha(12));
+            
+            egui::Frame::new()
+                .fill(card_bg)
+                .corner_radius(egui::CornerRadius::same(16))
+                .stroke(card_stroke)
+                .inner_margin(egui::Margin::same(32))
+                .show(ui, |ui| {
+                    
+                    // Header
+                    ui.label(
+                        egui::RichText::new("AUTHENTIFICATION")
+                            .font(theme::font_heading())
+                            .color(theme::text_primary())
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE_XS);
+                    ui.label(
+                        egui::RichText::new("Connectez cet agent à votre console Sentinel GRC.")
+                            .font(theme::font_small())
+                            .color(theme::text_secondary()),
+                    );
+                    
+                    ui.add_space(theme::SPACE_LG);
 
-            // Toggle between token and QR
-            ui.horizontal(|ui| {
-                if ui.selectable_label(!self.use_qr, "Token manuel").clicked() {
-                    self.use_qr = false;
-                }
-                if ui
-                    .selectable_label(self.use_qr, "Code QR (coller)")
-                    .clicked()
-                {
-                    self.use_qr = true;
-                }
-            });
+                    // Custom Segmented Control (Pill Toggle)
+                    let height = 40.0;
+                    let width = 340.0;
+                    let rounding: u8 = 20;
+                    
+                    let (rect, response) = ui.allocate_exact_size(egui::Vec2::new(width, height), egui::Sense::click());
 
-            ui.add_space(theme::SPACE_SM);
+                    if ui.is_rect_visible(rect) {
+                        // Track Background
+                         ui.painter().rect_filled(
+                            rect,
+                            egui::CornerRadius::same(rounding),
+                            if is_dark { egui::Color32::from_white_alpha(10) } else { egui::Color32::from_black_alpha(10) }
+                        );
 
-            if self.use_qr {
-                ui.label(
-                    egui::RichText::new(
-                        "Collez le contenu du code QR scann\u{00e9} ci-dessous.\n\
-                         Vous pouvez scanner le QR avec votre t\u{00e9}l\u{00e9}phone et \
-                         copier le texte.",
-                    )
-                    .font(theme::font_small())
-                    .color(theme::text_secondary()),
-                );
-                ui.add_space(theme::SPACE_SM);
+                        // 2. Calculate State
+                        let half_width = width / 2.0;
+                        // Animate position
+                        let target_x = if self.use_qr { rect.left() + half_width } else { rect.left() };
+                        let pill_x = ui.ctx().animate_value_with_time(response.id.with("pill_x"), target_x, 0.2);
 
-                let te = egui::TextEdit::multiline(&mut self.qr_input)
-                    .desired_rows(4)
-                    .desired_width(f32::INFINITY)
-                    .hint_text("Coller le contenu du QR code...");
-                ui.add(te);
-            } else {
-                ui.label(
-                    egui::RichText::new(
-                        "Saisissez le token d'enr\u{00f4}lement fourni par votre administrateur.\n\
-                         Vous le trouverez dans Sentinel GRC > Param\u{00e8}tres \
-                         > Agents > Enr\u{00f4}ler un Agent.",
-                    )
-                    .font(theme::font_small())
-                    .color(theme::text_secondary()),
-                );
-                ui.add_space(theme::SPACE_SM);
+                        let pill_rect = egui::Rect::from_min_size(
+                            egui::Pos2::new(pill_x, rect.top()),
+                            egui::Vec2::new(half_width, height),
+                        ).shrink(4.0);
 
-                let te = egui::TextEdit::singleline(&mut self.token_input)
-                    .desired_width(f32::INFINITY)
-                    .hint_text("Token d'enr\u{00f4}lement...");
-                ui.add(te);
-            }
+                        // Pill (Shadow + Body + Stroke) via Frame
+                        let pill_frame = egui::Frame::new()
+                             .fill(theme::bg_elevated())
+                             .corner_radius(egui::CornerRadius::same(rounding - 4))
+                             .shadow(theme::premium_shadow(8, 20))
+                             .stroke(egui::Stroke::new(1.0, theme::border().linear_multiply(0.5)));
 
-            ui.add_space(theme::SPACE);
+                        // Create a child UI placed exactly at the pill's position
+                        // Scoped to avoid borrow conflicts
+                        {
+                            let mut pill_child_ui = ui.new_child(
+                                egui::UiBuilder::new()
+                                    .max_rect(pill_rect)
+                            );
+                            pill_frame.show(&mut pill_child_ui, |ui| {
+                                 ui.allocate_space(ui.available_size());
+                            });
+                        }
 
-            // Buttons
-            ui.horizontal(|ui| {
-                let cancel_btn = egui::Button::new(
-                    egui::RichText::new("Annuler")
-                        .font(theme::font_body())
-                        .color(theme::text_secondary()),
-                )
-                .fill(theme::bg_elevated())
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                        // Labels
+                        let left_rect = egui::Rect::from_min_size(rect.min, egui::Vec2::new(half_width, height));
+                        let right_rect = egui::Rect::from_min_size(
+                            egui::Pos2::new(rect.left() + half_width, rect.top()), 
+                            egui::Vec2::new(half_width, height)
+                        );
 
-                if ui.add(cancel_btn).clicked() {
-                    command = Some(EnrollmentCommand::Cancel);
-                }
+                        // Click logic
+                        if response.clicked() {
+                            if let Some(pos) = response.hover_pos() {
+                                if left_rect.contains(pos) { self.use_qr = false; }
+                                else if right_rect.contains(pos) { self.use_qr = true; }
+                            }
+                        }
 
-                ui.add_space(theme::SPACE);
+                        // Text Painting
+                        // Use a reference to painter to avoid closure capturing entire UI
+                        let painter = ui.painter();
+                        let paint_label = |text: &str, area: egui::Rect, active: bool| {
+                            let color = if active { theme::text_primary() } else { theme::text_secondary() };
+                            let font = if active { 
+                                egui::FontId::proportional(13.0) 
+                            } else { 
+                                theme::font_small() 
+                            };
+                            
+                            painter.text(
+                                area.center(),
+                                egui::Align2::CENTER_CENTER,
+                                text,
+                                font,
+                                color,
+                            );
+                        };
 
-                let has_input = if self.use_qr {
-                    !self.qr_input.trim().is_empty()
-                } else {
-                    !self.token_input.trim().is_empty()
-                };
-
-                let enroll_btn = egui::Button::new(
-                    egui::RichText::new("Enr\u{00f4}ler")
-                        .font(theme::font_body())
-                        .color(theme::text_on_accent()),
-                )
-                .fill(theme::ACCENT)
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
-                .min_size(egui::Vec2::new(120.0, 36.0));
-
-                if ui.add_enabled(has_input, enroll_btn).clicked() {
-                    if self.use_qr {
-                        let qr = self.qr_input.trim().to_string();
-                        self.step = EnrollmentStep::InProgress;
-                        self.progress_message = "Traitement du code QR...".to_string();
-                        command = Some(EnrollmentCommand::SubmitQr(qr));
-                    } else {
-                        let token = self.token_input.trim().to_string();
-                        self.step = EnrollmentStep::InProgress;
-                        self.progress_message = "Connexion au serveur...".to_string();
-                        command = Some(EnrollmentCommand::SubmitToken(token));
+                        paint_label("Token", left_rect, !self.use_qr);
+                        paint_label("QR Code", right_rect, self.use_qr);
                     }
-                }
-            });
+
+                    ui.add_space(theme::SPACE_LG);
+
+                    // INPUT AREA
+                    let input_bg = egui::Color32::from_hex("#0A0A0A").unwrap_or(egui::Color32::BLACK); 
+                    let input_rounding: u8 = 12;
+
+                    if self.use_qr {
+                        // Label
+                        ui.label(egui::RichText::new("CONTENU DU QR CODE").font(theme::font_small()).color(theme::text_tertiary()));
+                        ui.add_space(4.0);
+                        
+                        egui::Frame::new()
+                            .fill(input_bg)
+                            .corner_radius(egui::CornerRadius::same(input_rounding))
+                            .stroke(egui::Stroke::new(1.0, theme::border().linear_multiply(0.3)))
+                            .inner_margin(egui::Margin::same(12))
+                            .show(ui, |ui| {
+                                ui.add(
+                                    egui::TextEdit::multiline(&mut self.qr_input)
+                                        .desired_rows(5)
+                                        .desired_width(f32::INFINITY)
+                                        .frame(false)
+                                        .font(egui::TextStyle::Monospace)
+                                        .hint_text("Collez ici...")
+                                );
+                            });
+                    } else {
+                        // Label
+                        ui.label(egui::RichText::new("TOKEN D'ENRÔLEMENT").font(theme::font_small()).color(theme::text_tertiary()));
+                        ui.add_space(4.0);
+
+                        egui::Frame::new()
+                            .fill(input_bg)
+                            .corner_radius(egui::CornerRadius::same(input_rounding))
+                            .stroke(egui::Stroke::new(1.0, theme::border().linear_multiply(0.3)))
+                            .inner_margin(egui::Margin::same(12))
+                            .show(ui, |ui| {
+                                     ui.add(
+                                        egui::TextEdit::singleline(&mut self.token_input)
+                                            .desired_width(f32::INFINITY)
+                                            .frame(false)
+                                            .font(egui::TextStyle::Monospace) // Tech feel for token
+                                            .hint_text("xxxxx-xxxxx-xxxxx")
+                                    );
+                            });
+                    }
+
+                    ui.add_space(theme::SPACE_LG);
+
+                    // ACTIONS
+                    let has_input = if self.use_qr { !self.qr_input.trim().is_empty() } else { !self.token_input.trim().is_empty() };
+
+                    ui.add_enabled_ui(has_input, |ui| {
+                        let btn_txt = egui::RichText::new("ENRÔLER L'AGENT").size(14.0).strong();
+                         // Custom Hero Button Loop
+                        // Use corner_radius instead of rounding which is deprecated
+                        let btn = ui.add_sized(
+                            egui::Vec2::new(ui.available_width(), 44.0),
+                            egui::Button::new(btn_txt).fill(theme::ACCENT).corner_radius(egui::CornerRadius::same(10))
+                        );
+                        
+                        if btn.clicked() {
+                            if self.use_qr {
+                                let qr = self.qr_input.trim().to_string();
+                                self.step = EnrollmentStep::InProgress;
+                                self.progress_message = "Traitement du code QR...".to_string();
+                                command = Some(EnrollmentCommand::SubmitQr(qr));
+                            } else {
+                                let token = self.token_input.trim().to_string();
+                                self.step = EnrollmentStep::InProgress;
+                                self.progress_message = "Connexion au serveur...".to_string();
+                                command = Some(EnrollmentCommand::SubmitToken(token));
+                            }
+                        }
+                    });
+                    
+                    ui.add_space(theme::SPACE_MD);
+
+                    // AUTH LINKS FOOTER
+                    ui.vertical_centered(|ui| {
+                        ui.label(egui::RichText::new("Pas de token ?").font(theme::font_small()).color(theme::text_secondary()));
+                        ui.horizontal(|ui| {
+                            ui.spacing_mut().item_spacing.x = 8.0;
+                            let link_attr = egui::RichText::new("Se connecter").font(theme::font_small()).color(theme::ACCENT);
+                            if ui.link(link_attr).clicked() {
+                                let _ = ui.ctx().open_url(egui::OpenUrl::new_tab("https://app.cyber-threat-consulting.com/login"));
+                            }
+                            ui.label(egui::RichText::new("•").color(theme::text_tertiary()));
+                            let link_attr_reg = egui::RichText::new("Créer un compte").font(theme::font_small()).color(theme::ACCENT);
+                            if ui.link(link_attr_reg).clicked() {
+                                let _ = ui.ctx().open_url(egui::OpenUrl::new_tab("https://app.cyber-threat-consulting.com/register"));
+                            }
+                        });
+                    });
+                }); // End Glass Card
         });
 
         command
@@ -300,7 +470,7 @@ impl EnrollmentWizard {
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(
-                        egui::RichText::new("Enr\u{00f4}lement r\u{00e9}ussi !")
+                        egui::RichText::new("Enrôlement réussi !")
                             .font(egui::FontId::proportional(22.0))
                             .color(theme::SUCCESS)
                             .strong(),
@@ -313,7 +483,7 @@ impl EnrollmentWizard {
                     );
                     ui.add_space(theme::SPACE);
                     ui.label(
-                        egui::RichText::new("\u{00c9}chec de l'enr\u{00f4}lement")
+                        egui::RichText::new("Échec de l'enrôlement")
                             .font(egui::FontId::proportional(22.0))
                             .color(theme::ERROR)
                             .strong(),
@@ -332,22 +502,10 @@ impl EnrollmentWizard {
                 let btn_text = if success {
                     "Continuer"
                 } else {
-                    "R\u{00e9}essayer"
+                    "Réessayer"
                 };
-                let btn = egui::Button::new(
-                    egui::RichText::new(btn_text)
-                        .font(theme::font_body())
-                        .color(theme::text_on_accent()),
-                )
-                .fill(if success {
-                    theme::ACCENT
-                } else {
-                    theme::WARNING
-                })
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
-                .min_size(egui::Vec2::new(160.0, 40.0));
 
-                if ui.add(btn).clicked() {
+                if widgets::button::primary_button(ui, btn_text).clicked() {
                     command = Some(EnrollmentCommand::Finish);
                 }
 
@@ -362,9 +520,9 @@ impl EnrollmentWizard {
         let steps = [
             ("Bienvenue", EnrollmentStep::Welcome),
             ("Token", EnrollmentStep::TokenEntry),
-            ("Enr\u{00f4}lement", EnrollmentStep::InProgress),
+            ("Enrôlement", EnrollmentStep::InProgress),
             (
-                "Termin\u{00e9}",
+                "Terminé",
                 EnrollmentStep::Complete {
                     success: true,
                     message: String::new(),

@@ -23,6 +23,7 @@ pub struct EnrollmentRequest {
     pub os_version: String,
     pub machine_id: String,
     pub agent_version: String,
+    pub organization_id: Option<String>,
 }
 
 /// Enrollment response from the server.
@@ -533,6 +534,7 @@ mod tests {
             os_version: "22.04".to_string(),
             machine_id: "machine-123".to_string(),
             agent_version: "1.0.0".to_string(),
+            organization_id: Some("org-123".to_string()),
         };
 
         let json = serde_json::to_string(&request).unwrap();

@@ -33,23 +33,23 @@ pub fn is_dark_mode() -> bool {
 // Brand / semantic colors (shared between themes)
 // ============================================================================
 
-/// Primary accent (Sentinel brand blue – aligned with web app).
-pub const ACCENT: Color32 = Color32::from_rgb(74, 127, 199); // #4a7fc7
+/// Primary accent (Apple System Blue).
+pub const ACCENT: Color32 = Color32::from_rgb(0, 122, 255); // #007AFF
 /// Secondary accent (lighter brand blue).
-pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(96, 144, 249); // brand-400
+pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(90, 200, 250); // #5AC8FA (Apple System Teal/Blue mix)
 /// Accent hover state.
-pub const ACCENT_HOVER: Color32 = Color32::from_rgb(82, 140, 210);
+pub const ACCENT_HOVER: Color32 = Color32::from_rgb(0, 113, 237);
 
-/// Success teal-green.
-pub const SUCCESS: Color32 = Color32::from_rgb(77, 184, 138); // #4db88a
-/// Warning amber.
-pub const WARNING: Color32 = Color32::from_rgb(217, 160, 61); // #d9a03d
-/// Error red.
-pub const ERROR: Color32 = Color32::from_rgb(224, 96, 96); // #e06060
-/// Info cyan-blue.
-pub const INFO: Color32 = Color32::from_rgb(75, 163, 204); // #4ba3cc
-/// Severity-high amber (web app risk amber).
-pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(200, 127, 26); // #c87f1a
+/// Success green (Apple System Green).
+pub const SUCCESS: Color32 = Color32::from_rgb(52, 199, 89); // #34C759
+/// Warning orange (Apple System Orange).
+pub const WARNING: Color32 = Color32::from_rgb(255, 149, 0); // #FF9500
+/// Error red (Apple System Red).
+pub const ERROR: Color32 = Color32::from_rgb(255, 59, 48); // #FF3B30
+/// Info blue (Apple System Blue / Teal).
+pub const INFO: Color32 = Color32::from_rgb(0, 122, 255); // #007AFF
+/// Severity-high amber (web app risk amber / System Yellow).
+pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 204, 0); // #FFCC00
 
 // ============================================================================
 // Surface colors (dynamic – depends on active theme)
@@ -59,9 +59,9 @@ pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(200, 127, 26); // #c87f1a
 #[inline]
 pub fn bg_primary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(18, 18, 20)
+        Color32::from_rgb(5, 5, 5) // Midnight Dark (OLED friendly)
     } else {
-        Color32::from_rgb(246, 246, 248)
+        Color32::from_rgb(242, 242, 247) // System Gray 6 Light
     }
 }
 
@@ -69,7 +69,7 @@ pub fn bg_primary() -> Color32 {
 #[inline]
 pub fn bg_secondary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(28, 28, 30)
+        Color32::from_rgb(18, 18, 20) // Deep Gray
     } else {
         Color32::WHITE
     }
@@ -79,9 +79,9 @@ pub fn bg_secondary() -> Color32 {
 #[inline]
 pub fn bg_elevated() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(38, 38, 40)
+        Color32::from_rgb(58, 58, 60) // System Gray 4 Dark
     } else {
-        Color32::from_rgb(232, 232, 236)
+        Color32::WHITE
     }
 }
 
@@ -89,9 +89,9 @@ pub fn bg_elevated() -> Color32 {
 #[inline]
 pub fn bg_sidebar() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(14, 14, 16)
+        Color32::from_rgb(10, 10, 12)
     } else {
-        Color32::from_rgb(240, 240, 242)
+        Color32::from_rgb(235, 235, 240)
     }
 }
 
@@ -99,9 +99,9 @@ pub fn bg_sidebar() -> Color32 {
 #[inline]
 pub fn bg_deep() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(10, 10, 12)
+        Color32::from_rgb(0, 0, 0)
     } else {
-        Color32::from_rgb(232, 232, 236)
+        Color32::from_rgb(245, 245, 250)
     }
 }
 
@@ -115,7 +115,7 @@ pub fn text_primary() -> Color32 {
     if is_dark_mode() {
         Color32::WHITE
     } else {
-        Color32::from_rgb(26, 26, 28)
+        Color32::BLACK
     }
 }
 
@@ -123,9 +123,9 @@ pub fn text_primary() -> Color32 {
 #[inline]
 pub fn text_secondary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(174, 174, 178)
+        Color32::from_rgb(142, 142, 147) // System Gray
     } else {
-        Color32::from_rgb(107, 107, 112)
+        Color32::from_rgb(100, 100, 105) // Darker Gray for AAA contrast on white
     }
 }
 
@@ -133,9 +133,9 @@ pub fn text_secondary() -> Color32 {
 #[inline]
 pub fn text_tertiary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(99, 99, 102)
+        Color32::from_rgb(99, 99, 102) // System Gray 2
     } else {
-        Color32::from_rgb(158, 158, 163)
+        Color32::from_rgb(140, 140, 145) // Darker than System Gray 3 for readability
     }
 }
 
@@ -153,9 +153,9 @@ pub fn text_on_accent() -> Color32 {
 #[inline]
 pub fn border() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(54, 54, 56)
+        Color32::from_rgba_premultiplied(255, 255, 255, 35) // Glass border (14% approx)
     } else {
-        Color32::from_rgb(216, 216, 220)
+        Color32::from_rgba_premultiplied(0, 0, 0, 25) // Approx 10% black
     }
 }
 
@@ -163,9 +163,9 @@ pub fn border() -> Color32 {
 #[inline]
 pub fn separator() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(44, 44, 48)
+        Color32::from_rgba_premultiplied(255, 255, 255, 30)
     } else {
-        Color32::from_rgb(226, 226, 230)
+        Color32::from_rgba_premultiplied(0, 0, 0, 30)
     }
 }
 
@@ -187,47 +187,47 @@ pub const SPACE_LG: f32 = 24.0;
 pub const SPACE_XL: f32 = 32.0;
 
 /// Sidebar width.
-pub const SIDEBAR_WIDTH: f32 = 240.0;
+pub const SIDEBAR_WIDTH: f32 = 250.0;
 
 /// Card rounding radius.
-pub const CARD_ROUNDING: u8 = 12;
+pub const CARD_ROUNDING: u8 = 16;
 /// Button rounding radius.
-pub const BUTTON_ROUNDING: u8 = 10;
+pub const BUTTON_ROUNDING: u8 = 8;
 /// Badge rounding radius.
-pub const BADGE_ROUNDING: u8 = 12;
+pub const BADGE_ROUNDING: u8 = 6;
 
 // ============================================================================
 // Font helpers
 // ============================================================================
 
-/// Title font (22px bold).
+/// Title font (24px bold).
 pub fn font_title() -> FontId {
-    FontId::new(22.0, egui::FontFamily::Proportional)
+    FontId::new(24.0, egui::FontFamily::Proportional) // SF Pro Display Bold equivalent
 }
 
-/// Heading font (16px semibold).
+/// Heading font (17px semibold).
 pub fn font_heading() -> FontId {
-    FontId::new(16.0, egui::FontFamily::Proportional)
+    FontId::new(17.0, egui::FontFamily::Proportional) // SF Pro Text Semibold equivalent
 }
 
-/// Body font (14px).
+/// Body font (13px).
 pub fn font_body() -> FontId {
-    FontId::new(14.0, egui::FontFamily::Proportional)
+    FontId::new(13.0, egui::FontFamily::Proportional) // SF Pro Text Regular equivalent
 }
 
-/// Small / caption font (12px).
+/// Small / caption font (11px).
 pub fn font_small() -> FontId {
-    FontId::new(12.0, egui::FontFamily::Proportional)
+    FontId::new(11.0, egui::FontFamily::Proportional) // SF Pro Text Medium equivalent
 }
 
-/// Monospace font (13px).
+/// Monospace font (12px).
 pub fn font_mono() -> FontId {
-    FontId::new(13.0, egui::FontFamily::Monospace)
+    FontId::new(12.0, egui::FontFamily::Monospace) // SF Mono equivalent
 }
 
-/// COMEX-ready header font (28px Extra-Bold/strong).
+/// COMEX-ready header font (32px Extra-Bold/strong).
 pub fn font_comex() -> FontId {
-    FontId::new(28.0, egui::FontFamily::Proportional)
+    FontId::new(32.0, egui::FontFamily::Proportional)
 }
 
 // ============================================================================
@@ -328,6 +328,7 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     visuals.panel_fill = bg_primary();
     visuals.window_fill = bg_secondary();
 
+    // Use a slightly larger corner radius for modern macOS feel
     let btn_rounding = CornerRadius::same(BUTTON_ROUNDING);
 
     // Widgets idle
@@ -337,7 +338,7 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     visuals.widgets.noninteractive.bg_stroke = Stroke::NONE;
 
     // Widgets hovered
-    visuals.widgets.hovered.bg_fill = bg_elevated();
+    visuals.widgets.hovered.bg_fill = bg_elevated(); // Slightly lighter/raised
     visuals.widgets.hovered.fg_stroke = Stroke::new(1.0, text_primary());
     visuals.widgets.hovered.corner_radius = btn_rounding;
     visuals.widgets.hovered.bg_stroke = Stroke::NONE;
@@ -351,7 +352,7 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     visuals.widgets.inactive.bg_fill = bg_elevated();
     visuals.widgets.inactive.fg_stroke = Stroke::new(1.0, text_primary());
     visuals.widgets.inactive.corner_radius = btn_rounding;
-    visuals.widgets.inactive.bg_stroke = Stroke::NONE;
+    visuals.widgets.inactive.bg_stroke = Stroke::NONE; // Remove border for cleaner look
 
     // Selection
     visuals.selection.bg_fill = ACCENT.linear_multiply(0.2);
@@ -360,21 +361,21 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     // Window
     visuals.window_corner_radius = CornerRadius::same(CARD_ROUNDING);
     visuals.window_shadow = if dark {
-        premium_shadow(16, 80)
+        premium_shadow(40, 96) // Deeper, smoother shadow
     } else {
-        premium_shadow(8, 30)
+        premium_shadow(24, 40)
     };
     visuals.window_stroke = if dark {
-        Stroke::NONE
+        Stroke::new(0.5, Color32::from_white_alpha(15)) // Subtle light border in dark mode
     } else {
-        Stroke::new(0.5, border())
+        Stroke::new(0.5, Color32::from_black_alpha(15)) // Subtle dark border in light mode
     };
 
     // Misc
     visuals.popup_shadow = if dark {
-        premium_shadow(8, 60)
+        premium_shadow(24, 80)
     } else {
-        premium_shadow(4, 20)
+        premium_shadow(12, 30)
     };
     visuals.resize_corner_size = 8.0;
     visuals.hyperlink_color = ACCENT_LIGHT;
@@ -384,7 +385,7 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     } else {
         Color32::from_rgb(250, 250, 252)
     };
-    visuals.striped = true;
+    visuals.striped = false; // Striping can look dated; plain is cleaner.
 
     style.visuals = visuals;
     ctx.set_style(style);
@@ -393,23 +394,24 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
 /// Helper for a premium deep shadow.
 pub fn premium_shadow(blur: u32, alpha: u8) -> Shadow {
     Shadow {
-        offset: [0, (blur / 4) as i8],
-        blur: blur as u8,
+        // Deep, luxurious shadow
+        offset: [0, (blur / 4) as i8], 
+        blur: (blur as f32 * 1.5) as u8, // Increased blur for diffusion
         spread: 0,
-        color: Color32::from_black_alpha(alpha),
+        color: Color32::from_black_alpha(if alpha > 200 { alpha } else { (alpha as f32 * 1.2) as u8 }), // Darker shadows
     }
 }
 
 /// Helper for a subtle glow effect around a rect.
 pub fn glow_stroke(color: Color32) -> Stroke {
-    Stroke::new(1.0, color.linear_multiply(0.3))
+    Stroke::new(1.0, color.linear_multiply(0.5))
 }
 
 /// Color for a compliance score value.
 pub fn score_color(score: f32) -> Color32 {
-    if score >= 80.0 {
+    if score >= 85.0 {
         SUCCESS
-    } else if score >= 50.0 {
+    } else if score >= 60.0 {
         WARNING
     } else {
         ERROR

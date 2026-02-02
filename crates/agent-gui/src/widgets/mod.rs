@@ -1,5 +1,6 @@
 //! Reusable UI widgets for the Sentinel Agent GUI.
 
+pub mod button;
 mod card;
 mod compliance_gauge;
 mod empty_state;

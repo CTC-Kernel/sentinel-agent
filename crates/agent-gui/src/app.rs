@@ -399,8 +399,8 @@ impl SentinelApp {
         eframe::NativeOptions {
             viewport: egui::ViewportBuilder::default()
                 .with_title("Sentinel Agent")
-                .with_inner_size([1040.0, 700.0])
-                .with_min_inner_size([720.0, 480.0])
+                .with_inner_size([1100.0, 750.0])
+                .with_min_inner_size([800.0, 600.0])
                 .with_icon(Self::load_app_icon()),
             ..Default::default()
         }
@@ -734,7 +734,11 @@ impl eframe::App for SentinelApp {
         // ── Enrollment wizard (shown instead of main UI when not enrolled) ──
         if !self.enrolled {
             egui::CentralPanel::default()
-                .frame(egui::Frame::new().fill(theme::bg_primary()))
+                .frame(
+                    egui::Frame::new()
+                        .fill(theme::bg_primary())
+                        .inner_margin(0.0)
+                )
                 .show(ctx, |ui| {
                     if let Some(cmd) = self.enrollment_wizard.show(ui) {
                         match &cmd {
