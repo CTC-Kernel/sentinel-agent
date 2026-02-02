@@ -27,6 +27,7 @@ tokio.workspace = true
 rayon.workspace = true
 battery.workspace = true
 sysinfo.workspace = true
+base64 = "0.22"
 blake3.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true

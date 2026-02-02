@@ -26,31 +26,19 @@ impl DashboardPage {
 
         // Quick action buttons
         ui.horizontal(|ui| {
-            let scan_btn = egui::Button::new(
-                egui::RichText::new(format!("{}  Lancer un scan", icons::PLAY))
-                    .font(theme::font_body())
-                    .color(theme::text_on_accent())
-                    .strong(),
-            )
-            .fill(theme::ACCENT)
-            .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
-            .min_size(egui::vec2(160.0, 36.0));
-            if ui.add(scan_btn).clicked() {
+            if widgets::button::primary_button(
+                ui,
+                format!("{}  Lancer un scan", icons::PLAY)
+            ).clicked() {
                 command = Some(GuiCommand::RunCheck);
             }
 
             ui.add_space(theme::SPACE_SM);
 
-            let sync_btn = egui::Button::new(
-                egui::RichText::new(format!("{}  Forcer la synchro", icons::SYNC))
-                    .font(theme::font_body())
-                    .color(theme::text_secondary())
-                    .strong(),
-            )
-            .fill(theme::bg_elevated())
-            .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
-            .min_size(egui::vec2(180.0, 36.0));
-            if ui.add(sync_btn).clicked() {
+            if widgets::button::secondary_button(
+                ui,
+                format!("{}  Forcer la synchro", icons::SYNC)
+            ).clicked() {
                 command = Some(GuiCommand::ForceSync);
             }
         });
