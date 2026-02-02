@@ -64,13 +64,13 @@ describe('AgentManagement', () => {
         vi.clearAllMocks();
         const mockState = {
             user: mockUser,
-            t: (key: string) => key,
+            t: (key: string, options?: { defaultValue?: string }) => options?.defaultValue || key,
             language: 'fr'
         };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         vi.mocked(useStore).mockImplementation(((selector: any) =>
             selector ? selector(mockState) : mockState
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ) as any);
 
         // Mock useAuth to return claimsSynced: true so subscriptions are enabled
