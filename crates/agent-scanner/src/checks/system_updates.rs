@@ -14,13 +14,16 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
-use tracing::debug;
+use tracing::{debug, warn};
 
 /// Check ID for system updates.
 pub const CHECK_ID: &str = "system_updates";
 
 /// Maximum days security updates can be pending before non-compliance.
 const MAX_PENDING_DAYS: i64 = 7;
+
+/// Timeout for external update check commands (macOS softwareupdate, etc.).
+const UPDATE_CMD_TIMEOUT_SECS: u64 = 3;
 
 /// System updates status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -434,39 +437,61 @@ impl SystemUpdatesCheck {
             raw_output: String::new(),
         };
 
-        // List available updates
-        if let Ok(output) = Command::new("softwareupdate").args(["--list"]).output() {
-            let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-            status.raw_output.push_str(&format!(
-                "=== softwareupdate --list ===\n{}\n{}\n",
-                stdout, stderr
-            ));
+        // List available updates (with timeout — softwareupdate can be very slow)
+        let timeout_duration = std::time::Duration::from_secs(UPDATE_CMD_TIMEOUT_SECS);
+        let su_result = tokio::time::timeout(
+            timeout_duration,
+            tokio::process::Command::new("softwareupdate")
+                .args(["--list"])
+                .output(),
+        )
+        .await;
 
-            // Count updates (lines starting with * or containing "Label:")
-            let combined = format!("{}{}", stdout, stderr);
-            let updates: u32 = combined
-                .lines()
-                .filter(|l| l.trim().starts_with('*') || l.contains("Label:"))
-                .count() as u32;
-            status.pending_updates_count = updates;
-            status.upgradable_packages = updates;
+        match su_result {
+            Ok(Ok(output)) => {
+                let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+                let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+                status.raw_output.push_str(&format!(
+                    "=== softwareupdate --list ===\n{}\n{}\n",
+                    stdout, stderr
+                ));
 
-            // Check for security updates
-            let security: u32 = combined
-                .lines()
-                .filter(|l| l.to_lowercase().contains("security"))
-                .count() as u32;
-            status.pending_security_updates = security;
+                // Count updates (lines starting with * or containing "Label:")
+                let combined = format!("{}{}", stdout, stderr);
+                let updates: u32 = combined
+                    .lines()
+                    .filter(|l| l.trim().starts_with('*') || l.contains("Label:"))
+                    .count() as u32;
+                status.pending_updates_count = updates;
+                status.upgradable_packages = updates;
 
-            // Check if "No new software available" message
-            if combined.contains("No new software available") {
-                status.pending_updates_count = 0;
-                status.pending_security_updates = 0;
+                // Check for security updates
+                let security: u32 = combined
+                    .lines()
+                    .filter(|l| l.to_lowercase().contains("security"))
+                    .count() as u32;
+                status.pending_security_updates = security;
+
+                // Check if "No new software available" message
+                if combined.contains("No new software available") {
+                    status.pending_updates_count = 0;
+                    status.pending_security_updates = 0;
+                }
+            }
+            Ok(Err(e)) => {
+                warn!("softwareupdate command failed: {}", e);
+                status.raw_output.push_str(&format!("softwareupdate error: {}\n", e));
+            }
+            Err(_) => {
+                warn!("softwareupdate --list timed out after {}s", UPDATE_CMD_TIMEOUT_SECS);
+                status.raw_output.push_str(&format!(
+                    "softwareupdate --list timed out after {}s\n",
+                    UPDATE_CMD_TIMEOUT_SECS
+                ));
             }
         }
 
-        // Check auto-update settings
+        // Check auto-update settings (fast command, no timeout needed)
         if let Ok(output) = Command::new("defaults")
             .args([
                 "read",
@@ -482,7 +507,7 @@ impl SystemUpdatesCheck {
             status.auto_updates_enabled = Some(result.trim() == "1");
         }
 
-        // Get last check date
+        // Get last check date (fast command, no timeout needed)
         if let Ok(output) = Command::new("defaults")
             .args([
                 "read",
@@ -495,7 +520,6 @@ impl SystemUpdatesCheck {
             status
                 .raw_output
                 .push_str(&format!("LastSuccessfulDate: {}\n", result.trim()));
-            // Parse date if possible
         }
 
         // Determine if up to date

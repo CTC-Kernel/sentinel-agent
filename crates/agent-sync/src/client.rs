@@ -24,6 +24,8 @@ pub struct HttpClient {
     base_url: String,
     /// Client certificate for header-based auth (fallback when mTLS is unavailable).
     auth_certificate: Option<String>,
+    /// Organization ID for X-Organization-Id header.
+    organization_id: Option<String>,
 }
 
 impl HttpClient {
@@ -84,6 +86,7 @@ impl HttpClient {
             client,
             base_url: config.server_url.trim_end_matches('/').to_string(),
             auth_certificate: None,
+            organization_id: config.organization_id.clone(),
         })
     }
 
@@ -144,6 +147,7 @@ impl HttpClient {
             client,
             base_url: config.server_url.trim_end_matches('/').to_string(),
             auth_certificate: Some(certificate.to_string()),
+            organization_id: config.organization_id.clone(),
         })
     }
 
@@ -214,6 +218,7 @@ impl HttpClient {
             client,
             base_url: config.server_url.trim_end_matches('/').to_string(),
             auth_certificate: None,
+            organization_id: config.organization_id.clone(),
         })
     }
 
@@ -239,13 +244,16 @@ impl HttpClient {
         &self.client
     }
 
-    /// Apply header-based auth if configured (X-Agent-Certificate header).
+    /// Apply authentication headers (X-Agent-Certificate, X-Organization-Id).
     fn apply_auth(&self, builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
+        let mut b = builder;
         if let Some(ref cert) = self.auth_certificate {
-            builder.header("X-Agent-Certificate", cert)
-        } else {
-            builder
+            b = b.header("X-Agent-Certificate", cert);
         }
+        if let Some(ref org_id) = self.organization_id {
+            b = b.header("X-Organization-Id", org_id);
+        }
+        b
     }
 
     /// Send a POST request with JSON body.
