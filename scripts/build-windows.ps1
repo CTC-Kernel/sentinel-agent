@@ -8,7 +8,9 @@ $ProjectDir = Split-Path -Parent $ScriptDir
 $BuildDir = Join-Path $ProjectDir "target\release"
 $WixDir = Join-Path $ProjectDir "wix"
 $AssetsDir = Join-Path $ProjectDir "assets\icons"
-$Version = "1.0.0"
+# Extract version from Cargo.toml (single source of truth)
+$Version = (Select-String -Path "$ProjectDir\Cargo.toml" -Pattern '^version\s*=\s*"(.+)"' | Select-Object -First 1).Matches.Groups[1].Value
+if (-not $Version) { $Version = "2.0.0" }
 
 Write-Host "=== Building Sentinel Agent for Windows ===" -ForegroundColor Cyan
 Write-Host "Project dir: $ProjectDir"
