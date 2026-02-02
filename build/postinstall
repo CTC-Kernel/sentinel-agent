@@ -21,7 +21,7 @@ sudo -u "$REAL_USER" mkdir -p "$CONFIG_DIR"
 if [[ ! -f "$CONFIG_DIR/agent.json" ]]; then
     cat > "$CONFIG_DIR/agent.json" << CONFIG
 {
-    "server_url": "https://sentinel-grc-v2-prod.web.app",
+    "server_url": "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi",
     "check_interval_secs": 3600,
     "heartbeat_interval_secs": 60,
     "log_level": "info",
