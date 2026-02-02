@@ -116,7 +116,10 @@ impl AuditLoggingCheck {
             })?;
 
         let service_status = String::from_utf8_lossy(&service_output.stdout).to_string();
-        raw_output.push_str(&format!("systemctl is-active auditd: {}\n", service_status.trim()));
+        raw_output.push_str(&format!(
+            "systemctl is-active auditd: {}\n",
+            service_status.trim()
+        ));
 
         let service_running = service_status.trim() == "active";
 

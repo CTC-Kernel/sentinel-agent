@@ -56,9 +56,7 @@ impl Ipv6ConfigCheck {
     pub fn new() -> Self {
         let definition = CheckDefinitionBuilder::new(CHECK_ID)
             .name("IPv6 Hardening")
-            .description(
-                "Verify IPv6 router advertisements and unnecessary features are disabled",
-            )
+            .description("Verify IPv6 router advertisements and unnecessary features are disabled")
             .category(CheckCategory::NetworkHardening)
             .severity(CheckSeverity::Low)
             .framework("CIS")
@@ -154,9 +152,7 @@ impl Ipv6ConfigCheck {
         let output = Command::new("sysctl")
             .args(["-n", "net.ipv6.conf.all.accept_ra"])
             .output()
-            .map_err(|e| {
-                ScannerError::CheckExecution(format!("Failed to run sysctl: {}", e))
-            })?;
+            .map_err(|e| ScannerError::CheckExecution(format!("Failed to run sysctl: {}", e)))?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
 
@@ -210,9 +206,7 @@ impl Ipv6ConfigCheck {
         let output = Command::new("sysctl")
             .args(["net.inet6.ip6.accept_rtadv"])
             .output()
-            .map_err(|e| {
-                ScannerError::CheckExecution(format!("Failed to run sysctl: {}", e))
-            })?;
+            .map_err(|e| ScannerError::CheckExecution(format!("Failed to run sysctl: {}", e)))?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
 
@@ -297,10 +291,7 @@ impl Check for Ipv6ConfigCheck {
             ))
         } else {
             Ok(CheckOutput::fail(
-                format!(
-                    "IPv6 hardening issues: {}",
-                    status.issues.join("; ")
-                ),
+                format!("IPv6 hardening issues: {}", status.issues.join("; ")),
                 raw_data,
             ))
         }

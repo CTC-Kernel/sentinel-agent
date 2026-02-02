@@ -94,11 +94,9 @@ impl AutoLoginCheck {
 
         // Parse the registry value - look for AutoAdminLogon value
         // Expected format: "    AutoAdminLogon    REG_SZ    0"
-        let auto_login_enabled = raw_output
-            .lines()
-            .any(|line| {
-                line.contains("AutoAdminLogon") && !line.contains("0x0") && !line.trim().ends_with("0")
-            });
+        let auto_login_enabled = raw_output.lines().any(|line| {
+            line.contains("AutoAdminLogon") && !line.contains("0x0") && !line.trim().ends_with("0")
+        });
 
         // Also check for DefaultUserName if auto-login is enabled
         let mut auto_login_user = None;

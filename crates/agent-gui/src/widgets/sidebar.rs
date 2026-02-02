@@ -19,7 +19,13 @@ pub struct Sidebar;
 
 impl Sidebar {
     /// Render the sidebar. Returns the newly selected page, if any.
-    pub fn show(ui: &mut Ui, current: &Page, scanning: bool, unread_notifications: u32, sync_state: &SidebarSyncState) -> Option<Page> {
+    pub fn show(
+        ui: &mut Ui,
+        current: &Page,
+        scanning: bool,
+        unread_notifications: u32,
+        sync_state: &SidebarSyncState,
+    ) -> Option<Page> {
         let mut selected: Option<Page> = None;
 
         egui::Frame {
@@ -28,159 +34,179 @@ impl Sidebar {
             ..Default::default()
         }
         .show(ui, |ui| {
-                ui.set_min_width(theme::SIDEBAR_WIDTH);
-                ui.set_max_width(theme::SIDEBAR_WIDTH);
+            ui.set_min_width(theme::SIDEBAR_WIDTH);
+            ui.set_max_width(theme::SIDEBAR_WIDTH);
 
-                egui::ScrollArea::vertical()
-                    .auto_shrink(egui::Vec2b::new(false, false))
-                    .show(ui, |ui| {
+            egui::ScrollArea::vertical()
+                .auto_shrink(egui::Vec2b::new(false, false))
+                .show(ui, |ui| {
+                    // Logo / brand section
+                    ui.add_space(theme::SPACE);
+                    ui.vertical_centered(|ui| {
+                        // IA.png logo
+                        let logo = egui::Image::from_bytes(
+                            "bytes://ia_sidebar",
+                            include_bytes!("../../assets/IA.png"),
+                        )
+                        .max_width(56.0);
+                        ui.add(logo);
 
-                // Logo / brand section
-                ui.add_space(theme::SPACE);
-                ui.vertical_centered(|ui| {
-                    // IA.png logo
-                    let logo = egui::Image::from_bytes(
-                        "bytes://ia_sidebar",
-                        include_bytes!("../../assets/IA.png"),
-                    )
-                    .max_width(56.0);
-                    ui.add(logo);
+                        ui.add_space(theme::SPACE_SM);
 
-                    ui.add_space(theme::SPACE_SM);
-
-                    ui.horizontal(|ui| {
-                        ui.add_space(ui.available_width() / 4.0);
+                        ui.horizontal(|ui| {
+                            ui.add_space(ui.available_width() / 4.0);
+                            ui.label(
+                                egui::RichText::new("SENTINEL")
+                                    .font(theme::font_title())
+                                    .color(theme::ACCENT)
+                                    .strong(),
+                            );
+                            if scanning {
+                                let t = ui.input(|i| i.time);
+                                let alpha = ((t * 2.5).cos() * 0.5 + 0.5) as f32;
+                                ui.label(
+                                    egui::RichText::new(icons::CIRCLE)
+                                        .size(10.0)
+                                        .color(theme::ACCENT.linear_multiply(alpha)),
+                                );
+                            }
+                        });
                         ui.label(
-                            egui::RichText::new("SENTINEL")
-                                .font(theme::font_title())
-                                .color(theme::ACCENT)
+                            egui::RichText::new("GRC AGENT")
+                                .font(theme::font_small())
+                                .color(theme::text_tertiary())
                                 .strong(),
                         );
-                        if scanning {
-                            let t = ui.input(|i| i.time);
-                            let alpha = ((t * 2.5).cos() * 0.5 + 0.5) as f32;
-                            ui.label(egui::RichText::new(icons::CIRCLE).size(10.0).color(theme::ACCENT.linear_multiply(alpha)));
+
+                        // Bell badge with unread count
+                        if unread_notifications > 0 {
+                            ui.add_space(theme::SPACE_SM);
+                            ui.horizontal(|ui| {
+                                ui.add_space(theme::SIDEBAR_WIDTH / 2.0 - 30.0);
+                                let bell_response = ui.label(
+                                    egui::RichText::new(icons::BELL)
+                                        .size(16.0)
+                                        .color(theme::WARNING),
+                                );
+                                // Draw count badge
+                                let badge_text = if unread_notifications > 9 {
+                                    "9+".to_string()
+                                } else {
+                                    unread_notifications.to_string()
+                                };
+                                let badge_rect = egui::Rect::from_min_size(
+                                    bell_response.rect.right_top() + egui::vec2(-4.0, -4.0),
+                                    egui::vec2(16.0, 16.0),
+                                );
+                                ui.painter().rect_filled(
+                                    badge_rect,
+                                    CornerRadius::same(8),
+                                    theme::ERROR,
+                                );
+                                ui.painter().text(
+                                    badge_rect.center(),
+                                    egui::Align2::CENTER_CENTER,
+                                    &badge_text,
+                                    egui::FontId::proportional(9.0),
+                                    theme::text_on_accent(),
+                                );
+                            });
                         }
+
+                        ui.add_space(theme::SPACE_LG);
                     });
-                    ui.label(
-                        egui::RichText::new("GRC AGENT")
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    );
 
-                    // Bell badge with unread count
-                    if unread_notifications > 0 {
+                    ui.vertical(|ui| {
+                        ui.set_width(theme::SIDEBAR_WIDTH);
+
+                        // Group: Principal
                         ui.add_space(theme::SPACE_SM);
-                        ui.horizontal(|ui| {
-                            ui.add_space(theme::SIDEBAR_WIDTH / 2.0 - 30.0);
-                            let bell_response = ui.label(
-                                egui::RichText::new(icons::BELL)
-                                    .size(16.0)
-                                    .color(theme::WARNING),
-                            );
-                            // Draw count badge
-                            let badge_text = if unread_notifications > 9 {
-                                "9+".to_string()
+                        Self::section_label(ui, "PILOTAGE");
+
+                        let main_items: &[(Page, &str, &str)] = &[
+                            (Page::Dashboard, icons::DASHBOARD, "Tableau de bord"),
+                            (Page::Monitoring, icons::CHART_LINE, "Surveillance"),
+                            (Page::Compliance, icons::COMPLIANCE, "Conformit\u{00e9}"),
+                            (Page::Software, icons::SOFTWARE, "Logiciels"),
+                            (
+                                Page::Vulnerabilities,
+                                icons::VULNERABILITIES,
+                                "Vuln\u{00e9}rabilit\u{00e9}s",
+                            ),
+                            (
+                                Page::FileIntegrity,
+                                icons::FILE_SHIELD,
+                                "Int\u{00e9}grit\u{00e9} fichiers",
+                            ),
+                            (Page::Threats, icons::SKULL, "Menaces"),
+                            (Page::Notifications, icons::BELL, "Notifications"),
+                        ];
+
+                        for (page, icon, label) in main_items {
+                            let badge = if *page == Page::Notifications && unread_notifications > 0
+                            {
+                                Some(unread_notifications)
                             } else {
-                                unread_notifications.to_string()
+                                None
                             };
-                            let badge_rect = egui::Rect::from_min_size(
-                                bell_response.rect.right_top() + egui::vec2(-4.0, -4.0),
-                                egui::vec2(16.0, 16.0),
-                            );
-                            ui.painter().rect_filled(badge_rect, CornerRadius::same(8), theme::ERROR);
-                            ui.painter().text(
-                                badge_rect.center(),
-                                egui::Align2::CENTER_CENTER,
-                                &badge_text,
-                                egui::FontId::proportional(9.0),
-                                theme::text_on_accent(),
-                            );
-                        });
-                    }
-
-                    ui.add_space(theme::SPACE_LG);
-                });
-
-                ui.vertical(|ui| {
-                    ui.set_width(theme::SIDEBAR_WIDTH);
-
-                    // Group: Principal
-                    ui.add_space(theme::SPACE_SM);
-                    Self::section_label(ui, "PILOTAGE");
-
-                    let main_items: &[(Page, &str, &str)] = &[
-                        (Page::Dashboard, icons::DASHBOARD, "Tableau de bord"),
-                        (Page::Monitoring, icons::CHART_LINE, "Surveillance"),
-                        (Page::Compliance, icons::COMPLIANCE, "Conformit\u{00e9}"),
-                        (Page::Software, icons::SOFTWARE, "Logiciels"),
-                        (Page::Vulnerabilities, icons::VULNERABILITIES, "Vuln\u{00e9}rabilit\u{00e9}s"),
-                        (Page::FileIntegrity, icons::FILE_SHIELD, "Int\u{00e9}grit\u{00e9} fichiers"),
-                        (Page::Threats, icons::SKULL, "Menaces"),
-                        (Page::Notifications, icons::BELL, "Notifications"),
-                    ];
-
-                    for (page, icon, label) in main_items {
-                        let badge = if *page == Page::Notifications && unread_notifications > 0 {
-                            Some(unread_notifications)
-                        } else {
-                            None
-                        };
-                        if Self::nav_item_with_badge(ui, icon, label, current == page, badge) {
-                            selected = Some(page.clone());
+                            if Self::nav_item_with_badge(ui, icon, label, current == page, badge) {
+                                selected = Some(page.clone());
+                            }
                         }
-                    }
 
-                    ui.add_space(theme::SPACE);
-                    Self::section_label(ui, "SYS & NETWORK");
-
-                    let sys_items: &[(Page, &str, &str)] = &[
-                        (Page::Network, icons::NETWORK, "R\u{00e9}seau"),
-                        (Page::Discovery, icons::DISCOVERY, "D\u{00e9}couverte"),
-                        (Page::Cartography, icons::CARTOGRAPHY, "Cartographie"),
-                        (Page::Sync, icons::SYNC, "Synchronisation"),
-                        (Page::Terminal, icons::TERMINAL, "Terminal"),
-                    ];
-
-                    for (page, icon, label) in sys_items {
-                        if Self::nav_item(ui, icon, label, current == page) {
-                            selected = Some(page.clone());
-                        }
-                    }
-
-                    // Flexible spacer: push bottom items down when space allows,
-                    // but never overlap -- ScrollArea handles overflow.
-                    let sync_height = 44.0; // dot+label + timestamp + spacing
-                    let bottom_height = sync_height + 42.0 * 2.0 + theme::SPACE_SM * 2.0 + theme::SPACE_XL + 2.0;
-                    let remaining = ui.available_height() - bottom_height;
-                    if remaining > 0.0 {
-                        ui.add_space(remaining);
-                    } else {
                         ui.add_space(theme::SPACE);
-                    }
+                        Self::section_label(ui, "SYS & NETWORK");
 
-                    Self::sync_indicator(ui, sync_state);
-                    ui.add_space(theme::SPACE_SM);
+                        let sys_items: &[(Page, &str, &str)] = &[
+                            (Page::Network, icons::NETWORK, "R\u{00e9}seau"),
+                            (Page::Discovery, icons::DISCOVERY, "D\u{00e9}couverte"),
+                            (Page::Cartography, icons::CARTOGRAPHY, "Cartographie"),
+                            (Page::Sync, icons::SYNC, "Synchronisation"),
+                            (Page::Terminal, icons::TERMINAL, "Terminal"),
+                        ];
 
-                    ui.separator();
-                    ui.add_space(theme::SPACE_SM);
-
-                    let bottom_items: &[(Page, &str, &str)] = &[
-                        (Page::Settings, icons::SETTINGS, "Param\u{00e8}tres"),
-                        (Page::About, icons::ABOUT, "\u{00c0} propos"),
-                    ];
-
-                    for (page, icon, label) in bottom_items {
-                        if Self::nav_item(ui, icon, label, current == page) {
-                            selected = Some(page.clone());
+                        for (page, icon, label) in sys_items {
+                            if Self::nav_item(ui, icon, label, current == page) {
+                                selected = Some(page.clone());
+                            }
                         }
-                    }
 
-                    ui.add_space(theme::SPACE_XL);
-                });
+                        // Flexible spacer: push bottom items down when space allows,
+                        // but never overlap -- ScrollArea handles overflow.
+                        let sync_height = 44.0; // dot+label + timestamp + spacing
+                        let bottom_height = sync_height
+                            + 42.0 * 2.0
+                            + theme::SPACE_SM * 2.0
+                            + theme::SPACE_XL
+                            + 2.0;
+                        let remaining = ui.available_height() - bottom_height;
+                        if remaining > 0.0 {
+                            ui.add_space(remaining);
+                        } else {
+                            ui.add_space(theme::SPACE);
+                        }
+
+                        Self::sync_indicator(ui, sync_state);
+                        ui.add_space(theme::SPACE_SM);
+
+                        ui.separator();
+                        ui.add_space(theme::SPACE_SM);
+
+                        let bottom_items: &[(Page, &str, &str)] = &[
+                            (Page::Settings, icons::SETTINGS, "Param\u{00e8}tres"),
+                            (Page::About, icons::ABOUT, "\u{00c0} propos"),
+                        ];
+
+                        for (page, icon, label) in bottom_items {
+                            if Self::nav_item(ui, icon, label, current == page) {
+                                selected = Some(page.clone());
+                            }
+                        }
+
+                        ui.add_space(theme::SPACE_XL);
+                    });
                 }); // end ScrollArea
-            });
+        });
 
         selected
     }
@@ -203,7 +229,13 @@ impl Sidebar {
         Self::nav_item_with_badge(ui, icon, label, is_current, None)
     }
 
-    fn nav_item_with_badge(ui: &mut Ui, icon: &str, label: &str, is_current: bool, badge: Option<u32>) -> bool {
+    fn nav_item_with_badge(
+        ui: &mut Ui,
+        icon: &str,
+        label: &str,
+        is_current: bool,
+        badge: Option<u32>,
+    ) -> bool {
         let text_color = if is_current {
             theme::text_primary()
         } else {
@@ -216,13 +248,22 @@ impl Sidebar {
             egui::Color32::TRANSPARENT
         };
 
-        let (rect, response) = ui.allocate_exact_size(Vec2::new(theme::SIDEBAR_WIDTH, 42.0), egui::Sense::click());
+        let (rect, response) =
+            ui.allocate_exact_size(Vec2::new(theme::SIDEBAR_WIDTH, 42.0), egui::Sense::click());
 
         if ui.is_rect_visible(rect) {
             // Background tint on hover or active
             if is_current || response.hovered() {
-                let fill = if is_current { bg_fill } else { theme::bg_elevated().linear_multiply(0.5) };
-                ui.painter().rect_filled(rect.shrink2(Vec2::new(8.0, 4.0)), CornerRadius::same(theme::BUTTON_ROUNDING), fill);
+                let fill = if is_current {
+                    bg_fill
+                } else {
+                    theme::bg_elevated().linear_multiply(0.5)
+                };
+                ui.painter().rect_filled(
+                    rect.shrink2(Vec2::new(8.0, 4.0)),
+                    CornerRadius::same(theme::BUTTON_ROUNDING),
+                    fill,
+                );
             }
 
             // Selected indicator (vertical bar)
@@ -231,7 +272,8 @@ impl Sidebar {
                     rect.left_top() + Vec2::new(4.0, 10.0),
                     rect.left_bottom() + Vec2::new(7.0, -10.0),
                 );
-                ui.painter().rect_filled(bar_rect, CornerRadius::same(1), theme::ACCENT);
+                ui.painter()
+                    .rect_filled(bar_rect, CornerRadius::same(1), theme::ACCENT);
             }
 
             // Icon and label - placed manually to avoid interaction deadzones
@@ -241,7 +283,11 @@ impl Sidebar {
                 egui::Align2::LEFT_CENTER,
                 icon,
                 egui::FontId::proportional(16.0),
-                if is_current { theme::ACCENT } else { theme::text_tertiary() },
+                if is_current {
+                    theme::ACCENT
+                } else {
+                    theme::text_tertiary()
+                },
             );
 
             let label_pos = rect.left_top() + Vec2::new(20.0 + 16.0 + 8.0, 21.0);
@@ -256,10 +302,16 @@ impl Sidebar {
             // Badge
             if let Some(count) = badge {
                 if count > 0 {
-                    let badge_text = if count > 9 { "9+".to_string() } else { count.to_string() };
+                    let badge_text = if count > 9 {
+                        "9+".to_string()
+                    } else {
+                        count.to_string()
+                    };
                     let badge_center = rect.right_center() + Vec2::new(-24.0, 0.0);
-                    let badge_rect = egui::Rect::from_center_size(badge_center, Vec2::new(20.0, 16.0));
-                    ui.painter().rect_filled(badge_rect, CornerRadius::same(8), theme::ERROR);
+                    let badge_rect =
+                        egui::Rect::from_center_size(badge_center, Vec2::new(20.0, 16.0));
+                    ui.painter()
+                        .rect_filled(badge_rect, CornerRadius::same(8), theme::ERROR);
                     ui.painter().text(
                         badge_center,
                         egui::Align2::CENTER_CENTER,
@@ -307,11 +359,8 @@ impl Sidebar {
             ui.add_space(theme::SPACE_MD + 8.0);
             // Animated dot
             let (dot_rect, _) = ui.allocate_exact_size(Vec2::new(8.0, 8.0), egui::Sense::empty());
-            ui.painter().circle_filled(
-                dot_rect.center(),
-                4.0,
-                dot_color.linear_multiply(alpha),
-            );
+            ui.painter()
+                .circle_filled(dot_rect.center(), 4.0, dot_color.linear_multiply(alpha));
             // Subtle glow on synced/syncing
             if pulse_speed > 0.0 {
                 ui.painter().circle_filled(

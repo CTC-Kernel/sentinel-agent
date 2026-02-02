@@ -92,8 +92,8 @@ impl ArpScanner {
         let after_at = after_ip[at_idx + 4..].trim();
 
         // Check for incomplete entries
-        let is_incomplete = after_at.starts_with("(incomplete)")
-            || after_at.starts_with("<incomplete>");
+        let is_incomplete =
+            after_at.starts_with("(incomplete)") || after_at.starts_with("<incomplete>");
 
         let mac = if is_incomplete {
             None
@@ -151,10 +151,7 @@ mod tests {
         assert_eq!(entries.len(), 4);
 
         assert_eq!(entries[0].ip, "192.168.1.1");
-        assert_eq!(
-            entries[0].mac.as_deref(),
-            Some("0:1A:2B:3C:4D:5E")
-        );
+        assert_eq!(entries[0].mac.as_deref(), Some("0:1A:2B:3C:4D:5E"));
         assert_eq!(entries[0].interface.as_deref(), Some("en0"));
         assert!(!entries[0].is_permanent);
 
@@ -181,10 +178,7 @@ mod tests {
         assert_eq!(entries.len(), 3);
 
         assert_eq!(entries[0].ip, "10.0.0.1");
-        assert_eq!(
-            entries[0].mac.as_deref(),
-            Some("AA:BB:CC:DD:EE:FF")
-        );
+        assert_eq!(entries[0].mac.as_deref(), Some("AA:BB:CC:DD:EE:FF"));
         assert_eq!(entries[0].interface.as_deref(), Some("eth0"));
 
         // Incomplete

@@ -67,10 +67,7 @@ impl BluetoothCheck {
             .args(["query", "bthserv"])
             .output()
             .map_err(|e| {
-                ScannerError::CheckExecution(format!(
-                    "Failed to query Bluetooth service: {}",
-                    e
-                ))
+                ScannerError::CheckExecution(format!("Failed to query Bluetooth service: {}", e))
             })?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
@@ -114,10 +111,7 @@ impl BluetoothCheck {
             .args(["is-active", "bluetooth"])
             .output()
             .map_err(|e| {
-                ScannerError::CheckExecution(format!(
-                    "Failed to check bluetooth service: {}",
-                    e
-                ))
+                ScannerError::CheckExecution(format!("Failed to check bluetooth service: {}", e))
             })?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
@@ -150,10 +144,7 @@ impl BluetoothCheck {
             ])
             .output()
             .map_err(|e| {
-                ScannerError::CheckExecution(format!(
-                    "Failed to read Bluetooth preferences: {}",
-                    e
-                ))
+                ScannerError::CheckExecution(format!("Failed to read Bluetooth preferences: {}", e))
             })?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();

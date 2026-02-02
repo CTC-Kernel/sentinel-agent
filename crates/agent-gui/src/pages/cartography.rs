@@ -1,11 +1,11 @@
 //! Network Cartography — 2D force-directed graph of discovered devices.
 
-use egui::{Color32, Pos2, Ui, Vec2};
 use crate::app::AppState;
 use crate::dto::GuiDiscoveredDevice;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
+use egui::{Color32, Pos2, Ui, Vec2};
 
 /// Node in the force-directed graph.
 #[derive(Clone)]
@@ -116,9 +116,9 @@ impl CartographyPage {
 
         // Build graph layout if needed
         let devices = state.discovered_devices.clone();
-        let layout = state.graph_layout.get_or_insert_with(|| {
-            build_initial_layout(&devices)
-        });
+        let layout = state
+            .graph_layout
+            .get_or_insert_with(|| build_initial_layout(&devices));
 
         // Run force simulation
         run_force_simulation(layout);
@@ -169,10 +169,7 @@ impl CartographyPage {
 
         // Draw nodes
         for (i, node) in layout.nodes.iter().enumerate() {
-            let screen_pos = Pos2::new(
-                node.pos.x * zoom + center.x,
-                node.pos.y * zoom + center.y,
-            );
+            let screen_pos = Pos2::new(node.pos.x * zoom + center.x, node.pos.y * zoom + center.y);
 
             if !rect.contains(screen_pos) {
                 continue;
@@ -189,7 +186,11 @@ impl CartographyPage {
 
             // Node circle
             painter.circle_filled(screen_pos, radius, color);
-            painter.circle_stroke(screen_pos, radius, egui::Stroke::new(1.0, Color32::from_white_alpha(40)));
+            painter.circle_stroke(
+                screen_pos,
+                radius,
+                egui::Stroke::new(1.0, Color32::from_white_alpha(40)),
+            );
 
             // Label
             let label = node.device.hostname.as_deref().unwrap_or(&node.device.ip);
@@ -202,7 +203,8 @@ impl CartographyPage {
             );
 
             // Click detection
-            let click_rect = egui::Rect::from_center_size(screen_pos, egui::Vec2::splat(radius * 2.5));
+            let click_rect =
+                egui::Rect::from_center_size(screen_pos, egui::Vec2::splat(radius * 2.5));
             if response.clicked() {
                 if let Some(pointer_pos) = response.interact_pointer_pos() {
                     if click_rect.contains(pointer_pos) {
@@ -214,22 +216,32 @@ impl CartographyPage {
             // Tooltip on hover
             if let Some(hover_pos) = ui.input(|i| i.pointer.hover_pos()) {
                 if click_rect.contains(hover_pos) {
-                    egui::show_tooltip_at_pointer(ui.ctx(), ui.layer_id(), ui.id().with(format!("node_{}", i)), |ui: &mut egui::Ui| {
-                        ui.label(egui::RichText::new(&node.device.ip).strong());
-                        if let Some(ref h) = node.device.hostname {
-                            ui.label(format!("Hostname: {}", h));
-                        }
-                        if let Some(ref v) = node.device.vendor {
-                            ui.label(format!("Vendor: {}", v));
-                        }
-                        ui.label(format!("Type: {}", node.device.device_type));
-                        if !node.device.open_ports.is_empty() {
-                            ui.label(format!(
-                                "Ports: {}",
-                                node.device.open_ports.iter().map(|p| p.to_string()).collect::<Vec<_>>().join(", ")
-                            ));
-                        }
-                    });
+                    egui::show_tooltip_at_pointer(
+                        ui.ctx(),
+                        ui.layer_id(),
+                        ui.id().with(format!("node_{}", i)),
+                        |ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new(&node.device.ip).strong());
+                            if let Some(ref h) = node.device.hostname {
+                                ui.label(format!("Hostname: {}", h));
+                            }
+                            if let Some(ref v) = node.device.vendor {
+                                ui.label(format!("Vendor: {}", v));
+                            }
+                            ui.label(format!("Type: {}", node.device.device_type));
+                            if !node.device.open_ports.is_empty() {
+                                ui.label(format!(
+                                    "Ports: {}",
+                                    node.device
+                                        .open_ports
+                                        .iter()
+                                        .map(|p| p.to_string())
+                                        .collect::<Vec<_>>()
+                                        .join(", ")
+                                ));
+                            }
+                        },
+                    );
                 }
             }
         }
@@ -253,7 +265,8 @@ impl CartographyPage {
                     ("IoT", theme::WARNING),
                     ("Inconnu", theme::text_secondary()),
                 ] {
-                    let (dot_rect, _) = ui.allocate_exact_size(egui::Vec2::splat(8.0), egui::Sense::hover());
+                    let (dot_rect, _) =
+                        ui.allocate_exact_size(egui::Vec2::splat(8.0), egui::Sense::hover());
                     ui.painter().circle_filled(dot_rect.center(), 4.0, *color);
                     ui.label(
                         egui::RichText::new(*label)
@@ -267,7 +280,11 @@ impl CartographyPage {
 
         // Detail panel for selected device
         if let Some(ref selected_ip) = state.graph_selected_device.clone() {
-            if let Some(device) = state.discovered_devices.iter().find(|d| &d.ip == selected_ip) {
+            if let Some(device) = state
+                .discovered_devices
+                .iter()
+                .find(|d| &d.ip == selected_ip)
+            {
                 ui.add_space(theme::SPACE_MD);
                 widgets::card(ui, |ui| {
                     ui.horizontal(|ui| {
@@ -278,7 +295,10 @@ impl CartographyPage {
                                 .color(theme::text_primary()),
                         );
                         ui.add_space(theme::SPACE_MD);
-                        if ui.small_button(&format!("{} Fermer", icons::XMARK)).clicked() {
+                        if ui
+                            .small_button(&format!("{} Fermer", icons::XMARK))
+                            .clicked()
+                        {
                             state.graph_selected_device = None;
                         }
                     });
@@ -294,12 +314,20 @@ impl CartographyPage {
                     }
                     ui.label(format!("Type: {}", device.device_type));
                     if device.is_gateway {
-                        ui.label(egui::RichText::new("Passerelle d\u{00e9}tect\u{00e9}e").color(theme::ACCENT));
+                        ui.label(
+                            egui::RichText::new("Passerelle d\u{00e9}tect\u{00e9}e")
+                                .color(theme::ACCENT),
+                        );
                     }
                     if !device.open_ports.is_empty() {
                         ui.label(format!(
                             "Ports ouverts: {}",
-                            device.open_ports.iter().map(|p| p.to_string()).collect::<Vec<_>>().join(", ")
+                            device
+                                .open_ports
+                                .iter()
+                                .map(|p| p.to_string())
+                                .collect::<Vec<_>>()
+                                .join(", ")
                         ));
                     }
                 });
@@ -358,12 +386,18 @@ fn build_initial_layout(devices: &[GuiDiscoveredDevice]) -> GraphLayout {
         // Connect to gateway(s)
         if !nodes[i].device.is_gateway {
             for &gw in &gateway_indices {
-                edges.push(GraphEdge { source: i, target: gw });
+                edges.push(GraphEdge {
+                    source: i,
+                    target: gw,
+                });
             }
         }
         // If no gateway, connect sequential nodes to form a chain
         if gateway_indices.is_empty() && i > 0 {
-            edges.push(GraphEdge { source: i - 1, target: i });
+            edges.push(GraphEdge {
+                source: i - 1,
+                target: i,
+            });
         }
     }
 

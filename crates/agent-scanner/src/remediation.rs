@@ -3,7 +3,9 @@
 //! Provides pre-built remediation actions for common compliance issues,
 //! with dry-run preview, execution, and rollback support.
 
-use agent_common::types::{RemediationAction, RemediationResult, RemediationRisk, RemediationStatus};
+use agent_common::types::{
+    RemediationAction, RemediationResult, RemediationRisk, RemediationStatus,
+};
 use chrono::Utc;
 use std::collections::HashMap;
 use std::process::Command;
@@ -103,10 +105,7 @@ impl RemediationEngine {
                 }
             }
             Err(error) => {
-                warn!(
-                    "Remediation for '{}' failed: {}",
-                    action.check_id, error
-                );
+                warn!("Remediation for '{}' failed: {}", action.check_id, error);
                 RemediationResult {
                     check_id: action.check_id.clone(),
                     status: RemediationStatus::Failed,
@@ -157,38 +156,48 @@ impl RemediationEngine {
     /// Register all built-in remediation actions.
     fn register_builtin_actions(&mut self) {
         // Firewall
-        self.register("firewall_config", vec![
-            RemediationAction {
-                check_id: "firewall_config".to_string(),
-                platform: "linux".to_string(),
-                script: "ufw --force enable".to_string(),
-                requires_reboot: false,
-                requires_admin: true,
-                risk_level: RemediationRisk::Moderate,
-                description: "Enable the UFW firewall with default deny incoming policy".to_string(),
-                rollback_script: Some("ufw disable".to_string()),
-            },
-            RemediationAction {
-                check_id: "firewall_config".to_string(),
-                platform: "windows".to_string(),
-                script: "netsh advfirewall set allprofiles state on".to_string(),
-                requires_reboot: false,
-                requires_admin: true,
-                risk_level: RemediationRisk::Moderate,
-                description: "Enable Windows Firewall for all profiles".to_string(),
-                rollback_script: Some("netsh advfirewall set allprofiles state off".to_string()),
-            },
-            RemediationAction {
-                check_id: "firewall_config".to_string(),
-                platform: "macos".to_string(),
-                script: "/usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on".to_string(),
-                requires_reboot: false,
-                requires_admin: true,
-                risk_level: RemediationRisk::Moderate,
-                description: "Enable macOS Application Firewall".to_string(),
-                rollback_script: Some("/usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate off".to_string()),
-            },
-        ]);
+        self.register(
+            "firewall_config",
+            vec![
+                RemediationAction {
+                    check_id: "firewall_config".to_string(),
+                    platform: "linux".to_string(),
+                    script: "ufw --force enable".to_string(),
+                    requires_reboot: false,
+                    requires_admin: true,
+                    risk_level: RemediationRisk::Moderate,
+                    description: "Enable the UFW firewall with default deny incoming policy"
+                        .to_string(),
+                    rollback_script: Some("ufw disable".to_string()),
+                },
+                RemediationAction {
+                    check_id: "firewall_config".to_string(),
+                    platform: "windows".to_string(),
+                    script: "netsh advfirewall set allprofiles state on".to_string(),
+                    requires_reboot: false,
+                    requires_admin: true,
+                    risk_level: RemediationRisk::Moderate,
+                    description: "Enable Windows Firewall for all profiles".to_string(),
+                    rollback_script: Some(
+                        "netsh advfirewall set allprofiles state off".to_string(),
+                    ),
+                },
+                RemediationAction {
+                    check_id: "firewall_config".to_string(),
+                    platform: "macos".to_string(),
+                    script: "/usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on"
+                        .to_string(),
+                    requires_reboot: false,
+                    requires_admin: true,
+                    risk_level: RemediationRisk::Moderate,
+                    description: "Enable macOS Application Firewall".to_string(),
+                    rollback_script: Some(
+                        "/usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate off"
+                            .to_string(),
+                    ),
+                },
+            ],
+        );
 
         // Session lock
         self.register("session_lock", vec![
@@ -225,28 +234,31 @@ impl RemediationEngine {
         ]);
 
         // System updates
-        self.register("system_updates", vec![
-            RemediationAction {
-                check_id: "system_updates".to_string(),
-                platform: "linux".to_string(),
-                script: "apt update && apt list --upgradable".to_string(),
-                requires_reboot: false,
-                requires_admin: true,
-                risk_level: RemediationRisk::Safe,
-                description: "Check for available system updates".to_string(),
-                rollback_script: None,
-            },
-            RemediationAction {
-                check_id: "system_updates".to_string(),
-                platform: "macos".to_string(),
-                script: "softwareupdate --list".to_string(),
-                requires_reboot: false,
-                requires_admin: false,
-                risk_level: RemediationRisk::Safe,
-                description: "Check for available macOS updates".to_string(),
-                rollback_script: None,
-            },
-        ]);
+        self.register(
+            "system_updates",
+            vec![
+                RemediationAction {
+                    check_id: "system_updates".to_string(),
+                    platform: "linux".to_string(),
+                    script: "apt update && apt list --upgradable".to_string(),
+                    requires_reboot: false,
+                    requires_admin: true,
+                    risk_level: RemediationRisk::Safe,
+                    description: "Check for available system updates".to_string(),
+                    rollback_script: None,
+                },
+                RemediationAction {
+                    check_id: "system_updates".to_string(),
+                    platform: "macos".to_string(),
+                    script: "softwareupdate --list".to_string(),
+                    requires_reboot: false,
+                    requires_admin: false,
+                    risk_level: RemediationRisk::Safe,
+                    description: "Check for available macOS updates".to_string(),
+                    rollback_script: None,
+                },
+            ],
+        );
 
         // Obsolete protocols
         self.register("obsolete_protocols", vec![
@@ -273,8 +285,9 @@ impl RemediationEngine {
         ]);
 
         // Audit logging
-        self.register("audit_logging", vec![
-            RemediationAction {
+        self.register(
+            "audit_logging",
+            vec![RemediationAction {
                 check_id: "audit_logging".to_string(),
                 platform: "linux".to_string(),
                 script: "systemctl enable auditd && systemctl start auditd".to_string(),
@@ -283,36 +296,40 @@ impl RemediationEngine {
                 risk_level: RemediationRisk::Safe,
                 description: "Enable and start the Linux audit daemon".to_string(),
                 rollback_script: Some("systemctl stop auditd".to_string()),
-            },
-        ]);
+            }],
+        );
 
         // Time sync
-        self.register("time_sync", vec![
-            RemediationAction {
-                check_id: "time_sync".to_string(),
-                platform: "linux".to_string(),
-                script: "timedatectl set-ntp true".to_string(),
-                requires_reboot: false,
-                requires_admin: true,
-                risk_level: RemediationRisk::Safe,
-                description: "Enable NTP time synchronization".to_string(),
-                rollback_script: Some("timedatectl set-ntp false".to_string()),
-            },
-            RemediationAction {
-                check_id: "time_sync".to_string(),
-                platform: "macos".to_string(),
-                script: "systemsetup -setusingnetworktime on".to_string(),
-                requires_reboot: false,
-                requires_admin: true,
-                risk_level: RemediationRisk::Safe,
-                description: "Enable network time synchronization on macOS".to_string(),
-                rollback_script: None,
-            },
-        ]);
+        self.register(
+            "time_sync",
+            vec![
+                RemediationAction {
+                    check_id: "time_sync".to_string(),
+                    platform: "linux".to_string(),
+                    script: "timedatectl set-ntp true".to_string(),
+                    requires_reboot: false,
+                    requires_admin: true,
+                    risk_level: RemediationRisk::Safe,
+                    description: "Enable NTP time synchronization".to_string(),
+                    rollback_script: Some("timedatectl set-ntp false".to_string()),
+                },
+                RemediationAction {
+                    check_id: "time_sync".to_string(),
+                    platform: "macos".to_string(),
+                    script: "systemsetup -setusingnetworktime on".to_string(),
+                    requires_reboot: false,
+                    requires_admin: true,
+                    risk_level: RemediationRisk::Safe,
+                    description: "Enable network time synchronization on macOS".to_string(),
+                    rollback_script: None,
+                },
+            ],
+        );
 
         // Bluetooth disabled
-        self.register("bluetooth_disabled", vec![
-            RemediationAction {
+        self.register(
+            "bluetooth_disabled",
+            vec![RemediationAction {
                 check_id: "bluetooth_disabled".to_string(),
                 platform: "linux".to_string(),
                 script: "systemctl disable bluetooth && systemctl stop bluetooth".to_string(),
@@ -320,9 +337,11 @@ impl RemediationEngine {
                 requires_admin: true,
                 risk_level: RemediationRisk::Moderate,
                 description: "Disable the Bluetooth service".to_string(),
-                rollback_script: Some("systemctl enable bluetooth && systemctl start bluetooth".to_string()),
-            },
-        ]);
+                rollback_script: Some(
+                    "systemctl enable bluetooth && systemctl start bluetooth".to_string(),
+                ),
+            }],
+        );
 
         // Guest account
         self.register("guest_account_disabled", vec![
@@ -364,13 +383,9 @@ impl Default for RemediationEngine {
 /// Execute a script on the current platform.
 fn execute_script(script: &str, platform: &str) -> Result<String, String> {
     let output = if platform == "windows" || cfg!(target_os = "windows") {
-        Command::new("cmd")
-            .args(["/C", script])
-            .output()
+        Command::new("cmd").args(["/C", script]).output()
     } else {
-        Command::new("sh")
-            .args(["-c", script])
-            .output()
+        Command::new("sh").args(["-c", script]).output()
     };
 
     match output {
@@ -391,13 +406,21 @@ fn execute_script(script: &str, platform: &str) -> Result<String, String> {
 /// Get the current platform string.
 fn current_platform() -> String {
     #[cfg(target_os = "windows")]
-    { "windows".to_string() }
+    {
+        "windows".to_string()
+    }
     #[cfg(target_os = "linux")]
-    { "linux".to_string() }
+    {
+        "linux".to_string()
+    }
     #[cfg(target_os = "macos")]
-    { "macos".to_string() }
+    {
+        "macos".to_string()
+    }
     #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
-    { "unknown".to_string() }
+    {
+        "unknown".to_string()
+    }
 }
 
 #[cfg(test)]

@@ -95,10 +95,7 @@ impl HttpClient {
     /// This client sends the certificate via `X-Agent-Certificate` header
     /// instead of mTLS. Used as fallback when the stored certificate is not
     /// in valid PEM format (e.g., base64-encoded JSON from enrollment).
-    pub fn with_header_auth(
-        config: &AgentConfig,
-        certificate: &str,
-    ) -> SyncResult<Self> {
+    pub fn with_header_auth(config: &AgentConfig, certificate: &str) -> SyncResult<Self> {
         debug!("Creating HTTP client with header-based auth (mTLS fallback)");
 
         let mut builder = ClientBuilder::new()
@@ -272,18 +269,15 @@ impl HttpClient {
             .header(header::ACCEPT, "application/json")
             .json(body);
 
-        let response = self.apply_auth(request)
-            .send()
-            .await
-            .map_err(|e| {
-                if e.is_timeout() {
-                    SyncError::Timeout
-                } else if e.is_connect() {
-                    SyncError::connection(e.to_string())
-                } else {
-                    SyncError::Http(e)
-                }
-            })?;
+        let response = self.apply_auth(request).send().await.map_err(|e| {
+            if e.is_timeout() {
+                SyncError::Timeout
+            } else if e.is_connect() {
+                SyncError::connection(e.to_string())
+            } else {
+                SyncError::Http(e)
+            }
+        })?;
 
         self.handle_response(response).await
     }
@@ -337,18 +331,15 @@ impl HttpClient {
             .get(&url)
             .header(header::ACCEPT, "application/json");
 
-        let response = self.apply_auth(request)
-            .send()
-            .await
-            .map_err(|e| {
-                if e.is_timeout() {
-                    SyncError::Timeout
-                } else if e.is_connect() {
-                    SyncError::connection(e.to_string())
-                } else {
-                    SyncError::Http(e)
-                }
-            })?;
+        let response = self.apply_auth(request).send().await.map_err(|e| {
+            if e.is_timeout() {
+                SyncError::Timeout
+            } else if e.is_connect() {
+                SyncError::connection(e.to_string())
+            } else {
+                SyncError::Http(e)
+            }
+        })?;
 
         self.handle_response(response).await
     }

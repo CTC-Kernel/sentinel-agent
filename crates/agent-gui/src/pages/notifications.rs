@@ -22,11 +22,7 @@ impl NotificationsPage {
         // Summary + mark all read button
         ui.horizontal(|ui| {
             let total = state.notifications.len();
-            let unread = state
-                .notifications
-                .iter()
-                .filter(|n| !n.read)
-                .count();
+            let unread = state.notifications.iter().filter(|n| !n.read).count();
 
             ui.label(
                 egui::RichText::new(format!("{} notification(s), {} non lue(s)", total, unread))
@@ -80,24 +76,23 @@ impl NotificationsPage {
                     .inner_margin(egui::Margin::same(16))
                     .stroke(egui::Stroke::new(
                         if notif.read { 0.5 } else { 1.0 },
-                        if notif.read { theme::border() } else { border_color },
+                        if notif.read {
+                            theme::border()
+                        } else {
+                            border_color
+                        },
                     ))
                     .show(ui, |ui| {
                         ui.horizontal(|ui| {
                             // Severity badge
-                            widgets::status_badge(
-                                ui,
-                                &notif.severity.to_uppercase(),
-                                border_color,
-                            );
+                            widgets::status_badge(ui, &notif.severity.to_uppercase(), border_color);
 
                             ui.add_space(theme::SPACE_SM);
 
                             // Unread indicator
                             if !notif.read {
                                 ui.painter().circle_filled(
-                                    ui.available_rect_before_wrap().min
-                                        + egui::vec2(0.0, 8.0),
+                                    ui.available_rect_before_wrap().min + egui::vec2(0.0, 8.0),
                                     4.0,
                                     theme::ACCENT,
                                 );
@@ -125,10 +120,7 @@ impl NotificationsPage {
                                 |ui| {
                                     ui.label(
                                         egui::RichText::new(
-                                            notif
-                                                .timestamp
-                                                .format("%d/%m/%Y %H:%M")
-                                                .to_string(),
+                                            notif.timestamp.format("%d/%m/%Y %H:%M").to_string(),
                                         )
                                         .font(theme::font_small())
                                         .color(theme::text_tertiary()),

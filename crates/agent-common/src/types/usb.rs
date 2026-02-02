@@ -144,7 +144,10 @@ mod tests {
 
     #[test]
     fn test_usb_device_class_from_code() {
-        assert_eq!(UsbDeviceClass::from_class_code(0x08), UsbDeviceClass::MassStorage);
+        assert_eq!(
+            UsbDeviceClass::from_class_code(0x08),
+            UsbDeviceClass::MassStorage
+        );
         assert_eq!(UsbDeviceClass::from_class_code(0x03), UsbDeviceClass::Hid);
         assert_eq!(UsbDeviceClass::from_class_code(0xFF), UsbDeviceClass::Other);
     }

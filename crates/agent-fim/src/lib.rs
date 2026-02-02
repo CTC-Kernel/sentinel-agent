@@ -23,7 +23,7 @@ pub mod watcher;
 
 use agent_common::types::{FimAlert, FimPolicy};
 use std::sync::Arc;
-use tokio::sync::{mpsc, RwLock};
+use tokio::sync::{RwLock, mpsc};
 use tracing::{info, warn};
 
 /// FIM engine that coordinates watching, baselining, and alerting.
@@ -70,7 +70,10 @@ impl FimEngine {
         );
         for path in &policy.watched_paths {
             if path.exists() {
-                match self.baseline_mgr.create_baseline(path, &policy.ignore_patterns) {
+                match self
+                    .baseline_mgr
+                    .create_baseline(path, &policy.ignore_patterns)
+                {
                     Ok(count) => info!("Baselined {} files in {}", count, path.display()),
                     Err(e) => warn!("Failed to baseline {}: {}", path.display(), e),
                 }
@@ -118,12 +121,8 @@ impl FimEngine {
     }
 
     /// Re-scan and update baseline for a specific path.
-    pub fn refresh_baseline(
-        &self,
-        path: &std::path::Path,
-    ) -> Result<usize, FimError> {
-        self.baseline_mgr
-            .create_baseline(path, &[])
+    pub fn refresh_baseline(&self, path: &std::path::Path) -> Result<usize, FimError> {
+        self.baseline_mgr.create_baseline(path, &[])
     }
 
     /// Get the number of alerts pending in the channel.

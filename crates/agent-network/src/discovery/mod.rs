@@ -26,8 +26,8 @@ use crate::types::{DeviceType, DiscoveredDevice, DiscoveryResult};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
 use tracing::{debug, info, warn};
 
@@ -139,9 +139,9 @@ impl NetworkDiscovery {
         // Build initial device map from ARP entries
         let mut devices: HashMap<String, DeviceBuilder> = HashMap::new();
         for entry in &arp_entries {
-            let builder = devices.entry(entry.ip.clone()).or_insert_with(|| {
-                DeviceBuilder::new(entry.ip.clone(), subnet.to_string(), now)
-            });
+            let builder = devices
+                .entry(entry.ip.clone())
+                .or_insert_with(|| DeviceBuilder::new(entry.ip.clone(), subnet.to_string(), now));
             if entry.mac.is_some() {
                 builder.mac = entry.mac.clone();
             }
@@ -158,13 +158,12 @@ impl NetworkDiscovery {
                 max_concurrent: self.config.max_concurrent,
                 timeout_ms: self.config.ping_timeout_ms,
             };
-            let alive_hosts =
-                PingSweeper::sweep(subnet, &sweep_config, self.cancel.clone())
-                    .await
-                    .unwrap_or_else(|e| {
-                        warn!("Ping sweep failed: {}", e);
-                        Vec::new()
-                    });
+            let alive_hosts = PingSweeper::sweep(subnet, &sweep_config, self.cancel.clone())
+                .await
+                .unwrap_or_else(|e| {
+                    warn!("Ping sweep failed: {}", e);
+                    Vec::new()
+                });
 
             for ip in alive_hosts {
                 devices
@@ -204,11 +203,8 @@ impl NetworkDiscovery {
                         }
                         let addr = format!("{}:{}", ip_clone, port);
                         let timeout = tokio::time::Duration::from_millis(500);
-                        match tokio::time::timeout(
-                            timeout,
-                            tokio::net::TcpStream::connect(&addr),
-                        )
-                        .await
+                        match tokio::time::timeout(timeout, tokio::net::TcpStream::connect(&addr))
+                            .await
                         {
                             Ok(Ok(_)) => Some(port),
                             _ => None,
@@ -299,12 +295,9 @@ impl NetworkDiscovery {
                 .as_deref()
                 .and_then(|mac| self.resolver.lookup_vendor(mac));
 
-            let device_type = self.resolver.classify_device(
-                &entry.ip,
-                vendor.as_deref(),
-                &[],
-                None,
-            );
+            let device_type =
+                self.resolver
+                    .classify_device(&entry.ip, vendor.as_deref(), &[], None);
 
             let is_gateway = matches!(device_type, DeviceType::Router);
 
@@ -334,10 +327,7 @@ impl NetworkDiscovery {
         subnet: &str,
         timestamp: chrono::DateTime<Utc>,
     ) -> DiscoveryResult {
-        let discovered: Vec<DiscoveredDevice> = devices
-            .into_values()
-            .map(|b| b.build())
-            .collect();
+        let discovered: Vec<DiscoveredDevice> = devices.into_values().map(|b| b.build()).collect();
 
         let duration_ms = start.elapsed().as_millis() as u64;
         info!(
