@@ -135,15 +135,21 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << EOF
 </plist>
 EOF
 
-# Create app icon (simple placeholder)
-echo -e "${YELLOW}Creating app icon...${NC}"
-cat > "$APP_BUNDLE/Contents/Resources/icon.png" << 'EOF'
-iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==
-EOF
+# Copy app icon
+echo -e "${YELLOW}Copying app icon...${NC}"
+ICON_SOURCE="$SCRIPT_DIR/assets/icons/sentinel-agent.icns"
+if [[ -f "$ICON_SOURCE" ]]; then
+    cp "$ICON_SOURCE" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
+    echo -e "${GREEN}✅ Icon copied successfully${NC}"
+else
+    echo -e "${YELLOW}⚠️ Icon not found at $ICON_SOURCE, using placeholder${NC}"
+    # Valid placeholder creation (if needed, though prefer warning)
+    touch "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
+fi
 
 # Sign the app bundle with Apple Developer ID
 echo -e "${YELLOW}Signing app bundle with identity: $SIGNING_IDENTITY...${NC}"
-codesign --force --options runtime --timestamp --sign "$SIGNING_IDENTITY" "$APP_BUNDLE"
+codesign --force --options runtime --timestamp --entitlements "macos/entitlements.plist" --sign "$SIGNING_IDENTITY" "$APP_BUNDLE"
 
 # Verify signature
 echo -e "${YELLOW}Verifying app bundle signature...${NC}"
