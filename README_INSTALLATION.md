@@ -90,11 +90,20 @@ For desktop environments, you can run the agent with GUI:
 ```
 
 The GUI provides:
-- **Dashboard**: Real-time compliance status
-- **Enrollment**: Easy token-based enrollment
-- **Configuration**: Interactive settings management
-- **Logs**: Live log viewing
-- **Network Discovery**: Visual network mapping
+- **Dashboard**: Real-time compliance status and agent health
+- **Monitoring**: CPU, memory, disk, and network usage charts
+- **Compliance**: 21 security checks with remediation
+- **Software**: Package and application inventory
+- **Vulnerabilities**: CVE vulnerability scan results
+- **File Integrity**: FIM alerts and file change monitoring
+- **Threats**: Suspicious process and security event detection
+- **Network**: Interface, connection, and route monitoring
+- **Sync**: Server synchronization status with animated indicator
+- **Terminal**: Live log viewer with level filtering
+- **Discovery**: ARP/mDNS/SSDP network device discovery
+- **Cartography**: Visual network topology map
+- **Notifications**: Alert center
+- **Settings**: Theme, intervals, and configuration
 
 ## 🖥️ Headless Mode (Servers)
 

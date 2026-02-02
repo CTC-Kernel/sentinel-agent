@@ -2,11 +2,18 @@
 
 ## Qu'est-ce que l'Agent Sentinel ?
 
-L'Agent Sentinel est un logiciel de conformité qui s'exécute en arrière-plan sur votre ordinateur. Il vérifie automatiquement que votre poste de travail respecte les politiques de sécurité de votre organisation.
+L'Agent Sentinel est un logiciel de conformité et de sécurité qui s'exécute en arrière-plan sur votre ordinateur. Il vérifie automatiquement que votre poste de travail respecte les politiques de sécurité de votre organisation et détecte les menaces potentielles.
 
 ### Ce que fait l'agent :
 
-- **Vérification de conformité** : Analyse les paramètres de sécurité de votre système
+- **Vérification de conformité** : Analyse les paramètres de sécurité de votre système (CIS, NIS2, ISO 27001, DORA, SOC2)
+- **Scan de vulnérabilités** : Détecte les CVE connues sur les paquets installés
+- **Surveillance des processus** : Identifie les processus suspects en cours d'exécution
+- **Collecte et analyse réseau** : Inventaire des interfaces, connexions actives et routes
+- **Surveillance de l'intégrité des fichiers (FIM)** : Détecte les modifications non autorisées sur les fichiers critiques
+- **Détection de menaces en temps réel** : Alertes sur les événements USB, processus anormaux et activités suspectes
+- **Remédiation automatisée** : Corrige automatiquement certaines non-conformités détectées
+- **Interface graphique complète** : Application de bureau native avec 14 pages de visualisation et de gestion
 - **Rapport automatique** : Envoie les résultats à la plateforme Sentinel GRC
 - **Surveillance continue** : Fonctionne silencieusement en arrière-plan
 - **Mises à jour automatiques** : Se met à jour sans intervention
@@ -15,8 +22,46 @@ L'Agent Sentinel est un logiciel de conformité qui s'exécute en arrière-plan 
 
 - Ne collecte PAS vos données personnelles
 - Ne surveille PAS votre activité (sites web, emails, etc.)
-- Ne modifie PAS vos fichiers
+- Ne modifie PAS vos fichiers personnels
 - Ne ralentit PAS votre ordinateur (< 1% CPU)
+- Ne capture PAS vos frappes clavier ni vos écrans
+
+---
+
+## Interface graphique (GUI)
+
+L'agent dispose d'une interface graphique de bureau native composée de 14 pages, accessible directement depuis l'application.
+
+### Pages disponibles
+
+| Page | Description |
+|------|-------------|
+| **Tableau de bord** | Vue d'ensemble avec score de conformité, statut de l'agent et utilisation des ressources |
+| **Surveillance** | Graphiques temps réel du CPU, mémoire, disque et réseau (egui_plot) |
+| **Conformité** | 21 vérifications couvrant CIS, NIS2, ISO 27001, DORA et SOC2 avec filtres et remédiation |
+| **Logiciels** | Inventaire complet des paquets et applications installées |
+| **Vulnérabilités** | Résultats des scans CVE avec niveau de sévérité |
+| **Intégrité fichiers** | Alertes FIM et surveillance des modifications sur les fichiers critiques |
+| **Menaces** | Processus suspects, événements USB et alertes de sécurité |
+| **Réseau** | Interfaces réseau, connexions actives et tables de routage |
+| **Synchronisation** | Historique et état de la synchronisation avec le serveur |
+| **Terminal** | Logs en temps réel avec filtres par niveau (debug, info, warn, error) |
+| **Découverte** | Scan réseau via ARP, mDNS et SSDP |
+| **Cartographie** | Visualisation graphique du réseau découvert |
+| **Notifications** | Centre de notifications regroupant toutes les alertes |
+| **Paramètres** | Configuration de l'agent, thème clair/sombre, intervalles de vérification |
+
+### Indicateur de synchronisation
+
+La barre latérale affiche un indicateur animé indiquant l'état de synchronisation avec le serveur :
+
+| Couleur | Signification |
+|---------|---------------|
+| Vert pulsant | Synchronisé (dernière sync < 5 min) |
+| Bleu rapide | Synchronisation en cours |
+| Orange | En attente (dernière sync > 5 min) |
+| Rouge | Erreur de synchronisation |
+| Gris | Jamais synchronisé |
 
 ---
 
@@ -51,10 +96,10 @@ Une fois lancé, l'agent apparaît dans votre barre système :
 
 | Couleur | Signification |
 |---------|---------------|
-| 🟢 Vert | Agent actif et conforme |
-| 🟡 Jaune | Agent en pause |
-| 🔴 Rouge | Erreur ou non-conformité |
-| 🔵 Bleu | Synchronisation en cours |
+| Vert | Agent actif et conforme |
+| Jaune | Agent en pause |
+| Rouge | Erreur ou non-conformité |
+| Bleu | Synchronisation en cours |
 
 ### Menu contextuel
 
@@ -65,7 +110,7 @@ Cliquez sur l'icône pour accéder au menu :
 - **Reprendre** : Reprend les vérifications après une pause
 - **Vérifier maintenant** : Lance une vérification immédiate
 - **Ouvrir les logs** : Accède aux fichiers journaux
-- **Tableau de bord** : Ouvre l'interface web de gestion
+- **Ouvrir l'interface** : Ouvre l'interface graphique de bureau
 - **Quitter** : Arrête l'agent (non recommandé)
 
 ---
@@ -169,7 +214,7 @@ L'agent utilise un fichier de configuration JSON :
 L'Agent Sentinel est conçu avec la confidentialité comme priorité :
 
 - **Chiffrement** : Toutes les communications sont chiffrées (TLS 1.3)
-- **Données minimales** : Seules les données de conformité sont collectées
+- **Données minimales** : Seules les données de conformité et de sécurité sont collectées
 - **Pas de keylogger** : L'agent ne capture pas vos frappes clavier
 - **Pas de capture d'écran** : L'agent ne prend jamais de screenshots
 - **Open audit** : Votre administrateur peut voir exactement ce qui est vérifié
@@ -182,7 +227,11 @@ L'Agent Sentinel est conçu avec la confidentialité comme priorité :
 | Système d'exploitation | Compatibilité | "macOS 14.2" |
 | Paramètres de sécurité | Conformité | "FileVault: activé" |
 | Score de conformité | Rapport | "85%" |
+| Paquets installés | Inventaire logiciel | "openssl 3.2.1" |
+| Vulnérabilités détectées | Sécurité | "CVE-2024-1234 (critique)" |
+| Connexions réseau actives | Analyse réseau | "443/tcp → 192.168.1.1" |
+| Processus en cours d'exécution | Détection de menaces | "nom du processus uniquement" |
 
 ---
 
-*Version 1.0.0 - Sentinel GRC Agent*
+*Version 2.0.0 - Sentinel GRC Agent*

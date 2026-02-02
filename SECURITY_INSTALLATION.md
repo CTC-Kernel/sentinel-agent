@@ -109,5 +109,5 @@ En cas de problème :
 ---
 
 **Version** : 2.0.0  
-**Dernière mise à jour** : 2026-02-01  
+**Dernière mise à jour** : 2026-02-02  
 **Développeur** : Cyber Threat Consulting

@@ -4,7 +4,7 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.1.x   | :white_check_mark: |
+| 2.0.x   | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
@@ -175,6 +175,14 @@ ignore = [
 - Review changelogs before updating
 - Prefer well-maintained crates with security policies
 - Minimize transitive dependency count
+
+### Agent Security Scanner
+
+The agent includes built-in security scanning capabilities:
+
+- **Vulnerability Scanning**: Periodic CVE-based vulnerability detection against installed packages
+- **Process Monitoring**: Detection of suspicious processes and security-relevant events
+- **File Integrity Monitoring (FIM)**: Alerts on unauthorized changes to critical system files
 
 ### Runtime Security
 
