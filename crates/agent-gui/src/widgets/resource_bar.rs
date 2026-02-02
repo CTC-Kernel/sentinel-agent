@@ -17,13 +17,13 @@ pub fn resource_bar(ui: &mut Ui, label: &str, value: &str, fraction: f32) {
         ui.label(
             egui::RichText::new(label)
                 .font(theme::font_small())
-                .color(theme::TEXT_SECONDARY),
+                .color(theme::text_secondary()),
         );
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             ui.label(
                 egui::RichText::new(value)
                     .font(theme::font_small())
-                    .color(theme::TEXT_PRIMARY),
+                    .color(theme::text_primary()),
             );
         });
     });
@@ -33,7 +33,7 @@ pub fn resource_bar(ui: &mut Ui, label: &str, value: &str, fraction: f32) {
     let rounding = CornerRadius::same(3);
 
     // Track.
-    painter.rect_filled(rect, rounding, theme::BORDER);
+    painter.rect_filled(rect, rounding, theme::border());
 
     // Fill.
     let clamped = fraction.clamp(0.0, 1.0);

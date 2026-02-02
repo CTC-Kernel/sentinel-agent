@@ -55,7 +55,7 @@ impl<'a> SearchFilterBar<'a> {
                 egui::TextEdit::singleline(self.search)
                     .hint_text(self.placeholder)
                     .font(theme::font_small())
-                    .text_color(theme::TEXT_PRIMARY)
+                    .text_color(theme::text_primary())
                     .desired_width(search_width),
             );
 
@@ -64,7 +64,7 @@ impl<'a> SearchFilterBar<'a> {
             // Chips
             for (idx, (label, active, color)) in self.chips.iter().enumerate() {
                 let (bg, fg) = if *active {
-                    (*color, theme::TEXT_ON_ACCENT)
+                    (*color, theme::text_on_accent())
                 } else {
                     (color.linear_multiply(0.12), *color)
                 };
@@ -90,7 +90,7 @@ impl<'a> SearchFilterBar<'a> {
                     ui.label(
                         egui::RichText::new(format!("{} résultat(s)", n))
                             .font(theme::font_small())
-                            .color(theme::TEXT_TERTIARY),
+                            .color(theme::text_tertiary()),
                     );
                 });
             }

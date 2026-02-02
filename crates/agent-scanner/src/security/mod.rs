@@ -23,7 +23,9 @@
 //! ```
 
 pub mod process_monitor;
+pub mod process_tree;
 pub mod system_monitor;
+pub mod usb_monitor;
 
 use crate::error::ScannerResult;
 use chrono::{DateTime, Utc};

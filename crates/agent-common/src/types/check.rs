@@ -62,6 +62,18 @@ pub enum CheckCategory {
     Mfa,
     /// Remote access security.
     RemoteAccess,
+    /// Audit logging and event monitoring.
+    AuditLogging,
+    /// Device control (USB, Bluetooth, peripherals).
+    DeviceControl,
+    /// Kernel and OS hardening.
+    KernelSecurity,
+    /// Network hardening (IPv6, routing).
+    NetworkHardening,
+    /// Time synchronization.
+    TimeSync,
+    /// Browser security settings.
+    BrowserSecurity,
     /// General security configuration.
     General,
 }

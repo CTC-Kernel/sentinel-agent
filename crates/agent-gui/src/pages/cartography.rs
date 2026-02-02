@@ -43,7 +43,7 @@ impl CartographyPage {
                         state.discovered_devices.len()
                     ))
                     .font(theme::font_body())
-                    .color(theme::TEXT_SECONDARY),
+                    .color(theme::text_secondary()),
                 );
 
                 ui.add_space(theme::SPACE_LG);
@@ -52,7 +52,7 @@ impl CartographyPage {
                 let reset_btn = egui::Button::new(
                     egui::RichText::new("R\u{00e9}initialiser")
                         .font(theme::font_small())
-                        .color(theme::TEXT_ON_ACCENT),
+                        .color(theme::text_on_accent()),
                 )
                 .fill(theme::ACCENT.linear_multiply(0.7))
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
@@ -68,7 +68,7 @@ impl CartographyPage {
                 ui.label(
                     egui::RichText::new(format!("Zoom: {:.0}%", state.graph_zoom * 100.0))
                         .font(theme::font_small())
-                        .color(theme::TEXT_TERTIARY),
+                        .color(theme::text_tertiary()),
                 );
 
                 ui.add_space(theme::SPACE_LG);
@@ -78,7 +78,7 @@ impl CartographyPage {
                     egui::RichText::new(format!("Voir en 3D {}", icons::EXTERNAL_LINK))
                         .font(theme::font_small())
                         .strong()
-                        .color(theme::TEXT_ON_ACCENT),
+                        .color(theme::text_on_accent()),
                 )
                 .fill(theme::SUCCESS.linear_multiply(0.8))
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
@@ -98,7 +98,7 @@ impl CartographyPage {
                     ui.label(
                         egui::RichText::new("Aucun appareil \u{00e0} afficher")
                             .font(theme::font_heading())
-                            .color(theme::TEXT_TERTIARY),
+                            .color(theme::text_tertiary()),
                     );
                     ui.add_space(theme::SPACE_SM);
                     ui.label(
@@ -106,7 +106,7 @@ impl CartographyPage {
                             "Lancez une d\u{00e9}couverte r\u{00e9}seau pour g\u{00e9}n\u{00e9}rer la cartographie",
                         )
                         .font(theme::font_body())
-                        .color(theme::TEXT_TERTIARY),
+                        .color(theme::text_tertiary()),
                     );
                     ui.add_space(theme::SPACE_XL * 3.0);
                 });
@@ -162,7 +162,7 @@ impl CartographyPage {
                 );
                 painter.line_segment(
                     [p1, p2],
-                    egui::Stroke::new(1.0, theme::BORDER.linear_multiply(0.5)),
+                    egui::Stroke::new(1.0, theme::border().linear_multiply(0.5)),
                 );
             }
         }
@@ -198,7 +198,7 @@ impl CartographyPage {
                 egui::Align2::CENTER_TOP,
                 label,
                 theme::font_small(),
-                theme::TEXT_SECONDARY,
+                theme::text_secondary(),
             );
 
             // Click detection
@@ -242,23 +242,23 @@ impl CartographyPage {
                     egui::RichText::new("L\u{00e9}gende:")
                         .font(theme::font_small())
                         .strong()
-                        .color(theme::TEXT_SECONDARY),
+                        .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_MD);
                 for (label, color) in &[
                     ("Routeur", theme::ACCENT),
                     ("Serveur", theme::SUCCESS),
-                    ("Poste", theme::TEXT_PRIMARY),
-                    ("Imprimante", theme::TEXT_TERTIARY),
+                    ("Poste", theme::text_primary()),
+                    ("Imprimante", theme::text_tertiary()),
                     ("IoT", theme::WARNING),
-                    ("Inconnu", theme::TEXT_SECONDARY),
+                    ("Inconnu", theme::text_secondary()),
                 ] {
                     let (dot_rect, _) = ui.allocate_exact_size(egui::Vec2::splat(8.0), egui::Sense::hover());
                     ui.painter().circle_filled(dot_rect.center(), 4.0, *color);
                     ui.label(
                         egui::RichText::new(*label)
                             .font(theme::font_small())
-                            .color(theme::TEXT_SECONDARY),
+                            .color(theme::text_secondary()),
                     );
                     ui.add_space(theme::SPACE_SM);
                 }
@@ -275,7 +275,7 @@ impl CartographyPage {
                             egui::RichText::new(&device.ip)
                                 .font(theme::font_heading())
                                 .strong()
-                                .color(theme::TEXT_PRIMARY),
+                                .color(theme::text_primary()),
                         );
                         ui.add_space(theme::SPACE_MD);
                         if ui.small_button(&format!("{} Fermer", icons::XMARK)).clicked() {
@@ -320,11 +320,11 @@ fn device_type_color(device_type: &str) -> Color32 {
     match device_type {
         "router" => theme::ACCENT,
         "server" => theme::SUCCESS,
-        "workstation" => theme::TEXT_PRIMARY,
-        "printer" => theme::TEXT_TERTIARY,
+        "workstation" => theme::text_primary(),
+        "printer" => theme::text_tertiary(),
         "iot" => theme::WARNING,
         "phone" => theme::ACCENT_LIGHT,
-        _ => theme::TEXT_SECONDARY,
+        _ => theme::text_secondary(),
     }
 }
 

@@ -73,6 +73,26 @@ pub struct AgentConfig {
     #[serde(default)]
     pub proxy: Option<ProxyConfig>,
 
+    /// File Integrity Monitoring watched paths (overrides defaults).
+    #[serde(default)]
+    pub fim_watched_paths: Option<Vec<String>>,
+
+    /// File Integrity Monitoring ignore patterns.
+    #[serde(default)]
+    pub fim_ignore_patterns: Option<Vec<String>>,
+
+    /// Whether to enable USB device monitoring.
+    #[serde(default = "default_true")]
+    pub usb_monitoring: bool,
+
+    /// Whether to block USB mass storage by default.
+    #[serde(default = "default_true")]
+    pub usb_block_mass_storage: bool,
+
+    /// Organization ID for API authentication (loaded from DB, not serialized).
+    #[serde(skip)]
+    pub organization_id: Option<String>,
+
     /// Client certificate for mTLS authentication (loaded from DB, not serialized).
     #[serde(skip)]
     pub client_certificate: Option<String>,
@@ -131,6 +151,10 @@ fn default_tls_verify() -> bool {
     true
 }
 
+fn default_true() -> bool {
+    true
+}
+
 impl Default for AgentConfig {
     fn default() -> Self {
         Self {
@@ -144,6 +168,10 @@ impl Default for AgentConfig {
             ca_cert_path: None,
             enrollment_token: None,
             proxy: None,
+            fim_watched_paths: None,
+            fim_ignore_patterns: None,
+            usb_monitoring: true,
+            usb_block_mass_storage: true,
             client_certificate: None,
             client_key: None,
         }
@@ -412,6 +440,10 @@ mod tests {
             }),
             client_certificate: None,
             client_key: None,
+            fim_watched_paths: None,
+            fim_ignore_patterns: None,
+            usb_monitoring: true,
+            usb_block_mass_storage: true,
         };
 
         let json = serde_json::to_string(&config).unwrap();

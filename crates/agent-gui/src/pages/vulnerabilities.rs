@@ -30,10 +30,10 @@ impl VulnerabilitiesPage {
         let card_w = (ui.available_width() - card_gap * 3.0) / 4.0;
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = card_gap;
-            Self::summary_card(ui, card_w, "CRITIQUES", &critical.to_string(), if critical > 0 { theme::ERROR } else { theme::TEXT_TERTIARY }, icons::SEVERITY_CRITICAL);
-            Self::summary_card(ui, card_w, "\u{00c9}LEV\u{00c9}ES", &high.to_string(), if high > 0 { theme::WARNING } else { theme::TEXT_TERTIARY }, icons::SEVERITY_HIGH);
-            Self::summary_card(ui, card_w, "MOYENNES", &medium.to_string(), if medium > 0 { theme::INFO } else { theme::TEXT_TERTIARY }, icons::SEVERITY_MEDIUM);
-            Self::summary_card(ui, card_w, "FAIBLES", &low.to_string(), theme::TEXT_TERTIARY, icons::SEVERITY_LOW);
+            Self::summary_card(ui, card_w, "CRITIQUES", &critical.to_string(), if critical > 0 { theme::ERROR } else { theme::text_tertiary() }, icons::SEVERITY_CRITICAL);
+            Self::summary_card(ui, card_w, "\u{00c9}LEV\u{00c9}ES", &high.to_string(), if high > 0 { theme::WARNING } else { theme::text_tertiary() }, icons::SEVERITY_HIGH);
+            Self::summary_card(ui, card_w, "MOYENNES", &medium.to_string(), if medium > 0 { theme::INFO } else { theme::text_tertiary() }, icons::SEVERITY_MEDIUM);
+            Self::summary_card(ui, card_w, "FAIBLES", &low.to_string(), theme::text_tertiary(), icons::SEVERITY_LOW);
         });
 
         ui.add_space(theme::SPACE_LG);
@@ -76,7 +76,7 @@ impl VulnerabilitiesPage {
             .chip("CRITIQUE", crit_active, theme::ERROR)
             .chip("\u{00c9}LEV\u{00c9}E", high_active, theme::WARNING)
             .chip("MOYENNE", med_active, theme::INFO)
-            .chip("FAIBLE", low_active, theme::TEXT_TERTIARY)
+            .chip("FAIBLE", low_active, theme::text_tertiary())
             .result_count(result_count)
             .show(ui);
 
@@ -103,9 +103,9 @@ impl VulnerabilitiesPage {
                 let export_btn = egui::Button::new(
                     egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
                         .font(theme::font_small())
-                        .color(theme::TEXT_SECONDARY),
+                        .color(theme::text_secondary()),
                 )
-                .fill(theme::BG_ELEVATED)
+                .fill(theme::bg_elevated())
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
                 if ui.add(export_btn).clicked() {
                     Self::export_csv(state, &filtered);
@@ -120,7 +120,7 @@ impl VulnerabilitiesPage {
             ui.label(
                 egui::RichText::new("FAILLES D\u{00c9}TECT\u{00c9}ES")
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -171,13 +171,13 @@ impl VulnerabilitiesPage {
                                     ui.label(
                                         egui::RichText::new(&finding.affected_software)
                                             .font(theme::font_body())
-                                            .color(theme::TEXT_PRIMARY)
+                                            .color(theme::text_primary())
                                             .strong(),
                                     );
                                     ui.label(
                                         egui::RichText::new(&finding.affected_version)
                                             .font(theme::font_small())
-                                            .color(theme::TEXT_TERTIARY),
+                                            .color(theme::text_tertiary()),
                                     );
                                 });
                             });
@@ -196,7 +196,7 @@ impl VulnerabilitiesPage {
                                             .strong(),
                                     );
                                 } else {
-                                    ui.label(egui::RichText::new("--").color(theme::TEXT_TERTIARY));
+                                    ui.label(egui::RichText::new("--").color(theme::text_tertiary()));
                                 }
                             });
 
@@ -205,7 +205,7 @@ impl VulnerabilitiesPage {
                                     ui.label(
                                         egui::RichText::new(&finding.description)
                                             .font(theme::font_small())
-                                            .color(theme::TEXT_SECONDARY),
+                                            .color(theme::text_secondary()),
                                     );
                                     if finding.fix_available {
                                         widgets::status_badge(
@@ -262,7 +262,7 @@ impl VulnerabilitiesPage {
                         ui.label(
                             egui::RichText::new(label)
                                 .font(theme::font_small())
-                                .color(theme::TEXT_TERTIARY)
+                                .color(theme::text_tertiary())
                                 .strong(),
                         );
                     });
@@ -279,8 +279,8 @@ impl VulnerabilitiesPage {
             "critical" => ("CRITIQUE", theme::ERROR),
             "high" => ("\u{00c9}LEV\u{00c9}E", theme::WARNING),
             "medium" => ("MOYENNE", theme::INFO),
-            "low" => ("FAIBLE", theme::TEXT_TERTIARY),
-            _ => ("INCONNUE", theme::TEXT_TERTIARY),
+            "low" => ("FAIBLE", theme::text_tertiary()),
+            _ => ("INCONNUE", theme::text_tertiary()),
         }
     }
 }

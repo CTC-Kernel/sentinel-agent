@@ -15,7 +15,7 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
     let center = rect.center();
     let painter = ui.painter_at(rect);
 
-    let track_color = theme::BORDER;
+    let track_color = theme::border();
     let stroke_width = 6.0;
 
     // Background track (full circle).
@@ -62,7 +62,7 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
                 egui::Align2::CENTER_CENTER,
                 "Conformit\u{00e9}",
                 theme::font_small(),
-                theme::TEXT_SECONDARY,
+                theme::text_secondary(),
             );
         }
         None => {
@@ -71,14 +71,14 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
                 egui::Align2::CENTER_CENTER,
                 "--",
                 theme::font_title(),
-                theme::TEXT_TERTIARY,
+                theme::text_tertiary(),
             );
             painter.text(
                 center + Vec2::new(0.0, 16.0),
                 egui::Align2::CENTER_CENTER,
                 "Conformit\u{00e9}",
                 theme::font_small(),
-                theme::TEXT_SECONDARY,
+                theme::text_secondary(),
             );
         }
     }

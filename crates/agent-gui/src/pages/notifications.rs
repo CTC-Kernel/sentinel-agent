@@ -31,7 +31,7 @@ impl NotificationsPage {
             ui.label(
                 egui::RichText::new(format!("{} notification(s), {} non lue(s)", total, unread))
                     .font(theme::font_body())
-                    .color(theme::TEXT_SECONDARY),
+                    .color(theme::text_secondary()),
             );
 
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -39,7 +39,7 @@ impl NotificationsPage {
                     let btn = egui::Button::new(
                         egui::RichText::new(format!("{}  Tout marquer comme lu", icons::CHECK))
                             .font(theme::font_small())
-                            .color(theme::TEXT_ON_ACCENT)
+                            .color(theme::text_on_accent())
                             .strong(),
                     )
                     .fill(theme::ACCENT)
@@ -69,9 +69,9 @@ impl NotificationsPage {
             for notif in &state.notifications {
                 let border_color = theme::severity_color(&notif.severity);
                 let bg = if notif.read {
-                    theme::BG_SECONDARY
+                    theme::bg_secondary()
                 } else {
-                    theme::BG_ELEVATED
+                    theme::bg_elevated()
                 };
 
                 egui::Frame::new()
@@ -80,7 +80,7 @@ impl NotificationsPage {
                     .inner_margin(egui::Margin::same(16))
                     .stroke(egui::Stroke::new(
                         if notif.read { 0.5 } else { 1.0 },
-                        if notif.read { theme::BORDER } else { border_color },
+                        if notif.read { theme::border() } else { border_color },
                     ))
                     .show(ui, |ui| {
                         ui.horizontal(|ui| {
@@ -108,14 +108,14 @@ impl NotificationsPage {
                                 ui.label(
                                     egui::RichText::new(&notif.title)
                                         .font(theme::font_body())
-                                        .color(theme::TEXT_PRIMARY)
+                                        .color(theme::text_primary())
                                         .strong(),
                                 );
                                 if !notif.body.is_empty() {
                                     ui.label(
                                         egui::RichText::new(&notif.body)
                                             .font(theme::font_small())
-                                            .color(theme::TEXT_SECONDARY),
+                                            .color(theme::text_secondary()),
                                     );
                                 }
                             });
@@ -131,7 +131,7 @@ impl NotificationsPage {
                                                 .to_string(),
                                         )
                                         .font(theme::font_small())
-                                        .color(theme::TEXT_TERTIARY),
+                                        .color(theme::text_tertiary()),
                                     );
                                 },
                             );

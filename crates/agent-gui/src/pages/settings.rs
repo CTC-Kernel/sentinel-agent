@@ -23,7 +23,7 @@ impl SettingsPage {
             ui.label(
                 egui::RichText::new("CONTR\u{00d4}LES DU SERVICE")
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -44,7 +44,7 @@ impl SettingsPage {
                 let btn = egui::Button::new(
                     egui::RichText::new(&label)
                         .font(theme::font_body())
-                        .color(theme::TEXT_ON_ACCENT)
+                        .color(theme::text_on_accent())
                         .strong(),
                 )
                 .fill(btn_color)
@@ -61,7 +61,7 @@ impl SettingsPage {
                 let check_btn = egui::Button::new(
                     egui::RichText::new(format!("{}  V\u{00c9}RIFIER MAINTENANT", icons::CHECK))
                         .font(theme::font_body())
-                        .color(theme::TEXT_ON_ACCENT)
+                        .color(theme::text_on_accent())
                         .strong(),
                 )
                 .fill(theme::ACCENT)
@@ -81,7 +81,7 @@ impl SettingsPage {
             ui.label(
                 egui::RichText::new("INTERVALLE DE SCAN")
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -90,7 +90,7 @@ impl SettingsPage {
                 ui.label(
                     egui::RichText::new("P\u{00e9}riode entre les analyses de conformit\u{00e9}")
                         .font(theme::font_body())
-                        .color(theme::TEXT_SECONDARY),
+                        .color(theme::text_secondary()),
                 );
             });
             ui.add_space(theme::SPACE_SM);
@@ -104,7 +104,7 @@ impl SettingsPage {
                 ui.label(
                     egui::RichText::new("5 min")
                         .font(theme::font_small())
-                        .color(theme::TEXT_TERTIARY),
+                        .color(theme::text_tertiary()),
                 );
                 let slider = egui::Slider::new(&mut interval_min, 5.0..=120.0)
                     .text("min")
@@ -120,7 +120,7 @@ impl SettingsPage {
                 ui.label(
                     egui::RichText::new("120 min")
                         .font(theme::font_small())
-                        .color(theme::TEXT_TERTIARY),
+                        .color(theme::text_tertiary()),
                 );
             });
 
@@ -132,7 +132,7 @@ impl SettingsPage {
                     state.check_interval_secs
                 ))
                 .font(theme::font_small())
-                .color(theme::TEXT_TERTIARY),
+                .color(theme::text_tertiary()),
             );
         });
 
@@ -143,7 +143,7 @@ impl SettingsPage {
             ui.label(
                 egui::RichText::new("NIVEAU DE LOG")
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -151,7 +151,7 @@ impl SettingsPage {
             ui.label(
                 egui::RichText::new("Contr\u{00f4}le la verbosit\u{00e9} des journaux de l'agent")
                     .font(theme::font_body())
-                    .color(theme::TEXT_SECONDARY),
+                    .color(theme::text_secondary()),
             );
             ui.add_space(theme::SPACE_SM);
 
@@ -160,16 +160,16 @@ impl SettingsPage {
                     (0, "ERROR", theme::ERROR),
                     (1, "WARN", theme::WARNING),
                     (2, "INFO", theme::INFO),
-                    (3, "DEBUG", theme::TEXT_SECONDARY),
-                    (4, "TRACE", theme::TEXT_TERTIARY),
+                    (3, "DEBUG", theme::text_secondary()),
+                    (4, "TRACE", theme::text_tertiary()),
                 ];
 
                 for &(val, label, color) in levels {
                     let active = state.log_level == val;
                     let (bg, fg) = if active {
-                        (color, theme::TEXT_ON_ACCENT)
+                        (color, theme::text_on_accent())
                     } else {
-                        (theme::BG_ELEVATED, color)
+                        (theme::bg_elevated(), color)
                     };
                     let btn = egui::Button::new(
                         egui::RichText::new(label)
@@ -190,30 +190,32 @@ impl SettingsPage {
 
         ui.add_space(theme::SPACE);
 
-        // Dark mode toggle (prepared for future)
+        // Dark / Light mode toggle
         widgets::card(ui, |ui| {
             ui.label(
                 egui::RichText::new("APPARENCE")
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
 
             ui.horizontal(|ui| {
+                let mode_label = if state.dark_mode { "Mode sombre" } else { "Mode clair" };
+                let mode_icon = if state.dark_mode { icons::CIRCLE } else { icons::CIRCLE_CHECK };
                 ui.label(
-                    egui::RichText::new("Mode sombre")
+                    egui::RichText::new(format!("{}  {}", mode_icon, mode_label))
                         .font(theme::font_body())
-                        .color(theme::TEXT_SECONDARY),
+                        .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_MD);
                 ui.checkbox(&mut state.dark_mode, "");
             });
             ui.add_space(theme::SPACE_XS);
             ui.label(
-                egui::RichText::new("Actuellement toujours actif. Le mode clair sera disponible dans une version future.")
+                egui::RichText::new("Basculez entre le th\u{00e8}me sombre et le th\u{00e8}me clair.")
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY),
+                    .color(theme::text_tertiary()),
             );
         });
 
@@ -224,7 +226,7 @@ impl SettingsPage {
             ui.label(
                 egui::RichText::new("D\u{00c9}COUVERTE R\u{00c9}SEAU")
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -233,7 +235,7 @@ impl SettingsPage {
                 ui.label(
                     egui::RichText::new("Activer la d\u{00e9}couverte r\u{00e9}seau automatique")
                         .font(theme::font_body())
-                        .color(theme::TEXT_SECONDARY),
+                        .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_MD);
                 if ui.checkbox(&mut state.discovery_enabled, "").changed() {
@@ -244,7 +246,7 @@ impl SettingsPage {
             ui.label(
                 egui::RichText::new("Lorsque activ\u{00e9}, l'agent scanne p\u{00e9}riodiquement le r\u{00e9}seau local pour d\u{00e9}couvrir de nouveaux appareils.")
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY),
+                    .color(theme::text_tertiary()),
             );
         });
 
@@ -261,7 +263,7 @@ impl SettingsPage {
                     ui.label(
                         egui::RichText::new("CONNEXION SERVEUR")
                             .font(theme::font_small())
-                            .color(theme::TEXT_TERTIARY)
+                            .color(theme::text_tertiary())
                             .strong(),
                     );
                     ui.add_space(theme::SPACE_MD);
@@ -282,7 +284,7 @@ impl SettingsPage {
                     ui.label(
                         egui::RichText::new("INTERVALLES")
                             .font(theme::font_small())
-                            .color(theme::TEXT_TERTIARY)
+                            .color(theme::text_tertiary())
                             .strong(),
                     );
                     ui.add_space(theme::SPACE_MD);
@@ -309,7 +311,7 @@ impl SettingsPage {
                     ui.label(
                         egui::RichText::new("ACC\u{00c8}S CLOUD")
                             .font(theme::font_small())
-                            .color(theme::TEXT_TERTIARY)
+                            .color(theme::text_tertiary())
                             .strong(),
                     );
                     ui.add_space(theme::SPACE_MD);
@@ -317,13 +319,13 @@ impl SettingsPage {
                     if let Some(ref id) = state.summary.agent_id {
                         let url = format!("https://app.cyber-threat-consulting.com/agents/{}", id);
 
-                        ui.label(egui::RichText::new("G\u{00e9}rez vos politiques et visualisez vos rapports d\u{00e9}taill\u{00e9}s en ligne.").font(theme::font_small()).color(theme::TEXT_SECONDARY));
+                        ui.label(egui::RichText::new("G\u{00e9}rez vos politiques et visualisez vos rapports d\u{00e9}taill\u{00e9}s en ligne.").font(theme::font_small()).color(theme::text_secondary()));
                         ui.add_space(theme::SPACE_MD);
 
                         let btn = egui::Button::new(
                             egui::RichText::new(format!("{}  VOIR SUR LE PORTAIL WEB", icons::EXTERNAL_LINK))
                                 .font(theme::font_body())
-                                .color(theme::TEXT_ON_ACCENT)
+                                .color(theme::text_on_accent())
                                 .strong(),
                         )
                         .fill(theme::ACCENT)
@@ -336,7 +338,7 @@ impl SettingsPage {
                     } else {
                         ui.label(
                             egui::RichText::new("Agent non enregistr\u{00e9}")
-                                .color(theme::TEXT_TERTIARY),
+                                .color(theme::text_tertiary()),
                         );
                     }
                 });
@@ -356,7 +358,7 @@ impl SettingsPage {
                     let quit_btn = egui::Button::new(
                         egui::RichText::new(format!("{}  QUITTER L'AGENT", icons::XMARK))
                             .font(theme::font_body())
-                            .color(theme::TEXT_ON_ACCENT)
+                            .color(theme::text_on_accent())
                             .strong(),
                     )
                     .fill(theme::ERROR.linear_multiply(0.8))
@@ -378,18 +380,18 @@ impl SettingsPage {
     fn setting_row(ui: &mut Ui, label: &str, value: &str, icon: &str) {
         ui.horizontal(|ui| {
             ui.set_min_height(32.0);
-            ui.label(egui::RichText::new(icon).color(theme::TEXT_TERTIARY).strong());
+            ui.label(egui::RichText::new(icon).color(theme::text_tertiary()).strong());
             ui.add_space(4.0);
             ui.label(
                 egui::RichText::new(label)
                     .font(theme::font_body())
-                    .color(theme::TEXT_SECONDARY),
+                    .color(theme::text_secondary()),
             );
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.label(
                     egui::RichText::new(value)
                         .font(theme::font_mono())
-                        .color(theme::TEXT_PRIMARY)
+                        .color(theme::text_primary())
                         .strong(),
                 );
             });

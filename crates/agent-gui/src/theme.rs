@@ -1,14 +1,36 @@
-//! Design system: Apple-inspired dark theme for Sentinel Agent.
+//! Design system: Apple-inspired theme for Sentinel Agent.
 //!
-//! Provides colors, spacing, fonts, and style helpers used across
-//! all pages and widgets.
+//! Supports both dark and light themes. Surface / text colors are
+//! provided as functions that return the correct value for the active
+//! theme.  Semantic colors (accent, success, warning, error, info)
+//! remain constants shared by both themes.
+
+use std::cell::Cell;
 
 use egui::{
     Color32, CornerRadius, FontId, Margin, Stroke, Style, TextStyle, Vec2, Visuals, epaint::Shadow,
 };
 
 // ============================================================================
-// Brand colors (Premium Palette)
+// Theme mode (thread-local – GUI is single-threaded)
+// ============================================================================
+
+thread_local! {
+    static IS_DARK: Cell<bool> = const { Cell::new(true) };
+}
+
+/// Set the active theme mode.
+pub fn set_dark_mode(dark: bool) {
+    IS_DARK.with(|c| c.set(dark));
+}
+
+/// Query the active theme mode.
+pub fn is_dark_mode() -> bool {
+    IS_DARK.with(|c| c.get())
+}
+
+// ============================================================================
+// Brand / semantic colors (shared between themes)
 // ============================================================================
 
 /// Primary accent (Sentinel brand blue – aligned with web app).
@@ -18,49 +40,95 @@ pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(96, 144, 249); // brand-400
 /// Accent hover state.
 pub const ACCENT_HOVER: Color32 = Color32::from_rgb(82, 140, 210);
 
-/// Success teal-green (web app dark mode).
+/// Success teal-green.
 pub const SUCCESS: Color32 = Color32::from_rgb(77, 184, 138); // #4db88a
-/// Warning amber (web app dark mode).
+/// Warning amber.
 pub const WARNING: Color32 = Color32::from_rgb(217, 160, 61); // #d9a03d
-/// Error red (web app dark mode).
+/// Error red.
 pub const ERROR: Color32 = Color32::from_rgb(224, 96, 96); // #e06060
-/// Info cyan-blue (web app dark mode).
+/// Info cyan-blue.
 pub const INFO: Color32 = Color32::from_rgb(75, 163, 204); // #4ba3cc
 
 // ============================================================================
-// Surface colors (Deep Dark Theme)
+// Surface colors (dynamic – depends on active theme)
 // ============================================================================
 
 /// Window / app background.
-pub const BG_PRIMARY: Color32 = Color32::from_rgb(18, 18, 20); // Deep obsidian
+#[inline]
+pub fn bg_primary() -> Color32 {
+    if is_dark_mode() { Color32::from_rgb(18, 18, 20) }
+    else { Color32::from_rgb(246, 246, 248) }
+}
+
 /// Card / panel background.
-pub const BG_SECONDARY: Color32 = Color32::from_rgb(28, 28, 30); // Lighter obsidian
+#[inline]
+pub fn bg_secondary() -> Color32 {
+    if is_dark_mode() { Color32::from_rgb(28, 28, 30) }
+    else { Color32::WHITE }
+}
+
 /// Elevated surface (hover, modal).
-pub const BG_ELEVATED: Color32 = Color32::from_rgb(38, 38, 40);
+#[inline]
+pub fn bg_elevated() -> Color32 {
+    if is_dark_mode() { Color32::from_rgb(38, 38, 40) }
+    else { Color32::from_rgb(232, 232, 236) }
+}
+
 /// Sidebar background.
-pub const BG_SIDEBAR: Color32 = Color32::from_rgb(14, 14, 16); // Very deep dark
+#[inline]
+pub fn bg_sidebar() -> Color32 {
+    if is_dark_mode() { Color32::from_rgb(14, 14, 16) }
+    else { Color32::from_rgb(240, 240, 242) }
+}
 
 // ============================================================================
-// Text colors
+// Text colors (dynamic)
 // ============================================================================
 
 /// Primary text (high emphasis).
-pub const TEXT_PRIMARY: Color32 = Color32::from_rgb(255, 255, 255);
+#[inline]
+pub fn text_primary() -> Color32 {
+    if is_dark_mode() { Color32::WHITE }
+    else { Color32::from_rgb(26, 26, 28) }
+}
+
 /// Secondary text (medium emphasis).
-pub const TEXT_SECONDARY: Color32 = Color32::from_rgb(174, 174, 178);
+#[inline]
+pub fn text_secondary() -> Color32 {
+    if is_dark_mode() { Color32::from_rgb(174, 174, 178) }
+    else { Color32::from_rgb(107, 107, 112) }
+}
+
 /// Tertiary / disabled text.
-pub const TEXT_TERTIARY: Color32 = Color32::from_rgb(99, 99, 102);
-/// Text on accent background.
-pub const TEXT_ON_ACCENT: Color32 = Color32::WHITE;
+#[inline]
+pub fn text_tertiary() -> Color32 {
+    if is_dark_mode() { Color32::from_rgb(99, 99, 102) }
+    else { Color32::from_rgb(158, 158, 163) }
+}
+
+/// Text on accent background (white in both themes).
+#[inline]
+pub fn text_on_accent() -> Color32 {
+    Color32::WHITE
+}
 
 // ============================================================================
-// Border / separator
+// Border / separator (dynamic)
 // ============================================================================
 
 /// Subtle border.
-pub const BORDER: Color32 = Color32::from_rgb(54, 54, 56);
+#[inline]
+pub fn border() -> Color32 {
+    if is_dark_mode() { Color32::from_rgb(54, 54, 56) }
+    else { Color32::from_rgb(216, 216, 220) }
+}
+
 /// Separator line.
-pub const SEPARATOR: Color32 = Color32::from_rgb(44, 44, 48);
+#[inline]
+pub fn separator() -> Color32 {
+    if is_dark_mode() { Color32::from_rgb(44, 44, 48) }
+    else { Color32::from_rgb(226, 226, 230) }
+}
 
 // ============================================================================
 // Spacing constants
@@ -188,26 +256,21 @@ pub fn configure_fonts(ctx: &egui::Context) {
     ctx.set_fonts(fonts);
 }
 
-/// Apply the Sentinel dark theme to an egui context.
-pub fn apply_theme(ctx: &egui::Context) {
+/// Apply the Sentinel theme to an egui context.
+///
+/// Pass `true` for the dark theme, `false` for the light theme.
+pub fn apply_theme(ctx: &egui::Context, dark: bool) {
+    // Update global mode first so that color functions return the right values.
+    set_dark_mode(dark);
+
     let mut style = Style::default();
 
     // Text styles
-    style
-        .text_styles
-        .insert(TextStyle::Heading, font_heading());
-    style
-        .text_styles
-        .insert(TextStyle::Body, font_body());
-    style
-        .text_styles
-        .insert(TextStyle::Button, font_body());
-    style
-        .text_styles
-        .insert(TextStyle::Small, font_small());
-    style
-        .text_styles
-        .insert(TextStyle::Monospace, font_mono());
+    style.text_styles.insert(TextStyle::Heading, font_heading());
+    style.text_styles.insert(TextStyle::Body, font_body());
+    style.text_styles.insert(TextStyle::Button, font_body());
+    style.text_styles.insert(TextStyle::Small, font_small());
+    style.text_styles.insert(TextStyle::Monospace, font_mono());
 
     // Spacing
     style.spacing.item_spacing = Vec2::new(SPACE_SM, SPACE_SM);
@@ -215,35 +278,35 @@ pub fn apply_theme(ctx: &egui::Context) {
     style.spacing.button_padding = Vec2::new(SPACE_MD, SPACE_SM);
     style.spacing.indent = SPACE;
 
-    // Visuals (Rich dark theme)
-    let mut visuals = Visuals::dark();
+    // Visuals
+    let mut visuals = if dark { Visuals::dark() } else { Visuals::light() };
 
     // Panel
-    visuals.panel_fill = BG_PRIMARY;
-    visuals.window_fill = BG_SECONDARY;
+    visuals.panel_fill = bg_primary();
+    visuals.window_fill = bg_secondary();
 
     let btn_rounding = CornerRadius::same(BUTTON_ROUNDING);
 
     // Widgets idle
-    visuals.widgets.noninteractive.bg_fill = BG_SECONDARY;
-    visuals.widgets.noninteractive.fg_stroke = Stroke::new(1.0, TEXT_SECONDARY);
+    visuals.widgets.noninteractive.bg_fill = bg_secondary();
+    visuals.widgets.noninteractive.fg_stroke = Stroke::new(1.0, text_secondary());
     visuals.widgets.noninteractive.corner_radius = btn_rounding;
-    visuals.widgets.noninteractive.bg_stroke = Stroke::NONE; // Remove parasitic borders
+    visuals.widgets.noninteractive.bg_stroke = Stroke::NONE;
 
     // Widgets hovered
-    visuals.widgets.hovered.bg_fill = BG_ELEVATED;
-    visuals.widgets.hovered.fg_stroke = Stroke::new(1.0, TEXT_PRIMARY);
+    visuals.widgets.hovered.bg_fill = bg_elevated();
+    visuals.widgets.hovered.fg_stroke = Stroke::new(1.0, text_primary());
     visuals.widgets.hovered.corner_radius = btn_rounding;
-    visuals.widgets.hovered.bg_stroke = Stroke::NONE; // Clean hover (shadow/tint only)
+    visuals.widgets.hovered.bg_stroke = Stroke::NONE;
 
     // Widgets active
     visuals.widgets.active.bg_fill = ACCENT;
-    visuals.widgets.active.fg_stroke = Stroke::new(1.0, TEXT_ON_ACCENT);
+    visuals.widgets.active.fg_stroke = Stroke::new(1.0, text_on_accent());
     visuals.widgets.active.corner_radius = btn_rounding;
 
     // Widgets inactive (buttons)
-    visuals.widgets.inactive.bg_fill = BG_ELEVATED;
-    visuals.widgets.inactive.fg_stroke = Stroke::new(1.0, TEXT_PRIMARY);
+    visuals.widgets.inactive.bg_fill = bg_elevated();
+    visuals.widgets.inactive.fg_stroke = Stroke::new(1.0, text_primary());
     visuals.widgets.inactive.corner_radius = btn_rounding;
     visuals.widgets.inactive.bg_stroke = Stroke::NONE;
 
@@ -253,15 +316,19 @@ pub fn apply_theme(ctx: &egui::Context) {
 
     // Window
     visuals.window_corner_radius = CornerRadius::same(CARD_ROUNDING);
-    visuals.window_shadow = premium_shadow(16, 80);
-    visuals.window_stroke = Stroke::NONE; // Minimal borderless look
+    visuals.window_shadow = if dark { premium_shadow(16, 80) } else { premium_shadow(8, 30) };
+    visuals.window_stroke = if dark { Stroke::NONE } else { Stroke::new(0.5, border()) };
 
     // Misc
-    visuals.popup_shadow = premium_shadow(8, 60);
+    visuals.popup_shadow = if dark { premium_shadow(8, 60) } else { premium_shadow(4, 20) };
     visuals.resize_corner_size = 8.0;
     visuals.hyperlink_color = ACCENT_LIGHT;
-    visuals.faint_bg_color = BG_ELEVATED;
-    visuals.extreme_bg_color = Color32::from_rgb(14, 14, 16);
+    visuals.faint_bg_color = bg_elevated();
+    visuals.extreme_bg_color = if dark {
+        Color32::from_rgb(14, 14, 16)
+    } else {
+        Color32::from_rgb(250, 250, 252)
+    };
     visuals.striped = true;
 
     style.visuals = visuals;
@@ -301,8 +368,8 @@ pub fn status_color(status: &str) -> Color32 {
         "fail" => ERROR,
         "error" => ERROR,
         "pending" | "running" => WARNING,
-        "skipped" => TEXT_TERTIARY,
-        _ => TEXT_SECONDARY,
+        "skipped" => text_tertiary(),
+        _ => text_secondary(),
     }
 }
 
@@ -313,7 +380,7 @@ pub fn severity_color(severity: &str) -> Color32 {
         "high" => Color32::from_rgb(200, 127, 26), // #c87f1a – web app risk amber
         "medium" => WARNING,
         "low" => INFO,
-        "info" => TEXT_SECONDARY,
-        _ => TEXT_SECONDARY,
+        "info" => text_secondary(),
+        _ => text_secondary(),
     }
 }

@@ -7,10 +7,10 @@ use crate::theme;
 /// Draw a card container, returns the inner response.
 pub fn card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) {
     let frame_resp = Frame::new()
-        .fill(theme::BG_SECONDARY)
+        .fill(theme::bg_secondary())
         .corner_radius(CornerRadius::same(theme::CARD_ROUNDING))
         .inner_margin(Margin::same(16))
-        .stroke(egui::Stroke::new(0.5, theme::BORDER))
+        .stroke(egui::Stroke::new(0.5, theme::border()))
         .show(ui, |ui| {
             add_contents(ui);
         });

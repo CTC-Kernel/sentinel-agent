@@ -40,7 +40,7 @@ impl AboutPage {
                 ui.label(
                     egui::RichText::new(branding::PRODUCT)
                         .size(32.0)
-                        .color(theme::TEXT_PRIMARY)
+                        .color(theme::text_primary())
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_XS);
@@ -50,14 +50,14 @@ impl AboutPage {
                         agent_common::constants::AGENT_VERSION
                     ))
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
                 ui.label(
                     egui::RichText::new(branding::COMPANY)
                         .font(theme::font_body())
-                        .color(theme::TEXT_SECONDARY),
+                        .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_LG);
             });
@@ -77,7 +77,7 @@ impl AboutPage {
                 ui.label(
                     egui::RichText::new("SYST\u{00c8}ME")
                         .font(theme::font_small())
-                        .color(theme::TEXT_TERTIARY)
+                        .color(theme::text_tertiary())
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
@@ -99,7 +99,7 @@ impl AboutPage {
                 ui.label(
                     egui::RichText::new("RESSOURCES")
                         .font(theme::font_small())
-                        .color(theme::TEXT_TERTIARY)
+                        .color(theme::text_tertiary())
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
@@ -118,7 +118,7 @@ impl AboutPage {
             ui.label(
                 egui::RichText::new("MENTIONS L\u{00c9}GALES")
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
             );
             ui.add_space(theme::SPACE_SM);
@@ -127,7 +127,7 @@ impl AboutPage {
                     "\u{00a9} 2024\u{2013}2026 Cyber Threat Consulting. Tous droits r\u{00e9}serv\u{00e9}s.",
                 )
                 .font(theme::font_small())
-                .color(theme::TEXT_SECONDARY),
+                .color(theme::text_secondary()),
             );
             ui.add_space(theme::SPACE_XS);
             ui.label(
@@ -136,7 +136,7 @@ impl AboutPage {
                      Toute reproduction ou distribution non autoris\u{00e9}e est strictement interdite.",
                 )
                 .font(theme::font_small())
-                .color(theme::TEXT_TERTIARY),
+                .color(theme::text_tertiary()),
             );
         });
         
@@ -146,18 +146,18 @@ impl AboutPage {
     fn info_row(ui: &mut Ui, label: &str, value: &str, icon: &str) {
         ui.horizontal(|ui| {
             ui.set_min_height(28.0);
-            ui.label(egui::RichText::new(icon).color(theme::TEXT_TERTIARY).strong());
+            ui.label(egui::RichText::new(icon).color(theme::text_tertiary()).strong());
             ui.add_space(4.0);
             ui.label(
                 egui::RichText::new(label)
                     .font(theme::font_body())
-                    .color(theme::TEXT_SECONDARY),
+                    .color(theme::text_secondary()),
             );
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.label(
                     egui::RichText::new(value)
                         .font(theme::font_mono())
-                        .color(theme::TEXT_PRIMARY)
+                        .color(theme::text_primary())
                         .strong(),
                 );
             });
@@ -167,12 +167,12 @@ impl AboutPage {
     fn link_row(ui: &mut Ui, label: &str, url: &str, icon: &str) {
         ui.horizontal(|ui| {
             ui.set_min_height(28.0);
-            ui.label(egui::RichText::new(icon).color(theme::TEXT_TERTIARY).strong());
+            ui.label(egui::RichText::new(icon).color(theme::text_tertiary()).strong());
             ui.add_space(4.0);
             ui.label(
                 egui::RichText::new(label)
                     .font(theme::font_body())
-                    .color(theme::TEXT_SECONDARY),
+                    .color(theme::text_secondary()),
             );
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 if ui
