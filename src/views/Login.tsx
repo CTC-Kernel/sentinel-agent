@@ -114,7 +114,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
     }, []);
 
     return (
-        <AuroraBackground className="h-[100dvh] overflow-y-auto overflow-x-hidden py-4 sm:py-0 px-4 flex flex-col bg-background text-foreground relative font-sans selection:bg-primary/30 selection:text-primary">
+        <AuroraBackground className="fixed inset-0 h-[100dvh] w-full overflow-y-auto lg:overflow-hidden py-4 sm:py-0 px-4 flex flex-col bg-background text-foreground font-sans selection:bg-primary/30 selection:text-primary">
             <div className="absolute top-4 right-4 z-modal">
                 <ThemeToggle />
             </div>
@@ -370,7 +370,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
             </div>
 
 
-            <div className="py-6 text-center relative z-10 space-y-2 px-4 sm:px-6 max-w-full">
+            <div className="py-3 text-center relative z-10 space-y-2 px-4 sm:px-6 max-w-full shrink-0">
                 <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                     {t('auth.footer.developedBy')}{' '}
                     <a
