@@ -75,3 +75,8 @@ version = "0.7"
 [workspace.dependencies.nix]
 version = "0.29"
 features = ["user", "process", "fs"]
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
