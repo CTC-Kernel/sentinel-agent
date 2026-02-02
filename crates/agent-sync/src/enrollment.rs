@@ -17,7 +17,7 @@
 use crate::client::HttpClient;
 use crate::credentials::CredentialsRepository;
 use crate::error::{SyncError, SyncResult};
-use crate::types::{EnrollmentRequest, EnrollmentResponse, StoredCredentials};
+use crate::types::{EnrollmentRequest, StoredCredentials};
 use agent_common::config::AgentConfig;
 use agent_common::constants::AGENT_VERSION;
 use agent_storage::Database;
@@ -115,9 +115,25 @@ impl<'a> EnrollmentManager<'a> {
         };
 
         // Call enrollment endpoint
-        let response: EnrollmentResponse = client
+        let result: crate::types::EnrollmentResult = client
             .post_json_with_token("/v1/agents/enroll", &request, token)
             .await?;
+
+        let response = match result {
+            crate::types::EnrollmentResult::Success(r) => r,
+            crate::types::EnrollmentResult::AlreadyEnrolled {
+                status: _,
+                message,
+                agent_id,
+                ..
+            } => {
+                // For already enrolled agents, we can't proceed without certificates.
+                // The user needs to re-enroll (wipe DB) or recover certificates.
+                // Returning a specific error helps the UI/CLI show a better message.
+                tracing::error!("Agent already enrolled: {} (ID: {})", message, agent_id);
+                return Err(SyncError::AlreadyEnrolled(agent_id.to_string()));
+            }
+        };
 
         debug!(
             "Enrollment response: agent_id={}, org_id={}, cert_expires={}",

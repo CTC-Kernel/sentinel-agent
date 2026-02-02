@@ -39,6 +39,19 @@ pub struct EnrollmentResponse {
     pub message: Option<String>,
 }
 
+/// Result of enrollment request, handling both success and already_enrolled cases.
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum EnrollmentResult {
+    Success(EnrollmentResponse),
+    AlreadyEnrolled {
+        agent_id: String,
+        organization_id: String,
+        status: String,
+        message: String,
+    },
+}
+
 /// Agent configuration from the server.
 #[derive(Debug, Deserialize, Clone)]
 pub struct ServerAgentConfig {
@@ -281,10 +294,12 @@ impl ApiClient {
         builder
     }
 
+
     /// Enroll the agent with the server.
     pub async fn enroll(&mut self, request: EnrollmentRequest) -> Result<EnrollmentResponse> {
         let url = format!("{}/v1/agents/enroll", self.base_url);
-        info!("Enrolling agent at {}", url);
+        info!("Base URL: '{}'", self.base_url);
+        info!("Enrolling agent at '{}'", url);
 
         let response = self
             .client
@@ -307,22 +322,35 @@ impl ApiClient {
             )));
         }
 
-        let enrollment: EnrollmentResponse = response.json().await.map_err(|e| {
+        let result: EnrollmentResult = response.json().await.map_err(|e| {
             CommonError::network(format!("Failed to parse enrollment response: {}", e))
         })?;
 
-        // Store the agent ID
-        self.agent_id = Some(enrollment.agent_id.clone());
+        match result {
+            EnrollmentResult::Success(enrollment) => {
+                // Store the agent ID
+                self.agent_id = Some(enrollment.agent_id.clone());
 
-        if let Some(ref msg) = enrollment.message {
-            info!("Enrollment message: {}", msg);
+                if let Some(ref msg) = enrollment.message {
+                    info!("Enrollment message: {}", msg);
+                }
+
+                info!(
+                    "Agent enrolled successfully with ID: {}",
+                    enrollment.agent_id
+                );
+                Ok(enrollment)
+            }
+            EnrollmentResult::AlreadyEnrolled { message, agent_id, .. } => {
+                error!("Agent already enrolled: {}", message);
+                // Return a specific error kind so prompt logic can handle it?
+                // For now, map to validation error which is fatal.
+                Err(CommonError::validation(format!(
+                    "Agent already enrolled with ID {}. Please uninstall with --purge to re-enroll.",
+                    agent_id
+                )))
+            }
         }
-
-        info!(
-            "Agent enrolled successfully with ID: {}",
-            enrollment.agent_id
-        );
-        Ok(enrollment)
     }
 
     /// Send a heartbeat to the server.
@@ -575,5 +603,48 @@ mod tests {
         assert!(json.contains("disk_total_bytes"));
         assert!(json.contains("uptime_seconds"));
         assert!(json.contains("ip_address"));
+    }
+
+    #[test]
+    fn test_enrollment_result_deserialization() {
+        // Test success case
+        let success_json = r#"{
+            "agent_id": "550e8400-e29b-41d4-a716-446655440000",
+            "organization_id": "org-1",
+            "server_certificate": "cert",
+            "client_certificate": "client-cert",
+            "client_key": "key",
+            "certificate_expires_at": "2025-01-01T00:00:00Z",
+            "config": {
+                "check_interval_secs": 3600,
+                "heartbeat_interval_secs": 60,
+                "log_level": "info",
+                "enabled_checks": [],
+                "offline_mode_days": 7
+            }
+        }"#;
+        
+        let result: EnrollmentResult = serde_json::from_str(success_json).unwrap();
+        match result {
+            EnrollmentResult::Success(r) => assert_eq!(r.agent_id, "550e8400-e29b-41d4-a716-446655440000"),
+            _ => panic!("Expected success"),
+        }
+
+        // Test already enrolled case
+        let exists_json = r#"{
+            "agent_id": "550e8400-e29b-41d4-a716-446655440000",
+            "organization_id": "org-1",
+            "status": "already_enrolled",
+            "message": "Agent already registered"
+        }"#;
+
+        let result: EnrollmentResult = serde_json::from_str(exists_json).unwrap();
+        match result {
+            EnrollmentResult::AlreadyEnrolled { agent_id, status, .. } => {
+                assert_eq!(agent_id, "550e8400-e29b-41d4-a716-446655440000");
+                assert_eq!(status, "already_enrolled");
+            },
+            _ => panic!("Expected already_enrolled"),
+        }
     }
 }
