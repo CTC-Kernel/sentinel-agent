@@ -24,7 +24,7 @@ const AgentDownloads: React.FC = () => {
       platform: 'macOS',
       version: '2.0.0',
       size: '24MB',
-      url: '/releases/agent/macos/SentinelAgent-2.0.0.pkg',
+      url: '/downloads/agents/SentinelAgent-2.0.0.pkg',
       status: 'available',
       icon: <Apple className="w-8 h-8" />,
       instructions: [
@@ -222,7 +222,7 @@ const AgentDownloads: React.FC = () => {
           <div className="space-y-2">
             <h4 className="font-medium">Direct Downloads</h4>
             <div className="space-y-1 text-sm">
-              <a href="/releases/agent/macos/SentinelAgent-2.0.0.pkg" className="text-primary hover:underline block">
+              <a href="/downloads/agents/SentinelAgent-2.0.0.pkg" className="text-primary hover:underline block">
                 🍎 macOS (.pkg) - 24MB
               </a>
               <a href="/releases/agent/SentinelAgentSetup-2.0.0.msi" className="text-primary hover:underline block">
