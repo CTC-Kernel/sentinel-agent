@@ -1,9 +1,12 @@
 //! Compliance page -- check results and policy overview.
 
+use std::cell::RefCell;
+
 use egui::Ui;
 
 use crate::app::AppState;
 use crate::dto::GuiCheckStatus;
+use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
@@ -11,7 +14,8 @@ use crate::widgets;
 pub struct CompliancePage;
 
 impl CompliancePage {
-    pub fn show(ui: &mut Ui, state: &mut AppState) {
+    pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
+        let pending_command: RefCell<Option<GuiCommand>> = RefCell::new(None);
         ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
@@ -25,7 +29,7 @@ impl CompliancePage {
         let card_w = (ui.available_width() - card_gap * 3.0) / 4.0;
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = card_gap;
-            Self::summary_card(ui, card_w, "TOTAL", &state.policy.total_policies.to_string(), theme::TEXT_PRIMARY, icons::SQUARE);
+            Self::summary_card(ui, card_w, "TOTAL", &state.policy.total_policies.to_string(), theme::text_primary(), icons::SQUARE);
             Self::summary_card(ui, card_w, "CONFORME", &state.policy.passing.to_string(), theme::SUCCESS, icons::CIRCLE_CHECK);
             Self::summary_card(ui, card_w, "NON-CONFORME", &state.policy.failing.to_string(), theme::ERROR, icons::CIRCLE_XMARK);
             Self::summary_card(ui, card_w, "ERREURS", &state.policy.errors.to_string(), theme::WARNING, icons::WARNING);
@@ -97,15 +101,15 @@ impl CompliancePage {
             ui.label(
                 egui::RichText::new("Grouper par :")
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY),
+                    .color(theme::text_tertiary()),
             );
             ui.add_space(theme::SPACE_XS);
             for (val, label) in [(0u8, "Aucun"), (1, "Cat\u{00e9}gorie"), (2, "Framework")] {
                 let active = state.compliance_group_by == val;
                 let (bg, fg) = if active {
-                    (theme::ACCENT, theme::TEXT_ON_ACCENT)
+                    (theme::ACCENT, theme::text_on_accent())
                 } else {
-                    (theme::BG_ELEVATED, theme::TEXT_SECONDARY)
+                    (theme::bg_elevated(), theme::text_secondary())
                 };
                 let btn = egui::Button::new(
                     egui::RichText::new(label)
@@ -126,9 +130,9 @@ impl CompliancePage {
                 let export_btn = egui::Button::new(
                     egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
                         .font(theme::font_small())
-                        .color(theme::TEXT_SECONDARY),
+                        .color(theme::text_secondary()),
                 )
-                .fill(theme::BG_ELEVATED)
+                .fill(theme::bg_elevated())
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
                 if ui.add(export_btn).clicked() {
                     Self::export_csv(state, &filtered);
@@ -144,7 +148,7 @@ impl CompliancePage {
                 ui.label(
                     egui::RichText::new("R\u{00c9}SULTATS D\u{00c9}TAILL\u{00c9}S")
                         .font(theme::font_small())
-                        .color(theme::TEXT_TERTIARY)
+                        .color(theme::text_tertiary())
                         .strong(),
                 );
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -152,7 +156,7 @@ impl CompliancePage {
                         ui.label(
                             egui::RichText::new(format!("{} contr\u{00f4}les", result_count))
                                 .font(theme::font_small())
-                                .color(theme::TEXT_TERTIARY),
+                                .color(theme::text_tertiary()),
                         );
                     }
                 });
@@ -168,7 +172,7 @@ impl CompliancePage {
                 );
             } else if state.compliance_group_by == 0 {
                 // Flat table
-                Self::render_check_table(ui, state, &filtered);
+                Self::render_check_table(ui, state, &filtered, &pending_command);
             } else {
                 // Grouped display
                 let groups = Self::build_groups(state, &filtered);
@@ -189,7 +193,7 @@ impl CompliancePage {
                         ui.label(
                             egui::RichText::new(group_name)
                                 .font(theme::font_heading())
-                                .color(theme::TEXT_PRIMARY)
+                                .color(theme::text_primary())
                                 .strong(),
                         );
                         ui.add_space(theme::SPACE_SM);
@@ -202,13 +206,15 @@ impl CompliancePage {
                     });
                     ui.add_space(theme::SPACE_XS);
 
-                    Self::render_check_table(ui, state, indices);
+                    Self::render_check_table(ui, state, indices, &pending_command);
                     ui.add_space(theme::SPACE_SM);
                 }
             }
         });
 
         ui.add_space(theme::SPACE_XL);
+
+        pending_command.into_inner()
     }
 
     fn build_groups(state: &AppState, indices: &[usize]) -> Vec<(String, Vec<usize>)> {
@@ -232,7 +238,7 @@ impl CompliancePage {
         map.into_iter().collect()
     }
 
-    fn render_check_table(ui: &mut Ui, state: &AppState, indices: &[usize]) {
+    fn render_check_table(ui: &mut Ui, state: &AppState, indices: &[usize], pending_command: &RefCell<Option<GuiCommand>>) {
         use egui_extras::{Column, TableBuilder};
 
         // Pre-compute expanded states
@@ -279,7 +285,7 @@ impl CompliancePage {
                                     .label(
                                         egui::RichText::new(&check.name)
                                             .font(theme::font_body())
-                                            .color(theme::TEXT_PRIMARY)
+                                            .color(theme::text_primary())
                                             .strong(),
                                     )
                                     .interact(egui::Sense::click());
@@ -294,7 +300,7 @@ impl CompliancePage {
                                     if let Some(msg) = &check.message {
                                         ui.label(
                                             egui::RichText::new(msg)
-                                                .color(theme::TEXT_SECONDARY)
+                                                .color(theme::text_secondary())
                                                 .font(theme::font_small()),
                                         );
                                     }
@@ -315,7 +321,7 @@ impl CompliancePage {
                                                                 .as_str()
                                                                 .unwrap_or("Probl\u{00e8}me d\u{00e9}tect\u{00e9}"),
                                                         )
-                                                        .color(theme::TEXT_SECONDARY)
+                                                        .color(theme::text_secondary())
                                                         .font(theme::font_small()),
                                                     );
                                                 });
@@ -323,7 +329,7 @@ impl CompliancePage {
                                         }
                                     }
 
-                                    // Remediation hint for failing checks
+                                    // Remediation for failing checks
                                     if check.status == GuiCheckStatus::Fail
                                         || check.status == GuiCheckStatus::Error
                                     {
@@ -342,6 +348,46 @@ impl CompliancePage {
                                                 );
                                             });
                                         }
+
+                                        // Remediation action buttons
+                                        ui.add_space(theme::SPACE_XS);
+                                        ui.horizontal(|ui| {
+                                            let preview_btn = egui::Button::new(
+                                                egui::RichText::new(format!("{}  Aper\u{00e7}u", icons::EYE))
+                                                    .font(theme::font_small())
+                                                    .color(theme::text_on_accent())
+                                                    .strong(),
+                                            )
+                                            .fill(theme::INFO)
+                                            .corner_radius(egui::CornerRadius::same(theme::BADGE_ROUNDING))
+                                            .min_size(egui::vec2(80.0, 24.0));
+                                            if ui.add(preview_btn).clicked() {
+                                                *pending_command.borrow_mut() = Some(
+                                                    GuiCommand::RemediatePreview {
+                                                        check_id: check.check_id.clone(),
+                                                    },
+                                                );
+                                            }
+
+                                            ui.add_space(theme::SPACE_SM);
+
+                                            let fix_btn = egui::Button::new(
+                                                egui::RichText::new(format!("{}  Corriger", icons::WRENCH_FA))
+                                                    .font(theme::font_small())
+                                                    .color(theme::text_on_accent())
+                                                    .strong(),
+                                            )
+                                            .fill(theme::SUCCESS)
+                                            .corner_radius(egui::CornerRadius::same(theme::BADGE_ROUNDING))
+                                            .min_size(egui::vec2(90.0, 24.0));
+                                            if ui.add(fix_btn).clicked() {
+                                                *pending_command.borrow_mut() = Some(
+                                                    GuiCommand::Remediate {
+                                                        check_id: check.check_id.clone(),
+                                                    },
+                                                );
+                                            }
+                                        });
                                     }
                                 }
                             });
@@ -351,7 +397,7 @@ impl CompliancePage {
                             ui.label(
                                 egui::RichText::new(&check.category)
                                     .font(theme::font_small())
-                                    .color(theme::TEXT_SECONDARY),
+                                    .color(theme::text_secondary()),
                             );
                         });
 
@@ -388,7 +434,7 @@ impl CompliancePage {
                                 );
                             } else {
                                 ui.label(
-                                    egui::RichText::new("--").color(theme::TEXT_TERTIARY),
+                                    egui::RichText::new("--").color(theme::text_tertiary()),
                                 );
                             }
                         });
@@ -399,8 +445,8 @@ impl CompliancePage {
                                     ui.label(
                                         egui::RichText::new(fw)
                                             .font(theme::font_small())
-                                            .color(theme::TEXT_SECONDARY)
-                                            .background_color(theme::BG_ELEVATED),
+                                            .color(theme::text_secondary())
+                                            .background_color(theme::bg_elevated()),
                                     );
                                     ui.add_space(theme::SPACE_XS);
                                 }
@@ -465,7 +511,7 @@ impl CompliancePage {
                         ui.label(
                             egui::RichText::new(label)
                                 .font(theme::font_small())
-                                .color(theme::TEXT_TERTIARY)
+                                .color(theme::text_tertiary())
                                 .strong(),
                         );
                     });
@@ -486,7 +532,7 @@ impl CompliancePage {
             GuiCheckStatus::Pass => ("CONFORME", theme::SUCCESS),
             GuiCheckStatus::Fail => ("NON-CONFORME", theme::ERROR),
             GuiCheckStatus::Error => ("ERREUR", theme::ERROR),
-            GuiCheckStatus::Skipped => ("IGNOR\u{00c9}", theme::TEXT_TERTIARY),
+            GuiCheckStatus::Skipped => ("IGNOR\u{00c9}", theme::text_tertiary()),
             GuiCheckStatus::Pending => ("EN ATTENTE", theme::WARNING),
             GuiCheckStatus::Running => ("EN COURS", theme::INFO),
         }

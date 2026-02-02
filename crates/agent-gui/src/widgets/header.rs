@@ -10,7 +10,7 @@ pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>) {
         ui.label(
             egui::RichText::new(title)
                 .font(theme::font_comex())
-                .color(theme::TEXT_PRIMARY)
+                .color(theme::text_primary())
                 .strong(),
         );
         if let Some(sub) = subtitle {
@@ -18,7 +18,7 @@ pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>) {
             ui.label(
                 egui::RichText::new(sub)
                     .font(theme::font_body())
-                    .color(theme::TEXT_TERTIARY),
+                    .color(theme::text_tertiary()),
             );
         }
     });

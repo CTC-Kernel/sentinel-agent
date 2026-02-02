@@ -1,38 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="1.0">
     <title>Sentinel GRC Agent</title>
-    <organization>Sentinel GRC</organization>
+    <organization>Cyber Threat Consulting</organization>
     <domains enable_anywhere="true" />
-    
+
     <options rootVolumeOnly="false" />
-    
+
     <welcome file="welcome.html" mime-type="text/html" />
     <license file="license.html" mime-type="text/html" />
     <conclusion file="conclusion.html" mime-type="text/html" />
-    
+
     <background file="background.png" alignment="center" scaling="proportional" />
-    
+
     <choices-outline>
-        <line choice="sentinel_agent">
-            <line choice="agent_app">
-                <line choice="agent_cli" />
-            </line>
-        </line>
+        <line choice="sentinel_agent" />
     </choices-outline>
-    
-    <choice id="sentinel_agent" title="Sentinel GRC Agent" description="Install Sentinel GRC Agent for endpoint compliance monitoring">
-        <pkg-ref id="com.sentinel.agent.pkg"/>
+
+    <choice id="sentinel_agent" title="Sentinel GRC Agent v2.0.0" description="Application de monitoring de conformité pour la plateforme Sentinel GRC. Inclut l'application, les outils CLI et le lancement automatique.">
+        <pkg-ref id="com.sentinel.agent.app"/>
     </choice>
-    
-    <choice id="agent_app" title="Application" description="Install the Sentinel Agent application">
-        <pkg-ref id="com.sentinel.agent.app.pkg"/>
-    </choice>
-    
-    <choice id="agent_cli" title="Command Line Tools" description="Install command line tools and symbolic links">
-        <pkg-ref id="com.sentinel.agent.cli.pkg"/>
-    </choice>
-    
-    <pkg-ref id="com.sentinel.agent.pkg" version="$VERSION" onConclusion="none">SentinelAgent.pkg</pkg-ref>
-    <pkg-ref id="com.sentinel.agent.app.pkg" version="$VERSION" onConclusion="none">SentinelAgentApp.pkg</pkg-ref>
-    <pkg-ref id="com.sentinel.agent.cli.pkg" version="$VERSION" onConclusion="none">SentinelAgentCLI.pkg</pkg-ref>
+
+    <pkg-ref id="com.sentinel.agent.app" version="2.0.0" onConclusion="none">SentinelAgentApp.pkg</pkg-ref>
 </installer-gui-script>

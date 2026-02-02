@@ -25,7 +25,7 @@ impl DashboardPage {
             let scan_btn = egui::Button::new(
                 egui::RichText::new(format!("{}  Lancer un scan", icons::PLAY))
                     .font(theme::font_body())
-                    .color(theme::TEXT_ON_ACCENT)
+                    .color(theme::text_on_accent())
                     .strong(),
             )
             .fill(theme::ACCENT)
@@ -40,10 +40,10 @@ impl DashboardPage {
             let sync_btn = egui::Button::new(
                 egui::RichText::new(format!("{}  Forcer la synchro", icons::SYNC))
                     .font(theme::font_body())
-                    .color(theme::TEXT_SECONDARY)
+                    .color(theme::text_secondary())
                     .strong(),
             )
-            .fill(theme::BG_ELEVATED)
+            .fill(theme::bg_elevated())
             .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
             .min_size(egui::vec2(180.0, 36.0));
             if ui.add(sync_btn).clicked() {
@@ -67,7 +67,7 @@ impl DashboardPage {
                 ui.label(
                     egui::RichText::new("STATUT DE L'AGENT")
                         .font(theme::font_small())
-                        .color(theme::TEXT_TERTIARY)
+                        .color(theme::text_tertiary())
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
@@ -78,10 +78,10 @@ impl DashboardPage {
                         GuiAgentStatus::Disconnected => {
                             ("D\u{00e9}connect\u{00e9}", theme::WARNING)
                         }
-                        GuiAgentStatus::Paused => ("En pause", theme::TEXT_TERTIARY),
+                        GuiAgentStatus::Paused => ("En pause", theme::text_tertiary()),
                         GuiAgentStatus::Scanning => ("Analyse en cours", theme::INFO),
                         GuiAgentStatus::Error => ("Erreur", theme::ERROR),
-                        GuiAgentStatus::Starting => ("D\u{00e9}marrage", theme::TEXT_SECONDARY),
+                        GuiAgentStatus::Starting => ("D\u{00e9}marrage", theme::text_secondary()),
                     };
                     widgets::status_badge(ui, status_text, status_color);
                 });
@@ -127,7 +127,7 @@ impl DashboardPage {
                     ui.label(
                         egui::RichText::new("SCORE GLOBAL")
                             .font(theme::font_small())
-                            .color(theme::TEXT_TERTIARY)
+                            .color(theme::text_tertiary())
                             .strong(),
                     );
                     ui.add_space(theme::SPACE_MD);
@@ -171,7 +171,7 @@ impl DashboardPage {
                     ui.label(
                         egui::RichText::new("CONFORMIT\u{00c9} PAR FRAMEWORK")
                             .font(theme::font_small())
-                            .color(theme::TEXT_TERTIARY)
+                            .color(theme::text_tertiary())
                             .strong(),
                     );
                     ui.add_space(theme::SPACE_MD);
@@ -188,7 +188,7 @@ impl DashboardPage {
                                 ui.label(
                                     egui::RichText::new(fw)
                                         .font(theme::font_small())
-                                        .color(theme::TEXT_SECONDARY)
+                                        .color(theme::text_secondary())
                                         .strong(),
                                 );
                                 ui.label(
@@ -200,7 +200,7 @@ impl DashboardPage {
                                 ui.label(
                                     egui::RichText::new(format!("{}/{}", pass, total))
                                         .font(theme::font_small())
-                                        .color(theme::TEXT_TERTIARY),
+                                        .color(theme::text_tertiary()),
                                 );
                             });
                         }
@@ -222,7 +222,7 @@ impl DashboardPage {
                 ui.label(
                     egui::RichText::new("RESSOURCES SYST\u{00c8}ME")
                         .font(theme::font_small())
-                        .color(theme::TEXT_TERTIARY)
+                        .color(theme::text_tertiary())
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
@@ -262,7 +262,7 @@ impl DashboardPage {
                 ui.label(
                     egui::RichText::new("VULN\u{00c9}RABILIT\u{00c9}S")
                         .font(theme::font_small())
-                        .color(theme::TEXT_TERTIARY)
+                        .color(theme::text_tertiary())
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
@@ -282,14 +282,14 @@ impl DashboardPage {
 
                     if let Some(ts) = vuln.last_scan_at {
                         ui.horizontal(|ui| {
-                            ui.label(egui::RichText::new("Dernier scan :").font(theme::font_small()).color(theme::TEXT_TERTIARY));
-                            ui.label(egui::RichText::new(ts.format("%d/%m/%Y %H:%M").to_string()).font(theme::font_small()).color(theme::TEXT_SECONDARY));
+                            ui.label(egui::RichText::new("Dernier scan :").font(theme::font_small()).color(theme::text_tertiary()));
+                            ui.label(egui::RichText::new(ts.format("%d/%m/%Y %H:%M").to_string()).font(theme::font_small()).color(theme::text_secondary()));
                         });
                     }
                 } else {
                     ui.add_space(theme::SPACE_MD);
                     ui.vertical_centered(|ui| {
-                        ui.label(egui::RichText::new("Aucun scan r\u{00e9}cent").color(theme::TEXT_TERTIARY));
+                        ui.label(egui::RichText::new("Aucun scan r\u{00e9}cent").color(theme::text_tertiary()));
                     });
                 }
             });
@@ -307,7 +307,7 @@ impl DashboardPage {
                         icons::BELL
                     ))
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
@@ -320,7 +320,7 @@ impl DashboardPage {
                         ui.label(
                             egui::RichText::new(&notif.title)
                                 .font(theme::font_body())
-                                .color(theme::TEXT_PRIMARY)
+                                .color(theme::text_primary())
                                 .strong(),
                         );
                         ui.with_layout(
@@ -331,7 +331,7 @@ impl DashboardPage {
                                         notif.timestamp.format("%H:%M").to_string(),
                                     )
                                     .font(theme::font_small())
-                                    .color(theme::TEXT_TERTIARY),
+                                    .color(theme::text_tertiary()),
                                 );
                             },
                         );
@@ -347,7 +347,7 @@ impl DashboardPage {
             ui.label(
                 egui::RichText::new("ACTIVIT\u{00c9} R\u{00c9}CENTE")
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -355,7 +355,7 @@ impl DashboardPage {
             if state.logs.is_empty() {
                 ui.add_space(theme::SPACE_MD);
                 ui.vertical_centered(|ui| {
-                    ui.label(egui::RichText::new("Aucun log disponible").color(theme::TEXT_TERTIARY));
+                    ui.label(egui::RichText::new("Aucun log disponible").color(theme::text_tertiary()));
                 });
                 ui.add_space(theme::SPACE_MD);
             } else {
@@ -365,7 +365,7 @@ impl DashboardPage {
                             "error" => ("ERR", theme::ERROR),
                             "warn" => ("WRN", theme::WARNING),
                             "info" => ("INF", theme::INFO),
-                            _ => ("LOG", theme::TEXT_TERTIARY),
+                            _ => ("LOG", theme::text_tertiary()),
                         };
 
                         ui.add_space(4.0);
@@ -381,14 +381,14 @@ impl DashboardPage {
                         ui.label(
                             egui::RichText::new(entry.timestamp.format("%H:%M:%S").to_string())
                                 .font(theme::font_mono())
-                                .color(theme::TEXT_TERTIARY),
+                                .color(theme::text_tertiary()),
                         );
 
                         ui.add_space(8.0);
                         ui.label(
                             egui::RichText::new(&entry.message)
                                 .font(theme::font_body())
-                                .color(theme::TEXT_PRIMARY),
+                                .color(theme::text_primary()),
                         );
                     });
                     ui.add_space(theme::SPACE_XS);
@@ -429,7 +429,7 @@ impl DashboardPage {
             ui.label(
                 egui::RichText::new(label.to_uppercase())
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
             );
         });
@@ -441,13 +441,13 @@ impl DashboardPage {
             ui.label(
                 egui::RichText::new(label)
                     .font(theme::font_body())
-                    .color(theme::TEXT_SECONDARY),
+                    .color(theme::text_secondary()),
             );
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.label(
                     egui::RichText::new(value)
                         .font(theme::font_body())
-                        .color(theme::TEXT_PRIMARY)
+                        .color(theme::text_primary())
                         .strong(),
                 );
             });

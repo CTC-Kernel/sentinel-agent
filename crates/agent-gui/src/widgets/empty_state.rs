@@ -12,17 +12,17 @@ pub fn empty_state(
         ui.add_space(theme::SPACE_XL);
         
         // Icon with a subtle glow or large size
-        ui.label(RichText::new(icon).size(64.0).color(theme::TEXT_TERTIARY.linear_multiply(0.5)));
+        ui.label(RichText::new(icon).size(64.0).color(theme::text_tertiary().linear_multiply(0.5)));
         
         ui.add_space(theme::SPACE_MD);
         
         // Title
-        ui.label(RichText::new(title).font(theme::font_heading()).color(theme::TEXT_SECONDARY).strong());
+        ui.label(RichText::new(title).font(theme::font_heading()).color(theme::text_secondary()).strong());
         
         // Description
         if let Some(desc) = description {
             ui.add_space(theme::SPACE_XS);
-            ui.label(RichText::new(desc).font(theme::font_small()).color(theme::TEXT_TERTIARY));
+            ui.label(RichText::new(desc).font(theme::font_small()).color(theme::text_tertiary()));
         }
         
         ui.add_space(theme::SPACE_XL);

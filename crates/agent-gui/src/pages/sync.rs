@@ -28,7 +28,7 @@ impl SyncPage {
                 ui.label(
                     egui::RichText::new("\u{00c9}TAT DE LA CONNEXION")
                         .font(theme::font_small())
-                        .color(theme::TEXT_TERTIARY)
+                        .color(theme::text_tertiary())
                         .strong(),
                 );
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -54,16 +54,16 @@ impl SyncPage {
                         ui.label(
                             egui::RichText::new("Derni\u{00e8}re synchronisation r\u{00e9}ussie :")
                                 .font(theme::font_small())
-                                .color(theme::TEXT_SECONDARY),
+                                .color(theme::text_secondary()),
                         );
                         ui.label(
                             egui::RichText::new(ts.format("%d/%m/%Y \u{00e0} %H:%M:%S").to_string())
                                 .font(theme::font_body())
-                                .color(theme::TEXT_PRIMARY)
+                                .color(theme::text_primary())
                                 .strong(),
                         );
                     } else {
-                        ui.label(egui::RichText::new("Aucune synchronisation effectu\u{00e9}e").color(theme::TEXT_TERTIARY));
+                        ui.label(egui::RichText::new("Aucune synchronisation effectu\u{00e9}e").color(theme::text_tertiary()));
                     }
                 });
                 
@@ -72,7 +72,7 @@ impl SyncPage {
                     let btn = egui::Button::new(
                         egui::RichText::new(format!("{}  SYNCHRONISER MAINTENANT", icons::SYNC))
                             .font(theme::font_body())
-                            .color(theme::TEXT_ON_ACCENT)
+                            .color(theme::text_on_accent())
                             .strong(),
                     )
                     .fill(theme::ACCENT)
@@ -109,7 +109,7 @@ impl SyncPage {
             ui.label(
                 egui::RichText::new("HISTORIQUE DES TRANSFERTS")
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -119,7 +119,7 @@ impl SyncPage {
                     ui.add_space(theme::SPACE_LG);
                     ui.label(
                         egui::RichText::new("Aucun historique disponible")
-                            .color(theme::TEXT_TERTIARY),
+                            .color(theme::text_tertiary()),
                     );
                     ui.add_space(theme::SPACE_LG);
                 });
@@ -163,7 +163,7 @@ impl SyncPage {
                                 ui.label(
                                     egui::RichText::new(entry.timestamp.format("%H:%M:%S").to_string())
                                         .font(theme::font_mono())
-                                        .color(theme::TEXT_TERTIARY),
+                                        .color(theme::text_tertiary()),
                                 );
                             });
                             
@@ -171,7 +171,7 @@ impl SyncPage {
                                 ui.label(
                                     egui::RichText::new(&entry.message)
                                         .font(theme::font_body())
-                                        .color(theme::TEXT_PRIMARY),
+                                        .color(theme::text_primary()),
                                 );
                             });
                         });

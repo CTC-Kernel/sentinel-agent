@@ -17,7 +17,6 @@ use std::io::Write;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
-use tokio::sync::Semaphore;
 use tokio::time::Instant;
 use tracing::{debug, error, info, warn};
 use uuid::Uuid;
@@ -26,6 +25,7 @@ use uuid::Uuid;
 const MAX_BATCH_SIZE: usize = 100;
 
 /// Maximum requests per second (NFR-SC4).
+#[cfg(test)]
 const MAX_REQUESTS_PER_SECOND: u32 = 200;
 
 /// Minimum interval between requests (5ms for 200 req/s).
@@ -120,14 +120,15 @@ pub struct UploadResult {
     pub timestamp: DateTime<Utc>,
 }
 
-/// Rate limiter using token bucket algorithm.
+/// Rate limiter using minimum interval between requests.
+///
+/// Enforces a minimum delay between consecutive requests to respect
+/// the NFR-SC4 rate limit (200 req/s = 5ms between requests).
 pub struct RateLimiter {
     /// Reference instant for measuring elapsed time.
     start_instant: Instant,
     /// Last request timestamp in milliseconds since start.
     last_request_ms: AtomicU64,
-    /// Concurrent request semaphore.
-    semaphore: Semaphore,
 }
 
 impl RateLimiter {
@@ -136,16 +137,14 @@ impl RateLimiter {
         Self {
             start_instant: Instant::now(),
             last_request_ms: AtomicU64::new(0),
-            semaphore: Semaphore::new(MAX_REQUESTS_PER_SECOND as usize),
         }
     }
 
     /// Acquire permission to make a request.
     ///
-    /// This will wait if necessary to respect the rate limit.
+    /// This will wait if necessary to respect the minimum interval
+    /// between requests (5ms for 200 req/s).
     pub async fn acquire(&self) {
-        let _permit = self.semaphore.acquire().await;
-
         // Calculate current time relative to the start instant
         let now_ms = self.start_instant.elapsed().as_millis() as u64;
 

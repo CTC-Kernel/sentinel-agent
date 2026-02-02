@@ -73,6 +73,14 @@ pub enum RuntimeEventKind {
     AgentStarted,
     /// Agent shutting down.
     AgentStopping,
+    /// File integrity change detected.
+    FimAlert,
+    /// USB device connected or disconnected.
+    UsbDeviceChange,
+    /// Suspicious process detected.
+    SuspiciousProcess,
+    /// Remediation action executed.
+    RemediationExecuted,
 }
 
 /// A lightweight runtime event record.

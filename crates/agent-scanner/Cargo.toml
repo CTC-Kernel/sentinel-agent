@@ -21,6 +21,11 @@ thiserror.workspace = true
 tracing.workspace = true
 tokio.workspace = true
 uuid.workspace = true
+walkdir.workspace = true
+blake3.workspace = true
+rayon.workspace = true
+sysinfo.workspace = true
+memmap2.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

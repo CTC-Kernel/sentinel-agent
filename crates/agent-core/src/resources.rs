@@ -11,7 +11,7 @@
 
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
-use tracing::{debug, warn};
+use tracing::{debug, info, warn};
 
 /// Resource limits configuration.
 #[derive(Debug, Clone)]
@@ -251,9 +251,12 @@ impl Default for CpuThrottler {
 }
 
 /// Bounded buffer for memory-efficient data storage.
+///
+/// Uses `VecDeque` for O(1) push/pop from both ends instead of
+/// `Vec::remove(0)` which is O(n).
 #[derive(Debug)]
 pub struct BoundedBuffer<T> {
-    items: Vec<T>,
+    items: std::collections::VecDeque<T>,
     max_size: usize,
 }
 
@@ -261,7 +264,7 @@ impl<T> BoundedBuffer<T> {
     /// Create a new bounded buffer with the given capacity.
     pub fn new(max_size: usize) -> Self {
         Self {
-            items: Vec::with_capacity(max_size.min(1024)),
+            items: std::collections::VecDeque::with_capacity(max_size.min(1024)),
             max_size,
         }
     }
@@ -269,9 +272,9 @@ impl<T> BoundedBuffer<T> {
     /// Push an item, dropping oldest if at capacity.
     pub fn push(&mut self, item: T) {
         if self.items.len() >= self.max_size {
-            self.items.remove(0);
+            self.items.pop_front();
         }
-        self.items.push(item);
+        self.items.push_back(item);
     }
 
     /// Get the current number of items.
@@ -284,9 +287,9 @@ impl<T> BoundedBuffer<T> {
         self.items.is_empty()
     }
 
-    /// Get all items as a slice.
-    pub fn as_slice(&self) -> &[T] {
-        &self.items
+    /// Get all items as a pair of slices (VecDeque may not be contiguous).
+    pub fn as_slices(&self) -> (&[T], &[T]) {
+        self.items.as_slices()
     }
 
     /// Clear all items.
@@ -297,6 +300,165 @@ impl<T> BoundedBuffer<T> {
     /// Drain all items.
     pub fn drain(&mut self) -> impl Iterator<Item = T> + '_ {
         self.items.drain(..)
+    }
+}
+
+/// Battery-aware adaptive scheduler.
+///
+/// Adjusts scan intervals based on battery state to preserve laptop battery life.
+/// - On AC power: use base interval
+/// - On battery > 50%: 1.5x interval
+/// - On battery 20-50%: 2x interval
+/// - On battery < 20%: 4x interval (critical)
+pub struct AdaptiveScheduler {
+    base_interval_secs: u64,
+}
+
+impl AdaptiveScheduler {
+    /// Create a new adaptive scheduler with the given base interval.
+    pub fn new(base_interval_secs: u64) -> Self {
+        Self {
+            base_interval_secs,
+        }
+    }
+
+    /// Get the adjusted scan interval based on current battery state.
+    pub fn adjusted_interval(&self) -> u64 {
+        match get_battery_state() {
+            BatteryState::AcPower => self.base_interval_secs,
+            BatteryState::Discharging(pct) => {
+                if pct < 20.0 {
+                    self.base_interval_secs * 4 // Critical: scan much less frequently
+                } else if pct < 50.0 {
+                    self.base_interval_secs * 2 // Low: scan less frequently
+                } else {
+                    (self.base_interval_secs as f64 * 1.5) as u64 // On battery: slight slowdown
+                }
+            }
+            BatteryState::Unknown => self.base_interval_secs,
+        }
+    }
+
+    /// Check if running on battery power.
+    pub fn is_on_battery(&self) -> bool {
+        matches!(get_battery_state(), BatteryState::Discharging(_))
+    }
+
+    /// Get current battery percentage (None if on AC or unknown).
+    pub fn battery_percentage(&self) -> Option<f64> {
+        match get_battery_state() {
+            BatteryState::Discharging(pct) => Some(pct),
+            _ => None,
+        }
+    }
+}
+
+/// Battery state representation.
+#[derive(Debug, Clone)]
+enum BatteryState {
+    /// Connected to AC power.
+    AcPower,
+    /// Running on battery with given percentage.
+    Discharging(f64),
+    /// Unable to determine battery state (desktop or error).
+    Unknown,
+}
+
+/// Get current battery state.
+fn get_battery_state() -> BatteryState {
+    let manager = match battery::Manager::new() {
+        Ok(m) => m,
+        Err(_) => return BatteryState::Unknown,
+    };
+
+    let batteries = match manager.batteries() {
+        Ok(b) => b,
+        Err(_) => return BatteryState::Unknown,
+    };
+
+    for battery in batteries.flatten() {
+        if battery.state() == battery::State::Discharging {
+            let pct = battery.state_of_charge().get::<battery::units::ratio::percent>();
+            return BatteryState::Discharging(pct as f64);
+        }
+        // If any battery is charging or full, we're on AC
+        if matches!(battery.state(), battery::State::Charging | battery::State::Full) {
+            return BatteryState::AcPower;
+        }
+    }
+
+    BatteryState::Unknown
+}
+
+/// Resource guardian that monitors agent's own resource consumption
+/// and throttles operations when budgets are exceeded.
+pub struct ResourceGuardian {
+    /// Maximum allowed CPU percentage for the agent process.
+    cpu_budget_percent: f32,
+    /// Maximum allowed memory in megabytes.
+    memory_budget_mb: u64,
+    /// Whether throttling is currently active.
+    throttle_active: std::sync::atomic::AtomicBool,
+}
+
+impl ResourceGuardian {
+    /// Create a new resource guardian with default budgets.
+    pub fn new() -> Self {
+        Self {
+            cpu_budget_percent: 5.0,   // 5% CPU max
+            memory_budget_mb: 150,      // 150 MB max
+            throttle_active: std::sync::atomic::AtomicBool::new(false),
+        }
+    }
+
+    /// Create with custom budgets.
+    pub fn with_budgets(cpu_percent: f32, memory_mb: u64) -> Self {
+        Self {
+            cpu_budget_percent: cpu_percent,
+            memory_budget_mb: memory_mb,
+            throttle_active: std::sync::atomic::AtomicBool::new(false),
+        }
+    }
+
+    /// Check if throttling should be active.
+    pub fn should_throttle(&self) -> bool {
+        self.throttle_active.load(std::sync::atomic::Ordering::Acquire)
+    }
+
+    /// Check current resource usage and enforce budgets.
+    pub fn check_and_enforce(&self) {
+        let memory_bytes = get_process_memory();
+        let memory_mb = memory_bytes / (1024 * 1024);
+        let cpu_pct = get_cpu_usage();
+
+        let over_budget = cpu_pct > self.cpu_budget_percent as f64
+            || memory_mb > self.memory_budget_mb;
+
+        if over_budget && !self.should_throttle() {
+            warn!(
+                "Resource guardian: agent over budget (CPU: {:.1}%/{:.1}%, MEM: {}MB/{}MB). Throttling.",
+                cpu_pct, self.cpu_budget_percent, memory_mb, self.memory_budget_mb
+            );
+            self.throttle_active.store(true, std::sync::atomic::Ordering::Release);
+        } else if !over_budget && self.should_throttle() {
+            info!("Resource guardian: back within budget. Releasing throttle.");
+            self.throttle_active.store(false, std::sync::atomic::Ordering::Release);
+        }
+    }
+
+    /// Get a delay duration to apply when throttled.
+    pub fn throttle_delay(&self) -> Duration {
+        if self.should_throttle() {
+            Duration::from_millis(500) // Add 500ms delay between operations
+        } else {
+            Duration::ZERO
+        }
+    }
+}
+
+impl Default for ResourceGuardian {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -1076,7 +1238,8 @@ mod tests {
         // Adding a 4th item should drop the oldest
         buffer.push(4);
         assert_eq!(buffer.len(), 3);
-        assert_eq!(buffer.as_slice(), &[2, 3, 4]);
+        let items: Vec<i32> = buffer.items.iter().copied().collect();
+        assert_eq!(items, vec![2, 3, 4]);
     }
 
     #[test]

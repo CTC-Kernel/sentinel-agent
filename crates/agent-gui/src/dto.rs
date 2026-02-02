@@ -301,6 +301,58 @@ pub struct GuiNetworkConnection {
     pub process_name: Option<String>,
 }
 
+/// A FIM alert for GUI display.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiFimAlert {
+    /// Unique identifier.
+    pub id: String,
+    /// File path that changed.
+    pub path: String,
+    /// Change type (created, modified, deleted, permission_changed, renamed).
+    pub change_type: String,
+    /// Previous file hash.
+    pub old_hash: Option<String>,
+    /// New file hash.
+    pub new_hash: Option<String>,
+    /// When the change was detected.
+    pub timestamp: DateTime<Utc>,
+    /// Whether the alert has been acknowledged.
+    pub acknowledged: bool,
+}
+
+/// A suspicious process event for GUI display.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiSuspiciousProcess {
+    /// Process name.
+    pub process_name: String,
+    /// Full command line.
+    pub command_line: String,
+    /// Why this process was flagged.
+    pub reason: String,
+    /// Confidence score (0-100).
+    pub confidence: u8,
+    /// When detected.
+    pub detected_at: DateTime<Utc>,
+}
+
+/// A USB device event for GUI display.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiUsbEvent {
+    /// Device description.
+    pub device_name: String,
+    /// USB vendor ID.
+    pub vendor_id: u16,
+    /// USB product ID.
+    pub product_id: u16,
+    /// Event type (connected, disconnected).
+    pub event_type: String,
+    /// When the event occurred.
+    pub timestamp: DateTime<Utc>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

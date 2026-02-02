@@ -33,9 +33,12 @@ use agent_scanner::{
     ScanSummary, ScanType, ScoreCalculator, SecurityMonitor, SecurityScanResult,
     VulnerabilityScanResult, VulnerabilityScanner,
     checks::{
-        AdminAccountsCheck, AntivirusCheck, BackupCheck, DiskEncryptionCheck, FirewallCheck,
-        MfaCheck, ObsoleteProtocolsCheck, PasswordPolicyCheck, RemoteAccessCheck,
-        SessionLockCheck, SystemUpdatesCheck,
+        AdminAccountsCheck, AntivirusCheck, AuditLoggingCheck, AutoLoginCheck, BackupCheck,
+        BluetoothCheck, BrowserSecurityCheck, DiskEncryptionCheck, FirewallCheck,
+        GuestAccountCheck, Ipv6ConfigCheck, KernelHardeningCheck, LogRotationCheck,
+        MfaCheck, ObsoleteProtocolsCheck, PasswordPolicyCheck,
+        RemoteAccessCheck, SessionLockCheck, SystemUpdatesCheck, TimeSyncCheck,
+        UsbStorageCheck,
     },
 };
 use agent_storage::{
@@ -232,7 +235,7 @@ impl AgentRuntime {
         let security_monitor = SecurityMonitor::new();
         let network_manager = NetworkManager::new();
 
-        // Register all 11 compliance checks
+        // Register all 21 compliance checks
         let mut registry = CheckRegistry::new();
         registry.register(Arc::new(DiskEncryptionCheck::new()));
         registry.register(Arc::new(FirewallCheck::new()));
@@ -245,6 +248,16 @@ impl AgentRuntime {
         registry.register(Arc::new(BackupCheck::new()));
         registry.register(Arc::new(AdminAccountsCheck::new()));
         registry.register(Arc::new(ObsoleteProtocolsCheck::new()));
+        registry.register(Arc::new(AuditLoggingCheck::new()));
+        registry.register(Arc::new(AutoLoginCheck::new()));
+        registry.register(Arc::new(BluetoothCheck::new()));
+        registry.register(Arc::new(BrowserSecurityCheck::new()));
+        registry.register(Arc::new(GuestAccountCheck::new()));
+        registry.register(Arc::new(Ipv6ConfigCheck::new()));
+        registry.register(Arc::new(KernelHardeningCheck::new()));
+        registry.register(Arc::new(LogRotationCheck::new()));
+        registry.register(Arc::new(TimeSyncCheck::new()));
+        registry.register(Arc::new(UsbStorageCheck::new()));
         let check_registry = Arc::new(registry);
 
         info!("Registered {} compliance checks", check_registry.count());

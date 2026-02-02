@@ -87,9 +87,12 @@ use crate::widgets;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Page {
     Dashboard,
+    Monitoring,
     Compliance,
     Software,
     Vulnerabilities,
+    FileIntegrity,
+    Threats,
     Network,
     Sync,
     Terminal,
@@ -191,6 +194,25 @@ pub struct AppState {
 
     // Compliance trending
     pub previous_compliance_score: Option<f32>,
+
+    // Monitoring history (for real-time charts)
+    pub cpu_history: Vec<[f64; 2]>,
+    pub memory_history: Vec<[f64; 2]>,
+    pub disk_io_history: Vec<[f64; 2]>,
+    pub network_io_history: Vec<[f64; 2]>,
+
+    // FIM (File Integrity Monitoring)
+    pub fim_monitored_count: u32,
+    pub fim_changes_today: u32,
+    pub fim_alerts: Vec<crate::dto::GuiFimAlert>,
+    pub fim_search: String,
+    pub fim_filter: Option<String>,
+
+    // Threats / Security events
+    pub suspicious_processes: Vec<crate::dto::GuiSuspiciousProcess>,
+    pub usb_events: Vec<crate::dto::GuiUsbEvent>,
+    pub threats_search: String,
+    pub threats_filter: Option<String>,
 }
 
 impl Default for AppState {
@@ -274,6 +296,19 @@ impl Default for AppState {
             notifications: Vec::new(),
             unread_notification_count: 0,
             previous_compliance_score: None,
+            cpu_history: Vec::new(),
+            memory_history: Vec::new(),
+            disk_io_history: Vec::new(),
+            network_io_history: Vec::new(),
+            fim_monitored_count: 0,
+            fim_changes_today: 0,
+            fim_alerts: Vec::new(),
+            fim_search: String::new(),
+            fim_filter: None,
+            suspicious_processes: Vec::new(),
+            usb_events: Vec::new(),
+            threats_search: String::new(),
+            threats_filter: None,
         }
     }
 }
@@ -295,6 +330,9 @@ pub struct SentinelApp {
     enrolled: bool,
     enrollment_wizard: EnrollmentWizard,
     theme_applied: bool,
+
+    /// Track previous dark_mode to detect toggles.
+    last_dark_mode: bool,
 
     // Channels to/from agent runtime.
     event_rx: mpsc::Receiver<AgentEvent>,
@@ -342,6 +380,7 @@ impl SentinelApp {
             enrolled,
             enrollment_wizard: EnrollmentWizard::default(),
             theme_applied: false,
+            last_dark_mode: true,
             event_rx,
             command_tx,
             enrollment_tx,
@@ -405,6 +444,25 @@ impl SentinelApp {
                     self.recompute_policy();
                 }
                 AgentEvent::ResourceUpdate { usage } => {
+                    // Push to monitoring history (max 300 points = 5 min at 1s)
+                    let t = self.state.resources.uptime_secs as f64;
+                    self.state.cpu_history.push([t, usage.cpu_percent]);
+                    self.state.memory_history.push([t, usage.memory_percent]);
+                    self.state.disk_io_history.push([t, usage.disk_iops as f64]);
+                    // Truncate to 300 data points
+                    const MAX_HISTORY: usize = 300;
+                    if self.state.cpu_history.len() > MAX_HISTORY {
+                        self.state.cpu_history.drain(..self.state.cpu_history.len() - MAX_HISTORY);
+                    }
+                    if self.state.memory_history.len() > MAX_HISTORY {
+                        self.state.memory_history.drain(..self.state.memory_history.len() - MAX_HISTORY);
+                    }
+                    if self.state.disk_io_history.len() > MAX_HISTORY {
+                        self.state.disk_io_history.drain(..self.state.disk_io_history.len() - MAX_HISTORY);
+                    }
+                    if self.state.network_io_history.len() > MAX_HISTORY {
+                        self.state.network_io_history.drain(..self.state.network_io_history.len() - MAX_HISTORY);
+                    }
                     self.state.resources = usage;
                 }
                 AgentEvent::Notification { notification } => {
@@ -509,6 +567,22 @@ impl SentinelApp {
                         self.state.summary.agent_id = Some(id);
                     }
                 }
+                AgentEvent::FimAlert { alert } => {
+                    self.state.fim_alerts.insert(0, alert);
+                    self.state.fim_alerts.truncate(500);
+                }
+                AgentEvent::UsbEvent { event } => {
+                    self.state.usb_events.insert(0, event);
+                    self.state.usb_events.truncate(200);
+                }
+                AgentEvent::SuspiciousProcess { process } => {
+                    self.state.suspicious_processes.insert(0, process);
+                    self.state.suspicious_processes.truncate(200);
+                }
+                AgentEvent::FimStats { monitored_count, changes_today } => {
+                    self.state.fim_monitored_count = monitored_count;
+                    self.state.fim_changes_today = changes_today;
+                }
                 AgentEvent::ShuttingDown => {
                     // Runtime is shutting down
                 }
@@ -592,14 +666,18 @@ impl SentinelApp {
 
 impl eframe::App for SentinelApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // Apply theme once.
+        // Apply theme once on first frame, and re-apply when dark_mode toggles.
         if !self.theme_applied {
             theme::configure_fonts(ctx);
-            theme::apply_theme(ctx);
+            theme::apply_theme(ctx, self.state.dark_mode);
             egui_extras::install_image_loaders(ctx);
             // Scan macOS native apps once
             self.state.macos_apps = scan_macos_apps();
             self.theme_applied = true;
+            self.last_dark_mode = self.state.dark_mode;
+        } else if self.state.dark_mode != self.last_dark_mode {
+            theme::apply_theme(ctx, self.state.dark_mode);
+            self.last_dark_mode = self.state.dark_mode;
         }
 
         // Process incoming events.
@@ -636,7 +714,7 @@ impl eframe::App for SentinelApp {
         // ── Enrollment wizard (shown instead of main UI when not enrolled) ──
         if !self.enrolled {
             egui::CentralPanel::default()
-                .frame(egui::Frame::new().fill(theme::BG_PRIMARY))
+                .frame(egui::Frame::new().fill(theme::bg_primary()))
                 .show(ctx, |ui| {
                     if let Some(cmd) = self.enrollment_wizard.show(ui) {
                         match &cmd {
@@ -668,7 +746,7 @@ impl eframe::App for SentinelApp {
         // Sidebar
         egui::SidePanel::left("sidebar")
             .exact_width(theme::SIDEBAR_WIDTH)
-            .frame(egui::Frame::new().fill(theme::BG_SIDEBAR).stroke(egui::Stroke::new(0.5, theme::BORDER)))
+            .frame(egui::Frame::new().fill(theme::bg_sidebar()).stroke(egui::Stroke::new(0.5, theme::border())))
             .show(ctx, |ui| {
                 let scanning = self.state.summary.status == crate::dto::GuiAgentStatus::Scanning;
                 if let Some(new_page) = widgets::Sidebar::show(ui, &self.page, scanning, self.state.unread_notification_count) {
@@ -681,7 +759,7 @@ impl eframe::App for SentinelApp {
         egui::CentralPanel::default()
             .frame(
                 egui::Frame::new()
-                    .fill(theme::BG_PRIMARY)
+                    .fill(theme::bg_primary())
                     .inner_margin(egui::Margin {
                         left: 24,
                         right: 0,
@@ -707,14 +785,27 @@ impl eframe::App for SentinelApp {
                                             self.send_command(cmd);
                                         }
                                     }
+                                    Page::Monitoring => {
+                                        pages::MonitoringPage::show(ui, &self.state);
+                                    }
                                     Page::Compliance => {
-                                        pages::CompliancePage::show(ui, &mut self.state);
+                                        if let Some(cmd) = pages::CompliancePage::show(ui, &mut self.state) {
+                                            self.send_command(cmd);
+                                        }
                                     }
                                     Page::Software => {
                                         pages::SoftwarePage::show(ui, &mut self.state);
                                     }
                                     Page::Vulnerabilities => {
                                         pages::VulnerabilitiesPage::show(ui, &mut self.state);
+                                    }
+                                    Page::FileIntegrity => {
+                                        if let Some(cmd) = pages::FimPage::show(ui, &mut self.state) {
+                                            self.send_command(cmd);
+                                        }
+                                    }
+                                    Page::Threats => {
+                                        pages::ThreatsPage::show(ui, &mut self.state);
                                     }
                                     Page::Network => {
                                         pages::NetworkPage::show(ui, &mut self.state);
@@ -774,7 +865,7 @@ impl SentinelApp {
         let a = (alpha * 255.0) as u8;
 
         egui::CentralPanel::default()
-            .frame(egui::Frame::new().fill(theme::BG_PRIMARY))
+            .frame(egui::Frame::new().fill(theme::bg_primary()))
             .show(ctx, |ui| {
                 let size = ui.available_size();
                 ui.allocate_new_ui(
@@ -810,9 +901,9 @@ impl SentinelApp {
                                 egui::RichText::new("GRC AGENT")
                                     .font(theme::font_heading())
                                     .color(egui::Color32::from_rgba_premultiplied(
-                                        theme::TEXT_TERTIARY.r(),
-                                        theme::TEXT_TERTIARY.g(),
-                                        theme::TEXT_TERTIARY.b(),
+                                        theme::text_tertiary().r(),
+                                        theme::text_tertiary().g(),
+                                        theme::text_tertiary().b(),
                                         a,
                                     )),
                             );
@@ -850,9 +941,9 @@ impl SentinelApp {
                                 egui::RichText::new("CYBER THREAT CONSULTING")
                                     .font(theme::font_small())
                                     .color(egui::Color32::from_rgba_premultiplied(
-                                        theme::TEXT_TERTIARY.r(),
-                                        theme::TEXT_TERTIARY.g(),
-                                        theme::TEXT_TERTIARY.b(),
+                                        theme::text_tertiary().r(),
+                                        theme::text_tertiary().g(),
+                                        theme::text_tertiary().b(),
                                         a,
                                     ))
                                     .strong(),

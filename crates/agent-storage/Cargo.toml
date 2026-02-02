@@ -21,6 +21,7 @@ tracing.workspace = true
 chrono.workspace = true
 sha2.workspace = true
 hex.workspace = true
+getrandom = "0.2"
 
 [target.'cfg(windows)'.dependencies]
 windows.workspace = true

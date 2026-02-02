@@ -15,7 +15,7 @@ impl Sidebar {
         let mut selected: Option<Page> = None;
 
         egui::Frame {
-            fill: theme::BG_SIDEBAR,
+            fill: theme::bg_sidebar(),
             inner_margin: Margin::same(0),
             ..Default::default()
         }
@@ -57,7 +57,7 @@ impl Sidebar {
                     ui.label(
                         egui::RichText::new("GRC AGENT")
                             .font(theme::font_small())
-                            .color(theme::TEXT_TERTIARY)
+                            .color(theme::text_tertiary())
                             .strong(),
                     );
 
@@ -87,7 +87,7 @@ impl Sidebar {
                                 egui::Align2::CENTER_CENTER,
                                 &badge_text,
                                 egui::FontId::proportional(9.0),
-                                theme::TEXT_ON_ACCENT,
+                                theme::text_on_accent(),
                             );
                         });
                     }
@@ -104,9 +104,12 @@ impl Sidebar {
 
                     let main_items: &[(Page, &str, &str)] = &[
                         (Page::Dashboard, icons::DASHBOARD, "Tableau de bord"),
+                        (Page::Monitoring, icons::CHART_LINE, "Surveillance"),
                         (Page::Compliance, icons::COMPLIANCE, "Conformit\u{00e9}"),
                         (Page::Software, icons::SOFTWARE, "Logiciels"),
                         (Page::Vulnerabilities, icons::VULNERABILITIES, "Vuln\u{00e9}rabilit\u{00e9}s"),
+                        (Page::FileIntegrity, icons::FILE_SHIELD, "Int\u{00e9}grit\u{00e9} fichiers"),
+                        (Page::Threats, icons::SKULL, "Menaces"),
                         (Page::Notifications, icons::BELL, "Notifications"),
                     ];
 
@@ -177,7 +180,7 @@ impl Sidebar {
             ui.label(
                 egui::RichText::new(text)
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY)
+                    .color(theme::text_tertiary())
                     .strong(),
             );
         });
@@ -190,9 +193,9 @@ impl Sidebar {
 
     fn nav_item_with_badge(ui: &mut Ui, icon: &str, label: &str, is_current: bool, badge: Option<u32>) -> bool {
         let text_color = if is_current {
-            theme::TEXT_PRIMARY
+            theme::text_primary()
         } else {
-            theme::TEXT_SECONDARY
+            theme::text_secondary()
         };
 
         let bg_fill = if is_current {
@@ -206,7 +209,7 @@ impl Sidebar {
         if ui.is_rect_visible(rect) {
             // Background tint on hover or active
             if is_current || response.hovered() {
-                let fill = if is_current { bg_fill } else { theme::BG_ELEVATED.linear_multiply(0.5) };
+                let fill = if is_current { bg_fill } else { theme::bg_elevated().linear_multiply(0.5) };
                 ui.painter().rect_filled(rect.shrink2(Vec2::new(8.0, 4.0)), CornerRadius::same(theme::BUTTON_ROUNDING), fill);
             }
 
@@ -226,7 +229,7 @@ impl Sidebar {
                 egui::Align2::LEFT_CENTER,
                 icon,
                 egui::FontId::proportional(16.0),
-                if is_current { theme::ACCENT } else { theme::TEXT_TERTIARY },
+                if is_current { theme::ACCENT } else { theme::text_tertiary() },
             );
 
             let label_pos = rect.left_top() + Vec2::new(20.0 + 16.0 + 8.0, 21.0);
@@ -250,7 +253,7 @@ impl Sidebar {
                         egui::Align2::CENTER_CENTER,
                         &badge_text,
                         egui::FontId::proportional(10.0),
-                        theme::TEXT_ON_ACCENT,
+                        theme::text_on_accent(),
                     );
                 }
             }

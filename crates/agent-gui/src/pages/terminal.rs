@@ -16,8 +16,8 @@ fn level_color(level: &str) -> Color32 {
         "ERROR" => theme::ERROR,
         "WARN" => theme::WARNING,
         "INFO" => theme::ACCENT_LIGHT,
-        "DEBUG" => theme::TEXT_TERTIARY,
-        _ => theme::TEXT_SECONDARY, // TRACE & unknown
+        "DEBUG" => theme::text_tertiary(),
+        _ => theme::text_secondary(), // TRACE & unknown
     }
 }
 
@@ -85,7 +85,7 @@ impl TerminalPage {
                     ui,
                     "\u{00c9}v\u{00e9}nements",
                     &state.terminal_event_count.to_string(),
-                    theme::TEXT_PRIMARY,
+                    theme::text_primary(),
                 );
 
                 ui.add_space(theme::SPACE_LG);
@@ -96,7 +96,7 @@ impl TerminalPage {
                 } else {
                     0
                 };
-                Self::stat_item(ui, "\u{00c9}v./min", &epm.to_string(), theme::TEXT_SECONDARY);
+                Self::stat_item(ui, "\u{00c9}v./min", &epm.to_string(), theme::text_secondary());
 
                 ui.add_space(theme::SPACE_LG);
 
@@ -120,7 +120,7 @@ impl TerminalPage {
             ui.label(
                 egui::RichText::new(label)
                     .font(theme::font_small())
-                    .color(theme::TEXT_TERTIARY),
+                    .color(theme::text_tertiary()),
             );
             ui.label(
                 egui::RichText::new(value)
@@ -141,7 +141,7 @@ impl TerminalPage {
                 ui.label(
                     egui::RichText::new("Niveau :")
                         .font(theme::font_body())
-                        .color(theme::TEXT_SECONDARY),
+                        .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_SM);
 
@@ -151,13 +151,13 @@ impl TerminalPage {
                     let btn_text = egui::RichText::new(*name)
                         .font(theme::font_small())
                         .strong()
-                        .color(if selected { theme::TEXT_ON_ACCENT } else { color });
+                        .color(if selected { theme::text_on_accent() } else { color });
 
                     let btn = egui::Button::new(btn_text)
                         .fill(if selected {
                             color.linear_multiply(0.6)
                         } else {
-                            theme::BG_ELEVATED
+                            theme::bg_elevated()
                         })
                         .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
 
@@ -173,7 +173,7 @@ impl TerminalPage {
                 ui.label(
                     egui::RichText::new("Recherche :")
                         .font(theme::font_body())
-                        .color(theme::TEXT_SECONDARY),
+                        .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_XS);
                 let search_edit = egui::TextEdit::singleline(&mut state.terminal_search)
@@ -229,7 +229,7 @@ impl TerminalPage {
                         ui.label(
                             egui::RichText::new("Aucun \u{00e9}v\u{00e9}nement \u{00e0} afficher")
                                 .font(theme::font_body())
-                                .color(theme::TEXT_TERTIARY),
+                                .color(theme::text_tertiary()),
                         );
                     });
                     return;
@@ -268,7 +268,7 @@ impl TerminalPage {
                             let target_short = shorten_target(&entry.target);
 
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(&ts).font(theme::font_mono()).color(theme::TEXT_TERTIARY));
+                                ui.label(egui::RichText::new(&ts).font(theme::font_mono()).color(theme::text_tertiary()));
                             });
                             row.col(|ui| {
                                 ui.label(egui::RichText::new(format!("{:5}", entry.level)).font(theme::font_mono()).color(color).strong());
@@ -277,7 +277,7 @@ impl TerminalPage {
                                 ui.label(egui::RichText::new(target_short).font(theme::font_mono()).color(theme::ACCENT_LIGHT.linear_multiply(0.6)));
                             });
                             row.col(|ui| {
-                                ui.label(egui::RichText::new(&entry.message).font(theme::font_mono()).color(theme::TEXT_PRIMARY));
+                                ui.label(egui::RichText::new(&entry.message).font(theme::font_mono()).color(theme::text_primary()));
                             });
                         });
                     });

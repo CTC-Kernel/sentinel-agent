@@ -47,6 +47,14 @@ rand = "0.9"
 eframe = "0.31"
 egui = "0.31"
 egui_extras = { version = "0.31", features = ["image"] }
+egui_plot = "0.31"
+notify = { version = "7", default-features = false, features = ["macos_fsevent"] }
+rayon = "1.10"
+battery = "0.7"
+usb-enumeration = "0.2"
+walkdir = "2"
+blake3 = "1"
+memmap2 = "0.9"
 
 [workspace.dependencies.windows]
 version = "0.58"
