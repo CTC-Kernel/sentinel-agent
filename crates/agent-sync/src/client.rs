@@ -294,14 +294,18 @@ impl HttpClient {
         R: serde::de::DeserializeOwned,
     {
         let url = self.url(path);
+        debug!("Base URL: '{}'", self.base_url);
         debug!("POST {} (with bearer token)", url);
+
+        // Trim token to prevent invalid header values (e.g. newlines)
+        let trimmed_token = token.trim();
 
         let response = self
             .client
             .post(&url)
             .header(header::CONTENT_TYPE, "application/json")
             .header(header::ACCEPT, "application/json")
-            .header(header::AUTHORIZATION, format!("Bearer {}", token))
+            .header(header::AUTHORIZATION, format!("Bearer {}", trimmed_token))
             .json(body)
             .send()
             .await
@@ -464,7 +468,13 @@ impl HttpClient {
         debug!("Response status: {}", status);
 
         if status.is_success() {
-            let body = response.json::<R>().await?;
+            let body_text = response.text().await.map_err(|e| SyncError::Http(e))?;
+            debug!("Response body: {}", body_text);
+
+            let body = serde_json::from_str::<R>(&body_text).map_err(|e| {
+                tracing::error!("Failed to decode response body: {}. Body was: {}", e, body_text);
+                SyncError::Serialization(e)
+            })?;
             Ok(body)
         } else {
             // Try to parse error response

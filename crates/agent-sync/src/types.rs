@@ -65,6 +65,21 @@ pub struct EnrollmentResponse {
     pub initial_config: Option<InitialConfig>,
 }
 
+/// Result of enrollment request, handling both success and already_enrolled cases.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(untagged)]
+pub enum EnrollmentResult {
+    /// Successful enrollment with credentials.
+    Success(EnrollmentResponse),
+    /// Agent already enrolled.
+    AlreadyEnrolled {
+        status: String,
+        message: String,
+        agent_id: Uuid,
+        organization_id: Uuid,
+    },
+}
+
 /// Initial configuration provided during enrollment.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -629,5 +644,30 @@ mod tests {
         );
         assert!(response.commands.is_empty());
         assert!(!response.config_changed);
+    }
+
+    #[test]
+    fn test_enrollment_response_reproduction() {
+        // Exact structure from enrollment.js
+        let json = r#"{
+            "agent_id": "550e8400-e29b-41d4-a716-446655440000",
+            "organization_id": "550e8400-e29b-41d4-a716-446655440001",
+            "server_certificate": "base64encodedcert",
+            "client_certificate": "base64encodedcert",
+            "client_key": "base64encodedkey",
+            "hmac_secret": "base64encodedsecret",
+            "certificate_expires_at": "2027-02-02T22:47:00.000Z",
+            "config": {
+                "check_interval_secs": 3600,
+                "heartbeat_interval_secs": 60,
+                "log_level": "info",
+                "enabled_checks": ["all"],
+                "offline_mode_days": 7
+            },
+            "status": "enrolled"
+        }"#;
+
+        let response: EnrollmentResponse = serde_json::from_str(json).unwrap();
+        assert_eq!(response.agent_id.to_string(), "550e8400-e29b-41d4-a716-446655440000");
     }
 }

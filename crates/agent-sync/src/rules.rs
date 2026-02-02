@@ -430,6 +430,11 @@ mod tests {
             version: "1.0".to_string(),
             created_at: Utc::now(),
             updated_at: Utc::now(),
+            check_command: None,
+            expected_result: None,
+            remediation: None,
+            platforms: None,
+            control_id: None,
         };
 
         let rule: CheckRule = api_rule.into();
