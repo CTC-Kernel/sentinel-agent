@@ -8,7 +8,7 @@ set -e
 # Configuration
 VERSION="2.0.0"
 PACKAGE_NAME="SentinelAgent"
-IDENTIFIER="com.sentinel.agent"
+IDENTIFIER="com.cyber-threat-consulting.sentinel-agent"  # Corrigé pour cohérence
 INSTALL_LOCATION="/Applications"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
@@ -131,6 +131,14 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << EOF
         <string>NSPrivacyAccessedAPITypeNetwork</string>
         <string>NSPrivacyAccessedAPITypeSystemUptime</string>
     </array>
+    <key>NSRequiresAquaSystemAppearance</key>
+    <false/>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
+    <key>CFBundleGetInfoString</key>
+    <string>Sentinel GRC Agent v$VERSION - Endpoint compliance monitoring</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright © 2024-2026 Cyber Threat Consulting. All rights reserved.</string>
 </dict>
 </plist>
 EOF
@@ -153,9 +161,20 @@ MAX_RETRIES=3
 RETRY_COUNT=0
 SUCCESS=false
 
+# Additional hardened runtime options for Rust applications
+CODESIGN_OPTIONS="--force --options runtime --timestamp="http://timestamp.apple.com/ts01""
+
+# Add entitlements if they exist
+if [[ -f "macos/entitlements.plist" ]]; then
+    CODESIGN_OPTIONS="$CODESIGN_OPTIONS --entitlements macos/entitlements.plist"
+    echo -e "${BLUE}Using entitlements from macos/entitlements.plist${NC}"
+else
+    echo -e "${YELLOW}Warning: No entitlements.plist found, using default hardened runtime${NC}"
+fi
+
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     echo -e "Attempt $((RETRY_COUNT + 1)) of $MAX_RETRIES..."
-    if codesign --force --options runtime --timestamp="http://timestamp.apple.com/ts01" --entitlements "macos/entitlements.plist" --sign "$SIGNING_IDENTITY" "$APP_BUNDLE"; then
+    if eval "codesign $CODESIGN_OPTIONS --sign '$SIGNING_IDENTITY' '$APP_BUNDLE'"; then
         SUCCESS=true
         break
     else
@@ -532,24 +551,61 @@ if [ "$NOTARIZE" == "true" ]; then
         exit 1
     fi
 
-    # Submit
+    # Submit for notarization
     echo -e "${YELLOW}Submitting path for notarization (this may take a while)...${NC}"
     
+    SUBMISSION_ID=""
     if [[ -n "$NOTARIZATION_KEYCHAIN_PROFILE" ]]; then
-        xcrun notarytool submit "$PKG_DIR/SentinelAgent-$VERSION.pkg" \
+        echo -e "${BLUE}Using keychain profile for notarization${NC}"
+        SUBMISSION_OUTPUT=$(xcrun notarytool submit "$PKG_DIR/SentinelAgent-$VERSION.pkg" \
             --keychain-profile "$NOTARIZATION_KEYCHAIN_PROFILE" \
-            --wait
+            --wait 2>&1)
+        SUBMISSION_ID=$(echo "$SUBMISSION_OUTPUT" | grep "id:" | head -1 | awk '{print $2}')
     else
-        xcrun notarytool submit "$PKG_DIR/SentinelAgent-$VERSION.pkg" \
+        echo -e "${BLUE}Using Apple ID credentials for notarization${NC}"
+        SUBMISSION_OUTPUT=$(xcrun notarytool submit "$PKG_DIR/SentinelAgent-$VERSION.pkg" \
             --apple-id "$APPLE_ID" \
             --password "$APPLE_PASSWORD" \
             --team-id "$TEAM_ID" \
-            --wait
+            --wait 2>&1)
+        SUBMISSION_ID=$(echo "$SUBMISSION_OUTPUT" | grep "id:" | head -1 | awk '{print $2}')
     fi
     
-    # Staple
-    echo -e "${YELLOW}Stapling ticket to package...${NC}"
-    xcrun stapler staple "$PKG_DIR/SentinelAgent-$VERSION.pkg"
+    echo -e "${BLUE}Submission complete. Checking results...${NC}"
+    
+    # Check if submission was successful
+    if echo "$SUBMISSION_OUTPUT" | grep -q "status: Invalid"; then
+        echo -e "${RED}❌ Notarization failed with status: Invalid${NC}"
+        
+        # Try to get detailed logs
+        if [[ -n "$SUBMISSION_ID" ]]; then
+            echo -e "${YELLOW}Attempting to fetch detailed logs for submission: $SUBMISSION_ID${NC}"
+            if [[ -n "$NOTARIZATION_KEYCHAIN_PROFILE" ]]; then
+                xcrun notarytool log "$SUBMISSION_ID" --keychain-profile "$NOTARIZATION_KEYCHAIN_PROFILE" || echo -e "${YELLOW}Could not fetch logs${NC}"
+            else
+                xcrun notarytool log "$SUBMISSION_ID" \
+                    --apple-id "$APPLE_ID" \
+                    --password "$APPLE_PASSWORD" \
+                    --team-id "$TEAM_ID" || echo -e "${YELLOW}Could not fetch logs${NC}"
+            fi
+        fi
+        
+        echo -e "${RED}❌ Package notarization failed. Please check the logs above.${NC}"
+        exit 66
+    elif echo "$SUBMISSION_OUTPUT" | grep -q "status: Accepted"; then
+        echo -e "${GREEN}✅ Notarization successful!${NC}"
+        
+        # Staple the ticket
+        echo -e "${YELLOW}Stapling ticket to package...${NC}"
+        if xcrun stapler staple "$PKG_DIR/SentinelAgent-$VERSION.pkg"; then
+            echo -e "${GREEN}✅ Stapling successful${NC}"
+        else
+            echo -e "${YELLOW}⚠️ Stapling failed, but notarization is complete${NC}"
+        fi
+    else
+        echo -e "${YELLOW}⚠️ Unexpected notarization status. Please check manually.${NC}"
+        echo "$SUBMISSION_OUTPUT"
+    fi
     
     echo -e "${GREEN}✅ Notarization Complete!${NC}"
 fi

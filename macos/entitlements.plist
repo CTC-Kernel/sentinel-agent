@@ -17,16 +17,24 @@
     <true/>
 
     <!-- Hardened runtime exceptions needed for the agent -->
-    <!-- Allow unsigned executable memory (for JIT if needed) -->
+    <!-- Allow unsigned executable memory (for Rust runtime) -->
     <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
-    <false/>
+    <true/>
 
     <!-- Allow DYLD environment variables (for debugging) -->
     <key>com.apple.security.cs.allow-dyld-environment-variables</key>
-    <false/>
+    <true/>
 
-    <!-- Disable library validation (if loading external libs) -->
+    <!-- Disable library validation (for dynamic loading) -->
     <key>com.apple.security.cs.disable-library-validation</key>
-    <false/>
+    <true/>
+
+    <!-- Allow JIT compilation (required by some Rust components) -->
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+
+    <!-- Allow execution of memory pages (for Rust runtime) -->
+    <key>com.apple.security.cs.allow-executable-stack</key>
+    <true/>
 </dict>
 </plist>
