@@ -241,6 +241,7 @@ impl Default for AppState {
                 disk_iops: 0,
                 uptime_secs: 0,
                 disk_percent: 0.0,
+                network_io_bytes: 0,
             },
             checks: Vec::new(),
             logs: Vec::new(),
@@ -455,6 +456,7 @@ impl SentinelApp {
                     self.state.cpu_history.push([t, usage.cpu_percent]);
                     self.state.memory_history.push([t, usage.memory_percent]);
                     self.state.disk_io_history.push([t, usage.disk_iops as f64]);
+                    self.state.network_io_history.push([t, usage.network_io_bytes as f64 / 1024.0]); // In KB/s for graph
                     // Truncate to 300 data points
                     const MAX_HISTORY: usize = 300;
                     if self.state.cpu_history.len() > MAX_HISTORY {

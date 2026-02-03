@@ -9,6 +9,7 @@ mod resource_bar;
 mod search_filter_bar;
 pub mod sidebar;
 mod status_badge;
+mod security_hero;
 
 pub use card::card;
 pub use compliance_gauge::compliance_gauge;
@@ -18,6 +19,7 @@ pub use resource_bar::resource_bar;
 pub use search_filter_bar::SearchFilterBar;
 pub use sidebar::Sidebar;
 pub use status_badge::status_badge;
+pub use security_hero::security_hero;
 
 mod protected_state;
 pub use protected_state::protected_state;

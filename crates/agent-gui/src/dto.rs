@@ -116,6 +116,8 @@ pub struct GuiResourceUsage {
     pub uptime_secs: u64,
     /// Disk usage percentage (0-100).
     pub disk_percent: f64,
+    /// Network I/O throughput (bytes per second).
+    pub network_io_bytes: u64,
 }
 
 /// Vulnerability scan summary for GUI display.
