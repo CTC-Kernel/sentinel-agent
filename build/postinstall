@@ -37,13 +37,10 @@ fi
 LAUNCH_AGENTS_DIR="$REAL_HOME/Library/LaunchAgents"
 PLIST_PATH="$LAUNCH_AGENTS_DIR/com.cyber-threat-consulting.sentinel-agent.plist"
 
-# Ask user about auto-start
-AUTO_START=$(sudo -u "$REAL_USER" osascript -e '
-tell application "System Events"
-    set autoStart to button returned of (display dialog "Souhaitez-vous que Sentinel Agent se lance automatiquement au démarrage ?" buttons {"Non", "Oui"} default button "Oui" with title "Sentinel GRC Agent" with icon caution)
-end tell
-return autoStart
-' 2>/dev/null || echo "Oui")
+# Ask user about auto-start (only if strictly interactive/not handled by MDM)
+# Skipping interactive dialogue in silent install contexts
+
+AUTO_START="Oui" # Defaulting for now
 
 if [[ "$AUTO_START" == "Oui" ]]; then
     sudo -u "$REAL_USER" mkdir -p "$LAUNCH_AGENTS_DIR"
@@ -70,7 +67,6 @@ if [[ "$AUTO_START" == "Oui" ]]; then
     <string>/tmp/sentinel-agent.stderr.log</string>
 </dict>
 </plist>
-PLIST
     chown "$REAL_USER" "$PLIST_PATH"
     chmod 644 "$PLIST_PATH"
     echo "Auto-start configured via LaunchAgent"
