@@ -2,8 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../../firebase';
 import {
     Server,
     Terminal,
@@ -69,26 +67,7 @@ import { AgentDetailsModal } from './AgentDetailsModal';
 import { useLocale } from '@/hooks/useLocale';
 
 // Types for release info
-interface PlatformInfo {
-    displayName: string;
-    available: boolean;
-    downloadUrl: string;
-    directUrl: string | null;
-    checksum?: string;
-    fileSize?: string;
-}
-
-interface ReleaseInfo {
-    product: string;
-    currentVersion: string;
-    releaseDate?: string;
-    changelogUrl?: string;
-    platforms: Record<string, PlatformInfo>;
-    mobile?: {
-        ios: { available: boolean; appStoreUrl: string; comingSoon: boolean };
-        android: { available: boolean; playStoreUrl: string; comingSoon: boolean };
-    };
-}
+import { ReleaseInfo } from '../../types/release';
 
 // Download API base URL
 // Agent Status Colors
@@ -435,9 +414,8 @@ export const AgentManagement: React.FC = () => {
     useEffect(() => {
         const fetchReleases = async () => {
             try {
-                const getReleaseInfo = httpsCallable<{ product: string }, ReleaseInfo>(functions, 'getReleaseInfo');
-                const result = await getReleaseInfo({ product: 'agent' });
-                setReleaseInfo(result.data);
+                const data = await AgentService.getReleaseInfo('agent');
+                setReleaseInfo(data);
             } catch (error) {
                 ErrorLogger.error(error, 'AgentManagement.fetchReleases');
                 setReleaseInfo({
@@ -448,8 +426,8 @@ export const AgentManagement: React.FC = () => {
                     platforms: {
                         windows: { displayName: 'Windows (MSI)', available: true, downloadUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/windows/SentinelAgentSetup-2.0.0.msi', directUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/windows/SentinelAgentSetup-2.0.0.msi' },
                         macos: { displayName: 'macOS (PKG)', available: true, downloadUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/macos/SentinelAgent-2.0.0.pkg', directUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/macos/SentinelAgent-2.0.0.pkg' },
-                        linux_deb: { displayName: 'Linux (DEB)', available: true, downloadUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/linux_deb/sentinel-agent_2.0.0_arm64.deb', directUrl: null },
-                        linux_rpm: { displayName: 'Linux (RPM)', available: true, downloadUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/linux_rpm/sentinel-agent-2.0.0.x86_64.rpm', directUrl: null },
+                        linux_deb: { displayName: 'Linux (DEB)', available: true, downloadUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/linux_deb/sentinel-agent_2.0.0-1_amd64.deb', directUrl: null },
+                        linux_rpm: { displayName: 'Linux (RPM)', available: true, downloadUrl: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/linux_rpm/sentinel-agent-2.0.0-1.x86_64.rpm', directUrl: null },
                     },
                     mobile: {
                         ios: { available: true, appStoreUrl: '#', comingSoon: true },

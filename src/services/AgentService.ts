@@ -7,8 +7,7 @@ import {
     Timestamp
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { ref, getDownloadURL } from 'firebase/storage';
-import { db, functions, storage } from '../firebase';
+import { db, functions } from '../firebase';
 import { ErrorLogger } from './errorLogger';
 import {
     SentinelAgent,
@@ -20,6 +19,7 @@ import {
     AgentStatus,
     AgentMetricsHistory
 } from '../types/agent';
+import { ReleaseInfo } from '../types/release';
 
 // Offline threshold: 3 missed heartbeats (3 minutes with 60s interval)
 const OFFLINE_THRESHOLD_MS = 3 * 60 * 1000;
@@ -46,7 +46,7 @@ function computeAgentStatus(lastHeartbeat: Date | null): AgentStatus {
  */
 function validateAgentMetrics(data: Record<string, unknown>): Record<string, unknown> {
     const validated = { ...data };
-    
+
     // Validate CPU - log if value exceeds 100% (indicates agent bug)
     if (typeof data.cpuPercent === 'number') {
         if (data.cpuPercent > 100) {
@@ -79,7 +79,7 @@ function validateAgentMetrics(data: Record<string, unknown>): Record<string, unk
         }
         validated.diskPercent = Math.min(100, Math.max(0, data.diskPercent));
     }
-    
+
     return validated;
 }
 
@@ -479,35 +479,48 @@ export interface AgentDownloadInfo {
 }
 
 /**
- * Get download URL for agent installer
+ * Get release information for a product via Cloud Function
+ */
+export async function getReleaseInfo(product: string = 'agent'): Promise<ReleaseInfo> {
+    try {
+        const getReleaseInfoFn = httpsCallable<{ product: string }, ReleaseInfo>(
+            functions,
+            'getReleaseInfo'
+        );
+
+        const result = await getReleaseInfoFn({ product });
+        return result.data;
+    } catch (error) {
+        ErrorLogger.error(error, 'AgentService.getReleaseInfo', {
+            component: 'AgentService',
+            action: 'getReleaseInfo',
+            metadata: { product }
+        });
+        throw error;
+    }
+}
+
+/**
+ * Get download URL for agent installer from release info
  */
 export async function getAgentDownloadUrl(
     platform: AgentPlatform
 ): Promise<AgentDownloadInfo> {
     try {
-        // Get manifest first
-        const manifestRef = ref(storage, 'releases/agents/manifest.json');
-        const manifestUrl = await getDownloadURL(manifestRef);
+        const releaseInfo = await getReleaseInfo('agent');
+        const platformInfo = releaseInfo.platforms[platform];
 
-        const response = await fetch(manifestUrl);
-        const manifest = await response.json();
-
-        const platformInfo = manifest.agents[platform];
-        if (!platformInfo) {
+        if (!platformInfo || !platformInfo.available) {
             throw new Error(`No agent available for platform: ${platform}`);
         }
 
-        // Get download URL for the agent file from the platform-specific folder
-        const agentRef = ref(storage, `releases/agent/${platform}/${platformInfo.filename}`);
-        const downloadUrl = await getDownloadURL(agentRef);
-
         return {
             platform,
-            version: platformInfo.version,
-            filename: platformInfo.filename,
-            downloadUrl,
-            size: platformInfo.size,
-            sha256: platformInfo.sha256,
+            version: releaseInfo.currentVersion,
+            filename: platformInfo.downloadUrl.split('/').pop() || '',
+            downloadUrl: platformInfo.downloadUrl,
+            size: parseInt(platformInfo.fileSize || '0'),
+            sha256: platformInfo.checksum || '',
         };
     } catch (error) {
         ErrorLogger.error(error, 'AgentService.getAgentDownloadUrl', {
@@ -520,30 +533,35 @@ export async function getAgentDownloadUrl(
 }
 
 /**
- * Get all available agent downloads
+ * Get all available agent downloads from release info
  */
 export async function getAgentDownloads(): Promise<AgentDownloadInfo[]> {
-    const platforms: AgentPlatform[] = ['macos', 'windows', 'linux_deb', 'linux_rpm'];
+    try {
+        const releaseInfo = await getReleaseInfo('agent');
+        const platforms: AgentPlatform[] = ['macos', 'windows', 'linux_deb', 'linux_rpm'];
 
-    const results = await Promise.allSettled(
-        platforms.map(platform => getAgentDownloadUrl(platform))
-    );
+        return platforms
+            .map(platform => {
+                const info = releaseInfo.platforms[platform];
+                if (!info || !info.available) return null;
 
-    return results
-        .filter((r): r is PromiseFulfilledResult<AgentDownloadInfo> => {
-            if (r.status === 'rejected') {
-                ErrorLogger.warn(
-                    `Failed to get download for platform: ${r.reason instanceof Error ? r.reason.message : 'Unknown error'}`,
-                    'AgentService.getAgentDownloads',
-                    {
-                        component: 'AgentService',
-                        action: 'getAgentDownloads',
-                    }
-                );
-            }
-            return r.status === 'fulfilled';
-        })
-        .map(r => r.value);
+                return {
+                    platform,
+                    version: releaseInfo.currentVersion,
+                    filename: info.downloadUrl.split('/').pop() || '',
+                    downloadUrl: info.downloadUrl,
+                    size: parseInt(info.fileSize || '0'),
+                    sha256: info.checksum || '',
+                };
+            })
+            .filter((d): d is AgentDownloadInfo => d !== null);
+    } catch (error) {
+        ErrorLogger.error(error, 'AgentService.getAgentDownloads', {
+            component: 'AgentService',
+            action: 'getAgentDownloads'
+        });
+        return [];
+    }
 }
 
 export const AgentService = {
@@ -557,6 +575,7 @@ export const AgentService = {
     revokeEnrollmentToken,
     updateAgentConfig,
     getAgentResults,
+    getReleaseInfo,
     getAgentDownloadUrl,
     getAgentDownloads,
 };
