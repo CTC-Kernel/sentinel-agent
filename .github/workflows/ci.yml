@@ -364,15 +364,18 @@ jobs:
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
+          # Save password to file to avoid shell escaping issues
+          echo -n "$APPLE_CERTIFICATE_PASSWORD" > $RUNNER_TEMP/password.txt
+
           # Import certificate
-          echo "$APPLE_CERTIFICATE_P12" | base64 --decode > $RUNNER_TEMP/certificate.p12
+          echo "$APPLE_CERTIFICATE_P12" | tr -d '\n\r ' | base64 --decode > $RUNNER_TEMP/certificate.p12
           
           # Verify certificate password
           CERT_VALID=false
-          if openssl pkcs12 -legacy -in $RUNNER_TEMP/certificate.p12 -passin pass:"$APPLE_CERTIFICATE_PASSWORD" -info -noout >/dev/null 2>&1; then
+          if openssl pkcs12 -legacy -in $RUNNER_TEMP/certificate.p12 -passin file:$RUNNER_TEMP/password.txt -info -noout >/dev/null 2>&1; then
             CERT_VALID=true
             echo "✅ Certificate verified with -legacy flag"
-          elif openssl pkcs12 -in $RUNNER_TEMP/certificate.p12 -passin pass:"$APPLE_CERTIFICATE_PASSWORD" -info -noout >/dev/null 2>&1; then
+          elif openssl pkcs12 -in $RUNNER_TEMP/certificate.p12 -passin file:$RUNNER_TEMP/password.txt -info -noout >/dev/null 2>&1; then
             CERT_VALID=true
             echo "✅ Certificate verified without -legacy flag"
           fi
@@ -393,8 +396,8 @@ jobs:
           # Verify certificate is available
           echo "Available signing identities:"
           security find-identity -v -p codesigning
-
           rm $RUNNER_TEMP/certificate.p12
+          rm $RUNNER_TEMP/password.txt
 
       - name: Create App Bundle and Sign
         env:
