@@ -69,9 +69,13 @@ jobs:
 
       - name: Import Certificates
         env:
+          # github-actions-secret-required: APPLE_CERTIFICATE
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          # github-actions-secret-required: APPLE_CERTIFICATE_PASSWORD
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          # github-actions-secret-optional: APPLE_INSTALLER_CERTIFICATE_P12
           APPLE_INSTALLER_CERTIFICATE_P12: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_P12 }}
+          # github-actions-secret-optional: APPLE_INSTALLER_CERTIFICATE_PASSWORD
           APPLE_INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}
         run: |
           # Validate required secrets
@@ -477,6 +481,7 @@ jobs:
       - name: Authenticate to Google Cloud
         run: |
           # Validate GCP service account key
+          # github-actions-secret-required: GCP_SA_KEY
           if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
             echo "::error::GCP_SA_KEY secret is not set"
             echo "Please set GCP_SA_KEY in GitHub repository secrets"
@@ -487,6 +492,7 @@ jobs:
           echo "✅ GCP service account key is present"
           
           # Decode and authenticate
+          # github-actions-secret-required: GCP_SA_KEY
           echo '${{ secrets.GCP_SA_KEY }}' | base64 --decode > /tmp/gcp-key.json
           
           # Validate the decoded key file
