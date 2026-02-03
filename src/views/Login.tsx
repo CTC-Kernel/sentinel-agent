@@ -114,7 +114,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
     }, []);
 
     return (
-        <AuroraBackground className="fixed inset-0 h-[100dvh] w-full overflow-y-auto lg:overflow-hidden py-4 sm:py-0 px-4 flex flex-col bg-background text-foreground font-sans selection:bg-primary/30 selection:text-primary">
+        <AuroraBackground className="fixed inset-0 h-screen w-full bg-background text-foreground font-sans selection:bg-primary/30 selection:text-primary">
             <div className="absolute top-4 right-4 z-modal">
                 <ThemeToggle />
             </div>
@@ -140,15 +140,18 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                 <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-primary/10 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float" style={{ animationDelay: '3s' }}></div>
             </div>
 
-            <div className="w-full max-h-full max-w-7xl relative z-10 animate-scale-in flex-1 flex flex-col lg:flex-row items-center justify-center mx-auto px-4 sm:px-6 min-w-0 transition-transform duration-500 ease-out origin-center [@media(max-height:900px)]:scale-90 [@media(max-height:750px)]:scale-75">
+            <div className="relative z-10 h-screen flex flex-col">
+                {/* Main Content - Takes remaining space minus footer */}
+                <div className="flex-1 flex items-center justify-center px-4 py-2" style={{ minHeight: 'calc(100vh - 64px)' }}>
+                    <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-2 lg:gap-12">
 
-                {/* Left Column: Sentinel Assistant */}
-                <div className="w-full lg:w-1/2 flex items-center justify-center p-6">
+                {/* Left Column: Sentinel Assistant - Hidden on mobile */}
+                <div className="hidden lg:flex w-full lg:w-1/2 items-center justify-center p-6">
                     <SentinelAssistant />
                 </div>
 
                 {/* Right Column: Login Form */}
-                <div className="w-full lg:w-1/2 max-w-[480px] p-4 lg:p-8 perspective-1000">
+                <div className="w-full lg:w-1/2 max-w-[480px] p-1 sm:p-2 lg:p-4 perspective-1000">
                     <motion.div
                         initial={{ opacity: 0, rotateY: 15, x: 50 }}
                         animate={{ opacity: 1, rotateY: 0, x: 0 }}
@@ -158,7 +161,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                             stiffness: 100,
                             damping: 20
                         }}
-                        className="glass-premium glass-noise rounded-[3rem] p-10 flex flex-col items-center shadow-2xl relative overflow-hidden group"
+                        className="glass-premium glass-noise rounded-[1.5rem] sm:rounded-[2rem] lg:rounded-[2.5rem] p-4 sm:p-6 lg:p-8 flex flex-col items-center shadow-2xl relative overflow-hidden group"
                     >
                         {/* Dynamic Border Gradient */}
                         <div className="absolute inset-0 rounded-[3rem] p-[1px] bg-gradient-to-br from-white/20 via-white/5 to-transparent pointer-events-none mask-image-blob"></div>
@@ -167,7 +170,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                         <div className="absolute inset-0 z-0 animate-shimmer pointer-events-none opacity-20"></div>
 
                         {/* Logo - Mobile Only or Simplified */}
-                        <div className="mb-6 flex flex-col items-center lg:hidden">
+                        <div className="mb-2 sm:mb-3 flex flex-col items-center lg:hidden">
                             <div className="w-16 h-16 rounded-3xl bg-foreground text-background flex items-center justify-center shadow-xl mb-5 ring-1 ring-background/5 transform rotate-3 hover:rotate-0 transition-transform duration-500">
                                 <Lock className="h-8 w-8" strokeWidth={2.5} />
                             </div>
@@ -176,7 +179,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                         </div>
 
                         {/* Logo - Desktop w/o Assistant Context (if simplified) -> Keep centered for form consistency */}
-                        <div className="hidden lg:flex flex-col items-center mb-8 relative z-10">
+                        <div className="hidden lg:flex flex-col items-center mb-2 sm:mb-4 relative z-10">
                             <motion.div
                                 whileHover={{ scale: 1.1, rotate: 5 }}
                                 className="w-16 h-16 rounded-3xl bg-foreground text-background flex items-center justify-center shadow-2xl mb-4 ring-1 ring-white/10 relative overflow-hidden"
@@ -206,12 +209,12 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                             </div>
                         )}
 
-                        <div className="w-full space-y-4">
+                        <div className="w-full space-y-2 sm:space-y-3">
                             <Button
                                 onClick={handleGoogleLogin}
                                 isLoading={loading}
                                 variant="outline"
-                                className="w-full py-6 rounded-2xl border-muted card-hover shadow-sm"
+                                className="w-full py-3 sm:py-4 lg:py-5 rounded-2xl border-muted card-hover shadow-sm"
                             >
                                 {!loading && <GoogleIcon />}
                                 <span className="ml-3 text-[15px] font-bold text-foreground">{t('auth.google')}</span>
@@ -220,7 +223,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                             <Button
                                 onClick={handleAppleLogin}
                                 isLoading={loading}
-                                className="w-full py-6 bg-black text-white rounded-2xl card-hover shadow-sm"
+                                className="w-full py-3 sm:py-4 lg:py-5 bg-black text-white rounded-2xl card-hover shadow-sm"
                             >
                                 {!loading && (
                                     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
@@ -246,7 +249,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                     exit={{ opacity: 0, x: -20 }}
                                     transition={{ duration: 0.3 }}
                                     onSubmit={handleSubmit(onEmailAuthSubmit)}
-                                    className="space-y-5"
+                                    className="space-y-2 sm:space-y-3"
                                 >
                                     <div className="space-y-1.5">
                                         <FloatingLabelInput
@@ -345,7 +348,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                         type="submit"
                                         isLoading={loading}
                                         disabled={loading || (!isLogin && !privacyAccepted)}
-                                        className="w-full py-6 font-bold rounded-2xl shadow-primary/20 shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all disabled:opacity-70 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 relative overflow-hidden group/btn"
+                                        className="w-full py-3 sm:py-4 lg:py-5 font-bold rounded-2xl shadow-primary/20 shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all disabled:opacity-70 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 relative overflow-hidden group/btn"
                                     >
                                         <span className="relative z-10 flex items-center justify-center">
                                             {isLogin ? t('auth.login') : t('auth.signup')}
@@ -356,7 +359,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                             </AnimatePresence>
                         </div>
 
-                        <div className="mt-8 text-center relative z-10">
+                        <div className="mt-2 sm:mt-4 text-center relative z-10">
                             <Button
                                 variant="ghost"
                                 onClick={() => { setIsLogin(!isLogin); setErrorMsg(null); setPrivacyAccepted(false); }}
@@ -366,41 +369,43 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                             </Button>
                         </div>
                     </motion.div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-
-            <div className="py-3 text-center relative z-10 space-y-2 px-4 sm:px-6 max-w-full shrink-0">
-                <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                    {t('auth.footer.developedBy')}{' '}
-                    <a
-                        href="https://cyber-threat-consulting.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:text-primary/80 underline transition-colors"
-                    >
-                        cyber-threat-consulting.com
-                    </a>
-                </p>
-                <p className="text-sm text-muted-foreground break-words">
-                    {t('auth.footer.recaptcha')}
-                    <button aria-label={t('auth.footer.privacy')} onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="underline hover:text-foreground ml-1">
-                        {t('auth.footer.privacy')}
-                    </button>
-                    {' '}{t('common.and')}{' '}
-                    <button aria-label={t('auth.footer.terms')} onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="underline hover:text-foreground">
-                        {t('auth.footer.terms')}
-                    </button>
-                    ,{' '}
-                    <button aria-label={t('auth.footer.cgv')} onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="underline hover:text-foreground">
-                        {t('auth.footer.cgv')}
-                    </button>
-                    {' '}{t('common.and')}{' '}
-                    <button aria-label={t('auth.footer.legal')} onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="underline hover:text-foreground">
-                        {t('auth.footer.legal')}
-                    </button>
-                    {' '}{t('auth.footer.apply')}
-                </p>
+                {/* Footer - Integrated in main container */}
+                <div className="h-16 py-2 text-center space-y-0.5 px-4 border-t border-border/20 bg-background/95 backdrop-blur-lg">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                        {t('auth.footer.developedBy')}{' '}
+                        <a
+                            href="https://cyber-threat-consulting.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:text-primary/80 underline transition-colors"
+                        >
+                            cyber-threat-consulting.com
+                        </a>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground break-words max-w-2xl mx-auto">
+                        {t('auth.footer.recaptcha')}
+                        <button aria-label={t('auth.footer.privacy')} onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="underline hover:text-foreground ml-1">
+                            {t('auth.footer.privacy')}
+                        </button>
+                        {' '}{t('common.and')}{' '}
+                        <button aria-label={t('auth.footer.terms')} onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="underline hover:text-foreground">
+                            {t('auth.footer.terms')}
+                        </button>
+                        ,{' '}
+                        <button aria-label={t('auth.footer.cgv')} onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="underline hover:text-foreground">
+                            {t('auth.footer.cgv')}
+                        </button>
+                        {' '}{t('common.and')}{' '}
+                        <button aria-label={t('auth.footer.legal')} onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="underline hover:text-foreground">
+                            {t('auth.footer.legal')}
+                        </button>
+                        {' '}{t('auth.footer.apply')}
+                    </p>
+                </div>
             </div>
 
             {/* Reset Password Modal */}
@@ -511,6 +516,6 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                 onClose={() => setShowLegalModal(false)}
                 initialTab={legalTab}
             />
-        </AuroraBackground >
+        </AuroraBackground>
     );
 };
