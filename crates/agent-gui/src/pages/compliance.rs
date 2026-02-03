@@ -35,8 +35,8 @@ impl CompliancePage {
         ui.add_space(theme::SPACE_MD);
 
         // Active Frameworks indicator
-        if let Some(frameworks) = &state.summary.active_frameworks {
-            if !frameworks.is_empty() {
+        if let Some(frameworks) = &state.summary.active_frameworks
+            && !frameworks.is_empty() {
                 ui.horizontal(|ui| {
                     ui.label(
                         egui::RichText::new("Frameworks actifs :")
@@ -52,7 +52,6 @@ impl CompliancePage {
                 });
                 ui.add_space(theme::SPACE_MD);
             }
-        }
 
         // Summary cards row
         let card_gap = theme::SPACE_SM;
@@ -394,8 +393,8 @@ impl CompliancePage {
                                         );
                                     }
 
-                                    if let Some(details) = &check.details {
-                                        if let Some(issues) =
+                                    if let Some(details) = &check.details
+                                        && let Some(issues) =
                                             details.get("issues").and_then(|i| i.as_array())
                                         {
                                             for issue in issues.iter() {
@@ -416,7 +415,6 @@ impl CompliancePage {
                                                 });
                                             }
                                         }
-                                    }
 
                                     // Remediation for failing checks
                                     if check.status == GuiCheckStatus::Fail

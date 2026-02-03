@@ -10,6 +10,8 @@ mod search_filter_bar;
 pub mod sidebar;
 mod status_badge;
 mod security_hero;
+mod premium_badge;
+mod protected_state;
 
 pub use card::card;
 pub use compliance_gauge::compliance_gauge;
@@ -20,6 +22,5 @@ pub use search_filter_bar::SearchFilterBar;
 pub use sidebar::Sidebar;
 pub use status_badge::status_badge;
 pub use security_hero::security_hero;
-
-mod protected_state;
+pub use premium_badge::{PremiumBadge, StatusBadge, StatusLevel, ComplianceBadge, BadgeSize};
 pub use protected_state::protected_state;

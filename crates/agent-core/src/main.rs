@@ -1099,7 +1099,7 @@ mod ctrlc {
                     }
                 };
 
-                for sig in signals.forever() {
+                if let Some(sig) = signals.forever().next() {
                     match sig {
                         signal_hook::consts::SIGINT => {
                             eprintln!("Received SIGINT (Ctrl+C), initiating graceful shutdown...");
@@ -1115,7 +1115,6 @@ mod ctrlc {
                         }
                     }
                     handler();
-                    break;
                 }
             });
         }

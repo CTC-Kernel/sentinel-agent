@@ -21,6 +21,13 @@ pub struct GuiTracingBridge {
 }
 
 #[cfg(feature = "gui")]
+impl Default for GuiTracingBridge {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[cfg(feature = "gui")]
 impl GuiTracingBridge {
     /// Create a new bridge with no sender.
     pub fn new() -> Self {
@@ -76,18 +83,10 @@ impl MessageVisitor {
 #[cfg(feature = "gui")]
 impl tracing::field::Visit for MessageVisitor {
     fn record_debug(&mut self, field: &tracing::field::Field, value: &dyn std::fmt::Debug) {
-        if field.name() == "message" {
+        let should_set_message = field.name() == "message" || self.message.is_empty();
+        if should_set_message {
             self.message = format!("{:?}", value);
             // Remove surrounding quotes if present
-            if self.message.starts_with('"')
-                && self.message.ends_with('"')
-                && self.message.len() >= 2
-            {
-                self.message = self.message[1..self.message.len() - 1].to_string();
-            }
-        } else if self.message.is_empty() {
-            // Fallback: use the first field as the message
-            self.message = format!("{:?}", value);
             if self.message.starts_with('"')
                 && self.message.ends_with('"')
                 && self.message.len() >= 2
@@ -98,9 +97,7 @@ impl tracing::field::Visit for MessageVisitor {
     }
 
     fn record_str(&mut self, field: &tracing::field::Field, value: &str) {
-        if field.name() == "message" {
-            self.message = value.to_string();
-        } else if self.message.is_empty() {
+        if field.name() == "message" || self.message.is_empty() {
             self.message = value.to_string();
         }
     }

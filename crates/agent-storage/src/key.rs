@@ -108,20 +108,17 @@ impl KeyManager {
         {
             // Fetch IOPlatformUUID (equivalent to machine-id on macOS)
             if let Ok(output) = std::process::Command::new("ioreg")
-                .args(&["-rd1", "-c", "IOPlatformExpertDevice"])
+                .args(["-rd1", "-c", "IOPlatformExpertDevice"])
                 .output()
-            {
-                if let Ok(content) = String::from_utf8(output.stdout) {
+                && let Ok(content) = String::from_utf8(output.stdout) {
                     for line in content.lines() {
-                        if line.contains("IOPlatformUUID") {
-                            if let Some(uuid) = line.split('"').nth(3) {
+                        if line.contains("IOPlatformUUID")
+                            && let Some(uuid) = line.split('"').nth(3) {
                                 id = uuid.to_string();
                                 break;
                             }
-                        }
                     }
                 }
-            }
         }
 
         if id.is_empty() {
@@ -251,8 +248,8 @@ impl KeyManager {
     #[cfg(unix)]
     fn store_key(path: &Path, key: &[u8; KEY_LENGTH]) -> StorageResult<()> {
         // Ensure parent directory exists
-        if let Some(parent) = path.parent() {
-            if !parent.exists() {
+        if let Some(parent) = path.parent()
+            && !parent.exists() {
                 fs::create_dir_all(parent).map_err(|e| {
                     StorageError::KeyManagement(format!(
                         "Failed to create key directory {}: {}",
@@ -261,7 +258,6 @@ impl KeyManager {
                     ))
                 })?;
             }
-        }
 
         // Write the key
         fs::write(path, key).map_err(|e| {

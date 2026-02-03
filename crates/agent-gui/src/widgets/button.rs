@@ -17,7 +17,7 @@ pub fn secondary_button(ui: &mut Ui, text: impl Into<WidgetText>) -> Response {
 
 fn draw_premium_button(ui: &mut Ui, text: impl Into<WidgetText>, is_primary: bool) -> Response {
     let text = text.into();
-    let font = if is_primary { theme::font_body() } else { theme::font_body() };
+    let font = theme::font_body();
     
     // Fix: into_galley in 0.31 uses TextWrapMode or Option<bool> changed? 
     // The error said "expected TextWrapMode, found bool". 

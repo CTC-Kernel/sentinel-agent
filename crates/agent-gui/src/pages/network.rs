@@ -454,7 +454,7 @@ impl NetworkPage {
                     iface.status.clone(),
                     iface.mac_address.as_deref().unwrap_or("--").to_string(),
                     iface.ipv4_addresses.join(", "),
-                    vec!["--".to_string()].join(", "), // IPv6 not explicitly in dto iface but can be added if needed
+                    ["--".to_string()].join(", "), // IPv6 not explicitly in dto iface but can be added if needed
                 ]
             })
             .collect();
