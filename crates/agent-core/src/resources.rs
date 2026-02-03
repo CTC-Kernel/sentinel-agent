@@ -10,6 +10,7 @@
 //! - Startup: < 5 seconds
 
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Mutex;
 use std::time::{Duration, Instant};
 use tracing::{debug, info, warn};
 
@@ -50,6 +51,8 @@ pub struct ResourceUsage {
     pub memory_bytes: u64,
     /// Current disk I/O operations per second.
     pub disk_iops: u32,
+    /// Network I/O throughput (bytes per second).
+    pub network_io_bytes: u64,
     /// Time since agent start in milliseconds.
     pub uptime_ms: u64,
 }
@@ -81,6 +84,12 @@ pub struct ResourceMonitor {
     sample_count: AtomicU64,
     /// Last time a warning was logged (for rate limiting).
     last_warning_time: AtomicU64,
+    /// Last network total bytes (rx+tx).
+    last_network_bytes: AtomicU64,
+    /// sysinfo System instance.
+    sys: Mutex<sysinfo::System>,
+    /// sysinfo Networks instance.
+    networks: Mutex<sysinfo::Networks>,
 }
 
 impl ResourceMonitor {
@@ -97,6 +106,9 @@ impl ResourceMonitor {
             last_cpu_time: AtomicU64::new(0),
             sample_count: AtomicU64::new(0),
             last_warning_time: AtomicU64::new(0),
+            last_network_bytes: AtomicU64::new(0),
+            sys: Mutex::new(sysinfo::System::new_all()),
+            networks: Mutex::new(sysinfo::Networks::new_with_refreshed_list()),
         }
     }
 
@@ -108,20 +120,63 @@ impl ResourceMonitor {
 
         self.sample_count.fetch_add(1, Ordering::Relaxed);
 
-        // Note: Disk I/O tracking requires platform-specific kernel APIs:
-        // - Linux: /proc/self/io (requires elevated permissions)
-        // - Windows: GetProcessIoCounters
-        // - macOS: proc_pid_rusage
-        // Currently not implemented as it's low priority vs CPU/memory limits.
-        // The NFR-P4 (< 10 IOPS) is primarily a design guideline.
-        let disk_iops = get_disk_iops();
+        // Network I/O collection using sysinfo
+        let network_io_bytes = if let Ok(mut networks) = self.networks.lock() {
+            networks.refresh(true);
+            let current_network: u64 = networks
+                .iter()
+                .map(|(_, data)| data.received() + data.transmitted())
+                .sum();
+            
+            let last_net = self.last_network_bytes.swap(current_network, Ordering::Relaxed);
+            if last_net > 0 {
+                // Return bytes since last sample (assumes ~1s interval)
+                current_network.saturating_sub(last_net)
+            } else {
+                0
+            }
+        } else {
+            0
+        };
 
-        ResourceUsage {
+        // Disk I/O collection using sysinfo for the current process
+        let disk_iops = if let Ok(mut sys) = self.sys.lock() {
+            // Refresh only current process for efficiency
+            let pid = sysinfo::get_current_pid().unwrap_or(sysinfo::Pid::from(0));
+            sys.refresh_processes_specifics(
+                sysinfo::ProcessesToUpdate::Some(&[pid]),
+                true,
+                sysinfo::ProcessRefreshKind::nothing().with_disk_usage(),
+            );
+            if let Some(process) = sys.process(pid) {
+                let usage = process.disk_usage();
+                (usage.read_bytes + usage.written_bytes) as u32
+            } else {
+                get_disk_iops()
+            }
+        } else {
+            get_disk_iops()
+        };
+
+        let usage = ResourceUsage {
             cpu_percent,
             memory_bytes,
             disk_iops,
+            network_io_bytes,
             uptime_ms,
+        };
+
+        if self.sample_count.load(Ordering::Relaxed) % 10 == 0 {
+            info!(
+                "Resource Usage: CPU={:.1}%, RAM={}MB, DiskIO={}, NetIO={}",
+                usage.cpu_percent,
+                usage.memory_bytes / 1024 / 1024,
+                usage.disk_iops,
+                usage.network_io_bytes
+            );
         }
+
+        usage
     }
 
     /// Check if startup time is within limits.
@@ -139,10 +194,14 @@ impl ResourceMonitor {
     }
 
     /// Check if current usage is within limits.
-    /// Warnings are rate-limited to once per 60 seconds to avoid log spam.
     pub fn check_limits(&self, is_active: bool) -> bool {
         let usage = self.get_usage();
+        self.check_limits_with_usage(&usage, is_active)
+    }
 
+    /// Check if provided usage is within limits.
+    /// Warnings are rate-limited to once per 60 seconds to avoid log spam.
+    pub fn check_limits_with_usage(&self, usage: &ResourceUsage, is_active: bool) -> bool {
         let within_limits = if is_active {
             usage.is_within_active_limits(&self.limits)
         } else {
@@ -158,7 +217,7 @@ impl ResourceMonitor {
                 self.last_warning_time.store(now_secs, Ordering::Relaxed);
                 let state = if is_active { "active" } else { "idle" };
                 warn!(
-                    "Resource limits exceeded during {} state: CPU={:.2}%, MEM={}MB",
+                    "Resource limits exceeded during {} state: CPU={:.1}%, RAM={}MB",
                     state,
                     usage.cpu_percent,
                     usage.memory_bytes / (1024 * 1024)

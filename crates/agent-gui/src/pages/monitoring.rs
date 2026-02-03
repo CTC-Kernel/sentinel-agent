@@ -107,6 +107,7 @@ impl MonitoringPage {
             theme::SUCCESS,
             true,
             200.0,
+            false,
         );
 
         ui.add_space(theme::SPACE_LG);
@@ -119,6 +120,7 @@ impl MonitoringPage {
             theme::ACCENT,
             false,
             200.0,
+            false,
         );
 
         ui.add_space(theme::SPACE_LG);
@@ -138,6 +140,7 @@ impl MonitoringPage {
                     theme::WARNING,
                     false,
                     180.0,
+                    true,
                 );
             });
 
@@ -150,6 +153,7 @@ impl MonitoringPage {
                     theme::INFO,
                     false,
                     180.0,
+                    true,
                 );
             });
         });
@@ -236,6 +240,7 @@ impl MonitoringPage {
         line_color: egui::Color32,
         fill: bool,
         height: f32,
+        auto_y: bool,
     ) {
         widgets::card(ui, |ui| {
             ui.label(
@@ -273,16 +278,19 @@ impl MonitoringPage {
                     line = line.fill(0.0);
                 }
 
-                let plot_widget = Plot::new(egui::Id::new(title))
+                let mut plot_widget = Plot::new(egui::Id::new(title))
                     .height(height)
                     .include_y(0.0)
-                    .include_y(100.0)
                     .allow_drag(false)
                     .allow_zoom(false)
                     .allow_scroll(false)
                     .show_axes(egui::Vec2b::new(false, true))
                     .show_grid(egui::Vec2b::new(false, true))
-                    .auto_bounds(egui::Vec2b::new(true, false));
+                    .auto_bounds(egui::Vec2b::new(true, true));
+
+                if !auto_y {
+                    plot_widget = plot_widget.include_y(100.0);
+                }
 
                 plot_widget.show(ui, |plot_ui| {
                     plot_ui.line(line);
