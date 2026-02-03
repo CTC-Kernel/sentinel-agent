@@ -123,6 +123,8 @@ pub struct AgentRuntime {
     check_registry: Arc<CheckRegistry>,
     /// Compliance check execution interval in seconds.
     compliance_check_interval_secs: u64,
+    /// Active compliance frameworks (dynamic).
+    active_frameworks: std::sync::RwLock<Option<Vec<String>>>,
     /// Config sync service for downloading server configuration.
     config_sync: RwLock<Option<ConfigSyncService>>,
     /// Rule sync service for downloading check rules.
@@ -273,9 +275,11 @@ impl AgentRuntime {
         info!("Initialized network manager with smart scheduling");
 
         let compliance_check_interval_secs = config.check_interval_secs;
-
-        Self {
-            config,
+        let active_frameworks = config.active_frameworks.clone();
+ 
+         Self {
+             config,
+             active_frameworks: std::sync::RwLock::new(active_frameworks),
             shutdown: Arc::new(AtomicBool::new(false)),
             paused: Arc::new(AtomicBool::new(false)),
             scanning: Arc::new(AtomicBool::new(false)),
@@ -361,6 +365,7 @@ impl AgentRuntime {
             last_sync_at: None,
             pending_sync_count: 0,
             uptime_secs: usage.uptime_ms / 1000,
+            active_frameworks: self.active_frameworks.read().expect("lock active_frameworks").clone(),
         };
 
         self.emit_gui_event(AgentEvent::StatusChanged { summary });
@@ -447,7 +452,7 @@ impl AgentRuntime {
                 affected_software: v.package_name.clone(),
                 affected_version: v.installed_version.clone(),
                 severity: format!("{}", v.severity).to_lowercase(),
-                cvss_score: v.cvss_score,
+                cvss_score: v.cvss_score.or(Some(v.severity.default_score())),
                 description: v.description.clone(),
                 fix_available: v.available_version.is_some(),
                 discovered_at: Some(v.detected_at),
@@ -1084,9 +1089,12 @@ impl AgentRuntime {
     /// Returns the execution results and the calculated compliance score.
     async fn run_compliance_checks(&self) -> (Vec<CheckExecutionResult>, ComplianceScore) {
         info!("Running compliance checks...");
-
+ 
+        let active_frameworks = self.active_frameworks.read().expect("lock active_frameworks").clone();
         let runner = CheckRunner::with_defaults(self.check_registry.clone());
-        let results = runner.run_all().await;
+        let results = runner
+            .run_filtered(active_frameworks.as_deref())
+            .await;
 
         let summary = ScanSummary::from_results(&results, 0);
         info!(
@@ -1307,6 +1315,21 @@ impl AgentRuntime {
                             if *current != interval {
                                 info!("Heartbeat interval updated: {}s → {}s", *current, interval);
                                 *current = interval;
+                            }
+                        }
+
+                        // Apply active frameworks change if present
+                        if let Ok(Some(frameworks)) = config_sync
+                            .get_config::<Vec<String>>(agent_sync::config_keys::ACTIVE_FRAMEWORKS)
+                            .await
+                        {
+                            let mut current = self.active_frameworks.write().expect("lock active_frameworks");
+                            if current.as_ref() != Some(&frameworks) {
+                                info!(
+                                    "Active frameworks updated: {:?} → {:?}",
+                                    current, frameworks
+                                );
+                                *current = Some(frameworks);
                             }
                         }
                     } else {

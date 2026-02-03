@@ -248,6 +248,8 @@ pub mod config_keys {
     pub const MAX_CPU_PERCENT: &str = "max_cpu_percent";
     /// Maximum memory usage in bytes.
     pub const MAX_MEMORY_BYTES: &str = "max_memory_bytes";
+    /// List of active compliance frameworks.
+    pub const ACTIVE_FRAMEWORKS: &str = "active_frameworks";
     /// Sync retry interval in seconds.
     pub const SYNC_RETRY_INTERVAL_SECS: &str = "sync_retry_interval_secs";
     /// Maximum sync queue size.

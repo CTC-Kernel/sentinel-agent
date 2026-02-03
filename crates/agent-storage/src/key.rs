@@ -7,6 +7,7 @@
 
 use crate::error::{StorageError, StorageResult};
 use agent_common::config::AgentConfig;
+#[cfg(unix)]
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::{Path, PathBuf};

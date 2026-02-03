@@ -50,6 +50,8 @@ pub struct AgentSummary {
     pub pending_sync_count: u32,
     /// Uptime in seconds.
     pub uptime_secs: u64,
+    /// Active compliance frameworks.
+    pub active_frameworks: Option<Vec<String>>,
 }
 
 /// A single compliance check result for GUI display.
@@ -370,6 +372,7 @@ mod tests {
             last_sync_at: None,
             pending_sync_count: 3,
             uptime_secs: 3600,
+            active_frameworks: None,
         };
 
         let json = serde_json::to_string(&summary).unwrap();

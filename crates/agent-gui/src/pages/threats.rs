@@ -4,6 +4,7 @@ use chrono::{DateTime, Utc};
 use egui::Ui;
 
 use crate::app::AppState;
+use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
@@ -31,7 +32,9 @@ struct ThreatEvent {
 pub struct ThreatsPage;
 
 impl ThreatsPage {
-    pub fn show(ui: &mut Ui, state: &mut AppState) {
+    pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
+        let mut command = None;
+
         ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
@@ -159,6 +162,32 @@ impl ThreatsPage {
 
         ui.add_space(theme::SPACE_SM);
 
+        // Action bar: Scan & Export
+        ui.horizontal(|ui| {
+            if widgets::button::primary_button(ui, format!("{}  Lancer le scan", icons::PLAY))
+                .clicked()
+            {
+                command = Some(GuiCommand::RunCheck);
+            }
+
+            ui.add_space(theme::SPACE_SM);
+
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                let export_btn = egui::Button::new(
+                    egui::RichText::new(format!("{}  Export CSV", icons::DOWNLOAD))
+                        .font(theme::font_small())
+                        .color(theme::text_secondary()),
+                )
+                .fill(theme::bg_elevated())
+                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                if ui.add(export_btn).clicked() {
+                    Self::export_threats_csv(&threats);
+                }
+            });
+        });
+
+        ui.add_space(theme::SPACE_SM);
+
         // ── Threat feed ─────────────────────────────────────────────────
         widgets::card(ui, |ui| {
             ui.label(
@@ -170,13 +199,11 @@ impl ThreatsPage {
             ui.add_space(theme::SPACE_MD);
 
             if threats.is_empty() {
-                widgets::empty_state(
+                widgets::protected_state(
                     ui,
-                    icons::LOCK,
+                    icons::SHIELD_CHECK,
                     "Aucune menace d\u{00e9}tect\u{00e9}e",
-                    Some(
-                        "Le syst\u{00e8}me ne pr\u{00e9}sente aucun \u{00e9}v\u{00e9}nement de s\u{00e9}curit\u{00e9} suspect.",
-                    ),
+                    "Le syst\u{00e8}me ne pr\u{00e9}sente aucun \u{00e9}v\u{00e9}nement de s\u{00e9}curit\u{00e9} suspect.",
                 );
             } else {
                 for threat in &threats {
@@ -187,6 +214,8 @@ impl ThreatsPage {
         });
 
         ui.add_space(theme::SPACE_XL);
+
+        command
     }
 
     // ====================================================================
@@ -423,5 +452,26 @@ impl ThreatsPage {
                 });
             });
         });
+    }
+
+    fn export_threats_csv(threats: &[ThreatEvent]) {
+        let headers = &["kind", "severity", "title", "description", "timestamp", "confidence"];
+        let rows: Vec<Vec<String>> = threats
+            .iter()
+            .map(|t| {
+                vec![
+                    t.kind.to_string(),
+                    t.severity.to_string(),
+                    t.title.clone(),
+                    t.description.clone(),
+                    t.timestamp.to_rfc3339(),
+                    t.confidence.map(|c| c.to_string()).unwrap_or_default(),
+                ]
+            })
+            .collect();
+        let path = crate::export::default_export_path("menaces_export.csv");
+        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
+            tracing::warn!("Export CSV failed: {}", e);
+        }
     }
 }

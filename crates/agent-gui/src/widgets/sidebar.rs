@@ -293,13 +293,6 @@ impl Sidebar {
                     theme::bg_elevated().linear_multiply(0.5)
                 };
                 
-                // Active item gets a subtle glass border
-                let stroke = if is_current {
-                     crate::widgets::card::card_stroke(ui) // Reuse consistent card stroke or make a custom one
-                } else {
-                    egui::Stroke::NONE
-                };
-
                 let rect_shrunk = rect.shrink2(Vec2::new(8.0, 2.0));
                 
                 ui.painter().rect(
@@ -311,6 +304,7 @@ impl Sidebar {
                     } else {
                         egui::Stroke::NONE
                     },
+                    egui::epaint::StrokeKind::Inside,
                 );
             }
 

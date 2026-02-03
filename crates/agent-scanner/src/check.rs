@@ -150,13 +150,53 @@ impl CheckRegistry {
         self.checks.values().cloned().collect()
     }
 
-    /// Get all enabled checks for the current platform.
-    pub fn enabled_checks(&self) -> Vec<Arc<dyn Check>> {
+    /// Get all enabled checks for the current platform, optionally filtered by active frameworks.
+    pub fn enabled_checks_for_frameworks(
+        &self,
+        active_frameworks: Option<&[String]>,
+    ) -> Vec<Arc<dyn Check>> {
         self.checks
             .values()
-            .filter(|c| c.is_enabled() && c.is_platform_supported())
+            .filter(|c| {
+                if !c.is_enabled() || !c.is_platform_supported() {
+                    return false;
+                }
+
+                // If active_frameworks is set, check must be in at least one of them.
+                // If the check has NO frameworks defined, it is considered "general" and included?
+                // OR strict mode: must match.
+                // Given GRC context: usually strict.
+                // However, without clarification, if active_frameworks is provided, we filter.
+                if let Some(active) = active_frameworks {
+                    if active.is_empty() {
+                        return true; // No active frameworks list means all enabled checks run (or none? usually all)
+                        // Actually, common config pattern: empty list = no restriction or no frameworks enabled?
+                        // Let's assume Option::None means "all", Option::Some(empty) means "none".
+                        // Wait, Config loads it as Option<Vec<String>>.
+                    }
+                    
+                    let def = c.definition();
+                    if def.frameworks.is_empty() {
+                        // Checks without specific framework tag are usually baseline/general.
+                        // We'll include them for now to be safe, or should we exclude?
+                        // "Align Compliance Frameworks" suggests we only want those in the framework.
+                        // Let's match: if active_frameworks is present, check MUST have overlap.
+                        return false; 
+                    }
+
+                    // Check if any of the check's frameworks are in the active list
+                    def.frameworks.iter().any(|fw| active.contains(fw))
+                } else {
+                    true
+                }
+            })
             .cloned()
             .collect()
+    }
+
+    /// Get all enabled checks for the current platform.
+    pub fn enabled_checks(&self) -> Vec<Arc<dyn Check>> {
+        self.enabled_checks_for_frameworks(None)
     }
 
     /// Get checks by category.

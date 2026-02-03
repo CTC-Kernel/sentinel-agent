@@ -100,6 +100,15 @@ impl CheckRunner {
         self.run_checks(checks).await
     }
 
+    /// Run enabled checks filtered by active frameworks.
+    pub async fn run_filtered(
+        &self,
+        active_frameworks: Option<&[String]>,
+    ) -> Vec<CheckExecutionResult> {
+        let checks = self.registry.enabled_checks_for_frameworks(active_frameworks);
+        self.run_checks(checks).await
+    }
+
     /// Run a specific set of checks.
     pub async fn run_checks(&self, checks: Vec<Arc<dyn Check>>) -> Vec<CheckExecutionResult> {
         let start = Instant::now();
