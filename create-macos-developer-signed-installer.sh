@@ -26,7 +26,7 @@ INSTALLER_IDENTITY="${INSTALLER_IDENTITY:-""}"
 # usage: export APPLE_ID="user@example.com"
 # usage: export APPLE_PASSWORD="app-specific-password"
 # usage: export TEAM_ID="TeamID"
-NOTARIZE="${NOTARIZE:-false}"
+NOTARIZE="${NOTARIZE:-false}"  # Désactivé par défaut - nécessite Developer ID Installer
 
 # Colors
 RED='\033[0;31m'
@@ -37,7 +37,33 @@ NC='\033[0m'
 
 echo -e "${BLUE}🍎 Creating macOS Installer${NC}"
 echo -e "${BLUE}=============================================${NC}"
-echo -e "Identity: ${SIGNING_IDENTITY}"
+
+# Discover available signing identities
+echo -e "${YELLOW}# Discover identities from the imported keychain${NC}"
+AVAILABLE_IDENTITIES=$(security find-identity -v -p codesigning 2>/dev/null | grep "Developer ID" || true)
+
+if [[ -n "$AVAILABLE_IDENTITIES" ]]; then
+    echo -e "${GREEN}Discovered Signing Identities:${NC}"
+    echo "$AVAILABLE_IDENTITIES"
+    
+    # Auto-detect Developer ID Application
+    SIGNING_IDENTITY=$(echo "$AVAILABLE_IDENTITIES" | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+    if [[ -n "$SIGNING_IDENTITY" ]]; then
+        echo -e "${GREEN}Discovered Singing Identity: $SIGNING_IDENTITY${NC}"
+    fi
+    
+    # Auto-detect Developer ID Installer
+    INSTALLER_IDENTITY=$(echo "$AVAILABLE_IDENTITIES" | grep "Developer ID Installer" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+    if [[ -n "$INSTALLER_IDENTITY" ]]; then
+        echo -e "${GREEN}Discovered Installer Identity: $INSTALLER_IDENTITY${NC}"
+    else
+        echo -e "${YELLOW}Discovered Installer Identity: ${NC}"
+    fi
+else
+    echo -e "${YELLOW}No Developer ID certificates found in keychain${NC}"
+fi
+
+echo -e "Identity: ${SIGNING_IDENTITY:-"None (Ad-hoc)"}"
 echo -e "Installer Identity: ${INSTALLER_IDENTITY:-"None (Ad-hoc package)"}"
 echo -e "Notarize: ${NOTARIZE}"
 
