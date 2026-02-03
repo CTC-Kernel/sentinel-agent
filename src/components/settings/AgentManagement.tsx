@@ -1303,7 +1303,7 @@ export const AgentManagement: React.FC = () => {
                                         <DownloadButton
                                             platform="macos"
                                             label="macOS"
-                                            sublabel="Apple Silicon & Intel (DMG)"
+                                            sublabel="Apple Silicon & Intel (PKG)"
                                             icon={<Cpu className="w-5 h-5 text-slate-600" />}
                                             href={releaseInfo?.platforms?.macos?.directUrl || releaseInfo?.platforms?.macos?.downloadUrl}
                                             available={releaseInfo?.platforms?.macos?.available ?? false}
