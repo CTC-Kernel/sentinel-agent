@@ -539,19 +539,63 @@ jobs:
           echo ""
           
           echo "🔐 Tentative d'authentification avec Service Account..."
-          if gcloud auth activate-service-account --key-file=/tmp/gcp-sa-key.json --quiet; then
+          echo "Testing gcloud auth with service account..."
+          
+          # First, let's verify the key file exists and is readable
+          if [ ! -f "/tmp/gcp-sa-key.json" ]; then
+            echo "❌ Key file not found!"
+            exit 1
+          fi
+          
+          echo "Key file exists and is readable"
+          
+          # Try the standard auth method
+          if gcloud auth activate-service-account --key-file=/tmp/gcp-sa-key.json --quiet --debug; then
             echo "✅ Authentication successful"
             echo "Active account:"
             gcloud auth list
             echo "Configured project:"
             gcloud config get-value project
           else
-            echo "❌ Authentication failed - trying alternative method..."
-            echo "Creating credentials file in HOME directory..."
+            echo "❌ Standard authentication failed - trying alternative methods..."
+            
+            # Method 1: Set GOOGLE_APPLICATION_CREDENTIALS
+            echo "🔧 Method 1: Setting GOOGLE_APPLICATION_CREDENTIALS..."
+            export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-sa-key.json
+            echo "GOOGLE_APPLICATION_CREDENTIALS set to: $GOOGLE_APPLICATION_CREDENTIALS"
+            
+            # Method 2: Copy to default location
+            echo "🔧 Method 2: Copying to default gcloud location..."
             mkdir -p ~/.config/gcloud
             cp /tmp/gcp-sa-key.json ~/.config/gcloud/application_default_credentials.json
-            export GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/application_default_credentials.json
-            echo "✅ Alternative authentication setup complete"
+            
+            # Method 3: Try to extract account email and set it
+            echo "🔧 Method 3: Extracting service account email..."
+            SA_EMAIL=$(grep "client_email" /tmp/gcp-sa-key.json | cut -d'"' -f4)
+            echo "Service account email: $SA_EMAIL"
+            
+            # Try to set the account explicitly
+            gcloud config set account "$SA_EMAIL" || echo "Could not set account"
+            
+            # Test all methods
+            echo "🧪 Testing authentication methods..."
+            echo "Method 1 - GOOGLE_APPLICATION_CREDENTIALS:"
+            gcloud storage ls gs://sentinel-grc-a8701.firebasestorage.app/releases/agent/ 2>&1 || echo "Method 1 failed"
+            
+            echo "Method 2 - Default credentials file:"
+            unset GOOGLE_APPLICATION_CREDENTIALS
+            gcloud storage ls gs://sentinel-grc-a8701.firebasestorage.app/releases/agent/ 2>&1 || echo "Method 2 failed"
+            
+            echo "Method 3 - With account set:"
+            gcloud storage ls gs://sentinel-grc-a8701.firebasestorage.app/releases/agent/ 2>&1 || echo "Method 3 failed"
+            
+            # If all methods fail, we'll continue with GOOGLE_APPLICATION_CREDENTIALS set
+            export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-sa-key.json
+            echo "GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS" >> $GITHUB_ENV
+            echo "✅ Continuing with GOOGLE_APPLICATION_CREDENTIALS method"
+          else
+            # Even if auth succeeds, set the env var for persistence
+            echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-sa-key.json" >> $GITHUB_ENV
           fi
           
           # Test authentication
@@ -566,38 +610,62 @@ jobs:
 
       - name: Upload to Firebase Storage
         run: |
+          echo "🔍 Pre-upload authentication check..."
+          echo "GOOGLE_APPLICATION_CREDENTIALS: $GOOGLE_APPLICATION_CREDENTIALS"
+          echo "Active accounts:"
+          gcloud auth list || echo "No accounts found"
+          echo "Current project:"
+          gcloud config get-value project || echo "No project set"
+          
+          # Test bucket access before upload
+          echo "Testing bucket access..."
+          if gcloud storage ls gs://sentinel-grc-a8701.firebasestorage.app/releases/agent/; then
+            echo "✅ Bucket access confirmed"
+          else
+            echo "❌ Bucket access failed - attempting to fix..."
+            # Try to re-authenticate if credentials file exists
+            if [ -f "/tmp/gcp-sa-key.json" ]; then
+              echo "Re-authenticating with service account..."
+              gcloud auth activate-service-account --key-file=/tmp/gcp-sa-key.json --quiet
+            fi
+          fi
+          
           VERSION="${{ env.RELEASE_VERSION }}"
           BUCKET="gs://sentinel-grc-a8701.firebasestorage.app/releases/agent"
 
           echo "=== Uploading macOS packages ==="
           for f in artifacts/sentinel-agent-macos/SentinelAgent-*.dmg; do
-            [ -f "$f" ] && gcloud storage cp "$f" "$BUCKET/macos/"
+            [ -f "$f" ] && echo "Uploading $f..." && gcloud storage cp "$f" "$BUCKET/macos/"
           done
           for f in artifacts/sentinel-agent-macos/SentinelAgent-*.pkg; do
-            [ -f "$f" ] && gcloud storage cp "$f" "$BUCKET/macos/"
+            [ -f "$f" ] && echo "Uploading $f..." && gcloud storage cp "$f" "$BUCKET/macos/"
           done
           [ -f "artifacts/sentinel-agent-macos/SHA256SUMS-macos.txt" ] && \
+            echo "Uploading SHA256SUMS-macos.txt..." && \
             gcloud storage cp "artifacts/sentinel-agent-macos/SHA256SUMS-macos.txt" "$BUCKET/macos/SHA256SUMS.txt"
 
           echo "=== Uploading Windows packages ==="
           for f in artifacts/sentinel-agent-windows/SentinelAgentSetup-*.msi; do
-            [ -f "$f" ] && gcloud storage cp "$f" "$BUCKET/windows/"
+            [ -f "$f" ] && echo "Uploading $f..." && gcloud storage cp "$f" "$BUCKET/windows/"
           done
           [ -f "artifacts/sentinel-agent-windows/SHA256SUMS-windows.txt" ] && \
+            echo "Uploading SHA256SUMS-windows.txt..." && \
             gcloud storage cp "artifacts/sentinel-agent-windows/SHA256SUMS-windows.txt" "$BUCKET/windows/SHA256SUMS.txt"
 
           echo "=== Uploading Linux DEB packages ==="
           for f in artifacts/sentinel-agent-linux-deb/sentinel-agent_*.deb; do
-            [ -f "$f" ] && gcloud storage cp "$f" "$BUCKET/linux_deb/"
+            [ -f "$f" ] && echo "Uploading $f..." && gcloud storage cp "$f" "$BUCKET/linux_deb/"
           done
           [ -f "artifacts/sentinel-agent-linux-deb/SHA256SUMS-linux-deb.txt" ] && \
+            echo "Uploading SHA256SUMS-linux-deb.txt..." && \
             gcloud storage cp "artifacts/sentinel-agent-linux-deb/SHA256SUMS-linux-deb.txt" "$BUCKET/linux_deb/SHA256SUMS.txt"
 
           echo "=== Uploading Linux RPM packages ==="
           for f in artifacts/sentinel-agent-linux-rpm/sentinel-agent-*.rpm; do
-            [ -f "$f" ] && gcloud storage cp "$f" "$BUCKET/linux_rpm/"
+            [ -f "$f" ] && echo "Uploading $f..." && gcloud storage cp "$f" "$BUCKET/linux_rpm/"
           done
           [ -f "artifacts/sentinel-agent-linux-rpm/SHA256SUMS-linux-rpm.txt" ] && \
+            echo "Uploading SHA256SUMS-linux-rpm.txt..." && \
             gcloud storage cp "artifacts/sentinel-agent-linux-rpm/SHA256SUMS-linux-rpm.txt" "$BUCKET/linux_rpm/SHA256SUMS.txt"
 
           echo "=== Setting content types ==="
