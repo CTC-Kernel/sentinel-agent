@@ -368,7 +368,8 @@ jobs:
           echo -n "$APPLE_CERTIFICATE_PASSWORD" > $RUNNER_TEMP/password.txt
 
           # Import certificate
-          echo "$APPLE_CERTIFICATE_P12" | tr -d '\n\r ' | base64 --decode > $RUNNER_TEMP/certificate.p12
+          CLEAN_CERT=$(echo "$APPLE_CERTIFICATE_P12" | sed 's/^.*P12=//' | tr -d '\n\r ')
+          echo "$CLEAN_CERT" | base64 --decode > $RUNNER_TEMP/certificate.p12
           
           # Verify certificate password
           CERT_VALID=false
