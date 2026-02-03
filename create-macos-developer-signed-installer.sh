@@ -595,6 +595,7 @@ if [ "$NOTARIZE" == "true" ]; then
         echo -e "${BLUE}Using keychain profile for notarization${NC}"
         SUBMISSION_OUTPUT=$(xcrun notarytool submit "$PKG_DIR/SentinelAgent-$VERSION.pkg" \
             --keychain-profile "$NOTARIZATION_KEYCHAIN_PROFILE" \
+            --verbose \
             --wait 2>&1)
         SUBMISSION_ID=$(echo "$SUBMISSION_OUTPUT" | grep "id:" | head -1 | awk '{print $2}')
     else
@@ -603,6 +604,7 @@ if [ "$NOTARIZE" == "true" ]; then
             --apple-id "$APPLE_ID" \
             --password "$APPLE_PASSWORD" \
             --team-id "$TEAM_ID" \
+            --verbose \
             --wait 2>&1)
         SUBMISSION_ID=$(echo "$SUBMISSION_OUTPUT" | grep "id:" | head -1 | awk '{print $2}')
     fi
