@@ -474,14 +474,32 @@ jobs:
             
             # Try to fix common Base64 encoding issues
             FIXED_KEY=$(echo "$PRIVATE_KEY" | sed 's/\\n/\n/g' | tr -d ' ')
+            echo "Fixed key first 50 chars: $(echo "$FIXED_KEY" | head -c 50)"
+            
             if echo "$FIXED_KEY" | grep -q "BEGIN PRIVATE KEY"; then
               echo "✅ Fixed key format detected"
               # Update the JSON with fixed key using sed
               sed -i "s|\"private_key\": \".*\"|\"private_key\": \"$FIXED_KEY\"|g" /tmp/gcp-sa-key.json
               echo "✅ Private key format corrected"
+              
+              # Verify the fix
+              NEW_PRIVATE_KEY=$(grep "private_key" /tmp/gcp-sa-key.json | cut -d'"' -f4)
+              if echo "$NEW_PRIVATE_KEY" | grep -q "BEGIN PRIVATE KEY"; then
+                echo "✅ Verification successful - private key is now valid"
+              else
+                echo "::error::Verification failed - fix didn't work"
+                exit 1
+              fi
             else
               echo "::error::Cannot fix private key format. The secret in GitHub Secrets is corrupted."
-              echo "Please regenerate the service account key in Google Cloud Console."
+              echo ""
+              echo "🔧 SOLUTION: Regenerate the service account key:"
+              echo "1. Go to Google Cloud Console → IAM & Admin → Service Accounts"
+              echo "2. Select your service account"
+              echo "3. Create new JSON key"
+              echo "4. Copy the JSON content and encode it properly:"
+              echo "   cat service-account-key.json | base64 -w 0"
+              echo "5. Update the GCP_SA_KEY secret in GitHub"
               exit 1
             fi
           else
