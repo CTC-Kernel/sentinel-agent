@@ -465,27 +465,45 @@ jobs:
             exit 1
           fi
           
-          echo "✅ GCP SA key validation successful"
-          
-          # Set the validated JSON as environment variable for next step
-          echo "GCP_CREDENTIALS_JSON<<EOF" >> $GITHUB_ENV
-          cat /tmp/gcp-sa-key.json >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-          
-          # Clean up
-          rm -f /tmp/gcp-sa-key.json
-
-      - name: Authenticate to Google Cloud
-        id: auth
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ env.GCP_CREDENTIALS_JSON }}
+          echo "✅ GCP SA key validation successful - keeping file for authentication"
+          # Note: File kept in /tmp/gcp-sa-key.json for gcloud auth
 
       - name: Setup Google Cloud CLI
         uses: google-github-actions/setup-gcloud@v2
-        env:
-          # Prevent credentials from being logged
-          GCP_CREDENTIALS_JSON: ${{ env.GCP_CREDENTIALS_JSON }}
+        with:
+          install_components: beta
+
+      - name: Authenticate with Service Account
+        run: |
+          echo "🔍 Diagnostics du fichier de credentials..."
+          echo "Fichier: /tmp/gcp-sa-key.json"
+          echo "Taille: $(wc -c < /tmp/gcp-sa-key.json) bytes"
+          echo "Premiers caractères: $(head -c 50 /tmp/gcp-sa-key.json)"
+          echo ""
+          
+          echo "🔍 Validation de la clé privée..."
+          PRIVATE_KEY=$(grep "private_key" /tmp/gcp-sa-key.json | cut -d'"' -f4)
+          echo "Longueur de la clé privée: $(echo "$PRIVATE_KEY" | wc -c)"
+          echo "Début de la clé privée: $(echo "$PRIVATE_KEY" | head -c 30)"
+          echo "Fin de la clé privée: $(echo "$PRIVATE_KEY" | tail -c 30)"
+          echo ""
+          
+          echo "🔐 Tentative d'authentification avec Service Account..."
+          if gcloud auth activate-service-account --key-file=/tmp/gcp-sa-key.json --quiet; then
+            echo "✅ Authentication successful"
+            echo "Active account:"
+            gcloud auth list
+          else
+            echo "❌ Authentication failed - trying alternative method..."
+            echo "Creating credentials file in HOME directory..."
+            mkdir -p ~/.config/gcloud
+            cp /tmp/gcp-sa-key.json ~/.config/gcloud/application_default_credentials.json
+            export GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/application_default_credentials.json
+            echo "✅ Alternative authentication setup complete"
+          fi
+          
+          # Clean up the temp file
+          rm -f /tmp/gcp-sa-key.json
 
       - name: Verify GCP Identity
         run: |
