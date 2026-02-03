@@ -431,28 +431,68 @@ jobs:
       - name: List artifacts
         run: find artifacts -type f | sort
 
-      - name: Check GCP Secret
+      - name: Check and Prepare GCP Secret
         run: |
           if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
             echo "::error::GCP_SA_KEY secret is missing!"
             exit 1
           fi
-          # Check if it looks like JSON or Base64 (without printing the whole secret)
+          
+          # Check if it looks like JSON or Base64
           FIRST_CHAR=$(echo "${{ secrets.GCP_SA_KEY }}" | cut -c1)
           if [ "$FIRST_CHAR" = "{" ]; then
-            echo "✅ Secret starts with '{' (appears to be raw JSON)"
+            echo "✅ Secret appears to be raw JSON"
+            echo "${{ secrets.GCP_SA_KEY }}" > /tmp/gcp-sa-key.json
           else
-            echo "ℹ️ Secret does not start with '{' (might be Base64 encoded)"
+            echo "ℹ️ Secret appears to be Base64 encoded, decoding..."
+            echo "${{ secrets.GCP_SA_KEY }}" | base64 -d > /tmp/gcp-sa-key.json
+            if [ $? -ne 0 ]; then
+              echo "::error::Failed to decode Base64 secret. Check encoding."
+              exit 1
+            fi
           fi
+          
+          # Validate JSON structure
+          if ! python3 -m json.tool /tmp/gcp-sa-key.json > /dev/null 2>&1; then
+            echo "::error::Secret is not valid JSON"
+            cat /tmp/gcp-sa-key.json
+            exit 1
+          fi
+          
+          # Check for required fields
+          if ! grep -q "private_key" /tmp/gcp-sa-key.json; then
+            echo "::error::Secret missing 'private_key' field"
+            exit 1
+          fi
+          
+          # Validate private key format
+          PRIVATE_KEY=$(grep "private_key" /tmp/gcp-sa-key.json | cut -d'"' -f4)
+          if ! echo "$PRIVATE_KEY" | grep -q "BEGIN PRIVATE KEY"; then
+            echo "::error::Private key format is invalid"
+            exit 1
+          fi
+          
+          echo "✅ GCP SA key validation successful"
+          
+          # Set the validated JSON as environment variable for next step
+          echo "GCP_CREDENTIALS_JSON<<EOF" >> $GITHUB_ENV
+          cat /tmp/gcp-sa-key.json >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          
+          # Clean up
+          rm -f /tmp/gcp-sa-key.json
 
       - name: Authenticate to Google Cloud
         id: auth
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          credentials_json: ${{ env.GCP_CREDENTIALS_JSON }}
 
       - name: Setup Google Cloud CLI
         uses: google-github-actions/setup-gcloud@v2
+        env:
+          # Prevent credentials from being logged
+          GCP_CREDENTIALS_JSON: ${{ env.GCP_CREDENTIALS_JSON }}
 
       - name: Verify GCP Identity
         run: |
