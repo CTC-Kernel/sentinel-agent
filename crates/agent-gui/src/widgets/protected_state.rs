@@ -1,5 +1,5 @@
 use crate::theme;
-use egui::{Color32, RichText, Stroke, Ui, Vec2};
+use egui::{RichText, Stroke, Ui, Vec2};
 
 /// Renders a premium "Protected" state with a pulsing animation.
 ///

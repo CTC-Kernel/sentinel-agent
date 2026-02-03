@@ -231,6 +231,7 @@ impl Default for AppState {
                 last_sync_at: None,
                 pending_sync_count: 0,
                 uptime_secs: 0,
+                active_frameworks: None,
             },
             resources: GuiResourceUsage {
                 cpu_percent: 0.0,
@@ -399,7 +400,7 @@ impl SentinelApp {
         eframe::NativeOptions {
             viewport: egui::ViewportBuilder::default()
                 .with_title("Sentinel Agent")
-                .with_inner_size([1100.0, 750.0])
+                .with_inner_size([1280.0, 750.0])
                 .with_min_inner_size([800.0, 600.0])
                 .with_icon(Self::load_app_icon()),
             ..Default::default()
@@ -824,7 +825,9 @@ impl eframe::App for SentinelApp {
                                     }
                                 }
                                 Page::Monitoring => {
-                                    pages::MonitoringPage::show(ui, &self.state);
+                                    if let Some(cmd) = pages::MonitoringPage::show(ui, &self.state) {
+                                        self.send_command(cmd);
+                                    }
                                 }
                                 Page::Compliance => {
                                     if let Some(cmd) =
@@ -834,10 +837,16 @@ impl eframe::App for SentinelApp {
                                     }
                                 }
                                 Page::Software => {
-                                    pages::SoftwarePage::show(ui, &mut self.state);
+                                    if let Some(cmd) = pages::SoftwarePage::show(ui, &mut self.state) {
+                                        self.send_command(cmd);
+                                    }
                                 }
                                 Page::Vulnerabilities => {
-                                    pages::VulnerabilitiesPage::show(ui, &mut self.state);
+                                    if let Some(cmd) =
+                                        pages::VulnerabilitiesPage::show(ui, &mut self.state)
+                                    {
+                                        self.send_command(cmd);
+                                    }
                                 }
                                 Page::FileIntegrity => {
                                     if let Some(cmd) = pages::FimPage::show(ui, &mut self.state) {
@@ -845,10 +854,16 @@ impl eframe::App for SentinelApp {
                                     }
                                 }
                                 Page::Threats => {
-                                    pages::ThreatsPage::show(ui, &mut self.state);
+                                    if let Some(cmd) = pages::ThreatsPage::show(ui, &mut self.state)
+                                    {
+                                        self.send_command(cmd);
+                                    }
                                 }
                                 Page::Network => {
-                                    pages::NetworkPage::show(ui, &mut self.state);
+                                    if let Some(cmd) = pages::NetworkPage::show(ui, &mut self.state)
+                                    {
+                                        self.send_command(cmd);
+                                    }
                                 }
                                 Page::Sync => {
                                     if let Some(cmd) = pages::SyncPage::show(ui, &self.state) {
@@ -856,7 +871,10 @@ impl eframe::App for SentinelApp {
                                     }
                                 }
                                 Page::Terminal => {
-                                    pages::TerminalPage::show(ui, &mut self.state);
+                                    if let Some(cmd) = pages::TerminalPage::show(ui, &mut self.state)
+                                    {
+                                        self.send_command(cmd);
+                                    }
                                 }
                                 Page::Discovery => {
                                     if let Some(cmd) =
@@ -866,10 +884,18 @@ impl eframe::App for SentinelApp {
                                     }
                                 }
                                 Page::Cartography => {
-                                    pages::CartographyPage::show(ui, &mut self.state);
+                                    if let Some(cmd) =
+                                        pages::CartographyPage::show(ui, &mut self.state)
+                                    {
+                                        self.send_command(cmd);
+                                    }
                                 }
                                 Page::Notifications => {
-                                    pages::NotificationsPage::show(ui, &mut self.state);
+                                    if let Some(cmd) =
+                                        pages::NotificationsPage::show(ui, &mut self.state)
+                                    {
+                                        self.send_command(cmd);
+                                    }
                                 }
                                 Page::Settings => {
                                     if let Some(cmd) =
@@ -883,11 +909,13 @@ impl eframe::App for SentinelApp {
                                     }
                                 }
                                 Page::About => {
-                                    pages::AboutPage::show(ui);
+                                    if let Some(cmd) = pages::AboutPage::show(ui) {
+                                        self.send_command(cmd);
+                                    }
                                 }
                             });
-                    });
-            });
+                        });
+                });
 
         // Request periodic repaint for event processing.
         ctx.request_repaint_after(std::time::Duration::from_millis(100));

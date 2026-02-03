@@ -2,6 +2,7 @@
 
 use crate::app::AppState;
 use crate::dto::GuiDiscoveredDevice;
+use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
@@ -25,7 +26,20 @@ struct GraphEdge {
 pub struct CartographyPage;
 
 impl CartographyPage {
-    pub fn show(ui: &mut Ui, state: &mut AppState) {
+    pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
+        let mut command = None;
+
+        if state.discovered_devices.is_empty() {
+            ui.add_space(theme::SPACE_LG);
+            widgets::protected_state(
+                ui,
+                icons::WARNING,
+                "Aucun actif d\u{00e9}couvert",
+                "Veuillez lancer une d\u{00e9}couverte r\u{00e9}seau pour cartographier votre infrastructure.",
+            );
+            return None;
+        }
+
         ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
@@ -35,56 +49,81 @@ impl CartographyPage {
         ui.add_space(theme::SPACE_LG);
 
         // Controls bar
-        widgets::card(ui, |ui| {
-            ui.horizontal(|ui| {
-                ui.label(
-                    egui::RichText::new(format!(
-                        "{} n\u{0153}ud(s)",
-                        state.discovered_devices.len()
-                    ))
-                    .font(theme::font_body())
-                    .color(theme::text_secondary()),
-                );
+        ui.push_id("cartography_controls", |ui| {
+            widgets::card(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label(
+                        egui::RichText::new(format!(
+                            "{} n\u{0153}ud(s)",
+                            state.discovered_devices.len()
+                        ))
+                        .font(theme::font_body())
+                        .color(theme::text_secondary()),
+                    );
 
-                ui.add_space(theme::SPACE_LG);
+                    ui.add_space(theme::SPACE_LG);
 
-                // Reset layout button
-                let reset_btn = egui::Button::new(
-                    egui::RichText::new("R\u{00e9}initialiser")
-                        .font(theme::font_small())
-                        .color(theme::text_on_accent()),
-                )
-                .fill(theme::ACCENT.linear_multiply(0.7))
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                if ui.add(reset_btn).clicked() {
-                    state.graph_layout = None; // Force re-layout
-                    state.graph_zoom = 1.0;
-                    state.graph_pan = Vec2::ZERO;
-                }
+                    // Reset layout button
+                    let reset_btn = egui::Button::new(
+                        egui::RichText::new("R\u{00e9}initialiser")
+                            .font(theme::font_small())
+                            .color(theme::text_on_accent()),
+                    )
+                    .fill(theme::ACCENT.linear_multiply(0.7))
+                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                    if ui.add(reset_btn).clicked() {
+                        state.graph_layout = None; // Force re-layout
+                        state.graph_zoom = 1.0;
+                        state.graph_pan = Vec2::ZERO;
+                    }
 
-                ui.add_space(theme::SPACE_MD);
+                    ui.add_space(theme::SPACE_MD);
 
-                // Zoom controls
-                ui.label(
-                    egui::RichText::new(format!("Zoom: {:.0}%", state.graph_zoom * 100.0))
-                        .font(theme::font_small())
-                        .color(theme::text_tertiary()),
-                );
+                    // Zoom controls
+                    ui.label(
+                        egui::RichText::new(format!("Zoom: {:.0}%", state.graph_zoom * 100.0))
+                            .font(theme::font_small())
+                            .color(theme::text_tertiary()),
+                    );
 
-                ui.add_space(theme::SPACE_LG);
+                    ui.add_space(theme::SPACE_LG);
 
-                // Open 3D view button
-                let view3d_btn = egui::Button::new(
-                    egui::RichText::new(format!("Voir en 3D {}", icons::EXTERNAL_LINK))
-                        .font(theme::font_small())
-                        .strong()
-                        .color(theme::text_on_accent()),
-                )
-                .fill(theme::SUCCESS.linear_multiply(0.8))
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                if ui.add(view3d_btn).clicked() {
-                    let _ = open::that("https://app.cyber-threat-consulting.com/voxel");
-                }
+                    // Open 3D view button
+                    let view3d_btn = egui::Button::new(
+                        egui::RichText::new(format!("Voir en 3D {}", icons::EXTERNAL_LINK))
+                            .font(theme::font_small())
+                            .strong()
+                            .color(theme::text_on_accent()),
+                    )
+                    .fill(theme::SUCCESS.linear_multiply(0.8))
+                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                    if ui.add(view3d_btn).clicked() {
+                        let _ = open::that("https://app.cyber-threat-consulting.com/voxel");
+                    }
+
+                    ui.add_space(theme::SPACE_MD);
+
+                    // Export CSV
+                    let export_btn = egui::Button::new(
+                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
+                            .font(theme::font_small())
+                            .color(theme::text_primary()),
+                    )
+                    .fill(theme::bg_elevated())
+                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                    if ui.add(export_btn).clicked() {
+                        Self::export_csv(state);
+                    }
+
+                    ui.add_space(theme::SPACE_XL);
+
+                    // Run Scan
+                    if widgets::button::primary_button(ui, format!("{}  Lancer le scan", icons::PLAY))
+                        .clicked()
+                    {
+                        command = Some(GuiCommand::RunCheck);
+                    }
+                });
             });
         });
 
@@ -111,7 +150,7 @@ impl CartographyPage {
                     ui.add_space(theme::SPACE_XL * 3.0);
                 });
             });
-            return;
+            return None;
         }
 
         // Build graph layout if needed
@@ -335,6 +374,30 @@ impl CartographyPage {
         }
 
         ui.add_space(theme::SPACE_XL);
+
+        command
+    }
+
+    fn export_csv(state: &AppState) {
+        let headers = &["ip", "hostname", "mac", "vendor", "type", "passerelle"];
+        let rows: Vec<Vec<String>> = state
+            .discovered_devices
+            .iter()
+            .map(|d| {
+                vec![
+                    d.ip.clone(),
+                    d.hostname.clone().unwrap_or_default(),
+                    d.mac.clone().unwrap_or_default(),
+                    d.vendor.clone().unwrap_or_default(),
+                    d.device_type.clone(),
+                    if d.is_gateway { "Oui" } else { "Non" }.to_string(),
+                ]
+            })
+            .collect();
+        let path = crate::export::default_export_path("cartographie_reseau.csv");
+        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
+            tracing::warn!("Export CSV failed: {}", e);
+        }
     }
 }
 

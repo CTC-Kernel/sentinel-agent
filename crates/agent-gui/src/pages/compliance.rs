@@ -1,6 +1,6 @@
 //! Compliance page -- check results and policy overview.
 
-use std::cell::RefCell;
+
 
 use egui::Ui;
 
@@ -15,16 +15,44 @@ pub struct CompliancePage;
 
 impl CompliancePage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
-        let pending_command: RefCell<Option<GuiCommand>> = RefCell::new(None);
+        let mut command = None;
+
         ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
             "Conformit\u{00e9}",
-            Some(
-                "R\u{00e9}sultats des v\u{00e9}rifications de s\u{00e9}curit\u{00e9} et respect des politiques",
-            ),
+            Some("Suivi des contrôles et alignement avec les référentiels de sécurité"),
         );
         ui.add_space(theme::SPACE_LG);
+
+        // Action bar
+        ui.horizontal(|ui| {
+            if widgets::button::primary_button(ui, format!("{}  Lancer le scan", icons::PLAY)).clicked()
+            {
+                command = Some(GuiCommand::RunCheck);
+            }
+        });
+        ui.add_space(theme::SPACE_MD);
+
+        // Active Frameworks indicator
+        if let Some(frameworks) = &state.summary.active_frameworks {
+            if !frameworks.is_empty() {
+                ui.horizontal(|ui| {
+                    ui.label(
+                        egui::RichText::new("Frameworks actifs :")
+                            .font(theme::font_small())
+                            .color(theme::text_tertiary())
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE_XS);
+                    for fw in frameworks {
+                        widgets::status_badge(ui, fw, theme::INFO);
+                        ui.add_space(theme::SPACE_XS);
+                    }
+                });
+                ui.add_space(theme::SPACE_MD);
+            }
+        }
 
         // Summary cards row
         let card_gap = theme::SPACE_SM;
@@ -224,7 +252,9 @@ impl CompliancePage {
                 }
             } else if state.compliance_group_by == 0 {
                 // Flat table
-                Self::render_check_table(ui, state, &filtered, &pending_command);
+                ui.push_id("compliance_table_flat", |ui| {
+                    Self::render_check_table(ui, state, &filtered, &mut command);
+                });
             } else {
                 // Grouped display
                 let groups = Self::build_groups(state, &filtered);
@@ -239,7 +269,7 @@ impl CompliancePage {
                     } else {
                         0.0
                     };
-
+ 
                     ui.add_space(theme::SPACE_SM);
                     ui.horizontal(|ui| {
                         ui.label(
@@ -257,16 +287,18 @@ impl CompliancePage {
                         );
                     });
                     ui.add_space(theme::SPACE_XS);
-
-                    Self::render_check_table(ui, state, indices, &pending_command);
+ 
+                    ui.push_id(format!("compliance_group_{}", group_name), |ui| {
+                        Self::render_check_table(ui, state, indices, &mut command);
+                    });
                     ui.add_space(theme::SPACE_SM);
                 }
             }
         });
-
+ 
         ui.add_space(theme::SPACE_XL);
-
-        pending_command.into_inner()
+ 
+        command
     }
 
     fn build_groups(state: &AppState, indices: &[usize]) -> Vec<(String, Vec<usize>)> {
@@ -294,7 +326,7 @@ impl CompliancePage {
         ui: &mut Ui,
         state: &AppState,
         indices: &[usize],
-        pending_command: &RefCell<Option<GuiCommand>>,
+        command: &mut Option<GuiCommand>,
     ) {
         use egui_extras::{Column, TableBuilder};
 
@@ -418,8 +450,8 @@ impl CompliancePage {
                                             .fill(theme::INFO)
                                             .corner_radius(egui::CornerRadius::same(theme::BADGE_ROUNDING))
                                             .min_size(egui::vec2(80.0, 24.0));
-                                            if ui.add(preview_btn).clicked() {
-                                                *pending_command.borrow_mut() = Some(
+                                             if ui.add(preview_btn).clicked() {
+                                                *command = Some(
                                                     GuiCommand::RemediatePreview {
                                                         check_id: check.check_id.clone(),
                                                     },
@@ -438,7 +470,7 @@ impl CompliancePage {
                                             .corner_radius(egui::CornerRadius::same(theme::BADGE_ROUNDING))
                                             .min_size(egui::vec2(90.0, 24.0));
                                             if ui.add(fix_btn).clicked() {
-                                                *pending_command.borrow_mut() = Some(
+                                                *command = Some(
                                                     GuiCommand::Remediate {
                                                         check_id: check.check_id.clone(),
                                                     },

@@ -13,6 +13,8 @@ pub struct FimPage;
 impl FimPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command = None;
+
+        ui.add_space(theme::SPACE_MD);
         ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
@@ -20,6 +22,15 @@ impl FimPage {
             Some("Surveillance de l\u{2019}int\u{00e9}grit\u{00e9} des fichiers syst\u{00e8}me"),
         );
         ui.add_space(theme::SPACE_LG);
+
+        // Action bar
+        ui.horizontal(|ui| {
+            if widgets::button::primary_button(ui, format!("{}  Lancer le scan", icons::PLAY)).clicked()
+            {
+                command = Some(GuiCommand::RunCheck);
+            }
+        });
+        ui.add_space(theme::SPACE_MD);
 
         // ── Summary cards row ───────────────────────────────────────────
         let monitored = state.fim_monitored_count;
@@ -122,6 +133,24 @@ impl FimPage {
                 state.fim_filter = target.map(|s| s.to_string());
             }
         }
+
+        ui.add_space(theme::SPACE_SM);
+
+        // CSV Export
+        ui.horizontal(|ui| {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                let export_btn = egui::Button::new(
+                    egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
+                        .font(theme::font_small())
+                        .color(theme::text_secondary()),
+                )
+                .fill(theme::bg_elevated())
+                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                if ui.add(export_btn).clicked() {
+                    Self::export_events_csv(state, &filtered);
+                }
+            });
+        });
 
         ui.add_space(theme::SPACE_SM);
 
@@ -300,6 +329,26 @@ impl FimPage {
             "permission_changed" => ("PERMISSIONS", theme::INFO),
             "renamed" => ("RENOMM\u{00c9}", theme::WARNING),
             _ => ("INCONNU", theme::text_tertiary()),
+        }
+    }
+
+    fn export_events_csv(state: &AppState, indices: &[usize]) {
+        let headers = &["chemin", "modification", "date", "statut"];
+        let rows: Vec<Vec<String>> = indices
+            .iter()
+            .map(|&i| {
+                let e = &state.fim_alerts[i];
+                vec![
+                    e.path.clone(),
+                    e.change_type.clone(),
+                    e.timestamp.to_rfc3339(),
+                    if e.acknowledged { "Acquitt\u{00e9}" } else { "Non acquitt\u{00e9}" }.to_string(),
+                ]
+            })
+            .collect();
+        let path = crate::export::default_export_path("fim_events.csv");
+        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
+            tracing::warn!("Export CSV failed: {}", e);
         }
     }
 }

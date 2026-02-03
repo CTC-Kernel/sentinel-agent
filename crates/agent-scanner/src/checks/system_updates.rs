@@ -23,6 +23,7 @@ pub const CHECK_ID: &str = "patches_current";
 const MAX_PENDING_DAYS: i64 = 7;
 
 /// Timeout for external update check commands (macOS softwareupdate, etc.).
+#[cfg(target_os = "macos")]
 const UPDATE_CMD_TIMEOUT_SECS: u64 = 3;
 
 /// System updates status.

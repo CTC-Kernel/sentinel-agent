@@ -100,6 +100,11 @@ pub struct AgentConfig {
     /// Client private key for HMAC signature authentication (loaded from DB, not serialized).
     #[serde(skip)]
     pub client_key: Option<String>,
+
+    /// List of active compliance frameworks (e.g. "ISO27001", "NIST").
+    /// If provided, only checks associated with these frameworks will be executed.
+    #[serde(default)]
+    pub active_frameworks: Option<Vec<String>>,
 }
 
 /// Proxy configuration.
@@ -175,6 +180,7 @@ impl Default for AgentConfig {
             organization_id: None,
             client_certificate: None,
             client_key: None,
+            active_frameworks: None,
         }
     }
 }
@@ -446,6 +452,7 @@ mod tests {
             fim_ignore_patterns: None,
             usb_monitoring: true,
             usb_block_mass_storage: true,
+            active_frameworks: None,
         };
 
         let json = serde_json::to_string(&config).unwrap();
