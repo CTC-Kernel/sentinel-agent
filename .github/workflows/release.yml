@@ -343,7 +343,7 @@ jobs:
         run: cargo build --release --features gui --package agent-core
 
       - name: Build DEB package
-        run: cargo deb --package agent-core --no-build
+        run: cargo deb --package agent-core --no-build --deb-revision 1
 
       - name: Generate checksums
         run: |
@@ -393,7 +393,7 @@ jobs:
         run: strip target/release/agent-core
 
       - name: Build RPM package
-        run: cargo generate-rpm -p crates/agent-core
+        run: cargo generate-rpm -p crates/agent-core --release 1
 
       - name: Generate checksums
         run: |
@@ -511,15 +511,15 @@ jobs:
             | macOS (Universal) | `SentinelAgent-${{ env.RELEASE_VERSION }}.dmg` | DMG |
             | macOS (Universal) | `SentinelAgent-${{ env.RELEASE_VERSION }}.pkg` | PKG |
             | Windows x64 | `SentinelAgentSetup-${{ env.RELEASE_VERSION }}.msi` | MSI |
-            | Linux (Debian/Ubuntu) | `sentinel-agent_${{ env.RELEASE_VERSION }}_amd64.deb` | DEB |
-            | Linux (RHEL/Fedora) | `sentinel-agent-${{ env.RELEASE_VERSION }}.x86_64.rpm` | RPM |
+            | Linux (Debian/Ubuntu) | `sentinel-agent_${{ env.RELEASE_VERSION }}-1_amd64.deb` | DEB |
+            | Linux (RHEL/Fedora) | `sentinel-agent-${{ env.RELEASE_VERSION }}-1.x86_64.rpm` | RPM |
 
             ### Installation
 
             **macOS**: Open the DMG and drag to Applications, or double-click the PKG.
             **Windows**: Run the MSI installer as Administrator.
-            **Linux (DEB)**: `sudo dpkg -i sentinel-agent_${{ env.RELEASE_VERSION }}_amd64.deb`
-            **Linux (RPM)**: `sudo rpm -i sentinel-agent-${{ env.RELEASE_VERSION }}.x86_64.rpm`
+            **Linux (DEB)**: `sudo dpkg -i sentinel-agent_${{ env.RELEASE_VERSION }}-1_amd64.deb`
+            **Linux (RPM)**: `sudo rpm -i sentinel-agent-${{ env.RELEASE_VERSION }}-1.x86_64.rpm`
 
             Then enroll: `sentinel-agent enroll --token <YOUR_TOKEN>`
           files: |

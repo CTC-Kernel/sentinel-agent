@@ -23,7 +23,7 @@ echo "2. Creating package structure..."
 
 # DEB package
 DEB_DIR="$BUILD_DIR/deb"
-DEB_NAME="sentinel-agent_${VERSION}_amd64"
+DEB_NAME="sentinel-agent_${VERSION}-1_amd64"
 rm -rf "$DEB_DIR"
 mkdir -p "$DEB_DIR/$DEB_NAME/DEBIAN"
 mkdir -p "$DEB_DIR/$DEB_NAME/usr/bin"
@@ -191,7 +191,7 @@ dpkg-deb --build "$DEB_NAME"
 mv "$DEB_NAME.deb" "$BUILD_DIR/sentinel-agent_${VERSION}_amd64.deb"
 
 # Create symlink for latest
-ln -sf "sentinel-agent_${VERSION}_amd64.deb" "$BUILD_DIR/sentinel-agent_latest_amd64.deb"
+ln -sf "sentinel-agent_${VERSION}-1_amd64.deb" "$BUILD_DIR/sentinel-agent_latest_amd64.deb"
 
 echo ""
 echo "=== Build complete ==="
