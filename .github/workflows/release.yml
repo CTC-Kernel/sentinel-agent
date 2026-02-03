@@ -435,10 +435,9 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Authenticate to Google Cloud
-        run: |
-          echo '${{ secrets.GCP_SA_KEY }}' | base64 --decode > /tmp/gcp-key.json
-          gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
-          rm /tmp/gcp-key.json
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Upload to Firebase Storage
         run: |
