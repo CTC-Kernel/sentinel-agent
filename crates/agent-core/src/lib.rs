@@ -373,8 +373,8 @@ impl AgentRuntime {
 
     /// Emit resource usage update to the GUI.
     #[cfg(feature = "gui")]
-    fn emit_resource_update(&self) {
-        let usage = self.resource_monitor.get_usage();
+    fn emit_resource_update(&self, usage: Option<resources::ResourceUsage>) {
+        let usage = usage.unwrap_or_else(|| self.resource_monitor.get_usage());
         let sys = resources::get_system_resources();
         self.emit_gui_event(AgentEvent::ResourceUpdate {
             usage: GuiResourceUsage {
@@ -385,6 +385,7 @@ impl AgentRuntime {
                 disk_iops: usage.disk_iops,
                 uptime_secs: usage.uptime_ms / 1000,
                 disk_percent: sys.disk_percent,
+                network_io_bytes: usage.network_io_bytes,
             },
         });
     }
@@ -1470,7 +1471,7 @@ impl AgentRuntime {
         #[cfg(feature = "gui")]
         {
             self.emit_status_update(None, None);
-            self.emit_resource_update();
+            self.emit_resource_update(None);
         }
 
         // Track last operation times
@@ -1591,7 +1592,7 @@ impl AgentRuntime {
                 #[cfg(feature = "gui")]
                 {
                     self.emit_status_update(last_check_at, compliance_score);
-                    self.emit_resource_update();
+                    self.emit_resource_update(None);
                 }
             }
 
@@ -2052,7 +2053,7 @@ impl AgentRuntime {
                 #[cfg(feature = "gui")]
                 {
                     self.emit_status_update(last_check_at, compliance_score);
-                    self.emit_resource_update();
+                    self.emit_resource_update(None);
                 }
             }
 
@@ -2158,15 +2159,17 @@ impl AgentRuntime {
                 }
             }
 
-            // Update resource limits check with active status
+            // Periodically collect resource usage and push to GUI/Check limits
+            let usage = self.resource_monitor.get_usage();
+
             if is_active {
-                self.resource_monitor.check_limits(is_active);
+                self.resource_monitor.check_limits_with_usage(&usage, is_active);
             }
 
-            // Periodically push resource usage to the GUI (every 5 seconds)
+            // Periodically push resource usage to the GUI (every 1 second)
             #[cfg(feature = "gui")]
-            if last_gui_resource_update.elapsed().as_secs() >= 5 {
-                self.emit_resource_update();
+            if last_gui_resource_update.elapsed().as_secs() >= 1 {
+                self.emit_resource_update(Some(usage));
                 last_gui_resource_update = std::time::Instant::now();
             }
 
