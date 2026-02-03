@@ -24,7 +24,7 @@ export const AgentDownloadModal: React.FC<AgentDownloadModalProps> = ({
             return;
         }
 
-        window.location.href = '/agents/download';
+        window.location.href = '/settings?tab=agents';
         onClose();
     };
 

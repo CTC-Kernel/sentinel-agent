@@ -54,13 +54,13 @@ const AgentDownloads: React.FC = () => {
       platform: 'Linux DEB',
       version: '2.0.0',
       size: '9.3MB',
-      url: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/linux_deb/sentinel-agent_2.0.0_arm64.deb',
+      url: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/linux_deb/sentinel-agent_2.0.0-1_amd64.deb',
       status: 'available',
       icon: <Package className="w-8 h-8" />,
       instructions: [
-        'DEBIAN / UBUNTU (arm64)',
+        'DEBIAN / UBUNTU (amd64)',
         'Download the .deb package',
-        'Install: sudo dpkg -i sentinel-agent_latest_arm64.deb',
+        'Install: sudo dpkg -i sentinel-agent_latest_amd64.deb',
         'Start: sudo systemctl start sentinel-agent'
       ]
     },
@@ -68,7 +68,7 @@ const AgentDownloads: React.FC = () => {
       platform: 'Linux RPM',
       version: '2.0.0',
       size: '9.3MB',
-      url: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/linux_rpm/sentinel-agent-2.0.0.x86_64.rpm',
+      url: 'https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/linux_rpm/sentinel-agent-2.0.0-1.x86_64.rpm',
       status: 'available',
       icon: <Package className="w-8 h-8" />,
       instructions: [
@@ -228,10 +228,10 @@ const AgentDownloads: React.FC = () => {
               <a href="https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/windows/SentinelAgentSetup-2.0.0.msi" className="text-primary hover:underline block">
                 🪟 Windows (.msi) - 8.5MB
               </a>
-              <a href="https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/linux_deb/sentinel-agent_2.0.0_arm64.deb" className="text-primary hover:underline block">
+              <a href="https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/linux_deb/sentinel-agent_2.0.0-1_amd64.deb" className="text-primary hover:underline block">
                 🐧 Linux DEB (.deb) - 9.3MB
               </a>
-              <a href="https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/linux_rpm/sentinel-agent-2.0.0.x86_64.rpm" className="text-primary hover:underline block">
+              <a href="https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/linux_rpm/sentinel-agent-2.0.0-1.x86_64.rpm" className="text-primary hover:underline block">
                 🐧 Linux RPM (.rpm) - 9.3MB
               </a>
             </div>
