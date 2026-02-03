@@ -114,7 +114,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
     }, []);
 
     return (
-        <AuroraBackground className="fixed inset-0 h-screen w-full bg-background text-foreground font-sans selection:bg-primary/30 selection:text-primary">
+        <AuroraBackground className="fixed inset-0 h-screen w-full overflow-hidden bg-background text-foreground font-sans selection:bg-primary/30 selection:text-primary">
             <div className="absolute top-4 right-4 z-modal">
                 <ThemeToggle />
             </div>
@@ -140,9 +140,9 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                 <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-primary/10 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float" style={{ animationDelay: '3s' }}></div>
             </div>
 
-            <div className="relative z-10 h-screen flex flex-col">
+            <div className="relative z-10 h-screen flex flex-col overflow-hidden">
                 {/* Main Content - Takes remaining space minus footer */}
-                <div className="flex-1 flex items-center justify-center px-4 py-2" style={{ minHeight: 'calc(100vh - 64px)' }}>
+                <div className="flex-1 flex items-center justify-center px-4 py-2 overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
                     <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-2 lg:gap-12">
 
                 {/* Left Column: Sentinel Assistant - Hidden on mobile */}
@@ -161,10 +161,10 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                             stiffness: 100,
                             damping: 20
                         }}
-                        className="glass-premium glass-noise rounded-[1.5rem] sm:rounded-[2rem] lg:rounded-[2.5rem] p-4 sm:p-6 lg:p-8 flex flex-col items-center shadow-2xl relative overflow-hidden group"
+                        className="glass-premium glass-noise rounded-[2.5rem] p-4 sm:p-6 lg:p-8 flex flex-col items-center shadow-2xl relative overflow-hidden group"
                     >
                         {/* Dynamic Border Gradient */}
-                        <div className="absolute inset-0 rounded-[3rem] p-[1px] bg-gradient-to-br from-white/20 via-white/5 to-transparent pointer-events-none mask-image-blob"></div>
+                        <div className="absolute inset-0 rounded-[2.5rem] p-[1px] bg-gradient-to-br from-white/20 via-white/5 to-transparent pointer-events-none mask-image-blob"></div>
 
                         {/* Shimmer overlay on load */}
                         <div className="absolute inset-0 z-0 animate-shimmer pointer-events-none opacity-20"></div>
