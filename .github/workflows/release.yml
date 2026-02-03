@@ -393,7 +393,7 @@ jobs:
         run: strip target/release/agent-core
 
       - name: Build RPM package
-        run: cargo generate-rpm -p crates/agent-core --release 1
+        run: cargo generate-rpm -p crates/agent-core
 
       - name: Generate checksums
         run: |
