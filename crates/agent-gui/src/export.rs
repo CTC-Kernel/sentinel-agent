@@ -47,11 +47,10 @@ pub fn export_csv(headers: &[&str], rows: &[Vec<String>], path: &Path) -> Result
 
 /// Default export path on the user's Desktop.
 pub fn default_export_path(filename: &str) -> PathBuf {
-    if let Some(dirs) = directories::UserDirs::new() {
-        if let Some(desktop) = dirs.desktop_dir() {
+    if let Some(dirs) = directories::UserDirs::new()
+        && let Some(desktop) = dirs.desktop_dir() {
             return desktop.join(filename);
         }
-    }
     // Fallback: home directory
     if let Some(dirs) = directories::BaseDirs::new() {
         return dirs.home_dir().join(filename);

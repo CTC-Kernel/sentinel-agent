@@ -124,8 +124,8 @@ impl ResourceMonitor {
         let network_io_bytes = if let Ok(mut networks) = self.networks.lock() {
             networks.refresh(true);
             let current_network: u64 = networks
-                .iter()
-                .map(|(_, data)| data.received() + data.transmitted())
+                .values()
+                .map(|data| data.received() + data.transmitted())
                 .sum();
             
             let last_net = self.last_network_bytes.swap(current_network, Ordering::Relaxed);
@@ -166,7 +166,7 @@ impl ResourceMonitor {
             uptime_ms,
         };
 
-        if self.sample_count.load(Ordering::Relaxed) % 10 == 0 {
+        if self.sample_count.load(Ordering::Relaxed).is_multiple_of(10) {
             info!(
                 "Resource Usage: CPU={:.1}%, RAM={}MB, DiskIO={}, NetIO={}",
                 usage.cpu_percent,

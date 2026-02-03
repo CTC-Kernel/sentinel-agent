@@ -119,7 +119,7 @@ pub fn compute_file_baseline(path: &Path) -> Result<FimBaseline, crate::FimError
     let permissions = get_permissions(&metadata);
     let modified_at = metadata
         .modified()
-        .map(|t| chrono::DateTime::<Utc>::from(t))
+        .map(chrono::DateTime::<Utc>::from)
         .unwrap_or_else(|_| Utc::now());
 
     Ok(FimBaseline {
@@ -165,8 +165,7 @@ fn is_ignored(path: &Path, patterns: &[String]) -> bool {
     let path_str = path.to_string_lossy();
     for pattern in patterns {
         // Simple glob matching for common patterns
-        if pattern.starts_with('*') {
-            let suffix = &pattern[1..];
+        if let Some(suffix) = pattern.strip_prefix('*') {
             if path_str.ends_with(suffix) {
                 return true;
             }

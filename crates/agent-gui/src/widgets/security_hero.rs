@@ -115,22 +115,20 @@ fn determine_security_state(state: &AppState) -> SecurityState {
     }
     
     // 3. Check vulnerabilities
-    if let Some(ref vuln) = state.vulnerability_summary {
-        if vuln.critical > 0 {
+    if let Some(ref vuln) = state.vulnerability_summary
+        && vuln.critical > 0 {
             return SecurityState::Critical;
         }
-    }
     
     // 4. Check for warning conditions (Attention)
     if score < 85.0 {
         return SecurityState::Attention;
     }
     
-    if let Some(ref vuln) = state.vulnerability_summary {
-        if vuln.high > 0 || vuln.medium > 10 {
+    if let Some(ref vuln) = state.vulnerability_summary
+        && (vuln.high > 0 || vuln.medium > 10) {
             return SecurityState::Attention;
         }
-    }
     
     SecurityState::Secure
 }
@@ -145,22 +143,20 @@ fn get_security_summary(state: &AppState, status: SecurityState) -> String {
             if state.summary.compliance_score.unwrap_or(100.0) < 85.0 {
                 reasons.push("Conformit\u{00e9} imparfaite");
             }
-            if let Some(ref vuln) = state.vulnerability_summary {
-                if vuln.high > 0 {
+            if let Some(ref vuln) = state.vulnerability_summary
+                && vuln.high > 0 {
                     reasons.push("Vuln\u{00e9}rabilit\u{00e9}s \u{00e9}lev\u{00e9}es");
                 }
-            }
             format!("Points d'attention d\u{00e9}tect\u{00e9}s : {}.", reasons.join(", "))
         },
         SecurityState::Critical => {
             if !state.suspicious_processes.is_empty() {
                 return format!("{} processus suspects d\u{00e9}tect\u{0089}s !", state.suspicious_processes.len());
             }
-            if let Some(ref vuln) = state.vulnerability_summary {
-                if vuln.critical > 0 {
+            if let Some(ref vuln) = state.vulnerability_summary
+                && vuln.critical > 0 {
                     return format!("{} vuln\u{00e9}rabilit\u{00e9}s CRITIQUES d\u{00e9}tect\u{00e9}es.", vuln.critical);
                 }
-            }
             "Niveau de protection insuffisant. Action corrective requise.".to_string()
         }
     }

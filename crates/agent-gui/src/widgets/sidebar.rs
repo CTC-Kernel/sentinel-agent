@@ -334,8 +334,8 @@ impl Sidebar {
             );
 
             // Badge
-            if let Some(count) = badge {
-                if count > 0 {
+            if let Some(count) = badge
+                && count > 0 {
                     let badge_text = if count > 9 {
                         "9+".to_string()
                     } else {
@@ -354,7 +354,6 @@ impl Sidebar {
                         theme::text_on_accent(),
                     );
                 }
-            }
         }
 
         response.clicked()

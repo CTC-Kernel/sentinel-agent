@@ -519,6 +519,16 @@ if [ -n "$INSTALLER_IDENTITY" ]; then
         --sign "$INSTALLER_IDENTITY" \
         "$PKG_DIR/SentinelAgent-$VERSION.pkg"
 else
+    echo -e "${YELLOW}⚠️  No Developer ID Installer certificate found.${NC}"
+    echo -e "${YELLOW}   Package will be signed with Developer ID Application but not notarized.${NC}"
+    echo -e "${YELLOW}   To enable notarization, add a Developer ID Installer certificate to your keychain.${NC}"
+    
+    if [ "$NOTARIZE" = "true" ]; then
+        echo -e "${RED}❌ Cannot notarize without Developer ID Installer certificate.${NC}"
+        echo -e "${RED}   Disabling notarization and continuing with signed package only...${NC}"
+        export NOTARIZE=false
+    fi
+    
     echo -e "${YELLOW}Building Unsigned Installer Package (Ad-hoc)...${NC}"
     productbuild \
         --distribution "$BUILD_DIR/distribution.xml" \

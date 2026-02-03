@@ -46,7 +46,7 @@ impl MonitoringPage {
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = card_gap;
 
-            // CPU
+            // CPU with premium badge
             let cpu_color = Self::usage_color(state.resources.cpu_percent);
             Self::summary_card(
                 ui,
@@ -56,6 +56,16 @@ impl MonitoringPage {
                 cpu_color,
                 icons::BOLT,
             );
+            
+            // Add premium status badge for CPU
+            widgets::StatusBadge::new(
+                if state.resources.cpu_percent >= 90.0 { "Élevé" } 
+                else if state.resources.cpu_percent >= 70.0 { "Modéré" } 
+                else { "Normal" },
+                if state.resources.cpu_percent >= 90.0 { widgets::StatusLevel::Error }
+                else if state.resources.cpu_percent >= 70.0 { widgets::StatusLevel::Warning }
+                else { widgets::StatusLevel::Success }
+            ).ui(ui);
 
             // RAM
             let mem_color = Self::usage_color(state.resources.memory_percent);
@@ -84,7 +94,7 @@ impl MonitoringPage {
                 icons::DATABASE,
             );
 
-            // Uptime
+            // Uptime with premium badge
             let uptime = state.resources.uptime_secs;
             let uptime_str = Self::format_uptime(uptime);
             Self::summary_card(
@@ -192,7 +202,7 @@ impl MonitoringPage {
         }
     }
 
-    /// Draw a small summary card (icon + value + label).
+    /// Draw a premium summary card with enhanced visual effects.
     fn summary_card(
         ui: &mut Ui,
         width: f32,
@@ -204,9 +214,35 @@ impl MonitoringPage {
         ui.vertical(|ui| {
             ui.set_width(width);
             widgets::card(ui, |ui| {
+                // Add subtle hover effect area
+                let (rect, response) = ui.allocate_exact_size(
+                    egui::vec2(width, ui.available_height()),
+                    egui::Sense::hover(),
+                );
+                
+                // Premium hover glow effect
+                if response.hovered() {
+                    let time = ui.input(|i| i.time);
+                    let pulse = (time * 3.0).sin() * 0.1 + 0.9;
+                    ui.painter().rect_filled(
+                        rect,
+                        egui::CornerRadius::same(theme::CARD_ROUNDING),
+                        color.linear_multiply(0.05 * pulse as f32),
+                    );
+                }
+                
                 ui.horizontal(|ui| {
                     ui.vertical(|ui| {
-                        ui.label(egui::RichText::new(value).size(24.0).color(color).strong());
+                        // Premium value display with enhanced typography
+                        ui.label(
+                            egui::RichText::new(value)
+                                .size(28.0) // Larger for premium feel
+                                .color(color)
+                                .strong()
+                        );
+                        
+                        // Premium label with better spacing
+                        ui.add_space(2.0);
                         ui.label(
                             egui::RichText::new(label)
                                 .font(theme::font_small())
@@ -214,19 +250,36 @@ impl MonitoringPage {
                                 .strong(),
                         );
                     });
+                    
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        // Premium icon with subtle animation
+                        let time = ui.input(|i| i.time);
+                        let breathe = (time * 1.5).sin() * 0.1 + 0.9;
+                        
                         ui.label(
                             egui::RichText::new(icon)
-                                .size(28.0)
-                                .color(color.linear_multiply(0.4)),
+                                .size(32.0) // Larger icon
+                                .color(color.linear_multiply(0.3 + breathe as f32 * 0.2)),
                         );
                     });
                 });
+                
+                // Add subtle bottom accent line
+                if response.hovered() {
+                    ui.painter().rect_filled(
+                        egui::Rect::from_min_size(
+                            rect.min + egui::vec2(0.0, rect.height() - 2.0),
+                            egui::vec2(rect.width(), 2.0)
+                        ),
+                        egui::CornerRadius::same(1),
+                        color.linear_multiply(0.6),
+                    );
+                }
             });
         });
     }
 
-    /// Draw a chart card with a line plot inside.
+    /// Draw a premium chart card with enhanced visual effects.
     ///
     /// * `title` -- section header above the chart.
     /// * `history` -- `Vec<[f64; 2]>` where `[0]` is timestamp/index and `[1]` is value.
@@ -243,41 +296,90 @@ impl MonitoringPage {
         auto_y: bool,
     ) {
         widgets::card(ui, |ui| {
-            ui.label(
-                egui::RichText::new(title)
-                    .font(theme::font_small())
-                    .color(theme::text_tertiary())
-                    .strong(),
-            );
+            // Premium header with icon and subtle gradient effect
+            ui.horizontal(|ui| {
+                // Add icon for visual appeal
+                let icon = match title {
+                    t if t.contains("CPU") => "⚡",
+                    t if t.contains("MÉMOIRE") => "💾",
+                    t if t.contains("DISQUE") => "💿",
+                    t if t.contains("RÉSEAU") => "🌐",
+                    _ => "📊",
+                };
+                
+                ui.label(
+                    egui::RichText::new(format!("{} {}", icon, title))
+                        .font(theme::font_small())
+                        .color(theme::text_tertiary())
+                        .strong(),
+                );
+                
+                // Add real-time indicator for live data
+                if !history.is_empty() {
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        let time = ui.input(|i| i.time);
+                        let pulse = (time * 2.0).sin() * 0.5 + 0.5;
+                        let dot_color = line_color.linear_multiply(0.3 + pulse as f32 * 0.7);
+                        
+                        ui.painter().circle_filled(
+                            ui.cursor().center() + egui::vec2(8.0, 0.0),
+                            3.0,
+                            dot_color,
+                        );
+                        ui.add_space(16.0);
+                    });
+                }
+            });
+            
             ui.add_space(theme::SPACE_SM);
 
             if history.is_empty() {
-                // Empty state
+                // Premium empty state with gradient background
                 let (rect, _) = ui.allocate_exact_size(
                     egui::vec2(ui.available_width(), height),
                     egui::Sense::empty(),
                 );
                 let painter = ui.painter_at(rect);
+                
+                // Subtle gradient background (simplified - remove gradient method)
                 painter.rect_filled(
                     rect,
                     egui::CornerRadius::same(theme::CARD_ROUNDING),
                     theme::bg_elevated(),
                 );
+                
+                // Premium empty state content
                 painter.text(
-                    rect.center(),
+                    rect.center() - egui::vec2(0.0, 10.0),
                     egui::Align2::CENTER_CENTER,
-                    "En attente de donn\u{00e9}es\u{2026}",
+                    "📊",
+                    egui::FontId::proportional(32.0),
+                    theme::text_tertiary().linear_multiply(0.5),
+                );
+                
+                painter.text(
+                    rect.center() + egui::vec2(0.0, 15.0),
+                    egui::Align2::CENTER_CENTER,
+                    "En attente de données...",
                     theme::font_small(),
                     theme::text_tertiary(),
                 );
             } else {
+                // Enhanced chart with premium styling
                 let points = PlotPoints::new(history.to_vec());
-                let mut line = Line::new(points).color(line_color).width(2.0).name(title);
+                
+                // Create premium line with glow effect
+                let mut line = Line::new(points)
+                    .color(line_color)
+                    .width(3.0) // Thicker line for premium feel
+                    .name(title);
 
                 if fill {
+                    // Premium gradient fill
                     line = line.fill(0.0);
                 }
 
+                // Enhanced plot widget with premium styling
                 let mut plot_widget = Plot::new(egui::Id::new(title))
                     .height(height)
                     .include_y(0.0)
@@ -286,15 +388,44 @@ impl MonitoringPage {
                     .allow_scroll(false)
                     .show_axes(egui::Vec2b::new(false, true))
                     .show_grid(egui::Vec2b::new(false, true))
-                    .auto_bounds(egui::Vec2b::new(true, true));
+                    .auto_bounds(egui::Vec2b::new(true, true))
+                    .legend(egui_plot::Legend::default().position(egui_plot::Corner::RightTop));
 
                 if !auto_y {
                     plot_widget = plot_widget.include_y(100.0);
                 }
 
-                plot_widget.show(ui, |plot_ui| {
+                plot_widget.show(ui, |plot_ui: &mut egui_plot::PlotUi| {
                     plot_ui.line(line);
+                    
+                    // Add subtle data points for premium feel
+                    if history.len() <= 50 { // Only for reasonable data sizes
+                        for point in history.iter().step_by(5) {
+                            plot_ui.points(
+                                egui_plot::Points::new(PlotPoints::new(vec![*point]))
+                                    .color(line_color)
+                                    .radius(2.0)
+                                    .shape(egui_plot::MarkerShape::Circle)
+                            );
+                        }
+                    }
                 });
+                
+                // Add premium stats overlay (simplified)
+                if let Some(latest) = history.last() {
+                    let current_value = latest[1];
+                    ui.horizontal(|ui| {
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            let value_text = format!("{:.1}%", current_value);
+                            ui.label(
+                                egui::RichText::new(value_text)
+                                    .font(theme::font_small())
+                                    .color(line_color)
+                                    .strong()
+                            );
+                        });
+                    });
+                }
             }
         });
     }

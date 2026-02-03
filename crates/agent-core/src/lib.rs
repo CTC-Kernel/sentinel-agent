@@ -2455,20 +2455,14 @@ fn parse_organization_id_from_token(token: &str) -> Option<String> {
     // Decode payload (2nd part) - handle URL safe base64
     // We add padding if necessary manually or let the engine handle it if configured
     // URL_SAFE_NO_PAD handles it if no padding is present.
-    match URL_SAFE_NO_PAD.decode(parts[1]) {
-        Ok(decoded) => {
-            if let Ok(payload_str) = String::from_utf8(decoded) {
-                if let Ok(json) = serde_json::from_str::<serde_json::Value>(&payload_str) {
-                     // Try standard claims
-                     if let Some(val) = json.get("organization_id").or_else(|| json.get("org_id")) {
-                         if let Some(s) = val.as_str() {
-                             return Some(s.to_string());
-                         }
-                     }
-                }
-            }
-        }
-        Err(_) => {}
+    if let Ok(decoded) = URL_SAFE_NO_PAD.decode(parts[1])
+        && let Ok(payload_str) = String::from_utf8(decoded)
+        && let Ok(json) = serde_json::from_str::<serde_json::Value>(&payload_str) {
+         // Try standard claims
+         if let Some(val) = json.get("organization_id").or_else(|| json.get("org_id"))
+             && let Some(s) = val.as_str() {
+                 return Some(s.to_string());
+         }
     }
     None
 }

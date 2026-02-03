@@ -174,7 +174,7 @@ impl PingSweeper {
                 .await
         } else {
             // Linux: -W is in seconds, convert
-            let timeout_secs = std::cmp::max(1, (timeout_ms + 999) / 1000);
+            let timeout_secs = std::cmp::max(1, timeout_ms.div_ceil(1000));
             Command::new("ping")
                 .args(["-c", "1", "-W", &timeout_secs.to_string(), ip])
                 .output()
