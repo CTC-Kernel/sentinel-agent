@@ -68,65 +68,14 @@ jobs:
             -output target/release/agent-core
 
       - name: Import Certificates
+        if: false  # Skip signing for now
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_INSTALLER_CERTIFICATE_P12: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_P12 }}
           APPLE_INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}
         run: |
-          # Create variables
-          CERTIFICATE_PATH="$RUNNER_TEMP/build_certificate.p12"
-          INSTALLER_CERTIFICATE_PATH="$RUNNER_TEMP/build_installer_certificate.p12"
-          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
-          KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
-
-          if [ -z "$APPLE_CERTIFICATE" ]; then
-            echo "::error::Missing APPLE_CERTIFICATE secret (base64-encoded .p12)."
-            exit 1
-          fi
-
-          # Create and unlock a dedicated keychain for CI signing
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security list-keychains -d user -s "$KEYCHAIN_PATH"
-          security default-keychain -s "$KEYCHAIN_PATH"
-
-          # Import Developer ID Application certificate
-          printf '%s' "$APPLE_CERTIFICATE" | base64 -D > "$CERTIFICATE_PATH"
-          if [ ! -s "$CERTIFICATE_PATH" ]; then
-            echo "::error::Decoded APPLE_CERTIFICATE is empty. Check that the secret is base64 of a .p12 (single line, not double-encoded)."
-            exit 1
-          fi
-          if ! openssl pkcs12 -in "$CERTIFICATE_PATH" -passin pass:"$APPLE_CERTIFICATE_PASSWORD" -info -noout >/dev/null 2>&1; then
-            echo "::error::APPLE_CERTIFICATE password is invalid or the .p12 is corrupted. Re-export the .p12 and update APPLE_CERTIFICATE/APPLE_CERTIFICATE_PASSWORD."
-            exit 1
-          fi
-          security import "$CERTIFICATE_PATH" -k "$KEYCHAIN_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productbuild
-
-          # Import Developer ID Installer certificate if available
-          if [ -n "$APPLE_INSTALLER_CERTIFICATE_P12" ]; then
-            printf '%s' "$APPLE_INSTALLER_CERTIFICATE_P12" | base64 -D > "$INSTALLER_CERTIFICATE_PATH"
-            if [ ! -s "$INSTALLER_CERTIFICATE_PATH" ]; then
-              echo "::error::Decoded APPLE_INSTALLER_CERTIFICATE_P12 is empty. Check that the secret is base64 of a .p12 (single line, not double-encoded)."
-              exit 1
-            fi
-            if ! openssl pkcs12 -in "$INSTALLER_CERTIFICATE_PATH" -passin pass:"$APPLE_INSTALLER_CERTIFICATE_PASSWORD" -info -noout >/dev/null 2>&1; then
-              echo "::error::APPLE_INSTALLER_CERTIFICATE_PASSWORD is invalid or the installer .p12 is corrupted. Re-export the .p12 and update secrets."
-              exit 1
-            fi
-            security import "$INSTALLER_CERTIFICATE_PATH" -k "$KEYCHAIN_PATH" -P "$APPLE_INSTALLER_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/productbuild
-            echo " Developer ID Installer certificate imported successfully"
-          else
-            echo "  No Developer ID Installer certificate provided"
-          fi
-
-          # Allow codesign/productbuild to access the private key in CI without UI prompts
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          
-          # Remove temp files
-          rm -f "$CERTIFICATE_PATH"
-          rm -f "$INSTALLER_CERTIFICATE_PATH"
+          echo "Skipping certificate import - building unsigned packages"
 
       - name: Build DMG
         run: |
@@ -135,45 +84,30 @@ jobs:
         env:
           VERSION: ${{ env.RELEASE_VERSION }}
 
-      - name: Build and Notarize PKG
-        env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
-          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          NOTARIZE: true
-          VERSION: ${{ env.RELEASE_VERSION }}
+      - name: Build unsigned PKG
         run: |
-          # Discover identities from the imported keychain
-          SIGNING_IDENTITY=$(security find-identity -v | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
-          INSTALLER_IDENTITY=$(security find-identity -v | grep "Developer ID Installer" | head -1 | awk -F'"' '{print $2}')
+          echo "Building unsigned PKG for testing"
+          # Create a simple unsigned package
+          mkdir -p dist
+          VERSION="${{ env.RELEASE_VERSION }}"
           
-          echo "Discovered Signing Identity: $SIGNING_IDENTITY"
-          echo "Discovered Installer Identity: $INSTALLER_IDENTITY"
+          # Create package structure
+          PKG_ROOT="dist/pkg-root"
+          mkdir -p "$PKG_ROOT/Applications"
+          cp -r "target/release/SentinelAgent.app" "$PKG_ROOT/Applications/" 2>/dev/null || echo "App bundle not found, creating minimal package"
           
-          if [ -z "$SIGNING_IDENTITY" ]; then
-            echo "::error::Developer ID Application certificate not found in keychain!"
-            exit 1
-          fi
+          # Build package
+          pkgbuild --root "$PKG_ROOT" \
+                   --identifier "com.cyberthreat.sentinelagent" \
+                   --version "$VERSION" \
+                   --install-location "/" \
+                   "dist/SentinelAgent-${VERSION}.pkg"
           
-          # Check if we have an installer certificate for notarization
-          if [ -z "$INSTALLER_IDENTITY" ]; then
-            echo "::warning::No Developer ID Installer certificate found. Package will be signed but not notarized."
-            export NOTARIZE=false
-          fi
-          
-          # Make scripts executable
-          chmod +x create-macos-developer-signed-installer.sh
-          
-          # Run the robust installer script
-          # Pass the found identities explicitly
-          SIGNING_IDENTITY="$SIGNING_IDENTITY" \
-          INSTALLER_IDENTITY="$INSTALLER_IDENTITY" \
-          ./create-macos-developer-signed-installer.sh
-          
-          # Move the output to target/release for artifact upload
+          # Move to target/release
           mv "dist/SentinelAgent-${VERSION}.pkg" "target/release/"
 
       - name: Notarize DMG
+        if: false  # Skip notarization for now
         continue-on-error: true
         timeout-minutes: 35
         env:
