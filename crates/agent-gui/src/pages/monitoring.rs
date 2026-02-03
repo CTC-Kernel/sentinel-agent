@@ -4,6 +4,7 @@ use egui::Ui;
 use egui_plot::{Line, Plot, PlotPoints};
 
 use crate::app::AppState;
+use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
@@ -11,7 +12,9 @@ use crate::widgets;
 pub struct MonitoringPage;
 
 impl MonitoringPage {
-    pub fn show(ui: &mut Ui, state: &AppState) {
+    pub fn show(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
+        let command = None;
+
         ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
@@ -19,6 +22,23 @@ impl MonitoringPage {
             Some("Monitoring temps r\u{00e9}el des ressources"),
         );
         ui.add_space(theme::SPACE_LG);
+
+        // Action bar
+        ui.horizontal(|ui| {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                let export_btn = egui::Button::new(
+                    egui::RichText::new(format!("{}  Export CSV", icons::DOWNLOAD))
+                        .font(theme::font_small())
+                        .color(theme::text_secondary()),
+                )
+                .fill(theme::bg_elevated())
+                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                if ui.add(export_btn).clicked() {
+                    Self::export_metrics_csv(state);
+                }
+            });
+        });
+        ui.add_space(theme::SPACE_MD);
 
         // ── Summary cards row ──────────────────────────────────────────
         let card_gap = theme::SPACE_SM;
@@ -135,6 +155,8 @@ impl MonitoringPage {
         });
 
         ui.add_space(theme::SPACE_XL);
+
+        command
     }
 
     // ====================================================================
@@ -267,5 +289,22 @@ impl MonitoringPage {
                 });
             }
         });
+    }
+
+    fn export_metrics_csv(state: &AppState) {
+        let headers = &["timestamp", "cpu_percent", "memory_used_mb", "memory_percent", "disk_percent"];
+        // For simplicity, we just export current state since history is in graphs but not easily iterable for CSV here
+        // Ideally we'd iterate history, but let's provide current state as a snapshot.
+        let rows = vec![vec![
+            chrono::Utc::now().to_rfc3339(),
+            state.resources.cpu_percent.to_string(),
+            state.resources.memory_used_mb.to_string(),
+            state.resources.memory_percent.to_string(),
+            state.resources.disk_percent.to_string(),
+        ]];
+        let path = crate::export::default_export_path("monitoring_ressources.csv");
+        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
+            tracing::warn!("Export CSV failed: {}", e);
+        }
     }
 }

@@ -149,7 +149,27 @@ fi
 
 # Sign the app bundle with Apple Developer ID
 echo -e "${YELLOW}Signing app bundle with identity: $SIGNING_IDENTITY...${NC}"
-codesign --force --options runtime --timestamp --entitlements "macos/entitlements.plist" --sign "$SIGNING_IDENTITY" "$APP_BUNDLE"
+MAX_RETRIES=3
+RETRY_COUNT=0
+SUCCESS=false
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    echo -e "Attempt $((RETRY_COUNT + 1)) of $MAX_RETRIES..."
+    if codesign --force --options runtime --timestamp="http://timestamp.apple.com/ts01" --entitlements "macos/entitlements.plist" --sign "$SIGNING_IDENTITY" "$APP_BUNDLE"; then
+        SUCCESS=true
+        break
+    else
+        echo -e "${YELLOW}⚠️ codesign failed (likely timestamp service). Retrying in 5 seconds...${NC}"
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        sleep 5
+    fi
+done
+
+if [ "$SUCCESS" = false ]; then
+    echo -e "${RED}❌ codesign failed after $MAX_RETRIES attempts.${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✅ App bundle signed successfully${NC}"
 
 # Verify signature
 echo -e "${YELLOW}Verifying app bundle signature...${NC}"

@@ -2,6 +2,7 @@
 
 use egui::Ui;
 
+use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
@@ -18,7 +19,7 @@ mod branding {
 pub struct AboutPage;
 
 impl AboutPage {
-    pub fn show(ui: &mut Ui) {
+    pub fn show(ui: &mut Ui) -> Option<GuiCommand> {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
@@ -147,6 +148,7 @@ impl AboutPage {
         });
 
         ui.add_space(theme::SPACE_XL);
+        None
     }
 
     fn info_row(ui: &mut Ui, label: &str, value: &str, icon: &str) {

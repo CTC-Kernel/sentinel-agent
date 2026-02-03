@@ -445,7 +445,7 @@ mod tests {
     fn test_scan_detects_changes() {
         let mut monitor = UsbMonitor::new();
         // First scan establishes baseline
-        let events = monitor.scan();
+        let _events = monitor.scan();
         // Subsequent scan with no changes should return no events
         let events2 = monitor.scan();
         assert!(events2.is_empty());

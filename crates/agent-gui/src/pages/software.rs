@@ -3,6 +3,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
+use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
@@ -17,7 +18,9 @@ enum SoftwareTab {
 }
 
 impl SoftwarePage {
-    pub fn show(ui: &mut Ui, state: &mut AppState) {
+    pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
+        let mut command = None;
+
         ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
@@ -25,6 +28,15 @@ impl SoftwarePage {
             Some("Inventaire complet des applications install\u{00e9}es et suivi des versions"),
         );
         ui.add_space(theme::SPACE_LG);
+
+        // Action bar
+        ui.horizontal(|ui| {
+            if widgets::button::primary_button(ui, format!("{}  Lancer le scan", icons::PLAY)).clicked()
+            {
+                command = Some(GuiCommand::RunCheck);
+            }
+        });
+        ui.add_space(theme::SPACE_MD);
 
         // Tab bar
         let active = if state.software_active_tab == 1 {
@@ -61,6 +73,8 @@ impl SoftwarePage {
         }
 
         ui.add_space(theme::SPACE_XL);
+
+        command
     }
 
     // -- Tab: Paquets (Homebrew) --

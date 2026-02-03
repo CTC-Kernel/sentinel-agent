@@ -1139,8 +1139,10 @@ mod ctrlc {
                     SHUTDOWN_FLAG.store(true, Ordering::SeqCst);
                     
                     // Trigger the callback if it exists
-                    if let Some(ref callback) = HANDLER_CALLBACK {
-                        callback();
+                    unsafe {
+                        if let Some(ref callback) = HANDLER_CALLBACK {
+                            callback();
+                        }
                     }
                     
                     return true.into(); // TRUE - we handled it

@@ -4,6 +4,8 @@ use egui::{Color32, Ui};
 use egui_extras::{Column, TableBuilder};
 
 use crate::app::AppState;
+use crate::events::GuiCommand;
+use crate::icons;
 use crate::theme;
 use crate::widgets;
 
@@ -36,7 +38,9 @@ fn level_index(level: &str) -> usize {
 pub struct TerminalPage;
 
 impl TerminalPage {
-    pub fn show(ui: &mut Ui, state: &mut AppState) {
+    pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
+        let command = None;
+
         ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
@@ -44,6 +48,23 @@ impl TerminalPage {
             Some("Flux temps-r\u{00e9}el de l'activit\u{00e9} de l'agent"),
         );
         ui.add_space(theme::SPACE_LG);
+
+        // Action bar
+        ui.horizontal(|ui| {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                let export_btn = egui::Button::new(
+                    egui::RichText::new(format!("{}  Export logs", icons::DOWNLOAD))
+                        .font(theme::font_small())
+                        .color(theme::text_secondary()),
+                )
+                .fill(theme::bg_elevated())
+                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                if ui.add(export_btn).clicked() {
+                    Self::export_logs_csv(state);
+                }
+            });
+        });
+        ui.add_space(theme::SPACE_MD);
 
         // ── Stats bar ──
         Self::stats_bar(ui, state);
@@ -57,6 +78,8 @@ impl TerminalPage {
         Self::terminal_viewport(ui, state);
 
         ui.add_space(theme::SPACE_XL);
+
+        command
     }
 
     // ------------------------------------------------------------------
@@ -308,6 +331,26 @@ impl TerminalPage {
                         });
                     });
             });
+    }
+
+    fn export_logs_csv(state: &AppState) {
+        let headers = &["date", "niveau", "cible", "message"];
+        let rows: Vec<Vec<String>> = state
+            .terminal_lines
+            .iter()
+            .map(|l| {
+                vec![
+                    l.timestamp.to_rfc3339(),
+                    l.level.clone(),
+                    l.target.clone(),
+                    l.message.clone(),
+                ]
+            })
+            .collect();
+        let path = crate::export::default_export_path("agent_logs.csv");
+        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
+            tracing::warn!("Export CSV failed: {}", e);
+        }
     }
 }
 
