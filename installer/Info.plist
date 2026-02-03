@@ -5,7 +5,7 @@
     <key>CFBundleGetInfoString</key>
     <string>Sentinel GRC Agent Installer</string>
     <key>CFBundleIdentifier</key>
-    <string>com.sentinel.installer</string>
+    <string>com.cyber-threat-consulting.sentinel-agent.installer</string>
     <key>CFBundleName</key>
     <string>Sentinel GRC Agent</string>
     <key>CFBundleShortVersionString</key>
