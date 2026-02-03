@@ -78,6 +78,7 @@ maintainer-scripts = "debian/"
 # RPM package metadata (cargo-generate-rpm)
 [package.metadata.generate-rpm]
 name = "sentinel-agent"
+release = "1"
 license = "Proprietary"
 summary = "Sentinel GRC endpoint compliance monitoring agent"
 assets = [
