@@ -468,13 +468,22 @@ jobs:
           echo "✅ GCP SA key validation successful - keeping file for authentication"
           # Note: File kept in /tmp/gcp-sa-key.json for gcloud auth
 
-      - name: Setup Google Cloud CLI
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          install_components: beta
-
-      - name: Authenticate with Service Account
+      - name: Install Google Cloud CLI and Authenticate
         run: |
+          echo "📦 Installing Google Cloud CLI manually..."
+          
+          # Download and install gcloud
+          curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz
+          tar xzf google-cloud-cli-linux-x86_64.tar.gz
+          ./google-cloud-sdk/install.sh --quiet --usage-reporting=false --path-update=false --bash-completion=false
+          
+          # Add to PATH
+          echo "$HOME/google-cloud-sdk/bin" >> $GITHUB_PATH
+          export PATH="$HOME/google-cloud-sdk/bin:$PATH"
+          
+          # Verify installation
+          gcloud version
+          
           echo "🔍 Diagnostics du fichier de credentials..."
           echo "Fichier: /tmp/gcp-sa-key.json"
           echo "Taille: $(wc -c < /tmp/gcp-sa-key.json) bytes"
@@ -493,6 +502,8 @@ jobs:
             echo "✅ Authentication successful"
             echo "Active account:"
             gcloud auth list
+            echo "Configured project:"
+            gcloud config get-value project
           else
             echo "❌ Authentication failed - trying alternative method..."
             echo "Creating credentials file in HOME directory..."
@@ -502,17 +513,15 @@ jobs:
             echo "✅ Alternative authentication setup complete"
           fi
           
+          # Test authentication
+          echo "🧪 Testing authentication..."
+          gcloud auth list
+          gcloud storage ls gs://sentinel-grc-a8701.firebasestorage.app/releases/agent/ || echo "Bucket test failed"
+          
           # Clean up the temp file
           rm -f /tmp/gcp-sa-key.json
-
-      - name: Verify GCP Identity
-        run: |
-          echo "Active account:"
-          gcloud auth list
-          echo "Configured project:"
-          gcloud config get-value project
-          echo "Testing bucket access (read-only)..."
-          gcloud storage ls gs://sentinel-grc-a8701.firebasestorage.app/releases/agent/macos/SHA256SUMS.txt || echo "Could not list bucket contents"
+          
+          echo "✅ Google Cloud CLI installed and authenticated successfully"
 
       - name: Upload to Firebase Storage
         run: |
