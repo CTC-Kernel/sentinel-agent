@@ -5,7 +5,7 @@
     <key>CFBundleExecutable</key>
     <string>SentinelAgent</string>
     <key>CFBundleIdentifier</key>
-    <string>com.sentinel.agent</string>
+    <string>com.cyber-threat-consulting.sentinel-agent</string>
     <key>CFBundleName</key>
     <string>Sentinel Agent</string>
     <key>CFBundleDisplayName</key>
@@ -64,5 +64,13 @@
         <string>NSPrivacyAccessedAPITypeNetwork</string>
         <string>NSPrivacyAccessedAPITypeSystemUptime</string>
     </array>
+    <key>NSRequiresAquaSystemAppearance</key>
+    <false/>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
+    <key>CFBundleGetInfoString</key>
+    <string>Sentinel GRC Agent v2.0.0 - Endpoint compliance monitoring</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright © 2024-2026 Cyber Threat Consulting. All rights reserved.</string>
 </dict>
 </plist>
