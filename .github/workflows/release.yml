@@ -92,8 +92,14 @@ jobs:
           security list-keychains -d user -s "$KEYCHAIN_PATH"
           security default-keychain -s "$KEYCHAIN_PATH"
 
+          # Save password to file to avoid shell escaping issues
+          echo -n "$APPLE_CERTIFICATE_PASSWORD" > "$RUNNER_TEMP/password_app.txt"
+          if [ -n "$APPLE_INSTALLER_CERTIFICATE_PASSWORD" ]; then
+            echo -n "$APPLE_INSTALLER_CERTIFICATE_PASSWORD" > "$RUNNER_TEMP/password_inst.txt"
+          fi
+
           # Import Developer ID Application certificate
-          printf '%s' "$APPLE_CERTIFICATE" | base64 -D > "$CERTIFICATE_PATH"
+          printf '%s' "$APPLE_CERTIFICATE" | tr -d '\n\r ' | base64 -D > "$CERTIFICATE_PATH"
           if [ ! -s "$CERTIFICATE_PATH" ]; then
             echo "::error::Decoded APPLE_CERTIFICATE is empty. Check that the secret is base64 of a .p12 (single line, not double-encoded)."
             exit 1
@@ -103,11 +109,11 @@ jobs:
           CERT_VALID=false
           
           # 1. Try with -legacy (required for modern macOS exports if using OpenSSL 3)
-          if openssl pkcs12 -legacy -in "$CERTIFICATE_PATH" -passin pass:"$APPLE_CERTIFICATE_PASSWORD" -info -noout >/dev/null 2>&1; then
+          if openssl pkcs12 -legacy -in "$CERTIFICATE_PATH" -passin file:"$RUNNER_TEMP/password_app.txt" -info -noout >/dev/null 2>&1; then
             CERT_VALID=true
             echo "✅ Certificate verified with -legacy flag"
           # 2. Try without -legacy (standard on older OpenSSL or LibreSSL)
-          elif openssl pkcs12 -in "$CERTIFICATE_PATH" -passin pass:"$APPLE_CERTIFICATE_PASSWORD" -info -noout >/dev/null 2>&1; then
+          elif openssl pkcs12 -in "$CERTIFICATE_PATH" -passin file:"$RUNNER_TEMP/password_app.txt" -info -noout >/dev/null 2>&1; then
             CERT_VALID=true
             echo "✅ Certificate verified without -legacy flag"
           fi
@@ -120,17 +126,17 @@ jobs:
 
           # Import Developer ID Installer certificate if available
           if [ -n "$APPLE_INSTALLER_CERTIFICATE_P12" ]; then
-            printf '%s' "$APPLE_INSTALLER_CERTIFICATE_P12" | base64 -D > "$INSTALLER_CERTIFICATE_PATH"
+            printf '%s' "$APPLE_INSTALLER_CERTIFICATE_P12" | tr -d '\n\r ' | base64 -D > "$INSTALLER_CERTIFICATE_PATH"
             if [ ! -s "$INSTALLER_CERTIFICATE_PATH" ]; then
               echo "::error::Decoded APPLE_INSTALLER_CERTIFICATE_P12 is empty. Check that the secret is base64 of a .p12 (single line, not double-encoded)."
               exit 1
             fi
             # Verify certificate password
             INSTALLER_CERT_VALID=false
-            if openssl pkcs12 -legacy -in "$INSTALLER_CERTIFICATE_PATH" -passin pass:"$APPLE_INSTALLER_CERTIFICATE_PASSWORD" -info -noout >/dev/null 2>&1; then
+            if openssl pkcs12 -legacy -in "$INSTALLER_CERTIFICATE_PATH" -passin file:"$RUNNER_TEMP/password_inst.txt" -info -noout >/dev/null 2>&1; then
               INSTALLER_CERT_VALID=true
               echo "✅ Installer certificate verified with -legacy flag"
-            elif openssl pkcs12 -in "$INSTALLER_CERTIFICATE_PATH" -passin pass:"$APPLE_INSTALLER_CERTIFICATE_PASSWORD" -info -noout >/dev/null 2>&1; then
+            elif openssl pkcs12 -in "$INSTALLER_CERTIFICATE_PATH" -passin file:"$RUNNER_TEMP/password_inst.txt" -info -noout >/dev/null 2>&1; then
               INSTALLER_CERT_VALID=true
               echo "✅ Installer certificate verified without -legacy flag"
             fi
@@ -151,6 +157,8 @@ jobs:
           # Remove temp files
           rm -f "$CERTIFICATE_PATH"
           rm -f "$INSTALLER_CERTIFICATE_PATH"
+          rm -f "$RUNNER_TEMP/password_app.txt"
+          rm -f "$RUNNER_TEMP/password_inst.txt"
 
       - name: Build DMG
         run: |
