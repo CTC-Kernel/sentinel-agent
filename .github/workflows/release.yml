@@ -458,11 +458,34 @@ jobs:
             exit 1
           fi
           
-          # Validate private key format
+          # Validate private key format - CRITICAL CHECK
           PRIVATE_KEY=$(grep "private_key" /tmp/gcp-sa-key.json | cut -d'"' -f4)
+          echo "🔍 Private key analysis:"
+          echo "Length: $(echo "$PRIVATE_KEY" | wc -c)"
+          echo "First 50 chars: $(echo "$PRIVATE_KEY" | head -c 50)"
+          echo "Last 50 chars: $(echo "$PRIVATE_KEY" | tail -c 50)"
+          
           if ! echo "$PRIVATE_KEY" | grep -q "BEGIN PRIVATE KEY"; then
-            echo "::error::Private key format is invalid"
-            exit 1
+            echo "::error::CRITICAL: Private key format is invalid!"
+            echo "Expected format: -----BEGIN PRIVATE KEY-----"
+            echo "Actual format starts with: $(echo "$PRIVATE_KEY" | head -c 30)"
+            echo ""
+            echo "🔧 Attempting to fix common encoding issues..."
+            
+            # Try to fix common Base64 encoding issues
+            FIXED_KEY=$(echo "$PRIVATE_KEY" | sed 's/\\n/\n/g' | tr -d ' ')
+            if echo "$FIXED_KEY" | grep -q "BEGIN PRIVATE KEY"; then
+              echo "✅ Fixed key format detected"
+              # Update the JSON with fixed key using sed
+              sed -i "s|\"private_key\": \".*\"|\"private_key\": \"$FIXED_KEY\"|g" /tmp/gcp-sa-key.json
+              echo "✅ Private key format corrected"
+            else
+              echo "::error::Cannot fix private key format. The secret in GitHub Secrets is corrupted."
+              echo "Please regenerate the service account key in Google Cloud Console."
+              exit 1
+            fi
+          else
+            echo "✅ Private key format is valid"
           fi
           
           echo "✅ GCP SA key validation successful - keeping file for authentication"
