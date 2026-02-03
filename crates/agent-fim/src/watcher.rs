@@ -9,7 +9,7 @@ use agent_common::types::{FimAlert, FimChangeType, FimPolicy};
 use chrono::Utc;
 use notify::{Config, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
@@ -114,10 +114,10 @@ fn process_event(
 
         // Debounce: skip if we recently processed this path
         let now = Instant::now();
-        if let Some(last) = debounce_map.get(path) {
-            if now.duration_since(*last) < debounce_duration {
-                continue;
-            }
+        if let Some(last) = debounce_map.get(path)
+            && now.duration_since(*last) < debounce_duration
+        {
+            continue;
         }
         debounce_map.insert(path.clone(), now);
 
@@ -140,12 +140,11 @@ fn process_event(
         };
 
         // Skip if hash hasn't changed (false positive from metadata-only events)
-        if change_type == FimChangeType::Modified {
-            if let (Some(old), Some(new)) = (&old_hash, &new_hash) {
-                if old == new {
-                    continue;
-                }
-            }
+        if change_type == FimChangeType::Modified
+            && let (Some(old), Some(new)) = (&old_hash, &new_hash)
+            && old == new
+        {
+            continue;
         }
 
         let alert = FimAlert {
@@ -174,11 +173,10 @@ fn process_event(
 }
 
 /// Check if a path should be ignored based on patterns.
-fn is_ignored_path(path: &PathBuf, patterns: &[String]) -> bool {
+fn is_ignored_path(path: &Path, patterns: &[String]) -> bool {
     let path_str = path.to_string_lossy();
     for pattern in patterns {
-        if pattern.starts_with('*') {
-            let suffix = &pattern[1..];
+        if let Some(suffix) = pattern.strip_prefix('*') {
             if path_str.ends_with(suffix) {
                 return true;
             }

@@ -244,17 +244,15 @@ impl CartographyPage {
             // Click detection
             let click_rect =
                 egui::Rect::from_center_size(screen_pos, egui::Vec2::splat(radius * 2.5));
-            if response.clicked() {
-                if let Some(pointer_pos) = response.interact_pointer_pos() {
-                    if click_rect.contains(pointer_pos) {
+            if response.clicked()
+                && let Some(pointer_pos) = response.interact_pointer_pos()
+                    && click_rect.contains(pointer_pos) {
                         state.graph_selected_device = Some(node.device.ip.clone());
                     }
-                }
-            }
 
             // Tooltip on hover
-            if let Some(hover_pos) = ui.input(|i| i.pointer.hover_pos()) {
-                if click_rect.contains(hover_pos) {
+            if let Some(hover_pos) = ui.input(|i| i.pointer.hover_pos())
+                && click_rect.contains(hover_pos) {
                     egui::show_tooltip_at_pointer(
                         ui.ctx(),
                         ui.layer_id(),
@@ -282,7 +280,6 @@ impl CartographyPage {
                         },
                     );
                 }
-            }
         }
 
         // Legend
@@ -318,8 +315,8 @@ impl CartographyPage {
         });
 
         // Detail panel for selected device
-        if let Some(ref selected_ip) = state.graph_selected_device.clone() {
-            if let Some(device) = state
+        if let Some(ref selected_ip) = state.graph_selected_device.clone()
+            && let Some(device) = state
                 .discovered_devices
                 .iter()
                 .find(|d| &d.ip == selected_ip)
@@ -335,7 +332,7 @@ impl CartographyPage {
                         );
                         ui.add_space(theme::SPACE_MD);
                         if ui
-                            .small_button(&format!("{} Fermer", icons::XMARK))
+                            .small_button(format!("{} Fermer", icons::XMARK))
                             .clicked()
                         {
                             state.graph_selected_device = None;
@@ -371,7 +368,6 @@ impl CartographyPage {
                     }
                 });
             }
-        }
 
         ui.add_space(theme::SPACE_XL);
 
@@ -445,9 +441,9 @@ fn build_initial_layout(devices: &[GuiDiscoveredDevice]) -> GraphLayout {
         .map(|(i, _)| i)
         .collect();
 
-    for i in 0..n {
+    for (i, node) in nodes.iter().enumerate().take(n) {
         // Connect to gateway(s)
-        if !nodes[i].device.is_gateway {
+        if !node.device.is_gateway {
             for &gw in &gateway_indices {
                 edges.push(GraphEdge {
                     source: i,

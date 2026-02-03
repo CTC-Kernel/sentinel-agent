@@ -40,10 +40,10 @@ mod macos_dock {
 
     unsafe fn set_activation_policy(policy: isize) {
         unsafe {
-            let cls = objc_getClass(b"NSApplication\0".as_ptr());
-            let sel = sel_registerName(b"sharedApplication\0".as_ptr());
+            let cls = objc_getClass(c"NSApplication".as_ptr() as *const _);
+            let sel = sel_registerName(c"sharedApplication".as_ptr() as *const _);
             let app = send0()(cls, sel);
-            let sel = sel_registerName(b"setActivationPolicy:\0".as_ptr());
+            let sel = sel_registerName(c"setActivationPolicy:".as_ptr() as *const _);
             send1()(app, sel, policy);
         }
     }
@@ -59,10 +59,10 @@ mod macos_dock {
     pub fn show_dock_icon() {
         unsafe {
             set_activation_policy(0);
-            let cls = objc_getClass(b"NSApplication\0".as_ptr());
-            let sel = sel_registerName(b"sharedApplication\0".as_ptr());
+            let cls = objc_getClass(c"NSApplication".as_ptr() as *const _);
+            let sel = sel_registerName(c"sharedApplication".as_ptr() as *const _);
             let app = send0()(cls, sel);
-            let sel = sel_registerName(b"activateIgnoringOtherApps:\0".as_ptr());
+            let sel = sel_registerName(c"activateIgnoringOtherApps:".as_ptr() as *const _);
             send1()(app, sel, 1);
         }
     }

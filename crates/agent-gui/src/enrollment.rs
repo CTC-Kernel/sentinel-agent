@@ -300,12 +300,11 @@ impl EnrollmentWizard {
                         );
 
                         // Click logic
-                        if response.clicked() {
-                            if let Some(pos) = response.hover_pos() {
+                        if response.clicked()
+                            && let Some(pos) = response.hover_pos() {
                                 if left_rect.contains(pos) { self.use_qr = false; }
                                 else if right_rect.contains(pos) { self.use_qr = true; }
                             }
-                        }
 
                         // Text Painting
                         // Use a reference to painter to avoid closure capturing entire UI
@@ -416,12 +415,12 @@ impl EnrollmentWizard {
                             ui.spacing_mut().item_spacing.x = 8.0;
                             let link_attr = egui::RichText::new("Se connecter").font(theme::font_small()).color(theme::ACCENT);
                             if ui.link(link_attr).clicked() {
-                                let _ = ui.ctx().open_url(egui::OpenUrl::new_tab("https://app.cyber-threat-consulting.com/login"));
+                                ui.ctx().open_url(egui::OpenUrl::new_tab("https://app.cyber-threat-consulting.com/login"));
                             }
                             ui.label(egui::RichText::new("•").color(theme::text_tertiary()));
                             let link_attr_reg = egui::RichText::new("Créer un compte").font(theme::font_small()).color(theme::ACCENT);
                             if ui.link(link_attr_reg).clicked() {
-                                let _ = ui.ctx().open_url(egui::OpenUrl::new_tab("https://app.cyber-threat-consulting.com/register"));
+                                ui.ctx().open_url(egui::OpenUrl::new_tab("https://app.cyber-threat-consulting.com/register"));
                             }
                         });
                     });
