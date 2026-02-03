@@ -1121,9 +1121,7 @@ mod ctrlc {
 
         #[cfg(windows)]
         {
-            use windows::Win32::System::Console::{
-                SetConsoleCtrlHandler, PHANDLER_ROUTINE,
-            };
+            use windows::Win32::System::Console::SetConsoleCtrlHandler;
 
             // Store the handler in a thread-safe way
             unsafe {
