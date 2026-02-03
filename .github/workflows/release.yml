@@ -98,7 +98,21 @@ jobs:
             echo "::error::Decoded APPLE_CERTIFICATE is empty. Check that the secret is base64 of a .p12 (single line, not double-encoded)."
             exit 1
           fi
-          if ! openssl pkcs12 -legacy -in "$CERTIFICATE_PATH" -passin pass:"$APPLE_CERTIFICATE_PASSWORD" -info -noout >/dev/null 2>&1; then
+
+          # Verify certificate password with several variants to handle different OpenSSL/LibreSSL versions
+          CERT_VALID=false
+          
+          # 1. Try with -legacy (required for modern macOS exports if using OpenSSL 3)
+          if openssl pkcs12 -legacy -in "$CERTIFICATE_PATH" -passin pass:"$APPLE_CERTIFICATE_PASSWORD" -info -noout >/dev/null 2>&1; then
+            CERT_VALID=true
+            echo "✅ Certificate verified with -legacy flag"
+          # 2. Try without -legacy (standard on older OpenSSL or LibreSSL)
+          elif openssl pkcs12 -in "$CERTIFICATE_PATH" -passin pass:"$APPLE_CERTIFICATE_PASSWORD" -info -noout >/dev/null 2>&1; then
+            CERT_VALID=true
+            echo "✅ Certificate verified without -legacy flag"
+          fi
+
+          if [ "$CERT_VALID" = false ]; then
             echo "::error::APPLE_CERTIFICATE password is invalid or the .p12 is corrupted. Re-export the .p12 and update APPLE_CERTIFICATE/APPLE_CERTIFICATE_PASSWORD."
             exit 1
           fi
@@ -111,7 +125,17 @@ jobs:
               echo "::error::Decoded APPLE_INSTALLER_CERTIFICATE_P12 is empty. Check that the secret is base64 of a .p12 (single line, not double-encoded)."
               exit 1
             fi
-            if ! openssl pkcs12 -legacy -in "$INSTALLER_CERTIFICATE_PATH" -passin pass:"$APPLE_INSTALLER_CERTIFICATE_PASSWORD" -info -noout >/dev/null 2>&1; then
+            # Verify certificate password
+            INSTALLER_CERT_VALID=false
+            if openssl pkcs12 -legacy -in "$INSTALLER_CERTIFICATE_PATH" -passin pass:"$APPLE_INSTALLER_CERTIFICATE_PASSWORD" -info -noout >/dev/null 2>&1; then
+              INSTALLER_CERT_VALID=true
+              echo "✅ Installer certificate verified with -legacy flag"
+            elif openssl pkcs12 -in "$INSTALLER_CERTIFICATE_PATH" -passin pass:"$APPLE_INSTALLER_CERTIFICATE_PASSWORD" -info -noout >/dev/null 2>&1; then
+              INSTALLER_CERT_VALID=true
+              echo "✅ Installer certificate verified without -legacy flag"
+            fi
+
+            if [ "$INSTALLER_CERT_VALID" = false ]; then
               echo "::error::APPLE_INSTALLER_CERTIFICATE_PASSWORD is invalid or the installer .p12 is corrupted. Re-export the .p12 and update secrets."
               exit 1
             fi
