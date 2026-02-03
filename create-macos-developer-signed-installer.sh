@@ -40,7 +40,15 @@ echo -e "${BLUE}=============================================${NC}"
 
 # Discover available signing identities
 echo -e "${YELLOW}# Discover identities from the imported keychain${NC}"
-AVAILABLE_IDENTITIES=$(security find-identity -v -p codesigning 2>/dev/null | grep "Developer ID" || true)
+KEYCHAIN_PATH="${KEYCHAIN_PATH:-""}"
+
+if [[ -n "$KEYCHAIN_PATH" ]]; then
+    echo -e "${BLUE}Using custom keychain: $KEYCHAIN_PATH${NC}"
+    AVAILABLE_IDENTITIES=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" 2>/dev/null | grep "Developer ID" || true)
+else
+    echo -e "${BLUE}Using default keychain${NC}"
+    AVAILABLE_IDENTITIES=$(security find-identity -v -p codesigning 2>/dev/null | grep "Developer ID" || true)
+fi
 
 if [[ -n "$AVAILABLE_IDENTITIES" ]]; then
     echo -e "${GREEN}Discovered Signing Identities:${NC}"
@@ -189,6 +197,11 @@ SUCCESS=false
 
 # Additional hardened runtime options for Rust applications
 CODESIGN_OPTIONS="--force --options runtime --timestamp="http://timestamp.apple.com/ts01""
+
+# Add keychain parameter if using custom keychain
+if [[ -n "$KEYCHAIN_PATH" ]]; then
+    CODESIGN_OPTIONS="$CODESIGN_OPTIONS --keychain '$KEYCHAIN_PATH'"
+fi
 
 # Add entitlements if they exist
 if [[ -f "macos/entitlements.plist" ]]; then
@@ -538,12 +551,21 @@ pkgbuild \
 # If we have an installer identity, use it. Otherwise, normal build.
 if [ -n "$INSTALLER_IDENTITY" ]; then
     echo -e "${YELLOW}Signing Installer Package with: $INSTALLER_IDENTITY...${NC}"
-    productbuild \
-        --distribution "$BUILD_DIR/distribution.xml" \
-        --resources "$BUILD_DIR" \
-        --package-path "$BUILD_DIR" \
-        --sign "$INSTALLER_IDENTITY" \
-        "$PKG_DIR/SentinelAgent-$VERSION.pkg"
+    
+    # Build productbuild command with keychain if needed
+    PRODUCTBUILD_CMD="productbuild \
+        --distribution '$BUILD_DIR/distribution.xml' \
+        --resources '$BUILD_DIR' \
+        --package-path '$BUILD_DIR' \
+        --sign '$INSTALLER_IDENTITY'"
+    
+    if [[ -n "$KEYCHAIN_PATH" ]]; then
+        PRODUCTBUILD_CMD="$PRODUCTBUILD_CMD --keychain '$KEYCHAIN_PATH'"
+    fi
+    
+    PRODUCTBUILD_CMD="$PRODUCTBUILD_CMD '$PKG_DIR/SentinelAgent-$VERSION.pkg'"
+    
+    eval "$PRODUCTBUILD_CMD"
 else
     echo -e "${YELLOW}⚠️  No Developer ID Installer certificate found.${NC}"
     echo -e "${YELLOW}   Package will be signed with Developer ID Application but not notarized.${NC}"
