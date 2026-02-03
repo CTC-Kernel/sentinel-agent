@@ -431,9 +431,6 @@ jobs:
       - name: List artifacts
         run: find artifacts -type f | sort
 
-      - name: Setup Google Cloud CLI
-        uses: google-github-actions/setup-gcloud@v2
-
       - name: Check GCP Secret
         run: |
           if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
@@ -447,6 +444,12 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Verify GCP Identity
+        run: gcloud auth list
+
       - name: Upload to Firebase Storage
         run: |
           VERSION="${{ env.RELEASE_VERSION }}"
@@ -454,42 +457,42 @@ jobs:
 
           echo "=== Uploading macOS packages ==="
           for f in artifacts/sentinel-agent-macos/SentinelAgent-*.dmg; do
-            [ -f "$f" ] && gsutil cp "$f" "$BUCKET/macos/"
+            [ -f "$f" ] && gcloud storage cp "$f" "$BUCKET/macos/"
           done
           for f in artifacts/sentinel-agent-macos/SentinelAgent-*.pkg; do
-            [ -f "$f" ] && gsutil cp "$f" "$BUCKET/macos/"
+            [ -f "$f" ] && gcloud storage cp "$f" "$BUCKET/macos/"
           done
           [ -f "artifacts/sentinel-agent-macos/SHA256SUMS-macos.txt" ] && \
-            gsutil cp "artifacts/sentinel-agent-macos/SHA256SUMS-macos.txt" "$BUCKET/macos/SHA256SUMS.txt"
+            gcloud storage cp "artifacts/sentinel-agent-macos/SHA256SUMS-macos.txt" "$BUCKET/macos/SHA256SUMS.txt"
 
           echo "=== Uploading Windows packages ==="
           for f in artifacts/sentinel-agent-windows/SentinelAgentSetup-*.msi; do
-            [ -f "$f" ] && gsutil cp "$f" "$BUCKET/windows/"
+            [ -f "$f" ] && gcloud storage cp "$f" "$BUCKET/windows/"
           done
           [ -f "artifacts/sentinel-agent-windows/SHA256SUMS-windows.txt" ] && \
-            gsutil cp "artifacts/sentinel-agent-windows/SHA256SUMS-windows.txt" "$BUCKET/windows/SHA256SUMS.txt"
+            gcloud storage cp "artifacts/sentinel-agent-windows/SHA256SUMS-windows.txt" "$BUCKET/windows/SHA256SUMS.txt"
 
           echo "=== Uploading Linux DEB packages ==="
           for f in artifacts/sentinel-agent-linux-deb/sentinel-agent_*.deb; do
-            [ -f "$f" ] && gsutil cp "$f" "$BUCKET/linux_deb/"
+            [ -f "$f" ] && gcloud storage cp "$f" "$BUCKET/linux_deb/"
           done
           [ -f "artifacts/sentinel-agent-linux-deb/SHA256SUMS-linux-deb.txt" ] && \
-            gsutil cp "artifacts/sentinel-agent-linux-deb/SHA256SUMS-linux-deb.txt" "$BUCKET/linux_deb/SHA256SUMS.txt"
+            gcloud storage cp "artifacts/sentinel-agent-linux-deb/SHA256SUMS-linux-deb.txt" "$BUCKET/linux_deb/SHA256SUMS.txt"
 
           echo "=== Uploading Linux RPM packages ==="
           for f in artifacts/sentinel-agent-linux-rpm/sentinel-agent-*.rpm; do
-            [ -f "$f" ] && gsutil cp "$f" "$BUCKET/linux_rpm/"
+            [ -f "$f" ] && gcloud storage cp "$f" "$BUCKET/linux_rpm/"
           done
           [ -f "artifacts/sentinel-agent-linux-rpm/SHA256SUMS-linux-rpm.txt" ] && \
-            gsutil cp "artifacts/sentinel-agent-linux-rpm/SHA256SUMS-linux-rpm.txt" "$BUCKET/linux_rpm/SHA256SUMS.txt"
+            gcloud storage cp "artifacts/sentinel-agent-linux-rpm/SHA256SUMS-linux-rpm.txt" "$BUCKET/linux_rpm/SHA256SUMS.txt"
 
           echo "=== Setting content types ==="
-          gsutil -m setmeta -h "Content-Type:application/x-apple-diskimage" "$BUCKET/macos/SentinelAgent-*.dmg" 2>/dev/null || true
-          gsutil -m setmeta -h "Content-Type:application/vnd.apple.installer+xml" "$BUCKET/macos/SentinelAgent-*.pkg" 2>/dev/null || true
-          gsutil -m setmeta -h "Content-Type:application/x-msi" "$BUCKET/windows/SentinelAgentSetup-*.msi" 2>/dev/null || true
-          gsutil -m setmeta -h "Content-Type:application/vnd.debian.binary-package" "$BUCKET/linux_deb/sentinel-agent_*.deb" 2>/dev/null || true
-          gsutil -m setmeta -h "Content-Type:application/x-rpm" "$BUCKET/linux_rpm/sentinel-agent-*.rpm" 2>/dev/null || true
-          gsutil -m setmeta -h "Content-Type:text/plain" "$BUCKET/*/SHA256SUMS.txt" 2>/dev/null || true
+          gcloud storage objects update "$BUCKET/macos/SentinelAgent-*.dmg" --content-type="application/x-apple-diskimage" 2>/dev/null || true
+          gcloud storage objects update "$BUCKET/macos/SentinelAgent-*.pkg" --content-type="application/vnd.apple.installer+xml" 2>/dev/null || true
+          gcloud storage objects update "$BUCKET/windows/SentinelAgentSetup-*.msi" --content-type="application/x-msi" 2>/dev/null || true
+          gcloud storage objects update "$BUCKET/linux_deb/sentinel-agent_*.deb" --content-type="application/vnd.debian.binary-package" 2>/dev/null || true
+          gcloud storage objects update "$BUCKET/linux_rpm/sentinel-agent-*.rpm" --content-type="application/x-rpm" 2>/dev/null || true
+          gcloud storage objects update "$BUCKET/*/SHA256SUMS.txt" --content-type="text/plain" 2>/dev/null || true
 
           echo ""
           echo "=== Upload complete ==="
