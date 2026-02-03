@@ -220,6 +220,7 @@ jobs:
             --apple-id "$APPLE_ID" \
             --password "$APPLE_APP_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
+            --verbose \
             --wait --timeout 30m; then
             xcrun stapler staple "$DMG_PATH"
             echo "DMG notarization complete!"
