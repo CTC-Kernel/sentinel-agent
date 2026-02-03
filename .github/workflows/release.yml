@@ -437,6 +437,13 @@ jobs:
             echo "::error::GCP_SA_KEY secret is missing!"
             exit 1
           fi
+          # Check if it looks like JSON or Base64 (without printing the whole secret)
+          FIRST_CHAR=$(echo "${{ secrets.GCP_SA_KEY }}" | cut -c1)
+          if [ "$FIRST_CHAR" = "{" ]; then
+            echo "✅ Secret starts with '{' (appears to be raw JSON)"
+          else
+            echo "ℹ️ Secret does not start with '{' (might be Base64 encoded)"
+          fi
 
       - name: Authenticate to Google Cloud
         id: auth
@@ -448,7 +455,13 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Verify GCP Identity
-        run: gcloud auth list
+        run: |
+          echo "Active account:"
+          gcloud auth list
+          echo "Configured project:"
+          gcloud config get-value project
+          echo "Testing bucket access (read-only)..."
+          gcloud storage ls gs://sentinel-grc-a8701.firebasestorage.app/releases/agent/macos/SHA256SUMS.txt || echo "Could not list bucket contents"
 
       - name: Upload to Firebase Storage
         run: |
