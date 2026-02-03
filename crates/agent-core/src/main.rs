@@ -1151,7 +1151,7 @@ mod ctrlc {
             }
 
             unsafe {
-                if SetConsoleCtrlHandler(Some(console_handler as PHANDLER_ROUTINE), true).is_err() {
+                if SetConsoleCtrlHandler(Some(console_handler), true).is_err() {
                     eprintln!("Failed to set Windows console control handler.");
                 }
             }
