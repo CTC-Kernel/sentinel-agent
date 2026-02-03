@@ -6,9 +6,11 @@
 set -e
 
 # Configuration
-VERSION="2.0.0"
+# Extract version from Cargo.toml if not provided via environment
+CARGO_VERSION=$(grep '^version' "$(dirname "${BASH_SOURCE[0]}")/Cargo.toml" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+VERSION="${VERSION:-$CARGO_VERSION}"
 PACKAGE_NAME="SentinelAgent"
-IDENTIFIER="com.cyber-threat-consulting.sentinel-agent"  # Corrigé pour cohérence
+IDENTIFIER="com.cyber-threat-consulting.sentinel-agent"
 INSTALL_LOCATION="/Applications"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
