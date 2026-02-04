@@ -169,6 +169,12 @@ impl Sidebar {
                     ui.vertical(|ui| {
                         ui.set_width(theme::SIDEBAR_WIDTH);
 
+                        // Sync status at the top
+                        Self::sync_indicator(ui, sync_state);
+                        ui.add_space(theme::SPACE_MD);
+                        ui.separator();
+                        ui.add_space(theme::SPACE_MD);
+
                         // Group: Principal
                         ui.add_space(theme::SPACE_SM);
                         Self::section_label(ui, "PILOTAGE");
@@ -223,24 +229,13 @@ impl Sidebar {
 
                         // Flexible spacer: push bottom items down when space allows,
                         // but never overlap -- ScrollArea handles overflow.
-                        let sync_height = 44.0; // dot+label + timestamp + spacing
-                        let bottom_height = sync_height
-                            + 42.0 * 2.0
-                            + theme::SPACE_SM * 2.0
-                            + theme::SPACE_XL
-                            + 2.0;
+                        let bottom_height = 42.0 * 2.0 + theme::SPACE_SM * 2.0 + theme::SPACE_XL + 2.0;
                         let remaining = ui.available_height() - bottom_height;
                         if remaining > 0.0 {
                             ui.add_space(remaining);
                         } else {
                             ui.add_space(theme::SPACE);
                         }
-
-                        Self::sync_indicator(ui, sync_state);
-                        ui.add_space(theme::SPACE_SM);
-
-                        ui.separator();
-                        ui.add_space(theme::SPACE_SM);
 
                         let bottom_items: &[(Page, &str, &str)] = &[
                             (Page::Settings, icons::SETTINGS, "Param\u{00e8}tres"),

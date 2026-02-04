@@ -339,132 +339,175 @@ impl SettingsPage {
         });
 
         ui.add_space(theme::SPACE);
-        let total_width = ui.available_width();
-        let col_gap = theme::SPACE;
-        let col_w = (total_width - col_gap) * 0.5;
-        ui.horizontal_top(|ui| {
-            ui.spacing_mut().item_spacing.x = col_gap;
-            ui.vertical(|ui| {
-                ui.set_width(col_w);
-                // Connection info
-                widgets::card(ui, |ui| {
-                    ui.label(
-                        egui::RichText::new("CONNEXION SERVEUR")
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_MD);
-
-                    Self::setting_row(ui, "Serveur", &state.server_url, icons::ARROW_RIGHT);
-                    if let Some(ref id) = state.summary.agent_id {
-                        Self::setting_row(ui, "ID Agent", id, icons::ARROW_RIGHT);
-                    }
-                    if let Some(ref org) = state.summary.organization {
-                        Self::setting_row(ui, "Organisation", org, icons::ARROW_RIGHT);
-                    }
-                });
-
-                ui.add_space(theme::SPACE);
-
-                // Intervals
-                widgets::card(ui, |ui| {
-                    ui.label(
-                        egui::RichText::new("INTERVALLES")
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_MD);
-
-                    Self::setting_row(
-                        ui,
-                        "Scan",
-                        &format!("{} sec", state.check_interval_secs),
-                        icons::ARROW_RIGHT,
-                    );
-                    Self::setting_row(
-                        ui,
-                        "Heartbeat",
-                        &format!("{} sec", state.heartbeat_interval_secs),
-                        icons::ARROW_RIGHT,
-                    );
-                });
-            });
-
-            ui.vertical(|ui| {
-                ui.set_width(col_w);
-                // Web app link
-                widgets::card(ui, |ui| {
-                    ui.label(
-                        egui::RichText::new("ACC\u{00c8}S CLOUD")
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_MD);
-
-                    if let Some(ref id) = state.summary.agent_id {
-                        let url = format!("https://app.cyber-threat-consulting.com/agents/{}", id);
-
-                        ui.label(egui::RichText::new("G\u{00e9}rez vos politiques et visualisez vos rapports d\u{00e9}taill\u{00e9}s en ligne.").font(theme::font_small()).color(theme::text_secondary()));
-                        ui.add_space(theme::SPACE_MD);
-
-                        let btn = egui::Button::new(
-                            egui::RichText::new(format!("{}  VOIR SUR LE PORTAIL WEB", icons::EXTERNAL_LINK))
-                                .font(theme::font_body())
-                                .color(theme::text_on_accent())
-                                .strong(),
-                        )
-                        .fill(theme::ACCENT)
-                        .min_size(egui::vec2(ui.available_width(), 40.0))
-                        .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-
-                        if ui.add(btn).clicked() {
-                            let _ = open::that(&url);
-                        }
-                    } else {
-                        ui.label(
-                            egui::RichText::new("Agent non enregistr\u{00e9}")
-                                .color(theme::text_tertiary()),
-                        );
-                    }
-                });
-
-                ui.add_space(theme::SPACE);
-
-                // Danger zone
-                widgets::card(ui, |ui| {
-                    ui.label(
-                        egui::RichText::new("ZONE DANGEREUSE")
-                            .font(theme::font_small())
-                            .color(theme::ERROR)
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_MD);
-
-                    let quit_btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  QUITTER L'AGENT", icons::XMARK))
-                            .font(theme::font_body())
-                            .color(theme::text_on_accent())
-                            .strong(),
-                    )
-                    .fill(theme::ERROR.linear_multiply(0.8))
-                    .min_size(egui::vec2(ui.available_width(), 40.0))
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-
-                    if ui.add(quit_btn).clicked() {
-                        command = Some(GuiCommand::Shutdown);
-                    }
-                });
-            });
-        });
-
+        
+        // Bottom cards section with responsive layout
+        Self::show_bottom_cards(ui, state, &mut command);
+        
         ui.add_space(theme::SPACE_XL);
 
         command
     }
 
+    fn show_bottom_cards(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
+        use egui::ScrollArea;
+        
+        // Responsive layout: 2 columns on wide screens, 1 column on narrow screens
+        let total_width = ui.available_width();
+        let min_width_for_two_cols = 800.0; // Minimum width for 2-column layout
+        
+        if total_width >= min_width_for_two_cols {
+            // Two-column layout for wide screens
+            let col_gap = theme::SPACE;
+            let col_w = (total_width - col_gap) * 0.5;
+            
+            ui.horizontal_top(|ui| {
+                ui.spacing_mut().item_spacing.x = col_gap;
+                
+                // Left column
+                ui.vertical(|ui| {
+                    ui.set_width(col_w);
+                    Self::connection_card(ui, state);
+                    ui.add_space(theme::SPACE);
+                    Self::intervals_card(ui, state);
+                });
+                
+                // Right column  
+                ui.vertical(|ui| {
+                    ui.set_width(col_w);
+                    Self::cloud_access_card(ui, state, command);
+                    ui.add_space(theme::SPACE);
+                    Self::danger_zone_card(ui, command);
+                });
+            });
+        } else {
+            // Single column layout for narrow screens with scroll
+            ScrollArea::vertical()
+                .id_salt("settings_scroll")
+                .show(ui, |ui| {
+                    Self::connection_card(ui, state);
+                    ui.add_space(theme::SPACE);
+                    Self::intervals_card(ui, state);
+                    ui.add_space(theme::SPACE);
+                    Self::cloud_access_card(ui, state, command);
+                    ui.add_space(theme::SPACE);
+                    Self::danger_zone_card(ui, command);
+                });
+        }
+    }
+    
+    fn connection_card(ui: &mut Ui, state: &AppState) {
+        widgets::card(ui, |ui| {
+            ui.label(
+                egui::RichText::new("CONNEXION SERVEUR")
+                    .font(theme::font_small())
+                    .color(theme::text_tertiary())
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            Self::setting_row(ui, "Serveur", "https://app.cyber-threat-consulting.com/agentApi", icons::ARROW_RIGHT);
+            if let Some(ref id) = state.summary.agent_id {
+                Self::setting_row(ui, "ID Agent", id, icons::ARROW_RIGHT);
+            }
+            if let Some(ref org) = state.summary.organization {
+                Self::setting_row(ui, "Organisation", org, icons::ARROW_RIGHT);
+            }
+        });
+    }
+    
+    fn intervals_card(ui: &mut Ui, state: &AppState) {
+        widgets::card(ui, |ui| {
+            ui.label(
+                egui::RichText::new("INTERVALLES")
+                    .font(theme::font_small())
+                    .color(theme::text_tertiary())
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            Self::setting_row(
+                ui,
+                "Scan",
+                &format!("{} sec", state.check_interval_secs),
+                icons::ARROW_RIGHT,
+            );
+            Self::setting_row(
+                ui,
+                "Heartbeat",
+                &format!("{} sec", state.heartbeat_interval_secs),
+                icons::ARROW_RIGHT,
+            );
+        });
+    }
+    
+    fn cloud_access_card(ui: &mut Ui, state: &AppState, _command: &mut Option<GuiCommand>) {
+        widgets::card(ui, |ui| {
+            ui.label(
+                egui::RichText::new("ACC\u{00c8}S CLOUD")
+                    .font(theme::font_small())
+                    .color(theme::text_tertiary())
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            if let Some(ref id) = state.summary.agent_id {
+                let url = format!("https://app.cyber-threat-consulting.com/agents/{}", id);
+
+                ui.label(
+                    egui::RichText::new("G\u{00e9}rez vos politiques et visualisez vos rapports d\u{00e9}taill\u{00e9}s en ligne.")
+                        .font(theme::font_small())
+                        .color(theme::text_secondary())
+                );
+                ui.add_space(theme::SPACE_MD);
+
+                let btn = egui::Button::new(
+                    egui::RichText::new(format!("{}  VOIR SUR LE PORTAIL WEB", icons::EXTERNAL_LINK))
+                        .font(theme::font_body())
+                        .color(theme::text_on_accent())
+                        .strong(),
+                )
+                .fill(theme::ACCENT)
+                .min_size(egui::vec2(ui.available_width(), 40.0))
+                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+
+                if ui.add(btn).clicked() {
+                    let _ = open::that(&url);
+                }
+            } else {
+                ui.label(
+                    egui::RichText::new("Agent non enregistr\u{00e9}")
+                        .color(theme::text_tertiary()),
+                );
+            }
+        });
+    }
+    
+    fn danger_zone_card(ui: &mut Ui, command: &mut Option<GuiCommand>) {
+        widgets::card(ui, |ui| {
+            ui.label(
+                egui::RichText::new("ZONE DANGEREUSE")
+                    .font(theme::font_small())
+                    .color(theme::ERROR)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            let quit_btn = egui::Button::new(
+                egui::RichText::new(format!("{}  QUITTER L'AGENT", icons::XMARK))
+                    .font(theme::font_body())
+                    .color(theme::text_on_accent())
+                    .strong(),
+            )
+            .fill(theme::ERROR.linear_multiply(0.8))
+            .min_size(egui::vec2(ui.available_width(), 40.0))
+            .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+
+            if ui.add(quit_btn).clicked() {
+                *command = Some(GuiCommand::Shutdown);
+            }
+        });
+    }
+    
     fn setting_row(ui: &mut Ui, label: &str, value: &str, icon: &str) {
         ui.horizontal(|ui| {
             ui.set_min_height(32.0);
