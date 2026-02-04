@@ -28,6 +28,8 @@ INSTALLER_IDENTITY="${INSTALLER_IDENTITY:-""}"
 # usage: export APPLE_ID="user@example.com"
 # usage: export APPLE_PASSWORD="app-specific-password"
 # usage: export TEAM_ID="TeamID"
+APPLE_PASSWORD="${APPLE_PASSWORD:-$APPLE_APP_PASSWORD}"
+TEAM_ID="${TEAM_ID:-$APPLE_TEAM_ID}"
 NOTARIZE="${NOTARIZE:-false}"  # Désactivé par défaut - nécessite Developer ID Installer
 
 # Colors
