@@ -3,6 +3,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
+use crate::dto::GuiAgentStatus;
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -30,20 +31,25 @@ impl NetworkPage {
                 "Aucune donn\u{00e9}e r\u{00e9}seau",
                 "Veuillez lancer un scan pour d\u{00e9}tecter les interfaces et les connexions.",
             );
-            
+
             ui.add_space(theme::SPACE_MD);
             ui.vertical_centered(|ui| {
                 if ui.button("Lancer un scan").clicked() {
                     command = Some(GuiCommand::RunCheck);
                 }
             });
-            
+
             return command;
         }
 
         // Action bar
         ui.horizontal(|ui| {
-            if widgets::button::primary_button(ui, format!("{}  Lancer le scan", icons::PLAY)).clicked()
+            if widgets::button::primary_button(
+                ui,
+                format!("{}  Lancer le scan", icons::PLAY),
+                state.summary.status != GuiAgentStatus::Scanning,
+            )
+            .clicked()
             {
                 command = Some(GuiCommand::RunCheck);
             }
@@ -124,7 +130,7 @@ impl NetworkPage {
 
             ui.vertical_centered(|ui| {
                 if state.network_alerts == 0 {
-                     widgets::protected_state(
+                    widgets::protected_state(
                         ui,
                         icons::SHIELD_CHECK,
                         "Réseau Sécurisé",
@@ -200,19 +206,44 @@ impl NetworkPage {
                 table
                     .header(32.0, |mut header| {
                         header.col(|ui| {
-                            ui.label(egui::RichText::new("NOM").font(theme::font_small()).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("NOM")
+                                    .font(theme::font_small())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui| {
-                            ui.label(egui::RichText::new("TYPE").font(theme::font_small()).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("TYPE")
+                                    .font(theme::font_small())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui| {
-                            ui.label(egui::RichText::new("STATUT").font(theme::font_small()).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("STATUT")
+                                    .font(theme::font_small())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui| {
-                            ui.label(egui::RichText::new("IPV4").font(theme::font_small()).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("IPV4")
+                                    .font(theme::font_small())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui| {
-                            ui.label(egui::RichText::new("MAC").font(theme::font_small()).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("MAC")
+                                    .font(theme::font_small())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                     })
                     .body(|body| {
@@ -242,7 +273,11 @@ impl NetworkPage {
                                 widgets::status_badge(ui, label, color);
                             });
                             row.col(|ui| {
-                                let addr = iface.ipv4_addresses.first().map(|s| s.as_str()).unwrap_or("--");
+                                let addr = iface
+                                    .ipv4_addresses
+                                    .first()
+                                    .map(|s| s.as_str())
+                                    .unwrap_or("--");
                                 ui.label(
                                     egui::RichText::new(addr)
                                         .font(theme::font_mono())
@@ -333,19 +368,44 @@ impl NetworkPage {
                 table
                     .header(32.0, |mut header| {
                         header.col(|ui| {
-                            ui.label(egui::RichText::new("PROTO").font(theme::font_small()).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("PROTO")
+                                    .font(theme::font_small())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui| {
-                            ui.label(egui::RichText::new("LOCAL").font(theme::font_small()).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("LOCAL")
+                                    .font(theme::font_small())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui| {
-                            ui.label(egui::RichText::new("DISTANT").font(theme::font_small()).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("DISTANT")
+                                    .font(theme::font_small())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui| {
-                            ui.label(egui::RichText::new("\u{00c9}TAT").font(theme::font_small()).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("\u{00c9}TAT")
+                                    .font(theme::font_small())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui| {
-                            ui.label(egui::RichText::new("PROCESSUS").font(theme::font_small()).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("PROCESSUS")
+                                    .font(theme::font_small())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                     })
                     .body(|body| {
@@ -361,13 +421,18 @@ impl NetworkPage {
                             });
                             row.col(|ui| {
                                 ui.label(
-                                    egui::RichText::new(format!("{}:{}", conn.local_address, conn.local_port))
-                                        .font(theme::font_mono())
-                                        .color(theme::text_primary()),
+                                    egui::RichText::new(format!(
+                                        "{}:{}",
+                                        conn.local_address, conn.local_port
+                                    ))
+                                    .font(theme::font_mono())
+                                    .color(theme::text_primary()),
                                 );
                             });
                             row.col(|ui| {
-                                let remote = if let (Some(addr), Some(port)) = (&conn.remote_address, conn.remote_port) {
+                                let remote = if let (Some(addr), Some(port)) =
+                                    (&conn.remote_address, conn.remote_port)
+                                {
                                     format!("{}:{}", addr, port)
                                 } else if let Some(addr) = &conn.remote_address {
                                     addr.clone()

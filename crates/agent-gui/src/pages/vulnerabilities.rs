@@ -3,6 +3,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
+use crate::dto::GuiAgentStatus;
 
 use crate::events::GuiCommand;
 use crate::icons;
@@ -25,7 +26,12 @@ impl VulnerabilitiesPage {
 
         // Action bar
         ui.horizontal(|ui| {
-            if widgets::button::primary_button(ui, format!("{}  Lancer le scan", icons::PLAY)).clicked()
+            if widgets::button::primary_button(
+                ui,
+                format!("{}  Lancer le scan", icons::PLAY),
+                state.summary.status != GuiAgentStatus::Scanning,
+            )
+            .clicked()
             {
                 command = Some(GuiCommand::RunCheck);
             }
@@ -39,54 +45,48 @@ impl VulnerabilitiesPage {
         let medium = summary.map_or(0, |s| s.medium);
         let low = summary.map_or(0, |s| s.low);
 
-        let card_gap = theme::SPACE_SM;
-        let card_w = (ui.available_width() - card_gap * 3.0) / 4.0;
-        ui.horizontal(|ui| {
-            ui.spacing_mut().item_spacing.x = card_gap;
-            Self::summary_card(
-                ui,
-                card_w,
+        let card_grid = widgets::ResponsiveGrid::new(230.0, theme::SPACE_SM);
+        let items = vec![
+            (
                 "CRITIQUES",
-                &critical.to_string(),
+                critical.to_string(),
                 if critical > 0 {
                     theme::ERROR
                 } else {
                     theme::text_tertiary()
                 },
                 icons::SEVERITY_CRITICAL,
-            );
-            Self::summary_card(
-                ui,
-                card_w,
+            ),
+            (
                 "\u{00c9}LEV\u{00c9}ES",
-                &high.to_string(),
+                high.to_string(),
                 if high > 0 {
-                    theme::WARNING
+                    theme::SEVERITY_HIGH
                 } else {
                     theme::text_tertiary()
                 },
                 icons::SEVERITY_HIGH,
-            );
-            Self::summary_card(
-                ui,
-                card_w,
+            ),
+            (
                 "MOYENNES",
-                &medium.to_string(),
+                medium.to_string(),
                 if medium > 0 {
-                    theme::INFO
+                    theme::SEVERITY_MEDIUM
                 } else {
                     theme::text_tertiary()
                 },
                 icons::SEVERITY_MEDIUM,
-            );
-            Self::summary_card(
-                ui,
-                card_w,
+            ),
+            (
                 "FAIBLES",
-                &low.to_string(),
+                low.to_string(),
                 theme::text_tertiary(),
                 icons::SEVERITY_LOW,
-            );
+            ),
+        ];
+
+        card_grid.show(ui, &items, |ui, width, (label, value, color, icon)| {
+            Self::summary_card(ui, width, label, value, *color, icon);
         });
 
         ui.add_space(theme::SPACE_LG);
@@ -104,8 +104,8 @@ impl VulnerabilitiesPage {
             "Rechercher (CVE, logiciel, description)...",
         )
         .chip("CRITIQUE", crit_active, theme::ERROR)
-        .chip("\u{00c9}LEV\u{00c9}E", high_active, theme::WARNING)
-        .chip("MOYENNE", med_active, theme::INFO)
+        .chip("\u{00c9}LEV\u{00c9}E", high_active, theme::SEVERITY_HIGH)
+        .chip("MOYENNE", med_active, theme::SEVERITY_MEDIUM)
         .chip("FAIBLE", low_active, theme::text_tertiary())
         .show(ui);
 
@@ -215,7 +215,7 @@ impl VulnerabilitiesPage {
             .collect();
 
         if state.vulnerability_findings.is_empty() {
-             widgets::protected_state(
+            widgets::protected_state(
                 ui,
                 icons::SHIELD_CHECK,
                 "Système Sain",
@@ -226,9 +226,7 @@ impl VulnerabilitiesPage {
                 ui,
                 icons::VULNERABILITIES,
                 "Aucune vulnérabilité correspondante",
-                Some(
-                    "Modifiez vos filtres pour voir les résultats.",
-                ),
+                Some("Modifiez vos filtres pour voir les résultats."),
             );
         } else {
             use egui_extras::{Column, TableBuilder};
@@ -304,9 +302,7 @@ impl VulnerabilitiesPage {
                                         .strong(),
                                 );
                             } else {
-                                ui.label(
-                                    egui::RichText::new("--").color(theme::text_tertiary()),
-                                );
+                                ui.label(egui::RichText::new("--").color(theme::text_tertiary()));
                             }
                         });
 

@@ -1,13 +1,13 @@
 //! Card container widget (elevated panel).
 
-use egui::{Color32, CornerRadius, Frame, Margin, Stroke, Ui, epaint::StrokeKind};
+use egui::{CornerRadius, Frame, Margin, Stroke, Ui, epaint::StrokeKind};
 
 use crate::theme;
 
 /// Draw a card container, returns the inner response.
 pub fn card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) {
     let is_dark = theme::is_dark_mode();
-    
+
     // Base shadow: stronger in light mode to lift off white background
     let shadow = if is_dark {
         theme::premium_shadow(12, 40)
@@ -25,14 +25,14 @@ pub fn card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) {
             add_contents(ui);
         });
 
-    // Hover effect: slight border highlight
+    // Subtle hover effect: just slightly brighter border, no glow
     if ui.rect_contains_pointer(frame_resp.response.rect) {
         let hover_stroke = if is_dark {
-            Stroke::new(1.0, Color32::from_white_alpha(20))
+            Stroke::new(1.0, theme::border().linear_multiply(1.5))
         } else {
-            Stroke::new(1.0, Color32::from_black_alpha(15))
+            Stroke::new(1.0, theme::border().linear_multiply(0.7))
         };
-        
+
         ui.painter().rect_stroke(
             frame_resp.response.rect,
             CornerRadius::same(theme::CARD_ROUNDING),

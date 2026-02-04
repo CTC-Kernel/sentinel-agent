@@ -40,6 +40,8 @@ chrono.workspace = true
 reqwest.workspace = true
 hostname.workspace = true
 uuid.workspace = true
+semver.workspace = true
+sha2.workspace = true
 tray-icon = { workspace = true, optional = true }
 muda = { workspace = true, optional = true }
 image = { workspace = true, optional = true }

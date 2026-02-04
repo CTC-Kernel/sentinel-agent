@@ -59,23 +59,73 @@ impl DiscoveryPage {
                     ui.add_space(theme::SPACE_SM);
                     let progress = state.discovery_progress;
                     let bar_width = 200.0;
+                    let bar_height = 6.0;
                     let (bar_rect, _) = ui
-                        .allocate_exact_size(egui::Vec2::new(bar_width, 6.0), egui::Sense::hover());
+                        .allocate_exact_size(egui::Vec2::new(bar_width, bar_height), egui::Sense::hover());
+                    
                     if ui.is_rect_visible(bar_rect) {
+                        let time = ui.input(|i| i.time);
+                        let pulse = ((time * 3.0).sin() * 0.5 + 0.5) as f32;
+                        
+                        // Track background
                         ui.painter().rect_filled(
                             bar_rect,
                             egui::CornerRadius::same(3),
                             theme::bg_elevated(),
                         );
-                        let fill_rect = egui::Rect::from_min_size(
-                            bar_rect.min,
-                            egui::Vec2::new(bar_width * progress, 6.0),
-                        );
-                        ui.painter().rect_filled(
-                            fill_rect,
-                            egui::CornerRadius::same(3),
-                            theme::ACCENT,
-                        );
+                        
+                        // Animated fill with gradient
+                        let fill_width = bar_width * progress;
+                        if fill_width > 0.0 {
+                            let fill_rect = egui::Rect::from_min_size(
+                                bar_rect.min,
+                                egui::Vec2::new(fill_width, bar_height),
+                            );
+                            
+                            // Glow behind fill
+                            ui.painter().rect_filled(
+                                fill_rect.expand(1.5),
+                                egui::CornerRadius::same(4),
+                                theme::ACCENT.linear_multiply(0.2 + pulse * 0.1),
+                            );
+                            
+                            // Main fill with gradient (using two halves)
+                            let top_half = egui::Rect::from_min_size(
+                                fill_rect.min,
+                                egui::Vec2::new(fill_width, bar_height / 2.0),
+                            );
+                            let bot_half = egui::Rect::from_min_size(
+                                fill_rect.left_center(),
+                                egui::Vec2::new(fill_width, bar_height / 2.0),
+                            );
+                            
+                            ui.painter().rect_filled(
+                                top_half,
+                                egui::CornerRadius { nw: 3, ne: 3, sw: 0, se: 0 },
+                                theme::ACCENT.linear_multiply(1.2),
+                            );
+                            ui.painter().rect_filled(
+                                bot_half,
+                                egui::CornerRadius { nw: 0, ne: 0, sw: 3, se: 3 },
+                                theme::ACCENT,
+                            );
+                            
+                            // Shimmer effect (moving highlight)
+                            let shimmer_x = (time * 0.5).fract() as f32 * fill_width;
+                            let shimmer_rect = egui::Rect::from_min_size(
+                                fill_rect.min + egui::Vec2::new(shimmer_x - 10.0, 0.0),
+                                egui::Vec2::new(20.0, bar_height),
+                            );
+                            if shimmer_rect.intersects(fill_rect) {
+                                ui.painter().rect_filled(
+                                    shimmer_rect.intersect(fill_rect),
+                                    egui::CornerRadius::same(3),
+                                    egui::Color32::from_white_alpha(30),
+                                );
+                            }
+                        }
+                        
+                        ui.ctx().request_repaint();
                     }
                     ui.add_space(theme::SPACE_SM);
                     ui.label(

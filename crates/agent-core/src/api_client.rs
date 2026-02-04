@@ -203,6 +203,7 @@ pub struct SoftwareEntry {
 }
 
 /// API client for Sentinel GRC server communication.
+#[derive(Clone)]
 pub struct ApiClient {
     client: Client,
     base_url: String,
@@ -223,9 +224,10 @@ impl ApiClient {
             .connect_timeout(Duration::from_secs(HTTP_CONNECT_TIMEOUT_SECS))
             .user_agent(format!("SentinelAgent/{}", AGENT_VERSION));
 
-        // Configure TLS
+        // SECURITY: Only accept invalid certs if explicitly allowed in config.
+        // This is primarily for development and troubleshooting.
         if !config.tls_verify {
-            warn!("TLS certificate verification is disabled");
+            warn!("DANGER: Agent is configured to bypass TLS certificate verification. This is insecure!");
             builder = builder.danger_accept_invalid_certs(true);
         }
 
@@ -294,7 +296,6 @@ impl ApiClient {
         builder
     }
 
-
     /// Enroll the agent with the server.
     pub async fn enroll(&mut self, request: EnrollmentRequest) -> Result<EnrollmentResponse> {
         let url = format!("{}/v1/agents/enroll", self.base_url);
@@ -341,7 +342,9 @@ impl ApiClient {
                 );
                 Ok(enrollment)
             }
-            EnrollmentResult::AlreadyEnrolled { message, agent_id, .. } => {
+            EnrollmentResult::AlreadyEnrolled {
+                message, agent_id, ..
+            } => {
                 error!("Agent already enrolled: {}", message);
                 // Return a specific error kind so prompt logic can handle it?
                 // For now, map to validation error which is fatal.
@@ -547,6 +550,86 @@ impl ApiClient {
 
         Ok(result)
     }
+
+    /// Fetch the latest release information from the update server.
+    pub async fn get_latest_release_info(&self) -> Result<agent_common::types::UpdateInfo> {
+        let url = "https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent/release-info.json";
+        debug!("Fetching release info from {}", url);
+
+        let response =
+            self.client.get(url).send().await.map_err(|e| {
+                CommonError::network(format!("Failed to fetch release info: {}", e))
+            })?;
+
+        if !response.status().is_success() {
+            return Err(CommonError::network(format!(
+                "Failed to fetch release info: status {}",
+                response.status()
+            )));
+        }
+
+        let info: agent_common::types::UpdateInfo = response
+            .json()
+            .await
+            .map_err(|e| CommonError::network(format!("Failed to parse release info: {}", e)))?;
+
+        Ok(info)
+    }
+
+    /// Download a file from a URL to the specified path.
+    pub async fn download_file(&self, url: &str, destination: &std::path::Path) -> Result<()> {
+        debug!("Downloading {} to {:?}", url, destination);
+
+        let response = self
+            .client
+            .get(url)
+            .send()
+            .await
+            .map_err(|e| CommonError::network(format!("Download failed: {}", e)))?;
+
+        if !response.status().is_success() {
+            return Err(CommonError::network(format!(
+                "Download failed: status {}",
+                response.status()
+            )));
+        }
+
+        let content = response
+            .bytes()
+            .await
+            .map_err(|e| CommonError::network(format!("Failed to read download body: {}", e)))?;
+
+        std::fs::write(destination, content)
+            .map_err(|e| CommonError::io(format!("Failed to save download: {}", e)))?;
+
+        Ok(())
+    }
+
+    /// Fetch a small text file (e.g., a checksum).
+    pub async fn fetch_text(&self, url: &str) -> Result<String> {
+        debug!("Fetching text from {}", url);
+
+        let response = self
+            .client
+            .get(url)
+            .send()
+            .await
+            .map_err(|e| CommonError::network(format!("Request failed: {}", e)))?;
+
+        if !response.status().is_success() {
+            return Err(CommonError::network(format!(
+                "Request failed: status {}",
+                response.status()
+            )));
+        }
+
+        let text = response
+            .text()
+            .await
+            .map_err(|e| CommonError::network(format!("Failed to read response body: {}", e)))?;
+
+        Ok(text.trim().to_string())
+    }
 }
 
 #[cfg(test)]
@@ -623,10 +706,12 @@ mod tests {
                 "offline_mode_days": 7
             }
         }"#;
-        
+
         let result: EnrollmentResult = serde_json::from_str(success_json).unwrap();
         match result {
-            EnrollmentResult::Success(r) => assert_eq!(r.agent_id, "550e8400-e29b-41d4-a716-446655440000"),
+            EnrollmentResult::Success(r) => {
+                assert_eq!(r.agent_id, "550e8400-e29b-41d4-a716-446655440000")
+            }
             _ => panic!("Expected success"),
         }
 
@@ -640,10 +725,12 @@ mod tests {
 
         let result: EnrollmentResult = serde_json::from_str(exists_json).unwrap();
         match result {
-            EnrollmentResult::AlreadyEnrolled { agent_id, status, .. } => {
+            EnrollmentResult::AlreadyEnrolled {
+                agent_id, status, ..
+            } => {
                 assert_eq!(agent_id, "550e8400-e29b-41d4-a716-446655440000");
                 assert_eq!(status, "already_enrolled");
-            },
+            }
             _ => panic!("Expected already_enrolled"),
         }
     }

@@ -24,7 +24,7 @@ const MAX_PENDING_DAYS: i64 = 7;
 
 /// Timeout for external update check commands (macOS softwareupdate, etc.).
 #[cfg(target_os = "macos")]
-const UPDATE_CMD_TIMEOUT_SECS: u64 = 3;
+const UPDATE_CMD_TIMEOUT_SECS: u64 = 30;
 
 /// System updates status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -89,6 +89,7 @@ impl SystemUpdatesCheck {
                 "linux".to_string(),
                 "macos".to_string(),
             ])
+            .nfr_limit(30_000) // 30s NFR limit for I/O heavy update check
             .build();
 
         Self { definition }

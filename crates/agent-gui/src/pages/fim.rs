@@ -3,6 +3,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
+use crate::dto::GuiAgentStatus;
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -25,7 +26,12 @@ impl FimPage {
 
         // Action bar
         ui.horizontal(|ui| {
-            if widgets::button::primary_button(ui, format!("{}  Lancer le scan", icons::PLAY)).clicked()
+            if widgets::button::primary_button(
+                ui,
+                format!("{}  Lancer le scan", icons::PLAY),
+                state.summary.status != GuiAgentStatus::Scanning,
+            )
+            .clicked()
             {
                 command = Some(GuiCommand::RunCheck);
             }
@@ -165,7 +171,7 @@ impl FimPage {
             ui.add_space(theme::SPACE_MD);
 
             if state.fim_alerts.is_empty() {
-                 widgets::protected_state(
+                widgets::protected_state(
                     ui,
                     icons::FILE_SHIELD, // or SHIELD_CHECK
                     "Intégrité Confirmée",
@@ -342,7 +348,12 @@ impl FimPage {
                     e.path.clone(),
                     e.change_type.clone(),
                     e.timestamp.to_rfc3339(),
-                    if e.acknowledged { "Acquitt\u{00e9}" } else { "Non acquitt\u{00e9}" }.to_string(),
+                    if e.acknowledged {
+                        "Acquitt\u{00e9}"
+                    } else {
+                        "Non acquitt\u{00e9}"
+                    }
+                    .to_string(),
                 ]
             })
             .collect();

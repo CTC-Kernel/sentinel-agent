@@ -1,11 +1,9 @@
 //! Compliance page -- check results and policy overview.
 
-
-
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::GuiCheckStatus;
+use crate::dto::{GuiAgentStatus, GuiCheckStatus};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -27,7 +25,8 @@ impl CompliancePage {
 
         // Action bar
         ui.horizontal(|ui| {
-            if widgets::button::primary_button(ui, format!("{}  Lancer le scan", icons::PLAY)).clicked()
+            if widgets::button::primary_button(ui, format!("{}  Lancer le scan", icons::PLAY), state.summary.status != GuiAgentStatus::Scanning)
+                .clicked()
             {
                 command = Some(GuiCommand::RunCheck);
             }
@@ -36,22 +35,23 @@ impl CompliancePage {
 
         // Active Frameworks indicator
         if let Some(frameworks) = &state.summary.active_frameworks
-            && !frameworks.is_empty() {
-                ui.horizontal(|ui| {
-                    ui.label(
-                        egui::RichText::new("Frameworks actifs :")
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    );
+            && !frameworks.is_empty()
+        {
+            ui.horizontal(|ui| {
+                ui.label(
+                    egui::RichText::new("Frameworks actifs :")
+                        .font(theme::font_small())
+                        .color(theme::text_tertiary())
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_XS);
+                for fw in frameworks {
+                    widgets::status_badge(ui, fw, theme::INFO);
                     ui.add_space(theme::SPACE_XS);
-                    for fw in frameworks {
-                        widgets::status_badge(ui, fw, theme::INFO);
-                        ui.add_space(theme::SPACE_XS);
-                    }
-                });
-                ui.add_space(theme::SPACE_MD);
-            }
+                }
+            });
+            ui.add_space(theme::SPACE_MD);
+        }
 
         // Summary cards row
         let card_gap = theme::SPACE_SM;
@@ -225,15 +225,16 @@ impl CompliancePage {
 
             if filtered.is_empty() {
                 // Smart Empty State
-                if state.compliance_status_filter == Some(1) { // Filter = Fail
-                     widgets::protected_state(
+                if state.compliance_status_filter == Some(1) {
+                    // Filter = Fail
+                    widgets::protected_state(
                         ui,
                         icons::SHIELD_CHECK,
                         "Conformité Totale",
                         "Tous les contrôles respectent la politique de sécurité.",
                     );
                 } else if state.checks.is_empty() {
-                     widgets::empty_state(
+                    widgets::empty_state(
                         ui,
                         icons::COMPLIANCE,
                         "Aucune politique",
@@ -244,9 +245,7 @@ impl CompliancePage {
                         ui,
                         icons::COMPLIANCE,
                         "Aucune vérification correspondante",
-                        Some(
-                            "Modifiez vos filtres pour voir les résultats.",
-                        ),
+                        Some("Modifiez vos filtres pour voir les résultats."),
                     );
                 }
             } else if state.compliance_group_by == 0 {
@@ -268,7 +267,7 @@ impl CompliancePage {
                     } else {
                         0.0
                     };
- 
+
                     ui.add_space(theme::SPACE_SM);
                     ui.horizontal(|ui| {
                         ui.label(
@@ -286,7 +285,7 @@ impl CompliancePage {
                         );
                     });
                     ui.add_space(theme::SPACE_XS);
- 
+
                     ui.push_id(format!("compliance_group_{}", group_name), |ui| {
                         Self::render_check_table(ui, state, indices, &mut command);
                     });
@@ -294,9 +293,9 @@ impl CompliancePage {
                 }
             }
         });
- 
+
         ui.add_space(theme::SPACE_XL);
- 
+
         command
     }
 
@@ -353,12 +352,24 @@ impl CompliancePage {
 
         table
             .header(28.0, |mut header| {
-                header.col(|ui| { ui.strong("V\u{00c9}RIFICATION"); });
-                header.col(|ui| { ui.strong("CAT\u{00c9}GORIE"); });
-                header.col(|ui| { ui.strong("STATUT"); });
-                header.col(|ui| { ui.strong("S\u{00c9}V\u{00c9}RIT\u{00c9}"); });
-                header.col(|ui| { ui.strong("SCORE"); });
-                header.col(|ui| { ui.strong("FRAMEWORKS"); });
+                header.col(|ui| {
+                    ui.strong("V\u{00c9}RIFICATION");
+                });
+                header.col(|ui| {
+                    ui.strong("CAT\u{00c9}GORIE");
+                });
+                header.col(|ui| {
+                    ui.strong("STATUT");
+                });
+                header.col(|ui| {
+                    ui.strong("S\u{00c9}V\u{00c9}RIT\u{00c9}");
+                });
+                header.col(|ui| {
+                    ui.strong("SCORE");
+                });
+                header.col(|ui| {
+                    ui.strong("FRAMEWORKS");
+                });
             })
             .body(|mut body| {
                 for &idx in indices {
@@ -396,25 +407,23 @@ impl CompliancePage {
                                     if let Some(details) = &check.details
                                         && let Some(issues) =
                                             details.get("issues").and_then(|i| i.as_array())
-                                        {
-                                            for issue in issues.iter() {
-                                                ui.horizontal(|ui| {
-                                                    ui.label(
-                                                        egui::RichText::new("\u{2022}")
-                                                            .color(theme::ERROR),
-                                                    );
-                                                    ui.label(
-                                                        egui::RichText::new(
-                                                            issue
-                                                                .as_str()
-                                                                .unwrap_or("Probl\u{00e8}me d\u{00e9}tect\u{00e9}"),
-                                                        )
-                                                        .color(theme::text_secondary())
-                                                        .font(theme::font_small()),
-                                                    );
-                                                });
-                                            }
+                                    {
+                                        for issue in issues.iter() {
+                                            ui.horizontal(|ui| {
+                                                ui.label(
+                                                    egui::RichText::new("\u{2022}")
+                                                        .color(theme::ERROR),
+                                                );
+                                                ui.label(
+                                                    egui::RichText::new(issue.as_str().unwrap_or(
+                                                        "Probl\u{00e8}me d\u{00e9}tect\u{00e9}",
+                                                    ))
+                                                    .color(theme::text_secondary())
+                                                    .font(theme::font_small()),
+                                                );
+                                            });
                                         }
+                                    }
 
                                     // Remediation for failing checks
                                     if check.status == GuiCheckStatus::Fail
@@ -440,39 +449,45 @@ impl CompliancePage {
                                         ui.add_space(theme::SPACE_XS);
                                         ui.horizontal(|ui| {
                                             let preview_btn = egui::Button::new(
-                                                egui::RichText::new(format!("{}  Aper\u{00e7}u", icons::EYE))
-                                                    .font(theme::font_small())
-                                                    .color(theme::text_on_accent())
-                                                    .strong(),
+                                                egui::RichText::new(format!(
+                                                    "{}  Aper\u{00e7}u",
+                                                    icons::EYE
+                                                ))
+                                                .font(theme::font_small())
+                                                .color(theme::text_on_accent())
+                                                .strong(),
                                             )
                                             .fill(theme::INFO)
-                                            .corner_radius(egui::CornerRadius::same(theme::BADGE_ROUNDING))
+                                            .corner_radius(egui::CornerRadius::same(
+                                                theme::BADGE_ROUNDING,
+                                            ))
                                             .min_size(egui::vec2(80.0, 24.0));
-                                             if ui.add(preview_btn).clicked() {
-                                                *command = Some(
-                                                    GuiCommand::RemediatePreview {
-                                                        check_id: check.check_id.clone(),
-                                                    },
-                                                );
+                                            if ui.add(preview_btn).clicked() {
+                                                *command = Some(GuiCommand::RemediatePreview {
+                                                    check_id: check.check_id.clone(),
+                                                });
                                             }
 
                                             ui.add_space(theme::SPACE_SM);
 
                                             let fix_btn = egui::Button::new(
-                                                egui::RichText::new(format!("{}  Corriger", icons::WRENCH_FA))
-                                                    .font(theme::font_small())
-                                                    .color(theme::text_on_accent())
-                                                    .strong(),
+                                                egui::RichText::new(format!(
+                                                    "{}  Corriger",
+                                                    icons::WRENCH_FA
+                                                ))
+                                                .font(theme::font_small())
+                                                .color(theme::text_on_accent())
+                                                .strong(),
                                             )
                                             .fill(theme::SUCCESS)
-                                            .corner_radius(egui::CornerRadius::same(theme::BADGE_ROUNDING))
+                                            .corner_radius(egui::CornerRadius::same(
+                                                theme::BADGE_ROUNDING,
+                                            ))
                                             .min_size(egui::vec2(90.0, 24.0));
                                             if ui.add(fix_btn).clicked() {
-                                                *command = Some(
-                                                    GuiCommand::Remediate {
-                                                        check_id: check.check_id.clone(),
-                                                    },
-                                                );
+                                                *command = Some(GuiCommand::Remediate {
+                                                    check_id: check.check_id.clone(),
+                                                });
                                             }
                                         });
                                     }
@@ -520,9 +535,7 @@ impl CompliancePage {
                                         .strong(),
                                 );
                             } else {
-                                ui.label(
-                                    egui::RichText::new("--").color(theme::text_tertiary()),
-                                );
+                                ui.label(egui::RichText::new("--").color(theme::text_tertiary()));
                             }
                         });
 
