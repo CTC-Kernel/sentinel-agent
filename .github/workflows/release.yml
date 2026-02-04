@@ -478,7 +478,6 @@ jobs:
       - name: Configure Cloud SDK
         run: |
           gcloud config set project $(echo '${{ steps.prepare-creds.outputs.fixed_json }}' | python3 -c "import json, sys; print(json.load(sys.stdin)['project_id'])")
-          gcloud config set storage/use_gcloud_storage true
 
       - name: Upload to Firebase Storage
         run: |
