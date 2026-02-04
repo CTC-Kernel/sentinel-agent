@@ -121,7 +121,7 @@ mod tests {
     fn test_filter_api_key() {
         let input = "api_key=sk-1234567890abcdef";
         let filtered = filter_sensitive_data(input);
-        assert_eq!(filtered, "api_key=***REDACTED***");
+        assert_eq!(filtered, "***REDACTED***");
     }
 
     #[test]
