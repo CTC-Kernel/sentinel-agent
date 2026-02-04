@@ -516,52 +516,61 @@ jobs:
           VERSION="${{ env.RELEASE_VERSION }}"
           BUCKET="gs://sentinel-grc-a8701.firebasestorage.app/releases/agent"
           
-          echo "🚀 Starting atomic upload to $BUCKET..."
+          echo "=== Generating aliases and metadata ==="
+          DATE=$(date -u +"%Y-%m-%d")
+          
+          # Helper to create latest alias and checksum
+          create_latest() {
+            local pattern="$1"
+            local folder="$2"
+            local latest_name="$3"
+            
+            # Find the first matching file (should be only one per pattern)
+            local file=$(ls artifacts/$folder/$pattern 2>/dev/null | head -n 1)
+            if [ -n "$file" ]; then
+              echo "Creating latest alias for $file -> $latest_name"
+              cp "$file" "artifacts/$folder/$latest_name"
+              # Create checksum for latest
+              sha256sum "$file" | cut -d' ' -f1 > "artifacts/$folder/$latest_name.sha256"
+              gcloud storage cp "artifacts/$folder/$latest_name" "$BUCKET/${folder##sentinel-agent-}/"
+              gcloud storage cp "artifacts/$folder/$latest_name.sha256" "$BUCKET/${folder##sentinel-agent-}/"
+            fi
+          }
 
-          echo "=== Uploading macOS packages ==="
-          for f in artifacts/sentinel-agent-macos/SentinelAgent-*.dmg; do
-            [ -f "$f" ] && echo "Uploading $f..." && gcloud storage cp "$f" "$BUCKET/macos/"
-          done
-          for f in artifacts/sentinel-agent-macos/SentinelAgent-*.pkg; do
-            [ -f "$f" ] && echo "Uploading $f..." && gcloud storage cp "$f" "$BUCKET/macos/"
-          done
-          [ -f "artifacts/sentinel-agent-macos/SHA256SUMS-macos.txt" ] && \
-            echo "Uploading SHA256SUMS-macos.txt..." && \
-            gcloud storage cp "artifacts/sentinel-agent-macos/SHA256SUMS-macos.txt" "$BUCKET/macos/SHA256SUMS.txt"
+          create_latest "SentinelAgent-*.pkg" "sentinel-agent-macos" "SentinelAgent-latest.pkg"
+          create_latest "SentinelAgent-*.dmg" "sentinel-agent-macos" "SentinelAgent-latest.dmg"
+          create_latest "SentinelAgentSetup-*.msi" "sentinel-agent-windows" "SentinelAgentSetup-latest.msi"
+          create_latest "sentinel-agent_*.deb" "sentinel-agent-linux-deb" "sentinel-agent-latest-amd64.deb"
+          create_latest "sentinel-agent-*.rpm" "sentinel-agent-linux-rpm" "sentinel-agent-latest.x86_64.rpm"
 
-          echo "=== Uploading Windows packages ==="
-          for f in artifacts/sentinel-agent-windows/SentinelAgentSetup-*.msi; do
-            [ -f "$f" ] && echo "Uploading $f..." && gcloud storage cp "$f" "$BUCKET/windows/"
-          done
-          [ -f "artifacts/sentinel-agent-windows/SHA256SUMS-windows.txt" ] && \
-            echo "Uploading SHA256SUMS-windows.txt..." && \
-            gcloud storage cp "artifacts/sentinel-agent-windows/SHA256SUMS-windows.txt" "$BUCKET/windows/SHA256SUMS.txt"
+          # Generate release-info.json
+          echo "{" > release-info.json
+          echo "  \"version\": \"$VERSION\"," >> release-info.json
+          echo "  \"date\": \"$DATE\"," >> release-info.json
+          echo "  \"product\": \"agent\"" >> release-info.json
+          echo "}" >> release-info.json
+          
+          gcloud storage cp release-info.json "$BUCKET/release-info.json"
 
-          echo "=== Uploading Linux DEB packages ==="
-          for f in artifacts/sentinel-agent-linux-deb/sentinel-agent_*.deb; do
-            [ -f "$f" ] && echo "Uploading $f..." && gcloud storage cp "$f" "$BUCKET/linux_deb/"
-          done
-          [ -f "artifacts/sentinel-agent-linux-deb/SHA256SUMS-linux-deb.txt" ] && \
-            echo "Uploading SHA256SUMS-linux-deb.txt..." && \
-            gcloud storage cp "artifacts/sentinel-agent-linux-deb/SHA256SUMS-linux-deb.txt" "$BUCKET/linux_deb/SHA256SUMS.txt"
-
-          echo "=== Uploading Linux RPM packages ==="
-          for f in artifacts/sentinel-agent-linux-rpm/sentinel-agent-*.rpm; do
-            [ -f "$f" ] && echo "Uploading $f..." && gcloud storage cp "$f" "$BUCKET/linux_rpm/"
-          done
-          [ -f "artifacts/sentinel-agent-linux-rpm/SHA256SUMS-linux-rpm.txt" ] && \
-            echo "Uploading SHA256SUMS-linux-rpm.txt..." && \
-            gcloud storage cp "artifacts/sentinel-agent-linux-rpm/SHA256SUMS-linux-rpm.txt" "$BUCKET/linux_rpm/SHA256SUMS.txt"
+          echo "🚀 Starting atomic upload of versioned files..."
+          
+          # Upload all artifacts (versioned)
+          gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-*" "$BUCKET/macos/"
+          gcloud storage cp "artifacts/sentinel-agent-windows/SentinelAgentSetup-*" "$BUCKET/windows/"
+          gcloud storage cp "artifacts/sentinel-agent-linux-deb/sentinel-agent_*" "$BUCKET/linux_deb/"
+          gcloud storage cp "artifacts/sentinel-agent-linux-rpm/sentinel-agent-*" "$BUCKET/linux_rpm/"
+          gcloud storage cp "artifacts/*/SHA256SUMS*.txt" "$BUCKET/" 2>/dev/null || true
 
           echo "=== Setting content types ==="
-          gcloud storage objects update "$BUCKET/macos/SentinelAgent-*.dmg" --content-type="application/x-apple-diskimage" 2>/dev/null || true
-          gcloud storage objects update "$BUCKET/macos/SentinelAgent-*.pkg" --content-type="application/vnd.apple.installer+xml" 2>/dev/null || true
-          gcloud storage objects update "$BUCKET/windows/SentinelAgentSetup-*.msi" --content-type="application/x-msi" 2>/dev/null || true
-          gcloud storage objects update "$BUCKET/linux_deb/sentinel-agent_*.deb" --content-type="application/vnd.debian.binary-package" 2>/dev/null || true
-          gcloud storage objects update "$BUCKET/linux_rpm/sentinel-agent-*.rpm" --content-type="application/x-rpm" 2>/dev/null || true
-          gcloud storage objects update "$BUCKET/*/SHA256SUMS.txt" --content-type="text/plain" 2>/dev/null || true
+          gcloud storage objects update "$BUCKET/macos/*.dmg" --content-type="application/x-apple-diskimage" 2>/dev/null || true
+          gcloud storage objects update "$BUCKET/macos/*.pkg" --content-type="application/vnd.apple.installer+xml" 2>/dev/null || true
+          gcloud storage objects update "$BUCKET/windows/*.msi" --content-type="application/x-msi" 2>/dev/null || true
+          gcloud storage objects update "$BUCKET/linux_deb/*.deb" --content-type="application/vnd.debian.binary-package" 2>/dev/null || true
+          gcloud storage objects update "$BUCKET/linux_rpm/*.rpm" --content-type="application/x-rpm" 2>/dev/null || true
+          gcloud storage objects update "$BUCKET/**/*.json" --content-type="application/json" 2>/dev/null || true
+          gcloud storage objects update "$BUCKET/**/*.txt" --content-type="text/plain" 2>/dev/null || true
 
-          echo "✅ Best-practice upload complete"
+          echo "✅ Enhanced release upload complete"
 
       - name: Verify uploads
         run: |
