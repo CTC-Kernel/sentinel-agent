@@ -52,6 +52,12 @@ pub enum CommonError {
     Internal(String),
 }
 
+impl From<std::io::Error> for CommonError {
+    fn from(err: std::io::Error) -> Self {
+        Self::Io(err.to_string())
+    }
+}
+
 impl CommonError {
     /// Create a new configuration error.
     pub fn config(msg: impl Into<String>) -> Self {
@@ -127,7 +133,7 @@ mod tests {
 
     #[test]
     fn test_io_error_conversion() {
-        let io_err = io::Error::new(io::ErrorKind::NotFound, "file missing");
+        let io_err = std::io::Error::new(std::io::ErrorKind::NotFound, "file missing");
         let common_err: CommonError = io_err.into();
         assert!(common_err.to_string().contains("I/O error"));
     }

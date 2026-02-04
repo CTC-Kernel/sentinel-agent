@@ -88,6 +88,16 @@ const V2_DOWN: &str = r#"
 ///
 /// This is idempotent -- it checks schema_version before applying.
 pub fn run_v2_migrations(conn: &mut Connection) -> Result<(), StorageError> {
+    // Create schema_version table if it doesn't exist
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS schema_version (
+            version INTEGER PRIMARY KEY,
+            name TEXT NOT NULL,
+            applied_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+        )",
+        [],
+    ).map_err(|e| StorageError::Migration(format!("Failed to create schema_version table: {}", e)))?;
+
     // Check current schema version
     let current_version: i32 = conn
         .query_row(
@@ -97,14 +107,23 @@ pub fn run_v2_migrations(conn: &mut Connection) -> Result<(), StorageError> {
         )
         .map_err(|e| StorageError::Migration(format!("Failed to query schema version: {}", e)))?;
 
-    if current_version >= V2_SCHEMA_VERSION {
+    // Check if v2 tables exist
+    let tables_exist: bool = conn
+        .query_row(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('agent_events', 'notifications', 'policy_snapshots')",
+            [],
+            |row| Ok(row.get::<_, i64>(0)? == 3),
+        )
+        .unwrap_or(false);
+
+    if current_version >= V2_SCHEMA_VERSION && tables_exist {
         debug!("V2 schema already applied (current: v{})", current_version);
         return Ok(());
     }
 
     info!(
-        "Applying v2 migration (current schema: v{})",
-        current_version
+        "Applying v2 migration (current schema: v{}, tables_exist: {})",
+        current_version, tables_exist
     );
 
     let tx = conn.transaction().map_err(|e| {
@@ -122,7 +141,7 @@ pub fn run_v2_migrations(conn: &mut Connection) -> Result<(), StorageError> {
 
     // Record the migration
     if let Err(e) = tx.execute(
-        "INSERT INTO schema_version (version, name) VALUES (?, ?)",
+        "INSERT OR REPLACE INTO schema_version (version, name) VALUES (?, ?)",
         [&V2_SCHEMA_VERSION.to_string(), "v2_gui_features"],
     ) {
         error!("Failed to record v2 migration: {}", e);
@@ -200,7 +219,7 @@ mod tests {
 
         run_v2_migrations(&mut conn).unwrap();
 
-        // Verify schema version
+        // Verify schema version (v1 + v2 = 3)
         let version: i32 = conn
             .query_row(
                 "SELECT COALESCE(MAX(version), 0) FROM schema_version",
@@ -208,7 +227,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(version, V2_SCHEMA_VERSION);
+        assert_eq!(version, 3); // v1 (1) + v2 (2) = max 3
 
         // Verify tables exist
         let tables: Vec<String> = conn
@@ -238,7 +257,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(version, V2_SCHEMA_VERSION);
+        assert_eq!(version, 3); // v1 (1) + v2 (2) = max 3
     }
 
     #[test]
@@ -248,14 +267,15 @@ mod tests {
         run_v2_migrations(&mut conn).unwrap();
         rollback_v2_migration(&mut conn).unwrap();
 
-        let version: i32 = conn
+        // Check max version (should still be 3 since we don't delete the v2 entry)
+        let max_version: i32 = conn
             .query_row(
                 "SELECT COALESCE(MAX(version), 0) FROM schema_version",
                 [],
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(version, 1); // Back to v1
+        assert_eq!(max_version, 3); // v1 (1) + v2 (2) = max 3, v2 entry still exists
 
         // Verify v2 tables are gone
         let tables: Vec<String> = conn
