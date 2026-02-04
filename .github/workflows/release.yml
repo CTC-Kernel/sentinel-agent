@@ -475,8 +475,6 @@ jobs:
 
       - name: Set up Cloud SDK (Best Practice)
         uses: google-github-actions/setup-gcloud@v2
-        with:
-          install_components: 'storage'
 
       - name: Upload to Firebase Storage
         run: |
