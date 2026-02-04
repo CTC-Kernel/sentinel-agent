@@ -10,6 +10,7 @@ serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
 chrono.workspace = true
 uuid.workspace = true
 config.workspace = true
@@ -18,6 +19,8 @@ url.workspace = true
 sha2.workspace = true
 hex.workspace = true
 blake3.workspace = true
+regex = "1.10"
+once_cell = "1.19"
 
 [dev-dependencies]
 serde_json.workspace = true

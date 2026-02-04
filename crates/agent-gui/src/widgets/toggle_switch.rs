@@ -94,7 +94,7 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
         ui.ctx().request_repaint();
     }
 
-    response
+    response.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
 /// Linearly interpolate between two colors.
