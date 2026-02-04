@@ -67,28 +67,45 @@ impl PremiumBadge {
 
         let (rect, response) = ui.allocate_exact_size(desired_size, Sense::hover());
 
-        // Background with subtle gradient effect
+        // Background with premium gradient effect
         let bg_color = if response.hovered() {
-            self.color.linear_multiply(1.1)
+            self.color.linear_multiply(1.05) // Subtle brighten on hover
         } else {
             self.color
         };
 
+        // Premium shadow for depth
+        ui.painter().rect_filled(
+            rect.expand(0.5),
+            CornerRadius::same((corner_radius + 1.0) as u8),
+            self.color.linear_multiply(0.1),
+        );
+
+        // Main background
         ui.painter()
             .rect_filled(rect, CornerRadius::same(corner_radius as u8), bg_color);
 
-        // Animated glow effect
+        // Premium animated glow effect
         if self.animated {
             let time = ui.input(|i| i.time);
-            let pulse = (time * 2.0).sin() * 0.3 + 0.7;
+            let pulse = (time * 1.5).sin() * 0.2 + 0.8; // Slower, more subtle pulse
 
+            // Outer glow
             ui.painter().rect_stroke(
-                rect.expand(1.0),
-                CornerRadius::same((corner_radius + 1.0) as u8),
-                Stroke::new(1.0, self.color.linear_multiply(0.3 * pulse as f32)),
-                egui::StrokeKind::Inside,
+                rect.expand(2.0),
+                CornerRadius::same((corner_radius + 2.0) as u8),
+                Stroke::new(1.0, self.color.linear_multiply(0.4 * pulse as f32)),
+                egui::StrokeKind::Outside,
             );
         }
+
+        // Premium inner border for definition
+        ui.painter().rect_stroke(
+            rect.shrink(0.5),
+            CornerRadius::same(corner_radius as u8),
+            Stroke::new(0.5, theme::text_on_accent().linear_multiply(0.3)),
+            egui::StrokeKind::Inside,
+        );
 
         // Text
         ui.painter().text(
@@ -138,7 +155,7 @@ impl StatusBadge {
         PremiumBadge::new(self.status)
             .color(color)
             .size(BadgeSize::Small)
-            .animated(self.level != StatusLevel::Neutral)
+            .animated(true) // Always animated for premium feel
             .ui(ui)
     }
 }
@@ -165,7 +182,7 @@ impl ComplianceBadge {
         PremiumBadge::new(text)
             .color(color)
             .size(BadgeSize::Medium)
-            .animated(true)
+            .animated(true) // Always animated for premium compliance display
             .ui(ui)
     }
 }

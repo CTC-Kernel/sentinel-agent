@@ -4,16 +4,16 @@ use egui::{CornerRadius, Ui, Vec2};
 
 use crate::theme;
 
-/// Draw a pill-shaped status badge with muted colors for better readability.
+/// Draw a pill-shaped status badge with premium contrast and styling.
 ///
 /// `text` is the badge label.
-/// `color` is the semantic color (will be softened for background).
+/// `color` is the semantic color (will be used for background with high-contrast text).
 pub fn status_badge(ui: &mut Ui, text: &str, color: egui::Color32) {
     let padding = Vec2::new(theme::SPACE_SM, theme::SPACE_XS);
     
-    // Use the semantic color for text, with a very subtle tinted background
-    let bg_color = color.linear_multiply(0.15); // Very soft background tint
-    let text_color = color; // Semantic color for text (more readable)
+    // Premium approach: full color background with white text for maximum contrast
+    let bg_color = color;
+    let text_color = theme::text_on_accent(); // Always white for premium contrast
     
     let galley = ui.painter().layout_no_wrap(
         text.to_string(),
@@ -29,18 +29,18 @@ pub fn status_badge(ui: &mut Ui, text: &str, color: egui::Color32) {
     if ui.is_rect_visible(rect) {
         let radius = (rect.height() / 2.0).round() as u8;
         
-        // Soft muted background (no animation)
+        // Premium filled background
         ui.painter().rect_filled(
             rect,
             CornerRadius::same(radius),
             bg_color,
         );
 
-        // Subtle border for definition
+        // Premium subtle border for depth
         ui.painter().rect_stroke(
             rect,
             CornerRadius::same(radius),
-            egui::Stroke::new(1.0, color.linear_multiply(0.3)),
+            egui::Stroke::new(0.5, theme::border()),
             egui::StrokeKind::Inside,
         );
 
