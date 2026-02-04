@@ -249,20 +249,23 @@ cat > "$BUILD_DIR/preinstall" << 'EOF'
 #!/bin/bash
 
 # Sentinel Agent Pre-install Script
+# $1: Package path, $2: Target path, $3: Target volume
+
+TARGET_DIR="$3/Applications"
 
 # Check if older version exists
-if [[ -d "/Applications/SentinelAgent.app" ]]; then
-    echo "Removing previous installation..."
-    rm -rf "/Applications/SentinelAgent.app"
+if [[ -d "$TARGET_DIR/SentinelAgent.app" ]]; then
+    echo "Removing previous installation from $TARGET_DIR..."
+    rm -rf "$TARGET_DIR/SentinelAgent.app"
 fi
 
-# Create directories
-mkdir -p "/Library/Application Support/Sentinel GRC"
-mkdir -p "/var/log/sentinel"
+# Create system-wide directories
+mkdir -p "$3/Library/Application Support/Sentinel GRC"
+mkdir -p "$3/var/log/sentinel"
 
 # Set permissions
-chmod 755 "/Library/Application Support/Sentinel GRC"
-chmod 755 "/var/log/sentinel"
+chmod 755 "$3/Library/Application Support/Sentinel GRC"
+chmod 755 "$3/var/log/sentinel"
 
 exit 0
 EOF
@@ -271,25 +274,34 @@ chmod +x "$BUILD_DIR/preinstall"
 
 # Post-install script
 cat > "$BUILD_DIR/postinstall" << 'POSTINSTALL'
-#!/bin/bash
-
+# !/bin/bash
 # Sentinel Agent Post-install Script
+# $1: Package path, $2: Target path, $3: Target volume
 
-# Detect the real logged-in user (not root)
+# 1. Detect the real logged-in user
 REAL_USER=$(/usr/bin/stat -f%Su /dev/console)
-REAL_HOME=$(/usr/bin/dscl . -read /Users/"$REAL_USER" NFSHomeDirectory | awk '{print $2}')
 
-echo "Installing for user: $REAL_USER (home: $REAL_HOME)"
-
-# Create symbolic link for command line usage
-if [[ ! -L "/usr/local/bin/sentinel-agent" ]]; then
-    mkdir -p "/usr/local/bin"
-    ln -sf "/Applications/SentinelAgent.app/Contents/MacOS/SentinelAgent" "/usr/local/bin/sentinel-agent"
+# Fallback for REAL_USER
+if [ -z "$REAL_USER" ] || [ "$REAL_USER" == "root" ] || [ "$REAL_USER" == "_mbsetupuser" ]; then
+    REAL_USER=$(/usr/bin/logname 2>/dev/null || echo "$USER")
 fi
 
-# Create default configuration in user directory
+REAL_HOME=$(/usr/bin/dscl . -read /Users/"$REAL_USER" NFSHomeDirectory | awk '{print $2}')
+[ -z "$REAL_HOME" ] && REAL_HOME="/Users/$REAL_USER"
+
+echo "Installing for user: $REAL_USER (home: $REAL_HOME) on volume: $3"
+
+# 2. Create symbolic link
+# Using a subshell to avoid failing the whole script if /usr/local/bin isn't writable
+(
+    mkdir -p "/usr/local/bin"
+    ln -sf "$3/Applications/SentinelAgent.app/Contents/MacOS/SentinelAgent" "/usr/local/bin/sentinel-agent"
+) || echo "Warning: Could not create symlink in /usr/local/bin"
+
+# 3. Create default configuration in user directory
 CONFIG_DIR="$REAL_HOME/Library/Application Support/Sentinel GRC"
-sudo -u "$REAL_USER" mkdir -p "$CONFIG_DIR"
+mkdir -p "$CONFIG_DIR"
+chown "$REAL_USER" "$CONFIG_DIR"
 
 if [[ ! -f "$CONFIG_DIR/agent.json" ]]; then
     cat > "$CONFIG_DIR/agent.json" << CONFIG
@@ -306,18 +318,14 @@ CONFIG
     chmod 600 "$CONFIG_DIR/agent.json"
 fi
 
-# Create LaunchAgent plist for auto-start at login
+# 4. Create LaunchAgent plist
 LAUNCH_AGENTS_DIR="$REAL_HOME/Library/LaunchAgents"
+mkdir -p "$LAUNCH_AGENTS_DIR"
+chown "$REAL_USER" "$LAUNCH_AGENTS_DIR"
+
 PLIST_PATH="$LAUNCH_AGENTS_DIR/com.cyber-threat-consulting.sentinel-agent.plist"
 
-# Ask user about auto-start (only if strictly interactive/not handled by MDM)
-# Skipping interactive dialogue in silent install contexts
-
-AUTO_START="Oui" # Defaulting for now
-
-if [[ "$AUTO_START" == "Oui" ]]; then
-    sudo -u "$REAL_USER" mkdir -p "$LAUNCH_AGENTS_DIR"
-    cat > "$PLIST_PATH" << PLIST
+cat > "$PLIST_PATH" << PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -326,30 +334,23 @@ if [[ "$AUTO_START" == "Oui" ]]; then
     <string>com.cyber-threat-consulting.sentinel-agent</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/Applications/SentinelAgent.app/Contents/MacOS/SentinelAgent</string>
+        <string>$3/Applications/SentinelAgent.app/Contents/MacOS/SentinelAgent</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
     <false/>
-    <key>ProcessType</key>
-    <string>Interactive</string>
-    <key>StandardOutPath</key>
-    <string>/tmp/sentinel-agent.stdout.log</string>
-    <key>StandardErrorPath</key>
-    <string>/tmp/sentinel-agent.stderr.log</string>
 </dict>
 </plist>
-    chown "$REAL_USER" "$PLIST_PATH"
-    chmod 644 "$PLIST_PATH"
-    echo "Auto-start configured via LaunchAgent"
-fi
 
-# Launch the application now
-echo "Launching Sentinel Agent..."
-sudo -u "$REAL_USER" open "/Applications/SentinelAgent.app"
+chown "$REAL_USER" "$PLIST_PATH"
+chmod 644 "$PLIST_PATH"
 
-echo "Installation completed successfully!"
+# 5. Launch the application (Non-blocking)
+echo "Attempting to launch Sentinel Agent..."
+sudo -u "$REAL_USER" open "$3/Applications/SentinelAgent.app" || echo "Warning: Could not launch app automatically"
+
+echo "Installation completed!"
 exit 0
 POSTINSTALL
 
@@ -384,6 +385,12 @@ cat > "$BUILD_DIR/distribution.xml" << DISTXML
 </installer-gui-script>
 DISTXML
 
+# Copy branding images
+echo -e "${YELLOW}Copying branding images...${NC}"
+if [[ -f "$SCRIPT_DIR/crates/agent-gui/assets/IA.png" ]]; then
+    cp "$SCRIPT_DIR/crates/agent-gui/assets/IA.png" "$BUILD_DIR/IA.png"
+fi
+
 # Create welcome HTML
 cat > "$BUILD_DIR/welcome.html" << 'WELCOMEHTML'
 <!DOCTYPE html>
@@ -392,19 +399,27 @@ cat > "$BUILD_DIR/welcome.html" << 'WELCOMEHTML'
     <meta charset="UTF-8">
     <title>Welcome</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 20px; color: #333; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 20px; color: #1d1d1f; }
         .header { text-align: center; margin-bottom: 30px; }
         .icon { font-size: 48px; color: #007AFF; }
+        .icon img { max-width: 96px; height: auto; border-radius: 12px; }
         h1 { color: #1d1d1f; margin-bottom: 10px; }
         .features { margin: 20px 0; }
         .feature { margin: 10px 0; padding-left: 20px; }
-        .verified { background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 15px; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 30px; color: #666; }
+        .verified { background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 15px; margin: 20px 0; color: #2e7d32; }
+        .footer { text-align: center; margin-top: 30px; color: #86868b; font-size: 11px; }
+        
+        @media (prefers-color-scheme: dark) {
+            body { color: #f5f5f7; }
+            h1 { color: #ffffff; }
+            .verified { background: #1b4332; border: 1px solid #2d6a4f; color: #a5d6a7; }
+            .footer { color: #8e8e93; }
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="icon">🛡️</div>
+        <div class="icon"><img src="IA.png" width="96" height="96" alt="Sentinel"></div>
         <h1>Welcome to Sentinel GRC Agent</h1>
         <p>Endpoint compliance monitoring for the Sentinel GRC platform</p>
     </div>
@@ -424,7 +439,7 @@ cat > "$BUILD_DIR/welcome.html" << 'WELCOMEHTML'
     </div>
     
     <div class="footer">
-        <p>Version 2.0.0 | © 2024-2026 Cyber Threat Consulting</p>
+        <p>© 2024-2026 Cyber Threat Consulting</p>
     </div>
 </body>
 </html>
@@ -438,12 +453,20 @@ cat > "$BUILD_DIR/license.html" << 'LICENSEHTML'
     <meta charset="UTF-8">
     <title>License Agreement</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 20px; color: #333; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 20px; color: #1d1d1f; }
         .header { text-align: center; margin-bottom: 30px; }
         h1 { color: #1d1d1f; margin-bottom: 10px; }
-        .license { background: #f5f5f7; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .license pre { white-space: pre-wrap; font-family: monospace; font-size: 12px; }
-        .footer { text-align: center; margin-top: 30px; color: #666; }
+        .license { background: #f5f5f7; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #d2d2d7; }
+        .license pre { white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #1d1d1f; }
+        .footer { text-align: center; margin-top: 30px; color: #86868b; font-size: 11px; }
+
+        @media (prefers-color-scheme: dark) {
+            body { color: #f5f5f7; }
+            h1 { color: #ffffff; }
+            .license { background: #2c2c2e; border: 1px solid #3a3a3c; }
+            .license pre { color: #f5f5f7; }
+            .footer { color: #8e8e93; }
+        }
     </style>
 </head>
 <body>
@@ -484,20 +507,29 @@ cat > "$BUILD_DIR/conclusion.html" << 'CONCLUSIONHTML'
     <meta charset="UTF-8">
     <title>Installation Complete</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 20px; color: #333; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 20px; color: #1d1d1f; }
         .header { text-align: center; margin-bottom: 30px; }
         .icon { font-size: 48px; color: #34C759; }
+        .icon img { max-width: 96px; height: auto; border-radius: 12px; }
         h1 { color: #1d1d1f; margin-bottom: 10px; }
-        .info { background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #007AFF; }
-        .verified { background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 15px; margin: 20px 0; }
+        .info { background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #007AFF; color: #004085; }
+        .verified { background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 15px; margin: 20px 0; color: #2e7d32; }
         .next-steps { margin: 20px 0; }
         .step { margin: 10px 0; padding-left: 20px; }
-        .footer { text-align: center; margin-top: 30px; color: #666; }
+        .footer { text-align: center; margin-top: 30px; color: #86868b; font-size: 11px; }
+
+        @media (prefers-color-scheme: dark) {
+            body { color: #f5f5f7; }
+            h1 { color: #ffffff; }
+            .info { background: #1c3a5e; border-left: 4px solid #0a84ff; color: #e0f2fe; }
+            .verified { background: #1b4332; border: 1px solid #2d6a4f; color: #a5d6a7; }
+            .footer { color: #8e8e93; }
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="icon">✅</div>
+        <div class="icon"><img src="IA.png" width="96" height="96" alt="Success"></div>
         <h1>Installation Complete!</h1>
         <p>Sentinel GRC Agent has been successfully installed and verified</p>
     </div>

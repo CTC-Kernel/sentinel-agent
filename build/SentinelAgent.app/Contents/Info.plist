@@ -11,9 +11,9 @@
     <key>CFBundleDisplayName</key>
     <string>Sentinel GRC Agent</string>
     <key>CFBundleVersion</key>
-    <string>2.0.0</string>
+    <string>2.0.2</string>
     <key>CFBundleShortVersionString</key>
-    <string>2.0.0</string>
+    <string>2.0.2</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleIconFile</key>
@@ -69,7 +69,7 @@
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.utilities</string>
     <key>CFBundleGetInfoString</key>
-    <string>Sentinel GRC Agent v2.0.0 - Endpoint compliance monitoring</string>
+    <string>Sentinel GRC Agent v2.0.2 - Endpoint compliance monitoring</string>
     <key>NSHumanReadableCopyright</key>
     <string>Copyright © 2024-2026 Cyber Threat Consulting. All rights reserved.</string>
 </dict>
