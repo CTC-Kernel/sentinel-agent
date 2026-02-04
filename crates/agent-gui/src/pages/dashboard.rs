@@ -41,7 +41,7 @@ impl DashboardPage {
             if widgets::button::secondary_button(
                 ui,
                 format!("{}  Forcer la synchro", icons::SYNC),
-                true, // TODO: Add syncing state to GuiAgentStatus
+                state.summary.status != GuiAgentStatus::Syncing, // Disable during sync
             )
             .clicked()
             {
@@ -82,6 +82,7 @@ impl DashboardPage {
                                 }
                                 GuiAgentStatus::Paused => ("En pause", theme::text_tertiary()),
                                 GuiAgentStatus::Scanning => ("Analyse...", theme::INFO),
+                                GuiAgentStatus::Syncing => ("Synchronisation...", theme::ACCENT),
                                 GuiAgentStatus::Error => ("Erreur", theme::ERROR),
                                 GuiAgentStatus::Starting => {
                                     ("D\u{00e9}marrage", theme::text_secondary())

@@ -32,6 +32,7 @@ pub struct EnrollmentWizard {
     pub qr_input: String,
     pub use_qr: bool,
     pub progress_message: String,
+    pub show_token: bool, // Toggle for token visibility
 }
 
 impl Default for EnrollmentWizard {
@@ -42,6 +43,7 @@ impl Default for EnrollmentWizard {
             qr_input: String::new(),
             use_qr: false,
             progress_message: "Connexion au serveur...".to_string(),
+            show_token: false, // Token masked by default for security
         }
     }
 }
@@ -408,19 +410,35 @@ impl EnrollmentWizard {
                         );
                         ui.add_space(4.0);
 
+                        // Token input with security masking
+                        
                         egui::Frame::new()
                             .fill(input_bg)
                             .corner_radius(egui::CornerRadius::same(input_rounding))
                             .stroke(egui::Stroke::new(1.0, theme::border().linear_multiply(0.3)))
                             .inner_margin(egui::Margin::same(12))
                             .show(ui, |ui| {
-                                ui.add(
-                                    egui::TextEdit::singleline(&mut self.token_input)
-                                        .desired_width(f32::INFINITY)
-                                        .frame(false)
-                                        .font(egui::TextStyle::Monospace) // Tech feel for token
-                                        .hint_text("xxxxx-xxxxx-xxxxx"),
-                                );
+                                ui.horizontal(|ui| {
+                                    ui.add(
+                                        egui::TextEdit::singleline(&mut self.token_input)
+                                            .desired_width(ui.available_width() - 40.0) // Space for toggle button
+                                            .frame(false)
+                                            .font(egui::TextStyle::Monospace)
+                                            .password(!self.show_token) // Built-in password masking
+                                            .hint_text("xxxxx-xxxxx-xxxxx"),
+                                    );
+                                    
+                                    // Toggle visibility button
+                                    if ui.add(
+                                        egui::Button::new(
+                                            if self.show_token { "🙈" } else { "👁️" }
+                                        )
+                                        .fill(egui::Color32::TRANSPARENT)
+                                        .corner_radius(egui::CornerRadius::same(4))
+                                    ).clicked() {
+                                        self.show_token = !self.show_token;
+                                    }
+                                });
                             });
                     }
 
