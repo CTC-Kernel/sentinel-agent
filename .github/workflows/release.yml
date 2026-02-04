@@ -560,6 +560,15 @@ jobs:
           VERSION="${{ env.RELEASE_VERSION }}"
           BUCKET="gs://sentinel-grc-a8701.firebasestorage.app/releases/agent"
           
+          echo "=== Cleaning up existing 'latest' aliases and metadata (All Platforms) ==="
+          # Remove all aliases and metadata across all subfolders to ensure a clean state
+          # This covers macos, windows, linux_deb, linux_rpm
+          gcloud storage rm "$BUCKET/**/latest*" \
+                            "$BUCKET/**/*-latest*" \
+                            "$BUCKET/**/sentinel-agent-latest*" \
+                            "$BUCKET/release-info.json" \
+                            "$BUCKET/SHA256SUMS*.txt" 2>/dev/null || true
+
           echo "=== Generating aliases and metadata ==="
           DATE=$(date -u +"%Y-%m-%d")
           
