@@ -122,7 +122,7 @@ fn draw_premium_button(
     if !enabled {
         response.on_hover_cursor(egui::CursorIcon::NotAllowed)
     } else {
-        response
+        response.on_hover_cursor(egui::CursorIcon::PointingHand)
     }
 }
 

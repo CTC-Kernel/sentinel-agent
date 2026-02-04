@@ -22,6 +22,8 @@ pub enum GuiAgentStatus {
     Paused,
     /// Agent is performing a scan.
     Scanning,
+    /// Agent is synchronizing data with the server.
+    Syncing,
     /// Agent encountered an error.
     Error,
     /// Agent is starting up.

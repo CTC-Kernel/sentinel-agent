@@ -24,6 +24,7 @@
 pub mod config;
 pub mod constants;
 pub mod error;
+pub mod sensitive_filter;
 pub mod types;
 
 // Re-export commonly used items at crate root
@@ -31,3 +32,4 @@ pub use config::AgentConfig;
 pub use error::{CommonError, Result};
 pub use types::{AgentStatus, CheckResult, CheckStatus, Proof};
 pub use types::{RuntimeEvent, RuntimeEventKind, Severity};
+pub use sensitive_filter::{filter_sensitive_data, filter_json_sensitive_data, contains_sensitive_data};
