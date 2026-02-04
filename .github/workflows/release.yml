@@ -154,6 +154,10 @@ jobs:
           # Allow codesign/productbuild to access the private key in CI without UI prompts
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           
+          # Export to environment for subsequent steps
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+          echo "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> "$GITHUB_ENV"
+
           # Remove temp files
           rm -f "$CERTIFICATE_PATH"
           rm -f "$INSTALLER_CERTIFICATE_PATH"
@@ -175,15 +179,20 @@ jobs:
           NOTARIZE: true
           VERSION: ${{ env.RELEASE_VERSION }}
         run: |
+          # Ensure keychain is unlocked and in search list
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+          
           # Discover identities from the imported keychain
-          SIGNING_IDENTITY=$(security find-identity -v | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
-          INSTALLER_IDENTITY=$(security find-identity -v | grep "Developer ID Installer" | head -1 | awk -F'"' '{print $2}')
+          SIGNING_IDENTITY=$(security find-identity -v "$KEYCHAIN_PATH" | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
+          INSTALLER_IDENTITY=$(security find-identity -v "$KEYCHAIN_PATH" | grep "Developer ID Installer" | head -1 | awk -F'"' '{print $2}')
           
           echo "Discovered Signing Identity: $SIGNING_IDENTITY"
           echo "Discovered Installer Identity: $INSTALLER_IDENTITY"
           
           if [ -z "$SIGNING_IDENTITY" ]; then
-            echo "::error::Developer ID Application certificate not found in keychain!"
+            echo "::error::Developer ID Application certificate not found in keychain $KEYCHAIN_PATH!"
+            security find-identity -v "$KEYCHAIN_PATH"
             exit 1
           fi
           
