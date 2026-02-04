@@ -177,6 +177,7 @@ pub struct AppState {
     pub heartbeat_interval_secs: u64,
     pub log_level: u8, // 0=ERROR, 1=WARN, 2=INFO, 3=DEBUG, 4=TRACE
     pub dark_mode: bool,
+    pub update_status: crate::dto::UpdateStatus,
 
     // Software page tab state (0=Packages, 1=Applications)
     pub software_active_tab: u8,
@@ -289,6 +290,7 @@ impl Default for AppState {
             heartbeat_interval_secs: agent_common::constants::DEFAULT_HEARTBEAT_INTERVAL_SECS,
             log_level: 2, // INFO
             dark_mode: true,
+            update_status: crate::dto::UpdateStatus::Idle,
             software_active_tab: 0,
             compliance_search: String::new(),
             compliance_status_filter: None,
@@ -456,7 +458,9 @@ impl SentinelApp {
                     self.state.cpu_history.push([t, usage.cpu_percent]);
                     self.state.memory_history.push([t, usage.memory_percent]);
                     self.state.disk_io_history.push([t, usage.disk_iops as f64]);
-                    self.state.network_io_history.push([t, usage.network_io_bytes as f64 / 1024.0]); // In KB/s for graph
+                    self.state
+                        .network_io_history
+                        .push([t, usage.network_io_bytes as f64 / 1024.0]); // In KB/s for graph
                     // Truncate to 300 data points
                     const MAX_HISTORY: usize = 300;
                     if self.state.cpu_history.len() > MAX_HISTORY {
@@ -609,6 +613,9 @@ impl SentinelApp {
                 AgentEvent::ShuttingDown => {
                     // Runtime is shutting down
                 }
+                AgentEvent::UpdateStatusChanged { status } => {
+                    self.state.update_status = status;
+                }
             }
         }
     }
@@ -740,7 +747,7 @@ impl eframe::App for SentinelApp {
                 .frame(
                     egui::Frame::new()
                         .fill(theme::bg_primary())
-                        .inner_margin(0.0)
+                        .inner_margin(0.0),
                 )
                 .show(ctx, |ui| {
                     if let Some(cmd) = self.enrollment_wizard.show(ui) {
@@ -782,6 +789,7 @@ impl eframe::App for SentinelApp {
                 let scanning = self.state.summary.status == crate::dto::GuiAgentStatus::Scanning;
                 let sync_state = widgets::sidebar::SidebarSyncState {
                     syncing: self.state.sync_in_progress,
+                    pending_count: self.state.summary.pending_sync_count,
                     last_sync_at: self.state.summary.last_sync_at,
                     error: self.state.sync_error.clone(),
                 };
@@ -827,7 +835,8 @@ impl eframe::App for SentinelApp {
                                     }
                                 }
                                 Page::Monitoring => {
-                                    if let Some(cmd) = pages::MonitoringPage::show(ui, &self.state) {
+                                    if let Some(cmd) = pages::MonitoringPage::show(ui, &self.state)
+                                    {
                                         self.send_command(cmd);
                                     }
                                 }
@@ -839,7 +848,9 @@ impl eframe::App for SentinelApp {
                                     }
                                 }
                                 Page::Software => {
-                                    if let Some(cmd) = pages::SoftwarePage::show(ui, &mut self.state) {
+                                    if let Some(cmd) =
+                                        pages::SoftwarePage::show(ui, &mut self.state)
+                                    {
                                         self.send_command(cmd);
                                     }
                                 }
@@ -873,7 +884,8 @@ impl eframe::App for SentinelApp {
                                     }
                                 }
                                 Page::Terminal => {
-                                    if let Some(cmd) = pages::TerminalPage::show(ui, &mut self.state)
+                                    if let Some(cmd) =
+                                        pages::TerminalPage::show(ui, &mut self.state)
                                     {
                                         self.send_command(cmd);
                                     }
@@ -916,8 +928,8 @@ impl eframe::App for SentinelApp {
                                     }
                                 }
                             });
-                        });
-                });
+                    });
+            });
 
         // Request periodic repaint for event processing.
         ctx.request_repaint_after(std::time::Duration::from_millis(100));

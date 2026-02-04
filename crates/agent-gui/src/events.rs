@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::dto::{
     AgentSummary, GuiCheckResult, GuiNetworkConnection, GuiNetworkInterface, GuiNotification,
     GuiResourceUsage, GuiSoftwarePackage, GuiVulnerabilityFinding, GuiVulnerabilitySummary,
+    UpdateStatus,
 };
 
 /// A single terminal log entry captured from the tracing subsystem.
@@ -146,6 +147,11 @@ pub enum AgentEvent {
     },
     /// Agent is shutting down.
     ShuttingDown,
+    /// Update status has changed.
+    UpdateStatusChanged {
+        /// Updated update status.
+        status: UpdateStatus,
+    },
 }
 
 /// Commands sent from the GUI to the agent runtime.
@@ -209,6 +215,8 @@ pub enum GuiCommand {
         /// Alert ID.
         alert_id: String,
     },
+    /// Trigger a check for self-update.
+    CheckUpdate,
 }
 
 #[cfg(test)]

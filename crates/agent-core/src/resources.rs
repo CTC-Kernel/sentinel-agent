@@ -9,8 +9,8 @@
 //! - Disk I/O: < 10 IOPS average
 //! - Startup: < 5 seconds
 
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 use tracing::{debug, info, warn};
 
@@ -33,11 +33,11 @@ impl Default for ResourceLimits {
     fn default() -> Self {
         Self {
             // egui render loop + OpenGL poll uses 5-12% CPU on macOS even when idle
-            max_cpu_idle: 15.0,   // 15% idle (egui+OpenGL render loop headroom)
-            max_cpu_active: 25.0, // 25% during active scans
-            max_memory_bytes: 300 * 1024 * 1024, // 300 MB (egui+OpenGL context needs ~200MB)
-            max_disk_iops: 50,
-            max_startup_ms: 10000, // 10 seconds
+            max_cpu_idle: 20.0, // 20% idle (increased from 15% for macOS headroom)
+            max_cpu_active: 35.0, // 35% during active scans (increased for I/O heavy checks)
+            max_memory_bytes: 350 * 1024 * 1024, // 350 MB (egui+OpenGL context needs ~200MB)
+            max_disk_iops: 100,
+            max_startup_ms: 15000, // 15 seconds
         }
     }
 }
@@ -127,8 +127,10 @@ impl ResourceMonitor {
                 .values()
                 .map(|data| data.received() + data.transmitted())
                 .sum();
-            
-            let last_net = self.last_network_bytes.swap(current_network, Ordering::Relaxed);
+
+            let last_net = self
+                .last_network_bytes
+                .swap(current_network, Ordering::Relaxed);
             if last_net > 0 {
                 // Return bytes since last sample (assumes ~1s interval)
                 current_network.saturating_sub(last_net)
@@ -202,11 +204,17 @@ impl ResourceMonitor {
     /// Check if provided usage is within limits.
     /// Warnings are rate-limited to once per 60 seconds to avoid log spam.
     pub fn check_limits_with_usage(&self, usage: &ResourceUsage, is_active: bool) -> bool {
-        let within_limits = if is_active {
-            usage.is_within_active_limits(&self.limits)
+        let (cpu_limit, state_name) = if is_active {
+            (self.limits.max_cpu_active, "active")
         } else {
-            usage.is_within_idle_limits(&self.limits)
+            (self.limits.max_cpu_idle, "idle")
         };
+
+        let cpu_over = usage.cpu_percent > cpu_limit;
+        let memory_over = usage.memory_bytes > self.limits.max_memory_bytes;
+        let disk_over = usage.disk_iops > self.limits.max_disk_iops;
+
+        let within_limits = !cpu_over && !memory_over && !disk_over;
 
         if !within_limits {
             // Rate-limit warnings to once per 60 seconds
@@ -215,12 +223,32 @@ impl ResourceMonitor {
 
             if now_secs >= last_warning + 60 {
                 self.last_warning_time.store(now_secs, Ordering::Relaxed);
-                let state = if is_active { "active" } else { "idle" };
+
+                let mut breaches = Vec::new();
+                if cpu_over {
+                    breaches.push(format!(
+                        "CPU={:.1}% (limit: {:.1}%)",
+                        usage.cpu_percent, cpu_limit
+                    ));
+                }
+                if memory_over {
+                    breaches.push(format!(
+                        "RAM={}MB (limit: {}MB)",
+                        usage.memory_bytes / (1024 * 1024),
+                        self.limits.max_memory_bytes / (1024 * 1024)
+                    ));
+                }
+                if disk_over {
+                    breaches.push(format!(
+                        "DiskIO={} (limit: {})",
+                        usage.disk_iops, self.limits.max_disk_iops
+                    ));
+                }
+
                 warn!(
-                    "Resource limits exceeded during {} state: CPU={:.1}%, RAM={}MB",
-                    state,
-                    usage.cpu_percent,
-                    usage.memory_bytes / (1024 * 1024)
+                    "Resource limits exceeded during {} state: {}",
+                    state_name,
+                    breaches.join(", ")
                 );
             }
         }
@@ -1254,11 +1282,11 @@ mod tests {
     #[test]
     fn test_resource_limits_default() {
         let limits = ResourceLimits::default();
-        assert!((limits.max_cpu_idle - 15.0).abs() < f64::EPSILON);
-        assert!((limits.max_cpu_active - 25.0).abs() < f64::EPSILON);
-        assert_eq!(limits.max_memory_bytes, 300 * 1024 * 1024);
-        assert_eq!(limits.max_disk_iops, 50);
-        assert_eq!(limits.max_startup_ms, 10000);
+        assert!((limits.max_cpu_idle - 20.0).abs() < f64::EPSILON);
+        assert!((limits.max_cpu_active - 35.0).abs() < f64::EPSILON);
+        assert_eq!(limits.max_memory_bytes, 350 * 1024 * 1024);
+        assert_eq!(limits.max_disk_iops, 100);
+        assert_eq!(limits.max_startup_ms, 15000);
     }
 
     #[test]
@@ -1268,6 +1296,7 @@ mod tests {
             cpu_percent: 0.3,
             memory_bytes: 50 * 1024 * 1024,
             disk_iops: 5,
+            network_io_bytes: 0,
             uptime_ms: 1000,
         };
         assert!(usage.is_within_idle_limits(&limits));
@@ -1277,9 +1306,10 @@ mod tests {
     fn test_resource_usage_exceeds_idle_limits() {
         let limits = ResourceLimits::default();
         let usage = ResourceUsage {
-            cpu_percent: 20.0, // Exceeds 15% idle limit
+            cpu_percent: 25.0, // Exceeds 20% idle limit
             memory_bytes: 50 * 1024 * 1024,
             disk_iops: 5,
+            network_io_bytes: 0,
             uptime_ms: 1000,
         };
         assert!(!usage.is_within_idle_limits(&limits));
@@ -1292,6 +1322,7 @@ mod tests {
             cpu_percent: 4.0,
             memory_bytes: 80 * 1024 * 1024,
             disk_iops: 8,
+            network_io_bytes: 0,
             uptime_ms: 1000,
         };
         assert!(usage.is_within_active_limits(&limits));

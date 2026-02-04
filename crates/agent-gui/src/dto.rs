@@ -8,6 +8,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+pub use agent_common::types::UpdateStatus;
+
 /// Overall agent status displayed in the GUI dashboard.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -170,6 +172,34 @@ pub struct GuiNotification {
     pub read: bool,
     /// Optional action URL or command.
     pub action: Option<String>,
+}
+
+impl GuiNotification {
+    /// Create a new info notification.
+    pub fn info(title: impl Into<String>, body: impl Into<String>) -> Self {
+        Self {
+            id: uuid::Uuid::new_v4(),
+            title: title.into(),
+            body: body.into(),
+            severity: "info".to_string(),
+            timestamp: chrono::Utc::now(),
+            read: false,
+            action: None,
+        }
+    }
+
+    /// Create a new error notification.
+    pub fn error(title: impl Into<String>, body: impl Into<String>) -> Self {
+        Self {
+            id: uuid::Uuid::new_v4(),
+            title: title.into(),
+            body: body.into(),
+            severity: "error".to_string(),
+            timestamp: chrono::Utc::now(),
+            read: false,
+            action: None,
+        }
+    }
 }
 
 /// Policy summary for GUI display.

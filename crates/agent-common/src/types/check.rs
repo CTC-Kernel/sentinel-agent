@@ -111,6 +111,11 @@ pub struct CheckDefinition {
     /// Check-specific parameters.
     #[serde(default)]
     pub parameters: serde_json::Value,
+
+    /// Optional performance requirement (NFR) for this check in milliseconds.
+    /// If execution exceeds this duration, a warning may be logged.
+    #[serde(default)]
+    pub nfr_duration_ms: Option<u64>,
 }
 
 fn default_enabled() -> bool {
@@ -275,11 +280,13 @@ mod tests {
             enabled: true,
             platforms: vec!["windows".to_string(), "linux".to_string()],
             parameters: serde_json::Value::Null,
+            nfr_duration_ms: Some(2000),
         };
 
         let json = serde_json::to_string(&def).unwrap();
         let parsed: CheckDefinition = serde_json::from_str(&json).unwrap();
         assert_eq!(parsed.id, "disk_encryption");
         assert_eq!(parsed.category, CheckCategory::Encryption);
+        assert_eq!(parsed.nfr_duration_ms, Some(2000));
     }
 }

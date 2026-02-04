@@ -1,7 +1,7 @@
 //! Premium badge widgets with animations and effects similar to the hero badge.
 
-use egui::{Color32, CornerRadius, Response, RichText, Sense, Stroke, Ui, Vec2};
 use crate::theme;
+use egui::{Color32, CornerRadius, Response, RichText, Sense, Stroke, Ui, Vec2};
 
 /// A premium animated badge with glow effects, similar to the hero badge.
 pub struct PremiumBadge {
@@ -55,7 +55,15 @@ impl PremiumBadge {
             .color(theme::text_on_accent())
             .strong();
 
-        let desired_size = ui.painter().layout_no_wrap(self.text.clone(), theme::font_body(), theme::text_on_accent()).size() + padding * 2.0;
+        let desired_size = ui
+            .painter()
+            .layout_no_wrap(
+                self.text.clone(),
+                theme::font_body(),
+                theme::text_on_accent(),
+            )
+            .size()
+            + padding * 2.0;
 
         let (rect, response) = ui.allocate_exact_size(desired_size, Sense::hover());
 
@@ -66,17 +74,14 @@ impl PremiumBadge {
             self.color
         };
 
-        ui.painter().rect_filled(
-            rect,
-            CornerRadius::same(corner_radius as u8),
-            bg_color,
-        );
+        ui.painter()
+            .rect_filled(rect, CornerRadius::same(corner_radius as u8), bg_color);
 
         // Animated glow effect
         if self.animated {
             let time = ui.input(|i| i.time);
             let pulse = (time * 2.0).sin() * 0.3 + 0.7;
-            
+
             ui.painter().rect_stroke(
                 rect.expand(1.0),
                 CornerRadius::same((corner_radius + 1.0) as u8),

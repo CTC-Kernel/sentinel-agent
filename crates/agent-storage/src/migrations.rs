@@ -11,7 +11,7 @@ use rusqlite::Connection;
 use tracing::{debug, error, info, warn};
 
 /// Current schema version (incremented with each migration).
-pub const CURRENT_SCHEMA_VERSION: i32 = 2;
+pub const CURRENT_SCHEMA_VERSION: i32 = 3;
 
 /// A database migration.
 struct Migration {
@@ -166,6 +166,36 @@ const MIGRATIONS: &[Migration] = &[
             );
             INSERT INTO check_rules SELECT * FROM check_rules_backup;
             DROP TABLE check_rules_backup;
+        "#,
+    },
+    Migration {
+        version: 3,
+        name: "discovered_devices",
+        up: r#"
+            -- Discovered devices table for network cartography persistence
+            CREATE TABLE IF NOT EXISTS discovered_devices (
+                ip TEXT PRIMARY KEY NOT NULL,
+                mac TEXT,
+                hostname TEXT,
+                vendor TEXT,
+                device_type TEXT NOT NULL DEFAULT 'unknown',
+                open_ports TEXT,  -- JSON array of port numbers
+                first_seen TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+                last_seen TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+                is_gateway INTEGER NOT NULL DEFAULT 0,
+                subnet TEXT NOT NULL
+            );
+
+            -- Indexes for efficient queries
+            CREATE INDEX IF NOT EXISTS idx_discovered_devices_last_seen ON discovered_devices(last_seen);
+            CREATE INDEX IF NOT EXISTS idx_discovered_devices_subnet ON discovered_devices(subnet);
+            CREATE INDEX IF NOT EXISTS idx_discovered_devices_device_type ON discovered_devices(device_type);
+        "#,
+        down: r#"
+            DROP INDEX IF EXISTS idx_discovered_devices_device_type;
+            DROP INDEX IF EXISTS idx_discovered_devices_subnet;
+            DROP INDEX IF EXISTS idx_discovered_devices_last_seen;
+            DROP TABLE IF EXISTS discovered_devices;
         "#,
     },
 ];

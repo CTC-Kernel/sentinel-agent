@@ -50,6 +50,8 @@ pub const ERROR: Color32 = Color32::from_rgb(255, 59, 48); // #FF3B30
 pub const INFO: Color32 = Color32::from_rgb(0, 122, 255); // #007AFF
 /// Severity-high amber (web app risk amber / System Yellow).
 pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 204, 0); // #FFCC00
+/// Severity-medium (distinct from WARNING for proper hierarchy).
+pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 159, 10); // #FF9F0A iOS Orange
 
 // ============================================================================
 // Surface colors (dynamic – depends on active theme)
@@ -354,9 +356,9 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     visuals.widgets.inactive.corner_radius = btn_rounding;
     visuals.widgets.inactive.bg_stroke = Stroke::NONE; // Remove border for cleaner look
 
-    // Selection
+    // Selection / Focus (accessibility: visible focus ring)
     visuals.selection.bg_fill = ACCENT.linear_multiply(0.2);
-    visuals.selection.stroke = Stroke::new(1.0, ACCENT);
+    visuals.selection.stroke = Stroke::new(2.0, ACCENT); // 2px for WCAG-compliant focus visibility
 
     // Window
     visuals.window_corner_radius = CornerRadius::same(CARD_ROUNDING);
@@ -429,13 +431,14 @@ pub fn status_color(status: &str) -> Color32 {
     }
 }
 
-/// Color for a severity string.
+/// Color for a severity string - follows visual hierarchy:
+/// critical (red) > high (amber) > medium (orange) > low (blue) > info (gray)
 pub fn severity_color(severity: &str) -> Color32 {
     match severity {
-        "critical" => ERROR,
-        "high" => SEVERITY_HIGH,
-        "medium" => WARNING,
-        "low" => INFO,
+        "critical" => ERROR,           // #FF3B30 Red
+        "high" => SEVERITY_HIGH,       // #FFCC00 Amber
+        "medium" => SEVERITY_MEDIUM,   // #FF9F0A Orange
+        "low" => INFO,                 // #007AFF Blue
         "info" => text_secondary(),
         _ => text_secondary(),
     }

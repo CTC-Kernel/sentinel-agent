@@ -4,6 +4,7 @@ use chrono::{DateTime, Utc};
 use egui::Ui;
 
 use crate::app::AppState;
+use crate::dto::GuiAgentStatus;
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -164,8 +165,12 @@ impl ThreatsPage {
 
         // Action bar: Scan & Export
         ui.horizontal(|ui| {
-            if widgets::button::primary_button(ui, format!("{}  Lancer le scan", icons::PLAY))
-                .clicked()
+            if widgets::button::primary_button(
+                ui,
+                format!("{}  Lancer le scan", icons::PLAY),
+                state.summary.status != GuiAgentStatus::Scanning,
+            )
+            .clicked()
             {
                 command = Some(GuiCommand::RunCheck);
             }
@@ -455,7 +460,14 @@ impl ThreatsPage {
     }
 
     fn export_threats_csv(threats: &[ThreatEvent]) {
-        let headers = &["kind", "severity", "title", "description", "timestamp", "confidence"];
+        let headers = &[
+            "kind",
+            "severity",
+            "title",
+            "description",
+            "timestamp",
+            "confidence",
+        ];
         let rows: Vec<Vec<String>> = threats
             .iter()
             .map(|t| {
