@@ -431,13 +431,49 @@ jobs:
       - name: List artifacts
         run: find artifacts -type f | sort
 
-      - name: Authenticate to Google Cloud
+      - name: Prepare and Validate GCP Credentials
+        id: prepare-creds
+        run: |
+          if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
+            echo "::error::GCP_SA_KEY secret is missing!"
+            exit 1
+          fi
+
+          # Robustly decode and fix the JSON key.
+          # This handles Base64 encoding AND common literal newline issues in the private key.
+          FIXED_JSON=$(echo "${{ secrets.GCP_SA_KEY }}" | python3 -c "
+          import base64, json, sys
+          content = sys.stdin.read().strip()
+          try:
+              # Try to load as raw JSON first
+              data = json.loads(content)
+          except:
+              try:
+                  # Attempt to decode as Base64
+                  decoded = base64.b64decode(content).decode('utf-8')
+                  data = json.loads(decoded)
+              except Exception as e:
+                  print(f'::error::Failed to decode or parse secret: {e}')
+                  sys.exit(1)
+          
+          # Fix common private key formatting issues (literal \n characters)
+          if 'private_key' in data:
+              data['private_key'] = data['private_key'].replace('\\\\n', '\n').replace('\\n', '\n')
+          
+          print(json.dumps(data))
+          ")
+          
+          # Mask the output to prevent accidental logging of the fixed JSON
+          echo "fixed_json=$FIXED_JSON" >> "$GITHUB_OUTPUT"
+          echo "::add-mask::$FIXED_JSON"
+
+      - name: Authenticate to Google Cloud (Best Practice)
         id: auth
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          credentials_json: ${{ steps.prepare-creds.outputs.fixed_json }}
 
-      - name: Set up Cloud SDK
+      - name: Set up Cloud SDK (Best Practice)
         uses: google-github-actions/setup-gcloud@v2
         with:
           install_components: 'storage'
@@ -446,6 +482,8 @@ jobs:
         run: |
           VERSION="${{ env.RELEASE_VERSION }}"
           BUCKET="gs://sentinel-grc-a8701.firebasestorage.app/releases/agent"
+          
+          echo "🚀 Starting best-practice upload to $BUCKET..."
 
           echo "=== Uploading macOS packages ==="
           for f in artifacts/sentinel-agent-macos/SentinelAgent-*.dmg; do
@@ -490,9 +528,7 @@ jobs:
           gcloud storage objects update "$BUCKET/linux_rpm/sentinel-agent-*.rpm" --content-type="application/x-rpm" 2>/dev/null || true
           gcloud storage objects update "$BUCKET/*/SHA256SUMS.txt" --content-type="text/plain" 2>/dev/null || true
 
-          echo ""
-          echo "=== Upload complete ==="
-          echo "All releases uploaded to Firebase Storage"
+          echo "✅ Best-practice upload complete"
 
       - name: Verify uploads
         run: |
