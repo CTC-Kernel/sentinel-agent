@@ -242,17 +242,32 @@ jobs:
           if [ -f "SentinelAgent-${VERSION}.pkg" ]; then
             echo "Creating SentinelAgent-latest.pkg..."
             cp "SentinelAgent-${VERSION}.pkg" "SentinelAgent-latest.pkg"
-            # Staple both just in case (PKG notarization happens inside create-macos-developer-signed-installer.sh)
-            xcrun stapler staple "SentinelAgent-${VERSION}.pkg" || true
-            xcrun stapler staple "SentinelAgent-latest.pkg" || true
+            # Explicitly staple both files
+            echo "Stapling versioned PKG..."
+            xcrun stapler staple "SentinelAgent-${VERSION}.pkg" || echo "Staple failed for versioned PKG"
+            echo "Stapling latest PKG..."
+            xcrun stapler staple "SentinelAgent-latest.pkg" || echo "Staple failed for latest PKG"
           fi
           
           # DMG
           if [ -f "SentinelAgent-${VERSION}.dmg" ]; then
             echo "Creating SentinelAgent-latest.dmg..."
             cp "SentinelAgent-${VERSION}.dmg" "SentinelAgent-latest.dmg"
-            xcrun stapler staple "SentinelAgent-latest.dmg" || true
+            echo "Stapling latest DMG..."
+            xcrun stapler staple "SentinelAgent-latest.dmg" || echo "Staple failed for latest DMG"
           fi
+
+      - name: Verify Gatekeeper Compliance
+        run: |
+          VERSION="${{ env.RELEASE_VERSION }}"
+          cd target/release
+          echo "=== Verifying PKG signature and notarization ==="
+          pkgutil --check-signature "SentinelAgent-${VERSION}.pkg"
+          spctl --assess --type install --verbose "SentinelAgent-${VERSION}.pkg"
+          
+          echo "=== Verifying Latest PKG signature and notarization ==="
+          pkgutil --check-signature "SentinelAgent-latest.pkg"
+          spctl --assess --type install --verbose "SentinelAgent-latest.pkg"
 
       - name: Generate checksums
         run: |

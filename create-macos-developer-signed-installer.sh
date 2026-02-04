@@ -183,8 +183,8 @@ else
     touch "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
 fi
 
-# Sign the app bundle with Apple Developer ID
-echo -e "${YELLOW}Signing app bundle with identity: $SIGNING_IDENTITY...${NC}"
+# Sign the binary and the app bundle with Apple Developer ID
+echo -e "${YELLOW}Signing binary and app bundle with identity: $SIGNING_IDENTITY...${NC}"
 MAX_RETRIES=3
 RETRY_COUNT=0
 SUCCESS=false
@@ -202,6 +202,13 @@ fi
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     echo -e "Attempt $((RETRY_COUNT + 1)) of $MAX_RETRIES..."
+    
+    # 1. Sign the binary first with hardened runtime and entitlements
+    echo -e "Signing internal binary..."
+    eval "codesign $CODESIGN_OPTIONS --sign '$SIGNING_IDENTITY' '$APP_BUNDLE/Contents/MacOS/SentinelAgent'"
+    
+    # 2. Sign the bundle itself
+    echo -e "Signing app bundle..."
     if eval "codesign $CODESIGN_OPTIONS --sign '$SIGNING_IDENTITY' '$APP_BUNDLE'"; then
         SUCCESS=true
         break
