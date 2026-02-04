@@ -544,27 +544,29 @@ pkgbuild \
 
 
 # Create product archive
-# If we have an installer identity, use it. Otherwise, normal build.
 if [ -n "$INSTALLER_IDENTITY" ]; then
     echo -e "${YELLOW}Signing Installer Package with: $INSTALLER_IDENTITY...${NC}"
-    productbuild \
+    if productbuild \
         --distribution "$BUILD_DIR/distribution.xml" \
         --resources "$BUILD_DIR" \
         --package-path "$BUILD_DIR" \
         --sign "$INSTALLER_IDENTITY" \
-        "$PKG_DIR/SentinelAgent-$VERSION.pkg"
+        "$PKG_DIR/SentinelAgent-$VERSION.pkg"; then
+        echo -e "${GREEN}✅ Installer Package signed successfully${NC}"
+    else
+        echo -e "${RED}❌ Failed to sign Installer Package${NC}"
+        exit 1
+    fi
 else
-    echo -e "${YELLOW}⚠️  No Developer ID Installer certificate found.${NC}"
-    echo -e "${YELLOW}   Package will be signed with Developer ID Application but not notarized.${NC}"
-    echo -e "${YELLOW}   To enable notarization, add a Developer ID Installer certificate to your keychain.${NC}"
+    echo -e "${RED}❌ Error: No Developer ID Installer certificate found (INSTALLER_IDENTITY is empty).${NC}"
+    echo -e "${YELLOW}   A signed package is required for distribution and notarization.${NC}"
     
     if [ "$NOTARIZE" = "true" ]; then
-        echo -e "${RED}❌ Cannot notarize without Developer ID Installer certificate.${NC}"
-        echo -e "${RED}   Disabling notarization and continuing with signed package only...${NC}"
-        export NOTARIZE=false
+        echo -e "${RED}❌ Cannot notarize without signed package. Exiting...${NC}"
+        exit 1
     fi
     
-    echo -e "${YELLOW}Building Unsigned Installer Package (Ad-hoc)...${NC}"
+    echo -e "${YELLOW}Building Unsigned Installer Package (Ad-hoc) as fallback...${NC}"
     productbuild \
         --distribution "$BUILD_DIR/distribution.xml" \
         --resources "$BUILD_DIR" \
