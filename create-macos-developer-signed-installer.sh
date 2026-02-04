@@ -378,10 +378,10 @@ cat > "$BUILD_DIR/distribution.xml" << DISTXML
     </choices-outline>
 
     <choice id="sentinel_agent" title="Sentinel GRC Agent v$VERSION" description="Application de monitoring de conformité pour la plateforme Sentinel GRC. Inclut l'application, les outils CLI et le lancement automatique.">
-        <pkg-ref id="com.sentinel.agent.app"/>
+        <pkg-ref id="$IDENTIFIER"/>
     </choice>
 
-    <pkg-ref id="com.sentinel.agent.app" version="$VERSION" onConclusion="none">SentinelAgentApp.pkg</pkg-ref>
+    <pkg-ref id="$IDENTIFIER" version="$VERSION" onConclusion="none">SentinelAgentApp.pkg</pkg-ref>
 </installer-gui-script>
 DISTXML
 
@@ -579,7 +579,7 @@ cp -R "$APP_BUNDLE" "$PAYLOAD_DIR/SentinelAgent.app"
 # Create component package
 pkgbuild \
     --root "$PAYLOAD_DIR" \
-    --identifier "$IDENTIFIER.app" \
+    --identifier "$IDENTIFIER" \
     --version "$VERSION" \
     --install-location "$INSTALL_LOCATION" \
     --scripts "$BUILD_DIR" \
