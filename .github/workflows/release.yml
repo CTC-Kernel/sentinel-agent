@@ -259,9 +259,9 @@ jobs:
           VERSION="${{ env.RELEASE_VERSION }}"
           cd target/release
           shasum -a 256 "SentinelAgent-${VERSION}.dmg" "SentinelAgent-${VERSION}.pkg" > SHA256SUMS-macos.txt
-          # Also generate for latest
-          [ -f "SentinelAgent-latest.dmg" ] && sha256sum "SentinelAgent-latest.dmg" | cut -d' ' -f1 > "SentinelAgent-latest.dmg.sha256"
-          [ -f "SentinelAgent-latest.pkg" ] && sha256sum "SentinelAgent-latest.pkg" | cut -d' ' -f1 > "SentinelAgent-latest.pkg.sha256"
+          # Also generate for latest (Standard shasum on macOS)
+          [ -f "SentinelAgent-latest.dmg" ] && shasum -a 256 "SentinelAgent-latest.dmg" | cut -d' ' -f1 > "SentinelAgent-latest.dmg.sha256"
+          [ -f "SentinelAgent-latest.pkg" ] && shasum -a 256 "SentinelAgent-latest.pkg" | cut -d' ' -f1 > "SentinelAgent-latest.pkg.sha256"
           cat SHA256SUMS-macos.txt
 
       - name: Upload macOS artifacts
@@ -271,6 +271,7 @@ jobs:
           path: |
             target/release/SentinelAgent-*.dmg
             target/release/SentinelAgent-*.pkg
+            target/release/SentinelAgent-*.sha256
             target/release/SHA256SUMS-macos.txt
 
   # ═══════════════════════════════════════════════════════════════════
@@ -577,13 +578,19 @@ jobs:
           create_latest "sentinel-agent_*.deb" "sentinel-agent-linux-deb" "sentinel-agent-latest-amd64.deb"
           create_latest "sentinel-agent-*.rpm" "sentinel-agent-linux-rpm" "sentinel-agent-latest.x86_64.rpm"
 
-          # Upload macOS latest files (pre-created and stapled on macOS runner)
-          [ -f "artifacts/sentinel-agent-macos/SentinelAgent-latest.pkg" ] && \
-            gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.pkg" "$BUCKET/macos/" && \
-            gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.pkg.sha256" "$BUCKET/macos/"
-          [ -f "artifacts/sentinel-agent-macos/SentinelAgent-latest.dmg" ] && \
-            gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.dmg" "$BUCKET/macos/" && \
-            gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.dmg.sha256" "$BUCKET/macos/"
+          echo "=== Processing macOS latest files ==="
+          # macOS latest files are pre-created and stapled on macOS runner
+          if [ -d "artifacts/sentinel-agent-macos" ]; then
+            ls -R artifacts/sentinel-agent-macos/
+            [ -f "artifacts/sentinel-agent-macos/SentinelAgent-latest.pkg" ] && \
+              gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.pkg" "$BUCKET/macos/"
+            [ -f "artifacts/sentinel-agent-macos/SentinelAgent-latest.pkg.sha256" ] && \
+              gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.pkg.sha256" "$BUCKET/macos/"
+            [ -f "artifacts/sentinel-agent-macos/SentinelAgent-latest.dmg" ] && \
+              gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.dmg" "$BUCKET/macos/"
+            [ -f "artifacts/sentinel-agent-macos/SentinelAgent-latest.dmg.sha256" ] && \
+              gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.dmg.sha256" "$BUCKET/macos/"
+          fi
 
           # Generate release-info.json
           echo "{" > release-info.json
