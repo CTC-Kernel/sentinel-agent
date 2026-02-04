@@ -184,14 +184,31 @@ impl MonitoringPage {
                 // Use clipped painter to prevent overflow
                 let painter = ui.painter_at(card_inner_rect);
 
-                // Subtle hover tint (no glow that could overflow)
+                // Premium hover effect with subtle glow and shadow
                 if is_hovered {
                     let time = ui.input(|i| i.time);
-                    let pulse = (time * 3.0).sin() * 0.1 + 0.9;
+                    let pulse = (time * 2.0).sin() * 0.05 + 0.95; // Slower, more subtle pulse
+                    
+                    // Premium shadow effect
+                    painter.rect_filled(
+                        card_inner_rect.expand(1.0),
+                        0.0,
+                        color.linear_multiply(0.1),
+                    );
+                    
+                    // Subtle gradient overlay
                     painter.rect_filled(
                         card_inner_rect,
-                        0.0, // No rounding needed for inner fill
-                        color.linear_multiply(0.03 * pulse as f32),
+                        0.0,
+                        color.linear_multiply(0.02 * pulse as f32),
+                    );
+                    
+                    // Premium border glow
+                    painter.rect_stroke(
+                        card_inner_rect,
+                        0.0,
+                        egui::Stroke::new(1.0, color.linear_multiply(0.3 * pulse as f32)),
+                        egui::StrokeKind::Inside,
                     );
                 }
 
@@ -228,18 +245,33 @@ impl MonitoringPage {
                     });
                 });
 
-                // Subtle bottom accent line on hover (kept INSIDE card bounds)
+                // Premium bottom accent line with gradient on hover
                 if is_hovered {
-                    // Use painter_at to ensure clipping
-                    let accent_height = 2.0;
+                    let time = ui.input(|i| i.time);
+                    let pulse = (time * 1.5).sin() * 0.2 + 0.8;
+                    
+                    let accent_height = 3.0;
                     let accent_rect = egui::Rect::from_min_size(
                         egui::pos2(card_inner_rect.left(), card_inner_rect.bottom() - accent_height),
                         egui::vec2(card_inner_rect.width(), accent_height),
                     );
+                    
+                    // Gradient effect with multiple layers
                     painter.rect_filled(
                         accent_rect,
                         0.0,
-                        color.linear_multiply(0.5),
+                        color.linear_multiply(0.6 * pulse as f32),
+                    );
+                    
+                    // Subtle glow above the line
+                    let glow_rect = egui::Rect::from_min_size(
+                        egui::pos2(card_inner_rect.left(), card_inner_rect.bottom() - accent_height - 2.0),
+                        egui::vec2(card_inner_rect.width(), 2.0),
+                    );
+                    painter.rect_filled(
+                        glow_rect,
+                        0.0,
+                        color.linear_multiply(0.2 * pulse as f32),
                     );
                     
                     ui.ctx().request_repaint();
@@ -284,31 +316,37 @@ impl MonitoringPage {
                         .strong(),
                 );
 
-                // Live pulsing indicator
+                // Enhanced premium live indicator with sophisticated glow
                 if !history.is_empty() {
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         let time = ui.input(|i| i.time);
-                        let pulse = (time * 3.0).sin() * 0.5 + 0.5;
+                        let pulse = (time * 2.5).sin() * 0.3 + 0.7; // Slower, more elegant
                         
-                        // Outer glow ring
-                        let glow_color = line_color.linear_multiply(0.2 + pulse as f32 * 0.3);
+                        let center = ui.cursor().center() + egui::vec2(8.0, 0.0);
+                        
+                        // Multi-layer glow effect
+                        for i in (0..3).rev() {
+                            let radius = 8.0 + (i as f32 * 3.0);
+                            let alpha = 0.15 / (i as f32 + 1.0);
+                            ui.painter().circle_filled(
+                                center,
+                                radius,
+                                line_color.linear_multiply(alpha * pulse as f32),
+                            );
+                        }
+                        
+                        // Inner solid core with pulse
                         ui.painter().circle_filled(
-                            ui.cursor().center() + egui::vec2(8.0, 0.0),
-                            6.0,
-                            glow_color,
+                            center,
+                            3.5,
+                            line_color.linear_multiply(0.8 + pulse as f32 * 0.2),
                         );
                         
-                        // Inner solid dot
-                        ui.painter().circle_filled(
-                            ui.cursor().center() + egui::vec2(8.0, 0.0),
-                            3.0,
-                            line_color,
-                        );
-                        
+                        // Premium text with gradient effect
                         ui.label(
                             egui::RichText::new("LIVE")
                                 .font(egui::FontId::proportional(9.0))
-                                .color(line_color.linear_multiply(0.6 + pulse as f32 * 0.4))
+                                .color(line_color.linear_multiply(0.7 + pulse as f32 * 0.3))
                         );
                         ui.add_space(20.0);
                     });
@@ -438,31 +476,33 @@ impl MonitoringPage {
 
                 ui.add_space(theme::SPACE_XS);
 
-                // ═══════════════════════════════════════════════════════════
-                // Enhanced chart with neon glow effect
-                // ═══════════════════════════════════════════════════════════
+                // Enhanced chart with sophisticated premium glow effects
                 
                 // Create main line with premium styling
                 let mut line = Line::new(PlotPoints::new(history.to_vec()))
                     .color(line_color)
-                    .width(2.5)
+                    .width(3.0) // Slightly thicker for premium
                     .name(title);
 
                 if fill {
                     line = line.fill(0.0);
                 }
 
-                // Create glow line (wider, more transparent)
-                let glow_line = Line::new(PlotPoints::new(history.to_vec()))
-                    .color(line_color.linear_multiply(0.25))
-                    .width(8.0);
+                // Multi-layer premium glow system
+                let glow_layers = vec![
+                    (line_color.linear_multiply(0.08), 24.0), // Outer most glow
+                    (line_color.linear_multiply(0.15), 16.0), // Middle glow
+                    (line_color.linear_multiply(0.25), 10.0), // Inner glow
+                ];
 
-                // Create secondary glow (even wider)
-                let outer_glow = Line::new(PlotPoints::new(history.to_vec()))
-                    .color(line_color.linear_multiply(0.1))
-                    .width(16.0);
+                let glow_lines: Vec<Line> = glow_layers
+                    .into_iter()
+                    .map(|(color, width)| Line::new(PlotPoints::new(history.to_vec()))
+                        .color(color)
+                        .width(width))
+                    .collect();
 
-                // Build premium plot widget
+                // Build premium plot widget with enhanced settings
                 let mut plot_widget = Plot::new(egui::Id::new(title))
                     .height(height - 40.0) // Account for stats row
                     .include_y(0.0)
@@ -472,7 +512,8 @@ impl MonitoringPage {
                     .show_axes(egui::Vec2b::new(false, true))
                     .show_grid(egui::Vec2b::new(true, true))
                     .auto_bounds(egui::Vec2b::new(true, true))
-                    .show_background(false); // Transparent background for premium look
+                    .show_background(false) // Transparent for premium look
+                    .legend(egui_plot::Legend::default().position(egui_plot::Corner::RightTop));
 
                 if !auto_y {
                     plot_widget = plot_widget.include_y(100.0);
@@ -482,52 +523,34 @@ impl MonitoringPage {
                 let anim_time = ui.input(|i| i.time);
 
                 plot_widget.show(ui, |plot_ui: &mut egui_plot::PlotUi| {
-                    // Draw glow layers first (back to front)
-                    plot_ui.line(outer_glow);
-                    plot_ui.line(glow_line);
+                    // Draw glow layers from back to front
+                    for glow_line in glow_lines {
+                        plot_ui.line(glow_line);
+                    }
                     
                     // Main line on top
                     plot_ui.line(line);
 
-                    // Animated latest point marker
+                    // Enhanced animated latest point with premium effects
                     if let Some(latest) = history.last() {
-                        let pulse = (anim_time * 4.0).sin() * 0.3 + 0.7;
+                        let pulse = (anim_time * 3.0).sin() * 0.4 + 0.6;
                         
-                        // Outer glow ring for latest point
-                        plot_ui.points(
-                            egui_plot::Points::new(PlotPoints::new(vec![*latest]))
-                                .color(line_color.linear_multiply(pulse as f32 * 0.5))
-                                .radius(8.0)
-                                .shape(egui_plot::MarkerShape::Circle),
-                        );
+                        // Multi-layer point glow
+                        let point_glow = egui_plot::Points::new(PlotPoints::new(vec![*latest]))
+                            .color(line_color.linear_multiply(0.3 * pulse as f32))
+                            .radius(12.0);
                         
-                        // Inner solid point
-                        plot_ui.points(
-                            egui_plot::Points::new(PlotPoints::new(vec![*latest]))
-                                .color(line_color)
-                                .radius(4.0)
-                                .filled(true)
-                                .shape(egui_plot::MarkerShape::Circle),
-                        );
-                    }
-
-                    // Add horizontal reference lines for thresholds (for percentage charts)
-                    if !auto_y {
-                        // Warning threshold at 70%
-                        plot_ui.hline(
-                            egui_plot::HLine::new(70.0)
-                                .color(theme::WARNING.linear_multiply(0.3))
-                                .width(1.0)
-                                .style(egui_plot::LineStyle::dashed_dense()),
-                        );
+                        let point_inner = egui_plot::Points::new(PlotPoints::new(vec![*latest]))
+                            .color(line_color.linear_multiply(0.6 * pulse as f32))
+                            .radius(6.0);
                         
-                        // Critical threshold at 90%
-                        plot_ui.hline(
-                            egui_plot::HLine::new(90.0)
-                                .color(theme::ERROR.linear_multiply(0.3))
-                                .width(1.0)
-                                .style(egui_plot::LineStyle::dashed_dense()),
-                        );
+                        let point_core = egui_plot::Points::new(PlotPoints::new(vec![*latest]))
+                            .color(line_color)
+                            .radius(3.0);
+                        
+                        plot_ui.points(point_glow);
+                        plot_ui.points(point_inner);
+                        plot_ui.points(point_core);
                     }
                 });
                 
