@@ -213,27 +213,55 @@ jobs:
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          DMG_PATH=$(ls target/release/SentinelAgent-*.dmg | grep -v latest | head -1)
-          echo "Notarizing $DMG_PATH..."
-
-          if xcrun notarytool submit "$DMG_PATH" \
-            --apple-id "$APPLE_ID" \
-            --password "$APPLE_APP_PASSWORD" \
-            --team-id "$APPLE_TEAM_ID" \
-            --verbose \
-            --wait --timeout 30m; then
-            xcrun stapler staple "$DMG_PATH"
-            echo "DMG notarization complete!"
+          VERSION="${{ env.RELEASE_VERSION }}"
+          DMG_PATH="target/release/SentinelAgent-${VERSION}.dmg"
+          
+          if [ ! -f "$DMG_PATH" ]; then
+            echo "::warning::DMG not found at $DMG_PATH"
           else
-            echo "::warning::DMG notarization timed out."
+            echo "Notarizing $DMG_PATH..."
+            if xcrun notarytool submit "$DMG_PATH" \
+              --apple-id "$APPLE_ID" \
+              --password "$APPLE_APP_PASSWORD" \
+              --team-id "$APPLE_TEAM_ID" \
+              --verbose \
+              --wait --timeout 30m; then
+              xcrun stapler staple "$DMG_PATH"
+              echo "DMG notarization complete!"
+            else
+              echo "::warning::DMG notarization timed out."
+            fi
           fi
 
+      - name: Create and Staple Latest Aliases
+        run: |
+          VERSION="${{ env.RELEASE_VERSION }}"
+          cd target/release
+          
+          # PKG
+          if [ -f "SentinelAgent-${VERSION}.pkg" ]; then
+            echo "Creating SentinelAgent-latest.pkg..."
+            cp "SentinelAgent-${VERSION}.pkg" "SentinelAgent-latest.pkg"
+            # Staple both just in case (PKG notarization happens inside create-macos-developer-signed-installer.sh)
+            xcrun stapler staple "SentinelAgent-${VERSION}.pkg" || true
+            xcrun stapler staple "SentinelAgent-latest.pkg" || true
+          fi
+          
+          # DMG
+          if [ -f "SentinelAgent-${VERSION}.dmg" ]; then
+            echo "Creating SentinelAgent-latest.dmg..."
+            cp "SentinelAgent-${VERSION}.dmg" "SentinelAgent-latest.dmg"
+            xcrun stapler staple "SentinelAgent-latest.dmg" || true
+          fi
 
       - name: Generate checksums
         run: |
           VERSION="${{ env.RELEASE_VERSION }}"
           cd target/release
           shasum -a 256 "SentinelAgent-${VERSION}.dmg" "SentinelAgent-${VERSION}.pkg" > SHA256SUMS-macos.txt
+          # Also generate for latest
+          [ -f "SentinelAgent-latest.dmg" ] && sha256sum "SentinelAgent-latest.dmg" | cut -d' ' -f1 > "SentinelAgent-latest.dmg.sha256"
+          [ -f "SentinelAgent-latest.pkg" ] && sha256sum "SentinelAgent-latest.pkg" | cut -d' ' -f1 > "SentinelAgent-latest.pkg.sha256"
           cat SHA256SUMS-macos.txt
 
       - name: Upload macOS artifacts
@@ -525,6 +553,12 @@ jobs:
             local folder="$2"
             local latest_name="$3"
             
+            # For macOS, we already created latest aliases on the macOS runner to ensure stapling/notarization
+            if [[ "$folder" == "sentinel-agent-macos" ]]; then
+              echo "Skipping local alias creation for macOS (pre-created on build runner)"
+              return
+            fi
+
             # Find the first matching file (should be only one per pattern)
             local file=$(ls artifacts/$folder/$pattern 2>/dev/null | head -n 1)
             if [ -n "$file" ]; then
@@ -542,6 +576,14 @@ jobs:
           create_latest "SentinelAgentSetup-*.msi" "sentinel-agent-windows" "SentinelAgentSetup-latest.msi"
           create_latest "sentinel-agent_*.deb" "sentinel-agent-linux-deb" "sentinel-agent-latest-amd64.deb"
           create_latest "sentinel-agent-*.rpm" "sentinel-agent-linux-rpm" "sentinel-agent-latest.x86_64.rpm"
+
+          # Upload macOS latest files (pre-created and stapled on macOS runner)
+          [ -f "artifacts/sentinel-agent-macos/SentinelAgent-latest.pkg" ] && \
+            gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.pkg" "$BUCKET/macos/" && \
+            gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.pkg.sha256" "$BUCKET/macos/"
+          [ -f "artifacts/sentinel-agent-macos/SentinelAgent-latest.dmg" ] && \
+            gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.dmg" "$BUCKET/macos/" && \
+            gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.dmg.sha256" "$BUCKET/macos/"
 
           # Generate release-info.json
           echo "{" > release-info.json
