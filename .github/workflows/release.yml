@@ -649,7 +649,26 @@ jobs:
           gcloud storage objects update "$BUCKET/windows/*.msi" --content-type="application/x-msi" 2>/dev/null || true
           gcloud storage objects update "$BUCKET/linux_deb/*.deb" --content-type="application/vnd.debian.binary-package" 2>/dev/null || true
           gcloud storage objects update "$BUCKET/linux_rpm/*.rpm" --content-type="application/x-rpm" 2>/dev/null || true
-          gcloud storage objects update "$BUCKET/**/*.json" --content-type="application/json" 2>/dev/null || true
+          gcloud storage objects update "$BUCKET/release-info.json" --content-type="application/json" 2>/dev/null || true
+
+          echo "=== Configuring Public Access and CORS ==="
+          # Extract bucket name without gs:// and path
+          BUCKET_NAME=$(echo "$BUCKET" | sed 's/gs:\/\/\([^\/]*\).*/\1/')
+          
+          # 1. Apply CORS configuration
+          gcloud storage buckets update gs://$BUCKET_NAME --cors-file=.github/workflows/cors-config.json
+
+          # 2. Grant public read access to the releases folder
+          # We use recursively ( -R ) and wait for completion
+          echo "Granting public read access to allUsers for $BUCKET"
+          gcloud storage objects add-iam-policy-binding "$BUCKET/**" --member="allUsers" --role="roles/storage.objectViewer" 2>/dev/null || true
+
+          # 3. Set Cache-Control for 'latest' aliases to ensure they are not cached too long by CDN
+          echo "Setting Cache-Control for latest aliases"
+          gcloud storage objects update "$BUCKET/**/latest*" --cache-control="public, max-age=3600, no-cache" 2>/dev/null || true
+          gcloud storage objects update "$BUCKET/release-info.json" --cache-control="public, max-age=300" 2>/dev/null || true
+
+          echo "✅ Release upload and configuration completed successfully"
           gcloud storage objects update "$BUCKET/**/*.txt" --content-type="text/plain" 2>/dev/null || true
 
           echo "✅ Enhanced release upload complete"
