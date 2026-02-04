@@ -431,75 +431,69 @@ jobs:
       - name: List artifacts
         run: find artifacts -type f | sort
 
-      - name: Prepare GCP Credentials
-        id: prepare-creds
+      - name: Authenticate and Upload
         shell: bash
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
-          if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
-            echo "::error::GCP_SA_KEY secret is missing!"
-            exit 1
-          fi
-
-          # Robustly decode and fix the JSON key.
-          # We check for JSON validity and extract the project_id.
-          PYTHON_OUTPUT=$(echo "${{ secrets.GCP_SA_KEY }}" | python3 -c "
-          import base64, json, sys
-          content = sys.stdin.read().strip()
+          # 1. Atomic Bridge: Robustly decode and fix the secret into a valid JSON file
+          python3 -c "
+          import os, base64, json, sys
+          secret = os.environ.get('GCP_SA_KEY', '').strip()
+          if not secret:
+              print('::error::GCP_SA_KEY is empty!')
+              sys.exit(1)
+          
           try:
-              data = json.loads(content)
+              # Try direct JSON (raw or wrapped in quotes)
+              try:
+                  data = json.loads(secret)
+              except:
+                   # Try stripping quotes if users accidentally included them in secrets
+                  data = json.loads(secret.strip('\"').strip(\"'\"))
           except:
               try:
-                  decoded = base64.b64decode(content).decode('utf-8')
+                  # Try Base64
+                  decoded = base64.b64decode(secret).decode('utf-8')
                   data = json.loads(decoded)
               except Exception as e:
-                  print(f'error|Failed to decode secret: {e}')
+                  print(f'::error::Failed to decode secret as JSON or Base64: {e}')
                   sys.exit(1)
           
-          if 'private_key' not in data or 'project_id' not in data:
-              print('error|JSON missing required fields (private_key or project_id)')
+          if 'private_key' not in data:
+              print('::error::JSON missing private_key field')
               sys.exit(1)
 
-          # Fix literal newline corruption
-          data['private_key'] = data['private_key'].replace('\\\\n', '\n').replace('\\n', '\n')
+          # Force standard RSA formatting: replace escaped newlines with real ones
+          # then let json.dump handle the correct escaping for the file.
+          pk = data['private_key']
+          pk = pk.replace('\\\\n', '\n').replace('\\n', '\n').strip()
           
-          print(f'json|{json.dumps(data)}')
-          print(f'pid|{data[\"project_id\"]}')
-          ")
-
-          if [[ $PYTHON_OUTPUT == error\|* ]]; then
-            echo "::error::${PYTHON_OUTPUT#error|}"
-            exit 1
-          fi
-
-          FIXED_JSON=$(echo "$PYTHON_OUTPUT" | grep '^json|' | cut -d'|' -f2-)
-          PROJECT_ID=$(echo "$PYTHON_OUTPUT" | grep '^pid|' | cut -d'|' -f2-)
-
-          # Use Multiline Output syntax for GitHub Actions to preserve RSA formatting
-          echo "fixed_json<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$FIXED_JSON" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          # Fix common 'flattened' keys if newlines were lost during copy-paste
+          if '-----BEGIN' in pk and '\n' not in pk:
+              header = '-----BEGIN PRIVATE KEY-----'
+              footer = '-----END PRIVATE KEY-----'
+              content = pk.replace(header, '').replace(footer, '').replace(' ', '')
+              # Re-wrap at 64 chars
+              wrapped = '\n'.join(content[i:i+64] for i in range(0, len(content), 64))
+              pk = f'{header}\n{wrapped}\n{footer}\n'
           
-          echo "project_id=$PROJECT_ID" >> "$GITHUB_OUTPUT"
+          data['private_key'] = pk
           
-          # Mask for security
-          echo "::add-mask::$FIXED_JSON"
+          with open('gcp-auth-key.json', 'w') as f:
+              json.dump(data, f)
+          print('✅ Credential file generated and formatted')
+          "
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ steps.prepare-creds.outputs.fixed_json }}
-          project_id: ${{ steps.prepare-creds.outputs.project_id }}
-          create_credentials_file: true
-          export_environment_variables: true
-
-      - name: Upload to Firebase Storage
-        shell: bash
-        run: |
+          # 2. Instant Auth: Use the generated file immediately
+          gcloud auth activate-service-account --key-file=gcp-auth-key.json
+          gcloud config set project $(cat gcp-auth-key.json | python3 -c "import json, sys; print(json.load(sys.stdin)['project_id'])")
+          
+          # 3. Upload loop
           VERSION="${{ env.RELEASE_VERSION }}"
           BUCKET="gs://sentinel-grc-a8701.firebasestorage.app/releases/agent"
           
-          echo "🚀 Starting definitive upload to $BUCKET..."
-          echo "Using Project: ${{ steps.prepare-creds.outputs.project_id }}"
+          echo "🚀 Starting atomic upload to $BUCKET..."
 
           echo "=== Uploading macOS packages ==="
           for f in artifacts/sentinel-agent-macos/SentinelAgent-*.dmg; do
