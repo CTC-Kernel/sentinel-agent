@@ -436,58 +436,81 @@ jobs:
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
-          # 1. Atomic Bridge: Robustly decode and fix the secret into a valid JSON file
+          # 1. Atomic Bridge: Robustly decode, fix, and DIAGNOSE the secret
           python3 -c "
-          import os, base64, json, sys
+          import os, base64, json, sys, re
           secret = os.environ.get('GCP_SA_KEY', '').strip()
           if not secret:
               print('::error::GCP_SA_KEY is empty!')
               sys.exit(1)
           
-          try:
-              # Try direct JSON (raw or wrapped in quotes)
+          def get_data(s):
+              # Try direct JSON
               try:
-                  data = json.loads(secret)
+                  return json.loads(s)
               except:
-                   # Try stripping quotes if users accidentally included them in secrets
-                  data = json.loads(secret.strip('\"').strip(\"'\"))
-          except:
+                  pass
+              # Try stripping quotes
               try:
-                  # Try Base64
-                  decoded = base64.b64decode(secret).decode('utf-8')
-                  data = json.loads(decoded)
-              except Exception as e:
-                  print(f'::error::Failed to decode secret as JSON or Base64: {e}')
-                  sys.exit(1)
+                  return json.loads(s.strip('\"').strip(\"'\"))
+              except:
+                  pass
+              # Try Base64
+              try:
+                  return json.loads(base64.b64decode(s).decode('utf-8'))
+              except:
+                  pass
+              return None
+
+          data = get_data(secret)
+          if not data:
+              print('::error::Failed to decode secret as JSON or Base64')
+              sys.exit(1)
           
           if 'private_key' not in data:
               print('::error::JSON missing private_key field')
               sys.exit(1)
 
-          # Force standard RSA formatting: replace escaped newlines with real ones
-          # then let json.dump handle the correct escaping for the file.
           pk = data['private_key']
+          print(f'::debug::Raw private_key length: {len(pk)}')
+          
+          # Fix common escape sequences
           pk = pk.replace('\\\\n', '\n').replace('\\n', '\n').strip()
           
-          # Fix common 'flattened' keys if newlines were lost during copy-paste
-          if '-----BEGIN' in pk and '\n' not in pk:
-              header = '-----BEGIN PRIVATE KEY-----'
-              footer = '-----END PRIVATE KEY-----'
-              content = pk.replace(header, '').replace(footer, '').replace(' ', '')
-              # Re-wrap at 64 chars
+          # Check for valid RSA headers
+          header = '-----BEGIN PRIVATE KEY-----'
+          footer = '-----END PRIVATE KEY-----'
+          
+          # If it is one long line including the headers, re-wrap it
+          if header in pk and footer in pk:
+              if '\n' not in pk.replace(header, '').replace(footer, '').strip():
+                  print('::notice::Flattened RSA key detected. Re-wrapping...')
+                  content = pk.replace(header, '').replace(footer, '').replace(' ', '').replace('\n', '')
+                  wrapped = '\n'.join(content[i:i+64] for i in range(0, len(content), 64))
+                  pk = f'{header}\n{wrapped}\n{footer}\n'
+          elif '-----BEGIN' not in pk:
+              # Maybe it is just the raw base64 content?
+              print('::notice::RSA headers missing. Attempting to wrap...')
+              content = pk.replace(' ', '').replace('\n', '')
               wrapped = '\n'.join(content[i:i+64] for i in range(0, len(content), 64))
               pk = f'{header}\n{wrapped}\n{footer}\n'
+
+          # Final verification
+          print(f'::debug::Final processed private_key has {pk.count(\"\n\")} newlines')
+          if pk.startswith(header) and pk.endswith(footer + '\n') or pk.endswith(footer):
+               print('✅ RSA Header/Footer check passed')
+          else:
+               print('::warning::RSA Header/Footer check FAILED. Key might be malformed.')
           
           data['private_key'] = pk
           
           with open('gcp-auth-key.json', 'w') as f:
               json.dump(data, f)
-          print('✅ Credential file generated and formatted')
+          print('✅ Credential file generated')
           "
 
-          # 2. Instant Auth: Use the generated file immediately
-          gcloud auth activate-service-account --key-file=gcp-auth-key.json
-          gcloud config set project $(cat gcp-auth-key.json | python3 -c "import json, sys; print(json.load(sys.stdin)['project_id'])")
+          # 2. Instant Auth
+          gcloud auth activate-service-account --key-file=gcp-auth-key.json --project=$(cat gcp-auth-key.json | python3 -c "import json, sys; print(json.load(sys.stdin).get('project_id', ''))")
           
           # 3. Upload loop
           VERSION="${{ env.RELEASE_VERSION }}"
