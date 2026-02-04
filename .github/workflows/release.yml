@@ -433,6 +433,7 @@ jobs:
 
       - name: Prepare GCP Credentials
         id: prepare-creds
+        shell: bash
         run: |
           if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
             echo "::error::GCP_SA_KEY secret is missing!"
@@ -440,8 +441,8 @@ jobs:
           fi
 
           # Robustly decode and fix the JSON key.
-          # We use a heredoc to safely pass multiline JSON to the next step.
-          FIXED_JSON=$(echo "${{ secrets.GCP_SA_KEY }}" | python3 -c "
+          # We check for JSON validity and extract the project_id.
+          PYTHON_OUTPUT=$(echo "${{ secrets.GCP_SA_KEY }}" | python3 -c "
           import base64, json, sys
           content = sys.stdin.read().strip()
           try:
@@ -451,19 +452,34 @@ jobs:
                   decoded = base64.b64decode(content).decode('utf-8')
                   data = json.loads(decoded)
               except Exception as e:
-                  print(f'::error::Failed to decode secret: {e}')
+                  print(f'error|Failed to decode secret: {e}')
                   sys.exit(1)
           
-          if 'private_key' in data:
-              data['private_key'] = data['private_key'].replace('\\\\n', '\n').replace('\\n', '\n')
+          if 'private_key' not in data or 'project_id' not in data:
+              print('error|JSON missing required fields (private_key or project_id)')
+              sys.exit(1)
+
+          # Fix literal newline corruption
+          data['private_key'] = data['private_key'].replace('\\\\n', '\n').replace('\\n', '\n')
           
-          print(json.dumps(data))
+          print(f'json|{json.dumps(data)}')
+          print(f'pid|{data[\"project_id\"]}')
           ")
-          
-          # Use Multiline Output syntax for GitHub Actions
+
+          if [[ $PYTHON_OUTPUT == error\|* ]]; then
+            echo "::error::${PYTHON_OUTPUT#error|}"
+            exit 1
+          fi
+
+          FIXED_JSON=$(echo "$PYTHON_OUTPUT" | grep '^json|' | cut -d'|' -f2-)
+          PROJECT_ID=$(echo "$PYTHON_OUTPUT" | grep '^pid|' | cut -d'|' -f2-)
+
+          # Use Multiline Output syntax for GitHub Actions to preserve RSA formatting
           echo "fixed_json<<EOF" >> "$GITHUB_OUTPUT"
           echo "$FIXED_JSON" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
+          
+          echo "project_id=$PROJECT_ID" >> "$GITHUB_OUTPUT"
           
           # Mask for security
           echo "::add-mask::$FIXED_JSON"
@@ -472,19 +488,18 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ steps.prepare-creds.outputs.fixed_json }}
+          project_id: ${{ steps.prepare-creds.outputs.project_id }}
           create_credentials_file: true
           export_environment_variables: true
 
-      - name: Configure Cloud SDK
-        run: |
-          gcloud config set project $(echo '${{ steps.prepare-creds.outputs.fixed_json }}' | python3 -c "import json, sys; print(json.load(sys.stdin)['project_id'])")
-
       - name: Upload to Firebase Storage
+        shell: bash
         run: |
           VERSION="${{ env.RELEASE_VERSION }}"
           BUCKET="gs://sentinel-grc-a8701.firebasestorage.app/releases/agent"
           
-          echo "🚀 Starting best-practice upload to $BUCKET..."
+          echo "🚀 Starting definitive upload to $BUCKET..."
+          echo "Using Project: ${{ steps.prepare-creds.outputs.project_id }}"
 
           echo "=== Uploading macOS packages ==="
           for f in artifacts/sentinel-agent-macos/SentinelAgent-*.dmg; do
