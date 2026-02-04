@@ -3,6 +3,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
+use crate::dto::GuiAgentStatus;
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -31,7 +32,12 @@ impl SoftwarePage {
 
         // Action bar
         ui.horizontal(|ui| {
-            if widgets::button::primary_button(ui, format!("{}  Lancer le scan", icons::PLAY)).clicked()
+            if widgets::button::primary_button(
+                ui,
+                format!("{}  Lancer le scan", icons::PLAY),
+                state.summary.status != GuiAgentStatus::Scanning,
+            )
+            .clicked()
             {
                 command = Some(GuiCommand::RunCheck);
             }
@@ -111,38 +117,34 @@ impl SoftwarePage {
             .count() as u32;
         let outdated = total - up_to_date;
 
-        let card_gap = theme::SPACE_SM;
-        let card_w = (ui.available_width() - card_gap * 2.0) / 3.0;
-        ui.horizontal(|ui| {
-            ui.spacing_mut().item_spacing.x = card_gap;
-            Self::summary_card(
-                ui,
-                card_w,
+        let card_grid = widgets::ResponsiveGrid::new(280.0, theme::SPACE_SM);
+        let items = vec![
+            (
                 "TOTAL",
-                &total.to_string(),
+                total.to_string(),
                 theme::text_primary(),
                 icons::CUBE,
-            );
-            Self::summary_card(
-                ui,
-                card_w,
+            ),
+            (
                 "\u{00c0} JOUR",
-                &up_to_date.to_string(),
+                up_to_date.to_string(),
                 theme::SUCCESS,
                 icons::CIRCLE_CHECK,
-            );
-            Self::summary_card(
-                ui,
-                card_w,
+            ),
+            (
                 "OBSOL\u{00c8}TES",
-                &outdated.to_string(),
+                outdated.to_string(),
                 if outdated > 0 {
                     theme::WARNING
                 } else {
                     theme::text_tertiary()
                 },
                 icons::ARROW_UP,
-            );
+            ),
+        ];
+
+        card_grid.show(ui, &items, |ui, width, (label, value, color, icon)| {
+            Self::summary_card(ui, width, label, value, *color, icon);
         });
 
         ui.add_space(theme::SPACE_MD);
@@ -320,34 +322,30 @@ impl SoftwarePage {
         let result_count = filtered.len();
         let total = state.macos_apps.len() as u32;
 
-        let card_gap = theme::SPACE_SM;
-        let card_w = (ui.available_width() - card_gap * 2.0) / 3.0;
-        ui.horizontal(|ui| {
-            ui.spacing_mut().item_spacing.x = card_gap;
-            Self::summary_card(
-                ui,
-                card_w,
+        let card_grid = widgets::ResponsiveGrid::new(280.0, theme::SPACE_SM);
+        let items = vec![
+            (
                 "APPLICATIONS",
-                &total.to_string(),
+                total.to_string(),
                 theme::ACCENT,
                 icons::CUBE,
-            );
-            Self::summary_card(
-                ui,
-                card_w,
+            ),
+            (
                 "SOURCE",
-                "macOS",
+                "macOS".to_string(),
                 theme::text_secondary(),
                 icons::SETTINGS,
-            );
-            Self::summary_card(
-                ui,
-                card_w,
+            ),
+            (
                 "R\u{00c9}PERTOIRE",
-                "/Applications",
+                "/Applications".to_string(),
                 theme::text_secondary(),
                 icons::DATABASE,
-            );
+            ),
+        ];
+
+        card_grid.show(ui, &items, |ui, width, (label, value, color, icon)| {
+            Self::summary_card(ui, width, label, value, *color, icon);
         });
 
         ui.add_space(theme::SPACE_MD);

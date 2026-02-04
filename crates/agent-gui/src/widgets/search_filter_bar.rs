@@ -76,10 +76,24 @@ impl<'a> SearchFilterBar<'a> {
                         .strong(),
                 )
                 .fill(bg)
+                .stroke(egui::Stroke::new(0.5, color.linear_multiply(0.3)))
                 .corner_radius(CornerRadius::same(theme::BADGE_ROUNDING))
                 .min_size(Vec2::new(0.0, 24.0));
 
-                if ui.add(btn).clicked() {
+                let response = ui.add(btn);
+                
+                // Subtle glow on hover
+                if response.hovered() {
+                    let rect = response.rect.expand(1.0);
+                    ui.painter().rect_stroke(
+                        rect,
+                        CornerRadius::same(theme::BADGE_ROUNDING + 1),
+                        egui::Stroke::new(1.0, color.linear_multiply(0.4)),
+                        egui::StrokeKind::Outside,
+                    );
+                }
+                
+                if response.clicked() {
                     toggled = Some(idx);
                 }
             }

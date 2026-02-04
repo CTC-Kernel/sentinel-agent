@@ -1,7 +1,7 @@
 //! Network Cartography — 2D force-directed graph of discovered devices.
 
 use crate::app::AppState;
-use crate::dto::GuiDiscoveredDevice;
+use crate::dto::{GuiAgentStatus, GuiDiscoveredDevice};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -118,8 +118,12 @@ impl CartographyPage {
                     ui.add_space(theme::SPACE_XL);
 
                     // Run Scan
-                    if widgets::button::primary_button(ui, format!("{}  Lancer le scan", icons::PLAY))
-                        .clicked()
+                    if widgets::button::primary_button(
+                        ui,
+                        format!("{}  Lancer le scan", icons::PLAY),
+                        state.summary.status != GuiAgentStatus::Scanning,
+                    )
+                    .clicked()
                     {
                         command = Some(GuiCommand::RunCheck);
                     }
@@ -246,40 +250,42 @@ impl CartographyPage {
                 egui::Rect::from_center_size(screen_pos, egui::Vec2::splat(radius * 2.5));
             if response.clicked()
                 && let Some(pointer_pos) = response.interact_pointer_pos()
-                    && click_rect.contains(pointer_pos) {
-                        state.graph_selected_device = Some(node.device.ip.clone());
-                    }
+                && click_rect.contains(pointer_pos)
+            {
+                state.graph_selected_device = Some(node.device.ip.clone());
+            }
 
             // Tooltip on hover
             if let Some(hover_pos) = ui.input(|i| i.pointer.hover_pos())
-                && click_rect.contains(hover_pos) {
-                    egui::show_tooltip_at_pointer(
-                        ui.ctx(),
-                        ui.layer_id(),
-                        ui.id().with(format!("node_{}", i)),
-                        |ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new(&node.device.ip).strong());
-                            if let Some(ref h) = node.device.hostname {
-                                ui.label(format!("Hostname: {}", h));
-                            }
-                            if let Some(ref v) = node.device.vendor {
-                                ui.label(format!("Vendor: {}", v));
-                            }
-                            ui.label(format!("Type: {}", node.device.device_type));
-                            if !node.device.open_ports.is_empty() {
-                                ui.label(format!(
-                                    "Ports: {}",
-                                    node.device
-                                        .open_ports
-                                        .iter()
-                                        .map(|p| p.to_string())
-                                        .collect::<Vec<_>>()
-                                        .join(", ")
-                                ));
-                            }
-                        },
-                    );
-                }
+                && click_rect.contains(hover_pos)
+            {
+                egui::show_tooltip_at_pointer(
+                    ui.ctx(),
+                    ui.layer_id(),
+                    ui.id().with(format!("node_{}", i)),
+                    |ui: &mut egui::Ui| {
+                        ui.label(egui::RichText::new(&node.device.ip).strong());
+                        if let Some(ref h) = node.device.hostname {
+                            ui.label(format!("Hostname: {}", h));
+                        }
+                        if let Some(ref v) = node.device.vendor {
+                            ui.label(format!("Vendor: {}", v));
+                        }
+                        ui.label(format!("Type: {}", node.device.device_type));
+                        if !node.device.open_ports.is_empty() {
+                            ui.label(format!(
+                                "Ports: {}",
+                                node.device
+                                    .open_ports
+                                    .iter()
+                                    .map(|p| p.to_string())
+                                    .collect::<Vec<_>>()
+                                    .join(", ")
+                            ));
+                        }
+                    },
+                );
+            }
         }
 
         // Legend
@@ -320,54 +326,54 @@ impl CartographyPage {
                 .discovered_devices
                 .iter()
                 .find(|d| &d.ip == selected_ip)
-            {
-                ui.add_space(theme::SPACE_MD);
-                widgets::card(ui, |ui| {
-                    ui.horizontal(|ui| {
-                        ui.label(
-                            egui::RichText::new(&device.ip)
-                                .font(theme::font_heading())
-                                .strong()
-                                .color(theme::text_primary()),
-                        );
-                        ui.add_space(theme::SPACE_MD);
-                        if ui
-                            .small_button(format!("{} Fermer", icons::XMARK))
-                            .clicked()
-                        {
-                            state.graph_selected_device = None;
-                        }
-                    });
-                    ui.add_space(theme::SPACE_SM);
-                    if let Some(ref h) = device.hostname {
-                        ui.label(format!("Hostname: {}", h));
-                    }
-                    if let Some(ref mac) = device.mac {
-                        ui.label(format!("MAC: {}", mac));
-                    }
-                    if let Some(ref v) = device.vendor {
-                        ui.label(format!("Vendor: {}", v));
-                    }
-                    ui.label(format!("Type: {}", device.device_type));
-                    if device.is_gateway {
-                        ui.label(
-                            egui::RichText::new("Passerelle d\u{00e9}tect\u{00e9}e")
-                                .color(theme::ACCENT),
-                        );
-                    }
-                    if !device.open_ports.is_empty() {
-                        ui.label(format!(
-                            "Ports ouverts: {}",
-                            device
-                                .open_ports
-                                .iter()
-                                .map(|p| p.to_string())
-                                .collect::<Vec<_>>()
-                                .join(", ")
-                        ));
+        {
+            ui.add_space(theme::SPACE_MD);
+            widgets::card(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label(
+                        egui::RichText::new(&device.ip)
+                            .font(theme::font_heading())
+                            .strong()
+                            .color(theme::text_primary()),
+                    );
+                    ui.add_space(theme::SPACE_MD);
+                    if ui
+                        .small_button(format!("{} Fermer", icons::XMARK))
+                        .clicked()
+                    {
+                        state.graph_selected_device = None;
                     }
                 });
-            }
+                ui.add_space(theme::SPACE_SM);
+                if let Some(ref h) = device.hostname {
+                    ui.label(format!("Hostname: {}", h));
+                }
+                if let Some(ref mac) = device.mac {
+                    ui.label(format!("MAC: {}", mac));
+                }
+                if let Some(ref v) = device.vendor {
+                    ui.label(format!("Vendor: {}", v));
+                }
+                ui.label(format!("Type: {}", device.device_type));
+                if device.is_gateway {
+                    ui.label(
+                        egui::RichText::new("Passerelle d\u{00e9}tect\u{00e9}e")
+                            .color(theme::ACCENT),
+                    );
+                }
+                if !device.open_ports.is_empty() {
+                    ui.label(format!(
+                        "Ports ouverts: {}",
+                        device
+                            .open_ports
+                            .iter()
+                            .map(|p| p.to_string())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    ));
+                }
+            });
+        }
 
         ui.add_space(theme::SPACE_XL);
 

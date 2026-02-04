@@ -15,10 +15,14 @@
 //! - `gui` -- enable v2 desktop GUI support (agent-gui + agent-persistence)
 
 pub mod api_client;
+pub mod audit_trail;
 pub mod cleanup;
+pub mod events;
 pub mod resources;
 pub mod service;
+pub mod state;
 pub mod tracing_layer;
+pub mod update_manager;
 
 #[cfg(feature = "tray")]
 pub mod tray;
@@ -26,7 +30,7 @@ pub mod tray;
 use agent_common::config::AgentConfig;
 use agent_common::constants::{AGENT_VERSION, DEFAULT_HEARTBEAT_INTERVAL_SECS};
 use agent_common::error::CommonError;
-use agent_common::types::CheckSeverity;
+use agent_common::types::{CheckSeverity, UpdateStatus};
 use agent_network::{
     DiscoveryConfig, NetworkDiscovery, NetworkManager, NetworkSecurityAlert, NetworkSnapshot,
 };
@@ -48,12 +52,12 @@ use agent_storage::{
 };
 use agent_sync::{AuthenticatedClient, ConfigSyncService, ResultUploader, RuleSyncService};
 use api_client::{ApiClient, EnrollmentRequest, HeartbeatRequest};
+use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use resources::ResourceMonitor;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use tokio::sync::RwLock;
-use tracing::{debug, info, warn};
-use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
+use tracing::{debug, error, info, warn};
 
 #[cfg(feature = "gui")]
 use agent_gui::dto::{
@@ -84,13 +88,9 @@ pub struct ProposeAssetData {
 /// Agent runtime managing the main execution loop.
 pub struct AgentRuntime {
     config: AgentConfig,
-    shutdown: ShutdownSignal,
-    /// Whether the agent is paused (controlled from tray/GUI).
-    paused: Arc<AtomicBool>,
-    /// Whether the agent is currently scanning.
-    scanning: Arc<AtomicBool>,
     resource_monitor: ResourceMonitor,
     api_client: RwLock<Option<ApiClient>>,
+    /// Heartbeat interval in seconds (dynamic).
     heartbeat_interval_secs: RwLock<u64>,
     /// Vulnerability scanner for package vulnerability detection.
     vulnerability_scanner: VulnerabilityScanner,
@@ -105,14 +105,6 @@ pub struct AgentRuntime {
     /// Optional GUI event sender for pushing live data to the desktop UI.
     #[cfg(feature = "gui")]
     gui_event_tx: Option<std::sync::mpsc::Sender<AgentEvent>>,
-    /// Flag to trigger an immediate vulnerability check (from GUI).
-    force_check: Arc<AtomicBool>,
-    /// Flag to trigger an immediate sync (from GUI).
-    force_sync: Arc<AtomicBool>,
-    /// Flag to trigger a network discovery scan (from GUI).
-    force_discovery: Arc<AtomicBool>,
-    /// Flag to cancel a running discovery scan.
-    discovery_cancel: Arc<AtomicBool>,
     /// Queue of discovered devices proposed as assets by the user.
     pending_asset_proposals: Arc<Mutex<Vec<ProposeAssetData>>>,
     /// Encrypted database for check result storage and sync services.
@@ -131,6 +123,16 @@ pub struct AgentRuntime {
     rule_sync: RwLock<Option<RuleSyncService>>,
     /// Result uploader for uploading check results to SaaS.
     result_uploader: RwLock<Option<ResultUploader>>,
+    /// Timestamp of the last self-update check.
+    last_update_check: RwLock<Option<std::time::Instant>>,
+    /// Last successful sync timestamp.
+    last_sync_at: RwLock<Option<chrono::DateTime<chrono::Utc>>>,
+    /// Local audit trail for persistent logging.
+    audit_trail: Option<Arc<audit_trail::LocalAuditTrail>>,
+    /// Event and notification manager.
+    events: Arc<events::EventManager>,
+    /// Runtime state flags.
+    state: Arc<state::RuntimeState>,
 }
 
 /// A lightweight handle to the running agent that can be shared with the GUI
@@ -140,81 +142,75 @@ pub struct AgentRuntime {
 /// commands without owning the full `AgentRuntime`.
 #[derive(Clone)]
 pub struct RuntimeHandle {
-    /// Shared shutdown signal.
-    shutdown: ShutdownSignal,
-    /// Whether the agent is currently paused.
-    paused: Arc<AtomicBool>,
-    /// Whether the agent is currently scanning.
-    scanning: Arc<AtomicBool>,
-    /// Flag to trigger an immediate vulnerability check.
-    force_check: Arc<AtomicBool>,
-    /// Flag to trigger an immediate sync (heartbeat + upload).
-    force_sync: Arc<AtomicBool>,
-    /// Flag to trigger a network discovery scan.
-    force_discovery: Arc<AtomicBool>,
-    /// Flag to cancel a running discovery scan.
-    discovery_cancel: Arc<AtomicBool>,
-    /// Queue of discovered devices proposed as assets.
-    pending_asset_proposals: Arc<Mutex<Vec<ProposeAssetData>>>,
+    /// Shared runtime state.
+    pub state: Arc<state::RuntimeState>,
+    /// Queue of discovered devices proposed as assets by the user.
+    pub pending_asset_proposals: Arc<Mutex<Vec<ProposeAssetData>>>,
 }
 
 impl RuntimeHandle {
     /// Request agent shutdown.
     pub fn request_shutdown(&self) {
         info!("Shutdown requested via handle");
-        self.shutdown.store(true, Ordering::SeqCst);
+        self.state.shutdown.store(true, Ordering::SeqCst);
     }
 
     /// Check if shutdown has been requested.
     pub fn is_shutdown_requested(&self) -> bool {
-        self.shutdown.load(Ordering::SeqCst)
+        self.state.shutdown.load(Ordering::SeqCst)
     }
 
     /// Pause agent operations.
     pub fn pause(&self) {
         info!("Agent paused via handle");
-        self.paused.store(true, Ordering::Release);
+        self.state.paused.store(true, Ordering::Release);
     }
 
     /// Resume agent operations.
     pub fn resume(&self) {
         info!("Agent resumed via handle");
-        self.paused.store(false, Ordering::Release);
+        self.state.paused.store(false, Ordering::Release);
     }
 
     /// Check if the agent is paused.
     pub fn is_paused(&self) -> bool {
-        self.paused.load(Ordering::Acquire)
+        self.state.paused.load(Ordering::Acquire)
     }
 
     /// Check if the agent is currently scanning.
     pub fn is_scanning(&self) -> bool {
-        self.scanning.load(Ordering::Acquire)
+        self.state.scanning.load(Ordering::Acquire)
     }
 
     /// Trigger an immediate vulnerability check.
     pub fn trigger_check(&self) {
         info!("Immediate check requested via handle");
-        self.force_check.store(true, Ordering::Release);
+        self.state.force_check.store(true, Ordering::Release);
     }
 
     /// Trigger an immediate sync (heartbeat + upload).
     pub fn trigger_sync(&self) {
         info!("Immediate sync requested via handle");
-        self.force_sync.store(true, Ordering::Release);
+        self.state.force_sync.store(true, Ordering::Release);
     }
 
     /// Trigger a network discovery scan.
     pub fn trigger_discovery(&self) {
         info!("Network discovery requested via handle");
-        self.discovery_cancel.store(false, Ordering::Release);
-        self.force_discovery.store(true, Ordering::Release);
+        self.state.discovery_cancel.store(false, Ordering::Release);
+        self.state.force_discovery.store(true, Ordering::Release);
+    }
+
+    /// Trigger an immediate self-update.
+    pub fn trigger_update(&self) {
+        info!("Self-update requested via handle");
+        self.state.force_update.store(true, Ordering::Release);
     }
 
     /// Cancel a running network discovery scan.
     pub fn cancel_discovery(&self) {
         info!("Network discovery cancellation requested via handle");
-        self.discovery_cancel.store(true, Ordering::Release);
+        self.state.discovery_cancel.store(true, Ordering::Release);
     }
 
     /// Propose a discovered device as an asset.
@@ -230,7 +226,7 @@ impl RuntimeHandle {
 
     /// Get a clone of the shutdown signal.
     pub fn shutdown_signal(&self) -> ShutdownSignal {
-        self.shutdown.clone()
+        self.state.shutdown.clone()
     }
 }
 
@@ -276,13 +272,14 @@ impl AgentRuntime {
 
         let compliance_check_interval_secs = config.check_interval_secs;
         let active_frameworks = config.active_frameworks.clone();
- 
-         Self {
-             config,
-             active_frameworks: std::sync::RwLock::new(active_frameworks),
-            shutdown: Arc::new(AtomicBool::new(false)),
-            paused: Arc::new(AtomicBool::new(false)),
-            scanning: Arc::new(AtomicBool::new(false)),
+
+        let (events, _) = events::EventManager::new(None);
+        let events = Arc::new(events);
+        let state = Arc::new(state::RuntimeState::default());
+
+        Self {
+            config,
+            active_frameworks: std::sync::RwLock::new(active_frameworks),
             resource_monitor,
             api_client: RwLock::new(None),
             heartbeat_interval_secs: RwLock::new(DEFAULT_HEARTBEAT_INTERVAL_SECS),
@@ -293,10 +290,6 @@ impl AgentRuntime {
             security_scan_interval_secs: DEFAULT_SECURITY_SCAN_INTERVAL_SECS,
             #[cfg(feature = "gui")]
             gui_event_tx: None,
-            force_check: Arc::new(AtomicBool::new(false)),
-            force_sync: Arc::new(AtomicBool::new(false)),
-            force_discovery: Arc::new(AtomicBool::new(false)),
-            discovery_cancel: Arc::new(AtomicBool::new(false)),
             pending_asset_proposals: Arc::new(Mutex::new(Vec::new())),
             db: None,
             authenticated_client: None,
@@ -305,6 +298,11 @@ impl AgentRuntime {
             config_sync: RwLock::new(None),
             rule_sync: RwLock::new(None),
             result_uploader: RwLock::new(None),
+            last_update_check: RwLock::new(None),
+            last_sync_at: RwLock::new(None),
+            audit_trail: None,
+            events,
+            state,
         }
     }
 
@@ -313,8 +311,16 @@ impl AgentRuntime {
     /// This enables compliance result storage, config/rule sync, and result upload.
     pub fn with_database(mut self, db: Arc<Database>) -> Self {
         let auth_client = Arc::new(AuthenticatedClient::new(self.config.clone(), db.clone()));
-        self.db = Some(db);
+        self.db = Some(db.clone());
         self.authenticated_client = Some(auth_client);
+        
+        let trail = Arc::new(audit_trail::LocalAuditTrail::new(db));
+        self.audit_trail = Some(trail.clone());
+        
+        // Re-initialize events with audit trail
+        let (events, _) = events::EventManager::new(Some(trail));
+        self.events = Arc::new(events);
+        
         self
     }
 
@@ -346,13 +352,15 @@ impl AgentRuntime {
 
         let status = if self.is_paused() {
             GuiAgentStatus::Paused
-        } else if self.scanning.load(Ordering::Acquire) {
+        } else if self.state.scanning.load(Ordering::Acquire) {
             GuiAgentStatus::Scanning
         } else if self.authenticated_client.is_none() {
             GuiAgentStatus::Disconnected
         } else {
             GuiAgentStatus::Connected
         };
+
+        let last_sync_at = self.last_sync_at.try_read().ok().map(|g| *g).flatten();
 
         let summary = AgentSummary {
             status,
@@ -362,10 +370,14 @@ impl AgentRuntime {
             organization: None,
             compliance_score: compliance_score.map(|s| s as f32),
             last_check_at,
-            last_sync_at: None,
+            last_sync_at,
             pending_sync_count: 0,
             uptime_secs: usage.uptime_ms / 1000,
-            active_frameworks: self.active_frameworks.read().expect("lock active_frameworks").clone(),
+            active_frameworks: self
+                .active_frameworks
+                .read()
+                .expect("lock active_frameworks")
+                .clone(),
         };
 
         self.emit_gui_event(AgentEvent::StatusChanged { summary });
@@ -449,7 +461,7 @@ impl AgentRuntime {
             .vulnerabilities
             .iter()
             .map(|v| GuiVulnerabilityFinding {
-                cve_id: v.cve_id.clone().unwrap_or_else(|| "N/A".to_string()),
+                cve_id: v.cve_id.clone().unwrap_or_else(|| format!("OUTDATED-{}", v.package_name.to_uppercase())),
                 affected_software: v.package_name.clone(),
                 affected_version: v.installed_version.clone(),
                 severity: format!("{}", v.severity).to_lowercase(),
@@ -591,36 +603,30 @@ impl AgentRuntime {
     /// other controllers.
     pub fn handle(&self) -> RuntimeHandle {
         RuntimeHandle {
-            shutdown: self.shutdown.clone(),
-            paused: self.paused.clone(),
-            scanning: self.scanning.clone(),
-            force_check: self.force_check.clone(),
-            force_sync: self.force_sync.clone(),
-            force_discovery: self.force_discovery.clone(),
-            discovery_cancel: self.discovery_cancel.clone(),
+            state: self.state.clone(),
             pending_asset_proposals: self.pending_asset_proposals.clone(),
         }
     }
 
     /// Get a clone of the shutdown signal.
     pub fn shutdown_signal(&self) -> ShutdownSignal {
-        self.shutdown.clone()
+        self.state.shutdown.clone()
     }
 
     /// Signal the agent to shut down.
     pub fn request_shutdown(&self) {
         info!("Shutdown requested");
-        self.shutdown.store(true, Ordering::SeqCst);
+        self.state.shutdown.store(true, Ordering::SeqCst);
     }
 
     /// Check if shutdown has been requested.
     pub fn is_shutdown_requested(&self) -> bool {
-        self.shutdown.load(Ordering::SeqCst)
+        self.state.shutdown.load(Ordering::SeqCst)
     }
 
     /// Check if the agent is paused.
     pub fn is_paused(&self) -> bool {
-        self.paused.load(Ordering::Acquire)
+        self.state.paused.load(Ordering::Acquire)
     }
 
     /// Get current resource usage for heartbeat.
@@ -757,6 +763,21 @@ impl AgentRuntime {
 
         let response = client.send_heartbeat(request).await?;
 
+        // Update last sync timestamp
+        {
+            let mut last_sync = self.last_sync_at.write().await;
+            let now = chrono::Utc::now();
+            *last_sync = Some(now);
+
+            #[cfg(feature = "gui")]
+            self.emit_gui_event(AgentEvent::SyncStatus {
+                syncing: false,
+                pending_count: pending_sync_count,
+                last_sync_at: Some(now),
+                error: None,
+            });
+        }
+
         // Process server commands
         for cmd in &response.commands {
             if !cmd.is_valid() {
@@ -770,11 +791,11 @@ impl AgentRuntime {
             match cmd.command_type.as_str() {
                 "force_sync" => {
                     info!("Server command: force_sync ({})", cmd.id);
-                    self.force_sync.store(true, Ordering::Release);
+                    self.state.force_sync.store(true, Ordering::Release);
                 }
                 "run_checks" => {
                     info!("Server command: run_checks ({})", cmd.id);
-                    self.force_check.store(true, Ordering::Release);
+                    self.state.force_check.store(true, Ordering::Release);
                 }
                 "revoke" => {
                     warn!("Server command: revoke agent credentials ({})", cmd.id);
@@ -786,7 +807,7 @@ impl AgentRuntime {
                 }
                 "update" => {
                     info!("Server command: update ({})", cmd.id);
-                    // TODO: Trigger self-update
+                    self.state.force_update.store(true, Ordering::Release);
                 }
                 other => {
                     warn!("Unknown server command: {} ({})", other, cmd.id);
@@ -1090,12 +1111,25 @@ impl AgentRuntime {
     /// Returns the execution results and the calculated compliance score.
     async fn run_compliance_checks(&self) -> (Vec<CheckExecutionResult>, ComplianceScore) {
         info!("Running compliance checks...");
- 
-        let active_frameworks = self.active_frameworks.read().expect("lock active_frameworks").clone();
+
+        let active_frameworks = self
+            .active_frameworks
+            .read()
+            .expect("lock active_frameworks")
+            .clone();
+
+        if let Some(ref audit) = self.audit_trail {
+            audit.log(
+                audit_trail::AuditAction::ScanStarted { 
+                    scan_type: format!("{:?}", active_frameworks.as_deref().unwrap_or(&["all".to_string()])) 
+                },
+                "user",
+                None,
+            ).await;
+        }
+
         let runner = CheckRunner::with_defaults(self.check_registry.clone());
-        let results = runner
-            .run_filtered(active_frameworks.as_deref())
-            .await;
+        let results = runner.run_filtered(active_frameworks.as_deref()).await;
 
         let summary = ScanSummary::from_results(&results, 0);
         info!(
@@ -1137,6 +1171,17 @@ impl AgentRuntime {
             "Compliance score: {:.1}% (passed: {}, failed: {}, errors: {})",
             score.score, score.passed_count, score.failed_count, score.error_count
         );
+
+        if let Some(ref audit) = self.audit_trail {
+            audit.log(
+                audit_trail::AuditAction::ScanFinished { 
+                    scan_type: "compliance".to_string(), 
+                    score: score.score as f32 
+                },
+                "system",
+                Some(format!("Passed: {}, Failed: {}, Errors: {}", score.passed_count, score.failed_count, score.error_count)),
+            ).await;
+        }
 
         (results, score)
     }
@@ -1324,7 +1369,10 @@ impl AgentRuntime {
                             .get_config::<Vec<String>>(agent_sync::config_keys::ACTIVE_FRAMEWORKS)
                             .await
                         {
-                            let mut current = self.active_frameworks.write().expect("lock active_frameworks");
+                            let mut current = self
+                                .active_frameworks
+                                .write()
+                                .expect("lock active_frameworks");
                             if current.as_ref() != Some(&frameworks) {
                                 info!(
                                     "Active frameworks updated: {:?} → {:?}",
@@ -1601,7 +1649,7 @@ impl AgentRuntime {
                 is_active = true;
                 #[cfg(feature = "gui")]
                 {
-                    self.scanning.store(true, Ordering::Release);
+                    self.state.scanning.store(true, Ordering::Release);
                     self.emit_status_update(last_check_at, compliance_score);
                 }
                 match self.run_vulnerability_scan().await {
@@ -1666,7 +1714,7 @@ impl AgentRuntime {
                     }
                 }
                 #[cfg(feature = "gui")]
-                self.scanning.store(false, Ordering::Release);
+                self.state.scanning.store(false, Ordering::Release);
                 last_vuln_scan = std::time::Instant::now();
             }
 
@@ -1839,7 +1887,7 @@ impl AgentRuntime {
                 is_active = true;
                 #[cfg(feature = "gui")]
                 {
-                    self.scanning.store(true, Ordering::Release);
+                    self.state.scanning.store(true, Ordering::Release);
                     self.emit_status_update(last_check_at, compliance_score);
                 }
 
@@ -1859,7 +1907,7 @@ impl AgentRuntime {
                         self.emit_gui_event(AgentEvent::CheckCompleted { result: gui_result });
                     }
                     last_check_at = Some(chrono::Utc::now());
-                    self.scanning.store(false, Ordering::Release);
+                    self.state.scanning.store(false, Ordering::Release);
                     self.emit_notification(
                         "Compliance vérifiée",
                         &format!(
@@ -1892,12 +1940,12 @@ impl AgentRuntime {
             }
 
             // Check for force_check flag (GUI "Vérifier maintenant" button)
-            if self.force_check.swap(false, Ordering::AcqRel) {
+            if self.state.force_check.swap(false, Ordering::AcqRel) {
                 info!("Force check triggered");
                 is_active = true;
                 #[cfg(feature = "gui")]
                 {
-                    self.scanning.store(true, Ordering::Release);
+                    self.state.scanning.store(true, Ordering::Release);
                     self.emit_status_update(last_check_at, compliance_score);
                 }
 
@@ -1989,7 +2037,7 @@ impl AgentRuntime {
                             "warning"
                         },
                     );
-                    self.scanning.store(false, Ordering::Release);
+                    self.state.scanning.store(false, Ordering::Release);
                     self.emit_status_update(last_check_at, compliance_score);
                 }
                 last_vuln_scan = std::time::Instant::now();
@@ -1997,7 +2045,7 @@ impl AgentRuntime {
             }
 
             // Check for force_sync flag (GUI "Forcer la synchronisation" button)
-            if self.force_sync.swap(false, Ordering::AcqRel) {
+            if self.state.force_sync.swap(false, Ordering::AcqRel) {
                 info!("Force sync triggered");
                 #[cfg(feature = "gui")]
                 self.emit_gui_event(AgentEvent::SyncStatus {
@@ -2057,14 +2105,20 @@ impl AgentRuntime {
                 }
             }
 
+            // Check for force_update flag (trigger from GUI button)
+            if self.state.force_update.swap(false, Ordering::AcqRel) {
+            let _ = self.run_self_update().await;
+            }
+
             // Check for force_discovery flag (GUI network discovery)
             #[cfg(feature = "gui")]
-            if self.force_discovery.swap(false, Ordering::AcqRel) {
+            if self.state.force_discovery.swap(false, Ordering::AcqRel) {
                 info!("Network discovery scan triggered");
-                let cancel = self.discovery_cancel.clone();
+                let cancel = self.state.discovery_cancel.clone();
 
                 if let Some(ref tx) = self.gui_event_tx {
                     let tx = tx.clone();
+                    let db_clone = self.db.clone();
 
                     // Determine subnet from primary IP
                     let subnet = {
@@ -2129,6 +2183,31 @@ impl AgentRuntime {
                                     devices.len(),
                                     result.scan_duration_ms
                                 );
+                                
+                                // Persist discovered devices to database
+                                if let Some(ref db) = db_clone {
+                                    let repo = agent_storage::repositories::DiscoveredDevicesRepository::new(db);
+                                    let stored: Vec<agent_storage::repositories::StoredDevice> = devices.iter().map(|d| {
+                                        agent_storage::repositories::StoredDevice {
+                                            ip: d.ip.clone(),
+                                            mac: d.mac.clone(),
+                                            hostname: d.hostname.clone(),
+                                            vendor: d.vendor.clone(),
+                                            device_type: d.device_type.clone(),
+                                            open_ports: d.open_ports.clone(),
+                                            first_seen: d.first_seen,
+                                            last_seen: d.last_seen,
+                                            is_gateway: d.is_gateway,
+                                            subnet: d.subnet.clone(),
+                                        }
+                                    }).collect();
+                                    if let Err(e) = repo.upsert_batch(&stored).await {
+                                        warn!("Failed to persist discovered devices: {}", e);
+                                    } else {
+                                        info!("Persisted {} discovered devices to database", stored.len());
+                                    }
+                                }
+                                
                                 let _ = tx.send(AgentEvent::DiscoveryUpdate { devices });
                             }
                             Err(e) => {
@@ -2163,7 +2242,8 @@ impl AgentRuntime {
             let usage = self.resource_monitor.get_usage();
 
             if is_active {
-                self.resource_monitor.check_limits_with_usage(&usage, is_active);
+                self.resource_monitor
+                    .check_limits_with_usage(&usage, is_active);
             }
 
             // Periodically push resource usage to the GUI (every 1 second)
@@ -2236,6 +2316,127 @@ impl AgentRuntime {
         while !self.is_shutdown_requested() {
             // Check every second instead of 100ms to reduce CPU overhead
             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+        }
+    }
+
+    /// Run the self-update process.
+    pub async fn run_self_update(&self) -> Result<(), CommonError> {
+        info!("Checking for self-update...");
+
+        // Rate limiting: prevent checking more than once every 5 minutes manually
+        {
+            let last_check = self.last_update_check.read().await;
+            if let Some(instant) = *last_check {
+                if instant.elapsed().as_secs() < 300 {
+                    info!("Skipping update check (rate limited)");
+                    return Ok(());
+                }
+            }
+        }
+
+        let api_client = self.api_client.read().await;
+        let client = api_client
+            .as_ref()
+            .ok_or_else(|| CommonError::config("API client not initialized"))?;
+
+        let update_client = Arc::new((*client).clone());
+        let update_manager =
+            crate::update_manager::UpdateManager::new(update_client, AGENT_VERSION.to_string());
+
+        // Update last check timestamp
+        {
+            let mut last_check = self.last_update_check.write().await;
+            *last_check = Some(std::time::Instant::now());
+        }
+
+        #[cfg(feature = "gui")]
+        self.emit_gui_event(AgentEvent::UpdateStatusChanged {
+            status: UpdateStatus::Idle, // Checking...
+        });
+
+        match update_manager.check_for_update().await {
+            Ok(Some(info)) => {
+                info!(
+                    "New version available: {}. Starting update...",
+                    info.version
+                );
+                #[cfg(feature = "gui")]
+                {
+                    self.emit_notification(
+                        "Mise à jour disponible",
+                        &format!("Téléchargement de la version {}...", info.version),
+                        "info",
+                    );
+                    self.emit_gui_event(AgentEvent::UpdateStatusChanged {
+                        status: UpdateStatus::Available(info.version.clone()),
+                    });
+                }
+
+                // Log manual update to audit trail
+                info!(
+                    "[AUDIT] Manual update check triggered version {} download",
+                    info.version
+                );
+
+                #[cfg(feature = "gui")]
+                self.emit_gui_event(AgentEvent::UpdateStatusChanged {
+                    status: UpdateStatus::Downloading(0.0),
+                });
+
+                if let Err(e) = update_manager.perform_update(info).await {
+                    error!("Self-update failed: {}", e);
+                    #[cfg(feature = "gui")]
+                    {
+                        self.emit_notification(
+                            "Échec de la mise à jour",
+                            &format!("Erreur : {}", e),
+                            "error",
+                        );
+                        self.emit_gui_event(AgentEvent::UpdateStatusChanged {
+                            status: UpdateStatus::Failed(format!("{}", e)),
+                        });
+                    }
+                    return Err(e);
+                }
+
+                info!("Self-update initiated successfully.");
+                #[cfg(feature = "gui")]
+                self.emit_gui_event(AgentEvent::UpdateStatusChanged {
+                    status: UpdateStatus::Completed,
+                });
+
+                Ok(())
+            }
+            Ok(None) => {
+                info!("Agent is already up to date.");
+                #[cfg(feature = "gui")]
+                {
+                    self.emit_notification(
+                        "Agent à jour",
+                        &format!("La version v{} est la plus récente.", AGENT_VERSION),
+                        "info",
+                    );
+                    self.emit_gui_event(AgentEvent::UpdateStatusChanged {
+                        status: UpdateStatus::UpToDate,
+                    });
+                }
+                Ok(())
+            }
+            Err(e) => {
+                error!("Failed to check for updates: {}", e);
+                #[cfg(feature = "gui")]
+                {
+                    self.emit_notification(
+                        "Erreur de mise à jour",
+                        &format!("Impossible de vérifier les mises à jour : {}", e),
+                        "error",
+                    );
+                    self.emit_gui_event(AgentEvent::UpdateStatusChanged {
+                        status: UpdateStatus::Failed(format!("{}", e)),
+                    });
+                }
+                Err(e)
+            }
         }
     }
 }
@@ -2457,12 +2658,14 @@ fn parse_organization_id_from_token(token: &str) -> Option<String> {
     // URL_SAFE_NO_PAD handles it if no padding is present.
     if let Ok(decoded) = URL_SAFE_NO_PAD.decode(parts[1])
         && let Ok(payload_str) = String::from_utf8(decoded)
-        && let Ok(json) = serde_json::from_str::<serde_json::Value>(&payload_str) {
-         // Try standard claims
-         if let Some(val) = json.get("organization_id").or_else(|| json.get("org_id"))
-             && let Some(s) = val.as_str() {
-                 return Some(s.to_string());
-         }
+        && let Ok(json) = serde_json::from_str::<serde_json::Value>(&payload_str)
+    {
+        // Try standard claims
+        if let Some(val) = json.get("organization_id").or_else(|| json.get("org_id"))
+            && let Some(s) = val.as_str()
+        {
+            return Some(s.to_string());
+        }
     }
     None
 }
@@ -2482,8 +2685,11 @@ mod jwt_tests {
         let payload_str = serde_json::to_string(&payload).unwrap();
         let payload_b64 = URL_SAFE_NO_PAD.encode(payload_str);
         let token = format!("header.{}.signature", payload_b64);
-        
-        assert_eq!(parse_organization_id_from_token(&token), Some("org_12345".to_string()));
+
+        assert_eq!(
+            parse_organization_id_from_token(&token),
+            Some("org_12345".to_string())
+        );
 
         // Create a dummy JWT with organization_id
         let payload2 = serde_json::json!({
@@ -2494,7 +2700,10 @@ mod jwt_tests {
         let payload_b64_2 = URL_SAFE_NO_PAD.encode(payload_str2);
         let token2 = format!("header.{}.signature", payload_b64_2);
 
-        assert_eq!(parse_organization_id_from_token(&token2), Some("org_67890".to_string()));
+        assert_eq!(
+            parse_organization_id_from_token(&token2),
+            Some("org_67890".to_string())
+        );
 
         // Invalid token
         assert_eq!(parse_organization_id_from_token("invalid.token"), None);

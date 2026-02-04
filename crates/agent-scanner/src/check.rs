@@ -255,6 +255,7 @@ impl CheckDefinitionBuilder {
                 enabled: true,
                 platforms: Vec::new(),
                 parameters: serde_json::Value::Null,
+                nfr_duration_ms: None,
             },
         }
     }
@@ -310,6 +311,12 @@ impl CheckDefinitionBuilder {
     /// Set parameters.
     pub fn parameters(mut self, params: serde_json::Value) -> Self {
         self.def.parameters = params;
+        self
+    }
+
+    /// Set an NFR duration limit for performance warnings.
+    pub fn nfr_limit(mut self, ms: u64) -> Self {
+        self.def.nfr_duration_ms = Some(ms);
         self
     }
 

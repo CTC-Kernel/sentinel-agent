@@ -19,7 +19,8 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
     let stroke_width = 8.0;
 
     // Background track (full circle).
-    ui.painter().circle_stroke(center, radius, egui::Stroke::new(stroke_width, track_color));
+    ui.painter()
+        .circle_stroke(center, radius, egui::Stroke::new(stroke_width, track_color));
 
     match score {
         Some(value) => {

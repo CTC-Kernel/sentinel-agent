@@ -2,7 +2,6 @@
 //!
 //! This module defines the common error types used across all agent crates.
 
-use std::io;
 use thiserror::Error;
 
 /// Common error type for the agent.
@@ -17,7 +16,7 @@ pub enum CommonError {
 
     /// I/O errors.
     #[error("I/O error: {0}")]
-    Io(#[from] io::Error),
+    Io(String),
 
     /// Serialization/deserialization errors.
     #[error("serialization error: {0}")]
@@ -39,6 +38,14 @@ pub enum CommonError {
         /// The error message.
         message: String,
     },
+
+    /// System-related errors.
+    #[error("system error: {0}")]
+    System(String),
+
+    /// Feature not supported.
+    #[error("not supported: {0}")]
+    NotSupported(String),
 
     /// Generic error for unexpected conditions.
     #[error("internal error: {0}")]
@@ -67,6 +74,21 @@ impl CommonError {
             context: context.into(),
             message: message.into(),
         }
+    }
+
+    /// Create a new I/O error.
+    pub fn io(msg: impl Into<String>) -> Self {
+        Self::Io(msg.into())
+    }
+
+    /// Create a new system error.
+    pub fn system(msg: impl Into<String>) -> Self {
+        Self::System(msg.into())
+    }
+
+    /// Create a new not supported error.
+    pub fn not_supported(msg: impl Into<String>) -> Self {
+        Self::NotSupported(msg.into())
     }
 
     /// Create an internal error.

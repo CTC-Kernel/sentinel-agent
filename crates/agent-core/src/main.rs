@@ -647,7 +647,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
         let rt = match tokio::runtime::Runtime::new() {
             Ok(rt) => rt,
             Err(e) => {
-                tracing::error!("Failed to create Tokio runtime in GUI background thread: {}", e);
+                tracing::error!(
+                    "Failed to create Tokio runtime in GUI background thread: {}",
+                    e
+                );
                 return;
             }
         };
@@ -788,14 +791,21 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
             tokio::spawn(async move {
                 loop {
                     match command_rx.try_recv() {
-                        Ok(GuiCommand::Pause) => handle.pause(),
-                        Ok(GuiCommand::Resume) => handle.resume(),
+                        Ok(GuiCommand::Pause) => {
+                            info!("[AUDIT] GUI user requested agent pause");
+                            handle.pause();
+                        }
+                        Ok(GuiCommand::Resume) => {
+                            info!("[AUDIT] GUI user requested agent resume");
+                            handle.resume();
+                        }
                         Ok(GuiCommand::Shutdown) => {
+                            info!("[AUDIT] GUI user requested agent shutdown");
                             handle.request_shutdown();
                             break;
                         }
                         Ok(GuiCommand::RunCheck) => {
-                            info!("GUI requested check run");
+                            info!("[AUDIT] GUI user requested manual check run");
                             handle.trigger_check();
                         }
                         Ok(GuiCommand::ForceSync) => {
@@ -810,16 +820,20 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("GUI requested discovery cancellation");
                             handle.cancel_discovery();
                         }
+                        Ok(GuiCommand::CheckUpdate) => {
+                            info!("[AUDIT] GUI user requested manual update check");
+                            handle.trigger_update();
+                        }
                         Ok(GuiCommand::ProposeAsset {
                             ip,
                             hostname,
                             device_type,
                         }) => {
-                            info!("GUI proposed asset: {}", ip);
+                            info!("[AUDIT] GUI user proposed asset: {}", ip);
                             handle.propose_asset(ip, hostname, device_type);
                         }
                         Ok(GuiCommand::UpdateCheckInterval { interval_secs }) => {
-                            info!("GUI updated check interval to {} seconds", interval_secs);
+                            info!("[AUDIT] GUI user updated check interval to {} seconds", interval_secs);
                         }
                         Ok(GuiCommand::SetLogLevel { level }) => {
                             let level_str = match level {
@@ -829,7 +843,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 3 => "debug",
                                 _ => "trace",
                             };
-                            info!("GUI set log level to {}", level_str);
+                            info!("[AUDIT] GUI user set log level to {}", level_str);
                         }
                         Ok(_) => {}
                         Err(mpsc::TryRecvError::Empty) => {
@@ -912,7 +926,10 @@ fn ctrlc_handler(shutdown: agent_core::ShutdownSignal) {
         info!("Received Ctrl+C, initiating shutdown...");
         shutdown.store(true, std::sync::atomic::Ordering::SeqCst);
     }) {
-        warn!("Failed to set Ctrl+C handler: {}. Agent may not shut down gracefully on signal.", e);
+        warn!(
+            "Failed to set Ctrl+C handler: {}. Agent may not shut down gracefully on signal.",
+            e
+        );
     }
 }
 
@@ -1094,7 +1111,10 @@ mod ctrlc {
                 ]) {
                     Ok(s) => s,
                     Err(e) => {
-                        eprintln!("Failed to create signal iterator: {}. Signal handling disabled.", e);
+                        eprintln!(
+                            "Failed to create signal iterator: {}. Signal handling disabled.",
+                            e
+                        );
                         return;
                     }
                 };
@@ -1129,19 +1149,21 @@ mod ctrlc {
             }
 
             // Console control handler function
-            unsafe extern "system" fn console_handler(ctrl_type: u32) -> windows::Win32::Foundation::BOOL {
+            unsafe extern "system" fn console_handler(
+                ctrl_type: u32,
+            ) -> windows::Win32::Foundation::BOOL {
                 // CTRL_C_EVENT = 0, CTRL_BREAK_EVENT = 1, CTRL_CLOSE_EVENT = 2
                 // CTRL_LOGOFF_EVENT = 5, CTRL_SHUTDOWN_EVENT = 6
                 if ctrl_type <= 2 || ctrl_type == 5 || ctrl_type == 6 {
                     SHUTDOWN_FLAG.store(true, Ordering::SeqCst);
-                    
+
                     // Trigger the callback if it exists
                     unsafe {
                         if let Some(ref callback) = HANDLER_CALLBACK {
                             callback();
                         }
                     }
-                    
+
                     return true.into(); // TRUE - we handled it
                 }
                 false.into() // FALSE - pass to next handler

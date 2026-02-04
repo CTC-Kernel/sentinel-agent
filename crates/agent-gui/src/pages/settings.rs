@@ -227,7 +227,7 @@ impl SettingsPage {
                         .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_MD);
-                ui.checkbox(&mut state.dark_mode, "");
+                widgets::toggle_switch(ui, &mut state.dark_mode);
             });
             ui.add_space(theme::SPACE_XS);
             ui.label(
@@ -238,6 +238,74 @@ impl SettingsPage {
                 .color(theme::text_tertiary()),
             );
         });
+
+        ui.add_space(theme::SPACE);
+
+        // Update section
+        widgets::card(ui, |ui| {
+            ui.label(
+                egui::RichText::new("MISE \u{00c0} JOUR")
+                    .font(theme::font_small())
+                    .color(theme::text_tertiary())
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            ui.horizontal(|ui| {
+                ui.vertical(|ui| {
+                    ui.label(
+                        egui::RichText::new(format!(
+                            "Version actuelle : v{}",
+                            state.summary.version
+                        ))
+                        .font(theme::font_body())
+                        .color(theme::text_secondary()),
+                    );
+                    ui.add_space(theme::SPACE_XS);
+                    ui.label(
+                        egui::RichText::new("Maintenez votre agent \u{00e0} jour pour b\u{00e9}n\u{00e9}ficier des derni\u{00e8}res protections.")
+                            .font(theme::font_small())
+                            .color(theme::text_tertiary()),
+                    );
+                });
+
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    use crate::dto::UpdateStatus;
+
+                    let (btn_text, is_busy, btn_color) = match &state.update_status {
+                        UpdateStatus::Idle => (format!("{}  V\u{00c9}RIFIER", icons::DOWNLOAD), false, theme::ACCENT),
+                        UpdateStatus::Available(v) => (format!("{}  INSTALLER v{}", icons::DOWNLOAD, v), false, theme::SUCCESS),
+                        UpdateStatus::UpToDate => (format!("{}  \u{00c0} JOUR", icons::CHECK), false, theme::ACCENT),
+                        UpdateStatus::Downloading(p) => (format!("{}  {}%", icons::DOWNLOAD, (p * 100.0) as u32), true, theme::ACCENT),
+                        UpdateStatus::Verifying => (format!("{}  V\u{00c9}RIFICATION", icons::DOWNLOAD), true, theme::ACCENT),
+                        UpdateStatus::Installing => (format!("{}  INSTALLATION", icons::DOWNLOAD), true, theme::ACCENT),
+                        UpdateStatus::Completed => (format!("{}  TERMIN\u{00c9}", icons::CHECK), false, theme::SUCCESS),
+                        UpdateStatus::Failed(_) => (format!("{}  R\u{00c9}ESSAYER", icons::REFRESH), false, theme::ERROR),
+                    };
+
+                    let update_btn = egui::Button::new(
+                        egui::RichText::new(btn_text)
+                            .font(theme::font_body())
+                            .color(theme::text_on_accent())
+                            .strong(),
+                    )
+                    .fill(btn_color)
+                    .min_size(egui::vec2(140.0, 32.0))
+                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+
+                    let can_click = !state.is_paused && !is_busy;
+                    if ui.add_enabled(can_click, update_btn).clicked() {
+                        command = Some(GuiCommand::CheckUpdate);
+                    }
+
+                    if is_busy {
+                        ui.add(egui::Spinner::new().size(16.0));
+                    }
+                });
+            });
+        });
+
+        ui.add_space(theme::SPACE);
 
         ui.add_space(theme::SPACE);
 

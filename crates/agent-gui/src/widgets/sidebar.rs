@@ -10,6 +10,7 @@ use crate::theme;
 /// Sync state passed to the sidebar for the status indicator.
 pub struct SidebarSyncState {
     pub syncing: bool,
+    pub pending_count: u32,
     pub last_sync_at: Option<DateTime<Utc>>,
     pub error: Option<String>,
 }
@@ -40,33 +41,49 @@ impl Sidebar {
             // Paint gradient background
             let rect = ui.max_rect();
             let is_dark = theme::is_dark_mode();
-            
+
             if ui.is_rect_visible(rect) {
                 use egui::epaint::{Mesh, Vertex};
                 let mut mesh = Mesh::default();
-                
+
                 let (top_col, bot_col) = if is_dark {
                     (
                         Color32::from_rgb(25, 25, 30), // Lighter top (Spotlight)
-                        Color32::from_rgb(5, 5, 8)     // Deep bottom
+                        Color32::from_rgb(5, 5, 8),    // Deep bottom
                     )
                 } else {
                     (
-                         Color32::from_rgb(245, 245, 250),
-                         Color32::from_rgb(230, 230, 235)
+                        Color32::from_rgb(245, 245, 250),
+                        Color32::from_rgb(230, 230, 235),
                     )
                 };
 
                 // Tricky: we need correct indices for 2 triangles forming the rect
                 let idx = mesh.vertices.len() as u32;
-                mesh.vertices.push(Vertex { pos: rect.left_top(), uv: Default::default(), color: top_col });
-                mesh.vertices.push(Vertex { pos: rect.right_top(), uv: Default::default(), color: top_col });
-                mesh.vertices.push(Vertex { pos: rect.right_bottom(), uv: Default::default(), color: bot_col });
-                mesh.vertices.push(Vertex { pos: rect.left_bottom(), uv: Default::default(), color: bot_col });
-                
+                mesh.vertices.push(Vertex {
+                    pos: rect.left_top(),
+                    uv: Default::default(),
+                    color: top_col,
+                });
+                mesh.vertices.push(Vertex {
+                    pos: rect.right_top(),
+                    uv: Default::default(),
+                    color: top_col,
+                });
+                mesh.vertices.push(Vertex {
+                    pos: rect.right_bottom(),
+                    uv: Default::default(),
+                    color: bot_col,
+                });
+                mesh.vertices.push(Vertex {
+                    pos: rect.left_bottom(),
+                    uv: Default::default(),
+                    color: bot_col,
+                });
+
                 mesh.add_triangle(idx, idx + 1, idx + 2);
                 mesh.add_triangle(idx + 2, idx + 3, idx);
-                
+
                 ui.painter().add(mesh);
             }
 
@@ -292,9 +309,9 @@ impl Sidebar {
                 } else {
                     theme::bg_elevated().linear_multiply(0.5)
                 };
-                
+
                 let rect_shrunk = rect.shrink2(Vec2::new(8.0, 2.0));
-                
+
                 ui.painter().rect(
                     rect_shrunk,
                     CornerRadius::same(theme::BUTTON_ROUNDING),
@@ -335,25 +352,25 @@ impl Sidebar {
 
             // Badge
             if let Some(count) = badge
-                && count > 0 {
-                    let badge_text = if count > 9 {
-                        "9+".to_string()
-                    } else {
-                        count.to_string()
-                    };
-                    let badge_center = rect.right_center() + Vec2::new(-24.0, 0.0);
-                    let badge_rect =
-                        egui::Rect::from_center_size(badge_center, Vec2::new(20.0, 16.0));
-                    ui.painter()
-                        .rect_filled(badge_rect, CornerRadius::same(8), theme::ERROR);
-                    ui.painter().text(
-                        badge_center,
-                        egui::Align2::CENTER_CENTER,
-                        &badge_text,
-                        egui::FontId::proportional(10.0),
-                        theme::text_on_accent(),
-                    );
-                }
+                && count > 0
+            {
+                let badge_text = if count > 9 {
+                    "9+".to_string()
+                } else {
+                    count.to_string()
+                };
+                let badge_center = rect.right_center() + Vec2::new(-24.0, 0.0);
+                let badge_rect = egui::Rect::from_center_size(badge_center, Vec2::new(20.0, 16.0));
+                ui.painter()
+                    .rect_filled(badge_rect, CornerRadius::same(8), theme::ERROR);
+                ui.painter().text(
+                    badge_center,
+                    egui::Align2::CENTER_CENTER,
+                    &badge_text,
+                    egui::FontId::proportional(10.0),
+                    theme::text_on_accent(),
+                );
+            }
         }
 
         response.clicked()
@@ -365,19 +382,28 @@ impl Sidebar {
         let t = ui.input(|i| i.time);
 
         // Determine visual state
-        let (dot_color, label, pulse_speed): (egui::Color32, &str, f64) = if state.syncing {
-            (theme::ACCENT, "Synchronisation...", 3.0)
+        let (dot_color, label, pulse_speed): (egui::Color32, String, f64) = if state.syncing {
+            (theme::ACCENT, "Synchronisation...".to_string(), 3.0)
         } else if state.error.is_some() {
-            (theme::ERROR, "Erreur sync", 0.0)
+            (theme::ERROR, "Erreur sync".to_string(), 0.0)
         } else if let Some(last) = state.last_sync_at {
             let age_secs = (now - last).num_seconds();
-            if age_secs < 300 {
-                (theme::SUCCESS, "Synchronis\u{00e9}", 1.0)
+            if age_secs < 120 {
+                // If we have pending items, show that instead of a generic "Synchronisé"
+                if state.pending_count > 0 {
+                    (
+                        theme::ACCENT,
+                        format!("{} en attente", state.pending_count),
+                        2.0,
+                    )
+                } else {
+                    (theme::SUCCESS, "Synchronis\u{00e9}".to_string(), 1.0)
+                }
             } else {
-                (theme::WARNING, "En attente", 0.0)
+                (theme::WARNING, "En attente".to_string(), 0.0)
             }
         } else {
-            (theme::text_tertiary(), "Non synchronis\u{00e9}", 0.0)
+            (theme::text_tertiary(), "Non synchronis\u{00e9}".to_string(), 0.0)
         };
 
         // Pulse animation (cosine ease)
@@ -404,7 +430,7 @@ impl Sidebar {
             }
             ui.add_space(theme::SPACE_XS);
             ui.label(
-                egui::RichText::new(label)
+                egui::RichText::new(&label)
                     .font(theme::font_small())
                     .color(theme::text_secondary()),
             );

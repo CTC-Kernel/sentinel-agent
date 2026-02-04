@@ -186,12 +186,13 @@ impl CheckRunner {
         };
 
         let duration_ms = start.elapsed().as_millis() as u64;
+        let nfr_limit = check.definition().nfr_duration_ms.unwrap_or(MAX_CHECK_DURATION_MS);
 
         // Log NFR warning if check took too long
-        if duration_ms > MAX_CHECK_DURATION_MS {
+        if duration_ms > nfr_limit {
             warn!(
                 "Check {} exceeded NFR limit: {}ms > {}ms",
-                check_id, duration_ms, MAX_CHECK_DURATION_MS
+                check_id, duration_ms, nfr_limit
             );
         }
 
