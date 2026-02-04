@@ -334,9 +334,29 @@ const getReleaseInfo = onCall({
 
     const { product = 'agent' } = request.data || {};
 
-    const config = RELEASE_CONFIG[product];
+    let config = RELEASE_CONFIG[product];
     if (!config) {
         throw new HttpsError('not-found', `Unknown product: ${product}`);
+    }
+
+    // Try to load dynamic metadata from storage
+    try {
+        const metadataFile = bucket.file(`releases/${product}/release-info.json`);
+        const [exists] = await metadataFile.exists();
+        if (exists) {
+            const [content] = await metadataFile.download();
+            const dynamicMetadata = JSON.parse(content.toString('utf-8'));
+
+            // Override hardcoded config with dynamic metadata
+            config = {
+                ...config,
+                currentVersion: dynamicMetadata.version || config.currentVersion,
+                releaseDate: dynamicMetadata.date || config.releaseDate,
+            };
+            logger.info(`Loaded dynamic metadata for ${product}: v${config.currentVersion}`);
+        }
+    } catch (error) {
+        logger.warn(`Failed to load dynamic metadata for ${product}, falling back to hardcoded`, error);
     }
 
     const result = {
