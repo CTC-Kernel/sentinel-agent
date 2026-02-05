@@ -17,7 +17,7 @@ use agent_common::constants::AGENT_VERSION;
 use muda::{Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use tokio::sync::mpsc;
+use std::sync::mpsc;
 use tracing::{debug, error, info, warn};
 use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 
@@ -28,13 +28,30 @@ use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 /// Status refresh interval in seconds.
 const STATUS_REFRESH_INTERVAL_SECS: u64 = 30;
 
+/// Branding URLs for the agent.
+pub mod branding {
+    use super::company_info;
+    
+    /// Main website URL.
+    pub const WEBSITE: &str = "https://cyber-threat-consulting.com";
+    /// User guide URL.
+    pub const GUIDE: &str = "https://cyber-threat-consulting.com/docs";
+    /// Dashboard URL (currently unused, kept for reference).
+    #[allow(dead_code)]
+    pub const DASHBOARD: &str = "https://app.cyber-threatconsulting.com/settings?tab=agents";
+    
+    /// Product name (re-exported from company_info).
+    pub const PRODUCT_NAME: &str = company_info::PRODUCT_NAME;
+    /// Company name (re-exported from company_info).
+    pub const COMPANY_NAME: &str = company_info::COMPANY_NAME;
+    /// Email (re-exported from company_info).
+    pub const EMAIL: &str = company_info::EMAIL;
+}
+
 /// Company and product information.
-mod branding {
+mod company_info {
     pub const COMPANY_NAME: &str = "Cyber Threat Consulting";
     pub const PRODUCT_NAME: &str = "Sentinel Agent";
-    pub const WEBSITE: &str = "https://cyber-threat-consulting.com";
-    pub const DASHBOARD: &str = "https://app.cyber-threat-consulting.com/settings?tab=agents";
-    pub const GUIDE: &str = "https://cyber-threat-consulting.com/docs/sentinel-agent";
     pub const EMAIL: &str = "***REMOVED***";
 }
 
@@ -118,9 +135,19 @@ pub enum TrayCommand {
     Pause,
     /// Resume agent operations.
     Resume,
-    /// Trigger immediate compliance check.
+    /// Run an immediate check.
     CheckNow,
-    /// Request shutdown.
+    /// Open the premium tray popup GUI.
+    OpenTrayPopup,
+    /// Open logs folder.
+    OpenLogs,
+    /// Open website in browser.
+    OpenWebsite,
+    /// Open user guide in browser.
+    OpenGuide,
+    /// Show about dialog.
+    About,
+    /// Shutdown the agent.
     Shutdown,
 }
 
@@ -137,9 +164,9 @@ pub struct TrayResourceInfo {
 // AgentTray
 // ============================================================================
 
-/// System tray manager for the agent.
+/// System tray manager for agent.
 pub struct AgentTray {
-    _tray_icon: TrayIcon,
+    tray_icon: TrayIcon,
     status: Arc<std::sync::RwLock<AgentTrayStatus>>,
     paused: Arc<AtomicBool>,
     shutdown: ShutdownSignal,
@@ -163,7 +190,7 @@ struct TrayMenuItems {
 impl AgentTray {
     /// Create a new system tray icon with menu.
     pub fn new(shutdown: ShutdownSignal) -> Result<(Self, mpsc::Receiver<TrayCommand>), TrayError> {
-        let (command_tx, command_rx) = mpsc::channel(32);
+        let (command_tx, command_rx) = mpsc::channel();
 
         // === Header Section ===
         let header_item = MenuItem::with_id(
@@ -202,7 +229,7 @@ impl AgentTray {
 
         // === Resources Section ===
         let open_dashboard_item =
-            MenuItem::with_id(menu_ids::OPEN_DASHBOARD, "📊  Tableau de bord", true, None);
+            MenuItem::with_id(menu_ids::OPEN_DASHBOARD, "�️  Radar Sécurité", true, None);
         let open_logs_item =
             MenuItem::with_id(menu_ids::OPEN_LOGS, "📁  Ouvrir les logs", true, None);
 
@@ -211,7 +238,7 @@ impl AgentTray {
         let open_guide_item =
             MenuItem::with_id(menu_ids::OPEN_GUIDE, "📖  Guide utilisateur", true, None);
         let open_website_item =
-            MenuItem::with_id(menu_ids::OPEN_WEBSITE, "🌐  Site web", true, None);
+            MenuItem::with_id(menu_ids::OPEN_WEBSITE, "🌐  Console", true, None);
         let about_item = MenuItem::with_id(menu_ids::ABOUT, "ℹ️  À propos", true, None);
 
         help_submenu
@@ -297,7 +324,7 @@ impl AgentTray {
         };
 
         let tray = Self {
-            _tray_icon: tray_icon,
+            tray_icon,
             status,
             paused,
             shutdown,
@@ -315,12 +342,23 @@ impl AgentTray {
         self.paused.load(Ordering::Acquire)
     }
 
-    /// Set the current status and update the tray icon.
+    /// Set current status and update tray icon with premium indicator.
     pub fn set_status(&self, new_status: AgentTrayStatus) {
         if let Ok(mut status) = self.status.write()
             && *status != new_status
         {
             *status = new_status;
+            
+            // Update tray icon with premium indicator
+            if let Ok(new_icon) = create_icon(new_status) {
+                if let Err(e) = self.tray_icon.set_icon(Some(new_icon)) {
+                    warn!("Failed to update tray icon: {}", e);
+                }
+                if let Err(e) = self.tray_icon.set_tooltip(Some(new_status.tooltip())) {
+                    warn!("Failed to update tray tooltip: {}", e);
+                }
+            }
+            
             self.menu_items
                 .status_item
                 .set_text(new_status.display_text());
@@ -368,7 +406,7 @@ impl AgentTray {
                 self.set_status(AgentTrayStatus::Paused);
 
                 // Send command to agent
-                let _ = self.command_tx.try_send(TrayCommand::Pause);
+                let _ = self.command_tx.send(TrayCommand::Pause);
             }
 
             menu_ids::RESUME => {
@@ -380,7 +418,7 @@ impl AgentTray {
                 self.set_status(AgentTrayStatus::Active);
 
                 // Send command to agent
-                let _ = self.command_tx.try_send(TrayCommand::Resume);
+                let _ = self.command_tx.send(TrayCommand::Resume);
             }
 
             menu_ids::CHECK_NOW => {
@@ -388,7 +426,7 @@ impl AgentTray {
                 self.set_status(AgentTrayStatus::Checking);
 
                 // Send command to agent - the agent will call on_check_complete() when done
-                let _ = self.command_tx.try_send(TrayCommand::CheckNow);
+                let _ = self.command_tx.send(TrayCommand::CheckNow);
             }
 
             menu_ids::OPEN_LOGS => {
@@ -397,13 +435,17 @@ impl AgentTray {
             }
 
             menu_ids::OPEN_DASHBOARD => {
-                info!("Opening dashboard");
-                open_url(branding::DASHBOARD);
+                info!("Opening tray popup with premium radar");
+                // Launch tray popup GUI directly
+                std::process::Command::new(std::env::current_exe().unwrap())
+                    .args(["--tray-popup"])
+                    .spawn()
+                    .ok();
             }
 
             menu_ids::OPEN_WEBSITE => {
-                info!("Opening website");
-                open_url(branding::WEBSITE);
+                info!("Opening console dashboard");
+                open_url("https://app.cyber-threatconsulting.com/agentApi/dashboard");
             }
 
             menu_ids::OPEN_GUIDE => {
@@ -418,7 +460,7 @@ impl AgentTray {
 
             menu_ids::QUIT => {
                 info!("User requested quit");
-                let _ = self.command_tx.try_send(TrayCommand::Shutdown);
+                let _ = self.command_tx.send(TrayCommand::Shutdown);
                 self.shutdown.store(true, Ordering::SeqCst);
             }
 
@@ -437,6 +479,30 @@ impl AgentTray {
         }
         self.menu_items.check_now_item.set_enabled(true);
     }
+
+    /// Start sync with animated premium indicator.
+    pub fn start_sync(&self) {
+        self.set_status(AgentTrayStatus::Syncing);
+    }
+
+    /// Stop sync and return to active state.
+    pub fn stop_sync(&self) {
+        self.set_status(AgentTrayStatus::Active);
+    }
+
+    /// Update sync animation frame (called periodically).
+    pub fn update_sync_animation(&self) {
+        if let Ok(status) = self.status.read() {
+            if *status == AgentTrayStatus::Syncing {
+                // Refresh icon to update animation
+                if let Ok(new_icon) = create_icon(AgentTrayStatus::Syncing) {
+                    if let Err(e) = self.tray_icon.set_icon(Some(new_icon)) {
+                        warn!("Failed to update sync animation: {}", e);
+                    }
+                }
+            }
+        }
+    }
 }
 
 // ============================================================================
@@ -446,16 +512,112 @@ impl AgentTray {
 /// Embedded icon data (44x44 PNG – macOS menu bar @2x Retina template).
 static ICON_32_PNG: &[u8] = include_bytes!("../../../assets/icons/png/tray_44.png");
 
-/// Create an icon for the given status.
-fn create_icon(_status: AgentTrayStatus) -> Result<Icon, TrayError> {
-    let img = image::load_from_memory(ICON_32_PNG)
+/// Create an icon for given status with premium sync indicator.
+fn create_icon(status: AgentTrayStatus) -> Result<Icon, TrayError> {
+    let base_img = image::load_from_memory(ICON_32_PNG)
         .map_err(|e| TrayError::IconCreate(format!("Failed to load icon: {}", e)))?;
 
-    let rgba_image = img.to_rgba8();
+    let mut rgba_image = base_img.to_rgba8();
     let (width, height) = rgba_image.dimensions();
+    
+    // Add premium sync indicator for syncing status
+    if status == AgentTrayStatus::Syncing {
+        add_sync_indicator(&mut rgba_image, width, height)?;
+    } else if status == AgentTrayStatus::Checking {
+        add_check_indicator(&mut rgba_image, width, height)?;
+    } else if status == AgentTrayStatus::Error {
+        add_error_indicator(&mut rgba_image, width, height)?;
+    }
+    
     let rgba_data = rgba_image.into_raw();
 
     Icon::from_rgba(rgba_data, width, height).map_err(|e| TrayError::IconCreate(e.to_string()))
+}
+
+/// Add animated sync indicator to tray icon.
+fn add_sync_indicator(img: &mut image::RgbaImage, width: u32, height: u32) -> Result<(), TrayError> {
+    let center_x = width as i32 - 6;
+    let center_y = 6;
+    let radius = 4;
+    
+    // Draw rotating arc for sync effect
+    let time = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs_f32();
+    let angle = (time * 2.0) % (2.0 * std::f32::consts::PI);
+    
+    // Draw sync circle with arc
+    for i in 0..8 {
+        let theta = (i as f32 / 8.0) * 2.0 * std::f32::consts::PI;
+        let next_theta = ((i + 1) as f32 / 8.0) * 2.0 * std::f32::consts::PI;
+        
+        if (theta..next_theta).contains(&angle) {
+            // Active segment - bright blue
+            let x = center_x + (radius as f32 * theta.cos()) as i32;
+            let y = center_y + (radius as f32 * theta.sin()) as i32;
+            
+            if x >= 0 && y >= 0 && x < width as i32 && y < height as i32 {
+                let pixel = img.get_pixel_mut(x as u32, y as u32);
+                *pixel = image::Rgba([0, 150, 255, 255]); // Bright blue
+            }
+        } else {
+            // Inactive segment - dim blue
+            let x = center_x + (radius as f32 * theta.cos()) as i32;
+            let y = center_y + (radius as f32 * theta.sin()) as i32;
+            
+            if x >= 0 && y >= 0 && x < width as i32 && y < height as i32 {
+                let pixel = img.get_pixel_mut(x as u32, y as u32);
+                *pixel = image::Rgba([0, 80, 150, 180]); // Dim blue
+            }
+        }
+    }
+    
+    Ok(())
+}
+
+/// Add check indicator to tray icon.
+fn add_check_indicator(img: &mut image::RgbaImage, width: u32, height: u32) -> Result<(), TrayError> {
+    let center_x = width as i32 - 6;
+    let center_y = 6;
+    
+    // Draw orange check indicator
+    for dx in -2i32..=2i32 {
+        for dy in -2i32..=2i32 {
+            let x = center_x + dx;
+            let y = center_y + dy;
+            
+            if x >= 0 && y >= 0 && x < width as i32 && y < height as i32 {
+                let pixel = img.get_pixel_mut(x as u32, y as u32);
+                *pixel = image::Rgba([255, 150, 0, 200]); // Orange
+            }
+        }
+    }
+    
+    Ok(())
+}
+
+/// Add error indicator to tray icon.
+fn add_error_indicator(img: &mut image::RgbaImage, width: u32, height: u32) -> Result<(), TrayError> {
+    let center_x = width as i32 - 6;
+    let center_y = 6;
+    
+    // Draw red error indicator
+    for dx in -2i32..=2i32 {
+        for dy in -2i32..=2i32 {
+            if dx.abs() == dy.abs() || (dx == 0 && dy == 0) {
+                let x = center_x + dx;
+                let y = center_y + dy;
+                
+                if x >= 0 && y >= 0 && x < width as i32 && y < height as i32 {
+                    let pixel = img.get_pixel_mut(x as u32, y as u32);
+                    *pixel = image::Rgba([255, 50, 50, 255]); // Red
+                }
+            }
+        }
+    }
+    
+    Ok(())
 }
 
 // ============================================================================
