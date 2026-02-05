@@ -21,6 +21,7 @@ pub fn card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) {
         .inner_margin(Margin::same(32)) // Airy padding
         .stroke(egui::Stroke::new(0.5, theme::border()))
         .shadow(shadow)
+        .clip(true) // Ensure content doesn't overflow rounded corners
         .show(ui, |ui| {
             add_contents(ui);
         });

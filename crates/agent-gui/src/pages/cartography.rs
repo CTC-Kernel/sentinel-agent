@@ -118,10 +118,12 @@ impl CartographyPage {
                     ui.add_space(theme::SPACE_XL);
 
                     // Run Scan
-                    if widgets::button::primary_button(
+                    let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
+                    if widgets::button::primary_button_loading(
                         ui,
-                        format!("{}  Lancer le scan", icons::PLAY),
-                        state.summary.status != GuiAgentStatus::Scanning,
+                        format!("{}  {}", if is_scanning { "Scan en cours..." } else { "Lancer le scan" }, icons::PLAY),
+                        !is_scanning,
+                        is_scanning,
                     )
                     .clicked()
                     {

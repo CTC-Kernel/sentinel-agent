@@ -40,18 +40,18 @@ pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(90, 200, 250); // #5AC8FA (A
 /// Accent hover state.
 pub const ACCENT_HOVER: Color32 = Color32::from_rgb(0, 113, 237);
 
-/// Success green (Apple System Green).
-pub const SUCCESS: Color32 = Color32::from_rgb(52, 199, 89); // #34C759
-/// Warning orange (Apple System Orange).
-pub const WARNING: Color32 = Color32::from_rgb(255, 149, 0); // #FF9500
-/// Error red (Apple System Red).
-pub const ERROR: Color32 = Color32::from_rgb(255, 59, 48); // #FF3B30
-/// Info blue (Apple System Blue / Teal).
-pub const INFO: Color32 = Color32::from_rgb(0, 122, 255); // #007AFF
-/// Severity-high amber (web app risk amber / System Yellow).
-pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 204, 0); // #FFCC00
-/// Severity-medium (distinct from WARNING for proper hierarchy).
-pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 159, 10); // #FF9F0A iOS Orange
+/// Success green (Apple System Green - softened).
+pub const SUCCESS: Color32 = Color32::from_rgb(48, 176, 85); // #30B055 (less saturated)
+/// Warning orange (Apple System Orange - softened).
+pub const WARNING: Color32 = Color32::from_rgb(230, 140, 0); // #E68C00 (less saturated)
+/// Error red (Apple System Red - softened).
+pub const ERROR: Color32 = Color32::from_rgb(220, 53, 69); // #DC3545 (less saturated)
+/// Info blue (Apple System Blue - softened).
+pub const INFO: Color32 = Color32::from_rgb(0, 123, 255); // #007BFF (slightly less saturated)
+/// Severity-high amber (web app risk amber - softened).
+pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 193, 7); // #FFC107 (more yellow, less harsh)
+/// Severity-medium (distinct from WARNING - softened).
+pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 184, 0); // #FFB800 (more muted orange)
 
 // ============================================================================
 // Surface colors (dynamic – depends on active theme)

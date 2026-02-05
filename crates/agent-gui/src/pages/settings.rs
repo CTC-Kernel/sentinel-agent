@@ -3,6 +3,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
+use crate::dto::GuiAgentStatus;
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -68,8 +69,9 @@ impl SettingsPage {
 
                 ui.add_space(theme::SPACE);
 
+                let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
                 let check_btn = egui::Button::new(
-                    egui::RichText::new(format!("{}  V\u{00c9}RIFIER MAINTENANT", icons::CHECK))
+                    egui::RichText::new(format!("{}  {}", if is_scanning { "V\u{00c9}RIFICATION..." } else { "V\u{00c9}RIFIER MAINTENANT" }, icons::CHECK))
                         .font(theme::font_body())
                         .color(theme::text_on_accent())
                         .strong(),
@@ -78,7 +80,7 @@ impl SettingsPage {
                 .min_size(egui::vec2(200.0, 40.0))
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
 
-                if ui.add_enabled(!state.is_paused, check_btn).clicked() {
+                if ui.add_enabled(!state.is_paused && !is_scanning, check_btn).clicked() {
                     command = Some(GuiCommand::RunCheck);
                 }
             });

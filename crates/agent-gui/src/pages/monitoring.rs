@@ -189,9 +189,9 @@ impl MonitoringPage {
                     let time = ui.input(|i| i.time);
                     let pulse = (time * 2.0).sin() * 0.05 + 0.95; // Slower, more subtle pulse
                     
-                    // Premium shadow effect
+                    // Premium shadow effect (drawn slightly inside to ensure no overflow)
                     painter.rect_filled(
-                        card_inner_rect.expand(1.0),
+                        card_inner_rect,
                         0.0,
                         color.linear_multiply(0.1),
                     );

@@ -26,10 +26,12 @@ impl DashboardPage {
 
         // Quick action buttons
         ui.horizontal(|ui| {
-            if widgets::button::primary_button(
+            let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
+            if widgets::button::primary_button_loading(
                 ui,
-                format!("{}  Lancer un scan", icons::PLAY),
-                state.summary.status != GuiAgentStatus::Scanning,
+                format!("{}  {}", if is_scanning { "Scan en cours..." } else { "Lancer un scan" }, icons::PLAY),
+                !is_scanning,
+                is_scanning,
             )
             .clicked()
             {
@@ -38,10 +40,12 @@ impl DashboardPage {
 
             ui.add_space(theme::SPACE_SM);
 
-            if widgets::button::secondary_button(
+            let is_syncing = state.summary.status == GuiAgentStatus::Syncing;
+            if widgets::button::secondary_button_loading(
                 ui,
-                format!("{}  Forcer la synchro", icons::SYNC),
-                state.summary.status != GuiAgentStatus::Syncing, // Disable during sync
+                format!("{}  {}", if is_syncing { "Synchro..." } else { "Forcer la synchro" }, icons::SYNC),
+                !is_syncing,
+                is_syncing,
             )
             .clicked()
             {
