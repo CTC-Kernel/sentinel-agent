@@ -41,7 +41,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                             <p className="text-slate-600 dark:text-muted-foreground">Recommandations générées par le moteur d'IA souverain (OVH)</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2.5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                    <button onClick={onClose} className="p-2.5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                         <X className="w-6 h-6 text-slate-600" />
                     </button>
                 </div>
@@ -73,7 +73,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                                                 }`}>
                                                 {rec.priority}
                                             </span>
-                                            <span className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-lg">
+                                            <span className="flex items-center text-xs font-medium text-muted-foreground bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-lg">
                                                 <ShieldCheck className="w-3 h-3 mr-1" />
                                                 Confiance: {(rec.confidence_score * 100).toFixed(0)}%
                                             </span>
@@ -88,7 +88,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                                     </p>
 
                                     <div className="bg-slate-50 dark:bg-black/20 rounded-2xl p-5">
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">Actions Suggérées</h4>
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Actions Suggérées</h4>
                                         <ul className="space-y-3">
                                             {rec.suggested_actions.map((action) => (
                                                 <li key={action.action || 'unknown'} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-200">
@@ -118,7 +118,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                 <div className="p-6 border-t border-border/40 dark:border-white/5 bg-slate-50/50 dark:bg-slate-800/50 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-6 py-3 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="px-6 py-3 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         Fermer
                     </button>

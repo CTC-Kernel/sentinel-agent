@@ -37,18 +37,31 @@ export class AgentErrorBoundary extends Component<Props, State> {
 
     public render() {
         if (this.state.hasError) {
+            const errorId = `ERR-${Date.now().toString(36).toUpperCase()}`;
             return (
                 <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-red-50/50 dark:bg-red-950/20 border border-red-200/50 dark:border-red-800/30 text-center">
                     <AlertTriangle className="h-8 w-8 text-red-400 mb-3" />
                     <p className="text-sm font-medium text-red-600 dark:text-red-400">
                         {this.props.fallbackMessage ?? 'Ce composant a rencontré une erreur.'}
                     </p>
-                    <button
-                        onClick={() => this.setState({ hasError: false, error: null })}
-                        className="mt-3 text-xs text-red-500 hover:text-red-700 underline"
-                    >
-                        Réessayer
-                    </button>
+                    <p className="text-[11px] text-red-400/70 dark:text-red-500/50 mt-1 font-mono">
+                        Réf : {errorId}
+                    </p>
+                    <div className="flex items-center gap-3 mt-3">
+                        <button
+                            onClick={() => this.setState({ hasError: false, error: null })}
+                            className="text-xs font-medium text-red-500 hover:text-red-700 dark:hover:text-red-300 underline transition-colors"
+                        >
+                            Réessayer
+                        </button>
+                        <span className="text-red-300 dark:text-red-700">•</span>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="text-xs font-medium text-red-500 hover:text-red-700 dark:hover:text-red-300 underline transition-colors"
+                        >
+                            Recharger la page
+                        </button>
+                    </div>
                 </div>
             );
         }

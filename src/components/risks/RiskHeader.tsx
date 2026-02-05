@@ -64,21 +64,21 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
             actions={
                 <>
                     <Menu as="div" className="relative inline-block text-left">
-                        <Menu.Button as={Button} variant="ghost" size="icon" aria-label="Plus d'actions" className="bg-white dark:bg-white/5 border border-border/40 dark:border-border/40 text-slate-700 dark:text-white rounded-3xl hover:bg-slate-50 dark:hover:bg-white/10 shadow-sm h-9 w-9">
+                        <Menu.Button as={Button} variant="ghost" size="icon" aria-label="Plus d'actions" className="bg-background border border-border text-foreground rounded-3xl hover:bg-muted/50 shadow-sm h-9 w-9">
                             <MoreVertical className="h-5 w-5" />
                         </Menu.Button>
                         <Transition
                             as={React.Fragment}
                             enter="transition ease-out duration-100"
                             enterFrom="transform opacity-0 scale-95"
-                            enterTo="transform opacity-70 scale-100"
+                            enterTo="transform opacity-100 scale-100"
                             leave="transition ease-in duration-75"
-                            leaveFrom="transform opacity-70 scale-100"
+                            leaveFrom="transform opacity-100 scale-100"
                             leaveTo="transform opacity-0 scale-95"
                         >
-                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-slate-100 dark:divide-white/10 rounded-3xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-dropdown">
+                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border/50 rounded-xl bg-popover text-popover-foreground shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-dropdown">
                                 <div className="p-1">
-                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                         Rapports & Exports
                                     </div>
                                     <Menu.Item>
@@ -87,7 +87,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                                 aria-label="Exporter le RTP au format PDF"
                                                 onClick={onExportRTP}
                                                 disabled={isGeneratingReport}
-                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400`}
+                                                className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-muted disabled:text-muted-foreground`}
                                             >
                                                 {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} />}
                                                 RTP (PDF)
@@ -100,7 +100,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                                 aria-label="Exporter le rapport exécutif"
                                                 onClick={onExportExecutiveReport}
                                                 disabled={isGeneratingReport}
-                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400`}
+                                                className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-muted disabled:text-muted-foreground`}
                                             >
                                                 {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-violet-500'}`} />}
                                                 Rapport Exécutif
@@ -112,7 +112,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                             <button
                                                 aria-label="Exporter le registre au format PDF"
                                                 onClick={onExportPDF}
-                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                             >
                                                 <Download className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
                                                 Registre (PDF)
@@ -124,7 +124,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                             <button
                                                 aria-label="Exporter vers Obsidian"
                                                 onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)}
-                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                             >
                                                 <FileCode className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-success-text'}`} />
                                                 Obsidian
@@ -137,7 +137,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                                 aria-label="Exporter au format CSV"
                                                 onClick={onExportCSV}
                                                 disabled={isExportingCSV}
-                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                             >
                                                 {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
                                                 Export CSV
@@ -146,7 +146,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                     </Menu.Item>
                                 </div>
                                 <div className="p-1">
-                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                         Données
                                     </div>
                                     {canEdit && (
@@ -157,7 +157,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                                         aria-label="Importer depuis un CSV"
                                                         onClick={onImportCSV}
                                                         disabled={importing}
-                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                        className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                     >
                                                         {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-success-text'}`} />}
                                                         Import CSV
@@ -169,7 +169,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                                     <button
                                                         aria-label="Gérer les modèles de risque"
                                                         onClick={onTemplateModalOpen}
-                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                        className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                     >
                                                         <Copy className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-info-text'}`} />
                                                         Templates

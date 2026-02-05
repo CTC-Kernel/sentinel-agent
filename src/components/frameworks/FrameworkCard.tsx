@@ -164,7 +164,7 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
               <h3 className="font-bold text-slate-900 dark:text-white text-lg leading-tight">
                 {framework.code}
               </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-300 line-clamp-1">
+              <p className="text-sm text-muted-foreground line-clamp-1">
                 {name}
               </p>
             </div>

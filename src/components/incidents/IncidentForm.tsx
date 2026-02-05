@@ -66,7 +66,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
     const { register, handleSubmit, setValue, control, getValues, watch, reset, formState: { errors, isDirty } } = useZodForm<typeof incidentSchema>({
         schema: incidentSchema,
         mode: 'onChange',
-        shouldUnregister: true,
+        shouldUnregister: false,
         defaultValues: {
             title: '',
             description: '',

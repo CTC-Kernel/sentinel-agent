@@ -4,7 +4,7 @@ import { Button } from './button';
 import { Switch } from './Switch';
 import { uploadFile, validateFile, formatFileSize, generateFilePath } from '../../services/fileUploadService';
 import { useStore } from '../../store';
-import CryptoJS from 'crypto-js';
+import { EncryptionService } from '../../services/encryptionService';
 import { ErrorLogger } from '../../services/errorLogger';
 
 interface FileUploaderProps {
@@ -70,12 +70,15 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     const calculateHash = (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = async (e) => {
                 const binary = e.target?.result;
                 if (binary) {
-                    const wordArray = CryptoJS.lib.WordArray.create(binary as unknown as ArrayBuffer);
-                    const hash = CryptoJS.SHA256(wordArray).toString();
-                    resolve(hash);
+                    try {
+                        const hash = await EncryptionService.sha256Buffer(binary as ArrayBuffer);
+                        resolve(hash);
+                    } catch (err) {
+                        reject(err);
+                    }
                 } else {
                     reject(new Error("Failed to read file"));
                 }
@@ -200,7 +203,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                                 variant="ghost"
                                 size="icon"
                                 aria-label="Annuler le téléversement"
-                                className="ml-2 py-0 h-8 w-8 text-slate-500 dark:text-slate-300 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                className="ml-2 py-0 h-8 w-8 text-muted-foreground hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
                             >
                                 <X className="h-4 w-4" />
                             </Button>

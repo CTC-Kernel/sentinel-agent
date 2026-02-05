@@ -116,7 +116,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                 {/* Mitigation Coverage */}
                 <div className="sm:col-span-2 p-4 bg-white dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-border/40">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                             Couverture de Mitigation
                         </span>
                         <span className={`text-lg font-black ${mitigationCoverage >= 80 ? 'text-success-text' :
@@ -133,7 +133,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                             style={{ width: `${mitigationCoverage}%` }}
                         />
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">
+                    <p className="text-xs text-muted-foreground mt-2">
                         Basé sur le statut d'implémentation des contrôles liés
                     </p>
                 </div>
@@ -156,7 +156,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
 
             {/* Controls List */}
             <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Détail des Contrôles
                 </h4>
                 <div className="space-y-2">
@@ -178,7 +178,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                                         </p>
                                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                             {ctrl.framework && (
-                                                <span className="text-xs text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+                                                <span className="text-xs text-muted-foreground bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
                                                     {ctrl.framework}
                                                 </span>
                                             )}

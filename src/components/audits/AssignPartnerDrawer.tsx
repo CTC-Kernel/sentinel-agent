@@ -99,7 +99,7 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                         placeholder={t('assignPartner.searchPlaceholder', { defaultValue: 'Rechercher un partenaire...' })}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-border/40 rounded-3xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all"
+                        className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-border/40 rounded-3xl text-sm focus:ring-2 focus-visible:ring-primary outline-none transition-all"
                     />
                 </div>
 
@@ -134,7 +134,7 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                                         <h4 className="font-semibold text-slate-900 dark:text-white text-sm truncate">
                                             {partner.tenantName || partner.contactEmail}
                                         </h4>
-                                        <p className="text-xs text-slate-500 dark:text-slate-300 truncate">
+                                        <p className="text-xs text-muted-foreground truncate">
                                             {partner.contactEmail}
                                         </p>
                                     </div>

@@ -630,7 +630,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
             key={action || 'unknown'}
             onClick={() => handleAction(action)}
             disabled={loading}
-            className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+            className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
               activeAction === action
                 ? 'bg-brand-600 text-white shadow-md'
                 : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:hover:bg-brand-900 border border-transparent hover:border-brand-200'

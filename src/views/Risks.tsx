@@ -20,6 +20,7 @@ import { useRiskFilters } from '../hooks/risks/useRiskFilters';
 import { RiskCalculator } from '../utils/RiskCalculator';
 import { useDeepLinkAction } from '../hooks/useDeepLinkAction';
 import { RiskFormData } from '../schemas/riskSchema';
+import { Dialog, Transition } from '@headlessui/react';
 import { Drawer } from '../components/ui/Drawer';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { RiskTemplateModal } from '../components/risks/RiskTemplateModal';
@@ -496,29 +497,37 @@ export const Risks: React.FC = () => {
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData(prev => ({ ...prev, isOpen: false }))} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
 
             {/* Save View Modal */}
-            {showSaveViewModal && (
-                <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                    <div className="bg-card rounded-2xl p-6 max-w-md mx-4 shadow-apple-xl border border-border/50">
-                        <h3 className="text-lg font-semibold mb-4">{t('risks.saveViewTitle', { defaultValue: 'Sauvegarder la vue' })}</h3>
-                        <input
-                            type="text"
-                            value={viewName}
-                            onChange={(e) => setViewName(e.target.value)}
-                            placeholder={t('risks.viewNamePlaceholder', { defaultValue: 'Nom de la vue...' })}
-                            className="w-full px-4 py-2 rounded-xl border border-border bg-background text-foreground mb-4 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleConfirmSaveView(); }}
-                        />
-                        <div className="flex gap-3 justify-end">
-                            <button onClick={() => { setShowSaveViewModal(false); setViewName(''); }} className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
-                                {t('common.cancel', { defaultValue: 'Annuler' })}
-                            </button>
-                            <button onClick={handleConfirmSaveView} disabled={!viewName.trim()} className="px-4 py-2 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
-                                {t('common.save', { defaultValue: 'Enregistrer' })}
-                            </button>
-                        </div>
+            <Transition show={showSaveViewModal} as={React.Fragment}>
+                <Dialog onClose={() => { setShowSaveViewModal(false); setViewName(''); }} className="relative z-modal">
+                    <Transition.Child as={React.Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
+                        <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" />
+                    </Transition.Child>
+                    <div className="fixed inset-0 flex items-center justify-center p-4">
+                        <Transition.Child as={React.Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
+                            <Dialog.Panel className="bg-card rounded-2xl p-6 max-w-md w-full shadow-apple-xl border border-border/50">
+                                <Dialog.Title className="text-lg font-semibold mb-4">{t('risks.saveViewTitle', { defaultValue: 'Sauvegarder la vue' })}</Dialog.Title>
+                                <input
+                                    type="text"
+                                    value={viewName}
+                                    onChange={(e) => setViewName(e.target.value)}
+                                    placeholder={t('risks.viewNamePlaceholder', { defaultValue: 'Nom de la vue...' })}
+                                    className="w-full px-4 py-2 rounded-xl border border-border bg-background text-foreground mb-4 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                    onKeyDown={(e) => { if (e.key === 'Enter') handleConfirmSaveView(); }}
+                                    autoFocus
+                                />
+                                <div className="flex gap-3 justify-end">
+                                    <button onClick={() => { setShowSaveViewModal(false); setViewName(''); }} className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
+                                        {t('common.cancel', { defaultValue: 'Annuler' })}
+                                    </button>
+                                    <button onClick={handleConfirmSaveView} disabled={!viewName.trim()} className="px-4 py-2 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground transition-colors">
+                                        {t('common.save', { defaultValue: 'Enregistrer' })}
+                                    </button>
+                                </div>
+                            </Dialog.Panel>
+                        </Transition.Child>
                     </div>
-                </div>
-            )}
+                </Dialog>
+            </Transition>
         </motion.div>
     );
 };

@@ -127,7 +127,7 @@ const RiskReduction: React.FC<RiskReductionProps> = ({ percentage }) => {
     <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
       <TrendingDown className="h-4 w-4" />
       <span className="text-sm font-medium">-{percentage}%</span>
-      <span className="text-xs text-slate-500 dark:text-slate-300 ml-1">{t('vendorConcentration.recommendations.riskReduction')}</span>
+      <span className="text-xs text-muted-foreground ml-1">{t('vendorConcentration.recommendations.riskReduction')}</span>
     </div>
   );
 };
@@ -171,7 +171,7 @@ const ActionItem: React.FC<ActionItemProps> = ({ action, completed, onToggle }) 
         }`}>
           {action.title}
         </p>
-        <p className="text-xs text-slate-500 dark:text-slate-300 mt-0.5">{action.description}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{action.description}</p>
         <div className="flex items-center gap-3 mt-2">
           <EffortBadge effort={action.effort} />
           <span className="text-xs text-muted-foreground">•</span>
@@ -283,7 +283,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
 
           {/* Rationale */}
           <div>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
               {t('vendorConcentration.recommendations.rationale')}
             </p>
             <p className="text-sm text-slate-600 dark:text-muted-foreground">
@@ -295,7 +295,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
           {recommendation.actions.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   {t('vendorConcentration.recommendations.actions')} ({completedActions.size}/{recommendation.actions.length})
                 </p>
                 {progress > 0 && (
@@ -382,7 +382,7 @@ export const ConcentrationRecommendations: React.FC<ConcentrationRecommendations
 
       {/* Filter by priority */}
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-slate-500 dark:text-slate-400">{t('vendorConcentration.recommendations.byPriority')}:</span>
+        <span className="text-muted-foreground">{t('vendorConcentration.recommendations.byPriority')}:</span>
         <span className="px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-medium">
           {recommendations.highPriority} {t('vendorConcentration.recommendations.priority.high')}
         </span>

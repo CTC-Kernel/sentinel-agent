@@ -83,7 +83,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
             title={supplier.name}
             subtitle={
                 <div className="flex items-center gap-2">
-                    <span className="text-slate-500 dark:text-slate-400">{t('suppliers.inspector.mainContact', { defaultValue: 'Contact principal' })}:</span>
+                    <span className="text-muted-foreground">{t('suppliers.inspector.mainContact', { defaultValue: 'Contact principal' })}:</span>
                     <div className="flex items-center gap-2">
                         {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
                         <img
@@ -109,7 +109,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
                             <button
                                 aria-label="Démarrer une évaluation"
                                 onClick={onStartAssessment}
-                                className="p-2 text-slate-500 dark:text-slate-300 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                className="p-2 text-muted-foreground hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                             >
                                 <ClipboardList className="h-5 w-5" />
                             </button>
@@ -118,7 +118,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
                     <button
                         aria-label="Discussion"
                         onClick={() => setInspectorTab('comments')}
-                        className={`p-2 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${inspectorTab === 'comments' ? 'bg-brand-50 text-brand-600' : 'text-slate-500 hover:bg-slate-100'}`}
+                        className={`p-2 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${inspectorTab === 'comments' ? 'bg-brand-50 text-brand-600' : 'text-slate-500 hover:bg-slate-100'}`}
                     >
                         <MessageSquare className="h-5 w-5" />
                     </button>

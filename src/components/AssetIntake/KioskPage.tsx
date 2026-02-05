@@ -42,7 +42,7 @@ export const KioskPage: React.FC = () => {
                     </p>
                     <button
                         onClick={() => window.location.reload()}
-                        className="px-8 py-3 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-3xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="px-8 py-3 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-3xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         Enregistrer un autre appareil
                     </button>
@@ -107,7 +107,7 @@ export const KioskPage: React.FC = () => {
             </main>
 
             {/* Footer */}
-            <footer className="relative z-10 py-6 text-center text-xs text-slate-500 dark:text-slate-300">
+            <footer className="relative z-10 py-6 text-center text-xs text-muted-foreground">
                 &copy; {new Date().getFullYear()} Cyber Threat Consulting. Sentinel GRC. Tous droits réservés.
             </footer>
         </div>

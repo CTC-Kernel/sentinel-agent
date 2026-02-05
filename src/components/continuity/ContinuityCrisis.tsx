@@ -128,12 +128,12 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {crisisTeam.map(member => (
                             <div key={member.uid || 'unknown'} className="flex items-center p-4 bg-slate-50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-white/5">
-                                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 mr-3">
+                                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-muted-foreground mr-3">
                                     <User className="w-5 h-5" />
                                 </div>
                                 <div>
                                     <p className="font-bold text-sm text-slate-900 dark:text-white">{member.displayName || member.email}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-300 uppercase font-bold">{member.role}</p>
+                                    <p className="text-xs text-muted-foreground uppercase font-bold">{member.role}</p>
                                 </div>
                                 <Button size="sm" variant="ghost" className="ml-auto text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30">
                                     <Phone className="w-4 h-4" />
@@ -149,7 +149,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                         <Lock className="w-8 h-8 text-muted-foreground" />
                     </div>
                     <h3 className="font-bold text-lg mb-2">War Room Virtuelle</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-300 mb-6">Accès sécurisé aux documents confidentiels et au chat crypté de crise.</p>
+                    <p className="text-sm text-muted-foreground mb-6">Accès sécurisé aux documents confidentiels et au chat crypté de crise.</p>
                     <Button disabled={!crisisActive} className="w-full" onClick={() => setIsWarRoomOpen(true)}>
                         Accéder
                     </Button>
@@ -162,7 +162,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                     <h3 className="font-bold mb-4">Journal des Événements (Main Courante)</h3>
                     <div className="space-y-4">
                         <div className="flex gap-4 items-start">
-                            <span className="text-xs font-mono text-slate-500 dark:text-slate-300 mt-1">{new Date().toLocaleTimeString()}</span>
+                            <span className="text-xs font-mono text-muted-foreground mt-1">{new Date().toLocaleTimeString()}</span>
                             <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 rounded-lg text-sm flex-1">
                                 <strong>SYSTÈME :</strong> Activation de la cellule de crise par {useStore.getState().user?.role}.
                             </div>

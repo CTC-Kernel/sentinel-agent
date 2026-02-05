@@ -130,8 +130,8 @@ export function ViewSelector({
       <DropdownMenuTrigger
         className={cn(
           'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-          'disabled:pointer-events-none disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+          'disabled:pointer-events-none disabled:bg-muted disabled:text-muted-foreground',
           'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
           'h-9 px-3 gap-2',
           className

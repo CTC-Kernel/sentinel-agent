@@ -136,7 +136,7 @@ export const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ className 
           </span>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-white/5">
-          <Shield className="w-4 h-4 text-slate-500 dark:text-slate-300" />
+          <Shield className="w-4 h-4 text-muted-foreground" />
           <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">
             {frameworks.length} {t('frameworks.available', 'disponibles')}
           </span>
@@ -153,7 +153,7 @@ export const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ className 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('frameworks.searchPlaceholder', 'Rechercher un framework...')}
-            className="w-full pl-11 pr-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all"
+            className="w-full pl-11 pr-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent transition-all"
           />
         </div>
 

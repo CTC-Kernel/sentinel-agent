@@ -258,7 +258,7 @@ const ARNodeInfoPanel: React.FC<ARNodeInfoPanelProps> = ({
         {/* Details */}
         <div className="space-y-1 text-xs">
           <div className="flex justify-between">
-            <span className="text-slate-500 dark:text-slate-400">Status</span>
+            <span className="text-muted-foreground">Status</span>
             <span
               className="font-medium"
               style={{ color: STATUS_COLORS[node.status] }}
@@ -267,7 +267,7 @@ const ARNodeInfoPanel: React.FC<ARNodeInfoPanelProps> = ({
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-500 dark:text-slate-400">Connections</span>
+            <span className="text-muted-foreground">Connections</span>
             <span className="text-muted-foreground">{node.connections?.length || 0}</span>
           </div>
         </div>

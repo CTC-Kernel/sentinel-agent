@@ -323,7 +323,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
         <p className="text-lg font-medium text-slate-700">
           {t('otImport.upload.dragDrop', 'Glissez votre fichier CSV ici')}
         </p>
-        <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           {t('otImport.upload.orClick', 'ou cliquez pour sélectionner')}
         </p>
       </div>
@@ -378,7 +378,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
         <select
           value={getMappedColumn(fieldName)}
           onChange={(e) => updateMapping(fieldName, e.target.value)}
-          className="flex-1 px-3 py-2 border rounded-3xl text-sm focus:outline-none focus:ring-2 focus-visible:ring-brand-500 bg-background"
+          className="flex-1 px-3 py-2 border rounded-3xl text-sm focus:outline-none focus:ring-2 focus-visible:ring-primary bg-background"
         >
           <option value="">{t('otImport.mapping.selectColumn', '-- Sélectionner --')}</option>
           {csvData.headers.map(header => (
@@ -507,7 +507,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
             </table>
           </div>
           {validatedRows.length > 20 && (
-            <div className="px-4 py-2 bg-slate-50 text-sm text-slate-500 dark:text-slate-300 text-center">
+            <div className="px-4 py-2 bg-slate-50 text-sm text-muted-foreground text-center">
               {t('otImport.preview.showingFirst', 'Affichage des 20 premières lignes sur {{total}}', {
                 total: validatedRows.length
               })}

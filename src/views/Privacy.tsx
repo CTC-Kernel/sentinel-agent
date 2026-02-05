@@ -223,14 +223,14 @@ export const Privacy: React.FC = () => {
 
                 <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div>
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">{t('privacy.stats.sensitiveData')}</p>
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('privacy.stats.sensitiveData')}</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-orange-500">{stats.sensitive}</span>
                             <Badge status="warning" variant="soft" size="sm">{t('privacy.stats.priority')}</Badge>
                         </div>
                     </div>
                     <div>
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">{t('privacy.stats.dpiaRequired')}</p>
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('privacy.stats.dpiaRequired')}</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-slate-900 dark:text-white">
                                 {stats.dpiaMissing}
@@ -239,7 +239,7 @@ export const Privacy: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">{t('privacy.stats.inProgress')}</p>
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('privacy.stats.inProgress')}</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-blue-500">
                                 {stats.review}
@@ -248,7 +248,7 @@ export const Privacy: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">{t('privacy.stats.activeCompliance')}</p>
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('privacy.stats.activeCompliance')}</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-emerald-500">
                                 {stats.total > 0 ? Math.round(((stats.total - stats.review) / stats.total) * 100) : 0}%
@@ -264,7 +264,7 @@ export const Privacy: React.FC = () => {
                 onSearchChange={setFilter}
                 searchPlaceholder={t('privacy.searchPlaceholder')}
                 actions={
-                    <button onClick={handleExportCSV} className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" title={t('privacy.exportRegistry')}>
+                    <button onClick={handleExportCSV} className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" title={t('privacy.exportRegistry')}>
                         <FileSpreadsheet className="h-4 w-4" />
                     </button>
                 }

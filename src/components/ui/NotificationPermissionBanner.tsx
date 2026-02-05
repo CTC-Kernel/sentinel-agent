@@ -81,7 +81,7 @@ export const NotificationPermissionBanner: React.FC = () => {
                         <div className="flex gap-3">
                             <button
                                 onClick={handleEnable}
-                                className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-3xl text-sm font-bold hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-3xl text-sm font-bold hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                             >
                                 <Check className="h-4 w-4" />
                                 Activer

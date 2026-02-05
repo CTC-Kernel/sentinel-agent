@@ -74,7 +74,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                 {onRefresh && (
                     <button
                         onClick={onRefresh}
-                        className="p-2 text-slate-500 dark:text-slate-300 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-3xl transition-all"
+                        className="p-2 text-muted-foreground hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-3xl transition-all"
                         title="Actualiser"
                     >
                         <RefreshCcw className="h-4 w-4" />

@@ -72,7 +72,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     const { register, handleSubmit, control, setValue, watch, reset, formState: { errors, isDirty }, getValues } = useZodForm<typeof supplierSchema>({
         schema: supplierSchema,
         mode: 'onChange',
-        shouldUnregister: true,
+        shouldUnregister: false,
         defaultValues: initialData ? {
             ...defaultData,
             ...initialData,
@@ -246,7 +246,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
     return (
         <form onSubmit={handleSubmit(handleFormSubmit, onInvalid)} className="p-4 sm:p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar h-full">
-            <fieldset disabled={readOnly} className="space-y-6 disabled:text-slate-500 dark:disabled:text-slate-400">
+            <fieldset disabled={readOnly} className="space-y-6 disabled:text-slate-500">
                 {!isEditing && !readOnly && (
                     <AIAssistantHeader
                         templates={SUPPLIER_TEMPLATES}
@@ -468,11 +468,11 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div className="flex items-center space-x-3 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-white/50 dark:border-white/5">
-                            <input id="isICTProvider" type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-border/40" {...register('isICTProvider')} />
+                            <input id="isICTProvider" type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-brand-600 focus-visible:ring-primary border-border/40" {...register('isICTProvider')} />
                             <label htmlFor="isICTProvider" className="text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">Prestataire TIC Critique</label>
                         </div>
                         <div className="flex items-center space-x-3 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-white/50 dark:border-white/5">
-                            <input id="supportsCriticalFunction" type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-border/40" {...register('supportsCriticalFunction')} />
+                            <input id="supportsCriticalFunction" type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-brand-600 focus-visible:ring-primary border-border/40" {...register('supportsCriticalFunction')} />
                             <label htmlFor="supportsCriticalFunction" className="text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">Supporte Fonction Critique</label>
                         </div>
 

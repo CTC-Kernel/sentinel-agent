@@ -80,8 +80,8 @@ export const DashboardWithQuickActions: React.FC = () => {
         if (fetchedOrgLogo && organizationLogo !== fetchedOrgLogo) {
             setOrganizationLogo(fetchedOrgLogo);
         }
-        if (dataError === 'permission-denied' && error !== 'permission-denied') {
-            setError('permission-denied');
+        if (dataError && error !== dataError) {
+            setError(dataError);
         }
     }, [fetchedOrgName, fetchedOrgLogo, dataError, organizationName, organizationLogo, error]);
 
@@ -202,6 +202,26 @@ export const DashboardWithQuickActions: React.FC = () => {
     };
 
     if (error === 'permission-denied') { return (<div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6"> <div className="bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl p-8 max-w-2xl w-full relative overflow-hidden border-l-4 border-l-destructive shadow-xl"> <h2 className="text-2xl font-bold text-foreground mb-2">{t('dashboard.accessDenied')}</h2> <p className="text-muted-foreground text-sm mb-6">{t('dashboard.dbLocked')}</p> </div> </div>); }
+
+    if (error && error !== 'permission-denied') {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6">
+                <div className="bg-[var(--glass-bg)] backdrop-blur-xl rounded-2xl p-8 max-w-md w-full text-center border border-border/40 shadow-xl">
+                    <div className="w-12 h-12 rounded-full bg-warning-bg flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-6 h-6 text-warning-text" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+                    </div>
+                    <h2 className="text-lg font-bold text-foreground mb-2">{t('dashboard.loadError', { defaultValue: 'Erreur de chargement' })}</h2>
+                    <p className="text-sm text-muted-foreground mb-6">{t('dashboard.loadErrorDesc', { defaultValue: 'Impossible de charger les données du tableau de bord. Vérifiez votre connexion et réessayez.' })}</p>
+                    <button
+                        onClick={() => { setError(null); window.location.reload(); }}
+                        className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-medium text-sm hover:opacity-90 transition-opacity"
+                    >
+                        {t('common.retry', { defaultValue: 'Réessayer' })}
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     if (loading) {
         return <DashboardSkeleton />;

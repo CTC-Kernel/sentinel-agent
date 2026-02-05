@@ -330,7 +330,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
                             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-3">{t('continuity.criticalDependencies')}</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                 <div>
-                                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-300 mb-2 block flex items-center gap-1"><Server className="h-3 w-3" /> {t('continuity.internalAssets')}</span>
+                                    <span className="text-xs font-semibold text-muted-foreground mb-2 block flex items-center gap-1"><Server className="h-3 w-3" /> {t('continuity.internalAssets')}</span>
                                     <Controller
                                         name="supportingAssetIds"
                                         control={control}
@@ -347,7 +347,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-300 mb-2 block flex items-center gap-1"><Truck className="h-3 w-3" /> {t('common.suppliers')}</span>
+                                    <span className="text-xs font-semibold text-muted-foreground mb-2 block flex items-center gap-1"><Truck className="h-3 w-3" /> {t('common.suppliers')}</span>
                                     <Controller
                                         name="supplierIds"
                                         control={control}
@@ -402,7 +402,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
                         <div className="space-y-3">
                             {watchedRecoveryTasks?.map((_, index) => (
                                 <div key={`resource-${index || 'unknown'}`} className="flex gap-3 items-start bg-slate-50 dark:bg-white/5 p-3 rounded-3xl border border-border/40 dark:border-border/40">
-                                    <div className="mt-2.5 text-[11px] font-bold text-slate-500 dark:text-slate-300 w-5 text-center bg-white dark:bg-black/20 rounded h-5 leading-5 border border-border/40 dark:border-border/40">{index + 1}</div>
+                                    <div className="mt-2.5 text-[11px] font-bold text-muted-foreground w-5 text-center bg-white dark:bg-black/20 rounded h-5 leading-5 border border-border/40 dark:border-border/40">{index + 1}</div>
                                     <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3">
                                         <div className="md:col-span-6">
                                             <Controller
@@ -447,7 +447,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
                                     <Button
                                         variant="ghost"
                                         onClick={() => removeRecoveryTask(index)}
-                                        className="mt-2 text-slate-500 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
+                                        className="mt-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
                                         aria-label={`Supprimer l'étape ${index + 1}`}
                                     >
                                         <Trash2 className="h-4 w-4" />

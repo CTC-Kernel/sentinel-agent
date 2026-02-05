@@ -64,7 +64,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                         <button
                             aria-label="Soumettre le document pour revue"
                             onClick={() => setActionView(actionView === 'submit' ? 'none' : 'submit')}
-                            className="flex items-center px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                            className="flex items-center px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                         >
                             <Send className="h-3.5 w-3.5 mr-1.5" />
                             {t('approvalFlow.submitForReview', { defaultValue: 'Soumettre pour revue' })}
@@ -116,24 +116,24 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                             <select
                                 aria-label="Sélectionner les réviseurs"
                                 multiple
-                                className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-border/40 dark:border-slate-700 rounded-md p-2 min-h-[80px] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-border/40 dark:border-slate-700 rounded-md p-2 min-h-[80px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                 onChange={(e) => setSelectedReviewers(Array.from(e.target.selectedOptions, option => option.value))}
                             >
                                 {safeUsers.filter(u => u.uid !== user?.uid).map(u => (
                                     <option key={u.uid || 'unknown'} value={u.uid}>{u.displayName || u.email}</option>
                                 ))}
                             </select>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-300 mt-1">{t('approvalFlow.holdCtrlCmd', { defaultValue: 'Maintenez Ctrl/Cmd pour sélectionner plusieurs.' })}</p>
+                            <p className="text-[11px] text-muted-foreground mt-1">{t('approvalFlow.holdCtrlCmd', { defaultValue: 'Maintenez Ctrl/Cmd pour sélectionner plusieurs.' })}</p>
                         </div>
                         <input value={comment} onChange={(e) => setComment(e.target.value)}
                             aria-label="Message pour les réviseurs"
                             type="text"
                             placeholder="Message pour les réviseurs..."
-                            className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-border/40 dark:border-slate-700 rounded-md p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-border/40 dark:border-slate-700 rounded-md p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                         />
                         <div className="flex justify-end gap-2">
                             <button aria-label="Annuler la soumission" onClick={() => setActionView('none')} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded">{t('common.cancel', { defaultValue: 'Annuler' })}</button>
-                            <button aria-label="Confirmer la soumission" onClick={handleSubmit} disabled={loading || selectedReviewers.length === 0} className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">{t('common.confirm', { defaultValue: 'Confirmer' })}</button>
+                            <button aria-label="Confirmer la soumission" onClick={handleSubmit} disabled={loading || selectedReviewers.length === 0} className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 disabled:bg-muted disabled:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">{t('common.confirm', { defaultValue: 'Confirmer' })}</button>
                         </div>
                     </motion.div>
                 )}
@@ -149,7 +149,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                         />
                         <div className="flex justify-end gap-2">
                             <button aria-label="Annuler le rejet" onClick={() => setActionView('none')} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded">{t('common.cancel', { defaultValue: 'Annuler' })}</button>
-                            <button aria-label="Confirmer le rejet" onClick={handleReject} disabled={loading || !comment} className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">{t('approvalFlow.confirmRejection', { defaultValue: 'Confirmer le Rejet' })}</button>
+                            <button aria-label="Confirmer le rejet" onClick={handleReject} disabled={loading || !comment} className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 disabled:bg-muted disabled:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">{t('approvalFlow.confirmRejection', { defaultValue: 'Confirmer le Rejet' })}</button>
                         </div>
                     </motion.div>
                 )}
@@ -158,7 +158,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
             {/* TIMELINE */}
             <div className="relative pl-6 border-l-2 border-border/40 dark:border-slate-800 space-y-6">
                 {history.length === 0 && (
-                    <div className="text-sm text-slate-500 dark:text-slate-300 italic pl-2">{t('approvalFlow.noWorkflowHistory', { defaultValue: 'Aucun historique de workflow.' })}</div>
+                    <div className="text-sm text-muted-foreground italic pl-2">{t('approvalFlow.noWorkflowHistory', { defaultValue: 'Aucun historique de workflow.' })}</div>
                 )}
                 {history.map((item) => (
                     <div key={item.id || 'unknown'} className="relative">

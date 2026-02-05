@@ -83,7 +83,7 @@ function WidgetCard({
       onKeyDown={handleKeyDown}
       className={cn(
         'p-4 rounded-3xl border transition-all text-left w-full',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
         isDisabled
           ? [
             'opacity-70 cursor-not-allowed',
@@ -287,7 +287,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
             )}
             <button
               onClick={handleClose}
-              className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+              className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               aria-label={t('common.close')}
             >
               <X className="w-6 h-6" />
@@ -310,7 +310,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
                 'bg-slate-50 dark:bg-slate-800',
                 'border border-border/40 dark:border-slate-700',
                 'text-slate-900 dark:text-white placeholder-slate-400',
-                'focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent'
+                'focus:outline-none focus:ring-2 focus-visible:ring-primary focus:border-transparent'
               )}
             />
           </div>

@@ -85,7 +85,7 @@ export function AutoSaveIndicator({
     case 'pending':
       return (
         <div
-          className={`${baseStyles} text-slate-500 dark:text-slate-300 ${className}`}
+          className={`${baseStyles} text-muted-foreground ${className}`}
           role="status"
           aria-live="polite"
         >

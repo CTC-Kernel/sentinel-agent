@@ -95,21 +95,21 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
     const modalContent = (
         <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] animate-fade-in">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg flex flex-col max-h-[90vh] shadow-2xl shadow-black/20 dark:shadow-black/50 animate-scale-in border border-border/40/80 dark:border-slate-700/50">
-                {/* Header - Solid background for clarity */}
-                <div className="p-6 border-b border-border/40 dark:border-slate-700/50 flex items-center justify-between shrink-0 bg-slate-50/80 dark:bg-slate-800/50 rounded-t-3xl">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-3xl bg-blue-100 dark:bg-blue-900/30 dark:bg-blue-900/50 flex items-center justify-center">
+            <div className="bg-card rounded-2xl w-full max-w-lg flex flex-col max-h-[90vh] shadow-2xl shadow-black/20 dark:shadow-black/50 animate-scale-in border border-border/50">
+                {/* Header */}
+                <div className="p-6 border-b border-border/40 flex items-center justify-between shrink-0 bg-muted/50 rounded-t-2xl">
+                    <h2 className="text-xl font-bold text-foreground flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
                             <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         </div>
                         Votre Avis Compte
                     </h2>
-                    <Button variant="ghost" size="icon" aria-label="Fermer la fenêtre" onClick={onClose} className="text-slate-500 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors rounded-3xl">
+                    <Button variant="ghost" size="icon" aria-label="Fermer la fenêtre" onClick={onClose} className="text-muted-foreground hover:text-foreground hover:bg-muted transition-colors rounded-xl">
                         <X className="w-5 h-5" />
                     </Button>
                 </div>
 
-                <form id="feedback-form" onSubmit={handleSubmit(onSubmit)} className="p-6 overflow-y-auto custom-scrollbar space-y-6 bg-white dark:bg-slate-900">
+                <form id="feedback-form" onSubmit={handleSubmit(onSubmit)} className="p-6 overflow-y-auto custom-scrollbar space-y-6 bg-card">
                     {/* Type Selection */}
                     <div className="grid grid-cols-2 gap-3">
                         {(['feature', 'bug', 'improvement', 'other'] as FeedbackType[]).map((t) => (
@@ -119,9 +119,9 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                                 aria-label={`Type de retour : ${getTypeLabel(t)}`}
                                 aria-pressed={formValues.type === t}
                                 onClick={() => setValue('type', t)}
-                                className={`flex items-center gap-2 p-3 rounded-3xl border text-sm font-semibold transition-all ${formValues.type === t
+                                className={`flex items-center gap-2 p-3 rounded-xl border text-sm font-semibold transition-all ${formValues.type === t
                                     ? 'bg-blue-50 dark:bg-blue-900/40 border-blue-500 text-blue-700 dark:text-blue-300 ring-2 ring-blue-500/30 shadow-sm'
-                                    : 'bg-slate-50 dark:bg-slate-800 border-border/40 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-border/40 dark:hover:border-slate-600'
+                                    : 'bg-muted/50 border-border/40 text-muted-foreground hover:bg-muted hover:border-border'
                                     }`}
                             >
                                 {getTypeIcon(t)}
@@ -134,19 +134,19 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                     {/* Priority (only for bugs/features) */}
                     {(formValues.type === 'bug' || formValues.type === 'feature') && (
                         <div className="animate-fade-in">
-                            <span id="priority-label" className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
+                            <span id="priority-label" className="block text-sm font-semibold text-foreground mb-2">
                                 Priorité / Importance
                             </span>
-                            <div role="radiogroup" aria-labelledby="priority-label" className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-slate-700 w-fit">
+                            <div role="radiogroup" aria-labelledby="priority-label" className="flex gap-1 p-1 bg-muted rounded-xl border border-border/40 w-fit">
                                 {(['low', 'medium', 'high'] as const).map((p) => (
-                                    <label key={p || 'unknown'} className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg transition-all ${formValues.priority === p ? 'bg-brand-500 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
+                                    <label key={p || 'unknown'} className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg transition-all ${formValues.priority === p ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:bg-muted'}`}>
                                         <input {...register('priority')}
                                             checked={formValues.priority === p}
                                             type="radio"
                                             value={p}
                                             className="hidden"
                                         />
-                                        <span className={`text-sm capitalize font-semibold ${formValues.priority === p ? 'text-white' : ''}`}>
+                                        <span className={`text-sm capitalize font-semibold ${formValues.priority === p ? 'text-primary-foreground' : ''}`}>
                                             {p === 'low' ? 'Faible' : p === 'medium' ? 'Moyenne' : 'Haute'}
                                         </span>
                                     </label>
@@ -158,41 +158,40 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
                     {/* Title */}
                     <div>
-                        <label htmlFor="feedback-title" className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
+                        <label htmlFor="feedback-title" className="block text-sm font-semibold text-foreground mb-2">
                             Sujet
                         </label>
                         <input {...register('title')}
                             id="feedback-title"
                             type="text"
                             placeholder="Ex: Ajout d'un filtre par date..."
-                            className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-600 rounded-3xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-brand-300 focus:border-brand-500 outline-none transition-all"
+                            className="w-full px-4 py-3 bg-background border border-border/40 rounded-xl text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
                         />
                         <FormError message={errors.title?.message} />
                     </div>
 
                     {/* Description */}
                     <div>
-                        <label htmlFor="feedback-description" className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
+                        <label htmlFor="feedback-description" className="block text-sm font-semibold text-foreground mb-2">
                             Description détaillée
                         </label>
                         <textarea {...register('description')}
                             id="feedback-description"
                             placeholder="Dites-nous en plus..."
                             rows={5}
-                            className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-border/40 dark:border-slate-600 rounded-3xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-brand-300 focus:border-brand-500 outline-none transition-all resize-none"
+                            className="w-full px-4 py-3 bg-background border border-border/40 rounded-xl text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all resize-none"
                         />
                         <FormError message={errors.description?.message} />
                     </div>
                 </form>
 
-                {/* Footer - Solid background */}
-                <div className="p-6 border-t border-border/40 dark:border-slate-700/50 bg-slate-50/80 dark:bg-slate-800/50 flex justify-end gap-3 shrink-0 rounded-b-3xl">
+                {/* Footer */}
+                <div className="p-6 border-t border-border/40 bg-muted/50 flex justify-end gap-3 shrink-0 rounded-b-2xl">
                     <Button
                         type="button"
                         variant="ghost"
                         aria-label="Annuler le retour"
                         onClick={onClose}
-                        className="px-5 py-2.5 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-3xl transition-colors font-semibold"
                     >
                         Annuler
                     </Button>
@@ -202,7 +201,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                         aria-label="Envoyer le retour"
                         disabled={isSubmitting}
                         isLoading={isSubmitting}
-                        className="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/30 transition-all flex items-center gap-2 font-bold"
+                        className="gap-2"
                     >
                         <Send className="w-4 h-4" />
                         Envoyer

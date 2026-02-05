@@ -21,7 +21,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                     // Focus states
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                     // Hover states for better feedback
-                    "hover:border-primary/30 hover:bg-background/80 hover:shadow-sm",
+                    "hover:border-primary/50 hover:bg-background/80",
                     // Disabled state
                     "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40",
                     // Dark mode explicit styles

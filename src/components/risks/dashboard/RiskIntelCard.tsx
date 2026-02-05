@@ -160,7 +160,7 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
                     </div>
 
                     {/* Value indicator below the bars */}
-                    <div className="flex items-center justify-center gap-2 mt-4 text-sm text-slate-500 dark:text-slate-300">
+                    <div className="flex items-center justify-center gap-2 mt-4 text-sm text-muted-foreground">
                         <ArrowRight className="w-4 h-4" />
                         <span className="font-medium">Valeur Créée: Sécurisation du patrimoine</span>
                     </div>

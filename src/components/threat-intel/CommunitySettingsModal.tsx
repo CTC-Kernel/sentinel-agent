@@ -80,9 +80,9 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                     as={React.Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-70"
+                    enterTo="opacity-100"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-70"
+                    leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] transition-opacity" />
@@ -94,9 +94,9 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                             as={React.Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                            enterTo="opacity-70 translate-y-0 sm:scale-100"
+                            enterTo="opacity-100 translate-y-0 sm:scale-100"
                             leave="ease-in duration-200"
-                            leaveFrom="opacity-70 translate-y-0 sm:scale-100"
+                            leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
                             <Dialog.Panel className="relative transform overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-white/20 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl flex flex-col max-h-[85vh]">
@@ -109,7 +109,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                         </Dialog.Title>
                                         <p className="text-sm text-slate-500">Confidentialité et Réseau de Confiance</p>
                                     </div>
-                                    <button type="button" aria-label="Fermer la fenêtre" onClick={onClose} className="p-2.5 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus-visible:ring-brand-500">
+                                    <button type="button" aria-label="Fermer la fenêtre" onClick={onClose} className="p-2.5 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus-visible:ring-primary">
                                         <X className="h-5 w-5 text-slate-400" />
                                     </button>
                                 </div>
@@ -231,7 +231,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                     id="search-orgs"
                                                     type="text"
                                                     placeholder="Rechercher une organisation..."
-                                                    className="w-full px-4 py-2 rounded-3xl border border-border/40 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none"
+                                                    className="w-full px-4 py-2 rounded-3xl border border-border/40 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:ring-2 focus-visible:ring-primary outline-none"
                                                     aria-label="Rechercher une organisation"
                                                     value={searchQuery}
                                                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -251,7 +251,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                             </div>
                                                             <div>
                                                                 <div className="font-bold text-slate-900 dark:text-white">{partner.targetOrgName}</div>
-                                                                <div className="text-xs text-slate-500 dark:text-slate-300 capitalize flex items-center gap-1">
+                                                                <div className="text-xs text-muted-foreground capitalize flex items-center gap-1">
                                                                     {partner.status === 'trusted' && <Shield className="h-3 w-3 text-green-500" />}
                                                                     Status: {partner.status === 'pending' ? 'En attente' : partner.status === 'trusted' ? 'Approuvé' : 'Bloqué'}
                                                                 </div>

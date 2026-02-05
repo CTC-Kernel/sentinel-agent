@@ -236,7 +236,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             {agentDetails?.name || 'Chargement...'}
                         </h2>
-                        <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-300 mt-1">
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
                             <span className="flex items-center gap-1"><Monitor className="w-3 h-3" /> {agentDetails?.hostname || 'N/A'}</span>
                             <span className="flex items-center gap-1"><Network className="w-3 h-3" /> {agentDetails?.ipAddress || 'N/A'}</span>
                             <span className="font-mono bg-slate-200 dark:bg-white/10 px-1.5 py-0.5 rounded">v{agentDetails?.version}</span>
@@ -370,11 +370,11 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                             <div className="flex gap-4 mt-2 justify-center">
                                                 <div className="flex items-center gap-2 text-xs">
                                                     <div className="w-3 h-3 rounded-full bg-blue-500" />
-                                                    <span className="text-slate-500 dark:text-slate-400">CPU</span>
+                                                    <span className="text-muted-foreground">CPU</span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-xs">
                                                     <div className="w-3 h-3 rounded-full bg-purple-500" />
-                                                    <span className="text-slate-500 dark:text-slate-400">RAM</span>
+                                                    <span className="text-muted-foreground">RAM</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -389,19 +389,19 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                             </h3>
                                             <div className="space-y-3 text-sm">
                                                 <div className="flex justify-between py-2 border-b border-slate-50 dark:border-white/5">
-                                                    <span className="text-slate-500 dark:text-slate-400">OS</span>
+                                                    <span className="text-muted-foreground">OS</span>
                                                     <span className="font-medium">{agentDetails.os} {agentDetails.osVersion}</span>
                                                 </div>
                                                 <div className="flex justify-between py-2 border-b border-slate-50 dark:border-white/5">
-                                                    <span className="text-slate-500 dark:text-slate-400">Hostname</span>
+                                                    <span className="text-muted-foreground">Hostname</span>
                                                     <span className="font-medium">{agentDetails.hostname}</span>
                                                 </div>
                                                 <div className="flex justify-between py-2 border-b border-slate-50 dark:border-white/5">
-                                                    <span className="text-slate-500 dark:text-slate-400">IP Address</span>
+                                                    <span className="text-muted-foreground">IP Address</span>
                                                     <span className="font-medium">{agentDetails.ipAddress}</span>
                                                 </div>
                                                 <div className="flex justify-between py-2 border-b border-slate-50 dark:border-white/5">
-                                                    <span className="text-slate-500 dark:text-slate-400">Machine ID</span>
+                                                    <span className="text-muted-foreground">Machine ID</span>
                                                     <span className="font-mono text-xs">{agentDetails.machineId?.substring(0, 16)}...</span>
                                                 </div>
                                             </div>
@@ -414,23 +414,23 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                             </h3>
                                             <div className="space-y-3 text-sm">
                                                 <div className="flex justify-between py-2 border-b border-slate-50 dark:border-white/5">
-                                                    <span className="text-slate-500 dark:text-slate-400">Status</span>
+                                                    <span className="text-muted-foreground">Status</span>
                                                     <span>{getStatusBadge(agentDetails.status)}</span>
                                                 </div>
                                                 <div className="flex justify-between py-2 border-b border-slate-50 dark:border-white/5">
-                                                    <span className="text-slate-500 dark:text-slate-400">Uptime</span>
+                                                    <span className="text-muted-foreground">Uptime</span>
                                                     <span className="font-medium">{formatUptime(agentDetails.uptimeSeconds)}</span>
                                                 </div>
                                                 <div className="flex justify-between py-2 border-b border-slate-50 dark:border-white/5">
-                                                    <span className="text-slate-500 dark:text-slate-400">Dernier Heartbeat</span>
+                                                    <span className="text-muted-foreground">Dernier Heartbeat</span>
                                                     <span className="font-medium">{new Date(agentDetails.lastHeartbeat).toLocaleString()}</span>
                                                 </div>
                                                 <div className="flex justify-between py-2 border-b border-slate-50 dark:border-white/5">
-                                                    <span className="text-slate-500 dark:text-slate-400">Enrôlé le</span>
+                                                    <span className="text-muted-foreground">Enrôlé le</span>
                                                     <span className="font-medium">{agentDetails.enrolledAt ? new Date(agentDetails.enrolledAt).toLocaleDateString() : 'N/A'}</span>
                                                 </div>
                                                 <div className="flex justify-between py-2 border-b border-slate-50 dark:border-white/5">
-                                                    <span className="text-slate-500 dark:text-slate-400">Version Config</span>
+                                                    <span className="text-muted-foreground">Version Config</span>
                                                     <span className="font-mono">v{agentDetails.configVersion}</span>
                                                 </div>
                                             </div>
@@ -491,13 +491,13 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                         {/* Compliance Text Stats */}
                                         <div className="space-y-4">
                                             <div className="p-4 rounded-3xl bg-slate-50 dark:bg-white/5 border-l-4 border-success-500">
-                                                <div className="text-xs text-slate-500 dark:text-slate-300 uppercase font-bold">Conforme</div>
+                                                <div className="text-xs text-muted-foreground uppercase font-bold">Conforme</div>
                                                 <div className="text-2xl font-black text-slate-900 dark:text-white">
                                                     {agentDetails.complianceScore ?? 0}%
                                                 </div>
                                             </div>
                                             <div className="p-4 rounded-3xl bg-slate-50 dark:bg-white/5 border-l-4 border-slate-500">
-                                                <div className="text-xs text-slate-500 dark:text-slate-300 uppercase font-bold">Total Contrôles</div>
+                                                <div className="text-xs text-muted-foreground uppercase font-bold">Total Contrôles</div>
                                                 <div className="text-2xl font-black text-slate-900 dark:text-white">
                                                     {agentDetails.resultsSummary?.total ?? 0}
                                                 </div>
@@ -572,7 +572,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                             <input
                                                 id="check-interval"
                                                 type="number"
-                                                className="w-full px-4 py-2 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-white/5 focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                                                className="w-full px-4 py-2 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-white/5 focus:ring-2 focus:ring-primary outline-none transition-all"
                                                 value={configForm.check_interval_secs || 900}
                                                 onChange={e => setConfigForm({ ...configForm, check_interval_secs: parseInt(e.target.value) })}
                                             />
@@ -583,7 +583,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                             <label htmlFor="log-level" className="text-sm font-medium text-slate-700 dark:text-slate-300">Niveau de Log</label>
                                             <select
                                                 id="log-level"
-                                                className="w-full px-4 py-2 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-white/5 focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                                                className="w-full px-4 py-2 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-white/5 focus:ring-2 focus:ring-primary outline-none transition-all"
                                                 value={configForm.log_level || 'info'}
                                                 onChange={e => setConfigForm({ ...configForm, log_level: e.target.value })}
                                             >
@@ -599,7 +599,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                             <input
                                                 id="heartbeat-interval"
                                                 type="number"
-                                                className="w-full px-4 py-2 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-white/5 focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                                                className="w-full px-4 py-2 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-white/5 focus:ring-2 focus:ring-primary outline-none transition-all"
                                                 value={configForm.heartbeat_interval_secs || 60}
                                                 onChange={e => setConfigForm({ ...configForm, heartbeat_interval_secs: parseInt(e.target.value) })}
                                             />

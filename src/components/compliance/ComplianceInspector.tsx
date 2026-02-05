@@ -73,7 +73,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
     return (
         <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900/50">
             {/* Breadcrumb Context */}
-            <div className="px-4 sm:px-6 py-2 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 border-b border-border/40 dark:border-white/5 bg-white/30 dark:bg-white/5">
+            <div className="px-4 sm:px-6 py-2 text-xs text-muted-foreground flex items-center gap-1 border-b border-border/40 dark:border-white/5 bg-white/30 dark:bg-white/5">
                 <span>{control.framework || 'ISO27001'}</span>
                 <ChevronRight className="h-3 w-3" />
                 <span className="font-medium text-slate-700 dark:text-slate-300">{control.code}</span>

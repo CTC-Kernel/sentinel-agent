@@ -93,7 +93,7 @@ export const MILESTONE_STATUS_CONFIG = {
 export const MILESTONE_STATUS_STYLES = {
     pending: {
         bg: 'bg-slate-100 dark:bg-slate-800/50',
-        text: 'text-slate-600 dark:text-slate-400',
+        text: 'text-muted-foreground',
         button: 'bg-slate-500 hover:bg-slate-600'
     },
     in_progress: {

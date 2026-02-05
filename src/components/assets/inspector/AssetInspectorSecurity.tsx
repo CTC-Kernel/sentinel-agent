@@ -55,7 +55,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                         onClick={scanShodan}
                         disabled={scanning}
                         aria-label={t('common.inspector.security.scanShodanTooltip')}
-                        className="flex-1 py-3 bg-primary text-primary-foreground rounded-3xl text-sm font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform flex items-center justify-center disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="flex-1 py-3 bg-primary text-primary-foreground rounded-3xl text-sm font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform flex items-center justify-center disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         {scanning ? <span className="animate-spin mr-2">⏳</span> : <Search className="w-4 h-4 mr-2" />}
                         {t('common.inspector.security.scanShodan')}
@@ -67,7 +67,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                         onClick={checkCVEs}
                         disabled={scanning}
                         aria-label={t('common.inspector.security.checkCVEsTooltip')}
-                        className="flex-1 py-3 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-3xl text-sm font-bold shadow-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors flex items-center justify-center disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="flex-1 py-3 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-3xl text-sm font-bold shadow-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors flex items-center justify-center disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         {scanning ? <span className="animate-spin mr-2">⏳</span> : <ShieldAlert className="w-4 h-4 mr-2" />}
                         {t('common.inspector.security.checkCVEs')}
@@ -106,7 +106,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                                             <button
                                                 onClick={() => createRiskFromVuln(vuln)}
                                                 aria-label={t('common.inspector.security.newRisk')}
-                                                className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl text-red-600 dark:text-red-400 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                                className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl text-red-600 dark:text-red-400 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                             >
                                                 <Plus className="h-4 w-4" />
                                             </button>
@@ -122,20 +122,20 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
 
             <div>
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 flex items-center">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center">
                         <ShieldAlert className="h-4 w-4 mr-2" /> {t('common.inspector.security.identifiedRisks')} ({linkedRisks.length})
                     </h3>
                     <button
                         type="button"
                         onClick={handleCreateRisk}
                         aria-label={t('common.inspector.security.newRisk')}
-                        className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1"
+                        className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1"
                     >
                         <Plus className="h-3 w-3 mr-1" /> {t('common.inspector.security.newRisk')}
                     </button>
                 </div>
                 {linkedRisks.length === 0 ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-300 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-border/40 dark:border-border/40">{t('common.inspector.security.noRisks')}</p>
+                    <p className="text-sm text-muted-foreground italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-border/40 dark:border-border/40">{t('common.inspector.security.noRisks')}</p>
                 ) : (
                     <div className="grid gap-4">
                         {linkedRisks.map(risk => (
@@ -154,20 +154,20 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
 
             <div className="mt-8">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 flex items-center">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center">
                         <Siren className="h-4 w-4 mr-2" /> {t('common.inspector.security.incidents')} ({linkedIncidents.length})
                     </h3>
                     <button
                         type="button"
                         onClick={handleCreateIncident}
                         aria-label={t('common.inspector.security.reportIncident')}
-                        className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1"
+                        className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1"
                     >
                         <Plus className="h-3 w-3 mr-1" /> {t('common.inspector.security.reportIncident')}
                     </button>
                 </div>
                 {linkedIncidents.length === 0 ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-300 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-border/40 dark:border-border/40">{t('common.inspector.security.noIncidents')}</p>
+                    <p className="text-sm text-muted-foreground italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-border/40 dark:border-border/40">{t('common.inspector.security.noIncidents')}</p>
                 ) : (
                     <div className="grid gap-4">
                         {linkedIncidents.map(inc => (

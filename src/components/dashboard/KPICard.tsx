@@ -221,7 +221,7 @@ export const KPICard = React.memo(function KPICard({
       {onClick && (
         <button
           onClick={onClick}
-          className="absolute inset-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-2xl"
+          className="absolute inset-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-2xl"
           aria-label={`${title}: ${value}${subtitle ? `, ${subtitle}` : ''}${trendAriaLabel ? `, ${trendAriaLabel}` : ''}`}
         />
       )}

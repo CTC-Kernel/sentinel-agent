@@ -353,7 +353,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                     )}
                   </div>
                   {search.description && (
-                    <p className="text-xs text-slate-500 dark:text-slate-300 truncate">{search.description}</p>
+                    <p className="text-xs text-muted-foreground truncate">{search.description}</p>
                   )}
                   <p className="text-xs text-muted-foreground">
                     Utilisee {search.runCount} fois
@@ -630,7 +630,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                             {entry.userEmail}
                           </span>
                           {entry.documentName && (
-                            <span className="text-xs text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+                            <span className="text-xs text-muted-foreground bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
                               {entry.documentName}
                             </span>
                           )}
@@ -728,7 +728,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                   type="checkbox"
                   checked={searchIsPublic}
                   onChange={(e) => setSearchIsPublic(e.target.checked)}
-                  className="rounded border-border/40 text-brand-600 focus-visible:ring-brand-500"
+                  className="rounded border-border/40 text-brand-600 focus-visible:ring-primary"
                 />
                 Partager avec l'équipe
               </label>

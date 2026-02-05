@@ -436,7 +436,7 @@ export const Suppliers: React.FC = () => {
                     <button
                         aria-label={t('suppliers.backToDashboard')}
                         onClick={handleTemplateModeClose}
-                        className="text-muted-foreground hover:text-slate-900 dark:hover:text-white mr-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-2"
+                        className="text-muted-foreground hover:text-slate-900 dark:hover:text-white mr-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg px-2"
                         title={t('suppliers.backToDashboard')}
                     >
                         {t('suppliers.backLabel')}
@@ -555,21 +555,21 @@ export const Suppliers: React.FC = () => {
                             actions={canEdit && (
                                 <>
                                     <Menu as="div" className="relative inline-block text-left">
-                                        <Menu.Button aria-label={t('common.more')} className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                                        <Menu.Button aria-label={t('common.more')} className="p-2.5 bg-background border border-border text-foreground rounded-xl hover:bg-muted/50 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                                             <MoreVertical className="h-5 w-5" />
                                         </Menu.Button>
                                         <Transition
                                             as={React.Fragment}
                                             enter="transition ease-out duration-100"
                                             enterFrom="transform opacity-0 scale-95"
-                                            enterTo="transform opacity-70 scale-100"
+                                            enterTo="transform opacity-100 scale-100"
                                             leave="transition ease-in duration-75"
-                                            leaveFrom="transform opacity-70 scale-100"
+                                            leaveFrom="transform opacity-100 scale-100"
                                             leaveTo="transform opacity-0 scale-95"
                                         >
-                                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-dropdown">
+                                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border/50 rounded-xl bg-popover text-popover-foreground shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-dropdown">
                                                 <div className="p-1">
-                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                                         {t('suppliers.tools')}
                                                     </div>
                                                     <Menu.Item>
@@ -577,7 +577,7 @@ export const Suppliers: React.FC = () => {
                                                             <button
                                                                 onClick={() => setImportModalOpen(true)}
                                                                 className={`${active ? 'bg-brand-500 text-white hover:bg-brand-600' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'
-                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
                                                                 aria-label="Import Suppliers CSV"
                                                             >
                                                                 <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
@@ -587,7 +587,7 @@ export const Suppliers: React.FC = () => {
                                                     </Menu.Item>
                                                 </div>
                                                 <div className="p-1">
-                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                                         {t('suppliers.reports')}
                                                     </div>
                                                     <Menu.Item>
@@ -596,8 +596,8 @@ export const Suppliers: React.FC = () => {
                                                                 aria-label={t('suppliers.exportCsv')}
                                                                 onClick={handleExportCSV}
                                                                 disabled={isExportingCSV}
-                                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+                                                                className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground'
+                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
                                                             >
                                                                 {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
                                                                 {t('suppliers.exportCsv')}
@@ -610,8 +610,8 @@ export const Suppliers: React.FC = () => {
                                                                 aria-label="Export DORA"
                                                                 onClick={handleExportDORARegister}
                                                                 disabled={isExportingDORA}
-                                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+                                                                className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground'
+                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
                                                             >
                                                                 {isExportingDORA ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldAlert className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
                                                                 {t('suppliers.exportDora', { defaultValue: 'Export DORA' })}

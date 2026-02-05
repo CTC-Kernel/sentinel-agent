@@ -167,7 +167,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                         <button
                                             aria-label="Supprimer la question"
                                             onClick={() => removeQuestion(q.id)}
-                                            className="p-2 text-slate-500 dark:text-slate-300 hover:text-red-500 transition-colors"
+                                            className="p-2 text-muted-foreground hover:text-red-500 transition-colors"
                                             title="Supprimer"
                                         >
                                             <Trash2 className="w-5 h-5" />
@@ -190,7 +190,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                                                 updateQuestion(q.id, { options: newOptions });
                                                             }}
                                                             type="text"
-                                                            className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-border/40 dark:border-border/40 rounded-lg text-sm transition-colors focus:border-brand-500 focus:ring-1 focus-visible:ring-brand-500 outline-none"
+                                                            className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-border/40 dark:border-border/40 rounded-lg text-sm transition-colors focus:border-brand-500 focus:ring-1 focus-visible:ring-primary outline-none"
                                                             placeholder={`Option ${optIndex + 1}`}
                                                         />
                                                         <button
@@ -199,7 +199,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                                                 const newOptions = q.options?.filter((_, i) => i !== optIndex);
                                                                 updateQuestion(q.id, { options: newOptions });
                                                             }}
-                                                            className="p-2 text-slate-500 dark:text-slate-300 hover:text-red-500"
+                                                            className="p-2 text-muted-foreground hover:text-red-500"
                                                         >
                                                             <X className="w-4 h-4" />
                                                         </button>
@@ -221,7 +221,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                         <label className="flex items-center gap-2 cursor-pointer group">
                                             <input checked={q.required} onChange={(e) => updateQuestion(q.id, { required: e.target.checked })}
                                                 type="checkbox"
-                                                className="rounded border-border/40 text-brand-600 focus-visible:ring-brand-500 transition-colors"
+                                                className="rounded border-border/40 text-brand-600 focus-visible:ring-primary transition-colors"
                                             />
                                             <span className="text-sm text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Obligatoire</span>
                                         </label>
@@ -246,7 +246,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                     aria-label="Enregistrer le questionnaire"
                     onClick={handleSave}
                     disabled={saving}
-                    className="flex items-center px-6 py-2 bg-brand-600 text-white rounded-3xl font-bold hover:bg-brand-700 transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 shadow-lg shadow-brand-600/20"
+                    className="flex items-center px-6 py-2 bg-brand-600 text-white rounded-3xl font-bold hover:bg-brand-700 transition-colors disabled:bg-muted disabled:text-muted-foreground shadow-lg shadow-brand-600/20"
                 >
                     <Save className="w-4 h-4 mr-2" />
                     {saving ? 'Enregistrement...' : 'Enregistrer le Questionnaire'}

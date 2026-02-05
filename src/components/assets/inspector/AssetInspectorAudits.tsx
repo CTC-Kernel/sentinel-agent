@@ -12,7 +12,7 @@ export const AssetInspectorAudits: React.FC<AssetInspectorAuditsProps> = ({
 }) => {
     return (
         <div className="space-y-6 sm:space-y-8">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4 flex items-center">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center">
                 <CheckSquare className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})
             </h3>
             {linkedAudits.length === 0 ? (

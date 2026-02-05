@@ -130,7 +130,7 @@ const ReplyItem: React.FC<{
               {createdDate.toLocaleDateString(config.intlLocale)} a {createdDate.toLocaleTimeString(config.intlLocale, { hour: '2-digit', minute: '2-digit' })}
             </span>
             {reply.isEdited && (
-              <span className="text-xs text-slate-500 dark:text-slate-300 italic">(modifié)</span>
+              <span className="text-xs text-muted-foreground italic">(modifié)</span>
             )}
           </div>
 
@@ -242,7 +242,7 @@ const ReplyForm: React.FC<{
             onKeyDown={handleKeyDown}
             placeholder="Écrivez une réponse... (Cmd+Enter pour envoyer)"
             rows={2}
-            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-3xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent resize-none text-sm"
+            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-3xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent resize-none text-sm"
           />
         </div>
         <button
@@ -250,7 +250,7 @@ const ReplyForm: React.FC<{
           disabled={!content.trim() || isSubmitting}
           className={`p-3 rounded-3xl transition-all ${content.trim() && !isSubmitting
             ? 'bg-brand-500 text-white hover:bg-brand-600 shadow-lg shadow-brand-500/25'
-            : 'bg-slate-700/50 text-slate-500 dark:text-slate-300 cursor-not-allowed'
+            : 'bg-slate-700/50 text-muted-foreground cursor-not-allowed'
             }`}
         >
           {isSubmitting ? (

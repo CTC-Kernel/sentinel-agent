@@ -57,7 +57,7 @@ export const useDocumentActions = (usersList: UserProfile[] = [], onDeletedId?: 
                 url: data.storageProvider !== 'firebase' ? data.externalUrl : (data.fileUrl || ''),
                 hash: data.fileHash || '',
                 isSecure: data.isSecure || false,
-                description: (data.isSecure || false) ? EncryptionService.encrypt(data.description || '') : (data.description || ''),
+                description: (data.isSecure || false) ? await EncryptionService.encrypt(data.description || '') : (data.description || ''),
                 watermarkEnabled: data.isSecure || false,
                 organizationId: user.organizationId,
                 createdAt: serverTimestamp(),
@@ -132,7 +132,7 @@ export const useDocumentActions = (usersList: UserProfile[] = [], onDeletedId?: 
                 isSecure: data.isSecure ?? currentDoc.isSecure,
                 // Encrypt description if Secure Mode is ON (either new or existing)
                 description: (data.isSecure ?? currentDoc.isSecure)
-                    ? EncryptionService.encrypt(data.description || '')
+                    ? await EncryptionService.encrypt(data.description || '')
                     : (data.description || ''),
                 watermarkEnabled: (data.isSecure ?? currentDoc.isSecure) || false,
                 updatedAt: serverTimestamp()
@@ -381,10 +381,10 @@ export const useDocumentActions = (usersList: UserProfile[] = [], onDeletedId?: 
         setIsExportingCSV(true);
         try {
             // Decrypt descriptions for export if needed, or just export basic fields
-            const exportData = documents.map(d => ({
+            const exportData = await Promise.all(documents.map(async d => ({
                 ...d,
-                description: EncryptionService.decrypt(d.description || '')
-            }));
+                description: await EncryptionService.decrypt(d.description || '')
+            })));
 
             ImportService.exportDocuments(exportData);
             if (user?.organizationId) {

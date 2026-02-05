@@ -375,7 +375,7 @@ export const VoxelGuidedTour: React.FC<VoxelGuidedTourProps> = ({
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
                 <h3 className="text-sm font-medium text-white truncate">{currentStop?.title}</h3>
-                <span className="text-xs text-slate-500 dark:text-slate-300 flex-shrink-0">
+                <span className="text-xs text-muted-foreground flex-shrink-0">
                   {currentStopIndex + 1} / {tourStops.length}
                 </span>
               </div>
@@ -416,7 +416,7 @@ export const VoxelGuidedTour: React.FC<VoxelGuidedTourProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSkip}
-                className="px-3 py-1.5 text-xs text-slate-500 dark:text-slate-300 hover:text-slate-300 transition-colors flex items-center gap-1"
+                className="px-3 py-1.5 text-xs text-muted-foreground hover:text-slate-300 transition-colors flex items-center gap-1"
               >
                 <SkipForward className="w-3 h-3" />
                 Skip

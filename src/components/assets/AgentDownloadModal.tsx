@@ -37,9 +37,9 @@ export const AgentDownloadModal: React.FC<AgentDownloadModalProps> = ({
                     as={React.Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-70"
+                    enterTo="opacity-100"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-70"
+                    leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] transition-opacity" />
@@ -51,9 +51,9 @@ export const AgentDownloadModal: React.FC<AgentDownloadModalProps> = ({
                             as={React.Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                            enterTo="opacity-70 translate-y-0 sm:scale-100"
+                            enterTo="opacity-100 translate-y-0 sm:scale-100"
                             leave="ease-in duration-200"
-                            leaveFrom="opacity-70 translate-y-0 sm:scale-100"
+                            leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
                             <Dialog.Panel className="relative transform overflow-hidden rounded-4xl bg-background text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-border">

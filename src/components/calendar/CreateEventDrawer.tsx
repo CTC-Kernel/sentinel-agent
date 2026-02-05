@@ -386,7 +386,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                             <input
                                 type="checkbox"
                                 id="allDay"
-                                className="rounded border-border/40 text-brand-600 focus-visible:ring-brand-500 w-5 h-5"
+                                className="rounded border-border/40 text-brand-600 focus-visible:ring-primary w-5 h-5"
                                 {...register('allDay')}
                             />
                             <label htmlFor="allDay" className="text-sm text-slate-700 dark:text-slate-300 cursor-pointer select-none">{t('events.fields.allDay', { defaultValue: 'Toute la journée' })}</label>
@@ -398,7 +398,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                                     id="syncGoogle"
                                     checked={syncToGoogle}
                                     onChange={(e) => setSyncToGoogle(e.target.checked)}
-                                    className="rounded border-border/40 text-brand-600 focus-visible:ring-brand-500 w-5 h-5"
+                                    className="rounded border-border/40 text-brand-600 focus-visible:ring-primary w-5 h-5"
                                 />
                                 <label htmlFor="syncGoogle" className="text-sm text-slate-700 dark:text-slate-300 flex items-center cursor-pointer select-none">
                                     {t('events.fields.syncGoogle', { defaultValue: 'Sync Google' })}

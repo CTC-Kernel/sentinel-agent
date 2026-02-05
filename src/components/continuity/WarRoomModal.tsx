@@ -190,7 +190,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
                                     {/* Critical Docs */}
                                     <div>
-                                        <h3 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
                                             <FileText className="w-4 h-4" /> Documents Critiques
                                         </h3>
                                         <div className="space-y-2">
@@ -223,7 +223,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
 
                                     {/* Quick Actions */}
                                     <div>
-                                        <h3 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
                                             <AlertTriangle className="w-4 h-4" /> Actions Rapides
                                         </h3>
                                         <div className="space-y-2">
@@ -246,7 +246,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
 
                                     {/* Active Users - Real-time Presence */}
                                     <div>
-                                        <h3 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
                                             <User className="w-4 h-4" /> En Ligne ({presence.length})
                                         </h3>
                                         <div className="space-y-2">
@@ -274,7 +274,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                                                 {p.displayName}
                                                                 {p.id === user?.uid && <span className="text-slate-400 ml-1">(vous)</span>}
                                                             </p>
-                                                            <p className="text-xs text-slate-500 dark:text-slate-300 capitalize">{p.role}</p>
+                                                            <p className="text-xs text-muted-foreground capitalize">{p.role}</p>
                                                         </div>
                                                     </div>
                                                 ))
@@ -300,7 +300,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                 {/* Messages Area */}
                                 <div className="flex-1 overflow-y-auto p-6 space-y-4 font-mono text-sm max-h-[60vh] md:max-h-none">
                                     {messages.length === 0 && !loading && (
-                                        <div className="flex flex-col items-center justify-center h-full text-slate-500 dark:text-slate-300 gap-2">
+                                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-2">
                                             <ShieldAlert className="w-12 h-12 opacity-20" />
                                             <p>Aucun message. Le canal est ouvert.</p>
                                         </div>

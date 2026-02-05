@@ -229,7 +229,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
                       id={`mission-${mission.id}`}
                       checked={linkedMissionIds?.includes(mission.id) || false}
                       onChange={() => toggleMission(mission.id)}
-                      className="w-4 h-4 rounded border-border/40 text-info focus-visible:ring-brand-500"
+                      className="w-4 h-4 rounded border-border/40 text-info focus-visible:ring-primary"
                     />
                     <span className="text-sm text-slate-700 dark:text-muted-foreground">
                       {mission.name}

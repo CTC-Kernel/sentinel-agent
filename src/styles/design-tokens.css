@@ -14,6 +14,7 @@
   /* Primary - Refined Apple Blue (high contrast, low aggression) */
   --primary: 221 68% 50%;
   --primary-foreground: 210 40% 98%;
+  --primary-text: 221 68% 38%; /* WCAG AAA 7:1+ on white for body text */
   --brand-500-rgb: 59, 130, 246;
   --info-500-rgb: 6, 182, 212;
 
@@ -110,8 +111,8 @@
 
   /* ===== TYPOGRAPHY SYSTEM ===== */
   /* Font Families */
-  --font-display: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
-  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Outfit', 'Inter', system-ui, sans-serif;
+  --font-body: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
   --font-mono: 'SF Mono', Menlo, Monaco, Consolas, monospace;
 
   /* Font Weights - Standardized */
@@ -223,6 +224,7 @@
   /* Primary - Refined Blue for Dark (desaturated) */
   --primary: 221 60% 58%;
   --primary-foreground: 220 12% 10%;
+  --primary-text: 221 60% 72%; /* WCAG AAA 7:1+ on dark backgrounds */
 
   /* Navigation Icon Colors - Dark Mode (brighter for visibility) */
   --nav-pilotage: 221 72% 62%;

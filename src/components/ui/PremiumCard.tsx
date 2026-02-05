@@ -24,7 +24,7 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
   onClick,
   ...props
 }) => {
-  const baseClasses = "rounded-xl p-6 transition-all duration-normal active:duration-75 ease-apple relative overflow-hidden group border border-border/40 shadow-sm";
+  const baseClasses = "rounded-2xl p-6 transition-all duration-normal active:duration-75 ease-apple relative overflow-hidden group border border-border/40 shadow-sm";
 
   const variantClasses = cn(
     glass && "bg-[var(--glass-bg)] backdrop-blur-xl border-[var(--glass-border)] text-foreground",

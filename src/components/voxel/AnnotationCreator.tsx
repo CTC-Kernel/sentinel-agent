@@ -359,7 +359,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Écrivez votre annotation... (Utilisez @nom pour mentionner quelqu'un)"
                 rows={4}
-                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-3xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent resize-none text-sm"
+                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-3xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent resize-none text-sm"
               />
 
               <p className="text-xs text-slate-500">
@@ -420,7 +420,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                   value={teamId}
                   onChange={(e) => setTeamId(e.target.value)}
                   placeholder="ID de l'équipe"
-                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-3xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent text-sm"
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-3xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent text-sm"
                 />
               </div>
             )}
@@ -447,7 +447,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
             <div className="flex gap-2">
               <button
                 disabled
-                className="p-2 rounded-3xl bg-slate-700/50 text-slate-500 dark:text-slate-300 cursor-not-allowed"
+                className="p-2 rounded-3xl bg-slate-700/50 text-muted-foreground cursor-not-allowed"
                 title="Ajouter une piece jointe (bientot)"
               >
                 <Paperclip className="w-4 h-4" />

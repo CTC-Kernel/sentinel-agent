@@ -73,7 +73,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
 
             {!response && !loading && (
                 <div className="grid grid-cols-1 gap-3 relative z-10">
-                    <button onClick={() => handleAction('status')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-3xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-border/40 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                    <button onClick={() => handleAction('status')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-3xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-border/40 group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                         <div className="p-2 bg-info/10 text-info rounded-lg mr-4 group-hover:scale-110 transition-transform">
                             <FileText className="w-5 h-5" />
                         </div>
@@ -121,7 +121,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
                             </ReactMarkdown>
                         </div>
                     </div>
-                    <button onClick={() => setResponse(null)} className="w-full py-3 bg-slate-100 dark:bg-slate-700 text-muted-foreground rounded-3xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                    <button onClick={() => setResponse(null)} className="w-full py-3 bg-slate-100 dark:bg-slate-700 text-muted-foreground rounded-3xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                         Retour aux options
                     </button>
                 </div>

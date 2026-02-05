@@ -115,10 +115,10 @@ export const ControlEffectivenessManager: React.FC<ControlEffectivenessManagerPr
               </div>
 
               <h4 className="font-medium text-slate-900 dark:text-white text-sm mb-1">{domain.title}</h4>
-              <p className="text-xs text-slate-500 dark:text-slate-300 mb-3 line-clamp-1">{domain.description}</p>
+              <p className="text-xs text-muted-foreground mb-3 line-clamp-1">{domain.description}</p>
 
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 dark:text-slate-400">{assessedCount}/{controls.length} {t('compliance.assessed', { defaultValue: 'évalués' })}</span>
+                <span className="text-muted-foreground">{assessedCount}/{controls.length} {t('compliance.assessed', { defaultValue: 'évalués' })}</span>
                 <span className={cn(
                   "font-medium",
                   avgEffectiveness >= 60 ? 'text-emerald-600 dark:text-emerald-400' :
@@ -229,7 +229,7 @@ const DomainControlsPanel: React.FC<DomainControlsPanelProps> = ({
               <div className="flex-1 min-w-0">
                 <span className={cn(
                   "text-sm",
-                  hasAssessment ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400"
+                  hasAssessment ? "text-slate-900 dark:text-white" : "text-muted-foreground"
                 )}>
                   {control.name}
                 </span>

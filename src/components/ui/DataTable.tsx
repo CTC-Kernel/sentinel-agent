@@ -75,7 +75,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                             onChange={table.getToggleAllPageRowsSelectedHandler()}
                             name="select-all-rows"
                             type="checkbox"
-                            className="w-5 h-5 rounded-md border-border text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer bg-background/50 transition-all hover:border-primary/50"
+                            className="w-5 h-5 rounded-md border-border text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 cursor-pointer bg-background/50 transition-all hover:border-primary/50"
                         />
                     </label>
                 </div>
@@ -96,7 +96,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                 name={`select-row-${row.id}`}
                                 type="checkbox"
                                 disabled={!row.getCanSelect()}
-                                className="w-5 h-5 rounded-md border-border text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer bg-background/50 transition-all hover:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-5 h-5 rounded-md border-border text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 cursor-pointer bg-background/50 transition-all hover:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                         </label>
                     </div>
@@ -212,9 +212,9 @@ export function DataTable<TData extends { id: string }, TValue>({
             </div>
 
             {/* Table */}
-            <div className="w-full overflow-x-auto rounded-3xl glass-premium overflow-hidden">
+            <div className="w-full overflow-x-auto rounded-3xl glass-premium overflow-hidden [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]">
                 <table
-                    className="w-full"
+                    className="w-full min-w-[600px]"
                     role="table"
                     aria-label={exportFilename || "Tableau de données"}
                     aria-rowcount={table.getFilteredRowModel().rows.length}

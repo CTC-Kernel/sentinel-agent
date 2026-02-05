@@ -93,17 +93,17 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
 
                         <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                             <div className="bg-slate-50 dark:bg-white/5 p-2 rounded-lg text-center">
-                                <span className="block text-xs text-slate-500 dark:text-slate-300 uppercase font-bold">RTO Cible</span>
+                                <span className="block text-xs text-muted-foreground uppercase font-bold">RTO Cible</span>
                                 <span className="font-mono font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{strategy.rto}</span>
                             </div>
                             <div className="bg-slate-50 dark:bg-white/5 p-2 rounded-lg text-center">
-                                <span className="block text-xs text-slate-500 dark:text-slate-300 uppercase font-bold">RPO Cible</span>
+                                <span className="block text-xs text-muted-foreground uppercase font-bold">RPO Cible</span>
                                 <span className="font-mono font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{strategy.rpo}</span>
                             </div>
                         </div>
 
                         <div className="mt-4 pt-4 border-t border-border/40 dark:border-white/5">
-                            <p className="text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase">Actifs Couverts</p>
+                            <p className="text-xs font-bold text-muted-foreground mb-2 uppercase">Actifs Couverts</p>
                             <div className="flex flex-wrap gap-2">
                                 {strategy.linkedAssets?.map((assetId: string) => {
                                     const asset = assets.find(a => a.id === assetId);

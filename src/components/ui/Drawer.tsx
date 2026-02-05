@@ -76,9 +76,9 @@ export const Drawer: React.FC<DrawerProps> = ({
                         as={React.Fragment}
                         enter="duration-400"
                         enterFrom="opacity-0"
-                        enterTo="opacity-70"
+                        enterTo="opacity-100"
                         leave="duration-300"
-                        leaveFrom="opacity-70"
+                        leaveFrom="opacity-100"
                         leaveTo="opacity-0"
                     >
                         <div
@@ -108,7 +108,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                                             <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-border/40 flex flex-wrap items-start justify-between gap-y-4 shrink-0 transition-colors duration-300">
                                                 <div className="flex-1 min-w-0 mr-4">
                                                     {title && <Dialog.Title className="text-xl font-bold font-display text-foreground leading-tight tracking-tight truncate filter drop-shadow-sm">{title}</Dialog.Title>}
-                                                    {subtitle && <div className="text-sm text-slate-500 dark:text-muted-foreground mt-1.5">{subtitle}</div>}
+                                                    {subtitle && <div className="text-sm text-muted-foreground mt-1.5">{subtitle}</div>}
                                                 </div>
                                                 <div className="flex items-center gap-3 shrink-0">
                                                     {actions}
@@ -116,7 +116,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                                                         onClick={handleClose}
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="rounded-full text-muted-foreground hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10"
+                                                        className="rounded-full text-muted-foreground hover:text-foreground hover:bg-muted"
                                                         aria-label={t('common.close', { defaultValue: 'Fermer' })}
                                                     >
                                                         <X className="h-5 w-5" />
@@ -144,9 +144,9 @@ export const Drawer: React.FC<DrawerProps> = ({
                         as={React.Fragment}
                         enter="ease-out duration-300"
                         enterFrom="opacity-0"
-                        enterTo="opacity-70"
+                        enterTo="opacity-100"
                         leave="ease-in duration-200"
-                        leaveFrom="opacity-70"
+                        leaveFrom="opacity-100"
                         leaveTo="opacity-0"
                     >
                         <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" />
@@ -158,9 +158,9 @@ export const Drawer: React.FC<DrawerProps> = ({
                                 as={React.Fragment}
                                 enter="ease-out duration-300"
                                 enterFrom="opacity-0 scale-95"
-                                enterTo="opacity-70 scale-100"
+                                enterTo="opacity-100 scale-100"
                                 leave="ease-in duration-200"
-                                leaveFrom="opacity-70 scale-100"
+                                leaveFrom="opacity-100 scale-100"
                                 leaveTo="opacity-0 scale-95"
                             >
                                 <Dialog.Panel className="relative transform overflow-hidden rounded-xl bg-[var(--modal-bg)] p-6 text-left shadow-xl transition-all sm:max-w-md w-full border border-border/30">

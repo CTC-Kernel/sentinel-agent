@@ -61,7 +61,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
             </div>
 
             <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 shadow-sm space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-2">Identification du Risque</h4>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Identification du Risque</h4>
                 <div>
                     <span className="text-[11px] uppercase text-muted-foreground font-bold">Menace</span>
                     <p className="text-sm font-medium text-slate-900 dark:text-white">{risk.threat}</p>
@@ -86,15 +86,15 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
             />
 
             <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 shadow-sm">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">Stratégie de Traitement</h4>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Stratégie de Traitement</h4>
                 <div className="p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border border-border/40 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{risk.strategy}</div>
             </div>
             <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 shadow-sm">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">Propriétaire</h4>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Propriétaire</h4>
                 <div className="p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border border-border/40 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{getOwnerName(risk.owner)}</div>
             </div>
             <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 shadow-sm">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">Statut Actuel</h4>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Statut Actuel</h4>
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                     {canEdit ? (
                         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
@@ -104,7 +104,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                                     key={s || 'unknown'}
                                     onClick={() => onStatusChangeRequest(s as Risk['status'])}
                                     disabled={updating}
-                                    className={`px-4 py-2 rounded-3xl text-xs font-bold border transition-all flex-1 sm:flex-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${risk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-border/40 dark:border-border/40 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'} ${updating ? 'opacity-60 cursor-wait' : ''}`}
+                                    className={`px-4 py-2 rounded-3xl text-xs font-bold border transition-all flex-1 sm:flex-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${risk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-border/40 dark:border-border/40 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'} ${updating ? 'opacity-60 cursor-wait' : ''}`}
                                 >
                                     {s}
                                 </button>
@@ -116,14 +116,14 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                             <button
                                 aria-label="Rejeter la demande"
                                 onClick={() => onStatusChange('Ouvert')} // Reject -> Back to Open
-                                className="px-4 py-2 bg-error-bg text-error-text rounded-3xl text-xs font-bold hover:bg-error-bg/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                className="px-4 py-2 bg-error-bg text-error-text rounded-3xl text-xs font-bold hover:bg-error-bg/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                             >
                                 Rejeter
                             </button>
                             <button
                                 aria-label="Approuver le risque"
                                 onClick={() => onStatusChange('En cours')} // Approve -> In Progress
-                                className="px-4 py-2 bg-success-bg text-success-text rounded-3xl text-xs font-bold hover:bg-success-bg/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                className="px-4 py-2 bg-success-bg text-success-text rounded-3xl text-xs font-bold hover:bg-success-bg/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                             >
                                 Approuver
                             </button>
@@ -134,14 +134,14 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                             aria-label="Valider la revue du risque"
                             onClick={onReview}
                             disabled={updating}
-                            className={`flex items-center justify-center px-4 py-2 text-xs font-bold bg-brand-500 text-white rounded-3xl hover:bg-brand-600 transition-colors w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 shadow-sm ${updating ? 'opacity-70 cursor-wait' : ''}`}
+                            className={`flex items-center justify-center px-4 py-2 text-xs font-bold bg-brand-500 text-white rounded-3xl hover:bg-brand-600 transition-colors w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 shadow-sm ${updating ? 'opacity-70 cursor-wait' : ''}`}
                         >
                             {updating ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <CalendarDays className="h-3.5 w-3.5 mr-2" />}
                             Valider la revue
                         </button>
                     )}
                 </div>
-                {risk.lastReviewDate && (<p className="text-xs text-slate-500 dark:text-slate-300 mt-3 text-right">Dernière revue le : {new Date(risk.lastReviewDate).toLocaleDateString()}</p>)}
+                {risk.lastReviewDate && (<p className="text-xs text-muted-foreground mt-3 text-right">Dernière revue le : {new Date(risk.lastReviewDate).toLocaleDateString()}</p>)}
             </div>
         </div>
     );

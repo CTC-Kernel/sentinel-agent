@@ -85,7 +85,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                                 id="items-per-page"
                                 value={itemsPerPage}
                                 onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                                className="appearance-none bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-border/40 rounded-3xl px-4 py-2.5 pr-10 min-h-[44px] text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus-visible:ring-brand-500 outline-none cursor-pointer"
+                                className="appearance-none bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-border/40 rounded-3xl px-4 py-2.5 pr-10 min-h-[44px] text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus-visible:ring-primary outline-none cursor-pointer"
                                 aria-label="Nombre d'éléments par page"
                             >
                                 {itemsPerPageOptions.map(option => (
@@ -93,7 +93,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                                 ))}
                             </select>
                             <ChevronDown
-                                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-300 pointer-events-none"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"
                                 aria-hidden="true"
                             />
                         </div>
@@ -108,7 +108,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                     disabled={currentPage === 1}
                     size="icon"
                     variant="ghost"
-                    className="min-w-[44px] min-h-[44px] rounded-3xl disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                    className="min-w-[44px] min-h-[44px] rounded-3xl disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
                     aria-label="Page précédente"
                     aria-disabled={currentPage === 1}
                 >
@@ -121,7 +121,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                             return (
                                 <span
                                     key={`ellipsis-${index || 'unknown'}`}
-                                    className="px-3 py-2 text-slate-500 dark:text-slate-400 font-medium select-none"
+                                    className="px-3 py-2 text-muted-foreground font-medium select-none"
                                     aria-hidden="true"
                                 >
                                     ...
@@ -155,7 +155,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                     disabled={currentPage === totalPages}
                     size="icon"
                     variant="ghost"
-                    className="min-w-[44px] min-h-[44px] rounded-3xl disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                    className="min-w-[44px] min-h-[44px] rounded-3xl disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
                     aria-label="Page suivante"
                     aria-disabled={currentPage === totalPages}
                 >

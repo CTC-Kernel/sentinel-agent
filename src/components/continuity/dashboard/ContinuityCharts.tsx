@@ -100,7 +100,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
             const d = new Date();
             d.setMonth(d.getMonth() - 11 + i);
             return {
-                name: d.toLocaleString('default', { month: 'short' }),
+                name: d.toLocaleString('fr-FR', { month: 'short' }),
                 date: d,
                 success: 0,
                 failure: 0,
@@ -141,8 +141,8 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                         </feMerge>
                     </filter>
                     <linearGradient id="continuitySuccessGradient" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor={drillSuccessRate >= 80 ? SENTINEL_PALETTE.success : drillSuccessRate >= 50 ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical} />
-                        <stop offset="100%" stopColor={drillSuccessRate >= 80 ? SENTINEL_PALETTE.success : drillSuccessRate >= 50 ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical} />
+                        <stop offset="0%" stopColor={drillSuccessRate >= 75 ? SENTINEL_PALETTE.success : drillSuccessRate >= 50 ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical} />
+                        <stop offset="100%" stopColor={drillSuccessRate >= 75 ? SENTINEL_PALETTE.success : drillSuccessRate >= 50 ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical} />
                     </linearGradient>
                     <linearGradient id="gradientSuccess" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor={SENTINEL_PALETTE.success} stopOpacity={0.8} />
@@ -174,7 +174,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                                 </ResponsiveContainer>
                             </div>
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/4 text-center">
-                                <div className={`text-4xl font-black bg-gradient-to-r ${drillSuccessRate >= 80 ? 'from-emerald-600 to-emerald-400' : drillSuccessRate >= 50 ? 'from-amber-600 to-amber-400' : 'from-red-600 to-red-400'} bg-clip-text text-transparent`}>
+                                <div className={`text-4xl font-black bg-gradient-to-r ${drillSuccessRate >= 75 ? 'from-emerald-600 to-emerald-400' : drillSuccessRate >= 50 ? 'from-amber-600 to-amber-400' : 'from-red-600 to-red-400'} bg-clip-text text-transparent`}>
                                     {drillSuccessRate}%
                                 </div>
                             </div>
@@ -183,7 +183,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                             <h3 className="text-lg font-bold text-foreground mb-2 uppercase tracking-wide">Taux de Succès des Exercices</h3>
                             <p className="text-sm text-muted-foreground max-w-md">
                                 {drills.filter(d => d.result === 'Succès').length} exercices réussis sur {drills.length} au total.
-                                {drillSuccessRate >= 80 ? ' Excellente maîtrise de la continuité.' :
+                                {drillSuccessRate >= 75 ? ' Excellente maîtrise de la continuité.' :
                                     drillSuccessRate >= 50 ? ' Des améliorations sont possibles.' :
                                         ' Actions correctives urgentes requises.'}
                             </p>

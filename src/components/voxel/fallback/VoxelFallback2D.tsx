@@ -176,7 +176,7 @@ export const VoxelFallback2D: React.FC<VoxelFallback2DProps> = ({
       {showAlternativeLink && (
         <a
           href={alternativeUrl}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:ring-offset-2 focus:ring-offset-slate-900"
         >
           <svg
             className="w-5 h-5"
@@ -197,7 +197,7 @@ export const VoxelFallback2D: React.FC<VoxelFallback2DProps> = ({
 
       {/* Mobile-specific message */}
       {reason === 'mobile' && (
-        <p className="mt-6 text-sm text-slate-500 dark:text-slate-300 text-center px-4">
+        <p className="mt-6 text-sm text-muted-foreground text-center px-4">
           {t('voxel.fallback.mobileHint')}
         </p>
       )}

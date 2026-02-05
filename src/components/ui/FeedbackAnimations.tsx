@@ -67,8 +67,8 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   const baseClasses = 'font-bold rounded-3xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
 
   const variantClasses = {
-    primary: 'bg-brand-600 hover:bg-brand-700 text-white focus-visible:ring-brand-500 shadow-lg shadow-brand-500/20',
-    secondary: 'bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:ring-brand-500',
+    primary: 'bg-brand-600 hover:bg-brand-700 text-white focus-visible:ring-primary shadow-lg shadow-brand-500/20',
+    secondary: 'bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:ring-primary',
     danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-lg shadow-red-500/20',
     success: 'bg-success-600 hover:bg-success-700 text-white focus:ring-success-500 shadow-lg shadow-success-500/20'
   };

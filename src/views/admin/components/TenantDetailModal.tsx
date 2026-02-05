@@ -99,9 +99,9 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                     as={React.Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-70"
+                    enterTo="opacity-100"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-70"
+                    leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" />
@@ -112,9 +112,9 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                         as={React.Fragment}
                         enter="ease-out duration-300"
                         enterFrom="opacity-0 scale-95"
-                        enterTo="opacity-70 scale-100"
+                        enterTo="opacity-100 scale-100"
                         leave="ease-in duration-200"
-                        leaveFrom="opacity-70 scale-100"
+                        leaveFrom="opacity-100 scale-100"
                         leaveTo="opacity-0 scale-95"
                     >
                         <Dialog.Panel className="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -166,7 +166,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                     <Tab.Panel className="space-y-8 focus:outline-none">
                                         <div className="grid grid-cols-3 gap-4">
                                             <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                                                <p className="text-xs text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-1 flex items-center">
+                                                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1 flex items-center">
                                                     <Users className="w-3 h-3 mr-1.5" /> Utilisateurs
                                                 </p>
                                                 {loading ? (
@@ -176,7 +176,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                 )}
                                             </div>
                                             <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                                                <p className="text-xs text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-1 flex items-center">
+                                                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1 flex items-center">
                                                     <Shield className="w-3 h-3 mr-1.5" /> Projets
                                                 </p>
                                                 {loading ? (
@@ -186,7 +186,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                 )}
                                             </div>
                                             <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                                                <p className="text-xs text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-1 flex items-center">
+                                                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1 flex items-center">
                                                     <Database className="w-3 h-3 mr-1.5" /> Stockage
                                                 </p>
                                                 <p className="text-2xl font-bold text-white">--</p>
@@ -201,7 +201,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                             <div className="flex items-center justify-between">
                                                 <div>
                                                     <p className="text-sm text-slate-300 font-medium">Suspendre l'Organisation</p>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
+                                                    <p className="text-xs text-muted-foreground mt-1">
                                                         Couper tous les accès immédiatement.
                                                     </p>
                                                 </div>
@@ -231,7 +231,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                         id="plan-select"
                                                         value={plan}
                                                         onChange={(e) => setPlan(e.target.value as PlanType)}
-                                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-brand-500 focus:outline-none"
+                                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-primary focus:outline-none"
                                                     >
                                                         <option value="discovery">Discovery (Free)</option>
                                                         <option value="professional">Professional</option>
@@ -250,7 +250,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                                 const val = parseInt(e.target.value);
                                                                 setMaxUsers(isNaN(val) ? 0 : val);
                                                             }}
-                                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-brand-500 focus:outline-none"
+                                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-primary focus:outline-none"
                                                         />
                                                     </div>
                                                     <div>
@@ -263,7 +263,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                                 const val = parseInt(e.target.value);
                                                                 setMaxProjects(isNaN(val) ? 0 : val);
                                                             }}
-                                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-brand-500 focus:outline-none"
+                                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-primary focus:outline-none"
                                                         />
                                                     </div>
                                                 </div>
@@ -273,7 +273,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                 <button
                                                     onClick={handleSaveSubscription}
                                                     disabled={processing}
-                                                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
+                                                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:border-slate-600"
                                                 >
                                                     <Save className="w-4 h-4 mr-2" />
                                                     Enregistrer

@@ -7,7 +7,8 @@
  * Sprint 8 - Anomaly Detection
  */
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -480,9 +481,10 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
     maxAlerts = 50,
     showStats = true,
 }) => {
-    const { user } = useStore();
+    const { user, addToast } = useStore();
     const { t } = useTranslation();
     const organizationId = user?.organizationId;
+    const [searchParams, setSearchParams] = useSearchParams();
 
     // Force re-render every minute to update relative timestamps
     const [, forceUpdate] = useState(0);
@@ -497,13 +499,37 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-    // Filters
-    const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState<AnomalyStatus[]>(['new', 'acknowledged', 'investigating']);
-    const [severityFilter, setSeverityFilter] = useState<AnomalySeverity[]>([]);
-    const [typeFilter, setTypeFilter] = useState<AnomalyType[]>([]);
+    // Filters - initialize from URL search params for persistence
+    const defaultStatuses: AnomalyStatus[] = ['new', 'acknowledged', 'investigating'];
+    const [searchTerm, setSearchTerm] = useState(() => searchParams.get('q') || '');
+    const [statusFilter, setStatusFilter] = useState<AnomalyStatus[]>(() => {
+        const param = searchParams.get('status');
+        return param ? param.split(',') as AnomalyStatus[] : defaultStatuses;
+    });
+    const [severityFilter, setSeverityFilter] = useState<AnomalySeverity[]>(() => {
+        const param = searchParams.get('severity');
+        return param ? param.split(',') as AnomalySeverity[] : [];
+    });
+    const [typeFilter, setTypeFilter] = useState<AnomalyType[]>(() => {
+        const param = searchParams.get('type');
+        return param ? param.split(',') as AnomalyType[] : [];
+    });
     const [showFilters, setShowFilters] = useState(false);
-    const [showResolved, setShowResolved] = useState(false);
+    const [showResolved, setShowResolved] = useState(() => searchParams.get('resolved') === '1');
+
+    // Sync filters to URL params
+    const syncFiltersToUrl = useCallback(() => {
+        const params = new URLSearchParams(searchParams);
+        if (searchTerm) params.set('q', searchTerm); else params.delete('q');
+        const statusStr = statusFilter.join(',');
+        if (statusStr !== defaultStatuses.join(',')) params.set('status', statusStr); else params.delete('status');
+        if (severityFilter.length > 0) params.set('severity', severityFilter.join(',')); else params.delete('severity');
+        if (typeFilter.length > 0) params.set('type', typeFilter.join(',')); else params.delete('type');
+        if (showResolved) params.set('resolved', '1'); else params.delete('resolved');
+        setSearchParams(params, { replace: true });
+    }, [searchTerm, statusFilter, severityFilter, typeFilter, showResolved, searchParams, setSearchParams]);
+
+    useEffect(() => { syncFiltersToUrl(); }, [syncFiltersToUrl]);
 
     // Subscribe to anomalies
     useEffect(() => {
@@ -623,20 +649,26 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
     const handleBulkAcknowledge = async () => {
         if (!organizationId || !user?.uid || selectedIds.size === 0) return;
         try {
+            const count = selectedIds.size;
             await bulkAcknowledge(organizationId, Array.from(selectedIds), user.uid);
             setSelectedIds(new Set());
+            addToast(t('agents.anomalies.bulkAcknowledged', { defaultValue: '{{count}} anomalie(s) acquittée(s)', count }), 'success');
         } catch (error) {
             ErrorLogger.error(error, 'AnomalyAlerts.bulkAcknowledge');
+            addToast(t('agents.anomalies.bulkAcknowledgeError', { defaultValue: 'Erreur lors de l\'acquittement groupé' }), 'error');
         }
     };
 
     const handleBulkResolve = async () => {
         if (!organizationId || !user?.uid || selectedIds.size === 0) return;
         try {
+            const count = selectedIds.size;
             await bulkResolve(organizationId, Array.from(selectedIds), user.uid);
             setSelectedIds(new Set());
+            addToast(t('agents.anomalies.bulkResolved', { defaultValue: '{{count}} anomalie(s) résolue(s)', count }), 'success');
         } catch (error) {
             ErrorLogger.error(error, 'AnomalyAlerts.bulkResolve');
+            addToast(t('agents.anomalies.bulkResolveError', { defaultValue: 'Erreur lors de la résolution groupée' }), 'error');
         }
     };
 

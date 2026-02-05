@@ -102,8 +102,8 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
         <div className="space-y-6 h-full flex flex-col">
             <div className="flex justify-between items-center">
                 <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-3xl border border-border/40 dark:border-slate-700">
-                    <button onClick={() => setViewMode('list')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600 hover:text-slate-900 dark:hover:text-slate-300'}`}>Liste</button>
-                    <button onClick={() => setViewMode('board')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${viewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600 hover:text-slate-900 dark:hover:text-slate-300'}`}>Tableau</button>
+                    <button onClick={() => setViewMode('list')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600 hover:text-slate-900 dark:hover:text-slate-300'}`}>Liste</button>
+                    <button onClick={() => setViewMode('board')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${viewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600 hover:text-slate-900 dark:hover:text-slate-300'}`}>Tableau</button>
                 </div>
                 {canEdit && (
                     <Button onClick={handleNewTask} className="flex items-center gap-2">
@@ -119,15 +119,15 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
                             <button
                                 onClick={() => toggleTaskStatus(task.id)}
                                 disabled={!canEdit}
-                                className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-border/40 hover:border-green-500'}`}
+                                className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-border/40 hover:border-green-500'}`}
                             >
                                 {task.status === 'Terminé' && <CheckSquare className="w-3.5 h-3.5" />}
                             </button>
                             <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-slate-500 line-through' : 'text-slate-700 dark:text-slate-200'}`}>{task.title}</span>
                             {canEdit && (
                                 <div className="flex items-center opacity-0 group-hover:opacity-70 transition-opacity">
-                                    <button onClick={() => handleDownloadICS(task)} aria-label={t('projects.tasks.downloadICS', { defaultValue: 'Télécharger ICS' })} className="p-1.5 text-slate-500 dark:text-slate-300 hover:text-brand-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><CalendarDays className="h-3.5 w-3.5" /></button>
-                                    <button onClick={() => deleteTask(task.id)} aria-label={t('projects.tasks.deleteTask', { defaultValue: 'Supprimer la tâche' })} className="p-1.5 text-slate-500 dark:text-slate-300 hover:text-red-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                                    <button onClick={() => handleDownloadICS(task)} aria-label={t('projects.tasks.downloadICS', { defaultValue: 'Télécharger ICS' })} className="p-1.5 text-muted-foreground hover:text-brand-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><CalendarDays className="h-3.5 w-3.5" /></button>
+                                    <button onClick={() => deleteTask(task.id)} aria-label={t('projects.tasks.deleteTask', { defaultValue: 'Supprimer la tâche' })} className="p-1.5 text-muted-foreground hover:text-red-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Trash2 className="h-3.5 w-3.5" /></button>
                                 </div>
                             )}
                         </div>

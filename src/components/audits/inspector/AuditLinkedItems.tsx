@@ -154,7 +154,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                                             </p>
                                             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                                 {ctrl.framework && (
-                                                    <span className="text-xs text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+                                                    <span className="text-xs text-muted-foreground bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
                                                         {ctrl.framework}
                                                     </span>
                                                 )}

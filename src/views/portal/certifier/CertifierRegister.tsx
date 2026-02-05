@@ -88,7 +88,7 @@ export const CertifierRegister: React.FC = () => {
                                     {...register('orgName')}
                                     id="orgName"
                                     type="text"
-                                    className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent sm:text-sm"
+                                    className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent sm:text-sm"
                                     placeholder="Bureau Veritas..."
                                 />
                             </div>
@@ -105,7 +105,7 @@ export const CertifierRegister: React.FC = () => {
                                     {...register('siret')}
                                     id="siret"
                                     type="text"
-                                    className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent sm:text-sm"
+                                    className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent sm:text-sm"
                                     placeholder="Optionnel"
                                 />
                             </div>
@@ -121,7 +121,7 @@ export const CertifierRegister: React.FC = () => {
                                     {...register('email')}
                                     id="email"
                                     type="email"
-                                    className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent sm:text-sm"
+                                    className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent sm:text-sm"
                                     placeholder="contact@organisme.com"
                                 />
                             </div>
@@ -139,7 +139,7 @@ export const CertifierRegister: React.FC = () => {
                                         {...register('password')}
                                         id="password"
                                         type="password"
-                                        className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent sm:text-sm"
+                                        className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent sm:text-sm"
                                         placeholder="Min 8 car."
                                     />
                                 </div>
@@ -155,7 +155,7 @@ export const CertifierRegister: React.FC = () => {
                                         {...register('confirmPassword')}
                                         id="confirmPassword"
                                         type="password"
-                                        className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent sm:text-sm"
+                                        className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent sm:text-sm"
                                     />
                                 </div>
                                 {errors.confirmPassword && <p className="mt-1 text-xs text-red-600">{errors.confirmPassword.message}</p>}
@@ -166,7 +166,7 @@ export const CertifierRegister: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="flex w-full justify-center rounded-lg bg-brand-600 px-3 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:cursor-not-allowed transition-all"
+                                className="flex w-full justify-center rounded-lg bg-brand-600 px-3 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-all"
                             >
                                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('certifier.registerButton')}
                             </button>

@@ -43,7 +43,7 @@ exports.generateAgentReport = onCall(
       throw new HttpsError('invalid-argument', 'reportId, organizationId, and config are required');
     }
 
-    checkCallableRateLimit(request, 'heavy');
+    await checkCallableRateLimit(request, 'heavy');
 
     try {
       const startTime = Date.now();
@@ -197,7 +197,7 @@ exports.fetchComplianceReportData = onCall(
       throw new HttpsError('invalid-argument', 'organizationId is required');
     }
 
-    checkCallableRateLimit(request, 'standard');
+    await checkCallableRateLimit(request, 'standard');
 
     // Role check: report data requires at least auditor role
     const userRole = request.auth?.token?.role;
@@ -237,7 +237,7 @@ exports.fetchFleetHealthReportData = onCall(
       throw new HttpsError('invalid-argument', 'organizationId is required');
     }
 
-    checkCallableRateLimit(request, 'standard');
+    await checkCallableRateLimit(request, 'standard');
 
     const userRole2 = request.auth?.token?.role;
     if (!userRole2 || !['admin', 'rssi', 'manager', 'auditor'].includes(userRole2)) {
@@ -276,7 +276,7 @@ exports.fetchExecutiveSummaryData = onCall(
       throw new HttpsError('invalid-argument', 'organizationId is required');
     }
 
-    checkCallableRateLimit(request, 'standard');
+    await checkCallableRateLimit(request, 'standard');
 
     const userRole3 = request.auth?.token?.role;
     if (!userRole3 || !['admin', 'rssi', 'manager', 'auditor'].includes(userRole3)) {

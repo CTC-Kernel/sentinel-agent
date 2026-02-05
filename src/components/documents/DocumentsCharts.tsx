@@ -286,7 +286,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                 >
                     <TechCorners />
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Taux Validation</span>
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Taux Validation</span>
                         <FileCheck className="w-4 h-4 text-brand-500" />
                     </div>
                     <div className="h-[140px] relative">
@@ -313,7 +313,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                             <span className="text-3xl font-black text-slate-900 dark:text-white">
                                 {stats.validationRate}%
                             </span>
-                            <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider mt-1">
+                            <span className="text-[11px] text-muted-foreground uppercase tracking-wider mt-1">
                                 {stats.validationRate >= 80 ? 'Excellent' : stats.validationRate >= 50 ? 'Moyen' : 'Faible'}
                             </span>
                         </div>
@@ -339,7 +339,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                         <div className="text-3xl font-black text-slate-900 dark:text-white">
                             {stats.published}
                         </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-300 font-medium uppercase tracking-wider mt-1">Publiés</div>
+                        <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">Publiés</div>
                     </div>
                     <div className="mt-3 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                         <motion.div
@@ -369,7 +369,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                         <div className="text-3xl font-black text-slate-900 dark:text-white">
                             {stats.inReview}
                         </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-300 font-medium uppercase tracking-wider mt-1">En Revue</div>
+                        <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">En Revue</div>
                     </div>
                     <div className="mt-3 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                         <motion.div
@@ -401,7 +401,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                         <div className="text-3xl font-black text-slate-900 dark:text-white">
                             {stats.expired}
                         </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-300 font-medium uppercase tracking-wider mt-1">Expirés</div>
+                        <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">Expirés</div>
                     </div>
                     <div className="mt-3 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                         <motion.div
@@ -451,7 +451,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                             </ResponsiveContainer>
                         </div>
                     ) : (
-                        <div className="h-[200px] flex items-center justify-center text-slate-500 dark:text-slate-300 text-sm">
+                        <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
                             Aucun document
                         </div>
                     )}
@@ -500,7 +500,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                             </ResponsiveContainer>
                         </div>
                     ) : (
-                        <div className="h-[200px] flex items-center justify-center text-slate-500 dark:text-slate-300 text-sm">
+                        <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
                             Aucun document
                         </div>
                     )}
@@ -621,7 +621,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                                                 <div className="text-sm font-bold text-slate-900 dark:text-white truncate">
                                                     {doc.title}
                                                 </div>
-                                                <div className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                                <div className="text-[11px] text-muted-foreground uppercase tracking-wider">
                                                     {doc.type}
                                                 </div>
                                             </div>
@@ -662,28 +662,28 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                         <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40">
                             <div className="flex items-center gap-2 mb-2">
                                 <FileText className="w-4 h-4 text-slate-500" />
-                                <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">Total</span>
+                                <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold">Total</span>
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.total}</div>
                         </div>
                         <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40">
                             <div className="flex items-center gap-2 mb-2">
                                 <Edit className="w-4 h-4 text-slate-500" />
-                                <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">Brouillons</span>
+                                <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold">Brouillons</span>
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.drafts}</div>
                         </div>
                         <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40">
                             <div className="flex items-center gap-2 mb-2">
                                 <Shield className="w-4 h-4 text-brand-500" />
-                                <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">Sécurisés</span>
+                                <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold">Sécurisés</span>
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.secure}</div>
                         </div>
                         <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40">
                             <div className="flex items-center gap-2 mb-2">
                                 <Calendar className="w-4 h-4 text-slate-500" />
-                                <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">Ce Mois</span>
+                                <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold">Ce Mois</span>
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white">
                                 {documents.filter(d => {

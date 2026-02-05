@@ -358,7 +358,7 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
             ))}
 
             {frameworks.length === 0 && (
-              <div className="p-4 text-center text-slate-500 dark:text-slate-300 text-sm">
+              <div className="p-4 text-center text-muted-foreground text-sm">
                 Aucun référentiel configuré
               </div>
             )}

@@ -591,7 +591,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                       value={step.description}
                                                       onChange={(e) => handleUpdateAttackStep(opScenario.id, step.id, { description: e.target.value })}
                                                       placeholder={t('ebios.workshop4.stepDescriptionPlaceholder')}
-                                                      className="w-full px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm resize-none min-h-[60px]"
+                                                      className="w-full px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 focus-visible:ring-2 focus-visible:ring-primary focus:border-brand-500 transition-all text-sm resize-none min-h-[60px]"
                                                     />
                                                   ) : (
                                                     <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
@@ -674,7 +674,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                             onClick={() => handleCreateRiskFromScenario(opScenario)}
                                             disabled={creatingRiskForScenario === opScenario.id}
                                             className={cn(
-                                              "flex items-center gap-2 px-4 py-2 rounded-3xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 disabled:bg-slate-200 disabled:text-slate-600 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-600 dark:disabled:border-slate-600",
+                                              "flex items-center gap-2 px-4 py-2 rounded-3xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600",
                                               "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 dark:hover:bg-slate-800"
                                             )}
                                           >

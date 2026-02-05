@@ -425,7 +425,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <button
                                             onClick={generateExecutiveReport}
                                             disabled={isGeneratingReport}
-                                            className="p-2.5 rounded-3xl text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all duration-300 disabled:bg-slate-200 disabled:text-slate-600 dark:disabled:bg-slate-700 dark:disabled:text-slate-600"
+                                            className="p-2.5 rounded-3xl text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all duration-300 disabled:bg-muted disabled:text-muted-foreground"
                                             aria-label={t('dashboard.executiveReport')}
                                         >
                                             {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
@@ -599,7 +599,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     onClick={() => {
                                         if (insight.link && insight.link.startsWith('/')) navigate(insight.link);
                                     }}
-                                    className={`relative flex-1 flex text-left items-center gap-4 p-5 rounded-3xl border transition-all duration-500 cursor-pointer group/insight focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 backdrop-blur-xl overflow-hidden shadow-sm
+                                    className={`relative flex-1 flex text-left items-center gap-4 p-5 rounded-3xl border transition-all duration-500 cursor-pointer group/insight focus:outline-none focus-visible:ring-2 focus-visible:ring-primary backdrop-blur-xl overflow-hidden shadow-sm
                                         ${insight.type === 'danger'
                                             ? 'bg-red-50/40 dark:bg-red-900/10 border-red-500/30 hover:bg-red-50/60 dark:hover:bg-red-900/20 hover:border-red-500/50'
                                             : insight.type === 'warning'

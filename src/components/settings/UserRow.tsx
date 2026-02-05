@@ -21,7 +21,7 @@ export const UserRow = memo(({ user, currentUser, currentOrg, updating, onUpdate
     return (
         <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/60 dark:hover:bg-white/10 transition-colors backdrop-blur-[2px]">
             <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700/50 flex-shrink-0 flex items-center justify-center text-slate-500 dark:text-slate-300 font-bold border border-white/40 dark:border-border/40 shadow-sm overflow-hidden">
+                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700/50 flex-shrink-0 flex items-center justify-center text-muted-foreground font-bold border border-white/40 dark:border-border/40 shadow-sm overflow-hidden">
                     <img
                         src={getUserAvatarUrl(user.photoURL, user.role)}
                         alt={user.displayName || 'Avatar'}
@@ -45,7 +45,7 @@ export const UserRow = memo(({ user, currentUser, currentOrg, updating, onUpdate
                             </span>
                         )}
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-300 truncate">{user.email}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                 </div>
             </div>
 
@@ -86,7 +86,7 @@ export const UserRow = memo(({ user, currentUser, currentOrg, updating, onUpdate
                         <button
                             onClick={() => onRemove(user.uid)}
                             disabled={updating}
-                            className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                            className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:bg-muted disabled:text-muted-foreground"
                             title={t('settings.removeMember')}
                             aria-label={t('settings.removeMember')}
                             type="button"

@@ -109,7 +109,7 @@ export const RiskAdvancedFilters: React.FC<RiskAdvancedFiltersProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={handleClearAll}
-                        className="text-xs text-slate-500 dark:text-slate-300 hover:text-red-500 font-bold transition-colors"
+                        className="text-xs text-muted-foreground hover:text-red-500 font-bold transition-colors"
                     >
                         Réinitialiser tous les filtres
                     </Button>

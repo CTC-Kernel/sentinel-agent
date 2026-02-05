@@ -292,7 +292,7 @@ export const IntegrityService = {
         };
       default:
         return {
-          text: 'text-slate-500 dark:text-slate-400',
+          text: 'text-muted-foreground',
           bg: 'bg-slate-50 dark:bg-slate-900',
           border: 'border-slate-200 dark:border-slate-700',
         };

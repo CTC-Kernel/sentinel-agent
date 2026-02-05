@@ -92,7 +92,7 @@ export const VerifyEmail: React.FC = () => {
                             onClick={handleCheckVerification}
                             disabled={loading}
                             isLoading={loading}
-                            className="w-full py-6 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-brand-500/20 flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-lg"
+                            className="w-full py-6 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-brand-500/20 flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-lg"
                         >
                             {!loading && <RefreshCw className="mr-2 h-5 w-5" />}
                             {t('auth.iVerifiedMyEmail', { defaultValue: 'J\'ai vérifié mon email' })}
@@ -104,7 +104,7 @@ export const VerifyEmail: React.FC = () => {
                             onClick={handleResendEmail}
                             disabled={loading || emailSent}
                             isLoading={loading}
-                            className="w-full py-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-bold rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-lg"
+                            className="w-full py-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-bold rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-lg"
                         >
                             {t('auth.resendEmail', { defaultValue: 'Renvoyer l\'email' })}
                         </Button>
@@ -114,7 +114,7 @@ export const VerifyEmail: React.FC = () => {
                         variant="link"
                         aria-label={t('auth.logout', { defaultValue: 'Se déconnecter' })}
                         onClick={handleLogout}
-                        className="mt-8 text-sm font-bold text-slate-500 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-200 flex items-center transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="mt-8 text-sm font-bold text-muted-foreground hover:text-slate-600 dark:hover:text-slate-200 flex items-center transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         <LogOut className="mr-2 h-4 w-4" />
                         {t('auth.logout', { defaultValue: 'Se déconnecter' })}

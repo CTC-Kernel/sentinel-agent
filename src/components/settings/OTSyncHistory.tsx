@@ -315,7 +315,7 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
                           </span>
                           {getStatusBadge(sync.status)}
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-300 mt-1">
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                           <span className="flex items-center gap-1">
                             <Timer className="h-3 w-3" />
                             {formatDuration(sync.durationMs)}
@@ -370,7 +370,7 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
                                   {error.severity === 'error' ? 'ERROR' : 'WARN'}
                                 </span>
                                 {error.rowNumber && (
-                                  <span className="text-slate-500 dark:text-slate-400">
+                                  <span className="text-muted-foreground">
                                     Row {error.rowNumber}:{' '}
                                   </span>
                                 )}

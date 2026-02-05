@@ -13,7 +13,7 @@ export const AssetInspectorProjects: React.FC<AssetInspectorProjectsProps> = ({
 }) => {
     return (
         <div className="space-y-6 sm:space-y-8">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4 flex items-center">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center">
                 <FolderKanban className="h-4 w-4 mr-2" /> Projets Liés ({linkedProjects.length})
             </h3>
             {linkedProjects.length === 0 ? (

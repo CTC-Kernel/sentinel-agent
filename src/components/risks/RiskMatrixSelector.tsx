@@ -128,7 +128,7 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
                     <div className="flex items-center gap-2">
                         {/* Current score */}
                         <div>
-                            <span className="text-xs font-medium text-slate-500 dark:text-slate-300 block">
+                            <span className="text-xs font-medium text-muted-foreground block">
                                 {residualScore !== null ? 'Brut' : 'Score'}: {currentScore}
                             </span>
                             <span className={`text-sm font-black uppercase ${currentLevel.textColor}`}>
@@ -141,7 +141,7 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
                             <>
                                 <span className="text-slate-300 dark:text-slate-300">→</span>
                                 <div>
-                                    <span className="text-xs font-medium text-slate-500 dark:text-slate-300 block">
+                                    <span className="text-xs font-medium text-muted-foreground block">
                                         Résiduel: {residualScore}
                                     </span>
                                     <span className={`text-sm font-black uppercase ${residualLevel.textColor}`}>
@@ -157,12 +157,12 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
             {/* Matrix Grid */}
             <div className="relative">
                 {/* Y-axis label (Probability) */}
-                <div className="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest whitespace-nowrap">
+                <div className="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-[11px] font-bold text-muted-foreground uppercase tracking-widest whitespace-nowrap">
                     Probabilité
                 </div>
 
                 {/* X-axis label (Impact) */}
-                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">
+                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
                     Impact
                 </div>
 

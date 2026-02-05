@@ -155,7 +155,7 @@ export const EbiosAnalyses: React.FC = () => {
       case 'in_progress':
         return 'bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-400';
       case 'archived':
-        return 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300';
+        return 'bg-slate-100 dark:bg-slate-800 text-muted-foreground';
       default:
         return 'bg-warning-bg text-warning-text';
     }
@@ -346,7 +346,7 @@ export const EbiosAnalyses: React.FC = () => {
                           {analysis.name}
                         </h3>
                         {analysis.description && (
-                          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
                             {analysis.description}
                           </p>
                         )}

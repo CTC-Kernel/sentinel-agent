@@ -278,7 +278,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('mapping.searchPlaceholder')}
-            className="w-full pl-11 pr-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all"
+            className="w-full pl-11 pr-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent transition-all"
           />
         </div>
 
@@ -286,7 +286,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
         <select
           value={filterCoverage}
           onChange={(e) => setFilterCoverage(e.target.value as FilterCoverage)}
-          className="px-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-slate-900/50 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all"
+          className="px-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-slate-900/50 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus-visible:ring-primary focus:border-transparent transition-all"
         >
           <option value="all">{t('mapping.filterAll')}</option>
           <option value="full">{t('mapping.filterFull')}</option>

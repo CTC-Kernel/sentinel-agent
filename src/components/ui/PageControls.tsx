@@ -44,7 +44,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
             <div className="flex-1 w-full md:max-w-xl relative group z-20">
                 <div className="absolute inset-0 bg-brand-50 dark:bg-white/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-70 transition-opacity duration-500" />
                 <div className="relative bg-white dark:bg-slate-900 border border-border/40 dark:border-slate-800 p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-300 focus-within:border-brand-300 transition-all duration-300">
-                    <Search className="h-5 w-5 text-slate-500 dark:text-slate-300 group-focus-within:text-brand-500 transition-colors" />
+                    <Search className="h-5 w-5 text-muted-foreground group-focus-within:text-brand-500 transition-colors" />
 
                     <input aria-label={searchPlaceholder} value={searchQuery} onChange={e => onSearchChange(e.target.value)}
                         type="text"

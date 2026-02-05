@@ -136,7 +136,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                 <div className="p-6 border-b border-border/40 dark:border-slate-700">
                     <h3 className="font-bold text-slate-800 dark:text-slate-200 dark:text-white truncate" title={template.title}>{template.title}</h3>
                     <div className="mt-4">
-                        <div className="flex justify-between text-xs text-slate-500 dark:text-slate-300 mb-1">
+                        <div className="flex justify-between text-xs text-muted-foreground mb-1">
                             <span>Progression</span>
                             <span>{calculateProgress()}%</span>
                         </div>
@@ -219,13 +219,13 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                                                 {question.required && <span className="text-destructive ml-1">*</span>}
                                             </label>
                                             {question.helperText && (
-                                                <p className="text-sm text-slate-500 dark:text-slate-300 mb-4">{question.helperText}</p>
+                                                <p className="text-sm text-muted-foreground mb-4">{question.helperText}</p>
                                             )}
 
                                             {/* Input Types */}
                                             {question.type === 'text' ? (
                                                 <textarea
-                                                    className="w-full p-3 rounded-3xl border border-border/40 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all min-h-[120px]"
+                                                    className="w-full p-3 rounded-3xl border border-border/40 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus-visible:ring-primary focus:border-transparent outline-none transition-all min-h-[120px]"
                                                     placeholder="Votre réponse..."
                                                     value={(localAnswers[question.id]?.value as string) || ''}
                                                     onChange={(e) => handleAnswerChange(question.id, e.target.value)}
@@ -256,7 +256,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                                             ) : (
                                                 <input
                                                     type={question.type === 'rating' ? 'number' : 'text'}
-                                                    className="w-full p-3 rounded-3xl border border-border/40 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all"
+                                                    className="w-full p-3 rounded-3xl border border-border/40 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus-visible:ring-primary focus:border-transparent outline-none transition-all"
                                                     placeholder="Votre réponse..."
                                                     value={(localAnswers[question.id]?.value as string) || ''}
                                                     onChange={(e) => handleAnswerChange(question.id, e.target.value)}

@@ -159,7 +159,7 @@ const AgentDownloads: React.FC = () => {
           initial="hidden"
           animate="visible"
           transition={{ delay: 0.2 }}
-          className="text-xl text-slate-500 dark:text-slate-300 max-w-2xl mx-auto"
+          className="text-xl text-muted-foreground max-w-2xl mx-auto"
         >
           Download the Sentinel Agent for your platform to monitor endpoint compliance and security
         </motion.p>
@@ -184,9 +184,9 @@ const AgentDownloads: React.FC = () => {
                   <div>
                     <h3 className="text-xl font-semibold text-slate-900 dark:text-white">{download.platform}</h3>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm text-slate-500 dark:text-slate-400">v{download.version}</span>
+                      <span className="text-sm text-muted-foreground">v{download.version}</span>
                       <span className="text-sm text-slate-500">•</span>
-                      <span className="text-sm text-slate-500 dark:text-slate-400">{download.size}</span>
+                      <span className="text-sm text-muted-foreground">{download.size}</span>
                       <Badge
                         variant={download.status === 'available' ? 'default' : 'outline'}
                         className="ml-2"
@@ -205,7 +205,7 @@ const AgentDownloads: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-sm text-muted-foreground">
                   {download.platform === 'macOS' && 'Native macOS installer with GUI wizard and system integration'}
                   {download.platform === 'Linux DEB' && 'Debian/Ubuntu package with systemd service support'}
                   {download.platform === 'Linux RPM' && 'RHEL/Fedora package with systemd service support'}
@@ -318,7 +318,7 @@ const AgentDownloads: React.FC = () => {
         className="text-center space-y-4 pt-4"
       >
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Need support?</h3>
-        <p className="text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto">
+        <p className="text-muted-foreground text-sm max-w-lg mx-auto">
           Check our documentation or contact support for assistance with agent installation and configuration.
         </p>
         <div className="flex justify-center gap-4">

@@ -80,7 +80,7 @@ export const ControlMappingCard: React.FC<ControlMappingCardProps> = ({
       <div className="flex items-start gap-3">
         {/* Icon */}
         <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0">
-          <Shield className="w-5 h-5 text-slate-500 dark:text-slate-300" />
+          <Shield className="w-5 h-5 text-muted-foreground" />
         </div>
 
         {/* Content */}

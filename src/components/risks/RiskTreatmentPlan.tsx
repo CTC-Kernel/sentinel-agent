@@ -257,7 +257,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                     }
                                     handleChange('strategy', value);
                                 }}
-                                className="w-full appearance-none rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none"
+                                className="w-full appearance-none rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-brand-500 outline-none"
                             >
                                 <option value={RiskStrategy.MITIGATE}>{t(RISK_STRATEGY_LABELS[RiskStrategy.MITIGATE])}</option>
                                 <option value={RiskStrategy.TRANSFER}>{t(RISK_STRATEGY_LABELS[RiskStrategy.TRANSFER])}</option>
@@ -299,13 +299,13 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                     {/* Status */}
                     <div className="space-y-2">
-                        <label htmlFor="risk-status" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 ml-1">Statut</label>
+                        <label htmlFor="risk-status" className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Statut</label>
                         <div className="relative group">
                             <select
                                 id="risk-status"
                                 value={treatment.status}
                                 onChange={(e) => handleChange('status', e.target.value)}
-                                className="w-full appearance-none rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none"
+                                className="w-full appearance-none rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-brand-500 outline-none"
                             >
                                 <option value="Planifié">Planifié</option>
                                 <option value="En cours">En cours</option>
@@ -319,14 +319,14 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                     {/* Owner */}
                     <div className="space-y-2">
-                        <label htmlFor="risk-owner" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 ml-1">Responsable</label>
+                        <label htmlFor="risk-owner" className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Responsable</label>
                         <div className="relative group">
                             <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-brand-500 transition-colors" />
                             <select
                                 id="risk-owner"
                                 value={treatment.ownerId || ''}
                                 onChange={(e) => handleChange('ownerId', e.target.value)}
-                                className="w-full pl-10 pr-4 rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none appearance-none"
+                                className="w-full pl-10 pr-4 rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-brand-500 outline-none appearance-none"
                             >
                                 <option value="">Sélectionner un responsable</option>
                                 {users.map(u => (
@@ -339,7 +339,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                     {/* Due Date */}
                     <div className="space-y-2">
-                        <label htmlFor="risk-due-date" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 ml-1">Échéance (SLA)</label>
+                        <label htmlFor="risk-due-date" className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Échéance (SLA)</label>
                         <div className="relative group">
                             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-brand-500 transition-colors" />
                             <input
@@ -347,12 +347,12 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                 value={treatment.dueDate || ''}
                                 onChange={(e) => handleChange('dueDate', e.target.value)}
                                 type="date"
-                                className={`w-full pl-10 pr-4 rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none ${treatment.slaStatus === SlaStatus.BREACHED ? 'border-red-500 text-red-600' : ''
+                                className={`w-full pl-10 pr-4 rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-brand-500 outline-none ${treatment.slaStatus === SlaStatus.BREACHED ? 'border-red-500 text-red-600' : ''
                                     }`}
                             />
                         </div>
                         {treatment.dueDate && (
-                            <p className="text-xs text-slate-500 dark:text-slate-300 ml-1 flex items-center gap-1">
+                            <p className="text-xs text-muted-foreground ml-1 flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
                                 {format(parseISO(treatment.dueDate), 'dd MMMM yyyy', { locale: dateFnsLocale })}
                             </p>
@@ -361,7 +361,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                     {/* Estimated Cost */}
                     <div className="space-y-2">
-                        <label htmlFor="risk-estimated-cost" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 ml-1">Coût Estimé (€)</label>
+                        <label htmlFor="risk-estimated-cost" className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Coût Estimé (€)</label>
                         <div className="relative group">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold group-focus-within:text-brand-500 transition-colors">€</span>
                             <input
@@ -369,7 +369,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                 value={treatment.estimatedCost || ''}
                                 onChange={(e) => handleChange('estimatedCost', parseFloat(e.target.value))}
                                 type="number"
-                                className="w-full pl-8 pr-4 rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none placeholder:text-muted-foreground"
+                                className="w-full pl-8 pr-4 rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-brand-500 outline-none placeholder:text-muted-foreground"
                                 placeholder="0.00"
                                 min="0"
                                 step="0.01"
@@ -381,13 +381,13 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                 {/* Description */}
                 <div className="space-y-2">
-                    <label htmlFor="risk-description" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 ml-1">Description du plan</label>
+                    <label htmlFor="risk-description" className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Description du plan</label>
                     <textarea
                         id="risk-description"
                         value={treatment.description}
                         onChange={(e) => handleChange('description', e.target.value)}
                         rows={4}
-                        className="w-full rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm p-4 font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none placeholder:text-muted-foreground resize-none"
+                        className="w-full rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm p-4 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-brand-500 outline-none placeholder:text-muted-foreground resize-none"
                         placeholder="Détaillez les actions à entreprendre pour traiter ce risque..."
                     />
                 </div>
@@ -448,7 +448,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                     {/* Linked Controls List */}
                     <div className="space-y-2">
                         {linkedControls.length === 0 ? (
-                            <p className="text-sm text-slate-500 dark:text-slate-300 italic py-4 text-center">
+                            <p className="text-sm text-muted-foreground italic py-4 text-center">
                                 Aucun contrôle lié. Ajoutez des contrôles pour réduire le risque résiduel.
                             </p>
                         ) : (
@@ -489,7 +489,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                     </div>
 
                     <div className="pt-4 border-t border-border/40 dark:border-slate-700 space-y-3">
-                        <label htmlFor="control-search" className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 flex items-center gap-2">
+                        <label htmlFor="control-search" className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                             <Plus className="h-3.5 w-3.5" />
                             Lier un nouveau contrôle
                         </label>
@@ -502,7 +502,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                     placeholder="Rechercher un contrôle..."
                                     value={controlSearch}
                                     onChange={(e) => setControlSearch(e.target.value)}
-                                    className="w-full pl-9 pr-3 py-2 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none placeholder:text-muted-foreground"
+                                    className="w-full pl-9 pr-3 py-2 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-brand-500 outline-none placeholder:text-muted-foreground"
                                 />
                             </div>
 
@@ -512,7 +512,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                     <select
                                         value={frameworkFilter}
                                         onChange={(e) => setFrameworkFilter(e.target.value)}
-                                        className="pl-9 pr-8 py-2 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm font-medium transition-all focus:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 outline-none appearance-none cursor-pointer"
+                                        className="pl-9 pr-8 py-2 rounded-3xl border border-border/40 dark:border-border/40 bg-white dark:bg-slate-800 text-sm font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-brand-500 outline-none appearance-none cursor-pointer"
                                         aria-label="Filtrer par framework"
                                     >
                                         <option value="">Tous</option>
@@ -527,7 +527,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                         {/* Available Controls List */}
                         <div className="max-h-48 overflow-y-auto space-y-1 rounded-3xl border border-border/40 dark:border-border/40 bg-white/30 dark:bg-black/10 p-2">
                             {filteredControls.length === 0 ? (
-                                <p className="text-xs text-slate-500 dark:text-slate-300 text-center py-3">
+                                <p className="text-xs text-muted-foreground text-center py-3">
                                     {controlSearch || frameworkFilter
                                         ? 'Aucun contrôle correspondant'
                                         : 'Tous les contrôles sont déjà liés'}
@@ -564,7 +564,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                 })
                             )}
                             {filteredControls.length > 20 && (
-                                <p className="text-xs text-slate-500 dark:text-slate-300 text-center py-1">
+                                <p className="text-xs text-muted-foreground text-center py-1">
                                     +{filteredControls.length - 20} autres contrôles...
                                 </p>
                             )}

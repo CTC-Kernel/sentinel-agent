@@ -104,7 +104,7 @@ export const DUE_STATUS_COLOR_CLASSES = {
   },
   neutral: {
     bg: 'bg-slate-100 dark:bg-slate-800',
-    text: 'text-slate-600 dark:text-slate-400',
+    text: 'text-muted-foreground',
     border: 'border-slate-200 dark:border-slate-700',
     badge: 'bg-slate-500 text-white',
   },

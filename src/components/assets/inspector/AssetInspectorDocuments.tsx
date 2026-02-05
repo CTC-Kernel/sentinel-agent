@@ -13,7 +13,7 @@ export const AssetInspectorDocuments: React.FC<AssetInspectorDocumentsProps> = (
 }) => {
     return (
         <div className="space-y-6 sm:space-y-8">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4 flex items-center">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center">
                 <FileText className="h-4 w-4 mr-2" /> Documents Liés ({linkedDocuments.length})
             </h3>
             {linkedDocuments.length === 0 ? (

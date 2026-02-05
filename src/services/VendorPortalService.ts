@@ -4,7 +4,7 @@
  * Story 37-2: Vendor Self-Service Portal
  */
 
-import CryptoJS from 'crypto-js';
+import { EncryptionService } from './encryptionService';
 import { db } from '../firebase';
 import {
   collection,
@@ -192,7 +192,7 @@ export class VendorPortalService {
       }
 
       const code = generateVerificationCode();
-      const hashedCode = CryptoJS.SHA256(code).toString();
+      const hashedCode = await EncryptionService.sha256(code);
       const expiresAt = new Date(Date.now() + VERIFICATION_CODE_EXPIRY_MINUTES * 60 * 1000).toISOString();
 
       // Store hashed code - never store plaintext verification codes
@@ -248,7 +248,7 @@ export class VendorPortalService {
       }
 
       // Compare hashed values - hash the incoming code and compare with stored hash
-      if (access.verificationCodeHash !== CryptoJS.SHA256(code).toString()) {
+      if (access.verificationCodeHash !== await EncryptionService.sha256(code)) {
         return false;
       }
 

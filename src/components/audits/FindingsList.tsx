@@ -86,7 +86,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
                             <button
                                 key={type || 'unknown'}
                                 onClick={() => setTypeFilter(typeFilter === type ? null : type)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${typeFilter === type
+                                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${typeFilter === type
                                     ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-800 dark:border-brand-800 dark:text-brand-300'
                                     : 'bg-white border-border/40 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 dark:bg-white/5 dark:border-border/40 dark:text-slate-300 dark:hover:bg-white/10'
                                     }`}
@@ -123,7 +123,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
                                 ))
                             ) : filteredFindings.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="py-8 text-center text-slate-500 dark:text-slate-300 text-sm">
+                                    <td colSpan={5} className="py-8 text-center text-muted-foreground text-sm">
                                         {t('audits.findings.noResults', { defaultValue: 'Aucun résultat trouvé pour cette recherche.' })}
                                     </td>
                                 </tr>

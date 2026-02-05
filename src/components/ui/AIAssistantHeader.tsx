@@ -41,7 +41,7 @@ export const AIAssistantHeader = <TTemplate extends BaseTemplate>({
                     <select
                         onChange={(e) => onSelectTemplate(e.target.value)}
                         disabled={readOnly}
-                        className="flex-1 sm:flex-none text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg border border-border/40 dark:border-slate-700 hover:border-brand-500 transition-colors outline-none cursor-pointer h-9 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
+                        className="flex-1 sm:flex-none text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg border border-border/40 dark:border-slate-700 hover:border-brand-500 transition-colors outline-none cursor-pointer h-9 disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600"
                     >
                         <option value="">Choisir un modèle...</option>
                         {templates.map(t => <option key={t.name || 'unknown'} value={t.name}>{t.name}</option>)}

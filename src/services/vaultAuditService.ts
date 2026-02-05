@@ -529,7 +529,7 @@ export const VaultAuditService = {
         border: 'border-red-300 dark:border-red-700',
       },
       watermarked_download: {
-        text: 'text-slate-600 dark:text-slate-400',
+        text: 'text-muted-foreground',
         bg: 'bg-slate-50 dark:bg-slate-950',
         border: 'border-slate-200 dark:border-slate-800',
       },
@@ -537,7 +537,7 @@ export const VaultAuditService = {
 
     return (
       colors[action] || {
-        text: 'text-slate-600 dark:text-slate-400',
+        text: 'text-muted-foreground',
         bg: 'bg-slate-50 dark:bg-slate-950',
         border: 'border-slate-200 dark:border-slate-800',
       }

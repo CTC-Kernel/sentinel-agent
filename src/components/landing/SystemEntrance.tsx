@@ -101,7 +101,7 @@ export const SystemEntrance: React.FC = () => {
                     {isScanning && (
                         <div className="absolute inset-0 bg-white/90 dark:bg-black/80 z-20 flex flex-col items-center justify-center animate-fade-in backdrop-blur-sm">
                             <div className="relative">
-                                <Loader2 className="h-12 w-12 text-slate-500 dark:text-slate-300 animate-spin" />
+                                <Loader2 className="h-12 w-12 text-muted-foreground animate-spin" />
                             </div>
                             <div className="mt-6 font-mono text-sm tracking-widest text-slate-600 dark:text-muted-foreground font-bold uppercase">
                                 Chargement...
@@ -113,11 +113,11 @@ export const SystemEntrance: React.FC = () => {
                     <div className={cn("space-y-6 transition-opacity duration-300", isScanning ? "opacity-0" : "opacity-70")}>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="p-4 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/5 flex flex-col items-center gap-2 group hover:bg-white/60 dark:hover:bg-white/10 transition-colors cursor-default">
-                                <Shield className="h-6 w-6 text-slate-500 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
+                                <Shield className="h-6 w-6 text-muted-foreground group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
                                 <span className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-300 font-bold">Protéger</span>
                             </div>
                             <div className="p-4 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/5 flex flex-col items-center gap-2 group hover:bg-white/60 dark:hover:bg-white/10 transition-colors cursor-default">
-                                <Globe className="h-6 w-6 text-slate-500 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
+                                <Globe className="h-6 w-6 text-muted-foreground group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
                                 <span className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-300 font-bold">Surveiller</span>
                             </div>
                         </div>
@@ -131,7 +131,7 @@ export const SystemEntrance: React.FC = () => {
                                 ACCÈS À L'AUTHENTIFICATION
                                 <ChevronRight className="ml-2 h-5 w-5 opacity-60 group-hover:opacity-70 group-hover:translate-x-1 transition-all" />
                             </Button>
-                            <p className="mt-4 text-xs text-slate-500 dark:text-slate-300 font-mono font-medium">
+                            <p className="mt-4 text-xs text-muted-foreground font-mono font-medium">
                                 EST. 2024 • CONNEXION CHIFFRÉE
                             </p>
                         </div >
@@ -142,7 +142,7 @@ export const SystemEntrance: React.FC = () => {
             </div >
 
             {/* Footer Status Bar */}
-            < div className="absolute bottom-0 left-0 right-0 p-6 flex justify-between items-end text-xs font-mono text-slate-500 dark:text-slate-300 uppercase tracking-widest pointer-events-none z-10 font-bold" >
+            < div className="absolute bottom-0 left-0 right-0 p-6 flex justify-between items-end text-xs font-mono text-muted-foreground uppercase tracking-widest pointer-events-none z-10 font-bold" >
                 <div className="hidden md:block">
                     LAT: 48.8566 N <br /> LON: 2.3522 E
                 </div>

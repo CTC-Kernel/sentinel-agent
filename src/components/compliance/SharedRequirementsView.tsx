@@ -271,7 +271,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-2">
-                                                <span className="font-mono text-xs text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                                                <span className="font-mono text-xs text-muted-foreground bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
                                                     {control.code}
                                                 </span>
                                                 <span className="font-medium text-slate-800 dark:text-slate-200 truncate">

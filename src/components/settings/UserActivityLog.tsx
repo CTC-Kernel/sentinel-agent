@@ -128,7 +128,7 @@ export const UserActivityLog: React.FC = () => {
                     <div className="flex items-center bg-slate-100 dark:bg-slate-800/50 p-1 rounded-lg border border-border/40 dark:border-border/40 self-start md:self-center">
                         <button
                             onClick={() => setViewMode('my')}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${viewMode === 'my'
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${viewMode === 'my'
                                 ? 'bg-white dark:bg-brand-600 text-brand-600 dark:text-white shadow-sm'
                                 : 'text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white'
                                 }`}
@@ -140,7 +140,7 @@ export const UserActivityLog: React.FC = () => {
                         </button>
                         <button
                             onClick={() => setViewMode('global')}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${viewMode === 'global'
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${viewMode === 'global'
                                 ? 'bg-white dark:bg-brand-600 text-brand-600 dark:text-white shadow-sm'
                                 : 'text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white'
                                 }`}

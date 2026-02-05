@@ -91,7 +91,7 @@ export const HealthCheckWidget: React.FC<HealthCheckWidgetProps> = React.memo(({
                 {!isExpanded && healthIssues.length > 3 && (
                     <div className="mt-3 text-center">
                         <button
-                            className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus-visible:ring-brand-500 rounded"
+                            className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus-visible:ring-primary rounded"
                             onClick={() => setIsExpanded(true)}
                         >
                             +{healthIssues.length - 3} {t('common.more').toLowerCase()}

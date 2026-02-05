@@ -484,14 +484,14 @@ export const Reports: React.FC = () => {
                                     </span>
                                 </div>
                                 <h3 className="font-bold text-slate-900 dark:text-white mb-1 truncate" title={doc.title}>{doc.title}</h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-300 mb-4">v{doc.version} • {new Date(doc.createdAt).toLocaleDateString()}</p>
+                                <p className="text-xs text-muted-foreground mb-4">v{doc.version} • {new Date(doc.createdAt).toLocaleDateString()}</p>
                                 <Button size="sm" variant="ghost" className="w-full justify-between group-hover:bg-slate-100 dark:hover:bg-slate-800 dark:group-hover:bg-slate-800">
                                     {t('common.download')} <Archive className="h-4 w-4" />
                                 </Button>
                             </div>
                         ))
                     ) : (
-                        <div className="col-span-full flex flex-col items-center justify-center py-12 text-slate-500 dark:text-slate-300 glass-premium rounded-3xl border border-dashed border-border/40 shadow-sm">
+                        <div className="col-span-full flex flex-col items-center justify-center py-12 text-muted-foreground glass-premium rounded-3xl border border-dashed border-border/40 shadow-sm">
                             <Archive className="h-12 w-12 opacity-20 mb-4" />
                             <p className="font-medium">{t('reports.generated.empty')}</p>
                             <Button variant="link" onClick={() => setActiveTab('templates')}>
@@ -552,7 +552,7 @@ export const Reports: React.FC = () => {
                                         {report.name}
                                     </h3>
 
-                                    <div className="space-y-2 text-sm text-slate-500 dark:text-slate-300 mb-4">
+                                    <div className="space-y-2 text-sm text-muted-foreground mb-4">
                                         <div className="flex items-center gap-2">
                                             <FileText className="h-4 w-4" />
                                             <span>{t(`reports.templateLabels.${report.templateId}`)}</span>
@@ -607,7 +607,7 @@ export const Reports: React.FC = () => {
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-16 text-slate-500 dark:text-slate-300 font-medium glass-premium rounded-3xl border border-dashed border-border/40 shadow-sm">
+                        <div className="text-center py-16 text-muted-foreground font-medium glass-premium rounded-3xl border border-dashed border-border/40 shadow-sm">
                             <History className="h-16 w-16 mx-auto mb-6 opacity-20" />
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t('reports.scheduledSection.emptyTitle')}</h3>
                             <p className="max-w-md mx-auto mb-6">{t('reports.scheduledSection.emptyDescription')}</p>

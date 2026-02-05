@@ -76,9 +76,9 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                     as={React.Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-70"
+                    enterTo="opacity-100"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-70"
+                    leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" />
@@ -90,9 +90,9 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                             as={React.Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 scale-95"
-                            enterTo="opacity-70 scale-100"
+                            enterTo="opacity-100 scale-100"
                             leave="ease-in duration-200"
-                            leaveFrom="opacity-70 scale-100"
+                            leaveFrom="opacity-100 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
                             <Dialog.Panel className="w-full max-w-4xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden">
@@ -102,7 +102,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                         <Dialog.Title className="text-xl font-bold text-slate-900 dark:text-white">
                                             Créer depuis un modèle
                                         </Dialog.Title>
-                                        <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">
+                                        <p className="text-sm text-muted-foreground mt-1">
                                             Sélectionnez un modèle de document réglementaire
                                         </p>
                                     </div>
@@ -156,7 +156,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                     value={searchQuery}
                                                     onChange={(e) => setSearchQuery(e.target.value)}
                                                     placeholder="Rechercher un modèle..."
-                                                    className="w-full pl-10 pr-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
+                                                    className="w-full pl-10 pr-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-primary focus:border-transparent"
                                                 />
                                             </div>
                                         </div>
@@ -195,7 +195,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                                         <h4 className="font-medium text-slate-900 dark:text-white text-sm truncate">
                                                                             {template.title}
                                                                         </h4>
-                                                                        <p className="text-xs text-slate-500 dark:text-slate-300 mt-1 line-clamp-2">
+                                                                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                                                                             {template.description}
                                                                         </p>
                                                                         <div className="flex items-center gap-2 mt-2">
@@ -230,21 +230,21 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                 <h4 className="font-medium text-slate-900 dark:text-white mb-2">
                                                     {previewTemplate.title}
                                                 </h4>
-                                                <p className="text-sm text-slate-500 dark:text-slate-300 mb-4">
+                                                <p className="text-sm text-muted-foreground mb-4">
                                                     {previewTemplate.description}
                                                 </p>
                                                 <div className="space-y-2 text-xs">
                                                     <div className="flex justify-between">
-                                                        <span className="text-slate-500 dark:text-slate-400">Type:</span>
+                                                        <span className="text-muted-foreground">Type:</span>
                                                         <span className="font-medium">{previewTemplate.type}</span>
                                                     </div>
                                                     <div className="flex justify-between">
-                                                        <span className="text-slate-500 dark:text-slate-400">Catégorie:</span>
+                                                        <span className="text-muted-foreground">Catégorie:</span>
                                                         <span className="font-medium">{previewTemplate.category}</span>
                                                     </div>
                                                     {previewTemplate.controlReference && (
                                                         <div className="flex justify-between">
-                                                            <span className="text-slate-500 dark:text-slate-400">Référence:</span>
+                                                            <span className="text-muted-foreground">Référence:</span>
                                                             <span className="font-mono">{previewTemplate.controlReference}</span>
                                                         </div>
                                                     )}

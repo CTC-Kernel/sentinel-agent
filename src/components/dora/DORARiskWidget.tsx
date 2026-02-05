@@ -125,7 +125,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
 
             {/* Risk Distribution Bar */}
             <div className="mb-4">
-                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-300 mb-2">
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
                     <span>{t('dora.riskWidget.distribution', 'Distribution des risques')}</span>
                     <div className="flex items-center gap-3">
                         <span className="flex items-center gap-1">
@@ -161,7 +161,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
             {/* High Risk Providers List */}
             {highRiskProviders.length > 0 && (
                 <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-2">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
                         {t('dora.riskWidget.criticalProviders', 'Fournisseurs Critiques')}
                     </p>
                     <div className="space-y-2">

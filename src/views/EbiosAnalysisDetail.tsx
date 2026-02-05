@@ -479,7 +479,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">
               {t('ebios.confirmComplete') || t('ebios.finalizeAnalysis', { defaultValue: 'Finaliser l\'analyse' })}
             </h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
+            <p className="text-sm text-muted-foreground">
               {t('ebios.confirmCompleteMessage', { defaultValue: 'Voulez-vous finaliser cette analyse EBIOS RM ? Cette action marquera l\'analyse comme terminée.' })}
             </p>
             <div className="flex justify-end gap-3 pt-2">

@@ -69,7 +69,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                     <div className="px-1">
                         <input checked={isAllSelected} onChange={handleSelectAll}
                             type="checkbox" disabled={!onSelect} aria-label="Tout sélectionner"
-                            className="rounded border-border/40 text-brand-600 focus-visible:ring-brand-500" />
+                            className="rounded border-border/40 text-brand-600 focus-visible:ring-primary" />
                     </div>
                 );
             },
@@ -86,7 +86,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                     <div className="px-1">
                         <input checked={isSelected} onChange={handleSelectRow}
                             type="checkbox" disabled={!onSelect} aria-label={`Sélectionner l'audit ${row.original.name}`}
-                            className="rounded border-border/40 text-brand-600 focus-visible:ring-brand-500" />
+                            className="rounded border-border/40 text-brand-600 focus-visible:ring-primary" />
                     </div>
                 );
             },
@@ -105,7 +105,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                             <TypeIcon className="h-4 w-4" />
                         </div>
                         <div className="flex flex-col">
-                            <button type="button" className="text-left font-bold text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded" onClick={() => onOpen(row.original)} aria-label={`Ouvrir l'audit ${row.original.name}`}>
+                            <button type="button" className="text-left font-bold text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded" onClick={() => onOpen(row.original)} aria-label={`Ouvrir l'audit ${row.original.name}`}>
                                 {row.original.name}
                             </button>
                             <span className={`text-[11px] font-bold uppercase tracking-wider ${styles.color}`}>{row.original.type}</span>

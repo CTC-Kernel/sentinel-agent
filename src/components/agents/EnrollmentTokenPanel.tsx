@@ -75,7 +75,7 @@ export const EnrollmentTokenPanel: React.FC<EnrollmentTokenPanelProps> = ({
                         <Copy className="w-3.5 h-3.5 mr-2" />
                         {t('agentSetup.tokenReady.copyToken', { defaultValue: 'Copier le Token' })}
                     </Button>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-300 text-center mt-2.5">
+                    <p className="text-[11px] text-muted-foreground text-center mt-2.5">
                         {t('agentSetup.tokenReady.expiresNotice', { defaultValue: 'Expire dans 24 heures. Usage unique recommande.' })}
                     </p>
                 </div>
@@ -104,7 +104,7 @@ export const EnrollmentTokenPanel: React.FC<EnrollmentTokenPanelProps> = ({
                     </button>
                 </div>
 
-                <div className="text-xs text-slate-500 dark:text-slate-300 space-y-2">
+                <div className="text-xs text-muted-foreground space-y-2">
                     <p><strong className="text-slate-700 dark:text-slate-200">macOS / Linux :</strong> {t('agentSetup.tokenReady.platformMacLinux', { defaultValue: 'Ouvrez un terminal' })}</p>
                     <p><strong className="text-slate-700 dark:text-slate-200">Windows :</strong> {t('agentSetup.tokenReady.platformWindows', { defaultValue: 'PowerShell (Admin)' })}</p>
                 </div>

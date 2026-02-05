@@ -508,7 +508,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                     )}
                   </div>
                   {reg.obligations && (
-                    <p className="text-sm text-slate-500 dark:text-slate-300 mt-0.5">{reg.obligations}</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">{reg.obligations}</p>
                   )}
                 </div>
                 {reg.deadline && (
@@ -645,7 +645,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
         {/* Acceptable Risk Levels */}
         <div>
           <h4 className="font-medium text-slate-900 dark:text-white mb-4">Seuils de risque acceptables</h4>
-          <p className="text-sm text-slate-500 dark:text-slate-300 mb-4">Score de risque maximum pour chaque niveau (Probabilité x Impact, 1-25)</p>
+          <p className="text-sm text-muted-foreground mb-4">Score de risque maximum pour chaque niveau (Probabilité x Impact, 1-25)</p>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {(Object.entries(LEVEL_CONFIG) as [keyof typeof LEVEL_CONFIG, typeof LEVEL_CONFIG.low][]).map(([level, config]) => {
@@ -665,7 +665,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                     onChange={(e) => updateLevel(level, parseInt(e.target.value) || 1)}
                     className="w-full px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
                   />
-                  <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">{config.description}</p>
+                  <p className="text-xs text-muted-foreground mt-2">{config.description}</p>
                 </div>
 
               );
@@ -677,7 +677,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
         {/* Escalation Thresholds */}
         <div>
           <h4 className="font-medium text-slate-900 dark:text-white mb-4">Seuils d'escalade</h4>
-          <p className="text-sm text-slate-500 dark:text-slate-300 mb-4">Score de risque déclenchant une escalade automatique</p>
+          <p className="text-sm text-muted-foreground mb-4">Score de risque déclenchant une escalade automatique</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-slate-700">
@@ -694,7 +694,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                 onChange={(e) => updateThreshold('automatic', parseInt(e.target.value) || 1)}
                 className="w-full px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
               />
-              <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">Notification automatique au responsable</p>
+              <p className="text-xs text-muted-foreground mt-2">Notification automatique au responsable</p>
             </div>
 
 
@@ -713,7 +713,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                 onChange={(e) => updateThreshold('management', parseInt(e.target.value) || 1)}
                 className="w-full px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
               />
-              <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">Escalade à la direction générale</p>
+              <p className="text-xs text-muted-foreground mt-2">Escalade à la direction générale</p>
             </div>
 
 
@@ -733,7 +733,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
                 onChange={(e) => updateThreshold('board', parseInt(e.target.value) || 1)}
                 className="w-full px-3 py-2 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
               />
-              <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">Notification au conseil d'administration</p>
+              <p className="text-xs text-muted-foreground mt-2">Notification au conseil d'administration</p>
             </div>
 
           </div>

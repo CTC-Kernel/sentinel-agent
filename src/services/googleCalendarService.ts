@@ -54,7 +54,7 @@ export const GoogleCalendarService = {
                 end: new Date(item.end.dateTime || item.end.date || ''),
                 allDay: !item.start.dateTime,
                 type: 'google', // Special type for styling
-                color: 'bg-white border-slate-200 text-slate-600 dark:text-slate-400 dark:bg-slate-800 dark:border-white/10 dark:text-slate-300', // Neutral styling
+                color: 'bg-white border-slate-200 text-muted-foreground dark:bg-slate-800 dark:border-white/10 dark:text-slate-300', // Neutral styling
                 description: item.description,
                 location: item.location,
                 status: item.status,

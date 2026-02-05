@@ -140,7 +140,7 @@ const NextReviewBadge: React.FC<{ nextReviewDate?: string | null }> = ({ nextRev
   }
 
   return (
-    <span className="text-xs text-slate-500 dark:text-slate-300 flex items-center gap-1">
+    <span className="text-xs text-muted-foreground flex items-center gap-1">
       <Calendar className="w-3 h-3" />
       {t('vendorAssessment.nextReview', 'Next review: {{date}}', {
         date: date.toLocaleDateString(config.intlLocale, { day: 'numeric', month: 'short', year: 'numeric' }),
@@ -296,7 +296,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
 
                       {/* Date and badges row */}
                       <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                        <p className="text-sm text-slate-500 dark:text-slate-300 flex items-center gap-1">
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {updatedAt ? updatedAt.toLocaleDateString(config.intlLocale) : t('common.unknownDate', 'Unknown date')}
                         </p>
@@ -307,7 +307,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
                       {/* Progress bar for in-progress assessments */}
                       {showProgress && (
                         <div className="mt-3">
-                          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-300 mb-1">
+                          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
                             <span>{t('vendorAssessment.completion', 'Completion')}</span>
                             <span>{completionPercentage}%</span>
                           </div>

@@ -265,9 +265,9 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                     as={React.Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-70"
+                    enterTo="opacity-100"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-70"
+                    leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" />
@@ -279,9 +279,9 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                             as={React.Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 scale-95"
-                            enterTo="opacity-70 scale-100"
+                            enterTo="opacity-100 scale-100"
                             leave="ease-in duration-200"
-                            leaveFrom="opacity-70 scale-100"
+                            leaveFrom="opacity-100 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
                             <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-3xl bg-white dark:bg-slate-900 p-0 text-left align-middle shadow-2xl transition-all">

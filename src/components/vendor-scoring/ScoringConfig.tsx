@@ -199,7 +199,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
                   onChange={(e) => handleWeightChange(section.sectionId, parseInt(e.target.value) || 0)}
                   className="w-12 px-2 py-1 text-center text-sm border border-border/40 dark:border-slate-700 rounded bg-white dark:bg-slate-800"
                 />
-                <span className="text-sm text-slate-500 dark:text-slate-300 ml-1">%</span>
+                <span className="text-sm text-muted-foreground ml-1">%</span>
               </div>
             </div>
           </div>

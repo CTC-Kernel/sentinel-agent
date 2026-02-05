@@ -796,7 +796,7 @@ export const Help: React.FC = () => {
                                 aria-label="Rechercher dans l'aide"
                                 type="text"
                                 placeholder="Rechercher..."
-                                className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all placeholder:text-muted-foreground"
+                                className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus-visible:ring-primary outline-none transition-all placeholder:text-muted-foreground"
                             />
                         </div>
 
@@ -916,7 +916,7 @@ export const Help: React.FC = () => {
                                                             }`}>
                                                             {article.title}
                                                         </h2>
-                                                        <ChevronDown className={`w-5 h-5 text-slate-500 dark:text-slate-300 transition-transform duration-300 ${selectedArticle === article.id ? 'rotate-180 text-brand-500' : ''}`} />
+                                                        <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${selectedArticle === article.id ? 'rotate-180 text-brand-500' : ''}`} />
                                                     </div>
                                                     <p className="text-slate-600 dark:text-muted-foreground mt-1 text-sm leading-relaxed">
                                                         {article.description}

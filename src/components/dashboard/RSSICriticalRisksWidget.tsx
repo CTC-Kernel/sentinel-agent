@@ -85,7 +85,7 @@ function RiskItem({
       onClick={onClick}
       className={cn(
         'w-full flex items-center justify-between rounded-2xl border transition-all',
-        'hover:shadow-sm hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-offset-2 focus-visible:ring-brand-500',
+        'hover:shadow-sm hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-offset-2 focus-visible:ring-primary',
         colors.bg,
         colors.border,
         sizeConfig.itemPadding
@@ -289,7 +289,7 @@ export function RSSICriticalRisksWidget({
             'mt-4 w-full text-center py-2 rounded-md',
             'text-sm font-medium text-blue-600 dark:text-blue-400',
             'hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:hover:bg-blue-900/20 transition-colors',
-            'focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:ring-offset-2'
+            'focus:outline-none focus:ring-2 focus-visible:ring-primary focus:ring-offset-2'
           )}
         >
           Voir tous les risques

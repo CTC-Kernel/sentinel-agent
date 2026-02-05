@@ -159,7 +159,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
             <div className="bg-white dark:bg-slate-900 rounded-4xl shadow-2xl w-full max-w-4xl border border-white/20 overflow-hidden animate-scale-in max-h-[90vh] flex flex-col">
                 <div className="p-6 border-b border-border/40 dark:border-white/5 bg-brand-50 dark:bg-brand-900 flex justify-between items-center">
                     <h2 className="text-2xl font-bold text-brand-900 dark:text-brand-100 tracking-tight">{title}</h2>
-                    <button aria-label="Fermer la fenêtre" onClick={onClose} className="p-2.5 hover:bg-white/50 dark:hover:bg-white/10 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                    <button aria-label="Fermer la fenêtre" onClick={onClose} className="p-2.5 hover:bg-white/50 dark:hover:bg-white/10 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                         <X className="h-5 w-5" />
                     </button>
                 </div>
@@ -186,7 +186,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     aria-label="Importer un fichier CSV"
                                 />
                                 <div className="relative z-0">
-                                    <Upload className="h-12 w-12 text-slate-500 dark:text-slate-300 mx-auto mb-3" />
+                                    <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
                                     <p className="text-sm font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">Cliquez pour sélectionner un fichier CSV</p>
                                     <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">ou glissez-déposez ici</p>
                                     {file && (
@@ -199,7 +199,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
 
                             <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-3xl">
                                 <p className="text-sm text-slate-600 dark:text-muted-foreground">Besoin d'un modèle ?</p>
-                                <button aria-label="Télécharger le modèle CSV" onClick={downloadTemplate} className="text-sm font-bold text-brand-600 dark:text-brand-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1">
+                                <button aria-label="Télécharger le modèle CSV" onClick={downloadTemplate} className="text-sm font-bold text-brand-600 dark:text-brand-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1">
                                     Télécharger le modèle CSV
                                 </button>
                             </div>
@@ -225,7 +225,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                         aria-label={`Importer ${parsedData.length} éléments`}
                                         onClick={handleImport}
                                         disabled={errors.length > 0}
-                                        className="px-4 py-2 text-sm font-bold bg-brand-600 text-white rounded-3xl hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                        className="px-4 py-2 text-sm font-bold bg-brand-600 text-white rounded-3xl hover:bg-brand-700 disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                                     >
                                         Importer {parsedData.length} élément{parsedData.length > 1 ? 's' : ''}
                                     </button>

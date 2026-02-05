@@ -90,10 +90,10 @@ export const SearchInput: React.FC<SearchInputProps> = ({
                     'block w-full pl-10 pr-10 py-2.5',
                     'bg-card',
                     'border border-border/40',
-                    'rounded-3xl',
+                    'rounded-xl',
                     'text-sm text-foreground',
                     'placeholder:text-muted-foreground',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:border-brand-500',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-brand-500',
                     'transition-all duration-200'
                 )}
             />

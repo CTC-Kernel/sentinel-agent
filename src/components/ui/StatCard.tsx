@@ -71,7 +71,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
                 'glass-premium shadow-apple',
                 'hover:shadow-apple-xl dark:hover:shadow-brand-900/20',
                 'hover:-translate-y-1',
-                isInteractive && 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2'
+                isInteractive && 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
             )}
         >
             {/* Gradient overlay - visible at 60%, 100% on hover */}

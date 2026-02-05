@@ -189,7 +189,7 @@ export const Search: React.FC = () => {
                                     </div>
                                     <div>
                                         <span className="text-sm font-bold text-slate-900 dark:text-white">{t('search.browseRisks', { defaultValue: 'Browse risks' })}</span>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">{t('search.riskRegister', { defaultValue: 'Risk register' })}</p>
+                                        <p className="text-xs text-muted-foreground">{t('search.riskRegister', { defaultValue: 'Risk register' })}</p>
                                     </div>
                                     <ArrowRight className="h-4 w-4 text-slate-400 ml-auto group-hover:text-brand-500 group-hover:translate-x-0.5 transition-all" />
                                 </button>
@@ -202,7 +202,7 @@ export const Search: React.FC = () => {
                                     </div>
                                     <div>
                                         <span className="text-sm font-bold text-slate-900 dark:text-white">{t('search.viewAssets', { defaultValue: 'View assets' })}</span>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">{t('search.assetInventory', { defaultValue: 'Asset inventory' })}</p>
+                                        <p className="text-xs text-muted-foreground">{t('search.assetInventory', { defaultValue: 'Asset inventory' })}</p>
                                     </div>
                                     <ArrowRight className="h-4 w-4 text-slate-400 ml-auto group-hover:text-brand-500 group-hover:translate-x-0.5 transition-all" />
                                 </button>
@@ -215,7 +215,7 @@ export const Search: React.FC = () => {
                                     </div>
                                     <div>
                                         <span className="text-sm font-bold text-slate-900 dark:text-white">{t('search.viewControls', { defaultValue: 'View controls' })}</span>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">{t('search.complianceFramework', { defaultValue: 'Compliance framework' })}</p>
+                                        <p className="text-xs text-muted-foreground">{t('search.complianceFramework', { defaultValue: 'Compliance framework' })}</p>
                                     </div>
                                     <ArrowRight className="h-4 w-4 text-slate-400 ml-auto group-hover:text-brand-500 group-hover:translate-x-0.5 transition-all" />
                                 </button>

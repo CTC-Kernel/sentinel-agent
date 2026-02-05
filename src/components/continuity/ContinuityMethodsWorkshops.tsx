@@ -995,7 +995,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                     <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
                         Sélectionnez une méthodologie
                     </h3>
-                    <p className="text-slate-500 dark:text-slate-300 text-sm max-w-md mx-auto">
+                    <p className="text-muted-foreground text-sm max-w-md mx-auto">
                         Choisissez une méthode ci-dessus pour voir les détails et démarrer un atelier guidé.
                     </p>
                 </PremiumCard>

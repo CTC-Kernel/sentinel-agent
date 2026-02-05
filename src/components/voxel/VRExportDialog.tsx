@@ -150,7 +150,7 @@ const PlatformCard: React.FC<PlatformCardProps> = ({ platform, isSelected, onSel
       </h3>
 
       {/* Description */}
-      <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">{settings.description}</p>
+      <p className="text-xs text-muted-foreground mt-1">{settings.description}</p>
     </button>
   );
 };
@@ -435,7 +435,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
               className="w-full px-4 py-2 bg-slate-800 border border-border/40 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
               placeholder="voxel-vr-export"
             />
-            <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               File will be saved as {filename}.{VR_PLATFORM_SETTINGS[platform].recommendedFormat}
             </p>
           </div>
@@ -460,21 +460,21 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
             <h4 className="text-sm font-medium text-slate-300 mb-3">Export Summary</h4>
             <div className="grid grid-cols-2 gap-4 text-xs">
               <div>
-                <span className="text-slate-500 dark:text-slate-400">Nodes</span>
+                <span className="text-muted-foreground">Nodes</span>
                 <span className="float-right text-muted-foreground">{nodes.length}</span>
               </div>
               <div>
-                <span className="text-slate-500 dark:text-slate-400">Edges</span>
+                <span className="text-muted-foreground">Edges</span>
                 <span className="float-right text-muted-foreground">{includeEdges ? edges.length : 0}</span>
               </div>
               <div>
-                <span className="text-slate-500 dark:text-slate-400">Format</span>
+                <span className="text-muted-foreground">Format</span>
                 <span className="float-right text-slate-300 uppercase">
                   {VR_PLATFORM_SETTINGS[platform].recommendedFormat}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 dark:text-slate-400">Est. Size</span>
+                <span className="text-muted-foreground">Est. Size</span>
                 <span className="float-right text-muted-foreground">{sizeEstimate.formatted}</span>
               </div>
             </div>

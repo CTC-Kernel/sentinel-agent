@@ -109,7 +109,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                             <span className="text-2xl font-black text-slate-900 dark:text-white">
                                 {stats.complianceRate}%
                             </span>
-                            <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                            <span className="text-[11px] text-muted-foreground uppercase tracking-wider">
                                 Réalisation
                             </span>
                         </div>
@@ -121,7 +121,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                                 Programme Audit
                             </span>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-300 max-w-[180px]">
+                        <p className="text-xs text-muted-foreground max-w-[180px]">
                             {stats.complianceRate >= 80 ? 'Excellente progression' :
                              stats.complianceRate >= 50 ? 'Progression en cours' : 'Attention requise'}
                         </p>
@@ -143,7 +143,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                         <div className="text-2xl font-black text-slate-900 dark:text-white">
                             {stats.total}
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                             Audits Planifiés
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -166,7 +166,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                         <div className="text-2xl font-black text-slate-900 dark:text-white">
                             {stats.completed}
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                             Terminés
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -189,7 +189,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                         <div className="text-2xl font-black text-slate-900 dark:text-white">
                             {stats.upcoming}
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                             Prochains (30j)
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -227,7 +227,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                         )}>
                             {findingsCount}
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                             Non-conformités
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -254,15 +254,15 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-1.5 text-[11px]">
                         <div className="w-2 h-2 rounded-full bg-success-500" />
-                        <span className="text-slate-500 dark:text-slate-400">Terminés</span>
+                        <span className="text-muted-foreground">Terminés</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-[11px]">
                         <div className="w-2 h-2 rounded-full bg-brand-500" />
-                        <span className="text-slate-500 dark:text-slate-400">En cours</span>
+                        <span className="text-muted-foreground">En cours</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-[11px]">
                         <div className="w-2 h-2 rounded-full bg-slate-300" />
-                        <span className="text-slate-500 dark:text-slate-400">Planifiés</span>
+                        <span className="text-muted-foreground">Planifiés</span>
                     </div>
                 </div>
             </div>

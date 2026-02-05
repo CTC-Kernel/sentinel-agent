@@ -37,7 +37,7 @@ export const ContentBlockerError: React.FC = () => {
                     <div className="space-y-3">
                         <button
                             onClick={() => window.location.reload()}
-                            className="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl font-medium transition-colors flex items-center justify-center gap-2 shadow-lg shadow-brand-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                            className="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl font-medium transition-colors flex items-center justify-center gap-2 shadow-lg shadow-brand-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                         >
                             <RefreshCw className="w-4 h-4" />
                             Recharger la page
@@ -52,7 +52,7 @@ export const ContentBlockerError: React.FC = () => {
                         </button>
                     </div>
 
-                    <p className="mt-4 text-xs text-slate-500 dark:text-slate-300">
+                    <p className="mt-4 text-xs text-muted-foreground">
                         Code erreur: AUTH_BLOCKED_BY_CLIENT
                     </p>
                 </div>

@@ -314,7 +314,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                                 <div className="text-green-600 dark:text-green-400">
                                                     {version.stats.implementedControls} implémentés
                                                 </div>
-                                                <div className="text-slate-500 dark:text-slate-400">
+                                                <div className="text-muted-foreground">
                                                     {version.stats.totalControls} contrôles
                                                 </div>
                                             </div>
@@ -332,7 +332,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
             {!selectedVersion && controls.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                        <div className="text-xs text-slate-500 dark:text-slate-300 uppercase">Total</div>
+                        <div className="text-xs text-muted-foreground uppercase">Total</div>
                         <div className="text-2xl font-bold text-slate-900 dark:text-white">{currentStats.totalControls}</div>
                     </div>
                     <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -363,7 +363,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                     </div>
                 ) : (
                     <table className="w-full text-sm text-left">
-                        <thead className="text-xs text-slate-500 dark:text-slate-300 uppercase bg-slate-50 dark:bg-slate-900/50">
+                        <thead className="text-xs text-muted-foreground uppercase bg-slate-50 dark:bg-slate-900/50">
                             <tr>
                                 <th className="px-4 py-3">{t('soa.table.code', { defaultValue: 'Code' })}</th>
                                 <th className="px-4 py-3">{t('soa.table.control', { defaultValue: 'Contrôle' })}</th>
@@ -386,7 +386,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                         <td className="px-4 py-3 max-w-sm">
                                             <div className="font-medium text-slate-900 dark:text-white">{item.name}</div>
                                             {!item.isHistorical && 'description' in item && (
-                                                <div className="text-xs text-slate-500 dark:text-slate-300 truncate" title={item.description}>{item.description}</div>
+                                                <div className="text-xs text-muted-foreground truncate" title={item.description}>{item.description}</div>
                                             )}
                                         </td>
                                         <td className="px-4 py-3">
@@ -440,7 +440,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                                         }
                                                     }}
                                                     type="text"
-                                                    className={`bg-transparent text-xs w-full focus:ring-1 focus-visible:ring-brand-500 rounded px-2 py-1 transition-colors ${missingJustification
+                                                    className={`bg-transparent text-xs w-full focus:ring-1 focus-visible:ring-primary rounded px-2 py-1 transition-colors ${missingJustification
                                                         ? 'border border-red-500 bg-red-50 dark:bg-red-50 dark:bg-red-900 placeholder-red-400'
                                                         : 'border-none placeholder-slate-400'
                                                         }`}

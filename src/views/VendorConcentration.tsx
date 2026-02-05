@@ -123,7 +123,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
           {title}
         </p>
         {subtitle && (
-          <p className="text-xs text-slate-500 dark:text-slate-300 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             {subtitle}
           </p>
         )}
@@ -306,7 +306,7 @@ export const VendorConcentration: React.FC = () => {
               variant="ghost"
               onClick={() => loadData(true)}
               disabled={isRefreshing}
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 h-auto rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 h-auto rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:bg-muted disabled:text-muted-foreground"
               title={t('common.refresh')}
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />

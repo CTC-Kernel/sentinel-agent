@@ -73,7 +73,7 @@ export const ReportTemplates: React.FC = () => {
                         className="group relative p-6 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-white/5 hover:border-brand-300 transition-all hover:shadow-xl"
                     >
                         <div className="flex justify-between items-start mb-4">
-                            <div className="p-3 rounded-lg bg-slate-100 dark:bg-white/5 group-hover:bg-brand-50 text-slate-500 dark:text-slate-300 group-hover:text-brand-700 dark:group-hover:text-brand-400 transition-colors">
+                            <div className="p-3 rounded-lg bg-slate-100 dark:bg-white/5 group-hover:bg-brand-50 text-muted-foreground group-hover:text-brand-700 dark:group-hover:text-brand-400 transition-colors">
                                 <FileSpreadsheet className="w-6 h-6" />
                             </div>
                             {template.isPremium && (

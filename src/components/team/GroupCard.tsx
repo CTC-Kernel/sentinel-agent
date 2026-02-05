@@ -22,14 +22,14 @@ export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, o
                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-70 transition-opacity">
                     <button
                         onClick={() => onEdit(group)}
-                        className="p-2 text-slate-500 dark:text-slate-300 hover:text-brand-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="p-2 text-muted-foreground hover:text-brand-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                         aria-label={`Modifier le groupe ${group.name}`}
                     >
                         <Edit className="h-4 w-4" />
                     </button>
                     <button
                         onClick={() => setShowConfirmDelete(true)}
-                        className="p-2 text-slate-500 dark:text-slate-300 hover:text-red-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                        className="p-2 text-muted-foreground hover:text-red-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                         aria-label={`Supprimer le groupe ${group.name}`}
                     >
                         <Trash2 className="h-4 w-4" />

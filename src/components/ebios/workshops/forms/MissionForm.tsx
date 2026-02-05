@@ -95,7 +95,7 @@ export const MissionForm: React.FC<MissionFormProps> = ({
                 "bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
                 errors.name
                   ? "border-red-300 dark:border-red-700 focus:ring-red-500"
-                  : "border-border/40 dark:border-slate-700 focus-visible:ring-brand-500"
+                  : "border-border/40 dark:border-slate-700 focus-visible:ring-primary"
               )}
               placeholder={t('ebios.workshop1.missionNamePlaceholder')}
             />
@@ -116,7 +116,7 @@ export const MissionForm: React.FC<MissionFormProps> = ({
               className={cn(
                 "w-full px-4 py-2.5 rounded-3xl border transition-colors resize-none",
                 "bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
-                "border-border/40 dark:border-slate-700 focus-visible:ring-brand-500"
+                "border-border/40 dark:border-slate-700 focus-visible:ring-primary"
               )}
               placeholder={t('ebios.workshop1.missionDescriptionPlaceholder')}
             />

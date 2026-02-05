@@ -84,7 +84,7 @@ const SelectTrigger = React.forwardRef<
             aria-controls={listboxId}
             aria-haspopup="listbox"
             className={cn(
-                "flex h-10 w-full items-center justify-between rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground",
+                "flex h-11 w-full items-center justify-between rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground",
                 className
             )}
             {...props}
@@ -182,7 +182,7 @@ const SelectItem = React.forwardRef<
             tabIndex={0}
             aria-selected={value === currentValue}
             className={cn(
-                "relative flex w-full cursor-default select-none items-center rounded-lg py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-60 hover:bg-accent hover:text-accent-foreground cursor-pointer",
+                "relative flex w-full cursor-default select-none items-center rounded-xl py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-60 hover:bg-accent hover:text-accent-foreground cursor-pointer",
                 className
             )}
             onClick={(e) => {

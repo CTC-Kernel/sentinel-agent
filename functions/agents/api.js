@@ -33,6 +33,8 @@ const {
 const { uploadProof } = require('./proofs');
 // Import encryption utility
 const { decrypt, encrypt } = require('../utils/encryption');
+// Import prompt guard for evidence sanitization
+const { sanitizeEvidence } = require('../utils/promptGuard');
 
 const db = admin.firestore();
 
@@ -822,6 +824,10 @@ app.post('/v1/agents/:agentId/results', validateAgentAuth, async (req, res) => {
                 console.warn(`Result missing timestamp for check ${checkId}, using server time`);
             }
 
+            // SECURITY: Sanitize evidence data to prevent prompt injection when passed to AI
+            const rawEvidence = item.evidence || item.raw_data || null;
+            const sanitizedEvidence = sanitizeEvidence(rawEvidence);
+
             const resultData = {
                 organizationId,
                 agentId,
@@ -829,7 +835,7 @@ app.post('/v1/agents/:agentId/results', validateAgentAuth, async (req, res) => {
                 framework: item.framework || null,
                 controlId: normalizeCheckId(item.control_id) || null,
                 status,
-                evidence: item.evidence || item.raw_data || null,
+                evidence: sanitizedEvidence,
                 score: typeof item.score === 'number' ? item.score : null,
                 proofHash: item.proof_hash || null,
                 agentTimestamp: agentTimestamp || new Date().toISOString(),

@@ -113,14 +113,14 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                     <h3 className="text-lg font-semibold mb-4">{t('smsi.inspector.info', { defaultValue: 'Informations' })}</h3>
                     <div className="space-y-4">
                         <div>
-                            <span className="text-sm font-medium text-slate-500 dark:text-slate-300 block mb-1">Description</span>
+                            <span className="text-sm font-medium text-muted-foreground block mb-1">Description</span>
                             <p className="text-slate-900 dark:text-white">{milestone.description || t('common.noDescription', { defaultValue: 'Aucune description' })}</p>
                         </div>
 
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <span className="text-sm font-medium text-slate-500 dark:text-slate-300 block mb-1">Échéance</span>
+                                <span className="text-sm font-medium text-muted-foreground block mb-1">Échéance</span>
                                 <div className="flex items-center gap-2 text-slate-900 dark:text-white">
                                     <Calendar className="w-4 h-4 text-muted-foreground" />
                                     {new Date(milestone.dueDate).toLocaleDateString()}
@@ -128,7 +128,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                             </div>
 
                             <div>
-                                <span className="text-sm font-medium text-slate-500 dark:text-slate-300 block mb-1">Responsable</span>
+                                <span className="text-sm font-medium text-muted-foreground block mb-1">Responsable</span>
                                 <div className="flex items-center gap-2 text-slate-900 dark:text-white">
                                     <Users className="w-4 h-4 text-muted-foreground" />
                                     {responsibleName}
@@ -138,7 +138,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                         </div>
 
                         <div>
-                            <span className="text-sm font-medium text-slate-500 dark:text-slate-300 block mb-1">Phase PDCA</span>
+                            <span className="text-sm font-medium text-muted-foreground block mb-1">Phase PDCA</span>
 
                             <div className="flex items-center gap-2">
                                 {(() => {
@@ -215,7 +215,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
 
                             {onStatusChange && (
                                 <div>
-                                    <span className="text-sm font-medium text-slate-500 dark:text-slate-300 block mb-2">{t('smsi.inspector.changeStatus', { defaultValue: 'Changer le statut' })}</span>
+                                    <span className="text-sm font-medium text-muted-foreground block mb-2">{t('smsi.inspector.changeStatus', { defaultValue: 'Changer le statut' })}</span>
 
                                     <div className="flex flex-wrap gap-2">
                                         {Object.entries(MILESTONE_STATUS_CONFIG).map(([status, config]) => {

@@ -41,7 +41,7 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
             onClick={() => onClick(supplier)}
             onKeyDown={handleKeyDown}
             aria-label={`${supplier.name} - ${supplier.category} - ${supplier.criticality}`}
-            className="glass-premium p-4 sm:p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-border/40 relative overflow-hidden h-full transition-colors w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+            className="glass-premium p-4 sm:p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-border/40 relative overflow-hidden h-full transition-colors w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
             <div className="relative z-10 flex flex-col h-full">

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { PremiumCard } from '../ui/PremiumCard';
 import { Button } from '../ui/button';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { cn } from '../../utils/cn';
 import { ISO_DOMAINS } from '../../data/complianceData';
 import { useStore } from '../../store';
@@ -59,6 +60,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
     const [submittedScore, setSubmittedScore] = useState<number | null>(null);
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
     const [isFormDirty, setIsFormDirty] = useState(false);
+    const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
 
     // Track form modifications
     const handleFieldChange = useCallback(<K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
@@ -69,11 +71,11 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
     // Safe close with dirty check
     const handleSafeClose = useCallback(() => {
         if (isFormDirty && submittedScore === null) {
-            const confirmed = window.confirm(t('compliance.assessment.unsavedWarning', { defaultValue: 'Vous avez des modifications non enregistrées. Voulez-vous vraiment fermer ?' }));
-            if (!confirmed) return;
+            setShowUnsavedConfirm(true);
+            return;
         }
         onClose();
-    }, [isFormDirty, submittedScore, onClose, t]);
+    }, [isFormDirty, submittedScore, onClose]);
 
     // Accessibility: Handle keyboard escape to close modal
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -166,7 +168,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                 <h3 id="assessment-modal-title" className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
                                     {t('compliance.assessment.title')}
                                 </h3>
-                                <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('compliance.assessment.framework', { defaultValue: 'ISO 27002' })}</p>
+                                <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">{t('compliance.assessment.framework', { defaultValue: 'ISO 27002' })}</p>
                             </div>
                         </div>
                         <button
@@ -191,7 +193,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                             <h4 className="text-sm font-bold text-slate-900 dark:text-white">
                                                 {t('compliance.assessment.nonCompliantTitle', { defaultValue: 'Non-conformité détectée' })}
                                             </h4>
-                                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                                            <p className="text-sm text-muted-foreground mt-1">
                                                 {t('compliance.assessment.nonCompliantMessage', { defaultValue: "Voulez-vous créer un plan d'action pour corriger cette non-conformité ?" })}
                                             </p>
                                         </div>
@@ -220,7 +222,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                             <h4 className="text-sm font-bold text-slate-900 dark:text-white">
                                                 {t('compliance.assessment.compliantTitle', { defaultValue: 'Évaluation enregistrée' })}
                                             </h4>
-                                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                                            <p className="text-sm text-muted-foreground mt-1">
                                                 {t('compliance.assessment.compliantMessage', { defaultValue: 'Le contrôle est conforme. Évaluation sauvegardée avec succès.' })}
                                             </p>
                                         </div>
@@ -260,7 +262,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {/* Control Selection */}
                         <div>
-                            <label htmlFor="control-code" className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                            <label htmlFor="control-code" className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2">
                                 {t('compliance.assessment.control')} *
                             </label>
                             <select
@@ -289,7 +291,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
 
                         {/* Effectiveness Score */}
                         <div>
-                            <label className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                            <label className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2">
                                 {t('compliance.assessment.score')}: <span className={cn(
                                     "font-black text-sm",
                                     formData.effectivenessScore >= 60 ? 'text-success-text' :
@@ -317,7 +319,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
 
                         {/* Assessment Method */}
                         <div>
-                            <label htmlFor="assessment-method" className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                            <label htmlFor="assessment-method" className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2">
                                 {t('compliance.assessment.method')}
                             </label>
                             <select
@@ -339,7 +341,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
 
                         {/* Notes */}
                         <div>
-                            <label htmlFor="notes" className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                            <label htmlFor="notes" className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2">
                                 {t('compliance.assessment.notes')}
                             </label>
                             <textarea
@@ -354,7 +356,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
 
                         {/* Next Assessment Date */}
                         <div>
-                            <label htmlFor="next-assessment" className="block text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                            <label htmlFor="next-assessment" className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2">
                                 {t('compliance.assessment.nextDate')}
                             </label>
                             <div className="relative">
@@ -383,6 +385,15 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                     )}
                 </PremiumCard>
             </motion.div>
+            <ConfirmModal
+                isOpen={showUnsavedConfirm}
+                onClose={() => setShowUnsavedConfirm(false)}
+                onConfirm={onClose}
+                type="warning"
+                title={t('compliance.assessment.unsavedTitle', { defaultValue: 'Modifications non enregistrées' })}
+                message={t('compliance.assessment.unsavedWarning', { defaultValue: 'Vous avez des modifications non enregistrées. Voulez-vous vraiment fermer ?' })}
+                confirmText={t('common.close')}
+            />
         </motion.div>
     );
 };

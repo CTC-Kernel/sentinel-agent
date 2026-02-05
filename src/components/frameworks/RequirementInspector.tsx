@@ -114,7 +114,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
       case 'non_compliant':
         return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20';
       default:
-        return 'text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-800';
+        return 'text-muted-foreground bg-slate-100 dark:bg-slate-800';
     }
   };
 
@@ -206,7 +206,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
             <div className="flex-1 overflow-y-auto">
               {/* Description Section */}
               <div className="px-6 py-5 border-b border-border/40 dark:border-white/5">
-                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                   {t('requirements.description')}
                 </h3>
                 <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -219,7 +219,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
               {/* Keywords Section */}
               {requirement.keywords && requirement.keywords.length > 0 && (
                 <div className="px-6 py-5 border-b border-border/40 dark:border-white/5">
-                  <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                     {t('requirements.keywords')}
                   </h3>
                   <div className="flex flex-wrap gap-2">
@@ -238,7 +238,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
 
               {/* Linked Controls Section */}
               <div className="px-6 py-5">
-                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                   {t('requirements.linkedControls')} ({linkedControls.length})
                 </h3>
 

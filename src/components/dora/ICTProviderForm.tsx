@@ -331,7 +331,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                             className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-white/50 dark:border-white/5"
                                         >
                                             <div className="flex items-start justify-between mb-4">
-                                                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                                     Service {index + 1}
                                                 </span>
                                                 {!readOnly && serviceFields.length > 1 && (
@@ -507,7 +507,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                         checked={field.value || false}
                                                         onChange={field.onChange}
                                                         disabled={readOnly}
-                                                        className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-border/40"
+                                                        className="h-5 w-5 rounded text-brand-600 focus-visible:ring-primary border-border/40"
                                                     />
                                                 )}
                                             />
@@ -542,7 +542,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                         checked={field.value || false}
                                                         onChange={field.onChange}
                                                         disabled={readOnly}
-                                                        className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-border/40"
+                                                        className="h-5 w-5 rounded text-brand-600 focus-visible:ring-primary border-border/40"
                                                     />
                                                 )}
                                             />
@@ -561,7 +561,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                         checked={field.value || false}
                                                         onChange={field.onChange}
                                                         disabled={readOnly}
-                                                        className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-border/40"
+                                                        className="h-5 w-5 rounded text-brand-600 focus-visible:ring-primary border-border/40"
                                                     />
                                                 )}
                                             />
@@ -806,7 +806,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                             className={`w-full px-4 py-3 rounded-3xl border ${isHighRisk && !field.value
                                                                 ? 'border-red-300 dark:border-red-700'
                                                                 : 'border-border/40 dark:border-slate-700'
-                                                                } bg-white dark:bg-slate-800 focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all`}
+                                                                } bg-white dark:bg-slate-800 focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent transition-all`}
                                                         />
                                                     </div>
                                                 );
@@ -816,7 +816,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
 
                                     {/* Last Assessment Info (Read Only) */}
                                     {initialData?.riskAssessment?.lastAssessment && (
-                                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-300 pt-2 border-t border-border/40 dark:border-slate-700">
+                                        <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border/40 dark:border-slate-700">
                                             <span>{t('dora.risk.lastAssessment')}:</span>
                                             <span className="font-medium">
                                                 {typeof initialData.riskAssessment.lastAssessment === 'string'

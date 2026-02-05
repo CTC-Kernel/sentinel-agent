@@ -363,7 +363,7 @@ export const ProfileSettings: React.FC = () => {
                                     { key: 'system', label: t('common.system') }
                                 ] as const).map((category) => (
                                     <div key={category.key || 'unknown'} className="p-5 rounded-3xl bg-brand-50 dark:bg-white/5 border border-border/40 shadow-sm group/notif hover:bg-brand-50 dark:hover:bg-white/10 transition-all">
-                                        <h4 className="text-xs font-black text-slate-500 dark:text-slate-300 uppercase tracking-widest mb-4 group-hover/notif:text-brand-600 transition-colors">{category.label}</h4>
+                                        <h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-4 group-hover/notif:text-brand-600 transition-colors">{category.label}</h4>
                                         <div className="flex gap-6 flex-wrap">
                                             <Controller
                                                 name={`notificationPreferences.${category.key}.email`}
@@ -508,7 +508,7 @@ export const ProfileSettings: React.FC = () => {
                             <AlertTriangle className="w-6 h-6" />
                             {t('settings.dangerZone')}
                         </h3>
-                        <p className="text-sm font-medium text-slate-500 dark:text-slate-300 max-w-lg leading-relaxed">
+                        <p className="text-sm font-medium text-muted-foreground max-w-lg leading-relaxed">
                             {t('settings.deleteAccountDescription')}
                         </p>
                     </div>

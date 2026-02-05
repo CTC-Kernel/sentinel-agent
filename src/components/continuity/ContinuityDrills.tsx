@@ -29,7 +29,7 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
                 </div>
                 <button
                     onClick={onNewDrill}
-                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl font-bold transition-all shadow-lg shadow-brand-600/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-600"
+                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl font-bold transition-all shadow-lg shadow-brand-600/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
                 >
                     <Zap className="h-4 w-4 mr-2" />
                     <span className="font-bold">Nouvel Exercice</span>
@@ -49,7 +49,7 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
                 <div className="glass-premium rounded-3xl overflow-hidden shadow-sm border border-border/40">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-border/40 dark:border-white/5 text-slate-500 dark:text-slate-300 font-bold uppercase text-[11px] tracking-widest backdrop-blur-sm">
+                            <thead className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-border/40 dark:border-white/5 text-muted-foreground font-bold uppercase text-[11px] tracking-widest backdrop-blur-sm">
                                 <tr>
                                     <th className="px-8 py-5">Date</th>
                                     <th className="px-6 py-5">Processus testé</th>
@@ -67,7 +67,7 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
                                                 <div className="p-2 bg-white dark:bg-slate-800 rounded-3xl mr-3 shadow-sm border border-border/40 dark:border-white/5 group-hover:scale-110 transition-transform">
                                                     <CalendarDays className="h-4 w-4 text-slate-600" />
                                                 </div>
-                                                {new Date(drill.date).toLocaleDateString()}
+                                                {new Date(drill.date).toLocaleDateString('fr-FR')}
                                             </td>
                                             <td className="px-6 py-5 font-medium text-slate-600 dark:text-muted-foreground">
                                                 {proc ? proc.name : 'Inconnu'}

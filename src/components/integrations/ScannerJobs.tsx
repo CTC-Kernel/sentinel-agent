@@ -95,7 +95,7 @@ export const ScannerJobs: React.FC = () => {
                 </div>
                 <button
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-3xl shadow-lg shadow-brand-500/20 transition-all font-medium text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                    className="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-3xl shadow-lg shadow-brand-500/20 transition-all font-medium text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 >
                     <Plus className="h-4 w-4" />
                     Nouveau Scan
@@ -214,7 +214,7 @@ export const ScannerJobs: React.FC = () => {
                         <button
                             onClick={handleCreateJob}
                             disabled={isSubmitting || !newJob.target}
-                            className="px-4 py-2 text-sm font-bold text-white bg-brand-500 hover:bg-brand-600 rounded-lg shadow-lg shadow-brand-500/25 transition-all disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                            className="px-4 py-2 text-sm font-bold text-white bg-brand-500 hover:bg-brand-600 rounded-lg shadow-lg shadow-brand-500/25 transition-all disabled:bg-muted disabled:text-muted-foreground flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                         >
                             {isSubmitting ? t('scanner.creating', { defaultValue: 'Création...' }) : t('scanner.schedule', { defaultValue: 'Planifier' })}
                         </button>

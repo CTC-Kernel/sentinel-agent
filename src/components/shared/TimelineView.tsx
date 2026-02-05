@@ -182,7 +182,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                 ${selectedLog?.id === log.id
                                     ? 'bg-brand-50 dark:bg-brand-900 border-brand-200 dark:border-brand-800 shadow-md ring-1 ring-brand-300'
                                     : 'bg-white dark:bg-white/5 border-border/40 dark:border-border/40 hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-sm'}
-                                group-focus:ring-2 group-focus-visible:ring-brand-500 group-focus:ring-offset-2 dark:group-focus:ring-offset-slate-900 rounded-3xl
+                                group-focus:ring-2 group-focus-visible:ring-primary group-focus:ring-offset-2 dark:group-focus:ring-offset-slate-900 rounded-3xl
                                 `}>
 
                                 <div className="flex items-center justify-between mb-2">
@@ -190,7 +190,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                         {getActionIcon(log.action)}
                                         {log.action}
                                     </span>
-                                    <span className="text-xs text-slate-500 dark:text-slate-300 font-mono">
+                                    <span className="text-xs text-muted-foreground font-mono">
                                         {format(log.timestamp, "HH:mm", { locale: dateFnsLocale })}
                                     </span>
                                 </div>
@@ -244,7 +244,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                     </h3>
                                     <button
                                         onClick={() => setSelectedLog(null)}
-                                        className="text-muted-foreground hover:text-slate-600 dark:hover:text-slate-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg p-1"
+                                        className="text-muted-foreground hover:text-slate-600 dark:hover:text-slate-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg p-1"
                                     >
                                         Fermer
                                     </button>
@@ -253,7 +253,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                 <div className="space-y-6">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
-                                            <span className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider block mb-1">Auteur</span>
+                                            <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider block mb-1">Auteur</span>
                                             <div className="flex items-center gap-2">
                                                 <div className="h-6 w-6 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center text-brand-600 dark:text-brand-400 text-xs font-bold">
                                                     {selectedLog.userName.charAt(0)}
@@ -262,7 +262,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                             </div>
                                         </div>
                                         <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
-                                            <span className="text-xs text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider block mb-1">Date</span>
+                                            <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider block mb-1">Date</span>
                                             <div className="flex items-center gap-2">
                                                 <Calendar className="h-4 w-4 text-slate-400" />
                                                 <span className="text-sm font-medium dark:text-white">
@@ -311,7 +311,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                         </div>
                                     ) : (
                                         <div className="p-8 text-center border-2 border-dashed border-border/40 dark:border-slate-700 rounded-3xl">
-                                            <p className="text-slate-500 dark:text-slate-300 text-sm">
+                                            <p className="text-muted-foreground text-sm">
                                                 Aucun détail technique disponible pour cette action (probablement une création initiale ou une suppression simple).
                                             </p>
                                         </div>

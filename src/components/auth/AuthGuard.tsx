@@ -89,7 +89,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
                         <div className="flex flex-col gap-3">
                             <button
                                 onClick={() => window.location.reload()}
-                                className="w-full py-4 bg-primary text-primary-foreground font-black rounded-3xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                className="w-full py-4 bg-primary text-primary-foreground font-black rounded-3xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary"
                             >
                                 <RefreshCw className="w-4 h-4 mr-2" />
                                 {t('auth.iVerified')}
@@ -97,7 +97,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
                             <button
                                 onClick={handleResendEmail}
                                 disabled={resendCooldown > 0 || resendLoading}
-                                className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-3xl text-sm transition-all shadow-md flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-3xl text-sm transition-all shadow-md flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary"
                             >
                                 <Send className="w-4 h-4 mr-2" />
                                 {resendCooldown > 0
@@ -146,7 +146,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
                         <div className="flex flex-col gap-3">
                             <button
                                 onClick={() => window.location.reload()}
-                                className="w-full py-4 bg-primary text-primary-foreground font-black rounded-3xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                className="w-full py-4 bg-primary text-primary-foreground font-black rounded-3xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary"
                             >
                                 <RefreshCw className="w-4 h-4 mr-2" />
                                 {t('common.retry')}

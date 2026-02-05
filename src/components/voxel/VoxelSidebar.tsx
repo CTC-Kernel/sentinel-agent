@@ -75,7 +75,7 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
                     type="text"
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Rechercher..."
-                    className="w-full bg-white/5 border border-border/40 rounded-3xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-brand-400 focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-brand-400 transition-all shadow-sm"
+                    className="w-full bg-white/5 border border-border/40 rounded-3xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-brand-400 focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-primary transition-all shadow-sm"
                 />
             </div>
 

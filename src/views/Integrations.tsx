@@ -308,7 +308,7 @@ export const Integrations: React.FC = () => {
                                     onClick={confirmConnect}
                                     disabled={isSubmittingKey || !apiKey.trim()}
                                     isLoading={isSubmittingKey}
-                                    className="px-4 py-2 text-sm font-bold text-white bg-brand-500 hover:bg-brand-600 rounded-lg shadow-lg shadow-brand-500/25 transition-all disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 flex items-center gap-2"
+                                    className="px-4 py-2 text-sm font-bold text-white bg-brand-500 hover:bg-brand-600 rounded-lg shadow-lg shadow-brand-500/25 transition-all disabled:bg-muted disabled:text-muted-foreground disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:border-slate-600 flex items-center gap-2"
                                 >
                                     {!isSubmittingKey && t('integrations.apiKeyModal.connectButton')}
                                     {isSubmittingKey && t('integrations.apiKeyModal.connecting')}

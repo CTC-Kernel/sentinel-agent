@@ -63,7 +63,7 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
     return (
         <div className="mb-4">
             <div className="block text-sm font-medium mb-1 dark:text-muted-foreground">{t('documents.upload.fileOptional', { defaultValue: 'Fichier (Optionnel)' })}</div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+            <p className="text-xs text-muted-foreground mb-2">
                 {t('documents.upload.acceptedFormats', { defaultValue: 'Formats acceptés : PDF, Word (.doc, .docx), Excel (.xls, .xlsx), Images (JPG, PNG, etc.), Texte (.txt)', maxSize: maxSizeMB })} &mdash; Max {maxSizeMB}Mo
             </p>
             <FileUploader
@@ -74,7 +74,7 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
             />
             <div className="flex flex-wrap gap-1.5 mt-2">
                 {['PDF', 'DOC', 'DOCX', 'XLS', 'XLSX', 'TXT', 'JPG', 'PNG'].map(ext => (
-                    <span key={ext || 'unknown'} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    <span key={ext || 'unknown'} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                         .{ext.toLowerCase()}
                     </span>
                 ))}

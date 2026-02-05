@@ -202,7 +202,7 @@ export const AnimatedScoreCounter: React.FC<AnimatedScoreCounterProps> = ({
         <motion.span
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-sm font-medium text-slate-500 dark:text-slate-300"
+          className="text-sm font-medium text-muted-foreground"
         >
           {label}
         </motion.span>

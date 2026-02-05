@@ -59,7 +59,7 @@ export const TenantList: React.FC = () => {
                         placeholder="Search tenants..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-brand-400 text-sm focus:bg-slate-900 transition-colors text-white"
+                        className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-primary text-sm focus:bg-slate-900 transition-colors text-white"
                     />
                 </div>
                 <div className="flex gap-2">
@@ -76,7 +76,7 @@ export const TenantList: React.FC = () => {
             <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="border-b border-slate-800 text-xs uppercase text-slate-500 dark:text-slate-300 font-semibold bg-slate-900/80 backdrop-blur-sm sticky top-0">
+                        <tr className="border-b border-slate-800 text-xs uppercase text-muted-foreground font-semibold bg-slate-900/80 backdrop-blur-sm sticky top-0">
                             <th className="px-6 py-4">Organization</th>
                             <th className="px-6 py-4">ID</th>
                             <th className="px-6 py-4">Status</th>

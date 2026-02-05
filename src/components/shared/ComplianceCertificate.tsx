@@ -53,7 +53,7 @@ export const ComplianceCertificate: React.FC<ComplianceCertificateProps> = ({
 
                     <div className="flex justify-between items-end pt-8 px-8">
                         <div className="text-left">
-                            <p className="text-xs text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-1">Délivré le</p>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Délivré le</p>
                             <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-medium">
                                 <Calendar className="h-4 w-4" />
                                 {issueDate.toLocaleDateString()}
@@ -64,7 +64,7 @@ export const ComplianceCertificate: React.FC<ComplianceCertificateProps> = ({
                             <div className="h-12 w-32 border-b border-border/40 mb-1 flex items-end justify-end pb-1">
                                 <span className="font-dancing text-xl text-slate-600">Sentinel System</span>
                             </div>
-                            <p className="text-xs text-slate-500 dark:text-slate-300 uppercase tracking-wider">Signature</p>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider">Signature</p>
                         </div>
                     </div>
                 </div>
@@ -72,7 +72,7 @@ export const ComplianceCertificate: React.FC<ComplianceCertificateProps> = ({
 
             {/* Actions */}
             <div className="mt-6 flex justify-center gap-4">
-                <button className="flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl shadow-lg shadow-brand-500/20 font-bold transition-all hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
+                <button className="flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl shadow-lg shadow-brand-500/20 font-bold transition-all hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
                     <Download className="h-5 w-5" />
                     Télécharger PDF
                 </button>

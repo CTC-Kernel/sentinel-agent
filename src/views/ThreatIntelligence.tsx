@@ -318,12 +318,12 @@ export const ThreatIntelligence: React.FC = () => {
                 actions={
                     activeTab === 'feed' && (
                         <Menu as="div" className="relative inline-block text-left">
-                            <Menu.Button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors text-sm font-medium" aria-label="Filter threats" title="Filter threats">
+                            <Menu.Button className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground rounded-xl hover:bg-muted/50 transition-colors text-sm font-medium" aria-label="Filter threats" title="Filter threats">
                                 <Network className="h-4 w-4 text-slate-500" />
                                 <span className="hidden md:inline">{t('threats.filter', { defaultValue: 'Filtrer' })}:</span> <span className="font-bold ml-1">{activeTypeFilter}</span>
                             </Menu.Button>
-                            <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-70 scale-100" />
-                            <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-dropdown">
+                            <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" />
+                            <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right divide-y divide-border/50 rounded-xl bg-popover text-popover-foreground shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-dropdown">
                                 <div className="p-1">
                                     {filterOptions.map(f => (
                                         <Menu.Item key={f || 'unknown'}>
@@ -488,7 +488,7 @@ export const ThreatIntelligence: React.FC = () => {
                                                     {c.name}
                                                     {i === 0 && <Badge status="warning" className="scale-75 origin-left">MVP</Badge>}
                                                 </div>
-                                                <div className="text-sm text-slate-500 dark:text-slate-300 font-medium">{c.count} {t('threats.threatsReported', { defaultValue: 'Menaces signalées' })}</div>
+                                                <div className="text-sm text-muted-foreground font-medium">{c.count} {t('threats.threatsReported', { defaultValue: 'Menaces signalées' })}</div>
                                             </div>
                                         </div>
                                         <ChevronRight className="h-5 w-5 text-slate-300 opacity-0 group-hover:opacity-70 transition-opacity" />
@@ -548,16 +548,16 @@ const ThreatCard = React.memo(({
                 </div>
                 <div className="flex-1">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 group-hover:text-brand-500 transition-colors">{threat.title}</h3>
-                    <div className="flex items-center text-sm text-slate-500 dark:text-slate-300 gap-4 mb-4">
+                    <div className="flex items-center text-sm text-muted-foreground gap-4 mb-4">
                         <span className="flex items-center"><Globe className="h-3 w-3 mr-1" /> {threat.country}</span>
                         <span className="flex items-center"><Users className="h-3 w-3 mr-1" /> {threat.author}</span>
                     </div>
 
                     <div className="flex items-center gap-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                        <Button variant="ghost" aria-label="Confirm sighting" onClick={(e) => { e.stopPropagation(); onConfirmSighting(threat.id); }} className="flex items-center text-xs font-bold text-slate-500 dark:text-slate-300 hover:text-brand-500 h-auto p-0 hover:bg-transparent" title="Confirm sighting">
+                        <Button variant="ghost" aria-label="Confirm sighting" onClick={(e) => { e.stopPropagation(); onConfirmSighting(threat.id); }} className="flex items-center text-xs font-bold text-muted-foreground hover:text-brand-500 h-auto p-0 hover:bg-transparent" title="Confirm sighting">
                             <ThumbsUp className="h-4 w-4 mr-1.5" /> {threat.votes} Confirmations
                         </Button>
-                        <Button variant="ghost" aria-label="View discussions" className="flex items-center text-xs font-bold text-slate-500 dark:text-slate-300 hover:text-brand-500 h-auto p-0 hover:bg-transparent" title="View discussions">
+                        <Button variant="ghost" aria-label="View discussions" className="flex items-center text-xs font-bold text-muted-foreground hover:text-brand-500 h-auto p-0 hover:bg-transparent" title="View discussions">
                             <MessageSquare className="h-4 w-4 mr-1.5" /> {threat.comments || 0} Discussions
                         </Button>
                         <div className="ml-auto flex gap-2">

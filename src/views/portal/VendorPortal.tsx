@@ -133,7 +133,7 @@ export const VendorPortal: React.FC = () => {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
         <Loader2 className="w-10 h-10 text-brand-600 animate-spin mb-4" />
-        <p className="text-slate-500 dark:text-slate-400">{t('vendorPortal.loading', 'Loading portal...')}</p>
+        <p className="text-muted-foreground">{t('vendorPortal.loading', 'Loading portal...')}</p>
       </div>
     );
   }
@@ -200,7 +200,7 @@ export const VendorPortal: React.FC = () => {
             </div>
           </div>
         </div>
-        <p className="text-sm text-slate-500 dark:text-slate-300 mt-6">
+        <p className="text-sm text-muted-foreground mt-6">
           {t('vendorPortal.confirmationEmail', 'A confirmation email has been sent to your address.')}
         </p>
       </div>

@@ -62,9 +62,9 @@ export const Modal: React.FC<ModalProps> = ({
                         as={Fragment}
                         enter="ease-out duration-normal"
                         enterFrom="opacity-0"
-                        enterTo="opacity-70"
+                        enterTo="opacity-100"
                         leave="ease-in duration-fast"
-                        leaveFrom="opacity-70"
+                        leaveFrom="opacity-100"
                         leaveTo="opacity-0"
                     >
                         <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] transition-opacity" />
@@ -91,7 +91,7 @@ export const Modal: React.FC<ModalProps> = ({
                                                 onClick={handleClose}
                                                 variant="ghost"
                                                 size="icon"
-                                                className="rounded-full hover:bg-slate-500/10 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground dark:text-slate-300 dark:hover:text-white"
+                                                className="rounded-full hover:bg-muted text-muted-foreground hover:text-foreground"
                                                 aria-label={t('common.close', { defaultValue: 'Fermer' })}
                                             >
                                                 <X className="w-5 h-5" aria-hidden="true" />

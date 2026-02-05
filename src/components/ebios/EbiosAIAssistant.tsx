@@ -479,7 +479,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
     return (
       <button
         onClick={handler}
-        className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+        className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         <CheckSquare className="h-3.5 w-3.5 mr-2" />
         {label}
@@ -666,7 +666,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
             key={action || 'unknown'}
             onClick={() => handleAction(action)}
             disabled={loading}
-            className={`flex items-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${activeAction === action
+            className={`flex items-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeAction === action
                 ? 'bg-brand-600 text-white shadow-md'
                 : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:hover:bg-brand-900 border border-transparent hover:border-brand-200'
               }`}

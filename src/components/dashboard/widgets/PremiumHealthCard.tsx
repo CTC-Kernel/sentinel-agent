@@ -327,12 +327,12 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                                     ))}
                                 </div>
                             </div>
-                            <div className="flex-1 max-w-[200px] h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden flex">
+                            <div className="flex-1 max-w-[200px] h-2 bg-muted rounded-full overflow-hidden flex">
                                 {riskDistribution.map((item, index) => (
                                     <motion.div
                                         key={item.name || 'unknown'}
                                         initial={{ width: 0 }}
-                                        animate={{ width: `${(item.value / stats.totalRisks) * 100}%` }}
+                                        animate={{ width: `${(item.value / Math.max(stats.totalRisks, 1)) * 100}%` }}
                                         transition={{ duration: 0.8, delay: index * 0.1, ease: "easeOut" }}
                                         className="h-full first:rounded-l-full last:rounded-r-full"
                                         style={{ backgroundColor: item.fill }}

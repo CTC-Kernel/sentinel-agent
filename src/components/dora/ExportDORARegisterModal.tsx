@@ -201,7 +201,7 @@ export const ExportDORARegisterModal: React.FC<ExportDORARegisterModalProps> = (
                                         )}>
                                             {option.label}
                                         </span>
-                                        <span className="text-xs text-slate-500 dark:text-slate-300 mt-1 text-center">
+                                        <span className="text-xs text-muted-foreground mt-1 text-center">
                                             {option.description}
                                         </span>
                                     </button>

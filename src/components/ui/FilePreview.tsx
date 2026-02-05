@@ -48,7 +48,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                         {onDownload && (
                             <button
                                 onClick={onDownload}
-                                className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                 title="Télécharger"
                             >
                                 <Download className="h-5 w-5 text-slate-600 dark:text-slate-300" />
@@ -58,14 +58,14 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                             href={url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                             title="Ouvrir dans un nouvel onglet"
                         >
                             <ExternalLink className="h-5 w-5 text-slate-600 dark:text-slate-300" />
                         </a>
                         <button
                             onClick={onClose}
-                            className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                             aria-label="Fermer la prévisualisation"
                             title="Fermer"
                         >

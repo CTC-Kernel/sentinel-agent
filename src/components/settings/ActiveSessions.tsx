@@ -100,7 +100,7 @@ export const ActiveSessions: React.FC = () => {
                 {sessions.map((session) => (
                     <div key={session.id || 'unknown'} className="flex items-center justify-between p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/40 dark:border-white/5 transition-all hover:bg-white/80 dark:hover:bg-white/10">
                         <div className="flex items-center gap-4">
-                            <div className={`p-3 rounded-3xl ${session.isCurrent ? 'bg-success-100/50 text-success-600 dark:bg-success-bg dark:text-success-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300'}`}>
+                            <div className={`p-3 rounded-3xl ${session.isCurrent ? 'bg-success-100/50 text-success-600 dark:bg-success-bg dark:text-success-400' : 'bg-slate-100 dark:bg-slate-800 text-muted-foreground'}`}>
                                 {session.type === 'desktop' ? <Monitor className="w-5 h-5" /> : <Smartphone className="w-5 h-5" />}
                             </div>
                             <div>

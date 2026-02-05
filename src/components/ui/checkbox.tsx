@@ -17,7 +17,7 @@ const Checkbox = React.forwardRef<
             <input
                 type="checkbox"
                 className={cn(
-                    "peer h-4 w-4 shrink-0 rounded border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground appearance-none bg-background checked:bg-primary checked:text-primary-foreground",
+                    "peer h-4 w-4 shrink-0 rounded border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground appearance-none bg-background checked:bg-primary checked:text-primary-foreground",
                     className
                 )}
                 ref={ref}

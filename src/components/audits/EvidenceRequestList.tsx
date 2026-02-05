@@ -284,7 +284,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                                 type="submit"
                                 disabled={isSubmitting}
                                 aria-label={t('audits.evidence.submitRequest', { defaultValue: 'Soumettre la demande' })}
-                                className="px-6 py-2 bg-brand-600 text-white rounded-3xl font-bold hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
+                                className="px-6 py-2 bg-brand-600 text-white rounded-3xl font-bold hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600"
                             >
                                 {isSubmitting ? t('audits.evidence.creating', { defaultValue: 'Création...' }) : t('audits.evidence.createRequest', { defaultValue: 'Créer la demande' })}
                             </button>

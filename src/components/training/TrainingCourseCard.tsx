@@ -189,9 +189,9 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
               <Transition
                 enter="transition duration-100 ease-out"
                 enterFrom="transform scale-95 opacity-0"
-                enterTo="transform scale-100 opacity-70"
+                enterTo="transform scale-100 opacity-100"
                 leave="transition duration-75 ease-in"
-                leaveFrom="transform scale-100 opacity-70"
+                leaveFrom="transform scale-100 opacity-100"
                 leaveTo="transform scale-95 opacity-0"
               >
                 <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right glass-premium rounded-2xl p-1 shadow-lg z-dropdown border border-border/40">

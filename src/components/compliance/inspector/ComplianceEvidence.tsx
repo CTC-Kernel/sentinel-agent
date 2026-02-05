@@ -150,11 +150,11 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
                                             </Button>
                                         </div>
                                     )}
-                                    <a href={doc.url} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-500 dark:text-slate-300 hover:text-brand-600 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                                    <a href={doc.url} target="_blank" rel="noopener noreferrer" className="p-2 text-muted-foreground hover:text-brand-600 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors">
                                         <ExternalLink className="h-4 w-4" />
                                     </a>
                                     {canEdit && (
-                                        <Button variant="ghost" size="icon" aria-label={t('compliance.unlinkDocument', { defaultValue: 'Délier le document' })} onClick={() => setUnlinkTarget(docId)} disabled={updating} className="h-8 w-8 text-slate-500 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                                        <Button variant="ghost" size="icon" aria-label={t('compliance.unlinkDocument', { defaultValue: 'Délier le document' })} onClick={() => setUnlinkTarget(docId)} disabled={updating} className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                                             {updating ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
                                         </Button>
                                     )}
@@ -191,7 +191,7 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <FileText className="h-4 w-4 text-slate-400" />
-                                <h4 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 tracking-widest">{t('compliance.addExistingEvidence', { defaultValue: 'Ajouter une preuve existante' })}</h4>
+                                <h4 className="text-xs font-bold uppercase text-muted-foreground tracking-widest">{t('compliance.addExistingEvidence', { defaultValue: 'Ajouter une preuve existante' })}</h4>
                             </div>
                         </div>
 

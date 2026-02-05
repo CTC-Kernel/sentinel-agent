@@ -129,7 +129,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
     return (
         <div
             ref={triggerRef}
-            className={`relative inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg ${className}`}
+            className={`relative inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg ${className}`}
             onMouseEnter={showTooltip}
             onMouseLeave={hideTooltip}
             onFocus={showTooltip}
@@ -155,7 +155,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
                             animate={variants.animate}
                             exit={variants.exit}
                             transition={{ duration: 0.2, ease: appleEasing }}
-                            className="fixed z-supreme px-3 py-2 text-sm font-medium text-background bg-foreground/95 backdrop-blur-md border border-border/40 rounded-3xl shadow-xl shadow-black/20 whitespace-normal max-w-[280px] pointer-events-none leading-relaxed"
+                            className="fixed z-supreme px-3 py-2 text-sm font-medium text-background bg-foreground/95 backdrop-blur-md border border-border/40 rounded-2xl shadow-xl shadow-black/20 whitespace-normal max-w-[280px] pointer-events-none leading-relaxed"
                             style={{
                                 top: coords.top,
                                 left: coords.left,

@@ -47,7 +47,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6">
                 <div>
                     <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('risks.matrix.title', { defaultValue: 'Matrice des Risques' })}</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-300 max-w-lg">
+                    <p className="text-sm text-muted-foreground max-w-lg">
                         {t('risks.matrix.description', { defaultValue: "Visualisation de l'exposition aux risques selon la norme" })} {frameworkFilter || 'ISO 27005'}.
                         {' '}{t('risks.matrix.clickToFilter', { defaultValue: 'Cliquez sur une case pour filtrer les risques associés.' })}
                     </p>
@@ -248,7 +248,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
             </div>
 
             {/* Info Footer */}
-            <div className="flex items-start gap-3 p-4 rounded-3xl bg-blue-500 dark:bg-blue-900/30 dark:bg-blue-900 border border-blue-100 dark:border-blue-900/20 text-sm text-blue-700 dark:text-blue-300">
+            <div className="flex items-start gap-3 p-4 rounded-3xl bg-info-bg border border-info-border text-sm text-info-text">
                 <Info className="h-5 w-5 shrink-0 mt-0.5" />
                 <p>
                     {t('risks.matrix.infoFooter', { defaultValue: "La matrice des risques permet de visualiser la répartition de vos risques selon leur criticité. La zone rouge représente les risques inacceptables nécessitant une action immédiate. La zone verte représente les risques acceptables ou sous contrôle." })}

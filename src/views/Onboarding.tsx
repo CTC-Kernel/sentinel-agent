@@ -501,7 +501,7 @@ export const Onboarding: React.FC = () => {
                                         <input value={searchQuery}
                                             aria-label={t('onboarding.actions.search')}
                                             type="text"
-                                            className="w-full pl-12 pr-4 py-3.5 bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl focus:ring-2 focus-visible:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500 shadow-inner"
+                                            className="w-full pl-12 pr-4 py-3.5 bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl focus:ring-2 focus-visible:ring-primary dark:text-white transition-all outline-none font-medium placeholder:text-slate-500 shadow-inner"
                                             placeholder={t('onboarding.actions.search') + "..."}
                                             onChange={e => setSearchQuery(e.target.value)}
                                         />
@@ -511,7 +511,7 @@ export const Onboarding: React.FC = () => {
                                             disabled={loading || !searchQuery}
                                             isLoading={loading}
                                             size="sm"
-                                            className="absolute right-2 top-2 px-4 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-xs shadow-lg disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 h-auto"
+                                            className="absolute right-2 top-2 px-4 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-xs shadow-lg disabled:bg-muted disabled:text-muted-foreground h-auto"
                                         >
                                             {!loading && t('onboarding.actions.search')}
                                         </Button>
@@ -530,7 +530,7 @@ export const Onboarding: React.FC = () => {
                                                     disabled={loading || joinRequestSent}
                                                     isLoading={loading}
                                                     size="sm"
-                                                    className="px-4 py-2 bg-brand-50 dark:bg-slate-900/20 text-brand-600 dark:text-brand-400 rounded-xl text-sm font-bold hover:bg-brand-100 dark:hover:bg-brand-900 transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 h-auto"
+                                                    className="px-4 py-2 bg-brand-50 dark:bg-slate-900/20 text-brand-600 dark:text-brand-400 rounded-xl text-sm font-bold hover:bg-brand-100 dark:hover:bg-brand-900 transition-colors disabled:bg-muted disabled:text-muted-foreground h-auto"
                                                 >
                                                     {!loading && t('onboarding.actions.join')}
                                                 </Button>
@@ -682,7 +682,7 @@ export const Onboarding: React.FC = () => {
                                                 type="checkbox"
                                                 checked={termsAccepted}
                                                 onChange={(e) => setTermsAccepted(e.target.checked)}
-                                                className="w-4 h-4 text-brand-600 border-slate-300 rounded focus-visible:ring-brand-500 bg-white dark:bg-black/20 dark:border-white/10"
+                                                className="w-4 h-4 text-brand-600 border-slate-300 rounded focus-visible:ring-primary bg-white dark:bg-black/20 dark:border-white/10"
                                             />
                                         </div>
                                     </div>
@@ -706,7 +706,7 @@ export const Onboarding: React.FC = () => {
                                                 type="submit"
                                                 disabled={loading || (!user?.organizationId && !form.watch('organizationName')) || !termsAccepted}
                                                 isLoading={loading}
-                                                className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 card-hover transition-all flex items-center justify-center group disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 h-auto"
+                                                className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 card-hover transition-all flex items-center justify-center group disabled:bg-muted disabled:text-muted-foreground disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:border-slate-600 h-auto"
                                             >
                                                 {!loading && <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                             </Button>
@@ -754,7 +754,7 @@ export const Onboarding: React.FC = () => {
                                                             <span className={`block text-xl font-bold font-display tracking-tight ${isSelected ? 'text-brand-700 dark:text-brand-400' : 'text-slate-900 dark:text-white'}`}>
                                                                 {plan.priceMonthly === 0 ? 'Gratuit' : `${plan.priceMonthly}€`}
                                                             </span>
-                                                            {plan.priceMonthly > 0 && <span className="text-xs text-slate-500 dark:text-slate-300 font-medium">/ mois</span>}
+                                                            {plan.priceMonthly > 0 && <span className="text-xs text-muted-foreground font-medium">/ mois</span>}
                                                         </div>
                                                     </div>
                                                     <div className="h-px w-full bg-slate-100 dark:bg-white/5 my-4" />
@@ -794,7 +794,7 @@ export const Onboarding: React.FC = () => {
                                                 onClick={() => setStep(3)}
                                                 disabled={loading}
                                                 isLoading={loading}
-                                                className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-xl shadow-brand-500/20 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 disabled:transform-none h-auto"
+                                                className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-xl shadow-brand-500/20 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:bg-muted disabled:text-muted-foreground disabled:border-slate-300 disabled:cursor-not-allowed dark:disabled:border-slate-600 disabled:transform-none h-auto"
                                             >
                                                 {!loading && <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                             </Button>
@@ -853,7 +853,7 @@ export const Onboarding: React.FC = () => {
                                     <div className="pt-4 flex gap-3">
                                         <div className="pt-4 flex gap-3">
                                             <Button aria-label="Retour à l'étape 2" onClick={() => setStep(2)} variant="ghost" className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors h-auto">{t('onboarding.actions.back')}</Button>
-                                            <Button aria-label="Valider le périmètre et continuer" onClick={handleStep3} disabled={loading} isLoading={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 h-auto">
+                                            <Button aria-label="Valider le périmètre et continuer" onClick={handleStep3} disabled={loading} isLoading={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:bg-muted disabled:text-muted-foreground h-auto">
                                                 {!loading && <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                             </Button>
                                         </div>
@@ -908,7 +908,7 @@ export const Onboarding: React.FC = () => {
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">{userInvite.email}</span>
-                                                            <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">{userInvite.role}</span>
+                                                            <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold">{userInvite.role}</span>
                                                         </div>
                                                     </div>
                                                     <Button variant="ghost" size="icon" aria-label="Retirer l'invitation" onClick={() => handleRemoveInvite(userInvite.email)} className="text-slate-500 hover:text-red-500 transition-colors">
@@ -921,7 +921,7 @@ export const Onboarding: React.FC = () => {
                                     <div className="pt-4 flex gap-3">
                                         <div className="pt-4 flex gap-3">
                                             <Button aria-label="Retour à l'étape 3" onClick={() => setStep(3)} variant="ghost" className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors h-auto">{t('onboarding.actions.back')}</Button>
-                                            <Button aria-label="Continuer vers l'étape 5" onClick={handleStep4} disabled={loading} isLoading={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 h-auto">
+                                            <Button aria-label="Continuer vers l'étape 5" onClick={handleStep4} disabled={loading} isLoading={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:bg-muted disabled:text-muted-foreground h-auto">
                                                 {!loading && <>{invitedUsers.length > 0 ? t('onboarding.actions.inviteContinue') : t('onboarding.actions.skip')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                             </Button>
                                         </div>
@@ -960,7 +960,7 @@ export const Onboarding: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <h3 className="font-bold text-slate-900 dark:text-white text-lg">{t('onboarding.steps.scanning')}</h3>
-                                                    <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">{scanText}</p>
+                                                    <p className="text-sm text-muted-foreground mt-1">{scanText}</p>
                                                 </div>
                                             </div>
                                         ) : (
@@ -1012,7 +1012,7 @@ export const Onboarding: React.FC = () => {
                                                             {/* Activity icon used as fallback for BrainCircuit */}
                                                         </div>
                                                         <h3 className="font-bold text-slate-900 dark:text-white">{t('onboarding.actions.autoScan')}</h3>
-                                                        <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">{t('onboarding.actions.autoScanDesc')}</p>
+                                                        <p className="text-xs text-muted-foreground mt-1">{t('onboarding.actions.autoScanDesc')}</p>
                                                         <div className="mt-4">
                                                             <Button variant="link" size="sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); setManualMode(true); }} aria-label="Ajouter manuellement un actif" className="text-xs text-brand-600 font-bold hover:underline h-auto px-0">{t('onboarding.actions.manualAdd')}</Button>
                                                         </div>
@@ -1030,7 +1030,7 @@ export const Onboarding: React.FC = () => {
                                                             </div>
                                                             <div className="flex flex-col">
                                                                 <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">{asset.name}</span>
-                                                                <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-bold">{asset.type}</span>
+                                                                <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold">{asset.type}</span>
                                                             </div>
                                                         </div>
                                                         <Button variant="ghost" size="icon" onClick={() => handleRemoveAsset(i)} aria-label="Supprimer l'actif" className="text-slate-500 hover:text-red-500 transition-colors">
@@ -1045,7 +1045,7 @@ export const Onboarding: React.FC = () => {
                                     <div className="pt-4 flex gap-3">
                                         <div className="pt-4 flex gap-3">
                                             <Button onClick={() => setStep(4)} variant="ghost" aria-label="Retour à l'étape 4" className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors h-auto">{t('onboarding.actions.back')}</Button>
-                                            <Button onClick={handleStep5} disabled={loading} isLoading={loading} aria-label="Finaliser l'inscription" className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 h-auto">
+                                            <Button onClick={handleStep5} disabled={loading} isLoading={loading} aria-label="Finaliser l'inscription" className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:bg-muted disabled:text-muted-foreground h-auto">
                                                 {!loading && <>{t('onboarding.actions.finalize')} <Check className="ml-2 h-5 w-5 group-hover:scale-110 transition-transform" strokeWidth={3} /></>}
                                             </Button>
                                         </div>

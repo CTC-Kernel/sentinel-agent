@@ -203,9 +203,9 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-slate-50 dark:bg-slate-800/50 text-left">
                                     <tr>
-                                        <th scope="col" className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider rounded-tl-lg">{t('team.roles.resource', { defaultValue: 'Ressource' })}</th>
+                                        <th scope="col" className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider rounded-tl-lg">{t('team.roles.resource', { defaultValue: 'Ressource' })}</th>
                                         {ACTIONS.map(action => (
-                                            <th key={action || 'unknown'} scope="col" className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider text-center">{action}</th>
+                                            <th key={action || 'unknown'} scope="col" className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">{action}</th>
                                         ))}
                                     </tr>
                                 </thead>

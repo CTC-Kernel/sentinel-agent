@@ -121,7 +121,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                     <div className="flex items-center gap-2 text-slate-600 dark:text-muted-foreground">
                         <Shield className="h-4 w-4" />
                         {linkPath ? (
-                            <Link to={linkPath} className="hover:text-brand-600 hover:underline transition-colors font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-sm">
+                            <Link to={linkPath} className="hover:text-brand-600 hover:underline transition-colors font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm">
                                 {resource}
                             </Link>
                         ) : (
@@ -141,7 +141,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                         {details && <div className="text-slate-500 truncate max-w-xs" title={details}>{details}</div>}
                         {changes && changes.length > 0 && (
                             <details className="mt-1 group">
-                                <summary className="cursor-pointer text-xs text-brand-600 hover:text-brand-700 hover:underline flex items-center gap-1 font-medium select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-sm px-1 -ml-1">
+                                <summary className="cursor-pointer text-xs text-brand-600 hover:text-brand-700 hover:underline flex items-center gap-1 font-medium select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm px-1 -ml-1">
                                     Voir {changes.length} modifications
                                 </summary>
                                 <div className="mt-2 text-xs bg-slate-50 dark:bg-white/5 p-2 rounded-lg border border-border/40 dark:border-white/5 space-y-1 max-w-sm overflow-x-auto">
@@ -187,7 +187,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                     <button
                         onClick={onLoadMore}
                         disabled={loading}
-                        className="px-6 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="px-6 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:bg-muted disabled:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         {loading ? t('common.loading', { defaultValue: 'Chargement...' }) : t('activity.loadMore', { defaultValue: "Charger plus d'activités" })}
                     </button>

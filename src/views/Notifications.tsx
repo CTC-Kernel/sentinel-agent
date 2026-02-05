@@ -93,7 +93,7 @@ export const Notifications: React.FC = () => {
                         placeholder={t('common.search', { defaultValue: 'Rechercher...' })}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-300 transition-all"
+                        className="w-full pl-9 pr-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus-visible:ring-primary transition-all"
                     />
                 </div>
             </div>
@@ -122,7 +122,7 @@ export const Notifications: React.FC = () => {
                                             <h3 className={`text-base font-bold ${!notif.read ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
                                                 {notif.title}
                                             </h3>
-                                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wide whitespace-nowrap">
+                                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
                                                 {new Date(notif.createdAt).toLocaleDateString()}
                                             </span>
                                         </div>
@@ -176,7 +176,7 @@ export const Notifications: React.FC = () => {
                                 ? t('notifications.emptyUnread', { defaultValue: 'Vous êtes à jour !' })
                                 : t('notifications.emptyAll', { defaultValue: 'Rien à signaler pour le moment.' })}
                         </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-3 max-w-sm mx-auto leading-relaxed">
+                        <p className="text-xs text-muted-foreground mt-3 max-w-sm mx-auto leading-relaxed">
                             {t('notifications.emptyHint', { defaultValue: 'Les notifications sont générées automatiquement lors des actions importantes : échéances, changements de statut, nouvelles affectations et alertes de conformité.' })}
                         </p>
                     </div>

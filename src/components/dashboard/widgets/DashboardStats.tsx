@@ -122,7 +122,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                             <button
                                 onClick={handleManualRefresh}
                                 disabled={aiLoading || !aiSummary}
-                                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300 hover:text-brand-500 disabled:bg-slate-200 disabled:text-slate-600 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-600 dark:disabled:border-slate-600 group/refresh"
+                                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300 hover:text-brand-500 disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600 group/refresh"
                                 aria-label={t('dashboard.aiAnalysis.refresh', { defaultValue: 'Actualiser l\'analyse' })}
                             >
                                 <RefreshCw className={`w-4 h-4 ${aiLoading ? 'animate-spin text-brand-500' : 'group-hover/refresh:rotate-180 transition-transform duration-500'}`} />
@@ -192,7 +192,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 h-full">
                         {/* 1. Risk Metric */}
-                        <Link to="/risks" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-left outline-none" aria-label="Voir les risques">
+                        <Link to="/risks" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-left outline-none" aria-label="Voir les risques">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Risques</span>
                                 <AlertTriangle className="w-4 h-4 text-warning group-hover/item:text-warning/80 transition-colors" />
@@ -210,7 +210,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         </Link>
 
                         {/* 2. Compliance Metric */}
-                        <Link to="/compliance" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-left outline-none" aria-label="Voir la conformité">
+                        <Link to="/compliance" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-left outline-none" aria-label="Voir la conformité">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Conformité</span>
                                 <ShieldCheck className={`w-4 h-4 transition-colors ${effectiveComplianceScore >= 75 ? 'text-success group-hover/item:text-success/80' :
@@ -252,7 +252,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         </Link>
 
                         {/* 3. Financial Metric */}
-                        <Link to="/risks" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 text-left outline-none" aria-label="Voir l'exposition financière">
+                        <Link to="/risks" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-left outline-none" aria-label="Voir l'exposition financière">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Financier</span>
                                 <Activity className="w-4 h-4 text-info group-hover/item:text-info/80 transition-colors" />

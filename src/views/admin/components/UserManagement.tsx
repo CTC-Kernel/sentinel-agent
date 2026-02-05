@@ -76,12 +76,12 @@ export const UserManagement: React.FC = () => {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder="Saisir l'email de l'utilisateur..."
-                        className="w-full pl-12 pr-4 py-3 bg-slate-950/50 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-brand-500 text-white placeholder:text-slate-600"
+                        className="w-full pl-12 pr-4 py-3 bg-slate-950/50 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-primary text-white placeholder:text-slate-600"
                     />
                     <button
                         type="submit"
                         disabled={loading || !searchTerm}
-                        className="absolute right-2 top-2 bottom-2 px-4 bg-brand-600 hover:bg-brand-500 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:hover:bg-brand-600 text-white rounded-lg font-medium transition-colors"
+                        className="absolute right-2 top-2 bottom-2 px-4 bg-brand-600 hover:bg-brand-500 disabled:bg-muted disabled:text-muted-foreground disabled:hover:bg-brand-600 text-white rounded-lg font-medium transition-colors"
                     >
                         {loading ? 'Recherche...' : 'Rechercher'}
                     </button>
@@ -90,7 +90,7 @@ export const UserManagement: React.FC = () => {
 
             {hasSearched && (
                 <div className="space-y-4">
-                    <h4 className="text-sm font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider ml-1">Résultats ({users.length})</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider ml-1">Résultats ({users.length})</h4>
 
                     <div className="grid gap-4">
                         {users.map(user => (
@@ -136,7 +136,7 @@ export const UserManagement: React.FC = () => {
                         ))}
 
                         {users.length === 0 && !loading && (
-                            <div className="text-center py-12 text-slate-500 dark:text-slate-300 bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
+                            <div className="text-center py-12 text-muted-foreground bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
                                 Aucun utilisateur trouvé pour "{searchTerm}"
                             </div>
                         )}

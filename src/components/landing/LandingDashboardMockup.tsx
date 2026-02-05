@@ -55,7 +55,7 @@ export const LandingDashboardMockup: React.FC = () => {
                         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-400 to-purple-500 border-2 border-slate-800"></div>
                         <div className="hidden md:block overflow-hidden">
                             <div className="font-bold text-slate-200 truncate">Thibault L.</div>
-                            <div className="text-xs text-slate-500 dark:text-slate-300 truncate">Admin (RSSI)</div>
+                            <div className="text-xs text-muted-foreground truncate">Admin (RSSI)</div>
                         </div>
                     </div>
                 </div>
@@ -196,7 +196,7 @@ export const LandingDashboardMockup: React.FC = () => {
                                 <div className="w-28 h-28 rounded-full border-[12px] border-green-500 border-r-brand-500 border-b-yellow-500 border-l-slate-800 -rotate-45 shadow-[0_0_20px_-5px_rgba(0,0,0,0.5)]"></div>
                                 <div className="absolute flex flex-col items-center">
                                     <span className="text-2xl font-bold text-white">124</span>
-                                    <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase font-bold tracking-wider">Total</span>
+                                    <span className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider">Total</span>
                                 </div>
                             </div>
                             <div className="mt-6 flex flex-col gap-2 relative z-10">

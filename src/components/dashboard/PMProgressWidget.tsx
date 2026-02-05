@@ -14,6 +14,7 @@ import {
 } from '../../hooks/useProjectProgress';
 import { TrendingUp, TrendingDown, Minus, AlertTriangle, RefreshCw, Target } from '../ui/Icons';
 import type { TrendType } from '../../types/score.types';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Props for PMProgressWidget
@@ -60,9 +61,15 @@ const SIZE_CONFIG = {
 } as const;
 
 /**
- * Category labels in French
+ * Category label i18n keys
  */
-const CATEGORY_LABELS: Record<string, string> = {
+const CATEGORY_KEYS: Record<string, string> = {
+  controls: 'pm.category.controls',
+  documents: 'pm.category.documents',
+  actions: 'pm.category.actions',
+  milestones: 'pm.category.milestones',
+};
+const CATEGORY_DEFAULTS: Record<string, string> = {
   controls: 'Contrôles',
   documents: 'Documents',
   actions: 'Actions',
@@ -125,7 +132,7 @@ function ProgressBar({
         className: cn(
           'w-full text-left transition-all',
           'hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg p-2 -m-2',
-          'focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:ring-offset-2'
+          'focus:outline-none focus:ring-2 focus-visible:ring-primary focus:ring-offset-2'
         ),
       }
     : {};
@@ -170,6 +177,7 @@ function OverallProgress({
   trend: TrendType | null;
   size: 'sm' | 'md' | 'lg';
 }) {
+  const { t } = useTranslation();
   const sizeConfig = SIZE_CONFIG[size];
   const colorScheme = getProgressColorScheme(percentage);
   const colors = PROGRESS_COLOR_CLASSES[colorScheme];
@@ -220,12 +228,12 @@ function OverallProgress({
       {/* Label and trend */}
       <div>
         <h3 className={cn('font-semibold text-foreground', sizeConfig.title)}>
-          Progression Globale
+          {t('pm.overallProgress', { defaultValue: 'Progression Globale' })}
         </h3>
         <div className="flex items-center gap-1 mt-1">
           <TrendArrow trend={trend} />
           <span className="text-xs text-muted-foreground">
-            {trend === 'up' ? 'En hausse' : trend === 'down' ? 'En baisse' : 'Stable'}
+            {trend === 'up' ? t('pm.trend.up', { defaultValue: 'En hausse' }) : trend === 'down' ? t('pm.trend.down', { defaultValue: 'En baisse' }) : t('pm.trend.stable', { defaultValue: 'Stable' })}
           </span>
         </div>
       </div>
@@ -269,6 +277,7 @@ function LoadingSkeleton({ size }: { size: 'sm' | 'md' | 'lg' }) {
  * Empty State
  */
 function EmptyState({ size }: { size: 'sm' | 'md' | 'lg' }) {
+  const { t } = useTranslation();
   const sizeConfig = SIZE_CONFIG[size];
 
   return (
@@ -279,8 +288,8 @@ function EmptyState({ size }: { size: 'sm' | 'md' | 'lg' }) {
       )}
     >
       <Target className="w-8 h-8 mb-2 text-blue-500" aria-hidden="true" />
-      <p className={sizeConfig.itemText}>Aucune donnée de progression</p>
-      <p className="text-xs mt-1">Commencez par ajouter des contrôles et actions</p>
+      <p className={sizeConfig.itemText}>{t('pm.empty.title', { defaultValue: 'Aucune donnée de progression' })}</p>
+      <p className="text-xs mt-1">{t('pm.empty.description', { defaultValue: 'Commencez par ajouter des contrôles et actions' })}</p>
     </div>
   );
 }
@@ -297,6 +306,7 @@ function ErrorState({
   onRetry: () => void;
   size: 'sm' | 'md' | 'lg';
 }) {
+  const { t } = useTranslation();
   const sizeConfig = SIZE_CONFIG[size];
 
   return (
@@ -307,19 +317,19 @@ function ErrorState({
       )}
     >
       <AlertTriangle className="w-8 h-8 mb-2" aria-hidden="true" />
-      <p className={sizeConfig.itemText}>{error.message || 'Erreur de chargement'}</p>
+      <p className={sizeConfig.itemText}>{error.message || t('pm.error.loading', { defaultValue: 'Erreur de chargement' })}</p>
       <button
         type="button"
         onClick={onRetry}
         className={cn(
           'mt-3 inline-flex items-center gap-1 px-3 py-1.5 rounded-md',
           'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
-          'hover:bg-red-200 dark:hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-9000 transition-colors',
+          'hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors',
           'text-sm font-medium'
         )}
       >
         <RefreshCw className="w-4 h-4" aria-hidden="true" />
-        Réessayer
+        {t('common.retry', { defaultValue: 'Réessayer' })}
       </button>
     </div>
   );
@@ -342,6 +352,7 @@ export function PMProgressWidget({
   className,
   onCategoryClick,
 }: PMProgressWidgetProps) {
+  const { t } = useTranslation();
   const { progress, trend, loading, error, refetch } = useProjectProgress(organizationId);
 
   const sizeConfig = SIZE_CONFIG[size];
@@ -379,7 +390,7 @@ export function PMProgressWidget({
     <div
       className={cn('rounded-lg border bg-card', sizeConfig.padding, className)}
       role="region"
-      aria-label="Progression du projet"
+      aria-label={t('pm.ariaLabel', { defaultValue: 'Progression du projet' })}
     >
       {/* Overall progress */}
       <div className="mb-6">
@@ -390,25 +401,25 @@ export function PMProgressWidget({
       <div className={cn('flex flex-col', sizeConfig.gap)}>
         <ProgressBar
           progress={progress.controls}
-          label={CATEGORY_LABELS.controls}
+          label={t(CATEGORY_KEYS.controls, { defaultValue: CATEGORY_DEFAULTS.controls })}
           size={size}
           onClick={onCategoryClick ? () => onCategoryClick('controls') : undefined}
         />
         <ProgressBar
           progress={progress.documents}
-          label={CATEGORY_LABELS.documents}
+          label={t(CATEGORY_KEYS.documents, { defaultValue: CATEGORY_DEFAULTS.documents })}
           size={size}
           onClick={onCategoryClick ? () => onCategoryClick('documents') : undefined}
         />
         <ProgressBar
           progress={progress.actions}
-          label={CATEGORY_LABELS.actions}
+          label={t(CATEGORY_KEYS.actions, { defaultValue: CATEGORY_DEFAULTS.actions })}
           size={size}
           onClick={onCategoryClick ? () => onCategoryClick('actions') : undefined}
         />
         <ProgressBar
           progress={progress.milestones}
-          label={CATEGORY_LABELS.milestones}
+          label={t(CATEGORY_KEYS.milestones, { defaultValue: CATEGORY_DEFAULTS.milestones })}
           size={size}
           onClick={onCategoryClick ? () => onCategoryClick('milestones') : undefined}
         />
@@ -417,7 +428,7 @@ export function PMProgressWidget({
       {/* Summary footer */}
       <div className="mt-4 pt-3 border-t border-border/40 dark:border-slate-700">
         <p className="text-xs text-muted-foreground text-center">
-          {progress.milestones.completed}/{progress.milestones.total} jalons atteints
+          {t('pm.milestonesReached', { defaultValue: '{{completed}}/{{total}} jalons atteints', completed: progress.milestones.completed, total: progress.milestones.total })}
         </p>
       </div>
     </div>

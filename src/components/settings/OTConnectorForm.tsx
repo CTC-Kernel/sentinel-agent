@@ -300,7 +300,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           value={formData.name}
           onChange={e => updateField('name', e.target.value)}
           placeholder={t('otConnector.placeholders.name', 'e.g., Production SCADA Sync')}
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         />
       </div>
 
@@ -314,7 +314,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           onChange={e => updateField('description', e.target.value)}
           placeholder={t('otConnector.placeholders.description', 'Optional description...')}
           rows={2}
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         />
       </div>
 
@@ -401,9 +401,9 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             value={config.filePattern || ''}
             onChange={e => updateConfig('filePattern', e.target.value)}
             placeholder=".*\.csv$"
-            className="w-full px-4 py-2 border rounded-lg font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="w-full px-4 py-2 border rounded-lg font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           />
-          <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             {t('otConnector.csv.filePatternHelp', 'Regular expression to match CSV files')}
           </p>
         </div>
@@ -416,7 +416,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           <select
             value={config.encoding || 'utf-8'}
             onChange={e => updateConfig('encoding', e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <option value="utf-8">UTF-8</option>
             <option value="iso-8859-1">ISO-8859-1 (Latin-1)</option>
@@ -431,7 +431,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             id="archiveProcessed"
             checked={config.archiveProcessed ?? true}
             onChange={e => updateConfig('archiveProcessed', e.target.checked)}
-            className="h-4 w-4 rounded border-border/40 text-blue-600 dark:text-blue-400 focus-visible:ring-brand-500"
+            className="h-4 w-4 rounded border-border/40 text-blue-600 dark:text-blue-400 focus-visible:ring-primary"
           />
           <label htmlFor="archiveProcessed" className="text-sm">
             {t('otConnector.csv.archiveProcessed', 'Archive processed files')}
@@ -446,7 +446,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           <select
             value={config.defaultNetworkSegment || 'OT'}
             onChange={e => updateConfig('defaultNetworkSegment', e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <option value="IT">IT</option>
             <option value="OT">OT</option>
@@ -462,7 +462,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           <select
             value={config.defaultOTCriticality || 'monitoring'}
             onChange={e => updateConfig('defaultOTCriticality', e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <option value="safety">{t('otCriticality.safety', 'Safety')}</option>
             <option value="production">{t('otCriticality.production', 'Production')}</option>
@@ -534,7 +534,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           <select
             value={formData.schedule.interval || 1440}
             onChange={e => updateSchedule('interval', parseInt(e.target.value))}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             {SYNC_INTERVALS.map(opt => (
               <option key={opt.value || 'unknown'} value={opt.value}>
@@ -556,9 +556,9 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             value={formData.schedule.cronExpression || ''}
             onChange={e => updateSchedule('cronExpression', e.target.value)}
             placeholder="0 2 * * *"
-            className="w-full px-4 py-2 border rounded-lg font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="w-full px-4 py-2 border rounded-lg font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           />
-          <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             {t('otConnector.schedule.cronHelp', 'Format: minute hour day month weekday (e.g., "0 2 * * *" for 2 AM daily)')}
           </p>
         </div>
@@ -571,7 +571,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           id="enabled"
           checked={formData.enabled}
           onChange={e => updateField('enabled', e.target.checked)}
-          className="h-4 w-4 rounded border-border/40 text-blue-600 dark:text-blue-400 focus-visible:ring-brand-500"
+          className="h-4 w-4 rounded border-border/40 text-blue-600 dark:text-blue-400 focus-visible:ring-primary"
         />
         <label htmlFor="enabled" className="text-sm">
           {t('otConnector.enabled', 'Enable connector immediately after creation')}
@@ -588,11 +588,11 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
         <h4 className="font-medium mb-3">{t('otConnector.review.summary', 'Configuration Summary')}</h4>
         <dl className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <dt className="text-slate-500 dark:text-slate-400">{t('otConnector.fields.name', 'Name')}:</dt>
+            <dt className="text-muted-foreground">{t('otConnector.fields.name', 'Name')}:</dt>
             <dd className="font-medium">{formData.name}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-500 dark:text-slate-400">{t('otConnector.fields.type', 'Type')}:</dt>
+            <dt className="text-muted-foreground">{t('otConnector.fields.type', 'Type')}:</dt>
             <dd className="font-medium">
               {isEnglish
                 ? CONNECTOR_TYPE_LABELS[formData.type].en
@@ -600,11 +600,11 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             </dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-500 dark:text-slate-400">{t('otConnector.schedule.type', 'Schedule')}:</dt>
+            <dt className="text-muted-foreground">{t('otConnector.schedule.type', 'Schedule')}:</dt>
             <dd className="font-medium capitalize">{formData.schedule.type}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-500 dark:text-slate-400">{t('otConnector.enabled', 'Enabled')}:</dt>
+            <dt className="text-muted-foreground">{t('otConnector.enabled', 'Enabled')}:</dt>
             <dd>
               <Badge variant={formData.enabled ? 'default' : 'outline'} status={formData.enabled ? 'success' : 'neutral'}>
                 {formData.enabled ? t('common.yes', 'Yes') : t('common.no', 'No')}

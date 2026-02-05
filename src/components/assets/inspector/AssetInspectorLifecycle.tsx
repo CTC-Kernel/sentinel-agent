@@ -95,7 +95,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
     return (
         <div className="space-y-6 sm:space-y-8">
             <div className="glass-premium p-8 rounded-3xl border border-border/40 shadow-sm overflow-x-auto">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-8">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-8">
                     {t('assets.lifecycle.timelineTitle', 'Timeline du cycle de vie')}
                 </h3>
                 <div className="min-w-[320px] sm:min-w-[500px] md:min-w-[600px] px-4">
@@ -120,7 +120,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                 <div className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
                         <div>
-                            <div className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-2">
+                            <div className="block text-xs font-bold uppercase text-muted-foreground mb-2">
                                 {t('assets.lifecycle.purchaseDate', 'Date d\'achat')}
                             </div>
                             <div className="text-sm font-medium text-slate-900 dark:text-white">
@@ -128,7 +128,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                             </div>
                         </div>
                         <div>
-                            <div className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-2">
+                            <div className="block text-xs font-bold uppercase text-muted-foreground mb-2">
                                 {t('assets.lifecycle.warranty.status', 'Fin de garantie')}
                             </div>
                             <div className="text-sm font-medium text-slate-900 dark:text-white">
@@ -136,7 +136,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                             </div>
                         </div>
                         <div>
-                            <div className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-2">
+                            <div className="block text-xs font-bold uppercase text-muted-foreground mb-2">
                                 {t('assets.lifecycle.purchasePrice', 'Prix d\'achat (€)')}
                             </div>
                             <div className="text-sm font-medium text-slate-900 dark:text-white">
@@ -144,7 +144,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                             </div>
                         </div>
                         <div>
-                            <div className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-2">
+                            <div className="block text-xs font-bold uppercase text-muted-foreground mb-2">
                                 {t('assets.lifecycle.maintenance', 'Coût Maintenance (€)')}
                             </div>
                             <div className="px-4 py-3 rounded-3xl bg-slate-50 dark:bg-white/5 text-sm font-bold">
@@ -173,7 +173,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                                     </p>
                                 </div>
                             </div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
                                 {t('assets.lifecycle.depreciation', 'Courbe d\'amortissement (5 ans)')}
                             </h4>
                             <div className="h-40 w-full">
@@ -265,7 +265,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                             onClick={handleAddMaintenance}
                             disabled={isAddingMaintenance}
                             aria-label={t('assets.lifecycle.addMaintenance', 'Ajouter une intervention')}
-                            className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-3xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 flex justify-center items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-3xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:bg-muted disabled:text-muted-foreground flex justify-center items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                         >
                             {isAddingMaintenance ? <span className="animate-spin mr-2">⏳</span> : null}
                             {t('common.save', 'Enregistrer')}
@@ -274,7 +274,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                 )}
                 <div className="space-y-3">
                     {maintenanceRecords.length === 0 ? (
-                        <p className="text-sm text-slate-500 dark:text-slate-300 text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-border/40 dark:border-border/40">
+                        <p className="text-sm text-muted-foreground text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-border/40 dark:border-border/40">
                             {t('assets.lifecycle.noRecords', 'Aucune intervention enregistrée.')}
                         </p>
                     ) : (
@@ -293,13 +293,13 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                                     <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{rec.description}</p>
                                     <div className="flex justify-between mt-2">
                                         <div className="flex flex-col gap-0.5">
-                                            <span className="text-[11px] text-slate-500 dark:text-slate-300 font-medium">Tech: {rec.technician}</span>
+                                            <span className="text-[11px] text-muted-foreground font-medium">Tech: {rec.technician}</span>
                                             {rec.performedBy && (
-                                                <span className="text-[9px] text-slate-400 dark:text-slate-500 italic">Performed by: {rec.performedBy.userName}</span>
+                                                <span className="text-[9px] text-muted-foreground italic">Performed by: {rec.performedBy.userName}</span>
                                             )}
                                         </div>
                                         {rec.cost && (
-                                            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
+                                            <span className="text-[11px] font-bold text-muted-foreground">
                                                 {new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: 'EUR' }).format(rec.cost)}
                                             </span>
                                         )}

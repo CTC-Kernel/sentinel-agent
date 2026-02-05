@@ -149,7 +149,7 @@ const MiniTrendChart: React.FC<MiniTrendChartProps> = ({ data, loading }) => {
 
   if (!data || data.length === 0) {
     return (
-      <div className="h-24 flex items-center justify-center text-slate-500 dark:text-slate-300 text-sm">
+      <div className="h-24 flex items-center justify-center text-muted-foreground text-sm">
         Aucune donnée
       </div>
     );
@@ -243,7 +243,7 @@ const SegmentChart: React.FC<SegmentChartProps> = ({ data, loading }) => {
 
   if (total === 0) {
     return (
-      <div className="h-20 flex items-center justify-center text-slate-500 dark:text-slate-300 text-sm">
+      <div className="h-20 flex items-center justify-center text-muted-foreground text-sm">
         Aucune donnée
       </div>
     );
@@ -314,7 +314,7 @@ const TopAssetsList: React.FC<TopAssetsListProps> = ({ assets, onAssetClick, loa
 
   if (!assets || assets.length === 0) {
     return (
-      <div className="text-center text-slate-500 dark:text-slate-300 text-sm py-4">
+      <div className="text-center text-muted-foreground text-sm py-4">
         Aucun actif OT affecté
       </div>
     );

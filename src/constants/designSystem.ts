@@ -203,7 +203,7 @@ export const SEMANTIC_COLORS = {
     },
     NEUTRAL: {
       bg: 'bg-slate-500',
-      text: 'text-slate-600 dark:text-slate-400',
+      text: 'text-muted-foreground',
       bgLight: 'bg-slate-50 dark:bg-slate-800/50',
     },
   },

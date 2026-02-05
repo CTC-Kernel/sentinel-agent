@@ -62,12 +62,12 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                     as={React.Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
-                    enterTo="opacity-70"
+                    enterTo="opacity-100"
                     leave="ease-in duration-200"
-                    leaveFrom="opacity-70"
+                    leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" />
+                    <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] transition-opacity" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 z-10 overflow-y-auto">
@@ -76,9 +76,9 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                             as={React.Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 scale-95"
-                            enterTo="opacity-70 scale-100"
+                            enterTo="opacity-100 scale-100"
                             leave="ease-in duration-200"
-                            leaveFrom="opacity-70 scale-100"
+                            leaveFrom="opacity-100 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
                             <Dialog.Panel className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-border/40 dark:border-border/40 text-left align-middle transition-all transform">
@@ -94,7 +94,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                     </div>
                                     <button
                                         onClick={onClose}
-                                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                     >
                                         <X className="h-5 w-5" />
                                     </button>
@@ -109,7 +109,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                                     <button
                                                         key={template.id || 'unknown'}
                                                         onClick={() => setSelectedTemplate(template)}
-                                                        className="text-left p-6 rounded-3xl border-2 border-border/40 dark:border-border/40 hover:border-brand-500 dark:hover:border-brand-500 transition-all hover:shadow-lg group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 w-full"
+                                                        className="text-left p-6 rounded-3xl border-2 border-border/40 dark:border-border/40 hover:border-brand-500 dark:hover:border-brand-500 transition-all hover:shadow-lg group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 w-full"
                                                     >
                                                         <div className="flex items-start gap-4">
                                                             <div className={`text-5xl p-3 rounded-3xl bg-gradient-to-br ${getCategoryColor(template.category)} bg-opacity-30`}>
@@ -220,7 +220,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                                 <Button
                                                     type="submit"
                                                     isLoading={isLoading}
-                                                    className="flex-1 bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                                    className="flex-1 bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                                                 >
                                                     <Zap className="h-4 w-4 inline mr-2" />
                                                     Importer {selectedTemplate.risks.length} Risques

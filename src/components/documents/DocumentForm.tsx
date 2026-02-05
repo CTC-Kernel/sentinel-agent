@@ -56,7 +56,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     const { register, handleSubmit, control, setValue, watch, reset, formState: { errors, isDirty, isSubmitting } } = useZodForm<typeof documentSchema>({
         schema: documentSchema,
         mode: 'onChange',
-        shouldUnregister: true,
+        shouldUnregister: false,
         defaultValues: {
             title: initialData?.title || '',
             type: initialData?.type || 'Politique',

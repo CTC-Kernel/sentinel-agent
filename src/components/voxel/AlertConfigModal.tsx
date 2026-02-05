@@ -506,7 +506,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                   <button
                     onClick={handleSave}
                     disabled={!hasChanges || isSaving || isLoading}
-                    className="flex items-center gap-2 px-4 py-2 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
+                    className="flex items-center gap-2 px-4 py-2 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600"
                   >
                     <Save className="h-4 w-4" />
                     {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}

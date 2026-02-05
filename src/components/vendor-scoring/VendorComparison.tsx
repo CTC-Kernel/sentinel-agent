@@ -126,7 +126,7 @@ const RiskMatrixView: React.FC<{
       <div className="min-w-[500px]">
         {/* Header */}
         <div className="grid grid-cols-4 gap-2 mb-2">
-          <div className="text-sm font-medium text-slate-500 dark:text-slate-300 text-center">
+          <div className="text-sm font-medium text-muted-foreground text-center">
             {t('vendorScoring.riskLevel', 'Risk Level')}
           </div>
           {criticalityLevels.map((level) => (

@@ -139,7 +139,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                                                             {/* Active Threats List */}
                                                             {topThreats.length > 0 && (
                                                                 <div className="space-y-2">
-                                                                    <div className="text-[11px] uppercase text-slate-500 dark:text-slate-300 font-bold tracking-wider border-l-2 border-slate-700 pl-2">
+                                                                    <div className="text-[11px] uppercase text-muted-foreground font-bold tracking-wider border-l-2 border-slate-700 pl-2">
                                                                         Latest Intelligence
                                                                     </div>
                                                                     <div className="space-y-1.5">
@@ -154,7 +154,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                                                                                     <div className="leading-tight opacity-90 group-hover:opacity-70 transition-opacity truncate font-medium">
                                                                                         {t.name}
                                                                                     </div>
-                                                                                    <div className="text-[11px] text-slate-500 dark:text-slate-300 flex gap-2 mt-0.5">
+                                                                                    <div className="text-[11px] text-muted-foreground flex gap-2 mt-0.5">
                                                                                         <span>{t.type}</span>
                                                                                         <span>•</span>
                                                                                         <span className={t.severity === 'Critical' ? 'text-red-400' : 'text-orange-400'}>{t.severity}</span>
@@ -164,7 +164,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                                                                         ))}
                                                                     </div>
                                                                     {threatCount > 3 && (
-                                                                        <div className="text-[11px] text-center text-slate-500 dark:text-slate-300 italic pt-1">
+                                                                        <div className="text-[11px] text-center text-muted-foreground italic pt-1">
                                                                             + {threatCount - 3} other active events
                                                                         </div>
                                                                     )}
@@ -264,7 +264,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
 
             {/* Legend overlay */}
             <div className="absolute bottom-4 left-8 pointer-events-none">
-                <div className="flex items-center gap-4 text-[11px] font-mono text-slate-500 dark:text-slate-300 bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/5 shadow-xl">
+                <div className="flex items-center gap-4 text-[11px] font-mono text-muted-foreground bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/5 shadow-xl">
                     <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-slate-800"></div> SAFE</div>
                     <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500"></div> LOW</div>
                     <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-orange-500"></div> MED</div>

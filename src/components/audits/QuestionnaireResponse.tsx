@@ -208,7 +208,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
             case 'text':
                 return (
                     <textarea
-                        className="w-full px-4 py-3 rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-black/20 focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all min-h-[100px]"
+                        className="w-full px-4 py-3 rounded-3xl border-border/40 dark:border-border/40 bg-white dark:bg-black/20 focus:ring-2 focus-visible:ring-primary outline-none transition-all min-h-[100px]"
                         value={value as string || ''}
                         onChange={(e) => handleAnswerChange(question.id, e.target.value)}
                         placeholder="Votre réponse..."
@@ -239,7 +239,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                                 <input value={opt} checked={value === opt} onChange={() => handleAnswerChange(question.id, opt)}
                                     type="radio"
                                     name={question.id}
-                                    className="text-brand-600 focus-visible:ring-brand-500"
+                                    className="text-brand-600 focus-visible:ring-primary"
                                     disabled={readOnly || status === 'Submitted'}
                                 />
                                 <span className="text-slate-700 dark:text-slate-200">{opt}</span>
@@ -262,7 +262,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                                         handleAnswerChange(question.id, newValues);
                                     }}
                                         type="checkbox"
-                                        className="rounded border-border/40 text-brand-600 focus-visible:ring-brand-500"
+                                        className="rounded border-border/40 text-brand-600 focus-visible:ring-primary"
                                         disabled={readOnly || status === 'Submitted'}
                                     />
                                     <span className="text-slate-700 dark:text-slate-200">{opt}</span>
@@ -376,7 +376,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                                 aria-label="Soumettre le questionnaire"
                                 onClick={() => handleSave(true)}
                                 disabled={saving}
-                                className="flex items-center px-6 py-2 bg-brand-600 text-white rounded-3xl font-bold hover:bg-brand-700 transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                                className="flex items-center px-6 py-2 bg-brand-600 text-white rounded-3xl font-bold hover:bg-brand-700 transition-colors disabled:bg-muted disabled:text-muted-foreground"
                             >
                                 <Save className="w-4 h-4 mr-2" />
                                 {saving ? 'Envoi...' : 'Soumettre'}

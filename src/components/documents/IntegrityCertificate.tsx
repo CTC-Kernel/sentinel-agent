@@ -101,7 +101,7 @@ const statusConfig: Record<
     label: 'Statut inconnu',
     description: 'Aucune information d\'intégrité disponible',
     badgeStatus: 'neutral',
-    color: 'text-slate-500 dark:text-slate-300',
+    color: 'text-muted-foreground',
   },
 };
 

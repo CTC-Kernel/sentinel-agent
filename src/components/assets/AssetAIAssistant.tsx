@@ -257,7 +257,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
                                 onClick={handleApply}
                                 disabled={applying}
                                 aria-label="Appliquer les recommandations de criticité"
-                                className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-3xl text-xs font-bold transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                                className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-3xl text-xs font-bold transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                             >
                                 {applying ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
                                 {applying ? 'Application...' : 'Appliquer les changements'}

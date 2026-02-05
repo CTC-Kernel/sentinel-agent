@@ -1,6 +1,8 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { SecurityBadge, SecurityFeature } from './SecurityBadge';
 import { motion } from 'framer-motion';
+import { ChevronRight } from './Icons';
 
 interface Breadcrumb {
   label: string;
@@ -28,7 +30,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   trustType,
   className = '',
   compact = false,
-  breadcrumbs: _breadcrumbs,
+  breadcrumbs,
 }) => {
 
   return (
@@ -41,6 +43,29 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         ${compact ? 'py-2' : 'py-4 lg:py-6'}
         border-b border-border/40
       `}>
+
+        {/* Breadcrumbs */}
+        {breadcrumbs && breadcrumbs.length > 0 && (
+          <nav aria-label="Fil d'Ariane" className="flex items-center gap-1 text-sm text-muted-foreground">
+            {breadcrumbs.map((crumb, index) => (
+              <React.Fragment key={crumb.label}>
+                {index > 0 && <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />}
+                {crumb.path ? (
+                  <Link
+                    to={crumb.path}
+                    className="font-medium hover:text-foreground transition-colors truncate max-w-[200px]"
+                  >
+                    {crumb.label}
+                  </Link>
+                ) : (
+                  <span className="font-semibold text-foreground truncate max-w-[200px]">
+                    {crumb.label}
+                  </span>
+                )}
+              </React.Fragment>
+            ))}
+          </nav>
+        )}
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
           {/* Left section: Icon + Title */}

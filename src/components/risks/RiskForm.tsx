@@ -385,7 +385,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     <AIAssistantHeader templates={RISK_TEMPLATES.filter(t => !t.framework || t.framework === (framework || 'ISO27005'))} onSelectTemplate={handleSelectTemplate} onAutoGenerate={handleAutoGenerate} isGenerating={isGenerating} title={`Modèles de Risques (${framework || 'ISO27005'})`} description="Sélectionnez un modèle standard ajusté au référentiel choisi." readOnly={readOnly} />
                 )}
 
-                <fieldset disabled={readOnly} className={`space-y-6 disabled:text-slate-500 dark:disabled:text-slate-400 ${readOnly ? 'pointer-events-none' : ''}`}>
+                <fieldset disabled={readOnly} className={`space-y-6 disabled:text-slate-500 ${readOnly ? 'pointer-events-none' : ''}`}>
                     {activeTab === 'context' && <RiskFormContextTab control={control} errors={errors} assets={assets} usersList={usersList} processes={processes} suppliers={suppliers} framework={framework || 'ISO27005'} setValue={setValue} readOnly={readOnly} />}
                     {activeTab === 'identification' && <RiskFormIdentificationTab control={control} errors={errors} assets={assets} getValues={getValues} setValue={setValue} showLibraryModal={showLibraryModal} setShowLibraryModal={setShowLibraryModal} readOnly={readOnly} />}
                     {activeTab === 'assessment' && <RiskFormAssessmentTab probability={probability ?? 3} impact={impact ?? 3} residualProbability={residualProbability ?? 3} residualImpact={residualImpact ?? 3} setValue={setValue} control={control} errors={errors} readOnly={readOnly} />}

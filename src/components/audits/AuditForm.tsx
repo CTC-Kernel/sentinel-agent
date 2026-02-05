@@ -68,7 +68,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
     const { register, handleSubmit, reset, control, setValue, getValues, watch, formState: { errors, isDirty } } = useZodForm<typeof auditSchema>({
         schema: auditSchema,
         mode: 'onChange',
-        shouldUnregister: true,
+        shouldUnregister: false,
         defaultValues: {
             // ...
         }
@@ -226,12 +226,12 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                     />
 
                     <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300">{t('audits.form.description')}</label>
+                        <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('audits.form.description')}</label>
                         <textarea
                             {...register('description')}
                             rows={3}
                             disabled={readOnly}
-                            className="w-full px-4 py-3.5 glass-input border border-border/40 dark:border-border/40 rounded-2xl focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-brand-400 outline-none transition-all resize-none text-slate-900 dark:text-white placeholder-slate-400 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:cursor-not-allowed shadow-sm"
+                            className="w-full px-4 py-3.5 glass-input border border-border/40 dark:border-border/40 rounded-2xl focus-visible:ring-2 focus-visible:ring-primary focus:border-brand-400 outline-none transition-all resize-none text-slate-900 dark:text-white placeholder-slate-400 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed shadow-sm"
                             placeholder={t('audits.form.descriptionPlaceholder')}
                         />
                         {errors.description && <span className="text-red-500 text-sm">{errors.description.message}</span>}
@@ -332,7 +332,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                     />
 
                     <div className="space-y-4">
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300">{t('audits.form.scopeLabel')}</label>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('audits.form.scopeLabel')}</label>
                         <Controller
                             name="relatedAssetIds"
                             control={control}

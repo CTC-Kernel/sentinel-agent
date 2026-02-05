@@ -124,7 +124,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
                             <span className="text-2xl font-black text-slate-900 dark:text-white">
                                 {stats.globalScore}%
                             </span>
-                            <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                            <span className="text-[11px] text-muted-foreground uppercase tracking-wider">
                                 {currentFramework}
                             </span>
                         </div>
@@ -136,7 +136,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
                                 Conformité
                             </span>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-300 max-w-[180px]">
+                        <p className="text-xs text-muted-foreground max-w-[180px]">
                             {stats.globalScore >= 80 ? 'Excellent niveau de conformité' :
                              stats.globalScore >= 50 ? 'Progression en cours' : 'Attention requise'}
                         </p>
@@ -158,7 +158,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
                         <div className="text-2xl font-black text-slate-900 dark:text-white">
                             {stats.implementedControls}
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                             Implémentés
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -196,7 +196,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
                         )}>
                             {stats.todoControls}
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                             À traiter
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -222,7 +222,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
                         <div className="text-2xl font-black text-slate-900 dark:text-white">
                             {stats.evidenceCount}
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                             Preuves
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -245,7 +245,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
                         <div className="text-2xl font-black text-slate-900 dark:text-white">
                             {stats.actionableControls}
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-300 font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                             Périmètre
                         </div>
                         <div className="mt-2 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
@@ -269,15 +269,15 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-1.5 text-[11px]">
                         <div className="w-2 h-2 rounded-full bg-success-500" />
-                        <span className="text-slate-500 dark:text-slate-400">Implémentés</span>
+                        <span className="text-muted-foreground">Implémentés</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-[11px]">
                         <div className="w-2 h-2 rounded-full bg-warning-500" />
-                        <span className="text-slate-500 dark:text-slate-400">À traiter</span>
+                        <span className="text-muted-foreground">À traiter</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-[11px]">
                         <div className="w-2 h-2 rounded-full bg-brand-500" />
-                        <span className="text-slate-500 dark:text-slate-400">Périmètre</span>
+                        <span className="text-muted-foreground">Périmètre</span>
                     </div>
                 </div>
             </div>

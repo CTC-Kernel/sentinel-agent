@@ -28,7 +28,7 @@ export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }
             }}
             role="button"
             tabIndex={0}
-            className="glass-premium rounded-3xl p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-border/40 transition-all outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="glass-premium rounded-3xl p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-border/40 transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
             <div className="flex justify-between items-start mb-5">
                 <div className="p-3 bg-purple-50 dark:bg-slate-800 rounded-2xl text-purple-600 shadow-inner">
@@ -44,17 +44,17 @@ export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }
 
             <div className="space-y-3 pt-5 border-t border-dashed border-border/40 dark:border-border/40">
                 <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wide flex items-center"><Scale className="h-3 w-3 mr-1.5" />{t('privacy.card.legalBasis', { defaultValue: 'Base Légale' })}</span>
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide flex items-center"><Scale className="h-3 w-3 mr-1.5" />{t('privacy.card.legalBasis', { defaultValue: 'Base Légale' })}</span>
                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-lg">{activity.legalBasis}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wide flex items-center"><GlobeLock className="h-3 w-3 mr-1.5" />{t('privacy.card.categories', { defaultValue: 'Catégories' })}</span>
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide flex items-center"><GlobeLock className="h-3 w-3 mr-1.5" />{t('privacy.card.categories', { defaultValue: 'Catégories' })}</span>
                     <span className="text-xs font-medium text-slate-600 dark:text-slate-300 truncate max-w-[150px]">
                         {activity.dataCategories.length > 0 ? activity.dataCategories.join(', ') : '-'}
                     </span>
                 </div>
                 <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wide flex items-center"><Clock className="h-3 w-3 mr-1.5" />{t('privacy.card.retention', { defaultValue: 'Conservation' })}</span>
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide flex items-center"><Clock className="h-3 w-3 mr-1.5" />{t('privacy.card.retention', { defaultValue: 'Conservation' })}</span>
                     <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">{activity.retentionPeriod}</span>
                 </div>
             </div>
@@ -70,7 +70,7 @@ export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }
                     <button
                         aria-label="Delete"
                         onClick={(e) => { e.stopPropagation(); setShowConfirmDelete(true); }}
-                        className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-3xl text-slate-500 dark:text-slate-300 hover:text-red-500 shadow-sm backdrop-blur-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-3xl text-muted-foreground hover:text-red-500 shadow-sm backdrop-blur-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         <Trash2 className="h-4 w-4" />
                     </button>

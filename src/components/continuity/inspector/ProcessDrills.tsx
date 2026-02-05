@@ -14,7 +14,7 @@ export const ProcessDrills: React.FC<ProcessDrillsProps> = ({ drills }) => {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300">{t('continuity.recentDrills')}</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('continuity.recentDrills')}</h3>
             </div>
 
             {drills.length > 0 ? (

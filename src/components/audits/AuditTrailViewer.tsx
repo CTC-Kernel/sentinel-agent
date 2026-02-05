@@ -162,7 +162,7 @@ export const AuditTrailViewer: React.FC = () => {
                             aria-label="Rechercher dans l'audit trail"
                             onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
                             placeholder="Rechercher (Utilisateur, Action, Ressource...)"
-                            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-3xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none"
+                            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-border/40 dark:border-slate-700 rounded-3xl text-sm focus:ring-2 focus-visible:ring-primary outline-none"
                         />
                     </div>
 
@@ -170,7 +170,7 @@ export const AuditTrailViewer: React.FC = () => {
                     <select
                         value={filters.action}
                         onChange={(e) => setFilters({ ...filters, action: e.target.value as 'all' | 'create' | 'update' | 'delete' })}
-                        className="px-4 py-2 bg-background border border-border rounded-3xl text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
+                        className="px-4 py-2 bg-background border border-border rounded-3xl text-sm focus:ring-2 focus-visible:ring-primary focus:border-transparent"
                         aria-label="Filtrer par action"
                     >
                         <option value="all">Toutes les actions</option>
@@ -183,7 +183,7 @@ export const AuditTrailViewer: React.FC = () => {
                     <select
                         value={filters.entityType}
                         onChange={(e) => setFilters({ ...filters, entityType: e.target.value })}
-                        className="px-4 py-2 bg-background border border-border rounded-3xl text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
+                        className="px-4 py-2 bg-background border border-border rounded-3xl text-sm focus:ring-2 focus-visible:ring-primary focus:border-transparent"
                         aria-label="Filtrer par type d'entité"
                     >
                         <option value="all">Tous les types</option>
@@ -196,7 +196,7 @@ export const AuditTrailViewer: React.FC = () => {
                     <select
                         value={filters.userId}
                         onChange={(e) => setFilters({ ...filters, userId: e.target.value })}
-                        className="px-4 py-2 bg-background border border-border rounded-3xl text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
+                        className="px-4 py-2 bg-background border border-border rounded-3xl text-sm focus:ring-2 focus-visible:ring-primary focus:border-transparent"
                         aria-label="Filtrer par utilisateur"
                     >
                         <option value="all">Tous les utilisateurs</option>
@@ -215,7 +215,7 @@ export const AuditTrailViewer: React.FC = () => {
                             value={dateRange.start.toISOString().split('T')[0]}
                             onChange={(e) => setDateRange({ ...dateRange, start: new Date(e.target.value) })}
                             type="date"
-                            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-3xl text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
+                            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-3xl text-sm focus:ring-2 focus-visible:ring-primary focus:border-transparent"
                         />
                     </div>
                     <div className="relative">
@@ -225,7 +225,7 @@ export const AuditTrailViewer: React.FC = () => {
                             value={dateRange.end.toISOString().split('T')[0]}
                             onChange={(e) => setDateRange({ ...dateRange, end: new Date(e.target.value) })}
                             type="date"
-                            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-3xl text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
+                            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-3xl text-sm focus:ring-2 focus-visible:ring-primary focus:border-transparent"
                         />
                     </div>
                 </div>
@@ -266,7 +266,7 @@ export const AuditTrailViewer: React.FC = () => {
                                             {log.entityType}
                                         </span>
                                     </div>
-                                    <ChevronRight className={`h-4 w-4 text-slate-500 dark:text-slate-300 transition-transform ${selectedLog?.id === log.id ? 'rotate-90' : ''}`} />
+                                    <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${selectedLog?.id === log.id ? 'rotate-90' : ''}`} />
                                 </div>
 
                                 <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-muted-foreground mb-1">

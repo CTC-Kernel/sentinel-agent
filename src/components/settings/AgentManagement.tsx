@@ -126,7 +126,7 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, onToggle })
                     exit={{ opacity: 0, height: 0 }}
                     className="pb-3"
                 >
-                    <p className="text-sm text-slate-500 dark:text-slate-300 leading-relaxed">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                         {answer}
                     </p>
                 </motion.div>
@@ -156,7 +156,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
                 {icon}
                 <div>
                     <div className="text-sm font-bold text-slate-900 dark:text-white">{label}</div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-300 uppercase font-bold tracking-wider">{sublabel}</div>
+                    <div className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider">{sublabel}</div>
                 </div>
             </div>
             {loading ? (
@@ -619,7 +619,7 @@ export const AgentManagement: React.FC = () => {
                         </div>
                         Gestion des Agents
                     </h2>
-                    <p className="mt-1 text-slate-500 dark:text-slate-300 text-sm">
+                    <p className="mt-1 text-muted-foreground text-sm">
                         Surveillez et déployez des agents de conformité sur vos terminaux.
                     </p>
                 </div>
@@ -649,7 +649,7 @@ export const AgentManagement: React.FC = () => {
                 >
                     <TechCorners />
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Score Santé</span>
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Score Santé</span>
                         <Activity className="w-4 h-4 text-brand-500" />
                     </div>
                     <div className="h-[140px] relative">
@@ -676,7 +676,7 @@ export const AgentManagement: React.FC = () => {
                             <span className="text-3xl font-black text-slate-900 dark:text-white">
                                 {agentStats.healthRate}%
                             </span>
-                            <span className="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider mt-1">
+                            <span className="text-[11px] text-muted-foreground uppercase tracking-wider mt-1">
                                 {agentStats.healthRate >= 80 ? 'Excellent' : agentStats.healthRate >= 50 ? 'Attention' : 'Critique'}
                             </span>
                         </div>
@@ -702,7 +702,7 @@ export const AgentManagement: React.FC = () => {
                         <div className="text-3xl font-black text-slate-900 dark:text-white">
                             {agentStats.active}
                         </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-300 font-medium uppercase tracking-wider mt-1">Agents Actifs</div>
+                        <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">Agents Actifs</div>
                     </div>
                     <div className="mt-3 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                         <motion.div
@@ -732,7 +732,7 @@ export const AgentManagement: React.FC = () => {
                         <div className="text-3xl font-black text-slate-900 dark:text-white">
                             {agentStats.offline}
                         </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-300 font-medium uppercase tracking-wider mt-1">Hors-ligne</div>
+                        <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">Hors-ligne</div>
                     </div>
                     <div className="mt-3 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                         <motion.div
@@ -764,7 +764,7 @@ export const AgentManagement: React.FC = () => {
                         <div className="text-3xl font-black text-slate-900 dark:text-white">
                             {agentStats.error}
                         </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-300 font-medium uppercase tracking-wider mt-1">En Erreur</div>
+                        <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">En Erreur</div>
                     </div>
                     <div className="mt-3 h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                         <motion.div
@@ -814,7 +814,7 @@ export const AgentManagement: React.FC = () => {
                             </ResponsiveContainer>
                         </div>
                     ) : (
-                        <div className="h-[200px] flex items-center justify-center text-slate-500 dark:text-slate-300 text-sm">
+                        <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
                             Aucun agent déployé
                         </div>
                     )}
@@ -863,7 +863,7 @@ export const AgentManagement: React.FC = () => {
                             </ResponsiveContainer>
                         </div>
                     ) : (
-                        <div className="h-[200px] flex items-center justify-center text-slate-500 dark:text-slate-300 text-sm">
+                        <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
                             Aucun agent déployé
                         </div>
                     )}
@@ -978,10 +978,10 @@ export const AgentManagement: React.FC = () => {
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-border/40 dark:border-border/40">
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Agent</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Système</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">État</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Dernier Signe</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Agent</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Système</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">État</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Dernier Signe</th>
                                         <th className="px-6 py-4 text-right"></th>
                                     </tr>
                                 </thead>
@@ -1032,7 +1032,7 @@ export const AgentManagement: React.FC = () => {
                                                                 <div className="font-bold text-slate-900 dark:text-white text-sm">
                                                                     {agent.name}
                                                                 </div>
-                                                                <div className="text-[11px] text-slate-500 dark:text-slate-300 font-mono mt-0.5">
+                                                                <div className="text-[11px] text-muted-foreground font-mono mt-0.5">
                                                                     v{agent.version} • {agent.ipAddress}
                                                                 </div>
                                                             </div>
@@ -1050,7 +1050,7 @@ export const AgentManagement: React.FC = () => {
                                                             {agent.status.toUpperCase()}
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-5 text-xs text-slate-500 dark:text-slate-300 font-medium">
+                                                    <td className="px-6 py-5 text-xs text-muted-foreground font-medium">
                                                         {new Date(agent.lastHeartbeat).toLocaleString()}
                                                     </td>
                                                     <td className="px-6 py-5 text-right">
@@ -1091,17 +1091,17 @@ export const AgentManagement: React.FC = () => {
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-border/40 dark:border-border/40">
-                                        <th className="px-6 py-3 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Token</th>
-                                        <th className="px-6 py-3 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Statut</th>
-                                        <th className="px-6 py-3 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Utilisations</th>
-                                        <th className="px-6 py-3 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Expiration</th>
+                                        <th className="px-6 py-3 text-xs font-bold text-muted-foreground uppercase tracking-widest">Token</th>
+                                        <th className="px-6 py-3 text-xs font-bold text-muted-foreground uppercase tracking-widest">Statut</th>
+                                        <th className="px-6 py-3 text-xs font-bold text-muted-foreground uppercase tracking-widest">Utilisations</th>
+                                        <th className="px-6 py-3 text-xs font-bold text-muted-foreground uppercase tracking-widest">Expiration</th>
                                         <th className="px-6 py-3 text-right"></th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                                     {enrollmentTokens.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className="px-6 py-8 text-center text-sm text-slate-500 dark:text-slate-300">
+                                            <td colSpan={5} className="px-6 py-8 text-center text-sm text-muted-foreground">
                                                 Aucun token d'enrolement
                                             </td>
                                         </tr>
@@ -1113,7 +1113,7 @@ export const AgentManagement: React.FC = () => {
                                                         <div className="font-medium text-slate-900 dark:text-white text-sm">
                                                             {token.name || 'Token'}
                                                         </div>
-                                                        <div className="text-[11px] text-slate-500 dark:text-slate-300 font-mono mt-0.5">
+                                                        <div className="text-[11px] text-muted-foreground font-mono mt-0.5">
                                                             {token.tokenPreview || `${token.id.slice(0, 8)}...`}
                                                         </div>
                                                     </div>
@@ -1137,7 +1137,7 @@ export const AgentManagement: React.FC = () => {
                                                 <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-300">
                                                     {token.usedCount}{token.maxUses ? ` / ${token.maxUses}` : ''}
                                                 </td>
-                                                <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-300">
+                                                <td className="px-6 py-4 text-xs text-muted-foreground">
                                                     <div className="flex flex-col gap-0.5">
                                                         <span className={cn(
                                                             'font-medium',
@@ -1239,7 +1239,7 @@ export const AgentManagement: React.FC = () => {
                                         "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-3xl text-xs font-medium transition-all",
                                         activeTab === tab.id
                                             ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm"
-                                            : "text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-300"
+                                            : "text-muted-foreground hover:text-slate-700 dark:hover:text-slate-300"
                                     )}
                                 >
                                     <tab.icon className="w-3.5 h-3.5" />
@@ -1267,7 +1267,7 @@ export const AgentManagement: React.FC = () => {
                                                         v{releaseInfo.currentVersion}
                                                     </Badge>
                                                     {releaseInfo.releaseDate && (
-                                                        <span className="text-[11px] text-slate-500 dark:text-slate-300 flex items-center gap-1">
+                                                        <span className="text-[11px] text-muted-foreground flex items-center gap-1">
                                                             <Calendar className="w-3 h-3" />
                                                             {new Date(releaseInfo.releaseDate).toLocaleDateString(config.intlLocale)}
                                                         </span>
@@ -1331,7 +1331,7 @@ export const AgentManagement: React.FC = () => {
 
                                     {/* Mobile Apps */}
                                     <div className="pt-4 border-t border-border/40 dark:border-white/5">
-                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">Applications Mobiles</h4>
+                                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Applications Mobiles</h4>
                                         <div className="grid grid-cols-2 gap-3">
                                             <a
                                                 href={releaseInfo?.mobile?.ios?.appStoreUrl || '#'}
@@ -1368,7 +1368,7 @@ export const AgentManagement: React.FC = () => {
 
                                     {/* Quick Install */}
                                     <div className="pt-4 border-t border-border/40 dark:border-white/5">
-                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">Installation rapide</h4>
+                                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Installation rapide</h4>
                                         <ol className="space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
                                             <li className="flex gap-2">
                                                 <span className="font-bold text-brand-500">1.</span>
@@ -1402,7 +1402,7 @@ export const AgentManagement: React.FC = () => {
                                 >
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Documentation</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">Guides et références techniques pour l'agent Sentinel.</p>
+                                        <p className="text-sm text-muted-foreground mt-1">Guides et références techniques pour l'agent Sentinel.</p>
                                     </div>
 
                                     {/* Quick Links */}
@@ -1486,7 +1486,7 @@ export const AgentManagement: React.FC = () => {
 
                                     {/* System Requirements */}
                                     <div className="pt-4 border-t border-border/40 dark:border-white/5">
-                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
                                             <HardDrive className="w-3.5 h-3.5" />
                                             Configuration requise
                                         </h4>
@@ -1501,19 +1501,19 @@ export const AgentManagement: React.FC = () => {
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-2 text-[11px]">
                                                         <div>
-                                                            <span className="text-slate-500 dark:text-slate-400">OS:</span>
+                                                            <span className="text-muted-foreground">OS:</span>
                                                             <span className="ml-1 text-slate-700 dark:text-slate-300">{req.os}</span>
                                                         </div>
                                                         <div>
-                                                            <span className="text-slate-500 dark:text-slate-400">RAM:</span>
+                                                            <span className="text-muted-foreground">RAM:</span>
                                                             <span className="ml-1 text-slate-700 dark:text-slate-300">{req.ram}</span>
                                                         </div>
                                                         <div>
-                                                            <span className="text-slate-500 dark:text-slate-400">Disque:</span>
+                                                            <span className="text-muted-foreground">Disque:</span>
                                                             <span className="ml-1 text-slate-700 dark:text-slate-300">{req.disk}</span>
                                                         </div>
                                                         <div>
-                                                            <span className="text-slate-500 dark:text-slate-400">Autre:</span>
+                                                            <span className="text-muted-foreground">Autre:</span>
                                                             <span className="ml-1 text-slate-700 dark:text-slate-300">{req.other}</span>
                                                         </div>
                                                     </div>
@@ -1551,7 +1551,7 @@ export const AgentManagement: React.FC = () => {
                                 >
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Questions fréquentes</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">Trouvez rapidement des réponses à vos questions.</p>
+                                        <p className="text-sm text-muted-foreground mt-1">Trouvez rapidement des réponses à vos questions.</p>
                                     </div>
 
                                     <div className="space-y-0">
@@ -1615,7 +1615,7 @@ export const AgentManagement: React.FC = () => {
                                 >
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Support technique</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">Besoin d'aide ? Nous sommes là pour vous.</p>
+                                        <p className="text-sm text-muted-foreground mt-1">Besoin d'aide ? Nous sommes là pour vous.</p>
                                     </div>
 
                                     {/* Support Options */}
@@ -1675,7 +1675,7 @@ export const AgentManagement: React.FC = () => {
 
                                     {/* Agent Status Check */}
                                     <div className="pt-4 border-t border-border/40 dark:border-white/5">
-                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">
+                                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
                                             Diagnostic rapide
                                         </h4>
                                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 space-y-3">
@@ -1712,7 +1712,7 @@ export const AgentManagement: React.FC = () => {
 
                                     {/* Response Times */}
                                     <div className="pt-4 border-t border-border/40 dark:border-white/5">
-                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">
+                                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
                                             Temps de réponse
                                         </h4>
                                         <div className="space-y-2 text-sm">

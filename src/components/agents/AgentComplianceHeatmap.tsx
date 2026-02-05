@@ -163,7 +163,7 @@ const HeatmapCell: React.FC<HeatmapCellProps> = ({ status, agentName, checkName,
                 className={cn(
                     'w-8 h-8 rounded-md flex items-center justify-center',
                     'border transition-all duration-200',
-                    'focus:outline-none focus:ring-2 focus:ring-brand-400',
+                    'focus:outline-none focus:ring-2 focus:ring-primary',
                     colors.bg,
                     colors.border
                 )}

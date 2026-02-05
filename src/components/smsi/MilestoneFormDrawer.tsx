@@ -170,7 +170,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
                       >
                         {config.label}
                       </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-300 line-clamp-1">
+                      <p className="text-xs text-muted-foreground line-clamp-1">
                         {config.description.substring(0, 30)}...
                       </p>
                     </div>
@@ -202,7 +202,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
             <select
               id="responsible-select"
               {...register('responsibleId')}
-              className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-brand-400 focus:border-blue-500"
+              className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-primary focus:border-blue-500"
             >
               <option value="">{t('milestones.fields.unassigned', { defaultValue: 'Non assigné' })}</option>
               {teamMembers.map((member) => (

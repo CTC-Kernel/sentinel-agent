@@ -215,7 +215,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                         type="checkbox"
                         checked={showGapsOnly}
                         onChange={(e) => setShowGapsOnly(e.target.checked)}
-                        className="rounded border-border/40 text-brand-600 focus-visible:ring-brand-500"
+                        className="rounded border-border/40 text-brand-600 focus-visible:ring-primary"
                     />
                     <AlertTriangle className="w-4 h-4 text-yellow-500" />
                     Afficher les gaps uniquement

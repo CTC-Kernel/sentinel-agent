@@ -85,7 +85,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
             {/* Status & Assignment */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden">
-                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">{t('compliance.implementationStatus', { defaultValue: "Statut d'implémentation" })}</h3>
+                    <h3 className="text-xs font-bold uppercase text-muted-foreground mb-4 tracking-widest">{t('compliance.implementationStatus', { defaultValue: "Statut d'implémentation" })}</h3>
                     {canEdit ? (
                         <div className="grid grid-cols-2 gap-2">
                             {([CONTROL_STATUS.NOT_STARTED, CONTROL_STATUS.IN_PROGRESS, CONTROL_STATUS.PARTIAL, CONTROL_STATUS.IMPLEMENTED, CONTROL_STATUS.PLANNED, CONTROL_STATUS.OVERDUE, CONTROL_STATUS.NOT_APPLICABLE, CONTROL_STATUS.EXCLUDED] as Control['status'][]).map((s) => {
@@ -125,7 +125,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                 </div>
 
                 <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm relative overflow-hidden">
-                    <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">{t('compliance.responsible', { defaultValue: 'Responsable' })}</h3>
+                    <h3 className="text-xs font-bold uppercase text-muted-foreground mb-4 tracking-widest">{t('compliance.responsible', { defaultValue: 'Responsable' })}</h3>
                     {canEdit ? (
                         <CustomSelect
                             label={t('compliance.assignedTo', { defaultValue: 'Assigné à' })}
@@ -153,7 +153,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <Layers className="h-4 w-4 text-slate-500" />
-                        <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 tracking-widest">{t('compliance.satisfiedFrameworks', { defaultValue: 'Référentiels Satisfaits' })}</h3>
+                        <h3 className="text-xs font-bold uppercase text-muted-foreground tracking-widest">{t('compliance.satisfiedFrameworks', { defaultValue: 'Référentiels Satisfaits' })}</h3>
                     </div>
                     <span className="text-xs text-muted-foreground">
                         {t('compliance.frameworksCount', { defaultValue: '{{count}} référentiel(s)', count: 1 + (control.mappedFrameworks?.length || 0) })}
@@ -217,11 +217,11 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
 
             {/* Justification Area */}
             <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 dark:border-border/40 shadow-sm">
-                <h3 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 mb-4 tracking-widest">{t('compliance.justificationPolicy', { defaultValue: 'Justification / Politique' })}</h3>
+                <h3 className="text-xs font-bold uppercase text-muted-foreground mb-4 tracking-widest">{t('compliance.justificationPolicy', { defaultValue: 'Justification / Politique' })}</h3>
                 {canEdit ? (
                     <>
                         <textarea
-                            className="w-full min-h-[120px] bg-slate-50 dark:bg-black/20 border border-border/40 dark:border-border/40 rounded-3xl p-4 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all resize-y disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                            className="w-full min-h-[120px] bg-slate-50 dark:bg-black/20 border border-border/40 dark:border-border/40 rounded-3xl p-4 text-sm focus:ring-2 focus-visible:ring-primary outline-none transition-all resize-y disabled:bg-muted disabled:text-muted-foreground"
                             placeholder={t('compliance.justificationPlaceholder', { defaultValue: 'Décrivez comment ce contrôle est implémenté...' })}
                             value={justification}
                             onChange={(e) => setJustification(e.target.value)}

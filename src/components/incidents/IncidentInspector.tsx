@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Button } from '../ui/button';
 import { InspectorLayout } from '../ui/InspectorLayout';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { Incident, UserProfile, BusinessProcess, Asset, Risk } from '../../types';
 import { Siren, BookOpen, CalendarDays, BrainCircuit, Trash2 } from '../ui/Icons';
 import { IncidentForm } from './IncidentForm';
@@ -46,6 +47,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
     const [isEditing, setIsEditing] = useState(false);
     const [isFormDirty, setIsFormDirty] = useState(false);
     const [isStatusUpdating, setIsStatusUpdating] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const handleStatusChange = useCallback(async (newStatus: string) => {
         if (!incident || isStatusUpdating) return;
@@ -102,7 +104,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
         return `${hours}${t('common.hoursAbbreviation') || 'h'}`;
     };
 
-    return (
+    return (<>
         <InspectorLayout
             isOpen={isOpen}
             onClose={onClose}
@@ -119,7 +121,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                         <>
                             {onDelete && (
                                 <Button
-                                    onClick={() => onDelete(incident.id)}
+                                    onClick={() => setShowDeleteConfirm(true)}
                                     variant="ghost"
                                     size="icon"
                                     className="text-muted-foreground hover:text-destructive hover:bg-error-bg rounded-xl transition-all duration-normal ease-apple"
@@ -188,6 +190,21 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                 </div>
             )}
         </InspectorLayout>
+
+        {/* Delete Confirmation Dialog */}
+        {incident && onDelete && (
+            <ConfirmModal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={() => onDelete(incident.id)}
+                title={t('incidents.deleteConfirmTitle', { defaultValue: 'Supprimer cet incident' })}
+                message={t('incidents.deleteConfirmMessage', { defaultValue: 'Cette action est irréversible. L\'incident et toutes ses données associées seront supprimés.' })}
+                type="danger"
+                confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
+                cancelText={t('common.cancel', { defaultValue: 'Annuler' })}
+            />
+        )}
+    </>
     );
 };
 

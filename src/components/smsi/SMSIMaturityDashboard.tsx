@@ -157,7 +157,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
                 <span className="text-3xl font-bold text-slate-900 dark:text-white">
                   {maturity.overall.score}%
                 </span>
-                <span className="text-xs text-slate-500 dark:text-slate-300 flex items-center gap-1">
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
                   {getTrendIcon(maturity.overall.trend)}
                 </span>
               </div>
@@ -168,7 +168,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
             )}>
               {maturity.overall.level.label}
             </div>
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-300 text-center max-w-[200px]">
+            <p className="mt-2 text-xs text-muted-foreground text-center max-w-[200px]">
               {maturity.overall.level.description}
             </p>
           </div>
@@ -337,7 +337,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.item}</span>
                 <div className="flex items-center gap-2">
                   {item.details && (
-                    <span className="text-xs text-slate-500 dark:text-slate-300 max-w-[200px] truncate">{item.details}</span>
+                    <span className="text-xs text-muted-foreground max-w-[200px] truncate">{item.details}</span>
                   )}
                   {item.status === 'passed' && <CheckCircle className="w-5 h-5 text-green-500" />}
                   {item.status === 'warning' && <AlertTriangle className="w-5 h-5 text-amber-500" />}

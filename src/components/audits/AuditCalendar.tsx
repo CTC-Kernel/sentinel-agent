@@ -43,9 +43,9 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
                         {currentDate.toLocaleString(i18n.language, { month: 'long', year: 'numeric' })}
                     </h2>
                     <div className="flex gap-1 bg-slate-100 dark:bg-white/5 rounded-lg p-1">
-                        <button onClick={prevMonth} aria-label={t('audits.calendarLabels.prevMonth')} className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronLeft className="w-5 h-5 text-slate-600 dark:text-slate-300" /></button>
-                        <button onClick={today} className="px-3 py-1 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{t('audits.calendarLabels.today')}</button>
-                        <button onClick={nextMonth} aria-label={t('audits.calendarLabels.nextMonth')} className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronRight className="w-5 h-5 text-slate-600 dark:text-slate-300" /></button>
+                        <button onClick={prevMonth} aria-label={t('audits.calendarLabels.prevMonth')} className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><ChevronLeft className="w-5 h-5 text-slate-600 dark:text-slate-300" /></button>
+                        <button onClick={today} className="px-3 py-1 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('audits.calendarLabels.today')}</button>
+                        <button onClick={nextMonth} aria-label={t('audits.calendarLabels.nextMonth')} className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><ChevronRight className="w-5 h-5 text-slate-600 dark:text-slate-300" /></button>
                     </div>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-slate-500">
@@ -65,7 +65,7 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
             <div className="flex-1 grid grid-cols-7 auto-rows-fr gap-px bg-slate-200 dark:bg-white/10 border border-border/40 dark:border-border/40 rounded-3xl overflow-hidden">
                 {/* Weekdays */}
                 {[0, 1, 2, 3, 4, 5, 6].map(d => (
-                    <div key={d || 'unknown'} className="bg-slate-50 dark:bg-slate-900/50 p-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                    <div key={d || 'unknown'} className="bg-slate-50 dark:bg-slate-900/50 p-4 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground">
                         {new Date(2024, 0, d).toLocaleString(i18n.language, { weekday: 'short' })}
                     </div>
                 ))}
@@ -101,7 +101,7 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
                                     <button
                                         key={audit.id || 'unknown'}
                                         onClick={() => onAuditClick(audit)}
-                                        className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold truncate transition-all hover:scale-[1.02] active:scale-95 shadow-sm border focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${audit.status === 'Terminé' ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800' :
+                                        className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold truncate transition-all hover:scale-[1.02] active:scale-95 shadow-sm border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${audit.status === 'Terminé' ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800' :
                                             audit.status === 'En cours' ? 'bg-amber-100 text-amber-800 border-amber-200 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800' :
                                                 'bg-blue-100 text-blue-800 border-blue-200 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
                                             }`}

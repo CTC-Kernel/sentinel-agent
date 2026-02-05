@@ -154,7 +154,7 @@ export const SecurityDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-slate-500 dark:text-slate-400">{t('security.loadingMetrics', { defaultValue: 'Chargement des métriques de sécurité...' })}</div>
+        <div className="text-muted-foreground">{t('security.loadingMetrics', { defaultValue: 'Chargement des métriques de sécurité...' })}</div>
       </div>
     );
   }
@@ -162,7 +162,7 @@ export const SecurityDashboard: React.FC = () => {
   if (!metrics) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-slate-500 dark:text-slate-400">{t('security.loadError', { defaultValue: 'Échec du chargement des métriques' })}</div>
+        <div className="text-muted-foreground">{t('security.loadError', { defaultValue: 'Échec du chargement des métriques' })}</div>
       </div>
     );
   }
@@ -258,7 +258,7 @@ export const SecurityDashboard: React.FC = () => {
                   <div className="text-sm text-slate-600 dark:text-muted-foreground">
                     {anomaly.message}
                   </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-300 mt-1">
+                  <div className="text-xs text-muted-foreground mt-1">
                     {new Date(anomaly.timestamp).toLocaleString()}
                   </div>
                 </div>
@@ -355,7 +355,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, color, subt
       </div>
       <div className="text-2xl font-bold text-slate-900 dark:text-white">{value}</div>
       {subtitle && (
-        <div className="text-xs text-slate-500 dark:text-slate-300 mt-1">{subtitle}</div>
+        <div className="text-xs text-muted-foreground mt-1">{subtitle}</div>
       )}
     </div>
   );

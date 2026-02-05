@@ -73,7 +73,7 @@ export const TlptDashboard: React.FC<Props> = ({ campaigns, loading, onAdd, onUp
                     {campaigns.map(campaign => (
                         <div
                             key={campaign.id || 'unknown'}
-                            className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-border/40 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-border/40 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                             onClick={() => canEdit && handleEdit(campaign)}
                             onKeyDown={(e) => {
                                 if (canEdit && (e.key === 'Enter' || e.key === ' ')) {

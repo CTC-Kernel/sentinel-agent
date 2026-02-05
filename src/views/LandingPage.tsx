@@ -12,7 +12,7 @@ const FeatureCard = ({ icon: Icon, title, description, delay }: { icon: LucideIc
         {/* Hover Highlight Line */}
         <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-0 group-hover:opacity-70 transition-opacity duration-500" />
 
-        <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-300 group-hover:bg-brand-50 dark:group-hover:bg-brand-900 group-hover:text-brand-600 dark:group-hover:text-brand-400 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 mb-6 ring-1 ring-slate-200 dark:ring-white/10 group-hover:ring-brand-300 dark:group-hover:ring-brand-300">
+        <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-white/5 text-muted-foreground group-hover:bg-brand-50 dark:group-hover:bg-brand-900 group-hover:text-brand-600 dark:group-hover:text-brand-400 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 mb-6 ring-1 ring-slate-200 dark:ring-white/10 group-hover:ring-brand-300 dark:group-hover:ring-brand-300">
             <span className="inline-flex" inert>
                 <Icon className="h-8 w-8" />
             </span>
@@ -98,7 +98,7 @@ export const LandingPage: React.FC = () => {
             <footer className="relative z-10 py-12 border-t border-slate-200 dark:border-white/5 bg-slate-100/80 dark:bg-slate-950/80 backdrop-blur-xl text-center">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col items-center justify-center space-y-6 sm:space-y-8">
                     <div className="w-12 h-1 bg-slate-300 dark:bg-slate-800 rounded-full"></div>
-                    <p className="text-xs font-bold font-mono text-slate-500 dark:text-slate-300 uppercase tracking-widest">Opérationnel dans toute l'Europe</p>
+                    <p className="text-xs font-bold font-mono text-muted-foreground uppercase tracking-widest">Opérationnel dans toute l'Europe</p>
 
                     <p className="text-[11px] text-muted-foreground font-mono">
                         © 2022 SENTINEL GRC. CYBER THREAT CONSULTING.

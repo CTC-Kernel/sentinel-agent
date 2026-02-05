@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useMemo } from 'react';
-import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, serverTimestamp, getDocs } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, serverTimestamp, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Vulnerability } from '../types';
 import { useStore } from '../store';
@@ -45,17 +45,19 @@ export const useVulnerabilities = () => {
         try {
             const kevVulns = await ThreatFeedService.fetchCisaKev();
             if (kevVulns.length > 0) {
-                const batchPromises = kevVulns.slice(0, 20).map(v =>
-                    addDoc(collection(db, 'vulnerabilities'), sanitizeData({
+                const batch = writeBatch(db);
+                kevVulns.slice(0, 20).forEach(v => {
+                    const ref = doc(collection(db, 'vulnerabilities'));
+                    batch.set(ref, sanitizeData({
                         ...v,
                         organizationId: user.organizationId,
                         createdAt: serverTimestamp(),
-                        severity: 'High', // Default for KEV
+                        severity: 'High',
                         status: 'Open',
                         assetName: 'External Interest'
-                    }))
-                );
-                await Promise.all(batchPromises);
+                    }));
+                });
+                await batch.commit();
                 logAction(user, 'AUTO_SEED', 'Vulnerabilities', `Seeded ${kevVulns.length} vulnerabilities from CISA KEV`);
                 addToast(t('vulnerabilities.toast.cisaKevSynced', { defaultValue: "Flux CISA KEV synchronisé" }), "success");
             }
@@ -139,21 +141,25 @@ export const useVulnerabilities = () => {
             await updateDoc(doc(db, 'vulnerabilities', id), dataToSave);
 
             // Business Logic: If status changed to Resolved/Patch Applied, update ALL related Risks
-            if (updates.status && (updates.status === 'Resolved' || updates.status === 'Patch Applied')) {
-                const riskQuery = query(collection(db, 'risks'), where('relatedVulnerabilityId', '==', id));
-                const riskSnap = await import('firebase/firestore').then(mod => mod.getDocs(riskQuery));
+            if (updates.status && (updates.status === 'Resolved' || updates.status === 'Patch Applied') && user?.organizationId) {
+                const riskQuery = query(
+                    collection(db, 'risks'),
+                    where('organizationId', '==', user.organizationId),
+                    where('relatedVulnerabilityId', '==', id)
+                );
+                const riskSnap = await getDocs(riskQuery);
 
                 if (!riskSnap.empty) {
-                    // SECURITY FIX: Update ALL related risks, not just the first one
-                    const updatePromises = riskSnap.docs.map(riskDoc =>
-                        updateDoc(doc(db, 'risks', riskDoc.id), sanitizeData({
-                            status: 'Traité',
+                    const batch = writeBatch(db);
+                    riskSnap.docs.forEach(riskDoc => {
+                        batch.update(doc(db, 'risks', riskDoc.id), sanitizeData({
+                            status: 'Fermé',
                             updatedAt: serverTimestamp()
-                        }))
-                    );
-                    await Promise.all(updatePromises);
+                        }));
+                    });
+                    await batch.commit();
                     const count = riskSnap.docs.length;
-                    addToast(t('vulnerabilities.toast.relatedRisksResolved', { defaultValue: "{{count}} risque(s) associé(s) marqué(s) comme Traité", count }), "success");
+                    addToast(t('vulnerabilities.toast.relatedRisksResolved', { defaultValue: "{{count}} risque(s) associé(s) fermé(s)", count }), "success");
                 }
             }
 
@@ -195,17 +201,22 @@ export const useVulnerabilities = () => {
         try {
             await deleteDoc(doc(db, 'vulnerabilities', id));
 
-            // Cascade: clean up risk references pointing to this vulnerability
-            const riskQuery = query(collection(db, 'risks'), where('relatedVulnerabilityId', '==', id));
+            // Cascade: clean up risk references pointing to this vulnerability (scoped to org)
+            const riskQuery = query(
+                collection(db, 'risks'),
+                where('organizationId', '==', user!.organizationId),
+                where('relatedVulnerabilityId', '==', id)
+            );
             const riskSnap = await getDocs(riskQuery);
             if (!riskSnap.empty) {
-                const updatePromises = riskSnap.docs.map(riskDoc =>
-                    updateDoc(doc(db, 'risks', riskDoc.id), sanitizeData({
+                const batch = writeBatch(db);
+                riskSnap.docs.forEach(riskDoc => {
+                    batch.update(doc(db, 'risks', riskDoc.id), sanitizeData({
                         relatedVulnerabilityId: null,
                         updatedAt: serverTimestamp()
-                    }))
-                );
-                await Promise.all(updatePromises);
+                    }));
+                });
+                await batch.commit();
             }
 
             logAction(user!, 'DELETE', 'Vulnerabilities', `Deleted Vulnerability ID: ${id}`);
@@ -280,15 +291,24 @@ export const useVulnerabilities = () => {
             return;
         }
         try {
-            const batchPromises = vulns.map(v =>
-                addDoc(collection(db, 'vulnerabilities'), {
-                    ...sanitizeData(v),
-                    organizationId: user.organizationId,
-                    createdAt: serverTimestamp(),
-                    status: 'Open'
-                })
-            );
-            await Promise.all(batchPromises);
+            // Firestore batches support max 500 operations; chunk if needed
+            const chunks = [];
+            for (let i = 0; i < vulns.length; i += 500) {
+                chunks.push(vulns.slice(i, i + 500));
+            }
+            for (const chunk of chunks) {
+                const batch = writeBatch(db);
+                chunk.forEach(v => {
+                    const ref = doc(collection(db, 'vulnerabilities'));
+                    batch.set(ref, {
+                        ...sanitizeData(v),
+                        organizationId: user.organizationId,
+                        createdAt: serverTimestamp(),
+                        status: 'Open'
+                    });
+                });
+                await batch.commit();
+            }
             logAction(user, 'IMPORT', 'Vulnerabilities', `Imported ${vulns.length} vulnerabilities from scanner`);
             addToast(t('vulnerabilities.toast.imported', { defaultValue: "{{count}} vulnérabilités importées", count: vulns.length }), "success");
             return true;

@@ -185,12 +185,12 @@ const SentinelChat: React.FC = () => {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={messageCount >= MAX_MESSAGES ? "Limite atteinte" : "Posez votre question..."}
                     disabled={messageCount >= MAX_MESSAGES}
-                    className="w-full bg-background/70 backdrop-blur-sm dark:text-white border border-muted rounded-3xl py-3 pl-4 pr-12 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 placeholder-slate-500 dark:placeholder-slate-400 shadow-inner disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
+                    className="w-full bg-background/70 backdrop-blur-sm dark:text-white border border-muted rounded-3xl py-3 pl-4 pr-12 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 placeholder-slate-500 dark:placeholder-slate-400 shadow-inner disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600"
                 />
                 <button
                     type="submit"
                     disabled={!input.trim() || isTyping || messageCount >= MAX_MESSAGES}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-primary hover:bg-primary/80 text-white rounded-lg disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 transition-colors shadow-md"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-primary hover:bg-primary/80 text-white rounded-lg disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600 transition-colors shadow-md"
                 >
                     <Send size={16} />
                 </button>

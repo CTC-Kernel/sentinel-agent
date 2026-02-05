@@ -83,7 +83,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                 {canEdit && (
                     <button
                         onClick={() => setMode('edit')}
-                        className="flex items-center px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-3xl text-sm font-bold hover:scale-105 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="flex items-center px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-3xl text-sm font-bold hover:scale-105 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         {t('audits.questionnaire.new', { defaultValue: 'Nouveau Questionnaire' })}
@@ -93,7 +93,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {questionnaires.length === 0 && (
-                    <div className="col-span-full text-center py-12 text-slate-500 dark:text-slate-300 italic bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-border/40 dark:border-border/40">
+                    <div className="col-span-full text-center py-12 text-muted-foreground italic bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-border/40 dark:border-border/40">
                         {t('audits.questionnaire.empty', { defaultValue: 'Aucun questionnaire créé pour cet audit.' })}
                     </div>
                 )}
@@ -122,7 +122,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => { setSelectedQuestionnaire(q); setMode('respond'); }}
-                                    className="p-2 text-slate-500 dark:text-slate-300 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                    className="p-2 text-muted-foreground hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                     title={t('audits.questionnaire.respondView', { defaultValue: 'Répondre / Voir' })}
                                 >
                                     <Send className="w-4 h-4" />
@@ -131,14 +131,14 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                                     <>
                                         <button
                                             onClick={() => { setSelectedQuestionnaire(q); setMode('edit'); }}
-                                            className="p-2 text-slate-500 dark:text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                                            className="p-2 text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                                             title={t('common.edit', { defaultValue: 'Modifier' })}
                                         >
                                             <Edit className="w-4 h-4" />
                                         </button>
                                         <button
                                             onClick={() => handleDeleteClick(q.id)}
-                                            className="p-2 text-slate-500 dark:text-slate-300 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                                            className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                                             title={t('common.delete', { defaultValue: 'Supprimer' })}
                                         >
                                             <Trash2 className="w-4 h-4" />

@@ -9,6 +9,7 @@ import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
 import { SentinelAgent, AgentCheckResult } from '../../types/agent';
+import { computeScoreFromResults } from '../../utils/agentUtils';
 import {
     Monitor, Apple, Server, Cpu, HardDrive,
     Activity, Shield, Clock, MoreVertical,
@@ -27,17 +28,6 @@ import { useStore } from '../../store';
 import { hasPermission } from '../../utils/permissions';
 import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig';
 import i18n from '../../i18n';
-
-/**
- * Compute compliance score from actual check results.
- */
-function computeScoreFromResults(results: AgentCheckResult[]): number | null {
-    if (!results || results.length === 0) return null;
-    const applicable = results.filter(r => r.status !== 'not_applicable');
-    if (applicable.length === 0) return null;
-    const passed = applicable.filter(r => r.status === 'pass').length;
-    return Math.round((passed / applicable.length) * 100);
-}
 
 interface AgentHealthGridProps {
     agents: SentinelAgent[];
@@ -150,7 +140,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                 className={cn(
                     'group flex items-center gap-3 p-3 rounded-2xl border border-border/40',
                     'bg-background/50 backdrop-blur-sm hover:bg-card hover:border-border/60',
-                    'transition-all duration-200 cursor-pointer hover:shadow-apple-sm focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none'
+                    'transition-all duration-200 cursor-pointer hover:shadow-apple-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none'
                 )}
             >
                 {/* Status indicator + OS */}
@@ -179,8 +169,11 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                         {agent.ipAddress || agent.hostname}
                     </span>
                     {agent.status === 'offline' && (
-                        <span className="text-[11px] text-warning font-medium block">
-                            Vu {formatRelativeTime(agent.lastHeartbeat)}
+                        <span
+                            className="text-[11px] text-warning font-medium block cursor-help"
+                            title="L'agent ne répond plus. Vérifiez qu'il est en cours d'exécution et que la connexion réseau est active. Heartbeat attendu toutes les ~60s."
+                        >
+                            Vu {formatRelativeTime(agent.lastHeartbeat)} — hors ligne
                         </span>
                     )}
                 </div>
@@ -255,7 +248,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                     {onClick && (
                         <button
                             onClick={onClick}
-                            className="absolute inset-0 z-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none rounded-3xl"
+                            className="absolute inset-0 z-0 w-full h-full bg-transparent border-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-3xl"
                             aria-label={`${agent.hostname || agent.name || agent.id.slice(0, 8)} - ${agent.status}`}
                         />
                     )}

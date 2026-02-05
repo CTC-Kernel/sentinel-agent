@@ -76,6 +76,10 @@ const DownloadButton: React.FC<DownloadButtonProps & { downloadUrl?: string }> =
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            toast.success(
+                t('settings.agents.toast.downloadStarted', { defaultValue: "Téléchargement lancé" }),
+                t('settings.agents.toast.downloadStartedDesc', { defaultValue: "Vérifiez votre dossier Téléchargements." })
+            );
         }
     };
 
@@ -93,7 +97,7 @@ const DownloadButton: React.FC<DownloadButtonProps & { downloadUrl?: string }> =
                 {icon}
                 <div>
                     <div className="text-sm font-bold text-slate-900 dark:text-white">{label}</div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-300 uppercase font-bold tracking-wider">{sublabel}</div>
+                    <div className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider">{sublabel}</div>
                 </div>
             </div>
             {loading ? (
@@ -140,7 +144,7 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, onToggle })
                     exit={{ opacity: 0, height: 0 }}
                     className="pb-3"
                 >
-                    <p className="text-sm text-slate-500 dark:text-slate-300 leading-relaxed">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                         {answer}
                     </p>
                 </motion.div>
@@ -308,7 +312,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
 
                                     {/* System Requirements Mini Table */}
                                     <div className="mt-6 pt-4 border-t border-border/40 dark:border-white/5">
-                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-3">Requis</h4>
+                                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Requis</h4>
                                         <div className="space-y-2 text-[11px]">
                                             {Object.entries(systemRequirements).map(([os, req]) => (
                                                 <div key={os || 'unknown'} className="flex items-center justify-between py-1.5 border-b border-slate-50 dark:border-white/5 last:border-0">
@@ -318,7 +322,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                                                         {os === 'linux' && <Terminal className="w-3 h-3" />}
                                                         {os}
                                                     </span>
-                                                    <span className="text-slate-500 dark:text-slate-400">{req.os} • {req.ram} RAM</span>
+                                                    <span className="text-muted-foreground">{req.os} • {req.ram} RAM</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -363,7 +367,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                                         {activeTab === 'docs' ? 'Documentation Complète' : 'Support Technique'}
                                     </h3>
-                                    <p className="text-xs text-slate-500 dark:text-slate-300 mt-1 max-w-[200px] mb-4">
+                                    <p className="text-xs text-muted-foreground mt-1 max-w-[200px] mb-4">
                                         {activeTab === 'docs'
                                             ? "Consultez notre documentation en ligne pour des guides détaillés."
                                             : "Notre équipe est là pour vous aider en cas de problème."}

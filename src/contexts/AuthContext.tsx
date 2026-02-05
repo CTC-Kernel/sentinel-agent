@@ -17,6 +17,7 @@ import {
     updateDoc
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
+import { useQueryClient } from '@tanstack/react-query';
 import { auth, db, functions, isAppCheckFailed, onAppCheckRecovery } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
@@ -35,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const setOrganization = useStore(s => s.setOrganization);
     const setTheme = useStore(s => s.setTheme);
 
+    const queryClient = useQueryClient();
     const [isBlocked, setIsBlocked] = useState(isAppCheckFailed);
     const [claimsSynced, setClaimsSyncedState] = useState(false);
     const claimsSyncedRef = useRef(false);
@@ -86,14 +88,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             await firebaseSignOut(auth);
             setUser(null);
             setFirebaseUser(null);
+            setOrganization(null);
             setIsBlocked(false);
+            // Clear React Query cache to prevent cross-user data leakage
+            queryClient.clear();
             // Nettoyer le stockage local si nécessaire
             localStorage.removeItem('last_org_id');
         } catch (_err) {
             ErrorLogger.error(_err, 'AuthContext.logout');
             throw _err;
         }
-    }, [setUser]);
+    }, [setUser, setOrganization, queryClient]);
 
     const loginWithSSO = useCallback(async (providerId: string) => {
         try {

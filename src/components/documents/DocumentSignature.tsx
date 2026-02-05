@@ -36,7 +36,7 @@ export const DocumentSignature: React.FC<DocumentSignatureProps> = ({ isOpen, on
                     </button>
                     <button
                         onClick={onSign}
-                        className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                        className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                     >
                         <CheckCircle2 className="h-4 w-4" />
                         Valider et Signer

@@ -167,7 +167,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                         Planifier un rapport
                     </h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                         Recevez ce rapport automatiquement par email
                     </p>
                 </div>
@@ -191,7 +191,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                         type="text"
                         {...register('name')}
                         placeholder="Ex: Rapport mensuel ISO 27001"
-                        className="w-full px-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-primary focus:border-transparent"
                     />
                 </div>
 
@@ -258,7 +258,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                             id="weekly-day"
                             value={watchedDayOfWeek}
                             onChange={(e) => setValue('dayOfWeek', Number(e.target.value), { shouldDirty: true })}
-                            className="w-full px-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500"
+                            className="w-full px-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-primary"
                         >
                             {Object.entries(dayOfWeekLabels).map(([value, label]) => (
                                 <option key={value || 'unknown'} value={value}>{label}</option>
@@ -275,7 +275,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                             id="monthly-day"
                             value={watchedDayOfMonth}
                             onChange={(e) => setValue('dayOfMonth', Number(e.target.value), { shouldDirty: true })}
-                            className="w-full px-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500"
+                            className="w-full px-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-primary"
                         >
                             {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
                                 <option key={day || 'unknown'} value={day}>
@@ -313,7 +313,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                     {...register(`recipients.${index}`)}
                                     placeholder="email@example.com"
                                     aria-label={`Email du destinataire ${index + 1}`}
-                                    className="flex-1 px-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
+                                    className="flex-1 px-4 py-2 border border-border/40 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-primary focus:border-transparent"
                                 />
                                 {fields.length > 1 && (
                                     <button
@@ -355,9 +355,9 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                     <input
                                         type="checkbox"
                                         {...register(key as keyof ScheduledReportFormData)}
-                                        className="rounded text-brand-600 focus-visible:ring-brand-500"
+                                        className="rounded text-brand-600 focus-visible:ring-primary"
                                     />
-                                    <span className="text-sm text-slate-600 dark:text-slate-400">{label}</span>
+                                    <span className="text-sm text-muted-foreground">{label}</span>
                                 </label>
                             ))}
                         </div>

@@ -86,7 +86,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                                         <div className="mt-2 text-xs bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg border border-border/40 dark:border-white/5">
                                             {log.changes.map((change, idx) => (
                                                 <div key={`${idx || 'unknown'}-${change.field}`} className="flex gap-2 font-mono">
-                                                    <span className="text-slate-500 dark:text-slate-400">{change.field}:</span>
+                                                    <span className="text-muted-foreground">{change.field}:</span>
                                                     <span className="text-red-400 line-through">{String(change.oldValue)}</span>
                                                     <span className="text-muted-foreground">→</span>
                                                     <span className="text-green-500">{String(change.newValue)}</span>
@@ -96,7 +96,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                                     )}
                                 </div>
 
-                                <div className="flex items-center text-xs text-slate-500 dark:text-slate-300 gap-1 mt-1 sm:mt-0">
+                                <div className="flex items-center text-xs text-muted-foreground gap-1 mt-1 sm:mt-0">
                                     <User className="h-3 w-3" />
                                     {log.userDisplayName || log.userEmail || t('history.system', { defaultValue: 'Système' })}
                                 </div>
@@ -110,7 +110,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                 <button
                     onClick={loadMore}
                     disabled={loading}
-                    className="w-full py-2 text-sm text-brand-600 hover:text-brand-700 font-medium text-center border-t border-border/40 dark:border-white/5 pt-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                    className="w-full py-2 text-sm text-brand-600 hover:text-brand-700 font-medium text-center border-t border-border/40 dark:border-white/5 pt-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                     {loading ? t('common.loading', { defaultValue: 'Chargement...' }) : t('history.viewMore', { defaultValue: 'Voir plus d\'historique' })}
                 </button>

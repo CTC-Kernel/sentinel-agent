@@ -29,7 +29,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
                             <button
                                 type="button"
                                 onClick={handleEdit}
-                                className="p-2.5 bg-white dark:bg-slate-800 rounded-2xl text-slate-500 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 shadow-apple-sm hover:scale-110 transition-all border border-border/50"
+                                className="p-2.5 bg-white dark:bg-slate-800 rounded-2xl text-muted-foreground hover:text-brand-600 dark:hover:text-brand-400 shadow-apple-sm hover:scale-110 transition-all border border-border/50"
                                 aria-label={t('team.actions.edit')}
                             >
                                 <Edit className="h-4 w-4" />
@@ -40,7 +40,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
                         <button
                             type="button"
                             onClick={handleDelete}
-                            className="p-2.5 bg-white dark:bg-slate-800 rounded-2xl text-slate-500 dark:text-slate-300 hover:text-error-text shadow-apple-sm hover:scale-110 transition-all border border-border/50"
+                            className="p-2.5 bg-white dark:bg-slate-800 rounded-2xl text-muted-foreground hover:text-error-text shadow-apple-sm hover:scale-110 transition-all border border-border/50"
                             aria-label={t('team.actions.delete')}
                         >
                             <Trash2 className="h-4 w-4" />
@@ -88,7 +88,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
                         {user.department || 'Général'}
                     </div>
                     {user.lastLogin && (
-                        <div className="flex items-center text-slate-500 dark:text-slate-300 font-medium" title={t('team.columns.lastLogin')}>
+                        <div className="flex items-center text-muted-foreground font-medium" title={t('team.columns.lastLogin')}>
                             <Clock className="h-3.5 w-3.5 mr-1.5" />
                             {new Date(user.lastLogin).toLocaleDateString()}
                         </div>

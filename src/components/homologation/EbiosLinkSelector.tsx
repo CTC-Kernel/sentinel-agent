@@ -345,7 +345,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
             )}
           </>
         ) : (
-          <Badge variant="outline" className="text-slate-500 dark:text-slate-400">
+          <Badge variant="outline" className="text-muted-foreground">
             <Unlink className="h-3 w-3 mr-1" />
             {t('homologation.ebios.noLink', 'Pas de lien EBIOS')}
           </Badge>
@@ -391,7 +391,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
               placeholder={t('homologation.ebios.searchPlaceholder', 'Rechercher une analyse...')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
+              className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus-visible:ring-primary"
             />
           </div>
 
@@ -448,7 +448,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
                     </Badge>
                   </div>
                   {analysis.description && (
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-300 line-clamp-1">{analysis.description}</p>
+                    <p className="mt-1 text-xs text-muted-foreground line-clamp-1">{analysis.description}</p>
                   )}
                   {!eligible && reason && (
                     <p className="mt-1 text-xs text-red-500">{getEligibilityReason(reason)}</p>
@@ -469,7 +469,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
                 value={linkNote}
                 onChange={(e) => setLinkNote(e.target.value)}
                 placeholder={t('homologation.ebios.linkNotePlaceholder', 'Raison de la liaison...')}
-                className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
+                className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus-visible:ring-primary"
               />
             </div>
           )}

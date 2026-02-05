@@ -345,7 +345,7 @@ const Pricing = () => {
         >
           <div className="text-center mb-12">
             <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4">{t('pricing.detailed_comparison')}</h2>
-            <p className="text-slate-500 dark:text-slate-300 font-medium">{t('pricing.features_intro')}</p>
+            <p className="text-muted-foreground font-medium">{t('pricing.features_intro')}</p>
           </div>
 
           <div className="glass-premium rounded-4xl border border-white/60 dark:border-white/10 overflow-hidden shadow-xl relative">
@@ -354,7 +354,7 @@ const Pricing = () => {
 
             {/* Table Header - Sticky */}
             <div className="grid grid-cols-4 p-6 border-b border-slate-200/50 dark:border-white/5 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-20">
-              <div className="col-span-1 p-2 font-black text-slate-500 dark:text-slate-300 uppercase text-xs tracking-wider">{t('pricing.features_header')}</div>
+              <div className="col-span-1 p-2 font-black text-muted-foreground uppercase text-xs tracking-wider">{t('pricing.features_header')}</div>
               <div className="col-span-1 p-2 text-center">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800">
                   <Star className="w-4 h-4 text-slate-500" />
@@ -407,7 +407,7 @@ const Pricing = () => {
                               <div className="col-span-1 flex items-center gap-3 pl-4">
                                 {feature.icon && (
                                   <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800/80">
-                                    <feature.icon className="w-4 h-4 text-slate-500 dark:text-slate-300" />
+                                    <feature.icon className="w-4 h-4 text-muted-foreground" />
                                   </div>
                                 )}
                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-200">

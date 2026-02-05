@@ -126,7 +126,7 @@ const VoxelErrorFallback: React.FC<VoxelErrorFallbackProps> = ({
       {/* Error details (dev mode only) */}
       {import.meta.env.DEV && error && (
         <details className="mb-6 max-w-lg">
-          <summary className="text-sm text-slate-500 dark:text-slate-300 cursor-pointer hover:text-muted-foreground">
+          <summary className="text-sm text-muted-foreground cursor-pointer hover:text-muted-foreground">
             Détails de l'erreur
           </summary>
           <pre className="mt-2 p-3 bg-slate-800 rounded text-xs text-red-400 overflow-auto max-h-32">
@@ -139,7 +139,7 @@ const VoxelErrorFallback: React.FC<VoxelErrorFallbackProps> = ({
       {!isWebGLError && (
         <button
           onClick={onRetry}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:ring-offset-2 focus:ring-offset-slate-900"
         >
           Réessayer
         </button>

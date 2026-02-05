@@ -118,7 +118,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                                 </div>
                                 {guidelines.optional && guidelines.optional.length > 0 && (
                                     <div className="space-y-2">
-                                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 opacity-70">
+                                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground opacity-70">
                                             {t('common.import.optionalColumns')}
                                         </span>
                                         <div className="flex flex-wrap gap-2">
@@ -140,7 +140,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                     {/* Template Download */}
                     <button
                         onClick={onDownloadTemplate}
-                        className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-border/40 dark:border-slate-800 rounded-2xl hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-border/40 dark:border-slate-800 rounded-2xl hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-50 dark:bg-brand-900 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         <div className="w-12 h-12 bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400 rounded-3xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-sm">
                             <FileSpreadsheet className="w-6 h-6" />
@@ -148,7 +148,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                         <span className="font-bold text-slate-900 dark:text-white mb-1">
                             {t('common.import.downloadTemplate')}
                         </span>
-                        <span className="text-xs text-slate-500 dark:text-slate-300 text-center">
+                        <span className="text-xs text-muted-foreground text-center">
                             {t('common.import.downloadTemplateDesc')}
                         </span>
                     </button>
@@ -187,7 +187,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                             <span className="font-bold text-slate-900 dark:text-white mb-1">
                                 {t('common.import.uploadFile')}
                             </span>
-                            <span className="text-xs text-slate-500 dark:text-slate-300 text-center">
+                            <span className="text-xs text-muted-foreground text-center">
                                 {t('common.import.dragDrop')}
                             </span>
                         </div>

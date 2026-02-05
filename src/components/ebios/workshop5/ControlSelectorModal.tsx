@@ -174,7 +174,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('ebios.workshop5.searchControls')}
-              className="w-full pl-10 pr-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+              className="w-full pl-10 pr-4 py-2.5 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             />
           </div>
 

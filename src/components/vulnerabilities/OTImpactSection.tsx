@@ -143,7 +143,7 @@ const AssetMatchCard: React.FC<{
             )}
           </div>
 
-          <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-300 dark:text-white/50">
+          <div className="mt-0.5 text-xs text-muted-foreground dark:text-white/50">
             {asset.manufacturer} {asset.model}
           </div>
 
@@ -202,7 +202,7 @@ const ScorePreview: React.FC<{
   if (!adjustedScore) {
     return (
       <div className={`rounded-3xl border border-dashed border-border/40 dark:border-white/20 ${compact ? 'p-3' : 'p-4'} text-center`}>
-        <p className="text-sm text-slate-500 dark:text-slate-300 dark:text-white/50">
+        <p className="text-sm text-muted-foreground dark:text-white/50">
           Link OT assets to calculate adjusted score
         </p>
       </div>
@@ -223,7 +223,7 @@ const ScorePreview: React.FC<{
         <div className="flex items-center gap-4">
           {/* Base score */}
           <div className="text-center">
-            <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-300 dark:text-white/40">Base</p>
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground dark:text-white/40">Base</p>
             <p className="text-lg font-bold text-slate-700 dark:text-white/70">{baseScore.toFixed(1)}</p>
           </div>
 
@@ -240,7 +240,7 @@ const ScorePreview: React.FC<{
 
           {/* Adjusted score */}
           <div className="text-center">
-            <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-300 dark:text-white/40">OT-Adjusted</p>
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground dark:text-white/40">OT-Adjusted</p>
             <p className={`text-2xl font-bold ${adjustedScore.severity === 'Critical' ? 'text-red-500' : adjustedScore.severity === 'High' ? 'text-orange-500' : adjustedScore.severity === 'Medium' ? 'text-yellow-500' : 'text-green-500'}`}>
               {adjustedScore.adjustedScore.toFixed(1)}
             </p>
@@ -270,7 +270,7 @@ const ScorePreview: React.FC<{
       {/* Factor breakdown */}
       {showDetails && adjustedScore.factors.length > 0 && (
         <div className={`border-t border-border/40 ${compact ? 'p-3' : 'p-4'} space-y-2`}>
-          <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-300 dark:text-white/40 mb-2">
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground dark:text-white/40 mb-2">
             Adjustment Factors
           </p>
           {adjustedScore.factors.map((factor, i) => (
@@ -473,7 +473,7 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
             <h4 className="text-sm font-semibold text-slate-900 dark:text-white">
               {t('otVulnerability.otImpact', 'OT Impact')}
             </h4>
-            <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-white/50">
+            <p className="text-xs text-muted-foreground dark:text-white/50">
               {allMatchedAssets.length} {t('otVulnerability.assetsLinked', 'assets linked')}
             </p>
           </div>
@@ -485,7 +485,7 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
               type="button"
               onClick={handleAutoMatch}
               disabled={isAutoMatching || isLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-xs font-medium transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-xs font-medium transition-colors disabled:bg-muted disabled:text-muted-foreground"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${isAutoMatching ? 'animate-spin' : ''}`} />
               {t('otVulnerability.autoMatch', 'Auto-Match')}
@@ -520,7 +520,7 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
           {/* Asset list */}
           <div className="max-h-48 overflow-y-auto space-y-2">
             {filteredAvailableAssets.length === 0 ? (
-              <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-white/50 text-center py-4">
+              <p className="text-xs text-muted-foreground dark:text-white/50 text-center py-4">
                 {searchQuery
                   ? t('otVulnerability.noAssetsFound', 'No OT assets found')
                   : t('otVulnerability.noOTAssets', 'No OT assets available')}
@@ -538,7 +538,7 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{asset.name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-white/50 truncate">
+                    <p className="text-xs text-muted-foreground dark:text-white/50 truncate">
                       {asset.otDetails?.manufacturer} {asset.otDetails?.model}
                     </p>
                   </div>
@@ -575,7 +575,7 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
       {allMatchedAssets.length === 0 && !showAddAsset && (
         <div className={`rounded-3xl border border-dashed border-border/40 dark:border-white/20 ${compact ? 'p-4' : 'p-6'} text-center`}>
           <Cpu className="h-8 w-8 mx-auto text-slate-300 dark:text-white/30 mb-2" />
-          <p className="text-sm text-slate-500 dark:text-slate-300 dark:text-white/50 mb-1">
+          <p className="text-sm text-muted-foreground dark:text-white/50 mb-1">
             {t('otVulnerability.noOTImpact', 'No OT assets linked')}
           </p>
           <p className="text-xs text-muted-foreground dark:text-white/40">

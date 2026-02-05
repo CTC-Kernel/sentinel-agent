@@ -74,7 +74,7 @@ export const IncidentAIAssistant: React.FC<IncidentAIAssistantProps> = ({ incide
                         <button
                             onClick={handleAnalyzeIncident}
                             disabled={analyzing}
-                            className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl font-bold text-sm transition-all shadow-lg shadow-brand-500/20 flex items-center gap-2 mx-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                            className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl font-bold text-sm transition-all shadow-lg shadow-brand-500/20 flex items-center gap-2 mx-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                         >
                             {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                             {analyzing ? 'Analyse en cours...' : 'Lancer l\'analyse'}
@@ -90,7 +90,7 @@ export const IncidentAIAssistant: React.FC<IncidentAIAssistantProps> = ({ incide
                         <button
                             onClick={handleAnalyzeIncident}
                             disabled={analyzing}
-                            className="p-2 text-muted-foreground hover:text-brand-500 hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="p-2 text-muted-foreground hover:text-brand-500 hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                             title="Relancer l'analyse"
                         >
                             <Loader2 className={`h-4 w-4 ${analyzing ? 'animate-spin' : ''}`} />

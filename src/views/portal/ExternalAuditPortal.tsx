@@ -115,7 +115,7 @@ export const ExternalAuditPortal: React.FC = () => {
                             <div className="flex items-center gap-2 text-brand-600 font-medium text-sm mb-2">
                                 <span className="bg-brand-50 dark:bg-brand-900 px-2 py-1 rounded text-xs uppercase tracking-wider">{audit.type}</span>
                                 <ChevronRight className="w-3 h-3 text-slate-300" />
-                                <span className="text-slate-500 dark:text-slate-400">{new Date(audit.date).toLocaleDateString()}</span>
+                                <span className="text-muted-foreground">{new Date(audit.date).toLocaleDateString()}</span>
                             </div>
                             <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">{audit.name}</h1>
                             <p className="text-slate-600 dark:text-slate-300 max-w-2xl">{audit.description}</p>
@@ -234,7 +234,7 @@ export const ExternalAuditPortal: React.FC = () => {
                                 <CheckCircle className="w-5 h-5 text-brand-500" />
                                 {t('certifier.portal.evidence.title')}
                             </h2>
-                            <p className="text-sm text-slate-500 dark:text-slate-300 mb-6">{t('certifier.portal.evidence.subtitle')}</p>
+                            <p className="text-sm text-muted-foreground mb-6">{t('certifier.portal.evidence.subtitle')}</p>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {auditData.documents && auditData.documents.length > 0 ? (
@@ -247,7 +247,7 @@ export const ExternalAuditPortal: React.FC = () => {
                                                 <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-1 rounded">{doc.type}</span>
                                             </div>
                                             <h4 className="font-medium text-sm text-slate-900 dark:text-white mb-1 truncate" title={doc.name}>{doc.name}</h4>
-                                            <p className="text-xs text-slate-500 dark:text-slate-300 mb-3">{doc.category || t('certifier.portal.evidence.defaultCategory')}</p>
+                                            <p className="text-xs text-muted-foreground mb-3">{doc.category || t('certifier.portal.evidence.defaultCategory')}</p>
 
                                             <a
                                                 href={doc.url}
@@ -260,7 +260,7 @@ export const ExternalAuditPortal: React.FC = () => {
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="col-span-full py-12 text-center text-slate-500 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/20 rounded-xl border border-dashed border-slate-200 dark:border-white/10">
+                                    <div className="col-span-full py-12 text-center text-muted-foreground bg-slate-50 dark:bg-slate-900/20 rounded-xl border border-dashed border-slate-200 dark:border-white/10">
                                         {t('certifier.portal.evidence.empty')}
                                     </div>
                                 )}

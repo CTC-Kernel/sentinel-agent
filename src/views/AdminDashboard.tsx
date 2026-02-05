@@ -186,10 +186,10 @@ export const AdminDashboard: React.FC = () => {
                         <table className="w-full">
                             <thead className="bg-slate-50 dark:bg-slate-800/50">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('admin.orgs.name')}</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('admin.orgs.plan')}</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('admin.orgs.created')}</th>
-                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('admin.orgs.actions')}</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('admin.orgs.name')}</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('admin.orgs.plan')}</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('admin.orgs.created')}</th>
+                                    <th className="px-6 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('admin.orgs.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -204,7 +204,7 @@ export const AdminDashboard: React.FC = () => {
                                                 {org.planId || 'discovery'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">
+                                        <td className="px-6 py-4 text-sm text-muted-foreground font-medium">
                                             {org.createdAt ? new Date(org.createdAt).toLocaleDateString() : '-'}
                                         </td>
                                         <td className="px-6 py-4 text-right">

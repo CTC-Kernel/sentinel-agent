@@ -197,7 +197,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
                                 disabled={isSaving}
                                 className={cn(
                                     'w-full px-2 py-1 text-sm bg-white dark:bg-slate-800 border rounded-lg',
-                                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400',
+                                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                                     'transition-colors duration-200',
                                     error
                                         ? 'border-error-500 focus-visible:ring-error-500/50'
@@ -224,7 +224,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
                                     type="button"
                                     onClick={saveValue}
                                     disabled={isSaving}
-                                    className="p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/20 rounded-lg transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                                    className="p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/20 rounded-lg transition-colors disabled:bg-muted disabled:text-muted-foreground"
                                     aria-label={t('common.save', { defaultValue: 'Sauvegarder' })}
                                 >
                                     {isSaving ? (
@@ -237,7 +237,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
                                     type="button"
                                     onClick={cancelEditing}
                                     disabled={isSaving}
-                                    className="p-1.5 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                                    className="p-1.5 text-muted-foreground hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:bg-muted disabled:text-muted-foreground"
                                     aria-label={t('common.cancel', { defaultValue: 'Annuler' })}
                                 >
                                     <X className="h-4 w-4" />

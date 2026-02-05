@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ShieldAlert, Server, CheckCircle2 } from './ui/Icons';
 import { useRelationshipsData } from '../hooks/relationships/useRelationshipsData';
 
@@ -11,6 +11,7 @@ interface RelationshipGraphProps {
 
 export const RelationshipGraph = React.memo<RelationshipGraphProps>(({ rootId, rootType, width = 800, height = 600 }) => {
     const { nodes, links, loading } = useRelationshipsData(rootId, rootType, width, height);
+    const nodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
 
     if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full"></div></div>;
 
@@ -25,8 +26,8 @@ export const RelationshipGraph = React.memo<RelationshipGraphProps>(({ rootId, r
 
                 {/* Links */}
                 {links.map((link) => {
-                    const source = nodes.find(n => n.id === link.source);
-                    const target = nodes.find(n => n.id === link.target);
+                    const source = nodeMap.get(link.source);
+                    const target = nodeMap.get(link.target);
                     if (!source || !target) return null;
                     return (
                         <line

@@ -104,13 +104,13 @@ export function RowActionsMenu({
               className={cn(
                 'p-2 rounded-3xl transition-all duration-150',
                 'hover:bg-slate-100 dark:hover:bg-slate-800',
-                'focus:outline-none focus:ring-2 focus-visible:ring-brand-300 focus:ring-offset-0',
+                'focus:outline-none focus:ring-2 focus-visible:ring-primary focus:ring-offset-0',
                 open && 'bg-slate-100 dark:bg-slate-800'
               )}
               aria-label={ariaLabel || 'Actions'}
               aria-haspopup="menu"
             >
-              <MoreVertical className="h-4 w-4 text-slate-500 dark:text-slate-300" />
+              <MoreVertical className="h-4 w-4 text-muted-foreground" />
             </Menu.Button>
 
             <Transition

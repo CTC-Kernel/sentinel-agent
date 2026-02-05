@@ -94,15 +94,15 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload }) => {
       </div>
       <div className="space-y-1 text-sm">
         <div className="flex justify-between">
-          <span className="text-slate-500 dark:text-slate-400">{t('vendorConcentration.chart.vendors')}</span>
+          <span className="text-muted-foreground">{t('vendorConcentration.chart.vendors')}</span>
           <span className="font-medium text-slate-900 dark:text-white">{data.vendorCount}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-slate-500 dark:text-slate-400">{t('vendorConcentration.chart.share')}</span>
+          <span className="text-muted-foreground">{t('vendorConcentration.chart.share')}</span>
           <span className="font-medium text-slate-900 dark:text-white">{formatPercentage(data.percentage)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-slate-500 dark:text-slate-400">HHI</span>
+          <span className="text-muted-foreground">HHI</span>
           <span className={`font-medium ${data.hhi > 2500 ? 'text-error-text' : data.hhi > 1500 ? 'text-warning-text' : 'text-success-text'
             }`}>
             {Math.round(data.hhi)}
@@ -229,7 +229,7 @@ const VendorList: React.FC<VendorListProps> = ({ category, onBack }) => {
         <h3 className="text-lg font-medium text-slate-900 dark:text-white">
           {category.categoryLabel}
         </h3>
-        <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           {category.vendorCount} {t('vendorConcentration.chart.vendor', { count: category.vendorCount })} • HHI: {Math.round(category.herfindahlIndex)}
         </p>
       </div>
@@ -377,7 +377,7 @@ export const CategoryChart: React.FC<CategoryChartProps> = ({
 
       {/* Legend */}
       <div className="lg:w-64 space-y-1">
-        <p className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-3">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
           {t('vendorConcentration.chart.categories')}
         </p>
         {categories.map((category, index) => (

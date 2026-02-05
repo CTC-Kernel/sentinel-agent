@@ -201,12 +201,12 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
 
                 <div className="flex items-center justify-between text-[11px] font-medium text-slate-600 dark:text-muted-foreground">
                     <div className="flex flex-col">
-                        <span className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-0.5">Début</span>
+                        <span className="text-[11px] uppercase tracking-wider text-muted-foreground mb-0.5">Début</span>
                         <span>{startDate.toLocaleDateString(config.intlLocale, { day: 'numeric', month: 'short' })}</span>
                     </div>
                     <div className="text-slate-300 dark:text-slate-700">→</div>
                     <div className="flex flex-col items-end">
-                        <span className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-0.5">Fin</span>
+                        <span className="text-[11px] uppercase tracking-wider text-muted-foreground mb-0.5">Fin</span>
                         <span>{endDate.toLocaleDateString(config.intlLocale, { day: 'numeric', month: 'short' })}</span>
                     </div>
                 </div>
@@ -257,7 +257,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                                     <div className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                         {t.name}
                                     </div>
-                                    <div className="text-[11px] text-slate-500 dark:text-slate-300 truncate">
+                                    <div className="text-[11px] text-muted-foreground truncate">
                                         {new Date(t.start).toLocaleDateString()} - {new Date(t.end).toLocaleDateString()}
                                     </div>
                                 </div>

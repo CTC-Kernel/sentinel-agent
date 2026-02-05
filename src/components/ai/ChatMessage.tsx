@@ -45,7 +45,7 @@ const markdownComponents: Components = {
     ),
     thead: ({ children }) => <thead className="bg-slate-50 dark:bg-slate-900">{children}</thead>,
     th: ({ children }) => (
-        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+        <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             {children}
         </th>
     ),
@@ -79,13 +79,13 @@ const markdownComponents: Components = {
         return !inline && match ? (
             <div className="rounded-lg overflow-hidden my-3 shadow-md border border-border/40 dark:border-slate-700/50 group/code">
                 <div className="flex items-center justify-between px-3 py-1.5 bg-slate-100 dark:bg-slate-900 border-b border-border/40 dark:border-slate-700/50">
-                    <span className="text-[11px] font-mono font-medium text-slate-500 dark:text-slate-300 uppercase tracking-widest">{match[1]}</span>
+                    <span className="text-[11px] font-mono font-medium text-muted-foreground uppercase tracking-widest">{match[1]}</span>
                     <button
                         type="button"
                         onClick={() => {
                             navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
                         }}
-                        className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-brand-600 dark:hover:text-brand-400 transition-colors opacity-0 group-hover/code:opacity-70"
+                        className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-brand-600 dark:hover:text-brand-400 transition-colors opacity-70"
                         aria-label="Copier le code"
                     >
                         <Copy className="h-3 w-3" />

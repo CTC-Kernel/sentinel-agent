@@ -77,7 +77,7 @@ export const ProjectDependencies: React.FC<ProjectDependenciesProps> = ({
                     case 'controls': {
                         const control = item as Control;
                         return (
-                            <div key={control.id || 'unknown'} className="cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded" onClick={() => setSelectedControl(control)} onKeyDown={(e) => e.key === 'Enter' && setSelectedControl(control)} role="button" tabIndex={0} aria-label={`Voir le contrôle ${control.name}`}>
+                            <div key={control.id || 'unknown'} className="cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded" onClick={() => setSelectedControl(control)} onKeyDown={(e) => e.key === 'Enter' && setSelectedControl(control)} role="button" tabIndex={0} aria-label={`Voir le contrôle ${control.name}`}>
                                 <LinkedControlItem control={control} />
                             </div>
                         );
@@ -224,7 +224,7 @@ const LinkedRiskItem = React.memo(({ risk, onClick }: { risk: Risk, onClick: () 
             onKeyDown={handleKeyDown}
             role="button"
             tabIndex={0}
-            className="cursor-pointer glass-premium p-4 rounded-3xl border border-border/40 flex justify-between items-center group hover:bg-white/50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="cursor-pointer glass-premium p-4 rounded-3xl border border-border/40 flex justify-between items-center group hover:bg-white/50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
             <div>
                 <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{risk.threat}</h4>
@@ -254,7 +254,7 @@ const LinkedAssetItem = React.memo(({ asset, onClick }: { asset: Asset, onClick:
             onKeyDown={handleKeyDown}
             role="button"
             tabIndex={0}
-            className="cursor-pointer glass-premium p-4 rounded-3xl border border-border/40 flex items-center gap-4 group hover:bg-white/50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="cursor-pointer glass-premium p-4 rounded-3xl border border-border/40 flex items-center gap-4 group hover:bg-white/50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
             <div className="h-10 w-10 rounded-lg bg-brand-100 text-brand-600 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
                 <Server className="h-5 w-5" />
@@ -281,12 +281,12 @@ const LinkedAuditItem = React.memo(({ audit, onClick }: { audit: Audit, onClick:
             onKeyDown={handleKeyDown}
             role="button"
             tabIndex={0}
-            className="cursor-pointer glass-premium p-4 rounded-3xl border border-border/40 bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/10 transition-colors group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="cursor-pointer glass-premium p-4 rounded-3xl border border-border/40 bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/10 transition-colors group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
             <div className="flex justify-between items-start">
                 <div>
                     <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{audit.name}</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">Ref: {audit.reference}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Ref: {audit.reference}</p>
                 </div>
                 <Badge status={audit.status === 'Validé' || audit.status === 'Terminé' ? 'success' : 'warning'}>{audit.status}</Badge>
             </div>

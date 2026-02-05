@@ -163,7 +163,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                             data-tour="theme-toggle"
                             onClick={handleThemeToggle}
                             disabled={isTogglingTheme}
-                            className={`p-2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all focus:outline-none focus:ring-2 focus-visible:ring-brand-400 ${isTogglingTheme ? 'opacity-50 cursor-wait animate-pulse' : ''}`}
+                            className={`p-2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all focus:outline-none focus:ring-2 focus-visible:ring-primary ${isTogglingTheme ? 'opacity-50 cursor-wait animate-pulse' : ''}`}
                             aria-label="Toggle Theme"
                         >
                             {isTogglingTheme ? <Spinner size="sm" /> : (theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />)}

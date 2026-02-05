@@ -79,7 +79,7 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
                             placeholder={t('continuity.pra.searchPlaceholder', { defaultValue: 'Rechercher un plan...' })}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl text-sm focus:outline-none focus:ring-2 focus-visible:ring-brand-500 transition-all placeholder:text-muted-foreground dark:text-white"
+                            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl text-sm focus:outline-none focus:ring-2 focus-visible:ring-primary transition-all placeholder:text-muted-foreground dark:text-white"
                         />
                     </div>
                     <Button onClick={() => { setEditingPlan(undefined); setIsInspectorOpen(true); }} className="gap-2 shrink-0">

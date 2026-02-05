@@ -90,7 +90,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                     <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/20 dark:bg-brand-400/15 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 relative z-10">
                         <div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">{t('privacy.request.requester', { defaultValue: 'Demandeur' })}</h4>
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">{t('privacy.request.requester', { defaultValue: 'Demandeur' })}</h4>
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="h-12 w-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xl font-bold text-slate-600 dark:text-muted-foreground">
                                     {request.dataSubject.charAt(0)}
@@ -104,7 +104,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                             </div>
                         </div>
                         <div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">{t('privacy.request.details', { defaultValue: 'Détails de la demande' })}</h4>
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">{t('privacy.request.details', { defaultValue: 'Détails de la demande' })}</h4>
                             <div className="space-y-3">
                                 <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl border border-border/40 dark:border-border/40">
                                     <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">{t('privacy.request.type', { defaultValue: 'Type' })}</span>
@@ -140,7 +140,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
 
                 {/* Workflow Actions */}
                 <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 shadow-sm">
-                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-6">{t('privacy.request.workflow', { defaultValue: 'Workflow de Traitement' })}</h4>
+                    <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">{t('privacy.request.workflow', { defaultValue: 'Workflow de Traitement' })}</h4>
 
                     <div className="relative pl-8 border-l-2 border-border/40 dark:border-slate-700 space-y-6 sm:space-y-8">
                         {['New', 'Verifying', 'Processing', 'Review', 'Completed'].map((step) => {
@@ -168,14 +168,14 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                                             <button
                                                 onClick={handleAdvanceStep}
                                                 disabled={isAdvancing || step === 'Completed'}
-                                                className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl text-sm font-bold transition-all shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-3xl text-sm font-bold transition-all shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 {isAdvancing ? t('privacy.request.updating', { defaultValue: 'Mise à jour...' }) : t('privacy.request.validateStep', { defaultValue: "Valider l'étape" })}
                                             </button>
                                             <button
                                                 onClick={handlePutOnHold}
                                                 disabled={isHolding}
-                                                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-3xl text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-3xl text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 {isHolding ? t('privacy.request.updating', { defaultValue: 'Mise à jour...' }) : t('privacy.request.putOnHoldBtn', { defaultValue: 'Mettre en attente' })}
                                             </button>

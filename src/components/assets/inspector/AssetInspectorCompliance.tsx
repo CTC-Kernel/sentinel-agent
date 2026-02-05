@@ -18,7 +18,7 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
     const { t } = useTranslation();
     return (
         <div className="space-y-6 sm:space-y-8">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4 flex items-center">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center">
                 <Shield className="h-4 w-4 mr-2" /> {t('common.inspector.compliance.securityControls')} ({linkedControls.length})
             </h3>
             {linkedControls.length === 0 ? (
@@ -50,7 +50,7 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
 
             {/* Supported Processes */}
             <div className="glass-premium p-6 rounded-3xl border border-border/40 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4 flex items-center">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center">
                     <HeartPulse className="h-4 w-4 mr-2" /> {t('common.inspector.compliance.supportedProcesses')}
                 </h3>
                 {(() => {
@@ -64,7 +64,7 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
                                 </div>
                             ))}
                         </div>
-                    ) : <p className="text-sm text-slate-500 dark:text-slate-300 italic">{t('common.inspector.compliance.noProcesses')}</p>;
+                    ) : <p className="text-sm text-muted-foreground italic">{t('common.inspector.compliance.noProcesses')}</p>;
                 })()}
             </div>
         </div>

@@ -45,7 +45,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                                         key={tab.id || 'unknown'}
                                         onClick={() => onTabChange(tab.id)}
                                         className={cn(
-                                            "relative flex items-center whitespace-nowrap px-4 py-2 rounded-2xl font-medium text-sm transition-all flex-shrink-0 select-none snap-center focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
+                                            "relative flex items-center whitespace-nowrap px-4 py-2 rounded-2xl font-medium text-sm transition-all flex-shrink-0 select-none snap-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                                             isActive ? "text-white" : "text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-slate-200"
                                         )}
                                     >
@@ -76,10 +76,10 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                                         key={tab.id || 'unknown'}
                                         onClick={() => onTabChange(tab.id)}
                                         className={cn(
-                                            "group flex items-center w-full px-4 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all text-left relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset",
+                                            "group flex items-center w-full px-4 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all text-left relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset",
                                             isActive
                                                 ? "bg-brand-500 text-white shadow-md shadow-brand-500/20 border border-border/40"
-                                                : "text-slate-500 dark:text-slate-300 hover:bg-slate-50/80 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-200"
+                                                : "text-muted-foreground hover:bg-slate-50/80 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-200"
                                         )}
                                     >
                                         <tab.icon className={cn(

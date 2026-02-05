@@ -28,9 +28,9 @@ export const Switch: React.FC<SwitchProps> = ({
             disabled={disabled}
             onClick={() => !disabled && onChange(!checked)}
             className={`
-                relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:ring-offset-2
-                ${checked ? 'bg-brand-600' : 'bg-slate-200 dark:bg-slate-700'}
-                ${disabled ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}
+                relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus-visible:ring-primary focus:ring-offset-2
+                ${checked ? 'bg-primary' : 'bg-muted'}
+                ${disabled ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'cursor-pointer'}
                 ${className}
             `}
         >

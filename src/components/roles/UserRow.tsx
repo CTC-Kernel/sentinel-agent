@@ -56,7 +56,7 @@ export const UserRow: React.FC<UserRowProps> = ({
                     <select
                         value={selectedRole}
                         onChange={(e) => onRoleChange(e.target.value as Role)}
-                        className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-lg text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
+                        className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-lg text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus-visible:ring-primary"
                     >
                         <option value="admin">Administrateur</option>
                         <option value="rssi">RSSI</option>
@@ -102,7 +102,7 @@ export const UserRow: React.FC<UserRowProps> = ({
                     <button
                         onClick={() => onEditStart(user.uid, user.role as Role)}
                         disabled={user.uid === currentUser?.uid}
-                        className="p-2 text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-800 rounded-lg transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600"
+                        className="p-2 text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-800 rounded-lg transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600"
                         title="Modifier le rôle"
                     >
                         <Edit className="h-4 w-4" />

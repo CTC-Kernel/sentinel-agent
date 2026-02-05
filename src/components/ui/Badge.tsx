@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '../../lib/utils';
 
 type BadgeIconComponent = React.ElementType<{ className?: string }>;
 
@@ -78,7 +79,7 @@ export const Badge: React.FC<BadgeProps> = React.memo(({
 
     return (
         <Component
-            className={`${baseStyles} ${sizeStyles[size]} ${getStatusStyles()} ${className} ${onClick ? 'cursor-pointer hover:opacity-90 active:scale-95' : ''}`}
+            className={cn(baseStyles, sizeStyles[size], getStatusStyles(), onClick && 'cursor-pointer hover:opacity-90 active:scale-95', className)}
             onClick={onClick}
             type={onClick ? "button" : undefined}
             {...props}

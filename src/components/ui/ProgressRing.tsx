@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { BRAND_COLORS } from '../../constants/colors';
 
 interface ProgressRingProps {
@@ -22,6 +22,9 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
     label,
     className = ''
 }) => {
+    const uid = useId();
+    const gradientId = `progressGradient-${uid}`;
+    const glowId = `progressGlow-${uid}`;
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
     const offset = circumference - (progress / 100) * circumference;
@@ -35,14 +38,14 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
     const isComplete = progress >= 100;
 
     return (
-        <div className={`relative inline-flex items-center justify-center ${className}`}>
-            <svg width={size} height={size} className="transform -rotate-90 overflow-visible">
+        <div className={`relative inline-flex items-center justify-center ${className}`} role="meter" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100} aria-label={label || `${Math.round(progress)}%`}>
+            <svg width={size} height={size} className="transform -rotate-90 overflow-visible" aria-hidden="true">
                 <defs>
-                    <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%" stopColor={color} stopOpacity={1} />
                         <stop offset="100%" stopColor={color} stopOpacity={0.7} />
                     </linearGradient>
-                    <filter id="progressGlow" x="-50%" y="-50%" width="200%" height="200%">
+                    <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
                         <feGaussianBlur stdDeviation="4" result="coloredBlur" />
                         <feMerge>
                             <feMergeNode in="coloredBlur" />
@@ -66,14 +69,14 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
                     cx={size / 2}
                     cy={size / 2}
                     r={radius}
-                    stroke="url(#progressGradient)"
+                    stroke={`url(#${gradientId})`}
                     strokeWidth={strokeWidth}
                     fill="none"
                     strokeDasharray={circumference}
                     strokeDashoffset={offset}
                     strokeLinecap="round"
                     className="transition-all duration-1000 ease-out"
-                    filter="url(#progressGlow)"
+                    filter={`url(#${glowId})`}
                 />
 
                 {/* Animated tip glow */}

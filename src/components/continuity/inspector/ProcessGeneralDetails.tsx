@@ -21,7 +21,7 @@ export const ProcessGeneralDetails: React.FC<ProcessGeneralDetailsProps> = ({ pr
                     </div>
                     <div className="flex items-center gap-2 mb-2">
                         <Clock className="h-4 w-4 text-slate-500" />
-                        <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('continuity.rto')}</span>
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('continuity.rto')}</span>
                     </div>
                     <span className="text-3xl font-black text-slate-900 dark:text-white">{process.rto}</span>
                 </div>
@@ -31,7 +31,7 @@ export const ProcessGeneralDetails: React.FC<ProcessGeneralDetailsProps> = ({ pr
                     </div>
                     <div className="flex items-center gap-2 mb-2">
                         <Activity className="h-4 w-4 text-slate-500" />
-                        <span className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('continuity.rpo')}</span>
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('continuity.rpo')}</span>
                     </div>
                     <span className="text-3xl font-black text-slate-900 dark:text-white">{process.rpo}</span>
                 </div>
@@ -39,18 +39,18 @@ export const ProcessGeneralDetails: React.FC<ProcessGeneralDetailsProps> = ({ pr
 
             {/* Description */}
             <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">{t('common.description')}</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">{t('common.description')}</h3>
                 <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">{process.description}</p>
             </div>
 
             {/* Recovery Tasks */}
             <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 mb-4">{t('continuity.recoveryPlan')}</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">{t('continuity.recoveryPlan')}</h3>
                 <div className="space-y-3">
                     {process.recoveryTasks?.length ? process.recoveryTasks.map((task, i) => (
                         <div key={`dep-${i || 'unknown'}`} className="flex gap-4 p-4 bg-slate-50 dark:bg-black/20 rounded-3xl border border-border/40 dark:border-white/5 group hover:border-brand-200 dark:hover:border-brand-800 transition-colors">
                             <div className="flex-none">
-                                <div className="w-8 h-8 rounded-full bg-white dark:bg-white/10 flex items-center justify-center text-xs font-bold text-slate-500 dark:text-slate-300 border border-border/40 dark:border-border/40 shadow-sm">
+                                <div className="w-8 h-8 rounded-full bg-white dark:bg-white/10 flex items-center justify-center text-xs font-bold text-muted-foreground border border-border/40 dark:border-border/40 shadow-sm">
                                     {i + 1}
                                 </div>
                             </div>
@@ -66,7 +66,7 @@ export const ProcessGeneralDetails: React.FC<ProcessGeneralDetailsProps> = ({ pr
                                 </div>
                             </div>
                         </div>
-                    )) : <p className="text-sm text-slate-500 dark:text-slate-300 italic">{t('continuity.noSteps')}</p>}
+                    )) : <p className="text-sm text-muted-foreground italic">{t('continuity.noSteps')}</p>}
                 </div>
             </div>
         </div>

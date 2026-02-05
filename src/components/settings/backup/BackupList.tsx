@@ -76,7 +76,7 @@ export const BackupList: React.FC<BackupListProps> = ({
                                             size="icon"
                                             aria-label="Télécharger le backup"
                                             onClick={(e: React.MouseEvent) => { e.stopPropagation(); onDownload(backup.id); }}
-                                            className="p-1.5 text-muted-foreground hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:hover:bg-blue-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-70 focus:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                            className="p-1.5 text-muted-foreground hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:hover:bg-blue-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-70 focus:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                             title="Télécharger"
                                         >
                                             <Download className="h-4 w-4" />
@@ -90,7 +90,7 @@ export const BackupList: React.FC<BackupListProps> = ({
                                             e.stopPropagation();
                                             onDelete(backup.id); // Just propagate ID, parent handles confirmation
                                         }}
-                                        className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-70 focus:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                        className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-70 focus:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                         title="Supprimer"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -105,14 +105,14 @@ export const BackupList: React.FC<BackupListProps> = ({
                                     <p className="text-sm font-bold text-slate-900 dark:text-white">
                                         {format(new Date(backup.createdAt), "d MMM yyyy", { locale: dateFnsLocale })}
                                     </p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-300 font-medium">
+                                    <p className="text-xs text-muted-foreground font-medium">
                                         {format(new Date(backup.createdAt), "HH:mm", { locale: dateFnsLocale })} • {backup.collections.length} collections
                                     </p>
                                 </div>
                             </div>
                             <div className="flex flex-wrap gap-1">
                                 {backup.collections.slice(0, 3).map(c => (
-                                    <span key={c || 'unknown'} className="text-[11px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500 dark:text-slate-300 capitalize">{c}</span>
+                                    <span key={c || 'unknown'} className="text-[11px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-muted-foreground capitalize">{c}</span>
                                 ))}
                                 {backup.collections.length > 3 && (
                                     <span className="text-[11px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500">+{backup.collections.length - 3}</span>

@@ -412,9 +412,10 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                         'flex-1 p-3 rounded-2xl border border-border/30',
                         getScoreBg(reliableComplianceScore)
                     )}>
-                        <div className="flex items-center gap-1.5 mb-1">
+                        <div className="flex items-center gap-1.5 mb-1" title="Calculé depuis les résultats des checks : (pass / total applicable) × 100. Améliorez le score en corrigeant les checks en erreur.">
                             <Shield className="h-3.5 w-3.5 text-muted-foreground" />
                             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Score Conformité</span>
+                            <span className="text-[10px] text-muted-foreground/50 cursor-help" aria-label="Comment ce score est-il calculé ?">ⓘ</span>
                         </div>
                         <div className="flex items-baseline gap-2">
                             <span className={cn('text-2xl font-black', getScoreColor(reliableComplianceScore))}>

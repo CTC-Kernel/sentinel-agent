@@ -50,7 +50,7 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
                         placeholder="Rechercher une demande (Nom, ID)..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none"
+                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl text-sm focus:ring-2 focus-visible:ring-primary outline-none"
                         aria-label="Rechercher une demande"
                     />
                 </div>
@@ -58,7 +58,7 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="px-4 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl text-sm font-medium outline-none focus:ring-2 focus-visible:ring-brand-500"
+                        className="px-4 py-2 bg-white dark:bg-slate-800 border border-border/40 dark:border-border/40 rounded-3xl text-sm font-medium outline-none focus:ring-2 focus-visible:ring-primary"
                     >
                         <option value="All">Tous les statuts</option>
                         <option value="New">Nouveaux</option>
@@ -94,7 +94,7 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
                                     <div>
                                         <div className="flex items-center gap-2 mb-1">
                                             <span className="font-bold text-slate-900 dark:text-white">{req.dataSubject}</span>
-                                            <span className="text-xs text-slate-500 dark:text-slate-300 px-2 py-0.5 bg-slate-100 dark:bg-slate-900 rounded-md font-mono">{req.id}</span>
+                                            <span className="text-xs text-muted-foreground px-2 py-0.5 bg-slate-100 dark:bg-slate-900 rounded-md font-mono">{req.id}</span>
                                         </div>
                                         <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-muted-foreground">
                                             <span className="flex items-center gap-1">
@@ -108,7 +108,7 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
                                 </div>
                                 <div className="flex items-center gap-4 self-end md:self-center">
                                     <div className="text-right hidden md:block">
-                                        <div className="text-xs text-slate-500 dark:text-slate-300 mb-1">Reçu le</div>
+                                        <div className="text-xs text-muted-foreground mb-1">Reçu le</div>
                                         <div className="text-sm font-medium">{format(new Date(req.submissionDate), 'dd MMM yyyy', { locale: dateFnsLocale })}</div>
                                     </div>
                                     <Badge status={getStatusColor(req.status) as 'info' | 'brand' | 'success' | 'error' | 'neutral'}>{req.status}</Badge>

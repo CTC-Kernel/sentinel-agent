@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
 import { SentinelAgent, AgentCheckResult } from '../../types/agent';
+import { computeScoreFromResults } from '../../utils/agentUtils';
 import { SENTINEL_PALETTE, CHART_STYLES } from '../../theme/chartTheme';
 import { useLocale } from '@/hooks/useLocale';
 import { ChartTooltip } from '../ui/ChartTooltip';
@@ -19,18 +20,6 @@ import {
     AlertTriangle, Cpu
 } from '../ui/Icons';
 import { cn } from '../../lib/utils';
-
-/**
- * Compute compliance score from actual check results (pass / (pass + fail + error) * 100).
- * Returns null if no applicable results.
- */
-function computeScoreFromResults(results: AgentCheckResult[]): number | null {
-    if (!results || results.length === 0) return null;
-    const applicable = results.filter(r => r.status !== 'not_applicable');
-    if (applicable.length === 0) return null;
-    const passed = applicable.filter(r => r.status === 'pass').length;
-    return Math.round((passed / applicable.length) * 100);
-}
 
 interface AgentFleetDashboardProps {
     agents: SentinelAgent[];
@@ -242,11 +231,16 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
                 <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                     {/* Left: Main Stats */}
                     <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                            <span role="img" aria-label="Actif" className="inline-flex h-2 w-2 rounded-full bg-success animate-pulse shadow-glow shadow-success/30" />
-                            <p className="text-[11px] font-black uppercase tracking-[0.25em] text-muted-foreground">
-                                Fleet d'agents
-                            </p>
+                        <div className="flex items-center gap-2 justify-between">
+                            <div className="flex items-center gap-2">
+                                <span role="img" aria-label="Actif" className="inline-flex h-2 w-2 rounded-full bg-success animate-pulse shadow-glow shadow-success/30" />
+                                <p className="text-[11px] font-black uppercase tracking-[0.25em] text-muted-foreground">
+                                    Fleet d'agents
+                                </p>
+                            </div>
+                            <span className="text-[11px] font-medium text-muted-foreground/70" title="Dernière mise à jour des données">
+                                Mis à jour : {new Date().toLocaleTimeString(config.intlLocale, { hour: '2-digit', minute: '2-digit' })}
+                            </span>
                         </div>
                         <div className="flex items-baseline gap-4">
                             <span className="text-5xl md:text-6xl font-black text-foreground tracking-tight">

@@ -365,7 +365,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">
             Méthodes & Ateliers d'Audit
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Méthodologies structurées pour conduire vos audits de sécurité
           </p>
         </div>
@@ -646,7 +646,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                                         <Badge status="warning" size="sm">Requis</Badge>
                                       )}
                                     </div>
-                                    <p className="text-sm text-slate-500 dark:text-slate-300 mt-0.5">{task.description}</p>
+                                    <p className="text-sm text-muted-foreground mt-0.5">{task.description}</p>
                                     {task.helpText && (
                                       <p className="text-xs text-indigo-500 mt-1 flex items-center gap-1">
                                         <BookOpen className="w-3 h-3" />
@@ -660,7 +660,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
 
                             {phase.deliverables && phase.deliverables.length > 0 && (
                               <div className="mt-4 pt-4 border-t border-border/40 dark:border-slate-700">
-                                <h6 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                <h6 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
                                   Livrables de cette phase
                                 </h6>
                                 <div className="flex flex-wrap gap-2">
@@ -695,7 +695,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
               Sélectionnez une méthode d'audit
             </h3>
-            <p className="text-slate-500 dark:text-slate-400">
+            <p className="text-muted-foreground">
               Choisissez un type d'audit ci-dessus pour voir la méthodologie détaillée et démarrer un atelier interactif.
             </p>
           </div>

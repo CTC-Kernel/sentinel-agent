@@ -348,7 +348,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                         type="submit"
                                         isLoading={loading}
                                         disabled={loading || (!isLogin && !privacyAccepted)}
-                                        className="w-full py-3 sm:py-4 lg:py-5 font-bold rounded-2xl shadow-primary/20 shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all disabled:opacity-70 disabled:cursor-not-allowed dark:disabled:bg-slate-700 dark:disabled:text-slate-400 dark:disabled:border-slate-600 relative overflow-hidden group/btn"
+                                        className="w-full py-3 sm:py-4 lg:py-5 font-bold rounded-2xl shadow-primary/20 shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all disabled:opacity-70 disabled:cursor-not-allowed dark:disabled:border-slate-600 relative overflow-hidden group/btn"
                                     >
                                         <span className="relative z-10 flex items-center justify-center">
                                             {isLogin ? t('auth.login') : t('auth.signup')}

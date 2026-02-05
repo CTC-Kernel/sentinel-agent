@@ -271,7 +271,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2 rounded-3xl bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors disabled:bg-slate-200 disabled:text-slate-600 dark:disabled:bg-slate-700 dark:disabled:text-slate-600"
+              className="px-6 py-2 rounded-3xl bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors disabled:bg-muted disabled:text-muted-foreground"
             >
               {isSubmitting ? t('common.saving') : isEdit ? t('common.save') : t('common.create')}
             </button>

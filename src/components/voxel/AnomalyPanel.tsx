@@ -295,7 +295,7 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
                   handleDismissConfirm();
                 }}
                 disabled={!dismissReason.trim()}
-                className="px-3 py-1.5 text-xs bg-yellow-500/20 text-yellow-400 rounded-lg hover:bg-yellow-500/30 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                className="px-3 py-1.5 text-xs bg-yellow-500/20 text-yellow-400 rounded-lg hover:bg-yellow-500/30 disabled:bg-muted disabled:text-muted-foreground"
               >
                 Confirmer
               </button>
@@ -555,7 +555,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
                 <button
                   onClick={handleRefresh}
                   disabled={isRefreshing}
-                  className="p-1.5 rounded-lg bg-white/5 text-white/60 hover:text-white transition-colors disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                  className="p-1.5 rounded-lg bg-white/5 text-white/60 hover:text-white transition-colors disabled:bg-muted disabled:text-muted-foreground"
                   title="Actualiser"
                 >
                   <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />

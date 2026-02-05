@@ -137,3 +137,14 @@ export const useStore = create<AppState>((set) => ({
     return { activeFramework };
   }),
 }));
+
+// Optimized selectors — subscribe to specific slices to prevent unnecessary re-renders.
+// Functions (addToast, t, setUser, etc.) are stable references and never trigger re-renders.
+export const useUser = () => useStore(state => state.user);
+export const useOrganization = () => useStore(state => state.organization);
+export const useTheme = () => useStore(state => state.theme);
+export const useAddToast = () => useStore(state => state.addToast);
+export const useTranslate = () => useStore(state => state.t);
+export const useLanguage = () => useStore(state => state.language);
+export const useDemoMode = () => useStore(state => state.demoMode);
+export const useActiveFramework = () => useStore(state => state.activeFramework);

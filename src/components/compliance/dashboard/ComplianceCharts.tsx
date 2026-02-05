@@ -151,8 +151,8 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                         </feMerge>
                     </filter>
                     <linearGradient id="complianceScoreGradient" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor={overallScore >= 80 ? SENTINEL_PALETTE.success : overallScore >= 50 ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical} />
-                        <stop offset="100%" stopColor={overallScore >= 80 ? SENTINEL_PALETTE.success : overallScore >= 50 ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical} />
+                        <stop offset="0%" stopColor={overallScore >= 75 ? SENTINEL_PALETTE.success : overallScore >= 50 ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical} />
+                        <stop offset="100%" stopColor={overallScore >= 75 ? SENTINEL_PALETTE.success : overallScore >= 50 ? SENTINEL_PALETTE.warning : SEVERITY_COLORS.critical} />
                     </linearGradient>
                     <linearGradient id={barGradientPrimaryId} x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor={chartTheme.colors.primary} stopOpacity={1} />
@@ -187,7 +187,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                             </ResponsiveContainer>
                         </div>
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/4 text-center">
-                            <div className={`text-4xl font-black bg-gradient-to-r ${overallScore >= 80 ? 'from-emerald-600 to-emerald-400' : overallScore >= 50 ? 'from-amber-600 to-amber-400' : 'from-red-600 to-red-400'} bg-clip-text text-transparent`}>
+                            <div className={`text-4xl font-black bg-gradient-to-r ${overallScore >= 75 ? 'from-emerald-600 to-emerald-400' : overallScore >= 50 ? 'from-amber-600 to-amber-400' : 'from-red-600 to-red-400'} bg-clip-text text-transparent`}>
                                 {overallScore}%
                             </div>
                         </div>
@@ -202,7 +202,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                                 count: implementedControls,
                                 total: controls.length
                             })}
-                            {overallScore >= 80 ? ` ${t('compliance.dashboard.excellentLevel')}` :
+                            {overallScore >= 75 ? ` ${t('compliance.dashboard.excellentLevel')}` :
                                 overallScore >= 50 ? ` ${t('compliance.dashboard.acceptableLevel')}` :
                                     ` ${t('compliance.dashboard.priorityActionsRequired')}`}
                         </p>
@@ -308,7 +308,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                                     {domainChartData.map((entry, index) => (
                                         <Cell
                                             key={`cell-${index || 'unknown'}`}
-                                            fill={entry.rate >= 80 ? `url(#${barGradientSuccessId})` : entry.rate >= 50 ? chartTheme.colors.partial : `url(#${barGradientPrimaryId})`}
+                                            fill={entry.rate >= 75 ? `url(#${barGradientSuccessId})` : entry.rate >= 50 ? chartTheme.colors.partial : `url(#${barGradientPrimaryId})`}
                                             style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' }}
                                         />
                                     ))}

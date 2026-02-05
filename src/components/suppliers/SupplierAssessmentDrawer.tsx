@@ -292,7 +292,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
 
               {/* Section List */}
               <div className="p-4 space-y-2">
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
                   {t('vendorAssessment.sectionsPreview', 'Sections')}
                 </p>
                 {selectedTemplatePreview.sections.map((section, idx) => (
@@ -356,7 +356,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
                 max="730"
                 value={customReviewDays}
                 onChange={(e) => setCustomReviewDays(parseInt(e.target.value) || 180)}
-                className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500"
+                className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus-visible:ring-primary focus:border-brand-500"
               />
             </div>
           )}
@@ -371,7 +371,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
               value={respondentEmail}
               onChange={(e) => setRespondentEmail(e.target.value)}
               placeholder={t('vendorAssessment.enterEmail', 'vendor@example.com')}
-              className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500"
+              className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-border/40 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus-visible:ring-primary focus:border-brand-500"
             />
             <p className="text-xs text-slate-500">
               {t(

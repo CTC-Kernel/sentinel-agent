@@ -147,7 +147,7 @@ export const PartnerManagement: React.FC = () => {
                         <Handshake className="w-8 h-8 text-brand-500" />
                         {t('certifier.partners.title') || "Partenaires Certifiés"}
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-300 mt-2 max-w-2xl">
+                    <p className="text-muted-foreground mt-2 max-w-2xl">
                         {t('certifier.partners.description') || "Connectez votre organisation avec des auditeurs certifiés pour faciliter vos audits externes et certifications."}
                     </p>
                 </div>
@@ -235,7 +235,7 @@ export const PartnerManagement: React.FC = () => {
                                     </div>
 
                                     {partner.status === 'ACTIVE' && (
-                                        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-3xl text-xs text-slate-500 dark:text-slate-300 border border-border/40 dark:border-white/5">
+                                        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-3xl text-xs text-muted-foreground border border-border/40 dark:border-white/5">
                                             <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">ID Certifieur:</span>
                                             <code className="ml-2 px-1 py-0.5 bg-white dark:bg-black/20 rounded border border-border/40 dark:border-border/40 font-mono">
                                                 {partner.certifierId?.substring(0, 12)}...
@@ -275,7 +275,7 @@ export const PartnerManagement: React.FC = () => {
                             <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">
                                 {t('certifier.partners.modalTitle') || "Inviter un partenaire"}
                             </h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-300 mb-6">
+                            <p className="text-sm text-muted-foreground mb-6">
                                 Le partenaire recevra un email pour rejoindre votre espace. Il devra posséder un compte Sentinel GRC "Certifieur".
                             </p>
 
@@ -291,7 +291,7 @@ export const PartnerManagement: React.FC = () => {
                                             type="email"
                                             required
                                             placeholder="contact@cabinet-audit.com"
-                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-border/40 rounded-3xl focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all"
+                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-border/40 dark:border-border/40 rounded-3xl focus:ring-2 focus-visible:ring-primary focus:border-transparent outline-none transition-all"
                                         />
                                     </div>
                                 </div>

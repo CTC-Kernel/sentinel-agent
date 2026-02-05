@@ -595,7 +595,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                           onChange={(e) => handleUpdateTreatment(opScenario.id, { strategyJustification: e.target.value })}
                                           placeholder={t('ebios.workshop5.justificationPlaceholder')}
                                           rows={2}
-                                          className="w-full px-4 py-2.5 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm resize-none"
+                                          className="w-full px-4 py-2.5 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-primary focus:border-brand-500 transition-all text-sm resize-none"
                                         />
                                       ) : (
                                         <p className="text-sm text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-900 p-3 rounded-2xl border border-border/40 italic">
@@ -618,7 +618,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                               value={treatment.responsibleId || ''}
                                               onChange={(e) => handleUpdateTreatment(opScenario.id, { responsibleId: e.target.value })}
                                               placeholder={t('ebios.workshop5.responsiblePlaceholder')}
-                                              className="w-full px-4 py-2.5 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm"
+                                              className="w-full px-4 py-2.5 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-primary focus:border-brand-500 transition-all text-sm"
                                             />
                                           ) : (
                                             <p className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
@@ -636,7 +636,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                               type="date"
                                               value={treatment.deadline || ''}
                                               onChange={(e) => handleUpdateTreatment(opScenario.id, { deadline: e.target.value })}
-                                              className="w-full px-4 py-2.5 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-300 focus:border-brand-500 transition-all text-sm"
+                                              className="w-full px-4 py-2.5 rounded-lg border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-primary focus:border-brand-500 transition-all text-sm"
                                             />
                                           ) : (
                                             <p className="text-sm font-medium text-slate-700 dark:text-muted-foreground">

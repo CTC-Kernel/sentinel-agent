@@ -369,7 +369,7 @@ export const OrganizationSettings: React.FC = () => {
                                         <select
                                             id="country-select"
                                             {...orgForm.register('country')}
-                                            className="w-full px-4 py-3 bg-white/50 dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-300 transition-all"
+                                            className="w-full px-4 py-3 bg-white/50 dark:bg-white/5 border border-border/40 dark:border-border/40 rounded-3xl text-sm outline-none focus:ring-2 focus-visible:ring-primary transition-all"
                                         >
                                             <option value="">{t('settings.selectCountry', { defaultValue: 'Sélectionner un pays' })}</option>
                                             <option value="AT">Autriche</option>
@@ -485,7 +485,7 @@ export const OrganizationSettings: React.FC = () => {
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.users')}</h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-300 font-medium">{t('settings.membersCount').replace('{count}', usersList.length.toString())}</p>
+                                <p className="text-xs text-muted-foreground font-medium">{t('settings.membersCount').replace('{count}', usersList.length.toString())}</p>
                             </div>
                         </div>
                         <div className="relative">
@@ -497,7 +497,7 @@ export const OrganizationSettings: React.FC = () => {
                                 placeholder={t('settings.searchMembers')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-9 pr-4 py-2 bg-brand-50 dark:bg-white/5 border border-brand-200 dark:border-border/40 rounded-3xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-300 w-48 transition-all focus:w-64 placeholder:text-slate-400"
+                                className="pl-9 pr-4 py-2 bg-brand-50 dark:bg-white/5 border border-brand-200 dark:border-border/40 rounded-3xl text-sm outline-none focus:ring-2 focus-visible:ring-primary w-48 transition-all focus:w-64 placeholder:text-slate-400"
                             />
                         </div>
                     </div>

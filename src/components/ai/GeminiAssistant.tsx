@@ -26,7 +26,7 @@ export const GeminiAssistant: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const { user, organization } = useStore();
+    const { user, organization, addToast, t } = useStore();
     const navigate = useNavigate();
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const { hasFeature } = usePlanLimits();
@@ -67,7 +67,7 @@ export const GeminiAssistant: React.FC = () => {
 
         // Basic input validate/sanitize
         if (textToSend.length > 2000) {
-            // Toast or just limit
+            addToast(t('ai.inputTooLong', { defaultValue: 'Le message est trop long (max 2000 caractères)' }), 'error');
             return;
         }
 
@@ -288,7 +288,15 @@ export const GeminiAssistant: React.FC = () => {
                         </div>
                         <div className="bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl rounded-tl-none border border-border/40 dark:border-slate-700/50 shadow-sm flex items-center gap-2">
                             <Loader2 className="h-4 w-4 animate-spin text-brand-600" />
-                            <span className="text-xs font-medium text-muted-foreground">L'IA réfléchit...</span>
+                            <span className="text-xs font-medium text-muted-foreground">{t('ai.thinking', { defaultValue: "L'IA réfléchit..." })}</span>
+                            <button
+                                type="button"
+                                onClick={() => setIsLoading(false)}
+                                className="ml-2 text-[11px] font-medium text-muted-foreground hover:text-destructive transition-colors"
+                                aria-label={t('common.cancel', { defaultValue: 'Annuler' })}
+                            >
+                                <X className="h-3.5 w-3.5" />
+                            </button>
                         </div>
                     </div>
                 )}
@@ -328,7 +336,7 @@ export const GeminiAssistant: React.FC = () => {
                                 }
                             }}
                             placeholder="Posez une question..."
-                            className="w-full pl-4 pr-10 py-3.5 bg-slate-100 dark:bg-slate-950 border border-transparent focus:bg-white dark:focus:bg-slate-900 border-border/40 dark:border-slate-800 focus:border-brand-400 dark:focus:border-brand-400 rounded-2xl focus:ring-4 focus:ring-brand-200 outline-none text-sm font-medium text-slate-900 dark:text-white transition-all placeholder:text-muted-foreground"
+                            className="w-full pl-4 pr-10 py-3.5 bg-slate-100 dark:bg-slate-950 border border-transparent focus:bg-white dark:focus:bg-slate-900 border-border/40 dark:border-slate-800 focus:border-brand-400 dark:focus:border-brand-400 rounded-2xl focus:ring-4 focus:ring-primary outline-none text-sm font-medium text-slate-900 dark:text-white transition-all placeholder:text-muted-foreground"
                             disabled={isLoading}
                         />
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -355,7 +363,7 @@ export const GeminiAssistant: React.FC = () => {
                         <Send className="h-5 w-5" />
                     </button>
                 </div>
-                <p className="text-[11px] text-center text-slate-500 dark:text-slate-300 mt-3 flex items-center justify-center gap-1.5 opacity-60">
+                <p className="text-[11px] text-center text-muted-foreground mt-3 flex items-center justify-center gap-1.5 opacity-60">
                     <Sparkles className="h-3 w-3" /> Propulsé par Cyber Threat Consulting
                 </p>
             </form>

@@ -90,7 +90,7 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ resourceId, className })
                                 <div className="space-y-2 pt-2 border-t border-border/40 dark:border-border/40 mt-2">
                                     {log.changes.map((change, idx) => (
                                         <div key={`${idx || 'unknown'}-${change.field}`} className="flex items-center gap-2 text-xs">
-                                            <span className="font-mono text-slate-500 dark:text-slate-300 w-24 truncate text-right">{change.field}</span>
+                                            <span className="font-mono text-muted-foreground w-24 truncate text-right">{change.field}</span>
                                             <span className="px-1.5 py-0.5 bg-red-50 text-red-600 dark:text-red-400 dark:bg-red-900/20 dark:text-red-400 rounded line-through">
                                                 {String(change.oldValue === undefined || change.oldValue === '' ? 'Empty' : change.oldValue)}
                                             </span>

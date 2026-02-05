@@ -189,7 +189,7 @@ const ListItem: React.FC<ListItemProps> = ({ vendor, cells, expanded, onToggle }
 
       {expanded && (
         <div className="border-t border-border/40 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-800/30">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-3">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
             {t('vendorConcentration.matrix.services')}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -295,7 +295,7 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
             value={filters.searchQuery}
             onChange={(e) => setFilters(prev => ({ ...prev, searchQuery: e.target.value }))}
             placeholder={t('vendorConcentration.matrix.searchPlaceholder')}
-            className="w-full pl-10 pr-4 py-2 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
+            className="w-full pl-10 pr-4 py-2 rounded-3xl border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus-visible:ring-primary"
           />
         </div>
 
@@ -318,7 +318,7 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
           <select
             value={filters.dependencyLevel}
             onChange={(e) => setFilters(prev => ({ ...prev, dependencyLevel: e.target.value as DependencyLevel | 'all' }))}
-            className="px-3 py-2 rounded-3xl text-sm border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
+            className="px-3 py-2 rounded-3xl text-sm border border-border/40 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus-visible:ring-primary"
           >
             <option value="all">{t('vendorConcentration.matrix.allLevels')}</option>
             <option value="critical">{t('vendorConcentration.matrix.levelCritical')}</option>
@@ -368,7 +368,7 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
 
       {/* Legend */}
       <div className="flex items-center gap-4 text-xs">
-        <span className="text-slate-500 dark:text-slate-400">{t('vendorConcentration.matrix.legend')}:</span>
+        <span className="text-muted-foreground">{t('vendorConcentration.matrix.legend')}:</span>
         <div className="flex items-center gap-1">
           <div className="w-4 h-4 rounded bg-green-100 dark:bg-green-900/30" />
           <span className="text-slate-600 dark:text-muted-foreground">L = {t('vendorConcentration.matrix.levelLow')}</span>
@@ -395,7 +395,7 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
       {filteredData.vendors.length === 0 ? (
         <div className="text-center py-12">
           <Layers className="h-12 w-12 text-slate-300 dark:text-slate-300 mx-auto mb-4" />
-          <p className="text-slate-500 dark:text-slate-400">{t('vendorConcentration.matrix.noData')}</p>
+          <p className="text-muted-foreground">{t('vendorConcentration.matrix.noData')}</p>
         </div>
       ) : viewMode === 'matrix' ? (
         /* Matrix View */
@@ -403,13 +403,13 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-800">
-                <th className="p-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide sticky left-0 bg-slate-50 dark:bg-slate-800 border-r border-border/40 dark:border-slate-700">
+                <th className="p-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wide sticky left-0 bg-slate-50 dark:bg-slate-800 border-r border-border/40 dark:border-slate-700">
                   {t('vendorConcentration.matrix.vendor')}
                 </th>
                 {filteredData.services.map(service => (
                   <th
                     key={service.id || 'unknown'}
-                    className="p-2 text-center text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide min-w-[80px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
+                    className="p-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wide min-w-[80px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
                     onClick={() => onServiceClick?.(service.id)}
                   >
                     <div className="flex items-center justify-center gap-1">

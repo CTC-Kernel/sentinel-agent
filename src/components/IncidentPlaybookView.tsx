@@ -229,7 +229,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
               <h3 className="text-lg font-semibold mb-4">Sélectionner un Playbook</h3>
               {playbooks.length === 0 ? (
                 <div className="text-center py-8">
-                  <AlertTriangle className="h-12 w-12 text-slate-500 dark:text-slate-300 mx-auto mb-4" />
+                  <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-slate-600">Aucun playbook disponible pour cette catégorie</p>
                 </div>
               ) : (
@@ -281,7 +281,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                   <button
                     onClick={handleInitiateResponse}
                     disabled={initiating}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-muted disabled:text-muted-foreground"
                     aria-label="Initier la réponse à l'incident"
                   >
                     {initiating ? 'Initialisation...' : 'Initier la Response'}
@@ -359,7 +359,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                       </div>
                       <p className="text-xs text-slate-600 dark:text-slate-300 mb-2 pl-6">{step.description}</p>
 
-                      <div className="flex items-center gap-4 text-[11px] text-slate-500 dark:text-slate-300 pl-6 uppercase tracking-wide font-medium">
+                      <div className="flex items-center gap-4 text-[11px] text-muted-foreground pl-6 uppercase tracking-wide font-medium">
                         <span className="flex items-center">
                           <Timer className="h-3 w-3 mr-1" />
                           {step.estimatedTime}
@@ -382,7 +382,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                             </label>
                             <textarea
                               id={`evidence-${step.id}`}
-                              className="w-full p-2 text-xs border border-border/40 rounded-lg focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none bg-white"
+                              className="w-full p-2 text-xs border border-border/40 rounded-lg focus:ring-2 focus-visible:ring-primary focus:border-transparent outline-none bg-white"
                               rows={2}
                               placeholder="Décrire l'evidence collectée..."
                               value={evidence[step.id] || ''}
@@ -403,7 +403,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                             </label>
                             <textarea
                               id={`notes-${step.id}`}
-                              className="w-full p-2 text-xs border border-border/40 rounded-lg focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none bg-white"
+                              className="w-full p-2 text-xs border border-border/40 rounded-lg focus:ring-2 focus-visible:ring-primary focus:border-transparent outline-none bg-white"
                               rows={2}
                               placeholder="Notes sur cette étape..."
                               value={notes}
@@ -429,7 +429,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
 
               {/* Timeline */}
               <div className="mt-8 pt-6 border-t border-border/40 dark:border-slate-800">
-                <h4 className="font-bold text-sm uppercase tracking-wide text-slate-500 dark:text-slate-300 mb-4">Timeline de réponse</h4>
+                <h4 className="font-bold text-sm uppercase tracking-wide text-muted-foreground mb-4">Timeline de réponse</h4>
                 <div className="relative pl-4 border-l-2 border-border/40 space-y-4">
                   {response.timeline.map((event) => (
                     <div key={event.id || 'unknown'} className="relative pl-4">

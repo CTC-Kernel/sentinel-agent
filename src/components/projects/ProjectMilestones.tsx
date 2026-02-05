@@ -141,7 +141,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
         <div className="space-y-6 h-full flex flex-col">
             <div className="flex justify-between items-center">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">Jalons du projet</h3>
-                <Button onClick={() => { reset(); setIsEditing(true); }} className="flex items-center gap-2 bg-brand-600 text-white hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
+                <Button onClick={() => { reset(); setIsEditing(true); }} className="flex items-center gap-2 bg-brand-600 text-white hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
                     <Plus className="h-4 w-4" /> Nouveau Jalon
                 </Button>
             </div>
@@ -190,7 +190,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                         />
                         <div className="flex justify-end gap-3 pt-2">
                             <Button type="button" variant="ghost" onClick={handleCancel} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">{t('common.cancel', { defaultValue: 'Annuler' })}</Button>
-                            <Button type="submit" isLoading={isSubmitting} disabled={isSubmitting} className="bg-brand-600 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
+                            <Button type="submit" isLoading={isSubmitting} disabled={isSubmitting} className="bg-brand-600 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
                                 {isSubmitting ? t('common.saving', { defaultValue: 'Enregistrement...' }) : t('common.save', { defaultValue: 'Enregistrer' })}
                             </Button>
                         </div>
@@ -235,14 +235,14 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-70 transition-opacity">
                                 <button
                                     onClick={() => handleEdit(milestone)}
-                                    className="p-2 text-slate-500 dark:text-slate-300 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                    className="p-2 text-muted-foreground hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                     aria-label="Modifier le jalon"
                                 >
                                     <Edit className="h-4 w-4" />
                                 </button>
                                 <button
                                     onClick={() => setDeleteMilestoneId(milestone.id)}
-                                    className="p-2 text-slate-500 dark:text-slate-300 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                                    className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                                     aria-label="Supprimer le jalon"
                                 >
                                     <Trash2 className="h-4 w-4" />

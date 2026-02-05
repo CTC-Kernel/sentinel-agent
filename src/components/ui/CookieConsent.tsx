@@ -131,7 +131,7 @@ export const CookieConsent: React.FC = () => {
                                 Aucune donnée personnelle n'est vendue à des tiers.
                                 <button
                                     onClick={() => setShowLegalModal(true)}
-                                    className="text-brand-600 hover:underline font-bold ml-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1"
+                                    className="text-brand-600 hover:underline font-bold ml-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1"
                                 >
                                     En savoir plus
                                 </button>
@@ -146,7 +146,7 @@ export const CookieConsent: React.FC = () => {
                                 type="checkbox"
                                 checked
                                 disabled
-                                className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-not-allowed opacity-70"
+                                className="rounded border-slate-300 text-brand-600 focus:ring-primary cursor-not-allowed opacity-70"
                             />
                             <span className="font-medium">Cookies essentiels</span>
                             <span className="text-xs text-slate-400">(toujours actifs)</span>
@@ -156,7 +156,7 @@ export const CookieConsent: React.FC = () => {
                                 type="checkbox"
                                 checked={analyticsConsent}
                                 onChange={(e) => setAnalyticsConsent(e.target.checked)}
-                                className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                                className="rounded border-slate-300 text-brand-600 focus:ring-primary"
                             />
                             <span className="font-medium">Cookies analytiques</span>
                             <span className="text-xs text-slate-400">(mesure d'audience)</span>
@@ -166,7 +166,7 @@ export const CookieConsent: React.FC = () => {
                                 type="checkbox"
                                 checked={trackingConsent}
                                 onChange={(e) => setTrackingConsent(e.target.checked)}
-                                className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                                className="rounded border-slate-300 text-brand-600 focus:ring-primary"
                             />
                             <span className="font-medium">Cookies de suivi</span>
                             <span className="text-xs text-slate-400">(amélioration de l'expérience)</span>
@@ -182,19 +182,19 @@ export const CookieConsent: React.FC = () => {
                         </button>
                         <button
                             onClick={handleAcceptSelected}
-                            className="px-5 py-2.5 border border-brand-500 text-brand-600 dark:text-brand-400 font-semibold rounded-3xl hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="px-5 py-2.5 border border-brand-500 text-brand-600 dark:text-brand-400 font-semibold rounded-3xl hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                         >
                             Accepter la sélection
                         </button>
                         <button
                             onClick={handleAcceptAll}
-                            className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-3xl hover:scale-105 transition-transform shadow-lg whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                            className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-3xl hover:scale-105 transition-transform shadow-lg whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                         >
                             Accepter tout
                         </button>
                         <button
                             onClick={handleClose}
-                            className="p-3 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                            className="p-3 text-muted-foreground hover:bg-slate-100 dark:hover:bg-white/10 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                             aria-label="Fermer"
                         >
                             <X className="h-5 w-5" />

@@ -8,9 +8,8 @@ import { useStore } from '../../store';
 import { canEditResource } from '../../utils/permissions';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { validateUrl } from '../../utils/urlValidation';
-// EncryptionService import removed
 import { PDFDocument, rgb, degrees, StandardFonts } from 'pdf-lib';
-import CryptoJS from 'crypto-js';
+import { EncryptionService } from '../../services/encryptionService';
 import SignatureCanvas from 'react-signature-canvas';
 
 export const useDocumentWorkflow = (usersList: UserProfile[]) => {
@@ -119,8 +118,7 @@ export const useDocumentWorkflow = (usersList: UserProfile[]) => {
 
             // 2. Verify Integrity (Hash)
             if (docItem.hash) {
-                const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
-                const currentHash = CryptoJS.SHA256(wordArray).toString();
+                const currentHash = await EncryptionService.sha256Buffer(arrayBuffer);
                 if (currentHash !== docItem.hash) {
                     addToast(t('documents.toast.integrityCompromised', { defaultValue: "ALERTE : L'intégrité du document est compromise ! Le hash ne correspond pas." }), "error");
                     // We allow viewing but with a warning

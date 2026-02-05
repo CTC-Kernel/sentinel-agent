@@ -153,7 +153,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
         <div className="sticky top-24 bg-white dark:bg-slate-800 rounded-3xl border border-border/40 dark:border-border/40 overflow-hidden">
           {/* Header */}
           <div className="p-4 border-b border-border/40 dark:border-border/40">
-            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-300 mb-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
               <Building2 className="w-4 h-4" />
               {access.organizationName}
             </div>
@@ -176,7 +176,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
                 style={{ width: `${progress.completionPercentage}%` }}
               />
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-300 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               {progress.answeredQuestions}/{progress.totalQuestions} {t('vendorPortal.questionsAnswered', 'questions répondues')}
             </p>
           </div>
@@ -216,7 +216,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
                       }`}>
                         {section.title}
                       </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-300 mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {sectionProgress?.answeredQuestions || 0}/{sectionProgress?.totalQuestions || section.questions.length} {t('vendorPortal.answered', 'répondues')}
                       </p>
                     </div>
@@ -436,7 +436,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               disabled={isReadOnly}
               placeholder={t('vendorPortal.enterAnswer', 'Entrez votre réponse...')}
               rows={4}
-              className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white resize-none focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500 disabled:bg-slate-100 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-400 dark:disabled:border-slate-700"
+              className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white resize-none focus:ring-2 focus-visible:ring-primary focus:border-brand-500 disabled:bg-slate-100 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-700"
             />
           )}
 
@@ -451,7 +451,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               </button>
             ) : (
               <div>
-                <label className="block text-sm text-slate-500 dark:text-slate-300 mb-2">
+                <label className="block text-sm text-muted-foreground mb-2">
                   {t('vendorPortal.additionalComments', 'Commentaires additionnels ou URL de preuve')}
                 </label>
                 <textarea
@@ -460,7 +460,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   disabled={isReadOnly}
                   placeholder={t('vendorPortal.commentPlaceholder', 'Ajoutez du contexte supplémentaire ou un lien vers une preuve...')}
                   rows={2}
-                  className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white resize-none focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500 disabled:bg-slate-100 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:bg-slate-800 dark:disabled:text-slate-400 dark:disabled:border-slate-700"
+                  className="w-full px-4 py-3 rounded-3xl border border-border/40 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white resize-none focus:ring-2 focus-visible:ring-primary focus:border-brand-500 disabled:bg-slate-100 disabled:text-slate-500 disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-700"
                 />
               </div>
             )}

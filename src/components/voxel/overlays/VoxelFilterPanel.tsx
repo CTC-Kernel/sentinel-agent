@@ -94,7 +94,7 @@ const CheckboxFilter: React.FC<CheckboxFilterProps> = ({
       type="checkbox"
       checked={checked}
       onChange={onChange}
-      className="w-3.5 h-3.5 rounded border-slate-600 bg-slate-800 text-blue-500 focus-visible:ring-brand-500 focus:ring-offset-0"
+      className="w-3.5 h-3.5 rounded border-slate-600 bg-slate-800 text-blue-500 focus-visible:ring-primary focus:ring-offset-0"
     />
     {icon && (
       <span style={{ color: color || '#94A3B8' }}>{icon}</span>
@@ -311,7 +311,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
 
             {/* Search */}
             <div>
-              <label htmlFor="voxel-search" className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2 block">
+              <label htmlFor="voxel-search" className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 block">
                 Search
               </label>
               <div className="relative">
@@ -328,7 +328,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
                 {filters.searchQuery && (
                   <button
                     onClick={handleClearSearch}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-slate-700/50 text-slate-500 dark:text-slate-300 hover:text-slate-300"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-slate-700/50 text-muted-foreground hover:text-slate-300"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -338,7 +338,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
 
             {/* Entity Type Filter */}
             <div>
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2 block">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 block">
                 Entity Types
               </span>
 
@@ -359,7 +359,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
 
             {/* Status Filter */}
             <div>
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2 block">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 block">
                 Status
               </span>
 
@@ -390,7 +390,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
             {/* Active Filter Badges */}
             {getActiveFilterBadges.length > 0 && (
               <div>
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wide mb-2 block">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 block">
                   Active Filters
                 </span>
                 <div className="flex flex-wrap gap-1.5">

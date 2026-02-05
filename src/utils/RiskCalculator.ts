@@ -8,16 +8,18 @@ export const RiskCalculator = {
      * Calculates the inherent risk score.
      */
     calculateScore: (_detectability: number | undefined, probability: number, impact: number): number => {
-        // Simple multiplication for now, readily extensible for more complex formulas (e.g. ISO 27005)
-        // If detectability is used in the future, it can be added here.
-        return probability * impact;
+        const p = Number.isFinite(probability) ? Math.max(1, Math.min(5, probability)) : 1;
+        const i = Number.isFinite(impact) ? Math.max(1, Math.min(5, impact)) : 1;
+        return p * i;
     },
 
     /**
      * Calculates the residual risk score.
      */
     calculateResidualScore: (residualProbability: number, residualImpact: number): number => {
-        return residualProbability * residualImpact;
+        const p = Number.isFinite(residualProbability) ? Math.max(1, Math.min(5, residualProbability)) : 1;
+        const i = Number.isFinite(residualImpact) ? Math.max(1, Math.min(5, residualImpact)) : 1;
+        return p * i;
     },
 
     /**

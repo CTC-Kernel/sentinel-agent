@@ -99,7 +99,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                                 disabled={isDeleting}
                                 variant="ghost"
                                 size="icon"
-                                className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                                className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:bg-muted disabled:text-muted-foreground"
                                 title={isDeleting ? t('documents.inspector.deleting', { defaultValue: 'Suppression...' }) : t('documents.inspector.delete', { defaultValue: 'Supprimer' })}
                                 aria-label={t('documents.inspector.deleteDocument', { defaultValue: 'Supprimer le document' })}
                             >
@@ -121,7 +121,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                                     <ShieldCheck className="h-3 w-3" /> {t('documents.inspector.digitalSafe', { defaultValue: 'Coffre-fort' })}
                                 </span>
                             )}
-                            <span className="text-sm text-slate-500 dark:text-slate-300 px-2 py-0.5 bg-slate-100 rounded-lg border border-border/40 dark:border-slate-700">
+                            <span className="text-sm text-muted-foreground px-2 py-0.5 bg-slate-100 rounded-lg border border-border/40 dark:border-slate-700">
                                 v{selectedDocument.version}
                             </span>
                         </div>

@@ -259,12 +259,12 @@ export const ThreatRegistry: React.FC = () => {
 
             <div className="glass-premium rounded-3xl border border-slate-200 dark:border-white/5 p-6 backdrop-blur-xl">
                 <div className="flex items-center space-x-4 mb-6 relative">
-                    <Search className="h-5 w-5 text-slate-500 dark:text-slate-300 absolute left-4" />
+                    <Search className="h-5 w-5 text-muted-foreground absolute left-4" />
                     <input value={searchTerm}
                         aria-label="Rechercher une menace"
                         type="text"
                         placeholder={t('threatRegistry.searchPlaceholder')}
-                        className="w-full bg-slate-50 dark:bg-slate-900/50 pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all placeholder:text-slate-500"
+                        className="w-full bg-slate-50 dark:bg-slate-900/50 pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus-visible:ring-primary outline-none transition-all placeholder:text-slate-500"
                         onChange={handleSearchChange}
                     />
                 </div>
@@ -392,7 +392,7 @@ export const ThreatRegistry: React.FC = () => {
                             aria-label="Sauvegarder"
                             disabled={isSubmitting}
                             isLoading={isSubmitting}
-                            className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-2 rounded-xl flex items-center shadow-lg shadow-brand-500/20 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+                            className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-2 rounded-xl flex items-center shadow-lg shadow-brand-500/20 disabled:bg-muted disabled:text-muted-foreground"
                         >
                             {!isSubmitting && isEditing ? 'Enregistrer les modifications' : 'Créer la menace'}
                         </Button>
@@ -441,7 +441,7 @@ const ThreatRegistryCard = React.memo(({
                     <div className={`p-3 rounded-xl ${threat.source === 'Standard' ? 'bg-blue-50 text-blue-700 dark:text-blue-400 dark:bg-blue-900/30' : 'bg-purple-50 text-purple-700 dark:bg-purple-500/10'}`}>
                         <Shield className="h-6 w-6" />
                     </div>
-                    <span className="text-[11px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-white/10 px-2 py-1 rounded-full">
+                    <span className="text-[11px] uppercase font-bold tracking-wider text-muted-foreground border border-slate-200 dark:border-white/10 px-2 py-1 rounded-full">
                         {threat.framework}
                     </span>
                 </div>

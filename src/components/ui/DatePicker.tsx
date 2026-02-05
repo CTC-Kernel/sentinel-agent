@@ -72,7 +72,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                 role="button"
                 tabIndex={disabled ? -1 : 0}
                 className={`
-                    relative flex items-center w-full rounded-2xl border transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
+                    relative flex items-center w-full rounded-2xl border transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary
                     ${error
                         ? 'border-destructive bg-destructive/5'
                         : isOpen
@@ -85,7 +85,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                     <span className={`font-medium ${value ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>
                         {displayValue || (isOpen ? placeholder : (label ? '' : placeholder))}
                     </span>
-                    <CalendarIcon className={`h-4 w-4 text-slate-500 dark:text-slate-300 transition-colors ${isOpen ? 'text-brand-500' : ''}`} />
+                    <CalendarIcon className={`h-4 w-4 text-muted-foreground transition-colors ${isOpen ? 'text-brand-500' : ''}`} />
                 </div>
 
                 <label

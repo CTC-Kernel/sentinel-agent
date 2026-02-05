@@ -167,7 +167,7 @@ export const PortalAuth: React.FC<PortalAuthProps> = ({
             </p>
 
             <div className="bg-slate-50 dark:bg-slate-900/50 rounded-3xl p-4 mb-6">
-              <p className="text-sm text-slate-500 dark:text-slate-300 mb-1">
+              <p className="text-sm text-muted-foreground mb-1">
                 {t('vendorPortal.verificationSentTo', 'Verification code will be sent to:')}
               </p>
               <p className="font-medium text-slate-900 dark:text-white">{maskedEmail}</p>
@@ -223,7 +223,7 @@ export const PortalAuth: React.FC<PortalAuthProps> = ({
                   value={digit}
                   onChange={(e) => handleCodeChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-14 text-center text-2xl font-bold rounded-3xl border-2 border-border/40 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:border-brand-500 focus:ring-2 focus-visible:ring-brand-300 outline-none transition-all"
+                  className="w-12 h-14 text-center text-2xl font-bold rounded-3xl border-2 border-border/40 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:border-brand-500 focus:ring-2 focus-visible:ring-primary outline-none transition-all"
                 />
               ))}
             </div>
@@ -262,7 +262,7 @@ export const PortalAuth: React.FC<PortalAuthProps> = ({
 
       {/* Footer */}
       <div className="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-border/40 dark:border-border/40">
-        <p className="text-xs text-slate-500 dark:text-slate-300 text-center">
+        <p className="text-xs text-muted-foreground text-center">
           {t('vendorPortal.securityNote', 'This portal access is restricted and monitored for security purposes.')}
         </p>
       </div>
