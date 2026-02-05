@@ -160,7 +160,7 @@ exports.refreshUserToken = onCall({
     }
 
     // SECURITY: Rate limit token refresh to prevent abuse
-    checkCallableRateLimit(request, 'auth');
+    await checkCallableRateLimit(request, 'auth');
 
     try {
         const db = admin.firestore();
@@ -239,7 +239,7 @@ exports.healMe = onCall({
     if (!uid) return { success: false, error: 'Unauthenticated' };
 
     // SECURITY: Rate limit self-healing endpoint
-    checkCallableRateLimit(request, 'auth');
+    await checkCallableRateLimit(request, 'auth');
 
     try {
         const db = admin.firestore();
@@ -314,7 +314,7 @@ exports.verifySuperAdmin = onCall({
     }
 
     // SECURITY: Rate limit admin verification to prevent brute force
-    checkCallableRateLimit(request, 'admin');
+    await checkCallableRateLimit(request, 'admin');
 
     const uid = request.auth.uid;
     const email = request.auth.token.email;
@@ -364,7 +364,7 @@ exports.grantSuperAdmin = onCall({
     }
 
     // SECURITY: Strict rate limit on privilege escalation
-    checkCallableRateLimit(request, 'admin');
+    await checkCallableRateLimit(request, 'admin');
 
     const { targetEmail } = request.data;
     if (!targetEmail) {
@@ -413,7 +413,7 @@ exports.switchOrganization = onCall({
     }
 
     // SECURITY: Rate limit org switching to prevent abuse
-    checkCallableRateLimit(request, 'admin');
+    await checkCallableRateLimit(request, 'admin');
 
     const { targetOrgId } = request.data;
     if (!targetOrgId) {
@@ -667,7 +667,7 @@ exports.deleteUserAccount = onCall({
     }
 
     // SECURITY: Strict rate limit on account deletion (heavy operation)
-    checkCallableRateLimit(request, 'heavy');
+    await checkCallableRateLimit(request, 'heavy');
 
     const uid = request.auth.uid;
     const db = admin.firestore();

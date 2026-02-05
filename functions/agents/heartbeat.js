@@ -65,7 +65,7 @@ exports.getAgentStatus = onCall(
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
     }
 
-    checkCallableRateLimit(request, 'standard');
+    await checkCallableRateLimit(request, 'standard');
 
     try {
       const agentDoc = await db
@@ -129,7 +129,7 @@ exports.getAgentMetricsHistory = onCall(
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
     }
 
-    checkCallableRateLimit(request, 'standard');
+    await checkCallableRateLimit(request, 'standard');
 
     try {
       const cutoffTime = new Date(Date.now() - safeHours * 60 * 60 * 1000);

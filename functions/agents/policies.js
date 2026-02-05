@@ -45,7 +45,7 @@ exports.deployAgentPolicy = onCall(
       throw new HttpsError('invalid-argument', 'policyId and organizationId are required');
     }
 
-    checkCallableRateLimit(request, 'admin');
+    await checkCallableRateLimit(request, 'admin');
 
     const userRole = request.auth.token.role;
     if (!userRole || !['admin', 'manager'].includes(userRole)) {
@@ -224,7 +224,7 @@ exports.rollbackAgentPolicy = onCall(
       throw new HttpsError('invalid-argument', 'deploymentId and organizationId are required');
     }
 
-    checkCallableRateLimit(request, 'admin');
+    await checkCallableRateLimit(request, 'admin');
 
     // SECURITY: Require admin or manager role for policy rollback
     const userRole = request.auth.token.role;
@@ -319,7 +319,7 @@ exports.getEffectivePolicy = onCall(
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
     }
 
-    checkCallableRateLimit(request, 'standard');
+    await checkCallableRateLimit(request, 'standard');
 
     try {
       // Get the agent
@@ -608,7 +608,7 @@ exports.validatePolicyRules = onCall(
       throw new HttpsError('invalid-argument', 'rules array is required');
     }
 
-    checkCallableRateLimit(request, 'standard');
+    await checkCallableRateLimit(request, 'standard');
 
     const errors = [];
     const warnings = [];

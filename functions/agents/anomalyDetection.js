@@ -520,7 +520,7 @@ exports.recalculateAgentBaseline = onCall({
         throw new HttpsError('invalid-argument', 'organizationId and agentId are required.');
     }
 
-    checkCallableRateLimit(request, 'heavy');
+    await checkCallableRateLimit(request, 'heavy');
 
     try {
         // Get agent info
@@ -722,7 +722,7 @@ exports.runAnomalyDetection = onCall({
         throw new HttpsError('invalid-argument', 'organizationId is required.');
     }
 
-    checkCallableRateLimit(request, 'heavy');
+    await checkCallableRateLimit(request, 'heavy');
 
     try {
         // Get threshold config

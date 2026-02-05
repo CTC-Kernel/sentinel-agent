@@ -48,7 +48,7 @@ exports.updateAgentConfig = onCall(
       throw new HttpsError('invalid-argument', 'agentId, organizationId, and config are required');
     }
 
-    checkCallableRateLimit(request, 'admin');
+    await checkCallableRateLimit(request, 'admin');
 
     if (!['admin', 'rssi'].includes(request.auth.token.role)) {
       throw new HttpsError('permission-denied', 'Admin or RSSI role required');
