@@ -40,6 +40,16 @@ ignore = [
     "RUSTSEC-2024-0429", # glib
     # paste is unmaintained, used by transitive deps (egui ecosystem)
     "RUSTSEC-2024-0436", # paste
+    # nix 0.19.1 has out-of-bounds write in getgrouplist when user has >16 groups
+    # - Via: battery 0.7.8 (latest version, no fix available upstream)
+    # - Risk: LOW - Only affects Linux users with >16 groups (extremely rare)
+    # - We don't call getgrouplist directly, only used for battery monitoring
+    # - Monitor for battery crate updates that use newer nix
+    "RUSTSEC-2021-0119", # nix getgrouplist
+    # mach is unmaintained, used by battery for macOS
+    # - No maintained alternative available
+    # - Risk: LOW - compile-time only, no runtime vulnerabilities
+    "RUSTSEC-2020-0168", # mach unmaintained
 ]
 
 # ============================================================================

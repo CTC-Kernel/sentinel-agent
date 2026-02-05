@@ -353,7 +353,7 @@ jobs:
         shell: pwsh
 
       - name: Sign MSI (Authenticode)
-        if: env.WINDOWS_CERT_P12 != ''
+        if: secrets.WINDOWS_CERT_P12
         env:
           WINDOWS_CERT_P12: ${{ secrets.WINDOWS_CERT_P12 }}
           WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
