@@ -658,15 +658,23 @@ jobs:
           # 1. Apply CORS configuration
           gcloud storage buckets update gs://$BUCKET_NAME --cors-file=.github/workflows/cors-config.json
 
-          # 2. Grant public read access to the releases folder
-          # We use recursively ( -R ) and wait for completion
-          echo "Granting public read access to allUsers for $BUCKET"
+          # 2. Grant public read access to the releases folder using ACL (more reliable)
+          echo "Setting public read ACL on all objects in $BUCKET"
+          gsutil -m acl set -R public-read "$BUCKET" || true
+          
+          # 3. Alternative: Set IAM policy binding as fallback
+          echo "Setting IAM policy binding as fallback"
           gcloud storage objects add-iam-policy-binding "$BUCKET/**" --member="allUsers" --role="roles/storage.objectViewer" 2>/dev/null || true
 
-          # 3. Set Cache-Control for 'latest' aliases to ensure they are not cached too long by CDN
+          # 4. Set Cache-Control for 'latest' aliases to ensure they are not cached too long by CDN
           echo "Setting Cache-Control for latest aliases"
           gcloud storage objects update "$BUCKET/**/latest*" --cache-control="public, max-age=3600, no-cache" 2>/dev/null || true
           gcloud storage objects update "$BUCKET/release-info.json" --cache-control="public, max-age=300" 2>/dev/null || true
+
+          # 5. Verify permissions are set correctly
+          echo "Verifying public access on latest files"
+          gsutil acl get "$BUCKET/macos/SentinelAgent-latest.pkg" 2>/dev/null || echo "Could not verify macOS pkg ACL"
+          gsutil acl get "$BUCKET/windows/SentinelAgentSetup-latest.msi" 2>/dev/null || echo "Could not verify Windows MSI ACL"
 
           echo "✅ Release upload and configuration completed successfully"
           gcloud storage objects update "$BUCKET/**/*.txt" --content-type="text/plain" 2>/dev/null || true
@@ -681,6 +689,33 @@ jobs:
           gsutil ls -l "$BUCKET/windows/" 2>/dev/null || echo "(no windows files)"
           gsutil ls -l "$BUCKET/linux_deb/" 2>/dev/null || echo "(no linux_deb files)"
           gsutil ls -l "$BUCKET/linux_rpm/" 2>/dev/null || echo "(no linux_rpm files)"
+
+      - name: Verify public access
+        run: |
+          echo "=== Testing public download URLs ==="
+          BASE_URL="https://storage.googleapis.com/sentinel-grc-a8701.firebasestorage.app/releases/agent"
+          
+          # Test macOS
+          echo "Testing macOS download..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/macos/SentinelAgent-latest.pkg")
+          echo "macOS pkg HTTP status: $HTTP_CODE"
+          
+          # Test Windows
+          echo "Testing Windows download..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/windows/SentinelAgentSetup-latest.msi")
+          echo "Windows MSI HTTP status: $HTTP_CODE"
+          
+          # Test Linux DEB
+          echo "Testing Linux DEB download..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/linux_deb/sentinel-agent_latest_amd64.deb")
+          echo "Linux DEB HTTP status: $HTTP_CODE"
+          
+          # Test Linux RPM
+          echo "Testing Linux RPM download..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/linux_rpm/sentinel-agent-latest.x86_64.rpm")
+          echo "Linux RPM HTTP status: $HTTP_CODE"
+          
+          echo "✅ Public access verification complete"
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
