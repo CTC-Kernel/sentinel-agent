@@ -45,7 +45,9 @@ impl CartographyPage {
             ui,
             "Cartographie Réseau",
             Some("VISUALISATION TOPOLOGIQUE ET ANALYSE DES RELATIONS INTER-ACTIFS"),
-            Some("Explorez les relations entre les actifs de votre réseau. Les noeuds représentent les machines et les liens indiquent les interactions détectées. Utilisez le zoom et le panoramique pour naviguer."),
+            Some(
+                "Explorez les relations entre les actifs de votre réseau. Les noeuds représentent les machines et les liens indiquent les interactions détectées. Utilisez le zoom et le panoramique pour naviguer.",
+            ),
         );
         ui.add_space(theme::SPACE_LG);
 
@@ -58,7 +60,7 @@ impl CartographyPage {
                             "{} NOEUD(S) RÉSEAU",
                             state.discovered_devices.len()
                         ))
-                        .font(egui::FontId::proportional(10.0))
+                        .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .extra_letter_spacing(0.5)
                         .strong(),
@@ -69,14 +71,14 @@ impl CartographyPage {
                     // Reset layout button
                     let reset_btn = egui::Button::new(
                         egui::RichText::new("RÉINITIALISER")
-                            .font(egui::FontId::proportional(10.0))
+                            .font(theme::font_label())
                             .color(theme::text_primary())
                             .strong(),
                     )
                     .fill(theme::bg_elevated())
                     .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
                     if ui.add(reset_btn).clicked() {
-                        state.graph_layout = None; 
+                        state.graph_layout = None;
                         state.graph_zoom = 1.0;
                         state.graph_pan = Vec2::ZERO;
                     }
@@ -86,7 +88,7 @@ impl CartographyPage {
                     // Zoom indicators (AAA)
                     ui.label(
                         egui::RichText::new(format!("ZOOM: {:.0}%", state.graph_zoom * 100.0))
-                            .font(egui::FontId::proportional(10.0))
+                            .font(theme::font_label())
                             .color(theme::text_tertiary())
                             .strong(),
                     );
@@ -96,7 +98,7 @@ impl CartographyPage {
                     // Open 3D view button
                     let view3d_btn = egui::Button::new(
                         egui::RichText::new(format!("VUE 3D {}", icons::EXTERNAL_LINK))
-                            .font(egui::FontId::proportional(10.0))
+                            .font(theme::font_label())
                             .strong()
                             .color(theme::text_on_accent()),
                     )
@@ -111,7 +113,7 @@ impl CartographyPage {
                     // Export CSV
                     let export_btn = egui::Button::new(
                         egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                            .font(egui::FontId::proportional(10.0))
+                            .font(theme::font_label())
                             .color(theme::text_tertiary())
                             .strong(),
                     )
@@ -121,19 +123,30 @@ impl CartographyPage {
                         Self::export_csv(state);
                     }
 
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                        let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
-                        if widgets::button::primary_button_loading(
-                            ui,
-                            format!("{}  {}", if is_scanning { "SCAN EN COURS" } else { "LANCER LE SCAN" }, icons::PLAY),
-                            !is_scanning,
-                            is_scanning,
-                        )
-                        .clicked()
-                        {
-                            command = Some(GuiCommand::RunCheck);
-                        }
-                    });
+                    ui.with_layout(
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui: &mut egui::Ui| {
+                            let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
+                            if widgets::button::primary_button_loading(
+                                ui,
+                                format!(
+                                    "{}  {}",
+                                    if is_scanning {
+                                        "SCAN EN COURS"
+                                    } else {
+                                        "LANCER LE SCAN"
+                                    },
+                                    icons::PLAY
+                                ),
+                                !is_scanning,
+                                is_scanning,
+                            )
+                            .clicked()
+                            {
+                                command = Some(GuiCommand::RunCheck);
+                            }
+                        },
+                    );
                 });
             });
         });
@@ -160,14 +173,20 @@ impl CartographyPage {
             egui::CornerRadius::same(theme::CARD_ROUNDING),
             theme::bg_deep(),
         );
-        
+
         // Background grid simulation (Subtle institutional lines)
         let grid_color = theme::border().linear_multiply(0.1);
         for i in 1..8 {
             let x = rect.min.x + (rect.width() * i as f32 / 8.0);
-            painter.line_segment([egui::pos2(x, rect.min.y), egui::pos2(x, rect.max.y)], egui::Stroke::new(0.5, grid_color));
+            painter.line_segment(
+                [egui::pos2(x, rect.min.y), egui::pos2(x, rect.max.y)],
+                egui::Stroke::new(0.5, grid_color),
+            );
             let y = rect.min.y + (rect.height() * i as f32 / 8.0);
-            painter.line_segment([egui::pos2(rect.min.x, y), egui::pos2(rect.max.x, y)], egui::Stroke::new(0.5, grid_color));
+            painter.line_segment(
+                [egui::pos2(rect.min.x, y), egui::pos2(rect.max.x, y)],
+                egui::Stroke::new(0.5, grid_color),
+            );
         }
 
         // Handle pan
@@ -218,9 +237,9 @@ impl CartographyPage {
 
             // 1. Ambient Ambient Glow
             painter.circle_filled(
-                screen_pos, 
-                base_radius * (1.5 + 0.3 * breathing), 
-                color.linear_multiply(0.08 + 0.04 * breathing)
+                screen_pos,
+                base_radius * (1.5 + 0.3 * breathing),
+                color.linear_multiply(0.08 + 0.04 * breathing),
             );
 
             // 2. Core Glow for Gateway or Selected
@@ -228,9 +247,9 @@ impl CartographyPage {
             if is_selected || node.device.is_gateway {
                 let intensity = if is_selected { 0.4 } else { 0.2 };
                 painter.circle_filled(
-                    screen_pos, 
-                    base_radius * 2.0, 
-                    color.linear_multiply(intensity * breathing)
+                    screen_pos,
+                    base_radius * 2.0,
+                    color.linear_multiply(intensity * breathing),
                 );
             }
 
@@ -243,19 +262,28 @@ impl CartographyPage {
             );
 
             // 4. Label (Institutional AAA)
-            let label = node.device.hostname.as_deref().unwrap_or(&node.device.ip).to_uppercase();
+            let label = node
+                .device
+                .hostname
+                .as_deref()
+                .unwrap_or(&node.device.ip)
+                .to_uppercase();
             painter.text(
                 Pos2::new(screen_pos.x, screen_pos.y + base_radius + 12.0),
                 egui::Align2::CENTER_TOP,
                 label,
-                egui::FontId::proportional(9.0),
+                theme::font_label(),
                 theme::text_tertiary(),
             );
 
             // Click interaction
             let click_radius = base_radius * 2.0;
-            let interact_rect = egui::Rect::from_center_size(screen_pos, egui::Vec2::splat(click_radius));
-            if response.clicked() && interact_rect.contains(ui.input(|i| i.pointer.interact_pos().unwrap_or(Pos2::ZERO))) {
+            let interact_rect =
+                egui::Rect::from_center_size(screen_pos, egui::Vec2::splat(click_radius));
+            if response.clicked()
+                && interact_rect
+                    .contains(ui.input(|i| i.pointer.interact_pos().unwrap_or(Pos2::ZERO)))
+            {
                 state.graph_selected_device = Some(node.device.ip.clone());
             }
         }
@@ -266,7 +294,7 @@ impl CartographyPage {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new("LÉGENDE INFRASTRUCTURE")
-                        .font(egui::FontId::proportional(9.0))
+                        .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .extra_letter_spacing(0.5)
                         .strong(),
@@ -281,11 +309,12 @@ impl CartographyPage {
                     ("NON IDENTIFIÉ", theme::text_secondary()),
                 ];
                 for (label, color) in legend_items {
-                    let (dot_rect, _) = ui.allocate_exact_size(egui::vec2(8.0, 8.0), egui::Sense::hover());
+                    let (dot_rect, _) =
+                        ui.allocate_exact_size(egui::vec2(8.0, 8.0), egui::Sense::hover());
                     ui.painter().circle_filled(dot_rect.center(), 4.0, color);
                     ui.label(
                         egui::RichText::new(label)
-                            .font(egui::FontId::proportional(9.0))
+                            .font(theme::font_label())
                             .color(theme::text_tertiary())
                             .strong(),
                     );
@@ -296,51 +325,83 @@ impl CartographyPage {
 
         // Selected Object Detail Panel (AAA Grade)
         if let Some(ref selected_ip) = state.graph_selected_device.clone()
-            && let Some(device) = state.discovered_devices.iter().find(|d| &d.ip == selected_ip)
+            && let Some(device) = state
+                .discovered_devices
+                .iter()
+                .find(|d| &d.ip == selected_ip)
         {
             ui.add_space(theme::SPACE_MD);
             widgets::card(ui, |ui: &mut egui::Ui| {
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.label(
                         egui::RichText::new(&device.ip)
-                            .font(egui::FontId::proportional(14.0))
+                            .font(theme::font_body())
                             .strong()
                             .color(theme::text_primary()),
                     );
                     ui.add_space(theme::SPACE_LG);
-                    
+
                     if let Some(ref h) = device.hostname {
                         ui.label(
                             egui::RichText::new(h.to_uppercase())
-                                .font(egui::FontId::proportional(10.0))
+                                .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .strong(),
                         );
                     }
-                    
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                        if ui.button(egui::RichText::new(icons::XMARK).strong()).clicked() {
-                            state.graph_selected_device = None;
-                        }
-                    });
+
+                    ui.with_layout(
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui: &mut egui::Ui| {
+                            if ui
+                                .button(egui::RichText::new(icons::XMARK).strong())
+                                .clicked()
+                            {
+                                state.graph_selected_device = None;
+                            }
+                        },
+                    );
                 });
-                
+
                 ui.add_space(theme::SPACE_MD);
                 ui.separator();
                 ui.add_space(theme::SPACE_MD);
-                
+
                 egui::Grid::new("device_detail_grid")
                     .spacing(egui::vec2(24.0, 8.0))
                     .show(ui, |ui: &mut egui::Ui| {
-                        ui.label(egui::RichText::new("ADRESSE MAC").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
-                        ui.label(egui::RichText::new(device.mac.as_deref().unwrap_or("--")).font(egui::FontId::monospace(11.0)));
+                        ui.label(
+                            egui::RichText::new("ADRESSE MAC")
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .strong()
+                                .extra_letter_spacing(0.5),
+                        );
+                        ui.label(
+                            egui::RichText::new(device.mac.as_deref().unwrap_or("--"))
+                                .font(egui::FontId::monospace(11.0)),
+                        );
                         ui.end_row();
-                        
-                        ui.label(egui::RichText::new("CONSTRUCTEUR").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
-                        ui.label(egui::RichText::new(device.vendor.as_deref().unwrap_or("--")).strong());
+
+                        ui.label(
+                            egui::RichText::new("CONSTRUCTEUR")
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .strong()
+                                .extra_letter_spacing(0.5),
+                        );
+                        ui.label(
+                            egui::RichText::new(device.vendor.as_deref().unwrap_or("--")).strong(),
+                        );
                         ui.end_row();
-                        
-                        ui.label(egui::RichText::new("CLASSIFICATION").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+
+                        ui.label(
+                            egui::RichText::new("CLASSIFICATION")
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .strong()
+                                .extra_letter_spacing(0.5),
+                        );
                         ui.label(egui::RichText::new(device.device_type.to_uppercase()).strong());
                         ui.end_row();
                     });
@@ -349,18 +410,31 @@ impl CartographyPage {
                     ui.add_space(theme::SPACE_MD);
                     widgets::status_badge(ui, "CENTRAL GATEWAY", theme::ACCENT);
                 }
-                
+
                 if !device.open_ports.is_empty() {
                     ui.add_space(theme::SPACE_MD);
-                    ui.label(egui::RichText::new("VECTEURS D'EXPOSITION (PORTS OUVERTS)").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                    ui.label(
+                        egui::RichText::new("VECTEURS D'EXPOSITION (PORTS OUVERTS)")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .strong()
+                            .extra_letter_spacing(0.5),
+                    );
                     ui.add_space(2.0);
-                    ui.label(device.open_ports.iter().map(|p| p.to_string()).collect::<Vec<_>>().join(", "));
+                    ui.label(
+                        device
+                            .open_ports
+                            .iter()
+                            .map(|p| p.to_string())
+                            .collect::<Vec<_>>()
+                            .join(", "),
+                    );
                 }
             });
         }
 
         ui.add_space(theme::SPACE_XL);
-        ui.ctx().request_repaint(); 
+        ui.ctx().request_repaint();
         command
     }
 

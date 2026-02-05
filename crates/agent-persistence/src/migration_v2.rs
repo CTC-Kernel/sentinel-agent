@@ -96,7 +96,10 @@ pub fn run_v2_migrations(conn: &mut Connection) -> Result<(), StorageError> {
             applied_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
         )",
         [],
-    ).map_err(|e| StorageError::Migration(format!("Failed to create schema_version table: {}", e)))?;
+    )
+    .map_err(|e| {
+        StorageError::Migration(format!("Failed to create schema_version table: {}", e))
+    })?;
 
     // Check current schema version
     let current_version: i32 = conn
@@ -227,7 +230,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(version, 3); // v1 (1) + v2 (2) = max 3
+        assert_eq!(version, 4); // v1 has 4 migrations, v2 records version 2
 
         // Verify tables exist
         let tables: Vec<String> = conn
@@ -257,7 +260,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(version, 3); // v1 (1) + v2 (2) = max 3
+        assert_eq!(version, 4); // v1 has 4 migrations, v2 records version 2
     }
 
     #[test]
@@ -275,7 +278,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(max_version, 3); // v1 (1) + v2 (2) = max 3, v2 entry still exists
+        assert_eq!(max_version, 4); // v1 has 4 migrations, v2 entry still exists
 
         // Verify v2 tables are gone
         let tables: Vec<String> = conn

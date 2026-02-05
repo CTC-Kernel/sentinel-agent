@@ -83,14 +83,41 @@ pub struct SystemMetrics {
     /// Memory usage in bytes.
     pub memory_bytes: u64,
 
+    /// Memory usage percentage (0-100).
+    #[serde(default)]
+    pub memory_percent: f32,
+
+    /// Total memory in bytes.
+    #[serde(default)]
+    pub memory_total_bytes: u64,
+
+    /// Disk usage percentage (0-100).
+    #[serde(default)]
+    pub disk_percent: f32,
+
+    /// Disk used bytes.
+    #[serde(default)]
+    pub disk_used_bytes: u64,
+
+    /// Disk total bytes.
+    #[serde(default)]
+    pub disk_total_bytes: u64,
+
     /// Disk I/O operations per second.
+    #[serde(default)]
     pub disk_iops: u32,
 
     /// Network bytes sent since last heartbeat.
+    #[serde(default)]
     pub network_bytes_sent: u64,
 
     /// Network bytes received since last heartbeat.
+    #[serde(default)]
     pub network_bytes_recv: u64,
+
+    /// System uptime in seconds.
+    #[serde(default)]
+    pub uptime_seconds: u64,
 }
 
 impl Default for SystemMetrics {
@@ -98,9 +125,15 @@ impl Default for SystemMetrics {
         Self {
             cpu_percent: 0.0,
             memory_bytes: 0,
+            memory_percent: 0.0,
+            memory_total_bytes: 0,
+            disk_percent: 0.0,
+            disk_used_bytes: 0,
+            disk_total_bytes: 0,
             disk_iops: 0,
             network_bytes_sent: 0,
             network_bytes_recv: 0,
+            uptime_seconds: 0,
         }
     }
 }

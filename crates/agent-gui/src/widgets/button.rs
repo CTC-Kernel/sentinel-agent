@@ -10,7 +10,12 @@ pub fn primary_button(ui: &mut Ui, text: impl Into<WidgetText>, enabled: bool) -
 }
 
 /// A primary button with loading state.
-pub fn primary_button_loading(ui: &mut Ui, text: impl Into<WidgetText>, enabled: bool, loading: bool) -> Response {
+pub fn primary_button_loading(
+    ui: &mut Ui,
+    text: impl Into<WidgetText>,
+    enabled: bool,
+    loading: bool,
+) -> Response {
     draw_premium_button(ui, text, true, enabled, loading)
 }
 
@@ -20,7 +25,12 @@ pub fn secondary_button(ui: &mut Ui, text: impl Into<WidgetText>, enabled: bool)
 }
 
 /// A secondary button with loading state.
-pub fn secondary_button_loading(ui: &mut Ui, text: impl Into<WidgetText>, enabled: bool, loading: bool) -> Response {
+pub fn secondary_button_loading(
+    ui: &mut Ui,
+    text: impl Into<WidgetText>,
+    enabled: bool,
+    loading: bool,
+) -> Response {
     draw_premium_button(ui, text, false, enabled, loading)
 }
 
@@ -68,7 +78,15 @@ fn draw_premium_button(
             } else {
                 theme::ACCENT
             };
-            (fill, Stroke::NONE, if enabled { Color32::WHITE } else { Color32::from_white_alpha(150) })
+            (
+                fill,
+                Stroke::NONE,
+                if enabled {
+                    Color32::WHITE
+                } else {
+                    Color32::from_white_alpha(150)
+                },
+            )
         } else {
             // Secondary: Bordered / Surface
             let fill = if !enabled {
@@ -104,7 +122,8 @@ fn draw_premium_button(
         // ─── Shadows ───
         if is_primary && enabled && !loading && !is_clicked {
             let shadow = theme::premium_shadow(6, 20);
-            ui.painter().add(shadow.as_shape(rect, CornerRadius::same(theme::BUTTON_ROUNDING)));
+            ui.painter()
+                .add(shadow.as_shape(rect, CornerRadius::same(theme::BUTTON_ROUNDING)));
         }
 
         // ─── Background Paint ───
@@ -133,40 +152,42 @@ fn draw_premium_button(
                 rect.center() - egui::vec2(text_galley.size().x / 2.0 + 10.0, 0.0),
                 egui::vec2(12.0, 12.0),
             );
-            
-            // Simple spinning circle using time
-            let time = ui.ctx().animate_value_with_time(
-                ui.make_persistent_id("spinner"),
-                1.0,
-                1.0,
-            );
-            let angle = time * 360.0; // Full rotation per second
-            
-            // Draw spinner circle
+
+            // Continuous rotation using real time
+            let time = ui.input(|i| i.time);
+            let angle = (time * std::f64::consts::TAU * 1.5) as f32; // 1.5 rotations per second
+
+            // Draw background track circle (subtle)
             ui.painter().circle_stroke(
                 spinner_rect.center(),
                 6.0,
-                Stroke::new(1.5, text_color),
+                Stroke::new(1.5, text_color.linear_multiply(0.2)),
             );
-            
-            // Draw spinner arc (simplified version)
-            let start_angle = angle * std::f32::consts::PI / 180.0;
-            let num_segments = 8;
+
+            // Draw spinning arc (270 degrees)
+            let num_segments = 12;
+            let arc_length = std::f32::consts::PI * 1.5; // 270 degrees
             for i in 0..num_segments {
-                let segment_angle = start_angle + (i as f32 * std::f32::consts::PI * 1.5 / num_segments as f32);
-                let next_angle = start_angle + ((i + 1) as f32 * std::f32::consts::PI * 1.5 / num_segments as f32);
-                
-                let p1 = spinner_rect.center() + egui::vec2(
-                    6.0 * segment_angle.cos(),
-                    6.0 * segment_angle.sin(),
+                let t0 = i as f32 / num_segments as f32;
+                let t1 = (i + 1) as f32 / num_segments as f32;
+                let segment_angle = angle + t0 * arc_length;
+                let next_angle = angle + t1 * arc_length;
+                // Fade alpha along the arc for a premium tail effect
+                let alpha = t1;
+
+                let p1 = spinner_rect.center()
+                    + egui::vec2(6.0 * segment_angle.cos(), 6.0 * segment_angle.sin());
+                let p2 = spinner_rect.center()
+                    + egui::vec2(6.0 * next_angle.cos(), 6.0 * next_angle.sin());
+
+                ui.painter().line_segment(
+                    [p1, p2],
+                    Stroke::new(2.0, text_color.linear_multiply(alpha)),
                 );
-                let p2 = spinner_rect.center() + egui::vec2(
-                    6.0 * next_angle.cos(),
-                    6.0 * next_angle.sin(),
-                );
-                
-                ui.painter().line_segment([p1, p2], Stroke::new(1.5, text_color));
             }
+
+            // Request continuous repaint while loading
+            ui.ctx().request_repaint();
         }
 
         // ─── Text Paint ───

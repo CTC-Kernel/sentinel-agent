@@ -81,7 +81,7 @@ impl<'a> SearchFilterBar<'a> {
                 .min_size(Vec2::new(0.0, 24.0));
 
                 let response = ui.add(btn);
-                
+
                 // Subtle glow on hover
                 if response.hovered() {
                     let rect = response.rect.expand(1.0);
@@ -92,7 +92,7 @@ impl<'a> SearchFilterBar<'a> {
                         egui::StrokeKind::Outside,
                     );
                 }
-                
+
                 if response.clicked() {
                     toggled = Some(idx);
                 }
@@ -100,13 +100,16 @@ impl<'a> SearchFilterBar<'a> {
 
             // Result count on right
             if let Some(n) = self.count {
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new(format!("{} résultat(s)", n))
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary()),
-                    );
-                });
+                ui.with_layout(
+                    egui::Layout::right_to_left(egui::Align::Center),
+                    |ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new(format!("{} résultat(s)", n))
+                                .font(theme::font_small())
+                                .color(theme::text_tertiary()),
+                        );
+                    },
+                );
             }
         });
 

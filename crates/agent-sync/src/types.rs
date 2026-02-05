@@ -194,6 +194,9 @@ pub struct CertificateRenewalResponse {
 }
 
 /// Heartbeat request sent to the SaaS.
+///
+/// This is the canonical heartbeat type. The `api_client.rs` version should
+/// be deprecated in favor of this one.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub struct HeartbeatRequest {
@@ -256,6 +259,18 @@ pub struct HeartbeatRequest {
     /// System uptime in seconds.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uptime_seconds: Option<u64>,
+
+    /// IP address of the agent.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ip_address: Option<String>,
+
+    /// Network bytes sent since last heartbeat.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub network_bytes_sent: Option<u64>,
+
+    /// Network bytes received since last heartbeat.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub network_bytes_recv: Option<u64>,
 }
 
 /// Self-check result sent in first heartbeat.
@@ -668,6 +683,9 @@ mod tests {
         }"#;
 
         let response: EnrollmentResponse = serde_json::from_str(json).unwrap();
-        assert_eq!(response.agent_id.to_string(), "550e8400-e29b-41d4-a716-446655440000");
+        assert_eq!(
+            response.agent_id.to_string(),
+            "550e8400-e29b-41d4-a716-446655440000"
+        );
     }
 }

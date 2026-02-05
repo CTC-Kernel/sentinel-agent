@@ -1,13 +1,25 @@
 #!/bin/sh
-# Sentinel GRC Agent - Post-installation script
+# Sentinel GRC Agent - Script post-installation
 set -e
+
+# Create dedicated service user/group
+if ! getent group sentinel-grc > /dev/null 2>&1; then
+    groupadd --system sentinel-grc
+fi
+if ! id -u sentinel-grc > /dev/null 2>&1; then
+    useradd --system --no-create-home --shell /usr/sbin/nologin \
+        --gid sentinel-grc sentinel-grc
+fi
 
 # Create data directories
 mkdir -p /var/lib/sentinel-grc
 mkdir -p /var/log/sentinel-grc
 mkdir -p /etc/sentinel
 
-# Set permissions
+# Set ownership and permissions
+chown sentinel-grc:sentinel-grc /var/lib/sentinel-grc
+chown sentinel-grc:sentinel-grc /var/log/sentinel-grc
+chown sentinel-grc:sentinel-grc /etc/sentinel
 chmod 755 /opt/sentinel-grc/bin/sentinel-agent
 chmod 700 /var/lib/sentinel-grc
 chmod 755 /var/log/sentinel-grc
@@ -15,28 +27,45 @@ chmod 700 /etc/sentinel
 
 # Set config file permissions if exists
 if [ -f /etc/sentinel/agent.json ]; then
+    chown sentinel-grc:sentinel-grc /etc/sentinel/agent.json
     chmod 600 /etc/sentinel/agent.json
+fi
+
+# Install logrotate configuration
+if [ -d /etc/logrotate.d ] && [ -f /opt/sentinel-grc/share/logrotate/sentinel-agent ]; then
+    cp /opt/sentinel-grc/share/logrotate/sentinel-agent /etc/logrotate.d/sentinel-agent
+    chmod 644 /etc/logrotate.d/sentinel-agent
+fi
+
+# Install AppArmor profile if available
+if command -v apparmor_parser > /dev/null 2>&1; then
+    if [ -f /opt/sentinel-grc/share/apparmor/sentinel-agent ]; then
+        cp /opt/sentinel-grc/share/apparmor/sentinel-agent \
+           /etc/apparmor.d/opt.sentinel-grc.bin.sentinel-agent
+        apparmor_parser -r /etc/apparmor.d/opt.sentinel-grc.bin.sentinel-agent || true
+    fi
 fi
 
 # Reload systemd and enable service
 systemctl daemon-reload
 systemctl enable sentinel-agent.service
 
-# Start service if not upgrading
+# Start or restart depending on install type
 case "$1" in
     configure)
         if [ -z "$2" ]; then
-            # Fresh install - start service
+            # Fresh install
             systemctl start sentinel-agent.service || true
         else
-            # Upgrade - restart service
+            # Upgrade
             systemctl restart sentinel-agent.service || true
         fi
         ;;
 esac
 
-echo "Sentinel GRC Agent installed successfully."
-echo "Service status: systemctl status sentinel-agent"
-echo "Configuration: /etc/sentinel/agent.json"
+echo "Sentinel GRC Agent installe avec succes."
+echo "Service : systemctl status sentinel-agent"
+echo "Config  : /etc/sentinel/agent.json"
+echo "Logs    : /var/log/sentinel-grc/"
 
 exit 0

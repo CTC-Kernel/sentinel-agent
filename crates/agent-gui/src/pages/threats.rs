@@ -41,7 +41,9 @@ impl ThreatsPage {
             ui,
             "Menaces Détectées",
             Some("ANALYSE DES ÉVÉNEMENTS SUSPECTS ET CORRÉLATION IA"),
-            Some("Consultez le flux consolidé des événements suspects (processus anormaux, clés USB non autorisées, modifications FIM). Le score de confiance IA aide à distinguer les faux positifs des menaces réelles."),
+            Some(
+                "Consultez le flux consolidé des événements suspects (processus anormaux, clés USB non autorisées, modifications FIM). Le score de confiance IA aide à distinguer les faux positifs des menaces réelles.",
+            ),
         );
         ui.add_space(theme::SPACE_LG);
 
@@ -60,7 +62,11 @@ impl ThreatsPage {
                 card_w,
                 "PROCESSUS SUSPECTS",
                 &process_count.to_string(),
-                if process_count > 0 { theme::ERROR } else { theme::text_tertiary() },
+                if process_count > 0 {
+                    theme::ERROR
+                } else {
+                    theme::text_tertiary()
+                },
                 icons::BUG,
             );
             Self::summary_card(
@@ -68,7 +74,11 @@ impl ThreatsPage {
                 card_w,
                 "ÉVÉNEMENTS USB",
                 &usb_count.to_string(),
-                if usb_count > 0 { theme::WARNING } else { theme::text_tertiary() },
+                if usb_count > 0 {
+                    theme::WARNING
+                } else {
+                    theme::text_tertiary()
+                },
                 icons::PLUG,
             );
             Self::summary_card(
@@ -76,7 +86,11 @@ impl ThreatsPage {
                 card_w,
                 "ALERTES FIM",
                 &fim_unack_count.to_string(),
-                if fim_unack_count > 0 { theme::WARNING } else { theme::text_tertiary() },
+                if fim_unack_count > 0 {
+                    theme::WARNING
+                } else {
+                    theme::text_tertiary()
+                },
                 icons::EYE,
             );
             Self::summary_card(
@@ -154,7 +168,15 @@ impl ThreatsPage {
             let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
             if widgets::button::primary_button_loading(
                 ui,
-                format!("{}  {}", if is_scanning { "SCAN EN COURS" } else { "LANCER LE SCAN" }, icons::PLAY),
+                format!(
+                    "{}  {}",
+                    if is_scanning {
+                        "SCAN EN COURS"
+                    } else {
+                        "LANCER LE SCAN"
+                    },
+                    icons::PLAY
+                ),
                 !is_scanning,
                 is_scanning,
             )
@@ -165,19 +187,22 @@ impl ThreatsPage {
 
             ui.add_space(theme::SPACE_SM);
 
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                let export_btn = egui::Button::new(
-                    egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                        .font(egui::FontId::proportional(10.0))
-                        .color(theme::text_tertiary())
-                        .strong(),
-                )
-                .fill(theme::bg_elevated())
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                if ui.add(export_btn).clicked() {
-                    Self::export_threats_csv(&threats);
-                }
-            });
+            ui.with_layout(
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui: &mut egui::Ui| {
+                    let export_btn = egui::Button::new(
+                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .strong(),
+                    )
+                    .fill(theme::bg_elevated())
+                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                    if ui.add(export_btn).clicked() {
+                        Self::export_threats_csv(&threats);
+                    }
+                },
+            );
         });
 
         ui.add_space(theme::SPACE_SM);
@@ -186,7 +211,7 @@ impl ThreatsPage {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("FIL DE SÉCURITÉ CONSOLIDÉ")
-                    .font(egui::FontId::proportional(10.0))
+                    .font(theme::font_label())
                     .color(theme::text_tertiary())
                     .extra_letter_spacing(0.5)
                     .strong(),
@@ -372,45 +397,48 @@ impl ThreatsPage {
                     ui.vertical(|ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(&threat.title)
-                                .font(egui::FontId::proportional(13.0))
+                                .font(theme::font_body())
                                 .color(theme::text_primary())
                                 .strong(),
                         );
                         ui.label(
                             egui::RichText::new(&threat.description)
-                                .font(egui::FontId::proportional(11.0))
+                                .font(theme::font_min())
                                 .color(theme::text_secondary()),
                         );
                     });
 
                     // Right side: timestamp + optional confidence
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                        // Timestamp
-                        ui.label(
-                            egui::RichText::new(format!(
-                                "{}  {}",
-                                icons::CLOCK,
-                                threat.timestamp.format("%d/%m/%Y %H:%M"),
-                            ))
-                            .font(egui::FontId::proportional(10.0))
-                            .color(theme::text_tertiary()),
-                        );
+                    ui.with_layout(
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui: &mut egui::Ui| {
+                            // Timestamp
+                            ui.label(
+                                egui::RichText::new(format!(
+                                    "{}  {}",
+                                    icons::CLOCK,
+                                    threat.timestamp.format("%d/%m/%Y %H:%M"),
+                                ))
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary()),
+                            );
 
-                        // Confidence badge (process events only)
-                        if let Some(conf) = threat.confidence {
-                            ui.add_space(theme::SPACE_SM);
-                            let conf_color = if conf >= 90 {
-                                theme::ERROR
-                            } else if conf >= 70 {
-                                theme::SEVERITY_HIGH
-                            } else if conf >= 40 {
-                                theme::WARNING
-                            } else {
-                                theme::INFO
-                            };
-                            widgets::status_badge(ui, &format!("{}%", conf), conf_color);
-                        }
-                    });
+                            // Confidence badge (process events only)
+                            if let Some(conf) = threat.confidence {
+                                ui.add_space(theme::SPACE_SM);
+                                let conf_color = if conf >= 90 {
+                                    theme::ERROR
+                                } else if conf >= 70 {
+                                    theme::SEVERITY_HIGH
+                                } else if conf >= 40 {
+                                    theme::WARNING
+                                } else {
+                                    theme::INFO
+                                };
+                                widgets::status_badge(ui, &format!("{}%", conf), conf_color);
+                            }
+                        },
+                    );
                 });
             });
     }
@@ -431,25 +459,28 @@ impl ThreatsPage {
                     ui.vertical(|ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(value)
-                                .font(egui::FontId::proportional(24.0))
+                                .font(theme::font_card_value())
                                 .color(color)
-                                .strong()
+                                .strong(),
                         );
                         ui.label(
                             egui::RichText::new(label)
-                                .font(egui::FontId::proportional(10.0))
+                                .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .extra_letter_spacing(0.5)
                                 .strong(),
                         );
                     });
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(icon)
-                                .size(28.0)
-                                .color(color.linear_multiply(0.25)),
-                        );
-                    });
+                    ui.with_layout(
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new(icon)
+                                    .size(28.0)
+                                    .color(color.linear_multiply(0.25)),
+                            );
+                        },
+                    );
                 });
             });
         });

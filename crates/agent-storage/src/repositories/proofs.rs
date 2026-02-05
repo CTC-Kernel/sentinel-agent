@@ -80,7 +80,12 @@ impl Proof {
         // Hash components in order: check_result_id, data, timestamp
         hasher.update(check_result_id.to_le_bytes());
         hasher.update(data.as_bytes());
-        hasher.update(created_at.format("%Y-%m-%dT%H:%M:%SZ").to_string().as_bytes());
+        hasher.update(
+            created_at
+                .format("%Y-%m-%dT%H:%M:%SZ")
+                .to_string()
+                .as_bytes(),
+        );
 
         let result = hasher.finalize();
         hex::encode(result)

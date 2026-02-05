@@ -87,4 +87,3 @@ pub const BUILDING: &str = "\u{f1ad}"; // fa-building
 pub const STREAM: &str = "\u{f550}"; // fa-stream
 pub const CHART_PIE: &str = "\u{f200}"; // fa-chart-pie
 pub const GAUGE_HIGH: &str = "\u{f625}"; // fa-gauge-high
-

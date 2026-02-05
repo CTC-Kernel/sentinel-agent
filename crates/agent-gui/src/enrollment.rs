@@ -352,7 +352,7 @@ impl EnrollmentWizard {
                                 theme::text_secondary()
                             };
                             let font = if active {
-                                egui::FontId::proportional(13.0)
+                                theme::font_body()
                             } else {
                                 theme::font_small()
                             };
@@ -411,7 +411,7 @@ impl EnrollmentWizard {
                         ui.add_space(4.0);
 
                         // Token input with security masking
-                        
+
                         egui::Frame::new()
                             .fill(input_bg)
                             .corner_radius(egui::CornerRadius::same(input_rounding))
@@ -427,15 +427,20 @@ impl EnrollmentWizard {
                                             .password(!self.show_token) // Built-in password masking
                                             .hint_text("xxxxx-xxxxx-xxxxx"),
                                     );
-                                    
+
                                     // Toggle visibility button
-                                    if ui.add(
-                                        egui::Button::new(
-                                            if self.show_token { "🙈" } else { "👁️" }
+                                    if ui
+                                        .add(
+                                            egui::Button::new(if self.show_token {
+                                                "🙈"
+                                            } else {
+                                                "👁️"
+                                            })
+                                            .fill(egui::Color32::TRANSPARENT)
+                                            .corner_radius(egui::CornerRadius::same(4)),
                                         )
-                                        .fill(egui::Color32::TRANSPARENT)
-                                        .corner_radius(egui::CornerRadius::same(4))
-                                    ).clicked() {
+                                        .clicked()
+                                    {
                                         self.show_token = !self.show_token;
                                     }
                                 });
@@ -553,7 +558,7 @@ impl EnrollmentWizard {
                     ui.add_space(theme::SPACE);
                     ui.label(
                         egui::RichText::new("Enrôlement réussi !")
-                            .font(egui::FontId::proportional(22.0))
+                            .font(theme::font_card_value())
                             .color(theme::SUCCESS)
                             .strong(),
                     );
@@ -566,7 +571,7 @@ impl EnrollmentWizard {
                     ui.add_space(theme::SPACE);
                     ui.label(
                         egui::RichText::new("Échec de l'enrôlement")
-                            .font(egui::FontId::proportional(22.0))
+                            .font(theme::font_card_value())
                             .color(theme::ERROR)
                             .strong(),
                     );

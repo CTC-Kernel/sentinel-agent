@@ -69,7 +69,7 @@ pub const INFO: Color32 = Color32::from_rgb(10, 132, 255); // Apple System Blue
 /// Severity-high amber (high contrast).
 pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 214, 10); // Apple System Yellow
 /// Severity-medium (Sophisticated Orange).
-pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 159, 10); 
+pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 159, 10);
 
 // ============================================================================
 // Surface colors (dynamic – depends on active theme)
@@ -224,6 +224,123 @@ pub const CARD_ROUNDING: u8 = 16;
 pub const BUTTON_ROUNDING: u8 = 8;
 /// Badge rounding radius.
 pub const BADGE_ROUNDING: u8 = 6;
+
+// ============================================================================
+// Semantic font sizes (use these instead of inline FontId::proportional())
+// ============================================================================
+
+/// Card large value font (26px - for metric numbers).
+pub fn font_card_value() -> FontId {
+    FontId::new(26.0, egui::FontFamily::Proportional)
+}
+
+/// Stat/metric font (20px - for dashboard numbers).
+pub fn font_stat() -> FontId {
+    FontId::new(20.0, egui::FontFamily::Proportional)
+}
+
+/// Label font (10px - for labels and annotations).
+pub fn font_label() -> FontId {
+    FontId::new(10.0, egui::FontFamily::Proportional)
+}
+
+/// Minimum readable font (11px - minimum for accessibility).
+pub fn font_min() -> FontId {
+    FontId::new(11.0, egui::FontFamily::Proportional)
+}
+
+// ============================================================================
+// Letter spacing constants
+// ============================================================================
+
+/// Tight letter spacing (labels, small text).
+pub const TRACKING_TIGHT: f32 = 0.3;
+/// Normal letter spacing (body, buttons).
+pub const TRACKING_NORMAL: f32 = 0.5;
+/// Wide letter spacing (section headers, uppercase labels).
+pub const TRACKING_WIDE: f32 = 1.0;
+
+// ============================================================================
+// Opacity constants (use with .linear_multiply())
+// ============================================================================
+
+/// Extremely subtle (borders, dividers).
+pub const OPACITY_SUBTLE: f32 = 0.08;
+/// Muted (disabled elements, backgrounds).
+pub const OPACITY_MUTED: f32 = 0.25;
+/// Medium (hover states, secondary elements).
+pub const OPACITY_MEDIUM: f32 = 0.5;
+/// Strong (active states, emphasis).
+pub const OPACITY_STRONG: f32 = 0.85;
+
+// ============================================================================
+// Table constants
+// ============================================================================
+
+/// Minimum table row height for readability and touch targets.
+pub const TABLE_ROW_HEIGHT: f32 = 36.0;
+/// Alternating row tint alpha.
+pub const TABLE_ALT_ROW_ALPHA: u8 = 6;
+
+/// Get alternating row background color.
+pub fn table_row_bg(row_index: usize) -> Color32 {
+    if row_index.is_multiple_of(2) {
+        Color32::TRANSPARENT
+    } else if is_dark_mode() {
+        Color32::from_white_alpha(TABLE_ALT_ROW_ALPHA)
+    } else {
+        Color32::from_black_alpha(TABLE_ALT_ROW_ALPHA)
+    }
+}
+
+/// Get row hover highlight color.
+pub fn table_row_hover() -> Color32 {
+    if is_dark_mode() {
+        Color32::from_white_alpha(15)
+    } else {
+        Color32::from_black_alpha(10)
+    }
+}
+
+// ============================================================================
+// Glass morphism helpers
+// ============================================================================
+
+/// Semi-transparent card background for glass effect.
+pub fn glass_card_bg() -> Color32 {
+    if is_dark_mode() {
+        Color32::from_rgba_premultiplied(18, 18, 20, 220)
+    } else {
+        Color32::from_rgba_premultiplied(255, 255, 255, 230)
+    }
+}
+
+/// Glass card border (brighter top-left edge).
+pub fn glass_border_top() -> Color32 {
+    if is_dark_mode() {
+        Color32::from_white_alpha(20)
+    } else {
+        Color32::from_white_alpha(180)
+    }
+}
+
+/// Glass card border (darker bottom-right edge).
+pub fn glass_border_bottom() -> Color32 {
+    if is_dark_mode() {
+        Color32::from_white_alpha(5)
+    } else {
+        Color32::from_black_alpha(15)
+    }
+}
+
+// ============================================================================
+// Animation helpers
+// ============================================================================
+
+/// Duration for page fade transitions.
+pub const PAGE_TRANSITION_DURATION: f32 = 0.15;
+/// Duration for toast notification display.
+pub const TOAST_DURATION_SECS: f64 = 3.0;
 
 // ============================================================================
 // Font helpers
@@ -462,10 +579,10 @@ pub fn status_color(status: &str) -> Color32 {
 /// critical (red) > high (amber) > medium (orange) > low (blue) > info (gray)
 pub fn severity_color(severity: &str) -> Color32 {
     match severity {
-        "critical" => ERROR,           // #FF3B30 Red
-        "high" => SEVERITY_HIGH,       // #FFCC00 Amber
-        "medium" => SEVERITY_MEDIUM,   // #FF9F0A Orange
-        "low" => INFO,                 // #007AFF Blue
+        "critical" => ERROR,         // #FF3B30 Red
+        "high" => SEVERITY_HIGH,     // #FFCC00 Amber
+        "medium" => SEVERITY_MEDIUM, // #FF9F0A Orange
+        "low" => INFO,               // #007AFF Blue
         "info" => text_secondary(),
         _ => text_secondary(),
     }

@@ -4,7 +4,7 @@ use agent_common::types::UpdateInfo;
 use semver::Version;
 use std::process::Command;
 use std::sync::Arc;
-use tracing::{error, info, debug, warn};
+use tracing::{debug, error, info, warn};
 
 /// Orchestrates the agent self-update process.
 pub struct UpdateManager {
@@ -80,7 +80,7 @@ impl UpdateManager {
         );
 
         let temp_dir = std::env::temp_dir();
-        let download_path = temp_dir.join(&package_name);
+        let download_path = temp_dir.join(package_name);
 
         info!("Downloading update package to {:?}", download_path);
         self.api_client
@@ -192,34 +192,39 @@ impl UpdateManager {
         #[cfg(target_os = "macos")]
         {
             info!("Executing: /usr/sbin/installer -pkg {} -target /", path_str);
-            
+
             // First try without sudo
             let output = Command::new("/usr/sbin/installer")
                 .args(["-pkg", path_str, "-target", "/"])
                 .output()
                 .map_err(|e| CommonError::system(format!("Failed to launch installer: {}", e)))?;
-            
+
             let status = output.status;
             if !status.success() {
                 // Enhanced error logging for macOS installer
                 let stderr = String::from_utf8_lossy(&output.stderr);
                 let stdout = String::from_utf8_lossy(&output.stdout);
-                
+
                 error!(
                     "macOS installer failed with exit status {}: stderr: {}, stdout: {}",
                     status, stderr, stdout
                 );
-                
+
                 // Check if it's a permission issue and try with sudo
                 if stderr.contains("Must be run as root") || status.code() == Some(1) {
                     warn!("Installer requires root privileges. Attempting with sudo...");
-                    
+
                     // Try with sudo
                     let sudo_output = Command::new("sudo")
                         .args(["/usr/sbin/installer", "-pkg", path_str, "-target", "/"])
                         .output()
-                        .map_err(|e| CommonError::system(format!("Failed to launch installer with sudo: {}", e)))?;
-                    
+                        .map_err(|e| {
+                            CommonError::system(format!(
+                                "Failed to launch installer with sudo: {}",
+                                e
+                            ))
+                        })?;
+
                     let sudo_status = sudo_output.status;
                     if sudo_status.success() {
                         info!("macOS installer completed successfully with sudo");
@@ -227,12 +232,12 @@ impl UpdateManager {
                     } else {
                         let sudo_stderr = String::from_utf8_lossy(&sudo_output.stderr);
                         let sudo_stdout = String::from_utf8_lossy(&sudo_output.stdout);
-                        
+
                         error!(
                             "macOS installer with sudo failed with exit status {}: stderr: {}, stdout: {}",
                             sudo_status, sudo_stderr, sudo_stdout
                         );
-                        
+
                         return Err(CommonError::system(format!(
                             "macOS installer failed even with sudo: exit code={:?}, stderr: {}",
                             sudo_status.code(),
@@ -240,16 +245,21 @@ impl UpdateManager {
                         )));
                     }
                 }
-                
+
                 // Common installer issues and suggestions
                 match status.code() {
                     Some(1) => {
-                        warn!("Installer exit code 1: Possible causes - insufficient permissions, corrupted package, or target directory conflicts");
+                        warn!(
+                            "Installer exit code 1: Possible causes - insufficient permissions, corrupted package, or target directory conflicts"
+                        );
                         return Err(CommonError::system("macOS installer failed: Permission denied or package corruption. Try running with sudo or check disk space.".to_string()));
                     }
                     Some(64) => {
                         warn!("Installer exit code 64: Package validation failed");
-                        return Err(CommonError::system("Package validation failed. The downloaded package may be corrupted.".to_string()));
+                        return Err(CommonError::system(
+                            "Package validation failed. The downloaded package may be corrupted."
+                                .to_string(),
+                        ));
                     }
                     _ => {
                         return Err(CommonError::system(format!(

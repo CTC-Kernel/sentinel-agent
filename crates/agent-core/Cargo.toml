@@ -42,6 +42,7 @@ hostname.workspace = true
 uuid.workspace = true
 semver.workspace = true
 sha2.workspace = true
+hex.workspace = true
 tray-icon = { workspace = true, optional = true }
 muda = { workspace = true, optional = true }
 image = { workspace = true, optional = true }
@@ -74,6 +75,8 @@ assets = [
     ["../../config/agent.example.json", "/etc/sentinel/agent.json", "600"],
     ["../../wix/license.rtf", "/opt/sentinel-grc/share/doc/LICENSE.rtf", "644"],
     ["debian/sentinel-agent.service", "/etc/systemd/system/sentinel-agent.service", "644"],
+    ["../../linux/logrotate/sentinel-agent", "/opt/sentinel-grc/share/logrotate/sentinel-agent", "644"],
+    ["../../linux/apparmor/sentinel-agent", "/opt/sentinel-grc/share/apparmor/sentinel-agent", "644"],
 ]
 maintainer-scripts = "debian/"
 
@@ -87,7 +90,12 @@ assets = [
     { source = "target/release/agent-core", dest = "/opt/sentinel-grc/bin/sentinel-agent", mode = "755" },
     { source = "config/agent.example.json", dest = "/etc/sentinel/agent.json", mode = "600", config = true },
     { source = "crates/agent-core/debian/sentinel-agent.service", dest = "/etc/systemd/system/sentinel-agent.service", mode = "644" },
+    { source = "linux/logrotate/sentinel-agent", dest = "/opt/sentinel-grc/share/logrotate/sentinel-agent", mode = "644" },
+    { source = "linux/apparmor/sentinel-agent", dest = "/opt/sentinel-grc/share/apparmor/sentinel-agent", mode = "644" },
 ]
 post_install_script = "crates/agent-core/debian/postinst"
 pre_uninstall_script = "crates/agent-core/debian/prerm"
 post_uninstall_script = "crates/agent-core/debian/postrm"
+
+[dev-dependencies]
+tempfile.workspace = true

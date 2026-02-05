@@ -157,6 +157,7 @@ dependencies = [
  "chrono",
  "clap",
  "directories",
+ "hex",
  "hostname",
  "image",
  "libc",
@@ -171,6 +172,7 @@ dependencies = [
  "signal-hook",
  "sysinfo",
  "tao",
+ "tempfile",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -7058,6 +7060,10 @@ checksum = "3ae8337f8a065cfc972643663ea4279e04e7256de865aa66fe25cec5fb912d3f"
 [[package]]
 name = "xtask"
 version = "2.0.0"
+dependencies = [
+ "anyhow",
+ "clap",
+]
 
 [[package]]
 name = "yaml-rust2"

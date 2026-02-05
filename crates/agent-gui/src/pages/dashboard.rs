@@ -20,7 +20,9 @@ impl DashboardPage {
             ui,
             "Tableau de bord",
             Some("CENTRE DE PILOTAGE GRC"),
-            Some("Vue d'ensemble de votre posture de sécurité. Pilotez conformité, vulnérabilités et menaces en temps réel."),
+            Some(
+                "Vue d'ensemble de votre posture de sécurité. Pilotez conformité, vulnérabilités et menaces en temps réel.",
+            ),
         );
 
         ui.add_space(theme::SPACE_MD);
@@ -116,7 +118,7 @@ impl DashboardPage {
             ui.vertical_centered(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new("INDICE DE CONFORMITÉ GLOBAL")
-                        .font(egui::FontId::proportional(10.0))
+                        .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .extra_letter_spacing(0.5)
                         .strong(),
@@ -145,17 +147,17 @@ impl DashboardPage {
                     ui.horizontal(|ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(arrow)
-                                .font(egui::FontId::proportional(12.0))
+                                .font(theme::font_body())
                                 .color(color),
                         );
                         ui.label(
                             egui::RichText::new(text)
-                                .font(egui::FontId::proportional(11.0))
+                                .font(theme::font_min())
                                 .color(color),
                         );
                         ui.label(
                             egui::RichText::new("vs précédent")
-                                .font(egui::FontId::proportional(10.0))
+                                .font(theme::font_label())
                                 .color(theme::text_tertiary()),
                         );
                     });
@@ -228,7 +230,7 @@ impl DashboardPage {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("CONTRÔLES")
-                    .font(egui::FontId::proportional(10.0))
+                    .font(theme::font_label())
                     .color(theme::text_tertiary())
                     .strong(),
             );
@@ -242,7 +244,7 @@ impl DashboardPage {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new(format!("{}/{}", passing, total))
-                        .font(egui::FontId::proportional(24.0))
+                        .font(theme::font_card_value())
                         .color(if passing == total {
                             theme::SUCCESS
                         } else {
@@ -272,7 +274,7 @@ impl DashboardPage {
             };
             ui.label(
                 egui::RichText::new(status_text)
-                    .font(egui::FontId::proportional(9.0))
+                    .font(theme::font_label())
                     .color(if state.policy.failing > 0 {
                         theme::WARNING
                     } else {
@@ -289,7 +291,7 @@ impl DashboardPage {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("VULNÉRABILITÉS")
-                    .font(egui::FontId::proportional(10.0))
+                    .font(theme::font_label())
                     .color(theme::text_tertiary())
                     .strong(),
             );
@@ -309,13 +311,13 @@ impl DashboardPage {
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.label(
                         egui::RichText::new(format!("{}", vuln.critical))
-                            .font(egui::FontId::proportional(24.0))
+                            .font(theme::font_card_value())
                             .color(critical_color)
                             .strong(),
                     );
                     ui.label(
                         egui::RichText::new("critiques")
-                            .font(egui::FontId::proportional(10.0))
+                            .font(theme::font_label())
                             .color(theme::text_tertiary()),
                     );
                 });
@@ -338,7 +340,7 @@ impl DashboardPage {
                     );
                     ui.label(
                         egui::RichText::new("Scan requis")
-                            .font(egui::FontId::proportional(10.0))
+                            .font(theme::font_label())
                             .color(theme::text_tertiary()),
                     );
                 });
@@ -362,7 +364,7 @@ impl DashboardPage {
                 ui.add_space(theme::SPACE_XS);
                 ui.label(
                     egui::RichText::new("CENTRE DE COMMANDE")
-                        .font(egui::FontId::proportional(10.0))
+                        .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .extra_letter_spacing(0.5)
                         .strong(),
@@ -379,7 +381,11 @@ impl DashboardPage {
                     format!(
                         "{}  {}",
                         icons::PLAY,
-                        if is_scanning { "SCAN EN COURS..." } else { "SCAN" }
+                        if is_scanning {
+                            "SCAN EN COURS..."
+                        } else {
+                            "SCAN"
+                        }
                     ),
                     !is_scanning,
                     is_scanning,
@@ -397,7 +403,11 @@ impl DashboardPage {
                     format!(
                         "{}  {}",
                         icons::SYNC,
-                        if is_syncing { "SYNCHRONISATION..." } else { "SYNCHRONISER" }
+                        if is_syncing {
+                            "SYNCHRONISATION..."
+                        } else {
+                            "SYNCHRONISER"
+                        }
                     ),
                     !is_syncing,
                     is_syncing,
@@ -426,7 +436,7 @@ impl DashboardPage {
             // Recent actions / status
             ui.label(
                 egui::RichText::new("ÉTAT DU SYSTÈME")
-                    .font(egui::FontId::proportional(9.0))
+                    .font(theme::font_label())
                     .color(theme::text_tertiary())
                     .strong(),
             );
@@ -495,7 +505,8 @@ impl DashboardPage {
     fn mini_progress_bar(ui: &mut Ui, fraction: f32, color: egui::Color32) {
         let height = 4.0;
         let width = ui.available_width();
-        let (rect, _) = ui.allocate_exact_size(egui::Vec2::new(width, height), egui::Sense::hover());
+        let (rect, _) =
+            ui.allocate_exact_size(egui::Vec2::new(width, height), egui::Sense::hover());
 
         if ui.is_rect_visible(rect) {
             let painter = ui.painter_at(rect);
@@ -518,7 +529,7 @@ impl DashboardPage {
         ui.vertical(|ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new(value)
-                    .font(egui::FontId::proportional(12.0))
+                    .font(theme::font_body())
                     .color(color)
                     .strong(),
             );
@@ -532,24 +543,23 @@ impl DashboardPage {
 
     fn status_item(ui: &mut Ui, icon: &str, label: &str, value: &str, color: egui::Color32) {
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.label(
-                egui::RichText::new(icon)
-                    .size(10.0)
-                    .color(color),
-            );
+            ui.label(egui::RichText::new(icon).size(10.0).color(color));
             ui.add_space(theme::SPACE_XS);
             ui.label(
                 egui::RichText::new(label)
-                    .font(egui::FontId::proportional(10.0))
+                    .font(theme::font_label())
                     .color(theme::text_secondary()),
             );
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new(value)
-                        .font(egui::FontId::proportional(10.0))
-                        .color(color),
-                );
-            });
+            ui.with_layout(
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new(value)
+                            .font(theme::font_label())
+                            .color(color),
+                    );
+                },
+            );
         });
         ui.add_space(theme::SPACE_XS);
     }

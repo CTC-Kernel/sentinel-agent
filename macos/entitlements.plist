@@ -2,39 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- Allow network connections (client and server) -->
+    <!-- Network: outbound HTTPS to Sentinel GRC API -->
     <key>com.apple.security.network.client</key>
     <true/>
-    <key>com.apple.security.network.server</key>
-    <true/>
 
-    <!-- Allow reading/writing user-selected files -->
+    <!-- Filesystem: read compliance-related config files -->
     <key>com.apple.security.files.user-selected.read-write</key>
     <true/>
 
-    <!-- Allow access to downloads folder -->
-    <key>com.apple.security.files.downloads.read-write</key>
-    <true/>
-
-    <!-- Hardened runtime exceptions needed for the agent -->
-    <!-- Allow unsigned executable memory (for Rust runtime) -->
+    <!-- Hardened runtime: required by Rust async runtime (tokio) -->
     <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
-    <true/>
-
-    <!-- Allow DYLD environment variables (for debugging) -->
-    <key>com.apple.security.cs.allow-dyld-environment-variables</key>
-    <true/>
-
-    <!-- Disable library validation (for dynamic loading) -->
-    <key>com.apple.security.cs.disable-library-validation</key>
-    <true/>
-
-    <!-- Allow JIT compilation (required by some Rust components) -->
-    <key>com.apple.security.cs.allow-jit</key>
-    <true/>
-
-    <!-- Allow execution of memory pages (for Rust runtime) -->
-    <key>com.apple.security.cs.allow-executable-stack</key>
     <true/>
 </dict>
 </plist>

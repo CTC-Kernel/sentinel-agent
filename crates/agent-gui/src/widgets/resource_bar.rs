@@ -19,13 +19,16 @@ pub fn resource_bar(ui: &mut Ui, label: &str, value: &str, fraction: f32) {
                 .font(theme::font_small())
                 .color(theme::text_secondary()),
         );
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-            ui.label(
-                egui::RichText::new(value)
-                    .font(theme::font_small())
-                    .color(theme::text_primary()),
-            );
-        });
+        ui.with_layout(
+            egui::Layout::right_to_left(egui::Align::Center),
+            |ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(value)
+                        .font(theme::font_small())
+                        .color(theme::text_primary()),
+                );
+            },
+        );
     });
 
     let (rect, _) = ui.allocate_exact_size(Vec2::new(full_width, bar_height), egui::Sense::empty());

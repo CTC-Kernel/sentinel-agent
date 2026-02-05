@@ -1,0 +1,74 @@
+# AppArmor profile for Sentinel GRC Agent
+# Install: cp sentinel-agent /etc/apparmor.d/opt.sentinel-grc.bin.sentinel-agent
+# Reload: apparmor_parser -r /etc/apparmor.d/opt.sentinel-grc.bin.sentinel-agent
+
+#include <tunables/global>
+
+/opt/sentinel-grc/bin/sentinel-agent {
+    #include <abstractions/base>
+    #include <abstractions/nameservice>
+    #include <abstractions/ssl_certs>
+
+    # Binary
+    /opt/sentinel-grc/bin/sentinel-agent mr,
+
+    # Configuration
+    /etc/sentinel/ r,
+    /etc/sentinel/** rw,
+
+    # Data storage (SQLCipher database)
+    /var/lib/sentinel-grc/ rw,
+    /var/lib/sentinel-grc/** rwk,
+
+    # Logs
+    /var/log/sentinel-grc/ rw,
+    /var/log/sentinel-grc/** rw,
+
+    # Network access (HTTPS API, network discovery)
+    network inet stream,
+    network inet dgram,
+    network inet6 stream,
+    network inet6 dgram,
+    network netlink raw,
+
+    # System information for compliance checks
+    @{PROC}/sys/** r,
+    @{PROC}/meminfo r,
+    @{PROC}/cpuinfo r,
+    @{PROC}/[0-9]*/status r,
+    @{PROC}/[0-9]*/cmdline r,
+    @{PROC}/[0-9]*/stat r,
+    /sys/class/** r,
+    /sys/devices/** r,
+
+    # OS and security configuration reading
+    /etc/os-release r,
+    /etc/passwd r,
+    /etc/group r,
+    /etc/shadow r,
+    /etc/login.defs r,
+    /etc/ssh/sshd_config r,
+    /etc/pam.d/** r,
+    /etc/security/** r,
+    /etc/apt/** r,
+    /etc/yum.repos.d/** r,
+    /etc/default/** r,
+    /etc/sysctl.conf r,
+    /etc/sysctl.d/** r,
+
+    # USB monitoring
+    /sys/bus/usb/** r,
+    /dev/bus/usb/** r,
+
+    # DNS resolution
+    /run/systemd/resolve/stub-resolv.conf r,
+    /etc/resolv.conf r,
+
+    # Temporary files
+    owner /tmp/sentinel-grc-* rw,
+
+    # Deny dangerous paths
+    deny /boot/** rwx,
+    deny /root/** rwx,
+    deny /home/** rwx,
+}

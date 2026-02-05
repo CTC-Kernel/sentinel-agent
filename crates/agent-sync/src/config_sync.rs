@@ -103,10 +103,11 @@ impl ConfigSyncService {
         let response: ConfigResponse = self.client.get(&path).await?;
 
         // Extract version from the flat response (server sends config_version)
-        let version = response
-            .config
-            .get("config_version")
-            .and_then(|v| v.as_u64().map(|n| n.to_string()).or_else(|| v.as_str().map(String::from)));
+        let version = response.config.get("config_version").and_then(|v| {
+            v.as_u64()
+                .map(|n| n.to_string())
+                .or_else(|| v.as_str().map(String::from))
+        });
 
         debug!("Downloaded config from server (version: {:?})", version);
 

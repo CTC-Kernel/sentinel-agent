@@ -42,7 +42,10 @@ pub fn sparkline(ui: &mut Ui, data: &[[f64; 2]], size: Vec2, config: &SparklineC
             for i in 1..3 {
                 let y = rect.min.y + (rect.height() * i as f32 / 3.0);
                 painter.line_segment(
-                    [egui::pos2(rect.min.x + 4.0, y), egui::pos2(rect.max.x - 4.0, y)],
+                    [
+                        egui::pos2(rect.min.x + 4.0, y),
+                        egui::pos2(rect.max.x - 4.0, y),
+                    ],
                     egui::Stroke::new(0.5, grid_color),
                 );
             }
@@ -119,7 +122,7 @@ pub fn sparkline_with_value(
         ui.horizontal(|ui: &mut egui::Ui| {
             ui.label(
                 RichText::new(label)
-                    .font(egui::FontId::proportional(10.0))
+                    .font(theme::font_label())
                     .color(theme::text_tertiary())
                     .extra_letter_spacing(0.3)
                     .strong(),
@@ -146,14 +149,14 @@ pub fn sparkline_with_value(
 
                         ui.label(
                             RichText::new(arrow)
-                                .font(egui::FontId::proportional(10.0))
+                                .font(theme::font_label())
                                 .color(arrow_color),
                         );
                     }
 
                     ui.label(
                         RichText::new(value)
-                            .font(egui::FontId::proportional(14.0))
+                            .font(theme::font_body())
                             .color(config.color)
                             .strong(),
                     );
@@ -177,13 +180,13 @@ pub fn sparkline_with_value(
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     RichText::new(format!("Moy: {:.0}%", avg))
-                        .font(egui::FontId::proportional(9.0))
+                        .font(theme::font_label())
                         .color(theme::text_tertiary()),
                 );
                 ui.add_space(theme::SPACE_SM);
                 ui.label(
                     RichText::new(format!("Max: {:.0}%", max))
-                        .font(egui::FontId::proportional(9.0))
+                        .font(theme::font_label())
                         .color(theme::text_tertiary()),
                 );
             });

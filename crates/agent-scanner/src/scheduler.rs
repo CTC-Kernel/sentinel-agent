@@ -327,7 +327,6 @@ mod tests {
     use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
     use agent_common::types::CheckCategory;
     use async_trait::async_trait;
-
     struct QuickCheck {
         definition: agent_common::types::CheckDefinition,
     }

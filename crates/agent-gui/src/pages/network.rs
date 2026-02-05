@@ -20,7 +20,9 @@ impl NetworkPage {
             ui,
             "Réseau",
             Some("CARTOGRAPHIE DES INTERFACES ET CONNEXIONS ACTIVES"),
-            Some("Analysez l'état des interfaces réseau et la liste des connexions actives. Les alertes DNS ou les flux vers des IPs suspectes sont mis en évidence pour faciliter l'investigation."),
+            Some(
+                "Analysez l'état des interfaces réseau et la liste des connexions actives. Les alertes DNS ou les flux vers des IPs suspectes sont mis en évidence pour faciliter l'investigation.",
+            ),
         );
         ui.add_space(theme::SPACE_LG);
 
@@ -38,7 +40,15 @@ impl NetworkPage {
                 let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
                 if widgets::button::primary_button_loading(
                     ui,
-                    format!("{}  {}", if is_scanning { "SCAN EN COURS" } else { "LANCER UN SCAN" }, icons::PLAY),
+                    format!(
+                        "{}  {}",
+                        if is_scanning {
+                            "SCAN EN COURS"
+                        } else {
+                            "LANCER UN SCAN"
+                        },
+                        icons::PLAY
+                    ),
                     !is_scanning,
                     is_scanning,
                 )
@@ -56,7 +66,15 @@ impl NetworkPage {
             let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
             if widgets::button::primary_button_loading(
                 ui,
-                format!("{}  {}", if is_scanning { "SCAN EN COURS" } else { "LANCER LE SCAN" }, icons::PLAY),
+                format!(
+                    "{}  {}",
+                    if is_scanning {
+                        "SCAN EN COURS"
+                    } else {
+                        "LANCER LE SCAN"
+                    },
+                    icons::PLAY
+                ),
                 !is_scanning,
                 is_scanning,
             )
@@ -68,9 +86,17 @@ impl NetworkPage {
         ui.add_space(theme::SPACE_MD);
 
         // Summary row (AAA Grade)
-        let iface_count = if state.network_interface_list.is_empty() { state.network_interfaces } else { state.network_interface_list.len() as u32 };
-        let conn_count = if state.network_connection_list.is_empty() { state.network_connections } else { state.network_connection_list.len() as u32 };
-        
+        let iface_count = if state.network_interface_list.is_empty() {
+            state.network_interfaces
+        } else {
+            state.network_interface_list.len() as u32
+        };
+        let conn_count = if state.network_connection_list.is_empty() {
+            state.network_connections
+        } else {
+            state.network_connection_list.len() as u32
+        };
+
         let card_grid = widgets::ResponsiveGrid::new(280.0, theme::SPACE_SM);
         let items = vec![
             (
@@ -88,8 +114,16 @@ impl NetworkPage {
             (
                 "ALERTES FLUX",
                 state.network_alerts.to_string(),
-                if state.network_alerts > 0 { theme::ERROR } else { theme::SUCCESS },
-                if state.network_alerts > 0 { icons::WARNING } else { icons::CIRCLE_CHECK },
+                if state.network_alerts > 0 {
+                    theme::ERROR
+                } else {
+                    theme::SUCCESS
+                },
+                if state.network_alerts > 0 {
+                    icons::WARNING
+                } else {
+                    icons::CIRCLE_CHECK
+                },
             ),
         ];
 
@@ -117,7 +151,7 @@ impl NetworkPage {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("ANALYSE DE SÉCURITÉ RÉSEAU")
-                    .font(egui::FontId::proportional(10.0))
+                    .font(theme::font_label())
                     .color(theme::text_tertiary())
                     .extra_letter_spacing(0.5)
                     .strong(),
@@ -141,14 +175,17 @@ impl NetworkPage {
                     );
                     ui.add_space(theme::SPACE_SM);
                     ui.label(
-                        egui::RichText::new(format!("{} ALERTE(S) DÉTECTÉE(S)", state.network_alerts))
-                            .font(egui::FontId::proportional(14.0))
-                            .color(theme::ERROR)
-                            .strong(),
+                        egui::RichText::new(format!(
+                            "{} ALERTE(S) DÉTECTÉE(S)",
+                            state.network_alerts
+                        ))
+                        .font(theme::font_body())
+                        .color(theme::ERROR)
+                        .strong(),
                     );
                     ui.label(
                         egui::RichText::new("ACTIONS DE MITIGATION REQUISES IMMÉDIATEMENT")
-                            .font(egui::FontId::proportional(10.0))
+                            .font(theme::font_label())
                             .color(theme::text_tertiary())
                             .extra_letter_spacing(0.5),
                     );
@@ -161,29 +198,37 @@ impl NetworkPage {
         command
     }
 
-    fn interfaces_table(ui: &mut Ui, state: &AppState) {
+    fn interfaces_table(ui: &mut Ui, state: &mut AppState) {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new("INTERFACES RÉSEAU DETECTÉES")
-                        .font(egui::FontId::proportional(10.0))
+                        .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .extra_letter_spacing(0.5)
                         .strong(),
                 );
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                    let export_btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  EXPORT CSV", icons::DOWNLOAD))
-                            .font(egui::FontId::proportional(10.0))
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    )
-                    .fill(theme::bg_elevated())
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                    if ui.add(export_btn).clicked() {
-                        Self::export_interfaces_csv(state);
-                    }
-                });
+                ui.with_layout(
+                    egui::Layout::right_to_left(egui::Align::Center),
+                    |ui: &mut egui::Ui| {
+                        let export_btn = egui::Button::new(
+                            egui::RichText::new(format!("{}  EXPORT CSV", icons::DOWNLOAD))
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .strong(),
+                        )
+                        .fill(theme::bg_elevated())
+                        .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                        if ui.add(export_btn).clicked() && Self::export_interfaces_csv(state) {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success(
+                                    "Export CSV interfaces terminé",
+                                )
+                                .with_time(ui.input(|i| i.time)),
+                            );
+                        }
+                    },
+                );
             });
             ui.add_space(theme::SPACE_MD);
 
@@ -205,68 +250,97 @@ impl NetworkPage {
                 table
                     .header(30.0, |mut header| {
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("NOM").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("NOM")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("TYPE").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("TYPE")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("STATUT").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("STATUT")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("IPV4").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("IPV4")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("MAC").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("MAC")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                     })
                     .body(|body| {
-                        body.rows(44.0, state.network_interface_list.len(), |mut row| {
-                            let iface = &state.network_interface_list[row.index()];
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(&iface.name)
-                                        .font(egui::FontId::proportional(13.0))
-                                        .color(theme::text_primary())
-                                        .strong(),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(&iface.interface_type)
-                                        .font(egui::FontId::proportional(11.0))
-                                        .color(theme::text_secondary()),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                let (label, color) = if iface.status == "up" {
-                                    ("OPÉRATIONNEL", theme::SUCCESS)
-                                } else {
-                                    ("HORS-LIGNE", theme::text_tertiary())
-                                };
-                                widgets::status_badge(ui, label, color);
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                let addr = iface
-                                    .ipv4_addresses
-                                    .first()
-                                    .map(|s| s.as_str())
-                                    .unwrap_or("--");
-                                ui.label(
-                                    egui::RichText::new(addr)
-                                        .font(theme::font_mono())
-                                        .color(theme::text_secondary()),
-                                );
-                            });
-                            row.col(|ui: &mut egui::Ui| {
-                                let mac = iface.mac_address.as_deref().unwrap_or("--");
-                                ui.label(
-                                    egui::RichText::new(mac)
-                                        .font(theme::font_mono())
-                                        .color(theme::text_tertiary()),
-                                );
-                            });
-                        });
+                        body.rows(
+                            theme::TABLE_ROW_HEIGHT,
+                            state.network_interface_list.len(),
+                            |mut row| {
+                                let iface = &state.network_interface_list[row.index()];
+                                row.col(|ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new(&iface.name)
+                                            .font(theme::font_body())
+                                            .color(theme::text_primary())
+                                            .strong(),
+                                    );
+                                });
+                                row.col(|ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new(&iface.interface_type)
+                                            .font(theme::font_min())
+                                            .color(theme::text_secondary()),
+                                    );
+                                });
+                                row.col(|ui: &mut egui::Ui| {
+                                    let (label, color) = if iface.status == "up" {
+                                        ("OPÉRATIONNEL", theme::SUCCESS)
+                                    } else {
+                                        ("HORS-LIGNE", theme::text_tertiary())
+                                    };
+                                    widgets::status_badge(ui, label, color);
+                                });
+                                row.col(|ui: &mut egui::Ui| {
+                                    let addr = iface
+                                        .ipv4_addresses
+                                        .first()
+                                        .map(|s| s.as_str())
+                                        .unwrap_or("--");
+                                    ui.label(
+                                        egui::RichText::new(addr)
+                                            .font(theme::font_mono())
+                                            .color(theme::text_secondary()),
+                                    );
+                                });
+                                row.col(|ui: &mut egui::Ui| {
+                                    let mac = iface.mac_address.as_deref().unwrap_or("--");
+                                    ui.label(
+                                        egui::RichText::new(mac)
+                                            .font(theme::font_mono())
+                                            .color(theme::text_tertiary()),
+                                    );
+                                });
+                            },
+                        );
                     });
             }
         });
@@ -277,24 +351,32 @@ impl NetworkPage {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new("CONNEXIONS ACTIVES")
-                        .font(egui::FontId::proportional(10.0))
+                        .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .extra_letter_spacing(0.5)
                         .strong(),
                 );
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                    let export_btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  EXPORT CSV", icons::DOWNLOAD))
-                            .font(egui::FontId::proportional(10.0))
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    )
-                    .fill(theme::bg_elevated())
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                    if ui.add(export_btn).clicked() {
-                        Self::export_connections_csv(state);
-                    }
-                });
+                ui.with_layout(
+                    egui::Layout::right_to_left(egui::Align::Center),
+                    |ui: &mut egui::Ui| {
+                        let export_btn = egui::Button::new(
+                            egui::RichText::new(format!("{}  EXPORT CSV", icons::DOWNLOAD))
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .strong(),
+                        )
+                        .fill(theme::bg_elevated())
+                        .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                        if ui.add(export_btn).clicked() && Self::export_connections_csv(state) {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success(
+                                    "Export CSV connexions terminé",
+                                )
+                                .with_time(ui.input(|i| i.time)),
+                            );
+                        }
+                    },
+                );
             });
             ui.add_space(theme::SPACE_MD);
 
@@ -344,26 +426,55 @@ impl NetworkPage {
                 table
                     .header(30.0, |mut header| {
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("PROTO").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("PROTO")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("LOCAL").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("LOCAL")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("DISTANT").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("DISTANT")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("ÉTAT").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("ÉTAT")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("PROCESSUS").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("PROCESSUS")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                     })
                     .body(|body| {
-                        body.rows(44.0, filtered.len(), |mut row| {
+                        body.rows(theme::TABLE_ROW_HEIGHT, filtered.len(), |mut row| {
                             let conn = &state.network_connection_list[filtered[row.index()]];
                             row.col(|ui: &mut egui::Ui| {
-                                widgets::status_badge(ui, &conn.protocol, theme::bg_elevated().linear_multiply(2.0));
+                                widgets::status_badge(
+                                    ui,
+                                    &conn.protocol,
+                                    theme::bg_elevated().linear_multiply(2.0),
+                                );
                             });
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
@@ -402,11 +513,14 @@ impl NetworkPage {
                             });
                             row.col(|ui: &mut egui::Ui| {
                                 ui.horizontal(|ui: &mut egui::Ui| {
-                                    ui.label(egui::RichText::new(icons::CUBE).color(theme::text_tertiary()));
+                                    ui.label(
+                                        egui::RichText::new(icons::CUBE)
+                                            .color(theme::text_tertiary()),
+                                    );
                                     let proc_name = conn.process_name.as_deref().unwrap_or("--");
                                     ui.label(
                                         egui::RichText::new(proc_name)
-                                            .font(egui::FontId::proportional(12.0))
+                                            .font(theme::font_body())
                                             .color(theme::text_primary())
                                             .strong(),
                                     );
@@ -433,31 +547,34 @@ impl NetworkPage {
                     ui.vertical(|ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(value)
-                                .font(egui::FontId::proportional(24.0))
+                                .font(theme::font_card_value())
                                 .color(color)
-                                .strong()
+                                .strong(),
                         );
                         ui.label(
                             egui::RichText::new(label)
-                                .font(egui::FontId::proportional(10.0))
+                                .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .extra_letter_spacing(0.5)
                                 .strong(),
                         );
                     });
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(icon)
-                                .size(28.0)
-                                .color(color.linear_multiply(0.25)),
-                        );
-                    });
+                    ui.with_layout(
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new(icon)
+                                    .size(28.0)
+                                    .color(color.linear_multiply(0.25)),
+                            );
+                        },
+                    );
                 });
             });
         });
     }
 
-    fn export_interfaces_csv(state: &AppState) {
+    fn export_interfaces_csv(state: &AppState) -> bool {
         let headers = &["interface", "type", "statut", "mac", "ipv4", "ipv6"];
         let rows: Vec<Vec<String>> = state
             .network_interface_list
@@ -474,12 +591,16 @@ impl NetworkPage {
             })
             .collect();
         let path = crate::export::default_export_path("network_interfaces.csv");
-        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
-            tracing::warn!("Export CSV failed: {}", e);
+        match crate::export::export_csv(headers, &rows, &path) {
+            Ok(()) => true,
+            Err(e) => {
+                tracing::warn!("Export CSV failed: {}", e);
+                false
+            }
         }
     }
 
-    fn export_connections_csv(state: &AppState) {
+    fn export_connections_csv(state: &AppState) -> bool {
         let headers = &["protocole", "local", "distant", "statut", "processus"];
         let rows: Vec<Vec<String>> = state
             .network_connection_list
@@ -498,8 +619,12 @@ impl NetworkPage {
             })
             .collect();
         let path = crate::export::default_export_path("network_connections.csv");
-        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
-            tracing::warn!("Export CSV failed: {}", e);
+        match crate::export::export_csv(headers, &rows, &path) {
+            Ok(()) => true,
+            Err(e) => {
+                tracing::warn!("Export CSV failed: {}", e);
+                false
+            }
         }
     }
 }

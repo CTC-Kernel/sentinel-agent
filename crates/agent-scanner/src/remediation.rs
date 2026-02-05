@@ -100,9 +100,7 @@ impl RemediationEngine {
                 check_id: action.check_id.clone(),
                 status: RemediationStatus::Failed,
                 output: String::new(),
-                error: Some(
-                    "Script does not match any registered remediation action".to_string(),
-                ),
+                error: Some("Script does not match any registered remediation action".to_string()),
                 executed_at: Utc::now(),
                 duration_ms: 0,
             };
@@ -158,9 +156,7 @@ impl RemediationEngine {
                 check_id: action.check_id.clone(),
                 status: RemediationStatus::Failed,
                 output: String::new(),
-                error: Some(
-                    "Script does not match any registered remediation action".to_string(),
-                ),
+                error: Some("Script does not match any registered remediation action".to_string()),
                 executed_at: Utc::now(),
                 duration_ms: 0,
             });
@@ -573,11 +569,13 @@ mod tests {
         };
         let result = engine.execute(&tampered);
         assert!(matches!(result.status, RemediationStatus::Failed));
-        assert!(result
-            .error
-            .as_ref()
-            .unwrap()
-            .contains("does not match any registered"));
+        assert!(
+            result
+                .error
+                .as_ref()
+                .unwrap()
+                .contains("does not match any registered")
+        );
     }
 
     #[test]
@@ -597,10 +595,12 @@ mod tests {
         assert!(result.is_some());
         let result = result.unwrap();
         assert!(matches!(result.status, RemediationStatus::Failed));
-        assert!(result
-            .error
-            .as_ref()
-            .unwrap()
-            .contains("does not match any registered"));
+        assert!(
+            result
+                .error
+                .as_ref()
+                .unwrap()
+                .contains("does not match any registered")
+        );
     }
 }

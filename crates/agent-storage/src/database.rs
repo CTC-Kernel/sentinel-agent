@@ -107,15 +107,31 @@ impl Database {
     }
 
     /// Set the encryption key on a connection.
+    ///
+    /// The key material is zeroized from memory after the PRAGMA is set to
+    /// minimize the window during which the plaintext key is in heap memory.
     fn set_encryption_key(conn: &Connection, key: &[u8]) -> StorageResult<()> {
         // Convert key to hex string for SQLCipher
-        let key_hex: String = key.iter().map(|b| format!("{:02x}", b)).collect();
+        let mut key_hex: String = key.iter().map(|b| format!("{:02x}", b)).collect();
 
         // Set the key using PRAGMA key
-        conn.execute_batch(&format!("PRAGMA key = \"x'{}'\"", key_hex))
-            .map_err(|e| {
-                StorageError::Encryption(format!("Failed to set encryption key: {}", e))
-            })?;
+        let pragma = format!("PRAGMA key = \"x'{}'\"", key_hex);
+        let result = conn.execute_batch(&pragma);
+
+        // Zeroize key material from memory immediately after use
+        // Safety: overwrite the String's backing buffer with zeros
+        // SAFETY: we overwrite the key hex bytes with zeros to prevent memory leaking
+        unsafe {
+            let bytes = key_hex.as_bytes_mut();
+            for b in bytes.iter_mut() {
+                std::ptr::write_volatile(b, 0);
+            }
+        }
+        drop(key_hex);
+
+        result.map_err(|e| {
+            StorageError::Encryption(format!("Failed to set encryption key: {}", e))
+        })?;
 
         // Configure SQLCipher settings for AES-256-CBC
         conn.execute_batch(

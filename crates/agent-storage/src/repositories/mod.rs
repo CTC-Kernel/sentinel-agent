@@ -17,4 +17,3 @@ pub use config::ConfigRepository;
 pub use discovered_devices::{DiscoveredDevicesRepository, StoredDevice};
 pub use proofs::ProofsRepository;
 pub use sync_queue::SyncQueueRepository;
-

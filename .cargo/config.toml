@@ -1,6 +1,22 @@
+[alias]
+xtask = "run --package xtask --"
+
 [target.x86_64-unknown-linux-musl]
 linker = "x86_64-linux-musl-gcc"
+
+[target.aarch64-unknown-linux-musl]
+linker = "aarch64-linux-musl-gcc"
 
 [target.x86_64-pc-windows-gnu]
 linker = "x86_64-w64-mingw32-gcc"
 ar = "x86_64-w64-mingw32-ar"
+
+# Security hardening: full RELRO + non-executable stack (Linux)
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-C", "link-args=-Wl,-z,relro,-z,now,-z,noexecstack"]
+
+[target.x86_64-unknown-linux-musl.env]
+
+# Security hardening: ASLR + DEP (Windows MSVC)
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "link-args=/DYNAMICBASE /NXCOMPAT /HIGHENTROPYVA"]

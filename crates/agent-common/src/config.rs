@@ -45,6 +45,10 @@ pub struct AgentConfig {
     #[serde(default = "default_check_interval")]
     pub check_interval_secs: u64,
 
+    /// Interval between heartbeats in seconds.
+    #[serde(default = "default_heartbeat_interval")]
+    pub heartbeat_interval_secs: u64,
+
     /// Maximum number of days to operate in offline mode.
     #[serde(default = "default_offline_mode_days")]
     pub offline_mode_days: u32,
@@ -131,6 +135,10 @@ fn default_check_interval() -> u64 {
     DEFAULT_CHECK_INTERVAL_SECS
 }
 
+fn default_heartbeat_interval() -> u64 {
+    60
+}
+
 fn default_offline_mode_days() -> u32 {
     DEFAULT_OFFLINE_MODE_DAYS
 }
@@ -166,6 +174,7 @@ impl Default for AgentConfig {
             server_url: default_server_url(),
             agent_id: None,
             check_interval_secs: default_check_interval(),
+            heartbeat_interval_secs: default_heartbeat_interval(),
             offline_mode_days: default_offline_mode_days(),
             log_level: default_log_level(),
             db_path: default_db_path(),
@@ -453,6 +462,7 @@ mod tests {
             usb_monitoring: true,
             usb_block_mass_storage: true,
             active_frameworks: None,
+            heartbeat_interval_secs: 60,
         };
 
         let json = serde_json::to_string(&config).unwrap();

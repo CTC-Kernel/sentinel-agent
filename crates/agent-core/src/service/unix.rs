@@ -23,31 +23,60 @@ const SYSTEMD_UNIT_PATH: &str = "/etc/systemd/system/sentinel-agent.service";
 /// - Data: /var/lib/sentinel-grc
 /// - Logs: /var/log/sentinel-grc
 const SYSTEMD_UNIT_TEMPLATE: &str = r#"[Unit]
-Description=Sentinel GRC Agent
+Description=Sentinel GRC Agent - Agent de conformite endpoint
 Documentation=https://docs.sentinel-grc.com
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart={executable_path}
+ExecStart={executable_path} --service
 Restart=always
 RestartSec=10
-User=root
-Group=root
+WatchdogSec=120
+
+# Dedicated service user
+User=sentinel-grc
+Group=sentinel-grc
 WorkingDirectory=/opt/sentinel-grc
 Environment=RUST_LOG=info
+
+# Filesystem access
+ReadWritePaths=/var/lib/sentinel-grc /var/log/sentinel-grc /etc/sentinel
 
 # Security hardening
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
-ReadWritePaths=/var/lib/sentinel-grc /var/log/sentinel-grc
+PrivateDevices=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RemoveIPC=true
+SystemCallArchitectures=native
 
-# Resource limits (NFR-P1, NFR-P3)
-MemoryMax=100M
-CPUQuota=5%
+# Capabilities (network discovery, filesystem scanning)
+CapabilityBoundingSet=CAP_NET_RAW CAP_DAC_READ_SEARCH
+AmbientCapabilities=CAP_NET_RAW CAP_DAC_READ_SEARCH
+
+# System call filter (allowlist)
+SystemCallFilter=@system-service
+SystemCallFilter=~@mount @reboot @swap @debug @obsolete
+
+# Resource limits
+MemoryMax=150M
+MemoryHigh=100M
+CPUQuota=10%
+TasksMax=64
+LimitNOFILE=4096
 
 [Install]
 WantedBy=multi-user.target
@@ -291,6 +320,6 @@ mod tests {
         let content = SYSTEMD_UNIT_TEMPLATE.replace("{executable_path}", "/opt/sentinel/agent");
         assert!(content.contains("ExecStart=/opt/sentinel/agent"));
         assert!(content.contains("Restart=always"));
-        assert!(content.contains("MemoryMax=100M"));
+        assert!(content.contains("MemoryMax=150M"));
     }
 }

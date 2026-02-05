@@ -5,9 +5,13 @@
 
   "check_interval_secs": 3600,
 
+  "heartbeat_interval_secs": 60,
+
   "offline_mode_days": 7,
 
   "log_level": "info",
+
+  "db_path": "~/.local/share/sentinel-grc/agent.db",
 
   "tls_verify": true,
 
@@ -19,5 +23,23 @@
     "url": "http://proxy.example.com:8080",
     "username": "proxy_user",
     "password": "proxy_password"
-  }
+  },
+
+  "fim_watched_paths": [
+    "/etc",
+    "/var/log",
+    "/home"
+  ],
+
+  "fim_ignore_patterns": [
+    "*.log",
+    "*.tmp",
+    "*.swp"
+  ],
+
+  "usb_monitoring": true,
+
+  "usb_block_mass_storage": false,
+
+  "active_frameworks": ["ISO27001", "NIST-CSF"]
 }

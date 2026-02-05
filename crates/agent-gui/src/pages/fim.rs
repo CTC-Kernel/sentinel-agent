@@ -20,7 +20,9 @@ impl FimPage {
             ui,
             "Intégrité des fichiers",
             Some("SURVEILLANCE DE L’INTÉGRITÉ DES FICHIERS SYSTÈME ET DES CONFIGURATIONS"),
-            Some("Surveillez en temps réel les modifications apportées aux fichiers critiques et aux fichiers de configuration. Toute création, suppression ou modification de permission génère une alerte."),
+            Some(
+                "Surveillez en temps réel les modifications apportées aux fichiers critiques et aux fichiers de configuration. Toute création, suppression ou modification de permission génère une alerte.",
+            ),
         );
         ui.add_space(theme::SPACE_LG);
 
@@ -29,7 +31,15 @@ impl FimPage {
             let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
             if widgets::button::primary_button_loading(
                 ui,
-                format!("{}  {}", if is_scanning { "SCAN EN COURS" } else { "LANCER LE SCAN FIM" }, icons::PLAY),
+                format!(
+                    "{}  {}",
+                    if is_scanning {
+                        "SCAN EN COURS"
+                    } else {
+                        "LANCER LE SCAN FIM"
+                    },
+                    icons::PLAY
+                ),
                 !is_scanning,
                 is_scanning,
             )
@@ -56,13 +66,21 @@ impl FimPage {
             (
                 "MODIFICATIONS /24H",
                 changes_today.to_string(),
-                if changes_today > 0 { theme::WARNING } else { theme::SUCCESS },
+                if changes_today > 0 {
+                    theme::WARNING
+                } else {
+                    theme::SUCCESS
+                },
                 icons::CLOCK,
             ),
             (
                 "ALERTES ACTIVES",
                 active_alerts.to_string(),
-                if active_alerts > 0 { theme::ERROR } else { theme::SUCCESS },
+                if active_alerts > 0 {
+                    theme::ERROR
+                } else {
+                    theme::SUCCESS
+                },
                 icons::WARNING,
             ),
         ];
@@ -133,19 +151,34 @@ impl FimPage {
 
         // Action Buttons (AAA Grade)
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                let export_btn = egui::Button::new(
-                    egui::RichText::new(format!("{}  EXPORT CSV", icons::DOWNLOAD))
-                        .font(egui::FontId::proportional(10.0))
-                        .color(theme::text_tertiary())
-                        .strong(),
-                )
-                .fill(theme::bg_elevated())
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                if ui.add(export_btn).clicked() {
-                    Self::export_events_csv(state, &filtered);
-                }
-            });
+            ui.with_layout(
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui: &mut egui::Ui| {
+                    let export_btn = egui::Button::new(
+                        egui::RichText::new(format!("{}  EXPORT CSV", icons::DOWNLOAD))
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .strong(),
+                    )
+                    .fill(theme::bg_elevated())
+                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                    if ui.add(export_btn).clicked() {
+                        let success = Self::export_events_csv(state, &filtered);
+                        let time = ui.input(|i| i.time);
+                        if success {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success("Export CSV réussi")
+                                    .with_time(time),
+                            );
+                        } else {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::error("Échec de l'export CSV")
+                                    .with_time(time),
+                            );
+                        }
+                    }
+                },
+            );
         });
 
         ui.add_space(theme::SPACE_SM);
@@ -154,7 +187,7 @@ impl FimPage {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("ÉVÉNEMENTS FIM RÉCENTS")
-                    .font(egui::FontId::proportional(10.0))
+                    .font(theme::font_label())
                     .color(theme::text_tertiary())
                     .extra_letter_spacing(0.5)
                     .strong(),
@@ -190,20 +223,40 @@ impl FimPage {
                 table
                     .header(30.0, |mut header| {
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("HORODATAGE").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("HORODATAGE")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("FICHIER").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("FICHIER")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("TYPE").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("TYPE")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("ACTIONS").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
+                            ui.label(
+                                egui::RichText::new("ACTIONS")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
                         });
                     })
                     .body(|body| {
-                        body.rows(48.0, filtered.len(), |mut row| {
+                        body.rows(theme::TABLE_ROW_HEIGHT + 12.0, filtered.len(), |mut row| {
                             let idx = filtered[row.index()];
 
                             row.col(|ui: &mut egui::Ui| {
@@ -227,10 +280,13 @@ impl FimPage {
                                     path.clone()
                                 };
                                 ui.horizontal(|ui: &mut egui::Ui| {
-                                    ui.label(egui::RichText::new(icons::FILE).color(theme::text_tertiary()));
+                                    ui.label(
+                                        egui::RichText::new(icons::FILE)
+                                            .color(theme::text_tertiary()),
+                                    );
                                     ui.label(
                                         egui::RichText::new(display_path)
-                                            .font(egui::FontId::proportional(13.0))
+                                            .font(theme::font_body())
                                             .color(theme::text_primary())
                                             .strong(),
                                     )
@@ -252,21 +308,19 @@ impl FimPage {
                                             "{}  ACQUITTÉ",
                                             icons::CIRCLE_CHECK
                                         ))
-                                        .font(egui::FontId::proportional(9.0))
+                                        .font(theme::font_label())
                                         .color(theme::text_tertiary())
                                         .strong(),
                                     );
                                 } else {
                                     let btn = egui::Button::new(
                                         egui::RichText::new(format!("{}  ACQUITTER", icons::CHECK))
-                                            .font(egui::FontId::proportional(10.0))
+                                            .font(theme::font_label())
                                             .color(theme::text_on_accent())
                                             .strong(),
                                     )
                                     .fill(theme::ACCENT.linear_multiply(0.8))
-                                    .corner_radius(
-                                        egui::CornerRadius::same(theme::BADGE_ROUNDING),
-                                    );
+                                    .corner_radius(egui::CornerRadius::same(theme::BADGE_ROUNDING));
                                     if ui.add(btn).clicked() {
                                         let alert_id = state.fim_alerts[idx].id.clone();
                                         state.fim_alerts[idx].acknowledged = true;
@@ -302,25 +356,28 @@ impl FimPage {
                     ui.vertical(|ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(value)
-                                .font(egui::FontId::proportional(24.0))
+                                .font(theme::font_card_value())
                                 .color(color)
-                                .strong()
+                                .strong(),
                         );
                         ui.label(
                             egui::RichText::new(label)
-                                .font(egui::FontId::proportional(10.0))
+                                .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .extra_letter_spacing(0.5)
                                 .strong(),
                         );
                     });
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(icon)
-                                .size(28.0)
-                                .color(color.linear_multiply(0.25)),
-                        );
-                    });
+                    ui.with_layout(
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new(icon)
+                                    .size(28.0)
+                                    .color(color.linear_multiply(0.25)),
+                            );
+                        },
+                    );
                 });
             });
         });
@@ -337,7 +394,7 @@ impl FimPage {
         }
     }
 
-    fn export_events_csv(state: &AppState, indices: &[usize]) {
+    fn export_events_csv(state: &AppState, indices: &[usize]) -> bool {
         let headers = &["chemin", "modification", "date", "statut"];
         let rows: Vec<Vec<String>> = indices
             .iter()
@@ -357,8 +414,12 @@ impl FimPage {
             })
             .collect();
         let path = crate::export::default_export_path("fim_events.csv");
-        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
-            tracing::warn!("Export CSV failed: {}", e);
+        match crate::export::export_csv(headers, &rows, &path) {
+            Ok(_) => true,
+            Err(e) => {
+                tracing::warn!("Export CSV failed: {}", e);
+                false
+            }
         }
     }
 }

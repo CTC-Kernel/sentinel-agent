@@ -19,6 +19,8 @@ Thumbs.db
 .env.local
 *.pem
 *.key
+*.p12
+*.db
 
 # Logs
 logs
@@ -73,7 +75,6 @@ xcuserdata/
 apphosting.yaml
 token.json
 Certificats.p12
-*.p12
 
 # Functions environment
 functions/.env
@@ -85,3 +86,7 @@ test-results/
 playwright-report/
 
 # Generated config (version.ts committed with defaults, overwritten by scripts/generate-version.js at build time)
+
+# Secrets / credentials (NEVER commit these)
+GITHUB_SECRETS*.txt
+*_SECRETS*.txt

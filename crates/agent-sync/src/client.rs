@@ -472,7 +472,11 @@ impl HttpClient {
             debug!("Response body: {}", body_text);
 
             let body = serde_json::from_str::<R>(&body_text).map_err(|e| {
-                tracing::error!("Failed to decode response body: {}. Body was: {}", e, body_text);
+                tracing::error!(
+                    "Failed to decode response body: {}. Body was: {}",
+                    e,
+                    body_text
+                );
                 SyncError::Serialization(e)
             })?;
             Ok(body)

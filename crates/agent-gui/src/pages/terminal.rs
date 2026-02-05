@@ -46,25 +46,30 @@ impl TerminalPage {
             ui,
             "Terminal Analytique",
             Some("FLUX EN TEMPS RÉEL DES ÉVÉNEMENTS ET DE L'ACTIVITÉ DE L'AGENT"),
-            Some("Suivez en temps réel l'activité technique de l'agent. Ce flux bas niveau est utile pour le diagnostic et la vérification du bon fonctionnement des modules de scan et de surveillance."),
+            Some(
+                "Suivez en temps réel l'activité technique de l'agent. Ce flux bas niveau est utile pour le diagnostic et la vérification du bon fonctionnement des modules de scan et de surveillance.",
+            ),
         );
         ui.add_space(theme::SPACE_LG);
 
         // Action bar (AAA Grade)
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                let export_btn = egui::Button::new(
-                    egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                        .font(egui::FontId::proportional(10.0))
-                        .color(theme::text_tertiary())
-                        .strong(),
-                )
-                .fill(theme::bg_elevated())
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                if ui.add(export_btn).clicked() {
-                    Self::export_logs_csv(state);
-                }
-            });
+            ui.with_layout(
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui: &mut egui::Ui| {
+                    let export_btn = egui::Button::new(
+                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .strong(),
+                    )
+                    .fill(theme::bg_elevated())
+                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                    if ui.add(export_btn).clicked() {
+                        Self::export_logs_csv(state);
+                    }
+                },
+            );
         });
         ui.add_space(theme::SPACE_MD);
 
@@ -149,14 +154,14 @@ impl TerminalPage {
         ui.vertical(|ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new(label)
-                    .font(egui::FontId::proportional(9.0))
+                    .font(theme::font_label())
                     .color(theme::text_tertiary())
                     .extra_letter_spacing(0.5)
                     .strong(),
             );
             ui.label(
                 egui::RichText::new(value)
-                    .font(egui::FontId::proportional(16.0))
+                    .font(theme::font_heading())
                     .color(color)
                     .strong(),
             );
@@ -172,7 +177,7 @@ impl TerminalPage {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new("NIVEAU D'EXPOSITION :")
-                        .font(egui::FontId::proportional(10.0))
+                        .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .strong()
                         .extra_letter_spacing(0.5),
@@ -183,7 +188,7 @@ impl TerminalPage {
                     let selected = i == state.terminal_filter_level;
                     let color = level_color(name);
                     let btn_text = egui::RichText::new(*name)
-                        .font(egui::FontId::proportional(10.0))
+                        .font(theme::font_label())
                         .strong()
                         .color(if selected {
                             theme::text_on_accent()
@@ -210,7 +215,7 @@ impl TerminalPage {
                 // Search field
                 ui.label(
                     egui::RichText::new("FILTRAGE ANALYTIQUE :")
-                        .font(egui::FontId::proportional(10.0))
+                        .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .strong()
                         .extra_letter_spacing(0.5),
@@ -265,7 +270,7 @@ impl TerminalPage {
                         ui.add_space(160.0);
                         ui.label(
                             egui::RichText::new("AUCUN ÉVÉNEMENT DÉTECTÉ DANS CE FLUX")
-                                .font(egui::FontId::proportional(11.0))
+                                .font(theme::font_min())
                                 .color(theme::text_tertiary())
                                 .strong(),
                         );
@@ -286,16 +291,40 @@ impl TerminalPage {
                 table
                     .header(28.0, |mut header| {
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("HEURE").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("HEURE")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("NIVEAU").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("NIVEAU")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("CIBLE").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("CIBLE")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("MESSAGE D'ACTIVITÉ").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("MESSAGE D'ACTIVITÉ")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                     })
                     .body(|body| {
@@ -306,16 +335,33 @@ impl TerminalPage {
                             let target_short = shorten_target(&entry.target);
 
                             row.col(|ui: &mut egui::Ui| {
-                                ui.label(egui::RichText::new(&ts).font(egui::FontId::monospace(11.0)).color(theme::text_tertiary()));
+                                ui.label(
+                                    egui::RichText::new(&ts)
+                                        .font(egui::FontId::monospace(11.0))
+                                        .color(theme::text_tertiary()),
+                                );
                             });
                             row.col(|ui: &mut egui::Ui| {
-                                ui.label(egui::RichText::new(&entry.level).font(egui::FontId::monospace(10.0)).color(color).strong());
+                                ui.label(
+                                    egui::RichText::new(&entry.level)
+                                        .font(egui::FontId::monospace(10.0))
+                                        .color(color)
+                                        .strong(),
+                                );
                             });
                             row.col(|ui: &mut egui::Ui| {
-                                ui.label(egui::RichText::new(target_short).font(egui::FontId::monospace(11.0)).color(theme::ACCENT_LIGHT.linear_multiply(0.7)));
+                                ui.label(
+                                    egui::RichText::new(target_short)
+                                        .font(egui::FontId::monospace(11.0))
+                                        .color(theme::ACCENT_LIGHT.linear_multiply(0.7)),
+                                );
                             });
                             row.col(|ui: &mut egui::Ui| {
-                                ui.label(egui::RichText::new(&entry.message).font(egui::FontId::monospace(11.0)).color(theme::text_primary()));
+                                ui.label(
+                                    egui::RichText::new(&entry.message)
+                                        .font(egui::FontId::monospace(11.0))
+                                        .color(theme::text_primary()),
+                                );
                             });
                         });
                     });

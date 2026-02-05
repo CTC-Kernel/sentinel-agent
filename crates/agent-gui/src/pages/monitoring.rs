@@ -22,7 +22,9 @@ impl MonitoringPage {
             ui,
             "Surveillance Système",
             Some("MONITORAGE DES RESSOURCES ET DES PERFORMANCES EN TEMPS RÉEL"),
-            Some("Visualisez la charge CPU, l'utilisation de la mémoire et l'activité réseau de l'agent."),
+            Some(
+                "Visualisez la charge CPU, l'utilisation de la mémoire et l'activité réseau de l'agent.",
+            ),
         );
         ui.add_space(theme::SPACE_LG);
 
@@ -107,12 +109,16 @@ impl MonitoringPage {
             ("RÉSEAU", &state.network_io_history, theme::INFO, true),
         ];
 
-        io_grid.show(ui, &io_items, |ui, width, (title, history, color, auto_y)| {
-            ui.vertical(|ui: &mut egui::Ui| {
-                ui.set_width(width);
-                Self::chart_card(ui, title, history, *color, true, 200.0, *auto_y);
-            });
-        });
+        io_grid.show(
+            ui,
+            &io_items,
+            |ui, width, (title, history, color, auto_y)| {
+                ui.vertical(|ui: &mut egui::Ui| {
+                    ui.set_width(width);
+                    Self::chart_card(ui, title, history, *color, true, 200.0, *auto_y);
+                });
+            },
+        );
 
         ui.add_space(theme::SPACE_XL);
 
@@ -160,11 +166,8 @@ impl MonitoringPage {
             widgets::card(ui, |ui: &mut egui::Ui| {
                 ui.set_min_height(72.0);
 
-                let response = ui.interact(
-                    ui.max_rect(),
-                    ui.id().with(label),
-                    egui::Sense::hover(),
-                );
+                let response =
+                    ui.interact(ui.max_rect(), ui.id().with(label), egui::Sense::hover());
 
                 ui.horizontal(|ui: &mut egui::Ui| {
                     // Left: Value and label
@@ -178,13 +181,13 @@ impl MonitoringPage {
 
                         ui.label(
                             egui::RichText::new(value)
-                                .font(egui::FontId::proportional(26.0))
+                                .font(theme::font_card_value())
                                 .color(value_color)
                                 .strong(),
                         );
                         ui.label(
                             egui::RichText::new(label)
-                                .font(egui::FontId::proportional(10.0))
+                                .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .extra_letter_spacing(0.4)
                                 .strong(),
@@ -235,7 +238,7 @@ impl MonitoringPage {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new(title)
-                        .font(egui::FontId::proportional(11.0))
+                        .font(theme::font_min())
                         .color(theme::text_secondary())
                         .strong()
                         .extra_letter_spacing(0.3),
@@ -292,7 +295,7 @@ impl MonitoringPage {
                 rect.center(),
                 egui::Align2::CENTER_CENTER,
                 "En attente de données...",
-                egui::FontId::proportional(11.0),
+                theme::font_min(),
                 theme::text_tertiary(),
             );
         }
@@ -314,13 +317,13 @@ impl MonitoringPage {
             ui.vertical(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new(format!("{:.1}", current))
-                        .font(egui::FontId::proportional(24.0))
+                        .font(theme::font_card_value())
                         .color(line_color)
                         .strong(),
                 );
                 ui.label(
                     egui::RichText::new("ACTUEL")
-                        .font(egui::FontId::proportional(9.0))
+                        .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .strong(),
                 );
@@ -332,18 +335,21 @@ impl MonitoringPage {
         // Chart - clean rendering with egui_plot
         let chart_height = height - 70.0;
 
-        let mut plot = Plot::new(egui::Id::new(format!("chart_{}", history.as_ptr() as usize)))
-            .height(chart_height)
-            .include_y(0.0)
-            .allow_drag(false)
-            .allow_zoom(false)
-            .allow_scroll(false)
-            .allow_boxed_zoom(false)
-            .allow_double_click_reset(false)
-            .show_axes(egui::Vec2b::new(false, false))
-            .show_grid(egui::Vec2b::new(false, true))
-            .auto_bounds(egui::Vec2b::new(true, true))
-            .show_background(false);
+        let mut plot = Plot::new(egui::Id::new(format!(
+            "chart_{}",
+            history.as_ptr() as usize
+        )))
+        .height(chart_height)
+        .include_y(0.0)
+        .allow_drag(false)
+        .allow_zoom(false)
+        .allow_scroll(false)
+        .allow_boxed_zoom(false)
+        .allow_double_click_reset(false)
+        .show_axes(egui::Vec2b::new(false, false))
+        .show_grid(egui::Vec2b::new(false, true))
+        .auto_bounds(egui::Vec2b::new(true, true))
+        .show_background(false);
 
         if !auto_y {
             plot = plot.include_y(100.0);
@@ -380,12 +386,7 @@ impl MonitoringPage {
     }
 
     fn export_metrics_csv(state: &AppState) {
-        let headers = &[
-            "timestamp",
-            "cpu_percent",
-            "memory_percent",
-            "disk_percent",
-        ];
+        let headers = &["timestamp", "cpu_percent", "memory_percent", "disk_percent"];
         let rows = vec![vec![
             chrono::Utc::now().to_rfc3339(),
             state.resources.cpu_percent.to_string(),
