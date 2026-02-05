@@ -55,7 +55,7 @@ exports.getAgentResults = onCall(
       throw new HttpsError('invalid-argument', 'agentId and organizationId are required');
     }
 
-    checkCallableRateLimit(request, 'standard');
+    await checkCallableRateLimit(request, 'standard');
 
     try {
       let query = db

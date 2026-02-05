@@ -257,7 +257,7 @@ exports.sendEmail = onCall({
         throw new HttpsError('permission-denied', 'Insufficient permissions to send emails.');
     }
     // Rate limiting
-    checkCallableRateLimit(request, 'standard');
+    await checkCallableRateLimit(request, 'standard');
 
     const { to, subject, html, type, metadata } = request.data;
 
@@ -312,7 +312,7 @@ exports.scheduleEmail = onCall({
         throw new HttpsError('permission-denied', 'Insufficient permissions to send emails.');
     }
     // Rate limiting
-    checkCallableRateLimit(request, 'standard');
+    await checkCallableRateLimit(request, 'standard');
 
     const { to, subject, html, type, scheduledFor, metadata } = request.data;
 

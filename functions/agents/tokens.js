@@ -32,7 +32,7 @@ exports.generateEnrollmentToken = onCall(
       throw new HttpsError('permission-denied', 'Organization not found in token');
     }
 
-    checkCallableRateLimit(request, 'admin');
+    await checkCallableRateLimit(request, 'admin');
 
     try {
       // Verify user role from token claims
@@ -116,7 +116,7 @@ exports.listEnrollmentTokens = onCall(
       throw new HttpsError('permission-denied', 'Organization not found in token');
     }
 
-    checkCallableRateLimit(request, 'standard');
+    await checkCallableRateLimit(request, 'standard');
 
     try {
       // Verify user role from token claims
@@ -211,7 +211,7 @@ exports.revokeEnrollmentToken = onCall(
       throw new HttpsError('invalid-argument', 'tokenId is required');
     }
 
-    checkCallableRateLimit(request, 'admin');
+    await checkCallableRateLimit(request, 'admin');
 
     try {
       // Verify user role from token claims
