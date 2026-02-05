@@ -9,70 +9,70 @@ import { MemoryRouter } from 'react-router-dom';
 // ---------------------------------------------------------------------
 
 vi.mock('../../store', () => ({
-    useStore: vi.fn((selector) => {
-        const state = {
-            t: (k: string) => k,
-            user: {
-                uid: 'test-user',
-                role: 'admin',
-                permissions: { Settings: ['read', 'manage'] }
-            },
-            language: 'fr',
-        };
-        return selector ? selector(state) : state;
-    }),
+ useStore: vi.fn((selector) => {
+ const state = {
+ t: (k: string) => k,
+ user: {
+ uid: 'test-user',
+ role: 'admin',
+ permissions: { Settings: ['read', 'manage'] }
+ },
+ language: 'fr',
+ };
+ return selector ? selector(state) : state;
+ }),
 }));
 
 vi.mock('../../hooks/usePersistedState', async () => {
-    const React = await vi.importActual<typeof import('react')>('react');
-    return {
-        usePersistedState: (_key: string, defaultVal: unknown) => React.useState(defaultVal)
-    };
+ const React = await vi.importActual<typeof import('react')>('react');
+ return {
+ usePersistedState: (_key: string, defaultVal: unknown) => React.useState(defaultVal)
+ };
 });
 
 // Mock Child Components
 vi.mock('../../components/ui/MasterpieceBackground', () => ({
-    MasterpieceBackground: () => null
+ MasterpieceBackground: () => null
 }));
 vi.mock('../../components/SEO', () => ({
-    SEO: () => null
+ SEO: () => null
 }));
 vi.mock('../../components/settings/SettingsLayout', () => ({
-    SettingsLayout: ({ children, currentTab: _currentTab, onTabChange }: { children: React.ReactNode, currentTab: string, onTabChange: (tab: string) => void }) => (
-        <div>
-            <div data-testid="settings-tabs">
-                <button aria-label="Profile" onClick={() => onTabChange('profile')}>Profile</button>
-                <button aria-label="Organization" onClick={() => onTabChange('organization')}>Organization</button>
-            </div>
-            {children}
-        </div>
-    )
+ SettingsLayout: ({ children, currentTab: _currentTab, onTabChange }: { children: React.ReactNode, currentTab: string, onTabChange: (tab: string) => void }) => (
+ <div>
+ <div data-testid="settings-tabs">
+ <button aria-label="Profile" onClick={() => onTabChange('profile')}>Profile</button>
+ <button aria-label="Organization" onClick={() => onTabChange('organization')}>Organization</button>
+ </div>
+ {children}
+ </div>
+ )
 }));
 
 vi.mock('../../components/settings/ProfileSettings', () => ({
-    ProfileSettings: () => <div data-testid="profile-settings" />
+ ProfileSettings: () => <div data-testid="profile-settings" />
 }));
 vi.mock('../../components/settings/OrganizationSettings', () => ({
-    OrganizationSettings: () => <div data-testid="organization-settings" />
+ OrganizationSettings: () => <div data-testid="organization-settings" />
 }));
 vi.mock('../../components/settings/UserActivityLog', () => ({
-    UserActivityLog: () => <div data-testid="user-activity-log" />
+ UserActivityLog: () => <div data-testid="user-activity-log" />
 }));
 vi.mock('../../components/settings/SecuritySettings', () => ({
-    SecuritySettings: () => <div data-testid="security-settings" />
+ SecuritySettings: () => <div data-testid="security-settings" />
 }));
 vi.mock('../../components/settings/IntegrationSettings', () => ({
-    IntegrationSettings: () => <div data-testid="integration-settings" />
+ IntegrationSettings: () => <div data-testid="integration-settings" />
 }));
 vi.mock('../../components/settings/SystemSettings', () => ({
-    SystemSettings: () => <div data-testid="system-settings" />
+ SystemSettings: () => <div data-testid="system-settings" />
 }));
 
 vi.mock('framer-motion', () => ({
-    motion: {
-        div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>
-    },
-    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
+ motion: {
+ div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>
+ },
+ AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
 // ---------------------------------------------------------------------
@@ -80,30 +80,30 @@ vi.mock('framer-motion', () => ({
 // ---------------------------------------------------------------------
 
 describe('Settings View', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-    });
+ beforeEach(() => {
+ vi.clearAllMocks();
+ });
 
-    it('renders profile settings by default', () => {
-        render(
-            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <Settings />
-            </MemoryRouter>
-        );
+ it('renders profile settings by default', () => {
+ render(
+ <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+ <Settings />
+ </MemoryRouter>
+ );
 
-        expect(screen.getByTestId('profile-settings')).toBeInTheDocument();
-    });
+ expect(screen.getByTestId('profile-settings')).toBeInTheDocument();
+ });
 
-    it('switches to organization settings', () => {
-        render(
-            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <Settings />
-            </MemoryRouter>
-        );
+ it('switches to organization settings', () => {
+ render(
+ <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+ <Settings />
+ </MemoryRouter>
+ );
 
-        const orgTab = screen.getByText('Organization');
-        fireEvent.click(orgTab);
+ const orgTab = screen.getByText('Organization');
+ fireEvent.click(orgTab);
 
-        expect(screen.getByTestId('organization-settings')).toBeInTheDocument();
-    });
+ expect(screen.getByTestId('organization-settings')).toBeInTheDocument();
+ });
 });

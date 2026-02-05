@@ -2,49 +2,51 @@ import React from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import { CheckCircle2 } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
+import { useLocale } from '../../hooks/useLocale';
 
 interface DocumentSignatureProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSign: () => void;
-    signaturePadRef: React.RefObject<SignatureCanvas | null>;
+ isOpen: boolean;
+ onClose: () => void;
+ onSign: () => void;
+ signaturePadRef: React.RefObject<SignatureCanvas | null>;
 }
 
 export const DocumentSignature: React.FC<DocumentSignatureProps> = ({ isOpen, onClose, onSign, signaturePadRef }) => {
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Signature Électronique">
-            <div className="space-y-4">
-                <p className="text-sm text-slate-600 dark:text-muted-foreground">
-                    Veuillez signer dans le cadre ci-dessous pour valider ce document. Cette signature sera apposée sur le certificat d'intégrité.
-                </p>
-                <div className="border-2 border-border/40 dark:border-border/40 rounded-3xl overflow-hidden bg-white">
-                    <SignatureCanvas
-                        ref={signaturePadRef}
-                        canvasProps={{
-                            width: 500,
-                            height: 200,
-                            className: 'signature-canvas w-full h-48 cursor-crosshair'
-                        }}
-                    />
-                </div>
-                <div className="flex justify-end gap-3 mt-4">
-                    <button
-                        onClick={() => signaturePadRef.current?.clear()}
-                        className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded-lg"
-                    >
-                        Effacer
-                    </button>
-                    <button
-                        onClick={onSign}
-                        className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
-                    >
-                        <CheckCircle2 className="h-4 w-4" />
-                        Valider et Signer
-                    </button>
-                </div>
-            </div>
-        </Modal>
-    );
+ const { t } = useLocale();
+ return (
+ <Modal isOpen={isOpen} onClose={onClose} title={t('documents.signature.title', { defaultValue: 'Signature Électronique' })}>
+ <div className="space-y-4">
+ <p className="text-sm text-muted-foreground">
+  {t('documents.signature.instruction', { defaultValue: 'Veuillez signer dans le cadre ci-dessous pour valider ce document. Cette signature sera apposée sur le certificat d\'intégrité.' })}
+ </p>
+ <div className="border-2 border-border/40 rounded-3xl overflow-hidden bg-white">
+  <SignatureCanvas
+  ref={signaturePadRef}
+  canvasProps={{
+  width: 500,
+  height: 200,
+  className: 'signature-canvas w-full h-48 cursor-crosshair'
+  }}
+  />
+ </div>
+ <div className="flex justify-end gap-3 mt-4">
+  <button
+  onClick={() => signaturePadRef.current?.clear()}
+  className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded-lg"
+  >
+  {t('common.clear', { defaultValue: 'Effacer' })}
+  </button>
+  <button
+  onClick={onSign}
+  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 "
+  >
+  <CheckCircle2 className="h-4 w-4" />
+  {t('documents.signature.validateAndSign', { defaultValue: 'Valider et Signer' })}
+  </button>
+ </div>
+ </div>
+ </Modal>
+ );
 };
 
 // Headless UI handles FocusTrap and keyboard navigation

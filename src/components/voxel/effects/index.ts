@@ -6,10 +6,10 @@
 
 export { SelectionGlow, HoverGlow, type SelectionGlowProps, type HoverGlowProps } from './SelectionGlow';
 export {
-  RiskPulse,
-  CriticalRiskPulse,
-  WarningPulse,
-  type RiskPulseProps,
-  type CriticalRiskPulseProps,
-  type WarningPulseProps,
+ RiskPulse,
+ CriticalRiskPulse,
+ WarningPulse,
+ type RiskPulseProps,
+ type CriticalRiskPulseProps,
+ type WarningPulseProps,
 } from './RiskPulse';

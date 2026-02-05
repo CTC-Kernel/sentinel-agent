@@ -12,14 +12,14 @@ import { initSentry } from './utils/sentryInit';
 // Suppress expected non-passive wheel listener warning from OrbitControls (three.js)
 // OrbitControls requires non-passive wheel events to preventDefault during zoom
 if (import.meta.env.DEV) {
-  const originalWarn = console.warn;
-  console.warn = (...args: unknown[]) => {
-    const msg = args[0];
-    if (typeof msg === 'string' && msg.includes('non-passive event listener')) {
-      return; // Suppress this specific warning
-    }
-    originalWarn.apply(console, args);
-  };
+ const originalWarn = console.warn;
+ console.warn = (...args: unknown[]) => {
+ const msg = args[0];
+ if (typeof msg === 'string' && msg.includes('non-passive event listener')) {
+ return; // Suppress this specific warning
+ }
+ originalWarn.apply(console, args);
+ };
 }
 
 // Attempt to initialize Sentry if consent was previously granted (e.g., returning user)
@@ -27,93 +27,93 @@ initSentry();
 
 // Initialize Capacitor plugins
 const initializeApp = async () => {
-  try {
-    // Dynamically import Capacitor core to check platform
-    const { Capacitor } = await import('@capacitor/core');
+ try {
+ // Dynamically import Capacitor core to check platform
+ const { Capacitor } = await import('@capacitor/core');
 
-    if (Capacitor.isNativePlatform()) {
-      // Only import and use plugins on native platforms
-      const { SplashScreen } = await import('@capacitor/splash-screen');
-      const { StatusBar, Style } = await import('@capacitor/status-bar');
+ if (Capacitor.isNativePlatform()) {
+ // Only import and use plugins on native platforms
+ const { SplashScreen } = await import('@capacitor/splash-screen');
+ const { StatusBar, Style } = await import('@capacitor/status-bar');
 
-      if (Capacitor.getPlatform() === 'ios') {
-        await StatusBar.setStyle({ style: Style.Dark });
-        await StatusBar.setBackgroundColor({ color: '#0f172a' });
-      }
+ if (Capacitor.getPlatform() === 'ios') {
+ await StatusBar.setStyle({ style: Style.Dark });
+ await StatusBar.setBackgroundColor({ color: '#0f172a' });
+ }
 
-      await SplashScreen.hide();
-    }
-  } catch (error) {
-    // Silently fail on web or if plugins are missing
-    ErrorLogger.warn('Capacitor initialization skipped or failed', 'index.initializeApp', { metadata: { error } });
-  }
+ await SplashScreen.hide();
+ }
+ } catch (error) {
+ // Silently fail on web or if plugins are missing
+ ErrorLogger.warn('Capacitor initialization skipped or failed', 'index.initializeApp', { metadata: { error } });
+ }
 };
 
 const cleanupLegacyServiceWorkers = () => {
-  if (typeof window === 'undefined') return;
-  if (!('serviceWorker' in navigator)) return;
+ if (typeof window === 'undefined') return;
+ if (!('serviceWorker' in navigator)) return;
 
-  const guardKey = 'sentinel_sw_cleanup_done_v2';
-  if (sessionStorage.getItem(guardKey) === 'true') return;
+ const guardKey = 'sentinel_sw_cleanup_done_v2';
+ if (sessionStorage.getItem(guardKey) === 'true') return;
 
-  window.addEventListener('load', async () => {
-    try {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      // Only remove the old firebase-messaging-sw.js, keep the Workbox sw.js
-      const legacyRegs = regs.filter((reg) => {
-        const scriptUrl = reg.active?.scriptURL || reg.waiting?.scriptURL || reg.installing?.scriptURL || '';
-        const isRootScope = reg.scope === `${window.location.origin}/`;
-        const isFirebaseMessagingSW = scriptUrl.includes('/firebase-messaging-sw.js');
-        return isRootScope && isFirebaseMessagingSW;
-      });
+ window.addEventListener('load', async () => {
+ try {
+ const regs = await navigator.serviceWorker.getRegistrations();
+ // Only remove the old firebase-messaging-sw.js, keep the Workbox sw.js
+ const legacyRegs = regs.filter((reg) => {
+ const scriptUrl = reg.active?.scriptURL || reg.waiting?.scriptURL || reg.installing?.scriptURL || '';
+ const isRootScope = reg.scope === `${window.location.origin}/`;
+ const isFirebaseMessagingSW = scriptUrl.includes('/firebase-messaging-sw.js');
+ return isRootScope && isFirebaseMessagingSW;
+ });
 
-      if (legacyRegs.length === 0) {
-        sessionStorage.setItem(guardKey, 'true');
-        return;
-      }
+ if (legacyRegs.length === 0) {
+ sessionStorage.setItem(guardKey, 'true');
+ return;
+ }
 
-      await Promise.all(legacyRegs.map((reg) => reg.unregister()));
-      sessionStorage.setItem(guardKey, 'true');
+ await Promise.all(legacyRegs.map((reg) => reg.unregister()));
+ sessionStorage.setItem(guardKey, 'true');
 
-      // Hard reload once so the page is no longer controlled by the legacy SW.
-      window.location.reload();
-    } catch (e) {
-      // If anything goes wrong, do not block the app.
-      sessionStorage.setItem(guardKey, 'true');
-      ErrorLogger.warn('Service worker cleanup skipped or failed', 'index.cleanupLegacyServiceWorkers', { metadata: { error: e } });
-    }
-  });
+ // Hard reload once so the page is no longer controlled by the legacy SW.
+ window.location.reload();
+ } catch (e) {
+ // If anything goes wrong, do not block the app.
+ sessionStorage.setItem(guardKey, 'true');
+ ErrorLogger.warn('Service worker cleanup skipped or failed', 'index.cleanupLegacyServiceWorkers', { metadata: { error: e } });
+ }
+ });
 };
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
 if (!GOOGLE_CLIENT_ID) {
-  throw new Error('Missing required environment variable: VITE_GOOGLE_CLIENT_ID');
+ throw new Error('Missing required environment variable: VITE_GOOGLE_CLIENT_ID');
 }
 
 const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
+ defaultOptions: {
+ queries: {
+ staleTime: 1000 * 60 * 5, // 5 minutes
+ retry: 1,
+ refetchOnWindowFocus: false,
+ },
+ },
 });
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
 const root = createRoot(rootElement);
 root.render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-        <HelmetProvider>
-          <App />
-        </HelmetProvider>
-      </GoogleOAuthProvider>
-    </QueryClientProvider>
-  </React.StrictMode>
+ <React.StrictMode>
+ <QueryClientProvider client={queryClient}>
+ <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+ <HelmetProvider>
+ <App />
+ </HelmetProvider>
+ </GoogleOAuthProvider>
+ </QueryClientProvider>
+ </React.StrictMode>
 );
 
 cleanupLegacyServiceWorkers();

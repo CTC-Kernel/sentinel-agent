@@ -6,126 +6,126 @@ import { LucideIcon } from './Icons';
 import { useTranslation } from 'react-i18next';
 
 interface TabItem {
-    id: string;
-    label: string;
-    icon?: LucideIcon;
-    badge?: number | string;
+ id: string;
+ label: string;
+ icon?: LucideIcon;
+ badge?: number | string;
 }
 
 interface InspectorLayoutProps {
-    isOpen: boolean;
-    onClose: () => void;
-    title: React.ReactNode;
-    subtitle?: React.ReactNode;
-    icon?: LucideIcon;
-    statusBadge?: React.ReactNode;
-    width?: string;
-    actions?: React.ReactNode;
-    tabs?: TabItem[];
-    activeTab?: string;
-    onTabChange?: (tabId: string) => void;
-    children: React.ReactNode;
-    loading?: boolean;
-    breadcrumbs?: { label: string; onClick?: () => void }[];
-    disableFocusTrap?: boolean;
-    footer?: React.ReactNode;
-    disableContentPadding?: boolean;
-    disableContentScroll?: boolean;
-    hasUnsavedChanges?: boolean;
-    tabsAriaLabel?: string;
+ isOpen: boolean;
+ onClose: () => void;
+ title: React.ReactNode;
+ subtitle?: React.ReactNode;
+ icon?: LucideIcon;
+ statusBadge?: React.ReactNode;
+ width?: string;
+ actions?: React.ReactNode;
+ tabs?: TabItem[];
+ activeTab?: string;
+ onTabChange?: (tabId: string) => void;
+ children: React.ReactNode;
+ loading?: boolean;
+ breadcrumbs?: { label: string; onClick?: () => void }[];
+ disableFocusTrap?: boolean;
+ footer?: React.ReactNode;
+ disableContentPadding?: boolean;
+ disableContentScroll?: boolean;
+ hasUnsavedChanges?: boolean;
+ tabsAriaLabel?: string;
 }
 
 export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
-    isOpen,
-    onClose,
-    title,
-    subtitle,
-    icon: Icon,
-    statusBadge,
-    width = 'max-w-6xl',
-    actions,
-    tabs = [],
-    activeTab,
-    onTabChange,
-    children,
-    loading = false,
-    breadcrumbs,
-    disableFocusTrap = true,
-    footer,
-    disableContentPadding = false,
-    disableContentScroll = false,
-    hasUnsavedChanges = false, // Default to false
-    tabsAriaLabel
+ isOpen,
+ onClose,
+ title,
+ subtitle,
+ icon: Icon,
+ statusBadge,
+ width = 'max-w-6xl',
+ actions,
+ tabs = [],
+ activeTab,
+ onTabChange,
+ children,
+ loading = false,
+ breadcrumbs,
+ disableFocusTrap = true,
+ footer,
+ disableContentPadding = false,
+ disableContentScroll = false,
+ hasUnsavedChanges = false, // Default to false
+ tabsAriaLabel
 }) => {
-    const { t } = useTranslation();
-    return (
-        <Drawer
-            isOpen={isOpen}
-            onClose={onClose}
-            width={width}
-            breadcrumbs={breadcrumbs}
-            disableFocusTrap={disableFocusTrap}
-            disableScroll={true}
-            hasUnsavedChanges={hasUnsavedChanges}
-            title={
-                <div className="flex items-center gap-3 relative z-10">
-                    {Icon && (
-                        <div className="p-2.5 bg-brand-50 dark:bg-brand-900/20 rounded-3xl text-brand-700 dark:text-brand-400 shadow-sm border border-brand-200 dark:border-brand-300/30">
-                            <Icon className="h-5 w-5" />
-                        </div>
-                    )}
-                    <div>
-                        <div className="flex items-center gap-3">
-                            <span className="font-semibold text-lg tracking-tight text-slate-900 dark:text-white">{title}</span>
-                            {statusBadge}
-                        </div>
-                    </div>
-                </div>
-            }
-            subtitle={<div className="relative z-10">{subtitle}</div>}
-            actions={<div className="relative z-10">{actions}</div>}
-        >
-            <div className="flex flex-col h-full bg-transparent relative overflow-hidden">
-                {/* Header Background Pattern */}
-                <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-brand-500/5 to-transparent pointer-events-none z-0" />
+ const { t } = useTranslation();
+ return (
+ <Drawer
+ isOpen={isOpen}
+ onClose={onClose}
+ width={width}
+ breadcrumbs={breadcrumbs}
+ disableFocusTrap={disableFocusTrap}
+ disableScroll={true}
+ hasUnsavedChanges={hasUnsavedChanges}
+ title={
+ <div className="flex items-center gap-3 relative z-10">
+  {Icon && (
+  <div className="p-2.5 bg-primary/10/20 rounded-3xl text-primary dark:text-primary/70 shadow-sm border border-primary/30 dark:border-primary/40/30">
+  <Icon className="h-5 w-5" />
+  </div>
+  )}
+  <div>
+  <div className="flex items-center gap-3">
+  <span className="font-semibold text-lg tracking-tight text-foreground">{title}</span>
+  {statusBadge}
+  </div>
+  </div>
+ </div>
+ }
+ subtitle={<div className="relative z-10">{subtitle}</div>}
+ actions={<div className="relative z-10">{actions}</div>}
+ >
+ <div className="flex flex-col h-full bg-transparent relative overflow-hidden">
+ {/* Header Background Pattern */}
+ <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none z-0" />
 
 
 
 
-                {/* Sticky Tabs Header */}
-                {tabs.length > 0 && onTabChange && (
-                    <div className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 border-b border-border/40 px-6 pt-2 supports-[backdrop-filter]:bg-white/80 supports-[backdrop-filter]:dark:bg-slate-900/80 supports-[backdrop-filter]:backdrop-blur-md">
-                        <ScrollableTabs
-                            tabs={tabs}
-                            activeTab={activeTab || tabs[0].id}
-                            onTabChange={onTabChange}
-                            className="w-full"
-                            isChanging={loading}
-                            ariaLabel={tabsAriaLabel}
-                        />
-                    </div>
-                )}
+ {/* Sticky Tabs Header */}
+ {tabs.length > 0 && onTabChange && (
+  <div className="sticky top-0 z-20 bg-card/95 border-b border-border/40 px-6 pt-2 supports-[backdrop-filter]:bg-white/80 supports-[backdrop-filter]:dark:bg-slate-900/80 supports-[backdrop-filter]:backdrop-blur-md">
+  <ScrollableTabs
+  tabs={tabs}
+  activeTab={activeTab || tabs[0].id}
+  onTabChange={onTabChange}
+  className="w-full"
+  isChanging={loading}
+  ariaLabel={tabsAriaLabel}
+  />
+  </div>
+ )}
 
-                {/* Content Area */}
-                <div className={`flex-1 ${disableContentScroll ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar'} ${disableContentPadding ? '' : 'px-6 py-8'}`}>
-                    {loading ? (
-                        <div className="flex items-center justify-center h-full min-h-[400px]">
-                            <LoadingIndicator type="pulse" message={t('common.loading', { defaultValue: 'Chargement...' })} />
-                        </div>
-                    ) : (
-                        <div key={activeTab || 'unknown'} className="animate-in fade-in duration-300 slide-in-from-bottom-2 h-full">
-                            {children}
-                        </div>
-                    )}
-                </div>
+ {/* Content Area */}
+ <div className={`flex-1 ${disableContentScroll ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar'} ${disableContentPadding ? '' : 'px-6 py-8'}`}>
+  {loading ? (
+  <div className="flex items-center justify-center h-full min-h-[400px]">
+  <LoadingIndicator type="pulse" message={t('common.loading', { defaultValue: 'Chargement...' })} />
+  </div>
+  ) : (
+  <div key={activeTab || 'unknown'} className="animate-in fade-in duration-300 slide-in-from-bottom-2 h-full">
+  {children}
+  </div>
+  )}
+ </div>
 
-                {/* Sticky Footer */}
-                {footer && (
-                    <div className="p-6 border-t border-border/40 bg-white/95 dark:bg-slate-900/95 shrink-0 supports-[backdrop-filter]:bg-white/80 supports-[backdrop-filter]:dark:bg-slate-900/80 supports-[backdrop-filter]:backdrop-blur-md">
-                        {footer}
-                    </div>
-                )}
-            </div>
-        </Drawer>
-    );
+ {/* Sticky Footer */}
+ {footer && (
+  <div className="p-6 border-t border-border/40 bg-card/95 shrink-0 supports-[backdrop-filter]:bg-white/80 supports-[backdrop-filter]:dark:bg-slate-900/80 supports-[backdrop-filter]:backdrop-blur-md">
+  {footer}
+  </div>
+ )}
+ </div>
+ </Drawer>
+ );
 };

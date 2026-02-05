@@ -19,39 +19,39 @@
 
 // Re-export everything from the modular implementation
 export {
-  // Main store hook
-  useVoxelStore,
+ // Main store hook
+ useVoxelStore,
 
-  // Selector hooks
-  useVoxelNode,
-  useVoxelNodes,
-  useFilteredNodes,
-  useVoxelEdge,
-  useVoxelEdges,
-  useVisibleEdges,
-  useVoxelAnomaly,
-  useVoxelAnomalies,
-  useActiveAnomalies,
-  useNodeAnomalies,
-  useSelectedNode,
-  useHoveredNode,
-  useVoxelFilters,
-  useVoxelUI,
-  useVoxelSync,
-  useCurrentPreset,
-  useNodeCountByType,
-  useAnomalyCountBySeverity,
+ // Selector hooks
+ useVoxelNode,
+ useVoxelNodes,
+ useFilteredNodes,
+ useVoxelEdge,
+ useVoxelEdges,
+ useVisibleEdges,
+ useVoxelAnomaly,
+ useVoxelAnomalies,
+ useActiveAnomalies,
+ useNodeAnomalies,
+ useSelectedNode,
+ useHoveredNode,
+ useVoxelFilters,
+ useVoxelUI,
+ useVoxelSync,
+ useCurrentPreset,
+ useNodeCountByType,
+ useAnomalyCountBySeverity,
 
-  // Direct actions (non-hook)
-  voxelStoreActions,
+ // Direct actions (non-hook)
+ voxelStoreActions,
 
-  // Types
-  type VoxelStore,
-  type NodeSlice,
-  type EdgeSlice,
-  type AnomalySlice,
-  type FilterSlice,
-  type UISlice,
-  type SyncSlice,
-  type PresetSlice,
+ // Types
+ type VoxelStore,
+ type NodeSlice,
+ type EdgeSlice,
+ type AnomalySlice,
+ type FilterSlice,
+ type UISlice,
+ type SyncSlice,
+ type PresetSlice,
 } from './voxel';

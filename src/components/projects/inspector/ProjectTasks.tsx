@@ -10,166 +10,166 @@ import { sanitizeData } from '../../../utils/dataSanitizer';
 import { useStore } from '../../../store';
 
 interface ProjectTasksProps {
-    project: Project;
-    canEdit: boolean;
-    usersList: UserProfile[];
-    onUpdateTasks: (project: Project, tasks: ProjectTask[]) => Promise<void>;
+ project: Project;
+ canEdit: boolean;
+ usersList: UserProfile[];
+ onUpdateTasks: (project: Project, tasks: ProjectTask[]) => Promise<void>;
 }
 
 export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, usersList, onUpdateTasks }) => {
-    const { t } = useStore();
-    const [viewMode, setViewMode] = useState<'list' | 'board'>('board');
-    const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
-    const [showTaskModal, setShowTaskModal] = useState(false);
-    const [editingTask, setEditingTask] = useState<ProjectTask | undefined>(undefined);
-    const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; taskId: string | null }>({ isOpen: false, taskId: null });
+ const { t } = useStore();
+ const [viewMode, setViewMode] = useState<'list' | 'board'>('board');
+ const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+ const [showTaskModal, setShowTaskModal] = useState(false);
+ const [editingTask, setEditingTask] = useState<ProjectTask | undefined>(undefined);
+ const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; taskId: string | null }>({ isOpen: false, taskId: null });
 
-    // Task Logic
-    const handleTaskSubmit = useCallback(async (taskData: Partial<ProjectTask>) => {
-        const cleanTaskData = sanitizeData(taskData);
-        let newTasks = [...(project.tasks || [])];
+ // Task Logic
+ const handleTaskSubmit = useCallback(async (taskData: Partial<ProjectTask>) => {
+ const cleanTaskData = sanitizeData(taskData);
+ let newTasks = [...(project.tasks || [])];
 
-        if (editingTask) {
-            newTasks = newTasks.map(t => t.id === editingTask.id ? { ...t, ...cleanTaskData } : t);
-        } else {
-            const newTask = { id: Date.now().toString(), ...cleanTaskData } as ProjectTask;
-            newTasks.push(newTask);
-        }
-        await onUpdateTasks(project, newTasks);
-        setShowTaskModal(false);
-        setEditingTask(undefined);
-    }, [project, onUpdateTasks, editingTask]);
+ if (editingTask) {
+ newTasks = newTasks.map(t => t.id === editingTask.id ? { ...t, ...cleanTaskData } : t);
+ } else {
+ const newTask = { id: Date.now().toString(), ...cleanTaskData } as ProjectTask;
+ newTasks.push(newTask);
+ }
+ await onUpdateTasks(project, newTasks);
+ setShowTaskModal(false);
+ setEditingTask(undefined);
+ }, [project, onUpdateTasks, editingTask]);
 
-    const toggleTaskStatus = useCallback(async (taskId: string) => {
-        const task = project.tasks?.find(t => t.id === taskId);
-        if (!task) return;
-        const newStatus: ProjectTask['status'] = task.status === 'Terminé' ? 'À faire' : 'Terminé';
-        const newTasks = project.tasks?.map(t => t.id === taskId ? { ...t, status: newStatus } : t) || [];
-        await onUpdateTasks(project, newTasks);
-    }, [project, onUpdateTasks]);
+ const toggleTaskStatus = useCallback(async (taskId: string) => {
+ const task = project.tasks?.find(t => t.id === taskId);
+ if (!task) return;
+ const newStatus: ProjectTask['status'] = task.status === 'Terminé' ? 'À faire' : 'Terminé';
+ const newTasks = project.tasks?.map(t => t.id === taskId ? { ...t, status: newStatus } : t) || [];
+ await onUpdateTasks(project, newTasks);
+ }, [project, onUpdateTasks]);
 
-    const deleteTask = useCallback((taskId: string) => {
-        setConfirmDelete({ isOpen: true, taskId });
-    }, []);
+ const deleteTask = useCallback((taskId: string) => {
+ setConfirmDelete({ isOpen: true, taskId });
+ }, []);
 
-    const handleConfirmDeleteTask = useCallback(async () => {
-        if (!confirmDelete.taskId) return;
-        const newTasks = project.tasks?.filter(t => t.id !== confirmDelete.taskId) || [];
-        await onUpdateTasks(project, newTasks);
-        setConfirmDelete({ isOpen: false, taskId: null });
-    }, [project, onUpdateTasks, confirmDelete.taskId]);
+ const handleConfirmDeleteTask = useCallback(async () => {
+ if (!confirmDelete.taskId) return;
+ const newTasks = project.tasks?.filter(t => t.id !== confirmDelete.taskId) || [];
+ await onUpdateTasks(project, newTasks);
+ setConfirmDelete({ isOpen: false, taskId: null });
+ }, [project, onUpdateTasks, confirmDelete.taskId]);
 
-    // Drag and Drop
-    const handleDragStart = useCallback((_: React.DragEvent, taskId: string) => {
-        setDraggedTaskId(taskId);
-    }, []);
+ // Drag and Drop
+ const handleDragStart = useCallback((_: React.DragEvent, taskId: string) => {
+ setDraggedTaskId(taskId);
+ }, []);
 
-    const handleDragOver = useCallback((e: React.DragEvent) => e.preventDefault(), []);
+ const handleDragOver = useCallback((e: React.DragEvent) => e.preventDefault(), []);
 
-    const handleDrop = useCallback(async (e: React.DragEvent, status: 'À faire' | 'En cours' | 'Terminé') => {
-        e.preventDefault();
-        if (!draggedTaskId) return;
-        const newTasks = project.tasks?.map(t => t.id === draggedTaskId ? { ...t, status } : t) || [];
-        await onUpdateTasks(project, newTasks);
-        setDraggedTaskId(null);
-    }, [draggedTaskId, project, onUpdateTasks]);
+ const handleDrop = useCallback(async (e: React.DragEvent, status: 'À faire' | 'En cours' | 'Terminé') => {
+ e.preventDefault();
+ if (!draggedTaskId) return;
+ const newTasks = project.tasks?.map(t => t.id === draggedTaskId ? { ...t, status } : t) || [];
+ await onUpdateTasks(project, newTasks);
+ setDraggedTaskId(null);
+ }, [draggedTaskId, project, onUpdateTasks]);
 
-    // Helpers
-    const handleDownloadICS = useCallback((task: ProjectTask) => {
-        const startDate = task.startDate ? new Date(task.startDate) : new Date();
-        const endDate = task.dueDate ? new Date(task.dueDate) : new Date(startDate.getTime() + 60 * 60 * 1000);
-        const ics = generateICS([{
-            title: `Tâche: ${task.title}`,
-            description: task.description || '',
-            startTime: startDate,
-            endTime: endDate,
-            location: 'Sentinel GRC'
-        }]);
-        downloadICS(`task_${task.id}.ics`, ics);
-    }, []);
+ // Helpers
+ const handleDownloadICS = useCallback((task: ProjectTask) => {
+ const startDate = task.startDate ? new Date(task.startDate) : new Date();
+ const endDate = task.dueDate ? new Date(task.dueDate) : new Date(startDate.getTime() + 60 * 60 * 1000);
+ const ics = generateICS([{
+ title: `Tâche: ${task.title}`,
+ description: task.description || '',
+ startTime: startDate,
+ endTime: endDate,
+ location: 'Sentinel GRC'
+ }]);
+ downloadICS(`task_${task.id}.ics`, ics);
+ }, []);
 
-    const handleNewTask = () => {
-        setEditingTask(undefined);
-        setShowTaskModal(true);
-    };
+ const handleNewTask = () => {
+ setEditingTask(undefined);
+ setShowTaskModal(true);
+ };
 
-    const handleEditTask = (t: ProjectTask) => {
-        setEditingTask(t);
-        setShowTaskModal(true);
-    };
+ const handleEditTask = (t: ProjectTask) => {
+ setEditingTask(t);
+ setShowTaskModal(true);
+ };
 
-    return (
-        <div className="space-y-6 h-full flex flex-col">
-            <div className="flex justify-between items-center">
-                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-3xl border border-border/40 dark:border-slate-700">
-                    <button onClick={() => setViewMode('list')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600 hover:text-slate-900 dark:hover:text-slate-300'}`}>Liste</button>
-                    <button onClick={() => setViewMode('board')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${viewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600 hover:text-slate-900 dark:hover:text-slate-300'}`}>Tableau</button>
-                </div>
-                {canEdit && (
-                    <Button onClick={handleNewTask} className="flex items-center gap-2">
-                        <Plus className="h-4 w-4" /> {t('projects.tasks.newTask', { defaultValue: 'Nouvelle tâche' })}
-                    </Button>
-                )}
-            </div>
+ return (
+ <div className="space-y-6 h-full flex flex-col">
+ <div className="flex justify-between items-center">
+ <div className="flex bg-muted p-1 rounded-3xl border border-border/40">
+  <button onClick={() => setViewMode('list')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${viewMode === 'list' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>Liste</button>
+  <button onClick={() => setViewMode('board')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${viewMode === 'board' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>Tableau</button>
+ </div>
+ {canEdit && (
+  <Button onClick={handleNewTask} className="flex items-center gap-2">
+  <Plus className="h-4 w-4" /> {t('projects.tasks.newTask', { defaultValue: 'Nouvelle tâche' })}
+  </Button>
+ )}
+ </div>
 
-            {viewMode === 'list' ? (
-                <div className="space-y-2">
-                    {project.tasks?.map(task => (
-                        <div key={task.id || 'unknown'} className="flex items-center p-3 glass-premium rounded-3xl border border-border/40 group hover:shadow-apple transition-all">
-                            <button
-                                onClick={() => toggleTaskStatus(task.id)}
-                                disabled={!canEdit}
-                                className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-border/40 hover:border-green-500'}`}
-                            >
-                                {task.status === 'Terminé' && <CheckSquare className="w-3.5 h-3.5" />}
-                            </button>
-                            <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-slate-500 line-through' : 'text-slate-700 dark:text-slate-200'}`}>{task.title}</span>
-                            {canEdit && (
-                                <div className="flex items-center opacity-0 group-hover:opacity-70 transition-opacity">
-                                    <button onClick={() => handleDownloadICS(task)} aria-label={t('projects.tasks.downloadICS', { defaultValue: 'Télécharger ICS' })} className="p-1.5 text-muted-foreground hover:text-brand-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><CalendarDays className="h-3.5 w-3.5" /></button>
-                                    <button onClick={() => deleteTask(task.id)} aria-label={t('projects.tasks.deleteTask', { defaultValue: 'Supprimer la tâche' })} className="p-1.5 text-muted-foreground hover:text-red-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Trash2 className="h-3.5 w-3.5" /></button>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <div className="flex gap-4 overflow-x-auto pb-4 h-full">
-                    {['À faire', 'En cours', 'Terminé'].map(status => (
-                        <KanbanColumn
-                            key={status || 'unknown'}
-                            status={status as 'À faire' | 'En cours' | 'Terminé'}
-                            tasks={project.tasks?.filter(t => t.status === status) || []}
-                            canEdit={canEdit}
-                            draggedTaskId={draggedTaskId}
-                            onDragOver={handleDragOver}
-                            onDrop={handleDrop}
-                            onDragStart={handleDragStart}
-                            onEditTask={handleEditTask}
-                            onDeleteTask={deleteTask}
-                        />
-                    ))}
-                </div>
-            )}
+ {viewMode === 'list' ? (
+ <div className="space-y-2">
+  {project.tasks?.map(task => (
+  <div key={task.id || 'unknown'} className="flex items-center p-3 glass-premium rounded-3xl border border-border/40 group hover:shadow-apple transition-all">
+  <button
+  onClick={() => toggleTaskStatus(task.id)}
+  disabled={!canEdit}
+  className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-border/40 hover:border-green-500'}`}
+  >
+  {task.status === 'Terminé' && <CheckSquare className="w-3.5 h-3.5" />}
+  </button>
+  <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{task.title}</span>
+  {canEdit && (
+  <div className="flex items-center opacity-0 group-hover:opacity-70 transition-opacity">
+   <button onClick={() => handleDownloadICS(task)} aria-label={t('projects.tasks.downloadICS', { defaultValue: 'Télécharger ICS' })} className="p-1.5 text-muted-foreground hover:text-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><CalendarDays className="h-3.5 w-3.5" /></button>
+   <button onClick={() => deleteTask(task.id)} aria-label={t('projects.tasks.deleteTask', { defaultValue: 'Supprimer la tâche' })} className="p-1.5 text-muted-foreground hover:text-red-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Trash2 className="h-3.5 w-3.5" /></button>
+  </div>
+  )}
+  </div>
+  ))}
+ </div>
+ ) : (
+ <div className="flex gap-4 overflow-x-auto pb-4 h-full">
+  {['À faire', 'En cours', 'Terminé'].map(status => (
+  <KanbanColumn
+  key={status || 'unknown'}
+  status={status as 'À faire' | 'En cours' | 'Terminé'}
+  tasks={project.tasks?.filter(t => t.status === status) || []}
+  canEdit={canEdit}
+  draggedTaskId={draggedTaskId}
+  onDragOver={handleDragOver}
+  onDrop={handleDrop}
+  onDragStart={handleDragStart}
+  onEditTask={handleEditTask}
+  onDeleteTask={deleteTask}
+  />
+  ))}
+ </div>
+ )}
 
-            <TaskFormDrawer
-                isOpen={showTaskModal}
-                onClose={() => setShowTaskModal(false)}
-                onSubmit={handleTaskSubmit}
-                existingTask={editingTask}
-                availableTasks={project.tasks || []}
-                availableUsers={usersList}
-            />
+ <TaskFormDrawer
+ isOpen={showTaskModal}
+ onClose={() => setShowTaskModal(false)}
+ onSubmit={handleTaskSubmit}
+ existingTask={editingTask}
+ availableTasks={project.tasks || []}
+ availableUsers={usersList}
+ />
 
-            <ConfirmModal
-                isOpen={confirmDelete.isOpen}
-                onClose={() => setConfirmDelete({ isOpen: false, taskId: null })}
-                onConfirm={handleConfirmDeleteTask}
-                title={t('projects.tasks.deleteTitle', { defaultValue: 'Supprimer la tâche' })}
-                message={t('projects.tasks.deleteMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer cette tâche ? Cette action est irréversible.' })}
-                confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
-                type="danger"
-            />
-        </div>
-    );
+ <ConfirmModal
+ isOpen={confirmDelete.isOpen}
+ onClose={() => setConfirmDelete({ isOpen: false, taskId: null })}
+ onConfirm={handleConfirmDeleteTask}
+ title={t('projects.tasks.deleteTitle', { defaultValue: 'Supprimer la tâche' })}
+ message={t('projects.tasks.deleteMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer cette tâche ? Cette action est irréversible.' })}
+ confirmText={t('common.delete', { defaultValue: 'Supprimer' })}
+ type="danger"
+ />
+ </div>
+ );
 };

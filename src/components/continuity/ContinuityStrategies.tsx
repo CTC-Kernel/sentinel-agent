@@ -12,140 +12,140 @@ import { ConfirmModal } from '../ui/ConfirmModal';
 import { hasPermission } from '../../utils/permissions';
 
 interface ContinuityStrategiesProps {
-    assets: Asset[];
+ assets: Asset[];
 }
 
 export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ assets }) => {
-    const { user, addToast, t } = useStore();
-    const { strategies, addStrategy, removeStrategy } = useContinuityActions();
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean, id: string | null }>({ isOpen: false, id: null });
+ const { user, addToast, t } = useStore();
+ const { strategies, addStrategy, removeStrategy } = useContinuityActions();
+ const [isModalOpen, setIsModalOpen] = useState(false);
+ const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean, id: string | null }>({ isOpen: false, id: null });
 
-    const canManage = hasPermission(user, 'Project', 'manage');
+ const canManage = hasPermission(user, 'Project', 'manage');
 
-    const onSubmit = async (data: StrategyFormData) => {
-        if (!user?.organizationId) return;
+ const onSubmit = async (data: StrategyFormData) => {
+ if (!user?.organizationId) return;
 
-        try {
-            await addStrategy({
-                ...data,
-                organizationId: user.organizationId,
-                linkedAssets: data.linkedAssets || []
-            });
-            addToast(t('continuity.toast.strategyAdded', { defaultValue: 'Stratégie ajoutée' }), 'success');
-            setIsModalOpen(false);
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'ContinuityStrategies.onSubmit', 'CREATE_FAILED');
-        }
-    };
+ try {
+ await addStrategy({
+ ...data,
+ organizationId: user.organizationId,
+ linkedAssets: data.linkedAssets || []
+ });
+ addToast(t('continuity.toast.strategyAdded', { defaultValue: 'Stratégie ajoutée' }), 'success');
+ setIsModalOpen(false);
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'ContinuityStrategies.onSubmit', 'CREATE_FAILED');
+ }
+ };
 
-    const handleDeleteClick = (id: string) => {
-        setConfirmDelete({ isOpen: true, id });
-    };
+ const handleDeleteClick = (id: string) => {
+ setConfirmDelete({ isOpen: true, id });
+ };
 
-    const handleConfirmDelete = async () => {
-        if (!confirmDelete.id) return;
-        try {
-            await removeStrategy(confirmDelete.id);
-            addToast(t('continuity.toast.strategyDeleted', { defaultValue: 'Stratégie supprimée' }), 'success');
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'ContinuityStrategies.handleDelete', 'DELETE_FAILED');
-        } finally {
-            setConfirmDelete({ isOpen: false, id: null });
-        }
-    };
+ const handleConfirmDelete = async () => {
+ if (!confirmDelete.id) return;
+ try {
+ await removeStrategy(confirmDelete.id);
+ addToast(t('continuity.toast.strategyDeleted', { defaultValue: 'Stratégie supprimée' }), 'success');
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'ContinuityStrategies.handleDelete', 'DELETE_FAILED');
+ } finally {
+ setConfirmDelete({ isOpen: false, id: null });
+ }
+ };
 
-    return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('continuity.strategies.title', { defaultValue: 'Stratégies de Continuité' })}</h2>
-                    <p className="text-sm text-slate-500">{t('continuity.strategies.description', { defaultValue: 'Définissez vos stratégies de reprise (PCA/PRA) pour vos actifs critiques.' })}</p>
-                </div>
-                <Button onClick={() => setIsModalOpen(true)} className="gap-2">
-                    <Plus className="w-4 h-4" /> {t('continuity.strategies.new', { defaultValue: 'Nouvelle Stratégie' })}
-                </Button>
-            </div>
+ return (
+ <div className="space-y-6">
+ <div className="flex justify-between items-center">
+ <div>
+  <h2 className="text-xl font-bold text-foreground">{t('continuity.strategies.title', { defaultValue: 'Stratégies de Continuité' })}</h2>
+  <p className="text-sm text-muted-foreground">{t('continuity.strategies.description', { defaultValue: 'Définissez vos stratégies de reprise (PCA/PRA) pour vos actifs critiques.' })}</p>
+ </div>
+ <Button onClick={() => setIsModalOpen(true)} className="gap-2">
+  <Plus className="w-4 h-4" /> {t('continuity.strategies.new', { defaultValue: 'Nouvelle Stratégie' })}
+ </Button>
+ </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {strategies.map((strategy: Strategy) => (
-                    <div key={strategy.id || 'unknown'} className="glass-premium p-4 sm:p-6 rounded-2xl relative group hover:border-brand-300 border border-border/40">
-                        {canManage && (
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDeleteClick(strategy.id)}
-                                aria-label={t('continuity.strategies.deleteAriaLabel', { defaultValue: 'Supprimer la stratégie' })}
-                                className="absolute top-4 right-4 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 opacity-0 group-hover:opacity-70 transition-all focus:opacity-70"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        )}
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-3 rounded-3xl bg-blue-50 dark:bg-blue-900/20 text-blue-600">
-                                <Shield className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-slate-900 dark:text-white">{strategy.title}</h3>
-                                <span className="text-xs font-bold px-2 py-1 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500">{strategy.type}</span>
-                            </div>
-                        </div>
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+ {strategies.map((strategy: Strategy) => (
+  <div key={strategy.id || 'unknown'} className="glass-premium p-4 sm:p-6 rounded-2xl relative group hover:border-primary/40 border border-border/40">
+  {canManage && (
+  <Button
+  variant="ghost"
+  size="icon"
+  onClick={() => handleDeleteClick(strategy.id)}
+  aria-label={t('continuity.strategies.deleteAriaLabel', { defaultValue: 'Supprimer la stratégie' })}
+  className="absolute top-4 right-4 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 opacity-0 group-hover:opacity-70 transition-all focus:opacity-70"
+  >
+  <Trash2 className="h-4 w-4" />
+  </Button>
+  )}
+  <div className="flex items-center gap-3 mb-4">
+  <div className="p-3 rounded-3xl bg-blue-50 dark:bg-blue-900/20 text-blue-600">
+  <Shield className="w-6 h-6" />
+  </div>
+  <div>
+  <h3 className="font-bold text-foreground">{strategy.title}</h3>
+  <span className="text-xs font-bold px-2 py-1 rounded-full bg-muted dark:bg-white/10 text-muted-foreground">{strategy.type}</span>
+  </div>
+  </div>
 
-                        <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                            <div className="bg-slate-50 dark:bg-white/5 p-2 rounded-lg text-center">
-                                <span className="block text-xs text-muted-foreground uppercase font-bold">RTO Cible</span>
-                                <span className="font-mono font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{strategy.rto}</span>
-                            </div>
-                            <div className="bg-slate-50 dark:bg-white/5 p-2 rounded-lg text-center">
-                                <span className="block text-xs text-muted-foreground uppercase font-bold">RPO Cible</span>
-                                <span className="font-mono font-bold text-slate-700 dark:text-slate-300 dark:text-muted-foreground">{strategy.rpo}</span>
-                            </div>
-                        </div>
+  <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+  <div className="bg-muted/50 dark:bg-white/5 p-2 rounded-lg text-center">
+  <span className="block text-xs text-muted-foreground uppercase font-bold">RTO Cible</span>
+  <span className="font-mono font-bold text-foreground text-muted-foreground">{strategy.rto}</span>
+  </div>
+  <div className="bg-muted/50 dark:bg-white/5 p-2 rounded-lg text-center">
+  <span className="block text-xs text-muted-foreground uppercase font-bold">RPO Cible</span>
+  <span className="font-mono font-bold text-foreground text-muted-foreground">{strategy.rpo}</span>
+  </div>
+  </div>
 
-                        <div className="mt-4 pt-4 border-t border-border/40 dark:border-white/5">
-                            <p className="text-xs font-bold text-muted-foreground mb-2 uppercase">Actifs Couverts</p>
-                            <div className="flex flex-wrap gap-2">
-                                {strategy.linkedAssets?.map((assetId: string) => {
-                                    const asset = assets.find(a => a.id === assetId);
-                                    return asset ? (
-                                        <span key={assetId || 'unknown'} className="flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md border border-emerald-100">
-                                            <Server className="w-3 h-3" /> {asset.name}
-                                        </span>
-                                    ) : null;
-                                })}
-                                {(!strategy.linkedAssets || strategy.linkedAssets.length === 0) && <span className="text-xs text-muted-foreground italic">{t('continuity.strategies.noLinkedAssets', { defaultValue: 'Aucun actif lié' })}</span>}
-                            </div>
-                        </div>
-                    </div>
-                ))}
+  <div className="mt-4 pt-4 border-t border-border/40 dark:border-white/5">
+  <p className="text-xs font-bold text-muted-foreground mb-2 uppercase">Actifs Couverts</p>
+  <div className="flex flex-wrap gap-2">
+  {strategy.linkedAssets?.map((assetId: string) => {
+   const asset = assets.find(a => a.id === assetId);
+   return asset ? (
+   <span key={assetId || 'unknown'} className="flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md border border-emerald-100">
+   <Server className="w-3 h-3" /> {asset.name}
+   </span>
+   ) : null;
+  })}
+  {(!strategy.linkedAssets || strategy.linkedAssets.length === 0) && <span className="text-xs text-muted-foreground italic">{t('continuity.strategies.noLinkedAssets', { defaultValue: 'Aucun actif lié' })}</span>}
+  </div>
+  </div>
+  </div>
+ ))}
 
-                {strategies.length === 0 && (
-                    <div className="col-span-full">
-                        <EmptyState
-                            icon={Shield}
-                            title={t('continuity.strategies.emptyTitle', { defaultValue: 'Aucune stratégie définie' })}
-                            description={t('continuity.strategies.emptyDescription', { defaultValue: 'Commencez par définir vos stratégies de continuité pour protéger vos actifs critiques.' })}
-                            actionLabel={t('continuity.strategies.createStrategy', { defaultValue: 'Créer une stratégie' })}
-                            onAction={() => setIsModalOpen(true)}
-                        />
-                    </div>
-                )}
-            </div>
+ {strategies.length === 0 && (
+  <div className="col-span-full">
+  <EmptyState
+  icon={Shield}
+  title={t('continuity.strategies.emptyTitle', { defaultValue: 'Aucune stratégie définie' })}
+  description={t('continuity.strategies.emptyDescription', { defaultValue: 'Commencez par définir vos stratégies de continuité pour protéger vos actifs critiques.' })}
+  actionLabel={t('continuity.strategies.createStrategy', { defaultValue: 'Créer une stratégie' })}
+  onAction={() => setIsModalOpen(true)}
+  />
+  </div>
+ )}
+ </div>
 
-            <StrategyInspector
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSubmit={onSubmit}
-                assets={assets}
-            />
+ <StrategyInspector
+ isOpen={isModalOpen}
+ onClose={() => setIsModalOpen(false)}
+ onSubmit={onSubmit}
+ assets={assets}
+ />
 
-            <ConfirmModal
-                isOpen={confirmDelete.isOpen}
-                onClose={() => setConfirmDelete({ isOpen: false, id: null })}
-                onConfirm={handleConfirmDelete}
-                title={t('continuity.strategies.deleteTitle', { defaultValue: 'Supprimer la stratégie' })}
-                message={t('continuity.strategies.deleteMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer cette stratégie ? Cette action est irréversible.' })}
-            />
-        </div>
-    );
+ <ConfirmModal
+ isOpen={confirmDelete.isOpen}
+ onClose={() => setConfirmDelete({ isOpen: false, id: null })}
+ onConfirm={handleConfirmDelete}
+ title={t('continuity.strategies.deleteTitle', { defaultValue: 'Supprimer la stratégie' })}
+ message={t('continuity.strategies.deleteMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer cette stratégie ? Cette action est irréversible.' })}
+ />
+ </div>
+ );
 };

@@ -7,113 +7,113 @@ import { cn } from "../../../lib/utils";
 // without breaking the build with missing dependencies.
 
 const Particle = class {
-    x: number;
-    y: number;
-    size: number;
-    speedX: number;
-    speedY: number;
+ x: number;
+ y: number;
+ size: number;
+ speedX: number;
+ speedY: number;
 
-    constructor(width: number, height: number, minSize: number, maxSize: number, speed: number) {
-        this.x = Math.random() * width;
-        this.y = Math.random() * height;
-        this.size = Math.random() * (maxSize - minSize) + minSize;
-        this.speedX = (Math.random() - 0.5) * speed;
-        this.speedY = (Math.random() - 0.5) * speed;
-    }
+ constructor(width: number, height: number, minSize: number, maxSize: number, speed: number) {
+ this.x = Math.random() * width;
+ this.y = Math.random() * height;
+ this.size = Math.random() * (maxSize - minSize) + minSize;
+ this.speedX = (Math.random() - 0.5) * speed;
+ this.speedY = (Math.random() - 0.5) * speed;
+ }
 
-    update(width: number, height: number) {
-        this.x += this.speedX;
-        this.y += this.speedY;
+ update(width: number, height: number) {
+ this.x += this.speedX;
+ this.y += this.speedY;
 
-        if (this.x > width) this.x = 0;
-        if (this.x < 0) this.x = width;
-        if (this.y > height) this.y = 0;
-        if (this.y < 0) this.y = height;
-    }
+ if (this.x > width) this.x = 0;
+ if (this.x < 0) this.x = width;
+ if (this.y > height) this.y = 0;
+ if (this.y < 0) this.y = height;
+ }
 
-    draw(ctx: CanvasRenderingContext2D, color: string) {
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-    }
+ draw(ctx: CanvasRenderingContext2D, color: string) {
+ ctx.fillStyle = color;
+ ctx.beginPath();
+ ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+ ctx.fill();
+ }
 }
 
 export const SparklesCore = (props: {
-    id?: string;
-    className?: string;
-    background?: string;
-    minSize?: number;
-    maxSize?: number;
-    speed?: number;
-    particleColor?: string;
-    particleDensity?: number;
+ id?: string;
+ className?: string;
+ background?: string;
+ minSize?: number;
+ maxSize?: number;
+ speed?: number;
+ particleColor?: string;
+ particleDensity?: number;
 }) => {
-    const {
-        id,
-        className,
-        background = "transparent",
-        minSize = 0.6,
-        maxSize = 1.4,
-        speed = 1,
-        particleColor = "#ffffff",
-        particleDensity = 100,
-    } = props;
+ const {
+ id,
+ className,
+ background = "transparent",
+ minSize = 0.6,
+ maxSize = 1.4,
+ speed = 1,
+ particleColor = "#ffffff",
+ particleDensity = 100,
+ } = props;
 
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+ const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+ useEffect(() => {
+ const canvas = canvasRef.current;
+ if (!canvas) return;
 
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
+ const ctx = canvas.getContext("2d");
+ if (!ctx) return;
 
-        let width = (canvas.width = canvas.offsetWidth);
-        let height = (canvas.height = canvas.offsetHeight);
+ let width = (canvas.width = canvas.offsetWidth);
+ let height = (canvas.height = canvas.offsetHeight);
 
-        const particles: InstanceType<typeof Particle>[] = [];
-        const particleCount = particleDensity;
+ const particles: InstanceType<typeof Particle>[] = [];
+ const particleCount = particleDensity;
 
-        const init = () => {
-            for (let i = 0; i < particleCount; i++) {
-                particles.push(new Particle(width, height, minSize, maxSize, speed));
-            }
-        };
+ const init = () => {
+ for (let i = 0; i < particleCount; i++) {
+ particles.push(new Particle(width, height, minSize, maxSize, speed));
+ }
+ };
 
-        const animate = () => {
-            if (!ctx) return;
-            ctx.clearRect(0, 0, width, height);
-            particles.forEach((particle) => {
-                particle.update(width, height);
-                particle.draw(ctx, particleColor);
-            });
-            requestAnimationFrame(animate);
-        };
+ const animate = () => {
+ if (!ctx) return;
+ ctx.clearRect(0, 0, width, height);
+ particles.forEach((particle) => {
+ particle.update(width, height);
+ particle.draw(ctx, particleColor);
+ });
+ requestAnimationFrame(animate);
+ };
 
-        init();
-        animate();
+ init();
+ animate();
 
-        const handleResize = () => {
-            width = canvas.width = canvas.offsetWidth;
-            height = canvas.height = canvas.offsetHeight;
-        };
+ const handleResize = () => {
+ width = canvas.width = canvas.offsetWidth;
+ height = canvas.height = canvas.offsetHeight;
+ };
 
-        window.addEventListener("resize", handleResize);
+ window.addEventListener("resize", handleResize);
 
-        return () => {
-            window.removeEventListener("resize", handleResize);
-        };
-    }, [maxSize, minSize, particleColor, particleDensity, speed]);
+ return () => {
+ window.removeEventListener("resize", handleResize);
+ };
+ }, [maxSize, minSize, particleColor, particleDensity, speed]);
 
-    return (
-        <canvas
-            ref={canvasRef}
-            className={cn("w-full h-full pointer-events-none", className)}
-            style={{
-                background: background,
-            }}
-            id={id || "sparkles-canvas"}
-        />
-    );
+ return (
+ <canvas
+ ref={canvasRef}
+ className={cn("w-full h-full pointer-events-none", className)}
+ style={{
+ background: background,
+ }}
+ id={id || "sparkles-canvas"}
+ />
+ );
 };

@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { LoadingScreen } from '../ui/LoadingScreen';
 
 interface SuperAdminGuardProps {
-    children: React.ReactNode;
+ children: React.ReactNode;
 }
 
 /**
@@ -20,35 +20,35 @@ interface SuperAdminGuardProps {
  * @see /firestore.rules - isSuperAdmin() pour la logique serveur correspondante
  */
 export const SuperAdminGuard: React.FC<SuperAdminGuardProps> = ({ children }) => {
-    const { user, loading, firebaseUser } = useAuth();
-    const location = useLocation();
+ const { user, loading, firebaseUser } = useAuth();
+ const location = useLocation();
 
-    // Loading state
-    if (loading) {
-        return <LoadingScreen />;
-    }
+ // Loading state
+ if (loading) {
+ return <LoadingScreen />;
+ }
 
-    // No user authenticated
-    if (!firebaseUser) {
-        return <Navigate to="/login" state={{ from: location }} replace />;
-    }
+ // No user authenticated
+ if (!firebaseUser) {
+ return <Navigate to="/login" state={{ from: location }} replace />;
+ }
 
-    // User authenticated but profile not loaded yet
-    if (!user) {
-        return <LoadingScreen />;
-    }
+ // User authenticated but profile not loaded yet
+ if (!user) {
+ return <LoadingScreen />;
+ }
 
-    // AUDIT FIX: Documentation clarifiée - autorise admin ET super_admin
-    // C'est intentionnel pour permettre aux admins d'organisation d'accéder
-    // aux fonctions administratives de leur tenant
-    const hasAdminPrivileges = user.role === 'super_admin' || user.role === 'admin';
+ // AUDIT FIX: Documentation clarifiée - autorise admin ET super_admin
+ // C'est intentionnel pour permettre aux admins d'organisation d'accéder
+ // aux fonctions administratives de leur tenant
+ const hasAdminPrivileges = user.role === 'super_admin' || user.role === 'admin';
 
-    if (!hasAdminPrivileges) {
-        // Utilisateurs non-admin redirigés vers le dashboard principal
-        return <Navigate to="/" replace />;
-    }
+ if (!hasAdminPrivileges) {
+ // Utilisateurs non-admin redirigés vers le dashboard principal
+ return <Navigate to="/" replace />;
+ }
 
-    return <>{children}</>;
+ return <>{children}</>;
 };
 
 /**
@@ -57,25 +57,25 @@ export const SuperAdminGuard: React.FC<SuperAdminGuardProps> = ({ children }) =>
  * qu'aux administrateurs système globaux.
  */
 export const StrictSuperAdminGuard: React.FC<SuperAdminGuardProps> = ({ children }) => {
-    const { user, loading, firebaseUser } = useAuth();
-    const location = useLocation();
+ const { user, loading, firebaseUser } = useAuth();
+ const location = useLocation();
 
-    if (loading) {
-        return <LoadingScreen />;
-    }
+ if (loading) {
+ return <LoadingScreen />;
+ }
 
-    if (!firebaseUser) {
-        return <Navigate to="/login" state={{ from: location }} replace />;
-    }
+ if (!firebaseUser) {
+ return <Navigate to="/login" state={{ from: location }} replace />;
+ }
 
-    if (!user) {
-        return <LoadingScreen />;
-    }
+ if (!user) {
+ return <LoadingScreen />;
+ }
 
-    // STRICT: Uniquement super_admin
-    if (user.role !== 'super_admin') {
-        return <Navigate to="/" replace />;
-    }
+ // STRICT: Uniquement super_admin
+ if (user.role !== 'super_admin') {
+ return <Navigate to="/" replace />;
+ }
 
-    return <>{children}</>;
+ return <>{children}</>;
 };

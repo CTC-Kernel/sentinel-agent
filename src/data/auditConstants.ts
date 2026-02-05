@@ -1,12 +1,12 @@
 export const AUDIT_TYPES = [
-    'Interne',
-    'Externe',
-    'Certification'
+ 'Interne',
+ 'Externe',
+ 'Certification'
 ] as const;
 
 export const AUDIT_STATUSES = [
-    'Planifié',
-    'En cours',
-    'Terminé',
-    'Annulé'
+ 'Planifié',
+ 'En cours',
+ 'Terminé',
+ 'Annulé'
 ] as const;

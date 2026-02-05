@@ -12,139 +12,139 @@ let lastFetchAt = 0;
 let lastFetchedNews: CyberNewsItem[] | null = null;
 
 export const CyberNewsWidget: React.FC = () => {
-    const { t, language } = useStore();
-    const [news, setNews] = useState<CyberNewsItem[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [isExpanded, setIsExpanded] = useState(false);
+ const { t, language } = useStore();
+ const [news, setNews] = useState<CyberNewsItem[]>([]);
+ const [loading, setLoading] = useState(true);
+ const [isExpanded, setIsExpanded] = useState(false);
 
-    const isMountedRef = useRef(true);
-    const isFetchingRef = useRef(false);
+ const isMountedRef = useRef(true);
+ const isFetchingRef = useRef(false);
 
-    const fetchNews = useCallback(async (force: boolean = false) => {
-        const now = Date.now();
-        const cacheTtlMs = 5 * 60 * 1000;
+ const fetchNews = useCallback(async (force: boolean = false) => {
+ const now = Date.now();
+ const cacheTtlMs = 5 * 60 * 1000;
 
-        if (!force && lastFetchedNews && now - lastFetchAt < cacheTtlMs) {
-            setNews(lastFetchedNews);
-            setLoading(false);
-            return;
-        }
+ if (!force && lastFetchedNews && now - lastFetchAt < cacheTtlMs) {
+ setNews(lastFetchedNews);
+ setLoading(false);
+ return;
+ }
 
-        if (isFetchingRef.current) return;
-        isFetchingRef.current = true;
+ if (isFetchingRef.current) return;
+ isFetchingRef.current = true;
 
-        setLoading(true);
-        try {
-            const [certItems, cnilItems] = await Promise.all([
-                integrationService.getCyberNews(),
-                integrationService.getCnilNews()
-            ]);
+ setLoading(true);
+ try {
+ const [certItems, cnilItems] = await Promise.all([
+ integrationService.getCyberNews(),
+ integrationService.getCnilNews()
+ ]);
 
-            const allNews = [...certItems, ...cnilItems].sort((a, b) =>
-                new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
-            );
+ const allNews = [...certItems, ...cnilItems].sort((a, b) =>
+ new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
+ );
 
-            lastFetchedNews = allNews;
-            lastFetchAt = now;
-            if (isMountedRef.current) setNews(allNews);
-        } catch (error) {
-            ErrorLogger.error(error, "CyberNewsWidget.fetchNews");
-        } finally {
-            if (isMountedRef.current) setLoading(false);
-            isFetchingRef.current = false;
-        }
-    }, []);
+ lastFetchedNews = allNews;
+ lastFetchAt = now;
+ if (isMountedRef.current) setNews(allNews);
+ } catch (error) {
+ ErrorLogger.error(error, "CyberNewsWidget.fetchNews");
+ } finally {
+ if (isMountedRef.current) setLoading(false);
+ isFetchingRef.current = false;
+ }
+ }, []);
 
-    useEffect(() => {
-        isMountedRef.current = true;
-        fetchNews();
-        return () => {
-            isMountedRef.current = false;
-        };
-    }, [fetchNews]);
+ useEffect(() => {
+ isMountedRef.current = true;
+ fetchNews();
+ return () => {
+ isMountedRef.current = false;
+ };
+ }, [fetchNews]);
 
-    const formatDate = (dateStr: string) => {
-        try {
-            return format(new Date(dateStr), 'dd MMM yyyy', { locale: language === 'fr' ? fr : enUS });
-        } catch {
-            return dateStr;
-        }
-    };
+ const formatDate = (dateStr: string) => {
+ try {
+ return format(new Date(dateStr), 'dd MMM yyyy', { locale: language === 'fr' ? fr : enUS });
+ } catch {
+ return dateStr;
+ }
+ };
 
-    const displayNews = isExpanded ? news : news.slice(0, 5);
+ const displayNews = isExpanded ? news : news.slice(0, 5);
 
-    return (
-        <DashboardCard
-            title={t('dashboard.cyberNewsTitle')}
-            subtitle={t('dashboard.newsSubtitle') || "Security Watch"}
-            icon={<Shield className="w-5 h-5 text-primary" />}
-            isExpanded={isExpanded}
-            onToggleExpand={() => setIsExpanded(!isExpanded)}
-            expandable={true}
-            headerAction={
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        fetchNews(true);
-                    }}
-                    className={`p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-primary ${loading ? 'animate-spin' : ''} focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50`}
-                    title={t('dashboard.refresh')}
-                    aria-label="Rafraîchir"
-                >
-                    <RefreshCw className="w-4 h-4" />
-                </button>
-            }
-        >
-            <div className={`h-full overflow-y-auto custom-scrollbar ${isExpanded ? 'p-0' : 'p-6 py-4'}`}>
-                {loading && news.length === 0 ? (
-                    <div className="space-y-4">
-                        {[1, 2, 3].map(i => (
-                            <Skeleton key={`news-skel-${i || 'unknown'}`} className="h-24 w-full rounded-2xl" />
-                        ))}
-                    </div>
-                ) : news.length > 0 ? (
-                    <div className="space-y-3">
-                        {displayNews.map((item, index) => (
-                            <a
-                                key={`news-${index}`}
-                                href={item.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="block p-4 rounded-2xl bg-accent/40 hover:bg-accent border border-transparent hover:border-indigo-500/30 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                            >
-                                <div className="flex justify-between items-start">
-                                    <h4 className="font-bold text-sm text-foreground group-hover:text-primary line-clamp-2 mb-2">
-                                        {item.title}
-                                    </h4>
-                                    <ExternalLink className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-70 transition-opacity flex-shrink-0 ml-2" />
-                                </div>
-                                <div className="flex justify-between items-center text-xs text-muted-foreground">
-                                    <span className="bg-accent px-2 py-0.5 rounded text-[11px] font-bold">
-                                        {item.source}
-                                    </span>
-                                    <span>
-                                        {formatDate(item.pubDate)}
-                                    </span>
-                                </div>
-                            </a>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-center text-muted-foreground py-8 text-sm">
-                        {t('dashboard.noNews')}
-                    </div>
-                )}
-                {!isExpanded && news.length > 5 && (
-                    <div className="mt-3 text-center">
-                        <button
-                            className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded px-2 py-1"
-                            onClick={() => setIsExpanded(true)}
-                        >
-                            +{news.length - 5} {t('common.more').toLowerCase()}
-                        </button>
-                    </div>
-                )}
-            </div>
-        </DashboardCard>
-    );
+ return (
+ <DashboardCard
+ title={t('dashboard.cyberNewsTitle')}
+ subtitle={t('dashboard.newsSubtitle') || "Security Watch"}
+ icon={<Shield className="w-5 h-5 text-primary" />}
+ isExpanded={isExpanded}
+ onToggleExpand={() => setIsExpanded(!isExpanded)}
+ expandable={true}
+ headerAction={
+ <button
+  onClick={(e) => {
+  e.stopPropagation();
+  fetchNews(true);
+  }}
+  className={`p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-primary ${loading ? 'animate-spin' : ''} focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50`}
+  title={t('dashboard.refresh')}
+  aria-label="Rafraîchir"
+ >
+  <RefreshCw className="w-4 h-4" />
+ </button>
+ }
+ >
+ <div className={`h-full overflow-y-auto custom-scrollbar ${isExpanded ? 'p-0' : 'p-6 py-4'}`}>
+ {loading && news.length === 0 ? (
+  <div className="space-y-4">
+  {[1, 2, 3].map(i => (
+  <Skeleton key={`news-skel-${i || 'unknown'}`} className="h-24 w-full rounded-2xl" />
+  ))}
+  </div>
+ ) : news.length > 0 ? (
+  <div className="space-y-3">
+  {displayNews.map((item, index) => (
+  <a
+  key={`news-${index}`}
+  href={item.link}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="block p-4 rounded-2xl bg-accent/40 hover:bg-accent border border-transparent hover:border-indigo-500/30 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+  >
+  <div className="flex justify-between items-start">
+   <h4 className="font-bold text-sm text-foreground group-hover:text-primary line-clamp-2 mb-2">
+   {item.title}
+   </h4>
+   <ExternalLink className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-70 transition-opacity flex-shrink-0 ml-2" />
+  </div>
+  <div className="flex justify-between items-center text-xs text-muted-foreground">
+   <span className="bg-accent px-2 py-0.5 rounded text-[11px] font-bold">
+   {item.source}
+   </span>
+   <span>
+   {formatDate(item.pubDate)}
+   </span>
+  </div>
+  </a>
+  ))}
+  </div>
+ ) : (
+  <div className="text-center text-muted-foreground py-8 text-sm">
+  {t('dashboard.noNews')}
+  </div>
+ )}
+ {!isExpanded && news.length > 5 && (
+  <div className="mt-3 text-center">
+  <button
+  className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded px-2 py-1"
+  onClick={() => setIsExpanded(true)}
+  >
+  +{news.length - 5} {t('common.more').toLowerCase()}
+  </button>
+  </div>
+ )}
+ </div>
+ </DashboardCard>
+ );
 };

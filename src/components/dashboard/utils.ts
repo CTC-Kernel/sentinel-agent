@@ -10,7 +10,7 @@ export const PM_DASHBOARD_ROLES = ['project_manager', 'admin'] as const;
  * Check if user can view PM dashboard
  */
 export function canViewPMDashboard(user: UserWithRole | null | undefined): boolean {
-    return hasAnyRole(user, [...PM_DASHBOARD_ROLES]);
+ return hasAnyRole(user, [...PM_DASHBOARD_ROLES]);
 }
 
 /**
@@ -23,5 +23,5 @@ export const RSSI_DASHBOARD_ROLES = ['rssi', 'admin'] as const;
  * Check if user can view RSSI dashboard
  */
 export function canViewRSSIDashboard(user: UserWithRole | null | undefined): boolean {
-    return hasAnyRole(user, [...RSSI_DASHBOARD_ROLES]);
+ return hasAnyRole(user, [...RSSI_DASHBOARD_ROLES]);
 }

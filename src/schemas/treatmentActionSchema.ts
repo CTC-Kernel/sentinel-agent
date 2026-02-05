@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 export const treatmentActionSchema = z.object({
-    title: z.string().trim().min(1, 'Le titre est requis').max(200, 'Le titre est trop long'),
-    description: z.string().trim().max(1000, 'La description est trop longue').optional(),
-    ownerId: z.string().optional(),
-    deadline: z.string().optional(),
-    status: z.enum(['À faire', 'En cours', 'Terminé']).default('À faire')
+ title: z.string().trim().min(1, 'Le titre est requis').max(200, 'Le titre est trop long'),
+ description: z.string().trim().max(1000, 'La description est trop longue').optional(),
+ ownerId: z.string().optional(),
+ deadline: z.string().optional(),
+ status: z.enum(['À faire', 'En cours', 'Terminé']).default('À faire')
 });
 
 export type TreatmentActionFormData = z.infer<typeof treatmentActionSchema>;

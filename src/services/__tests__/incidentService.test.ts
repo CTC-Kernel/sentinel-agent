@@ -10,228 +10,228 @@ import type { UserProfile } from '../../types';
 
 // Mock Firebase
 vi.mock('../../firebase', () => ({
-    db: {},
+ db: {},
 }));
 
 vi.mock('firebase/firestore', () => ({
-    collection: vi.fn(() => ({ id: 'mock-collection' })),
-    doc: vi.fn(() => ({ id: 'mock-doc-id' })),
-    addDoc: vi.fn(() => Promise.resolve({ id: 'new-log-id' })),
-    writeBatch: vi.fn(() => ({
-        set: vi.fn(),
-        commit: vi.fn().mockResolvedValue(undefined),
-    })),
-    serverTimestamp: vi.fn(() => 'mock-timestamp'),
+ collection: vi.fn(() => ({ id: 'mock-collection' })),
+ doc: vi.fn(() => ({ id: 'mock-doc-id' })),
+ addDoc: vi.fn(() => Promise.resolve({ id: 'new-log-id' })),
+ writeBatch: vi.fn(() => ({
+ set: vi.fn(),
+ commit: vi.fn().mockResolvedValue(undefined),
+ })),
+ serverTimestamp: vi.fn(() => 'mock-timestamp'),
 }));
 
 vi.mock('../errorLogger', () => ({
-    ErrorLogger: {
-        error: vi.fn(),
-        warn: vi.fn(),
-        info: vi.fn(),
-    },
+ ErrorLogger: {
+ error: vi.fn(),
+ warn: vi.fn(),
+ info: vi.fn(),
+ },
 }));
 
 vi.mock('../FunctionsService', () => ({
-    FunctionsService: {
-        deleteResource: vi.fn().mockResolvedValue(undefined),
-    },
+ FunctionsService: {
+ deleteResource: vi.fn().mockResolvedValue(undefined),
+ },
 }));
 
 vi.mock('../../utils/dataSanitizer', () => ({
-    sanitizeData: vi.fn((data: unknown) => data),
+ sanitizeData: vi.fn((data: unknown) => data),
 }));
 
 vi.mock('../auditLogService', () => ({
-    AuditLogService: {
-        logDelete: vi.fn().mockResolvedValue(undefined),
-        logCreate: vi.fn().mockResolvedValue(undefined),
-        logImport: vi.fn().mockResolvedValue(undefined),
-    },
+ AuditLogService: {
+ logDelete: vi.fn().mockResolvedValue(undefined),
+ logCreate: vi.fn().mockResolvedValue(undefined),
+ logImport: vi.fn().mockResolvedValue(undefined),
+ },
 }));
 
 vi.mock('../../utils/permissions', () => ({
-    canDeleteResource: vi.fn().mockReturnValue(true),
-    canEditResource: vi.fn().mockReturnValue(true),
+ canDeleteResource: vi.fn().mockReturnValue(true),
+ canEditResource: vi.fn().mockReturnValue(true),
 }));
 
 import { writeBatch } from 'firebase/firestore';
 import { FunctionsService } from '../FunctionsService';
 
 const mockUser: UserProfile = {
-    uid: 'user-1',
-    email: 'user@test.com',
-    displayName: 'John Doe',
-    role: 'admin',
-    organizationId: 'org-1',
-    organizationName: 'Test Org',
-    theme: 'light',
-    createdAt: '',
+ uid: 'user-1',
+ email: 'user@test.com',
+ displayName: 'John Doe',
+ role: 'admin',
+ organizationId: 'org-1',
+ organizationName: 'Test Org',
+ theme: 'light',
+ createdAt: '',
 };
 
 describe('IncidentService', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-    });
+ beforeEach(() => {
+ vi.clearAllMocks();
+ });
 
-    describe('deleteIncidentWithLog', () => {
-        it('should delete incident and create audit log', async () => {
-            await IncidentService.deleteIncidentWithLog({
-                incidentId: 'incident-1',
-                organizationId: 'org-1',
-                user: mockUser,
-            });
+ describe('deleteIncidentWithLog', () => {
+ it('should delete incident and create audit log', async () => {
+ await IncidentService.deleteIncidentWithLog({
+ incidentId: 'incident-1',
+ organizationId: 'org-1',
+ user: mockUser,
+ });
 
-            expect(FunctionsService.deleteResource).toHaveBeenCalledWith('incidents', 'incident-1');
-        });
+ expect(FunctionsService.deleteResource).toHaveBeenCalledWith('incidents', 'incident-1');
+ });
 
-        it('should handle deletion errors', async () => {
-            vi.mocked(FunctionsService.deleteResource).mockRejectedValue(new Error('Delete failed'));
+ it('should handle deletion errors', async () => {
+ vi.mocked(FunctionsService.deleteResource).mockRejectedValue(new Error('Delete failed'));
 
-            await expect(
-                IncidentService.deleteIncidentWithLog({
-                    incidentId: 'incident-1',
-                    organizationId: 'org-1',
-                    user: mockUser,
-                })
-            ).rejects.toThrow('Delete failed');
-        });
-    });
+ await expect(
+ IncidentService.deleteIncidentWithLog({
+  incidentId: 'incident-1',
+  organizationId: 'org-1',
+  user: mockUser,
+ })
+ ).rejects.toThrow('Delete failed');
+ });
+ });
 
-    describe('bulkDeleteIncidents', () => {
-        it('should delete multiple incidents', async () => {
-            vi.mocked(FunctionsService.deleteResource).mockResolvedValue(true);
-            const incidentIds = ['incident-1', 'incident-2', 'incident-3'];
+ describe('bulkDeleteIncidents', () => {
+ it('should delete multiple incidents', async () => {
+ vi.mocked(FunctionsService.deleteResource).mockResolvedValue(true);
+ const incidentIds = ['incident-1', 'incident-2', 'incident-3'];
 
-            await IncidentService.bulkDeleteIncidents(
-                incidentIds,
-                'org-1',
-                mockUser
-            );
+ await IncidentService.bulkDeleteIncidents(
+ incidentIds,
+ 'org-1',
+ mockUser
+ );
 
-            expect(FunctionsService.deleteResource).toHaveBeenCalledTimes(3);
-        });
+ expect(FunctionsService.deleteResource).toHaveBeenCalledTimes(3);
+ });
 
-        it('should handle bulk deletion errors', async () => {
-            vi.mocked(FunctionsService.deleteResource).mockRejectedValueOnce(new Error('Bulk delete failed'));
+ it('should handle bulk deletion errors', async () => {
+ vi.mocked(FunctionsService.deleteResource).mockRejectedValueOnce(new Error('Bulk delete failed'));
 
-            await expect(
-                IncidentService.bulkDeleteIncidents(
-                    ['incident-1'],
-                    'org-1',
-                    mockUser
-                )
-            ).rejects.toThrow('Bulk delete failed');
-        });
-    });
+ await expect(
+ IncidentService.bulkDeleteIncidents(
+  ['incident-1'],
+  'org-1',
+  mockUser
+ )
+ ).rejects.toThrow('Bulk delete failed');
+ });
+ });
 
-    describe('importIncidentsFromCSV', () => {
-        it('should import incidents from CSV data with French headers', async () => {
-            const csvData = [
-                { Titre: 'Incident 1', Description: 'Desc 1', Sévérité: 'High', Statut: 'Nouveau' },
-                { Titre: 'Incident 2', Description: 'Desc 2', Sévérité: 'Medium', Statut: 'En cours' },
-            ];
+ describe('importIncidentsFromCSV', () => {
+ it('should import incidents from CSV data with French headers', async () => {
+ const csvData = [
+ { Titre: 'Incident 1', Description: 'Desc 1', Sévérité: 'High', Statut: 'Nouveau' },
+ { Titre: 'Incident 2', Description: 'Desc 2', Sévérité: 'Medium', Statut: 'En cours' },
+ ];
 
-            const result = await IncidentService.importIncidentsFromCSV(
-                csvData,
-                'org-1',
-                mockUser
-            );
+ const result = await IncidentService.importIncidentsFromCSV(
+ csvData,
+ 'org-1',
+ mockUser
+ );
 
-            expect(result).toBe(2);
-            expect(writeBatch).toHaveBeenCalled();
-        });
+ expect(result).toBe(2);
+ expect(writeBatch).toHaveBeenCalled();
+ });
 
-        it('should import incidents with English headers', async () => {
-            const csvData = [
-                { title: 'Incident EN', description: 'English description', Severity: 'Critical' },
-            ];
+ it('should import incidents with English headers', async () => {
+ const csvData = [
+ { title: 'Incident EN', description: 'English description', Severity: 'Critical' },
+ ];
 
-            const result = await IncidentService.importIncidentsFromCSV(
-                csvData,
-                'org-1',
-                mockUser
-            );
+ const result = await IncidentService.importIncidentsFromCSV(
+ csvData,
+ 'org-1',
+ mockUser
+ );
 
-            expect(result).toBe(1);
-        });
+ expect(result).toBe(1);
+ });
 
-        it('should skip rows without title', async () => {
-            const csvData = [
-                { Titre: 'Incident 1', Description: 'Desc 1' },
-                { Titre: '', Description: 'No title' },
-                { Titre: 'Incident 3', Description: 'Desc 3' },
-            ];
+ it('should skip rows without title', async () => {
+ const csvData = [
+ { Titre: 'Incident 1', Description: 'Desc 1' },
+ { Titre: '', Description: 'No title' },
+ { Titre: 'Incident 3', Description: 'Desc 3' },
+ ];
 
-            const result = await IncidentService.importIncidentsFromCSV(
-                csvData,
-                'org-1',
-                mockUser
-            );
+ const result = await IncidentService.importIncidentsFromCSV(
+ csvData,
+ 'org-1',
+ mockUser
+ );
 
-            expect(result).toBe(2);
-        });
+ expect(result).toBe(2);
+ });
 
-        it('should normalize severity values', async () => {
-            const mockBatch = {
-                set: vi.fn(),
-                commit: vi.fn().mockResolvedValue(undefined),
-            };
-            vi.mocked(writeBatch).mockReturnValue(mockBatch as never);
+ it('should normalize severity values', async () => {
+ const mockBatch = {
+ set: vi.fn(),
+ commit: vi.fn().mockResolvedValue(undefined),
+ };
+ vi.mocked(writeBatch).mockReturnValue(mockBatch as never);
 
-            const csvData = [
-                { Titre: 'Test', Sévérité: 'HIGH' },
-                { Titre: 'Test 2', Sévérité: 'low' },
-                { Titre: 'Test 3', Sévérité: 'invalid' },
-            ];
+ const csvData = [
+ { Titre: 'Test', Sévérité: 'HIGH' },
+ { Titre: 'Test 2', Sévérité: 'low' },
+ { Titre: 'Test 3', Sévérité: 'invalid' },
+ ];
 
-            await IncidentService.importIncidentsFromCSV(
-                csvData,
-                'org-1',
-                mockUser
-            );
+ await IncidentService.importIncidentsFromCSV(
+ csvData,
+ 'org-1',
+ mockUser
+ );
 
-            // Check that severity is normalized
-            const calls = mockBatch.set.mock.calls;
-            expect(calls[0][1].severity).toBe('High');
-            expect(calls[1][1].severity).toBe('Low');
-            expect(calls[2][1].severity).toBe('Medium'); // Default for invalid
-        });
+ // Check that severity is normalized
+ const calls = mockBatch.set.mock.calls;
+ expect(calls[0][1].severity).toBe('High');
+ expect(calls[1][1].severity).toBe('Low');
+ expect(calls[2][1].severity).toBe('Medium'); // Default for invalid
+ });
 
-        it('should not commit batch if no valid incidents', async () => {
-            const mockBatch = {
-                set: vi.fn(),
-                commit: vi.fn().mockResolvedValue(undefined),
-            };
-            vi.mocked(writeBatch).mockReturnValue(mockBatch as never);
+ it('should not commit batch if no valid incidents', async () => {
+ const mockBatch = {
+ set: vi.fn(),
+ commit: vi.fn().mockResolvedValue(undefined),
+ };
+ vi.mocked(writeBatch).mockReturnValue(mockBatch as never);
 
-            const csvData = [
-                { Description: 'No title 1' },
-                { Description: 'No title 2' },
-            ];
+ const csvData = [
+ { Description: 'No title 1' },
+ { Description: 'No title 2' },
+ ];
 
-            const result = await IncidentService.importIncidentsFromCSV(
-                csvData,
-                'org-1',
-                mockUser
-            );
+ const result = await IncidentService.importIncidentsFromCSV(
+ csvData,
+ 'org-1',
+ mockUser
+ );
 
-            expect(result).toBe(0);
-            expect(mockBatch.commit).not.toHaveBeenCalled();
-        });
+ expect(result).toBe(0);
+ expect(mockBatch.commit).not.toHaveBeenCalled();
+ });
 
-        it('should handle import errors', async () => {
-            const mockBatch = {
-                set: vi.fn(),
-                commit: vi.fn().mockRejectedValue(new Error('Batch commit failed')),
-            };
-            vi.mocked(writeBatch).mockReturnValue(mockBatch as never);
+ it('should handle import errors', async () => {
+ const mockBatch = {
+ set: vi.fn(),
+ commit: vi.fn().mockRejectedValue(new Error('Batch commit failed')),
+ };
+ vi.mocked(writeBatch).mockReturnValue(mockBatch as never);
 
-            const csvData = [{ Titre: 'Incident 1' }];
+ const csvData = [{ Titre: 'Incident 1' }];
 
-            await expect(
-                IncidentService.importIncidentsFromCSV(csvData, 'org-1', mockUser)
-            ).rejects.toThrow('Batch commit failed');
-        });
-    });
+ await expect(
+ IncidentService.importIncidentsFromCSV(csvData, 'org-1', mockUser)
+ ).rejects.toThrow('Batch commit failed');
+ });
+ });
 });

@@ -8,13 +8,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  collection,
-  query,
-  where,
-  orderBy,
-  limit,
-  onSnapshot,
-  type Unsubscribe,
+ collection,
+ query,
+ where,
+ orderBy,
+ limit,
+ onSnapshot,
+ type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
@@ -31,39 +31,39 @@ export type TimelineItemType = 'action' | 'milestone' | 'audit' | 'document';
  * Timeline item for display
  */
 export interface TimelineItem {
-  id: string;
-  title: string;
-  description?: string;
-  type: TimelineItemType;
-  dueDate: string;
-  daysUntilDue: number;
-  isOverdue: boolean;
-  isDueSoon: boolean; // Due within 7 days
-  status: string;
-  assigneeId?: string;
-  assigneeName?: string;
+ id: string;
+ title: string;
+ description?: string;
+ type: TimelineItemType;
+ dueDate: string;
+ daysUntilDue: number;
+ isOverdue: boolean;
+ isDueSoon: boolean; // Due within 7 days
+ status: string;
+ assigneeId?: string;
+ assigneeName?: string;
 }
 
 /**
  * Result type for useUpcomingDeadlines hook
  */
 export interface UpcomingDeadlinesResult {
-  /** List of timeline items */
-  items: TimelineItem[];
-  /** Total count of upcoming items */
-  count: number;
-  /** Count of items due soon (within 7 days) */
-  dueSoonCount: number;
-  /** Previous period count for trend calculation */
-  previousCount: number | null;
-  /** Trend direction based on comparison */
-  trend: TrendType | null;
-  /** Loading state */
-  loading: boolean;
-  /** Error if any */
-  error: Error | null;
-  /** Function to manually refetch */
-  refetch: () => void;
+ /** List of timeline items */
+ items: TimelineItem[];
+ /** Total count of upcoming items */
+ count: number;
+ /** Count of items due soon (within 7 days) */
+ dueSoonCount: number;
+ /** Previous period count for trend calculation */
+ previousCount: number | null;
+ /** Trend direction based on comparison */
+ trend: TrendType | null;
+ /** Loading state */
+ loading: boolean;
+ /** Error if any */
+ error: Error | null;
+ /** Function to manually refetch */
+ refetch: () => void;
 }
 
 /**
@@ -75,67 +75,67 @@ const PENDING_ACTION_STATUSES = ['pending', 'in_progress', 'Planifié', 'En cour
  * Calculate days until due date
  */
 function calculateDaysUntilDue(dueDate: string): number {
-  const due = new Date(dueDate);
-  const now = new Date();
-  const diffTime = due.getTime() - now.getTime();
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+ const due = new Date(dueDate);
+ const now = new Date();
+ const diffTime = due.getTime() - now.getTime();
+ return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
 
 /**
  * Get urgency color scheme based on days until due
  */
 export function getUrgencyColorScheme(
-  daysUntilDue: number,
-  isOverdue: boolean
+ daysUntilDue: number,
+ isOverdue: boolean
 ): 'danger' | 'warning' | 'normal' {
-  if (isOverdue) return 'danger';
-  if (daysUntilDue <= 7) return 'warning';
-  return 'normal';
+ if (isOverdue) return 'danger';
+ if (daysUntilDue <= 7) return 'warning';
+ return 'normal';
 }
 
 /**
  * Get Tailwind classes for urgency color
  */
 export const URGENCY_COLOR_CLASSES = {
-  danger: {
-    bg: 'bg-red-100 dark:bg-red-900/30',
-    text: 'text-red-600 dark:text-red-400',
-    border: 'border-red-200 dark:border-red-800',
-    badge: 'bg-red-500 text-white',
-    dot: 'bg-red-500',
-  },
-  warning: {
-    bg: 'bg-orange-100 dark:bg-orange-900/30',
-    text: 'text-orange-600 dark:text-orange-400',
-    border: 'border-orange-200 dark:border-orange-800',
-    badge: 'bg-orange-500 text-white',
-    dot: 'bg-orange-500',
-  },
-  normal: {
-    bg: 'bg-blue-50 dark:bg-blue-900/20',
-    text: 'text-blue-600 dark:text-blue-400',
-    border: 'border-blue-200 dark:border-blue-800',
-    badge: 'bg-blue-500 text-white',
-    dot: 'bg-blue-500',
-  },
+ danger: {
+ bg: 'bg-red-100 dark:bg-red-900/30',
+ text: 'text-red-600 dark:text-red-400',
+ border: 'border-red-200 dark:border-red-800',
+ badge: 'bg-red-500 text-white',
+ dot: 'bg-red-500',
+ },
+ warning: {
+ bg: 'bg-orange-100 dark:bg-orange-900/30',
+ text: 'text-orange-600 dark:text-orange-400',
+ border: 'border-orange-200 dark:border-orange-800',
+ badge: 'bg-orange-500 text-white',
+ dot: 'bg-orange-500',
+ },
+ normal: {
+ bg: 'bg-blue-50 dark:bg-blue-900/20',
+ text: 'text-blue-600 dark:text-blue-400',
+ border: 'border-blue-200 dark:border-blue-800',
+ badge: 'bg-blue-500 text-white',
+ dot: 'bg-blue-500',
+ },
 } as const;
 
 /**
  * Get icon for timeline item type
  */
 export function getTimelineItemTypeLabel(type: TimelineItemType): string {
-  switch (type) {
-    case 'action':
-      return i18n.t('deadlines.itemType.action', { defaultValue: 'Action' });
-    case 'milestone':
-      return i18n.t('deadlines.itemType.milestone', { defaultValue: 'Milestone' });
-    case 'audit':
-      return i18n.t('deadlines.itemType.audit', { defaultValue: 'Audit' });
-    case 'document':
-      return i18n.t('deadlines.itemType.document', { defaultValue: 'Document' });
-    default:
-      return i18n.t('deadlines.itemType.item', { defaultValue: 'Item' });
-  }
+ switch (type) {
+ case 'action':
+ return i18n.t('deadlines.itemType.action', { defaultValue: 'Action' });
+ case 'milestone':
+ return i18n.t('deadlines.itemType.milestone', { defaultValue: 'Milestone' });
+ case 'audit':
+ return i18n.t('deadlines.itemType.audit', { defaultValue: 'Audit' });
+ case 'document':
+ return i18n.t('deadlines.itemType.document', { defaultValue: 'Document' });
+ default:
+ return i18n.t('deadlines.itemType.item', { defaultValue: 'Item' });
+ }
 }
 
 /**
@@ -152,163 +152,163 @@ export function getTimelineItemTypeLabel(type: TimelineItemType): string {
  * ```
  */
 export function useUpcomingDeadlines(
-  tenantId: string | undefined,
-  daysAhead: number = 30,
-  maxItems: number = 10
+ tenantId: string | undefined,
+ daysAhead: number = 30,
+ maxItems: number = 10
 ): UpcomingDeadlinesResult {
-  const { t } = useTranslation();
-  const [items, setItems] = useState<TimelineItem[]>([]);
-  const [count, setCount] = useState<number>(0);
-  const [dueSoonCount, setDueSoonCount] = useState<number>(0);
-  const [previousCount, setPreviousCount] = useState<number | null>(null);
-  const [trend, setTrend] = useState<TrendType | null>(null);
-  const [error, setError] = useState<Error | null>(null);
+ const { t } = useTranslation();
+ const [items, setItems] = useState<TimelineItem[]>([]);
+ const [count, setCount] = useState<number>(0);
+ const [dueSoonCount, setDueSoonCount] = useState<number>(0);
+ const [previousCount, setPreviousCount] = useState<number | null>(null);
+ const [trend, setTrend] = useState<TrendType | null>(null);
+ const [error, setError] = useState<Error | null>(null);
 
-  // State for loading management
-  const [fetchedTenantId, setFetchedTenantId] = useState<string | null>(null);
-  const [isRefetching, setIsRefetching] = useState(false);
+ // State for loading management
+ const [fetchedTenantId, setFetchedTenantId] = useState<string | null>(null);
+ const [isRefetching, setIsRefetching] = useState(false);
 
-  // Derived loading state
-  const loading = (!!tenantId && tenantId !== fetchedTenantId) || isRefetching;
+ // Derived loading state
+ const loading = (!!tenantId && tenantId !== fetchedTenantId) || isRefetching;
 
-  const [refreshKey, setRefreshKey] = useState(0);
+ const [refreshKey, setRefreshKey] = useState(0);
 
-  const refetch = useCallback(() => {
-    setIsRefetching(true);
-    setRefreshKey((prev) => prev + 1);
-  }, []);
+ const refetch = useCallback(() => {
+ setIsRefetching(true);
+ setRefreshKey((prev) => prev + 1);
+ }, []);
 
-  useEffect(() => {
-    if (!tenantId) {
-      return;
-    }
+ useEffect(() => {
+ if (!tenantId) {
+ return;
+ }
 
-    // Loading is derived, no set state needed.
+ // Loading is derived, no set state needed.
 
 
-    const unsubRef = { current: null as Unsubscribe | null };
-    let cancelled = false;
+ const unsubRef = { current: null as Unsubscribe | null };
+ let cancelled = false;
 
-    const setupListener = async () => {
-      try {
-        // Calculate date range
-        const futureDate = new Date();
-        futureDate.setDate(futureDate.getDate() + daysAhead);
+ const setupListener = async () => {
+ try {
+ // Calculate date range
+ const futureDate = new Date();
+ futureDate.setDate(futureDate.getDate() + daysAhead);
 
-        // Query for pending actions with due dates in range
-        // Using root 'actions' collection with organizationId filter (aligned with useOverdueActions)
-        const actionsQuery = query(
-          collection(db, 'actions'),
-          where('organizationId', '==', tenantId),
-          where('status', 'in', PENDING_ACTION_STATUSES),
-          orderBy('dueDate', 'asc'),
-          limit(maxItems * 2) // Fetch more to filter
-        );
+ // Query for pending actions with due dates in range
+ // Using root 'actions' collection with organizationId filter (aligned with useOverdueActions)
+ const actionsQuery = query(
+ collection(db, 'actions'),
+ where('organizationId', '==', tenantId),
+ where('status', 'in', PENDING_ACTION_STATUSES),
+ orderBy('dueDate', 'asc'),
+ limit(maxItems * 2) // Fetch more to filter
+ );
 
-        const unsub = onSnapshot(
-          actionsQuery,
-          (snapshot) => {
-            const timelineItems: TimelineItem[] = [];
+ const unsub = onSnapshot(
+ actionsQuery,
+ (snapshot) => {
+ const timelineItems: TimelineItem[] = [];
 
-            snapshot.docs.forEach((doc) => {
-              const data = doc.data();
-              const dueDate = data.dueDate || data.deadline || '';
+ snapshot.docs.forEach((doc) => {
+ const data = doc.data();
+ const dueDate = data.dueDate || data.deadline || '';
 
-              if (!dueDate) return;
+ if (!dueDate) return;
 
-              const daysUntilDue = calculateDaysUntilDue(dueDate);
-              const isOverdue = daysUntilDue < 0;
-              const isDueSoon = !isOverdue && daysUntilDue <= 7;
+ const daysUntilDue = calculateDaysUntilDue(dueDate);
+ const isOverdue = daysUntilDue < 0;
+ const isDueSoon = !isOverdue && daysUntilDue <= 7;
 
-              // Include if within our range (including overdue)
-              if (daysUntilDue <= daysAhead) {
-                timelineItems.push({
-                  id: doc.id,
-                  title: data.title || data.description || t('deadlines.untitledItem', { defaultValue: 'Untitled item' }),
-                  description: data.description,
-                  type: (data.type as TimelineItemType) || 'action',
-                  dueDate: dueDate,
-                  daysUntilDue,
-                  isOverdue,
-                  isDueSoon,
-                  status: data.status || 'pending',
-                  assigneeId: data.assigneeId,
-                  assigneeName: data.assigneeName,
-                });
-              }
-            });
+ // Include if within our range (including overdue)
+ if (daysUntilDue <= daysAhead) {
+ timelineItems.push({
+  id: doc.id,
+  title: data.title || data.description || t('deadlines.untitledItem', { defaultValue: 'Untitled item' }),
+  description: data.description,
+  type: (data.type as TimelineItemType) || 'action',
+  dueDate: dueDate,
+  daysUntilDue,
+  isOverdue,
+  isDueSoon,
+  status: data.status || 'pending',
+  assigneeId: data.assigneeId,
+  assigneeName: data.assigneeName,
+ });
+ }
+ });
 
-            // Sort by due date (earliest first, overdue at top)
-            timelineItems.sort((a, b) => {
-              // Overdue items come first
-              if (a.isOverdue && !b.isOverdue) return -1;
-              if (!a.isOverdue && b.isOverdue) return 1;
-              // Then sort by days until due
-              return a.daysUntilDue - b.daysUntilDue;
-            });
+ // Sort by due date (earliest first, overdue at top)
+ timelineItems.sort((a, b) => {
+ // Overdue items come first
+ if (a.isOverdue && !b.isOverdue) return -1;
+ if (!a.isOverdue && b.isOverdue) return 1;
+ // Then sort by days until due
+ return a.daysUntilDue - b.daysUntilDue;
+ });
 
-            // Limit to maxItems
-            const limitedItems = timelineItems.slice(0, maxItems);
+ // Limit to maxItems
+ const limitedItems = timelineItems.slice(0, maxItems);
 
-            setItems(limitedItems);
+ setItems(limitedItems);
 
-            const newCount = timelineItems.length;
-            const newDueSoonCount = timelineItems.filter((item) => item.isDueSoon).length;
-            setDueSoonCount(newDueSoonCount);
+ const newCount = timelineItems.length;
+ const newDueSoonCount = timelineItems.filter((item) => item.isDueSoon).length;
+ setDueSoonCount(newDueSoonCount);
 
-            // Store previous count for trend calculation
-            setCount((prevCount) => {
-              if (prevCount !== newCount) {
-                setPreviousCount(prevCount);
-                setTrend(calculateTrend(newCount, prevCount));
-              } else {
-                setTrend((curr) => curr || 'stable');
-              }
-              return newCount;
-            });
+ // Store previous count for trend calculation
+ setCount((prevCount) => {
+ if (prevCount !== newCount) {
+ setPreviousCount(prevCount);
+ setTrend(calculateTrend(newCount, prevCount));
+ } else {
+ setTrend((curr) => curr || 'stable');
+ }
+ return newCount;
+ });
 
-            setError(null);
-            setFetchedTenantId(tenantId);
-            setIsRefetching(false);
-          },
-          (err) => {
-            ErrorLogger.error(err, 'useUpcomingDeadlines.onSnapshot');
-            setError(err as Error);
-            setFetchedTenantId(tenantId);
-            setIsRefetching(false);
-          }
-        );
-        if (cancelled) {
-          unsub();
-          return;
-        }
-        unsubRef.current = unsub;
-      } catch (err) {
-        ErrorLogger.error(err, 'useUpcomingDeadlines.setupListener');
-        setError(err as Error);
-        setFetchedTenantId(tenantId);
-        setIsRefetching(false);
-      }
-    };
+ setError(null);
+ setFetchedTenantId(tenantId);
+ setIsRefetching(false);
+ },
+ (err) => {
+ ErrorLogger.error(err, 'useUpcomingDeadlines.onSnapshot');
+ setError(err as Error);
+ setFetchedTenantId(tenantId);
+ setIsRefetching(false);
+ }
+ );
+ if (cancelled) {
+ unsub();
+ return;
+ }
+ unsubRef.current = unsub;
+ } catch (err) {
+ ErrorLogger.error(err, 'useUpcomingDeadlines.setupListener');
+ setError(err as Error);
+ setFetchedTenantId(tenantId);
+ setIsRefetching(false);
+ }
+ };
 
-    setupListener();
+ setupListener();
 
-    return () => {
-      cancelled = true;
-      unsubRef.current?.();
-    };
-  }, [tenantId, daysAhead, maxItems, refreshKey, t]);
+ return () => {
+ cancelled = true;
+ unsubRef.current?.();
+ };
+ }, [tenantId, daysAhead, maxItems, refreshKey, t]);
 
-  return {
-    items: tenantId ? items : [],
-    count: tenantId ? count : 0,
-    dueSoonCount: tenantId ? dueSoonCount : 0,
-    previousCount,
-    trend,
-    loading: tenantId ? loading : false,
-    error,
-    refetch,
-  };
+ return {
+ items: tenantId ? items : [],
+ count: tenantId ? count : 0,
+ dueSoonCount: tenantId ? dueSoonCount : 0,
+ previousCount,
+ trend,
+ loading: tenantId ? loading : false,
+ error,
+ refetch,
+ };
 }
 
 export default useUpcomingDeadlines;

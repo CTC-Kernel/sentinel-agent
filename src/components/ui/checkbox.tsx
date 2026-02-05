@@ -7,27 +7,27 @@ import { cn } from "@/lib/utils"
 // Let's use a simple controlled component approach.
 
 const Checkbox = React.forwardRef<
-    HTMLInputElement,
-    Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> & {
-        onCheckedChange?: (checked: boolean) => void
-    }
+ HTMLInputElement,
+ Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> & {
+ onCheckedChange?: (checked: boolean) => void
+ }
 >(({ className, checked, onCheckedChange, ...props }, ref) => {
-    return (
-        <div className="relative inline-flex items-center">
-            <input
-                type="checkbox"
-                className={cn(
-                    "peer h-4 w-4 shrink-0 rounded border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground appearance-none bg-background checked:bg-primary checked:text-primary-foreground",
-                    className
-                )}
-                ref={ref}
-                checked={checked}
-                onChange={(e) => onCheckedChange?.(e.target.checked)}
-                {...props}
-            />
-            <Check className="absolute top-0 left-0 h-4 w-4 hidden peer-checked:block text-primary-foreground pointer-events-none" />
-        </div>
-    )
+ return (
+ <div className="relative inline-flex items-center">
+ <input
+ type="checkbox"
+ className={cn(
+  "peer h-4 w-4 shrink-0 rounded border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground appearance-none bg-background checked:bg-primary checked:text-primary-foreground",
+  className
+ )}
+ ref={ref}
+ checked={checked}
+ onChange={(e) => onCheckedChange?.(e.target.checked)}
+ {...props}
+ />
+ <Check className="absolute top-0 left-0 h-4 w-4 hidden peer-checked:block text-primary-foreground pointer-events-none" />
+ </div>
+ )
 })
 Checkbox.displayName = "Checkbox"
 

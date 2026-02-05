@@ -15,523 +15,523 @@ import { getDocumentReviewTemplate } from '../../services/emailTemplates';
 import { sendEmail } from '../../services/emailService';
 
 const normalizeUserIds = (ids: string[] | undefined, usersList: UserProfile[]) => {
-    if (!ids || ids.length === 0) return [];
-    const allowed = new Set(usersList.map(u => u.uid));
-    return Array.from(new Set(ids.filter(id => allowed.has(id))));
+ if (!ids || ids.length === 0) return [];
+ const allowed = new Set(usersList.map(u => u.uid));
+ return Array.from(new Set(ids.filter(id => allowed.has(id))));
 };
 
 const resolveOwner = (ownerId: string | undefined, usersList: UserProfile[]) => {
-    if (!ownerId) return null;
-    return usersList.find(u => u.uid === ownerId) || null;
+ if (!ownerId) return null;
+ return usersList.find(u => u.uid === ownerId) || null;
 };
 
 export const useDocumentActions = (usersList: UserProfile[] = [], onDeletedId?: (id: string) => void) => {
-    const { user, addToast, t } = useStore();
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isExportingCSV, setIsExportingCSV] = useState(false);
+ const { user, addToast, t } = useStore();
+ const [isSubmitting, setIsSubmitting] = useState(false);
+ const [isExportingCSV, setIsExportingCSV] = useState(false);
 
-    // Confirm Dialog State
-    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void; loading?: boolean; closeOnConfirm?: boolean }>({
-        isOpen: false, title: '', message: '', onConfirm: () => { }
-    });
+ // Confirm Dialog State
+ const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void; loading?: boolean; closeOnConfirm?: boolean }>({
+ isOpen: false, title: '', message: '', onConfirm: () => { }
+ });
 
-    const handleCreate = async (data: DocumentFormData & { fileUrl?: string; fileHash?: string; isSecure?: boolean }) => {
-        if (!user || !user.organizationId) return false;
-        if (!canEditResource(user, 'Document')) return false;
+ const handleCreate = async (data: DocumentFormData & { fileUrl?: string; fileHash?: string; isSecure?: boolean }) => {
+ if (!user || !user.organizationId) return false;
+ if (!canEditResource(user, 'Document')) return false;
 
-        setIsSubmitting(true);
+ setIsSubmitting(true);
 
-        try {
-            const ownerProfile = resolveOwner(data.ownerId, usersList);
-            if (data.ownerId && !ownerProfile) {
-                throw new Error("Propriétaire introuvable dans votre organisation");
-            }
-            // Prepare Document Data (extracted logic)
-            const docData = {
-                ...data,
-                owner: ownerProfile ? (ownerProfile.displayName || ownerProfile.email || '') : (data.owner || ''),
-                ownerId: ownerProfile?.uid || '',
-                reviewers: normalizeUserIds(data.reviewers, usersList),
-                approvers: normalizeUserIds(data.approvers, usersList),
-                readBy: normalizeUserIds(data.readBy, usersList),
-                url: data.storageProvider !== 'firebase' ? data.externalUrl : (data.fileUrl || ''),
-                hash: data.fileHash || '',
-                isSecure: data.isSecure || false,
-                description: (data.isSecure || false) ? await EncryptionService.encrypt(data.description || '') : (data.description || ''),
-                watermarkEnabled: data.isSecure || false,
-                organizationId: user.organizationId,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
-            };
+ try {
+ const ownerProfile = resolveOwner(data.ownerId, usersList);
+ if (data.ownerId && !ownerProfile) {
+ throw new Error("Propriétaire introuvable dans votre organisation");
+ }
+ // Prepare Document Data (extracted logic)
+ const docData = {
+ ...data,
+ owner: ownerProfile ? (ownerProfile.displayName || ownerProfile.email || '') : (data.owner || ''),
+ ownerId: ownerProfile?.uid || '',
+ reviewers: normalizeUserIds(data.reviewers, usersList),
+ approvers: normalizeUserIds(data.approvers, usersList),
+ readBy: normalizeUserIds(data.readBy, usersList),
+ url: data.storageProvider !== 'firebase' ? data.externalUrl : (data.fileUrl || ''),
+ hash: data.fileHash || '',
+ isSecure: data.isSecure || false,
+ description: (data.isSecure || false) ? await EncryptionService.encrypt(data.description || '') : (data.description || ''),
+ watermarkEnabled: data.isSecure || false,
+ organizationId: user.organizationId,
+ createdAt: serverTimestamp(),
+ updatedAt: serverTimestamp()
+ };
 
-            const docRef = await addDoc(collection(db, 'documents'), sanitizeData(docData));
+ const docRef = await addDoc(collection(db, 'documents'), sanitizeData(docData));
 
-            // Create initial version
-            if (docData.url) {
-                await addDoc(collection(db, 'document_versions'), sanitizeData({
-                    documentId: docRef.id,
-                    organizationId: user.organizationId,
-                    version: data.version,
-                    url: docData.url,
-                    hash: docData.hash,
-                    uploadedBy: user.uid,
-                    uploadedAt: serverTimestamp(),
-                    changeLog: 'Création initiale'
-                }));
-            }
+ // Create initial version
+ if (docData.url) {
+ await addDoc(collection(db, 'document_versions'), sanitizeData({
+  documentId: docRef.id,
+  organizationId: user.organizationId,
+  version: data.version,
+  url: docData.url,
+  hash: docData.hash,
+  uploadedBy: user.uid,
+  uploadedAt: serverTimestamp(),
+  changeLog: 'Création initiale'
+ }));
+ }
 
-            await AuditLogService.logCreate(
-                user.organizationId,
-                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
-                'document',
-                docRef.id,
-                sanitizeData(docData) as Record<string, unknown>,
-                `Nouveau document: ${data.title}`
-            );
+ await AuditLogService.logCreate(
+ user.organizationId,
+ { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+ 'document',
+ docRef.id,
+ sanitizeData(docData) as Record<string, unknown>,
+ `Nouveau document: ${data.title}`
+ );
 
-            addToast(t('documents.toast.created', { defaultValue: "Document ajouté" }), "success");
-            return docRef.id;
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Documents.handleCreate');
-            return null;
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+ addToast(t('documents.toast.created', { defaultValue: "Document ajouté" }), "success");
+ return docRef.id;
+ } catch (e) {
+ ErrorLogger.handleErrorWithToast(e, 'Documents.handleCreate');
+ return null;
+ } finally {
+ setIsSubmitting(false);
+ }
+ };
 
-    const handleUpdate = async (id: string, data: DocumentFormData & { fileUrl?: string; fileHash?: string; isSecure?: boolean }, currentDoc: Document) => {
-        if (!user) return false;
-        if (!canEditResource(user, 'Document', currentDoc.ownerId || currentDoc.owner)) return false;
+ const handleUpdate = async (id: string, data: DocumentFormData & { fileUrl?: string; fileHash?: string; isSecure?: boolean }, currentDoc: Document) => {
+ if (!user) return false;
+ if (!canEditResource(user, 'Document', currentDoc.ownerId || currentDoc.owner)) return false;
 
-        // Prevent editing signed documents - signature integrity requires immutability
-        if (currentDoc.signatureStatus === 'signed') {
-            addToast(t('documents.toast.signedLocked', { defaultValue: "Ce document est signé et ne peut plus être modifié" }), "error");
-            return false;
-        }
+ // Prevent editing signed documents - signature integrity requires immutability
+ if (currentDoc.signatureStatus === 'signed') {
+ addToast(t('documents.toast.signedLocked', { defaultValue: "Ce document est signé et ne peut plus être modifié" }), "error");
+ return false;
+ }
 
-        setIsSubmitting(true);
-        try {
-            const newUrl = data.storageProvider !== 'firebase' ? data.externalUrl : (data.fileUrl || currentDoc.url);
-            const ownerProfile = resolveOwner(data.ownerId, usersList) || resolveOwner(currentDoc.ownerId, usersList);
-            if ((data.ownerId || currentDoc.ownerId) && !ownerProfile) {
-                throw new Error("Propriétaire introuvable dans votre organisation");
-            }
-            const sanitizedReviewers = normalizeUserIds(data.reviewers ?? currentDoc.reviewers, usersList);
-            const sanitizedApprovers = normalizeUserIds(data.approvers ?? currentDoc.approvers, usersList);
-            const sanitizedReadBy = normalizeUserIds(data.readBy ?? currentDoc.readBy, usersList);
+ setIsSubmitting(true);
+ try {
+ const newUrl = data.storageProvider !== 'firebase' ? data.externalUrl : (data.fileUrl || currentDoc.url);
+ const ownerProfile = resolveOwner(data.ownerId, usersList) || resolveOwner(currentDoc.ownerId, usersList);
+ if ((data.ownerId || currentDoc.ownerId) && !ownerProfile) {
+ throw new Error("Propriétaire introuvable dans votre organisation");
+ }
+ const sanitizedReviewers = normalizeUserIds(data.reviewers ?? currentDoc.reviewers, usersList);
+ const sanitizedApprovers = normalizeUserIds(data.approvers ?? currentDoc.approvers, usersList);
+ const sanitizedReadBy = normalizeUserIds(data.readBy ?? currentDoc.readBy, usersList);
 
-            const updates = {
-                ...data,
-                owner: ownerProfile ? (ownerProfile.displayName || ownerProfile.email || '') : (data.owner || currentDoc.owner),
-                ownerId: ownerProfile?.uid || currentDoc.ownerId || '',
-                reviewers: sanitizedReviewers,
-                approvers: sanitizedApprovers,
-                readBy: sanitizedReadBy,
-                url: newUrl,
-                hash: data.fileHash || currentDoc.hash,
-                isSecure: data.isSecure ?? currentDoc.isSecure,
-                // Encrypt description if Secure Mode is ON (either new or existing)
-                description: (data.isSecure ?? currentDoc.isSecure)
-                    ? await EncryptionService.encrypt(data.description || '')
-                    : (data.description || ''),
-                watermarkEnabled: (data.isSecure ?? currentDoc.isSecure) || false,
-                updatedAt: serverTimestamp()
-            };
+ const updates = {
+ ...data,
+ owner: ownerProfile ? (ownerProfile.displayName || ownerProfile.email || '') : (data.owner || currentDoc.owner),
+ ownerId: ownerProfile?.uid || currentDoc.ownerId || '',
+ reviewers: sanitizedReviewers,
+ approvers: sanitizedApprovers,
+ readBy: sanitizedReadBy,
+ url: newUrl,
+ hash: data.fileHash || currentDoc.hash,
+ isSecure: data.isSecure ?? currentDoc.isSecure,
+ // Encrypt description if Secure Mode is ON (either new or existing)
+ description: (data.isSecure ?? currentDoc.isSecure)
+  ? await EncryptionService.encrypt(data.description || '')
+  : (data.description || ''),
+ watermarkEnabled: (data.isSecure ?? currentDoc.isSecure) || false,
+ updatedAt: serverTimestamp()
+ };
 
-            await updateDoc(doc(db, 'documents', id), sanitizeData(updates));
+ await updateDoc(doc(db, 'documents', id), sanitizeData(updates));
 
-            // Create new version if version number or file changed
-            if (data.version !== currentDoc.version || newUrl !== currentDoc.url) {
-                await addDoc(collection(db, 'document_versions'), sanitizeData({
-                    documentId: id,
-                    organizationId: user.organizationId,
-                    version: data.version,
-                    url: newUrl || '',
-                    hash: updates.hash || '',
-                    uploadedBy: user?.uid,
-                    uploadedAt: serverTimestamp(),
-                    changeLog: 'Mise à jour'
-                }));
-            }
+ // Create new version if version number or file changed
+ if (data.version !== currentDoc.version || newUrl !== currentDoc.url) {
+ await addDoc(collection(db, 'document_versions'), sanitizeData({
+  documentId: id,
+  organizationId: user.organizationId,
+  version: data.version,
+  url: newUrl || '',
+  hash: updates.hash || '',
+  uploadedBy: user?.uid,
+  uploadedAt: serverTimestamp(),
+  changeLog: 'Mise à jour'
+ }));
+ }
 
-            await AuditLogService.logUpdate(
-                user.organizationId || '',
-                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
-                'document',
-                id,
-                currentDoc as unknown as Record<string, unknown>,
-                updates as Record<string, unknown>,
-                data.title
-            );
+ await AuditLogService.logUpdate(
+ user.organizationId || '',
+ { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+ 'document',
+ id,
+ currentDoc as unknown as Record<string, unknown>,
+ updates as Record<string, unknown>,
+ data.title
+ );
 
-            addToast(t('documents.toast.updated', { defaultValue: "Document mis à jour" }), "success");
-            return { ...currentDoc, ...updates };
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Documents.handleUpdate', 'UPDATE_FAILED');
-            return null;
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+ addToast(t('documents.toast.updated', { defaultValue: "Document mis à jour" }), "success");
+ return { ...currentDoc, ...updates };
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'Documents.handleUpdate', 'UPDATE_FAILED');
+ return null;
+ } finally {
+ setIsSubmitting(false);
+ }
+ };
 
-    const initiateDelete = async (docItem: Document) => {
-        if (!user?.organizationId || !canEditResource(user, 'Document', docItem.ownerId || docItem.owner)) return;
+ const initiateDelete = async (docItem: Document) => {
+ if (!user?.organizationId || !canEditResource(user, 'Document', docItem.ownerId || docItem.owner)) return;
 
-        try {
-            // Use DocumentService to check dependencies
-            const dependencies = await DocumentService.checkDependencies(
-                docItem.id,
-                user.organizationId
-            );
+ try {
+ // Use DocumentService to check dependencies
+ const dependencies = await DocumentService.checkDependencies(
+ docItem.id,
+ user.organizationId
+ );
 
-            setConfirmData({
-                isOpen: true,
-                title: t('documents.confirm.deleteTitle', { defaultValue: "Supprimer le document ?" }),
-                message: dependencies.message,
-                onConfirm: async () => await handleDelete(docItem.id, docItem.title),
-                closeOnConfirm: false
-            });
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Documents.initiateDelete');
-        }
-    };
+ setConfirmData({
+ isOpen: true,
+ title: t('documents.confirm.deleteTitle', { defaultValue: "Supprimer le document ?" }),
+ message: dependencies.message,
+ onConfirm: async () => await handleDelete(docItem.id, docItem.title),
+ closeOnConfirm: false
+ });
+ } catch (e) {
+ ErrorLogger.handleErrorWithToast(e, 'Documents.initiateDelete');
+ }
+ };
 
-    const handleDelete = async (id: string, title: string) => {
-        if (!user?.organizationId || !user?.uid) return;
-        // Strict RBAC check for deletion
-        if (!canDeleteResource(user, 'Document')) {
-            addToast(t('common.toast.permissionDenied', { defaultValue: 'Permission refusée' }), 'error');
-            return;
-        }
+ const handleDelete = async (id: string, title: string) => {
+ if (!user?.organizationId || !user?.uid) return;
+ // Strict RBAC check for deletion
+ if (!canDeleteResource(user, 'Document')) {
+ addToast(t('common.toast.permissionDenied', { defaultValue: 'Permission refusée' }), 'error');
+ return;
+ }
 
-        setConfirmData(prev => ({ ...prev, loading: true }));
-        try {
-            // Use DocumentService for cascade deletion with dependency cleanup
-            await DocumentService.deleteDocumentWithCascade({
-                documentId: id,
-                documentTitle: title,
-                organizationId: user.organizationId,
-                user
-            });
+ setConfirmData(prev => ({ ...prev, loading: true }));
+ try {
+ // Use DocumentService for cascade deletion with dependency cleanup
+ await DocumentService.deleteDocumentWithCascade({
+ documentId: id,
+ documentTitle: title,
+ organizationId: user.organizationId,
+ user
+ });
 
-            await AuditLogService.logDelete(
-                user.organizationId,
-                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
-                'document',
-                id,
-                { id, title },
-                title
-            );
+ await AuditLogService.logDelete(
+ user.organizationId,
+ { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+ 'document',
+ id,
+ { id, title },
+ title
+ );
 
-            addToast(t('documents.toast.deletedWithLinks', { defaultValue: "Document et liens supprimés" }), "info");
-            onDeletedId?.(id);
-            setConfirmData(prev => ({ ...prev, isOpen: false }));
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Documents.handleDelete', 'DELETE_FAILED');
-        } finally {
-            setConfirmData(prev => ({ ...prev, loading: false }));
-        }
-    };
+ addToast(t('documents.toast.deletedWithLinks', { defaultValue: "Document et liens supprimés" }), "info");
+ onDeletedId?.(id);
+ setConfirmData(prev => ({ ...prev, isOpen: false }));
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'Documents.handleDelete', 'DELETE_FAILED');
+ } finally {
+ setConfirmData(prev => ({ ...prev, loading: false }));
+ }
+ };
 
-    const handleCreateFolder = async (name: string, parentId?: string) => {
-        if (!user?.organizationId) return;
-        if (!canEditResource(user, 'Document')) return; // RBAC Check
+ const handleCreateFolder = async (name: string, parentId?: string) => {
+ if (!user?.organizationId) return;
+ if (!canEditResource(user, 'Document')) return; // RBAC Check
 
-        try {
-            const docRef = await addDoc(collection(db, 'document_folders'), sanitizeData({
-                organizationId: user.organizationId,
-                name,
-                parentId: parentId || null,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
-            }));
+ try {
+ const docRef = await addDoc(collection(db, 'document_folders'), sanitizeData({
+ organizationId: user.organizationId,
+ name,
+ parentId: parentId || null,
+ createdAt: serverTimestamp(),
+ updatedAt: serverTimestamp()
+ }));
 
-            await AuditLogService.logCreate(
-                user.organizationId,
-                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
-                'document',
-                docRef.id,
-                { name, parentId, type: 'folder' },
-                name
-            );
+ await AuditLogService.logCreate(
+ user.organizationId,
+ { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+ 'document',
+ docRef.id,
+ { name, parentId, type: 'folder' },
+ name
+ );
 
-            addToast(t('documents.toast.folderCreated', { defaultValue: 'Dossier créé' }), 'success');
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Documents.handleCreateFolder', 'CREATE_FAILED');
-        }
-    };
+ addToast(t('documents.toast.folderCreated', { defaultValue: 'Dossier créé' }), 'success');
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'Documents.handleCreateFolder', 'CREATE_FAILED');
+ }
+ };
 
-    const handleUpdateFolder = async (id: string, name: string, folderOrganizationId?: string) => {
-        if (!user?.organizationId) return;
-        if (!canEditResource(user, 'Document')) return; // RBAC Check
+ const handleUpdateFolder = async (id: string, name: string, folderOrganizationId?: string) => {
+ if (!user?.organizationId) return;
+ if (!canEditResource(user, 'Document')) return; // RBAC Check
 
-        // SECURITY: IDOR protection - verify folder belongs to user's organization
-        if (folderOrganizationId && folderOrganizationId !== user.organizationId) {
-            ErrorLogger.warn('IDOR attempt: folder update across organizations', 'useDocumentActions.handleUpdateFolder', {
-                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: folderOrganizationId, callerOrg: user.organizationId }
-            });
-            addToast(t('documents.toast.folderNotFound', { defaultValue: 'Dossier non trouvé' }), 'error');
-            return;
-        }
+ // SECURITY: IDOR protection - verify folder belongs to user's organization
+ if (folderOrganizationId && folderOrganizationId !== user.organizationId) {
+ ErrorLogger.warn('IDOR attempt: folder update across organizations', 'useDocumentActions.handleUpdateFolder', {
+ metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: folderOrganizationId, callerOrg: user.organizationId }
+ });
+ addToast(t('documents.toast.folderNotFound', { defaultValue: 'Dossier non trouvé' }), 'error');
+ return;
+ }
 
-        try {
-            await updateDoc(doc(db, 'document_folders', id), sanitizeData({
-                name,
-                updatedAt: serverTimestamp()
-            }));
+ try {
+ await updateDoc(doc(db, 'document_folders', id), sanitizeData({
+ name,
+ updatedAt: serverTimestamp()
+ }));
 
-            await AuditLogService.logUpdate(
-                user.organizationId,
-                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
-                'document',
-                id,
-                { name: 'Unknown', type: 'folder' },
-                { name, type: 'folder' },
-                name
-            );
+ await AuditLogService.logUpdate(
+ user.organizationId,
+ { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+ 'document',
+ id,
+ { name: 'Unknown', type: 'folder' },
+ { name, type: 'folder' },
+ name
+ );
 
-            addToast(t('documents.toast.folderRenamed', { defaultValue: 'Dossier renommé' }), 'success');
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Documents.handleUpdateFolder', 'UPDATE_FAILED');
-        }
-    };
+ addToast(t('documents.toast.folderRenamed', { defaultValue: 'Dossier renommé' }), 'success');
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'Documents.handleUpdateFolder', 'UPDATE_FAILED');
+ }
+ };
 
-    const handleDeleteFolder = async (id: string, rawFolders: DocumentFolder[], documents: Document[], selectedFolderId: string | null, setSelectedFolderId: (id: string | null) => void) => {
-        if (!user?.organizationId) return;
-        if (!canDeleteResource(user, 'Document')) {
-            addToast(t('common.toast.permissionDenied', { defaultValue: 'Permission refusée' }), 'error');
-            return;
-        }
+ const handleDeleteFolder = async (id: string, rawFolders: DocumentFolder[], documents: Document[], selectedFolderId: string | null, setSelectedFolderId: (id: string | null) => void) => {
+ if (!user?.organizationId) return;
+ if (!canDeleteResource(user, 'Document')) {
+ addToast(t('common.toast.permissionDenied', { defaultValue: 'Permission refusée' }), 'error');
+ return;
+ }
 
-        // SECURITY: IDOR protection - verify folder belongs to user's organization
-        const folder = rawFolders.find(f => f.id === id);
-        if (!folder || folder.organizationId !== user.organizationId) {
-            ErrorLogger.warn('IDOR attempt: folder deletion across organizations', 'useDocumentActions.handleDeleteFolder', {
-                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: folder?.organizationId, callerOrg: user.organizationId }
-            });
-            addToast(t('documents.toast.folderNotFound', { defaultValue: 'Dossier non trouvé' }), 'error');
-            return;
-        }
+ // SECURITY: IDOR protection - verify folder belongs to user's organization
+ const folder = rawFolders.find(f => f.id === id);
+ if (!folder || folder.organizationId !== user.organizationId) {
+ ErrorLogger.warn('IDOR attempt: folder deletion across organizations', 'useDocumentActions.handleDeleteFolder', {
+ metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: folder?.organizationId, callerOrg: user.organizationId }
+ });
+ addToast(t('documents.toast.folderNotFound', { defaultValue: 'Dossier non trouvé' }), 'error');
+ return;
+ }
 
-        try {
-            // Delete folder
-            await deleteDoc(doc(db, 'document_folders', id));
+ try {
+ // Delete folder
+ await deleteDoc(doc(db, 'document_folders', id));
 
-            // Delete subfolders (recursive deletion would be better but for now flat check like original)
-            const subfolders = rawFolders.filter(f => f.parentId === id);
-            for (const sub of subfolders) {
-                await deleteDoc(doc(db, 'document_folders', sub.id));
-            }
+ // Delete subfolders (recursive deletion would be better but for now flat check like original)
+ const subfolders = rawFolders.filter(f => f.parentId === id);
+ for (const sub of subfolders) {
+ await deleteDoc(doc(db, 'document_folders', sub.id));
+ }
 
-            // Move documents to root
-            const docsInFolder = documents.filter(d => d.folderId === id);
-            for (const d of docsInFolder) {
-                await updateDoc(doc(db, 'documents', d.id), sanitizeData({ folderId: null }));
-            }
+ // Move documents to root
+ const docsInFolder = documents.filter(d => d.folderId === id);
+ for (const d of docsInFolder) {
+ await updateDoc(doc(db, 'documents', d.id), sanitizeData({ folderId: null }));
+ }
 
-            await AuditLogService.logDelete(
-                user.organizationId,
-                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
-                'document',
-                id,
-                folder as unknown as Record<string, unknown>,
-                folder.name
-            );
+ await AuditLogService.logDelete(
+ user.organizationId,
+ { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+ 'document',
+ id,
+ folder as unknown as Record<string, unknown>,
+ folder.name
+ );
 
-            if (selectedFolderId === id) setSelectedFolderId(null);
-            addToast(t('documents.toast.folderDeleted', { defaultValue: 'Dossier supprimé' }), 'success');
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Documents.handleDeleteFolder', 'DELETE_FAILED');
-        }
-    };
+ if (selectedFolderId === id) setSelectedFolderId(null);
+ addToast(t('documents.toast.folderDeleted', { defaultValue: 'Dossier supprimé' }), 'success');
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'Documents.handleDeleteFolder', 'DELETE_FAILED');
+ }
+ };
 
-    const handleUploadSuccess = async (size: number) => {
-        if (size && user?.organizationId) {
-            const orgRef = doc(db, 'organizations', user.organizationId);
-            try {
-                await updateDoc(orgRef, sanitizeData({
-                    storageUsed: increment(size)
-                }));
-            } catch (e) {
-                ErrorLogger.error(e, "Documents.handleUploadSuccess");
-            }
-        }
-    };
+ const handleUploadSuccess = async (size: number) => {
+ if (size && user?.organizationId) {
+ const orgRef = doc(db, 'organizations', user.organizationId);
+ try {
+ await updateDoc(orgRef, sanitizeData({
+  storageUsed: increment(size)
+ }));
+ } catch (e) {
+ ErrorLogger.error(e, "Documents.handleUploadSuccess");
+ }
+ }
+ };
 
-    const sendReviewReminder = async (docItem: Document, usersList: UserProfile[]) => {
-        if (!docItem || !user) return;
-        try {
-            const link = `${window.location.origin}/#/documents`;
-            const html = getDocumentReviewTemplate(docItem.title, docItem.owner, docItem.nextReviewDate || new Date().toISOString(), link);
+ const sendReviewReminder = async (docItem: Document, usersList: UserProfile[]) => {
+ if (!docItem || !user) return;
+ try {
+ const link = `${window.location.origin}/#/documents`;
+ const html = getDocumentReviewTemplate(docItem.title, docItem.owner, docItem.nextReviewDate || new Date().toISOString(), link);
 
-            await sendEmail(user, {
-                to: usersList.find(u => u.displayName === docItem.owner)?.email || docItem.owner,
-                subject: `Rappel de révision : ${docItem.title}`,
-                type: 'DOCUMENT_REVIEW',
-                html
-            });
-            addToast(t('documents.toast.reminderSent', { defaultValue: "Rappel envoyé au propriétaire" }), "success");
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Documents.sendReviewReminder', 'EMAIL_SEND_FAILED');
-        }
-    };
+ await sendEmail(user, {
+ to: usersList.find(u => u.displayName === docItem.owner)?.email || docItem.owner,
+ subject: `Rappel de révision : ${docItem.title}`,
+ type: 'DOCUMENT_REVIEW',
+ html
+ });
+ addToast(t('documents.toast.reminderSent', { defaultValue: "Rappel envoyé au propriétaire" }), "success");
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'Documents.sendReviewReminder', 'EMAIL_SEND_FAILED');
+ }
+ };
 
-    const handleExportCSV = async (documents: Document[]) => {
-        if (isExportingCSV) return;
-        setIsExportingCSV(true);
-        try {
-            // Decrypt descriptions for export if needed, or just export basic fields
-            const exportData = await Promise.all(documents.map(async d => ({
-                ...d,
-                description: await EncryptionService.decrypt(d.description || '')
-            })));
+ const handleExportCSV = async (documents: Document[]) => {
+ if (isExportingCSV) return;
+ setIsExportingCSV(true);
+ try {
+ // Decrypt descriptions for export if needed, or just export basic fields
+ const exportData = await Promise.all(documents.map(async d => ({
+ ...d,
+ description: await EncryptionService.decrypt(d.description || '')
+ })));
 
-            ImportService.exportDocuments(exportData);
-            if (user?.organizationId) {
-                await AuditLogService.log({
-                    organizationId: user.organizationId,
-                    userId: user.uid,
-                    userName: user.displayName || user.email || 'Unknown',
-                    userEmail: user.email || '',
-                    action: 'export',
-                    entityType: 'document',
-                    entityId: 'bulk',
-                    details: `Exported ${documents.length} documents`
-                });
-            }
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Documents.handleExportCSV');
-        } finally {
-            setTimeout(() => setIsExportingCSV(false), 0);
-        }
-    }
+ ImportService.exportDocuments(exportData);
+ if (user?.organizationId) {
+ await AuditLogService.log({
+  organizationId: user.organizationId,
+  userId: user.uid,
+  userName: user.displayName || user.email || 'Unknown',
+  userEmail: user.email || '',
+  action: 'export',
+  entityType: 'document',
+  entityId: 'bulk',
+  details: `Exported ${documents.length} documents`
+ });
+ }
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'Documents.handleExportCSV');
+ } finally {
+ setTimeout(() => setIsExportingCSV(false), 0);
+ }
+ }
 
-    const importDocuments = async (csvContent: string) => {
-        if (!user?.organizationId) return;
-        if (!canEditResource(user, 'Document')) {
-            addToast(t('common.toast.permissionDenied', { defaultValue: 'Permission refusée' }), 'error');
-            return;
-        }
+ const importDocuments = async (csvContent: string) => {
+ if (!user?.organizationId) return;
+ if (!canEditResource(user, 'Document')) {
+ addToast(t('common.toast.permissionDenied', { defaultValue: 'Permission refusée' }), 'error');
+ return;
+ }
 
-        setIsSubmitting(true);
-        try {
-            const lines = ImportService.parseCSV(csvContent);
-            if (lines.length === 0) {
-                addToast(t('common.toast.emptyOrInvalidFile', { defaultValue: "Fichier vide ou invalide" }), "error");
-                return;
-            }
+ setIsSubmitting(true);
+ try {
+ const lines = ImportService.parseCSV(csvContent);
+ if (lines.length === 0) {
+ addToast(t('common.toast.emptyOrInvalidFile', { defaultValue: "Fichier vide ou invalide" }), "error");
+ return;
+ }
 
-            const count = await DocumentService.importDocumentsFromCSV(
-                lines,
-                user.organizationId,
-                user
-            );
+ const count = await DocumentService.importDocumentsFromCSV(
+ lines,
+ user.organizationId,
+ user
+ );
 
-            await AuditLogService.logImport(
-                user.organizationId,
-                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
-                'document',
-                count,
-                'CSV Import'
-            );
+ await AuditLogService.logImport(
+ user.organizationId,
+ { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+ 'document',
+ count,
+ 'CSV Import'
+ );
 
-            addToast(t('documents.toast.importSuccess', { defaultValue: "Import de {{count}} documents réussi", count }), "success");
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useDocumentActions.importDocuments');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+ addToast(t('documents.toast.importSuccess', { defaultValue: "Import de {{count}} documents réussi", count }), "success");
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'useDocumentActions.importDocuments');
+ } finally {
+ setIsSubmitting(false);
+ }
+ };
 
-    const handleWorkflowAction = async (documentId: string, action: 'approuver' | 'rejeter' | 'soumettre', comment?: string, currentDoc?: Document) => {
-        if (!user || !user.organizationId) return false;
-        // Basic permission check - ideally should be granular based on role/workflow step
-        if (!canEditResource(user, 'Document')) return false;
+ const handleWorkflowAction = async (documentId: string, action: 'approuver' | 'rejeter' | 'soumettre', comment?: string, currentDoc?: Document) => {
+ if (!user || !user.organizationId) return false;
+ // Basic permission check - ideally should be granular based on role/workflow step
+ if (!canEditResource(user, 'Document')) return false;
 
-        setIsSubmitting(true);
-        try {
-            // Fetch current doc if not provided
-            let docData = currentDoc;
-            if (!docData) {
-                const { getDoc } = await import('firebase/firestore');
-                const snap = await getDoc(doc(db, 'documents', documentId));
-                if (snap.exists()) {
-                    docData = snap.data() as Document;
-                }
-            }
+ setIsSubmitting(true);
+ try {
+ // Fetch current doc if not provided
+ let docData = currentDoc;
+ if (!docData) {
+ const { getDoc } = await import('firebase/firestore');
+ const snap = await getDoc(doc(db, 'documents', documentId));
+ if (snap.exists()) {
+  docData = snap.data() as Document;
+ }
+ }
 
-            if (!docData) throw new Error("Document not found");
+ if (!docData) throw new Error("Document not found");
 
-            const updates: Record<string, unknown> = {
-                updatedAt: serverTimestamp()
-            };
+ const updates: Record<string, unknown> = {
+ updatedAt: serverTimestamp()
+ };
 
-            // Workflow State Machine (Simple version)
-            // 'Brouillon' -> 'En revue' -> 'Approuvé'
-            // For now, let's assume 'approuver' sets status to 'Approuvé' directly for simplified flow in Compliance
-            // But we should respect the valid transitions if possible.
-            // Given the audit requirement: "Validation auditeur", we want to mark it as Valid/Approved.
+ // Workflow State Machine (Simple version)
+ // 'Brouillon' -> 'En revue' -> 'Approuvé'
+ // For now, let's assume 'approuver' sets status to 'Approuvé' directly for simplified flow in Compliance
+ // But we should respect the valid transitions if possible.
+ // Given the audit requirement: "Validation auditeur", we want to mark it as Valid/Approved.
 
-            if (action === 'approuver') {
-                updates.status = 'Approuvé';
-                updates.approvers = arrayUnion(user.uid);
-            } else if (action === 'rejeter') {
-                updates.status = 'Rejeté';
-            } else if (action === 'soumettre') {
-                updates.status = 'En revue';
-            }
+ if (action === 'approuver') {
+ updates.status = 'Approuvé';
+ updates.approvers = arrayUnion(user.uid);
+ } else if (action === 'rejeter') {
+ updates.status = 'Rejeté';
+ } else if (action === 'soumettre') {
+ updates.status = 'En revue';
+ }
 
-            // Add history item
-            const historyItem = {
-                id: crypto.randomUUID(),
-                date: new Date().toISOString(),
-                userId: user.uid,
-                userName: user.displayName || user.email || 'Unknown',
-                action,
-                comment,
-                version: docData.version,
-                step: (updates.status as string) || docData.status
-            };
+ // Add history item
+ const historyItem = {
+ id: crypto.randomUUID(),
+ date: new Date().toISOString(),
+ userId: user.uid,
+ userName: user.displayName || user.email || 'Unknown',
+ action,
+ comment,
+ version: docData.version,
+ step: (updates.status as string) || docData.status
+ };
 
-            updates.workflowHistory = arrayUnion(historyItem);
+ updates.workflowHistory = arrayUnion(historyItem);
 
-            await updateDoc(doc(db, 'documents', documentId), updates);
+ await updateDoc(doc(db, 'documents', documentId), updates);
 
-            await AuditLogService.logUpdate(
-                user.organizationId,
-                { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
-                'document',
-                documentId,
-                { status: docData.status },
-                { status: updates.status },
-                docData.title
-            );
+ await AuditLogService.logUpdate(
+ user.organizationId,
+ { id: user.uid, name: user.displayName || user.email || '', email: user.email || '' },
+ 'document',
+ documentId,
+ { status: docData.status },
+ { status: updates.status },
+ docData.title
+ );
 
-            addToast(t('documents.toast.statusUpdated', { defaultValue: "Statut mis à jour" }), "success");
-            return true;
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Documents.handleWorkflowAction', 'UPDATE_FAILED');
-            return false;
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+ addToast(t('documents.toast.statusUpdated', { defaultValue: "Statut mis à jour" }), "success");
+ return true;
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'Documents.handleWorkflowAction', 'UPDATE_FAILED');
+ return false;
+ } finally {
+ setIsSubmitting(false);
+ }
+ };
 
-    return {
-        handleCreate,
-        handleUpdate,
-        initiateDelete,
-        handleCreateFolder,
-        handleUpdateFolder,
-        handleDeleteFolder,
-        handleUploadSuccess,
-        sendReviewReminder,
-        handleExportCSV,
-        importDocuments,
-        handleWorkflowAction,
-        isSubmitting,
-        isExportingCSV,
-        confirmData,
-        setConfirmData
-    };
+ return {
+ handleCreate,
+ handleUpdate,
+ initiateDelete,
+ handleCreateFolder,
+ handleUpdateFolder,
+ handleDeleteFolder,
+ handleUploadSuccess,
+ sendReviewReminder,
+ handleExportCSV,
+ importDocuments,
+ handleWorkflowAction,
+ isSubmitting,
+ isExportingCSV,
+ confirmData,
+ setConfirmData
+ };
 };

@@ -8,30 +8,30 @@ import { render, screen } from '@testing-library/react';
 import { ProjectsDebug } from '../ProjectsDebug';
 
 describe('ProjectsDebug', () => {
-    it('renders the debug page title', () => {
-        render(<ProjectsDebug />);
-        expect(screen.getByText('Projects Debug Page')).toBeInTheDocument();
-    });
+ it('renders the debug page title', () => {
+ render(<ProjectsDebug />);
+ expect(screen.getByText('Projects Debug Page')).toBeInTheDocument();
+ });
 
-    it('displays debug information', () => {
-        render(<ProjectsDebug />);
-        expect(screen.getByText(/This is a debug version/)).toBeInTheDocument();
-        expect(screen.getByText(/the routing is working/)).toBeInTheDocument();
-    });
+ it('displays debug information', () => {
+ render(<ProjectsDebug />);
+ expect(screen.getByText(/This is a debug version/)).toBeInTheDocument();
+ expect(screen.getByText(/the routing is working/)).toBeInTheDocument();
+ });
 
-    it('mentions the original Projects component', () => {
-        render(<ProjectsDebug />);
-        expect(screen.getByText(/original Projects component/)).toBeInTheDocument();
-    });
+ it('mentions the original Projects component', () => {
+ render(<ProjectsDebug />);
+ expect(screen.getByText(/original Projects component/)).toBeInTheDocument();
+ });
 
-    it('has proper styling containers', () => {
-        const { container } = render(<ProjectsDebug />);
+ it('has proper styling containers', () => {
+ const { container } = render(<ProjectsDebug />);
 
-        // Check for main container with padding
-        expect(container.querySelector('.p-8')).toBeInTheDocument();
+ // Check for main container with padding
+ expect(container.querySelector('.p-8')).toBeInTheDocument();
 
-        // Check for styled content box
-        expect(container.querySelector('.bg-white')).toBeInTheDocument();
-        expect(container.querySelector('.rounded-lg')).toBeInTheDocument();
-    });
+ // Check for styled content box
+ expect(container.querySelector('.bg-white')).toBeInTheDocument();
+ expect(container.querySelector('.rounded-lg')).toBeInTheDocument();
+ });
 });

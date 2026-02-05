@@ -12,9 +12,9 @@ export type ScoreLevel = 'critical' | 'warning' | 'good';
  * Score thresholds for color coding
  */
 export const SCORE_THRESHOLDS = {
-  CRITICAL: 50,   // Below this is red
-  WARNING: 75,    // Below this is orange, above is green
-  PULSE: 30,      // Below this triggers pulse animation
+ CRITICAL: 50, // Below this is red
+ WARNING: 75, // Below this is orange, above is green
+ PULSE: 30, // Below this triggers pulse animation
 } as const;
 
 /**
@@ -23,9 +23,9 @@ export const SCORE_THRESHOLDS = {
  * @returns ScoreLevel classification
  */
 export function getScoreLevel(score: number): ScoreLevel {
-  if (score < SCORE_THRESHOLDS.CRITICAL) return 'critical';
-  if (score <= SCORE_THRESHOLDS.WARNING) return 'warning';
-  return 'good';
+ if (score < SCORE_THRESHOLDS.CRITICAL) return 'critical';
+ if (score <= SCORE_THRESHOLDS.WARNING) return 'warning';
+ return 'good';
 }
 
 /**
@@ -34,15 +34,15 @@ export function getScoreLevel(score: number): ScoreLevel {
  * @returns Tailwind CSS class for text color
  */
 export function getScoreTextColor(score: number): string {
-  const level = getScoreLevel(score);
-  switch (level) {
-    case 'critical':
-      return 'text-error-text';
-    case 'warning':
-      return 'text-warning-text';
-    case 'good':
-      return 'text-success-text';
-  }
+ const level = getScoreLevel(score);
+ switch (level) {
+ case 'critical':
+ return 'text-error-text';
+ case 'warning':
+ return 'text-warning-text';
+ case 'good':
+ return 'text-success-text';
+ }
 }
 
 /**
@@ -51,15 +51,15 @@ export function getScoreTextColor(score: number): string {
  * @returns Tailwind CSS class for stroke color
  */
 export function getScoreStrokeColor(score: number): string {
-  const level = getScoreLevel(score);
-  switch (level) {
-    case 'critical':
-      return 'stroke-error';
-    case 'warning':
-      return 'stroke-warning';
-    case 'good':
-      return 'stroke-success';
-  }
+ const level = getScoreLevel(score);
+ switch (level) {
+ case 'critical':
+ return 'stroke-error';
+ case 'warning':
+ return 'stroke-warning';
+ case 'good':
+ return 'stroke-success';
+ }
 }
 
 /**
@@ -68,15 +68,15 @@ export function getScoreStrokeColor(score: number): string {
  * @returns Tailwind CSS class for background color
  */
 export function getScoreBgColor(score: number): string {
-  const level = getScoreLevel(score);
-  switch (level) {
-    case 'critical':
-      return 'bg-error';
-    case 'warning':
-      return 'bg-warning';
-    case 'good':
-      return 'bg-success';
-  }
+ const level = getScoreLevel(score);
+ switch (level) {
+ case 'critical':
+ return 'bg-error';
+ case 'warning':
+ return 'bg-warning';
+ case 'good':
+ return 'bg-success';
+ }
 }
 
 /**
@@ -85,15 +85,15 @@ export function getScoreBgColor(score: number): string {
  * @returns Tailwind CSS class for light background color
  */
 export function getScoreBgLightColor(score: number): string {
-  const level = getScoreLevel(score);
-  switch (level) {
-    case 'critical':
-      return 'bg-error-bg';
-    case 'warning':
-      return 'bg-warning-bg';
-    case 'good':
-      return 'bg-success-bg';
-  }
+ const level = getScoreLevel(score);
+ switch (level) {
+ case 'critical':
+ return 'bg-error-bg';
+ case 'warning':
+ return 'bg-warning-bg';
+ case 'good':
+ return 'bg-success-bg';
+ }
 }
 
 /**
@@ -102,15 +102,15 @@ export function getScoreBgLightColor(score: number): string {
  * @returns Hex color string
  */
 export function getScoreHexColor(score: number): string {
-  const level = getScoreLevel(score);
-  switch (level) {
-    case 'critical':
-      return SCORE_COLORS.bad;
-    case 'warning':
-      return SCORE_COLORS.warning;
-    case 'good':
-      return SCORE_COLORS.good;
-  }
+ const level = getScoreLevel(score);
+ switch (level) {
+ case 'critical':
+ return SCORE_COLORS.bad;
+ case 'warning':
+ return SCORE_COLORS.warning;
+ case 'good':
+ return SCORE_COLORS.good;
+ }
 }
 
 /**
@@ -120,15 +120,15 @@ export function getScoreHexColor(score: number): string {
  * @returns Human-readable status string
  */
 export function getScoreStatusLabel(score: number, locale: 'fr' | 'en' = 'fr'): string {
-  const level = getScoreLevel(score);
+ const level = getScoreLevel(score);
 
-  const labels = {
-    critical: { fr: 'Critique', en: 'Critical' },
-    warning: { fr: 'À améliorer', en: 'Needs Improvement' },
-    good: { fr: 'Bon', en: 'Good' },
-  };
+ const labels = {
+ critical: { fr: 'Critique', en: 'Critical' },
+ warning: { fr: 'À améliorer', en: 'Needs Improvement' },
+ good: { fr: 'Bon', en: 'Good' },
+ };
 
-  return labels[level][locale];
+ return labels[level][locale];
 }
 
 /**
@@ -137,7 +137,7 @@ export function getScoreStatusLabel(score: number, locale: 'fr' | 'en' = 'fr'): 
  * @returns true if score is below pulse threshold
  */
 export function isScoreCritical(score: number): boolean {
-  return score < SCORE_THRESHOLDS.PULSE;
+ return score < SCORE_THRESHOLDS.PULSE;
 }
 
 /**
@@ -146,7 +146,7 @@ export function isScoreCritical(score: number): boolean {
  * @returns Normalized score between 0 and 100
  */
 export function normalizeScore(score: number): number {
-  return Math.max(0, Math.min(100, Math.round(score * 100) / 100));
+ return Math.max(0, Math.min(100, Math.round(score * 100) / 100));
 }
 
 /**
@@ -156,5 +156,5 @@ export function normalizeScore(score: number): number {
  * @returns Formatted score string
  */
 export function formatScore(score: number, decimals: number = 0): string {
-  return normalizeScore(score).toFixed(decimals);
+ return normalizeScore(score).toFixed(decimals);
 }

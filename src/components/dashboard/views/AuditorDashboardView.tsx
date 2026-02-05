@@ -12,42 +12,42 @@ type ActivityList = React.ComponentProps<typeof RecentActivityWidget>['recentAct
 type HealthIssueList = React.ComponentProps<typeof HealthCheckWidget>['healthIssues'];
 
 interface AuditorDashboardViewProps {
-    loading: boolean;
-    navigate: (path: string) => void;
-    t: (key: string) => string;
-    theme: string;
-    myActionItems: ActionItemList;
-    historyData: HistoryData;
-    recentActivity: ActivityList;
-    healthIssues: HealthIssueList;
+ loading: boolean;
+ navigate: (path: string) => void;
+ t: (key: string) => string;
+ theme: string;
+ myActionItems: ActionItemList;
+ historyData: HistoryData;
+ recentActivity: ActivityList;
+ healthIssues: HealthIssueList;
 }
 
 export const AuditorDashboardView: React.FC<AuditorDashboardViewProps> = ({
-    loading, navigate, t, theme, myActionItems, historyData, recentActivity, healthIssues
+ loading, navigate, t, theme, myActionItems, historyData, recentActivity, healthIssues
 }) => {
-    return (
-        <motion.div
-            variants={staggerContainerVariants}
-            initial="initial"
-            animate="visible"
-            className="space-y-6"
-        >
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <motion.div variants={slideUpVariants} className="lg:col-span-2">
-                    <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
-                </motion.div>
-                <motion.div variants={slideUpVariants} className="lg:col-span-1">
-                    <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
-                </motion.div>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <motion.div variants={slideUpVariants}>
-                    <RecentActivityWidget recentActivity={recentActivity} loading={loading} t={t} />
-                </motion.div>
-                <motion.div variants={slideUpVariants}>
-                    <HealthCheckWidget healthIssues={healthIssues} loading={loading} navigate={navigate} t={t} />
-                </motion.div>
-            </div>
-        </motion.div>
-    );
+ return (
+ <motion.div
+ variants={staggerContainerVariants}
+ initial="initial"
+ animate="visible"
+ className="space-y-6"
+ >
+ <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+ <motion.div variants={slideUpVariants} className="lg:col-span-2">
+  <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
+ </motion.div>
+ <motion.div variants={slideUpVariants} className="lg:col-span-1">
+  <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
+ </motion.div>
+ </div>
+ <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+ <motion.div variants={slideUpVariants}>
+  <RecentActivityWidget recentActivity={recentActivity} loading={loading} t={t} />
+ </motion.div>
+ <motion.div variants={slideUpVariants}>
+  <HealthCheckWidget healthIssues={healthIssues} loading={loading} navigate={navigate} t={t} />
+ </motion.div>
+ </div>
+ </motion.div>
+ );
 };

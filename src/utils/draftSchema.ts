@@ -9,18 +9,18 @@
 
 import { z } from 'zod';
 import {
-  type SupportedLocale,
-  getZodMessages,
+ type SupportedLocale,
+ getZodMessages,
 } from '../config/localeConfig';
 
 /**
  * Options for creating a draft schema
  */
 export interface DraftSchemaOptions {
-  /** Fields that remain required even in draft mode */
-  requiredFields: string[];
-  /** Locale for error messages */
-  locale?: SupportedLocale;
+ /** Fields that remain required even in draft mode */
+ requiredFields: string[];
+ /** Locale for error messages */
+ locale?: SupportedLocale;
 }
 
 /**
@@ -34,104 +34,104 @@ export interface DraftSchemaOptions {
  * @example
  * ```typescript
  * const fullRiskSchema = z.object({
- *   threat: z.string().min(3),
- *   vulnerability: z.string().min(3),
- *   probability: z.number().min(1).max(5),
- *   impact: z.number().min(1).max(5),
+ * threat: z.string().min(3),
+ * vulnerability: z.string().min(3),
+ * probability: z.number().min(1).max(5),
+ * impact: z.number().min(1).max(5),
  * });
  *
  * // Only 'threat' is required in draft mode
  * const draftRiskSchema = createDraftSchema(fullRiskSchema, {
- *   requiredFields: ['threat'],
- *   locale: 'fr',
+ * requiredFields: ['threat'],
+ * locale: 'fr',
  * });
  * ```
  */
 export function createDraftSchema<T extends z.ZodRawShape>(
-  schema: z.ZodObject<T>,
-  options: DraftSchemaOptions
+ schema: z.ZodObject<T>,
+ options: DraftSchemaOptions
 ): z.ZodObject<{
-  [K in keyof T]: K extends (typeof options.requiredFields)[number]
-  ? T[K]
-  : z.ZodOptional<T[K]>;
+ [K in keyof T]: K extends (typeof options.requiredFields)[number]
+ ? T[K]
+ : z.ZodOptional<T[K]>;
 }> {
-  const { requiredFields, locale = 'fr' } = options;
-  const messages = getZodMessages(locale);
-  const shape = schema.shape;
-  const newShape: Record<string, z.ZodTypeAny> = {};
+ const { requiredFields, locale = 'fr' } = options;
+ const messages = getZodMessages(locale);
+ const shape = schema.shape;
+ const newShape: Record<string, z.ZodTypeAny> = {};
 
-  for (const key of Object.keys(shape) as (keyof T)[]) {
-    const fieldSchema = shape[key];
-    const keyStr = String(key);
+ for (const key of Object.keys(shape) as (keyof T)[]) {
+ const fieldSchema = shape[key];
+ const keyStr = String(key);
 
-    if (requiredFields.includes(keyStr)) {
-      // Keep required fields as-is, but ensure they have localized error message
-      newShape[keyStr] = wrapWithLocalizedRequired(fieldSchema as unknown as z.ZodTypeAny, messages.required);
-    } else {
-      // Make non-required fields optional
-      newShape[keyStr] = makeOptional(fieldSchema as unknown as z.ZodTypeAny);
-    }
-  }
+ if (requiredFields.includes(keyStr)) {
+ // Keep required fields as-is, but ensure they have localized error message
+ newShape[keyStr] = wrapWithLocalizedRequired(fieldSchema as unknown as z.ZodTypeAny, messages.required);
+ } else {
+ // Make non-required fields optional
+ newShape[keyStr] = makeOptional(fieldSchema as unknown as z.ZodTypeAny);
+ }
+ }
 
-  return z.object(newShape) as z.ZodObject<{
-    [K in keyof T]: K extends (typeof options.requiredFields)[number]
-    ? T[K]
-    : z.ZodOptional<T[K]>;
-  }>;
+ return z.object(newShape) as z.ZodObject<{
+ [K in keyof T]: K extends (typeof options.requiredFields)[number]
+ ? T[K]
+ : z.ZodOptional<T[K]>;
+ }>;
 }
 
 /**
  * Makes a Zod schema optional, handling already-optional schemas.
  */
 function makeOptional<T extends z.ZodTypeAny>(schema: T): z.ZodOptional<T> | T {
-  // Check if already optional
-  if (schema instanceof z.ZodOptional) {
-    return schema;
-  }
+ // Check if already optional
+ if (schema instanceof z.ZodOptional) {
+ return schema;
+ }
 
-  // Handle nullable schemas
-  if (schema instanceof z.ZodNullable) {
-    return schema.optional();
-  }
+ // Handle nullable schemas
+ if (schema instanceof z.ZodNullable) {
+ return schema.optional();
+ }
 
-  // Handle default schemas - make the inner type optional
-  if (schema instanceof z.ZodDefault) {
-    return (schema._def.innerType as z.ZodTypeAny).optional() as unknown as z.ZodOptional<T> | T;
-  }
+ // Handle default schemas - make the inner type optional
+ if (schema instanceof z.ZodDefault) {
+ return (schema._def.innerType as z.ZodTypeAny).optional() as unknown as z.ZodOptional<T> | T;
+ }
 
-  return (schema as z.ZodTypeAny).optional() as unknown as z.ZodOptional<T> | T;
+ return (schema as z.ZodTypeAny).optional() as unknown as z.ZodOptional<T> | T;
 }
 
 /**
  * Wraps a schema to ensure it has a localized required error message.
  */
 function wrapWithLocalizedRequired<T extends z.ZodTypeAny>(
-  schema: T,
-  requiredMessage: string
+ schema: T,
+ requiredMessage: string
 ): T {
-  // For string schemas, ensure min(1) validation for "required"
-  if (schema instanceof z.ZodString) {
-    // Note: We access Zod's internal _def.checks array to inspect existing validations.
-    // This is necessary because Zod doesn't expose a public API to check if min() was called.
-    interface ZodStringCheck { kind: string; value?: number }
-    const def = schema._def as { checks?: ZodStringCheck[] };
-    const checks = def.checks || [];
-    const hasMinCheck = checks.some((check) => check.kind === 'min');
+ // For string schemas, ensure min(1) validation for "required"
+ if (schema instanceof z.ZodString) {
+ // Note: We access Zod's internal _def.checks array to inspect existing validations.
+ // This is necessary because Zod doesn't expose a public API to check if min() was called.
+ interface ZodStringCheck { kind: string; value?: number }
+ const def = schema._def as { checks?: ZodStringCheck[] };
+ const checks = def.checks || [];
+ const hasMinCheck = checks.some((check) => check.kind === 'min');
 
-    if (!hasMinCheck) {
-      // Add min(1) with localized message
-      return (schema as z.ZodString).min(1, requiredMessage) as unknown as T;
-    } else {
-      // Replace existing min(1) error message with localized version
-      const firstMinCheck = checks.find((check) => check.kind === 'min' && check.value === 1);
-      if (firstMinCheck) {
-        // Schema already has min(1), redefine with localized message
-        return (schema as z.ZodString).min(1, requiredMessage) as unknown as T;
-      }
-    }
-  }
+ if (!hasMinCheck) {
+ // Add min(1) with localized message
+ return (schema as z.ZodString).min(1, requiredMessage) as unknown as T;
+ } else {
+ // Replace existing min(1) error message with localized version
+ const firstMinCheck = checks.find((check) => check.kind === 'min' && check.value === 1);
+ if (firstMinCheck) {
+ // Schema already has min(1), redefine with localized message
+ return (schema as z.ZodString).min(1, requiredMessage) as unknown as T;
+ }
+ }
+ }
 
-  return schema;
+ return schema;
 }
 
 /**
@@ -144,24 +144,24 @@ function wrapWithLocalizedRequired<T extends z.ZodTypeAny>(
  * @returns Object indicating validity for each mode
  */
 export function validateDraftOrFull<TFull, TDraft>(
-  fullSchema: z.ZodSchema<TFull>,
-  draftSchema: z.ZodSchema<TDraft>,
-  data: unknown
+ fullSchema: z.ZodSchema<TFull>,
+ draftSchema: z.ZodSchema<TDraft>,
+ data: unknown
 ): {
-  isValidForPublish: boolean;
-  isValidForDraft: boolean;
-  fullErrors: z.ZodError | null;
-  draftErrors: z.ZodError | null;
+ isValidForPublish: boolean;
+ isValidForDraft: boolean;
+ fullErrors: z.ZodError | null;
+ draftErrors: z.ZodError | null;
 } {
-  const fullResult = fullSchema.safeParse(data);
-  const draftResult = draftSchema.safeParse(data);
+ const fullResult = fullSchema.safeParse(data);
+ const draftResult = draftSchema.safeParse(data);
 
-  return {
-    isValidForPublish: fullResult.success,
-    isValidForDraft: draftResult.success,
-    fullErrors: fullResult.success ? null : fullResult.error,
-    draftErrors: draftResult.success ? null : draftResult.error,
-  };
+ return {
+ isValidForPublish: fullResult.success,
+ isValidForDraft: draftResult.success,
+ fullErrors: fullResult.success ? null : fullResult.error,
+ draftErrors: draftResult.success ? null : draftResult.error,
+ };
 }
 
 /**
@@ -176,39 +176,39 @@ export function validateDraftOrFull<TFull, TDraft>(
  * @example
  * ```typescript
  * const { fullSchema, draftSchema } = createDraftableSchemas(
- *   {
- *     title: z.string().min(3),
- *     description: z.string().min(10),
- *     priority: z.number(),
- *   },
- *   ['title'],
- *   'fr'
+ * {
+ * title: z.string().min(3),
+ * description: z.string().min(10),
+ * priority: z.number(),
+ * },
+ * ['title'],
+ * 'fr'
  * );
  * ```
  */
 export function createDraftableSchemas<T extends z.ZodRawShape>(
-  baseShape: T,
-  draftRequiredFields: (keyof T)[],
-  locale: SupportedLocale = 'fr'
+ baseShape: T,
+ draftRequiredFields: (keyof T)[],
+ locale: SupportedLocale = 'fr'
 ): {
-  fullSchema: z.ZodObject<T>;
-  draftSchema: z.ZodObject<{
-    [K in keyof T]: K extends (typeof draftRequiredFields)[number]
-    ? T[K]
-    : z.ZodOptional<T[K]>;
-  }>;
+ fullSchema: z.ZodObject<T>;
+ draftSchema: z.ZodObject<{
+ [K in keyof T]: K extends (typeof draftRequiredFields)[number]
+ ? T[K]
+ : z.ZodOptional<T[K]>;
+ }>;
 } {
-  const fullSchema = z.object(baseShape);
-  const draftSchema = createDraftSchema(fullSchema, {
-    requiredFields: draftRequiredFields as string[],
-    locale,
-  }) as unknown as z.ZodObject<{
-    [K in keyof T]: K extends (typeof draftRequiredFields)[number]
-    ? T[K]
-    : z.ZodOptional<T[K]>;
-  }>;
+ const fullSchema = z.object(baseShape);
+ const draftSchema = createDraftSchema(fullSchema, {
+ requiredFields: draftRequiredFields as string[],
+ locale,
+ }) as unknown as z.ZodObject<{
+ [K in keyof T]: K extends (typeof draftRequiredFields)[number]
+ ? T[K]
+ : z.ZodOptional<T[K]>;
+ }>;
 
-  return { fullSchema, draftSchema };
+ return { fullSchema, draftSchema };
 }
 
 /**
@@ -216,18 +216,18 @@ export function createDraftableSchemas<T extends z.ZodRawShape>(
  * Makes all fields optional except those specified.
  */
 export type DraftSchemaType<
-  T extends z.ZodRawShape,
-  RequiredKeys extends keyof T
+ T extends z.ZodRawShape,
+ RequiredKeys extends keyof T
 > = z.ZodObject<{
-  [K in keyof T]: K extends RequiredKeys ? T[K] : z.ZodOptional<T[K]>;
+ [K in keyof T]: K extends RequiredKeys ? T[K] : z.ZodOptional<T[K]>;
 }>;
 
 /**
  * Type helper to infer the data type from a draft schema.
  */
 export type DraftDataType<
-  T extends z.ZodRawShape,
-  RequiredKeys extends keyof T
+ T extends z.ZodRawShape,
+ RequiredKeys extends keyof T
 > = z.infer<DraftSchemaType<T, RequiredKeys>>;
 
 /**
@@ -239,29 +239,29 @@ export type DraftDataType<
  * @returns Object with canSave boolean and any error messages
  */
 export function canSaveAsDraft(
-  data: Record<string, unknown>,
-  requiredFields: string[],
-  locale: SupportedLocale = 'fr'
+ data: Record<string, unknown>,
+ requiredFields: string[],
+ locale: SupportedLocale = 'fr'
 ): {
-  canSave: boolean;
-  errors: Record<string, string>;
+ canSave: boolean;
+ errors: Record<string, string>;
 } {
-  const messages = getZodMessages(locale);
-  const errors: Record<string, string> = {};
+ const messages = getZodMessages(locale);
+ const errors: Record<string, string> = {};
 
-  for (const field of requiredFields) {
-    const value = data[field];
-    if (value === undefined || value === null || value === '') {
-      errors[field] = messages.required;
-    } else if (typeof value === 'string' && value.trim().length === 0) {
-      errors[field] = messages.required;
-    }
-  }
+ for (const field of requiredFields) {
+ const value = data[field];
+ if (value === undefined || value === null || value === '') {
+ errors[field] = messages.required;
+ } else if (typeof value === 'string' && value.trim().length === 0) {
+ errors[field] = messages.required;
+ }
+ }
 
-  return {
-    canSave: Object.keys(errors).length === 0,
-    errors,
-  };
+ return {
+ canSave: Object.keys(errors).length === 0,
+ errors,
+ };
 }
 
 /**
@@ -269,15 +269,15 @@ export function canSaveAsDraft(
  * These represent the minimum fields needed to identify a draft.
  */
 export const DRAFT_REQUIRED_FIELDS = {
-  risk: ['threat'],
-  asset: ['name'],
-  document: ['title'],
-  audit: ['name'],
-  control: ['name'],
-  incident: ['title'],
-  project: ['name'],
-  supplier: ['name'],
-  assessment: ['name'],
+ risk: ['threat'],
+ asset: ['name'],
+ document: ['title'],
+ audit: ['name'],
+ control: ['name'],
+ incident: ['title'],
+ project: ['name'],
+ supplier: ['name'],
+ assessment: ['name'],
 } as const;
 
 /**
@@ -285,12 +285,12 @@ export const DRAFT_REQUIRED_FIELDS = {
  * Different entity types use different status conventions.
  */
 export const DRAFT_STATUS = {
-  /** French draft status for documents */
-  document: 'Brouillon',
-  /** English draft status for audits/questionnaires */
-  audit: 'Draft',
-  /** English draft status for assessments */
-  assessment: 'Draft',
-  /** English draft status for business entities */
-  business: 'Draft',
+ /** French draft status for documents */
+ document: 'Brouillon',
+ /** English draft status for audits/questionnaires */
+ audit: 'Draft',
+ /** English draft status for assessments */
+ assessment: 'Draft',
+ /** English draft status for business entities */
+ business: 'Draft',
 } as const;

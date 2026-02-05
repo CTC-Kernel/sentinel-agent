@@ -3,11 +3,11 @@ import { Supplier, UserProfile, BusinessProcess, Asset, Risk, Document as GRCDoc
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { SupplierForm } from './SupplierForm';
 import {
-    Building,
-    FileSpreadsheet,
-    MessageSquare,
-    ClipboardList,
-    Scale
+ Building,
+ FileSpreadsheet,
+ MessageSquare,
+ ClipboardList,
+ Scale
 } from '../ui/Icons';
 import { ResourceHistory } from '../shared/ResourceHistory';
 import { CommentSection } from '../collaboration/CommentSection';
@@ -21,159 +21,159 @@ import { SupplierAssessments } from './inspector/SupplierAssessments';
 import { SupplierContractCompliance } from './inspector/SupplierContractCompliance';
 
 interface SupplierInspectorProps {
-    supplier: Supplier;
-    onClose: () => void;
-    canEdit: boolean;
-    onUpdate: (data: SupplierFormData) => Promise<void>;
-    isLoading?: boolean;
-    users: UserProfile[];
-    processes: BusinessProcess[];
-    assets: Asset[];
-    risks: Risk[];
-    documents: GRCDocument[];
-    onStartAssessment: () => void;
-    assessments: SupplierQuestionnaireResponse[];
-    onViewAssessment: (id: string) => void;
+ supplier: Supplier;
+ onClose: () => void;
+ canEdit: boolean;
+ onUpdate: (data: SupplierFormData) => Promise<void>;
+ isLoading?: boolean;
+ users: UserProfile[];
+ processes: BusinessProcess[];
+ assets: Asset[];
+ risks: Risk[];
+ documents: GRCDocument[];
+ onStartAssessment: () => void;
+ assessments: SupplierQuestionnaireResponse[];
+ onViewAssessment: (id: string) => void;
 }
 
 export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
-    supplier,
-    onClose,
-    canEdit,
-    onUpdate,
-    isLoading,
-    users,
-    processes,
-    assets,
-    risks,
-    documents,
-    onStartAssessment,
-    assessments,
-    onViewAssessment
+ supplier,
+ onClose,
+ canEdit,
+ onUpdate,
+ isLoading,
+ users,
+ processes,
+ assets,
+ risks,
+ documents,
+ onStartAssessment,
+ assessments,
+ onViewAssessment
 }) => {
-    const { t } = useLocale();
+ const { t } = useLocale();
 
-    // Tabs state
-    const [inspectorTab, setInspectorTab] = useState<'profile' | 'assessment' | 'contracts' | 'history' | 'comments'>('profile');
-    const [isFormDirty, setIsFormDirty] = useState(false);
+ // Tabs state
+ const [inspectorTab, setInspectorTab] = useState<'profile' | 'assessment' | 'contracts' | 'history' | 'comments'>('profile');
+ const [isFormDirty, setIsFormDirty] = useState(false);
 
-    const tabs = [
-        { id: 'profile', label: t('suppliers.tabs.profile', { defaultValue: 'Profil' }), icon: Building },
-        { id: 'assessment', label: t('suppliers.tabs.assessments', { defaultValue: '\u00c9valuations' }), icon: ClipboardList },
-        { id: 'contracts', label: t('suppliers.tabs.contracts', { defaultValue: 'Contrats & DORA' }), icon: Scale },
-        { id: 'history', label: t('suppliers.tabs.history', { defaultValue: 'Historique' }), icon: FileSpreadsheet },
-        { id: 'comments', label: t('suppliers.tabs.comments', { defaultValue: 'Commentaires' }), icon: MessageSquare }
-    ];
+ const tabs = [
+ { id: 'profile', label: t('suppliers.tabs.profile', { defaultValue: 'Profil' }), icon: Building },
+ { id: 'assessment', label: t('suppliers.tabs.assessments', { defaultValue: '\u00c9valuations' }), icon: ClipboardList },
+ { id: 'contracts', label: t('suppliers.tabs.contracts', { defaultValue: 'Contrats & DORA' }), icon: Scale },
+ { id: 'history', label: t('suppliers.tabs.history', { defaultValue: 'Historique' }), icon: FileSpreadsheet },
+ { id: 'comments', label: t('suppliers.tabs.comments', { defaultValue: 'Commentaires' }), icon: MessageSquare }
+ ];
 
-    const handleUpdate: SubmitHandler<SupplierFormData> = async (data) => {
-        // Validation handled by SupplierForm with zodResolver + supplierSchema
-        await onUpdate(data);
-        setIsFormDirty(false);
-    };
+ const handleUpdate: SubmitHandler<SupplierFormData> = async (data) => {
+ // Validation handled by SupplierForm with zodResolver + supplierSchema
+ await onUpdate(data);
+ setIsFormDirty(false);
+ };
 
-    const contactUser = users?.find(u =>
-        (supplier.contactName && u.displayName === supplier.contactName) ||
-        (supplier.contactEmail && u.email === supplier.contactEmail)
-    );
+ const contactUser = users?.find(u =>
+ (supplier.contactName && u.displayName === supplier.contactName) ||
+ (supplier.contactEmail && u.email === supplier.contactEmail)
+ );
 
-    return (
-        <InspectorLayout
-            isOpen={true}
-            onClose={onClose}
-            title={supplier.name}
-            subtitle={
-                <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">{t('suppliers.inspector.mainContact', { defaultValue: 'Contact principal' })}:</span>
-                    <div className="flex items-center gap-2">
-                        {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
-                        <img
-                            src={getUserAvatarUrl(contactUser?.photoURL ?? null, contactUser?.role ?? 'user')}
-                            alt={contactUser?.displayName || supplier.contactName || t('suppliers.inspector.unknown', { defaultValue: 'Inconnu' })}
-                            className="w-5 h-5 rounded-full object-cover bg-slate-100 dark:bg-slate-800 border border-border/40 dark:border-slate-700"
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = getUserAvatarUrl(null, 'user');
-                            }}
-                        />
-                        <span className="font-medium text-slate-700 dark:text-slate-300 dark:text-muted-foreground">
-                            {contactUser?.displayName || supplier.contactName || supplier.contactEmail || t('suppliers.inspector.notAssigned', { defaultValue: 'Non assign\u00e9' })}
-                        </span>
-                    </div>
-                </div>
-            }
-            width="max-w-6xl"
-            actions={
-                <div className="flex items-center gap-2">
-                    {canEdit && (
-                        <CustomTooltip content="Démarrer une évaluation">
-                            <button
-                                aria-label="Démarrer une évaluation"
-                                onClick={onStartAssessment}
-                                className="p-2 text-muted-foreground hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                            >
-                                <ClipboardList className="h-5 w-5" />
-                            </button>
-                        </CustomTooltip>
-                    )}
-                    <button
-                        aria-label="Discussion"
-                        onClick={() => setInspectorTab('comments')}
-                        className={`p-2 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${inspectorTab === 'comments' ? 'bg-brand-50 text-brand-600' : 'text-slate-500 hover:bg-slate-100'}`}
-                    >
-                        <MessageSquare className="h-5 w-5" />
-                    </button>
-                </div>
-            }
-            tabs={tabs}
-            activeTab={inspectorTab}
-            onTabChange={(id) => setInspectorTab(id as 'profile' | 'assessment' | 'contracts' | 'history' | 'comments')}
-            hasUnsavedChanges={isFormDirty}
-        >
-            <div className="h-full flex flex-col">
-                <div className="flex-1 overflow-hidden relative">
-                    {inspectorTab === 'profile' && (
-                        <SupplierForm
-                            initialData={supplier}
-                            onSubmit={handleUpdate}
-                            onCancel={onClose}
-                            isLoading={isLoading}
-                            users={users}
-                            processes={processes}
-                            assets={assets}
-                            risks={risks}
-                            documents={documents}
-                            isEditing={true}
-                            readOnly={!canEdit} // Pass readOnly based on permissions
-                            onDirtyChange={setIsFormDirty}
-                        />
-                    )}
-                    {inspectorTab === 'assessment' && (
-                        <SupplierAssessments
-                            canEdit={canEdit}
-                            onStartAssessment={onStartAssessment}
-                            assessments={assessments}
-                            onViewAssessment={onViewAssessment}
-                        />
-                    )}
-                    {inspectorTab === 'contracts' && (
-                        <SupplierContractCompliance
-                            supplier={supplier}
-                            canEdit={canEdit}
-                            onUpdate={onUpdate}
-                        />
-                    )}
-                    {inspectorTab === 'history' && (
-                        <div className="p-6 h-full overflow-y-auto">
-                            <ResourceHistory resourceId={supplier.id} resourceType="suppliers" />
-                        </div>
-                    )}
-                    {inspectorTab === 'comments' && (
-                        <div className="p-6 h-full overflow-y-auto">
-                            <CommentSection collectionName="suppliers" documentId={supplier.id} />
-                        </div>
-                    )}
-                </div>
-            </div>
-        </InspectorLayout>
-    );
+ return (
+ <InspectorLayout
+ isOpen={true}
+ onClose={onClose}
+ title={supplier.name}
+ subtitle={
+ <div className="flex items-center gap-2">
+  <span className="text-muted-foreground">{t('suppliers.inspector.mainContact', { defaultValue: 'Contact principal' })}:</span>
+  <div className="flex items-center gap-2">
+  {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
+  <img
+  src={getUserAvatarUrl(contactUser?.photoURL ?? null, contactUser?.role ?? 'user')}
+  alt={contactUser?.displayName || supplier.contactName || t('suppliers.inspector.unknown', { defaultValue: 'Inconnu' })}
+  className="w-5 h-5 rounded-full object-cover bg-muted border border-border/40"
+  onError={(e) => {
+  const target = e.target as HTMLImageElement;
+  target.src = getUserAvatarUrl(null, 'user');
+  }}
+  />
+  <span className="font-medium text-foreground text-muted-foreground">
+  {contactUser?.displayName || supplier.contactName || supplier.contactEmail || t('suppliers.inspector.notAssigned', { defaultValue: 'Non assign\u00e9' })}
+  </span>
+  </div>
+ </div>
+ }
+ width="max-w-6xl"
+ actions={
+ <div className="flex items-center gap-2">
+  {canEdit && (
+  <CustomTooltip content={t('suppliers.inspector.startAssessment', { defaultValue: 'Démarrer une évaluation' })}>
+  <button
+  aria-label={t('suppliers.inspector.startAssessment', { defaultValue: 'Démarrer une évaluation' })}
+  onClick={onStartAssessment}
+  className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  >
+  <ClipboardList className="h-5 w-5" />
+  </button>
+  </CustomTooltip>
+  )}
+  <button
+  aria-label={t('suppliers.inspector.discussion', { defaultValue: 'Discussion' })}
+  onClick={() => setInspectorTab('comments')}
+  className={`p-2 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${inspectorTab === 'comments' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}
+  >
+  <MessageSquare className="h-5 w-5" />
+  </button>
+ </div>
+ }
+ tabs={tabs}
+ activeTab={inspectorTab}
+ onTabChange={(id) => setInspectorTab(id as 'profile' | 'assessment' | 'contracts' | 'history' | 'comments')}
+ hasUnsavedChanges={isFormDirty}
+ >
+ <div className="h-full flex flex-col">
+ <div className="flex-1 overflow-hidden relative">
+  {inspectorTab === 'profile' && (
+  <SupplierForm
+  initialData={supplier}
+  onSubmit={handleUpdate}
+  onCancel={onClose}
+  isLoading={isLoading}
+  users={users}
+  processes={processes}
+  assets={assets}
+  risks={risks}
+  documents={documents}
+  isEditing={true}
+  readOnly={!canEdit} // Pass readOnly based on permissions
+  onDirtyChange={setIsFormDirty}
+  />
+  )}
+  {inspectorTab === 'assessment' && (
+  <SupplierAssessments
+  canEdit={canEdit}
+  onStartAssessment={onStartAssessment}
+  assessments={assessments}
+  onViewAssessment={onViewAssessment}
+  />
+  )}
+  {inspectorTab === 'contracts' && (
+  <SupplierContractCompliance
+  supplier={supplier}
+  canEdit={canEdit}
+  onUpdate={onUpdate}
+  />
+  )}
+  {inspectorTab === 'history' && (
+  <div className="p-6 h-full overflow-y-auto">
+  <ResourceHistory resourceId={supplier.id} resourceType="suppliers" />
+  </div>
+  )}
+  {inspectorTab === 'comments' && (
+  <div className="p-6 h-full overflow-y-auto">
+  <CommentSection collectionName="suppliers" documentId={supplier.id} />
+  </div>
+  )}
+ </div>
+ </div>
+ </InspectorLayout>
+ );
 };

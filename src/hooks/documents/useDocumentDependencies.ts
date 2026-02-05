@@ -8,61 +8,61 @@ import { MockDataService } from '../../services/mockDataService';
 import { useAuth } from '../useAuth';
 
 export const useDocumentDependencies = (organizationId?: string, enabled = true) => {
-    const { claimsSynced } = useAuth();
-    const { demoMode } = useStore();
-    const [shouldFetch, setShouldFetch] = useState(false);
+ const { claimsSynced } = useAuth();
+ const { demoMode } = useStore();
+ const [shouldFetch, setShouldFetch] = useState(false);
 
-    // Mock Data State
-    const [mockData, setMockData] = useState<{
-        controls: Control[];
-        assets: Asset[];
-        risks: Risk[];
-        audits: Audit[];
-    } | null>(null);
+ // Mock Data State
+ const [mockData, setMockData] = useState<{
+ controls: Control[];
+ assets: Asset[];
+ risks: Risk[];
+ audits: Audit[];
+ } | null>(null);
 
-    // Trigger for loading
-    const loadDependencies = useCallback(() => {
-        if (!shouldFetch) {
-            setShouldFetch(true);
-            if (demoMode && !mockData) {
-                // Simulate fetch delay for mock data
-                setTimeout(() => {
-                    setMockData({
-                        controls: MockDataService.getCollection('controls') as Control[],
-                        assets: MockDataService.getCollection('assets') as Asset[],
-                        risks: MockDataService.getCollection('risks') as Risk[],
-                        audits: MockDataService.getCollection('audits') as Audit[]
-                    });
-                }, 500);
-            }
-        }
-    }, [shouldFetch, demoMode, mockData]);
+ // Trigger for loading
+ const loadDependencies = useCallback(() => {
+ if (!shouldFetch) {
+ setShouldFetch(true);
+ if (demoMode && !mockData) {
+ // Simulate fetch delay for mock data
+ setTimeout(() => {
+  setMockData({
+  controls: MockDataService.getCollection('controls') as Control[],
+  assets: MockDataService.getCollection('assets') as Asset[],
+  risks: MockDataService.getCollection('risks') as Risk[],
+  audits: MockDataService.getCollection('audits') as Audit[]
+  });
+ }, 500);
+ }
+ }
+ }, [shouldFetch, demoMode, mockData]);
 
-    const queryConstraints = organizationId ? [where('organizationId', '==', organizationId)] : undefined;
-    const options = {
-        logError: true,
-        enabled: shouldFetch && !!organizationId && !demoMode && claimsSynced && enabled,
-        realtime: false
-    };
+ const queryConstraints = organizationId ? [where('organizationId', '==', organizationId)] : undefined;
+ const options = {
+ logError: true,
+ enabled: shouldFetch && !!organizationId && !demoMode && claimsSynced && enabled,
+ realtime: false
+ };
 
-    const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>('controls', queryConstraints, options);
-    const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>('assets', queryConstraints, options);
-    const { data: rawRisks, loading: loadingRisks } = useFirestoreCollection<Risk>('risks', queryConstraints, options);
-    const { data: rawAudits, loading: loadingAudits } = useFirestoreCollection<Audit>('audits', queryConstraints, options);
+ const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>('controls', queryConstraints, options);
+ const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>('assets', queryConstraints, options);
+ const { data: rawRisks, loading: loadingRisks } = useFirestoreCollection<Risk>('risks', queryConstraints, options);
+ const { data: rawAudits, loading: loadingAudits } = useFirestoreCollection<Audit>('audits', queryConstraints, options);
 
-    const dependencies = {
-        controls: (demoMode && mockData ? mockData.controls : rawControls) || [],
-        assets: (demoMode && mockData ? mockData.assets : rawAssets) || [],
-        risks: (demoMode && mockData ? mockData.risks : rawRisks) || [],
-        audits: (demoMode && mockData ? mockData.audits : rawAudits) || []
-    };
+ const dependencies = {
+ controls: (demoMode && mockData ? mockData.controls : rawControls) || [],
+ assets: (demoMode && mockData ? mockData.assets : rawAssets) || [],
+ risks: (demoMode && mockData ? mockData.risks : rawRisks) || [],
+ audits: (demoMode && mockData ? mockData.audits : rawAudits) || []
+ };
 
-    const loading = shouldFetch && (demoMode ? !mockData : (loadingControls || loadingAssets || loadingRisks || loadingAudits));
+ const loading = shouldFetch && (demoMode ? !mockData : (loadingControls || loadingAssets || loadingRisks || loadingAudits));
 
-    return {
-        dependencies,
-        loading,
-        loadDependencies,
-        hasLoaded: !!mockData || (shouldFetch && !loading)
-    };
+ return {
+ dependencies,
+ loading,
+ loadDependencies,
+ hasLoaded: !!mockData || (shouldFetch && !loading)
+ };
 };

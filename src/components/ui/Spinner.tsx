@@ -2,25 +2,25 @@ import { Loader2 } from './Icons';
 import { cn } from '../../lib/utils';
 
 interface SpinnerProps {
-    className?: string;
-    size?: 'sm' | 'md' | 'lg' | 'xl';
+ className?: string;
+ size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 const sizeClasses = {
-    sm: 'h-4 w-4',
-    md: 'h-6 w-6',
-    lg: 'h-8 w-8',
-    xl: 'h-12 w-12',
+ sm: 'h-4 w-4',
+ md: 'h-6 w-6',
+ lg: 'h-8 w-8',
+ xl: 'h-12 w-12',
 };
 
 export const Spinner = ({ className, size = 'md' }: SpinnerProps) => {
-    return (
-        <Loader2
-            className={cn(
-                "animate-spin text-current",
-                sizeClasses[size],
-                className
-            )}
-        />
-    );
+ return (
+ <Loader2
+ className={cn(
+ "animate-spin text-current",
+ sizeClasses[size],
+ className
+ )}
+ />
+ );
 };

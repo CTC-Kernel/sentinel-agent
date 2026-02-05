@@ -12,14 +12,14 @@ import { useMemo } from 'react';
 import { useVoxelStore } from './index';
 import { useShallow } from 'zustand/react/shallow';
 import type {
-  VoxelNode,
-  VoxelEdge,
-  VoxelAnomaly,
-  VoxelFilters,
-  VoxelUIState,
-  VoxelSyncState,
-  VoxelNodeType,
-  ViewPreset,
+ VoxelNode,
+ VoxelEdge,
+ VoxelAnomaly,
+ VoxelFilters,
+ VoxelUIState,
+ VoxelSyncState,
+ VoxelNodeType,
+ ViewPreset,
 } from '../../types/voxel';
 
 // ============================================================================
@@ -33,7 +33,7 @@ import type {
  * @returns The node or undefined if not found
  */
 export const useVoxelNode = (id: string): VoxelNode | undefined =>
-  useVoxelStore((state) => state.nodes.get(id));
+ useVoxelStore((state) => state.nodes.get(id));
 
 /**
  * Select all nodes as an array.
@@ -42,8 +42,8 @@ export const useVoxelNode = (id: string): VoxelNode | undefined =>
  * @returns Array of all nodes
  */
 export const useVoxelNodes = (): VoxelNode[] => {
-  const nodesMap = useVoxelStore((state) => state.nodes);
-  return useMemo(() => Array.from(nodesMap.values()), [nodesMap]);
+ const nodesMap = useVoxelStore((state) => state.nodes);
+ return useMemo(() => Array.from(nodesMap.values()), [nodesMap]);
 };
 
 /**
@@ -54,41 +54,41 @@ export const useVoxelNodes = (): VoxelNode[] => {
  * @returns Array of filtered nodes
  */
 export const useFilteredNodes = (): VoxelNode[] => {
-  const nodesMap = useVoxelStore((state) => state.nodes);
-  const filters = useVoxelStore(useShallow((state) => state.filters));
+ const nodesMap = useVoxelStore((state) => state.nodes);
+ const filters = useVoxelStore(useShallow((state) => state.filters));
 
-  return useMemo(() => {
-    return Array.from(nodesMap.values()).filter((node) => {
-      // Filter by node type
-      if (!filters.nodeTypes.includes(node.type)) return false;
+ return useMemo(() => {
+ return Array.from(nodesMap.values()).filter((node) => {
+ // Filter by node type
+ if (!filters.nodeTypes.includes(node.type)) return false;
 
-      // Filter by status
-      if (!filters.statuses.includes(node.status)) return false;
+ // Filter by status
+ if (!filters.statuses.includes(node.status)) return false;
 
-      // Filter by search query
-      if (
-        filters.searchQuery &&
-        !node.label.toLowerCase().includes(filters.searchQuery.toLowerCase())
-      ) {
-        return false;
-      }
+ // Filter by search query
+ if (
+ filters.searchQuery &&
+ !node.label.toLowerCase().includes(filters.searchQuery.toLowerCase())
+ ) {
+ return false;
+ }
 
-      // Filter by anomalies only
-      if (filters.showAnomaliesOnly && (!node.anomalyIds || node.anomalyIds.length === 0)) {
-        return false;
-      }
+ // Filter by anomalies only
+ if (filters.showAnomaliesOnly && (!node.anomalyIds || node.anomalyIds.length === 0)) {
+ return false;
+ }
 
-      // Filter by date range
-      if (filters.dateRange) {
-        const nodeDate = new Date(node.createdAt);
-        if (nodeDate < filters.dateRange.start || nodeDate > filters.dateRange.end) {
-          return false;
-        }
-      }
+ // Filter by date range
+ if (filters.dateRange) {
+ const nodeDate = new Date(node.createdAt);
+ if (nodeDate < filters.dateRange.start || nodeDate > filters.dateRange.end) {
+ return false;
+ }
+ }
 
-      return true;
-    });
-  }, [nodesMap, filters]);
+ return true;
+ });
+ }, [nodesMap, filters]);
 };
 
 /**
@@ -97,9 +97,9 @@ export const useFilteredNodes = (): VoxelNode[] => {
  * @returns The selected node or null
  */
 export const useSelectedNode = (): VoxelNode | null =>
-  useVoxelStore((state) =>
-    state.ui.selectedNodeId ? state.nodes.get(state.ui.selectedNodeId) ?? null : null
-  );
+ useVoxelStore((state) =>
+ state.ui.selectedNodeId ? state.nodes.get(state.ui.selectedNodeId) ?? null : null
+ );
 
 /**
  * Select the currently hovered node.
@@ -107,9 +107,9 @@ export const useSelectedNode = (): VoxelNode | null =>
  * @returns The hovered node or null
  */
 export const useHoveredNode = (): VoxelNode | null =>
-  useVoxelStore((state) =>
-    state.ui.hoveredNodeId ? state.nodes.get(state.ui.hoveredNodeId) ?? null : null
-  );
+ useVoxelStore((state) =>
+ state.ui.hoveredNodeId ? state.nodes.get(state.ui.hoveredNodeId) ?? null : null
+ );
 
 /**
  * Select node count grouped by type.
@@ -118,23 +118,23 @@ export const useHoveredNode = (): VoxelNode | null =>
  * @returns Record of node counts by type
  */
 export const useNodeCountByType = (): Record<VoxelNodeType, number> => {
-  const nodesMap = useVoxelStore((state) => state.nodes);
+ const nodesMap = useVoxelStore((state) => state.nodes);
 
-  return useMemo(() => {
-    const counts: Record<VoxelNodeType, number> = {
-      asset: 0,
-      risk: 0,
-      control: 0,
-      incident: 0,
-      supplier: 0,
-      project: 0,
-      audit: 0,
-    };
-    Array.from(nodesMap.values()).forEach((node) => {
-      counts[node.type]++;
-    });
-    return counts;
-  }, [nodesMap]);
+ return useMemo(() => {
+ const counts: Record<VoxelNodeType, number> = {
+ asset: 0,
+ risk: 0,
+ control: 0,
+ incident: 0,
+ supplier: 0,
+ project: 0,
+ audit: 0,
+ };
+ Array.from(nodesMap.values()).forEach((node) => {
+ counts[node.type]++;
+ });
+ return counts;
+ }, [nodesMap]);
 };
 
 // ============================================================================
@@ -148,7 +148,7 @@ export const useNodeCountByType = (): Record<VoxelNodeType, number> => {
  * @returns The edge or undefined if not found
  */
 export const useVoxelEdge = (id: string): VoxelEdge | undefined =>
-  useVoxelStore((state) => state.edges.get(id));
+ useVoxelStore((state) => state.edges.get(id));
 
 /**
  * Select all edges as an array.
@@ -157,8 +157,8 @@ export const useVoxelEdge = (id: string): VoxelEdge | undefined =>
  * @returns Array of all edges
  */
 export const useVoxelEdges = (): VoxelEdge[] => {
-  const edgesMap = useVoxelStore((state) => state.edges);
-  return useMemo(() => Array.from(edgesMap.values()), [edgesMap]);
+ const edgesMap = useVoxelStore((state) => state.edges);
+ return useMemo(() => Array.from(edgesMap.values()), [edgesMap]);
 };
 
 /**
@@ -169,22 +169,22 @@ export const useVoxelEdges = (): VoxelEdge[] => {
  * @returns Array of visible edges
  */
 export const useVisibleEdges = (): VoxelEdge[] => {
-  const nodesMap = useVoxelStore((state) => state.nodes);
-  const edgesMap = useVoxelStore((state) => state.edges);
-  const showEdges = useVoxelStore((state) => state.ui.showEdges);
-  const nodeTypes = useVoxelStore(useShallow((state) => state.filters.nodeTypes));
+ const nodesMap = useVoxelStore((state) => state.nodes);
+ const edgesMap = useVoxelStore((state) => state.edges);
+ const showEdges = useVoxelStore((state) => state.ui.showEdges);
+ const nodeTypes = useVoxelStore(useShallow((state) => state.filters.nodeTypes));
 
-  return useMemo(() => {
-    if (!showEdges) return [];
-    const visibleNodeIds = new Set(
-      Array.from(nodesMap.values())
-        .filter((node) => nodeTypes.includes(node.type))
-        .map((node) => node.id)
-    );
-    return Array.from(edgesMap.values()).filter(
-      (edge) => visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)
-    );
-  }, [nodesMap, edgesMap, showEdges, nodeTypes]);
+ return useMemo(() => {
+ if (!showEdges) return [];
+ const visibleNodeIds = new Set(
+ Array.from(nodesMap.values())
+ .filter((node) => nodeTypes.includes(node.type))
+ .map((node) => node.id)
+ );
+ return Array.from(edgesMap.values()).filter(
+ (edge) => visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)
+ );
+ }, [nodesMap, edgesMap, showEdges, nodeTypes]);
 };
 
 // ============================================================================
@@ -198,7 +198,7 @@ export const useVisibleEdges = (): VoxelEdge[] => {
  * @returns The anomaly or undefined if not found
  */
 export const useVoxelAnomaly = (id: string): VoxelAnomaly | undefined =>
-  useVoxelStore((state) => state.anomalies.get(id));
+ useVoxelStore((state) => state.anomalies.get(id));
 
 /**
  * Select all anomalies as an array.
@@ -207,8 +207,8 @@ export const useVoxelAnomaly = (id: string): VoxelAnomaly | undefined =>
  * @returns Array of all anomalies
  */
 export const useVoxelAnomalies = (): VoxelAnomaly[] => {
-  const anomaliesMap = useVoxelStore((state) => state.anomalies);
-  return useMemo(() => Array.from(anomaliesMap.values()), [anomaliesMap]);
+ const anomaliesMap = useVoxelStore((state) => state.anomalies);
+ return useMemo(() => Array.from(anomaliesMap.values()), [anomaliesMap]);
 };
 
 /**
@@ -218,11 +218,11 @@ export const useVoxelAnomalies = (): VoxelAnomaly[] => {
  * @returns Array of active anomalies
  */
 export const useActiveAnomalies = (): VoxelAnomaly[] => {
-  const anomaliesMap = useVoxelStore((state) => state.anomalies);
-  return useMemo(
-    () => Array.from(anomaliesMap.values()).filter((a) => a.status === 'active'),
-    [anomaliesMap]
-  );
+ const anomaliesMap = useVoxelStore((state) => state.anomalies);
+ return useMemo(
+ () => Array.from(anomaliesMap.values()).filter((a) => a.status === 'active'),
+ [anomaliesMap]
+ );
 };
 
 /**
@@ -233,11 +233,11 @@ export const useActiveAnomalies = (): VoxelAnomaly[] => {
  * @returns Array of anomalies for the node
  */
 export const useNodeAnomalies = (nodeId: string): VoxelAnomaly[] => {
-  const anomaliesMap = useVoxelStore((state) => state.anomalies);
-  return useMemo(
-    () => Array.from(anomaliesMap.values()).filter((a) => a.nodeId === nodeId),
-    [anomaliesMap, nodeId]
-  );
+ const anomaliesMap = useVoxelStore((state) => state.anomalies);
+ return useMemo(
+ () => Array.from(anomaliesMap.values()).filter((a) => a.nodeId === nodeId),
+ [anomaliesMap, nodeId]
+ );
 };
 
 /**
@@ -248,22 +248,22 @@ export const useNodeAnomalies = (nodeId: string): VoxelAnomaly[] => {
  * @returns Record of anomaly counts by severity
  */
 export const useAnomalyCountBySeverity = (): Record<VoxelAnomaly['severity'], number> => {
-  const anomaliesMap = useVoxelStore((state) => state.anomalies);
+ const anomaliesMap = useVoxelStore((state) => state.anomalies);
 
-  return useMemo(() => {
-    const counts: Record<VoxelAnomaly['severity'], number> = {
-      low: 0,
-      medium: 0,
-      high: 0,
-      critical: 0,
-    };
-    Array.from(anomaliesMap.values()).forEach((anomaly) => {
-      if (anomaly.status === 'active') {
-        counts[anomaly.severity]++;
-      }
-    });
-    return counts;
-  }, [anomaliesMap]);
+ return useMemo(() => {
+ const counts: Record<VoxelAnomaly['severity'], number> = {
+ low: 0,
+ medium: 0,
+ high: 0,
+ critical: 0,
+ };
+ Array.from(anomaliesMap.values()).forEach((anomaly) => {
+ if (anomaly.status === 'active') {
+ counts[anomaly.severity]++;
+ }
+ });
+ return counts;
+ }, [anomaliesMap]);
 };
 
 // ============================================================================
@@ -277,7 +277,7 @@ export const useAnomalyCountBySeverity = (): Record<VoxelAnomaly['severity'], nu
  * @returns Current filters
  */
 export const useVoxelFilters = (): VoxelFilters =>
-  useVoxelStore(useShallow((state) => state.filters));
+ useVoxelStore(useShallow((state) => state.filters));
 
 // ============================================================================
 // UI Selectors
@@ -290,7 +290,7 @@ export const useVoxelFilters = (): VoxelFilters =>
  * @returns Current UI state
  */
 export const useVoxelUI = (): VoxelUIState =>
-  useVoxelStore(useShallow((state) => state.ui));
+ useVoxelStore(useShallow((state) => state.ui));
 
 // ============================================================================
 // Sync Selectors
@@ -303,7 +303,7 @@ export const useVoxelUI = (): VoxelUIState =>
  * @returns Current sync state
  */
 export const useVoxelSync = (): VoxelSyncState =>
-  useVoxelStore(useShallow((state) => state.sync));
+ useVoxelStore(useShallow((state) => state.sync));
 
 // ============================================================================
 // Preset Selectors
@@ -315,4 +315,4 @@ export const useVoxelSync = (): VoxelSyncState =>
  * @returns Current preset key
  */
 export const useCurrentPreset = (): ViewPreset =>
-  useVoxelStore((state) => state.currentPreset);
+ useVoxelStore((state) => state.currentPreset);

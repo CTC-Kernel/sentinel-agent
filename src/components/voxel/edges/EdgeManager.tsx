@@ -23,18 +23,18 @@ import { VoxelEdge } from './VoxelEdge';
 // ============================================================================
 
 export interface EdgeManagerProps {
-  /** Optional edge type filter */
-  filterByType?: VoxelEdgeType['type'][];
-  /** Custom onClick handler for edges */
-  onEdgeClick?: (edge: VoxelEdgeType) => void;
-  /** Custom onHover handler for edges */
-  onEdgeHover?: (edge: VoxelEdgeType | null) => void;
-  /** Disable all edge interactions */
-  disabled?: boolean;
-  /** Minimum weight threshold to show edge */
-  minWeight?: number;
-  /** Show edges for specific node only */
-  forNodeId?: string;
+ /** Optional edge type filter */
+ filterByType?: VoxelEdgeType['type'][];
+ /** Custom onClick handler for edges */
+ onEdgeClick?: (edge: VoxelEdgeType) => void;
+ /** Custom onHover handler for edges */
+ onEdgeHover?: (edge: VoxelEdgeType | null) => void;
+ /** Disable all edge interactions */
+ disabled?: boolean;
+ /** Minimum weight threshold to show edge */
+ minWeight?: number;
+ /** Show edges for specific node only */
+ forNodeId?: string;
 }
 
 // ============================================================================
@@ -45,20 +45,20 @@ export interface EdgeManagerProps {
  * Get node position as tuple
  */
 function getNodePosition(node: VoxelNode): [number, number, number] {
-  return [node.position.x, node.position.y, node.position.z];
+ return [node.position.x, node.position.y, node.position.z];
 }
 
 /**
  * Create a map of node IDs to positions for fast lookup
  */
 function createNodePositionMap(
-  nodes: VoxelNode[]
+ nodes: VoxelNode[]
 ): Map<string, [number, number, number]> {
-  const map = new Map<string, [number, number, number]>();
-  for (const node of nodes) {
-    map.set(node.id, getNodePosition(node));
-  }
-  return map;
+ const map = new Map<string, [number, number, number]>();
+ for (const node of nodes) {
+ map.set(node.id, getNodePosition(node));
+ }
+ return map;
 }
 
 // ============================================================================
@@ -66,87 +66,87 @@ function createNodePositionMap(
 // ============================================================================
 
 export const EdgeManager: React.FC<EdgeManagerProps> = ({
-  filterByType,
-  onEdgeClick,
-  onEdgeHover,
-  disabled = false,
-  minWeight = 0,
-  forNodeId,
+ filterByType,
+ onEdgeClick,
+ onEdgeHover,
+ disabled = false,
+ minWeight = 0,
+ forNodeId,
 }) => {
-  // Get edges and nodes from store using selectors (returns arrays)
-  const edges = useVoxelEdges();
-  const nodes = useVoxelNodes();
-  const selectedNodeId = useVoxelStore((state) => state.ui.selectedNodeId);
+ // Get edges and nodes from store using selectors (returns arrays)
+ const edges = useVoxelEdges();
+ const nodes = useVoxelNodes();
+ const selectedNodeId = useVoxelStore((state) => state.ui.selectedNodeId);
 
-  // Create position lookup map
-  const nodePositions = useMemo(() => {
-    return createNodePositionMap(nodes);
-  }, [nodes]);
+ // Create position lookup map
+ const nodePositions = useMemo(() => {
+ return createNodePositionMap(nodes);
+ }, [nodes]);
 
-  // Filter and process edges
-  const visibleEdges = useMemo(() => {
-    let filtered = edges;
+ // Filter and process edges
+ const visibleEdges = useMemo(() => {
+ let filtered = edges;
 
-    // Filter by type
-    if (filterByType && filterByType.length > 0) {
-      filtered = filtered.filter((edge) => filterByType.includes(edge.type));
-    }
+ // Filter by type
+ if (filterByType && filterByType.length > 0) {
+ filtered = filtered.filter((edge) => filterByType.includes(edge.type));
+ }
 
-    // Filter by minimum weight
-    if (minWeight > 0) {
-      filtered = filtered.filter((edge) => edge.weight >= minWeight);
-    }
+ // Filter by minimum weight
+ if (minWeight > 0) {
+ filtered = filtered.filter((edge) => edge.weight >= minWeight);
+ }
 
-    // Filter for specific node
-    if (forNodeId) {
-      filtered = filtered.filter(
-        (edge) => edge.source === forNodeId || edge.target === forNodeId
-      );
-    }
+ // Filter for specific node
+ if (forNodeId) {
+ filtered = filtered.filter(
+ (edge) => edge.source === forNodeId || edge.target === forNodeId
+ );
+ }
 
-    // Only include edges where both nodes exist
-    return filtered.filter((edge) => {
-      return nodePositions.has(edge.source) && nodePositions.has(edge.target);
-    });
-  }, [edges, filterByType, minWeight, forNodeId, nodePositions]);
+ // Only include edges where both nodes exist
+ return filtered.filter((edge) => {
+ return nodePositions.has(edge.source) && nodePositions.has(edge.target);
+ });
+ }, [edges, filterByType, minWeight, forNodeId, nodePositions]);
 
-  // Check if edge is connected to selected node
-  const isEdgeHighlighted = useMemo(() => {
-    if (!selectedNodeId) return new Set<string>();
+ // Check if edge is connected to selected node
+ const isEdgeHighlighted = useMemo(() => {
+ if (!selectedNodeId) return new Set<string>();
 
-    const highlighted = new Set<string>();
-    for (const edge of visibleEdges) {
-      if (edge.source === selectedNodeId || edge.target === selectedNodeId) {
-        highlighted.add(edge.id);
-      }
-    }
-    return highlighted;
-  }, [selectedNodeId, visibleEdges]);
+ const highlighted = new Set<string>();
+ for (const edge of visibleEdges) {
+ if (edge.source === selectedNodeId || edge.target === selectedNodeId) {
+ highlighted.add(edge.id);
+ }
+ }
+ return highlighted;
+ }, [selectedNodeId, visibleEdges]);
 
-  return (
-    <group name="edge-manager">
-      {visibleEdges.map((edge) => {
-        const sourcePos = nodePositions.get(edge.source);
-        const targetPos = nodePositions.get(edge.target);
+ return (
+ <group name="edge-manager">
+ {visibleEdges.map((edge) => {
+ const sourcePos = nodePositions.get(edge.source);
+ const targetPos = nodePositions.get(edge.target);
 
-        // Should never happen due to filtering, but TypeScript needs this
-        if (!sourcePos || !targetPos) return null;
+ // Should never happen due to filtering, but TypeScript needs this
+ if (!sourcePos || !targetPos) return null;
 
-        return (
-          <VoxelEdge
-            key={edge.id || 'unknown'}
-            data={edge}
-            sourcePosition={sourcePos}
-            targetPosition={targetPos}
-            disabled={disabled}
-            onClick={onEdgeClick}
-            onHover={onEdgeHover}
-            forceHighlight={isEdgeHighlighted.has(edge.id)}
-          />
-        );
-      })}
-    </group>
-  );
+ return (
+ <VoxelEdge
+ key={edge.id || 'unknown'}
+ data={edge}
+ sourcePosition={sourcePos}
+ targetPosition={targetPos}
+ disabled={disabled}
+ onClick={onEdgeClick}
+ onHover={onEdgeHover}
+ forceHighlight={isEdgeHighlighted.has(edge.id)}
+ />
+ );
+ })}
+ </group>
+ );
 };
 
 export default EdgeManager;

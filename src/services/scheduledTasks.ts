@@ -16,5 +16,5 @@ import { NotificationService } from '../services/notificationService';
  * Manual trigger for notification checks (for testing)
  */
 export const triggerNotificationChecks = async (organizationId: string) => {
-    await NotificationService.runAutomatedChecks(organizationId);
+ await NotificationService.runAutomatedChecks(organizationId);
 };

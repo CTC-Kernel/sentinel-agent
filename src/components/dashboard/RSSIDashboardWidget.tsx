@@ -12,50 +12,51 @@ import { RSSICriticalRisksWidget } from './RSSICriticalRisksWidget';
 import { RSSIIncidentsWidget } from './RSSIIncidentsWidget';
 import { RSSIActionsWidget } from './RSSIActionsWidget';
 import { AlertCircle } from '../ui/Icons';
+import { useLocale } from '../../hooks/useLocale';
 
 /**
  * Props for RSSIDashboardWidget
  */
 export interface RSSIDashboardWidgetProps {
-  /** Organization/tenant ID */
-  organizationId: string;
-  /** Current user for role checking and action filtering */
-  user?: UserWithRole | null;
-  /** Widget size variant */
-  size?: 'sm' | 'md' | 'lg';
-  /** Additional CSS classes */
-  className?: string;
-  /** Handler when clicking a risk item */
-  onRiskClick?: (riskId: string) => void;
-  /** Handler when clicking an incident item */
-  onIncidentClick?: (incidentId: string) => void;
-  /** Handler when clicking an action item */
-  onActionClick?: (actionId: string) => void;
-  /** Handler when clicking "Voir tous les risques" */
-  onViewAllRisksClick?: () => void;
-  /** Handler when clicking "Voir tous les incidents" */
-  onViewAllIncidentsClick?: () => void;
-  /** Handler when clicking "Voir toutes les actions" */
-  onViewAllActionsClick?: () => void;
-  /** Whether to skip role check (for admin override) */
-  skipRoleCheck?: boolean;
+	/** Organization/tenant ID */
+	organizationId: string;
+	/** Current user for role checking and action filtering */
+	user?: UserWithRole | null;
+	/** Widget size variant */
+	size?: 'sm' | 'md' | 'lg';
+	/** Additional CSS classes */
+	className?: string;
+	/** Handler when clicking a risk item */
+	onRiskClick?: (riskId: string) => void;
+	/** Handler when clicking an incident item */
+	onIncidentClick?: (incidentId: string) => void;
+	/** Handler when clicking an action item */
+	onActionClick?: (actionId: string) => void;
+	/** Handler when clicking "Voir tous les risques" */
+	onViewAllRisksClick?: () => void;
+	/** Handler when clicking "Voir tous les incidents" */
+	onViewAllIncidentsClick?: () => void;
+	/** Handler when clicking "Voir toutes les actions" */
+	onViewAllActionsClick?: () => void;
+	/** Whether to skip role check (for admin override) */
+	skipRoleCheck?: boolean;
 }
 
 /**
  * Not Authorized State
  */
-function NotAuthorizedState() {
-  return (
-    <div className="rounded-xl border bg-card p-6">
-      <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-        <AlertCircle className="w-8 h-8 mb-2 text-warning" aria-hidden="true" />
-        <p className="text-sm font-medium">Accès non autorisé</p>
-        <p className="text-xs mt-1">
-          Cette vue est réservée aux responsables sécurité (RSSI)
-        </p>
-      </div>
-    </div>
-  );
+function NotAuthorizedState({ t }: { t: (key: string, options?: Record<string, unknown>) => string }) {
+	return (
+		<div className="rounded-xl border bg-card p-6">
+			<div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+				<AlertCircle className="w-8 h-8 mb-2 text-warning" aria-hidden="true" />
+				<p className="text-sm font-medium">{t('dashboard.accessNotAuthorized', { defaultValue: 'Accès non autorisé' })}</p>
+				<p className="text-xs mt-1">
+					{t('dashboard.rssiViewRestricted', { defaultValue: 'Cette vue est réservée aux responsables sécurité (RSSI)' })}
+				</p>
+			</div>
+		</div>
+	);
 }
 
 /**
@@ -78,71 +79,73 @@ function NotAuthorizedState() {
  * ```
  */
 export function RSSIDashboardWidget({
-  organizationId,
-  user,
-  size = 'md',
-  className,
-  onRiskClick,
-  onIncidentClick,
-  onActionClick,
-  onViewAllRisksClick,
-  onViewAllIncidentsClick,
-  onViewAllActionsClick,
-  skipRoleCheck = false,
+	organizationId,
+	user,
+	size = 'md',
+	className,
+	onRiskClick,
+	onIncidentClick,
+	onActionClick,
+	onViewAllRisksClick,
+	onViewAllIncidentsClick,
+	onViewAllActionsClick,
+	skipRoleCheck = false,
 }: RSSIDashboardWidgetProps) {
-  // Role check
-  if (!skipRoleCheck && !canViewRSSIDashboard(user)) {
-    return <NotAuthorizedState />;
-  }
+	const { t } = useLocale();
 
-  return (
-    <div
-      className={cn('w-full', className)}
-      role="region"
-      aria-label="Tableau de bord RSSI"
-    >
-      {/* Dashboard Title */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-foreground">
-          Vue Sécurité (RSSI)
-        </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Risques critiques, incidents actifs et actions en cours
-        </p>
-      </div>
+	// Role check
+	if (!skipRoleCheck && !canViewRSSIDashboard(user)) {
+		return <NotAuthorizedState t={t} />;
+	}
 
-      {/* Widget Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Critical Risks Widget */}
-        <RSSICriticalRisksWidget
-          organizationId={organizationId}
-          size={size}
-          onRiskClick={onRiskClick}
-          onViewAllClick={onViewAllRisksClick}
-          maxItems={5}
-        />
+	return (
+		<div
+			className={cn('w-full', className)}
+			role="region"
+			aria-label={t('dashboard.rssiDashboard', { defaultValue: 'Tableau de bord RSSI' })}
+		>
+			{/* Dashboard Title */}
+			<div className="mb-6">
+				<h2 className="text-xl font-semibold text-foreground">
+					{t('dashboard.rssiSecurityView', { defaultValue: 'Vue Sécurité (RSSI)' })}
+				</h2>
+				<p className="text-sm text-muted-foreground mt-1">
+					{t('dashboard.rssiDescription', { defaultValue: 'Risques critiques, incidents actifs et actions en cours' })}
+				</p>
+			</div>
 
-        {/* Active Incidents Widget */}
-        <RSSIIncidentsWidget
-          organizationId={organizationId}
-          size={size}
-          onIncidentClick={onIncidentClick}
-          onViewAllClick={onViewAllIncidentsClick}
-          maxItems={5}
-        />
+			{/* Widget Grid */}
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+				{/* Critical Risks Widget */}
+				<RSSICriticalRisksWidget
+					organizationId={organizationId}
+					size={size}
+					onRiskClick={onRiskClick}
+					onViewAllClick={onViewAllRisksClick}
+					maxItems={5}
+				/>
 
-        {/* Assigned Actions Widget */}
-        <RSSIActionsWidget
-          organizationId={organizationId}
-          userId={user?.id}
-          size={size}
-          onActionClick={onActionClick}
-          onViewAllClick={onViewAllActionsClick}
-          maxItems={5}
-        />
-      </div>
-    </div>
-  );
+				{/* Active Incidents Widget */}
+				<RSSIIncidentsWidget
+					organizationId={organizationId}
+					size={size}
+					onIncidentClick={onIncidentClick}
+					onViewAllClick={onViewAllIncidentsClick}
+					maxItems={5}
+				/>
+
+				{/* Assigned Actions Widget */}
+				<RSSIActionsWidget
+					organizationId={organizationId}
+					userId={user?.id}
+					size={size}
+					onActionClick={onActionClick}
+					onViewAllClick={onViewAllActionsClick}
+					maxItems={5}
+				/>
+			</div>
+		</div>
+	);
 }
 
 export default RSSIDashboardWidget;

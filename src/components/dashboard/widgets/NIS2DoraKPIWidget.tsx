@@ -4,131 +4,131 @@ import { Incident, Supplier } from '../../../types';
 import { motion } from 'framer-motion';
 
 interface Props {
-    incidents?: Incident[];
-    suppliers?: Supplier[];
+ incidents?: Incident[];
+ suppliers?: Supplier[];
 }
 
 export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers = [] }) => {
 
-    // NIS2 Metrics
-    const nis2Metrics = useMemo(() => {
-        const significant = incidents.filter(i => i.isSignificant);
-        const total = significant.length;
-        const reported = significant.filter(i => i.notificationStatus === 'Reported').length;
-        const pending = significant.filter(i => i.notificationStatus === 'Pending').length;
-        const complianceRate = total > 0 ? Math.round((reported / total) * 100) : 0;
+ // NIS2 Metrics
+ const nis2Metrics = useMemo(() => {
+ const significant = incidents.filter(i => i.isSignificant);
+ const total = significant.length;
+ const reported = significant.filter(i => i.notificationStatus === 'Reported').length;
+ const pending = significant.filter(i => i.notificationStatus === 'Pending').length;
+ const complianceRate = total > 0 ? Math.round((reported / total) * 100) : 0;
 
-        return { total, reported, pending, complianceRate };
-    }, [incidents]);
+ return { total, reported, pending, complianceRate };
+ }, [incidents]);
 
-    // DORA Metrics
-    const doraMetrics = useMemo(() => {
-        const ictProviders = suppliers.filter(s => s.isICTProvider);
-        const critical = ictProviders.filter(s => s.doraCriticality === 'Critique');
-        const totalICT = ictProviders.length;
+ // DORA Metrics
+ const doraMetrics = useMemo(() => {
+ const ictProviders = suppliers.filter(s => s.isICTProvider);
+ const critical = ictProviders.filter(s => s.doraCriticality === 'Critique');
+ const totalICT = ictProviders.length;
 
-        // Avg Score of Critical ICT Providers
-        const avgScore = critical.length > 0
-            ? Math.round(critical.reduce((acc, s) => acc + (s.securityScore || 0), 0) / critical.length)
-            : null;
+ // Avg Score of Critical ICT Providers
+ const avgScore = critical.length > 0
+ ? Math.round(critical.reduce((acc, s) => acc + (s.securityScore || 0), 0) / critical.length)
+ : null;
 
-        return { totalICT, criticalCount: critical.length, avgScore };
-    }, [suppliers]);
+ return { totalICT, criticalCount: critical.length, avgScore };
+ }, [suppliers]);
 
-    return (
-        <div className="glass-premium p-4 sm:p-6 rounded-4xl h-full flex flex-col relative overflow-hidden group hover:shadow-lg transition-all duration-300 border border-border/40">
-            <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-30 transition-opacity">
-                <Shield className="w-24 h-24 text-brand-500" />
-            </div>
+ return (
+ <div className="glass-premium p-4 sm:p-6 rounded-4xl h-full flex flex-col relative overflow-hidden group hover:shadow-lg transition-all duration-300 border border-border/40">
+ <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-30 transition-opacity">
+ <Shield className="w-24 h-24 text-primary" />
+ </div>
 
-            <div className="flex items-center gap-3 mb-6 relative z-10">
-                <div className="p-3 rounded-3xl bg-brand-50 dark:bg-brand-800 text-brand-600 dark:text-brand-400">
-                    <Shield className="w-6 h-6" />
-                </div>
-                <div>
-                    <h3 className="font-bold text-lg text-slate-900 dark:text-white">Conformité NIS2 & DORA</h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">Indicateurs clés de régulation</p>
-                </div>
-            </div>
+ <div className="flex items-center gap-3 mb-6 relative z-10">
+ <div className="p-3 rounded-3xl bg-primary/10 dark:bg-primary text-primary">
+  <Shield className="w-6 h-6" />
+ </div>
+ <div>
+  <h3 className="font-bold text-lg text-foreground">Conformité NIS2 & DORA</h3>
+  <p className="text-xs text-muted-foreground font-medium">Indicateurs clés de régulation</p>
+ </div>
+ </div>
 
-            <div className="grid grid-cols-2 gap-4 flex-1">
-                {/* NIS 2 Section */}
-                <div className="bg-white/50 dark:bg-white/5 rounded-3xl p-4 border border-brand-100 dark:border-brand-100 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-brand-500"></div>
-                    <div className="flex justify-between items-start mb-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">NIS 2</span>
-                        <AlertTriangle className="w-4 h-4 text-brand-400" />
-                    </div>
+ <div className="grid grid-cols-2 gap-4 flex-1">
+ {/* NIS 2 Section */}
+ <div className="bg-white/50 dark:bg-white/5 rounded-3xl p-4 border border-primary/20 dark:border-primary/20 relative overflow-hidden">
+  <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+  <div className="flex justify-between items-start mb-2">
+  <span className="text-xs font-bold uppercase tracking-wider text-primary">NIS 2</span>
+  <AlertTriangle className="w-4 h-4 text-primary/70" />
+  </div>
 
-                    <div className="space-y-3">
-                        <div>
-                            <span className="text-2xl font-black text-slate-900 dark:text-white">{nis2Metrics.total}</span>
-                            <span className="text-xs text-slate-600 dark:text-slate-300 ml-1">Incidents Significatifs</span>
-                        </div>
+  <div className="space-y-3">
+  <div>
+  <span className="text-2xl font-black text-foreground">{nis2Metrics.total}</span>
+  <span className="text-xs text-muted-foreground ml-1">Incidents Significatifs</span>
+  </div>
 
-                        <div className="space-y-1">
-                            <div className="flex justify-between text-xs">
-                                <span className="text-slate-600 dark:text-muted-foreground">Taux de Notification</span>
-                                <span className="font-bold text-slate-900 dark:text-white">{nis2Metrics.complianceRate}%</span>
-                            </div>
-                            <div className="h-1.5 w-full bg-brand-100 dark:bg-brand-900 rounded-full overflow-hidden">
-                                <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${nis2Metrics.complianceRate}%` }}
-                                    className={`h-full rounded-full ${nis2Metrics.complianceRate < 80 ? 'bg-destructive' : 'bg-brand-500'}`}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
+  <div className="space-y-1">
+  <div className="flex justify-between text-xs">
+  <span className="text-muted-foreground">Taux de Notification</span>
+  <span className="font-bold text-foreground">{nis2Metrics.complianceRate}%</span>
+  </div>
+  <div className="h-1.5 w-full bg-primary/15 dark:bg-primary rounded-full overflow-hidden">
+  <motion.div
+   initial={{ width: 0 }}
+   animate={{ width: `${nis2Metrics.complianceRate}%` }}
+   className={`h-full rounded-full ${nis2Metrics.complianceRate < 80 ? 'bg-destructive' : 'bg-primary'}`}
+  />
+  </div>
+  </div>
+  </div>
+ </div>
 
-                {/* DORA Section */}
-                <div className="bg-white/50 dark:bg-white/5 rounded-3xl p-4 border border-success-border dark:border-success/10 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-success"></div>
-                    <div className="flex justify-between items-start mb-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-success-text dark:text-success">DORA</span>
-                        <Server className="w-4 h-4 text-success" />
-                    </div>
+ {/* DORA Section */}
+ <div className="bg-white/50 dark:bg-white/5 rounded-3xl p-4 border border-success-border dark:border-success/10 relative overflow-hidden">
+  <div className="absolute top-0 left-0 w-1 h-full bg-success"></div>
+  <div className="flex justify-between items-start mb-2">
+  <span className="text-xs font-bold uppercase tracking-wider text-success-text dark:text-success">DORA</span>
+  <Server className="w-4 h-4 text-success" />
+  </div>
 
-                    <div className="space-y-3">
-                        <div>
-                            <span className="text-2xl font-black text-slate-900 dark:text-white">{doraMetrics.criticalCount}</span>
-                            <span className="text-xs text-slate-600 dark:text-slate-300 ml-1">Fournisseurs Critiques</span>
-                        </div>
+  <div className="space-y-3">
+  <div>
+  <span className="text-2xl font-black text-foreground">{doraMetrics.criticalCount}</span>
+  <span className="text-xs text-muted-foreground ml-1">Fournisseurs Critiques</span>
+  </div>
 
-                        <div className="space-y-1">
-                            <div className="flex justify-between text-xs">
-                                <span className="text-slate-600 dark:text-muted-foreground">Score de Sécurité Avg</span>
-                                <span className="font-bold text-slate-900 dark:text-white">{doraMetrics.avgScore !== null ? `${doraMetrics.avgScore}/100` : '-'}</span>
-                            </div>
-                            <div className="h-1.5 w-full bg-success-bg dark:bg-success/20 rounded-full overflow-hidden">
-                                <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${doraMetrics.avgScore ?? 0}%` }}
-                                    className={`h-full rounded-full ${(doraMetrics.avgScore ?? 0) < 50 ? 'bg-warning' : 'bg-success'}`}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <div className="space-y-1">
+  <div className="flex justify-between text-xs">
+  <span className="text-muted-foreground">Score de Sécurité Avg</span>
+  <span className="font-bold text-foreground">{doraMetrics.avgScore !== null ? `${doraMetrics.avgScore}/100` : '-'}</span>
+  </div>
+  <div className="h-1.5 w-full bg-success-bg dark:bg-success/20 rounded-full overflow-hidden">
+  <motion.div
+   initial={{ width: 0 }}
+   animate={{ width: `${doraMetrics.avgScore ?? 0}%` }}
+   className={`h-full rounded-full ${(doraMetrics.avgScore ?? 0) < 50 ? 'bg-warning' : 'bg-success'}`}
+  />
+  </div>
+  </div>
+  </div>
+ </div>
+ </div>
 
-            <div className="mt-4 pt-4 border-t border-border/40 dark:border-white/5 flex justify-between items-center">
-                <div className="flex -space-x-2">
-                </div>
-                {nis2Metrics.pending > 0 && (
-                    <div className="flex items-center gap-1 text-xs font-bold text-warning-text dark:text-warning bg-warning-bg dark:bg-warning/10 px-2 py-1 rounded-lg animate-pulse">
-                        <AlertTriangle className="w-3 h-3" />
-                        <span>{nis2Metrics.pending} En attente</span>
-                    </div>
-                )}
-                {nis2Metrics.pending === 0 && (
-                    <div className="flex items-center gap-1 text-xs font-bold text-success-text dark:text-success bg-success-bg dark:bg-success/10 px-2 py-1 rounded-lg">
-                        <CheckCircle className="w-3 h-3" />
-                        <span>Tout notifié</span>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
+ <div className="mt-4 pt-4 border-t border-border/40 dark:border-white/5 flex justify-between items-center">
+ <div className="flex -space-x-2">
+ </div>
+ {nis2Metrics.pending > 0 && (
+  <div className="flex items-center gap-1 text-xs font-bold text-warning-text dark:text-warning bg-warning-bg dark:bg-warning/10 px-2 py-1 rounded-lg animate-pulse">
+  <AlertTriangle className="w-3 h-3" />
+  <span>{nis2Metrics.pending} En attente</span>
+  </div>
+ )}
+ {nis2Metrics.pending === 0 && (
+  <div className="flex items-center gap-1 text-xs font-bold text-success-text dark:text-success bg-success-bg dark:bg-success/10 px-2 py-1 rounded-lg">
+  <CheckCircle className="w-3 h-3" />
+  <span>Tout notifié</span>
+  </div>
+ )}
+ </div>
+ </div>
+ );
 };

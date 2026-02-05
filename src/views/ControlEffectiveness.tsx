@@ -20,120 +20,120 @@ import { ISO_SEED_CONTROLS } from '../data/complianceData';
 import { useStore } from '../store';
 
 export const ControlEffectivenessView: React.FC = () => {
-  const { t } = useStore();
-  const [activeTab, setActiveTab] = usePersistedState<string>('control-effectiveness-active-tab', 'overview');
-  const [showAssessmentForm, setShowAssessmentForm] = useState(false);
-  const [selectedControl, setSelectedControl] = useState<{ code: string; name: string } | null>(null);
+ const { t } = useStore();
+ const [activeTab, setActiveTab] = usePersistedState<string>('control-effectiveness-active-tab', 'overview');
+ const [showAssessmentForm, setShowAssessmentForm] = useState(false);
+ const [selectedControl, setSelectedControl] = useState<{ code: string; name: string } | null>(null);
 
-  const {
-    assessments,
-    domainScores,
-    loading,
-    error,
-    createAssessment
-  } = useControlEffectiveness();
+ const {
+ assessments,
+ domainScores,
+ loading,
+ error,
+ createAssessment
+ } = useControlEffectiveness();
 
-  const handleOpenAssessment = (control?: { code: string; name: string }) => {
-    setSelectedControl(control || null);
-    setShowAssessmentForm(true);
-  };
+ const handleOpenAssessment = (control?: { code: string; name: string }) => {
+ setSelectedControl(control || null);
+ setShowAssessmentForm(true);
+ };
 
-  const handleAssessmentSubmit = async (data: { controlId: string; controlCode: string; effectivenessScore: number; assessmentMethod: string; }) => {
-    await createAssessment(data);
-    setShowAssessmentForm(false);
-    setSelectedControl(null);
-  };
+ const handleAssessmentSubmit = async (data: { controlId: string; controlCode: string; effectivenessScore: number; assessmentMethod: string; }) => {
+ await createAssessment(data);
+ setShowAssessmentForm(false);
+ setSelectedControl(null);
+ };
 
-  const tabs = [
-    { id: 'overview', label: t('controls.overview'), icon: LayoutDashboard },
-    { id: 'controls', label: t('controls.iso27002Controls'), icon: List, count: ISO_SEED_CONTROLS.length }
-  ];
+ const tabs = [
+ { id: 'overview', label: t('controls.overview'), icon: LayoutDashboard },
+ { id: 'controls', label: t('controls.iso27002Controls'), icon: List, count: ISO_SEED_CONTROLS.length }
+ ];
 
-  return (
-    <motion.div
-      variants={staggerContainerVariants}
-      initial="hidden"
-      animate="visible"
-      className="flex flex-col gap-6"
-    >
-      <MasterpieceBackground />
-      <SEO title={t('controls.effectivenessTitle')} description={t('controls.effectivenessDescription')} />
+ return (
+ <motion.div
+ variants={staggerContainerVariants}
+ initial="hidden"
+ animate="visible"
+ className="flex flex-col gap-6"
+ >
+ <MasterpieceBackground />
+ <SEO title={t('controls.effectivenessTitle')} description={t('controls.effectivenessDescription')} />
 
-      <div className="flex flex-col gap-8">
-        <motion.div variants={slideUpVariants}>
-          <PageHeader
-            title={t('controls.effectivenessTitle')}
-            subtitle={t('controls.effectivenessDescription')}
-            icon={
-              <img
-                src="/images/gouvernance.png" // Using Gouvernance as it fits controls/compliance
-                alt="GOUVERNANCE"
-                className="w-full h-full object-contain"
-              />
-            }
-            trustType="integrity"
-          />
-        </motion.div>
+ <div className="flex flex-col gap-8">
+ <motion.div variants={slideUpVariants}>
+ <PageHeader
+ title={t('controls.effectivenessTitle')}
+ subtitle={t('controls.effectivenessDescription')}
+ icon={
+ <img
+ src="/images/gouvernance.png" // Using Gouvernance as it fits controls/compliance
+ alt="GOUVERNANCE"
+ className="w-full h-full object-contain"
+ />
+ }
+ trustType="integrity"
+ />
+ </motion.div>
 
-        {/* Tabs */}
-        <motion.div variants={slideUpVariants}>
-          <ScrollableTabs
-            tabs={tabs}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            className="mb-6"
-          />
-        </motion.div>
+ {/* Tabs */}
+ <motion.div variants={slideUpVariants}>
+ <ScrollableTabs
+ tabs={tabs}
+ activeTab={activeTab}
+ onTabChange={setActiveTab}
+ className="mb-6"
+ />
+ </motion.div>
 
-        <AnimatePresence mode="wait">
-          {activeTab === 'overview' ? (
-            <motion.div
-              key="overview"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ControlEffectivenessDashboard
-                onAssessClick={() => handleOpenAssessment(undefined)}
-              />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="controls"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ControlEffectivenessManager
-                assessments={assessments}
-                domainScores={domainScores}
-                loading={loading}
-                error={error}
-                onAssessControl={handleOpenAssessment}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+ <AnimatePresence mode="wait">
+ {activeTab === 'overview' ? (
+ <motion.div
+ key="overview"
+ initial={{ opacity: 0, y: 10 }}
+ animate={{ opacity: 1, y: 0 }}
+ exit={{ opacity: 0, y: -10 }}
+ transition={{ duration: 0.2 }}
+ >
+ <ControlEffectivenessDashboard
+ onAssessClick={() => handleOpenAssessment(undefined)}
+ />
+ </motion.div>
+ ) : (
+ <motion.div
+ key="controls"
+ initial={{ opacity: 0, y: 10 }}
+ animate={{ opacity: 1, y: 0 }}
+ exit={{ opacity: 0, y: -10 }}
+ transition={{ duration: 0.2 }}
+ >
+ <ControlEffectivenessManager
+ assessments={assessments}
+ domainScores={domainScores}
+ loading={loading}
+ error={error}
+ onAssessControl={handleOpenAssessment}
+ />
+ </motion.div>
+ )}
+ </AnimatePresence>
+ </div>
 
-      {/* Assessment Modal */}
-      <AnimatePresence>
-        {showAssessmentForm && (
-          <AssessmentFormModal
-            control={selectedControl}
-            controls={ISO_SEED_CONTROLS}
-            onClose={() => {
-              setShowAssessmentForm(false);
-              setSelectedControl(null);
-            }}
-            onSubmit={handleAssessmentSubmit}
-          />
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
+ {/* Assessment Modal */}
+ <AnimatePresence>
+ {showAssessmentForm && (
+ <AssessmentFormModal
+ control={selectedControl}
+ controls={ISO_SEED_CONTROLS}
+ onClose={() => {
+ setShowAssessmentForm(false);
+ setSelectedControl(null);
+ }}
+ onSubmit={handleAssessmentSubmit}
+ />
+ )}
+ </AnimatePresence>
+ </motion.div>
+ );
 };
 
 export default ControlEffectivenessView;

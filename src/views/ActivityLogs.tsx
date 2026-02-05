@@ -13,119 +13,119 @@ import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { CustomSelect } from '../components/ui/CustomSelect';
 
 export const ActivityLogs: React.FC = () => {
-    const { t } = useStore();
-    const { logs, loading, hasMore, loadMore, refresh, filter, setFilter, stats, exportLogs } = useActivityLogs();
+ const { t } = useStore();
+ const { logs, loading, hasMore, loadMore, refresh, filter, setFilter, stats, exportLogs } = useActivityLogs();
 
-    return (
-        <div className="relative min-h-screen">
-            <MasterpieceBackground />
-            <div className="relative z-10 p-6 md:p-8 flex flex-col gap-6 sm:gap-8 lg:gap-10 max-w-[1920px] mx-auto pb-24">
-                <PageHeader
-                    title={t('activity.title')}
-                    subtitle={t('activity.subtitle')}
-                    icon={
-                        <img
-                            src="/images/administration.png"
-                            alt="ADMINISTRATION"
-                            className="w-full h-full object-contain"
-                        />
-                    }
-                    actions={
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="outline"
-                                aria-label={t('activity.exportCsv')}
-                                onClick={exportLogs}
-                                className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                            >
-                                <Download className="h-4 w-4" />
-                                <span>{t('activity.exportCsv')}</span>
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={refresh}
-                                className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                                title={t('activity.refresh')}
-                            >
-                                <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
-                            </Button>
-                        </div>
-                    }
-                />
+ return (
+ <div className="relative min-h-screen">
+ <MasterpieceBackground />
+ <div className="relative z-10 p-6 md:p-8 flex flex-col gap-6 sm:gap-8 lg:gap-10 max-w-[1920px] mx-auto pb-24">
+ <PageHeader
+  title={t('activity.title')}
+  subtitle={t('activity.subtitle')}
+  icon={
+  <img
+  src="/images/administration.png"
+  alt="ADMINISTRATION"
+  className="w-full h-full object-contain"
+  />
+  }
+  actions={
+  <div className="flex items-center gap-2">
+  <Button
+  variant="outline"
+  aria-label={t('activity.exportCsv')}
+  onClick={exportLogs}
+  className="flex items-center gap-2 px-3 py-2 bg-card text-foreground rounded-lg hover:bg-muted/50 border border-border transition-colors text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  >
+  <Download className="h-4 w-4" />
+  <span>{t('activity.exportCsv')}</span>
+  </Button>
+  <Button
+  variant="ghost"
+  size="icon"
+  onClick={refresh}
+  className="p-2.5 hover:bg-muted rounded-lg transition-colors text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  title={t('activity.refresh')}
+  >
+  <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+  </Button>
+  </div>
+  }
+ />
 
-                <motion.div
-                    variants={slideUpVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="space-y-6"
-                >
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {[
-                            { label: t('activity.stats.today'), value: stats?.scansToday || 0, icon: Activity, color: 'text-blue-500' },
-                            { label: t('activity.stats.critical'), value: stats?.criticalAlerts || 0, icon: AlertTriangle, color: 'text-red-500' },
-                            { label: t('activity.stats.admins'), value: stats?.activeAdmins || 0, icon: Shield, color: 'text-emerald-500' },
-                        ].map((stat) => (
-                            <div key={stat.label || 'unknown'} className="glass-premium p-5 rounded-2xl flex items-center gap-4">
-                                <div className={`p-3 rounded-xl bg-white/50 dark:bg-white/5 ${stat.color}`}>
-                                    <stat.icon className="h-6 w-6" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-slate-500 dark:text-muted-foreground">{stat.label}</p>
-                                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{stat.value}</h3>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+ <motion.div
+  variants={slideUpVariants}
+  initial="hidden"
+  animate="visible"
+  className="space-y-6"
+ >
+  {/* Stats Grid */}
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  {[
+  { label: t('activity.stats.today'), value: stats?.scansToday || 0, icon: Activity, color: 'text-blue-500' },
+  { label: t('activity.stats.critical'), value: stats?.criticalAlerts || 0, icon: AlertTriangle, color: 'text-red-500' },
+  { label: t('activity.stats.admins'), value: stats?.activeAdmins || 0, icon: Shield, color: 'text-emerald-500' },
+  ].map((stat) => (
+  <div key={stat.label || 'unknown'} className="glass-premium p-5 rounded-2xl flex items-center gap-4">
+  <div className={`p-3 rounded-xl bg-white/50 dark:bg-white/5 ${stat.color}`}>
+   <stat.icon className="h-6 w-6" />
+  </div>
+  <div>
+   <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+   <h3 className="text-2xl font-bold text-foreground">{stat.value}</h3>
+  </div>
+  </div>
+  ))}
+  </div>
 
-                    <PremiumPageControl
-                        searchQuery={filter.search}
-                        onSearchChange={(val) => setFilter(prev => ({ ...prev, search: val }))}
-                        searchPlaceholder={t('activity.searchPlaceholder')}
-                        actions={
-                            <div className="flex items-center gap-2">
-                                <div className="w-40">
-                                    <CustomSelect
-                                        value={filter.severity}
-                                        onChange={(val) => setFilter(prev => ({ ...prev, severity: val as string }))}
-                                        options={[
-                                            { label: t('activity.filters.all'), value: 'all' },
-                                            { label: t('activity.filters.info'), value: 'info' },
-                                            { label: t('activity.filters.warning'), value: 'warning' },
-                                            { label: t('activity.filters.danger'), value: 'danger' },
-                                        ]}
-                                        placeholder={t('activity.severity')}
-                                    />
-                                </div>
-                                <div className="w-48">
-                                    <CustomSelect
-                                        value={filter.dateRange}
-                                        onChange={(val) => setFilter(prev => ({ ...prev, dateRange: val as string }))}
-                                        options={[
-                                            { label: t('activity.filters.undefined'), value: 'all' },
-                                            { label: t('activity.filters.today'), value: 'today' },
-                                            { label: t('activity.filters.week'), value: 'week' },
-                                            { label: t('activity.filters.month'), value: 'month' },
-                                        ]}
-                                        placeholder={t('activity.period')}
-                                    />
-                                </div>
-                            </div>
-                        }
-                    />
+  <PremiumPageControl
+  searchQuery={filter.search}
+  onSearchChange={(val) => setFilter(prev => ({ ...prev, search: val }))}
+  searchPlaceholder={t('activity.searchPlaceholder')}
+  actions={
+  <div className="flex items-center gap-2">
+  <div className="w-40">
+   <CustomSelect
+   value={filter.severity}
+   onChange={(val) => setFilter(prev => ({ ...prev, severity: val as string }))}
+   options={[
+   { label: t('activity.filters.all'), value: 'all' },
+   { label: t('activity.filters.info'), value: 'info' },
+   { label: t('activity.filters.warning'), value: 'warning' },
+   { label: t('activity.filters.danger'), value: 'danger' },
+   ]}
+   placeholder={t('activity.severity')}
+   />
+  </div>
+  <div className="w-48">
+   <CustomSelect
+   value={filter.dateRange}
+   onChange={(val) => setFilter(prev => ({ ...prev, dateRange: val as string }))}
+   options={[
+   { label: t('activity.filters.undefined'), value: 'all' },
+   { label: t('activity.filters.today'), value: 'today' },
+   { label: t('activity.filters.week'), value: 'week' },
+   { label: t('activity.filters.month'), value: 'month' },
+   ]}
+   placeholder={t('activity.period')}
+   />
+  </div>
+  </div>
+  }
+  />
 
-                    <div className="glass-premium p-4 sm:p-6 rounded-2xl">
-                        <ActivityLogList
-                            logs={logs}
-                            loading={loading}
-                            hasMore={hasMore}
-                            onLoadMore={loadMore}
-                        />
-                    </div>
-                </motion.div>
-            </div>
-        </div>
-    );
+  <div className="glass-premium p-4 sm:p-6 rounded-2xl">
+  <ActivityLogList
+  logs={logs}
+  loading={loading}
+  hasMore={hasMore}
+  onLoadMore={loadMore}
+  />
+  </div>
+ </motion.div>
+ </div>
+ </div>
+ );
 };
 

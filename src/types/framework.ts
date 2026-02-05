@@ -18,17 +18,17 @@ import type { Timestamp } from 'firebase/firestore';
  * Extends the existing FRAMEWORKS constant with EU-specific frameworks
  */
 export const REGULATORY_FRAMEWORK_CODES = [
-  'NIS2',
-  'DORA',
-  'RGPD',
-  'AI_ACT',
-  'ISO27001',
-  'ISO22301',
-  'SOC2',
-  'PCI_DSS',
-  'NIST_CSF',
-  'HDS',
-  'SECNUMCLOUD',
+ 'NIS2',
+ 'DORA',
+ 'RGPD',
+ 'AI_ACT',
+ 'ISO27001',
+ 'ISO22301',
+ 'SOC2',
+ 'PCI_DSS',
+ 'NIST_CSF',
+ 'HDS',
+ 'SECNUMCLOUD',
 ] as const;
 
 export type RegulatoryFrameworkCode = (typeof REGULATORY_FRAMEWORK_CODES)[number];
@@ -47,24 +47,24 @@ export type Jurisdiction = (typeof JURISDICTIONS)[number];
  * Requirement categories for organizing regulatory requirements
  */
 export const REQUIREMENT_CATEGORIES = [
-  'governance',
-  'risk_management',
-  'incident_management',
-  'business_continuity',
-  'supply_chain',
-  'technical_measures',
-  'awareness_training',
-  'reporting',
-  'audit',
-  'data_protection',
-  'access_control',
-  'cryptography',
-  'physical_security',
-  'operations_security',
-  'communications_security',
-  'system_acquisition',
-  'supplier_relationships',
-  'compliance',
+ 'governance',
+ 'risk_management',
+ 'incident_management',
+ 'business_continuity',
+ 'supply_chain',
+ 'technical_measures',
+ 'awareness_training',
+ 'reporting',
+ 'audit',
+ 'data_protection',
+ 'access_control',
+ 'cryptography',
+ 'physical_security',
+ 'operations_security',
+ 'communications_security',
+ 'system_acquisition',
+ 'supplier_relationships',
+ 'compliance',
 ] as const;
 
 export type RequirementCategory = (typeof REQUIREMENT_CATEGORIES)[number];
@@ -80,9 +80,9 @@ export type CriticalityLevel = (typeof CRITICALITY_LEVELS)[number];
  * high = 3x, medium = 2x, low = 1x
  */
 export const CRITICALITY_WEIGHTS: Record<CriticalityLevel, number> = {
-  high: 3,
-  medium: 2,
-  low: 1,
+ high: 3,
+ medium: 2,
+ low: 1,
 };
 
 // ============================================================================
@@ -94,58 +94,58 @@ export const CRITICALITY_WEIGHTS: Record<CriticalityLevel, number> = {
  * Stored in Firestore: `frameworks/{frameworkId}`
  */
 export interface RegulatoryFramework {
-  /** Firestore document ID */
-  id: string;
+ /** Firestore document ID */
+ id: string;
 
-  /** Framework code (e.g., 'NIS2', 'DORA') */
-  code: RegulatoryFrameworkCode;
+ /** Framework code (e.g., 'NIS2', 'DORA') */
+ code: RegulatoryFrameworkCode;
 
-  /** Full framework name */
-  name: string;
+ /** Full framework name */
+ name: string;
 
-  /** Localized names */
-  localizedNames?: {
-    en: string;
-    fr: string;
-    de?: string;
-  };
+ /** Localized names */
+ localizedNames?: {
+ en: string;
+ fr: string;
+ de?: string;
+ };
 
-  /** Framework version (e.g., '2022/2555' for NIS2) */
-  version: string;
+ /** Framework version (e.g., '2022/2555' for NIS2) */
+ version: string;
 
-  /** Jurisdiction where framework applies */
-  jurisdiction: Jurisdiction;
+ /** Jurisdiction where framework applies */
+ jurisdiction: Jurisdiction;
 
-  /** Date when framework becomes effective */
-  effectiveDate: Timestamp | string;
+ /** Date when framework becomes effective */
+ effectiveDate: Timestamp | string;
 
-  /** Brief description of the framework */
-  description?: string;
+ /** Brief description of the framework */
+ description?: string;
 
-  /** Localized descriptions */
-  localizedDescriptions?: {
-    en: string;
-    fr: string;
-    de?: string;
-  };
+ /** Localized descriptions */
+ localizedDescriptions?: {
+ en: string;
+ fr: string;
+ de?: string;
+ };
 
-  /** Official source URL */
-  sourceUrl?: string;
+ /** Official source URL */
+ sourceUrl?: string;
 
-  /** Whether this framework is active for selection */
-  isActive: boolean;
+ /** Whether this framework is active for selection */
+ isActive: boolean;
 
-  /** Display order in UI */
-  displayOrder?: number;
+ /** Display order in UI */
+ displayOrder?: number;
 
-  /** Number of requirements in this framework */
-  requirementCount?: number;
+ /** Number of requirements in this framework */
+ requirementCount?: number;
 
-  /** Last updated timestamp */
-  updatedAt?: Timestamp | string;
+ /** Last updated timestamp */
+ updatedAt?: Timestamp | string;
 
-  /** Created timestamp */
-  createdAt?: Timestamp | string;
+ /** Created timestamp */
+ createdAt?: Timestamp | string;
 }
 
 // ============================================================================
@@ -158,61 +158,61 @@ export interface RegulatoryFramework {
  * Or as top-level collection: `requirements/{requirementId}`
  */
 export interface Requirement {
-  /** Firestore document ID */
-  id: string;
+ /** Firestore document ID */
+ id: string;
 
-  /** Parent framework ID */
-  frameworkId: string;
+ /** Parent framework ID */
+ frameworkId: string;
 
-  /** Article/clause reference (e.g., 'Article 21' for NIS2) */
-  articleRef: string;
+ /** Article/clause reference (e.g., 'Article 21' for NIS2) */
+ articleRef: string;
 
-  /** Short title */
-  title: string;
+ /** Short title */
+ title: string;
 
-  /** Localized titles */
-  localizedTitles?: {
-    en: string;
-    fr: string;
-    de?: string;
-  };
+ /** Localized titles */
+ localizedTitles?: {
+ en: string;
+ fr: string;
+ de?: string;
+ };
 
-  /** Full requirement description */
-  description: string;
+ /** Full requirement description */
+ description: string;
 
-  /** Localized descriptions */
-  localizedDescriptions?: {
-    en: string;
-    fr: string;
-    de?: string;
-  };
+ /** Localized descriptions */
+ localizedDescriptions?: {
+ en: string;
+ fr: string;
+ de?: string;
+ };
 
-  /** Category for grouping */
-  category: RequirementCategory;
+ /** Category for grouping */
+ category: RequirementCategory;
 
-  /** Criticality level (affects score weighting) */
-  criticality: CriticalityLevel;
+ /** Criticality level (affects score weighting) */
+ criticality: CriticalityLevel;
 
-  /** Parent requirement ID (for nested requirements) */
-  parentId?: string;
+ /** Parent requirement ID (for nested requirements) */
+ parentId?: string;
 
-  /** Requirement order within parent or framework */
-  order?: number;
+ /** Requirement order within parent or framework */
+ order?: number;
 
-  /** Keywords for search and AI matching */
-  keywords?: string[];
+ /** Keywords for search and AI matching */
+ keywords?: string[];
 
-  /** Whether this is a mandatory requirement */
-  isMandatory?: boolean;
+ /** Whether this is a mandatory requirement */
+ isMandatory?: boolean;
 
-  /** Suggested control templates for this requirement */
-  suggestedControlTemplates?: string[];
+ /** Suggested control templates for this requirement */
+ suggestedControlTemplates?: string[];
 
-  /** Last updated timestamp */
-  updatedAt?: Timestamp | string;
+ /** Last updated timestamp */
+ updatedAt?: Timestamp | string;
 
-  /** Created timestamp */
-  createdAt?: Timestamp | string;
+ /** Created timestamp */
+ createdAt?: Timestamp | string;
 }
 
 // ============================================================================
@@ -233,47 +233,47 @@ export type CoverageStatus = (typeof COVERAGE_STATUSES)[number];
  * can satisfy requirements from multiple frameworks.
  */
 export interface ControlMapping {
-  /** Firestore document ID */
-  id: string;
+ /** Firestore document ID */
+ id: string;
 
-  /** Organization ID (for multi-tenant isolation) */
-  organizationId: string;
+ /** Organization ID (for multi-tenant isolation) */
+ organizationId: string;
 
-  /** Control ID being mapped */
-  controlId: string;
+ /** Control ID being mapped */
+ controlId: string;
 
-  /** Requirement ID being satisfied */
-  requirementId: string;
+ /** Requirement ID being satisfied */
+ requirementId: string;
 
-  /** Framework ID (denormalized for query efficiency) */
-  frameworkId: string;
+ /** Framework ID (denormalized for query efficiency) */
+ frameworkId: string;
 
-  /** How much of the requirement this control covers (0-100) */
-  coveragePercentage: number;
+ /** How much of the requirement this control covers (0-100) */
+ coveragePercentage: number;
 
-  /** Coverage status */
-  coverageStatus: CoverageStatus;
+ /** Coverage status */
+ coverageStatus: CoverageStatus;
 
-  /** Notes explaining the mapping */
-  notes?: string;
+ /** Notes explaining the mapping */
+ notes?: string;
 
-  /** Who created/approved this mapping */
-  createdBy?: string;
+ /** Who created/approved this mapping */
+ createdBy?: string;
 
-  /** Whether this mapping was auto-suggested by AI */
-  isAutoSuggested?: boolean;
+ /** Whether this mapping was auto-suggested by AI */
+ isAutoSuggested?: boolean;
 
-  /** Confidence score for auto-suggested mappings (0-1) */
-  suggestionConfidence?: number;
+ /** Confidence score for auto-suggested mappings (0-1) */
+ suggestionConfidence?: number;
 
-  /** Whether user has validated the mapping */
-  isValidated?: boolean;
+ /** Whether user has validated the mapping */
+ isValidated?: boolean;
 
-  /** Last updated timestamp */
-  updatedAt?: Timestamp | string;
+ /** Last updated timestamp */
+ updatedAt?: Timestamp | string;
 
-  /** Created timestamp */
-  createdAt?: Timestamp | string;
+ /** Created timestamp */
+ createdAt?: Timestamp | string;
 }
 
 // ============================================================================
@@ -285,23 +285,23 @@ export interface ControlMapping {
  * Stored in Firestore: `organizations/{orgId}/activeFrameworks/{frameworkId}`
  */
 export interface ActiveFramework {
-  /** Framework ID */
-  frameworkId: string;
+ /** Framework ID */
+ frameworkId: string;
 
-  /** Framework code (denormalized) */
-  frameworkCode: RegulatoryFrameworkCode;
+ /** Framework code (denormalized) */
+ frameworkCode: RegulatoryFrameworkCode;
 
-  /** When this framework was activated */
-  activatedAt: Timestamp | string;
+ /** When this framework was activated */
+ activatedAt: Timestamp | string;
 
-  /** Who activated it */
-  activatedBy: string;
+ /** Who activated it */
+ activatedBy: string;
 
-  /** Target compliance date */
-  targetComplianceDate?: Timestamp | string;
+ /** Target compliance date */
+ targetComplianceDate?: Timestamp | string;
 
-  /** Notes about activation */
-  notes?: string;
+ /** Notes about activation */
+ notes?: string;
 }
 
 // ============================================================================
@@ -312,50 +312,50 @@ export interface ActiveFramework {
  * Framework with requirement count for listing
  */
 export interface FrameworkListItem {
-  id: string;
-  code: RegulatoryFrameworkCode;
-  name: string;
-  description?: string;
-  jurisdiction: Jurisdiction;
-  effectiveDate: string;
-  requirementCount: number;
-  isActive: boolean;
+ id: string;
+ code: RegulatoryFrameworkCode;
+ name: string;
+ description?: string;
+ jurisdiction: Jurisdiction;
+ effectiveDate: string;
+ requirementCount: number;
+ isActive: boolean;
 }
 
 /**
  * Requirement grouped by category for display
  */
 export interface RequirementsByCategory {
-  category: RequirementCategory;
-  categoryLabel: string;
-  requirements: Requirement[];
-  count: number;
+ category: RequirementCategory;
+ categoryLabel: string;
+ requirements: Requirement[];
+ count: number;
 }
 
 /**
  * Cross-framework mapping matrix cell
  */
 export interface MappingMatrixCell {
-  controlId: string;
-  frameworkId: string;
-  coverageStatus: CoverageStatus;
-  coveragePercentage: number;
-  requirementIds: string[];
+ controlId: string;
+ frameworkId: string;
+ coverageStatus: CoverageStatus;
+ coveragePercentage: number;
+ requirementIds: string[];
 }
 
 /**
  * Control with all its framework mappings
  */
 export interface ControlWithMappings {
-  controlId: string;
-  controlCode: string;
-  controlName: string;
-  mappings: {
-    frameworkId: string;
-    frameworkCode: RegulatoryFrameworkCode;
-    coveragePercentage: number;
-    requirementCount: number;
-  }[];
+ controlId: string;
+ controlCode: string;
+ controlName: string;
+ mappings: {
+ frameworkId: string;
+ frameworkCode: RegulatoryFrameworkCode;
+ coveragePercentage: number;
+ requirementCount: number;
+ }[];
 }
 
 // ============================================================================
@@ -366,34 +366,34 @@ export interface ControlWithMappings {
  * Check if a string is a valid regulatory framework code
  */
 export function isRegulatoryFrameworkCode(
-  value: unknown
+ value: unknown
 ): value is RegulatoryFrameworkCode {
-  return (
-    typeof value === 'string' &&
-    REGULATORY_FRAMEWORK_CODES.includes(value as RegulatoryFrameworkCode)
-  );
+ return (
+ typeof value === 'string' &&
+ REGULATORY_FRAMEWORK_CODES.includes(value as RegulatoryFrameworkCode)
+ );
 }
 
 /**
  * Check if a string is a valid requirement category
  */
 export function isRequirementCategory(
-  value: unknown
+ value: unknown
 ): value is RequirementCategory {
-  return (
-    typeof value === 'string' &&
-    REQUIREMENT_CATEGORIES.includes(value as RequirementCategory)
-  );
+ return (
+ typeof value === 'string' &&
+ REQUIREMENT_CATEGORIES.includes(value as RequirementCategory)
+ );
 }
 
 /**
  * Check if a string is a valid criticality level
  */
 export function isCriticalityLevel(value: unknown): value is CriticalityLevel {
-  return (
-    typeof value === 'string' &&
-    CRITICALITY_LEVELS.includes(value as CriticalityLevel)
-  );
+ return (
+ typeof value === 'string' &&
+ CRITICALITY_LEVELS.includes(value as CriticalityLevel)
+ );
 }
 
 // ============================================================================
@@ -404,22 +404,22 @@ export function isCriticalityLevel(value: unknown): value is CriticalityLevel {
  * Get localized category label
  */
 export const CATEGORY_LABELS: Record<RequirementCategory, { en: string; fr: string; de: string }> = {
-  governance: { en: 'Governance', fr: 'Gouvernance', de: 'Governance' },
-  risk_management: { en: 'Risk Management', fr: 'Gestion des risques', de: 'Risikomanagement' },
-  incident_management: { en: 'Incident Management', fr: 'Gestion des incidents', de: 'Vorfallmanagement' },
-  business_continuity: { en: 'Business Continuity', fr: 'Continuité d\'activité', de: 'Geschäftskontinuität' },
-  supply_chain: { en: 'Supply Chain', fr: 'Chaîne d\'approvisionnement', de: 'Lieferkette' },
-  technical_measures: { en: 'Technical Measures', fr: 'Mesures techniques', de: 'Technische Maßnahmen' },
-  awareness_training: { en: 'Awareness & Training', fr: 'Sensibilisation et formation', de: 'Bewusstsein & Schulung' },
-  reporting: { en: 'Reporting', fr: 'Reporting', de: 'Berichterstattung' },
-  audit: { en: 'Audit', fr: 'Audit', de: 'Audit' },
-  data_protection: { en: 'Data Protection', fr: 'Protection des données', de: 'Datenschutz' },
-  access_control: { en: 'Access Control', fr: 'Contrôle d\'accès', de: 'Zugriffskontrolle' },
-  cryptography: { en: 'Cryptography', fr: 'Cryptographie', de: 'Kryptographie' },
-  physical_security: { en: 'Physical Security', fr: 'Sécurité physique', de: 'Physische Sicherheit' },
-  operations_security: { en: 'Operations Security', fr: 'Sécurité des opérations', de: 'Betriebssicherheit' },
-  communications_security: { en: 'Communications Security', fr: 'Sécurité des communications', de: 'Kommunikationssicherheit' },
-  system_acquisition: { en: 'System Acquisition', fr: 'Acquisition de systèmes', de: 'Systembeschaffung' },
-  supplier_relationships: { en: 'Supplier Relationships', fr: 'Relations fournisseurs', de: 'Lieferantenbeziehungen' },
-  compliance: { en: 'Compliance', fr: 'Conformité', de: 'Compliance' },
+ governance: { en: 'Governance', fr: 'Gouvernance', de: 'Governance' },
+ risk_management: { en: 'Risk Management', fr: 'Gestion des risques', de: 'Risikomanagement' },
+ incident_management: { en: 'Incident Management', fr: 'Gestion des incidents', de: 'Vorfallmanagement' },
+ business_continuity: { en: 'Business Continuity', fr: 'Continuité d\'activité', de: 'Geschäftskontinuität' },
+ supply_chain: { en: 'Supply Chain', fr: 'Chaîne d\'approvisionnement', de: 'Lieferkette' },
+ technical_measures: { en: 'Technical Measures', fr: 'Mesures techniques', de: 'Technische Maßnahmen' },
+ awareness_training: { en: 'Awareness & Training', fr: 'Sensibilisation et formation', de: 'Bewusstsein & Schulung' },
+ reporting: { en: 'Reporting', fr: 'Reporting', de: 'Berichterstattung' },
+ audit: { en: 'Audit', fr: 'Audit', de: 'Audit' },
+ data_protection: { en: 'Data Protection', fr: 'Protection des données', de: 'Datenschutz' },
+ access_control: { en: 'Access Control', fr: 'Contrôle d\'accès', de: 'Zugriffskontrolle' },
+ cryptography: { en: 'Cryptography', fr: 'Cryptographie', de: 'Kryptographie' },
+ physical_security: { en: 'Physical Security', fr: 'Sécurité physique', de: 'Physische Sicherheit' },
+ operations_security: { en: 'Operations Security', fr: 'Sécurité des opérations', de: 'Betriebssicherheit' },
+ communications_security: { en: 'Communications Security', fr: 'Sécurité des communications', de: 'Kommunikationssicherheit' },
+ system_acquisition: { en: 'System Acquisition', fr: 'Acquisition de systèmes', de: 'Systembeschaffung' },
+ supplier_relationships: { en: 'Supplier Relationships', fr: 'Relations fournisseurs', de: 'Lieferantenbeziehungen' },
+ compliance: { en: 'Compliance', fr: 'Conformité', de: 'Compliance' },
 };

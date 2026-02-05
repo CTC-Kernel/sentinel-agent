@@ -8,17 +8,17 @@ import { SessionMonitor } from '../services/sessionMonitoringService';
  * console.log(`Session active depuis ${metrics?.sessionDuration}ms`);
  */
 export const useSessionMetrics = () => {
-    const [metrics, setMetrics] = useState(SessionMonitor.getMetrics());
+ const [metrics, setMetrics] = useState(SessionMonitor.getMetrics());
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setMetrics(SessionMonitor.getMetrics());
-        }, 5000); // Mettre à jour toutes les 5 secondes
+ useEffect(() => {
+ const interval = setInterval(() => {
+ setMetrics(SessionMonitor.getMetrics());
+ }, 5000); // Mettre à jour toutes les 5 secondes
 
-        return () => clearInterval(interval);
-    }, []);
+ return () => clearInterval(interval);
+ }, []);
 
-    return metrics;
+ return metrics;
 };
 
 /**
@@ -28,10 +28,10 @@ export const useSessionMetrics = () => {
  * const recordActivity = useActivityRecorder();
  *
  * const handleClick = () => {
- *   recordActivity();
- *   // ... rest of logic
+ * recordActivity();
+ * // ... rest of logic
  * };
  */
 export const useActivityRecorder = () => {
-    return () => SessionMonitor.recordActivity();
+ return () => SessionMonitor.recordActivity();
 };

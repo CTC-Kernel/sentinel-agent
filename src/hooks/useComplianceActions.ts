@@ -15,448 +15,448 @@ import { hasPermission } from '../utils/permissions';
 import { CONTROL_STATUS } from '../constants/complianceConfig';
 
 export const useComplianceActions = (user: UserProfile | null) => {
-    const { t } = useTranslation();
-    const [updating, setUpdating] = useState(false);
+ const { t } = useTranslation();
+ const [updating, setUpdating] = useState(false);
 
-    const updateControl = async (controlId: string, updates: Partial<Control>, successMessage?: string, skipValidation = false, controlOrganizationId?: string, oldData?: Control) => {
-        setUpdating(true);
-        try {
-            // SECURITY: Check authorization - only admin/rssi can modify controls
-            if (!hasPermission(user, 'Control', 'update')) {
-                ErrorLogger.warn('Unauthorized control update attempt', 'useComplianceActions.updateControl', {
-                    metadata: { attemptedBy: user?.uid, targetControl: controlId }
-                });
-                toast.error(t('compliance.noEditPermission', { defaultValue: 'You do not have permission to edit this control' }));
-                return false;
-            }
+ const updateControl = async (controlId: string, updates: Partial<Control>, successMessage?: string, skipValidation = false, controlOrganizationId?: string, oldData?: Control) => {
+ setUpdating(true);
+ try {
+ // SECURITY: Check authorization - only admin/rssi can modify controls
+ if (!hasPermission(user, 'Control', 'update')) {
+ ErrorLogger.warn('Unauthorized control update attempt', 'useComplianceActions.updateControl', {
+  metadata: { attemptedBy: user?.uid, targetControl: controlId }
+ });
+ toast.error(t('compliance.noEditPermission', { defaultValue: 'You do not have permission to edit this control' }));
+ return false;
+ }
 
-            // SECURITY: IDOR protection - verify control belongs to user's organization
-            // If controlOrganizationId is not provided, fetch it from Firestore
-            let resolvedOrgId = controlOrganizationId;
-            if (!resolvedOrgId) {
-                const { getDoc } = await import('firebase/firestore');
-                const controlDoc = await getDoc(doc(db, 'controls', controlId));
-                resolvedOrgId = controlDoc.data()?.organizationId as string | undefined;
-            }
-            if (!resolvedOrgId || resolvedOrgId !== user?.organizationId) {
-                ErrorLogger.warn('IDOR attempt: control update across organizations', 'useComplianceActions.updateControl', {
-                    metadata: { attemptedBy: user?.uid, targetControl: controlId, targetOrg: resolvedOrgId, callerOrg: user?.organizationId }
-                });
-                toast.error(t('compliance.controlNotFound', { defaultValue: 'Control not found' }));
-                return false;
-            }
+ // SECURITY: IDOR protection - verify control belongs to user's organization
+ // If controlOrganizationId is not provided, fetch it from Firestore
+ let resolvedOrgId = controlOrganizationId;
+ if (!resolvedOrgId) {
+ const { getDoc } = await import('firebase/firestore');
+ const controlDoc = await getDoc(doc(db, 'controls', controlId));
+ resolvedOrgId = controlDoc.data()?.organizationId as string | undefined;
+ }
+ if (!resolvedOrgId || resolvedOrgId !== user?.organizationId) {
+ ErrorLogger.warn('IDOR attempt: control update across organizations', 'useComplianceActions.updateControl', {
+  metadata: { attemptedBy: user?.uid, targetControl: controlId, targetOrg: resolvedOrgId, callerOrg: user?.organizationId }
+ });
+ toast.error(t('compliance.controlNotFound', { defaultValue: 'Control not found' }));
+ return false;
+ }
 
-            // Validate updates against schema (partial) - more permissive
-            // Only validate if we have actual updates to validate AND we are not skipping validation
-            if (!skipValidation && Object.keys(updates).length > 0) {
-                const partialSchema = controlSchema.partial();
-                const result = partialSchema.safeParse(updates);
-                if (!result.success) {
-                    // Log validation errors for debugging
-                    ErrorLogger.warn('Control validation failed', 'useComplianceActions.updateControl', {
-                        metadata: {
-                            controlId,
-                            updates,
-                            errors: result.error.issues
-                        }
-                    });
-                    // Return first validation error or generic message
-                    const firstError = result.error.issues[0]?.message || t('errors.validationError', { defaultValue: 'Validation error' });
-                    toast.error(firstError);
-                    return false;
-                }
-            }
+ // Validate updates against schema (partial) - more permissive
+ // Only validate if we have actual updates to validate AND we are not skipping validation
+ if (!skipValidation && Object.keys(updates).length > 0) {
+ const partialSchema = controlSchema.partial();
+ const result = partialSchema.safeParse(updates);
+ if (!result.success) {
+  // Log validation errors for debugging
+  ErrorLogger.warn('Control validation failed', 'useComplianceActions.updateControl', {
+  metadata: {
+  controlId,
+  updates,
+  errors: result.error.issues
+  }
+  });
+  // Return first validation error or generic message
+  const firstError = result.error.issues[0]?.message || t('errors.validationError', { defaultValue: 'Validation error' });
+  toast.error(firstError);
+  return false;
+ }
+ }
 
-            const ref = doc(db, 'controls', controlId);
-            const sanitizedUpdates = sanitizeData({
-                ...updates,
-                updatedAt: serverTimestamp(),
-                lastUpdatedBy: user?.uid
-            });
+ const ref = doc(db, 'controls', controlId);
+ const sanitizedUpdates = sanitizeData({
+ ...updates,
+ updatedAt: serverTimestamp(),
+ lastUpdatedBy: user?.uid
+ });
 
-            await updateDoc(ref, sanitizedUpdates);
+ await updateDoc(ref, sanitizedUpdates);
 
-            if (user) {
-                const changes = oldData ? getDiff(updates as unknown as Record<string, unknown>, oldData as unknown as Record<string, unknown>) : [];
-                logAction(
-                    user,
-                    'UPDATE_CONTROL',
-                    'Control',
-                    t('compliance.log.controlUpdated', { defaultValue: 'Control updated: {{name}}', name: oldData?.name || controlId }),
-                    undefined,
-                    controlId,
-                    undefined,
-                    changes.length > 0 ? changes : undefined
-                );
-            }
+ if (user) {
+ const changes = oldData ? getDiff(updates as unknown as Record<string, unknown>, oldData as unknown as Record<string, unknown>) : [];
+ logAction(
+  user,
+  'UPDATE_CONTROL',
+  'Control',
+  t('compliance.log.controlUpdated', { defaultValue: 'Control updated: {{name}}', name: oldData?.name || controlId }),
+  undefined,
+  controlId,
+  undefined,
+  changes.length > 0 ? changes : undefined
+ );
+ }
 
-            if (successMessage) toast.success(successMessage);
-            return true;
-        } catch (_error) {
-            if (_error instanceof z.ZodError) {
-                const zodError = _error;
-                if (zodError.issues && zodError.issues.length > 0) {
-                    toast.error(zodError.issues[0].message);
-                } else {
-                    toast.error(t('errors.validationError', { defaultValue: 'Validation error' }));
-                }
-            } else {
-                toast.error(t('errors.updateFailed', { defaultValue: 'Error during update' }));
-                ErrorLogger.error(_error, 'useComplianceActions.updateControl', {
-                    metadata: { controlId, updates }
-                });
-            }
-            return false;
-        } finally {
-            setUpdating(false);
-        }
-    };
+ if (successMessage) toast.success(successMessage);
+ return true;
+ } catch (_error) {
+ if (_error instanceof z.ZodError) {
+ const zodError = _error;
+ if (zodError.issues && zodError.issues.length > 0) {
+  toast.error(zodError.issues[0].message);
+ } else {
+  toast.error(t('errors.validationError', { defaultValue: 'Validation error' }));
+ }
+ } else {
+ toast.error(t('errors.updateFailed', { defaultValue: 'Error during update' }));
+ ErrorLogger.error(_error, 'useComplianceActions.updateControl', {
+  metadata: { controlId, updates }
+ });
+ }
+ return false;
+ } finally {
+ setUpdating(false);
+ }
+ };
 
-    const handleStatusChange = async (control: Control, newStatus: Control['status']) => {
-        const statusMessages: Record<string, string> = {
-            'Implémenté': t('compliance.statusUpdated.implemented', { defaultValue: 'Status updated. Next step: add evidence.' }),
-            'En revue': t('compliance.statusUpdated.review', { defaultValue: 'Status updated. Next step: verify related risks.' }),
-        };
-        const message = statusMessages[newStatus] || t('compliance.statusUpdated.default', { defaultValue: 'Status updated' });
-        const success = await updateControl(control.id, { status: newStatus }, message, false, control.organizationId);
-        if (success && user) {
-            const changes = getDiff({ status: newStatus }, { status: control.status });
-            await logAction(
-                user,
-                'UPDATE_STATUS',
-                'Control',
-                t('compliance.log.statusChanged', { defaultValue: 'Control status [{{name}}]: {{oldStatus}} -> {{newStatus}}', name: control.name, oldStatus: control.status, newStatus }),
-                undefined,
-                control.id,
-                undefined,
-                changes
-            );
-        }
-    };
+ const handleStatusChange = async (control: Control, newStatus: Control['status']) => {
+ const statusMessages: Record<string, string> = {
+ 'Implémenté': t('compliance.statusUpdated.implemented', { defaultValue: 'Status updated. Next step: add evidence.' }),
+ 'En revue': t('compliance.statusUpdated.review', { defaultValue: 'Status updated. Next step: verify related risks.' }),
+ };
+ const message = statusMessages[newStatus] || t('compliance.statusUpdated.default', { defaultValue: 'Status updated' });
+ const success = await updateControl(control.id, { status: newStatus }, message, false, control.organizationId);
+ if (success && user) {
+ const changes = getDiff({ status: newStatus }, { status: control.status });
+ await logAction(
+ user,
+ 'UPDATE_STATUS',
+ 'Control',
+ t('compliance.log.statusChanged', { defaultValue: 'Control status [{{name}}]: {{oldStatus}} -> {{newStatus}}', name: control.name, oldStatus: control.status, newStatus }),
+ undefined,
+ control.id,
+ undefined,
+ changes
+ );
+ }
+ };
 
-    const handleAssign = async (control: Control, userId: string) => {
-        const success = await updateControl(control.id, { assigneeId: userId }, t('compliance.assigneeAssigned', { defaultValue: 'Assignee assigned' }), false, control.organizationId);
-        if (success && user) {
-            const changes = getDiff({ assigneeId: userId }, { assigneeId: control.assigneeId });
-            await logAction(
-                user,
-                'ASSIGN_CONTROL',
-                'Control',
-                t('compliance.log.assigneeAssigned', { defaultValue: 'Assignee assigned for [{{name}}]', name: control.name }),
-                undefined,
-                control.id,
-                undefined,
-                changes
-            );
-        }
-    };
+ const handleAssign = async (control: Control, userId: string) => {
+ const success = await updateControl(control.id, { assigneeId: userId }, t('compliance.assigneeAssigned', { defaultValue: 'Assignee assigned' }), false, control.organizationId);
+ if (success && user) {
+ const changes = getDiff({ assigneeId: userId }, { assigneeId: control.assigneeId });
+ await logAction(
+ user,
+ 'ASSIGN_CONTROL',
+ 'Control',
+ t('compliance.log.assigneeAssigned', { defaultValue: 'Assignee assigned for [{{name}}]', name: control.name }),
+ undefined,
+ control.id,
+ undefined,
+ changes
+ );
+ }
+ };
 
-    // Safe cast via unknown if needed, or rely on Firebase handling
-    const handleLinkAsset = async (control: Control, assetId: string) => {
-        const newAssetIds = [...(control.relatedAssetIds || []), assetId];
-        const success = await updateControl(control.id, { relatedAssetIds: arrayUnion(assetId) as unknown as string[] }, t('compliance.assetLinked', { defaultValue: 'Asset linked' }), true, control.organizationId);
-        if (success && user) {
-            const changes = getDiff({ relatedAssetIds: newAssetIds }, { relatedAssetIds: control.relatedAssetIds || [] });
-            await logAction(
-                user,
-                'LINK_ASSET',
-                'Control',
-                t('compliance.log.assetLinked', { defaultValue: 'Asset linked to control [{{name}}]', name: control.name }),
-                undefined,
-                control.id,
-                undefined,
-                changes
-            );
-        }
-    };
+ // Safe cast via unknown if needed, or rely on Firebase handling
+ const handleLinkAsset = async (control: Control, assetId: string) => {
+ const newAssetIds = [...(control.relatedAssetIds || []), assetId];
+ const success = await updateControl(control.id, { relatedAssetIds: arrayUnion(assetId) as unknown as string[] }, t('compliance.assetLinked', { defaultValue: 'Asset linked' }), true, control.organizationId);
+ if (success && user) {
+ const changes = getDiff({ relatedAssetIds: newAssetIds }, { relatedAssetIds: control.relatedAssetIds || [] });
+ await logAction(
+ user,
+ 'LINK_ASSET',
+ 'Control',
+ t('compliance.log.assetLinked', { defaultValue: 'Asset linked to control [{{name}}]', name: control.name }),
+ undefined,
+ control.id,
+ undefined,
+ changes
+ );
+ }
+ };
 
-    const handleUnlinkAsset = async (control: Control, assetId: string) => {
-        const success = await updateControl(control.id, { relatedAssetIds: arrayRemove(assetId) as unknown as string[] }, t('compliance.linkRemoved', { defaultValue: 'Link removed' }), true, control.organizationId);
-        if (success && user) {
-            await AuditLogService.logUpdate(
-                user.organizationId || '',
-                { id: user.uid, name: user.displayName || '', email: user.email || '' },
-                'control',
-                control.id,
-                { relatedAssetIds: control.relatedAssetIds },
-                { relatedAssetIds: control.relatedAssetIds?.filter(id => id !== assetId) },
-                control.name
-            );
-        }
-    };
+ const handleUnlinkAsset = async (control: Control, assetId: string) => {
+ const success = await updateControl(control.id, { relatedAssetIds: arrayRemove(assetId) as unknown as string[] }, t('compliance.linkRemoved', { defaultValue: 'Link removed' }), true, control.organizationId);
+ if (success && user) {
+ await AuditLogService.logUpdate(
+ user.organizationId || '',
+ { id: user.uid, name: user.displayName || '', email: user.email || '' },
+ 'control',
+ control.id,
+ { relatedAssetIds: control.relatedAssetIds },
+ { relatedAssetIds: control.relatedAssetIds?.filter(id => id !== assetId) },
+ control.name
+ );
+ }
+ };
 
-    const handleLinkSupplier = async (control: Control, supplierId: string) => {
-        const newSupplierIds = [...(control.relatedSupplierIds || []), supplierId];
-        const success = await updateControl(control.id, { relatedSupplierIds: arrayUnion(supplierId) as unknown as string[] }, t('compliance.supplierLinked', { defaultValue: 'Supplier linked' }), true, control.organizationId);
-        if (success && user) {
-            const changes = getDiff({ relatedSupplierIds: newSupplierIds }, { relatedSupplierIds: control.relatedSupplierIds || [] });
-            await logAction(
-                user,
-                'LINK_SUPPLIER',
-                'Control',
-                t('compliance.log.supplierLinked', { defaultValue: 'Supplier linked to control [{{name}}]', name: control.name }),
-                undefined,
-                control.id,
-                undefined,
-                changes
-            );
-        }
-    };
+ const handleLinkSupplier = async (control: Control, supplierId: string) => {
+ const newSupplierIds = [...(control.relatedSupplierIds || []), supplierId];
+ const success = await updateControl(control.id, { relatedSupplierIds: arrayUnion(supplierId) as unknown as string[] }, t('compliance.supplierLinked', { defaultValue: 'Supplier linked' }), true, control.organizationId);
+ if (success && user) {
+ const changes = getDiff({ relatedSupplierIds: newSupplierIds }, { relatedSupplierIds: control.relatedSupplierIds || [] });
+ await logAction(
+ user,
+ 'LINK_SUPPLIER',
+ 'Control',
+ t('compliance.log.supplierLinked', { defaultValue: 'Supplier linked to control [{{name}}]', name: control.name }),
+ undefined,
+ control.id,
+ undefined,
+ changes
+ );
+ }
+ };
 
-    const handleUnlinkSupplier = async (control: Control, supplierId: string) => {
-        const success = await updateControl(control.id, { relatedSupplierIds: arrayRemove(supplierId) as unknown as string[] }, t('compliance.linkRemoved', { defaultValue: 'Link removed' }), true, control.organizationId);
-        if (success && user) {
-            await AuditLogService.logUpdate(
-                user.organizationId || '',
-                { id: user.uid, name: user.displayName || '', email: user.email || '' },
-                'control',
-                control.id,
-                { relatedSupplierIds: control.relatedSupplierIds },
-                { relatedSupplierIds: control.relatedSupplierIds?.filter(id => id !== supplierId) },
-                control.name
-            );
-        }
-    };
+ const handleUnlinkSupplier = async (control: Control, supplierId: string) => {
+ const success = await updateControl(control.id, { relatedSupplierIds: arrayRemove(supplierId) as unknown as string[] }, t('compliance.linkRemoved', { defaultValue: 'Link removed' }), true, control.organizationId);
+ if (success && user) {
+ await AuditLogService.logUpdate(
+ user.organizationId || '',
+ { id: user.uid, name: user.displayName || '', email: user.email || '' },
+ 'control',
+ control.id,
+ { relatedSupplierIds: control.relatedSupplierIds },
+ { relatedSupplierIds: control.relatedSupplierIds?.filter(id => id !== supplierId) },
+ control.name
+ );
+ }
+ };
 
-    const handleLinkProject = async (control: Control, projectId: string) => {
-        const newProjectIds = [...(control.relatedProjectIds || []), projectId];
-        const success = await updateControl(control.id, { relatedProjectIds: arrayUnion(projectId) as unknown as string[] }, t('compliance.projectLinked', { defaultValue: 'Project linked' }), true, control.organizationId);
-        if (success && user) {
-            await logAction(
-                user,
-                'LINK_PROJECT',
-                'Control',
-                t('compliance.log.projectLinked', { defaultValue: 'Project linked to control [{{name}}]', name: control.name }),
-                undefined,
-                control.id,
-                undefined,
-                getDiff({ relatedProjectIds: newProjectIds }, { relatedProjectIds: control.relatedProjectIds || [] })
-            );
-        }
-    };
+ const handleLinkProject = async (control: Control, projectId: string) => {
+ const newProjectIds = [...(control.relatedProjectIds || []), projectId];
+ const success = await updateControl(control.id, { relatedProjectIds: arrayUnion(projectId) as unknown as string[] }, t('compliance.projectLinked', { defaultValue: 'Project linked' }), true, control.organizationId);
+ if (success && user) {
+ await logAction(
+ user,
+ 'LINK_PROJECT',
+ 'Control',
+ t('compliance.log.projectLinked', { defaultValue: 'Project linked to control [{{name}}]', name: control.name }),
+ undefined,
+ control.id,
+ undefined,
+ getDiff({ relatedProjectIds: newProjectIds }, { relatedProjectIds: control.relatedProjectIds || [] })
+ );
+ }
+ };
 
-    const handleUnlinkProject = async (control: Control, projectId: string) => {
-        const success = await updateControl(control.id, { relatedProjectIds: arrayRemove(projectId) as unknown as string[] }, t('compliance.linkRemoved', { defaultValue: 'Link removed' }), true, control.organizationId);
-        if (success && user) {
-            await AuditLogService.logUpdate(
-                user.organizationId || '',
-                { id: user.uid, name: user.displayName || '', email: user.email || '' },
-                'control',
-                control.id,
-                { relatedProjectIds: control.relatedProjectIds },
-                { relatedProjectIds: control.relatedProjectIds?.filter(id => id !== projectId) },
-                control.name
-            );
-        }
-    };
+ const handleUnlinkProject = async (control: Control, projectId: string) => {
+ const success = await updateControl(control.id, { relatedProjectIds: arrayRemove(projectId) as unknown as string[] }, t('compliance.linkRemoved', { defaultValue: 'Link removed' }), true, control.organizationId);
+ if (success && user) {
+ await AuditLogService.logUpdate(
+ user.organizationId || '',
+ { id: user.uid, name: user.displayName || '', email: user.email || '' },
+ 'control',
+ control.id,
+ { relatedProjectIds: control.relatedProjectIds },
+ { relatedProjectIds: control.relatedProjectIds?.filter(id => id !== projectId) },
+ control.name
+ );
+ }
+ };
 
-    const handleLinkDocument = async (control: Control, documentId: string) => {
-        const newDocIds = [...(control.evidenceIds || []), documentId];
-        const success = await updateControl(control.id, { evidenceIds: arrayUnion(documentId) as unknown as string[] }, t('compliance.documentLinked', { defaultValue: 'Document linked' }), true, control.organizationId);
-        if (success && user) {
-            await logAction(
-                user,
-                'LINK_DOCUMENT',
-                'Control',
-                t('compliance.log.documentLinked', { defaultValue: 'Document linked to control [{{name}}]', name: control.name }),
-                undefined,
-                control.id,
-                undefined,
-                getDiff({ evidenceIds: newDocIds }, { evidenceIds: control.evidenceIds || [] })
-            );
-        }
-    };
+ const handleLinkDocument = async (control: Control, documentId: string) => {
+ const newDocIds = [...(control.evidenceIds || []), documentId];
+ const success = await updateControl(control.id, { evidenceIds: arrayUnion(documentId) as unknown as string[] }, t('compliance.documentLinked', { defaultValue: 'Document linked' }), true, control.organizationId);
+ if (success && user) {
+ await logAction(
+ user,
+ 'LINK_DOCUMENT',
+ 'Control',
+ t('compliance.log.documentLinked', { defaultValue: 'Document linked to control [{{name}}]', name: control.name }),
+ undefined,
+ control.id,
+ undefined,
+ getDiff({ evidenceIds: newDocIds }, { evidenceIds: control.evidenceIds || [] })
+ );
+ }
+ };
 
-    const handleUnlinkDocument = async (control: Control, documentId: string) => {
-        const success = await updateControl(control.id, { evidenceIds: arrayRemove(documentId) as unknown as string[] }, t('compliance.linkRemoved', { defaultValue: 'Link removed' }), true, control.organizationId);
-        if (success && user) {
-            await AuditLogService.logUpdate(
-                user.organizationId || '',
-                { id: user.uid, name: user.displayName || '', email: user.email || '' },
-                'control',
-                control.id,
-                { evidenceIds: control.evidenceIds },
-                { evidenceIds: control.evidenceIds?.filter(id => id !== documentId) },
-                control.name
-            );
-        }
-    };
+ const handleUnlinkDocument = async (control: Control, documentId: string) => {
+ const success = await updateControl(control.id, { evidenceIds: arrayRemove(documentId) as unknown as string[] }, t('compliance.linkRemoved', { defaultValue: 'Link removed' }), true, control.organizationId);
+ if (success && user) {
+ await AuditLogService.logUpdate(
+ user.organizationId || '',
+ { id: user.uid, name: user.displayName || '', email: user.email || '' },
+ 'control',
+ control.id,
+ { evidenceIds: control.evidenceIds },
+ { evidenceIds: control.evidenceIds?.filter(id => id !== documentId) },
+ control.name
+ );
+ }
+ };
 
-    const updateJustification = async (control: Control, text: string) => {
-        const success = await updateControl(control.id, { justification: text }, t('compliance.justificationSaved', { defaultValue: 'Justification saved' }), false, control.organizationId);
-        if (success && user) {
-            const changes = getDiff({ justification: text }, { justification: control.justification || '' });
-            await logAction(
-                user,
-                'UPDATE_JUSTIFICATION',
-                'Control',
-                t('compliance.log.justificationUpdated', { defaultValue: 'Justification updated for [{{name}}]', name: control.name }),
-                undefined,
-                control.id,
-                undefined,
-                changes
-            );
-        }
-    };
+ const updateJustification = async (control: Control, text: string) => {
+ const success = await updateControl(control.id, { justification: text }, t('compliance.justificationSaved', { defaultValue: 'Justification saved' }), false, control.organizationId);
+ if (success && user) {
+ const changes = getDiff({ justification: text }, { justification: control.justification || '' });
+ await logAction(
+ user,
+ 'UPDATE_JUSTIFICATION',
+ 'Control',
+ t('compliance.log.justificationUpdated', { defaultValue: 'Justification updated for [{{name}}]', name: control.name }),
+ undefined,
+ control.id,
+ undefined,
+ changes
+ );
+ }
+ };
 
-    const handleApplicabilityChange = async (control: Control, isApplicable: boolean) => {
-        const newStatus = isApplicable ? CONTROL_STATUS.NOT_STARTED : CONTROL_STATUS.NOT_APPLICABLE;
-        const newApplicability = isApplicable ? 'Applicable' : 'Non applicable';
+ const handleApplicabilityChange = async (control: Control, isApplicable: boolean) => {
+ const newStatus = isApplicable ? CONTROL_STATUS.NOT_STARTED : CONTROL_STATUS.NOT_APPLICABLE;
+ const newApplicability = isApplicable ? 'Applicable' : 'Non applicable';
 
-        const success = await updateControl(control.id, {
-            status: newStatus,
-            applicability: newApplicability
-        }, t('compliance.applicabilityChanged', { defaultValue: 'Control marked as {{status}}', status: newApplicability }), false, control.organizationId);
+ const success = await updateControl(control.id, {
+ status: newStatus,
+ applicability: newApplicability
+ }, t('compliance.applicabilityChanged', { defaultValue: 'Control marked as {{status}}', status: newApplicability }), false, control.organizationId);
 
-        if (success && user) {
-            const changes = getDiff({ status: newStatus, applicability: newApplicability }, { status: control.status, applicability: control.applicability });
-            await logAction(
-                user,
-                'UPDATE_APPLICABILITY',
-                'Control',
-                t('compliance.log.applicabilityChanged', { defaultValue: 'Applicability changed for [{{name}}]: {{status}}', name: control.name, status: newApplicability }),
-                undefined,
-                control.id,
-                undefined,
-                changes
-            );
-        }
-    };
+ if (success && user) {
+ const changes = getDiff({ status: newStatus, applicability: newApplicability }, { status: control.status, applicability: control.applicability });
+ await logAction(
+ user,
+ 'UPDATE_APPLICABILITY',
+ 'Control',
+ t('compliance.log.applicabilityChanged', { defaultValue: 'Applicability changed for [{{name}}]: {{status}}', name: control.name, status: newApplicability }),
+ undefined,
+ control.id,
+ undefined,
+ changes
+ );
+ }
+ };
 
-    // Cross-framework mapping handlers
-    const handleMapFramework = async (control: Control, frameworkId: Framework) => {
-        // Don't map if it's the primary framework or already mapped
-        if (control.framework === frameworkId) {
-            toast.info(t('compliance.frameworkAlreadyPrimary', { defaultValue: 'This framework is already the primary framework' }));
-            return;
-        }
-        if (control.mappedFrameworks?.includes(frameworkId)) {
-            toast.info(t('compliance.frameworkAlreadyMapped', { defaultValue: 'This framework is already mapped' }));
-            return;
-        }
+ // Cross-framework mapping handlers
+ const handleMapFramework = async (control: Control, frameworkId: Framework) => {
+ // Don't map if it's the primary framework or already mapped
+ if (control.framework === frameworkId) {
+ toast.info(t('compliance.frameworkAlreadyPrimary', { defaultValue: 'This framework is already the primary framework' }));
+ return;
+ }
+ if (control.mappedFrameworks?.includes(frameworkId)) {
+ toast.info(t('compliance.frameworkAlreadyMapped', { defaultValue: 'This framework is already mapped' }));
+ return;
+ }
 
-        const newMappedFrameworks = [...(control.mappedFrameworks || []), frameworkId];
-        const success = await updateControl(control.id, {
-            mappedFrameworks: arrayUnion(frameworkId) as unknown as Framework[]
-        }, t('compliance.frameworkMapped', { defaultValue: 'Framework mapped' }), true, control.organizationId);
+ const newMappedFrameworks = [...(control.mappedFrameworks || []), frameworkId];
+ const success = await updateControl(control.id, {
+ mappedFrameworks: arrayUnion(frameworkId) as unknown as Framework[]
+ }, t('compliance.frameworkMapped', { defaultValue: 'Framework mapped' }), true, control.organizationId);
 
-        if (success && user) {
-            const changes = getDiff({ mappedFrameworks: newMappedFrameworks }, { mappedFrameworks: control.mappedFrameworks || [] });
-            await logAction(
-                user,
-                'MAP_FRAMEWORK',
-                'Control',
-                t('compliance.log.frameworkMapped', { defaultValue: 'Framework [{{framework}}] mapped to control [{{name}}]', framework: frameworkId, name: control.name }),
-                undefined,
-                control.id,
-                undefined,
-                changes
-            );
-        }
-    };
+ if (success && user) {
+ const changes = getDiff({ mappedFrameworks: newMappedFrameworks }, { mappedFrameworks: control.mappedFrameworks || [] });
+ await logAction(
+ user,
+ 'MAP_FRAMEWORK',
+ 'Control',
+ t('compliance.log.frameworkMapped', { defaultValue: 'Framework [{{framework}}] mapped to control [{{name}}]', framework: frameworkId, name: control.name }),
+ undefined,
+ control.id,
+ undefined,
+ changes
+ );
+ }
+ };
 
-    const handleUnmapFramework = async (control: Control, frameworkId: Framework) => {
-        const success = await updateControl(control.id, {
-            mappedFrameworks: arrayRemove(frameworkId) as unknown as Framework[]
-        }, t('compliance.mappingRemoved', { defaultValue: 'Mapping removed' }), true, control.organizationId);
+ const handleUnmapFramework = async (control: Control, frameworkId: Framework) => {
+ const success = await updateControl(control.id, {
+ mappedFrameworks: arrayRemove(frameworkId) as unknown as Framework[]
+ }, t('compliance.mappingRemoved', { defaultValue: 'Mapping removed' }), true, control.organizationId);
 
-        if (success && user) {
-            await AuditLogService.logUpdate(
-                user.organizationId || '',
-                { id: user.uid, name: user.displayName || '', email: user.email || '' },
-                'control',
-                control.id,
-                { mappedFrameworks: control.mappedFrameworks },
-                { mappedFrameworks: control.mappedFrameworks?.filter(f => f !== frameworkId) },
-                control.name
-            );
-        }
-    };
+ if (success && user) {
+ await AuditLogService.logUpdate(
+ user.organizationId || '',
+ { id: user.uid, name: user.displayName || '', email: user.email || '' },
+ 'control',
+ control.id,
+ { mappedFrameworks: control.mappedFrameworks },
+ { mappedFrameworks: control.mappedFrameworks?.filter(f => f !== frameworkId) },
+ control.name
+ );
+ }
+ };
 
-    const createRisk = async (riskData: Record<string, unknown>) => {
-        setUpdating(true);
-        try {
-            // SECURITY: Check authorization
-            if (!hasPermission(user, 'Risk', 'create')) {
-                ErrorLogger.warn('Unauthorized risk creation attempt', 'useComplianceActions.createRisk', {
-                    metadata: { attemptedBy: user?.uid }
-                });
-                toast.error(t('compliance.noCreateRiskPermission', { defaultValue: 'You do not have permission to create a risk' }));
-                return null;
-            }
+ const createRisk = async (riskData: Record<string, unknown>) => {
+ setUpdating(true);
+ try {
+ // SECURITY: Check authorization
+ if (!hasPermission(user, 'Risk', 'create')) {
+ ErrorLogger.warn('Unauthorized risk creation attempt', 'useComplianceActions.createRisk', {
+  metadata: { attemptedBy: user?.uid }
+ });
+ toast.error(t('compliance.noCreateRiskPermission', { defaultValue: 'You do not have permission to create a risk' }));
+ return null;
+ }
 
-            // Placeholder: Ideally import addDoc and collection at top
-            const { addDoc, collection } = await import('firebase/firestore');
-            const ref = await addDoc(collection(db, 'risks'), sanitizeData({
-                ...riskData,
-                organizationId: user?.organizationId, // Ensure org isolation
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-                createdBy: user?.uid
-            }));
-            toast.success(t('compliance.riskCreated', { defaultValue: 'Risk created successfully' }));
-            logAction(user, 'CREATE_RISK', 'risk', `Created risk ${riskData.threat}`, undefined, ref.id);
-            return ref.id;
-        } catch (error) {
-            ErrorLogger.error(error, 'useComplianceActions.createRisk');
-            toast.error(t('errors.riskCreationFailed', { defaultValue: 'Error creating risk' }));
-            return null;
-        } finally {
-            setUpdating(false);
-        }
-    };
+ // Placeholder: Ideally import addDoc and collection at top
+ const { addDoc, collection } = await import('firebase/firestore');
+ const ref = await addDoc(collection(db, 'risks'), sanitizeData({
+ ...riskData,
+ organizationId: user?.organizationId, // Ensure org isolation
+ createdAt: serverTimestamp(),
+ updatedAt: serverTimestamp(),
+ createdBy: user?.uid
+ }));
+ toast.success(t('compliance.riskCreated', { defaultValue: 'Risk created successfully' }));
+ logAction(user, 'CREATE_RISK', 'risk', `Created risk ${riskData.threat}`, undefined, ref.id);
+ return ref.id;
+ } catch (error) {
+ ErrorLogger.error(error, 'useComplianceActions.createRisk');
+ toast.error(t('errors.riskCreationFailed', { defaultValue: 'Error creating risk' }));
+ return null;
+ } finally {
+ setUpdating(false);
+ }
+ };
 
-    const createAudit = async (auditData: Record<string, unknown>) => {
-        setUpdating(true);
-        try {
-            // SECURITY: Check authorization
-            if (!hasPermission(user, 'Audit', 'create')) {
-                ErrorLogger.warn('Unauthorized audit creation attempt', 'useComplianceActions.createAudit', {
-                    metadata: { attemptedBy: user?.uid }
-                });
-                toast.error(t('compliance.noCreateAuditPermission', { defaultValue: 'You do not have permission to create an audit' }));
-                return null;
-            }
+ const createAudit = async (auditData: Record<string, unknown>) => {
+ setUpdating(true);
+ try {
+ // SECURITY: Check authorization
+ if (!hasPermission(user, 'Audit', 'create')) {
+ ErrorLogger.warn('Unauthorized audit creation attempt', 'useComplianceActions.createAudit', {
+  metadata: { attemptedBy: user?.uid }
+ });
+ toast.error(t('compliance.noCreateAuditPermission', { defaultValue: 'You do not have permission to create an audit' }));
+ return null;
+ }
 
-            const { addDoc, collection } = await import('firebase/firestore');
-            const ref = await addDoc(collection(db, 'audits'), sanitizeData({
-                ...auditData,
-                organizationId: user?.organizationId, // Ensure org isolation
-                status: 'Planifié', // Status value stored in DB - not user-facing
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-                createdBy: user?.uid
-            }));
-            toast.success(t('compliance.auditPlanned', { defaultValue: 'Audit planned successfully' }));
-            logAction(user, 'CREATE_AUDIT', 'audit', `Created audit ${auditData.name}`, undefined, ref.id);
-            return ref.id;
-        } catch (error) {
-            ErrorLogger.error(error, 'useComplianceActions.createAudit');
-            toast.error(t('errors.auditCreationFailed', { defaultValue: 'Error creating audit' }));
-            return null;
-        } finally {
-            setUpdating(false);
-        }
-    };
+ const { addDoc, collection } = await import('firebase/firestore');
+ const ref = await addDoc(collection(db, 'audits'), sanitizeData({
+ ...auditData,
+ organizationId: user?.organizationId, // Ensure org isolation
+ status: 'Planifié', // Status value stored in DB - not user-facing
+ createdAt: serverTimestamp(),
+ updatedAt: serverTimestamp(),
+ createdBy: user?.uid
+ }));
+ toast.success(t('compliance.auditPlanned', { defaultValue: 'Audit planned successfully' }));
+ logAction(user, 'CREATE_AUDIT', 'audit', `Created audit ${auditData.name}`, undefined, ref.id);
+ return ref.id;
+ } catch (error) {
+ ErrorLogger.error(error, 'useComplianceActions.createAudit');
+ toast.error(t('errors.auditCreationFailed', { defaultValue: 'Error creating audit' }));
+ return null;
+ } finally {
+ setUpdating(false);
+ }
+ };
 
-    return {
-        updating,
-        handleStatusChange,
-        handleAssign,
-        handleLinkAsset,
-        handleUnlinkAsset,
-        handleLinkSupplier,
-        handleUnlinkSupplier,
-        handleLinkProject,
-        handleUnlinkProject,
-        handleLinkDocument,
-        handleUnlinkDocument,
-        updateJustification,
-        handleApplicabilityChange,
-        handleMapFramework,
-        handleUnmapFramework,
-        createRisk,
-        createAudit,
-        updateControl
-    };
+ return {
+ updating,
+ handleStatusChange,
+ handleAssign,
+ handleLinkAsset,
+ handleUnlinkAsset,
+ handleLinkSupplier,
+ handleUnlinkSupplier,
+ handleLinkProject,
+ handleUnlinkProject,
+ handleLinkDocument,
+ handleUnlinkDocument,
+ updateJustification,
+ handleApplicabilityChange,
+ handleMapFramework,
+ handleUnmapFramework,
+ createRisk,
+ createAudit,
+ updateControl
+ };
 };

@@ -14,23 +14,23 @@ import { REQUIRED_DOCUMENTS } from '../types/homologation';
 // ============================================================================
 
 export interface DocumentSection {
-  id: string;
-  title: string;
-  titleEn: string;
-  content: string; // Markdown with placeholders
-  contentEn: string;
-  required: boolean;
-  order: number;
-  dataSource?: 'organization' | 'dossier' | 'ebios' | 'controls' | 'manual';
+ id: string;
+ title: string;
+ titleEn: string;
+ content: string; // Markdown with placeholders
+ contentEn: string;
+ required: boolean;
+ order: number;
+ dataSource?: 'organization' | 'dossier' | 'ebios' | 'controls' | 'manual';
 }
 
 export interface DocumentTemplate {
-  type: HomologationDocumentType;
-  title: string;
-  titleEn: string;
-  description: string;
-  descriptionEn: string;
-  sections: DocumentSection[];
+ type: HomologationDocumentType;
+ title: string;
+ titleEn: string;
+ description: string;
+ descriptionEn: string;
+ sections: DocumentSection[];
 }
 
 // ============================================================================
@@ -38,38 +38,38 @@ export interface DocumentTemplate {
 // ============================================================================
 
 export const PLACEHOLDERS = {
-  // Organization
-  '{{organization.name}}': 'Nom de l\'organisation',
-  '{{organization.address}}': 'Adresse de l\'organisation',
-  '{{organization.sector}}': 'Secteur d\'activité',
+ // Organization
+ '{{organization.name}}': 'Nom de l\'organisation',
+ '{{organization.address}}': 'Adresse de l\'organisation',
+ '{{organization.sector}}': 'Secteur d\'activité',
 
-  // Dossier
-  '{{dossier.name}}': 'Nom du dossier',
-  '{{dossier.systemScope}}': 'Périmètre du système',
-  '{{dossier.description}}': 'Description du dossier',
-  '{{dossier.level}}': 'Niveau d\'homologation',
-  '{{dossier.levelJustification}}': 'Justification du niveau',
-  '{{dossier.validityYears}}': 'Durée de validité',
-  '{{dossier.responsibleName}}': 'Nom du responsable',
-  '{{dossier.authorityName}}': 'Autorité d\'homologation',
+ // Dossier
+ '{{dossier.name}}': 'Nom du dossier',
+ '{{dossier.systemScope}}': 'Périmètre du système',
+ '{{dossier.description}}': 'Description du dossier',
+ '{{dossier.level}}': 'Niveau d\'homologation',
+ '{{dossier.levelJustification}}': 'Justification du niveau',
+ '{{dossier.validityYears}}': 'Durée de validité',
+ '{{dossier.responsibleName}}': 'Nom du responsable',
+ '{{dossier.authorityName}}': 'Autorité d\'homologation',
 
-  // Dates
-  '{{date.current}}': 'Date actuelle',
-  '{{date.validityStart}}': 'Date de début de validité',
-  '{{date.validityEnd}}': 'Date de fin de validité',
+ // Dates
+ '{{date.current}}': 'Date actuelle',
+ '{{date.validityStart}}': 'Date de début de validité',
+ '{{date.validityEnd}}': 'Date de fin de validité',
 
-  // EBIOS Data
-  '{{ebios.fearedEvents}}': 'Événements redoutés',
-  '{{ebios.riskSources}}': 'Sources de risque',
-  '{{ebios.strategicScenarios}}': 'Scénarios stratégiques',
-  '{{ebios.operationalScenarios}}': 'Scénarios opérationnels',
-  '{{ebios.treatmentPlan}}': 'Plan de traitement',
-  '{{ebios.residualRisks}}': 'Risques résiduels',
+ // EBIOS Data
+ '{{ebios.fearedEvents}}': 'Événements redoutés',
+ '{{ebios.riskSources}}': 'Sources de risque',
+ '{{ebios.strategicScenarios}}': 'Scénarios stratégiques',
+ '{{ebios.operationalScenarios}}': 'Scénarios opérationnels',
+ '{{ebios.treatmentPlan}}': 'Plan de traitement',
+ '{{ebios.residualRisks}}': 'Risques résiduels',
 
-  // Controls
-  '{{controls.implemented}}': 'Contrôles implémentés',
-  '{{controls.planned}}': 'Contrôles planifiés',
-  '{{controls.gaps}}': 'Écarts identifiés'
+ // Controls
+ '{{controls.implemented}}': 'Contrôles implémentés',
+ '{{controls.planned}}': 'Contrôles planifiés',
+ '{{controls.gaps}}': 'Écarts identifiés'
 } as const;
 
 export type PlaceholderKey = keyof typeof PLACEHOLDERS;
@@ -82,20 +82,20 @@ export type PlaceholderKey = keyof typeof PLACEHOLDERS;
  * Stratégie d'homologation - Required for all levels
  */
 export const STRATEGIE_TEMPLATE: DocumentTemplate = {
-  type: 'strategie',
-  title: 'Stratégie d\'homologation',
-  titleEn: 'Homologation Strategy',
-  description: 'Document définissant le périmètre, les objectifs et la démarche d\'homologation',
-  descriptionEn: 'Document defining the scope, objectives and homologation approach',
-  sections: [
-    {
-      id: 'introduction',
-      title: 'Introduction',
-      titleEn: 'Introduction',
-      order: 1,
-      required: true,
-      dataSource: 'dossier',
-      content: `## Introduction
+ type: 'strategie',
+ title: 'Stratégie d\'homologation',
+ titleEn: 'Homologation Strategy',
+ description: 'Document définissant le périmètre, les objectifs et la démarche d\'homologation',
+ descriptionEn: 'Document defining the scope, objectives and homologation approach',
+ sections: [
+ {
+ id: 'introduction',
+ title: 'Introduction',
+ titleEn: 'Introduction',
+ order: 1,
+ required: true,
+ dataSource: 'dossier',
+ content: `## Introduction
 
 Le présent document définit la stratégie d'homologation du système d'information **{{dossier.name}}** de **{{organization.name}}**.
 
@@ -104,7 +104,7 @@ Le présent document définit la stratégie d'homologation du système d'informa
 
 ### Objectif
 L'objectif de cette démarche d'homologation est de garantir que le système d'information offre un niveau de sécurité adapté aux risques identifiés, conformément aux exigences du Référentiel Général de Sécurité (RGS).`,
-      contentEn: `## Introduction
+ contentEn: `## Introduction
 
 This document defines the homologation strategy for the information system **{{dossier.name}}** of **{{organization.name}}**.
 
@@ -113,15 +113,15 @@ This document defines the homologation strategy for the information system **{{d
 
 ### Objective
 The objective of this homologation process is to ensure that the information system provides a level of security appropriate to the identified risks, in accordance with the General Security Framework (RGS) requirements.`
-    },
-    {
-      id: 'perimetre',
-      title: 'Périmètre',
-      titleEn: 'Scope',
-      order: 2,
-      required: true,
-      dataSource: 'dossier',
-      content: `## Périmètre de l'homologation
+ },
+ {
+ id: 'perimetre',
+ title: 'Périmètre',
+ titleEn: 'Scope',
+ order: 2,
+ required: true,
+ dataSource: 'dossier',
+ content: `## Périmètre de l'homologation
 
 ### Système concerné
 **{{dossier.systemScope}}**
@@ -137,7 +137,7 @@ The objective of this homologation process is to ensure that the information sys
 
 ### Éléments exclus du périmètre
 - [À compléter : éléments hors périmètre]`,
-      contentEn: `## Homologation Scope
+ contentEn: `## Homologation Scope
 
 ### Concerned System
 **{{dossier.systemScope}}**
@@ -153,15 +153,15 @@ The objective of this homologation process is to ensure that the information sys
 
 ### Elements Excluded from Scope
 - [To complete: out-of-scope elements]`
-    },
-    {
-      id: 'gouvernance',
-      title: 'Gouvernance',
-      titleEn: 'Governance',
-      order: 3,
-      required: true,
-      dataSource: 'dossier',
-      content: `## Gouvernance de l'homologation
+ },
+ {
+ id: 'gouvernance',
+ title: 'Gouvernance',
+ titleEn: 'Governance',
+ order: 3,
+ required: true,
+ dataSource: 'dossier',
+ content: `## Gouvernance de l'homologation
 
 ### Autorité d'homologation
 **{{dossier.authorityName}}**
@@ -175,7 +175,7 @@ Le responsable de la sécurité pilote la démarche d'homologation et s'assure d
 
 ### Comité d'homologation
 [À compléter : composition du comité]`,
-      contentEn: `## Homologation Governance
+ contentEn: `## Homologation Governance
 
 ### Homologation Authority
 **{{dossier.authorityName}}**
@@ -189,15 +189,15 @@ The security officer leads the homologation process and ensures the implementati
 
 ### Homologation Committee
 [To complete: committee composition]`
-    },
-    {
-      id: 'demarche',
-      title: 'Démarche',
-      titleEn: 'Approach',
-      order: 4,
-      required: true,
-      dataSource: 'manual',
-      content: `## Démarche d'homologation
+ },
+ {
+ id: 'demarche',
+ title: 'Démarche',
+ titleEn: 'Approach',
+ order: 4,
+ required: true,
+ dataSource: 'manual',
+ content: `## Démarche d'homologation
 
 ### Méthodologie
 La démarche d'homologation suit les recommandations de l'ANSSI et s'appuie sur :
@@ -215,7 +215,7 @@ La démarche d'homologation suit les recommandations de l'ANSSI et s'appuie sur 
 
 ### Durée de validité
 L'homologation sera valide pour une durée de **{{dossier.validityYears}} ans** à compter de la date de décision.`,
-      contentEn: `## Homologation Approach
+ contentEn: `## Homologation Approach
 
 ### Methodology
 The homologation process follows ANSSI recommendations and relies on:
@@ -233,15 +233,15 @@ The homologation process follows ANSSI recommendations and relies on:
 
 ### Validity Period
 The homologation will be valid for **{{dossier.validityYears}} years** from the decision date.`
-    },
-    {
-      id: 'documents',
-      title: 'Documents constitutifs',
-      titleEn: 'Constituent Documents',
-      order: 5,
-      required: true,
-      dataSource: 'manual',
-      content: `## Documents constitutifs du dossier
+ },
+ {
+ id: 'documents',
+ title: 'Documents constitutifs',
+ titleEn: 'Constituent Documents',
+ order: 5,
+ required: true,
+ dataSource: 'manual',
+ content: `## Documents constitutifs du dossier
 
 Le dossier d'homologation comprend les documents suivants :
 
@@ -252,7 +252,7 @@ Le dossier d'homologation comprend les documents suivants :
 | Plan d'action | [Statut] | [Responsable] |
 | Décision d'homologation | [Statut] | {{dossier.authorityName}} |
 | Attestation | [Statut] | {{dossier.authorityName}} |`,
-      contentEn: `## Dossier Constituent Documents
+ contentEn: `## Dossier Constituent Documents
 
 The homologation dossier includes the following documents:
 
@@ -263,90 +263,90 @@ The homologation dossier includes the following documents:
 | Action plan | [Status] | [Responsible] |
 | Homologation decision | [Status] | {{dossier.authorityName}} |
 | Certificate | [Status] | {{dossier.authorityName}} |`
-    }
-  ]
+ }
+ ]
 };
 
 /**
  * Analyse de risques - Required for Simple, Standard, Renforcé
  */
 export const ANALYSE_RISQUES_TEMPLATE: DocumentTemplate = {
-  type: 'analyse_risques',
-  title: 'Analyse de risques',
-  titleEn: 'Risk Analysis',
-  description: 'Identification et évaluation des risques de sécurité selon EBIOS RM',
-  descriptionEn: 'Identification and assessment of security risks according to EBIOS RM',
-  sections: [
-    {
-      id: 'introduction',
-      title: 'Introduction',
-      titleEn: 'Introduction',
-      order: 1,
-      required: true,
-      dataSource: 'dossier',
-      content: `## Introduction
+ type: 'analyse_risques',
+ title: 'Analyse de risques',
+ titleEn: 'Risk Analysis',
+ description: 'Identification et évaluation des risques de sécurité selon EBIOS RM',
+ descriptionEn: 'Identification and assessment of security risks according to EBIOS RM',
+ sections: [
+ {
+ id: 'introduction',
+ title: 'Introduction',
+ titleEn: 'Introduction',
+ order: 1,
+ required: true,
+ dataSource: 'dossier',
+ content: `## Introduction
 
 Ce document présente l'analyse de risques réalisée pour le système **{{dossier.name}}** dans le cadre de sa démarche d'homologation.
 
 L'analyse suit la méthodologie EBIOS Risk Manager (EBIOS RM) recommandée par l'ANSSI.`,
-      contentEn: `## Introduction
+ contentEn: `## Introduction
 
 This document presents the risk analysis performed for the **{{dossier.name}}** system as part of its homologation process.
 
 The analysis follows the EBIOS Risk Manager (EBIOS RM) methodology recommended by ANSSI.`
-    },
-    {
-      id: 'evenements_redoutes',
-      title: 'Événements redoutés',
-      titleEn: 'Feared Events',
-      order: 2,
-      required: true,
-      dataSource: 'ebios',
-      content: `## Événements redoutés
+ },
+ {
+ id: 'evenements_redoutes',
+ title: 'Événements redoutés',
+ titleEn: 'Feared Events',
+ order: 2,
+ required: true,
+ dataSource: 'ebios',
+ content: `## Événements redoutés
 
 Les événements redoutés identifiés pour le système sont :
 
 {{ebios.fearedEvents}}
 
 *Si aucune analyse EBIOS n'est liée, compléter manuellement cette section.*`,
-      contentEn: `## Feared Events
+ contentEn: `## Feared Events
 
 The feared events identified for the system are:
 
 {{ebios.fearedEvents}}
 
 *If no EBIOS analysis is linked, complete this section manually.*`
-    },
-    {
-      id: 'sources_risque',
-      title: 'Sources de risque',
-      titleEn: 'Risk Sources',
-      order: 3,
-      required: true,
-      dataSource: 'ebios',
-      content: `## Sources de risque
+ },
+ {
+ id: 'sources_risque',
+ title: 'Sources de risque',
+ titleEn: 'Risk Sources',
+ order: 3,
+ required: true,
+ dataSource: 'ebios',
+ content: `## Sources de risque
 
 Les sources de risque pertinentes identifiées sont :
 
 {{ebios.riskSources}}
 
 *Si aucune analyse EBIOS n'est liée, compléter manuellement cette section.*`,
-      contentEn: `## Risk Sources
+ contentEn: `## Risk Sources
 
 The relevant risk sources identified are:
 
 {{ebios.riskSources}}
 
 *If no EBIOS analysis is linked, complete this section manually.*`
-    },
-    {
-      id: 'scenarios',
-      title: 'Scénarios de risque',
-      titleEn: 'Risk Scenarios',
-      order: 4,
-      required: true,
-      dataSource: 'ebios',
-      content: `## Scénarios de risque
+ },
+ {
+ id: 'scenarios',
+ title: 'Scénarios de risque',
+ titleEn: 'Risk Scenarios',
+ order: 4,
+ required: true,
+ dataSource: 'ebios',
+ content: `## Scénarios de risque
 
 ### Scénarios stratégiques
 {{ebios.strategicScenarios}}
@@ -355,7 +355,7 @@ The relevant risk sources identified are:
 {{ebios.operationalScenarios}}
 
 *Si aucune analyse EBIOS n'est liée, compléter manuellement cette section.*`,
-      contentEn: `## Risk Scenarios
+ contentEn: `## Risk Scenarios
 
 ### Strategic Scenarios
 {{ebios.strategicScenarios}}
@@ -364,86 +364,86 @@ The relevant risk sources identified are:
 {{ebios.operationalScenarios}}
 
 *If no EBIOS analysis is linked, complete this section manually.*`
-    },
-    {
-      id: 'risques_residuels',
-      title: 'Risques résiduels',
-      titleEn: 'Residual Risks',
-      order: 5,
-      required: true,
-      dataSource: 'ebios',
-      content: `## Risques résiduels
+ },
+ {
+ id: 'risques_residuels',
+ title: 'Risques résiduels',
+ titleEn: 'Residual Risks',
+ order: 5,
+ required: true,
+ dataSource: 'ebios',
+ content: `## Risques résiduels
 
 Après application des mesures de sécurité, les risques résiduels sont :
 
 {{ebios.residualRisks}}
 
 Ces risques résiduels sont considérés comme acceptables par l'autorité d'homologation.`,
-      contentEn: `## Residual Risks
+ contentEn: `## Residual Risks
 
 After applying security measures, the residual risks are:
 
 {{ebios.residualRisks}}
 
 These residual risks are considered acceptable by the homologation authority.`
-    }
-  ]
+ }
+ ]
 };
 
 /**
  * Plan d'action - Required for Standard, Renforcé
  */
 export const PLAN_ACTION_TEMPLATE: DocumentTemplate = {
-  type: 'plan_action',
-  title: 'Plan d\'action',
-  titleEn: 'Action Plan',
-  description: 'Mesures de sécurité et calendrier de mise en œuvre',
-  descriptionEn: 'Security measures and implementation timeline',
-  sections: [
-    {
-      id: 'introduction',
-      title: 'Introduction',
-      titleEn: 'Introduction',
-      order: 1,
-      required: true,
-      dataSource: 'dossier',
-      content: `## Introduction
+ type: 'plan_action',
+ title: 'Plan d\'action',
+ titleEn: 'Action Plan',
+ description: 'Mesures de sécurité et calendrier de mise en œuvre',
+ descriptionEn: 'Security measures and implementation timeline',
+ sections: [
+ {
+ id: 'introduction',
+ title: 'Introduction',
+ titleEn: 'Introduction',
+ order: 1,
+ required: true,
+ dataSource: 'dossier',
+ content: `## Introduction
 
 Ce document décrit le plan d'action sécurité pour le système **{{dossier.name}}**, incluant les mesures à mettre en œuvre pour atteindre le niveau de sécurité requis.`,
-      contentEn: `## Introduction
+ contentEn: `## Introduction
 
 This document describes the security action plan for the **{{dossier.name}}** system, including the measures to be implemented to achieve the required security level.`
-    },
-    {
-      id: 'mesures_existantes',
-      title: 'Mesures existantes',
-      titleEn: 'Existing Measures',
-      order: 2,
-      required: true,
-      dataSource: 'controls',
-      content: `## Mesures de sécurité existantes
+ },
+ {
+ id: 'mesures_existantes',
+ title: 'Mesures existantes',
+ titleEn: 'Existing Measures',
+ order: 2,
+ required: true,
+ dataSource: 'controls',
+ content: `## Mesures de sécurité existantes
 
 Les mesures de sécurité déjà en place sont :
 
 {{controls.implemented}}
 
 *Liste des contrôles implémentés depuis Sentinel GRC.*`,
-      contentEn: `## Existing Security Measures
+ contentEn: `## Existing Security Measures
 
 The security measures already in place are:
 
 {{controls.implemented}}
 
 *List of implemented controls from Sentinel GRC.*`
-    },
-    {
-      id: 'mesures_planifiees',
-      title: 'Mesures planifiées',
-      titleEn: 'Planned Measures',
-      order: 3,
-      required: true,
-      dataSource: 'controls',
-      content: `## Mesures de sécurité planifiées
+ },
+ {
+ id: 'mesures_planifiees',
+ title: 'Mesures planifiées',
+ titleEn: 'Planned Measures',
+ order: 3,
+ required: true,
+ dataSource: 'controls',
+ content: `## Mesures de sécurité planifiées
 
 Les mesures à mettre en œuvre sont :
 
@@ -455,7 +455,7 @@ Les mesures à mettre en œuvre sont :
 |--------|-------------|----------|----------|
 | [Mesure 1] | [Responsable] | [Date] | Haute |
 | [Mesure 2] | [Responsable] | [Date] | Moyenne |`,
-      contentEn: `## Planned Security Measures
+ contentEn: `## Planned Security Measures
 
 The measures to be implemented are:
 
@@ -467,37 +467,37 @@ The measures to be implemented are:
 |---------|-------------|----------|----------|
 | [Measure 1] | [Responsible] | [Date] | High |
 | [Measure 2] | [Responsible] | [Date] | Medium |`
-    },
-    {
-      id: 'plan_traitement',
-      title: 'Plan de traitement des risques',
-      titleEn: 'Risk Treatment Plan',
-      order: 4,
-      required: true,
-      dataSource: 'ebios',
-      content: `## Plan de traitement des risques
+ },
+ {
+ id: 'plan_traitement',
+ title: 'Plan de traitement des risques',
+ titleEn: 'Risk Treatment Plan',
+ order: 4,
+ required: true,
+ dataSource: 'ebios',
+ content: `## Plan de traitement des risques
 
 Le plan de traitement des risques issu de l'analyse EBIOS RM est :
 
 {{ebios.treatmentPlan}}
 
 *Si aucune analyse EBIOS n'est liée, compléter manuellement cette section.*`,
-      contentEn: `## Risk Treatment Plan
+ contentEn: `## Risk Treatment Plan
 
 The risk treatment plan from the EBIOS RM analysis is:
 
 {{ebios.treatmentPlan}}
 
 *If no EBIOS analysis is linked, complete this section manually.*`
-    },
-    {
-      id: 'ecarts',
-      title: 'Écarts identifiés',
-      titleEn: 'Identified Gaps',
-      order: 5,
-      required: false,
-      dataSource: 'controls',
-      content: `## Écarts identifiés
+ },
+ {
+ id: 'ecarts',
+ title: 'Écarts identifiés',
+ titleEn: 'Identified Gaps',
+ order: 5,
+ required: false,
+ dataSource: 'controls',
+ content: `## Écarts identifiés
 
 Les écarts par rapport aux exigences de sécurité sont :
 
@@ -506,7 +506,7 @@ Les écarts par rapport aux exigences de sécurité sont :
 ### Plan de remédiation
 
 [À compléter : actions correctives pour chaque écart]`,
-      contentEn: `## Identified Gaps
+ contentEn: `## Identified Gaps
 
 The gaps from security requirements are:
 
@@ -515,28 +515,28 @@ The gaps from security requirements are:
 ### Remediation Plan
 
 [To complete: corrective actions for each gap]`
-    }
-  ]
+ }
+ ]
 };
 
 /**
  * Décision d'homologation - Required for Standard, Renforcé
  */
 export const DECISION_TEMPLATE: DocumentTemplate = {
-  type: 'decision',
-  title: 'Décision d\'homologation',
-  titleEn: 'Homologation Decision',
-  description: 'Acte officiel de l\'autorité d\'homologation',
-  descriptionEn: 'Official act of the homologation authority',
-  sections: [
-    {
-      id: 'decision',
-      title: 'Décision',
-      titleEn: 'Decision',
-      order: 1,
-      required: true,
-      dataSource: 'dossier',
-      content: `## Décision d'homologation
+ type: 'decision',
+ title: 'Décision d\'homologation',
+ titleEn: 'Homologation Decision',
+ description: 'Acte officiel de l\'autorité d\'homologation',
+ descriptionEn: 'Official act of the homologation authority',
+ sections: [
+ {
+ id: 'decision',
+ title: 'Décision',
+ titleEn: 'Decision',
+ order: 1,
+ required: true,
+ dataSource: 'dossier',
+ content: `## Décision d'homologation
 
 **{{organization.name}}**
 
@@ -576,7 +576,7 @@ Fait à _________________, le **{{date.current}}**
 {{dossier.authorityName}}
 
 Signature : _________________________`,
-      contentEn: `## Homologation Decision
+ contentEn: `## Homologation Decision
 
 **{{organization.name}}**
 
@@ -616,28 +616,28 @@ Done at _________________, on **{{date.current}}**
 {{dossier.authorityName}}
 
 Signature: _________________________`
-    }
-  ]
+ }
+ ]
 };
 
 /**
  * Attestation - Required for Standard, Renforcé
  */
 export const ATTESTATION_TEMPLATE: DocumentTemplate = {
-  type: 'attestation',
-  title: 'Attestation d\'homologation',
-  titleEn: 'Homologation Certificate',
-  description: 'Attestation formelle de l\'homologation',
-  descriptionEn: 'Formal certificate of homologation',
-  sections: [
-    {
-      id: 'attestation',
-      title: 'Attestation',
-      titleEn: 'Certificate',
-      order: 1,
-      required: true,
-      dataSource: 'dossier',
-      content: `# ATTESTATION D'HOMOLOGATION
+ type: 'attestation',
+ title: 'Attestation d\'homologation',
+ titleEn: 'Homologation Certificate',
+ description: 'Attestation formelle de l\'homologation',
+ descriptionEn: 'Formal certificate of homologation',
+ sections: [
+ {
+ id: 'attestation',
+ title: 'Attestation',
+ titleEn: 'Certificate',
+ order: 1,
+ required: true,
+ dataSource: 'dossier',
+ content: `# ATTESTATION D'HOMOLOGATION
 
 ---
 
@@ -675,7 +675,7 @@ export const ATTESTATION_TEMPLATE: DocumentTemplate = {
 ---
 
 *Cette attestation doit être renouvelée avant la date de fin de validité ou en cas de modification majeure du système.*`,
-      contentEn: `# HOMOLOGATION CERTIFICATE
+ contentEn: `# HOMOLOGATION CERTIFICATE
 
 ---
 
@@ -713,28 +713,28 @@ export const ATTESTATION_TEMPLATE: DocumentTemplate = {
 ---
 
 *This certificate must be renewed before the expiration date or in case of major system changes.*`
-    }
-  ]
+ }
+ ]
 };
 
 /**
  * Tests d'intrusion - Required for Renforcé only
  */
 export const TEST_INTRUSION_TEMPLATE: DocumentTemplate = {
-  type: 'test_intrusion',
-  title: 'Rapport de tests d\'intrusion',
-  titleEn: 'Penetration Test Report',
-  description: 'Rapport des tests d\'intrusion réalisés',
-  descriptionEn: 'Report of penetration tests performed',
-  sections: [
-    {
-      id: 'synthese',
-      title: 'Synthèse exécutive',
-      titleEn: 'Executive Summary',
-      order: 1,
-      required: true,
-      dataSource: 'manual',
-      content: `## Synthèse exécutive
+ type: 'test_intrusion',
+ title: 'Rapport de tests d\'intrusion',
+ titleEn: 'Penetration Test Report',
+ description: 'Rapport des tests d\'intrusion réalisés',
+ descriptionEn: 'Report of penetration tests performed',
+ sections: [
+ {
+ id: 'synthese',
+ title: 'Synthèse exécutive',
+ titleEn: 'Executive Summary',
+ order: 1,
+ required: true,
+ dataSource: 'manual',
+ content: `## Synthèse exécutive
 
 ### Contexte
 Des tests d'intrusion ont été réalisés sur le système **{{dossier.name}}** dans le cadre de sa démarche d'homologation au niveau Renforcé.
@@ -753,7 +753,7 @@ Du [date début] au [date fin]
 
 ### Conclusion
 [Conclusion générale sur le niveau de sécurité]`,
-      contentEn: `## Executive Summary
+ contentEn: `## Executive Summary
 
 ### Context
 Penetration tests were performed on the **{{dossier.name}}** system as part of its Enhanced level homologation process.
@@ -772,15 +772,15 @@ From [start date] to [end date]
 
 ### Conclusion
 [General conclusion on security level]`
-    },
-    {
-      id: 'perimetre_tests',
-      title: 'Périmètre des tests',
-      titleEn: 'Test Scope',
-      order: 2,
-      required: true,
-      dataSource: 'manual',
-      content: `## Périmètre des tests
+ },
+ {
+ id: 'perimetre_tests',
+ title: 'Périmètre des tests',
+ titleEn: 'Test Scope',
+ order: 2,
+ required: true,
+ dataSource: 'manual',
+ content: `## Périmètre des tests
 
 ### Composants testés
 [Liste des composants, serveurs, applications testés]
@@ -794,7 +794,7 @@ From [start date] to [end date]
 
 ### Exclusions
 [Éléments exclus du périmètre de test]`,
-      contentEn: `## Test Scope
+ contentEn: `## Test Scope
 
 ### Tested Components
 [List of tested components, servers, applications]
@@ -808,15 +808,15 @@ From [start date] to [end date]
 
 ### Exclusions
 [Elements excluded from test scope]`
-    },
-    {
-      id: 'vulnerabilites',
-      title: 'Vulnérabilités identifiées',
-      titleEn: 'Identified Vulnerabilities',
-      order: 3,
-      required: true,
-      dataSource: 'manual',
-      content: `## Vulnérabilités identifiées
+ },
+ {
+ id: 'vulnerabilites',
+ title: 'Vulnérabilités identifiées',
+ titleEn: 'Identified Vulnerabilities',
+ order: 3,
+ required: true,
+ dataSource: 'manual',
+ content: `## Vulnérabilités identifiées
 
 ### Vulnérabilités critiques
 [Détail des vulnérabilités critiques]
@@ -829,7 +829,7 @@ From [start date] to [end date]
 
 ### Vulnérabilités basses
 [Détail des vulnérabilités basses]`,
-      contentEn: `## Identified Vulnerabilities
+ contentEn: `## Identified Vulnerabilities
 
 ### Critical Vulnerabilities
 [Details of critical vulnerabilities]
@@ -842,15 +842,15 @@ From [start date] to [end date]
 
 ### Low Vulnerabilities
 [Details of low vulnerabilities]`
-    },
-    {
-      id: 'recommandations',
-      title: 'Recommandations',
-      titleEn: 'Recommendations',
-      order: 4,
-      required: true,
-      dataSource: 'manual',
-      content: `## Recommandations
+ },
+ {
+ id: 'recommandations',
+ title: 'Recommandations',
+ titleEn: 'Recommendations',
+ order: 4,
+ required: true,
+ dataSource: 'manual',
+ content: `## Recommandations
 
 ### Actions immédiates (< 1 mois)
 [Liste des actions prioritaires]
@@ -860,7 +860,7 @@ From [start date] to [end date]
 
 ### Actions à moyen terme (3-6 mois)
 [Liste des actions à moyen terme]`,
-      contentEn: `## Recommendations
+ contentEn: `## Recommendations
 
 ### Immediate Actions (< 1 month)
 [List of priority actions]
@@ -870,28 +870,28 @@ From [start date] to [end date]
 
 ### Medium-term Actions (3-6 months)
 [List of medium-term actions]`
-    }
-  ]
+ }
+ ]
 };
 
 /**
  * Audit technique - Required for Renforcé only
  */
 export const AUDIT_TECHNIQUE_TEMPLATE: DocumentTemplate = {
-  type: 'audit_technique',
-  title: 'Rapport d\'audit technique',
-  titleEn: 'Technical Audit Report',
-  description: 'Audit technique approfondi du système',
-  descriptionEn: 'In-depth technical audit of the system',
-  sections: [
-    {
-      id: 'synthese',
-      title: 'Synthèse',
-      titleEn: 'Summary',
-      order: 1,
-      required: true,
-      dataSource: 'manual',
-      content: `## Synthèse de l'audit technique
+ type: 'audit_technique',
+ title: 'Rapport d\'audit technique',
+ titleEn: 'Technical Audit Report',
+ description: 'Audit technique approfondi du système',
+ descriptionEn: 'In-depth technical audit of the system',
+ sections: [
+ {
+ id: 'synthese',
+ title: 'Synthèse',
+ titleEn: 'Summary',
+ order: 1,
+ required: true,
+ dataSource: 'manual',
+ content: `## Synthèse de l'audit technique
 
 ### Objectif
 Évaluer la conformité technique du système **{{dossier.name}}** aux exigences de sécurité.
@@ -904,7 +904,7 @@ Du [date début] au [date fin]
 
 ### Niveau de conformité global
 [Score ou appréciation]`,
-      contentEn: `## Technical Audit Summary
+ contentEn: `## Technical Audit Summary
 
 ### Objective
 Evaluate the technical compliance of the **{{dossier.name}}** system with security requirements.
@@ -917,15 +917,15 @@ From [start date] to [end date]
 
 ### Overall Compliance Level
 [Score or assessment]`
-    },
-    {
-      id: 'architecture',
-      title: 'Architecture',
-      titleEn: 'Architecture',
-      order: 2,
-      required: true,
-      dataSource: 'manual',
-      content: `## Revue d'architecture
+ },
+ {
+ id: 'architecture',
+ title: 'Architecture',
+ titleEn: 'Architecture',
+ order: 2,
+ required: true,
+ dataSource: 'manual',
+ content: `## Revue d'architecture
 
 ### Architecture réseau
 [Analyse de la segmentation, des flux, des pare-feu]
@@ -935,7 +935,7 @@ From [start date] to [end date]
 
 ### Points d'attention
 [Écarts identifiés par rapport aux bonnes pratiques]`,
-      contentEn: `## Architecture Review
+ contentEn: `## Architecture Review
 
 ### Network Architecture
 [Analysis of segmentation, flows, firewalls]
@@ -945,15 +945,15 @@ From [start date] to [end date]
 
 ### Points of Attention
 [Gaps identified from best practices]`
-    },
-    {
-      id: 'configuration',
-      title: 'Configuration',
-      titleEn: 'Configuration',
-      order: 3,
-      required: true,
-      dataSource: 'manual',
-      content: `## Revue de configuration
+ },
+ {
+ id: 'configuration',
+ title: 'Configuration',
+ titleEn: 'Configuration',
+ order: 3,
+ required: true,
+ dataSource: 'manual',
+ content: `## Revue de configuration
 
 ### Systèmes d'exploitation
 [Analyse du durcissement OS]
@@ -966,7 +966,7 @@ From [start date] to [end date]
 
 ### Réseau
 [Analyse des équipements réseau]`,
-      contentEn: `## Configuration Review
+ contentEn: `## Configuration Review
 
 ### Operating Systems
 [OS hardening analysis]
@@ -979,15 +979,15 @@ From [start date] to [end date]
 
 ### Network
 [Network equipment analysis]`
-    },
-    {
-      id: 'recommandations',
-      title: 'Recommandations',
-      titleEn: 'Recommendations',
-      order: 4,
-      required: true,
-      dataSource: 'manual',
-      content: `## Recommandations
+ },
+ {
+ id: 'recommandations',
+ title: 'Recommandations',
+ titleEn: 'Recommendations',
+ order: 4,
+ required: true,
+ dataSource: 'manual',
+ content: `## Recommandations
 
 ### Recommandations prioritaires
 [Liste des recommandations critiques]
@@ -999,7 +999,7 @@ From [start date] to [end date]
 | Recommandation | Priorité | Échéance | Responsable |
 |----------------|----------|----------|-------------|
 | [Rec 1] | Haute | [Date] | [Resp] |`,
-      contentEn: `## Recommendations
+ contentEn: `## Recommendations
 
 ### Priority Recommendations
 [List of critical recommendations]
@@ -1011,8 +1011,8 @@ From [start date] to [end date]
 | Recommendation | Priority | Deadline | Responsible |
 |----------------|----------|----------|-------------|
 | [Rec 1] | High | [Date] | [Resp] |`
-    }
-  ]
+ }
+ ]
 };
 
 // ============================================================================
@@ -1020,28 +1020,28 @@ From [start date] to [end date]
 // ============================================================================
 
 export const DOCUMENT_TEMPLATES: Record<HomologationDocumentType, DocumentTemplate> = {
-  strategie: STRATEGIE_TEMPLATE,
-  analyse_risques: ANALYSE_RISQUES_TEMPLATE,
-  plan_action: PLAN_ACTION_TEMPLATE,
-  decision: DECISION_TEMPLATE,
-  attestation: ATTESTATION_TEMPLATE,
-  test_intrusion: TEST_INTRUSION_TEMPLATE,
-  audit_technique: AUDIT_TECHNIQUE_TEMPLATE
+ strategie: STRATEGIE_TEMPLATE,
+ analyse_risques: ANALYSE_RISQUES_TEMPLATE,
+ plan_action: PLAN_ACTION_TEMPLATE,
+ decision: DECISION_TEMPLATE,
+ attestation: ATTESTATION_TEMPLATE,
+ test_intrusion: TEST_INTRUSION_TEMPLATE,
+ audit_technique: AUDIT_TECHNIQUE_TEMPLATE
 };
 
 /**
  * Get template by document type
  */
 export function getDocumentTemplate(type: HomologationDocumentType): DocumentTemplate {
-  return DOCUMENT_TEMPLATES[type];
+ return DOCUMENT_TEMPLATES[type];
 }
 
 /**
  * Get all templates for a homologation level
  */
 export function getTemplatesForLevel(
-  level: 'etoile' | 'simple' | 'standard' | 'renforce'
+ level: 'etoile' | 'simple' | 'standard' | 'renforce'
 ): DocumentTemplate[] {
-  const requiredTypes = REQUIRED_DOCUMENTS[level] as HomologationDocumentType[];
-  return requiredTypes.map((type) => DOCUMENT_TEMPLATES[type]);
+ const requiredTypes = REQUIRED_DOCUMENTS[level] as HomologationDocumentType[];
+ return requiredTypes.map((type) => DOCUMENT_TEMPLATES[type]);
 }

@@ -11,141 +11,141 @@
  * - Purple: 270°
  */
 export const SENTINEL_PALETTE = {
-    // Semantic colors (harmonized with design tokens)
-    primary: 'hsl(var(--primary))',
-    secondary: 'hsl(var(--nav-repository))', // Purpleish
-    success: 'hsl(var(--success))',
-    warning: 'hsl(var(--warning))',
-    danger: 'hsl(var(--error))',
-    info: 'hsl(var(--info))',
-    tertiary: 'hsl(var(--nav-support))',
+ // Semantic colors (harmonized with design tokens)
+ primary: 'hsl(var(--primary))',
+ secondary: 'hsl(var(--nav-repository))', // Purpleish
+ success: 'hsl(var(--success))',
+ warning: 'hsl(var(--warning))',
+ danger: 'hsl(var(--error))',
+ info: 'hsl(var(--info))',
+ tertiary: 'hsl(var(--nav-support))',
 
-    // Data Series Colors (for multi-series charts)
-    series1: '#4a7fc7',   // Primary blue
-    series2: '#2d9d6a',   // Teal-green
-    series3: '#9b6dd7',   // Purple
-    series4: '#2a8ab8',   // Cyan-blue
-    series5: '#c87f1a',   // Amber
-    series6: '#d64545',   // Red
-    series7: '#6b8fa3',   // Slate-blue
-    series8: '#7c5cbd',   // Violet
+ // Data Series Colors (for multi-series charts)
+ series1: '#4a7fc7', // Primary blue
+ series2: '#2d9d6a', // Teal-green
+ series3: '#9b6dd7', // Purple
+ series4: '#2a8ab8', // Cyan-blue
+ series5: '#c87f1a', // Amber
+ series6: '#d64545', // Red
+ series7: '#6b8fa3', // Slate-blue
+ series8: '#7c5cbd', // Violet
 };
 
 export const SEVERITY_COLORS = {
-    critical: 'hsl(var(--error))',
-    high: 'hsl(var(--warning))',
-    medium: 'hsl(var(--nav-operations))', // Orange
-    low: 'hsl(var(--success))',
-    info: 'hsl(var(--info))',
+ critical: 'hsl(var(--error))',
+ high: 'hsl(var(--warning))',
+ medium: 'hsl(var(--nav-operations))', // Orange
+ low: 'hsl(var(--success))',
+ info: 'hsl(var(--info))',
 };
 
 export const CHART_STYLES = {
-    // Grid
-    grid: {
-        strokeDasharray: '3 3',
-        stroke: 'hsl(var(--border))',
-        opacity: 0.3,
-        vertical: false
-    },
-    // Axis
-    // Base Axis Style (Common)
-    axis: {
-        stroke: 'hsl(var(--muted-foreground))',
-        fontSize: 12,
-        tickLine: false,
-        axisLine: false,
-        tickMargin: 8
-    },
-    // Specific X-Axis Style
-    xAxis: {
-        padding: { left: 10, right: 10 }
-    },
-    // Tooltip (Recharts internal wrapper style)
-    tooltip: {
-        contentStyle: {
-            backgroundColor: 'rgba(255, 255, 255, 0.8)', // Fallback / Light
-            borderRadius: '12px',
-            border: '1px solid hsl(var(--border))',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-            backdropFilter: 'blur(8px)',
-            padding: '8px 12px',
-        },
-        itemStyle: {
-            fontSize: '13px',
-            fontWeight: 500,
-        },
-        labelStyle: {
-            color: 'hsl(var(--foreground))',
-            fontWeight: 600,
-            marginBottom: '4px',
-            fontSize: '12px',
-            textTransform: 'uppercase' as const,
-            letterSpacing: '0.05em'
-        }
-    },
-    // Reference Lines (Thresholds)
-    referenceLine: {
-        stroke: 'hsl(var(--destructive))',
-        strokeDasharray: '3 3',
-        strokeWidth: 2,
-        opacity: 0.7
-    },
-    // Cursor/Hover Indicator
-    cursor: 'hsl(var(--muted-foreground))' // Simple string for stroke/fill reference
+ // Grid
+ grid: {
+ strokeDasharray: '3 3',
+ stroke: 'hsl(var(--border))',
+ opacity: 0.3,
+ vertical: false
+ },
+ // Axis
+ // Base Axis Style (Common)
+ axis: {
+ stroke: 'hsl(var(--muted-foreground))',
+ fontSize: 12,
+ tickLine: false,
+ axisLine: false,
+ tickMargin: 8
+ },
+ // Specific X-Axis Style
+ xAxis: {
+ padding: { left: 10, right: 10 }
+ },
+ // Tooltip (Recharts internal wrapper style)
+ tooltip: {
+ contentStyle: {
+ backgroundColor: 'rgba(255, 255, 255, 0.8)', // Fallback / Light
+ borderRadius: '12px',
+ border: '1px solid hsl(var(--border))',
+ boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+ backdropFilter: 'blur(8px)',
+ padding: '8px 12px',
+ },
+ itemStyle: {
+ fontSize: '13px',
+ fontWeight: 500,
+ },
+ labelStyle: {
+ color: 'hsl(var(--foreground))',
+ fontWeight: 600,
+ marginBottom: '4px',
+ fontSize: '12px',
+ textTransform: 'uppercase' as const,
+ letterSpacing: '0.05em'
+ }
+ },
+ // Reference Lines (Thresholds)
+ referenceLine: {
+ stroke: 'hsl(var(--destructive))',
+ strokeDasharray: '3 3',
+ strokeWidth: 2,
+ opacity: 0.7
+ },
+ // Cursor/Hover Indicator
+ cursor: 'hsl(var(--muted-foreground))' // Simple string for stroke/fill reference
 };
 
 // Helper for Recharts Gradient Definitions (harmonized)
 export const ChartGradients = {
-    primary: { id: 'gradientPrimary', from: 'hsl(var(--primary))', to: 'hsl(var(--primary) / 0.6)' },
-    blue: { id: 'gradientBlue', from: 'hsl(var(--primary))', to: 'hsl(var(--primary) / 0.6)' },
-    success: { id: 'gradientSuccess', from: 'hsl(var(--success))', to: 'hsl(var(--success) / 0.6)' },
-    teal: { id: 'gradientTeal', from: 'hsl(var(--success))', to: 'hsl(var(--success) / 0.6)' },
-    purple: { id: 'gradientPurple', from: 'hsl(var(--nav-repository))', to: 'hsl(var(--nav-repository) / 0.6)' },
-    violet: { id: 'gradientViolet', from: 'hsl(var(--nav-repository))', to: 'hsl(var(--nav-repository) / 0.6)' },
-    warning: { id: 'gradientWarning', from: 'hsl(var(--warning))', to: 'hsl(var(--warning) / 0.6)' },
-    amber: { id: 'gradientAmber', from: 'hsl(var(--warning))', to: 'hsl(var(--warning) / 0.6)' },
-    danger: { id: 'gradientDanger', from: 'hsl(var(--error))', to: 'hsl(var(--error) / 0.6)' },
-    info: { id: 'gradientInfo', from: 'hsl(var(--info))', to: 'hsl(var(--info) / 0.6)' },
-    cyan: { id: 'gradientCyan', from: 'hsl(var(--info))', to: 'hsl(var(--info) / 0.6)' },
+ primary: { id: 'gradientPrimary', from: 'hsl(var(--primary))', to: 'hsl(var(--primary) / 0.6)' },
+ blue: { id: 'gradientBlue', from: 'hsl(var(--primary))', to: 'hsl(var(--primary) / 0.6)' },
+ success: { id: 'gradientSuccess', from: 'hsl(var(--success))', to: 'hsl(var(--success) / 0.6)' },
+ teal: { id: 'gradientTeal', from: 'hsl(var(--success))', to: 'hsl(var(--success) / 0.6)' },
+ purple: { id: 'gradientPurple', from: 'hsl(var(--nav-repository))', to: 'hsl(var(--nav-repository) / 0.6)' },
+ violet: { id: 'gradientViolet', from: 'hsl(var(--nav-repository))', to: 'hsl(var(--nav-repository) / 0.6)' },
+ warning: { id: 'gradientWarning', from: 'hsl(var(--warning))', to: 'hsl(var(--warning) / 0.6)' },
+ amber: { id: 'gradientAmber', from: 'hsl(var(--warning))', to: 'hsl(var(--warning) / 0.6)' },
+ danger: { id: 'gradientDanger', from: 'hsl(var(--error))', to: 'hsl(var(--error) / 0.6)' },
+ info: { id: 'gradientInfo', from: 'hsl(var(--info))', to: 'hsl(var(--info) / 0.6)' },
+ cyan: { id: 'gradientCyan', from: 'hsl(var(--info))', to: 'hsl(var(--info) / 0.6)' },
 };
 
 // Score gauge gradient colors (harmonized)
 export const SCORE_GRADIENT_COLORS = {
-    critical: { start: '#eb9090', end: '#d64545' }, // Light red to red
-    warning: { start: '#e8b86d', end: '#c87f1a' },  // Light amber to amber
-    good: { start: '#6fcca3', end: '#2d9d6a' },     // Light teal to teal
+ critical: { start: '#eb9090', end: '#d64545' }, // Light red to red
+ warning: { start: '#e8b86d', end: '#c87f1a' }, // Light amber to amber
+ good: { start: '#6fcca3', end: '#2d9d6a' }, // Light teal to teal
 } as const;
 
 // Finding type colors for audit charts (harmonized)
 export const FINDING_COLORS = {
-    majeure: '#d64545',      // Red (hsl 4 68% 50%)
-    mineure: '#c87f1a',      // Amber (hsl 38 72% 48%)
-    observation: '#4a7fc7',  // Blue (hsl 221 55% 54%)
-    opportunite: '#2d9d6a',  // Teal (hsl 152 62% 38%)
+ majeure: '#d64545', // Red (hsl 4 68% 50%)
+ mineure: '#c87f1a', // Amber (hsl 38 72% 48%)
+ observation: '#4a7fc7', // Blue (hsl 221 55% 54%)
+ opportunite: '#2d9d6a', // Teal (hsl 152 62% 38%)
 } as const;
 
 // Audit status colors
 export const AUDIT_STATUS_COLORS = {
-    planifie: '#6b8fa3',     // Slate-blue (neutral)
-    en_cours: '#4a7fc7',     // Blue (primary)
-    termine: '#2d9d6a',      // Teal (success)
-    annule: '#d64545',       // Red (error)
+ planifie: '#6b8fa3', // Slate-blue (neutral)
+ en_cours: '#4a7fc7', // Blue (primary)
+ termine: '#2d9d6a', // Teal (success)
+ annule: '#d64545', // Red (error)
 } as const;
 
 // Chart axis and grid colors
 export const CHART_AXIS_COLORS = {
-    grid: '#94a3b8',         // Slate-400
-    tick: '#475569',         // Slate-600 (better contrast)
-    gridOpacity: 0.2,        // Slightly increased for visibility
-    gridDark: '#475569',     // Slate-600 for dark mode
+ grid: '#94a3b8', // Slate-400
+ tick: '#475569', // Slate-600 (better contrast)
+ gridOpacity: 0.2, // Slightly increased for visibility
+ gridDark: '#475569', // Slate-600 for dark mode
 } as const;
 
 // Donut/Pie chart color sequences
 export const DONUT_COLORS = {
-    // For status distribution
-    status: ['#2d9d6a', '#4a7fc7', '#c87f1a', '#d64545', '#6b8fa3'],
-    // For category distribution
-    category: ['#4a7fc7', '#2d9d6a', '#9b6dd7', '#2a8ab8', '#c87f1a', '#7c5cbd'],
-    // For severity distribution
-    severity: ['#d64545', '#c87f1a', '#d4a820', '#2d9d6a'],
+ // For status distribution
+ status: ['#2d9d6a', '#4a7fc7', '#c87f1a', '#d64545', '#6b8fa3'],
+ // For category distribution
+ category: ['#4a7fc7', '#2d9d6a', '#9b6dd7', '#2a8ab8', '#c87f1a', '#7c5cbd'],
+ // For severity distribution
+ severity: ['#d64545', '#c87f1a', '#d4a820', '#2d9d6a'],
 } as const;

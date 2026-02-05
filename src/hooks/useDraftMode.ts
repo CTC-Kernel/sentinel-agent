@@ -19,39 +19,39 @@ import type { SupportedLocale } from '../config/localeConfig';
  * Options for useDraftMode hook
  */
 export interface UseDraftModeOptions<
-  TFullSchema extends z.ZodSchema,
-  TDraftSchema extends z.ZodSchema
+ TFullSchema extends z.ZodSchema,
+ TDraftSchema extends z.ZodSchema
 > extends Omit<UseFormProps<z.infer<TFullSchema> & FieldValues>, 'resolver'> {
-  /** The complete validation schema for publishing */
-  fullSchema: TFullSchema;
-  /** The relaxed schema for draft saving (only required fields validated) */
-  draftSchema: TDraftSchema;
-  /** Initial draft state */
-  initialDraftMode?: boolean;
-  /** Entity type for determining status value */
-  entityType?: keyof typeof DRAFT_STATUS;
+ /** The complete validation schema for publishing */
+ fullSchema: TFullSchema;
+ /** The relaxed schema for draft saving (only required fields validated) */
+ draftSchema: TDraftSchema;
+ /** Initial draft state */
+ initialDraftMode?: boolean;
+ /** Entity type for determining status value */
+ entityType?: keyof typeof DRAFT_STATUS;
 }
 
 /**
  * Return type for useDraftMode hook
  */
 export interface UseDraftModeReturn<TData extends FieldValues> {
-  /** react-hook-form methods */
-  form: UseFormReturn<TData>;
-  /** Whether the form is currently in draft mode */
-  isDraft: boolean;
-  /** Toggle draft mode on/off */
-  setDraftMode: (draft: boolean) => void;
-  /** Save the form as a draft (relaxed validation) */
-  saveAsDraft: (onSave: (data: TData) => Promise<void>) => Promise<void>;
-  /** Publish the form (full validation) */
-  publish: (onPublish: (data: TData) => Promise<void>) => Promise<void>;
-  /** Check if current form data can be saved as draft */
-  canSaveDraft: () => { canSave: boolean; errors: Record<string, string> };
-  /** The appropriate status value for the current entity type */
-  draftStatusValue: string;
-  /** Check if form data passes full validation */
-  isValidForPublish: () => boolean;
+ /** react-hook-form methods */
+ form: UseFormReturn<TData>;
+ /** Whether the form is currently in draft mode */
+ isDraft: boolean;
+ /** Toggle draft mode on/off */
+ setDraftMode: (draft: boolean) => void;
+ /** Save the form as a draft (relaxed validation) */
+ saveAsDraft: (onSave: (data: TData) => Promise<void>) => Promise<void>;
+ /** Publish the form (full validation) */
+ publish: (onPublish: (data: TData) => Promise<void>) => Promise<void>;
+ /** Check if current form data can be saved as draft */
+ canSaveDraft: () => { canSave: boolean; errors: Record<string, string> };
+ /** The appropriate status value for the current entity type */
+ draftStatusValue: string;
+ /** Check if form data passes full validation */
+ isValidForPublish: () => boolean;
 }
 
 /**
@@ -66,166 +66,166 @@ export interface UseDraftModeReturn<TData extends FieldValues> {
  * @example
  * ```tsx
  * const riskDraftSchema = createDraftSchema(riskSchema, {
- *   requiredFields: ['threat'],
- *   locale: 'fr',
+ * requiredFields: ['threat'],
+ * locale: 'fr',
  * });
  *
  * function RiskForm() {
- *   const {
- *     form,
- *     isDraft,
- *     setDraftMode,
- *     saveAsDraft,
- *     publish,
- *   } = useDraftMode({
- *     fullSchema: riskSchema,
- *     draftSchema: riskDraftSchema,
- *     entityType: 'document',
- *   });
+ * const {
+ * form,
+ * isDraft,
+ * setDraftMode,
+ * saveAsDraft,
+ * publish,
+ * } = useDraftMode({
+ * fullSchema: riskSchema,
+ * draftSchema: riskDraftSchema,
+ * entityType: 'document',
+ * });
  *
- *   return (
- *     <form>
- *       <Button onClick={() => saveAsDraft(handleSave)}>
- *         Enregistrer en brouillon
- *       </Button>
- *       <Button onClick={() => publish(handleSave)}>
- *         Publier
- *       </Button>
- *     </form>
- *   );
+ * return (
+ * <form>
+ * <Button onClick={() => saveAsDraft(handleSave)}>
+ * Enregistrer en brouillon
+ * </Button>
+ * <Button onClick={() => publish(handleSave)}>
+ * Publier
+ * </Button>
+ * </form>
+ * );
  * }
  * ```
  */
 export function useDraftMode<
-  TFullSchema extends z.ZodSchema,
-  TDraftSchema extends z.ZodSchema
+ TFullSchema extends z.ZodSchema,
+ TDraftSchema extends z.ZodSchema
 >(
-  options: UseDraftModeOptions<TFullSchema, TDraftSchema>
+ options: UseDraftModeOptions<TFullSchema, TDraftSchema>
 ): UseDraftModeReturn<z.infer<TFullSchema> & FieldValues> {
-  const {
-    fullSchema,
-    draftSchema,
-    initialDraftMode = true,
-    entityType = 'document',
-    ...formOptions
-  } = options;
+ const {
+ fullSchema,
+ draftSchema,
+ initialDraftMode = true,
+ entityType = 'document',
+ ...formOptions
+ } = options;
 
-  const [isDraft, setIsDraft] = useState(initialDraftMode);
-  const { locale } = useLocale();
+ const [isDraft, setIsDraft] = useState(initialDraftMode);
+ const { locale } = useLocale();
 
-  // Create resolver based on current mode
-  const resolver = useMemo(() => {
-    const errorMap = createLocalizedErrorMap(locale);
-    const schema = isDraft ? draftSchema : fullSchema;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return zodResolver(schema as any, { errorMap } as any);
-  }, [isDraft, draftSchema, fullSchema, locale]);
+ // Create resolver based on current mode
+ const resolver = useMemo(() => {
+ const errorMap = createLocalizedErrorMap(locale);
+ const schema = isDraft ? draftSchema : fullSchema;
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
+ return zodResolver(schema as any, { errorMap } as any);
+ }, [isDraft, draftSchema, fullSchema, locale]);
 
-  // Initialize form with current resolver
-  const form = useForm<z.infer<TFullSchema> & FieldValues>({
-    ...formOptions,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: resolver as any,
-  });
+ // Initialize form with current resolver
+ const form = useForm<z.infer<TFullSchema> & FieldValues>({
+ ...formOptions,
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
+ resolver: resolver as any,
+ });
 
-  // Get the appropriate draft status value
-  const draftStatusValue = DRAFT_STATUS[entityType] || DRAFT_STATUS.document;
+ // Get the appropriate draft status value
+ const draftStatusValue = DRAFT_STATUS[entityType] || DRAFT_STATUS.document;
 
-  // Toggle draft mode
-  const setDraftMode = useCallback((draft: boolean) => {
-    setIsDraft(draft);
-  }, []);
+ // Toggle draft mode
+ const setDraftMode = useCallback((draft: boolean) => {
+ setIsDraft(draft);
+ }, []);
 
-  // Check if current data can be saved as draft
-  const canSaveDraft = useCallback(() => {
-    const data = form.getValues() as Record<string, unknown>;
-    // Get required fields from draft schema shape
-    const draftResult = draftSchema.safeParse(data);
-    if (draftResult.success) {
-      return { canSave: true, errors: {} };
-    }
+ // Check if current data can be saved as draft
+ const canSaveDraft = useCallback(() => {
+ const data = form.getValues() as Record<string, unknown>;
+ // Get required fields from draft schema shape
+ const draftResult = draftSchema.safeParse(data);
+ if (draftResult.success) {
+ return { canSave: true, errors: {} };
+ }
 
-    const errors: Record<string, string> = {};
-    for (const issue of draftResult.error.issues) {
-      const path = issue.path.join('.') || '_root';
-      errors[path] = issue.message;
-    }
-    return { canSave: false, errors };
-  }, [form, draftSchema]);
+ const errors: Record<string, string> = {};
+ for (const issue of draftResult.error.issues) {
+ const path = issue.path.join('.') || '_root';
+ errors[path] = issue.message;
+ }
+ return { canSave: false, errors };
+ }, [form, draftSchema]);
 
-  // Check if data passes full validation
-  const isValidForPublish = useCallback(() => {
-    const data = form.getValues();
-    const result = fullSchema.safeParse(data);
-    return result.success;
-  }, [form, fullSchema]);
+ // Check if data passes full validation
+ const isValidForPublish = useCallback(() => {
+ const data = form.getValues();
+ const result = fullSchema.safeParse(data);
+ return result.success;
+ }, [form, fullSchema]);
 
-  // Save as draft with relaxed validation
-  const saveAsDraft = useCallback(
-    async (onSave: (data: z.infer<TFullSchema> & FieldValues) => Promise<void>) => {
-      // Temporarily switch to draft mode for validation
-      const wasInDraft = isDraft;
-      if (!wasInDraft) {
-        setIsDraft(true);
-      }
+ // Save as draft with relaxed validation
+ const saveAsDraft = useCallback(
+ async (onSave: (data: z.infer<TFullSchema> & FieldValues) => Promise<void>) => {
+ // Temporarily switch to draft mode for validation
+ const wasInDraft = isDraft;
+ if (!wasInDraft) {
+ setIsDraft(true);
+ }
 
-      // Validate against draft schema
-      const data = form.getValues();
-      const result = draftSchema.safeParse(data);
+ // Validate against draft schema
+ const data = form.getValues();
+ const result = draftSchema.safeParse(data);
 
-      if (!result.success) {
-        // Set errors on the form
-        // Note: Zod issue paths are dynamic, so we cast to FieldPath which is the
-        // proper react-hook-form type for dot-notation paths like "address.street"
-        for (const issue of result.error.issues) {
-          const path = issue.path.join('.') as FieldPath<z.infer<TFullSchema> & FieldValues>;
-          form.setError(path, {
-            type: 'manual',
-            message: issue.message,
-          });
-        }
-        return;
-      }
+ if (!result.success) {
+ // Set errors on the form
+ // Note: Zod issue paths are dynamic, so we cast to FieldPath which is the
+ // proper react-hook-form type for dot-notation paths like "address.street"
+ for (const issue of result.error.issues) {
+ const path = issue.path.join('.') as FieldPath<z.infer<TFullSchema> & FieldValues>;
+ form.setError(path, {
+ type: 'manual',
+ message: issue.message,
+ });
+ }
+ return;
+ }
 
-      // Save with draft status
-      await onSave({
-        ...data,
-        status: draftStatusValue,
-        isDraft: true,
-      } as z.infer<TFullSchema> & FieldValues);
-    },
-    [isDraft, form, draftSchema, draftStatusValue]
-  );
+ // Save with draft status
+ await onSave({
+ ...data,
+ status: draftStatusValue,
+ isDraft: true,
+ } as z.infer<TFullSchema> & FieldValues);
+ },
+ [isDraft, form, draftSchema, draftStatusValue]
+ );
 
-  // Publish with full validation
-  const publish = useCallback(
-    async (onPublish: (data: z.infer<TFullSchema> & FieldValues) => Promise<void>) => {
-      // Switch to full validation mode
-      if (isDraft) {
-        setIsDraft(false);
-      }
+ // Publish with full validation
+ const publish = useCallback(
+ async (onPublish: (data: z.infer<TFullSchema> & FieldValues) => Promise<void>) => {
+ // Switch to full validation mode
+ if (isDraft) {
+ setIsDraft(false);
+ }
 
-      // Use handleSubmit for full validation
-      await form.handleSubmit(async (validData) => {
-        await onPublish({
-          ...validData,
-          isDraft: false,
-        });
-      })();
-    },
-    [isDraft, form]
-  );
+ // Use handleSubmit for full validation
+ await form.handleSubmit(async (validData) => {
+ await onPublish({
+ ...validData,
+ isDraft: false,
+ });
+ })();
+ },
+ [isDraft, form]
+ );
 
-  return {
-    form,
-    isDraft,
-    setDraftMode,
-    saveAsDraft,
-    publish,
-    canSaveDraft,
-    draftStatusValue,
-    isValidForPublish,
-  };
+ return {
+ form,
+ isDraft,
+ setDraftMode,
+ saveAsDraft,
+ publish,
+ canSaveDraft,
+ draftStatusValue,
+ isValidForPublish,
+ };
 }
 
 /**
@@ -237,22 +237,22 @@ export function useDraftMode<
  * @returns Draft mode state and controls
  */
 export function useDraftState(
-  entityType: keyof typeof DRAFT_STATUS = 'document',
-  initialDraft = true
+ entityType: keyof typeof DRAFT_STATUS = 'document',
+ initialDraft = true
 ) {
-  const [isDraft, setIsDraft] = useState(initialDraft);
-  const draftStatusValue = DRAFT_STATUS[entityType] || DRAFT_STATUS.document;
+ const [isDraft, setIsDraft] = useState(initialDraft);
+ const draftStatusValue = DRAFT_STATUS[entityType] || DRAFT_STATUS.document;
 
-  const toggle = useCallback(() => {
-    setIsDraft((prev) => !prev);
-  }, []);
+ const toggle = useCallback(() => {
+ setIsDraft((prev) => !prev);
+ }, []);
 
-  return {
-    isDraft,
-    setDraftMode: setIsDraft,
-    toggle,
-    draftStatusValue,
-  };
+ return {
+ isDraft,
+ setDraftMode: setIsDraft,
+ toggle,
+ draftStatusValue,
+ };
 }
 
 /**
@@ -262,7 +262,7 @@ export function useDraftState(
  * @returns Localized draft label
  */
 export function getDraftLabel(locale: SupportedLocale): string {
-  return locale === 'fr' ? 'Brouillon' : 'Draft';
+ return locale === 'fr' ? 'Brouillon' : 'Draft';
 }
 
 /**
@@ -272,7 +272,7 @@ export function getDraftLabel(locale: SupportedLocale): string {
  * @returns Localized publish label
  */
 export function getPublishLabel(locale: SupportedLocale): string {
-  return locale === 'fr' ? 'Publier' : 'Publish';
+ return locale === 'fr' ? 'Publier' : 'Publish';
 }
 
 /**
@@ -282,5 +282,5 @@ export function getPublishLabel(locale: SupportedLocale): string {
  * @returns Localized save as draft label
  */
 export function getSaveAsDraftLabel(locale: SupportedLocale): string {
-  return locale === 'fr' ? 'Enregistrer en brouillon' : 'Save as Draft';
+ return locale === 'fr' ? 'Enregistrer en brouillon' : 'Save as Draft';
 }

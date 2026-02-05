@@ -9,104 +9,104 @@ import { useStore } from '../../store';
 
 type FirestoreTimestampLike = { toDate?: () => Date };
 type FirestoreMessage = {
-  id?: unknown;
-  role?: unknown;
-  content?: unknown;
-  timestamp?: unknown;
-  isError?: unknown;
+ id?: unknown;
+ role?: unknown;
+ content?: unknown;
+ timestamp?: unknown;
+ isError?: unknown;
 };
 
 export const useAIConversation = (userId: string | undefined, enabled: boolean = true) => {
-  const { user } = useStore();
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'welcome',
-      role: 'assistant',
-      content: "Bonjour je suis **Sentinel AI**. \n\nComment puis-je vous aider à sécuriser votre organisation aujourd'hui ?",
-      timestamp: new Date()
-    }
-  ]);
+ const { user } = useStore();
+ const [messages, setMessages] = useState<ChatMessage[]>([
+ {
+ id: 'welcome',
+ role: 'assistant',
+ content: "Bonjour je suis **Sentinel AI**. \n\nComment puis-je vous aider à sécuriser votre organisation aujourd'hui ?",
+ timestamp: new Date()
+ }
+ ]);
 
-  // Conversation reference (single 'default' conversation per user)
-  // Guard: only create ref if user has an organizationId
-  const conversationRef = useMemo(() => {
-    if (!userId || !enabled || !user?.organizationId) return null;
-    return doc(db, 'users', userId, 'conversations', 'default');
-  }, [userId, enabled, user?.organizationId]);
+ // Conversation reference (single 'default' conversation per user)
+ // Guard: only create ref if user has an organizationId
+ const conversationRef = useMemo(() => {
+ if (!userId || !enabled || !user?.organizationId) return null;
+ return doc(db, 'users', userId, 'conversations', 'default');
+ }, [userId, enabled, user?.organizationId]);
 
-  // Load messages from Firestore with real-time updates
-  useEffect(() => {
-    if (!conversationRef) return;
+ // Load messages from Firestore with real-time updates
+ useEffect(() => {
+ if (!conversationRef) return;
 
-    const unsubscribe = onSnapshot(
-      conversationRef,
-      (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          if (data.messages && Array.isArray(data.messages)) {
-            // Convert Firestore timestamps to Date objects
-            const loadedMessages: ChatMessage[] = data.messages
-              .map((m: unknown) => {
-                const fm = m as FirestoreMessage;
-                const id = typeof fm.id === 'string' ? fm.id : '';
-                const role: ChatMessage['role'] = fm.role === 'user' || fm.role === 'assistant' ? fm.role : 'assistant';
-                const content = typeof fm.content === 'string' ? fm.content : '';
+ const unsubscribe = onSnapshot(
+ conversationRef,
+ (docSnap) => {
+ if (docSnap.exists()) {
+ const data = docSnap.data();
+ if (data.messages && Array.isArray(data.messages)) {
+ // Convert Firestore timestamps to Date objects
+ const loadedMessages: ChatMessage[] = data.messages
+ .map((m: unknown) => {
+ const fm = m as FirestoreMessage;
+ const id = typeof fm.id === 'string' ? fm.id : '';
+ const role: ChatMessage['role'] = fm.role === 'user' || fm.role === 'assistant' ? fm.role : 'assistant';
+ const content = typeof fm.content === 'string' ? fm.content : '';
 
-                const ts = fm.timestamp as FirestoreTimestampLike | string | number | Date | undefined;
-                const timestamp =
-                  ts && typeof (ts as FirestoreTimestampLike).toDate === 'function'
-                    ? (ts as FirestoreTimestampLike).toDate!()
-                    : ts instanceof Date
-                      ? ts
-                      : typeof ts === 'string' || typeof ts === 'number'
-                        ? new Date(ts)
-                        : new Date();
+ const ts = fm.timestamp as FirestoreTimestampLike | string | number | Date | undefined;
+ const timestamp =
+  ts && typeof (ts as FirestoreTimestampLike).toDate === 'function'
+  ? (ts as FirestoreTimestampLike).toDate!()
+  : ts instanceof Date
+  ? ts
+  : typeof ts === 'string' || typeof ts === 'number'
+  ? new Date(ts)
+  : new Date();
 
-                const isError = typeof fm.isError === 'boolean' ? fm.isError : undefined;
+ const isError = typeof fm.isError === 'boolean' ? fm.isError : undefined;
 
-                return { id, role, content, timestamp, isError };
-              })
-              .filter((m) => m.id.length > 0 && m.content.length > 0);
-            setMessages(loadedMessages);
-          }
-        } else {
-          // Initialize conversation if not exists
-          if (userId) {
-            aiService.initConversation(userId).catch(e =>
-              ErrorLogger.error(e, 'useAIConversation.initConversation')
-            );
-          }
-        }
-      },
-      (error) => {
-        ErrorLogger.error(error, 'useAIConversation.onSnapshot');
-      }
-    );
+ return { id, role, content, timestamp, isError };
+ })
+ .filter((m) => m.id.length > 0 && m.content.length > 0);
+ setMessages(loadedMessages);
+ }
+ } else {
+ // Initialize conversation if not exists
+ if (userId) {
+ aiService.initConversation(userId).catch(e =>
+ ErrorLogger.error(e, 'useAIConversation.initConversation')
+ );
+ }
+ }
+ },
+ (error) => {
+ ErrorLogger.error(error, 'useAIConversation.onSnapshot');
+ }
+ );
 
-    return () => unsubscribe();
-  }, [conversationRef, userId]);
+ return () => unsubscribe();
+ }, [conversationRef, userId]);
 
-  // Add message to Firestore
-  const addMessage = async (message: ChatMessage) => {
-    if (!conversationRef) {
-      throw new Error('No conversation reference available');
-    }
+ // Add message to Firestore
+ const addMessage = async (message: ChatMessage) => {
+ if (!conversationRef) {
+ throw new Error('No conversation reference available');
+ }
 
-    try {
-      await updateDoc(conversationRef, sanitizeData({
-        messages: arrayUnion(message),
-        organizationId: user?.organizationId,
-        updatedAt: serverTimestamp()
-      }));
-    } catch (error) {
-      ErrorLogger.error(error, 'useAIConversation.addMessage');
-      throw error;
-    }
-  };
+ try {
+ await updateDoc(conversationRef, sanitizeData({
+ messages: arrayUnion(message),
+ organizationId: user?.organizationId,
+ updatedAt: serverTimestamp()
+ }));
+ } catch (error) {
+ ErrorLogger.error(error, 'useAIConversation.addMessage');
+ throw error;
+ }
+ };
 
-  return {
-    messages,
-    conversationRef,
-    addMessage
-  };
+ return {
+ messages,
+ conversationRef,
+ addMessage
+ };
 };

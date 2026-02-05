@@ -43,76 +43,76 @@ import { initialFilters, initialUI, initialSync } from './types';
  * while maintaining a unified state tree.
  */
 export const useVoxelStore = create<VoxelStore>()(
-  devtools(
-    subscribeWithSelector(
-      persist(
-        (...a) => ({
-          // Combine all slices
-          ...createNodeSlice(...a),
-          ...createEdgeSlice(...a),
-          ...createAnomalySlice(...a),
-          ...createFilterSlice(...a),
-          ...createUISlice(...a),
-          ...createSyncSlice(...a),
-          ...createPresetSlice(...a),
+ devtools(
+ subscribeWithSelector(
+ persist(
+ (...a) => ({
+ // Combine all slices
+ ...createNodeSlice(...a),
+ ...createEdgeSlice(...a),
+ ...createAnomalySlice(...a),
+ ...createFilterSlice(...a),
+ ...createUISlice(...a),
+ ...createSyncSlice(...a),
+ ...createPresetSlice(...a),
 
-          // Global reset action
-          reset: () =>
-            a[0](
-              () => ({
-                nodes: new Map(),
-                edges: new Map(),
-                anomalies: new Map(),
-                filters: initialFilters,
-                ui: initialUI,
-                sync: initialSync,
-                currentPreset: 'custom' as const,
-              }),
-              false,
-              'reset'
-            ),
-        }),
-        {
-          name: 'voxel-store',
-          // Only persist user preferences (filters, UI settings, current preset)
-          // Do not persist nodes, edges, anomalies (they come from Firebase)
-          partialize: (state) => ({
-            filters: state.filters,
-            ui: {
-              showLabels: state.ui.showLabels,
-              showEdges: state.ui.showEdges,
-              layoutType: state.ui.layoutType,
-              cameraPosition: state.ui.cameraPosition,
-              cameraTarget: state.ui.cameraTarget,
-              zoom: state.ui.zoom,
-            },
-            currentPreset: state.currentPreset,
-          }),
-          // Custom storage to handle serialization
-          storage: {
-            getItem: (name) => {
-              const str = localStorage.getItem(name);
-              if (!str) return null;
-              try {
-                return JSON.parse(str);
-              } catch {
-                // If corrupted, clear and return null
-                localStorage.removeItem(name);
-                return null;
-              }
-            },
-            setItem: (name, value) => {
-              localStorage.setItem(name, JSON.stringify(value));
-            },
-            removeItem: (name) => {
-              localStorage.removeItem(name);
-            },
-          },
-        }
-      )
-    ),
-    { name: 'VoxelStore' }
-  )
+ // Global reset action
+ reset: () =>
+ a[0](
+ () => ({
+ nodes: new Map(),
+ edges: new Map(),
+ anomalies: new Map(),
+ filters: initialFilters,
+ ui: initialUI,
+ sync: initialSync,
+ currentPreset: 'custom' as const,
+ }),
+ false,
+ 'reset'
+ ),
+ }),
+ {
+ name: 'voxel-store',
+ // Only persist user preferences (filters, UI settings, current preset)
+ // Do not persist nodes, edges, anomalies (they come from Firebase)
+ partialize: (state) => ({
+ filters: state.filters,
+ ui: {
+ showLabels: state.ui.showLabels,
+ showEdges: state.ui.showEdges,
+ layoutType: state.ui.layoutType,
+ cameraPosition: state.ui.cameraPosition,
+ cameraTarget: state.ui.cameraTarget,
+ zoom: state.ui.zoom,
+ },
+ currentPreset: state.currentPreset,
+ }),
+ // Custom storage to handle serialization
+ storage: {
+ getItem: (name) => {
+ const str = localStorage.getItem(name);
+ if (!str) return null;
+ try {
+ return JSON.parse(str);
+ } catch {
+ // If corrupted, clear and return null
+ localStorage.removeItem(name);
+ return null;
+ }
+ },
+ setItem: (name, value) => {
+ localStorage.setItem(name, JSON.stringify(value));
+ },
+ removeItem: (name) => {
+ localStorage.removeItem(name);
+ },
+ },
+ }
+ )
+ ),
+ { name: 'VoxelStore' }
+ )
 );
 
 // ============================================================================
@@ -127,64 +127,64 @@ export const useVoxelStore = create<VoxelStore>()(
  * Zustand pattern for external action access.
  */
 export const voxelStoreActions = {
-  // Node actions
-  addNode: useVoxelStore.getState().addNode,
-  updateNode: useVoxelStore.getState().updateNode,
-  removeNode: useVoxelStore.getState().removeNode,
-  setNodes: useVoxelStore.getState().setNodes,
-  clearNodes: useVoxelStore.getState().clearNodes,
+ // Node actions
+ addNode: useVoxelStore.getState().addNode,
+ updateNode: useVoxelStore.getState().updateNode,
+ removeNode: useVoxelStore.getState().removeNode,
+ setNodes: useVoxelStore.getState().setNodes,
+ clearNodes: useVoxelStore.getState().clearNodes,
 
-  // Edge actions
-  addEdge: useVoxelStore.getState().addEdge,
-  updateEdge: useVoxelStore.getState().updateEdge,
-  removeEdge: useVoxelStore.getState().removeEdge,
-  setEdges: useVoxelStore.getState().setEdges,
-  clearEdges: useVoxelStore.getState().clearEdges,
+ // Edge actions
+ addEdge: useVoxelStore.getState().addEdge,
+ updateEdge: useVoxelStore.getState().updateEdge,
+ removeEdge: useVoxelStore.getState().removeEdge,
+ setEdges: useVoxelStore.getState().setEdges,
+ clearEdges: useVoxelStore.getState().clearEdges,
 
-  // Anomaly actions
-  addAnomaly: useVoxelStore.getState().addAnomaly,
-  updateAnomaly: useVoxelStore.getState().updateAnomaly,
-  removeAnomaly: useVoxelStore.getState().removeAnomaly,
-  acknowledgeAnomaly: useVoxelStore.getState().acknowledgeAnomaly,
-  resolveAnomaly: useVoxelStore.getState().resolveAnomaly,
-  dismissAnomaly: useVoxelStore.getState().dismissAnomaly,
-  setAnomalies: useVoxelStore.getState().setAnomalies,
-  clearAnomalies: useVoxelStore.getState().clearAnomalies,
+ // Anomaly actions
+ addAnomaly: useVoxelStore.getState().addAnomaly,
+ updateAnomaly: useVoxelStore.getState().updateAnomaly,
+ removeAnomaly: useVoxelStore.getState().removeAnomaly,
+ acknowledgeAnomaly: useVoxelStore.getState().acknowledgeAnomaly,
+ resolveAnomaly: useVoxelStore.getState().resolveAnomaly,
+ dismissAnomaly: useVoxelStore.getState().dismissAnomaly,
+ setAnomalies: useVoxelStore.getState().setAnomalies,
+ clearAnomalies: useVoxelStore.getState().clearAnomalies,
 
-  // Filter actions
-  setNodeTypeFilter: useVoxelStore.getState().setNodeTypeFilter,
-  toggleNodeType: useVoxelStore.getState().toggleNodeType,
-  setStatusFilter: useVoxelStore.getState().setStatusFilter,
-  toggleStatus: useVoxelStore.getState().toggleStatus,
-  setDateRangeFilter: useVoxelStore.getState().setDateRangeFilter,
-  setSearchQuery: useVoxelStore.getState().setSearchQuery,
-  setShowAnomaliesOnly: useVoxelStore.getState().setShowAnomaliesOnly,
-  resetFilters: useVoxelStore.getState().resetFilters,
+ // Filter actions
+ setNodeTypeFilter: useVoxelStore.getState().setNodeTypeFilter,
+ toggleNodeType: useVoxelStore.getState().toggleNodeType,
+ setStatusFilter: useVoxelStore.getState().setStatusFilter,
+ toggleStatus: useVoxelStore.getState().toggleStatus,
+ setDateRangeFilter: useVoxelStore.getState().setDateRangeFilter,
+ setSearchQuery: useVoxelStore.getState().setSearchQuery,
+ setShowAnomaliesOnly: useVoxelStore.getState().setShowAnomaliesOnly,
+ resetFilters: useVoxelStore.getState().resetFilters,
 
-  // UI actions
-  selectNode: useVoxelStore.getState().selectNode,
-  hoverNode: useVoxelStore.getState().hoverNode,
-  setCameraPosition: useVoxelStore.getState().setCameraPosition,
-  setCameraTarget: useVoxelStore.getState().setCameraTarget,
-  setZoom: useVoxelStore.getState().setZoom,
-  toggleLabels: useVoxelStore.getState().toggleLabels,
-  toggleEdges: useVoxelStore.getState().toggleEdges,
-  setLayoutType: useVoxelStore.getState().setLayoutType,
-  resetUI: useVoxelStore.getState().resetUI,
+ // UI actions
+ selectNode: useVoxelStore.getState().selectNode,
+ hoverNode: useVoxelStore.getState().hoverNode,
+ setCameraPosition: useVoxelStore.getState().setCameraPosition,
+ setCameraTarget: useVoxelStore.getState().setCameraTarget,
+ setZoom: useVoxelStore.getState().setZoom,
+ toggleLabels: useVoxelStore.getState().toggleLabels,
+ toggleEdges: useVoxelStore.getState().toggleEdges,
+ setLayoutType: useVoxelStore.getState().setLayoutType,
+ resetUI: useVoxelStore.getState().resetUI,
 
-  // Preset actions
-  applyPreset: useVoxelStore.getState().applyPreset,
-  saveCustomPreset: useVoxelStore.getState().saveCustomPreset,
+ // Preset actions
+ applyPreset: useVoxelStore.getState().applyPreset,
+ saveCustomPreset: useVoxelStore.getState().saveCustomPreset,
 
-  // Sync actions
-  setSyncStatus: useVoxelStore.getState().setSyncStatus,
-  setLastSyncAt: useVoxelStore.getState().setLastSyncAt,
-  incrementPendingChanges: useVoxelStore.getState().incrementPendingChanges,
-  decrementPendingChanges: useVoxelStore.getState().decrementPendingChanges,
-  resetPendingChanges: useVoxelStore.getState().resetPendingChanges,
+ // Sync actions
+ setSyncStatus: useVoxelStore.getState().setSyncStatus,
+ setLastSyncAt: useVoxelStore.getState().setLastSyncAt,
+ incrementPendingChanges: useVoxelStore.getState().incrementPendingChanges,
+ decrementPendingChanges: useVoxelStore.getState().decrementPendingChanges,
+ resetPendingChanges: useVoxelStore.getState().resetPendingChanges,
 
-  // Global actions
-  reset: useVoxelStore.getState().reset,
+ // Global actions
+ reset: useVoxelStore.getState().reset,
 };
 
 // ============================================================================
@@ -192,24 +192,24 @@ export const voxelStoreActions = {
 // ============================================================================
 
 export {
-  useVoxelNode,
-  useVoxelNodes,
-  useFilteredNodes,
-  useSelectedNode,
-  useHoveredNode,
-  useNodeCountByType,
-  useVoxelEdge,
-  useVoxelEdges,
-  useVisibleEdges,
-  useVoxelAnomaly,
-  useVoxelAnomalies,
-  useActiveAnomalies,
-  useNodeAnomalies,
-  useAnomalyCountBySeverity,
-  useVoxelFilters,
-  useVoxelUI,
-  useVoxelSync,
-  useCurrentPreset,
+ useVoxelNode,
+ useVoxelNodes,
+ useFilteredNodes,
+ useSelectedNode,
+ useHoveredNode,
+ useNodeCountByType,
+ useVoxelEdge,
+ useVoxelEdges,
+ useVisibleEdges,
+ useVoxelAnomaly,
+ useVoxelAnomalies,
+ useActiveAnomalies,
+ useNodeAnomalies,
+ useAnomalyCountBySeverity,
+ useVoxelFilters,
+ useVoxelUI,
+ useVoxelSync,
+ useCurrentPreset,
 } from './selectors';
 
 // ============================================================================
@@ -217,12 +217,12 @@ export {
 // ============================================================================
 
 export type {
-  VoxelStore,
-  NodeSlice,
-  EdgeSlice,
-  AnomalySlice,
-  FilterSlice,
-  UISlice,
-  SyncSlice,
-  PresetSlice,
+ VoxelStore,
+ NodeSlice,
+ EdgeSlice,
+ AnomalySlice,
+ FilterSlice,
+ UISlice,
+ SyncSlice,
+ PresetSlice,
 } from './types';

@@ -10,21 +10,21 @@ import { Search } from '../Search';
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
-    motion: {
-        div: ({ children, ...props }: React.PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>) =>
-            <div {...props}>{children}</div>
-    }
+ motion: {
+ div: ({ children, ...props }: React.PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>) =>
+ <div {...props}>{children}</div>
+ }
 }));
 
 // Mock react-router-dom
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
-    const actual = await vi.importActual('react-router-dom');
-    return {
-        ...actual,
-        useNavigate: () => mockNavigate,
-        useSearchParams: () => [new URLSearchParams()]
-    };
+ const actual = await vi.importActual('react-router-dom');
+ return {
+ ...actual,
+ useNavigate: () => mockNavigate,
+ useSearchParams: () => [new URLSearchParams()]
+ };
 });
 
 // Mock useGlobalSearch hook
@@ -32,159 +32,159 @@ const mockPerformSearch = vi.fn();
 const mockSetResults = vi.fn();
 
 vi.mock('../../hooks/useGlobalSearch', () => ({
-    useGlobalSearch: () => ({
-        results: [],
-        loading: false,
-        performSearch: mockPerformSearch,
-        setResults: mockSetResults
-    })
+ useGlobalSearch: () => ({
+ results: [],
+ loading: false,
+ performSearch: mockPerformSearch,
+ setResults: mockSetResults
+ })
 }));
 
 // Mock store
 vi.mock('../../store', () => ({
-    useStore: () => ({
-        t: (key: string, options?: Record<string, unknown>) => {
-            if (options && 'defaultValue' in options) return (options as { defaultValue: string }).defaultValue;
-            return key;
-        },
-    }),
+ useStore: () => ({
+ t: (key: string, options?: Record<string, unknown>) => {
+ if (options && 'defaultValue' in options) return (options as { defaultValue: string }).defaultValue;
+ return key;
+ },
+ }),
 }));
 
 // Mock constants
 vi.mock('../../constants/complianceConfig', () => ({
-    RISK_THRESHOLDS: { HIGH: 15, MEDIUM: 8 },
+ RISK_THRESHOLDS: { HIGH: 15, MEDIUM: 8 },
 }));
 
 // Mock components
 vi.mock('../../components/ui/MasterpieceBackground', () => ({
-    MasterpieceBackground: () => <div data-testid="masterpiece-background" />
+ MasterpieceBackground: () => <div data-testid="masterpiece-background" />
 }));
 
 vi.mock('../../components/SEO', () => ({
-    SEO: ({ title }: { title: string }) => <div data-testid="seo" data-title={title} />
+ SEO: ({ title }: { title: string }) => <div data-testid="seo" data-title={title} />
 }));
 
 vi.mock('../../components/ui/PageHeader', () => ({
-    PageHeader: ({ title }: { title: string }) => (
-        <div data-testid="page-header">
-            <h1>{title}</h1>
-        </div>
-    )
+ PageHeader: ({ title }: { title: string }) => (
+ <div data-testid="page-header">
+ <h1>{title}</h1>
+ </div>
+ )
 }));
 
 vi.mock('../../components/ui/EmptyState', () => ({
-    EmptyState: ({ title }: { title: string }) => <div data-testid="empty-state">{title}</div>
+ EmptyState: ({ title }: { title: string }) => <div data-testid="empty-state">{title}</div>
 }));
 
 vi.mock('../../components/ui/AdvancedSearch', () => ({
-    AdvancedSearch: ({ onSearch, onClose }: { onSearch: (filters: object) => void; onClose: () => void }) => (
-        <div data-testid="advanced-search">
-            <button onClick={() => onSearch({ query: 'test', type: 'all' })}>Apply Filters</button>
-            <button onClick={onClose}>Close</button>
-        </div>
-    )
+ AdvancedSearch: ({ onSearch, onClose }: { onSearch: (filters: object) => void; onClose: () => void }) => (
+ <div data-testid="advanced-search">
+ <button onClick={() => onSearch({ query: 'test', type: 'all' })}>Apply Filters</button>
+ <button onClick={onClose}>Close</button>
+ </div>
+ )
 }));
 
 vi.mock('../../components/ui/Icons', () => ({
-    Search: () => <span>SearchIcon</span>,
-    Filter: () => <span>FilterIcon</span>,
-    ArrowRight: () => <span>ArrowRightIcon</span>,
-    ShieldCheck: () => <span>ShieldCheckIcon</span>,
-    AlertTriangle: () => <span>AlertTriangleIcon</span>,
-    FileText: () => <span>FileTextIcon</span>,
-    FolderKanban: () => <span>FolderKanbanIcon</span>
+ Search: () => <span>SearchIcon</span>,
+ Filter: () => <span>FilterIcon</span>,
+ ArrowRight: () => <span>ArrowRightIcon</span>,
+ ShieldCheck: () => <span>ShieldCheckIcon</span>,
+ AlertTriangle: () => <span>AlertTriangleIcon</span>,
+ FileText: () => <span>FileTextIcon</span>,
+ FolderKanban: () => <span>FolderKanbanIcon</span>
 }));
 
 describe('Search View', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-        vi.useFakeTimers();
-    });
+ beforeEach(() => {
+ vi.clearAllMocks();
+ vi.useFakeTimers();
+ });
 
-    afterEach(() => {
-        vi.useRealTimers();
-    });
+ afterEach(() => {
+ vi.useRealTimers();
+ });
 
-    const renderComponent = () => {
-        return render(
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <Search />
-            </BrowserRouter>
-        );
-    };
+ const renderComponent = () => {
+ return render(
+ <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+ <Search />
+ </BrowserRouter>
+ );
+ };
 
-    it('should render SEO component with correct title', () => {
-        renderComponent();
+ it('should render SEO component with correct title', () => {
+ renderComponent();
 
-        const seo = screen.getByTestId('seo');
-        expect(seo).toHaveAttribute('data-title', 'Advanced Search');
-    });
+ const seo = screen.getByTestId('seo');
+ expect(seo).toHaveAttribute('data-title', 'Advanced Search');
+ });
 
-    it('should render MasterpieceBackground', () => {
-        renderComponent();
+ it('should render MasterpieceBackground', () => {
+ renderComponent();
 
-        expect(screen.getByTestId('masterpiece-background')).toBeInTheDocument();
-    });
+ expect(screen.getByTestId('masterpiece-background')).toBeInTheDocument();
+ });
 
-    it('should render search input', () => {
-        renderComponent();
+ it('should render search input', () => {
+ renderComponent();
 
-        expect(screen.getByPlaceholderText(/Search/)).toBeInTheDocument();
-    });
+ expect(screen.getByPlaceholderText(/Search/)).toBeInTheDocument();
+ });
 
-    it('should update search query on input change', async () => {
-        renderComponent();
+ it('should update search query on input change', async () => {
+ renderComponent();
 
-        const input = screen.getByPlaceholderText(/Search/);
-        fireEvent.change(input, { target: { value: 'test query' } });
+ const input = screen.getByPlaceholderText(/Search/);
+ fireEvent.change(input, { target: { value: 'test query' } });
 
-        expect(input).toHaveValue('test query');
-    });
+ expect(input).toHaveValue('test query');
+ });
 
-    it('should debounce search and call performSearch', async () => {
-        renderComponent();
+ it('should debounce search and call performSearch', async () => {
+ renderComponent();
 
-        const input = screen.getByPlaceholderText(/Search/);
-        fireEvent.change(input, { target: { value: 'test' } });
+ const input = screen.getByPlaceholderText(/Search/);
+ fireEvent.change(input, { target: { value: 'test' } });
 
-        // Fast-forward debounce timer
-        vi.advanceTimersByTime(500);
+ // Fast-forward debounce timer
+ vi.advanceTimersByTime(500);
 
-        expect(mockPerformSearch).toHaveBeenCalled();
-    });
+ expect(mockPerformSearch).toHaveBeenCalled();
+ });
 
-    it('should clear results when query is too short', async () => {
-        renderComponent();
+ it('should clear results when query is too short', async () => {
+ renderComponent();
 
-        const input = screen.getByPlaceholderText(/Search/);
-        fireEvent.change(input, { target: { value: 'a' } });
+ const input = screen.getByPlaceholderText(/Search/);
+ fireEvent.change(input, { target: { value: 'a' } });
 
-        // Fast-forward debounce timer
-        vi.advanceTimersByTime(500);
+ // Fast-forward debounce timer
+ vi.advanceTimersByTime(500);
 
-        expect(mockSetResults).toHaveBeenCalledWith([]);
-    });
+ expect(mockSetResults).toHaveBeenCalledWith([]);
+ });
 
-    it('should render filter tabs', () => {
-        renderComponent();
+ it('should render filter tabs', () => {
+ renderComponent();
 
-        expect(screen.getByText('All')).toBeInTheDocument();
-        expect(screen.getByText('Assets')).toBeInTheDocument();
-        expect(screen.getByText('Risks')).toBeInTheDocument();
-        expect(screen.getByText('Documents')).toBeInTheDocument();
-        expect(screen.getByText('Projects')).toBeInTheDocument();
-    });
+ expect(screen.getByText('All')).toBeInTheDocument();
+ expect(screen.getByText('Assets')).toBeInTheDocument();
+ expect(screen.getByText('Risks')).toBeInTheDocument();
+ expect(screen.getByText('Documents')).toBeInTheDocument();
+ expect(screen.getByText('Projects')).toBeInTheDocument();
+ });
 
-    it('should toggle advanced search panel', () => {
-        renderComponent();
+ it('should toggle advanced search panel', () => {
+ renderComponent();
 
-        // Initially, advanced search should not be visible
-        expect(screen.queryByTestId('advanced-search')).not.toBeInTheDocument();
+ // Initially, advanced search should not be visible
+ expect(screen.queryByTestId('advanced-search')).not.toBeInTheDocument();
 
-        // Click filter button to show advanced search
-        const filterButton = screen.getByLabelText('Filters');
-        fireEvent.click(filterButton);
+ // Click filter button to show advanced search
+ const filterButton = screen.getByLabelText('Filters');
+ fireEvent.click(filterButton);
 
-        expect(screen.getByTestId('advanced-search')).toBeInTheDocument();
-    });
+ expect(screen.getByTestId('advanced-search')).toBeInTheDocument();
+ });
 });

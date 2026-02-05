@@ -9,103 +9,103 @@ import { DashboardSkeleton } from '../DashboardSkeleton';
 
 // Mock Skeleton components
 vi.mock('../../ui/Skeleton', () => ({
-    Skeleton: ({ className, variant }: { className?: string; variant?: string }) => (
-        <div
-            data-testid="skeleton"
-            data-variant={variant}
-            className={className}
-        />
-    ),
-    CardSkeleton: ({ count }: { count: number }) => (
-        <div data-testid="card-skeleton" data-count={count}>
-            {Array.from({ length: count }).map((_, i) => (
-                <div key={i || 'unknown'} data-testid={`card-${i}`} />
-            ))}
-        </div>
-    )
+ Skeleton: ({ className, variant }: { className?: string; variant?: string }) => (
+ <div
+ data-testid="skeleton"
+ data-variant={variant}
+ className={className}
+ />
+ ),
+ CardSkeleton: ({ count }: { count: number }) => (
+ <div data-testid="card-skeleton" data-count={count}>
+ {Array.from({ length: count }).map((_, i) => (
+ <div key={i || 'unknown'} data-testid={`card-${i}`} />
+ ))}
+ </div>
+ )
 }));
 
 describe('DashboardSkeleton', () => {
-    describe('rendering', () => {
-        it('renders skeleton component', () => {
-            render(<DashboardSkeleton />);
+ describe('rendering', () => {
+ it('renders skeleton component', () => {
+ render(<DashboardSkeleton />);
 
-            expect(screen.getAllByTestId('skeleton').length).toBeGreaterThan(0);
-        });
+ expect(screen.getAllByTestId('skeleton').length).toBeGreaterThan(0);
+ });
 
-        it('renders card skeletons', () => {
-            render(<DashboardSkeleton />);
+ it('renders card skeletons', () => {
+ render(<DashboardSkeleton />);
 
-            expect(screen.getAllByTestId('card-skeleton').length).toBeGreaterThan(0);
-        });
+ expect(screen.getAllByTestId('card-skeleton').length).toBeGreaterThan(0);
+ });
 
-        it('has animation class', () => {
-            const { container } = render(<DashboardSkeleton />);
+ it('has animation class', () => {
+ const { container } = render(<DashboardSkeleton />);
 
-            expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
-        });
-    });
+ expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
+ });
+ });
 
-    describe('layout structure', () => {
-        it('renders stats grid', () => {
-            const { container } = render(<DashboardSkeleton />);
+ describe('layout structure', () => {
+ it('renders stats grid', () => {
+ const { container } = render(<DashboardSkeleton />);
 
-            // Grid for quick stats
-            expect(container.querySelector('.grid')).toBeInTheDocument();
-        });
+ // Grid for quick stats
+ expect(container.querySelector('.grid')).toBeInTheDocument();
+ });
 
-        it('renders multiple grid columns', () => {
-            const { container } = render(<DashboardSkeleton />);
+ it('renders multiple grid columns', () => {
+ const { container } = render(<DashboardSkeleton />);
 
-            expect(container.querySelector('.lg\\:grid-cols-4')).toBeInTheDocument();
-        });
+ expect(container.querySelector('.lg\\:grid-cols-4')).toBeInTheDocument();
+ });
 
-        it('renders 4 stat panels', () => {
-            const { container } = render(<DashboardSkeleton />);
+ it('renders 4 stat panels', () => {
+ const { container } = render(<DashboardSkeleton />);
 
-            // Select only stat panels inside the lg:grid-cols-4 grid (Quick Stats Grid)
-            const statsGrid = container.querySelector('.lg\\:grid-cols-4');
-            const panels = statsGrid?.querySelectorAll('.glass-premium') ?? [];
-            expect(panels.length).toBe(4);
-        });
-    });
+ // Select only stat panels inside the lg:grid-cols-4 grid (Quick Stats Grid)
+ const statsGrid = container.querySelector('.lg\\:grid-cols-4');
+ const panels = statsGrid?.querySelectorAll('.glass-premium') ?? [];
+ expect(panels.length).toBe(4);
+ });
+ });
 
-    describe('quick actions section', () => {
-        it('renders quick actions area', () => {
-            const { container } = render(<DashboardSkeleton />);
+ describe('quick actions section', () => {
+ it('renders quick actions area', () => {
+ const { container } = render(<DashboardSkeleton />);
 
-            // Quick actions container with height
-            expect(container.querySelector('.h-24')).toBeInTheDocument();
-        });
-    });
+ // Quick actions container with height
+ expect(container.querySelector('.h-24')).toBeInTheDocument();
+ });
+ });
 
-    describe('main content area', () => {
-        it('renders main content grid', () => {
-            const { container } = render(<DashboardSkeleton />);
+ describe('main content area', () => {
+ it('renders main content grid', () => {
+ const { container } = render(<DashboardSkeleton />);
 
-            expect(container.querySelector('.lg\\:grid-cols-3')).toBeInTheDocument();
-        });
+ expect(container.querySelector('.lg\\:grid-cols-3')).toBeInTheDocument();
+ });
 
-        it('renders content spanning 2 columns', () => {
-            const { container } = render(<DashboardSkeleton />);
+ it('renders content spanning 2 columns', () => {
+ const { container } = render(<DashboardSkeleton />);
 
-            expect(container.querySelector('.lg\\:col-span-2')).toBeInTheDocument();
-        });
-    });
+ expect(container.querySelector('.lg\\:col-span-2')).toBeInTheDocument();
+ });
+ });
 
-    describe('skeleton shapes', () => {
-        it('renders rounded skeletons', () => {
-            const { container } = render(<DashboardSkeleton />);
+ describe('skeleton shapes', () => {
+ it('renders rounded skeletons', () => {
+ const { container } = render(<DashboardSkeleton />);
 
-            expect(container.querySelector('.rounded-3xl')).toBeInTheDocument();
-        });
+ expect(container.querySelector('.rounded-3xl')).toBeInTheDocument();
+ });
 
-        it('renders skeleton with text variant', () => {
-            render(<DashboardSkeleton />);
+ it('renders skeleton with text variant', () => {
+ render(<DashboardSkeleton />);
 
-            const skeletons = screen.getAllByTestId('skeleton');
-            const textVariant = skeletons.find(s => s.getAttribute('data-variant') === 'text');
-            expect(textVariant).toBeDefined();
-        });
-    });
+ const skeletons = screen.getAllByTestId('skeleton');
+ const textVariant = skeletons.find(s => s.getAttribute('data-variant') === 'text');
+ expect(textVariant).toBeDefined();
+ });
+ });
 });

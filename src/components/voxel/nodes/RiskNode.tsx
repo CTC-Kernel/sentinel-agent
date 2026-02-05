@@ -7,10 +7,10 @@
  * Visual Design:
  * - Geometry: Icosahedron (20 faces)
  * - Colors by severity:
- *   - Critical: Red (#EF4444)
- *   - High: Orange (#F97316)
- *   - Medium: Yellow (#EAB308)
- *   - Low: Green (#22C55E)
+ * - Critical: Red (#EF4444)
+ * - High: Orange (#F97316)
+ * - Medium: Yellow (#EAB308)
+ * - Low: Green (#22C55E)
  *
  * @see Story VOX-2.3: Risk Node Rendering
  * @see Story VOX-2.4: Risk Color by Severity
@@ -24,8 +24,8 @@ import { VoxelNode, type VoxelNodeProps } from './VoxelNode';
 import { ErrorLogger } from '@/services/errorLogger';
 
 export interface RiskNodeProps extends Omit<VoxelNodeProps, 'data'> {
-  /** Risk node data */
-  data: VoxelNodeType;
+ /** Risk node data */
+ data: VoxelNodeType;
 }
 
 /**
@@ -33,12 +33,12 @@ export interface RiskNodeProps extends Omit<VoxelNodeProps, 'data'> {
  * The icosahedron geometry provides visual distinction from asset spheres.
  */
 export const RiskNode: React.FC<RiskNodeProps> = ({ data, ...props }) => {
-  // Validate node type
-  if (data.type !== 'risk') {
-    ErrorLogger.warn(`RiskNode received non-risk node type: ${data.type}`, 'RiskNode');
-  }
+ // Validate node type
+ if (data.type !== 'risk') {
+ ErrorLogger.warn(`RiskNode received non-risk node type: ${data.type}`, 'RiskNode');
+ }
 
-  return <VoxelNode data={data} {...props} />;
+ return <VoxelNode data={data} {...props} />;
 };
 
 export default RiskNode;

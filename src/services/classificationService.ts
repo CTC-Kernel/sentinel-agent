@@ -15,12 +15,12 @@ import { CLASSIFICATION_CONFIG, canAccessClassification, getClassificationLevels
  * Higher index = more privileges
  */
 export const ROLE_HIERARCHY = [
-  'user',
-  'auditor',
-  'project_manager',
-  'rssi',
-  'admin',
-  'super_admin',
+ 'user',
+ 'auditor',
+ 'project_manager',
+ 'rssi',
+ 'admin',
+ 'super_admin',
 ] as const;
 
 export type UserRole = (typeof ROLE_HIERARCHY)[number] | 'direction';
@@ -30,10 +30,10 @@ export type UserRole = (typeof ROLE_HIERARCHY)[number] | 'direction';
  * Higher index = more restricted
  */
 export const CLASSIFICATION_HIERARCHY: ClassificationLevel[] = [
-  'public',
-  'internal',
-  'confidential',
-  'secret',
+ 'public',
+ 'internal',
+ 'confidential',
+ 'secret',
 ];
 
 /**
@@ -42,7 +42,7 @@ export const CLASSIFICATION_HIERARCHY: ClassificationLevel[] = [
  * @returns Numeric sensitivity (0 = lowest, 3 = highest)
  */
 export function getClassificationSensitivity(level: ClassificationLevel): number {
-  return CLASSIFICATION_HIERARCHY.indexOf(level);
+ return CLASSIFICATION_HIERARCHY.indexOf(level);
 }
 
 /**
@@ -59,10 +59,10 @@ export { canAccessClassification };
  * @returns True if user can set this classification
  */
 export function canSetClassification(
-  level: ClassificationLevel,
-  userRole: string
+ level: ClassificationLevel,
+ userRole: string
 ): boolean {
-  return canAccessClassification(level, userRole);
+ return canAccessClassification(level, userRole);
 }
 
 /**
@@ -71,16 +71,16 @@ export function canSetClassification(
  * @returns Maximum accessible classification level
  */
 export function getMaxClassificationForRole(userRole: string): ClassificationLevel {
-  const levels = getClassificationLevels();
+ const levels = getClassificationLevels();
 
-  // Find the highest level the user can access
-  for (let i = levels.length - 1; i >= 0; i--) {
-    if (canAccessClassification(levels[i], userRole)) {
-      return levels[i];
-    }
-  }
+ // Find the highest level the user can access
+ for (let i = levels.length - 1; i >= 0; i--) {
+ if (canAccessClassification(levels[i], userRole)) {
+ return levels[i];
+ }
+ }
 
-  return 'public'; // Fallback
+ return 'public'; // Fallback
 }
 
 /**
@@ -89,9 +89,9 @@ export function getMaxClassificationForRole(userRole: string): ClassificationLev
  * @returns Array of accessible classification levels
  */
 export function getAccessibleClassifications(userRole: string): ClassificationLevel[] {
-  return getClassificationLevels().filter(level =>
-    canAccessClassification(level, userRole)
-  );
+ return getClassificationLevels().filter(level =>
+ canAccessClassification(level, userRole)
+ );
 }
 
 /**
@@ -103,18 +103,18 @@ export function getAccessibleClassifications(userRole: string): ClassificationLe
  * @returns DocumentClassification object
  */
 export function createClassification(
-  level: ClassificationLevel,
-  userId: string,
-  justification?: string,
-  autoClassified = false
+ level: ClassificationLevel,
+ userId: string,
+ justification?: string,
+ autoClassified = false
 ): DocumentClassification {
-  return {
-    level,
-    classifiedBy: userId,
-    classifiedAt: Timestamp.now(),
-    justification,
-    autoClassified,
-  };
+ return {
+ level,
+ classifiedBy: userId,
+ classifiedAt: Timestamp.now(),
+ justification,
+ autoClassified,
+ };
 }
 
 /**
@@ -125,27 +125,27 @@ export function createClassification(
  * @returns Object with isValid boolean and optional error message
  */
 export function validateClassificationChange(
-  currentLevel: ClassificationLevel | undefined,
-  newLevel: ClassificationLevel,
-  userRole: string
+ currentLevel: ClassificationLevel | undefined,
+ newLevel: ClassificationLevel,
+ userRole: string
 ): { isValid: boolean; error?: string } {
-  // Check if user can access the new level
-  if (!canAccessClassification(newLevel, userRole)) {
-    return {
-      isValid: false,
-      error: `Permissions insuffisantes pour classifier en "${CLASSIFICATION_CONFIG[newLevel].label}"`
-    };
-  }
+ // Check if user can access the new level
+ if (!canAccessClassification(newLevel, userRole)) {
+ return {
+ isValid: false,
+ error: `Permissions insuffisantes pour classifier en "${CLASSIFICATION_CONFIG[newLevel].label}"`
+ };
+ }
 
-  // If upgrading classification, check if user has permission for current level too
-  if (currentLevel && !canAccessClassification(currentLevel, userRole)) {
-    return {
-      isValid: false,
-      error: `Permissions insuffisantes pour modifier un document "${CLASSIFICATION_CONFIG[currentLevel].label}"`
-    };
-  }
+ // If upgrading classification, check if user has permission for current level too
+ if (currentLevel && !canAccessClassification(currentLevel, userRole)) {
+ return {
+ isValid: false,
+ error: `Permissions insuffisantes pour modifier un document "${CLASSIFICATION_CONFIG[currentLevel].label}"`
+ };
+ }
 
-  return { isValid: true };
+ return { isValid: true };
 }
 
 /**
@@ -154,7 +154,7 @@ export function validateClassificationChange(
  * @returns True if justification is required
  */
 export function requiresJustification(level: ClassificationLevel): boolean {
-  return level === 'confidential' || level === 'secret';
+ return level === 'confidential' || level === 'secret';
 }
 
 /**
@@ -163,7 +163,7 @@ export function requiresJustification(level: ClassificationLevel): boolean {
  * @returns Display configuration for the level
  */
 export function getClassificationDisplay(level: ClassificationLevel) {
-  return CLASSIFICATION_CONFIG[level];
+ return CLASSIFICATION_CONFIG[level];
 }
 
 /**
@@ -179,10 +179,10 @@ export { compareClassificationLevels };
  * @returns True if newLevel is more restrictive than currentLevel
  */
 export function isClassificationUpgrade(
-  currentLevel: ClassificationLevel,
-  newLevel: ClassificationLevel
+ currentLevel: ClassificationLevel,
+ newLevel: ClassificationLevel
 ): boolean {
-  return compareClassificationLevels(newLevel, currentLevel) > 0;
+ return compareClassificationLevels(newLevel, currentLevel) > 0;
 }
 
 /**
@@ -192,10 +192,10 @@ export function isClassificationUpgrade(
  * @returns True if newLevel is less restrictive than currentLevel
  */
 export function isClassificationDowngrade(
-  currentLevel: ClassificationLevel,
-  newLevel: ClassificationLevel
+ currentLevel: ClassificationLevel,
+ newLevel: ClassificationLevel
 ): boolean {
-  return compareClassificationLevels(newLevel, currentLevel) < 0;
+ return compareClassificationLevels(newLevel, currentLevel) < 0;
 }
 
 /**
@@ -203,7 +203,7 @@ export function isClassificationDowngrade(
  * @returns Default classification level
  */
 export function getDefaultClassification(): ClassificationLevel {
-  return 'internal';
+ return 'internal';
 }
 
 /**
@@ -214,58 +214,58 @@ export function getDefaultClassification(): ClassificationLevel {
  * @returns Suggested classification level
  */
 export function suggestClassification(
-  content: string,
-  documentType?: string
+ content: string,
+ documentType?: string
 ): ClassificationLevel {
-  const lowerContent = content.toLowerCase();
+ const lowerContent = content.toLowerCase();
 
-  // Secret indicators
-  const secretKeywords = [
-    'mot de passe', 'password', 'secret', 'credential',
-    'clé privée', 'private key', 'certificat', 'certificate',
-    'authentification', 'token', 'api key', 'encryption key',
-    'données personnelles sensibles', 'données de santé',
-  ];
+ // Secret indicators
+ const secretKeywords = [
+ 'mot de passe', 'password', 'secret', 'credential',
+ 'clé privée', 'private key', 'certificat', 'certificate',
+ 'authentification', 'token', 'api key', 'encryption key',
+ 'données personnelles sensibles', 'données de santé',
+ ];
 
-  // Confidential indicators
-  const confidentialKeywords = [
-    'confidentiel', 'confidential', 'interne uniquement',
-    'ne pas diffuser', 'stratégie', 'strategy', 'financier',
-    'salary', 'salaire', 'contrat', 'contract', 'propriétaire',
-    'données personnelles', 'rgpd', 'gdpr',
-  ];
+ // Confidential indicators
+ const confidentialKeywords = [
+ 'confidentiel', 'confidential', 'interne uniquement',
+ 'ne pas diffuser', 'stratégie', 'strategy', 'financier',
+ 'salary', 'salaire', 'contrat', 'contract', 'propriétaire',
+ 'données personnelles', 'rgpd', 'gdpr',
+ ];
 
-  // Internal indicators
-  const internalKeywords = [
-    'procédure', 'procedure', 'politique', 'policy',
-    'guide', 'manuel', 'documentation', 'interne',
-  ];
+ // Internal indicators
+ const internalKeywords = [
+ 'procédure', 'procedure', 'politique', 'policy',
+ 'guide', 'manuel', 'documentation', 'interne',
+ ];
 
-  // Check keywords in order of sensitivity
-  if (secretKeywords.some(kw => lowerContent.includes(kw))) {
-    return 'secret';
-  }
+ // Check keywords in order of sensitivity
+ if (secretKeywords.some(kw => lowerContent.includes(kw))) {
+ return 'secret';
+ }
 
-  if (confidentialKeywords.some(kw => lowerContent.includes(kw))) {
-    return 'confidential';
-  }
+ if (confidentialKeywords.some(kw => lowerContent.includes(kw))) {
+ return 'confidential';
+ }
 
-  if (internalKeywords.some(kw => lowerContent.includes(kw))) {
-    return 'internal';
-  }
+ if (internalKeywords.some(kw => lowerContent.includes(kw))) {
+ return 'internal';
+ }
 
-  // Type-based classification
-  if (documentType) {
-    const type = documentType.toLowerCase();
-    if (type.includes('preuve') || type.includes('evidence')) {
-      return 'confidential';
-    }
-    if (type.includes('politique') || type.includes('policy')) {
-      return 'internal';
-    }
-  }
+ // Type-based classification
+ if (documentType) {
+ const type = documentType.toLowerCase();
+ if (type.includes('preuve') || type.includes('evidence')) {
+ return 'confidential';
+ }
+ if (type.includes('politique') || type.includes('policy')) {
+ return 'internal';
+ }
+ }
 
-  return 'internal'; // Default
+ return 'internal'; // Default
 }
 
 /**

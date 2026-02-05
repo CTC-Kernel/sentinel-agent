@@ -8,25 +8,25 @@ import { ErrorLogger } from '../services/errorLogger';
  * @returns [value, setValue]
  */
 export function usePersistedState<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
-    // Initialize state from localStorage or initialValue
-    const [state, setState] = useState<T>(() => {
-        try {
-            const item = localStorage.getItem(key);
-            return item ? JSON.parse(item) : initialValue;
-        } catch (error) {
-            ErrorLogger.warn(`Error reading localStorage key "${key}":`, 'usePersistedState', { metadata: { error } });
-            return initialValue;
-        }
-    });
+ // Initialize state from localStorage or initialValue
+ const [state, setState] = useState<T>(() => {
+ try {
+ const item = localStorage.getItem(key);
+ return item ? JSON.parse(item) : initialValue;
+ } catch (error) {
+ ErrorLogger.warn(`Error reading localStorage key "${key}":`, 'usePersistedState', { metadata: { error } });
+ return initialValue;
+ }
+ });
 
-    // Update localStorage whenever state changes
-    useEffect(() => {
-        try {
-            localStorage.setItem(key, JSON.stringify(state));
-        } catch (error) {
-            ErrorLogger.warn(`Error writing localStorage key "${key}":`, 'usePersistedState', { metadata: { error } });
-        }
-    }, [key, state]);
+ // Update localStorage whenever state changes
+ useEffect(() => {
+ try {
+ localStorage.setItem(key, JSON.stringify(state));
+ } catch (error) {
+ ErrorLogger.warn(`Error writing localStorage key "${key}":`, 'usePersistedState', { metadata: { error } });
+ }
+ }, [key, state]);
 
-    return [state, setState];
+ return [state, setState];
 }

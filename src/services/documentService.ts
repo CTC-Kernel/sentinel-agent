@@ -8,290 +8,290 @@ import { AuditLogService } from './auditLogService';
 import { canDeleteResource, canEditResource } from '../utils/permissions';
 
 export interface DocumentDependencies {
-    hasDependencies: boolean;
-    linkedControls: Control[];
-    suppliersCount: number;
-    bcpCount: number;
-    findingsCount: number;
-    message: string;
+ hasDependencies: boolean;
+ linkedControls: Control[];
+ suppliersCount: number;
+ bcpCount: number;
+ findingsCount: number;
+ message: string;
 }
 
 export interface DeleteDocumentOptions {
-    documentId: string;
-    documentTitle: string;
-    organizationId: string;
-    user: UserProfile;
+ documentId: string;
+ documentTitle: string;
+ organizationId: string;
+ user: UserProfile;
 }
 
 type DocumentCsvRow = Record<string, string>;
 
 export class DocumentService {
-    /**
-     * Check all dependencies for a document across multiple collections
-     */
-    static async checkDependencies(
-        documentId: string,
-        organizationId: string
-    ): Promise<DocumentDependencies> {
-        try {
-            // Check dependencies in parallel across all collections
-            const [linkedControlsSnap, suppliersSnap, bcpSnap, findingsSnap] = await Promise.all([
-                getDocs(
-                    query(
-                        collection(db, 'controls'),
-                        where('organizationId', '==', organizationId),
-                        where('evidenceIds', 'array-contains', documentId)
-                    )
-                ),
-                getDocs(
-                    query(
-                        collection(db, 'suppliers'),
-                        where('organizationId', '==', organizationId),
-                        where('contractDocumentId', '==', documentId),
-                        limit(50)
-                    )
-                ),
-                getDocs(
-                    query(
-                        collection(db, 'business_processes'),
-                        where('organizationId', '==', organizationId),
-                        where('drpDocumentId', '==', documentId),
-                        limit(50)
-                    )
-                ),
-                getDocs(
-                    query(
-                        collection(db, 'findings'),
-                        where('organizationId', '==', organizationId),
-                        where('evidenceIds', 'array-contains', documentId),
-                        limit(50)
-                    )
-                )
-            ]);
+ /**
+ * Check all dependencies for a document across multiple collections
+ */
+ static async checkDependencies(
+ documentId: string,
+ organizationId: string
+ ): Promise<DocumentDependencies> {
+ try {
+ // Check dependencies in parallel across all collections
+ const [linkedControlsSnap, suppliersSnap, bcpSnap, findingsSnap] = await Promise.all([
+ getDocs(
+  query(
+  collection(db, 'controls'),
+  where('organizationId', '==', organizationId),
+  where('evidenceIds', 'array-contains', documentId)
+  )
+ ),
+ getDocs(
+  query(
+  collection(db, 'suppliers'),
+  where('organizationId', '==', organizationId),
+  where('contractDocumentId', '==', documentId),
+  limit(50)
+  )
+ ),
+ getDocs(
+  query(
+  collection(db, 'business_processes'),
+  where('organizationId', '==', organizationId),
+  where('drpDocumentId', '==', documentId),
+  limit(50)
+  )
+ ),
+ getDocs(
+  query(
+  collection(db, 'findings'),
+  where('organizationId', '==', organizationId),
+  where('evidenceIds', 'array-contains', documentId),
+  limit(50)
+  )
+ )
+ ]);
 
-            const linkedControls = linkedControlsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Control));
+ const linkedControls = linkedControlsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Control));
 
-            const hasDependencies =
-                !linkedControlsSnap.empty ||
-                !suppliersSnap.empty ||
-                !bcpSnap.empty ||
-                !findingsSnap.empty;
+ const hasDependencies =
+ !linkedControlsSnap.empty ||
+ !suppliersSnap.empty ||
+ !bcpSnap.empty ||
+ !findingsSnap.empty;
 
-            let message = "Cette action est définitive.";
+ let message = "Cette action est définitive.";
 
-            if (hasDependencies) {
-                const deps = [
-                    !linkedControlsSnap.empty ? `${linkedControlsSnap.size} contrôle(s)` : '',
-                    !suppliersSnap.empty ? `${suppliersSnap.size} fournisseur(s)` : '',
-                    !bcpSnap.empty ? `${bcpSnap.size} processus` : '',
-                    !findingsSnap.empty ? `${findingsSnap.size} constat(s)` : ''
-                ].filter(Boolean).join(', ');
+ if (hasDependencies) {
+ const deps = [
+  !linkedControlsSnap.empty ? `${linkedControlsSnap.size} contrôle(s)` : '',
+  !suppliersSnap.empty ? `${suppliersSnap.size} fournisseur(s)` : '',
+  !bcpSnap.empty ? `${bcpSnap.size} processus` : '',
+  !findingsSnap.empty ? `${findingsSnap.size} constat(s)` : ''
+ ].filter(Boolean).join(', ');
 
-                message = `Document utilisé dans : ${deps}. La suppression le retirera de ces éléments.`;
-            }
+ message = `Document utilisé dans : ${deps}. La suppression le retirera de ces éléments.`;
+ }
 
-            return {
-                hasDependencies,
-                linkedControls,
-                suppliersCount: suppliersSnap.size,
-                bcpCount: bcpSnap.size,
-                findingsCount: findingsSnap.size,
-                message
-            };
-        } catch (error) {
-            ErrorLogger.error(error, 'DocumentService.checkDependencies');
-            throw error;
-        }
-    }
+ return {
+ hasDependencies,
+ linkedControls,
+ suppliersCount: suppliersSnap.size,
+ bcpCount: bcpSnap.size,
+ findingsCount: findingsSnap.size,
+ message
+ };
+ } catch (error) {
+ ErrorLogger.error(error, 'DocumentService.checkDependencies');
+ throw error;
+ }
+ }
 
-    /**
-     * Delete document with cascade cleanup of all dependencies
-     * This ensures referential integrity across the system
-     */
-    static async deleteDocumentWithCascade(options: DeleteDocumentOptions): Promise<void> {
-        const { documentId, documentTitle, organizationId, user } = options;
+ /**
+ * Delete document with cascade cleanup of all dependencies
+ * This ensures referential integrity across the system
+ */
+ static async deleteDocumentWithCascade(options: DeleteDocumentOptions): Promise<void> {
+ const { documentId, documentTitle, organizationId, user } = options;
 
-        if (!canDeleteResource(user, 'Document')) throw new Error("Permission refusée");
-        if (user.organizationId !== organizationId) throw new Error("Tenant mismatch");
+ if (!canDeleteResource(user, 'Document')) throw new Error("Permission refusée");
+ if (user.organizationId !== organizationId) throw new Error("Tenant mismatch");
 
-        try {
-            // Re-query dependencies to ensure consistency during atomic delete phase
-            const [controlsSnap, suppliersSnap, bcpSnap, findingsSnap] = await Promise.all([
-                getDocs(
-                    query(
-                        collection(db, 'controls'),
-                        where('organizationId', '==', organizationId),
-                        where('evidenceIds', 'array-contains', documentId),
-                        limit(50)
-                    )
-                ),
-                getDocs(
-                    query(
-                        collection(db, 'suppliers'),
-                        where('organizationId', '==', organizationId),
-                        where('contractDocumentId', '==', documentId),
-                        limit(50)
-                    )
-                ),
-                getDocs(
-                    query(
-                        collection(db, 'business_processes'),
-                        where('organizationId', '==', organizationId),
-                        where('drpDocumentId', '==', documentId),
-                        limit(50)
-                    )
-                ),
-                getDocs(
-                    query(
-                        collection(db, 'findings'),
-                        where('organizationId', '==', organizationId),
-                        where('evidenceIds', 'array-contains', documentId),
-                        limit(50)
-                    )
-                )
-            ]);
+ try {
+ // Re-query dependencies to ensure consistency during atomic delete phase
+ const [controlsSnap, suppliersSnap, bcpSnap, findingsSnap] = await Promise.all([
+ getDocs(
+  query(
+  collection(db, 'controls'),
+  where('organizationId', '==', organizationId),
+  where('evidenceIds', 'array-contains', documentId),
+  limit(50)
+  )
+ ),
+ getDocs(
+  query(
+  collection(db, 'suppliers'),
+  where('organizationId', '==', organizationId),
+  where('contractDocumentId', '==', documentId),
+  limit(50)
+  )
+ ),
+ getDocs(
+  query(
+  collection(db, 'business_processes'),
+  where('organizationId', '==', organizationId),
+  where('drpDocumentId', '==', documentId),
+  limit(50)
+  )
+ ),
+ getDocs(
+  query(
+  collection(db, 'findings'),
+  where('organizationId', '==', organizationId),
+  where('evidenceIds', 'array-contains', documentId),
+  limit(50)
+  )
+ )
+ ]);
 
-            const cleanupPromises: Promise<void>[] = [];
+ const cleanupPromises: Promise<void>[] = [];
 
-            // Remove from Controls (remove from evidenceIds array)
-            controlsSnap.docs.forEach(docSnap => {
-                cleanupPromises.push(
-                    updateDoc(doc(db, 'controls', docSnap.id), {
-                        evidenceIds: arrayRemove(documentId)
-                    }).catch((err: unknown) => {
-                        ErrorLogger.warn(`Failed to remove document from control ${docSnap.id}: ${String(err)}`, 'DocumentService.deleteDocumentWithCascade');
-                    })
-                );
-            });
+ // Remove from Controls (remove from evidenceIds array)
+ controlsSnap.docs.forEach(docSnap => {
+ cleanupPromises.push(
+  updateDoc(doc(db, 'controls', docSnap.id), {
+  evidenceIds: arrayRemove(documentId)
+  }).catch((err: unknown) => {
+  ErrorLogger.warn(`Failed to remove document from control ${docSnap.id}: ${String(err)}`, 'DocumentService.deleteDocumentWithCascade');
+  })
+ );
+ });
 
-            // Remove from Suppliers (set contractDocumentId to null)
-            suppliersSnap.docs.forEach(docSnap => {
-                cleanupPromises.push(
-                    updateDoc(doc(db, 'suppliers', docSnap.id), {
-                        contractDocumentId: null
-                    }).catch((err: unknown) => {
-                        ErrorLogger.warn(`Failed to remove document from supplier ${docSnap.id}: ${String(err)}`, 'DocumentService.deleteDocumentWithCascade');
-                    })
-                );
-            });
+ // Remove from Suppliers (set contractDocumentId to null)
+ suppliersSnap.docs.forEach(docSnap => {
+ cleanupPromises.push(
+  updateDoc(doc(db, 'suppliers', docSnap.id), {
+  contractDocumentId: null
+  }).catch((err: unknown) => {
+  ErrorLogger.warn(`Failed to remove document from supplier ${docSnap.id}: ${String(err)}`, 'DocumentService.deleteDocumentWithCascade');
+  })
+ );
+ });
 
-            // Remove from BCP (set drpDocumentId to null)
-            bcpSnap.docs.forEach(docSnap => {
-                cleanupPromises.push(
-                    updateDoc(doc(db, 'business_processes', docSnap.id), {
-                        drpDocumentId: null
-                    }).catch((err: unknown) => {
-                        ErrorLogger.warn(`Failed to remove document from BCP ${docSnap.id}: ${String(err)}`, 'DocumentService.deleteDocumentWithCascade');
-                    })
-                );
-            });
+ // Remove from BCP (set drpDocumentId to null)
+ bcpSnap.docs.forEach(docSnap => {
+ cleanupPromises.push(
+  updateDoc(doc(db, 'business_processes', docSnap.id), {
+  drpDocumentId: null
+  }).catch((err: unknown) => {
+  ErrorLogger.warn(`Failed to remove document from BCP ${docSnap.id}: ${String(err)}`, 'DocumentService.deleteDocumentWithCascade');
+  })
+ );
+ });
 
-            // Remove from Findings (remove from evidenceIds array)
-            findingsSnap.docs.forEach(docSnap => {
-                cleanupPromises.push(
-                    updateDoc(doc(db, 'findings', docSnap.id), {
-                        evidenceIds: arrayRemove(documentId)
-                    }).catch((err: unknown) => {
-                        ErrorLogger.warn(`Failed to remove document from finding ${docSnap.id}: ${String(err)}`, 'DocumentService.deleteDocumentWithCascade');
-                    })
-                );
-            });
+ // Remove from Findings (remove from evidenceIds array)
+ findingsSnap.docs.forEach(docSnap => {
+ cleanupPromises.push(
+  updateDoc(doc(db, 'findings', docSnap.id), {
+  evidenceIds: arrayRemove(documentId)
+  }).catch((err: unknown) => {
+  ErrorLogger.warn(`Failed to remove document from finding ${docSnap.id}: ${String(err)}`, 'DocumentService.deleteDocumentWithCascade');
+  })
+ );
+ });
 
-            // Execute all cleanup operations in parallel
-            await Promise.all(cleanupPromises);
+ // Execute all cleanup operations in parallel
+ await Promise.all(cleanupPromises);
 
-            // Finally, delete the document itself (Server-side permission check)
-            try {
-                await FunctionsService.deleteResource('documents', documentId);
+ // Finally, delete the document itself (Server-side permission check)
+ try {
+ await FunctionsService.deleteResource('documents', documentId);
 
-                await AuditLogService.logDelete(
-                    organizationId,
-                    { id: user.uid, name: user.displayName || user.email, email: user.email },
-                    'document',
-                    documentId,
-                    { title: documentTitle },
-                    documentTitle
-                );
-            } catch (err) {
-                ErrorLogger.error(err, 'DocumentService.deleteDocumentWithCascade.finalDelete');
-                throw err;
-            }
+ await AuditLogService.logDelete(
+  organizationId,
+  { id: user.uid, name: user.displayName || user.email, email: user.email },
+  'document',
+  documentId,
+  { title: documentTitle },
+  documentTitle
+ );
+ } catch (err) {
+ ErrorLogger.error(err, 'DocumentService.deleteDocumentWithCascade.finalDelete');
+ throw err;
+ }
 
-        } catch (error) {
-            ErrorLogger.error(error, 'DocumentService.deleteDocumentWithCascade');
-            throw error;
-        }
-    }
-    /**
-     * Import documents from CSV data
-     */
-    static async importDocumentsFromCSV(
-        data: DocumentCsvRow[],
-        organizationId: string,
-        user: UserProfile
-    ): Promise<number> {
-        if (!canEditResource(user, 'Document')) throw new Error("Permission refusée");
-        if (user.organizationId !== organizationId) throw new Error("Tenant mismatch");
+ } catch (error) {
+ ErrorLogger.error(error, 'DocumentService.deleteDocumentWithCascade');
+ throw error;
+ }
+ }
+ /**
+ * Import documents from CSV data
+ */
+ static async importDocumentsFromCSV(
+ data: DocumentCsvRow[],
+ organizationId: string,
+ user: UserProfile
+ ): Promise<number> {
+ if (!canEditResource(user, 'Document')) throw new Error("Permission refusée");
+ if (user.organizationId !== organizationId) throw new Error("Tenant mismatch");
 
-        try {
-            const BATCH_SIZE = 450;
-            let batch = writeBatch(db);
-            let count = 0;
-            let batchCount = 0;
+ try {
+ const BATCH_SIZE = 450;
+ let batch = writeBatch(db);
+ let count = 0;
+ let batchCount = 0;
 
-            for (const row of data) {
-                if (!row.Titre) continue;
+ for (const row of data) {
+ if (!row.Titre) continue;
 
-                const newRef = doc(collection(db, 'documents'));
-                const docData = {
-                    organizationId,
-                    title: row.Titre,
-                    type: row.Type || 'Autre',
-                    version: row.Version || '1.0',
-                    status: row.Statut || 'Brouillon',
-                    owner: row.Proprietaire || user.displayName || 'Utilisateur',
-                    ownerId: user.uid, // Default to importer if not specified or mapped
-                    nextReviewDate: row.Prochaine_Revue ? new Date(row.Prochaine_Revue).toISOString() : null,
-                    description: row.Description || '',
-                    url: row.URL || '',
-                    isSecure: false,
-                    watermarkEnabled: false,
-                    reviewers: [],
-                    approvers: [],
-                    readBy: [],
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp()
-                };
+ const newRef = doc(collection(db, 'documents'));
+ const docData = {
+  organizationId,
+  title: row.Titre,
+  type: row.Type || 'Autre',
+  version: row.Version || '1.0',
+  status: row.Statut || 'Brouillon',
+  owner: row.Proprietaire || user.displayName || 'Utilisateur',
+  ownerId: user.uid, // Default to importer if not specified or mapped
+  nextReviewDate: row.Prochaine_Revue ? new Date(row.Prochaine_Revue).toISOString() : null,
+  description: row.Description || '',
+  url: row.URL || '',
+  isSecure: false,
+  watermarkEnabled: false,
+  reviewers: [],
+  approvers: [],
+  readBy: [],
+  createdAt: serverTimestamp(),
+  updatedAt: serverTimestamp()
+ };
 
-                const sanitized = sanitizeData(docData);
-                batch.set(newRef, sanitized);
-                count++;
-                batchCount++;
+ const sanitized = sanitizeData(docData);
+ batch.set(newRef, sanitized);
+ count++;
+ batchCount++;
 
-                if (batchCount >= BATCH_SIZE) {
-                    await batch.commit();
-                    batch = writeBatch(db);
-                    batchCount = 0;
-                }
-            }
+ if (batchCount >= BATCH_SIZE) {
+  await batch.commit();
+  batch = writeBatch(db);
+  batchCount = 0;
+ }
+ }
 
-            if (count > 0 && batchCount > 0) {
-                await batch.commit();
+ if (count > 0 && batchCount > 0) {
+ await batch.commit();
 
-                // Audit Log
-                await AuditLogService.logImport(
-                    organizationId,
-                    { id: user.uid, name: user.displayName || user.email, email: user.email },
-                    'document',
-                    count,
-                    'CSV Import'
-                );
-            }
+ // Audit Log
+ await AuditLogService.logImport(
+  organizationId,
+  { id: user.uid, name: user.displayName || user.email, email: user.email },
+  'document',
+  count,
+  'CSV Import'
+ );
+ }
 
-            return count;
-        } catch (error) {
-            ErrorLogger.error(error, 'DocumentService.importDocumentsFromCSV');
-            throw error;
-        }
-    }
+ return count;
+ } catch (error) {
+ ErrorLogger.error(error, 'DocumentService.importDocumentsFromCSV');
+ throw error;
+ }
+ }
 }

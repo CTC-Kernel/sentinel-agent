@@ -8,302 +8,302 @@ import { SupplierService } from './SupplierService';
 import { DPIA_TEMPLATE } from '../data/dpiatemplate';
 
 export const PrivacyService = {
-    async fetchActivities(organizationId: string): Promise<ProcessingActivity[]> {
-        try {
-            const q = query(collection(db, 'processing_activities'), where('organizationId', '==', organizationId));
-            const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => {
-                const data = doc.data();
-                return {
-                    id: doc.id,
-                    ...data,
-                    // Handle potential Timestamp to string conversion if needed, though sanitizeData typically handles inputs.
-                    // If data.createdAt is a Timestamp, we might want to convert it.
-                    // For now, type assertion is used.
-                } as ProcessingActivity;
-            });
-        } catch (error) {
-            ErrorLogger.error(error, 'PrivacyService.fetchActivities');
-            return [];
-        }
-    },
+ async fetchActivities(organizationId: string): Promise<ProcessingActivity[]> {
+ try {
+ const q = query(collection(db, 'processing_activities'), where('organizationId', '==', organizationId));
+ const snapshot = await getDocs(q);
+ return snapshot.docs.map(doc => {
+ const data = doc.data();
+ return {
+  id: doc.id,
+  ...data,
+  // Handle potential Timestamp to string conversion if needed, though sanitizeData typically handles inputs.
+  // If data.createdAt is a Timestamp, we might want to convert it.
+  // For now, type assertion is used.
+ } as ProcessingActivity;
+ });
+ } catch (error) {
+ ErrorLogger.error(error, 'PrivacyService.fetchActivities');
+ return [];
+ }
+ },
 
-    async createActivity(activity: Omit<ProcessingActivity, 'id'>, user: UserProfile): Promise<string> {
-        try {
-            // Use serverTimestamp for createdAt/updatedAt
-            // We need to allow dates to be ServerTimestamp in Firestore but string in UI.
-            // sanitizeData might convert Date objects to string, but we want serverTimestamp marker.
-            // We will pass logic: overwrite createdAt/updatedAt with serverTimestamp()
-            const activityData = {
-                ...sanitizeData(activity),
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
-            };
+ async createActivity(activity: Omit<ProcessingActivity, 'id'>, user: UserProfile): Promise<string> {
+ try {
+ // Use serverTimestamp for createdAt/updatedAt
+ // We need to allow dates to be ServerTimestamp in Firestore but string in UI.
+ // sanitizeData might convert Date objects to string, but we want serverTimestamp marker.
+ // We will pass logic: overwrite createdAt/updatedAt with serverTimestamp()
+ const activityData = {
+ ...sanitizeData(activity),
+ createdAt: serverTimestamp(),
+ updatedAt: serverTimestamp()
+ };
 
-            const docRef = await addDoc(collection(db, 'processing_activities'), activityData);
+ const docRef = await addDoc(collection(db, 'processing_activities'), activityData);
 
-            await logAction(
-                user,
-                'CREATE',
-                'Privacy',
-                `Création du traitement: ${activity.name}`,
-                undefined,
-                docRef.id
-            );
-            return docRef.id;
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'PrivacyService.createActivity');
-            throw error;
-        }
-    },
+ await logAction(
+ user,
+ 'CREATE',
+ 'Privacy',
+ `Création du traitement: ${activity.name}`,
+ undefined,
+ docRef.id
+ );
+ return docRef.id;
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'PrivacyService.createActivity');
+ throw error;
+ }
+ },
 
-    async updateActivity(id: string, updates: Partial<ProcessingActivity>, user: UserProfile): Promise<void> {
-        try {
-            const docRef = doc(db, 'processing_activities', id);
-            await updateDoc(docRef, { ...sanitizeData(updates), updatedAt: serverTimestamp() });
+ async updateActivity(id: string, updates: Partial<ProcessingActivity>, user: UserProfile): Promise<void> {
+ try {
+ const docRef = doc(db, 'processing_activities', id);
+ await updateDoc(docRef, { ...sanitizeData(updates), updatedAt: serverTimestamp() });
 
-            await logAction(
-                user,
-                'UPDATE',
-                'Privacy',
-                `Mise à jour du traitement: ${updates.name || id}`,
-                undefined,
-                id
-            );
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'PrivacyService.updateActivity');
-            throw error;
-        }
-    },
+ await logAction(
+ user,
+ 'UPDATE',
+ 'Privacy',
+ `Mise à jour du traitement: ${updates.name || id}`,
+ undefined,
+ id
+ );
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'PrivacyService.updateActivity');
+ throw error;
+ }
+ },
 
-    async deleteActivity(id: string, activityName: string, user: UserProfile): Promise<void> {
-        try {
-            // Verify organizationId before delete (IDOR protection)
-            const docSnap = await getDoc(doc(db, 'processing_activities', id));
-            if (!docSnap.exists() || docSnap.data()?.organizationId !== user.organizationId) {
-                throw new Error('Not authorized: activity not found or organization mismatch');
-            }
+ async deleteActivity(id: string, activityName: string, user: UserProfile): Promise<void> {
+ try {
+ // Verify organizationId before delete (IDOR protection)
+ const docSnap = await getDoc(doc(db, 'processing_activities', id));
+ if (!docSnap.exists() || docSnap.data()?.organizationId !== user.organizationId) {
+ throw new Error('Not authorized: activity not found or organization mismatch');
+ }
 
-            await deleteDoc(doc(db, 'processing_activities', id));
-            await logAction(
-                user,
-                'DELETE',
-                'Privacy',
-                `Suppression du traitement: ${activityName}`,
-                undefined,
-                id
-            );
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'PrivacyService.deleteActivity');
-            throw error;
-        }
-    },
+ await deleteDoc(doc(db, 'processing_activities', id));
+ await logAction(
+ user,
+ 'DELETE',
+ 'Privacy',
+ `Suppression du traitement: ${activityName}`,
+ undefined,
+ id
+ );
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'PrivacyService.deleteActivity');
+ throw error;
+ }
+ },
 
-    async importActivities(activities: Omit<ProcessingActivity, 'id'>[], user: UserProfile): Promise<number> {
-        const BATCH_SIZE = 450;
-        let batch = writeBatch(db);
-        let count = 0;
-        let batchCount = 0;
+ async importActivities(activities: Omit<ProcessingActivity, 'id'>[], user: UserProfile): Promise<number> {
+ const BATCH_SIZE = 450;
+ let batch = writeBatch(db);
+ let count = 0;
+ let batchCount = 0;
 
-        for (const act of activities) {
-            const ref = doc(collection(db, 'processing_activities'));
-            batch.set(ref, {
-                ...sanitizeData(act),
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
-            });
-            count++;
-            batchCount++;
+ for (const act of activities) {
+ const ref = doc(collection(db, 'processing_activities'));
+ batch.set(ref, {
+ ...sanitizeData(act),
+ createdAt: serverTimestamp(),
+ updatedAt: serverTimestamp()
+ });
+ count++;
+ batchCount++;
 
-            if (batchCount >= BATCH_SIZE) {
-                await batch.commit();
-                batch = writeBatch(db);
-                batchCount = 0;
-            }
-        }
+ if (batchCount >= BATCH_SIZE) {
+ await batch.commit();
+ batch = writeBatch(db);
+ batchCount = 0;
+ }
+ }
 
-        if (batchCount > 0) {
-            await batch.commit();
-        }
+ if (batchCount > 0) {
+ await batch.commit();
+ }
 
-        if (count > 0) {
-            await logAction(
-                user,
-                'IMPORT',
-                'Privacy',
-                `Import CSV de ${count} traitements`
-            );
-        }
-        return count;
-    },
+ if (count > 0) {
+ await logAction(
+ user,
+ 'IMPORT',
+ 'Privacy',
+ `Import CSV de ${count} traitements`
+ );
+ }
+ return count;
+ },
 
-    async fetchActivityHistory(organizationId: string, activityId: string, activityName?: string): Promise<SystemLog[]> {
-        try {
-            const logsRef = collection(db, 'system_logs');
-            // We fetch last 50 logs for org and filter manually because of complex OR query limitations
-            const q = query(
-                logsRef,
-                where('organizationId', '==', organizationId),
-                limit(100)
-            );
-            const snapshot = await getDocs(q);
-            const logs = snapshot.docs.map(doc => doc.data() as SystemLog);
+ async fetchActivityHistory(organizationId: string, activityId: string, activityName?: string): Promise<SystemLog[]> {
+ try {
+ const logsRef = collection(db, 'system_logs');
+ // We fetch last 50 logs for org and filter manually because of complex OR query limitations
+ const q = query(
+ logsRef,
+ where('organizationId', '==', organizationId),
+ limit(100)
+ );
+ const snapshot = await getDocs(q);
+ const logs = snapshot.docs.map(doc => doc.data() as SystemLog);
 
-            return logs.filter(l =>
-                (l.resource === 'Privacy' && l.resourceId === activityId) ||
-                (activityName && l.details?.includes(activityName))
-            ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+ return logs.filter(l =>
+ (l.resource === 'Privacy' && l.resourceId === activityId) ||
+ (activityName && l.details?.includes(activityName))
+ ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-        } catch (error) {
-            ErrorLogger.error(error, 'PrivacyService.fetchHistory');
-            return [];
-        }
-    },
+ } catch (error) {
+ ErrorLogger.error(error, 'PrivacyService.fetchHistory');
+ return [];
+ }
+ },
 
-    // DPIA Logic
-    async startDPIA(activity: ProcessingActivity, user: UserProfile): Promise<string> {
-        if (!user.organizationId) throw new Error("Organization ID missing");
-        try {
-            // 1. Ensure DPIA Template exists
-            const templateRef = doc(db, 'questionnaire_templates', DPIA_TEMPLATE.id);
-            // 'system' orgId is for templates shared across system, but here we merge it.
-            // setDoc usually requires permissions. If this fails due to rules, we might need a Service Account or Cloud Function.
-            // Assuming current user works if allowed.
-            // We use 'organizationId: system' maybe problematic if user is not admin of system?
-            // Actually DPIA_TEMPLATE might be static or user-owned.
-            // Let's assume user.organizationId for the template copy if needed, or check logic.
-            // The original logic used 'system', let's stick to it but wrap in try/catch.
+ // DPIA Logic
+ async startDPIA(activity: ProcessingActivity, user: UserProfile): Promise<string> {
+ if (!user.organizationId) throw new Error("Organization ID missing");
+ try {
+ // 1. Ensure DPIA Template exists
+ const templateRef = doc(db, 'questionnaire_templates', DPIA_TEMPLATE.id);
+ // 'system' orgId is for templates shared across system, but here we merge it.
+ // setDoc usually requires permissions. If this fails due to rules, we might need a Service Account or Cloud Function.
+ // Assuming current user works if allowed.
+ // We use 'organizationId: system' maybe problematic if user is not admin of system?
+ // Actually DPIA_TEMPLATE might be static or user-owned.
+ // Let's assume user.organizationId for the template copy if needed, or check logic.
+ // The original logic used 'system', let's stick to it but wrap in try/catch.
 
-            await setDoc(templateRef, sanitizeData({ ...DPIA_TEMPLATE, organizationId: user.organizationId }), { merge: Boolean(true) });
+ await setDoc(templateRef, sanitizeData({ ...DPIA_TEMPLATE, organizationId: user.organizationId }), { merge: Boolean(true) });
 
-            // 2. Create Assessment
-            const responseId = await SupplierService.createAssessment(
-                user.organizationId,
-                activity.id,
-                activity.name,
-                DPIA_TEMPLATE,
-                { uid: user.uid, email: user.email, displayName: user.displayName }
-            );
+ // 2. Create Assessment
+ const responseId = await SupplierService.createAssessment(
+ user.organizationId,
+ activity.id,
+ activity.name,
+ DPIA_TEMPLATE,
+ { uid: user.uid, email: user.email, displayName: user.displayName }
+ );
 
-            // 3. Update Activity
-            await updateDoc(doc(db, 'processing_activities', activity.id), sanitizeData({
-                hasDPIA: true,
-                updatedAt: serverTimestamp()
-            }));
+ // 3. Update Activity
+ await updateDoc(doc(db, 'processing_activities', activity.id), sanitizeData({
+ hasDPIA: true,
+ updatedAt: serverTimestamp()
+ }));
 
-            return responseId;
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'PrivacyService.startDPIA');
-            throw error;
-        }
-    },
+ return responseId;
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'PrivacyService.startDPIA');
+ throw error;
+ }
+ },
 
-    async findDPIAResponseId(activityId: string): Promise<string | null> {
-        interface DPIAResponseDoc {
-            id: string;
-            sentDate: string;
-        }
+ async findDPIAResponseId(activityId: string): Promise<string | null> {
+ interface DPIAResponseDoc {
+ id: string;
+ sentDate: string;
+ }
 
-        const q = query(
-            collection(db, 'questionnaire_responses'),
-            where('supplierId', '==', activityId),
-            where('templateId', '==', DPIA_TEMPLATE.id)
-        );
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-            const docs: DPIAResponseDoc[] = snapshot.docs.map(d => ({
-                id: d.id,
-                sentDate: (d.data() as { sentDate?: string }).sentDate || ''
-            }));
-            docs.sort((a, b) => new Date(b.sentDate).getTime() - new Date(a.sentDate).getTime());
-            return docs[0].id;
-        }
-        return null;
-    },
+ const q = query(
+ collection(db, 'questionnaire_responses'),
+ where('supplierId', '==', activityId),
+ where('templateId', '==', DPIA_TEMPLATE.id)
+ );
+ const snapshot = await getDocs(q);
+ if (!snapshot.empty) {
+ const docs: DPIAResponseDoc[] = snapshot.docs.map(d => ({
+ id: d.id,
+ sentDate: (d.data() as { sentDate?: string }).sentDate || ''
+ }));
+ docs.sort((a, b) => new Date(b.sentDate).getTime() - new Date(a.sentDate).getTime());
+ return docs[0].id;
+ }
+ return null;
+ },
 
-    // --- Privacy Requests (DSR) ---
+ // --- Privacy Requests (DSR) ---
 
-    async fetchRequests(organizationId: string): Promise<PrivacyRequest[]> {
-        try {
-            const q = query(collection(db, 'privacy_requests'), where('organizationId', '==', organizationId));
-            const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PrivacyRequest));
-        } catch (error) {
-            ErrorLogger.error(error, 'PrivacyService.fetchRequests');
-            return [];
-        }
-    },
+ async fetchRequests(organizationId: string): Promise<PrivacyRequest[]> {
+ try {
+ const q = query(collection(db, 'privacy_requests'), where('organizationId', '==', organizationId));
+ const snapshot = await getDocs(q);
+ return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PrivacyRequest));
+ } catch (error) {
+ ErrorLogger.error(error, 'PrivacyService.fetchRequests');
+ return [];
+ }
+ },
 
-    async createRequest(request: Omit<PrivacyRequest, 'id'>, user: UserProfile): Promise<string> {
-        try {
-            const submissionDate = request.submissionDate ? new Date(request.submissionDate) : new Date();
-            // GDPR Art. 12(3): response must be provided within one month (30 calendar days)
-            const dueDate = new Date(submissionDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+ async createRequest(request: Omit<PrivacyRequest, 'id'>, user: UserProfile): Promise<string> {
+ try {
+ const submissionDate = request.submissionDate ? new Date(request.submissionDate) : new Date();
+ // GDPR Art. 12(3): response must be provided within one month (30 calendar days)
+ const dueDate = new Date(submissionDate.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-            const requestData = {
-                ...sanitizeData(request),
-                submissionDate: submissionDate.toISOString(),
-                dueDate: dueDate.toISOString(),
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-            };
+ const requestData = {
+ ...sanitizeData(request),
+ submissionDate: submissionDate.toISOString(),
+ dueDate: dueDate.toISOString(),
+ createdAt: serverTimestamp(),
+ updatedAt: serverTimestamp(),
+ };
 
-            const docRef = await addDoc(collection(db, 'privacy_requests'), requestData);
+ const docRef = await addDoc(collection(db, 'privacy_requests'), requestData);
 
-            await logAction(
-                user,
-                'CREATE',
-                'Privacy',
-                `Nouvelle demande DSR: ${request.requestType} - ${request.dataSubject}`,
-                undefined,
-                docRef.id
-            );
-            return docRef.id;
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'PrivacyService.createRequest');
-            throw error;
-        }
-    },
+ await logAction(
+ user,
+ 'CREATE',
+ 'Privacy',
+ `Nouvelle demande DSR: ${request.requestType} - ${request.dataSubject}`,
+ undefined,
+ docRef.id
+ );
+ return docRef.id;
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'PrivacyService.createRequest');
+ throw error;
+ }
+ },
 
-    async updateRequest(id: string, updates: Partial<PrivacyRequest>, user: UserProfile): Promise<void> {
-        try {
-            const docRef = doc(db, 'privacy_requests', id);
-            await updateDoc(docRef, { ...sanitizeData(updates), updatedAt: serverTimestamp() });
+ async updateRequest(id: string, updates: Partial<PrivacyRequest>, user: UserProfile): Promise<void> {
+ try {
+ const docRef = doc(db, 'privacy_requests', id);
+ await updateDoc(docRef, { ...sanitizeData(updates), updatedAt: serverTimestamp() });
 
-            await logAction(
-                user,
-                'UPDATE',
-                'Privacy',
-                `Mise à jour DSR ${id}: ${updates.status || 'Détails'}`,
-                undefined,
-                id
-            );
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'PrivacyService.updateRequest');
-            throw error;
-        }
-    },
+ await logAction(
+ user,
+ 'UPDATE',
+ 'Privacy',
+ `Mise à jour DSR ${id}: ${updates.status || 'Détails'}`,
+ undefined,
+ id
+ );
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'PrivacyService.updateRequest');
+ throw error;
+ }
+ },
 
-    async deleteRequest(id: string, user: UserProfile): Promise<void> {
-        try {
-            // Verify organizationId before delete (IDOR protection)
-            const docSnap = await getDoc(doc(db, 'privacy_requests', id));
-            if (!docSnap.exists() || docSnap.data()?.organizationId !== user.organizationId) {
-                throw new Error('Not authorized: request not found or organization mismatch');
-            }
+ async deleteRequest(id: string, user: UserProfile): Promise<void> {
+ try {
+ // Verify organizationId before delete (IDOR protection)
+ const docSnap = await getDoc(doc(db, 'privacy_requests', id));
+ if (!docSnap.exists() || docSnap.data()?.organizationId !== user.organizationId) {
+ throw new Error('Not authorized: request not found or organization mismatch');
+ }
 
-            await deleteDoc(doc(db, 'privacy_requests', id));
-            await logAction(
-                user,
-                'DELETE',
-                'Privacy',
-                `Suppression demande DSR ${id}`,
-                undefined,
-                id
-            );
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'PrivacyService.deleteRequest');
-            throw error;
-        }
-    }
+ await deleteDoc(doc(db, 'privacy_requests', id));
+ await logAction(
+ user,
+ 'DELETE',
+ 'Privacy',
+ `Suppression demande DSR ${id}`,
+ undefined,
+ id
+ );
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'PrivacyService.deleteRequest');
+ throw error;
+ }
+ }
 };

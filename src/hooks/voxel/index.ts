@@ -18,11 +18,11 @@ export { useViewPresets } from './useViewPresets';
 export type { UseViewPresetsReturn } from './useViewPresets';
 export { useViewTransition, VIEW_TRANSITION_PRESETS } from './useViewTransition';
 export type {
-  ViewTransitionConfig,
-  CameraState,
-  ViewTransitionState,
-  UseViewTransitionReturn,
-  ViewTransitionPreset,
+ ViewTransitionConfig,
+ CameraState,
+ ViewTransitionState,
+ UseViewTransitionReturn,
+ ViewTransitionPreset,
 } from './useViewTransition';
 export { useVoxelUrlState } from './useVoxelUrlState';
 export type { VoxelUrlState, UseVoxelUrlStateOptions, UseVoxelUrlStateReturn } from './useVoxelUrlState';
@@ -30,31 +30,31 @@ export type { VoxelUrlState, UseVoxelUrlStateOptions, UseVoxelUrlStateReturn } f
 // Epic 32: Performance & Export hooks
 export { useFrustumCulling, calculateOptimalCellSize, getCullingStats } from './useFrustumCulling';
 export type {
-  UseFrustumCullingOptions,
-  FrustumCullingState,
-  UseFrustumCullingReturn,
+ UseFrustumCullingOptions,
+ FrustumCullingState,
+ UseFrustumCullingReturn,
 } from './useFrustumCulling';
 
 export { useLayoutWorker } from './useLayoutWorker';
 export type {
-  LayoutWorkerConfig,
-  PositionUpdate,
-  LayoutStats,
-  UseLayoutWorkerOptions,
-  UseLayoutWorkerReturn,
+ LayoutWorkerConfig,
+ PositionUpdate,
+ LayoutStats,
+ UseLayoutWorkerOptions,
+ UseLayoutWorkerReturn,
 } from './useLayoutWorker';
 
 export {
-  useMemoryManagement,
-  formatMemorySize,
-  getMemoryStatusColor,
-  calculateTextureMemory,
+ useMemoryManagement,
+ formatMemorySize,
+ getMemoryStatusColor,
+ calculateTextureMemory,
 } from './useMemoryManagement';
 export type {
-  MemoryStats,
-  MemoryConfig,
-  UseMemoryManagementOptions,
-  UseMemoryManagementReturn,
+ MemoryStats,
+ MemoryConfig,
+ UseMemoryManagementOptions,
+ UseMemoryManagementReturn,
 } from './useMemoryManagement';
 
 // Epic 33: Annotations & Collaboration hooks
@@ -64,27 +64,27 @@ export type { UseAnnotationsOptions, UseAnnotationsReturn } from './useAnnotatio
 // Epic 34: AR/VR Foundation hooks
 export { useWebXR } from './useWebXR';
 export type {
-  XRSessionMode,
-  XRDeviceCapabilities,
-  XRSupportStatus,
-  UseWebXROptions,
-  UseWebXRReturn,
+ XRSessionMode,
+ XRDeviceCapabilities,
+ XRSupportStatus,
+ UseWebXROptions,
+ UseWebXRReturn,
 } from './useWebXR';
 
 export {
-  useVRPerformance,
-  getVRPerformanceColor,
-  formatFrameTime,
-  calculateHeadroom,
-  VR_REFRESH_RATES,
+ useVRPerformance,
+ getVRPerformanceColor,
+ formatFrameTime,
+ calculateHeadroom,
+ VR_REFRESH_RATES,
 } from './useVRPerformance';
 export type {
-  VRQualityLevel,
-  VRPerformanceStatus,
-  VRFrameStats,
-  VRQualitySettings,
-  UseVRPerformanceOptions,
-  UseVRPerformanceReturn,
+ VRQualityLevel,
+ VRPerformanceStatus,
+ VRFrameStats,
+ VRQualitySettings,
+ UseVRPerformanceOptions,
+ UseVRPerformanceReturn,
 } from './useVRPerformance';
 
 // VOX-1.4: WebGL Capability Detection
@@ -93,9 +93,9 @@ export type { WebGLCapability, WebGLCapabilityInfo } from './useWebGLCapability'
 
 // VOX-8.4: Reduced Motion Support
 export {
-  usePrefersReducedMotion,
-  getAnimationDuration,
-  getTransitionStyle,
+ usePrefersReducedMotion,
+ getAnimationDuration,
+ getTransitionStyle,
 } from './usePrefersReducedMotion';
 
 // VOX-8.5 & VOX-8.6: RBAC Node Filtering
@@ -105,46 +105,46 @@ export type { UseRbacNodeFilterOptions, UseRbacNodeFilterReturn } from './useRba
 // VOX-9.7: Export Capture
 export { useExportCapture } from './useExportCapture';
 export type {
-  ExportOptions,
-  WatermarkOptions,
-  UseExportCaptureReturn,
+ ExportOptions,
+ WatermarkOptions,
+ UseExportCaptureReturn,
 } from './useExportCapture';
 
 // VOX-9.1: Zoom Semantic
 export { useZoomSemantic, getZoomSemanticValues } from './useZoomSemantic';
 export type {
-  ZoomLevel,
-  ZoomSemanticConfig,
-  ZoomSemanticState,
-  UseZoomSemanticReturn,
+ ZoomLevel,
+ ZoomSemanticConfig,
+ ZoomSemanticState,
+ UseZoomSemanticReturn,
 } from './useZoomSemantic';
 
 // VOX-9.4: Node Clustering
 export { useNodeClustering, clusterNodes } from './useNodeClustering';
 export type {
-  ClusterConfig,
-  NodeCluster,
-  ClusteringResult,
-  UseNodeClusteringReturn,
+ ClusterConfig,
+ NodeCluster,
+ ClusteringResult,
+ UseNodeClusteringReturn,
 } from './useNodeClustering';
 
 // Re-export store hooks for convenience
 export {
-  useVoxelStore,
-  useVoxelNode,
-  useVoxelNodes,
-  useFilteredNodes,
-  useVoxelEdges,
-  useVisibleEdges,
-  useVoxelAnomalies,
-  useActiveAnomalies,
-  useNodeAnomalies,
-  useSelectedNode,
-  useHoveredNode,
-  useVoxelFilters,
-  useVoxelUI,
-  useVoxelSync,
-  useCurrentPreset,
-  useNodeCountByType,
-  useAnomalyCountBySeverity,
+ useVoxelStore,
+ useVoxelNode,
+ useVoxelNodes,
+ useFilteredNodes,
+ useVoxelEdges,
+ useVisibleEdges,
+ useVoxelAnomalies,
+ useActiveAnomalies,
+ useNodeAnomalies,
+ useSelectedNode,
+ useHoveredNode,
+ useVoxelFilters,
+ useVoxelUI,
+ useVoxelSync,
+ useCurrentPreset,
+ useNodeCountByType,
+ useAnomalyCountBySeverity,
 } from '@/stores/voxelStore';

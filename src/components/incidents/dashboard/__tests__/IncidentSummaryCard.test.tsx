@@ -8,113 +8,113 @@ import { render, screen } from '@testing-library/react';
 import { IncidentSummaryCard } from '../IncidentSummaryCard';
 
 describe('IncidentSummaryCard', () => {
-    const defaultProps = {
-        resolutionRate: 75,
-        totalIncidents: 50,
-        openIncidents: 12,
-        criticalIncidents: 3
-    };
+ const defaultProps = {
+ resolutionRate: 75,
+ totalIncidents: 50,
+ openIncidents: 12,
+ criticalIncidents: 3
+ };
 
-    describe('rendering', () => {
-        it('renders resolution rate', () => {
-            render(<IncidentSummaryCard {...defaultProps} />);
+ describe('rendering', () => {
+ it('renders resolution rate', () => {
+ render(<IncidentSummaryCard {...defaultProps} />);
 
-            expect(screen.getByText('75%')).toBeInTheDocument();
-        });
+ expect(screen.getByText('75%')).toBeInTheDocument();
+ });
 
-        it('renders total incidents count', () => {
-            render(<IncidentSummaryCard {...defaultProps} />);
+ it('renders total incidents count', () => {
+ render(<IncidentSummaryCard {...defaultProps} />);
 
-            expect(screen.getByText('50')).toBeInTheDocument();
-        });
+ expect(screen.getByText('50')).toBeInTheDocument();
+ });
 
-        it('renders open incidents count', () => {
-            render(<IncidentSummaryCard {...defaultProps} />);
+ it('renders open incidents count', () => {
+ render(<IncidentSummaryCard {...defaultProps} />);
 
-            expect(screen.getByText('12')).toBeInTheDocument();
-        });
+ expect(screen.getByText('12')).toBeInTheDocument();
+ });
 
-        it('renders critical incidents count', () => {
-            render(<IncidentSummaryCard {...defaultProps} />);
+ it('renders critical incidents count', () => {
+ render(<IncidentSummaryCard {...defaultProps} />);
 
-            expect(screen.getByText('3')).toBeInTheDocument();
-        });
+ expect(screen.getByText('3')).toBeInTheDocument();
+ });
 
-        it('renders section headers', () => {
-            render(<IncidentSummaryCard {...defaultProps} />);
+ it('renders section headers', () => {
+ render(<IncidentSummaryCard {...defaultProps} />);
 
-            expect(screen.getByText('Taux de Résolution')).toBeInTheDocument();
-            expect(screen.getByText('Total')).toBeInTheDocument();
-            expect(screen.getByText('En Cours')).toBeInTheDocument();
-            expect(screen.getByText('Critiques')).toBeInTheDocument();
-        });
+ expect(screen.getByText('Taux de Résolution')).toBeInTheDocument();
+ expect(screen.getByText('Total')).toBeInTheDocument();
+ expect(screen.getByText('En Cours')).toBeInTheDocument();
+ expect(screen.getByText('Critiques')).toBeInTheDocument();
+ });
 
-        it('renders description text', () => {
-            render(<IncidentSummaryCard {...defaultProps} />);
+ it('renders description text', () => {
+ render(<IncidentSummaryCard {...defaultProps} />);
 
-            expect(screen.getByText("Pourcentage d'incidents résolus ou fermés.")).toBeInTheDocument();
-        });
-    });
+ expect(screen.getByText("Pourcentage d'incidents résolus ou fermés.")).toBeInTheDocument();
+ });
+ });
 
-    describe('alerts', () => {
-        it('shows critical alert when critical incidents exist', () => {
-            render(<IncidentSummaryCard {...defaultProps} criticalIncidents={3} />);
+ describe('alerts', () => {
+ it('shows critical alert when critical incidents exist', () => {
+ render(<IncidentSummaryCard {...defaultProps} criticalIncidents={3} />);
 
-            expect(screen.getByText('3 incidents.criticalOpen')).toBeInTheDocument();
-        });
+ expect(screen.getByText('3 incidents.criticalOpen')).toBeInTheDocument();
+ });
 
-        it('shows active incidents alert when no critical but open incidents', () => {
-            render(<IncidentSummaryCard {...defaultProps} criticalIncidents={0} openIncidents={5} />);
+ it('shows active incidents alert when no critical but open incidents', () => {
+ render(<IncidentSummaryCard {...defaultProps} criticalIncidents={0} openIncidents={5} />);
 
-            expect(screen.getByText('5 incidents.activeCount')).toBeInTheDocument();
-        });
+ expect(screen.getByText('5 incidents.activeCount')).toBeInTheDocument();
+ });
 
-        it('shows no active incidents message when all clear', () => {
-            render(<IncidentSummaryCard {...defaultProps} criticalIncidents={0} openIncidents={0} />);
+ it('shows no active incidents message when all clear', () => {
+ render(<IncidentSummaryCard {...defaultProps} criticalIncidents={0} openIncidents={0} />);
 
-            expect(screen.getByText('incidents.noActive')).toBeInTheDocument();
-        });
+ expect(screen.getByText('incidents.noActive')).toBeInTheDocument();
+ });
 
-        it('prioritizes critical alert over open incidents alert', () => {
-            render(<IncidentSummaryCard {...defaultProps} criticalIncidents={3} openIncidents={12} />);
+ it('prioritizes critical alert over open incidents alert', () => {
+ render(<IncidentSummaryCard {...defaultProps} criticalIncidents={3} openIncidents={12} />);
 
-            expect(screen.getByText('3 incidents.criticalOpen')).toBeInTheDocument();
-            expect(screen.queryByText('12 incidents.activeCount')).not.toBeInTheDocument();
-        });
-    });
+ expect(screen.getByText('3 incidents.criticalOpen')).toBeInTheDocument();
+ expect(screen.queryByText('12 incidents.activeCount')).not.toBeInTheDocument();
+ });
+ });
 
-    describe('different values', () => {
-        it('renders 0% resolution rate', () => {
-            render(<IncidentSummaryCard {...defaultProps} resolutionRate={0} />);
+ describe('different values', () => {
+ it('renders 0% resolution rate', () => {
+ render(<IncidentSummaryCard {...defaultProps} resolutionRate={0} />);
 
-            expect(screen.getByText('0%')).toBeInTheDocument();
-        });
+ expect(screen.getByText('0%')).toBeInTheDocument();
+ });
 
-        it('renders 100% resolution rate', () => {
-            render(<IncidentSummaryCard {...defaultProps} resolutionRate={100} />);
+ it('renders 100% resolution rate', () => {
+ render(<IncidentSummaryCard {...defaultProps} resolutionRate={100} />);
 
-            expect(screen.getByText('100%')).toBeInTheDocument();
-        });
+ expect(screen.getByText('100%')).toBeInTheDocument();
+ });
 
-        it('renders zero counts', () => {
-            render(
-                <IncidentSummaryCard
-                    resolutionRate={100}
-                    totalIncidents={0}
-                    openIncidents={0}
-                    criticalIncidents={0}
-                />
-            );
+ it('renders zero counts', () => {
+ render(
+ <IncidentSummaryCard
+  resolutionRate={100}
+  totalIncidents={0}
+  openIncidents={0}
+  criticalIncidents={0}
+ />
+ );
 
-            // Should find '0' for all count fields
-            const zeros = screen.getAllByText('0');
-            expect(zeros.length).toBeGreaterThanOrEqual(2);
-        });
+ // Should find '0' for all count fields
+ const zeros = screen.getAllByText('0');
+ expect(zeros.length).toBeGreaterThanOrEqual(2);
+ });
 
-        it('renders large incident count', () => {
-            render(<IncidentSummaryCard {...defaultProps} totalIncidents={1000} />);
+ it('renders large incident count', () => {
+ render(<IncidentSummaryCard {...defaultProps} totalIncidents={1000} />);
 
-            expect(screen.getByText('1000')).toBeInTheDocument();
-        });
-    });
+ expect(screen.getByText('1000')).toBeInTheDocument();
+ });
+ });
 });

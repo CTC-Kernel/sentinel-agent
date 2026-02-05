@@ -8,48 +8,48 @@ import { UserProfile } from '../../types';
 let userCounter = 0;
 
 export interface UserFactoryOptions {
-    uid?: string;
-    organizationId?: string;
-    email?: string;
-    displayName?: string;
-    role?: UserProfile['role'];
-    isActive?: boolean;
+ uid?: string;
+ organizationId?: string;
+ email?: string;
+ displayName?: string;
+ role?: UserProfile['role'];
+ isActive?: boolean;
 }
 
 export function createUser(options: UserFactoryOptions = {}): UserProfile {
-    userCounter++;
-    const uid = options.uid || `user-${userCounter}`;
+ userCounter++;
+ const uid = options.uid || `user-${userCounter}`;
 
-    return {
-        uid,
-        organizationId: options.organizationId || 'org-test',
-        email: options.email || `user${userCounter}@test.com`,
-        displayName: options.displayName || `Test User ${userCounter}`,
-        role: options.role || 'user',
-        photoURL: undefined,
+ return {
+ uid,
+ organizationId: options.organizationId || 'org-test',
+ email: options.email || `user${userCounter}@test.com`,
+ displayName: options.displayName || `Test User ${userCounter}`,
+ role: options.role || 'user',
+ photoURL: undefined,
 
-        createdAt: new Date().toISOString(),
-    };
+ createdAt: new Date().toISOString(),
+ };
 }
 
 export function createUserList(count: number, options: UserFactoryOptions = {}): UserProfile[] {
-    return Array.from({ length: count }, () => createUser(options));
+ return Array.from({ length: count }, () => createUser(options));
 }
 
 export function createAdminUser(options: UserFactoryOptions = {}): UserProfile {
-    return createUser({
-        ...options,
-        role: 'admin',
-    });
+ return createUser({
+ ...options,
+ role: 'admin',
+ });
 }
 
 export function createRSSIUser(options: UserFactoryOptions = {}): UserProfile {
-    return createUser({
-        ...options,
-        role: 'rssi',
-    });
+ return createUser({
+ ...options,
+ role: 'rssi',
+ });
 }
 
 export function resetUserCounter(): void {
-    userCounter = 0;
+ userCounter = 0;
 }

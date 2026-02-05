@@ -14,14 +14,14 @@ import { useFilteredNodes } from '@/stores/voxelStore';
 import { VoxelNode } from './VoxelNode';
 
 export interface VoxelNodeRendererProps {
-  /** Override nodes to render (bypasses store) */
-  nodes?: VoxelNodeType[];
-  /** Disable all node interactions */
-  disabled?: boolean;
-  /** Custom click handler for all nodes */
-  onNodeClick?: (node: VoxelNodeType) => void;
-  /** Custom hover handler for all nodes */
-  onNodeHover?: (node: VoxelNodeType | null) => void;
+ /** Override nodes to render (bypasses store) */
+ nodes?: VoxelNodeType[];
+ /** Disable all node interactions */
+ disabled?: boolean;
+ /** Custom click handler for all nodes */
+ onNodeClick?: (node: VoxelNodeType) => void;
+ /** Custom hover handler for all nodes */
+ onNodeHover?: (node: VoxelNodeType | null) => void;
 }
 
 /**
@@ -29,33 +29,33 @@ export interface VoxelNodeRendererProps {
  * Uses the voxelStore's filtered nodes selector for optimized rendering.
  */
 export const VoxelNodeRenderer: React.FC<VoxelNodeRendererProps> = ({
-  nodes: overrideNodes,
-  disabled = false,
-  onNodeClick,
-  onNodeHover,
+ nodes: overrideNodes,
+ disabled = false,
+ onNodeClick,
+ onNodeHover,
 }) => {
-  // Get filtered nodes from store if not overridden
-  const storeNodes = useFilteredNodes();
+ // Get filtered nodes from store if not overridden
+ const storeNodes = useFilteredNodes();
 
-  // Use override nodes or store nodes
-  const nodesToRender = useMemo(() => {
-    if (overrideNodes) return overrideNodes;
-    return storeNodes;
-  }, [overrideNodes, storeNodes]);
+ // Use override nodes or store nodes
+ const nodesToRender = useMemo(() => {
+ if (overrideNodes) return overrideNodes;
+ return storeNodes;
+ }, [overrideNodes, storeNodes]);
 
-  return (
-    <group name="voxel-nodes">
-      {nodesToRender.map((node) => (
-        <VoxelNode
-          key={node.id || 'unknown'}
-          data={node}
-          disabled={disabled}
-          onClick={onNodeClick}
-          onHover={onNodeHover}
-        />
-      ))}
-    </group>
-  );
+ return (
+ <group name="voxel-nodes">
+ {nodesToRender.map((node) => (
+ <VoxelNode
+ key={node.id || 'unknown'}
+ data={node}
+ disabled={disabled}
+ onClick={onNodeClick}
+ onHover={onNodeHover}
+ />
+ ))}
+ </group>
+ );
 };
 
 export default VoxelNodeRenderer;

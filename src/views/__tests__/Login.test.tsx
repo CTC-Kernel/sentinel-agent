@@ -5,191 +5,191 @@ import { MemoryRouter } from 'react-router-dom';
 
 // Mock Firebase
 vi.mock('firebase/auth', () => ({
-    getAuth: vi.fn(),
-    signInWithEmailAndPassword: vi.fn(),
-    createUserWithEmailAndPassword: vi.fn(),
-    signInWithPopup: vi.fn(),
-    GoogleAuthProvider: vi.fn(),
-    OAuthProvider: vi.fn(),
-    getRedirectResult: vi.fn(),
-    signInWithRedirect: vi.fn(),
-    signInWithCredential: vi.fn(),
-    getMultiFactorResolver: vi.fn(),
-    TotpMultiFactorGenerator: { FACTOR_ID: 'totp' },
-    setPersistence: vi.fn(),
-    browserLocalPersistence: 'local',
-    indexedDBLocalPersistence: 'indexedDb',
-    browserSessionPersistence: 'session'
+ getAuth: vi.fn(),
+ signInWithEmailAndPassword: vi.fn(),
+ createUserWithEmailAndPassword: vi.fn(),
+ signInWithPopup: vi.fn(),
+ GoogleAuthProvider: vi.fn(),
+ OAuthProvider: vi.fn(),
+ getRedirectResult: vi.fn(),
+ signInWithRedirect: vi.fn(),
+ signInWithCredential: vi.fn(),
+ getMultiFactorResolver: vi.fn(),
+ TotpMultiFactorGenerator: { FACTOR_ID: 'totp' },
+ setPersistence: vi.fn(),
+ browserLocalPersistence: 'local',
+ indexedDBLocalPersistence: 'indexedDb',
+ browserSessionPersistence: 'session'
 }));
 
 // Mock Firebase Functions
 vi.mock('firebase/functions', () => {
-    const mockHttpsCallable = vi.fn(() => vi.fn().mockResolvedValue({ data: {} }));
-    return {
-        getFunctions: vi.fn(),
-        httpsCallable: mockHttpsCallable,
-    };
+ const mockHttpsCallable = vi.fn(() => vi.fn().mockResolvedValue({ data: {} }));
+ return {
+ getFunctions: vi.fn(),
+ httpsCallable: mockHttpsCallable,
+ };
 });
 
 // Mock Local Firebase Module
 vi.mock('../../firebase', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('../../firebase')>();
-    const mockAuth = {
-        currentUser: null,
-        signOut: vi.fn(),
-        onAuthStateChanged: vi.fn((cb) => {
-            cb(null);
-            return vi.fn(); // Unsubscribe
-        })
-    };
+ const actual = await importOriginal<typeof import('../../firebase')>();
+ const mockAuth = {
+ currentUser: null,
+ signOut: vi.fn(),
+ onAuthStateChanged: vi.fn((cb) => {
+ cb(null);
+ return vi.fn(); // Unsubscribe
+ })
+ };
 
-    return {
-        ...actual,
-        __esModule: true,
-        auth: mockAuth,
-        functions: {},
-        analytics: { app: {} },
-        isAppCheckFailed: false,
-        debugGetAppCheckTokenSnippet: vi.fn(),
-        default: {
-            ...actual,
-            auth: mockAuth,
-            functions: {},
-            analytics: { app: {} },
-        }
-    };
+ return {
+ ...actual,
+ __esModule: true,
+ auth: mockAuth,
+ functions: {},
+ analytics: { app: {} },
+ isAppCheckFailed: false,
+ debugGetAppCheckTokenSnippet: vi.fn(),
+ default: {
+ ...actual,
+ auth: mockAuth,
+ functions: {},
+ analytics: { app: {} },
+ }
+ };
 });
 
 // Mock Store
 vi.mock('../../store', () => ({
-    useStore: vi.fn().mockReturnValue({
-        addToast: vi.fn(),
-        t: (k: string) => k,
-        language: 'fr',
-    }),
+ useStore: vi.fn().mockReturnValue({
+ addToast: vi.fn(),
+ t: (k: string) => k,
+ language: 'fr',
+ }),
 }));
 
 // Mock useLocale to provide the required locale data
 vi.mock('../../hooks/useLocale', async () => {
-    const { fr } = await import('date-fns/locale');
-    return {
-        useLocale: () => ({
-            locale: 'fr',
-            dateFnsLocale: fr,
-            zodMessages: {
-                required: 'Ce champ est requis',
-                invalidType: 'Type de valeur invalide',
-                invalidString: 'Ce champ doit être du texte',
-                tooShort: (min: number) => `Minimum ${min} caractères requis`,
-                tooLong: (max: number) => `Maximum ${max} caractères autorisés`,
-                invalidEmail: 'Adresse email invalide',
-                invalidUrl: 'URL invalide',
-                invalidUuid: 'Identifiant invalide',
-                invalidRegex: 'Format invalide',
-                invalidNumber: 'Veuillez entrer un nombre valide',
-                notInteger: 'Veuillez entrer un nombre entier',
-                tooSmall: (min: number) => `La valeur doit être au moins ${min}`,
-                tooBig: (max: number) => `La valeur doit être au maximum ${max}`,
-                notPositive: 'La valeur doit être positive',
-                notNegative: 'La valeur doit être négative',
-                notNonNegative: 'La valeur ne peut pas être négative',
-                invalidDate: 'Date invalide',
-                arrayTooShort: (min: number) => `Sélectionnez au moins ${min} élément${min > 1 ? 's' : ''}`,
-                arrayTooLong: (max: number) => `Maximum ${max} élément${max > 1 ? 's' : ''} autorisé${max > 1 ? 's' : ''}`,
-                invalidEnum: (options: string[]) => `Valeur invalide. Options: ${options.join(', ')}`,
-                custom: 'Valeur invalide',
-            },
-            formatDate: (date: Date) => date.toLocaleDateString('fr-FR'),
-            formatNumber: (num: number) => num.toLocaleString('fr-FR'),
-        }),
-    };
+ const { fr } = await import('date-fns/locale');
+ return {
+ useLocale: () => ({
+ locale: 'fr',
+ dateFnsLocale: fr,
+ zodMessages: {
+ required: 'Ce champ est requis',
+ invalidType: 'Type de valeur invalide',
+ invalidString: 'Ce champ doit être du texte',
+ tooShort: (min: number) => `Minimum ${min} caractères requis`,
+ tooLong: (max: number) => `Maximum ${max} caractères autorisés`,
+ invalidEmail: 'Adresse email invalide',
+ invalidUrl: 'URL invalide',
+ invalidUuid: 'Identifiant invalide',
+ invalidRegex: 'Format invalide',
+ invalidNumber: 'Veuillez entrer un nombre valide',
+ notInteger: 'Veuillez entrer un nombre entier',
+ tooSmall: (min: number) => `La valeur doit être au moins ${min}`,
+ tooBig: (max: number) => `La valeur doit être au maximum ${max}`,
+ notPositive: 'La valeur doit être positive',
+ notNegative: 'La valeur doit être négative',
+ notNonNegative: 'La valeur ne peut pas être négative',
+ invalidDate: 'Date invalide',
+ arrayTooShort: (min: number) => `Sélectionnez au moins ${min} élément${min > 1 ? 's' : ''}`,
+ arrayTooLong: (max: number) => `Maximum ${max} élément${max > 1 ? 's' : ''} autorisé${max > 1 ? 's' : ''}`,
+ invalidEnum: (options: string[]) => `Valeur invalide. Options: ${options.join(', ')}`,
+ custom: 'Valeur invalide',
+ },
+ formatDate: (date: Date) => date.toLocaleDateString('fr-FR'),
+ formatNumber: (num: number) => num.toLocaleString('fr-FR'),
+ }),
+ };
 });
 
 // Mock UI Components
 vi.mock('../../components/ui/AuroraBackground', () => ({
-    AuroraBackground: ({ children, className }: { children: React.ReactNode, className?: string }) => <div className={className} data-testid="aurora-bg">{children}</div>
+ AuroraBackground: ({ children, className }: { children: React.ReactNode, className?: string }) => <div className={className} data-testid="aurora-bg">{children}</div>
 }));
 vi.mock('../../components/landing/LandingMap', () => ({
-    LandingMap: () => <div data-testid="landing-map" />
+ LandingMap: () => <div data-testid="landing-map" />
 }));
 vi.mock('../../components/ui/aceternity/Spotlight', () => ({
-    Spotlight: () => <div data-testid="spotlight" />
+ Spotlight: () => <div data-testid="spotlight" />
 }));
 vi.mock('../../components/SEO', () => ({
-    SEO: () => <div data-testid="seo-mock" />
+ SEO: () => <div data-testid="seo-mock" />
 }));
 vi.mock('../../components/ui/LegalModal', () => ({
-    LegalModal: () => <div data-testid="legal-modal" />
+ LegalModal: () => <div data-testid="legal-modal" />
 }));
 
 // Mock SentinelAssistant
 vi.mock('../../components/auth/SentinelAssistant', () => ({
-    SentinelAssistant: () => <div data-testid="sentinel-assistant" />
+ SentinelAssistant: () => <div data-testid="sentinel-assistant" />
 }));
 
 // Mock ThemeToggle
 vi.mock('../../components/ui/ThemeToggle', () => ({
-    ThemeToggle: () => <button data-testid="theme-toggle" />
+ ThemeToggle: () => <button data-testid="theme-toggle" />
 }));
 
 // Mock Button component
 vi.mock('../../components/ui/button', () => ({
-    Button: ({ children, onClick, type, disabled, className, ...props }: React.ComponentProps<'button'>) => (
-        <button type={type} onClick={onClick} disabled={disabled} className={className} {...props}>{children}</button>
-    )
+ Button: ({ children, onClick, type, disabled, className, ...props }: React.ComponentProps<'button'>) => (
+ <button type={type} onClick={onClick} disabled={disabled} className={className} {...props}>{children}</button>
+ )
 }));
 
 // Mock FloatingLabelInput
 vi.mock('../../components/ui/FloatingLabelInput', () => ({
-    FloatingLabelInput: ({ label, type, ...props }: { label: string; type?: string; [key: string]: unknown }) => (
-        <input aria-label={label} type={type} {...props} />
-    )
+ FloatingLabelInput: ({ label, type, ...props }: { label: string; type?: string; [key: string]: unknown }) => (
+ <input aria-label={label} type={type} {...props} />
+ )
 }));
 
 // Mock useAuthActions
 vi.mock('../../hooks/useAuthActions', () => ({
-    useAuthActions: () => ({
-        loading: false,
-        errorMsg: null,
-        setErrorMsg: vi.fn(),
-        handleEmailAuth: vi.fn(),
-        handleGoogleLogin: vi.fn(),
-        handleAppleLogin: vi.fn(),
-        handlePasswordReset: vi.fn(),
-        handleMfaVerification: vi.fn(),
-        showMfaModal: false,
-        setShowMfaModal: vi.fn(),
-        mfaLoading: false,
-        mfaError: null
-    })
+ useAuthActions: () => ({
+ loading: false,
+ errorMsg: null,
+ setErrorMsg: vi.fn(),
+ handleEmailAuth: vi.fn(),
+ handleGoogleLogin: vi.fn(),
+ handleAppleLogin: vi.fn(),
+ handlePasswordReset: vi.fn(),
+ handleMfaVerification: vi.fn(),
+ showMfaModal: false,
+ setShowMfaModal: vi.fn(),
+ mfaLoading: false,
+ mfaError: null
+ })
 }));
 
 // Mock useZodForm
 vi.mock('../../hooks/useZodForm', () => ({
-    useZodForm: () => ({
-        register: vi.fn((name: string) => ({ name, onChange: vi.fn(), onBlur: vi.fn(), ref: vi.fn() })),
-        handleSubmit: (cb: (data: Record<string, unknown>) => void) => (e?: React.FormEvent) => { e?.preventDefault(); cb({}); },
-        formState: { errors: {} },
-        clearErrors: vi.fn()
-    })
+ useZodForm: () => ({
+ register: vi.fn((name: string) => ({ name, onChange: vi.fn(), onBlur: vi.fn(), ref: vi.fn() })),
+ handleSubmit: (cb: (data: Record<string, unknown>) => void) => (e?: React.FormEvent) => { e?.preventDefault(); cb({}); },
+ formState: { errors: {} },
+ clearErrors: vi.fn()
+ })
 }));
 
 // Mock auth schemas - required as they use the locale hook
 vi.mock('../../schemas/authSchema', () => ({
-    loginSchema: {},
-    registerSchema: {},
-    resetPasswordSchema: {},
-    LoginFormData: {},
-    RegisterFormData: {},
-    ResetPasswordFormData: {}
+ loginSchema: {},
+ registerSchema: {},
+ resetPasswordSchema: {},
+ LoginFormData: {},
+ RegisterFormData: {},
+ ResetPasswordFormData: {}
 }));
 
 // Mock Framer Motion
 vi.mock('framer-motion', () => ({
-    motion: {
-        div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>
-    },
-    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
+ motion: {
+ div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>
+ },
+ AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
 // Import mocks
@@ -197,123 +197,123 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'fire
 
 // Tests skipped due to component import resolution issues with mocks
 describe.skip('Login View', () => {
-    beforeEach(() => {
-        // Mock matchMedia for ThemeToggle
-        Object.defineProperty(window, 'matchMedia', {
-            writable: true,
-            value: vi.fn().mockImplementation(query => ({
-                matches: false,
-                media: query,
-                onchange: null,
-                addListener: vi.fn(), // deprecated
-                removeListener: vi.fn(), // deprecated
-                addEventListener: vi.fn(),
-                removeEventListener: vi.fn(),
-                dispatchEvent: vi.fn(),
-            })),
-        });
+ beforeEach(() => {
+ // Mock matchMedia for ThemeToggle
+ Object.defineProperty(window, 'matchMedia', {
+ writable: true,
+ value: vi.fn().mockImplementation(query => ({
+ matches: false,
+ media: query,
+ onchange: null,
+ addListener: vi.fn(), // deprecated
+ removeListener: vi.fn(), // deprecated
+ addEventListener: vi.fn(),
+ removeEventListener: vi.fn(),
+ dispatchEvent: vi.fn(),
+ })),
+ });
 
-        vi.clearAllMocks();
-    });
+ vi.clearAllMocks();
+ });
 
-    it('renders login form by default', async () => {
-        render(
-            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <Login skipBoot={true} />
-            </MemoryRouter>
-        );
+ it('renders login form by default', async () => {
+ render(
+ <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+ <Login skipBoot={true} />
+ </MemoryRouter>
+ );
 
-        await waitFor(() => {
-            expect(screen.getByLabelText('auth.email')).toBeInTheDocument();
-        });
+ await waitFor(() => {
+ expect(screen.getByLabelText('auth.email')).toBeInTheDocument();
+ });
 
-        expect(screen.getByLabelText('auth.password')).toBeInTheDocument();
-        expect(screen.getByRole('heading', { name: 'auth.login' })).toBeInTheDocument();
-        expect(screen.getByText('auth.google')).toBeInTheDocument();
-        expect(screen.getByText('auth.apple')).toBeInTheDocument();
-    });
+ expect(screen.getByLabelText('auth.password')).toBeInTheDocument();
+ expect(screen.getByRole('heading', { name: 'auth.login' })).toBeInTheDocument();
+ expect(screen.getByText('auth.google')).toBeInTheDocument();
+ expect(screen.getByText('auth.apple')).toBeInTheDocument();
+ });
 
-    it('switches to signup form', async () => {
-        render(
-            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <Login skipBoot={true} />
-            </MemoryRouter>
-        );
+ it('switches to signup form', async () => {
+ render(
+ <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+ <Login skipBoot={true} />
+ </MemoryRouter>
+ );
 
-        await waitFor(() => screen.getByLabelText('auth.email'));
+ await waitFor(() => screen.getByLabelText('auth.email'));
 
-        fireEvent.click(screen.getByText('auth.switchSignup'));
+ fireEvent.click(screen.getByText('auth.switchSignup'));
 
-        await waitFor(() => {
-            expect(screen.getByRole('heading', { name: 'auth.signup' })).toBeInTheDocument();
-        });
+ await waitFor(() => {
+ expect(screen.getByRole('heading', { name: 'auth.signup' })).toBeInTheDocument();
+ });
 
-        expect(screen.getByText('auth.switchLogin')).toBeInTheDocument();
-    });
+ expect(screen.getByText('auth.switchLogin')).toBeInTheDocument();
+ });
 
-    it('submits login form with valid data', async () => {
-        render(
-            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <Login skipBoot={true} />
-            </MemoryRouter>
-        );
+ it('submits login form with valid data', async () => {
+ render(
+ <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+ <Login skipBoot={true} />
+ </MemoryRouter>
+ );
 
-        await waitFor(() => screen.getByLabelText('auth.email'));
+ await waitFor(() => screen.getByLabelText('auth.email'));
 
-        fireEvent.change(screen.getByLabelText('auth.email'), { target: { value: 'test@example.com' } });
-        fireEvent.change(screen.getByLabelText('auth.password'), { target: { value: 'password123' } });
+ fireEvent.change(screen.getByLabelText('auth.email'), { target: { value: 'test@example.com' } });
+ fireEvent.change(screen.getByLabelText('auth.password'), { target: { value: 'password123' } });
 
-        fireEvent.click(screen.getByRole('button', { name: /auth\.login/i }));
+ fireEvent.click(screen.getByRole('button', { name: /auth\.login/i }));
 
-        await waitFor(() => {
-            expect(signInWithEmailAndPassword).toHaveBeenCalledWith(expect.anything(), 'test@example.com', 'password123');
-        });
-    });
+ await waitFor(() => {
+ expect(signInWithEmailAndPassword).toHaveBeenCalledWith(expect.anything(), 'test@example.com', 'password123');
+ });
+ });
 
-    it('submits signup form with valid data', async () => {
-        render(
-            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <Login skipBoot={true} />
-            </MemoryRouter>
-        );
+ it('submits signup form with valid data', async () => {
+ render(
+ <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+ <Login skipBoot={true} />
+ </MemoryRouter>
+ );
 
-        await waitFor(() => screen.getByLabelText('auth.email'));
+ await waitFor(() => screen.getByLabelText('auth.email'));
 
-        fireEvent.click(screen.getByText('auth.switchSignup'));
+ fireEvent.click(screen.getByText('auth.switchSignup'));
 
-        await waitFor(() => {
-            expect(screen.getByRole('heading', { name: 'auth.signup' })).toBeInTheDocument();
-        });
+ await waitFor(() => {
+ expect(screen.getByRole('heading', { name: 'auth.signup' })).toBeInTheDocument();
+ });
 
-        // Password must satisfy validation: 8+ chars, 1 uppercase, 1 digit, 1 special char
-        fireEvent.change(screen.getByLabelText('auth.email'), { target: { value: 'new@example.com' } });
-        fireEvent.change(screen.getByLabelText('auth.password'), { target: { value: 'NewPass123!' } });
+ // Password must satisfy validation: 8+ chars, 1 uppercase, 1 digit, 1 special char
+ fireEvent.change(screen.getByLabelText('auth.email'), { target: { value: 'new@example.com' } });
+ fireEvent.change(screen.getByLabelText('auth.password'), { target: { value: 'NewPass123!' } });
 
-        // Accept privacy policy (RGPD compliance requirement)
-        const privacyCheckbox = screen.getByRole('checkbox', { name: /auth\.privacyConsent|Accepter la politique de confidentialité/i });
-        fireEvent.click(privacyCheckbox);
+ // Accept privacy policy (RGPD compliance requirement)
+ const privacyCheckbox = screen.getByRole('checkbox', { name: /auth\.privacyConsent|Accepter la politique de confidentialité/i });
+ fireEvent.click(privacyCheckbox);
 
-        fireEvent.click(screen.getByRole('button', { name: /auth\.signup/i }));
+ fireEvent.click(screen.getByRole('button', { name: /auth\.signup/i }));
 
-        await waitFor(() => {
-            expect(createUserWithEmailAndPassword).toHaveBeenCalledWith(expect.anything(), 'new@example.com', 'NewPass123!');
-        });
-    });
+ await waitFor(() => {
+ expect(createUserWithEmailAndPassword).toHaveBeenCalledWith(expect.anything(), 'new@example.com', 'NewPass123!');
+ });
+ });
 
-    it('opens reset password modal', async () => {
-        render(
-            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <Login skipBoot={true} />
-            </MemoryRouter>
-        );
+ it('opens reset password modal', async () => {
+ render(
+ <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+ <Login skipBoot={true} />
+ </MemoryRouter>
+ );
 
-        await waitFor(() => screen.getByLabelText('auth.email'));
+ await waitFor(() => screen.getByLabelText('auth.email'));
 
-        fireEvent.click(screen.getByText('auth.forgotPassword'));
+ fireEvent.click(screen.getByText('auth.forgotPassword'));
 
-        await waitFor(() => {
-            expect(screen.getByText('auth.reset.title')).toBeInTheDocument();
-        });
-    });
+ await waitFor(() => {
+ expect(screen.getByText('auth.reset.title')).toBeInTheDocument();
+ });
+ });
 });
 

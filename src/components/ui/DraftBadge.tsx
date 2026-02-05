@@ -13,16 +13,16 @@ import { Edit } from '../ui/Icons';
 import { isDraftStatus } from '../../utils/draftUtils';
 
 interface DraftBadgeProps {
-  /** Size variant */
-  size?: 'sm' | 'md';
-  /** Badge visual variant */
-  variant?: 'default' | 'outline' | 'soft' | 'glass';
-  /** Show icon */
-  showIcon?: boolean;
-  /** Additional CSS classes */
-  className?: string;
-  /** Override the label (useful for testing) */
-  label?: string;
+ /** Size variant */
+ size?: 'sm' | 'md';
+ /** Badge visual variant */
+ variant?: 'default' | 'outline' | 'soft' | 'glass';
+ /** Show icon */
+ showIcon?: boolean;
+ /** Additional CSS classes */
+ className?: string;
+ /** Override the label (useful for testing) */
+ label?: string;
 }
 
 /**
@@ -42,34 +42,34 @@ interface DraftBadgeProps {
  *
  * // In a list item
  * <div className="flex items-center gap-2">
- *   <span>{document.title}</span>
- *   {document.status === 'Brouillon' && <DraftBadge />}
+ * <span>{document.title}</span>
+ * {document.status === 'Brouillon' && <DraftBadge />}
  * </div>
  * ```
  */
 export const DraftBadge: React.FC<DraftBadgeProps> = ({
-  size = 'sm',
-  variant = 'soft',
-  showIcon = false,
-  className = '',
-  label,
+ size = 'sm',
+ variant = 'soft',
+ showIcon = false,
+ className = '',
+ label,
 }) => {
-  const { locale } = useLocale();
+ const { locale } = useLocale();
 
-  // Localized label - reuse getDraftLabel for consistency
-  const draftLabel = label ?? getDraftLabel(locale);
+ // Localized label - reuse getDraftLabel for consistency
+ const draftLabel = label ?? getDraftLabel(locale);
 
-  return (
-    <Badge
-      status="warning"
-      variant={variant}
-      size={size}
-      className={className}
-      icon={showIcon ? Edit : undefined}
-    >
-      {draftLabel}
-    </Badge>
-  );
+ return (
+ <Badge
+ status="warning"
+ variant={variant}
+ size={size}
+ className={className}
+ icon={showIcon ? Edit : undefined}
+ >
+ {draftLabel}
+ </Badge>
+ );
 };
 
 
@@ -80,19 +80,19 @@ export const DraftBadge: React.FC<DraftBadgeProps> = ({
  * @example
  * ```tsx
  * <div className="flex items-center gap-2">
- *   <span>{document.title}</span>
- *   <ConditionalDraftBadge status={document.status} />
+ * <span>{document.title}</span>
+ * <ConditionalDraftBadge status={document.status} />
  * </div>
  * ```
  */
 export const ConditionalDraftBadge: React.FC<
-  DraftBadgeProps & { status: string | undefined | null }
+ DraftBadgeProps & { status: string | undefined | null }
 > = ({ status, ...badgeProps }) => {
-  if (!isDraftStatus(status)) {
-    return null;
-  }
+ if (!isDraftStatus(status)) {
+ return null;
+ }
 
-  return <DraftBadge {...badgeProps} />;
+ return <DraftBadge {...badgeProps} />;
 };
 
 export default DraftBadge;

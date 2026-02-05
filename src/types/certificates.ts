@@ -33,115 +33,115 @@ export type IssuerType = 'public_ca' | 'private_ca' | 'self_signed';
  * Certificate entity
  */
 export interface Certificate {
-  id: string;
-  organizationId: string;
+ id: string;
+ organizationId: string;
 
-  // Basic info
-  name: string;
-  description?: string;
-  type: CertificateType;
+ // Basic info
+ name: string;
+ description?: string;
+ type: CertificateType;
 
-  // Certificate details
-  commonName: string;
-  domains: string[]; // SANs
-  serialNumber: string;
+ // Certificate details
+ commonName: string;
+ domains: string[]; // SANs
+ serialNumber: string;
 
-  // Issuer
-  issuer: string;
-  issuerType: IssuerType;
+ // Issuer
+ issuer: string;
+ issuerType: IssuerType;
 
-  // Validity
-  validFrom: Timestamp;
-  validTo: Timestamp;
-  status: CertificateStatus;
+ // Validity
+ validFrom: Timestamp;
+ validTo: Timestamp;
+ status: CertificateStatus;
 
-  // Cryptography
-  keyAlgorithm: KeyAlgorithm;
-  keySize: number; // bits
-  signatureAlgorithm: string;
+ // Cryptography
+ keyAlgorithm: KeyAlgorithm;
+ keySize: number; // bits
+ signatureAlgorithm: string;
 
-  // Fingerprints
-  thumbprintSha1?: string;
-  thumbprintSha256?: string;
+ // Fingerprints
+ thumbprintSha1?: string;
+ thumbprintSha256?: string;
 
-  // Linked entities
-  assetId?: string;
-  assetName?: string;
+ // Linked entities
+ assetId?: string;
+ assetName?: string;
 
-  // Management
-  owner?: string;
-  ownerEmail?: string;
-  autoRenew: boolean;
+ // Management
+ owner?: string;
+ ownerEmail?: string;
+ autoRenew: boolean;
 
-  // Alerts
-  alertsSent: {
-    day30?: Timestamp;
-    day15?: Timestamp;
-    day7?: Timestamp;
-  };
+ // Alerts
+ alertsSent: {
+ day30?: Timestamp;
+ day15?: Timestamp;
+ day7?: Timestamp;
+ };
 
-  // Notes
-  notes?: string;
-  tags?: string[];
+ // Notes
+ notes?: string;
+ tags?: string[];
 
-  // Audit
-  createdAt: Timestamp;
-  createdBy: string;
-  updatedAt: Timestamp;
-  updatedBy: string;
+ // Audit
+ createdAt: Timestamp;
+ createdBy: string;
+ updatedAt: Timestamp;
+ updatedBy: string;
 }
 
 /**
  * Certificate form data (for creation/editing)
  */
 export type CertificateFormData = Omit<Certificate,
-  'id' | 'organizationId' | 'status' | 'alertsSent' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'
+ 'id' | 'organizationId' | 'status' | 'alertsSent' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'
 >;
 
 /**
  * Certificate stats for dashboard
  */
 export interface CertificateStats {
-  total: number;
-  valid: number;
-  expiringSoon: number; // < 30 days
-  expired: number;
-  revoked: number;
-  byType: Record<CertificateType, number>;
-  byAlgorithm: Record<KeyAlgorithm, number>;
-  byIssuerType: Record<IssuerType, number>;
-  expiringNext30Days: Certificate[];
-  weakCrypto: number; // RSA < 2048 or SHA1
+ total: number;
+ valid: number;
+ expiringSoon: number; // < 30 days
+ expired: number;
+ revoked: number;
+ byType: Record<CertificateType, number>;
+ byAlgorithm: Record<KeyAlgorithm, number>;
+ byIssuerType: Record<IssuerType, number>;
+ expiringNext30Days: Certificate[];
+ weakCrypto: number; // RSA < 2048 or SHA1
 }
 
 /**
  * Certificate import row (CSV)
  */
 export interface CertificateImportRow {
-  name: string;
-  commonName: string;
-  domains: string;
-  serialNumber: string;
-  issuer: string;
-  issuerType: string;
-  validFrom: string;
-  validTo: string;
-  keyAlgorithm: string;
-  keySize: string;
-  signatureAlgorithm?: string;
-  owner?: string;
-  ownerEmail?: string;
-  notes?: string;
-  tags?: string;
+ name: string;
+ commonName: string;
+ domains: string;
+ serialNumber: string;
+ issuer: string;
+ issuerType: string;
+ validFrom: string;
+ validTo: string;
+ keyAlgorithm: string;
+ keySize: string;
+ signatureAlgorithm?: string;
+ owner?: string;
+ ownerEmail?: string;
+ notes?: string;
+ tags?: string;
 }
 
 /**
  * Certificate filter options
  */
 export interface CertificateFilters {
-  status?: CertificateStatus;
-  type?: CertificateType;
-  issuerType?: IssuerType;
-  expiringWithin?: number; // days
-  searchQuery?: string;
+ status?: CertificateStatus;
+ type?: CertificateType;
+ issuerType?: IssuerType;
+ expiringWithin?: number; // days
+ searchQuery?: string;
 }

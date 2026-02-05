@@ -4,18 +4,18 @@ import { useAuth } from '../../hooks/useAuth';
 import { LoadingScreen } from '../ui/LoadingScreen';
 
 export const PublicOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { loading, firebaseUser } = useAuth();
-    const location = useLocation();
+ const { loading, firebaseUser } = useAuth();
+ const location = useLocation();
 
-    if (loading) {
-        return <LoadingScreen />;
-    }
+ if (loading) {
+ return <LoadingScreen />;
+ }
 
-    if (firebaseUser) {
-        // Rediriger vers la page d'origine ou le dashboard
-        const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
-        return <Navigate to={from} replace />;
-    }
+ if (firebaseUser) {
+ // Rediriger vers la page d'origine ou le dashboard
+ const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+ return <Navigate to={from} replace />;
+ }
 
-    return <>{children}</>;
+ return <>{children}</>;
 };

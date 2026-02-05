@@ -10,122 +10,122 @@ import { LoadingScreen } from '../LoadingScreen';
 
 // Mock react-dom createPortal
 vi.mock('react-dom', async () => {
-    const actual = await vi.importActual('react-dom');
-    return {
-        ...actual,
-        createPortal: (node: React.ReactNode) => node
-    };
+ const actual = await vi.importActual('react-dom');
+ return {
+ ...actual,
+ createPortal: (node: React.ReactNode) => node
+ };
 });
 
 // Mock Button
 vi.mock('../button', () => ({
-    Button: ({ children, onClick, className }: React.ComponentProps<'button'>) =>
-        React.createElement('button', { onClick, className, 'data-testid': 'reload-button' }, children)
+ Button: ({ children, onClick, className }: React.ComponentProps<'button'>) =>
+ React.createElement('button', { onClick, className, 'data-testid': 'reload-button' }, children)
 }));
 
 // Mock lucide-react
 vi.mock('lucide-react', () => {
-    const Icon = ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, ...props });
-    return {
-        Lock: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'lock-icon', ...props }),
-        Settings: Icon,
-        Grid3X3: Icon,
-        Unlock: Icon,
-    };
+ const Icon = ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, ...props });
+ return {
+ Lock: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'lock-icon', ...props }),
+ Settings: Icon,
+ Grid3X3: Icon,
+ Unlock: Icon,
+ };
 });
 
 describe('LoadingScreen', () => {
-    beforeEach(() => {
-        vi.useFakeTimers();
-    });
+ beforeEach(() => {
+ vi.useFakeTimers();
+ });
 
-    afterEach(() => {
-        vi.useRealTimers();
-    });
+ afterEach(() => {
+ vi.useRealTimers();
+ });
 
-    it('should render loading animation initially', () => {
-        render(<LoadingScreen />);
+ it('should render loading animation initially', () => {
+ render(<LoadingScreen />);
 
-        // Should show bouncing dots initially
-        expect(screen.getByTestId('lock-icon')).toBeInTheDocument();
-    });
+ // Should show bouncing dots initially
+ expect(screen.getByTestId('lock-icon')).toBeInTheDocument();
+ });
 
-    it('should show timeout message after 10 seconds', async () => {
-        render(<LoadingScreen />);
+ it('should show timeout message after 10 seconds', async () => {
+ render(<LoadingScreen />);
 
-        // Initially no timeout message
-        expect(screen.queryByText(/Le chargement prend plus de temps/)).not.toBeInTheDocument();
+ // Initially no timeout message
+ expect(screen.queryByText(/Le chargement prend plus de temps/)).not.toBeInTheDocument();
 
-        // Advance time by 10 seconds
-        act(() => {
-            vi.advanceTimersByTime(10000);
-        });
+ // Advance time by 10 seconds
+ act(() => {
+ vi.advanceTimersByTime(10000);
+ });
 
-        // Now should show timeout message
-        expect(screen.getByText(/Le chargement prend plus de temps que prévu/)).toBeInTheDocument();
-    });
+ // Now should show timeout message
+ expect(screen.getByText(/Le chargement prend plus de temps que prévu/)).toBeInTheDocument();
+ });
 
-    it('should display custom message when provided', async () => {
-        render(<LoadingScreen message="Custom loading message" />);
+ it('should display custom message when provided', async () => {
+ render(<LoadingScreen message="Custom loading message" />);
 
-        act(() => {
-            vi.advanceTimersByTime(10000);
-        });
+ act(() => {
+ vi.advanceTimersByTime(10000);
+ });
 
-        expect(screen.getByText('Custom loading message')).toBeInTheDocument();
-    });
+ expect(screen.getByText('Custom loading message')).toBeInTheDocument();
+ });
 
-    it('should show reload button after timeout', async () => {
-        render(<LoadingScreen />);
+ it('should show reload button after timeout', async () => {
+ render(<LoadingScreen />);
 
-        act(() => {
-            vi.advanceTimersByTime(10000);
-        });
+ act(() => {
+ vi.advanceTimersByTime(10000);
+ });
 
-        expect(screen.getByText('Recharger la page')).toBeInTheDocument();
-    });
+ expect(screen.getByText('Recharger la page')).toBeInTheDocument();
+ });
 
-    it('should reload page when reload button is clicked', async () => {
-        const reloadMock = vi.fn();
-        Object.defineProperty(window, 'location', {
-            value: { reload: reloadMock },
-            writable: true
-        });
+ it('should reload page when reload button is clicked', async () => {
+ const reloadMock = vi.fn();
+ Object.defineProperty(window, 'location', {
+ value: { reload: reloadMock },
+ writable: true
+ });
 
-        render(<LoadingScreen />);
+ render(<LoadingScreen />);
 
-        act(() => {
-            vi.advanceTimersByTime(10000);
-        });
+ act(() => {
+ vi.advanceTimersByTime(10000);
+ });
 
-        screen.getByTestId('reload-button').click();
+ screen.getByTestId('reload-button').click();
 
-        expect(reloadMock).toHaveBeenCalled();
-    });
+ expect(reloadMock).toHaveBeenCalled();
+ });
 
-    it('should render lock icon', () => {
-        render(<LoadingScreen />);
+ it('should render lock icon', () => {
+ render(<LoadingScreen />);
 
-        expect(screen.getByTestId('lock-icon')).toBeInTheDocument();
-    });
+ expect(screen.getByTestId('lock-icon')).toBeInTheDocument();
+ });
 
-    it('should not show timeout message before 10 seconds', () => {
-        render(<LoadingScreen />);
+ it('should not show timeout message before 10 seconds', () => {
+ render(<LoadingScreen />);
 
-        act(() => {
-            vi.advanceTimersByTime(5000);
-        });
+ act(() => {
+ vi.advanceTimersByTime(5000);
+ });
 
-        expect(screen.queryByText(/Le chargement prend plus de temps/)).not.toBeInTheDocument();
-    });
+ expect(screen.queryByText(/Le chargement prend plus de temps/)).not.toBeInTheDocument();
+ });
 
-    it('should clear timeout on unmount', () => {
-        const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout');
+ it('should clear timeout on unmount', () => {
+ const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout');
 
-        const { unmount } = render(<LoadingScreen />);
-        unmount();
+ const { unmount } = render(<LoadingScreen />);
+ unmount();
 
-        expect(clearTimeoutSpy).toHaveBeenCalled();
-        clearTimeoutSpy.mockRestore();
-    });
+ expect(clearTimeoutSpy).toHaveBeenCalled();
+ clearTimeoutSpy.mockRestore();
+ });
 });

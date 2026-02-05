@@ -7,11 +7,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  type Unsubscribe,
+ collection,
+ query,
+ where,
+ onSnapshot,
+ type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
@@ -22,18 +22,18 @@ import { calculateTrend } from '../utils/trendUtils';
  * Result type for useCriticalRisks hook
  */
 export interface CriticalRisksResult {
-  /** Number of critical risks */
-  count: number | null;
-  /** Previous period count for trend calculation */
-  previousCount: number | null;
-  /** Trend direction based on comparison */
-  trend: TrendType | null;
-  /** Loading state */
-  loading: boolean;
-  /** Error if any */
-  error: Error | null;
-  /** Function to manually refetch */
-  refetch: () => void;
+ /** Number of critical risks */
+ count: number | null;
+ /** Previous period count for trend calculation */
+ previousCount: number | null;
+ /** Trend direction based on comparison */
+ trend: TrendType | null;
+ /** Loading state */
+ loading: boolean;
+ /** Error if any */
+ error: Error | null;
+ /** Function to manually refetch */
+ refetch: () => void;
 }
 
 /**
@@ -54,116 +54,116 @@ const ACTIVE_RISK_STATUSES = ['Ouvert', 'En cours', 'En attente de validation'];
  * ```
  */
 export function useCriticalRisks(tenantId: string | undefined): CriticalRisksResult {
-  const [count, setCount] = useState<number | null>(null);
-  const [previousCount, setPreviousCount] = useState<number | null>(null);
-  const [trend, setTrend] = useState<TrendType | null>(null);
-  const [error, setError] = useState<Error | null>(null);
+ const [count, setCount] = useState<number | null>(null);
+ const [previousCount, setPreviousCount] = useState<number | null>(null);
+ const [trend, setTrend] = useState<TrendType | null>(null);
+ const [error, setError] = useState<Error | null>(null);
 
-  // State for loading management
-  const [fetchedTenantId, setFetchedTenantId] = useState<string | null>(null);
-  const [isRefetching, setIsRefetching] = useState(false);
+ // State for loading management
+ const [fetchedTenantId, setFetchedTenantId] = useState<string | null>(null);
+ const [isRefetching, setIsRefetching] = useState(false);
 
-  // Derived loading state
-  const loading = (!!tenantId && tenantId !== fetchedTenantId) || isRefetching;
+ // Derived loading state
+ const loading = (!!tenantId && tenantId !== fetchedTenantId) || isRefetching;
 
-  const [refreshKey, setRefreshKey] = useState(0);
+ const [refreshKey, setRefreshKey] = useState(0);
 
-  const refetch = useCallback(() => {
-    setIsRefetching(true);
-    setRefreshKey((prev) => prev + 1);
-  }, []);
+ const refetch = useCallback(() => {
+ setIsRefetching(true);
+ setRefreshKey((prev) => prev + 1);
+ }, []);
 
-  useEffect(() => {
-    if (!tenantId) {
-      return;
-    }
+ useEffect(() => {
+ if (!tenantId) {
+ return;
+ }
 
-    // Loading is derived, no set state needed.
+ // Loading is derived, no set state needed.
 
 
-    const unsubRef = { current: null as Unsubscribe | null };
-    let cancelled = false;
+ const unsubRef = { current: null as Unsubscribe | null };
+ let cancelled = false;
 
-    const setupListener = async () => {
-      try {
-        // Query for all active risks for the organization
-        // We filter for critical ones client-side to ensure consistency with RiskStats
-        const activeRisksQuery = query(
-          collection(db, 'risks'),
-          where('organizationId', '==', tenantId),
-          where('status', 'in', ACTIVE_RISK_STATUSES)
-        );
+ const setupListener = async () => {
+ try {
+ // Query for all active risks for the organization
+ // We filter for critical ones client-side to ensure consistency with RiskStats
+ const activeRisksQuery = query(
+ collection(db, 'risks'),
+ where('organizationId', '==', tenantId),
+ where('status', 'in', ACTIVE_RISK_STATUSES)
+ );
 
-        const unsub = onSnapshot(
-          activeRisksQuery,
-          (snapshot) => {
-            let criticalCount = 0;
+ const unsub = onSnapshot(
+ activeRisksQuery,
+ (snapshot) => {
+ let criticalCount = 0;
 
-            snapshot.docs.forEach((doc) => {
-              const data = doc.data();
-              // Calculate criticality score: impact * probability
-              // Handle potential missing fields with defaults
-              const score = (data.impact || 1) * (data.probability || 1);
+ snapshot.docs.forEach((doc) => {
+ const data = doc.data();
+ // Calculate criticality score: impact * probability
+ // Handle potential missing fields with defaults
+ const score = (data.impact || 1) * (data.probability || 1);
 
-              if (score >= RISK_THRESHOLDS.CRITICAL) {
-                criticalCount++;
-              }
-            });
+ if (score >= RISK_THRESHOLDS.CRITICAL) {
+ criticalCount++;
+ }
+ });
 
-            const newCount = criticalCount;
+ const newCount = criticalCount;
 
-            // Store previous count for trend calculation
-            setCount((prevCount) => {
-              if (prevCount !== null && prevCount !== newCount) {
-                setPreviousCount(prevCount);
-                setTrend(calculateTrend(newCount, prevCount));
-              } else if (prevCount === null) {
-                // First load - set stable trend
-                setTrend('stable');
-              }
-              return newCount;
-            });
+ // Store previous count for trend calculation
+ setCount((prevCount) => {
+ if (prevCount !== null && prevCount !== newCount) {
+ setPreviousCount(prevCount);
+ setTrend(calculateTrend(newCount, prevCount));
+ } else if (prevCount === null) {
+ // First load - set stable trend
+ setTrend('stable');
+ }
+ return newCount;
+ });
 
-            setError(null);
-            setFetchedTenantId(tenantId);
-            setIsRefetching(false);
-          },
-          (err) => {
-            ErrorLogger.error(err, 'useCriticalRisks.onSnapshot');
-            setError(err as Error);
-            setFetchedTenantId(tenantId);
-            setIsRefetching(false);
-          }
-        );
-        if (cancelled) {
-          unsub();
-          return;
-        }
-        unsubRef.current = unsub;
-      } catch (err) {
-        ErrorLogger.error(err, 'useCriticalRisks.setupListener');
-        setError(err as Error);
-        setFetchedTenantId(tenantId);
-        setIsRefetching(false);
-      }
-    };
+ setError(null);
+ setFetchedTenantId(tenantId);
+ setIsRefetching(false);
+ },
+ (err) => {
+ ErrorLogger.error(err, 'useCriticalRisks.onSnapshot');
+ setError(err as Error);
+ setFetchedTenantId(tenantId);
+ setIsRefetching(false);
+ }
+ );
+ if (cancelled) {
+ unsub();
+ return;
+ }
+ unsubRef.current = unsub;
+ } catch (err) {
+ ErrorLogger.error(err, 'useCriticalRisks.setupListener');
+ setError(err as Error);
+ setFetchedTenantId(tenantId);
+ setIsRefetching(false);
+ }
+ };
 
-    setupListener();
+ setupListener();
 
-    return () => {
-      cancelled = true;
-      unsubRef.current?.();
-    };
-  }, [tenantId, refreshKey]);
+ return () => {
+ cancelled = true;
+ unsubRef.current?.();
+ };
+ }, [tenantId, refreshKey]);
 
-  return {
-    count,
-    previousCount,
-    trend,
-    loading,
-    error,
-    refetch,
-  };
+ return {
+ count,
+ previousCount,
+ trend,
+ loading,
+ error,
+ refetch,
+ };
 }
 
 export default useCriticalRisks;

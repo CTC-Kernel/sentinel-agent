@@ -11,148 +11,148 @@ import { useAuth } from '../../hooks/useAuth';
 import AdminDashboard from '../admin/AdminDashboard';
 
 vi.mock('../../store', () => ({
-    useStore: vi.fn(),
+ useStore: vi.fn(),
 }));
 
 vi.mock('../../hooks/useAuth', () => ({
-    useAuth: vi.fn(),
+ useAuth: vi.fn(),
 }));
 
 // Mock child components
 vi.mock('../admin/components/GlobalMetrics', () => ({
-    GlobalMetrics: () => <div data-testid="global-metrics">Global Metrics</div>
+ GlobalMetrics: () => <div data-testid="global-metrics">Global Metrics</div>
 }));
 
 vi.mock('../admin/components/TenantList', () => ({
-    TenantList: () => <div data-testid="tenant-list">Tenant List</div>
+ TenantList: () => <div data-testid="tenant-list">Tenant List</div>
 }));
 
 vi.mock('../admin/components/UserManagement', () => ({
-    UserManagement: () => <div data-testid="user-management">User Management</div>
+ UserManagement: () => <div data-testid="user-management">User Management</div>
 }));
 
 vi.mock('../admin/components/SystemHealth', () => ({
-    SystemHealth: () => <div data-testid="system-health">System Health</div>
+ SystemHealth: () => <div data-testid="system-health">System Health</div>
 }));
 
 vi.mock('../admin/components/AuditLogList', () => ({
-    AuditLogList: () => <div data-testid="audit-log-list">Audit Log List</div>
+ AuditLogList: () => <div data-testid="audit-log-list">Audit Log List</div>
 }));
 
 describe('AdminDashboard', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-        const mockState = {
-            user: { organizationId: 'test-org', role: 'super_admin' },
-            t: (k: string) => k,
-        };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        vi.mocked(useStore).mockImplementation((selector: any) =>
-            selector ? selector(mockState) : mockState
-        );
-        vi.mocked(useAuth).mockReturnValue({
-            user: { organizationId: 'test-org', role: 'super_admin' },
-            loading: false,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any);
-    });
+ beforeEach(() => {
+ vi.clearAllMocks();
+ const mockState = {
+ user: { organizationId: 'test-org', role: 'super_admin' },
+ t: (k: string) => k,
+ };
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
+ vi.mocked(useStore).mockImplementation((selector: any) =>
+ selector ? selector(mockState) : mockState
+ );
+ vi.mocked(useAuth).mockReturnValue({
+ user: { organizationId: 'test-org', role: 'super_admin' },
+ loading: false,
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
+ } as any);
+ });
 
-    it('should render header with title', () => {
-        render(
-            <MemoryRouter>
-                <AdminDashboard />
-            </MemoryRouter>
-        );
+ it('should render header with title', () => {
+ render(
+ <MemoryRouter>
+ <AdminDashboard />
+ </MemoryRouter>
+ );
 
-        expect(screen.getByText('Super Admin Console')).toBeInTheDocument();
-        expect(screen.getByText(/Supervision globale/)).toBeInTheDocument();
-    });
+ expect(screen.getByText('Super Admin Console')).toBeInTheDocument();
+ expect(screen.getByText(/Supervision globale/)).toBeInTheDocument();
+ });
 
-    it('should render all navigation tabs', () => {
-        render(
-            <MemoryRouter>
-                <AdminDashboard />
-            </MemoryRouter>
-        );
+ it('should render all navigation tabs', () => {
+ render(
+ <MemoryRouter>
+ <AdminDashboard />
+ </MemoryRouter>
+ );
 
-        expect(screen.getByText('Overview')).toBeInTheDocument();
-        expect(screen.getByText('Tenants')).toBeInTheDocument();
-        expect(screen.getByText('Users')).toBeInTheDocument();
-        expect(screen.getByText('System')).toBeInTheDocument();
-        expect(screen.getByText('Audit')).toBeInTheDocument();
-    });
+ expect(screen.getByText('Overview')).toBeInTheDocument();
+ expect(screen.getByText('Tenants')).toBeInTheDocument();
+ expect(screen.getByText('Users')).toBeInTheDocument();
+ expect(screen.getByText('System')).toBeInTheDocument();
+ expect(screen.getByText('Audit')).toBeInTheDocument();
+ });
 
-    it('should show GlobalMetrics by default (overview tab)', () => {
-        render(
-            <MemoryRouter>
-                <AdminDashboard />
-            </MemoryRouter>
-        );
+ it('should show GlobalMetrics by default (overview tab)', () => {
+ render(
+ <MemoryRouter>
+ <AdminDashboard />
+ </MemoryRouter>
+ );
 
-        expect(screen.getByTestId('global-metrics')).toBeInTheDocument();
-    });
+ expect(screen.getByTestId('global-metrics')).toBeInTheDocument();
+ });
 
-    it('should switch to TenantList when tenants tab is clicked', () => {
-        render(
-            <MemoryRouter>
-                <AdminDashboard />
-            </MemoryRouter>
-        );
+ it('should switch to TenantList when tenants tab is clicked', () => {
+ render(
+ <MemoryRouter>
+ <AdminDashboard />
+ </MemoryRouter>
+ );
 
-        fireEvent.click(screen.getByText('Tenants'));
+ fireEvent.click(screen.getByText('Tenants'));
 
-        expect(screen.getByTestId('tenant-list')).toBeInTheDocument();
-        expect(screen.queryByTestId('global-metrics')).not.toBeInTheDocument();
-    });
+ expect(screen.getByTestId('tenant-list')).toBeInTheDocument();
+ expect(screen.queryByTestId('global-metrics')).not.toBeInTheDocument();
+ });
 
-    it('should switch to UserManagement when users tab is clicked', () => {
-        render(
-            <MemoryRouter>
-                <AdminDashboard />
-            </MemoryRouter>
-        );
+ it('should switch to UserManagement when users tab is clicked', () => {
+ render(
+ <MemoryRouter>
+ <AdminDashboard />
+ </MemoryRouter>
+ );
 
-        fireEvent.click(screen.getByText('Users'));
+ fireEvent.click(screen.getByText('Users'));
 
-        expect(screen.getByTestId('user-management')).toBeInTheDocument();
-    });
+ expect(screen.getByTestId('user-management')).toBeInTheDocument();
+ });
 
-    it('should switch to SystemHealth when system tab is clicked', () => {
-        render(
-            <MemoryRouter>
-                <AdminDashboard />
-            </MemoryRouter>
-        );
+ it('should switch to SystemHealth when system tab is clicked', () => {
+ render(
+ <MemoryRouter>
+ <AdminDashboard />
+ </MemoryRouter>
+ );
 
-        fireEvent.click(screen.getByText('System'));
+ fireEvent.click(screen.getByText('System'));
 
-        expect(screen.getByTestId('system-health')).toBeInTheDocument();
-    });
+ expect(screen.getByTestId('system-health')).toBeInTheDocument();
+ });
 
-    it('should switch to AuditLogList when audit tab is clicked', () => {
-        render(
-            <MemoryRouter>
-                <AdminDashboard />
-            </MemoryRouter>
-        );
+ it('should switch to AuditLogList when audit tab is clicked', () => {
+ render(
+ <MemoryRouter>
+ <AdminDashboard />
+ </MemoryRouter>
+ );
 
-        fireEvent.click(screen.getByText('Audit'));
+ fireEvent.click(screen.getByText('Audit'));
 
-        expect(screen.getByTestId('audit-log-list')).toBeInTheDocument();
-    });
+ expect(screen.getByTestId('audit-log-list')).toBeInTheDocument();
+ });
 
-    it('should highlight active tab', () => {
-        render(
-            <MemoryRouter>
-                <AdminDashboard />
-            </MemoryRouter>
-        );
+ it('should highlight active tab', () => {
+ render(
+ <MemoryRouter>
+ <AdminDashboard />
+ </MemoryRouter>
+ );
 
-        const overviewTab = screen.getByText('Overview');
-        expect(overviewTab.className).toContain('bg-brand-50');
+ const overviewTab = screen.getByText('Overview');
+ expect(overviewTab.className).toContain('bg-primary/10');
 
-        fireEvent.click(screen.getByText('Tenants'));
-        const tenantsTab = screen.getByText('Tenants');
-        expect(tenantsTab.className).toContain('bg-brand-50');
-    });
+ fireEvent.click(screen.getByText('Tenants'));
+ const tenantsTab = screen.getByText('Tenants');
+ expect(tenantsTab.className).toContain('bg-primary/10');
+ });
 });

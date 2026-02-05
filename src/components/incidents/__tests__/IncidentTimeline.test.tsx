@@ -10,147 +10,147 @@ import { Incident, Criticality } from '../../../types';
 
 // Mock Icons
 vi.mock('../../ui/Icons', () => ({
-    CheckCircle2: () => <span data-testid="check-circle-icon" />,
-    AlertCircle: () => <span data-testid="alert-circle-icon" />,
-    Clock: () => <span data-testid="clock-icon" />,
-    FileText: () => <span data-testid="file-text-icon" />
+ CheckCircle2: () => <span data-testid="check-circle-icon" />,
+ AlertCircle: () => <span data-testid="alert-circle-icon" />,
+ Clock: () => <span data-testid="clock-icon" />,
+ FileText: () => <span data-testid="file-text-icon" />
 }));
 
 describe('IncidentTimeline', () => {
-    const mockIncident: Incident = {
-        id: 'incident-1',
-        organizationId: 'org-1',
-        title: 'Security Breach',
-        description: 'Unauthorized access detected',
-        category: 'Autre',
-        severity: Criticality.CRITICAL,
-        status: 'Contenu',
-        dateReported: '2024-01-15T10:00:00Z',
-        dateAnalysis: '2024-01-15T11:00:00Z',
-        dateContained: '2024-01-15T14:00:00Z',
-        reporter: 'John Doe',
-        impact: 'High impact on operations'
-    };
+ const mockIncident: Incident = {
+ id: 'incident-1',
+ organizationId: 'org-1',
+ title: 'Security Breach',
+ description: 'Unauthorized access detected',
+ category: 'Autre',
+ severity: Criticality.CRITICAL,
+ status: 'Contenu',
+ dateReported: '2024-01-15T10:00:00Z',
+ dateAnalysis: '2024-01-15T11:00:00Z',
+ dateContained: '2024-01-15T14:00:00Z',
+ reporter: 'John Doe',
+ impact: 'High impact on operations'
+ };
 
-    const newIncident: Incident = {
-        ...mockIncident,
-        status: 'Nouveau',
-        dateAnalysis: undefined,
-        dateContained: undefined
-    };
+ const newIncident: Incident = {
+ ...mockIncident,
+ status: 'Nouveau',
+ dateAnalysis: undefined,
+ dateContained: undefined
+ };
 
-    const resolvedIncident: Incident = {
-        ...mockIncident,
-        status: 'Résolu',
-        dateResolved: '2024-01-15T18:00:00Z'
-    };
+ const resolvedIncident: Incident = {
+ ...mockIncident,
+ status: 'Résolu',
+ dateResolved: '2024-01-15T18:00:00Z'
+ };
 
-    const mockGetTimeToResolve = vi.fn(() => '8h');
+ const mockGetTimeToResolve = vi.fn(() => '8h');
 
-    describe('empty state', () => {
-        it('shows placeholder when no incident selected', () => {
-            render(<IncidentTimeline />);
+ describe('empty state', () => {
+ it('shows placeholder when no incident selected', () => {
+ render(<IncidentTimeline />);
 
-            expect(screen.getByText('Chronologie')).toBeInTheDocument();
-            expect(screen.getByText('Sélectionnez un incident pour voir son historique.')).toBeInTheDocument();
-        });
+ expect(screen.getByText('Chronologie')).toBeInTheDocument();
+ expect(screen.getByText('Sélectionnez un incident pour voir son historique.')).toBeInTheDocument();
+ });
 
-        it('shows clock icon in empty state', () => {
-            render(<IncidentTimeline />);
+ it('shows clock icon in empty state', () => {
+ render(<IncidentTimeline />);
 
-            expect(screen.getByTestId('clock-icon')).toBeInTheDocument();
-        });
-    });
+ expect(screen.getByTestId('clock-icon')).toBeInTheDocument();
+ });
+ });
 
-    describe('timeline steps', () => {
-        it('renders Signalé step', () => {
-            render(<IncidentTimeline selectedIncident={mockIncident} />);
+ describe('timeline steps', () => {
+ it('renders Signalé step', () => {
+ render(<IncidentTimeline selectedIncident={mockIncident} />);
 
-            expect(screen.getByText('Signalé')).toBeInTheDocument();
-        });
+ expect(screen.getByText('Signalé')).toBeInTheDocument();
+ });
 
-        it('renders En Analyse step', () => {
-            render(<IncidentTimeline selectedIncident={mockIncident} />);
+ it('renders En Analyse step', () => {
+ render(<IncidentTimeline selectedIncident={mockIncident} />);
 
-            expect(screen.getByText('En Analyse')).toBeInTheDocument();
-        });
+ expect(screen.getByText('En Analyse')).toBeInTheDocument();
+ });
 
-        it('renders Contenu step', () => {
-            render(<IncidentTimeline selectedIncident={mockIncident} />);
+ it('renders Contenu step', () => {
+ render(<IncidentTimeline selectedIncident={mockIncident} />);
 
-            expect(screen.getByText('Contenu')).toBeInTheDocument();
-        });
+ expect(screen.getByText('Contenu')).toBeInTheDocument();
+ });
 
-        it('renders Résolu step', () => {
-            render(<IncidentTimeline selectedIncident={mockIncident} />);
+ it('renders Résolu step', () => {
+ render(<IncidentTimeline selectedIncident={mockIncident} />);
 
-            expect(screen.getByText('Résolu')).toBeInTheDocument();
-        });
+ expect(screen.getByText('Résolu')).toBeInTheDocument();
+ });
 
-        it('shows reporter in first step description', () => {
-            render(<IncidentTimeline selectedIncident={mockIncident} />);
+ it('shows reporter in first step description', () => {
+ render(<IncidentTimeline selectedIncident={mockIncident} />);
 
-            expect(screen.getByText('Incident signalé par John Doe')).toBeInTheDocument();
-        });
-    });
+ expect(screen.getByText('Incident signalé par John Doe')).toBeInTheDocument();
+ });
+ });
 
-    describe('step descriptions', () => {
-        it('shows analysis description', () => {
-            render(<IncidentTimeline selectedIncident={mockIncident} />);
+ describe('step descriptions', () => {
+ it('shows analysis description', () => {
+ render(<IncidentTimeline selectedIncident={mockIncident} />);
 
-            expect(screen.getByText('Analyse initiale et qualification')).toBeInTheDocument();
-        });
+ expect(screen.getByText('Analyse initiale et qualification')).toBeInTheDocument();
+ });
 
-        it('shows containment description', () => {
-            render(<IncidentTimeline selectedIncident={mockIncident} />);
+ it('shows containment description', () => {
+ render(<IncidentTimeline selectedIncident={mockIncident} />);
 
-            expect(screen.getByText('Mesures de contournement appliquées')).toBeInTheDocument();
-        });
+ expect(screen.getByText('Mesures de contournement appliquées')).toBeInTheDocument();
+ });
 
-        it('shows resolution description', () => {
-            render(<IncidentTimeline selectedIncident={mockIncident} />);
+ it('shows resolution description', () => {
+ render(<IncidentTimeline selectedIncident={mockIncident} />);
 
-            expect(screen.getByText('Incident résolu et service rétabli')).toBeInTheDocument();
-        });
-    });
+ expect(screen.getByText('Incident résolu et service rétabli')).toBeInTheDocument();
+ });
+ });
 
-    describe('resolution time', () => {
-        it('shows resolution time when incident resolved', () => {
-            render(<IncidentTimeline selectedIncident={resolvedIncident} getTimeToResolve={mockGetTimeToResolve} />);
+ describe('resolution time', () => {
+ it('shows resolution time when incident resolved', () => {
+ render(<IncidentTimeline selectedIncident={resolvedIncident} getTimeToResolve={mockGetTimeToResolve} />);
 
-            expect(screen.getByText('Résolu en 8h')).toBeInTheDocument();
-        });
+ expect(screen.getByText('Résolu en 8h')).toBeInTheDocument();
+ });
 
-        it('hides resolution time when incident not resolved', () => {
-            render(<IncidentTimeline selectedIncident={mockIncident} />);
+ it('hides resolution time when incident not resolved', () => {
+ render(<IncidentTimeline selectedIncident={mockIncident} />);
 
-            expect(screen.queryByText(/Résolu en/)).not.toBeInTheDocument();
-        });
-    });
+ expect(screen.queryByText(/Résolu en/)).not.toBeInTheDocument();
+ });
+ });
 
-    describe('status-based styling', () => {
-        it('shows current indicator for active step', () => {
-            const { container } = render(<IncidentTimeline selectedIncident={newIncident} />);
+ describe('status-based styling', () => {
+ it('shows current indicator for active step', () => {
+ const { container } = render(<IncidentTimeline selectedIncident={newIncident} />);
 
-            // Nouveau status means Analyse is current
-            expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
-        });
-    });
+ // Nouveau status means Analyse is current
+ expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
+ });
+ });
 
-    describe('header', () => {
-        it('renders chronologie header', () => {
-            render(<IncidentTimeline selectedIncident={mockIncident} />);
+ describe('header', () => {
+ it('renders chronologie header', () => {
+ render(<IncidentTimeline selectedIncident={mockIncident} />);
 
-            // Header shows "Chronologie" (uppercase in text)
-            expect(screen.getByText('Chronologie')).toBeInTheDocument();
-        });
-    });
+ // Header shows "Chronologie" (uppercase in text)
+ expect(screen.getByText('Chronologie')).toBeInTheDocument();
+ });
+ });
 
-    describe('styling', () => {
-        it('has timeline border', () => {
-            const { container } = render(<IncidentTimeline selectedIncident={mockIncident} />);
+ describe('styling', () => {
+ it('has timeline border', () => {
+ const { container } = render(<IncidentTimeline selectedIncident={mockIncident} />);
 
-            expect(container.querySelector('.border-l')).toBeInTheDocument();
-        });
-    });
+ expect(container.querySelector('.border-l')).toBeInTheDocument();
+ });
+ });
 });

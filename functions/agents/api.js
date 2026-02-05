@@ -528,7 +528,7 @@ app.post('/v1/agents/:agentId/heartbeat', validateAgentAuth, async (req, res) =>
         // Prepare update data
         const updateData = {
             lastHeartbeat: admin.firestore.FieldValue.serverTimestamp(),
-            status: 'Actif',
+            status: 'active',
             version: agent_version || agentData.version,
             hostname: hostname || agentData.hostname,
             osVersion: os_info || agentData.osVersion,
@@ -559,6 +559,13 @@ app.post('/v1/agents/:agentId/heartbeat', validateAgentAuth, async (req, res) =>
         }
         if (typeof uptime_seconds === 'number') {
             updateData.uptimeSeconds = uptime_seconds;
+        }
+        // Network metrics from agent
+        if (typeof req.body.network_bytes_sent === 'number') {
+            updateData.networkBytesSent = req.body.network_bytes_sent;
+        }
+        if (typeof req.body.network_bytes_recv === 'number') {
+            updateData.networkBytesRecv = req.body.network_bytes_recv;
         }
         if (last_check_at) {
             updateData.lastCheckAt = last_check_at;
@@ -760,10 +767,59 @@ app.get('/v1/agents/:agentId/rules', validateAgentAuth, async (req, res) => {
  * Converts hyphens to underscores and lowercases for consistency.
  * Frontend expects: mfa_enabled, disk_encryption, firewall_active, etc.
  */
+/**
+ * Normalize a check ID for consistency.
+ * Converts hyphens to underscores, lowercases, and maps Rust agent values.
+ */
 function normalizeCheckId(checkId) {
     if (!checkId || typeof checkId !== 'string') return checkId;
     // Convert hyphens to underscores for consistency
     return checkId.toLowerCase().replace(/-/g, '_');
+}
+
+/**
+ * Normalize check status to match frontend expectations.
+ * Maps Rust agent statuses to frontend-compatible values.
+ */
+function normalizeCheckStatus(status) {
+    if (!status || typeof status !== 'string') return status;
+    const statusMap = {
+        'skipped': 'not_applicable',
+        'pending': 'pending',
+        'pass': 'pass',
+        'fail': 'fail',
+        'error': 'error',
+    };
+    return statusMap[status.toLowerCase()] || status.toLowerCase();
+}
+
+/**
+ * Map Rust agent check categories (18 variants) to frontend evidence categories (5 values).
+ * Frontend expects: access_control | data_protection | network_security | system_integrity | monitoring
+ */
+function normalizeCategory(category) {
+    if (!category || typeof category !== 'string') return 'system_integrity';
+    const categoryMap = {
+        'encryption': 'data_protection',
+        'antivirus': 'system_integrity',
+        'firewall': 'network_security',
+        'authentication': 'access_control',
+        'session_lock': 'access_control',
+        'updates': 'system_integrity',
+        'protocols': 'network_security',
+        'backup': 'data_protection',
+        'accounts': 'access_control',
+        'mfa': 'access_control',
+        'remote_access': 'network_security',
+        'audit_logging': 'monitoring',
+        'device_control': 'system_integrity',
+        'kernel_security': 'system_integrity',
+        'network_hardening': 'network_security',
+        'time_sync': 'monitoring',
+        'browser_security': 'network_security',
+        'general': 'system_integrity',
+    };
+    return categoryMap[category.toLowerCase()] || 'system_integrity';
 }
 
 // ============================================================================
@@ -777,7 +833,7 @@ app.post('/v1/agents/:agentId/results', validateAgentAuth, async (req, res) => {
         const agentData = req.agentData;
         const organizationId = agentData.organizationId;
 
-        const validStatuses = ['pass', 'fail', 'error', 'not_applicable'];
+        const validStatuses = ['pass', 'fail', 'error', 'not_applicable', 'skipped', 'pending'];
 
         // Support batch uploads from Rust agent: { results: [...], agent_id, timestamp }
         const isBatch = Array.isArray(req.body.results);
@@ -805,7 +861,7 @@ app.post('/v1/agents/:agentId/results', validateAgentAuth, async (req, res) => {
 
         for (const item of resultsToProcess) {
             const checkId = normalizeCheckId(item.check_id);
-            const status = item.status;
+            const status = normalizeCheckStatus(item.status);
 
             if (!checkId || !status) {
                 rejected++;
@@ -835,6 +891,8 @@ app.post('/v1/agents/:agentId/results', validateAgentAuth, async (req, res) => {
                 framework: item.framework || null,
                 controlId: normalizeCheckId(item.control_id) || null,
                 status,
+                category: normalizeCategory(item.category),
+                severity: item.severity || null,
                 evidence: sanitizedEvidence,
                 score: typeof item.score === 'number' ? item.score : null,
                 proofHash: item.proof_hash || null,

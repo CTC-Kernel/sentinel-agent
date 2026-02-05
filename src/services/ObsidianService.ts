@@ -8,17 +8,17 @@ import { Risk, Asset } from '../types';
  */
 export class ObsidianService {
 
-    /**
-     * Convert a Risk object to Obsidian Markdown with Frontmatter
-     */
-    static formatRiskToMarkdown(risk: Risk): string {
-        // Safe helpers
-        const safeString = (val: string | undefined) => val ? `"${val.replace(/"/g, '\\"')}"` : '""';
-        const tags = ['risk', `score/${risk.score}`, `status/${risk.status}`];
-        if (risk.strategy) tags.push(`strategy/${risk.strategy}`);
-        if (risk.framework) tags.push(`framework/${risk.framework}`);
+ /**
+ * Convert a Risk object to Obsidian Markdown with Frontmatter
+ */
+ static formatRiskToMarkdown(risk: Risk): string {
+ // Safe helpers
+ const safeString = (val: string | undefined) => val ? `"${val.replace(/"/g, '\\"')}"` : '""';
+ const tags = ['risk', `score/${risk.score}`, `status/${risk.status}`];
+ if (risk.strategy) tags.push(`strategy/${risk.strategy}`);
+ if (risk.framework) tags.push(`framework/${risk.framework}`);
 
-        return `---
+ return `---
 id: ${risk.id}
 type: risk
 title: ${safeString(risk.threat || 'Sans titre')}
@@ -58,17 +58,17 @@ ${risk.treatment ? `
 ## Linked Assets
 ID: [[ASSET-${risk.assetId}]]
 `;
-    }
+ }
 
-    /**
-     * Convert an Asset object to Obsidian Markdown
-     */
-    static formatAssetToMarkdown(asset: Asset): string {
-        const safeString = (val: string | undefined) => val ? `"${val.replace(/"/g, '\\"')}"` : '""';
-        // Confidentiality is an Enum (Faible, Moyenne, etc), so we just use it as string
-        const tags = ['asset', `type/${asset.type}`.replace(/\s+/g, '_')];
+ /**
+ * Convert an Asset object to Obsidian Markdown
+ */
+ static formatAssetToMarkdown(asset: Asset): string {
+ const safeString = (val: string | undefined) => val ? `"${val.replace(/"/g, '\\"')}"` : '""';
+ // Confidentiality is an Enum (Faible, Moyenne, etc), so we just use it as string
+ const tags = ['asset', `type/${asset.type}`.replace(/\s+/g, '_')];
 
-        return `---
+ return `---
 id: ${asset.id}
 type: asset
 name: ${safeString(asset.name)}
@@ -98,42 +98,42 @@ ${(asset as { description?: string }).description || 'No description provided.'}
 ${asset.ipAddress ? `- **IP Address**: ${asset.ipAddress}` : ''}
 ${asset.dataDetails ? `- **Data Format**: ${asset.dataDetails.format}` : ''}
 `;
-    }
+ }
 
-    /**
-     * Export a list of Risks as a Zip of Markdown files
-     */
-    static async exportRisksToObsidian(risks: Risk[]) {
-        const zip = new JSZip();
-        // Create a root folder inside the zip for cleanliness
-        const folder = zip.folder("Sentinel_Risks_Obsidian");
+ /**
+ * Export a list of Risks as a Zip of Markdown files
+ */
+ static async exportRisksToObsidian(risks: Risk[]) {
+ const zip = new JSZip();
+ // Create a root folder inside the zip for cleanliness
+ const folder = zip.folder("Sentinel_Risks_Obsidian");
 
-        risks.forEach(risk => {
-            // Sanitize filename
-            const threat = risk.threat || 'Risque_sans_titre';
-            const safeTitle = threat.replace(/[^a-z0-9]/gi, '_').substring(0, 50);
-            const filename = `RISK-${risk.id}-${safeTitle}.md`;
-            folder?.file(filename, this.formatRiskToMarkdown(risk));
-        });
+ risks.forEach(risk => {
+ // Sanitize filename
+ const threat = risk.threat || 'Risque_sans_titre';
+ const safeTitle = threat.replace(/[^a-z0-9]/gi, '_').substring(0, 50);
+ const filename = `RISK-${risk.id}-${safeTitle}.md`;
+ folder?.file(filename, this.formatRiskToMarkdown(risk));
+ });
 
-        const content = await zip.generateAsync({ type: "blob" });
-        saveAs(content, "Sentinel_Risk_Register_Obsidian.zip");
-    }
+ const content = await zip.generateAsync({ type: "blob" });
+ saveAs(content, "Sentinel_Risk_Register_Obsidian.zip");
+ }
 
-    /**
-     * Export a list of Assets as a Zip of Markdown files
-     */
-    static async exportAssetsToObsidian(assets: Asset[]) {
-        const zip = new JSZip();
-        const folder = zip.folder("Sentinel_Assets_Obsidian");
+ /**
+ * Export a list of Assets as a Zip of Markdown files
+ */
+ static async exportAssetsToObsidian(assets: Asset[]) {
+ const zip = new JSZip();
+ const folder = zip.folder("Sentinel_Assets_Obsidian");
 
-        assets.forEach(asset => {
-            const safeName = asset.name.replace(/[^a-z0-9]/gi, '_').substring(0, 50);
-            const filename = `ASSET-${asset.id}-${safeName}.md`;
-            folder?.file(filename, this.formatAssetToMarkdown(asset));
-        });
+ assets.forEach(asset => {
+ const safeName = asset.name.replace(/[^a-z0-9]/gi, '_').substring(0, 50);
+ const filename = `ASSET-${asset.id}-${safeName}.md`;
+ folder?.file(filename, this.formatAssetToMarkdown(asset));
+ });
 
-        const content = await zip.generateAsync({ type: "blob" });
-        saveAs(content, "Sentinel_Asset_Inventory_Obsidian.zip");
-    }
+ const content = await zip.generateAsync({ type: "blob" });
+ saveAs(content, "Sentinel_Asset_Inventory_Obsidian.zip");
+ }
 }

@@ -9,110 +9,110 @@ import { useSessionMetrics, useActivityRecorder } from '../useSessionMonitor';
 
 // Mock session monitor
 const mockMetrics = {
-    sessionDuration: 60000,
-    lastActivity: Date.now(),
-    activityCount: 10,
+ sessionDuration: 60000,
+ lastActivity: Date.now(),
+ activityCount: 10,
 };
 
 const mockRecordActivity = vi.fn();
 const mockGetMetrics = vi.fn(() => mockMetrics);
 
 vi.mock('../../services/sessionMonitoringService', () => ({
-    SessionMonitor: {
-        getMetrics: () => mockGetMetrics(),
-        recordActivity: () => mockRecordActivity(),
-    },
+ SessionMonitor: {
+ getMetrics: () => mockGetMetrics(),
+ recordActivity: () => mockRecordActivity(),
+ },
 }));
 
 describe('useSessionMetrics', () => {
-    beforeEach(() => {
-        vi.useFakeTimers();
-        vi.clearAllMocks();
-    });
+ beforeEach(() => {
+ vi.useFakeTimers();
+ vi.clearAllMocks();
+ });
 
-    afterEach(() => {
-        vi.useRealTimers();
-    });
+ afterEach(() => {
+ vi.useRealTimers();
+ });
 
-    it('should return initial metrics', () => {
-        const { result } = renderHook(() => useSessionMetrics());
+ it('should return initial metrics', () => {
+ const { result } = renderHook(() => useSessionMetrics());
 
-        expect(result.current).toEqual(mockMetrics);
-    });
+ expect(result.current).toEqual(mockMetrics);
+ });
 
-    it('should update metrics every 5 seconds', async () => {
-        const updatedMetrics = {
-            sessionDuration: 65000,
-            lastActivity: Date.now(),
-            activityCount: 15,
-        };
+ it('should update metrics every 5 seconds', async () => {
+ const updatedMetrics = {
+ sessionDuration: 65000,
+ lastActivity: Date.now(),
+ activityCount: 15,
+ };
 
-        mockGetMetrics.mockReturnValueOnce(mockMetrics).mockReturnValueOnce(updatedMetrics);
+ mockGetMetrics.mockReturnValueOnce(mockMetrics).mockReturnValueOnce(updatedMetrics);
 
-        const { result } = renderHook(() => useSessionMetrics());
+ const { result } = renderHook(() => useSessionMetrics());
 
-        expect(result.current?.sessionDuration).toBe(60000);
+ expect(result.current?.sessionDuration).toBe(60000);
 
-        // Advance timer by 5 seconds
-        act(() => {
-            vi.advanceTimersByTime(5000);
-        });
+ // Advance timer by 5 seconds
+ act(() => {
+ vi.advanceTimersByTime(5000);
+ });
 
-        expect(result.current?.sessionDuration).toBe(65000);
-    });
+ expect(result.current?.sessionDuration).toBe(65000);
+ });
 
-    it('should clear interval on unmount', () => {
-        const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
+ it('should clear interval on unmount', () => {
+ const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
 
-        const { unmount } = renderHook(() => useSessionMetrics());
+ const { unmount } = renderHook(() => useSessionMetrics());
 
-        unmount();
+ unmount();
 
-        expect(clearIntervalSpy).toHaveBeenCalled();
-    });
+ expect(clearIntervalSpy).toHaveBeenCalled();
+ });
 
-    it('should call getMetrics on interval', () => {
-        const { unmount } = renderHook(() => useSessionMetrics());
+ it('should call getMetrics on interval', () => {
+ const { unmount } = renderHook(() => useSessionMetrics());
 
-        expect(mockGetMetrics).toHaveBeenCalledTimes(1);
+ expect(mockGetMetrics).toHaveBeenCalledTimes(1);
 
-        act(() => {
-            vi.advanceTimersByTime(5000);
-        });
+ act(() => {
+ vi.advanceTimersByTime(5000);
+ });
 
-        expect(mockGetMetrics).toHaveBeenCalledTimes(2);
+ expect(mockGetMetrics).toHaveBeenCalledTimes(2);
 
-        // Clean up before next timer advance to avoid issues
-        unmount();
-    });
+ // Clean up before next timer advance to avoid issues
+ unmount();
+ });
 });
 
 describe('useActivityRecorder', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-    });
+ beforeEach(() => {
+ vi.clearAllMocks();
+ });
 
-    it('should return a function', () => {
-        const { result } = renderHook(() => useActivityRecorder());
+ it('should return a function', () => {
+ const { result } = renderHook(() => useActivityRecorder());
 
-        expect(typeof result.current).toBe('function');
-    });
+ expect(typeof result.current).toBe('function');
+ });
 
-    it('should call SessionMonitor.recordActivity when invoked', () => {
-        const { result } = renderHook(() => useActivityRecorder());
+ it('should call SessionMonitor.recordActivity when invoked', () => {
+ const { result } = renderHook(() => useActivityRecorder());
 
-        result.current();
+ result.current();
 
-        expect(mockRecordActivity).toHaveBeenCalled();
-    });
+ expect(mockRecordActivity).toHaveBeenCalled();
+ });
 
-    it('should call recordActivity multiple times', () => {
-        const { result } = renderHook(() => useActivityRecorder());
+ it('should call recordActivity multiple times', () => {
+ const { result } = renderHook(() => useActivityRecorder());
 
-        result.current();
-        result.current();
-        result.current();
+ result.current();
+ result.current();
+ result.current();
 
-        expect(mockRecordActivity).toHaveBeenCalledTimes(3);
-    });
+ expect(mockRecordActivity).toHaveBeenCalledTimes(3);
+ });
 });

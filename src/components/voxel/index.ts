@@ -28,80 +28,80 @@ export type { VoxelFallback2DProps, FallbackReason } from './fallback/VoxelFallb
 
 // Node components (Epic VOX-2)
 export {
-  VoxelNode,
-  VoxelNodeLabel,
-  VoxelNodeLOD,
-  NodeHighDetail,
-  NodeMediumDetail,
-  NodeLowDetail,
-  AssetNode,
-  RiskNode,
-  ControlNode,
-  VoxelNodeRenderer,
+ VoxelNode,
+ VoxelNodeLabel,
+ VoxelNodeLOD,
+ NodeHighDetail,
+ NodeMediumDetail,
+ NodeLowDetail,
+ AssetNode,
+ RiskNode,
+ ControlNode,
+ VoxelNodeRenderer,
 } from './nodes';
 export type {
-  VoxelNodeProps,
-  VoxelNodeLabelProps,
-  VoxelNodeLODProps,
-  NodeHighDetailProps,
-  NodeMediumDetailProps,
-  NodeLowDetailProps,
-  AssetNodeProps,
-  RiskNodeProps,
-  ControlNodeProps,
-  VoxelNodeRendererProps,
+ VoxelNodeProps,
+ VoxelNodeLabelProps,
+ VoxelNodeLODProps,
+ NodeHighDetailProps,
+ NodeMediumDetailProps,
+ NodeLowDetailProps,
+ AssetNodeProps,
+ RiskNodeProps,
+ ControlNodeProps,
+ VoxelNodeRendererProps,
 } from './nodes';
 
 // Edge components (Epic VOX-3)
 export {
-  VoxelEdge,
-  VoxelEdgeCurved,
-  EdgeManager,
+ VoxelEdge,
+ VoxelEdgeCurved,
+ EdgeManager,
 } from './edges';
 export type {
-  VoxelEdgeProps,
-  VoxelEdgeCurvedProps,
-  EdgeManagerProps,
+ VoxelEdgeProps,
+ VoxelEdgeCurvedProps,
+ EdgeManagerProps,
 } from './edges';
 
 // Hooks (Epic VOX-4, VOX-5)
 export {
-  useNodeSelection,
-  useHoverState,
-  useCameraAnimation,
-  useFilterPresets,
-  FILTER_PRESETS,
+ useNodeSelection,
+ useHoverState,
+ useCameraAnimation,
+ useFilterPresets,
+ FILTER_PRESETS,
 } from './hooks';
 export type {
-  UseNodeSelectionReturn,
-  UseHoverStateReturn,
-  UseHoverStateOptions,
-  UseCameraAnimationReturn,
-  CameraAnimationConfig,
-  UseFilterPresetsReturn,
-  FilterPreset,
+ UseNodeSelectionReturn,
+ UseHoverStateReturn,
+ UseHoverStateOptions,
+ UseCameraAnimationReturn,
+ CameraAnimationConfig,
+ UseFilterPresetsReturn,
+ FilterPreset,
 } from './hooks';
 
 // Effects (Epic VOX-4)
 export {
-  SelectionGlow,
-  HoverGlow,
+ SelectionGlow,
+ HoverGlow,
 } from './effects';
 export type {
-  SelectionGlowProps,
-  HoverGlowProps,
+ SelectionGlowProps,
+ HoverGlowProps,
 } from './effects';
 
 // Overlays (Epic VOX-4, VOX-5)
 export {
-  VoxelTooltip,
-  VoxelDetailPanel,
-  VoxelFilterPanel,
-  VoxelToolbar,
+ VoxelTooltip,
+ VoxelDetailPanel,
+ VoxelFilterPanel,
+ VoxelToolbar,
 } from './overlays';
 export type {
-  VoxelTooltipProps,
-  VoxelDetailPanelProps,
-  VoxelFilterPanelProps,
-  VoxelToolbarProps,
+ VoxelTooltipProps,
+ VoxelDetailPanelProps,
+ VoxelFilterPanelProps,
+ VoxelToolbarProps,
 } from './overlays';

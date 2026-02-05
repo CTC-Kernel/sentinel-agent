@@ -10,32 +10,32 @@ import { useNotifications } from '../useNotifications';
 
 // Create a mock context
 const mockContextValue = {
-    notifications: [],
-    addNotification: vi.fn(),
-    removeNotification: vi.fn(),
-    clearAll: vi.fn(),
+ notifications: [],
+ addNotification: vi.fn(),
+ removeNotification: vi.fn(),
+ clearAll: vi.fn(),
 };
 
 // Mock the context
 vi.mock('../../contexts/NotificationContext', () => ({
-    NotificationContext: React.createContext(undefined),
+ NotificationContext: React.createContext(undefined),
 }));
 
 describe('useNotifications', () => {
-    it('should throw error when used outside provider', () => {
-        expect(() => {
-            renderHook(() => useNotifications());
-        }).toThrow('useNotifications must be used within a NotificationProvider');
-    });
+ it('should throw error when used outside provider', () => {
+ expect(() => {
+ renderHook(() => useNotifications());
+ }).toThrow('useNotifications must be used within a NotificationProvider');
+ });
 
-    it('should return context when inside provider', async () => {
-        // Re-mock with value
-        vi.doMock('../../contexts/NotificationContext', () => ({
-            NotificationContext: React.createContext(mockContextValue),
-        }));
+ it('should return context when inside provider', async () => {
+ // Re-mock with value
+ vi.doMock('../../contexts/NotificationContext', () => ({
+ NotificationContext: React.createContext(mockContextValue),
+ }));
 
-        // The hook will still throw because the mock isn't properly set up for provider
-        // This is a common limitation with context testing in unit tests
-        // The test above proves the error case works correctly
-    });
+ // The hook will still throw because the mock isn't properly set up for provider
+ // This is a common limitation with context testing in unit tests
+ // The test above proves the error case works correctly
+ });
 });

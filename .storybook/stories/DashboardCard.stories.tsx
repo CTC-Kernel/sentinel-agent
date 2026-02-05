@@ -66,11 +66,11 @@ export const WithoutExpansion: Story = {
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">87%</div>
-            <div className="text-sm text-gray-600">Conformité</div>
+            <div className="text-sm text-muted-foreground">Conformité</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">12</div>
-            <div className="text-sm text-gray-600">Actifs</div>
+            <div className="text-sm text-muted-foreground">Actifs</div>
           </div>
         </div>
       </div>
@@ -123,8 +123,8 @@ export const WithHeaderAction: Story = {
     subtitle: 'Génération en cours',
     expandable: true,
     headerAction: (
-      <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-        <span className="text-gray-600">⚙️</span>
+      <button className="p-2 hover:bg-muted rounded-lg transition-colors">
+        <span className="text-muted-foreground">⚙️</span>
       </button>
     ),
     children: (

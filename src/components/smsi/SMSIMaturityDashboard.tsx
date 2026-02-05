@@ -12,546 +12,546 @@ import { PremiumCard } from '../ui/PremiumCard';
 import { Badge } from '../ui/Badge';
 import { cn } from '../../utils/cn';
 import {
-  BarChart3,
-  Shield,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  FileCheck,
-  Lightbulb,
-  ChevronRight,
-  Download,
-  RefreshCw,
+ BarChart3,
+ Shield,
+ TrendingUp,
+ TrendingDown,
+ Minus,
+ AlertTriangle,
+ CheckCircle,
+ XCircle,
+ FileCheck,
+ Lightbulb,
+ ChevronRight,
+ Download,
+ RefreshCw,
 } from '../ui/Icons';
 import { Button } from '../ui/button';
 import type { SMSIProgram, Milestone, PDCAPhase } from '../../types/ebios';
 import {
-  SMSIService,
-  type SMSIRecommendation,
-  MATURITY_LEVELS,
+ SMSIService,
+ type SMSIRecommendation,
+ MATURITY_LEVELS,
 } from '../../services/SMSIService';
 
 interface SMSIMaturityDashboardProps {
-  program: SMSIProgram;
-  milestones: Milestone[];
-  onDownloadCertificationReport?: () => void;
+ program: SMSIProgram;
+ milestones: Milestone[];
+ onDownloadCertificationReport?: () => void;
 }
 
 export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
-  program,
-  milestones,
-  onDownloadCertificationReport,
+ program,
+ milestones,
+ onDownloadCertificationReport,
 }) => {
-  const { t } = useTranslation();
-  const [showRecommendations, setShowRecommendations] = useState(false);
-  const [showChecklist, setShowChecklist] = useState(false);
+ const { t } = useTranslation();
+ const [showRecommendations, setShowRecommendations] = useState(false);
+ const [showChecklist, setShowChecklist] = useState(false);
 
-  // Calculate maturity and readiness
-  const maturity = useMemo(
-    () => SMSIService.calculateMaturityAssessment(program, milestones),
-    [program, milestones]
-  );
+ // Calculate maturity and readiness
+ const maturity = useMemo(
+ () => SMSIService.calculateMaturityAssessment(program, milestones),
+ [program, milestones]
+ );
 
-  const readiness = useMemo(
-    () => SMSIService.assessCertificationReadiness(program, milestones, maturity),
-    [program, milestones, maturity]
-  );
+ const readiness = useMemo(
+ () => SMSIService.assessCertificationReadiness(program, milestones, maturity),
+ [program, milestones, maturity]
+ );
 
-  // Handle certification report download
-  const handleDownloadReport = () => {
-    if (onDownloadCertificationReport) {
-      onDownloadCertificationReport();
-    } else {
-      SMSIService.downloadCertificationReport(program, milestones, {
-        includeRecommendations: true,
-      });
-    }
-  };
+ // Handle certification report download
+ const handleDownloadReport = () => {
+ if (onDownloadCertificationReport) {
+ onDownloadCertificationReport();
+ } else {
+ SMSIService.downloadCertificationReport(program, milestones, {
+ includeRecommendations: true,
+ });
+ }
+ };
 
-  const getTrendIcon = (trend: 'up' | 'down' | 'stable') => {
-    switch (trend) {
-      case 'up':
-        return <TrendingUp className="w-4 h-4 text-green-500" />;
-      case 'down':
-        return <TrendingDown className="w-4 h-4 text-red-500" />;
-      default:
-        return <Minus className="w-4 h-4 text-muted-foreground" />;
-    }
-  };
+ const getTrendIcon = (trend: 'up' | 'down' | 'stable') => {
+ switch (trend) {
+ case 'up':
+ return <TrendingUp className="w-4 h-4 text-green-500" />;
+ case 'down':
+ return <TrendingDown className="w-4 h-4 text-red-500" />;
+ default:
+ return <Minus className="w-4 h-4 text-muted-foreground" />;
+ }
+ };
 
-  const levelColors: Record<string, string> = {
-    red: 'text-error-text bg-error-bg border-error-text/20 dark:bg-error-bg dark:border-error-text/30',
-    orange: 'text-warning-text bg-warning-bg border-warning-text/20 dark:bg-warning-bg dark:border-warning-text/30',
-    yellow: 'text-warning-text bg-warning-bg border-warning-text/20 dark:bg-warning-bg dark:border-warning-text/30',
-    blue: 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-800 border-brand-200 dark:border-brand-700',
-    green: 'text-success-text bg-success-bg border-success-text/20 dark:bg-success-bg dark:border-success-text/30',
-  };
+ const levelColors: Record<string, string> = {
+ red: 'text-error-text bg-error-bg border-error-text/20 dark:bg-error-bg dark:border-error-text/30',
+ orange: 'text-warning-text bg-warning-bg border-warning-text/20 dark:bg-warning-bg dark:border-warning-text/30',
+ yellow: 'text-warning-text bg-warning-bg border-warning-text/20 dark:bg-warning-bg dark:border-warning-text/30',
+ blue: 'text-primary bg-primary/10 dark:bg-primary border-primary/30 dark:border-primary/80',
+ green: 'text-success-text bg-success-bg border-success-text/20 dark:bg-success-bg dark:border-success-text/30',
+ };
 
-  return (
-    <div className="space-y-6">
-      {/* Overall Maturity Score */}
-      <PremiumCard glass className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-3xl bg-brand-100 dark:bg-brand-900 text-brand-600 dark:text-brand-400">
-              <BarChart3 className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                {t('smsi.maturity.title', 'Maturité SMSI')}
-              </h3>
-              <p className="text-sm text-slate-500">
-                {t('smsi.maturity.subtitle', 'Évaluation de la maturité ISO 27001')}
-              </p>
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDownloadReport}
-            className="gap-1.5"
-          >
-            <Download className="w-4 h-4" />
-            {t('smsi.maturity.downloadReport', 'Rapport')}
-          </Button>
-        </div>
+ return (
+ <div className="space-y-6">
+ {/* Overall Maturity Score */}
+ <PremiumCard glass className="p-6">
+ <div className="flex items-center justify-between mb-6">
+ <div className="flex items-center gap-3">
+ <div className="p-2.5 rounded-3xl bg-primary/15 dark:bg-primary text-primary">
+ <BarChart3 className="w-6 h-6" />
+ </div>
+ <div>
+ <h3 className="text-lg font-bold text-foreground">
+ {t('smsi.maturity.title', 'Maturité SMSI')}
+ </h3>
+ <p className="text-sm text-muted-foreground">
+ {t('smsi.maturity.subtitle', 'Évaluation de la maturité ISO 27001')}
+ </p>
+ </div>
+ </div>
+ <Button
+ variant="outline"
+ size="sm"
+ onClick={handleDownloadReport}
+ className="gap-1.5"
+ >
+ <Download className="w-4 h-4" />
+ {t('smsi.maturity.downloadReport', 'Rapport')}
+ </Button>
+ </div>
 
-        {/* Main Score Display */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Score Gauge */}
-          <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 border border-border/40 dark:border-slate-700">
-            <div className="relative w-32 h-32">
-              {/* Background circle */}
-              <svg className="w-full h-full transform -rotate-90">
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="56"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="12"
-                  className="text-slate-200 dark:text-slate-700"
-                />
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="56"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="12"
-                  strokeLinecap="round"
-                  strokeDasharray={`${(maturity.overall.score / 100) * 351.86} 351.86`}
-                  className={cn(
-                    maturity.overall.level.color === 'green' ? 'text-success-500' :
-                    maturity.overall.level.color === 'blue' ? 'text-brand-500' :
-                    maturity.overall.level.color === 'yellow' ? 'text-warning-500' :
-                    maturity.overall.level.color === 'orange' ? 'text-warning-500' :
-                    'text-error-500'
-                  )}
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-3xl font-bold text-slate-900 dark:text-white">
-                  {maturity.overall.score}%
-                </span>
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  {getTrendIcon(maturity.overall.trend)}
-                </span>
-              </div>
-            </div>
-            <div className={cn(
-              "mt-4 px-4 py-2 rounded-full border font-bold text-sm",
-              levelColors[maturity.overall.level.color]
-            )}>
-              {maturity.overall.level.label}
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground text-center max-w-[200px]">
-              {maturity.overall.level.description}
-            </p>
-          </div>
+ {/* Main Score Display */}
+ <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+ {/* Score Gauge */}
+ <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-gradient-to-br from-muted/50 to-muted dark:from-slate-800/50 dark:to-slate-900/50 border border-border/40">
+ <div className="relative w-32 h-32">
+ {/* Background circle */}
+ <svg className="w-full h-full transform -rotate-90">
+ <circle
+  cx="64"
+  cy="64"
+  r="56"
+  fill="none"
+  stroke="currentColor"
+  strokeWidth="12"
+  className="text-muted-foreground/60"
+ />
+ <circle
+  cx="64"
+  cy="64"
+  r="56"
+  fill="none"
+  stroke="currentColor"
+  strokeWidth="12"
+  strokeLinecap="round"
+  strokeDasharray={`${(maturity.overall.score / 100) * 351.86} 351.86`}
+  className={cn(
+  maturity.overall.level.color === 'green' ? 'text-success-500' :
+  maturity.overall.level.color === 'blue' ? 'text-primary' :
+  maturity.overall.level.color === 'yellow' ? 'text-warning-500' :
+  maturity.overall.level.color === 'orange' ? 'text-warning-500' :
+  'text-error-500'
+  )}
+ />
+ </svg>
+ <div className="absolute inset-0 flex flex-col items-center justify-center">
+ <span className="text-3xl font-bold text-foreground">
+  {maturity.overall.score}%
+ </span>
+ <span className="text-xs text-muted-foreground flex items-center gap-1">
+  {getTrendIcon(maturity.overall.trend)}
+ </span>
+ </div>
+ </div>
+ <div className={cn(
+ "mt-4 px-4 py-2 rounded-full border font-bold text-sm",
+ levelColors[maturity.overall.level.color]
+ )}>
+ {maturity.overall.level.label}
+ </div>
+ <p className="mt-2 text-xs text-muted-foreground text-center max-w-[200px]">
+ {maturity.overall.level.description}
+ </p>
+ </div>
 
-          {/* Phase Scores */}
-          <div className="lg:col-span-2">
-            <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-4">
-              {t('smsi.maturity.phases', 'Scores par Phase PDCA')}
-            </h4>
-            <div className="space-y-4">
-              {(['plan', 'do', 'check', 'act'] as PDCAPhase[]).map((phase) => {
-                const phaseData = maturity.phases[phase];
-                const phaseLabels: Record<PDCAPhase, string> = {
-                  plan: 'Plan - Planifier',
-                  do: 'Do - Déployer',
-                  check: 'Check - Contrôler',
-                  act: 'Act - Améliorer',
-                };
-                const phaseColors: Record<PDCAPhase, string> = {
-                  plan: 'bg-brand-500',
-                  do: 'bg-success-500',
-                  check: 'bg-info-500',
-                  act: 'bg-warning-500',
-                };
+ {/* Phase Scores */}
+ <div className="lg:col-span-2">
+ <h4 className="text-sm font-bold text-foreground uppercase tracking-wider mb-4">
+ {t('smsi.maturity.phases', 'Scores par Phase PDCA')}
+ </h4>
+ <div className="space-y-4">
+ {(['plan', 'do', 'check', 'act'] as PDCAPhase[]).map((phase) => {
+ const phaseData = maturity.phases[phase];
+ const phaseLabels: Record<PDCAPhase, string> = {
+  plan: 'Plan - Planifier',
+  do: 'Do - Déployer',
+  check: 'Check - Contrôler',
+  act: 'Act - Améliorer',
+ };
+ const phaseColors: Record<PDCAPhase, string> = {
+  plan: 'bg-primary',
+  do: 'bg-success-500',
+  check: 'bg-info-500',
+  act: 'bg-warning-500',
+ };
 
-                return (
-                  <div key={phase || 'unknown'} className="group">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <span className={cn("w-2 h-2 rounded-full", phaseColors[phase])} />
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                          {phaseLabels[phase]}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-slate-500">
-                        <span>{phaseData.completedMilestones}/{phaseData.totalMilestones} jalons</span>
-                        {phaseData.overdueMilestones > 0 && (
-                          <Badge status="error" size="sm">
-                            {phaseData.overdueMilestones} en retard
-                          </Badge>
-                        )}
-                        <span className="font-bold text-slate-700 dark:text-slate-300">
-                          {phaseData.score}%
-                        </span>
-                      </div>
-                    </div>
-                    <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${phaseData.score}%` }}
-                        transition={{ duration: 0.8, ease: 'easeOut' }}
-                        className={cn("h-full rounded-full", phaseColors[phase])}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </PremiumCard>
+ return (
+  <div key={phase || 'unknown'} className="group">
+  <div className="flex items-center justify-between mb-1.5">
+  <div className="flex items-center gap-2">
+  <span className={cn("w-2 h-2 rounded-full", phaseColors[phase])} />
+  <span className="text-sm font-medium text-foreground">
+  {phaseLabels[phase]}
+  </span>
+  </div>
+  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+  <span>{phaseData.completedMilestones}/{phaseData.totalMilestones} jalons</span>
+  {phaseData.overdueMilestones > 0 && (
+  <Badge status="error" size="sm">
+  {phaseData.overdueMilestones} en retard
+  </Badge>
+  )}
+  <span className="font-bold text-foreground">
+  {phaseData.score}%
+  </span>
+  </div>
+  </div>
+  <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
+  <motion.div
+  initial={{ width: 0 }}
+  animate={{ width: `${phaseData.score}%` }}
+  transition={{ duration: 0.8, ease: 'easeOut' }}
+  className={cn("h-full rounded-full", phaseColors[phase])}
+  />
+  </div>
+  </div>
+ );
+ })}
+ </div>
+ </div>
+ </div>
+ </PremiumCard>
 
-      {/* Certification Readiness */}
-      <PremiumCard glass className={cn(
-        "p-6 border-2",
-        readiness.ready
-          ? "border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/30"
-          : "border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/30"
-      )}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className={cn(
-              "p-2.5 rounded-3xl",
-              readiness.ready
-                ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
-                : "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
-            )}>
-              {readiness.ready ? <CheckCircle className="w-6 h-6" /> : <AlertTriangle className="w-6 h-6" />}
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                {t('smsi.certification.title', 'État de préparation à la certification')}
-              </h3>
-              <p className="text-sm text-slate-500">
-                Score: <span className="font-bold">{readiness.score}%</span>
-              </p>
-            </div>
-          </div>
-          <Badge
-            status={readiness.ready ? 'success' : 'warning'}
-            className="text-sm"
-          >
-            {readiness.ready
-              ? t('smsi.certification.ready', 'Prêt')
-              : t('smsi.certification.notReady', 'Actions requises')}
-          </Badge>
-        </div>
+ {/* Certification Readiness */}
+ <PremiumCard glass className={cn(
+ "p-6 border-2",
+ readiness.ready
+ ? "border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/30"
+ : "border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/30"
+ )}>
+ <div className="flex items-center justify-between mb-4">
+ <div className="flex items-center gap-3">
+ <div className={cn(
+ "p-2.5 rounded-3xl",
+ readiness.ready
+ ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
+ : "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
+ )}>
+ {readiness.ready ? <CheckCircle className="w-6 h-6" /> : <AlertTriangle className="w-6 h-6" />}
+ </div>
+ <div>
+ <h3 className="text-lg font-bold text-foreground">
+ {t('smsi.certification.title', 'État de préparation à la certification')}
+ </h3>
+ <p className="text-sm text-muted-foreground">
+ Score: <span className="font-bold">{readiness.score}%</span>
+ </p>
+ </div>
+ </div>
+ <Badge
+ status={readiness.ready ? 'success' : 'warning'}
+ className="text-sm"
+ >
+ {readiness.ready
+ ? t('smsi.certification.ready', 'Prêt')
+ : t('smsi.certification.notReady', 'Actions requises')}
+ </Badge>
+ </div>
 
-        {/* Blockers & Warnings */}
-        {readiness.blockers.length > 0 && (
-          <div className="mb-4 p-4 rounded-3xl bg-red-100/80 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-            <h4 className="flex items-center gap-2 text-sm font-bold text-red-700 dark:text-red-400 mb-2">
-              <XCircle className="w-4 h-4" />
-              Points bloquants
-            </h4>
-            <ul className="space-y-1">
-              {readiness.blockers.map((blocker, i) => (
-                <li key={i || 'unknown'} className="text-sm text-red-600 dark:text-red-400">• {blocker}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+ {/* Blockers & Warnings */}
+ {readiness.blockers.length > 0 && (
+ <div className="mb-4 p-4 rounded-3xl bg-red-100/80 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+ <h4 className="flex items-center gap-2 text-sm font-bold text-red-700 dark:text-red-400 mb-2">
+ <XCircle className="w-4 h-4" />
+ Points bloquants
+ </h4>
+ <ul className="space-y-1">
+ {readiness.blockers.map((blocker, i) => (
+ <li key={i || 'unknown'} className="text-sm text-red-600 dark:text-red-400">• {blocker}</li>
+ ))}
+ </ul>
+ </div>
+ )}
 
-        {readiness.warnings.length > 0 && (
-          <div className="mb-4 p-4 rounded-3xl bg-amber-100/80 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-            <h4 className="flex items-center gap-2 text-sm font-bold text-amber-700 dark:text-amber-400 mb-2">
-              <AlertTriangle className="w-4 h-4" />
-              Points d'attention
-            </h4>
-            <ul className="space-y-1">
-              {readiness.warnings.map((warning, i) => (
-                <li key={i || 'unknown'} className="text-sm text-amber-600 dark:text-amber-400">• {warning}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+ {readiness.warnings.length > 0 && (
+ <div className="mb-4 p-4 rounded-3xl bg-amber-100/80 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+ <h4 className="flex items-center gap-2 text-sm font-bold text-amber-700 dark:text-amber-400 mb-2">
+ <AlertTriangle className="w-4 h-4" />
+ Points d'attention
+ </h4>
+ <ul className="space-y-1">
+ {readiness.warnings.map((warning, i) => (
+ <li key={i || 'unknown'} className="text-sm text-amber-600 dark:text-amber-400">• {warning}</li>
+ ))}
+ </ul>
+ </div>
+ )}
 
-        {/* Checklist toggle */}
-        <button
-          onClick={() => setShowChecklist(!showChecklist)}
-          className="flex items-center justify-between w-full p-3 rounded-3xl bg-white/50 dark:bg-slate-800/50 border border-border/40 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition-colors group"
-        >
-          <div className="flex items-center gap-2">
-            <FileCheck className="w-5 h-5 text-slate-400 group-hover:text-indigo-500" />
-            <span className="font-medium text-slate-700 dark:text-slate-300">
-              Checklist de certification
-            </span>
-            <Badge variant="outline" size="sm">
-              {readiness.checklist.filter(c => c.status === 'passed').length}/{readiness.checklist.length}
-            </Badge>
-          </div>
-          <ChevronRight className={cn(
-            "w-5 h-5 text-slate-400 transition-transform",
-            showChecklist && "rotate-90"
-          )} />
-        </button>
+ {/* Checklist toggle */}
+ <button
+ onClick={() => setShowChecklist(!showChecklist)}
+ className="flex items-center justify-between w-full p-3 rounded-3xl bg-card/50 border border-border/40 hover:bg-card transition-colors group"
+ >
+ <div className="flex items-center gap-2">
+ <FileCheck className="w-5 h-5 text-muted-foreground group-hover:text-indigo-500" />
+ <span className="font-medium text-foreground">
+ Checklist de certification
+ </span>
+ <Badge variant="outline" size="sm">
+ {readiness.checklist.filter(c => c.status === 'passed').length}/{readiness.checklist.length}
+ </Badge>
+ </div>
+ <ChevronRight className={cn(
+ "w-5 h-5 text-muted-foreground transition-transform",
+ showChecklist && "rotate-90"
+ )} />
+ </button>
 
-        {showChecklist && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="mt-4 space-y-2"
-          >
-            {readiness.checklist.map((item, i) => (
-              <div
-                key={i || 'unknown'}
-                className={cn(
-                  "flex items-center justify-between p-3 rounded-3xl border",
-                  item.status === 'passed' && "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800",
-                  item.status === 'warning' && "bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800",
-                  item.status === 'failed' && "bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800",
-                  item.status === 'not_applicable' && "bg-slate-50 dark:bg-slate-800/50 border-border/40 dark:border-slate-700"
-                )}
-              >
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.item}</span>
-                <div className="flex items-center gap-2">
-                  {item.details && (
-                    <span className="text-xs text-muted-foreground max-w-[200px] truncate">{item.details}</span>
-                  )}
-                  {item.status === 'passed' && <CheckCircle className="w-5 h-5 text-green-500" />}
-                  {item.status === 'warning' && <AlertTriangle className="w-5 h-5 text-amber-500" />}
-                  {item.status === 'failed' && <XCircle className="w-5 h-5 text-red-500" />}
-                </div>
-              </div>
-            ))}
-          </motion.div>
-        )}
-      </PremiumCard>
+ {showChecklist && (
+ <motion.div
+ initial={{ height: 0, opacity: 0 }}
+ animate={{ height: 'auto', opacity: 1 }}
+ exit={{ height: 0, opacity: 0 }}
+ className="mt-4 space-y-2"
+ >
+ {readiness.checklist.map((item, i) => (
+ <div
+ key={i || 'unknown'}
+ className={cn(
+  "flex items-center justify-between p-3 rounded-3xl border",
+  item.status === 'passed' && "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800",
+  item.status === 'warning' && "bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800",
+  item.status === 'failed' && "bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800",
+  item.status === 'not_applicable' && "bg-muted/50 border-border/40"
+ )}
+ >
+ <span className="text-sm font-medium text-foreground">{item.item}</span>
+ <div className="flex items-center gap-2">
+  {item.details && (
+  <span className="text-xs text-muted-foreground max-w-[200px] truncate">{item.details}</span>
+  )}
+  {item.status === 'passed' && <CheckCircle className="w-5 h-5 text-green-500" />}
+  {item.status === 'warning' && <AlertTriangle className="w-5 h-5 text-amber-500" />}
+  {item.status === 'failed' && <XCircle className="w-5 h-5 text-red-500" />}
+ </div>
+ </div>
+ ))}
+ </motion.div>
+ )}
+ </PremiumCard>
 
-      {/* Recommendations */}
-      {maturity.recommendations.length > 0 && (
-        <PremiumCard glass className="p-6">
-          <button
-            onClick={() => setShowRecommendations(!showRecommendations)}
-            className="flex items-center justify-between w-full group"
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-3xl bg-info-100 dark:bg-info-900/30 text-info-600 dark:text-info-400">
-                <Lightbulb className="w-6 h-6" />
-              </div>
-              <div className="text-left">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                  {t('smsi.recommendations.title', 'Recommandations d\'amélioration')}
-                </h3>
-                <p className="text-sm text-slate-500">
-                  {maturity.recommendations.length} recommandation(s) disponible(s)
-                </p>
-              </div>
-            </div>
-            <ChevronRight className={cn(
-              "w-6 h-6 text-slate-400 transition-transform",
-              showRecommendations && "rotate-90"
-            )} />
-          </button>
+ {/* Recommendations */}
+ {maturity.recommendations.length > 0 && (
+ <PremiumCard glass className="p-6">
+ <button
+ onClick={() => setShowRecommendations(!showRecommendations)}
+ className="flex items-center justify-between w-full group"
+ >
+ <div className="flex items-center gap-3">
+ <div className="p-2.5 rounded-3xl bg-info-100 dark:bg-info-900/30 text-info-600 dark:text-info-400">
+ <Lightbulb className="w-6 h-6" />
+ </div>
+ <div className="text-left">
+ <h3 className="text-lg font-bold text-foreground">
+  {t('smsi.recommendations.title', 'Recommandations d\'amélioration')}
+ </h3>
+ <p className="text-sm text-muted-foreground">
+  {maturity.recommendations.length} recommandation(s) disponible(s)
+ </p>
+ </div>
+ </div>
+ <ChevronRight className={cn(
+ "w-6 h-6 text-muted-foreground transition-transform",
+ showRecommendations && "rotate-90"
+ )} />
+ </button>
 
-          {showRecommendations && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="mt-6 space-y-3"
-            >
-              {maturity.recommendations.map((rec) => (
-                <RecommendationCard key={rec.id || 'unknown'} recommendation={rec} />
-              ))}
-            </motion.div>
-          )}
-        </PremiumCard>
-      )}
+ {showRecommendations && (
+ <motion.div
+ initial={{ height: 0, opacity: 0 }}
+ animate={{ height: 'auto', opacity: 1 }}
+ exit={{ height: 0, opacity: 0 }}
+ className="mt-6 space-y-3"
+ >
+ {maturity.recommendations.map((rec) => (
+ <RecommendationCard key={rec.id || 'unknown'} recommendation={rec} />
+ ))}
+ </motion.div>
+ )}
+ </PremiumCard>
+ )}
 
-      {/* Dimension Scores */}
-      <PremiumCard glass className="p-6">
-        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-          <Shield className="w-5 h-5 text-brand-500" />
-          {t('smsi.dimensions.title', 'Dimensions de la sécurité')}
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <DimensionCard
-            title="Gouvernance"
-            score={maturity.dimensions.governance}
-            icon={<Shield className="w-5 h-5" />}
-            color="blue"
-          />
-          <DimensionCard
-            title="Gestion des risques"
-            score={maturity.dimensions.riskManagement}
-            icon={<AlertTriangle className="w-5 h-5" />}
-            color="orange"
-          />
-          <DimensionCard
-            title="Protection des actifs"
-            score={maturity.dimensions.assetProtection}
-            icon={<FileCheck className="w-5 h-5" />}
-            color="green"
-          />
-          <DimensionCard
-            title="Amélioration continue"
-            score={maturity.dimensions.continuousImprovement}
-            icon={<RefreshCw className="w-5 h-5" />}
-            color="purple"
-          />
-        </div>
-      </PremiumCard>
+ {/* Dimension Scores */}
+ <PremiumCard glass className="p-6">
+ <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+ <Shield className="w-5 h-5 text-primary" />
+ {t('smsi.dimensions.title', 'Dimensions de la sécurité')}
+ </h3>
+ <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+ <DimensionCard
+ title="Gouvernance"
+ score={maturity.dimensions.governance}
+ icon={<Shield className="w-5 h-5" />}
+ color="blue"
+ />
+ <DimensionCard
+ title="Gestion des risques"
+ score={maturity.dimensions.riskManagement}
+ icon={<AlertTriangle className="w-5 h-5" />}
+ color="orange"
+ />
+ <DimensionCard
+ title="Protection des actifs"
+ score={maturity.dimensions.assetProtection}
+ icon={<FileCheck className="w-5 h-5" />}
+ color="green"
+ />
+ <DimensionCard
+ title="Amélioration continue"
+ score={maturity.dimensions.continuousImprovement}
+ icon={<RefreshCw className="w-5 h-5" />}
+ color="purple"
+ />
+ </div>
+ </PremiumCard>
 
-      {/* Maturity Levels Legend */}
-      <PremiumCard glass className="p-4">
-        <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
-          {t('smsi.maturity.legend', 'Échelle de maturité')}
-        </h4>
-        <div className="flex flex-wrap gap-2">
-          {MATURITY_LEVELS.map((level) => (
-            <div
-              key={level.level || 'unknown'}
-              className={cn(
-                "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium",
-                levelColors[level.color]
-              )}
-            >
-              <span className="font-bold">{level.level}</span>
-              <span>{level.label}</span>
-            </div>
-          ))}
-        </div>
-      </PremiumCard>
-    </div>
-  );
+ {/* Maturity Levels Legend */}
+ <PremiumCard glass className="p-4">
+ <h4 className="text-sm font-bold text-foreground mb-3">
+ {t('smsi.maturity.legend', 'Échelle de maturité')}
+ </h4>
+ <div className="flex flex-wrap gap-2">
+ {MATURITY_LEVELS.map((level) => (
+ <div
+ key={level.level || 'unknown'}
+ className={cn(
+ "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium",
+ levelColors[level.color]
+ )}
+ >
+ <span className="font-bold">{level.level}</span>
+ <span>{level.label}</span>
+ </div>
+ ))}
+ </div>
+ </PremiumCard>
+ </div>
+ );
 };
 
 /**
  * Dimension score card
  */
 interface DimensionCardProps {
-  title: string;
-  score: number;
-  icon: React.ReactNode;
-  color: 'blue' | 'orange' | 'green' | 'purple';
+ title: string;
+ score: number;
+ icon: React.ReactNode;
+ color: 'blue' | 'orange' | 'green' | 'purple';
 }
 
 const DimensionCard: React.FC<DimensionCardProps> = ({ title, score, icon, color }) => {
-  const colorClasses = {
-    blue: 'bg-brand-50 dark:bg-brand-800 text-brand-600 dark:text-brand-400 border-brand-200 dark:border-brand-700',
-    orange: 'bg-warning-bg text-warning-text border-warning-text/20 dark:border-warning-text/30',
-    green: 'bg-success-bg text-success-text border-success-text/20 dark:border-success-text/30',
-    purple: 'bg-info-bg text-info-text border-info-text/20 dark:border-info-text/30',
-  };
+ const colorClasses = {
+ blue: 'bg-primary/10 dark:bg-primary text-primary border-primary/30 dark:border-primary/80',
+ orange: 'bg-warning-bg text-warning-text border-warning-text/20 dark:border-warning-text/30',
+ green: 'bg-success-bg text-success-text border-success-text/20 dark:border-success-text/30',
+ purple: 'bg-info-bg text-info-text border-info-text/20 dark:border-info-text/30',
+ };
 
-  const barColors = {
-    blue: 'bg-brand-500',
-    orange: 'bg-warning-500',
-    green: 'bg-success-500',
-    purple: 'bg-info-500',
-  };
+ const barColors = {
+ blue: 'bg-primary',
+ orange: 'bg-warning-500',
+ green: 'bg-success-500',
+ purple: 'bg-info-500',
+ };
 
-  return (
-    <div className={cn("p-4 rounded-3xl border", colorClasses[color])}>
-      <div className="flex items-center gap-2 mb-3">
-        {icon}
-        <span className="text-sm font-bold truncate">{title}</span>
-      </div>
-      <div className="text-2xl font-bold mb-2">{score}%</div>
-      <div className="w-full h-2 bg-white/50 dark:bg-slate-800/50 rounded-full overflow-hidden">
-        <div
-          className={cn("h-full rounded-full transition-all", barColors[color])}
-          style={{ width: `${score}%` }}
-        />
-      </div>
-    </div>
-  );
+ return (
+ <div className={cn("p-4 rounded-3xl border", colorClasses[color])}>
+ <div className="flex items-center gap-2 mb-3">
+ {icon}
+ <span className="text-sm font-bold truncate">{title}</span>
+ </div>
+ <div className="text-2xl font-bold mb-2">{score}%</div>
+ <div className="w-full h-2 bg-card/50 rounded-full overflow-hidden">
+ <div
+ className={cn("h-full rounded-full transition-all", barColors[color])}
+ style={{ width: `${score}%` }}
+ />
+ </div>
+ </div>
+ );
 };
 
 /**
  * Recommendation card
  */
 interface RecommendationCardProps {
-  recommendation: SMSIRecommendation;
+ recommendation: SMSIRecommendation;
 }
 
 const RecommendationCard: React.FC<RecommendationCardProps> = ({ recommendation }) => {
-  const priorityStyles = {
-    critical: 'border-l-red-500 bg-red-50 dark:bg-red-900/30',
-    high: 'border-l-orange-500 bg-orange-50/50 dark:bg-orange-900/20',
-    medium: 'border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/20',
-    low: 'border-l-green-500 bg-green-50 dark:bg-green-900/30',
-  };
+ const priorityStyles = {
+ critical: 'border-l-red-500 bg-red-50 dark:bg-red-900/30',
+ high: 'border-l-orange-500 bg-orange-50/50 dark:bg-orange-900/20',
+ medium: 'border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/20',
+ low: 'border-l-green-500 bg-green-50 dark:bg-green-900/30',
+ };
 
-  const priorityBadges = {
-    critical: 'error',
-    high: 'warning',
-    medium: 'info',
-    low: 'success',
-  } as const;
+ const priorityBadges = {
+ critical: 'error',
+ high: 'warning',
+ medium: 'info',
+ low: 'success',
+ } as const;
 
-  const categoryLabels: Record<string, string> = {
-    governance: 'Gouvernance',
-    risk: 'Risques',
-    operations: 'Opérations',
-    improvement: 'Amélioration',
-    documentation: 'Documentation',
-  };
+ const categoryLabels: Record<string, string> = {
+ governance: 'Gouvernance',
+ risk: 'Risques',
+ operations: 'Opérations',
+ improvement: 'Amélioration',
+ documentation: 'Documentation',
+ };
 
-  return (
-    <div className={cn(
-      "p-4 rounded-3xl border border-l-4",
-      priorityStyles[recommendation.priority]
-    )}>
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <Badge status={priorityBadges[recommendation.priority]} size="sm">
-              {recommendation.priority.toUpperCase()}
-            </Badge>
-            <Badge variant="outline" size="sm">
-              {categoryLabels[recommendation.category]}
-            </Badge>
-            <Badge variant="outline" size="sm">
-              Phase {recommendation.targetPhase.toUpperCase()}
-            </Badge>
-          </div>
-          <h4 className="font-bold text-slate-900 dark:text-white">
-            {recommendation.title}
-          </h4>
-          <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">
-            {recommendation.description}
-          </p>
-        </div>
-        <div className="text-right text-xs text-slate-500">
-          <div>Effort: {recommendation.estimatedEffort}</div>
-          <div>Impact: {recommendation.impact}</div>
-        </div>
-      </div>
-    </div>
-  );
+ return (
+ <div className={cn(
+ "p-4 rounded-3xl border border-l-4",
+ priorityStyles[recommendation.priority]
+ )}>
+ <div className="flex items-start justify-between gap-4">
+ <div className="flex-1">
+ <div className="flex items-center gap-2 mb-1">
+ <Badge status={priorityBadges[recommendation.priority]} size="sm">
+ {recommendation.priority.toUpperCase()}
+ </Badge>
+ <Badge variant="outline" size="sm">
+ {categoryLabels[recommendation.category]}
+ </Badge>
+ <Badge variant="outline" size="sm">
+ Phase {recommendation.targetPhase.toUpperCase()}
+ </Badge>
+ </div>
+ <h4 className="font-bold text-foreground">
+ {recommendation.title}
+ </h4>
+ <p className="text-sm text-muted-foreground mt-1">
+ {recommendation.description}
+ </p>
+ </div>
+ <div className="text-right text-xs text-muted-foreground">
+ <div>Effort: {recommendation.estimatedEffort}</div>
+ <div>Impact: {recommendation.impact}</div>
+ </div>
+ </div>
+ </div>
+ );
 };
 
 export default SMSIMaturityDashboard;

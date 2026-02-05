@@ -11,50 +11,50 @@ import { useEffect, useRef } from 'react';
  * @param options - addEventListener options (capture, passive, etc.)
  */
 export function useEventListener<K extends keyof WindowEventMap>(
-    eventName: K,
-    handler: (event: WindowEventMap[K]) => void,
-    element?: undefined | null,
-    options?: boolean | AddEventListenerOptions
+ eventName: K,
+ handler: (event: WindowEventMap[K]) => void,
+ element?: undefined | null,
+ options?: boolean | AddEventListenerOptions
 ): void;
 
 export function useEventListener<K extends keyof DocumentEventMap>(
-    eventName: K,
-    handler: (event: DocumentEventMap[K]) => void,
-    element: Document,
-    options?: boolean | AddEventListenerOptions
+ eventName: K,
+ handler: (event: DocumentEventMap[K]) => void,
+ element: Document,
+ options?: boolean | AddEventListenerOptions
 ): void;
 
 export function useEventListener<K extends keyof HTMLElementEventMap>(
-    eventName: K,
-    handler: (event: HTMLElementEventMap[K]) => void,
-    element: HTMLElement | null,
-    options?: boolean | AddEventListenerOptions
+ eventName: K,
+ handler: (event: HTMLElementEventMap[K]) => void,
+ element: HTMLElement | null,
+ options?: boolean | AddEventListenerOptions
 ): void;
 
 export function useEventListener(
-    eventName: string,
-    handler: (event: Event) => void,
-    element?: HTMLElement | Document | Window | null,
-    options?: boolean | AddEventListenerOptions
+ eventName: string,
+ handler: (event: Event) => void,
+ element?: HTMLElement | Document | Window | null,
+ options?: boolean | AddEventListenerOptions
 ): void {
-    // Store the handler in a ref to avoid re-registering listeners
-    // when only the handler changes (common with inline functions)
-    const savedHandler = useRef(handler);
+ // Store the handler in a ref to avoid re-registering listeners
+ // when only the handler changes (common with inline functions)
+ const savedHandler = useRef(handler);
 
-    useEffect(() => {
-        savedHandler.current = handler;
-    }, [handler]);
+ useEffect(() => {
+ savedHandler.current = handler;
+ }, [handler]);
 
-    useEffect(() => {
-        const targetElement = element === undefined ? window : element;
-        if (!targetElement?.addEventListener) return;
+ useEffect(() => {
+ const targetElement = element === undefined ? window : element;
+ if (!targetElement?.addEventListener) return;
 
-        const eventListener = (event: Event) => savedHandler.current(event);
+ const eventListener = (event: Event) => savedHandler.current(event);
 
-        targetElement.addEventListener(eventName, eventListener, options);
+ targetElement.addEventListener(eventName, eventListener, options);
 
-        return () => {
-            targetElement.removeEventListener(eventName, eventListener, options);
-        };
-    }, [eventName, element, options]);
+ return () => {
+ targetElement.removeEventListener(eventName, eventListener, options);
+ };
+ }, [eventName, element, options]);
 }

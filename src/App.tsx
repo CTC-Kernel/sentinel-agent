@@ -68,249 +68,249 @@ const AdminDashboard = React.lazy(() => import('./views/admin/AdminDashboard'));
 
 // Wrapper to activate global shortcuts inside Router context
 const GlobalShortcutsWrapper: React.FC = () => {
-    const navigate = useNavigate();
-    const { showHelp, setShowHelp } = useGlobalShortcuts() || { showHelp: false, setShowHelp: () => { } };
+ const navigate = useNavigate();
+ const { showHelp, setShowHelp } = useGlobalShortcuts() || { showHelp: false, setShowHelp: () => { } };
 
-    // usage of ctrl+k is now handled by CommandPalette component purely for toggling the modal
-    // useHotkeys('ctrl+k', () => {
-    //     navigate('/search');
-    // });
+ // usage of ctrl+k is now handled by CommandPalette component purely for toggling the modal
+ // useHotkeys('ctrl+k', () => {
+ // navigate('/search');
+ // });
 
-    useHotkeys('ctrl+/', () => {
-        navigate('/help');
-    });
+ useHotkeys('ctrl+/', () => {
+ navigate('/help');
+ });
 
-    return (
-        <ShortcutsHelp isOpen={showHelp} onClose={() => setShowHelp(false)} />
-    );
+ return (
+ <ShortcutsHelp isOpen={showHelp} onClose={() => setShowHelp(false)} />
+ );
 };
 
 const AppLayout: React.FC = () => {
 
-    const { user } = useStore();
-    const location = useLocation();
-    const [mobileOpen, setMobileOpen] = useState(false);
-    const [isOnline, setIsOnline] = useState(navigator.onLine);
+ const { user } = useStore();
+ const location = useLocation();
+ const [mobileOpen, setMobileOpen] = useState(false);
+ const [isOnline, setIsOnline] = useState(navigator.onLine);
 
 
-    // Effect for Online Status
-    useEffect(() => {
-        const handleOnline = () => setIsOnline(true);
-        const handleOffline = () => setIsOnline(false);
-        window.addEventListener('online', handleOnline);
-        window.addEventListener('offline', handleOffline);
+ // Effect for Online Status
+ useEffect(() => {
+ const handleOnline = () => setIsOnline(true);
+ const handleOffline = () => setIsOnline(false);
+ window.addEventListener('online', handleOnline);
+ window.addEventListener('offline', handleOffline);
 
-        return () => {
-            window.removeEventListener('online', handleOnline);
-            window.removeEventListener('offline', handleOffline);
-        };
-    }, []);
+ return () => {
+ window.removeEventListener('online', handleOnline);
+ window.removeEventListener('offline', handleOffline);
+ };
+ }, []);
 
-    // Fetch Custom Roles
-    useEffect(() => {
-        if (!user?.organizationId) return;
-        const fetchRoles = async () => {
-            try {
-                const { collection, query, where, getDocs } = await import('firebase/firestore');
-                const q = query(collection(db, 'custom_roles'), where('organizationId', '==', user.organizationId));
-                const snapshot = await getDocs(q);
-                const roles = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as CustomRole));
-                useStore.getState().setCustomRoles(roles);
-            } catch (error) {
-                ErrorLogger.error(error, "App.fetchRoles");
-            }
-        };
-        fetchRoles();
-    }, [user?.organizationId]);
+ // Fetch Custom Roles
+ useEffect(() => {
+ if (!user?.organizationId) return;
+ const fetchRoles = async () => {
+ try {
+ const { collection, query, where, getDocs } = await import('firebase/firestore');
+ const q = query(collection(db, 'custom_roles'), where('organizationId', '==', user.organizationId));
+ const snapshot = await getDocs(q);
+ const roles = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as CustomRole));
+ useStore.getState().setCustomRoles(roles);
+ } catch (error) {
+ ErrorLogger.error(error, "App.fetchRoles");
+ }
+ };
+ fetchRoles();
+ }, [user?.organizationId]);
 
-    // Notification automation
-    useEffect(() => {
-        if (!user?.organizationId) return;
+ // Notification automation
+ useEffect(() => {
+ if (!user?.organizationId) return;
 
-        const runChecks = async () => {
-            try {
-                const { NotificationService } = await import('./services/notificationService');
-                await NotificationService.runAutomatedChecks(user.organizationId!);
-                if (hasPermission(user, 'Settings', 'manage')) {
-                    const { BackupService } = await import('./services/backupService');
-                    await BackupService.checkScheduledBackups(user);
-                }
-            } catch (e) {
-                ErrorLogger.error(e, 'Automation checks failed');
-            }
-        };
+ const runChecks = async () => {
+ try {
+ const { NotificationService } = await import('./services/notificationService');
+ await NotificationService.runAutomatedChecks(user.organizationId!);
+ if (hasPermission(user, 'Settings', 'manage')) {
+  const { BackupService } = await import('./services/backupService');
+  await BackupService.checkScheduledBackups(user);
+ }
+ } catch (e) {
+ ErrorLogger.error(e, 'Automation checks failed');
+ }
+ };
 
-        runChecks();
-        const interval = setInterval(runChecks, 15 * 60 * 1000);
-        return () => clearInterval(interval);
-    }, [user, user?.organizationId]);
+ runChecks();
+ const interval = setInterval(runChecks, 15 * 60 * 1000);
+ return () => clearInterval(interval);
+ }, [user, user?.organizationId]);
 
-    return (
-        <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground font-sans relative selection:bg-primary/30 selection:text-primary transition-colors duration-300 pb-safe">
-            <MasterpieceBackground />
+ return (
+ <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground font-sans relative selection:bg-primary/30 selection:text-primary transition-colors duration-300 pb-safe">
+ <MasterpieceBackground />
 
-            <div>
-                <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
-            </div>
+ <div>
+ <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+ </div>
 
 
-            <SEO
-                title="Tableau de bord"
-                description="Plateforme de gouvernance, risques et conformité (GRC) pour piloter votre cybersécurité."
-            />
-            <CommandPalette />
-            <React.Suspense fallback={null}>
-                <GeminiAssistant />
-            </React.Suspense>
+ <SEO
+ title="Tableau de bord"
+ description="Plateforme de gouvernance, risques et conformité (GRC) pour piloter votre cybersécurité."
+ />
+ <CommandPalette />
+ <React.Suspense fallback={null}>
+ <GeminiAssistant />
+ </React.Suspense>
 
-            {!isOnline && (
-                <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-tooltip glass-premium px-4 py-2 rounded-full flex items-center text-xs font-medium text-slate-600 dark:text-slate-300 shadow-lg animate-slide-up border border-border/40">
-                    <WifiOff className="h-3 w-3 mr-2 text-red-500" />
-                    Mode hors ligne
-                </div>
-            )}
+ {!isOnline && (
+ <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-tooltip glass-premium px-4 py-2 rounded-full flex items-center text-xs font-medium text-muted-foreground shadow-lg animate-slide-up border border-border/40">
+  <WifiOff className="h-3 w-3 mr-2 text-red-500" />
+  Mode hors ligne
+ </div>
+ )}
 
-            <div className="flex-1 min-w-0 flex flex-col overflow-hidden relative z-decorator">
-                <TopBar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+ <div className="flex-1 min-w-0 flex flex-col overflow-hidden relative z-decorator">
+ <TopBar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
-                <SmoothScroll
-                    id="main-content"
-                    enabled={location.pathname !== '/ctc-engine'}
-                    className={`flex-1 min-w-0 ${mobileOpen || location.pathname === '/ctc-engine' ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden scroll-smooth'} [scrollbar-gutter:stable] p-0`}
-                >
-                    <div className={`${location.pathname === '/ctc-engine' ? 'w-full flex-1 animate-fade-in flex flex-col' : 'w-full animate-fade-in min-h-full pb-24'}`}>
-                        <AnimatedRoutes />
-                    </div>
-                </SmoothScroll>
-            </div>
+ <SmoothScroll
+  id="main-content"
+  enabled={location.pathname !== '/ctc-engine'}
+  className={`flex-1 min-w-0 ${mobileOpen || location.pathname === '/ctc-engine' ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden scroll-smooth'} [scrollbar-gutter:stable] p-0`}
+ >
+  <div className={`${location.pathname === '/ctc-engine' ? 'w-full flex-1 animate-fade-in flex flex-col' : 'w-full animate-fade-in min-h-full pb-24'}`}>
+  <AnimatedRoutes />
+  </div>
+ </SmoothScroll>
+ </div>
 
-            <OfflineBanner />
-            <NotificationPermissionBanner />
-            <CookieConsent />
-            <OnboardingTrigger />
-            <OnboardingOverlay />
-        </div>
-    );
+ <OfflineBanner />
+ <NotificationPermissionBanner />
+ <CookieConsent />
+ <OnboardingTrigger />
+ <OnboardingOverlay />
+ </div>
+ );
 };
 
 const AppInner: React.FC = () => {
-    const { isBlocked } = useAuth();
+ const { isBlocked } = useAuth();
 
-    if (isBlocked) {
-        return <ContentBlockerError />;
-    }
+ if (isBlocked) {
+ return <ContentBlockerError />;
+ }
 
-    const isTest = !import.meta.env.PROD && (
-        import.meta.env.MODE === 'test' ||
-        import.meta.env.VITE_USE_EMULATORS === 'true'
-    );
+ const isTest = !import.meta.env.PROD && (
+ import.meta.env.MODE === 'test' ||
+ import.meta.env.VITE_USE_EMULATORS === 'true'
+ );
 
-    return (
-        <>
-            <NavigationLoader />
-            <RouteProgressBar />
-            <SkipLink />
-            <VersionCheck />
-            <GlobalShortcutsWrapper />
-            <ErrorBoundary>
-                <Suspense fallback={<LoadingScreen />}>
-                    <Routes>
-                        <Route path="/login" element={
-                            <PublicOnlyRoute>
-                                <Login />
-                            </PublicOnlyRoute>
-                        } />
-                        <Route path="/register" element={
-                            <PublicOnlyRoute>
-                                <Login />
-                            </PublicOnlyRoute>
-                        } />
-                        <Route path="/onboarding" element={
-                            <AuthGuard requireOnboarding={false}>
-                                <Onboarding />
-                            </AuthGuard>
-                        } />
-                        <Route path="/verify-email" element={
-                            <AuthGuard requireOnboarding={false}>
-                                <VerifyEmail />
-                            </AuthGuard>
-                        } />
+ return (
+ <>
+ <NavigationLoader />
+ <RouteProgressBar />
+ <SkipLink />
+ <VersionCheck />
+ <GlobalShortcutsWrapper />
+ <ErrorBoundary>
+ <Suspense fallback={<LoadingScreen />}>
+  <Routes>
+  <Route path="/login" element={
+  <PublicOnlyRoute>
+  <Login />
+  </PublicOnlyRoute>
+  } />
+  <Route path="/register" element={
+  <PublicOnlyRoute>
+  <Login />
+  </PublicOnlyRoute>
+  } />
+  <Route path="/onboarding" element={
+  <AuthGuard requireOnboarding={false}>
+  <Onboarding />
+  </AuthGuard>
+  } />
+  <Route path="/verify-email" element={
+  <AuthGuard requireOnboarding={false}>
+  <VerifyEmail />
+  </AuthGuard>
+  } />
 
-                        {/* Agent Setup - Handles auth state internally */}
-                        <Route path="/agent-setup" element={<AgentSetup />} />
+  {/* Agent Setup - Handles auth state internally */}
+  <Route path="/agent-setup" element={<AgentSetup />} />
 
-                        {/* Public Portal Routes - No AuthGuard, Token protected */}
-                        <Route path="/portal" element={<ExternalAuditLayout />}>
-                            <Route path="audit/:token" element={<ExternalAuditPortal />} />
+  {/* Public Portal Routes - No AuthGuard, Token protected */}
+  <Route path="/portal" element={<ExternalAuditLayout />}>
+  <Route path="audit/:token" element={<ExternalAuditPortal />} />
 
-                            {/* Vendor Self-Service Portal Routes */}
-                            <Route path="vendor/:token" element={<VendorPortal />} />
+  {/* Vendor Self-Service Portal Routes */}
+  <Route path="vendor/:token" element={<VendorPortal />} />
 
-                            {/* Certifier Ecosystem Routes */}
-                            <Route path="login" element={<CertifierLogin />} />
-                            <Route path="register" element={<CertifierRegister />} />
-                            <Route path="dashboard" element={
-                                <CertifierAuthGuard>
-                                    <CertifierDashboard />
-                                </CertifierAuthGuard>
-                            } />
-                        </Route>
+  {/* Certifier Ecosystem Routes */}
+  <Route path="login" element={<CertifierLogin />} />
+  <Route path="register" element={<CertifierRegister />} />
+  <Route path="dashboard" element={
+  <CertifierAuthGuard>
+   <CertifierDashboard />
+  </CertifierAuthGuard>
+  } />
+  </Route>
 
-                        {/* Super Admin Route - SECURITY: Uses StrictSuperAdminGuard for system-level access */}
-                        <Route path="/admin_management" element={
-                            <StrictSuperAdminGuard>
-                                <NotificationProvider>
-                                    <AppLayout />
-                                </NotificationProvider>
-                            </StrictSuperAdminGuard>
-                        } >
-                            <Route index element={<AdminDashboard />} />
-                        </Route>
+  {/* Super Admin Route - SECURITY: Uses StrictSuperAdminGuard for system-level access */}
+  <Route path="/admin_management" element={
+  <StrictSuperAdminGuard>
+  <NotificationProvider>
+   <AppLayout />
+  </NotificationProvider>
+  </StrictSuperAdminGuard>
+  } >
+  <Route index element={<AdminDashboard />} />
+  </Route>
 
-                        {/* Main App Route - Handles all paths and sub-routes */}
-                        <Route path="/*" element={
-                            isTest ?
-                                <TestAuthGuard>
-                                    <NotificationProvider>
-                                        <AppLayout />
-                                    </NotificationProvider>
-                                </TestAuthGuard> :
-                                <AuthGuard>
-                                    <NotificationProvider>
-                                        <CrisisProvider>
-                                            <AppLayout />
-                                        </CrisisProvider>
-                                    </NotificationProvider>
-                                </AuthGuard>
-                        } />
-                    </Routes>
-                </Suspense>
-            </ErrorBoundary>
-        </>
-    );
+  {/* Main App Route - Handles all paths and sub-routes */}
+  <Route path="/*" element={
+  isTest ?
+  <TestAuthGuard>
+   <NotificationProvider>
+   <AppLayout />
+   </NotificationProvider>
+  </TestAuthGuard> :
+  <AuthGuard>
+   <NotificationProvider>
+   <CrisisProvider>
+   <AppLayout />
+   </CrisisProvider>
+   </NotificationProvider>
+  </AuthGuard>
+  } />
+  </Routes>
+ </Suspense>
+ </ErrorBoundary>
+ </>
+ );
 };
 
 const router = createHashRouter([
-    {
-        path: "/*",
-        element: (
-            <AuthProvider>
-                <AppInner />
-            </AuthProvider>
-        ),
-    }
+ {
+ path: "/*",
+ element: (
+ <AuthProvider>
+ <AppInner />
+ </AuthProvider>
+ ),
+ }
 ], {
-    future: {
-        v7_relativeSplatPath: true,
-        v7_fetcherPersist: true,
-        v7_normalizeFormMethod: true,
-        v7_partialHydration: true,
-        v7_skipActionErrorRevalidation: true,
-    }
+ future: {
+ v7_relativeSplatPath: true,
+ v7_fetcherPersist: true,
+ v7_normalizeFormMethod: true,
+ v7_partialHydration: true,
+ v7_skipActionErrorRevalidation: true,
+ }
 });
 
 const AppContent: React.FC = () => {
-    return <RouterProvider router={router} future={{ v7_startTransition: true }} />;
+ return <RouterProvider router={router} future={{ v7_startTransition: true }} />;
 };
 
 export default AppContent;

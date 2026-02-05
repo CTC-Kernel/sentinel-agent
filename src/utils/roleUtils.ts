@@ -9,22 +9,22 @@
  * Based on EXIST-003: 6 roles already implemented
  */
 export type UserRole =
-  | 'super_admin'
-  | 'admin'
-  | 'rssi'
-  | 'auditor'
-  | 'project_manager'
-  | 'direction'
-  | 'user'
-  | 'certifier';
+ | 'super_admin'
+ | 'admin'
+ | 'rssi'
+ | 'auditor'
+ | 'project_manager'
+ | 'direction'
+ | 'user'
+ | 'certifier';
 
 /**
  * User object with role information
  */
 export interface UserWithRole {
-  id: string;
-  role: UserRole;
-  roles?: UserRole[]; // Some systems support multiple roles
+ id: string;
+ role: UserRole;
+ roles?: UserRole[]; // Some systems support multiple roles
 }
 
 /**
@@ -37,23 +37,23 @@ export interface UserWithRole {
  * @example
  * ```tsx
  * if (hasRole(currentUser, 'direction')) {
- *   return <ExecutiveKPIWidget />;
+ * return <ExecutiveKPIWidget />;
  * }
  * ```
  */
 export function hasRole(
-  user: UserWithRole | null | undefined,
-  role: UserRole
+ user: UserWithRole | null | undefined,
+ role: UserRole
 ): boolean {
-  if (!user) return false;
+ if (!user) return false;
 
-  // Check primary role
-  if (user.role === role) return true;
+ // Check primary role
+ if (user.role === role) return true;
 
-  // Check multiple roles if supported
-  if (user.roles && user.roles.includes(role)) return true;
+ // Check multiple roles if supported
+ if (user.roles && user.roles.includes(role)) return true;
 
-  return false;
+ return false;
 }
 
 /**
@@ -66,17 +66,17 @@ export function hasRole(
  * @example
  * ```tsx
  * if (hasAnyRole(currentUser, ['direction', 'admin'])) {
- *   return <ExecutiveKPIWidget />;
+ * return <ExecutiveKPIWidget />;
  * }
  * ```
  */
 export function hasAnyRole(
-  user: UserWithRole | null | undefined,
-  roles: UserRole[]
+ user: UserWithRole | null | undefined,
+ roles: UserRole[]
 ): boolean {
-  if (!user) return false;
+ if (!user) return false;
 
-  return roles.some((role) => hasRole(user, role));
+ return roles.some((role) => hasRole(user, role));
 }
 
 /**
@@ -87,12 +87,12 @@ export function hasAnyRole(
  * @returns true if user has all of the specified roles
  */
 export function hasAllRoles(
-  user: UserWithRole | null | undefined,
-  roles: UserRole[]
+ user: UserWithRole | null | undefined,
+ roles: UserRole[]
 ): boolean {
-  if (!user) return false;
+ if (!user) return false;
 
-  return roles.every((role) => hasRole(user, role));
+ return roles.every((role) => hasRole(user, role));
 }
 
 /**
@@ -103,7 +103,7 @@ export function hasAllRoles(
  * @returns true if user has direction role
  */
 export function isExecutive(user: UserWithRole | null | undefined): boolean {
-  return hasRole(user, 'direction');
+ return hasRole(user, 'direction');
 }
 
 /**
@@ -113,7 +113,7 @@ export function isExecutive(user: UserWithRole | null | undefined): boolean {
  * @returns true if user has rssi role
  */
 export function isRSSI(user: UserWithRole | null | undefined): boolean {
-  return hasRole(user, 'rssi');
+ return hasRole(user, 'rssi');
 }
 
 /**
@@ -123,7 +123,7 @@ export function isRSSI(user: UserWithRole | null | undefined): boolean {
  * @returns true if user has admin role
  */
 export function isAdmin(user: UserWithRole | null | undefined): boolean {
-  return hasRole(user, 'admin');
+ return hasRole(user, 'admin');
 }
 
 /**
@@ -133,7 +133,7 @@ export function isAdmin(user: UserWithRole | null | undefined): boolean {
  * @returns true if user has auditor role
  */
 export function isAuditor(user: UserWithRole | null | undefined): boolean {
-  return hasRole(user, 'auditor');
+ return hasRole(user, 'auditor');
 }
 
 /**
@@ -143,7 +143,7 @@ export function isAuditor(user: UserWithRole | null | undefined): boolean {
  * @returns true if user has project_manager role
  */
 export function isProjectManager(user: UserWithRole | null | undefined): boolean {
-  return hasRole(user, 'project_manager');
+ return hasRole(user, 'project_manager');
 }
 
 /**
@@ -159,7 +159,7 @@ export const EXECUTIVE_DASHBOARD_ROLES: UserRole[] = ['direction', 'admin', 'sup
  * @returns true if user can view executive dashboard
  */
 export function canViewExecutiveDashboard(
-  user: UserWithRole | null | undefined
+ user: UserWithRole | null | undefined
 ): boolean {
-  return hasAnyRole(user, EXECUTIVE_DASHBOARD_ROLES);
+ return hasAnyRole(user, EXECUTIVE_DASHBOARD_ROLES);
 }

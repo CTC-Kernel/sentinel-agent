@@ -10,19 +10,19 @@ import { useTranslation } from 'react-i18next';
 import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
 import {
-  Sparkles,
-  Bot,
-  Loader2,
-  FileText,
-  Shield,
-  CheckCircle,
-  AlertTriangle,
-  ListChecks,
-  X
+ Sparkles,
+ Bot,
+ Loader2,
+ FileText,
+ Shield,
+ CheckCircle,
+ AlertTriangle,
+ ListChecks,
+ X
 } from '../ui/Icons';
 import type {
-  HomologationDossier,
-  HomologationLevel
+ HomologationDossier,
+ HomologationLevel
 } from '../../types/homologation';
 
 // ============================================================================
@@ -30,56 +30,56 @@ import type {
 // ============================================================================
 
 type AIAction =
-  | 'analyze_level'
-  | 'generate_strategy'
-  | 'analyze_risks'
-  | 'suggest_actions'
-  | 'assess_readiness';
+ | 'analyze_level'
+ | 'generate_strategy'
+ | 'analyze_risks'
+ | 'suggest_actions'
+ | 'assess_readiness';
 
 interface HomologationAIAssistantProps {
-  dossier: HomologationDossier;
-  onUpdate?: (updates: Partial<HomologationDossier>) => void;
+ dossier: HomologationDossier;
+ onUpdate?: (updates: Partial<HomologationDossier>) => void;
 }
 
 interface AIResponse {
-  levelAnalysis?: {
-    recommendedLevel: HomologationLevel;
-    justification: string;
-    keyFactors: string[];
-    missingInfo?: string[];
-  };
-  strategyOutline?: {
-    sections: Array<{
-      title: string;
-      description: string;
-      keyPoints: string[];
-    }>;
-    recommendations: string[];
-  };
-  riskAnalysis?: {
-    coveredRisks: string[];
-    gaps: string[];
-    recommendations: string[];
-    ebiosSyncStatus?: string;
-  };
-  actionPlan?: {
-    items: Array<{
-      action: string;
-      priority: 'high' | 'medium' | 'low';
-      category: string;
-      estimatedEffort?: string;
-    }>;
-    timeline?: string;
-  };
-  readinessAssessment?: {
-    score: number;
-    status: 'ready' | 'almost_ready' | 'not_ready';
-    strengths: string[];
-    weaknesses: string[];
-    recommendations: string[];
-    blockers?: string[];
-  };
-  text?: string;
+ levelAnalysis?: {
+ recommendedLevel: HomologationLevel;
+ justification: string;
+ keyFactors: string[];
+ missingInfo?: string[];
+ };
+ strategyOutline?: {
+ sections: Array<{
+ title: string;
+ description: string;
+ keyPoints: string[];
+ }>;
+ recommendations: string[];
+ };
+ riskAnalysis?: {
+ coveredRisks: string[];
+ gaps: string[];
+ recommendations: string[];
+ ebiosSyncStatus?: string;
+ };
+ actionPlan?: {
+ items: Array<{
+ action: string;
+ priority: 'high' | 'medium' | 'low';
+ category: string;
+ estimatedEffort?: string;
+ }>;
+ timeline?: string;
+ };
+ readinessAssessment?: {
+ score: number;
+ status: 'ready' | 'almost_ready' | 'not_ready';
+ strengths: string[];
+ weaknesses: string[];
+ recommendations: string[];
+ blockers?: string[];
+ };
+ text?: string;
 }
 
 // ============================================================================
@@ -87,43 +87,43 @@ interface AIResponse {
 // ============================================================================
 
 const LEVEL_LABELS: Record<HomologationLevel, string> = {
-  etoile: 'Étoile',
-  simple: 'Simple',
-  standard: 'Standard',
-  renforce: 'Renforcé'
+ etoile: 'Étoile',
+ simple: 'Simple',
+ standard: 'Standard',
+ renforce: 'Renforcé'
 };
 
 const ACTIONS: Array<{ action: AIAction; label: string; icon: React.ReactNode; description: string }> = [
-  {
-    action: 'analyze_level',
-    label: 'Analyser niveau',
-    icon: <Shield className="h-3.5 w-3.5" />,
-    description: "Évaluer le niveau d'homologation approprié"
-  },
-  {
-    action: 'generate_strategy',
-    label: 'Générer stratégie',
-    icon: <FileText className="h-3.5 w-3.5" />,
-    description: "Proposer un plan pour la stratégie d'homologation"
-  },
-  {
-    action: 'analyze_risks',
-    label: 'Analyser risques',
-    icon: <AlertTriangle className="h-3.5 w-3.5" />,
-    description: 'Analyser la couverture des risques'
-  },
-  {
-    action: 'suggest_actions',
-    label: "Plan d'action",
-    icon: <ListChecks className="h-3.5 w-3.5" />,
-    description: 'Suggérer des actions prioritaires'
-  },
-  {
-    action: 'assess_readiness',
-    label: 'Évaluer préparation',
-    icon: <CheckCircle className="h-3.5 w-3.5" />,
-    description: "Évaluer la préparation pour l'homologation"
-  }
+ {
+ action: 'analyze_level',
+ label: 'Analyser niveau',
+ icon: <Shield className="h-3.5 w-3.5" />,
+ description: "Évaluer le niveau d'homologation approprié"
+ },
+ {
+ action: 'generate_strategy',
+ label: 'Générer stratégie',
+ icon: <FileText className="h-3.5 w-3.5" />,
+ description: "Proposer un plan pour la stratégie d'homologation"
+ },
+ {
+ action: 'analyze_risks',
+ label: 'Analyser risques',
+ icon: <AlertTriangle className="h-3.5 w-3.5" />,
+ description: 'Analyser la couverture des risques'
+ },
+ {
+ action: 'suggest_actions',
+ label: "Plan d'action",
+ icon: <ListChecks className="h-3.5 w-3.5" />,
+ description: 'Suggérer des actions prioritaires'
+ },
+ {
+ action: 'assess_readiness',
+ label: 'Évaluer préparation',
+ icon: <CheckCircle className="h-3.5 w-3.5" />,
+ description: "Évaluer la préparation pour l'homologation"
+ }
 ];
 
 // ============================================================================
@@ -131,530 +131,530 @@ const ACTIONS: Array<{ action: AIAction; label: string; icon: React.ReactNode; d
 // ============================================================================
 
 export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = ({
-  dossier,
-  onUpdate
+ dossier,
+ onUpdate
 }) => {
-  const { t } = useTranslation();
-  const [loading, setLoading] = useState(false);
-  const [response, setResponse] = useState<AIResponse | null>(null);
-  const [activeAction, setActiveAction] = useState<AIAction | null>(null);
-  const [error, setError] = useState<string | null>(null);
+ const { t } = useTranslation();
+ const [loading, setLoading] = useState(false);
+ const [response, setResponse] = useState<AIResponse | null>(null);
+ const [activeAction, setActiveAction] = useState<AIAction | null>(null);
+ const [error, setError] = useState<string | null>(null);
 
-  // Build context from dossier data
-  const buildContext = (): string => {
-    let context = `Dossier d'homologation ANSSI: "${dossier.name}"\n`;
-    context += `Périmètre système: ${dossier.systemScope}\n`;
-    context += `Niveau actuel: ${LEVEL_LABELS[dossier.level]}\n`;
-    context += `Statut: ${dossier.status}\n\n`;
+ // Build context from dossier data
+ const buildContext = (): string => {
+ let context = `Dossier d'homologation ANSSI: "${dossier.name}"\n`;
+ context += `Périmètre système: ${dossier.systemScope}\n`;
+ context += `Niveau actuel: ${LEVEL_LABELS[dossier.level]}\n`;
+ context += `Statut: ${dossier.status}\n\n`;
 
-    if (dossier.description) {
-      context += `Description: ${dossier.description}\n\n`;
-    }
+ if (dossier.description) {
+ context += `Description: ${dossier.description}\n\n`;
+ }
 
-    // Level determination answers
-    if (dossier.determinationAnswers.length > 0) {
-      context += `Score de détermination: ${dossier.recommendationScore}/100\n`;
-      context += `Justification niveau: ${dossier.levelJustification}\n\n`;
-    }
+ // Level determination answers
+ if (dossier.determinationAnswers.length > 0) {
+ context += `Score de détermination: ${dossier.recommendationScore}/100\n`;
+ context += `Justification niveau: ${dossier.levelJustification}\n\n`;
+ }
 
-    // Documents status
-    const completedDocs = dossier.documents.filter(d => d.status === 'completed' || d.status === 'validated');
-    const pendingDocs = dossier.documents.filter(d => d.status === 'in_progress');
-    const notStartedDocs = dossier.documents.filter(d => d.status === 'not_started');
+ // Documents status
+ const completedDocs = dossier.documents.filter(d => d.status === 'completed' || d.status === 'validated');
+ const pendingDocs = dossier.documents.filter(d => d.status === 'in_progress');
+ const notStartedDocs = dossier.documents.filter(d => d.status === 'not_started');
 
-    context += `Documents complétés: ${completedDocs.length}\n`;
-    context += `Documents en cours: ${pendingDocs.length}\n`;
-    context += `Documents non commencés: ${notStartedDocs.length}\n\n`;
+ context += `Documents complétés: ${completedDocs.length}\n`;
+ context += `Documents en cours: ${pendingDocs.length}\n`;
+ context += `Documents non commencés: ${notStartedDocs.length}\n\n`;
 
-    // EBIOS link
-    if (dossier.linkedEbiosAnalysisId) {
-      context += `Analyse EBIOS liée: Oui\n`;
-      if (dossier.ebiosSnapshot) {
-        context += `- Événements redoutés: ${dossier.ebiosSnapshot.fearedEventsCount}\n`;
-        context += `- Sources de risque: ${dossier.ebiosSnapshot.riskSourcesCount}\n`;
-        context += `- Scénarios stratégiques: ${dossier.ebiosSnapshot.strategicScenariosCount}\n`;
-        context += `- Scénarios opérationnels: ${dossier.ebiosSnapshot.operationalScenariosCount}\n`;
-        context += `- Mesures de traitement: ${dossier.ebiosSnapshot.treatmentItemsCount}\n`;
-      }
-      if (dossier.ebiosReviewRequired) {
-        context += `⚠️ Revue EBIOS requise (modifications détectées)\n`;
-      }
-    } else {
-      context += `Analyse EBIOS liée: Non\n`;
-    }
+ // EBIOS link
+ if (dossier.linkedEbiosAnalysisId) {
+ context += `Analyse EBIOS liée: Oui\n`;
+ if (dossier.ebiosSnapshot) {
+ context += `- Événements redoutés: ${dossier.ebiosSnapshot.fearedEventsCount}\n`;
+ context += `- Sources de risque: ${dossier.ebiosSnapshot.riskSourcesCount}\n`;
+ context += `- Scénarios stratégiques: ${dossier.ebiosSnapshot.strategicScenariosCount}\n`;
+ context += `- Scénarios opérationnels: ${dossier.ebiosSnapshot.operationalScenariosCount}\n`;
+ context += `- Mesures de traitement: ${dossier.ebiosSnapshot.treatmentItemsCount}\n`;
+ }
+ if (dossier.ebiosReviewRequired) {
+ context += `⚠️ Revue EBIOS requise (modifications détectées)\n`;
+ }
+ } else {
+ context += `Analyse EBIOS liée: Non\n`;
+ }
 
-    // Validity
-    if (dossier.validityEndDate) {
-      context += `\nDate de fin de validité: ${dossier.validityEndDate}\n`;
-    }
+ // Validity
+ if (dossier.validityEndDate) {
+ context += `\nDate de fin de validité: ${dossier.validityEndDate}\n`;
+ }
 
-    return context;
-  };
+ return context;
+ };
 
-  const handleAction = async (action: AIAction) => {
-    setLoading(true);
-    setActiveAction(action);
-    setResponse(null);
-    setError(null);
+ const handleAction = async (action: AIAction) => {
+ setLoading(true);
+ setActiveAction(action);
+ setResponse(null);
+ setError(null);
 
-    try {
-      const context = buildContext();
-      let prompt = '';
+ try {
+ const context = buildContext();
+ let prompt = '';
 
-      switch (action) {
-        case 'analyze_level':
-          prompt = `
-            ${context}
+ switch (action) {
+ case 'analyze_level':
+ prompt = `
+ ${context}
 
-            En tant qu'expert ANSSI en homologation de sécurité, analyse si le niveau d'homologation
-            actuel est approprié pour ce système d'information.
+ En tant qu'expert ANSSI en homologation de sécurité, analyse si le niveau d'homologation
+ actuel est approprié pour ce système d'information.
 
-            Les niveaux ANSSI sont:
-            - Étoile: systèmes non sensibles, processus minimal
-            - Simple: sensibilité limitée, processus allégé
-            - Standard: systèmes sensibles, processus complet
-            - Renforcé: systèmes critiques, processus avec audits techniques
+ Les niveaux ANSSI sont:
+ - Étoile: systèmes non sensibles, processus minimal
+ - Simple: sensibilité limitée, processus allégé
+ - Standard: systèmes sensibles, processus complet
+ - Renforcé: systèmes critiques, processus avec audits techniques
 
-            Format de réponse JSON attendu:
-            {
-              "levelAnalysis": {
-                "recommendedLevel": "etoile" | "simple" | "standard" | "renforce",
-                "justification": "string (justification détaillée)",
-                "keyFactors": ["facteur1", "facteur2", ...],
-                "missingInfo": ["info manquante 1", ...] (optionnel)
-              }
-            }
-          `;
-          break;
+ Format de réponse JSON attendu:
+ {
+ "levelAnalysis": {
+ "recommendedLevel": "etoile" | "simple" | "standard" | "renforce",
+ "justification": "string (justification détaillée)",
+ "keyFactors": ["facteur1", "facteur2", ...],
+ "missingInfo": ["info manquante 1", ...] (optionnel)
+ }
+ }
+ `;
+ break;
 
-        case 'generate_strategy':
-          prompt = `
-            ${context}
+ case 'generate_strategy':
+ prompt = `
+ ${context}
 
-            En tant qu'expert ANSSI, génère un plan de stratégie d'homologation adapté à ce dossier.
-            La stratégie doit inclure le périmètre, les objectifs, le calendrier et les responsabilités.
+ En tant qu'expert ANSSI, génère un plan de stratégie d'homologation adapté à ce dossier.
+ La stratégie doit inclure le périmètre, les objectifs, le calendrier et les responsabilités.
 
-            Format de réponse JSON attendu:
-            {
-              "strategyOutline": {
-                "sections": [
-                  {
-                    "title": "string (titre de section)",
-                    "description": "string (description)",
-                    "keyPoints": ["point1", "point2", ...]
-                  }
-                ],
-                "recommendations": ["recommandation1", "recommandation2", ...]
-              }
-            }
-          `;
-          break;
+ Format de réponse JSON attendu:
+ {
+ "strategyOutline": {
+ "sections": [
+  {
+  "title": "string (titre de section)",
+  "description": "string (description)",
+  "keyPoints": ["point1", "point2", ...]
+  }
+ ],
+ "recommendations": ["recommandation1", "recommandation2", ...]
+ }
+ }
+ `;
+ break;
 
-        case 'analyze_risks':
-          prompt = `
-            ${context}
+ case 'analyze_risks':
+ prompt = `
+ ${context}
 
-            En tant qu'expert ANSSI, analyse la couverture des risques de sécurité pour ce dossier.
-            ${dossier.linkedEbiosAnalysisId
-              ? "Considère les données de l'analyse EBIOS liée."
-              : "Note qu'aucune analyse EBIOS n'est liée."}
+ En tant qu'expert ANSSI, analyse la couverture des risques de sécurité pour ce dossier.
+ ${dossier.linkedEbiosAnalysisId
+ ? "Considère les données de l'analyse EBIOS liée."
+ : "Note qu'aucune analyse EBIOS n'est liée."}
 
-            Format de réponse JSON attendu:
-            {
-              "riskAnalysis": {
-                "coveredRisks": ["risque couvert 1", "risque couvert 2", ...],
-                "gaps": ["lacune 1", "lacune 2", ...],
-                "recommendations": ["recommandation 1", ...],
-                "ebiosSyncStatus": "string (état de la synchronisation EBIOS)" (optionnel)
-              }
-            }
-          `;
-          break;
+ Format de réponse JSON attendu:
+ {
+ "riskAnalysis": {
+ "coveredRisks": ["risque couvert 1", "risque couvert 2", ...],
+ "gaps": ["lacune 1", "lacune 2", ...],
+ "recommendations": ["recommandation 1", ...],
+ "ebiosSyncStatus": "string (état de la synchronisation EBIOS)" (optionnel)
+ }
+ }
+ `;
+ break;
 
-        case 'suggest_actions':
-          prompt = `
-            ${context}
+ case 'suggest_actions':
+ prompt = `
+ ${context}
 
-            En tant qu'expert ANSSI, suggère un plan d'action priorisé pour compléter ce dossier
-            d'homologation. Considère les documents manquants et les exigences du niveau ${LEVEL_LABELS[dossier.level]}.
+ En tant qu'expert ANSSI, suggère un plan d'action priorisé pour compléter ce dossier
+ d'homologation. Considère les documents manquants et les exigences du niveau ${LEVEL_LABELS[dossier.level]}.
 
-            Format de réponse JSON attendu:
-            {
-              "actionPlan": {
-                "items": [
-                  {
-                    "action": "string (description de l'action)",
-                    "priority": "high" | "medium" | "low",
-                    "category": "string (catégorie: documentation, technique, organisationnel)",
-                    "estimatedEffort": "string (effort estimé)" (optionnel)
-                  }
-                ],
-                "timeline": "string (calendrier suggéré)" (optionnel)
-              }
-            }
-          `;
-          break;
+ Format de réponse JSON attendu:
+ {
+ "actionPlan": {
+ "items": [
+  {
+  "action": "string (description de l'action)",
+  "priority": "high" | "medium" | "low",
+  "category": "string (catégorie: documentation, technique, organisationnel)",
+  "estimatedEffort": "string (effort estimé)" (optionnel)
+  }
+ ],
+ "timeline": "string (calendrier suggéré)" (optionnel)
+ }
+ }
+ `;
+ break;
 
-        case 'assess_readiness':
-          prompt = `
-            ${context}
+ case 'assess_readiness':
+ prompt = `
+ ${context}
 
-            En tant qu'expert ANSSI, évalue la préparation de ce dossier pour la décision d'homologation.
-            Identifie les points forts, les faiblesses et les bloquants éventuels.
+ En tant qu'expert ANSSI, évalue la préparation de ce dossier pour la décision d'homologation.
+ Identifie les points forts, les faiblesses et les bloquants éventuels.
 
-            Format de réponse JSON attendu:
-            {
-              "readinessAssessment": {
-                "score": number (0-100),
-                "status": "ready" | "almost_ready" | "not_ready",
-                "strengths": ["point fort 1", "point fort 2", ...],
-                "weaknesses": ["faiblesse 1", ...],
-                "recommendations": ["recommandation 1", ...],
-                "blockers": ["bloquant 1", ...] (optionnel, si status = not_ready)
-              }
-            }
-          `;
-          break;
-      }
+ Format de réponse JSON attendu:
+ {
+ "readinessAssessment": {
+ "score": number (0-100),
+ "status": "ready" | "almost_ready" | "not_ready",
+ "strengths": ["point fort 1", "point fort 2", ...],
+ "weaknesses": ["faiblesse 1", ...],
+ "recommendations": ["recommandation 1", ...],
+ "blockers": ["bloquant 1", ...] (optionnel, si status = not_ready)
+ }
+ }
+ `;
+ break;
+ }
 
-      const resultText = await aiService.generateText(prompt);
+ const resultText = await aiService.generateText(prompt);
 
-      // Parse JSON response
-      try {
-        const jsonMatch = resultText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsedResponse = JSON.parse(jsonMatch[0]) as AIResponse;
-          setResponse(parsedResponse);
-        } else {
-          setResponse({ text: resultText });
-        }
-      } catch {
-        ErrorLogger.warn('Failed to parse Homologation AI response', 'HomologationAIAssistant.handleAction');
-        setResponse({ text: resultText });
-      }
+ // Parse JSON response
+ try {
+ const jsonMatch = resultText.match(/\{[\s\S]*\}/);
+ if (jsonMatch) {
+ const parsedResponse = JSON.parse(jsonMatch[0]) as AIResponse;
+ setResponse(parsedResponse);
+ } else {
+ setResponse({ text: resultText });
+ }
+ } catch {
+ ErrorLogger.warn('Failed to parse Homologation AI response', 'HomologationAIAssistant.handleAction');
+ setResponse({ text: resultText });
+ }
 
-    } catch (err) {
-      ErrorLogger.handleErrorWithToast(err, 'HomologationAIAssistant.handleAction', 'AI_ERROR');
-      setError(t('homologation.ai.error', "Une erreur est survenue lors de l'analyse IA."));
-    } finally {
-      setLoading(false);
-    }
-  };
+ } catch (err) {
+ ErrorLogger.handleErrorWithToast(err, 'HomologationAIAssistant.handleAction', 'AI_ERROR');
+ setError(t('homologation.ai.error', "Une erreur est survenue lors de l'analyse IA."));
+ } finally {
+ setLoading(false);
+ }
+ };
 
-  const handleDismiss = () => {
-    setResponse(null);
-    setActiveAction(null);
-  };
+ const handleDismiss = () => {
+ setResponse(null);
+ setActiveAction(null);
+ };
 
-  const handleApplyLevel = () => {
-    if (!onUpdate || !response?.levelAnalysis) return;
+ const handleApplyLevel = () => {
+ if (!onUpdate || !response?.levelAnalysis) return;
 
-    onUpdate({
-      level: response.levelAnalysis.recommendedLevel,
-      levelJustification: response.levelAnalysis.justification,
-      levelOverridden: dossier.level !== response.levelAnalysis.recommendedLevel,
-      originalRecommendation: dossier.level
-    });
-  };
+ onUpdate({
+ level: response.levelAnalysis.recommendedLevel,
+ levelJustification: response.levelAnalysis.justification,
+ levelOverridden: dossier.level !== response.levelAnalysis.recommendedLevel,
+ originalRecommendation: dossier.level
+ });
+ };
 
-  const renderResponse = () => {
-    if (!response) return null;
+ const renderResponse = () => {
+ if (!response) return null;
 
-    return (
-      <div className="bg-white dark:bg-slate-800 rounded-3xl p-4 border border-brand-100 dark:border-brand-700 shadow-sm animate-fade-in">
-        <div className="flex justify-between items-start mb-3">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 flex items-center">
-            <Bot className="h-3.5 w-3.5 mr-1.5" />
-            {t('homologation.ai.response', 'Analyse IA')}
-          </h4>
-          <button
-            onClick={handleDismiss}
-            className="text-slate-500 hover:text-slate-600 focus:outline-none"
-            aria-label={t('common.close', 'Fermer')}
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+ return (
+ <div className="bg-card rounded-3xl p-4 border border-primary/20 dark:border-primary/80 shadow-sm animate-fade-in">
+ <div className="flex justify-between items-start mb-3">
+ <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center">
+ <Bot className="h-3.5 w-3.5 mr-1.5" />
+ {t('homologation.ai.response', 'Analyse IA')}
+ </h4>
+ <button
+ onClick={handleDismiss}
+ className="text-muted-foreground hover:text-muted-foreground focus:outline-none"
+ aria-label={t('common.close', 'Fermer')}
+ >
+ <X className="h-4 w-4" />
+ </button>
+ </div>
 
-        <div className="text-sm text-slate-700 dark:text-slate-300 space-y-3">
-          {/* Level Analysis */}
-          {response.levelAnalysis && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
-                <span className="font-medium">{t('homologation.ai.recommendedLevel', 'Niveau recommandé')}</span>
-                <span className={`px-2 py-1 rounded text-xs font-bold ${
-                  response.levelAnalysis.recommendedLevel === 'etoile' ? 'bg-success/10 text-success' :
-                  response.levelAnalysis.recommendedLevel === 'simple' ? 'bg-info/10 text-info' :
-                  response.levelAnalysis.recommendedLevel === 'standard' ? 'bg-warning/10 text-warning' :
-                  'bg-error/10 text-error'
-                }`}>
-                  {LEVEL_LABELS[response.levelAnalysis.recommendedLevel]}
-                </span>
-              </div>
-              <p className="text-xs">{response.levelAnalysis.justification}</p>
-              <div>
-                <span className="text-xs font-medium">{t('homologation.ai.keyFactors', 'Facteurs clés')}:</span>
-                <ul className="list-disc pl-4 text-xs mt-1">
-                  {response.levelAnalysis.keyFactors.map((f, i) => (
-                    <li key={i || 'unknown'}>{f}</li>
-                  ))}
-                </ul>
-              </div>
-              {response.levelAnalysis.missingInfo && response.levelAnalysis.missingInfo.length > 0 && (
-                <div className="p-2 bg-warning/10 rounded-lg">
-                  <span className="text-xs font-medium text-warning">
-                    {t('homologation.ai.missingInfo', 'Informations manquantes')}:
-                  </span>
-                  <ul className="list-disc pl-4 text-xs mt-1 text-warning">
-                    {response.levelAnalysis.missingInfo.map((m, i) => (
-                      <li key={i || 'unknown'}>{m}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {onUpdate && response.levelAnalysis.recommendedLevel !== dossier.level && (
-                <button
-                  onClick={handleApplyLevel}
-                  className="w-full flex items-center justify-center px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold transition-colors"
-                >
-                  <Shield className="h-3.5 w-3.5 mr-2" />
-                  {t('homologation.ai.applyLevel', 'Appliquer le niveau recommandé')}
-                </button>
-              )}
-            </div>
-          )}
+ <div className="text-sm text-foreground space-y-3">
+ {/* Level Analysis */}
+ {response.levelAnalysis && (
+ <div className="space-y-3">
+ <div className="flex items-center justify-between p-2 bg-muted rounded-lg">
+ <span className="font-medium">{t('homologation.ai.recommendedLevel', 'Niveau recommandé')}</span>
+ <span className={`px-2 py-1 rounded text-xs font-bold ${
+  response.levelAnalysis.recommendedLevel === 'etoile' ? 'bg-success/10 text-success' :
+  response.levelAnalysis.recommendedLevel === 'simple' ? 'bg-info/10 text-info' :
+  response.levelAnalysis.recommendedLevel === 'standard' ? 'bg-warning/10 text-warning' :
+  'bg-error/10 text-error'
+ }`}>
+  {LEVEL_LABELS[response.levelAnalysis.recommendedLevel]}
+ </span>
+ </div>
+ <p className="text-xs">{response.levelAnalysis.justification}</p>
+ <div>
+ <span className="text-xs font-medium">{t('homologation.ai.keyFactors', 'Facteurs clés')}:</span>
+ <ul className="list-disc pl-4 text-xs mt-1">
+  {response.levelAnalysis.keyFactors.map((f, i) => (
+  <li key={i || 'unknown'}>{f}</li>
+  ))}
+ </ul>
+ </div>
+ {response.levelAnalysis.missingInfo && response.levelAnalysis.missingInfo.length > 0 && (
+ <div className="p-2 bg-warning/10 rounded-lg">
+  <span className="text-xs font-medium text-warning">
+  {t('homologation.ai.missingInfo', 'Informations manquantes')}:
+  </span>
+  <ul className="list-disc pl-4 text-xs mt-1 text-warning">
+  {response.levelAnalysis.missingInfo.map((m, i) => (
+  <li key={i || 'unknown'}>{m}</li>
+  ))}
+  </ul>
+ </div>
+ )}
+ {onUpdate && response.levelAnalysis.recommendedLevel !== dossier.level && (
+ <button
+  onClick={handleApplyLevel}
+  className="w-full flex items-center justify-center px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-xs font-bold transition-colors"
+ >
+  <Shield className="h-3.5 w-3.5 mr-2" />
+  {t('homologation.ai.applyLevel', 'Appliquer le niveau recommandé')}
+ </button>
+ )}
+ </div>
+ )}
 
-          {/* Strategy Outline */}
-          {response.strategyOutline && (
-            <div className="space-y-3">
-              {response.strategyOutline.sections.map((section, i) => (
-                <div key={i || 'unknown'} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
-                  <span className="font-medium">{section.title}</span>
-                  <p className="text-xs text-muted-foreground mt-1">{section.description}</p>
-                  <ul className="list-disc pl-4 text-xs mt-2">
-                    {section.keyPoints.map((p, j) => (
-                      <li key={j || 'unknown'}>{p}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-              {response.strategyOutline.recommendations.length > 0 && (
-                <div>
-                  <span className="text-xs font-medium">{t('homologation.ai.recommendations', 'Recommandations')}:</span>
-                  <ul className="list-disc pl-4 text-xs mt-1 text-brand-600 dark:text-brand-400">
-                    {response.strategyOutline.recommendations.map((r, i) => (
-                      <li key={i || 'unknown'}>{r}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
+ {/* Strategy Outline */}
+ {response.strategyOutline && (
+ <div className="space-y-3">
+ {response.strategyOutline.sections.map((section, i) => (
+ <div key={i || 'unknown'} className="p-2 bg-muted rounded-lg">
+  <span className="font-medium">{section.title}</span>
+  <p className="text-xs text-muted-foreground mt-1">{section.description}</p>
+  <ul className="list-disc pl-4 text-xs mt-2">
+  {section.keyPoints.map((p, j) => (
+  <li key={j || 'unknown'}>{p}</li>
+  ))}
+  </ul>
+ </div>
+ ))}
+ {response.strategyOutline.recommendations.length > 0 && (
+ <div>
+  <span className="text-xs font-medium">{t('homologation.ai.recommendations', 'Recommandations')}:</span>
+  <ul className="list-disc pl-4 text-xs mt-1 text-primary">
+  {response.strategyOutline.recommendations.map((r, i) => (
+  <li key={i || 'unknown'}>{r}</li>
+  ))}
+  </ul>
+ </div>
+ )}
+ </div>
+ )}
 
-          {/* Risk Analysis */}
-          {response.riskAnalysis && (
-            <div className="space-y-3">
-              {response.riskAnalysis.coveredRisks.length > 0 && (
-                <div>
-                  <span className="text-xs font-medium text-success">{t('homologation.ai.coveredRisks', 'Risques couverts')}:</span>
-                  <ul className="list-disc pl-4 text-xs mt-1">
-                    {response.riskAnalysis.coveredRisks.map((r, i) => (
-                      <li key={i || 'unknown'}>{r}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {response.riskAnalysis.gaps.length > 0 && (
-                <div className="p-2 bg-error/10 rounded-lg">
-                  <span className="text-xs font-medium text-error">{t('homologation.ai.gaps', 'Lacunes identifiées')}:</span>
-                  <ul className="list-disc pl-4 text-xs mt-1 text-error">
-                    {response.riskAnalysis.gaps.map((g, i) => (
-                      <li key={i || 'unknown'}>{g}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {response.riskAnalysis.recommendations.length > 0 && (
-                <div>
-                  <span className="text-xs font-medium">{t('homologation.ai.recommendations', 'Recommandations')}:</span>
-                  <ul className="list-disc pl-4 text-xs mt-1">
-                    {response.riskAnalysis.recommendations.map((r, i) => (
-                      <li key={i || 'unknown'}>{r}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {response.riskAnalysis.ebiosSyncStatus && (
-                <p className="text-xs text-brand-600 dark:text-brand-400">
-                  {response.riskAnalysis.ebiosSyncStatus}
-                </p>
-              )}
-            </div>
-          )}
+ {/* Risk Analysis */}
+ {response.riskAnalysis && (
+ <div className="space-y-3">
+ {response.riskAnalysis.coveredRisks.length > 0 && (
+ <div>
+  <span className="text-xs font-medium text-success">{t('homologation.ai.coveredRisks', 'Risques couverts')}:</span>
+  <ul className="list-disc pl-4 text-xs mt-1">
+  {response.riskAnalysis.coveredRisks.map((r, i) => (
+  <li key={i || 'unknown'}>{r}</li>
+  ))}
+  </ul>
+ </div>
+ )}
+ {response.riskAnalysis.gaps.length > 0 && (
+ <div className="p-2 bg-error/10 rounded-lg">
+  <span className="text-xs font-medium text-error">{t('homologation.ai.gaps', 'Lacunes identifiées')}:</span>
+  <ul className="list-disc pl-4 text-xs mt-1 text-error">
+  {response.riskAnalysis.gaps.map((g, i) => (
+  <li key={i || 'unknown'}>{g}</li>
+  ))}
+  </ul>
+ </div>
+ )}
+ {response.riskAnalysis.recommendations.length > 0 && (
+ <div>
+  <span className="text-xs font-medium">{t('homologation.ai.recommendations', 'Recommandations')}:</span>
+  <ul className="list-disc pl-4 text-xs mt-1">
+  {response.riskAnalysis.recommendations.map((r, i) => (
+  <li key={i || 'unknown'}>{r}</li>
+  ))}
+  </ul>
+ </div>
+ )}
+ {response.riskAnalysis.ebiosSyncStatus && (
+ <p className="text-xs text-primary">
+  {response.riskAnalysis.ebiosSyncStatus}
+ </p>
+ )}
+ </div>
+ )}
 
-          {/* Action Plan */}
-          {response.actionPlan && (
-            <div className="space-y-2">
-              {response.actionPlan.items.map((item, i) => (
-                <div key={i || 'unknown'} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg flex items-start gap-2">
-                  <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
-                    item.priority === 'high' ? 'bg-error' :
-                    item.priority === 'medium' ? 'bg-warning' :
-                    'bg-success'
-                  }`} />
-                  <div className="flex-1">
-                    <span className="font-medium text-xs">{item.action}</span>
-                    <div className="flex gap-2 mt-1">
-                      <span className="text-xs px-1.5 py-0.5 bg-slate-200 dark:bg-slate-600 rounded">
-                        {item.category}
-                      </span>
-                      {item.estimatedEffort && (
-                        <span className="text-xs text-muted-foreground">
-                          {item.estimatedEffort}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {response.actionPlan.timeline && (
-                <p className="text-xs text-brand-600 dark:text-brand-400 mt-2">
-                  {t('homologation.ai.timeline', 'Calendrier')}: {response.actionPlan.timeline}
-                </p>
-              )}
-            </div>
-          )}
+ {/* Action Plan */}
+ {response.actionPlan && (
+ <div className="space-y-2">
+ {response.actionPlan.items.map((item, i) => (
+ <div key={i || 'unknown'} className="p-2 bg-muted rounded-lg flex items-start gap-2">
+  <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
+  item.priority === 'high' ? 'bg-error' :
+  item.priority === 'medium' ? 'bg-warning' :
+  'bg-success'
+  }`} />
+  <div className="flex-1">
+  <span className="font-medium text-xs">{item.action}</span>
+  <div className="flex gap-2 mt-1">
+  <span className="text-xs px-1.5 py-0.5 bg-muted rounded">
+  {item.category}
+  </span>
+  {item.estimatedEffort && (
+  <span className="text-xs text-muted-foreground">
+  {item.estimatedEffort}
+  </span>
+  )}
+  </div>
+  </div>
+ </div>
+ ))}
+ {response.actionPlan.timeline && (
+ <p className="text-xs text-primary mt-2">
+  {t('homologation.ai.timeline', 'Calendrier')}: {response.actionPlan.timeline}
+ </p>
+ )}
+ </div>
+ )}
 
-          {/* Readiness Assessment */}
-          {response.readinessAssessment && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
-                <div>
-                  <span className="font-medium">{t('homologation.ai.readinessScore', 'Score de préparation')}</span>
-                  <div className="w-24 h-2 bg-slate-200 dark:bg-slate-600 rounded-full mt-1">
-                    <div
-                      className={`h-full rounded-full transition-all ${
-                        response.readinessAssessment.score >= 80 ? 'bg-success' :
-                        response.readinessAssessment.score >= 50 ? 'bg-warning' :
-                        'bg-error'
-                      }`}
-                      style={{ width: `${response.readinessAssessment.score}%` }}
-                    />
-                  </div>
-                </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  response.readinessAssessment.status === 'ready' ? 'bg-success/10 text-success' :
-                  response.readinessAssessment.status === 'almost_ready' ? 'bg-warning/10 text-warning' :
-                  'bg-error/10 text-error'
-                }`}>
-                  {response.readinessAssessment.score}%
-                </span>
-              </div>
+ {/* Readiness Assessment */}
+ {response.readinessAssessment && (
+ <div className="space-y-3">
+ <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+ <div>
+  <span className="font-medium">{t('homologation.ai.readinessScore', 'Score de préparation')}</span>
+  <div className="w-24 h-2 bg-muted rounded-full mt-1">
+  <div
+  className={`h-full rounded-full transition-all ${
+  response.readinessAssessment.score >= 80 ? 'bg-success' :
+  response.readinessAssessment.score >= 50 ? 'bg-warning' :
+  'bg-error'
+  }`}
+  style={{ width: `${response.readinessAssessment.score}%` }}
+  />
+  </div>
+ </div>
+ <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+  response.readinessAssessment.status === 'ready' ? 'bg-success/10 text-success' :
+  response.readinessAssessment.status === 'almost_ready' ? 'bg-warning/10 text-warning' :
+  'bg-error/10 text-error'
+ }`}>
+  {response.readinessAssessment.score}%
+ </span>
+ </div>
 
-              {response.readinessAssessment.strengths.length > 0 && (
-                <div>
-                  <span className="text-xs font-medium text-success">{t('homologation.ai.strengths', 'Points forts')}:</span>
-                  <ul className="list-disc pl-4 text-xs mt-1">
-                    {response.readinessAssessment.strengths.map((s, i) => (
-                      <li key={i || 'unknown'}>{s}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+ {response.readinessAssessment.strengths.length > 0 && (
+ <div>
+  <span className="text-xs font-medium text-success">{t('homologation.ai.strengths', 'Points forts')}:</span>
+  <ul className="list-disc pl-4 text-xs mt-1">
+  {response.readinessAssessment.strengths.map((s, i) => (
+  <li key={i || 'unknown'}>{s}</li>
+  ))}
+  </ul>
+ </div>
+ )}
 
-              {response.readinessAssessment.weaknesses.length > 0 && (
-                <div>
-                  <span className="text-xs font-medium text-warning">{t('homologation.ai.weaknesses', 'Points à améliorer')}:</span>
-                  <ul className="list-disc pl-4 text-xs mt-1">
-                    {response.readinessAssessment.weaknesses.map((w, i) => (
-                      <li key={i || 'unknown'}>{w}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+ {response.readinessAssessment.weaknesses.length > 0 && (
+ <div>
+  <span className="text-xs font-medium text-warning">{t('homologation.ai.weaknesses', 'Points à améliorer')}:</span>
+  <ul className="list-disc pl-4 text-xs mt-1">
+  {response.readinessAssessment.weaknesses.map((w, i) => (
+  <li key={i || 'unknown'}>{w}</li>
+  ))}
+  </ul>
+ </div>
+ )}
 
-              {response.readinessAssessment.blockers && response.readinessAssessment.blockers.length > 0 && (
-                <div className="p-2 bg-error/10 rounded-lg">
-                  <span className="text-xs font-medium text-error">{t('homologation.ai.blockers', 'Bloquants')}:</span>
-                  <ul className="list-disc pl-4 text-xs mt-1 text-error">
-                    {response.readinessAssessment.blockers.map((b, i) => (
-                      <li key={i || 'unknown'}>{b}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+ {response.readinessAssessment.blockers && response.readinessAssessment.blockers.length > 0 && (
+ <div className="p-2 bg-error/10 rounded-lg">
+  <span className="text-xs font-medium text-error">{t('homologation.ai.blockers', 'Bloquants')}:</span>
+  <ul className="list-disc pl-4 text-xs mt-1 text-error">
+  {response.readinessAssessment.blockers.map((b, i) => (
+  <li key={i || 'unknown'}>{b}</li>
+  ))}
+  </ul>
+ </div>
+ )}
 
-              {response.readinessAssessment.recommendations.length > 0 && (
-                <div>
-                  <span className="text-xs font-medium">{t('homologation.ai.recommendations', 'Recommandations')}:</span>
-                  <ul className="list-disc pl-4 text-xs mt-1">
-                    {response.readinessAssessment.recommendations.map((r, i) => (
-                      <li key={i || 'unknown'}>{r}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
+ {response.readinessAssessment.recommendations.length > 0 && (
+ <div>
+  <span className="text-xs font-medium">{t('homologation.ai.recommendations', 'Recommandations')}:</span>
+  <ul className="list-disc pl-4 text-xs mt-1">
+  {response.readinessAssessment.recommendations.map((r, i) => (
+  <li key={i || 'unknown'}>{r}</li>
+  ))}
+  </ul>
+ </div>
+ )}
+ </div>
+ )}
 
-          {/* Plain text fallback */}
-          {response.text && (
-            <p className="whitespace-pre-wrap">{response.text}</p>
-          )}
-        </div>
-      </div>
-    );
-  };
+ {/* Plain text fallback */}
+ {response.text && (
+ <p className="whitespace-pre-wrap">{response.text}</p>
+ )}
+ </div>
+ </div>
+ );
+ };
 
-  return (
-    <div className="bg-gradient-to-br from-brand-50 to-violet-50 dark:from-brand-900/20 dark:to-violet-900/20 rounded-2xl p-5 border border-brand-100 dark:border-brand-300">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-white dark:bg-slate-900/50 rounded-3xl shadow-sm">
-          <Sparkles className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-        </div>
-        <div>
-          <h3 className="font-bold text-slate-900 dark:text-white text-sm">
-            {t('homologation.ai.title', 'Assistant IA Homologation')}
-          </h3>
-          <p className="text-xs text-slate-600 dark:text-muted-foreground">
-            {t('homologation.ai.subtitle', 'Conformité ANSSI')}
-          </p>
-        </div>
-      </div>
+ return (
+ <div className="bg-gradient-to-br from-primary/10 to-violet-50 dark:from-primary/20 dark:to-violet-900/20 rounded-2xl p-5 border border-primary/20 dark:border-primary/40">
+ {/* Header */}
+ <div className="flex items-center gap-3 mb-4">
+ <div className="p-2 bg-card/50 rounded-3xl shadow-sm">
+ <Sparkles className="h-5 w-5 text-primary" />
+ </div>
+ <div>
+ <h3 className="font-bold text-foreground text-sm">
+ {t('homologation.ai.title', 'Assistant IA Homologation')}
+ </h3>
+ <p className="text-xs text-muted-foreground">
+ {t('homologation.ai.subtitle', 'Conformité ANSSI')}
+ </p>
+ </div>
+ </div>
 
-      {/* Action Buttons */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
-        {ACTIONS.map(({ action, label, icon }) => (
-          <button
-            key={action || 'unknown'}
-            onClick={() => handleAction(action)}
-            disabled={loading}
-            className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-              activeAction === action
-                ? 'bg-brand-600 text-white shadow-md'
-                : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:hover:bg-brand-900 border border-transparent hover:border-brand-200'
-            }`}
-          >
-            {loading && activeAction === action ? (
-              <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
-            ) : (
-              <span className="mr-2">{icon}</span>
-            )}
-            {label}
-          </button>
-        ))}
-      </div>
+ {/* Action Buttons */}
+ <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+ {ACTIONS.map(({ action, label, icon }) => (
+ <button
+ key={action || 'unknown'}
+ onClick={() => handleAction(action)}
+ disabled={loading}
+ className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+ activeAction === action
+ ? 'bg-primary text-primary-foreground shadow-md'
+ : 'bg-card text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary border border-transparent hover:border-primary/30'
+ }`}
+ >
+ {loading && activeAction === action ? (
+ <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+ ) : (
+ <span className="mr-2">{icon}</span>
+ )}
+ {label}
+ </button>
+ ))}
+ </div>
 
-      {/* Error */}
-      {error && (
-        <div className="text-xs text-error mb-2">{error}</div>
-      )}
+ {/* Error */}
+ {error && (
+ <div className="text-xs text-error mb-2">{error}</div>
+ )}
 
-      {/* Response */}
-      {renderResponse()}
-    </div>
-  );
+ {/* Response */}
+ {renderResponse()}
+ </div>
+ );
 };
 
 export default HomologationAIAssistant;

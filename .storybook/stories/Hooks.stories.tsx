@@ -58,7 +58,7 @@ const AccessibilityDemoComponent = () => {
         </button>
       </form>
       
-      <div className="text-sm text-gray-600">
+      <div className="text-sm text-muted-foreground">
         <p>✅ IDs uniques générés</p>
         <p>✅ Labels ARIA ajoutés</p>
         <p>✅ Navigation clavier supportée</p>
@@ -106,7 +106,7 @@ const ErrorHandlerDemoComponent = () => {
         </button>
       </div>
       
-      <div className="text-sm text-gray-600">
+      <div className="text-sm text-muted-foreground">
         <p>✅ Types d\'erreurs structurés</p>
         <p>✅ Messages utilisateurs contextuels</p>
         <p>✅ Logging intelligent</p>
@@ -146,7 +146,7 @@ const DoubleSubmitDemoComponent = () => {
         )}
       </button>
       
-      <div className="text-sm text-gray-600">
+      <div className="text-sm text-muted-foreground">
         <p>🔄 Cliquez rapidement pour tester</p>
         <p>✅ Protection automatique activée</p>
         <p>⏱️ Timeout de sécurité intégré</p>

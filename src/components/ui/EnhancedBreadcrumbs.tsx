@@ -5,130 +5,130 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 
 interface BreadcrumbItem {
-  label: string;
-  path?: string;
-  icon?: React.ReactNode;
+ label: string;
+ path?: string;
+ icon?: React.ReactNode;
 }
 
 interface EnhancedBreadcrumbsProps {
-  items: BreadcrumbItem[];
-  className?: string;
-  separator?: React.ReactNode;
+ items: BreadcrumbItem[];
+ className?: string;
+ separator?: React.ReactNode;
 }
 
 export const EnhancedBreadcrumbs: React.FC<EnhancedBreadcrumbsProps> = ({
-  items,
-  className = '',
-  separator = <ChevronRight className="w-4 h-4" />
+ items,
+ className = '',
+ separator = <ChevronRight className="w-4 h-4" />
 }) => {
-  const location = useLocation();
+ const location = useLocation();
 
-  return (
-    <nav aria-label="Breadcrumb" className={cn("flex items-center space-x-1 text-sm", className)}>
-      <AnimatePresence mode="popLayout">
-        {items.map((item, index) => {
-          const isLast = index === items.length - 1;
-          const isActive = item.path === location.pathname;
+ return (
+ <nav aria-label="Breadcrumb" className={cn("flex items-center space-x-1 text-sm", className)}>
+ <AnimatePresence mode="popLayout">
+ {items.map((item, index) => {
+ const isLast = index === items.length - 1;
+ const isActive = item.path === location.pathname;
 
-          return (
-            <React.Fragment key={item.label || 'unknown'}>
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                className="flex items-center"
-              >
-                {item.path && !isLast ? (
-                  <Link
-                    to={item.path}
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200",
-                      isActive
-                        ? "bg-brand-500 text-white font-medium"
-                        : "text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
-                    )}
-                  >
-                    {item.icon || (index === 0 && <Home className="w-4 h-4" />)}
-                    <span className="truncate max-w-[150px]">{item.label}</span>
-                  </Link>
-                ) : (
-                  <div
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg",
-                      isLast
-                        ? "text-slate-900 dark:text-white font-semibold"
-                        : "text-slate-600 dark:text-slate-300"
-                    )}
-                  >
-                    {item.icon || (index === 0 && <Home className="w-4 h-4" />)}
-                    <span className="truncate max-w-[150px]">{item.label}</span>
-                  </div>
-                )}
-              </motion.div>
+ return (
+ <React.Fragment key={item.label || 'unknown'}>
+ <motion.div
+ initial={{ opacity: 0, x: -10 }}
+ animate={{ opacity: 1, x: 0 }}
+ exit={{ opacity: 0, x: -10 }}
+ transition={{ duration: 0.3, delay: index * 0.1 }}
+ className="flex items-center"
+ >
+ {item.path && !isLast ? (
+  <Link
+  to={item.path}
+  className={cn(
+  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200",
+  isActive
+  ? "bg-primary text-primary-foreground font-medium"
+  : "text-muted-foreground hover:text-foreground dark:hover:text-white hover:bg-muted"
+  )}
+  >
+  {item.icon || (index === 0 && <Home className="w-4 h-4" />)}
+  <span className="truncate max-w-[150px]">{item.label}</span>
+  </Link>
+ ) : (
+  <div
+  className={cn(
+  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg",
+  isLast
+  ? "text-foreground font-semibold"
+  : "text-muted-foreground"
+  )}
+  >
+  {item.icon || (index === 0 && <Home className="w-4 h-4" />)}
+  <span className="truncate max-w-[150px]">{item.label}</span>
+  </div>
+ )}
+ </motion.div>
 
-              {!isLast && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.2, delay: index * 0.1 + 0.2 }}
-                  className="flex items-center text-muted-foreground dark:text-slate-300"
-                >
-                  {separator}
-                </motion.div>
-              )}
-            </React.Fragment>
-          );
-        })}
-      </AnimatePresence>
-    </nav>
-  );
+ {!isLast && (
+ <motion.div
+  initial={{ opacity: 0, scale: 0.8 }}
+  animate={{ opacity: 1, scale: 1 }}
+  transition={{ duration: 0.2, delay: index * 0.1 + 0.2 }}
+  className="flex items-center text-muted-foreground"
+ >
+  {separator}
+ </motion.div>
+ )}
+ </React.Fragment>
+ );
+ })}
+ </AnimatePresence>
+ </nav>
+ );
 };
 
 export const CompactBreadcrumbs: React.FC<EnhancedBreadcrumbsProps> = ({ items, className = '' }) => {
-  return (
-    <nav aria-label="Breadcrumb" className={cn("flex items-center space-x-1", className)}>
-      <AnimatePresence mode="popLayout">
-        {items.map((item, index) => {
-          const isLast = index === items.length - 1;
+ return (
+ <nav aria-label="Breadcrumb" className={cn("flex items-center space-x-1", className)}>
+ <AnimatePresence mode="popLayout">
+ {items.map((item, index) => {
+ const isLast = index === items.length - 1;
 
-          return (
-            <React.Fragment key={item.label || 'unknown'}>
-              <motion.div
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -5 }}
-                transition={{ duration: 0.2 }}
-                className="flex items-center"
-              >
-                {item.path && !isLast ? (
-                  <Link
-                    to={item.path}
-                    className="text-xs text-slate-500 dark:text-muted-foreground hover:text-slate-700 dark:hover:text-slate-300 transition-colors truncate max-w-[100px]"
-                  >
-                    {item.label}
-                  </Link>
-                ) : (
-                  <span className="text-xs text-slate-900 dark:text-white font-medium truncate max-w-[100px]">
-                    {item.label}
-                  </span>
-                )}
-              </motion.div>
+ return (
+ <React.Fragment key={item.label || 'unknown'}>
+ <motion.div
+ initial={{ opacity: 0, y: -5 }}
+ animate={{ opacity: 1, y: 0 }}
+ exit={{ opacity: 0, y: -5 }}
+ transition={{ duration: 0.2 }}
+ className="flex items-center"
+ >
+ {item.path && !isLast ? (
+  <Link
+  to={item.path}
+  className="text-xs text-muted-foreground hover:text-foreground transition-colors truncate max-w-[100px]"
+  >
+  {item.label}
+  </Link>
+ ) : (
+  <span className="text-xs text-foreground font-medium truncate max-w-[100px]">
+  {item.label}
+  </span>
+ )}
+ </motion.div>
 
-              {!isLast && (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.1 }}
-                  className="text-slate-400 dark:text-slate-300"
-                >
-                  /
-                </motion.span>
-              )}
-            </React.Fragment>
-          );
-        })}
-      </AnimatePresence>
-    </nav>
-  );
+ {!isLast && (
+ <motion.span
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{ duration: 0.1 }}
+  className="text-muted-foreground"
+ >
+  /
+ </motion.span>
+ )}
+ </React.Fragment>
+ );
+ })}
+ </AnimatePresence>
+ </nav>
+ );
 };

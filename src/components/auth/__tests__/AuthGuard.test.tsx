@@ -13,63 +13,63 @@ import { BrowserRouter } from 'react-router-dom';
 
 // Mock useAuth hook
 vi.mock('../../../hooks/useAuth', () => ({
-    useAuth: vi.fn(() => ({
-        user: { id: 'user-1', onboardingCompleted: true, organizationId: 'org-1' },
-        firebaseUser: { uid: 'user-1', emailVerified: true },
-        loading: false,
-        error: null,
-        profileError: null,
-        claimsSynced: true
-    }))
+ useAuth: vi.fn(() => ({
+ user: { id: 'user-1', onboardingCompleted: true, organizationId: 'org-1' },
+ firebaseUser: { uid: 'user-1', emailVerified: true },
+ loading: false,
+ error: null,
+ profileError: null,
+ claimsSynced: true
+ }))
 }));
 
 // Mock LoadingScreen
 vi.mock('../../ui/LoadingScreen', () => ({
-    LoadingScreen: () => React.createElement('div', { 'data-testid': 'loading-screen' }, 'Loading...')
+ LoadingScreen: () => React.createElement('div', { 'data-testid': 'loading-screen' }, 'Loading...')
 }));
 
 // Import after mocks
 import { AuthGuard } from '../AuthGuard';
 
 describe('AuthGuard', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-    });
+ beforeEach(() => {
+ vi.clearAllMocks();
+ });
 
-    it('should render children in test mode', () => {
-        render(
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <AuthGuard>
-                    <div data-testid="protected-content">Protected</div>
-                </AuthGuard>
-            </BrowserRouter>
-        );
+ it('should render children in test mode', () => {
+ render(
+ <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+ <AuthGuard>
+  <div data-testid="protected-content">Protected</div>
+ </AuthGuard>
+ </BrowserRouter>
+ );
 
-        // In test mode, AuthGuard bypasses auth and renders children
-        expect(screen.getByTestId('protected-content')).toBeInTheDocument();
-    });
+ // In test mode, AuthGuard bypasses auth and renders children
+ expect(screen.getByTestId('protected-content')).toBeInTheDocument();
+ });
 
-    it('should accept requireOnboarding prop', () => {
-        render(
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <AuthGuard requireOnboarding={false}>
-                    <div data-testid="protected-content">Protected</div>
-                </AuthGuard>
-            </BrowserRouter>
-        );
+ it('should accept requireOnboarding prop', () => {
+ render(
+ <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+ <AuthGuard requireOnboarding={false}>
+  <div data-testid="protected-content">Protected</div>
+ </AuthGuard>
+ </BrowserRouter>
+ );
 
-        expect(screen.getByTestId('protected-content')).toBeInTheDocument();
-    });
+ expect(screen.getByTestId('protected-content')).toBeInTheDocument();
+ });
 
-    it('should render with default requireOnboarding as true', () => {
-        render(
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <AuthGuard>
-                    <div data-testid="protected-content">Protected</div>
-                </AuthGuard>
-            </BrowserRouter>
-        );
+ it('should render with default requireOnboarding as true', () => {
+ render(
+ <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+ <AuthGuard>
+  <div data-testid="protected-content">Protected</div>
+ </AuthGuard>
+ </BrowserRouter>
+ );
 
-        expect(screen.getByTestId('protected-content')).toBeInTheDocument();
-    });
+ expect(screen.getByTestId('protected-content')).toBeInTheDocument();
+ });
 });

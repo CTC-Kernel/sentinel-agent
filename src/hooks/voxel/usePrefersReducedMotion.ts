@@ -28,47 +28,47 @@ const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
  * const prefersReducedMotion = usePrefersReducedMotion();
  *
  * useFrame((_, delta) => {
- *   if (!prefersReducedMotion && meshRef.current) {
- *     meshRef.current.rotation.y += delta * 0.5;
- *   }
+ * if (!prefersReducedMotion && meshRef.current) {
+ * meshRef.current.rotation.y += delta * 0.5;
+ * }
  * });
  * ```
  */
 export function usePrefersReducedMotion(): boolean {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(() => {
-    // Check if we're in a browser environment
-    if (typeof window === 'undefined' || !window.matchMedia) {
-      return false;
-    }
-    return window.matchMedia(REDUCED_MOTION_QUERY).matches;
-  });
+ const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(() => {
+ // Check if we're in a browser environment
+ if (typeof window === 'undefined' || !window.matchMedia) {
+ return false;
+ }
+ return window.matchMedia(REDUCED_MOTION_QUERY).matches;
+ });
 
-  useEffect(() => {
-    // SSR guard
-    if (typeof window === 'undefined' || !window.matchMedia) {
-      return;
-    }
+ useEffect(() => {
+ // SSR guard
+ if (typeof window === 'undefined' || !window.matchMedia) {
+ return;
+ }
 
-    const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);
+ const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);
 
-    // Handler for media query changes
-    const handleChange = (event: MediaQueryListEvent) => {
-      setPrefersReducedMotion(event.matches);
-    };
+ // Handler for media query changes
+ const handleChange = (event: MediaQueryListEvent) => {
+ setPrefersReducedMotion(event.matches);
+ };
 
-    // Modern browsers
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
-    }
-    // Legacy browsers (Safari < 14)
-    else if (mediaQuery.addListener) {
-      mediaQuery.addListener(handleChange);
-      return () => mediaQuery.removeListener(handleChange);
-    }
-  }, []);
+ // Modern browsers
+ if (mediaQuery.addEventListener) {
+ mediaQuery.addEventListener('change', handleChange);
+ return () => mediaQuery.removeEventListener('change', handleChange);
+ }
+ // Legacy browsers (Safari < 14)
+ else if (mediaQuery.addListener) {
+ mediaQuery.addListener(handleChange);
+ return () => mediaQuery.removeListener(handleChange);
+ }
+ }, []);
 
-  return prefersReducedMotion;
+ return prefersReducedMotion;
 }
 
 /**
@@ -82,10 +82,10 @@ export function usePrefersReducedMotion(): boolean {
  * @returns 0 if reduced motion preferred, duration otherwise
  */
 export function getAnimationDuration(
-  duration: number,
-  prefersReducedMotion: boolean
+ duration: number,
+ prefersReducedMotion: boolean
 ): number {
-  return prefersReducedMotion ? 0 : duration;
+ return prefersReducedMotion ? 0 : duration;
 }
 
 /**
@@ -99,10 +99,10 @@ export function getAnimationDuration(
  * @returns 'none' if reduced motion preferred, transition otherwise
  */
 export function getTransitionStyle(
-  transition: string,
-  prefersReducedMotion: boolean
+ transition: string,
+ prefersReducedMotion: boolean
 ): string {
-  return prefersReducedMotion ? 'none' : transition;
+ return prefersReducedMotion ? 'none' : transition;
 }
 
 export default usePrefersReducedMotion;

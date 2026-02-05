@@ -1,86 +1,86 @@
 
 export interface ValidationRule {
-    required?: boolean;
-    minLength?: number;
-    maxLength?: number;
-    pattern?: RegExp;
-    min?: number;
-    max?: number;
-    email?: boolean;
-    url?: boolean;
-    custom?: (value: unknown) => boolean;
-    message?: string;
+ required?: boolean;
+ minLength?: number;
+ maxLength?: number;
+ pattern?: RegExp;
+ min?: number;
+ max?: number;
+ email?: boolean;
+ url?: boolean;
+ custom?: (value: unknown) => boolean;
+ message?: string;
 }
 
 export interface ValidationErrors {
-    [key: string]: string | undefined;
+ [key: string]: string | undefined;
 }
 
 // Validate a single field
 export const validateField = (value: unknown, rules: ValidationRule): string | undefined => {
-    if (rules.required && (!value || (typeof value === 'string' && !value.trim()))) {
-        return rules.message || 'This field is required';
-    }
+ if (rules.required && (!value || (typeof value === 'string' && !value.trim()))) {
+ return rules.message || 'This field is required';
+ }
 
-    if (!value) return undefined; // If not required and empty, it's valid
+ if (!value) return undefined; // If not required and empty, it's valid
 
-    const stringValue = String(value);
+ const stringValue = String(value);
 
-    if (rules.minLength && stringValue.length < rules.minLength) {
-        return rules.message || `Minimum ${rules.minLength} characters required`;
-    }
+ if (rules.minLength && stringValue.length < rules.minLength) {
+ return rules.message || `Minimum ${rules.minLength} characters required`;
+ }
 
-    if (rules.maxLength && stringValue.length > rules.maxLength) {
-        return rules.message || `Maximum ${rules.maxLength} characters allowed`;
-    }
+ if (rules.maxLength && stringValue.length > rules.maxLength) {
+ return rules.message || `Maximum ${rules.maxLength} characters allowed`;
+ }
 
-    if (rules.pattern && !rules.pattern.test(stringValue)) {
-        return rules.message || 'Invalid format';
-    }
+ if (rules.pattern && !rules.pattern.test(stringValue)) {
+ return rules.message || 'Invalid format';
+ }
 
-    if (rules.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
-        return rules.message || 'Invalid email';
-    }
+ if (rules.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
+ return rules.message || 'Invalid email';
+ }
 
-    if (rules.url && !/^https?:\/\/.+/.test(stringValue)) {
-        return rules.message || 'Invalid URL';
-    }
+ if (rules.url && !/^https?:\/\/.+/.test(stringValue)) {
+ return rules.message || 'Invalid URL';
+ }
 
-    if (typeof value === 'number') {
-        if (rules.min !== undefined && value < rules.min) {
-            return rules.message || `Minimum value: ${rules.min}`;
-        }
+ if (typeof value === 'number') {
+ if (rules.min !== undefined && value < rules.min) {
+ return rules.message || `Minimum value: ${rules.min}`;
+ }
 
-        if (rules.max !== undefined && value > rules.max) {
-            return rules.message || `Maximum value: ${rules.max}`;
-        }
-    }
+ if (rules.max !== undefined && value > rules.max) {
+ return rules.message || `Maximum value: ${rules.max}`;
+ }
+ }
 
-    if (rules.custom && !rules.custom(value)) {
-        return rules.message || 'Invalid value';
-    }
+ if (rules.custom && !rules.custom(value)) {
+ return rules.message || 'Invalid value';
+ }
 
-    return undefined;
+ return undefined;
 };
 
 // Validate entire form
 export const validateForm = (
-    data: Record<string, unknown>,
-    rules: Record<string, ValidationRule>
+ data: Record<string, unknown>,
+ rules: Record<string, ValidationRule>
 ): { isValid: boolean; errors: ValidationErrors } => {
-    const errors: ValidationErrors = {};
+ const errors: ValidationErrors = {};
 
-    Object.keys(rules).forEach(field => {
-        const error = validateField(data[field], rules[field]);
-        if (error) {
-            errors[field] = error;
-        }
-    });
+ Object.keys(rules).forEach(field => {
+ const error = validateField(data[field], rules[field]);
+ if (error) {
+ errors[field] = error;
+ }
+ });
 
-    return {
-        isValid: Object.keys(errors).length === 0,
-        errors
-    };
+ return {
+ isValid: Object.keys(errors).length === 0,
+ errors
+ };
 };
 
 import { SupportedLocale } from '../config/localeConfig';
@@ -89,26 +89,26 @@ import { SupportedLocale } from '../config/localeConfig';
  * Localized labels for validation states
  */
 const validationLabels = {
-    fr: {
-        required: 'Ce champ est requis',
-        invalid: 'Valeur invalide',
-    },
-    en: {
-        required: 'This field is required',
-        invalid: 'Invalid value',
-    },
-    de: {
-        required: 'Dieses Feld ist erforderlich',
-        invalid: 'Ungültiger Wert',
-    },
+ fr: {
+ required: 'Ce champ est requis',
+ invalid: 'Valeur invalide',
+ },
+ en: {
+ required: 'This field is required',
+ invalid: 'Invalid value',
+ },
+ de: {
+ required: 'Dieses Feld ist erforderlich',
+ invalid: 'Ungültiger Wert',
+ },
 } as const;
 
 /**
  * Get validation label for a locale
  */
 export function getValidationLabel(
-    locale: SupportedLocale,
-    key: keyof typeof validationLabels.fr
+ locale: SupportedLocale,
+ key: keyof typeof validationLabels.fr
 ): string {
-    return validationLabels[locale][key];
+ return validationLabels[locale][key];
 }

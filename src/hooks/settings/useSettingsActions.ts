@@ -5,24 +5,24 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { sanitizeData } from '../../utils/dataSanitizer';
 
 export const useSettingsActions = () => {
-  const { user } = useAuth();
+ const { user } = useAuth();
 
-  const saveCommunitySettings = async (settings: Record<string, unknown>) => {
-    if (!user) throw new Error('User not authenticated');
+ const saveCommunitySettings = async (settings: Record<string, unknown>) => {
+ if (!user) throw new Error('User not authenticated');
 
-    try {
-      const settingsRef = doc(db, 'users', user.uid, 'settings', 'community');
-      await setDoc(settingsRef, sanitizeData({
-        ...settings,
-        updatedAt: serverTimestamp()
-      }), { merge: true });
-    } catch (error) {
-      ErrorLogger.error(error, 'useSettingsActions.saveCommunitySettings');
-      throw error;
-    }
-  };
+ try {
+ const settingsRef = doc(db, 'users', user.uid, 'settings', 'community');
+ await setDoc(settingsRef, sanitizeData({
+ ...settings,
+ updatedAt: serverTimestamp()
+ }), { merge: true });
+ } catch (error) {
+ ErrorLogger.error(error, 'useSettingsActions.saveCommunitySettings');
+ throw error;
+ }
+ };
 
-  return {
-    saveCommunitySettings,
-  };
+ return {
+ saveCommunitySettings,
+ };
 };

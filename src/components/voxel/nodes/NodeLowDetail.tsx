@@ -23,10 +23,10 @@ import { resolveNodeStyle, type GeometryType } from '@/services/voxel/NodeStyleR
 // ============================================================================
 
 export interface NodeLowDetailProps {
-  /** Node data */
-  data: VoxelNodeType;
-  /** Whether node is selected (affects visibility) */
-  isSelected?: boolean;
+ /** Node data */
+ data: VoxelNodeType;
+ /** Whether node is selected (affects visibility) */
+ isSelected?: boolean;
 }
 
 // ============================================================================
@@ -36,36 +36,36 @@ export interface NodeLowDetailProps {
 const LOW_DETAIL_SEGMENTS = 8;
 
 interface GeometryProps {
-  size: number;
+ size: number;
 }
 
 // All geometries simplified to basic shapes for distant view
 const SphereGeometry: React.FC<GeometryProps> = ({ size }) => (
-  <sphereGeometry args={[size, LOW_DETAIL_SEGMENTS, LOW_DETAIL_SEGMENTS]} />
+ <sphereGeometry args={[size, LOW_DETAIL_SEGMENTS, LOW_DETAIL_SEGMENTS]} />
 );
 
 const IcosahedronGeometry: React.FC<GeometryProps> = ({ size }) => (
-  <icosahedronGeometry args={[size, 0]} /> // Minimal subdivision
+ <icosahedronGeometry args={[size, 0]} /> // Minimal subdivision
 );
 
 const BoxGeometry: React.FC<GeometryProps> = ({ size }) => (
-  <boxGeometry args={[size * 1.5, size * 1.5, size * 1.5]} />
+ <boxGeometry args={[size * 1.5, size * 1.5, size * 1.5]} />
 );
 
 const OctahedronGeometry: React.FC<GeometryProps> = ({ size }) => (
-  <octahedronGeometry args={[size, 0]} />
+ <octahedronGeometry args={[size, 0]} />
 );
 
 const CylinderGeometry: React.FC<GeometryProps> = ({ size }) => (
-  <cylinderGeometry args={[size * 0.8, size * 0.8, size * 1.5, LOW_DETAIL_SEGMENTS]} />
+ <cylinderGeometry args={[size * 0.8, size * 0.8, size * 1.5, LOW_DETAIL_SEGMENTS]} />
 );
 
 const GEOMETRY_MAP: Record<GeometryType, React.FC<GeometryProps>> = {
-  sphere: SphereGeometry,
-  icosahedron: IcosahedronGeometry,
-  box: BoxGeometry,
-  octahedron: OctahedronGeometry,
-  cylinder: CylinderGeometry,
+ sphere: SphereGeometry,
+ icosahedron: IcosahedronGeometry,
+ box: BoxGeometry,
+ octahedron: OctahedronGeometry,
+ cylinder: CylinderGeometry,
 };
 
 // ============================================================================
@@ -73,34 +73,34 @@ const GEOMETRY_MAP: Record<GeometryType, React.FC<GeometryProps>> = {
 // ============================================================================
 
 export const NodeLowDetail: React.FC<NodeLowDetailProps> = ({
-  data,
-  isSelected = false,
+ data,
+ isSelected = false,
 }) => {
-  const style = useMemo(() => resolveNodeStyle(data), [data]);
-  const GeometryComponent = GEOMETRY_MAP[style.geometry];
+ const style = useMemo(() => resolveNodeStyle(data), [data]);
+ const GeometryComponent = GEOMETRY_MAP[style.geometry];
 
-  const color = useMemo(() => new Color(style.color), [style.color]);
+ const color = useMemo(() => new Color(style.color), [style.color]);
 
-  // Selected nodes get slight brightness boost even at low detail
-  const displayColor = useMemo(() => {
-    if (isSelected) {
-      const brightColor = color.clone();
-      brightColor.multiplyScalar(1.2);
-      return brightColor;
-    }
-    return color;
-  }, [color, isSelected]);
+ // Selected nodes get slight brightness boost even at low detail
+ const displayColor = useMemo(() => {
+ if (isSelected) {
+ const brightColor = color.clone();
+ brightColor.multiplyScalar(1.2);
+ return brightColor;
+ }
+ return color;
+ }, [color, isSelected]);
 
-  return (
-    <mesh>
-      <GeometryComponent size={style.size * 0.8} /> {/* Slightly smaller at distance */}
-      <meshBasicMaterial
-        color={displayColor}
-        transparent={style.opacity < 1}
-        opacity={style.opacity}
-      />
-    </mesh>
-  );
+ return (
+ <mesh>
+ <GeometryComponent size={style.size * 0.8} /> {/* Slightly smaller at distance */}
+ <meshBasicMaterial
+ color={displayColor}
+ transparent={style.opacity < 1}
+ opacity={style.opacity}
+ />
+ </mesh>
+ );
 };
 
 export default NodeLowDetail;

@@ -4,22 +4,22 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import Backend from 'i18next-http-backend';
 
 i18n
-    .use(Backend)
-    .use(LanguageDetector)
-    .use(initReactI18next)
-    .init({
-        debug: import.meta.env.DEV,
-        fallbackLng: 'fr',
-        load: 'languageOnly',
-        interpolation: {
-            escapeValue: false, // not needed for react as it escapes by default
-        },
-        backend: {
-            loadPath: '/locales/{{lng}}/translation.json',
-        },
-        react: {
-            useSuspense: true,
-        }
-    });
+ .use(Backend)
+ .use(LanguageDetector)
+ .use(initReactI18next)
+ .init({
+ debug: import.meta.env.DEV,
+ fallbackLng: 'fr',
+ load: 'languageOnly',
+ interpolation: {
+ escapeValue: false, // not needed for react as it escapes by default
+ },
+ backend: {
+ loadPath: '/locales/{{lng}}/translation.json',
+ },
+ react: {
+ useSuspense: true,
+ }
+ });
 
 export default i18n;

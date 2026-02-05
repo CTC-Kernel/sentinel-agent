@@ -6,7 +6,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useLocale } from '../hooks/useLocale';
 import { toast } from '@/lib/toast';
 import { Button } from '../components/ui/button';
 import { SearchInput } from '../components/ui/SearchInput';
@@ -29,338 +29,338 @@ import { useStore } from '../store';
 import { canEditResource } from '../utils/permissions';
 
 interface DORAProvidersProps {
-    hideHeader?: boolean;
+ hideHeader?: boolean;
 }
 
 export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false }) => {
-    const { t } = useTranslation();
-    const navigate = useNavigate();
-    const { user } = useStore();
+ const { t } = useLocale();
+ const navigate = useNavigate();
+ const { user } = useStore();
 
-    // Filters
-    const [searchTerm, setSearchTerm] = useState('');
-    const [categoryFilter, setCategoryFilter] = useState<ICTCriticality | ''>('');
-    const [complianceFilter, setComplianceFilter] = useState<boolean | ''>('');
+ // Filters
+ const [searchTerm, setSearchTerm] = useState('');
+ const [categoryFilter, setCategoryFilter] = useState<ICTCriticality | ''>('');
+ const [complianceFilter, setComplianceFilter] = useState<boolean | ''>('');
 
-    const filters: ICTProviderFilters = {
-        searchTerm: searchTerm || undefined,
-        category: categoryFilter || undefined,
-        doraCompliant: complianceFilter === '' ? undefined : complianceFilter
-    };
+ const filters: ICTProviderFilters = {
+ searchTerm: searchTerm || undefined,
+ category: categoryFilter || undefined,
+ doraCompliant: complianceFilter === '' ? undefined : complianceFilter
+ };
 
-    const {
-        providers,
-        loading,
-        stats,
-        concentrationAnalysis,
-        deleteProvider,
-        refresh
-    } = useICTProviders({ filters });
+ const {
+ providers,
+ loading,
+ stats,
+ concentrationAnalysis,
+ deleteProvider,
+ refresh
+ } = useICTProviders({ filters });
 
-    // Drawer states
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const [selectedProvider, setSelectedProvider] = useState<ICTProvider | null>(null);
-    const [isInspectorOpen, setIsInspectorOpen] = useState(false);
-    const [inspectedProvider, setInspectedProvider] = useState<ICTProvider | null>(null);
-    const [isImportOpen, setIsImportOpen] = useState(false);
-    const [isExportOpen, setIsExportOpen] = useState(false);
-    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-    const [deleteProviderId, setDeleteProviderId] = useState<string | null>(null);
+ // Drawer states
+ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+ const [selectedProvider, setSelectedProvider] = useState<ICTProvider | null>(null);
+ const [isInspectorOpen, setIsInspectorOpen] = useState(false);
+ const [inspectedProvider, setInspectedProvider] = useState<ICTProvider | null>(null);
+ const [isImportOpen, setIsImportOpen] = useState(false);
+ const [isExportOpen, setIsExportOpen] = useState(false);
+ const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+ const [deleteProviderId, setDeleteProviderId] = useState<string | null>(null);
 
-    const handleCreate = useCallback(() => {
-        if (!canEditResource(user, 'Supplier')) {
-            toast.error(t('common.permissionDenied', { defaultValue: 'Permission denied' }));
-            return;
-        }
-        setSelectedProvider(null);
-        setIsDrawerOpen(true);
-    }, [user, t]);
+ const handleCreate = useCallback(() => {
+ if (!canEditResource(user, 'Supplier')) {
+ toast.error(t('common.permissionDenied', { defaultValue: 'Permission denied' }));
+ return;
+ }
+ setSelectedProvider(null);
+ setIsDrawerOpen(true);
+ }, [user, t]);
 
-    const handleEdit = useCallback((provider: ICTProvider) => {
-        if (!canEditResource(user, 'Supplier')) {
-            toast.error(t('common.permissionDenied', { defaultValue: 'Permission denied' }));
-            return;
-        }
-        setSelectedProvider(provider);
-        setIsDrawerOpen(true);
-        setIsInspectorOpen(false);
-    }, [user, t]);
+ const handleEdit = useCallback((provider: ICTProvider) => {
+ if (!canEditResource(user, 'Supplier')) {
+ toast.error(t('common.permissionDenied', { defaultValue: 'Permission denied' }));
+ return;
+ }
+ setSelectedProvider(provider);
+ setIsDrawerOpen(true);
+ setIsInspectorOpen(false);
+ }, [user, t]);
 
-    const handleSelect = useCallback((provider: ICTProvider) => {
-        setInspectedProvider(provider);
-        setIsInspectorOpen(true);
-    }, []);
+ const handleSelect = useCallback((provider: ICTProvider) => {
+ setInspectedProvider(provider);
+ setIsInspectorOpen(true);
+ }, []);
 
-    const handleDelete = useCallback(async (id: string) => {
-        if (!canEditResource(user, 'Supplier')) {
-            toast.error(t('common.permissionDenied', { defaultValue: 'Permission denied' }));
-            return;
-        }
-        try {
-            await deleteProvider(id);
-            toast.info(t('dora.providerDeleted', { defaultValue: 'Fournisseur ICT supprimé' }));
-        } catch (error) {
-            ErrorLogger.error(error, 'DORAProviders.handleDelete');
-            toast.error(t('common.error'));
-        } finally {
-            setDeleteProviderId(null);
-        }
-    }, [deleteProvider, t, user]);
+ const handleDelete = useCallback(async (id: string) => {
+ if (!canEditResource(user, 'Supplier')) {
+ toast.error(t('common.permissionDenied', { defaultValue: 'Permission denied' }));
+ return;
+ }
+ try {
+ await deleteProvider(id);
+ toast.info(t('dora.providerDeleted', { defaultValue: 'Fournisseur ICT supprimé' }));
+ } catch (error) {
+ ErrorLogger.error(error, 'DORAProviders.handleDelete');
+ toast.error(t('common.error'));
+ } finally {
+ setDeleteProviderId(null);
+ }
+ }, [deleteProvider, t, user]);
 
-    const handleExport = useCallback(() => {
-        setIsExportOpen(true);
-    }, []);
+ const handleExport = useCallback(() => {
+ setIsExportOpen(true);
+ }, []);
 
-    return (
-        <div className={hideHeader ? "" : "min-h-screen bg-slate-50 dark:bg-slate-950"}>
-            {!hideHeader && (
-                /* Header */
-                <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => navigate('/suppliers')}
-                                    className="flex items-center"
-                                >
-                                    <ArrowLeft className="w-4 h-4 mr-2" />
-                                    {t('dora.providers.backToSuppliers', 'Retour Fournisseurs')}
-                                </Button>
-                                <div>
-                                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                                        {t('dora.title')}
-                                    </h1>
-                                    <p className="text-slate-500 dark:text-muted-foreground mt-1">
-                                        {t('dora.subtitle')}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setIsImportOpen(true)}
-                                >
-                                    <Upload className="w-4 h-4 mr-2" />
-                                    {t('dora.providers.importCsv')}
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={handleExport}
-                                >
-                                    <Download className="w-4 h-4 mr-2" />
-                                    {t('dora.providers.exportRegister')}
-                                </Button>
-                                <Button onClick={handleCreate}>
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    {t('dora.providers.new')}
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+ return (
+ <div className={hideHeader ? "" : "min-h-screen bg-muted"}>
+ {!hideHeader && (
+ /* Header */
+ <div className="bg-card border-b border-border">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+  <div className="flex items-center gap-3">
+  <Button
+   variant="outline"
+   onClick={() => navigate('/suppliers')}
+   className="flex items-center"
+  >
+   <ArrowLeft className="w-4 h-4 mr-2" />
+   {t('dora.providers.backToSuppliers', 'Retour Fournisseurs')}
+  </Button>
+  <div>
+   <h1 className="text-2xl font-bold text-foreground">
+   {t('dora.title')}
+   </h1>
+   <p className="text-muted-foreground mt-1">
+   {t('dora.subtitle')}
+   </p>
+  </div>
+  </div>
+  <div className="flex items-center gap-3">
+  <Button
+   variant="outline"
+   onClick={() => setIsImportOpen(true)}
+  >
+   <Upload className="w-4 h-4 mr-2" />
+   {t('dora.providers.importCsv')}
+  </Button>
+  <Button
+   variant="outline"
+   onClick={handleExport}
+  >
+   <Download className="w-4 h-4 mr-2" />
+   {t('dora.providers.exportRegister')}
+  </Button>
+  <Button onClick={handleCreate}>
+   <Plus className="w-4 h-4 mr-2" />
+   {t('dora.providers.new')}
+  </Button>
+  </div>
+  </div>
+  </div>
+ </div>
+ )}
 
-            <div className={hideHeader ? "" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"}>
-                {/* Action Bar when embedded */}
-                {hideHeader && (
-                    <div className="flex items-center justify-end gap-3 mb-6">
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsImportOpen(true)}
-                        >
-                            <Upload className="w-4 h-4 mr-2" />
-                            {t('dora.providers.importCsv')}
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={handleExport}
-                        >
-                            <Download className="w-4 h-4 mr-2" />
-                            {t('dora.providers.exportRegister')}
-                        </Button>
-                        <Button onClick={handleCreate}>
-                            <Plus className="w-4 h-4 mr-2" />
-                            {t('dora.providers.new')}
-                        </Button>
-                    </div>
-                )}
+ <div className={hideHeader ? "" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"}>
+ {/* Action Bar when embedded */}
+ {hideHeader && (
+  <div className="flex items-center justify-end gap-3 mb-6">
+  <Button
+  variant="outline"
+  onClick={() => setIsImportOpen(true)}
+  >
+  <Upload className="w-4 h-4 mr-2" />
+  {t('dora.providers.importCsv')}
+  </Button>
+  <Button
+  variant="outline"
+  onClick={handleExport}
+  >
+  <Download className="w-4 h-4 mr-2" />
+  {t('dora.providers.exportRegister')}
+  </Button>
+  <Button onClick={handleCreate}>
+  <Plus className="w-4 h-4 mr-2" />
+  {t('dora.providers.new')}
+  </Button>
+  </div>
+ )}
 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <button
-                        type="button"
-                        onClick={() => { setCategoryFilter(''); setComplianceFilter(''); setSearchTerm(''); }}
-                        className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:ring-2 hover:ring-brand-500/30 text-left w-full"
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 bg-brand-50 rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
-                                <Globe className="w-6 h-6 text-brand-600 dark:text-brand-400" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{stats.total}</p>
-                                <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{t('dora.stats.totalProviders')}</p>
-                            </div>
-                        </div>
-                    </button>
+ {/* Stats Cards */}
+ <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <button
+  type="button"
+  onClick={() => { setCategoryFilter(''); setComplianceFilter(''); setSearchTerm(''); }}
+  className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:ring-2 hover:ring-primary/30 text-left w-full"
+  >
+  <div className="flex items-center gap-3">
+  <div className="p-3 bg-primary/10 rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
+  <Globe className="w-6 h-6 text-primary" />
+  </div>
+  <div>
+  <p className="text-2xl font-black tracking-tight text-foreground">{stats.total}</p>
+  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{t('dora.stats.totalProviders')}</p>
+  </div>
+  </div>
+  </button>
 
-                    <button
-                        type="button"
-                        onClick={() => { setCategoryFilter('critical'); setComplianceFilter(''); setSearchTerm(''); }}
-                        className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:ring-2 hover:ring-brand-500/30 text-left w-full"
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 bg-error-bg rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
-                                <AlertTriangle className="w-6 h-6 text-error-text" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{stats.critical}</p>
-                                <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{t('dora.stats.criticalProviders')}</p>
-                            </div>
-                        </div>
-                    </button>
+  <button
+  type="button"
+  onClick={() => { setCategoryFilter('critical'); setComplianceFilter(''); setSearchTerm(''); }}
+  className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:ring-2 hover:ring-primary/30 text-left w-full"
+  >
+  <div className="flex items-center gap-3">
+  <div className="p-3 bg-error-bg rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
+  <AlertTriangle className="w-6 h-6 text-error-text" />
+  </div>
+  <div>
+  <p className="text-2xl font-black tracking-tight text-foreground">{stats.critical}</p>
+  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{t('dora.stats.criticalProviders')}</p>
+  </div>
+  </div>
+  </button>
 
-                    <button
-                        type="button"
-                        onClick={() => { setCategoryFilter(''); setComplianceFilter(false); setSearchTerm(''); }}
-                        className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:ring-2 hover:ring-brand-500/30 text-left w-full"
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 bg-warning-bg rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
-                                <FileText className="w-6 h-6 text-warning-text" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{stats.expiringSoon}</p>
-                                <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{t('dora.stats.expiringContracts')}</p>
-                            </div>
-                        </div>
-                    </button>
+  <button
+  type="button"
+  onClick={() => { setCategoryFilter(''); setComplianceFilter(false); setSearchTerm(''); }}
+  className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:ring-2 hover:ring-primary/30 text-left w-full"
+  >
+  <div className="flex items-center gap-3">
+  <div className="p-3 bg-warning-bg rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
+  <FileText className="w-6 h-6 text-warning-text" />
+  </div>
+  <div>
+  <p className="text-2xl font-black tracking-tight text-foreground">{stats.expiringSoon}</p>
+  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{t('dora.stats.expiringContracts')}</p>
+  </div>
+  </div>
+  </button>
 
-                    <button
-                        type="button"
-                        onClick={() => { setCategoryFilter(''); setComplianceFilter(''); setSearchTerm(''); }}
-                        className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:ring-2 hover:ring-brand-500/30 text-left w-full"
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 bg-info-bg rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
-                                <Shield className="w-6 h-6 text-info-text" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-                                    {concentrationAnalysis.nonEuProviders?.length || 0}
-                                </p>
-                                <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{t('dora.stats.nonEuProviders')}</p>
-                            </div>
-                        </div>
-                    </button>
-                </div>
+  <button
+  type="button"
+  onClick={() => { setCategoryFilter(''); setComplianceFilter(''); setSearchTerm(''); }}
+  className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:ring-2 hover:ring-primary/30 text-left w-full"
+  >
+  <div className="flex items-center gap-3">
+  <div className="p-3 bg-info-bg rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
+  <Shield className="w-6 h-6 text-info-text" />
+  </div>
+  <div>
+  <p className="text-2xl font-black tracking-tight text-foreground">
+   {concentrationAnalysis.nonEuProviders?.length || 0}
+  </p>
+  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{t('dora.stats.nonEuProviders')}</p>
+  </div>
+  </div>
+  </button>
+ </div>
 
-                {/* Filters */}
-                <div className="glass-premium p-4 rounded-3xl border border-border/40 mb-6 shadow-sm">
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <div className="flex-1">
-                            <SearchInput
-                                value={searchTerm}
-                                onChange={setSearchTerm}
-                                placeholder={t('dora.providers.searchPlaceholder')}
-                            />
-                        </div>
-                        <div className="w-full sm:w-48">
-                            <CustomSelect
-                                options={[
-                                    { value: '', label: t('dora.filters.allCategories') },
-                                    { value: 'critical', label: t('dora.category.critical') },
-                                    { value: 'important', label: t('dora.category.important') },
-                                    { value: 'standard', label: t('dora.category.standard') }
-                                ]}
-                                value={categoryFilter}
-                                onChange={(v) => setCategoryFilter(v as ICTCriticality | '')}
-                                placeholder={t('dora.filters.allCategories')}
-                            />
-                        </div>
-                        <div className="w-full sm:w-48">
-                            <CustomSelect
-                                options={[
-                                    { value: '', label: t('dora.filters.allStatuses') },
-                                    { value: 'true', label: t('dora.filters.doraCompliant') },
-                                    { value: 'false', label: t('dora.filters.nonCompliant') }
-                                ]}
-                                value={complianceFilter === '' ? '' : String(complianceFilter)}
-                                onChange={(v) => setComplianceFilter(v === '' ? '' : v === 'true')}
-                                placeholder={t('dora.filters.allStatuses')}
-                            />
-                        </div>
-                    </div>
-                </div>
+ {/* Filters */}
+ <div className="glass-premium p-4 rounded-3xl border border-border/40 mb-6 shadow-sm">
+  <div className="flex flex-col sm:flex-row gap-4">
+  <div className="flex-1">
+  <SearchInput
+  value={searchTerm}
+  onChange={setSearchTerm}
+  placeholder={t('dora.providers.searchPlaceholder')}
+  />
+  </div>
+  <div className="w-full sm:w-48">
+  <CustomSelect
+  options={[
+   { value: '', label: t('dora.filters.allCategories') },
+   { value: 'critical', label: t('dora.category.critical') },
+   { value: 'important', label: t('dora.category.important') },
+   { value: 'standard', label: t('dora.category.standard') }
+  ]}
+  value={categoryFilter}
+  onChange={(v) => setCategoryFilter(v as ICTCriticality | '')}
+  placeholder={t('dora.filters.allCategories')}
+  />
+  </div>
+  <div className="w-full sm:w-48">
+  <CustomSelect
+  options={[
+   { value: '', label: t('dora.filters.allStatuses') },
+   { value: 'true', label: t('dora.filters.doraCompliant') },
+   { value: 'false', label: t('dora.filters.nonCompliant') }
+  ]}
+  value={complianceFilter === '' ? '' : String(complianceFilter)}
+  onChange={(v) => setComplianceFilter(v === '' ? '' : v === 'true')}
+  placeholder={t('dora.filters.allStatuses')}
+  />
+  </div>
+  </div>
+ </div>
 
-                {/* List */}
-                <div className="glass-premium rounded-4xl border border-border/40 overflow-hidden shadow-apple-sm">
-                    <ICTProviderList
-                        providers={providers}
-                        loading={loading}
-                        onSelect={handleSelect}
-                        onEdit={handleEdit}
-                        onDelete={async (id) => setDeleteProviderId(id)}
-                        onCreateNew={handleCreate}
-                    />
-                </div>
-            </div>
+ {/* List */}
+ <div className="glass-premium rounded-4xl border border-border/40 overflow-hidden shadow-apple-sm">
+  <ICTProviderList
+  providers={providers}
+  loading={loading}
+  onSelect={handleSelect}
+  onEdit={handleEdit}
+  onDelete={async (id) => setDeleteProviderId(id)}
+  onCreateNew={handleCreate}
+  />
+ </div>
+ </div>
 
-            {/* Create/Edit Drawer */}
-            <ICTProviderDrawer
-                isOpen={isDrawerOpen}
-                onClose={() => setIsDrawerOpen(false)}
-                provider={selectedProvider}
-                onSuccess={refresh}
-            />
+ {/* Create/Edit Drawer */}
+ <ICTProviderDrawer
+ isOpen={isDrawerOpen}
+ onClose={() => setIsDrawerOpen(false)}
+ provider={selectedProvider}
+ onSuccess={refresh}
+ />
 
-            {/* Inspector Drawer */}
-            <Drawer
-                isOpen={isInspectorOpen}
-                onClose={() => setIsInspectorOpen(false)}
-                width="max-w-xl"
-            >
-                {inspectedProvider && (
-                    <ICTProviderInspector
-                        provider={inspectedProvider}
-                        onEdit={() => handleEdit(inspectedProvider)}
-                    />
-                )}
-            </Drawer>
+ {/* Inspector Drawer */}
+ <Drawer
+ isOpen={isInspectorOpen}
+ onClose={() => setIsInspectorOpen(false)}
+ width="max-w-xl"
+ >
+ {inspectedProvider && (
+  <ICTProviderInspector
+  provider={inspectedProvider}
+  onEdit={() => handleEdit(inspectedProvider)}
+  />
+ )}
+ </Drawer>
 
-            {/* Import Modal */}
-            <ImportICTProvidersModal
-                isOpen={isImportOpen}
-                onClose={() => setIsImportOpen(false)}
-                onSuccess={refresh}
-            />
+ {/* Import Modal */}
+ <ImportICTProvidersModal
+ isOpen={isImportOpen}
+ onClose={() => setIsImportOpen(false)}
+ onSuccess={refresh}
+ />
 
-            {/* Export Modal */}
-            <ExportDORARegisterModal
-                isOpen={isExportOpen}
-                onClose={() => setIsExportOpen(false)}
-                providers={providers}
-            />
+ {/* Export Modal */}
+ <ExportDORARegisterModal
+ isOpen={isExportOpen}
+ onClose={() => setIsExportOpen(false)}
+ providers={providers}
+ />
 
-            {/* Export History Drawer */}
-            <Drawer
-                isOpen={isHistoryOpen}
-                onClose={() => setIsHistoryOpen(false)}
-                width="max-w-md"
-            >
-                <ExportHistoryPanel onClose={() => setIsHistoryOpen(false)} />
-            </Drawer>
+ {/* Export History Drawer */}
+ <Drawer
+ isOpen={isHistoryOpen}
+ onClose={() => setIsHistoryOpen(false)}
+ width="max-w-md"
+ >
+ <ExportHistoryPanel onClose={() => setIsHistoryOpen(false)} />
+ </Drawer>
 
-            <ConfirmModal
-                isOpen={deleteProviderId !== null}
-                onClose={() => setDeleteProviderId(null)}
-                onConfirm={() => deleteProviderId && handleDelete(deleteProviderId)}
-                title={t('dora.providers.deleteTitle', 'Supprimer le fournisseur')}
-                message={t('dora.providers.confirmDelete', 'Êtes-vous sûr de vouloir supprimer ce fournisseur ICT ?')}
-                type="danger"
-                confirmText={t('common.delete', 'Supprimer')}
-                cancelText={t('common.cancel', 'Annuler')}
-            />
-        </div>
-    );
+ <ConfirmModal
+ isOpen={deleteProviderId !== null}
+ onClose={() => setDeleteProviderId(null)}
+ onConfirm={() => deleteProviderId && handleDelete(deleteProviderId)}
+ title={t('dora.providers.deleteTitle', 'Supprimer le fournisseur')}
+ message={t('dora.providers.confirmDelete', 'Êtes-vous sûr de vouloir supprimer ce fournisseur ICT ?')}
+ type="danger"
+ confirmText={t('common.delete', 'Supprimer')}
+ cancelText={t('common.cancel', 'Annuler')}
+ />
+ </div>
+ );
 };

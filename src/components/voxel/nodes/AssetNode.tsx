@@ -19,8 +19,8 @@ import { VoxelNode, type VoxelNodeProps } from './VoxelNode';
 import { ErrorLogger } from '@/services/errorLogger';
 
 export interface AssetNodeProps extends Omit<VoxelNodeProps, 'data'> {
-  /** Asset node data */
-  data: VoxelNodeType;
+ /** Asset node data */
+ data: VoxelNodeType;
 }
 
 /**
@@ -28,12 +28,12 @@ export interface AssetNodeProps extends Omit<VoxelNodeProps, 'data'> {
  * Size scales with criticality from the asset data.
  */
 export const AssetNode: React.FC<AssetNodeProps> = ({ data, ...props }) => {
-  // Validate node type
-  if (data.type !== 'asset') {
-    ErrorLogger.warn(`AssetNode received non-asset node type: ${data.type}`, 'AssetNode');
-  }
+ // Validate node type
+ if (data.type !== 'asset') {
+ ErrorLogger.warn(`AssetNode received non-asset node type: ${data.type}`, 'AssetNode');
+ }
 
-  return <VoxelNode data={data} {...props} />;
+ return <VoxelNode data={data} {...props} />;
 };
 
 export default AssetNode;

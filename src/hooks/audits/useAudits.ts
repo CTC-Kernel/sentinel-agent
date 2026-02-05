@@ -18,401 +18,401 @@ import { NotificationService } from '../../services/notificationService';
 import { CsvParser } from '../../utils/csvUtils';
 
 export interface UseAuditsOptions {
-    fetchControls?: boolean;
-    fetchAssets?: boolean;
-    fetchRisks?: boolean;
-    fetchUsers?: boolean;
-    fetchDocuments?: boolean;
-    fetchProjects?: boolean;
-    fetchFindings?: boolean;
+ fetchControls?: boolean;
+ fetchAssets?: boolean;
+ fetchRisks?: boolean;
+ fetchUsers?: boolean;
+ fetchDocuments?: boolean;
+ fetchProjects?: boolean;
+ fetchFindings?: boolean;
 }
 
 export const useAudits = (options: UseAuditsOptions = {}) => {
-    const { user, addToast, demoMode, t } = useStore();
-    const canEdit = useMemo(() => canEditResource(user, 'Audit'), [user]);
-    const canDelete = useMemo(() => canDeleteResource(user, 'Audit'), [user]);
+ const { user, addToast, demoMode, t } = useStore();
+ const canEdit = useMemo(() => canEditResource(user, 'Audit'), [user]);
+ const canDelete = useMemo(() => canDeleteResource(user, 'Audit'), [user]);
 
-    const {
-        fetchControls = false,
-        fetchAssets = false,
-        fetchRisks = false,
-        fetchUsers = false,
-        fetchDocuments = false,
-        fetchProjects = false,
-        fetchFindings = false
-    } = options;
+ const {
+ fetchControls = false,
+ fetchAssets = false,
+ fetchRisks = false,
+ fetchUsers = false,
+ fetchDocuments = false,
+ fetchProjects = false,
+ fetchFindings = false
+ } = options;
 
-    // --- Data Fetching ---
+ // --- Data Fetching ---
 
-    // Harden demoMode detection
-    const isDemo = demoMode || (typeof window !== 'undefined' &&
-        (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
-    );
+ // Harden demoMode detection
+ const isDemo = demoMode || (typeof window !== 'undefined' &&
+ (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
+ );
 
-    // Firestore Data (Disabled in Demo Mode)
-    // Core collection 'audits' is always fetched (unless strict optimization needed later)
-    const { data: firestoreAudits, loading: firestoreAuditsLoading, refresh: refreshFirestoreAudits } = useFirestoreCollection<Audit>(
-        'audits', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
-    );
-    const { data: firestoreControls, loading: firestoreControlsLoading } = useFirestoreCollection<Control>(
-        'controls',
-        fetchControls ? [where('organizationId', '==', user?.organizationId)] : undefined,
-        { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchControls }
-    );
-    const { data: firestoreAssets, loading: firestoreAssetsLoading } = useFirestoreCollection<Asset>(
-        'assets',
-        fetchAssets ? [where('organizationId', '==', user?.organizationId)] : undefined,
-        { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchAssets }
-    );
-    const { data: firestoreRisks, loading: firestoreRisksLoading } = useFirestoreCollection<Risk>(
-        'risks',
-        fetchRisks ? [where('organizationId', '==', user?.organizationId)] : undefined,
-        { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchRisks }
-    );
-    const { data: firestoreUsers, loading: firestoreUsersLoading } = useFirestoreCollection<UserProfile>(
-        'users',
-        fetchUsers ? [where('organizationId', '==', user?.organizationId)] : undefined,
-        { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchUsers }
-    );
-    const { data: firestoreDocs, loading: firestoreDocsLoading } = useFirestoreCollection<Document>(
-        'documents',
-        fetchDocuments ? [where('organizationId', '==', user?.organizationId)] : undefined,
-        { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchDocuments }
-    );
-    const { data: firestoreProjects, loading: firestoreProjectsLoading } = useFirestoreCollection<Project>(
-        'projects',
-        fetchProjects ? [where('organizationId', '==', user?.organizationId)] : undefined,
-        { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchProjects }
-    );
-    const { data: firestoreFindings, loading: firestoreFindingsLoading } = useFirestoreCollection<Finding>(
-        'findings',
-        fetchFindings ? [where('organizationId', '==', user?.organizationId)] : undefined,
-        { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchFindings }
-    );
+ // Firestore Data (Disabled in Demo Mode)
+ // Core collection 'audits' is always fetched (unless strict optimization needed later)
+ const { data: firestoreAudits, loading: firestoreAuditsLoading, refresh: refreshFirestoreAudits } = useFirestoreCollection<Audit>(
+ 'audits', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
+ );
+ const { data: firestoreControls, loading: firestoreControlsLoading } = useFirestoreCollection<Control>(
+ 'controls',
+ fetchControls ? [where('organizationId', '==', user?.organizationId)] : undefined,
+ { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchControls }
+ );
+ const { data: firestoreAssets, loading: firestoreAssetsLoading } = useFirestoreCollection<Asset>(
+ 'assets',
+ fetchAssets ? [where('organizationId', '==', user?.organizationId)] : undefined,
+ { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchAssets }
+ );
+ const { data: firestoreRisks, loading: firestoreRisksLoading } = useFirestoreCollection<Risk>(
+ 'risks',
+ fetchRisks ? [where('organizationId', '==', user?.organizationId)] : undefined,
+ { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchRisks }
+ );
+ const { data: firestoreUsers, loading: firestoreUsersLoading } = useFirestoreCollection<UserProfile>(
+ 'users',
+ fetchUsers ? [where('organizationId', '==', user?.organizationId)] : undefined,
+ { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchUsers }
+ );
+ const { data: firestoreDocs, loading: firestoreDocsLoading } = useFirestoreCollection<Document>(
+ 'documents',
+ fetchDocuments ? [where('organizationId', '==', user?.organizationId)] : undefined,
+ { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchDocuments }
+ );
+ const { data: firestoreProjects, loading: firestoreProjectsLoading } = useFirestoreCollection<Project>(
+ 'projects',
+ fetchProjects ? [where('organizationId', '==', user?.organizationId)] : undefined,
+ { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchProjects }
+ );
+ const { data: firestoreFindings, loading: firestoreFindingsLoading } = useFirestoreCollection<Finding>(
+ 'findings',
+ fetchFindings ? [where('organizationId', '==', user?.organizationId)] : undefined,
+ { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchFindings }
+ );
 
-    // Mock Data State
-    const [mockAudits, setMockAudits] = useState<Audit[]>([]);
-    const [mockControls, setMockControls] = useState<Control[]>([]);
-    const [mockAssets, setMockAssets] = useState<Asset[]>([]);
-    const [mockRisks, setMockRisks] = useState<Risk[]>([]);
-    const [mockUsers, setMockUsers] = useState<UserProfile[]>([]);
-    const [mockDocs, setMockDocs] = useState<Document[]>([]);
-    const [mockProjects, setMockProjects] = useState<Project[]>([]);
-    const [mockFindings, setMockFindings] = useState<Finding[]>([]);
-    const [mockLoading, setMockLoading] = useState(true);
+ // Mock Data State
+ const [mockAudits, setMockAudits] = useState<Audit[]>([]);
+ const [mockControls, setMockControls] = useState<Control[]>([]);
+ const [mockAssets, setMockAssets] = useState<Asset[]>([]);
+ const [mockRisks, setMockRisks] = useState<Risk[]>([]);
+ const [mockUsers, setMockUsers] = useState<UserProfile[]>([]);
+ const [mockDocs, setMockDocs] = useState<Document[]>([]);
+ const [mockProjects, setMockProjects] = useState<Project[]>([]);
+ const [mockFindings, setMockFindings] = useState<Finding[]>([]);
+ const [mockLoading, setMockLoading] = useState(true);
 
-    // Load Mock Data if Demo Mode
-    useEffect(() => {
-        if (isDemo) {
-            setMockLoading(true);
-            Promise.all([
-                import('../../services/mockDataService').then(module => module.MockDataService.getCollection('audits') as unknown as Audit[]),
-                import('../../services/mockDataService').then(module => module.MockDataService.getCollection('controls') as unknown as Control[]),
-                import('../../services/mockDataService').then(module => module.MockDataService.getCollection('assets') as unknown as Asset[]),
-                import('../../services/mockDataService').then(module => module.MockDataService.getCollection('risks') as unknown as Risk[]),
-                import('../../services/mockDataService').then(module => module.MockDataService.getCollection('users') as unknown as UserProfile[]),
-                import('../../services/mockDataService').then(module => module.MockDataService.getCollection('documents') as unknown as Document[]),
-                import('../../services/mockDataService').then(module => module.MockDataService.getCollection('projects') as unknown as Project[]),
-                import('../../services/mockDataService').then(module => module.MockDataService.getCollection('findings') as unknown as Finding[]),
-            ]).then(([audits, controls, assets, risks, users, docs, projects, findings]) => {
-                setMockAudits(audits);
-                setMockControls(controls);
-                setMockAssets(assets);
-                setMockRisks(risks);
-                setMockUsers(users);
-                setMockDocs(docs);
-                setMockProjects(projects);
-                setMockFindings(findings);
-                setMockLoading(false);
-            }).catch(err => {
-                ErrorLogger.error(err, 'useAudits.loadMockData');
-                setMockLoading(false);
-            });
-        }
-    }, [isDemo]);
+ // Load Mock Data if Demo Mode
+ useEffect(() => {
+ if (isDemo) {
+ setMockLoading(true);
+ Promise.all([
+ import('../../services/mockDataService').then(module => module.MockDataService.getCollection('audits') as unknown as Audit[]),
+ import('../../services/mockDataService').then(module => module.MockDataService.getCollection('controls') as unknown as Control[]),
+ import('../../services/mockDataService').then(module => module.MockDataService.getCollection('assets') as unknown as Asset[]),
+ import('../../services/mockDataService').then(module => module.MockDataService.getCollection('risks') as unknown as Risk[]),
+ import('../../services/mockDataService').then(module => module.MockDataService.getCollection('users') as unknown as UserProfile[]),
+ import('../../services/mockDataService').then(module => module.MockDataService.getCollection('documents') as unknown as Document[]),
+ import('../../services/mockDataService').then(module => module.MockDataService.getCollection('projects') as unknown as Project[]),
+ import('../../services/mockDataService').then(module => module.MockDataService.getCollection('findings') as unknown as Finding[]),
+ ]).then(([audits, controls, assets, risks, users, docs, projects, findings]) => {
+ setMockAudits(audits);
+ setMockControls(controls);
+ setMockAssets(assets);
+ setMockRisks(risks);
+ setMockUsers(users);
+ setMockDocs(docs);
+ setMockProjects(projects);
+ setMockFindings(findings);
+ setMockLoading(false);
+ }).catch(err => {
+ ErrorLogger.error(err, 'useAudits.loadMockData');
+ setMockLoading(false);
+ });
+ }
+ }, [isDemo]);
 
-    const rawAudits = isDemo ? mockAudits : firestoreAudits;
-    const rawControls = isDemo ? mockControls : firestoreControls;
-    const rawAssets = isDemo ? mockAssets : firestoreAssets;
-    const rawRisks = isDemo ? mockRisks : firestoreRisks;
-    const usersList = isDemo ? mockUsers : firestoreUsers;
-    const documents = isDemo ? mockDocs : firestoreDocs;
-    const rawProjects = isDemo ? mockProjects : firestoreProjects;
-    const allFindings = isDemo ? mockFindings : firestoreFindings;
+ const rawAudits = isDemo ? mockAudits : firestoreAudits;
+ const rawControls = isDemo ? mockControls : firestoreControls;
+ const rawAssets = isDemo ? mockAssets : firestoreAssets;
+ const rawRisks = isDemo ? mockRisks : firestoreRisks;
+ const usersList = isDemo ? mockUsers : firestoreUsers;
+ const documents = isDemo ? mockDocs : firestoreDocs;
+ const rawProjects = isDemo ? mockProjects : firestoreProjects;
+ const allFindings = isDemo ? mockFindings : firestoreFindings;
 
-    // FIX: Ensure usersList is never empty if we are logged in (fallback to self)
-    const effectiveUsers = useMemo(() => {
-        if (usersList && usersList.length > 0) return usersList;
-        if (user && user.uid) return [user];
-        return [];
-    }, [usersList, user]);
+ // FIX: Ensure usersList is never empty if we are logged in (fallback to self)
+ const effectiveUsers = useMemo(() => {
+ if (usersList && usersList.length > 0) return usersList;
+ if (user && user.uid) return [user];
+ return [];
+ }, [usersList, user]);
 
-    const loading = isDemo ? mockLoading : (firestoreAuditsLoading || firestoreControlsLoading || firestoreAssetsLoading || firestoreRisksLoading || firestoreUsersLoading || firestoreDocsLoading || firestoreProjectsLoading || firestoreFindingsLoading);
+ const loading = isDemo ? mockLoading : (firestoreAuditsLoading || firestoreControlsLoading || firestoreAssetsLoading || firestoreRisksLoading || firestoreUsersLoading || firestoreDocsLoading || firestoreProjectsLoading || firestoreFindingsLoading);
 
-    const refreshAudits = useCallback(() => {
-        if (!isDemo) {
-            refreshFirestoreAudits();
-        }
-    }, [isDemo, refreshFirestoreAudits]);
+ const refreshAudits = useCallback(() => {
+ if (!isDemo) {
+ refreshFirestoreAudits();
+ }
+ }, [isDemo, refreshFirestoreAudits]);
 
-    // --- Derived State ---
-    const audits = useMemo(() => {
-        const toTime = (value?: string) => value ? new Date(value).getTime() : 0;
-        return [...rawAudits].sort((a, b) => toTime(b.dateScheduled) - toTime(a.dateScheduled));
-    }, [rawAudits]);
+ // --- Derived State ---
+ const audits = useMemo(() => {
+ const toTime = (value?: string) => value ? new Date(value).getTime() : 0;
+ return [...rawAudits].sort((a, b) => toTime(b.dateScheduled) - toTime(a.dateScheduled));
+ }, [rawAudits]);
 
-    const controls = useMemo(() => [...rawControls].sort((a, b) => a.code.localeCompare(b.code)), [rawControls]);
-    const assets = useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
-    const risks = useMemo(() => [...rawRisks].sort((a, b) => b.score - a.score), [rawRisks]);
+ const controls = useMemo(() => [...rawControls].sort((a, b) => a.code.localeCompare(b.code)), [rawControls]);
+ const assets = useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
+ const risks = useMemo(() => [...rawRisks].sort((a, b) => b.score - a.score), [rawRisks]);
 
-    // --- Local State ---
-    const isSubmittingRef = useRef(false);
-    const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
-    const [auditFindings, setAuditFindings] = useState<Finding[]>([]);
-    const [auditChecklist, setAuditChecklist] = useState<AuditChecklist | null>(null);
-    const [isExportingCSV, setIsExportingCSV] = useState(false);
+ // --- Local State ---
+ const isSubmittingRef = useRef(false);
+ const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
+ const [auditFindings, setAuditFindings] = useState<Finding[]>([]);
+ const [auditChecklist, setAuditChecklist] = useState<AuditChecklist | null>(null);
+ const [isExportingCSV, setIsExportingCSV] = useState(false);
 
-    // --- Actions ---
+ // --- Actions ---
 
-    const fetchAuditDetails = useCallback(async (audit: Audit) => {
-        if (!user?.organizationId) return;
-        try {
-            // Use AuditService to fetch findings and checklist
-            const details = await AuditService.getAuditDetails(audit.id, user.organizationId);
-            setAuditFindings(details.findings);
-            setAuditChecklist(details.checklist);
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useAudits.fetchAuditDetails', 'FETCH_FAILED');
-        }
-    }, [user?.organizationId]);
+ const fetchAuditDetails = useCallback(async (audit: Audit) => {
+ if (!user?.organizationId) return;
+ try {
+ // Use AuditService to fetch findings and checklist
+ const details = await AuditService.getAuditDetails(audit.id, user.organizationId);
+ setAuditFindings(details.findings);
+ setAuditChecklist(details.checklist);
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'useAudits.fetchAuditDetails', 'FETCH_FAILED');
+ }
+ }, [user?.organizationId]);
 
-    const handleCreateAudit = async (data: Partial<Audit>, preSelectedProjectId?: string | null) => {
-        if (!canEdit || !user?.organizationId) return;
-        if (isSubmittingRef.current) return;
-        isSubmittingRef.current = true;
-        try {
-            const cleanData = sanitizeData(data);
-            const newDocData = {
-                ...cleanData,
-                organizationId: user.organizationId,
-                findingsCount: 0,
-                createdBy: user.uid,
-                relatedProjectIds: preSelectedProjectId ? [preSelectedProjectId] : (cleanData.relatedProjectIds || [])
-            };
+ const handleCreateAudit = async (data: Partial<Audit>, preSelectedProjectId?: string | null) => {
+ if (!canEdit || !user?.organizationId) return;
+ if (isSubmittingRef.current) return;
+ isSubmittingRef.current = true;
+ try {
+ const cleanData = sanitizeData(data);
+ const newDocData = {
+ ...cleanData,
+ organizationId: user.organizationId,
+ findingsCount: 0,
+ createdBy: user.uid,
+ relatedProjectIds: preSelectedProjectId ? [preSelectedProjectId] : (cleanData.relatedProjectIds || [])
+ };
 
-            const docRef = await addDoc(collection(db, 'audits'), sanitizeData(newDocData));
+ const docRef = await addDoc(collection(db, 'audits'), sanitizeData(newDocData));
 
-            if (preSelectedProjectId) {
-                const projectDoc = await getDoc(doc(db, 'projects', preSelectedProjectId));
-                if (projectDoc.exists() && projectDoc.data()?.organizationId === user?.organizationId) {
-                    await updateDoc(doc(db, 'projects', preSelectedProjectId), sanitizeData({ relatedAuditIds: arrayUnion(docRef.id) }));
-                }
-            }
+ if (preSelectedProjectId) {
+ const projectDoc = await getDoc(doc(db, 'projects', preSelectedProjectId));
+ if (projectDoc.exists() && projectDoc.data()?.organizationId === user?.organizationId) {
+  await updateDoc(doc(db, 'projects', preSelectedProjectId), sanitizeData({ relatedAuditIds: arrayUnion(docRef.id) }));
+ }
+ }
 
-            await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${data.name} `);
-            analyticsService.logEvent('create_audit', { audit_type: data.type, auditor: data.auditor });
+ await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${data.name} `);
+ analyticsService.logEvent('create_audit', { audit_type: data.type, auditor: data.auditor });
 
-            if (data.auditor) {
-                const auditorUser = usersList.find(u => u.displayName === data.auditor);
-                if (auditorUser) {
-                    await NotificationService.notifyAuditAssigned(newDocData, auditorUser.uid, user.displayName || 'Admin');
-                }
-            }
-            refreshAudits();
-            addToast(t('audits.toast.plannedAndNotified', { defaultValue: "Audit planifié et notifié" }), "success");
-            return docRef.id;
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useAudits.handleCreateAudit', 'CREATE_FAILED');
-            throw error;
-        } finally {
-            isSubmittingRef.current = false;
-        }
-    };
+ if (data.auditor) {
+ const auditorUser = usersList.find(u => u.displayName === data.auditor);
+ if (auditorUser) {
+  await NotificationService.notifyAuditAssigned(newDocData, auditorUser.uid, user.displayName || 'Admin');
+ }
+ }
+ refreshAudits();
+ addToast(t('audits.toast.plannedAndNotified', { defaultValue: "Audit planifié et notifié" }), "success");
+ return docRef.id;
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'useAudits.handleCreateAudit', 'CREATE_FAILED');
+ throw error;
+ } finally {
+ isSubmittingRef.current = false;
+ }
+ };
 
-    const handleUpdateAudit = async (id: string, data: Partial<Audit>, auditOrganizationId?: string) => {
-        if (!canEdit) return;
-        if (!user?.organizationId) return;
+ const handleUpdateAudit = async (id: string, data: Partial<Audit>, auditOrganizationId?: string) => {
+ if (!canEdit) return;
+ if (!user?.organizationId) return;
 
-        // SECURITY: IDOR protection - verify audit belongs to user's organization
-        if (auditOrganizationId && auditOrganizationId !== user.organizationId) {
-            ErrorLogger.warn('IDOR attempt: audit update across organizations', 'useAudits.handleUpdateAudit', {
-                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: auditOrganizationId, callerOrg: user.organizationId }
-            });
-            addToast(t('audits.toast.notFound', { defaultValue: 'Audit non trouvé' }), 'error');
-            return;
-        }
+ // SECURITY: IDOR protection - verify audit belongs to user's organization
+ if (auditOrganizationId && auditOrganizationId !== user.organizationId) {
+ ErrorLogger.warn('IDOR attempt: audit update across organizations', 'useAudits.handleUpdateAudit', {
+ metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: auditOrganizationId, callerOrg: user.organizationId }
+ });
+ addToast(t('audits.toast.notFound', { defaultValue: 'Audit non trouvé' }), 'error');
+ return;
+ }
 
-        try {
-            await updateDoc(doc(db, 'audits', id), sanitizeData(data));
-            await logAction(user, 'UPDATE', 'Audit', `Mise à jour audit: ${data.name} `);
-            refreshAudits();
-            addToast(t('audits.toast.updated', { defaultValue: "Audit mis à jour" }), "success");
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useAudits.handleUpdateAudit', 'UPDATE_FAILED');
-            throw error;
-        }
-    };
+ try {
+ await updateDoc(doc(db, 'audits', id), sanitizeData(data));
+ await logAction(user, 'UPDATE', 'Audit', `Mise à jour audit: ${data.name} `);
+ refreshAudits();
+ addToast(t('audits.toast.updated', { defaultValue: "Audit mis à jour" }), "success");
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'useAudits.handleUpdateAudit', 'UPDATE_FAILED');
+ throw error;
+ }
+ };
 
-    const checkDependencies = async (auditId: string) => {
-        if (!user?.organizationId) return { hasDependencies: false, dependencies: [] };
-        // Use AuditService to check dependencies
-        return await AuditService.checkDependencies(auditId, user.organizationId);
-    };
+ const checkDependencies = async (auditId: string) => {
+ if (!user?.organizationId) return { hasDependencies: false, dependencies: [] };
+ // Use AuditService to check dependencies
+ return await AuditService.checkDependencies(auditId, user.organizationId);
+ };
 
-    const handleDeleteAudit = async (id: string, name: string, silent = false) => {
-        if (!canDelete || !user?.organizationId || !user?.uid) return;
-        try {
-            // Use AuditService for atomic cascade deletion
-            await AuditService.deleteAuditWithCascade({
-                auditId: id,
-                auditName: name,
-                organizationId: user.organizationId,
-                userId: user.uid,
-                userEmail: user.email || 'unknown'
-            });
+ const handleDeleteAudit = async (id: string, name: string, silent = false) => {
+ if (!canDelete || !user?.organizationId || !user?.uid) return;
+ try {
+ // Use AuditService for atomic cascade deletion
+ await AuditService.deleteAuditWithCascade({
+ auditId: id,
+ auditName: name,
+ organizationId: user.organizationId,
+ userId: user.uid,
+ userEmail: user.email || 'unknown'
+ });
 
-            await logAction(user, 'DELETE', 'Audit', `Suppression audit: ${name} `);
+ await logAction(user, 'DELETE', 'Audit', `Suppression audit: ${name} `);
 
-            if (selectedAudit?.id === id) setSelectedAudit(null);
-            refreshAudits();
-            if (!silent) {
-                addToast(t('audits.toast.deletedWithFindings', { defaultValue: "Audit et constats supprimés" }), "info");
-            }
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useAudits.handleDeleteAudit', 'DELETE_FAILED');
-        }
-    };
+ if (selectedAudit?.id === id) setSelectedAudit(null);
+ refreshAudits();
+ if (!silent) {
+ addToast(t('audits.toast.deletedWithFindings', { defaultValue: "Audit et constats supprimés" }), "info");
+ }
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'useAudits.handleDeleteAudit', 'DELETE_FAILED');
+ }
+ };
 
-    const bulkDeleteAudits = async (ids: string[]) => {
-        if (!canDelete || !user?.organizationId) return;
-        let successCount = 0;
-        try {
-            await Promise.all(ids.map(async (id) => {
-                const audit = audits.find(a => a.id === id);
-                await handleDeleteAudit(id, audit?.name || 'Inconnu', true);
-                successCount++;
-            }));
-            addToast(t('audits.bulkDeleted', { defaultValue: `${successCount} audit(s) supprimé(s)`, count: successCount }), 'success');
-        } catch (error) {
-            ErrorLogger.error(error, 'useAudits.bulkDeleteAudits');
-            if (successCount > 0) {
-                addToast(t('audits.bulkDeleted', { defaultValue: `${successCount} audit(s) supprimé(s)`, count: successCount }), 'success');
-            }
-            addToast(t('audits.errors.bulkDeleteFailed') || 'Erreur lors de la suppression', 'error');
-        }
-    };
+ const bulkDeleteAudits = async (ids: string[]) => {
+ if (!canDelete || !user?.organizationId) return;
+ let successCount = 0;
+ try {
+ await Promise.all(ids.map(async (id) => {
+ const audit = audits.find(a => a.id === id);
+ await handleDeleteAudit(id, audit?.name || 'Inconnu', true);
+ successCount++;
+ }));
+ addToast(t('audits.bulkDeleted', { defaultValue: `${successCount} audit(s) supprimé(s)`, count: successCount }), 'success');
+ } catch (error) {
+ ErrorLogger.error(error, 'useAudits.bulkDeleteAudits');
+ if (successCount > 0) {
+ addToast(t('audits.bulkDeleted', { defaultValue: `${successCount} audit(s) supprimé(s)`, count: successCount }), 'success');
+ }
+ addToast(t('audits.errors.bulkDeleteFailed') || 'Erreur lors de la suppression', 'error');
+ }
+ };
 
-    const handleGeneratePlan = async () => {
-        if (!user?.organizationId) return;
+ const handleGeneratePlan = async () => {
+ if (!user?.organizationId) return;
 
-        // Logic for AI Plan Generation
-        const suggestions = AuditPlannerService.generateAuditSuggestions(risks, assets, audits);
-        if (suggestions.length === 0) {
-            addToast(t('audits.toast.noSuggestions', { defaultValue: "Aucune suggestion d'audit pertinente trouvée." }), "info");
-            return;
-        }
+ // Logic for AI Plan Generation
+ const suggestions = AuditPlannerService.generateAuditSuggestions(risks, assets, audits);
+ if (suggestions.length === 0) {
+ addToast(t('audits.toast.noSuggestions', { defaultValue: "Aucune suggestion d'audit pertinente trouvée." }), "info");
+ return;
+ }
 
-        // Use AuditService for batch creation
-        const auditsToCreate = suggestions.slice(0, 5);
-        await AuditService.batchCreateAudits(
-            auditsToCreate,
-            user.organizationId,
-            user.displayName || 'À définir'
-        );
+ // Use AuditService for batch creation
+ const auditsToCreate = suggestions.slice(0, 5);
+ await AuditService.batchCreateAudits(
+ auditsToCreate,
+ user.organizationId,
+ user.displayName || 'À définir'
+ );
 
-        refreshAudits();
-        addToast(t('audits.toast.plannedCount', { defaultValue: `${auditsToCreate.length} audits planifiés avec succès.`, count: auditsToCreate.length }), "success");
-    };
+ refreshAudits();
+ addToast(t('audits.toast.plannedCount', { defaultValue: `${auditsToCreate.length} audits planifiés avec succès.`, count: auditsToCreate.length }), "success");
+ };
 
-    const handleExportCSV = async () => {
-        if (isExportingCSV) return;
-        setIsExportingCSV(true);
-        try {
-            const headers = ["Audit", "Type", "Auditeur", "Date", "Statut", "Écarts"];
-            const rows = audits.map(a => [
-                a.name,
-                a.type,
-                a.auditor,
-                a.dateScheduled ? new Date(a.dateScheduled).toLocaleDateString() : 'TBD',
-                a.status,
-                String(a.findingsCount || 0)
-            ]);
-            const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(','))].join('\n');
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
-            link.download = `audits_export_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
-        } finally {
-            setTimeout(() => setIsExportingCSV(false), 0);
-        }
-    };
+ const handleExportCSV = async () => {
+ if (isExportingCSV) return;
+ setIsExportingCSV(true);
+ try {
+ const headers = ["Audit", "Type", "Auditeur", "Date", "Statut", "Écarts"];
+ const rows = audits.map(a => [
+ a.name,
+ a.type,
+ a.auditor,
+ a.dateScheduled ? new Date(a.dateScheduled).toLocaleDateString() : 'TBD',
+ a.status,
+ String(a.findingsCount || 0)
+ ]);
+ const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(','))].join('\n');
+ const link = document.createElement('a');
+ link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
+ link.download = `audits_export_${new Date().toISOString().split('T')[0]}.csv`;
+ link.click();
+ } finally {
+ setTimeout(() => setIsExportingCSV(false), 0);
+ }
+ };
 
-    const importAudits = useCallback(async (csvContent: string) => {
-        if (!user?.organizationId || !user?.uid) return;
-        try {
-            const lines = CsvParser.parseCSV(csvContent);
-            if (lines.length === 0) {
-                addToast(t('common.toast.emptyOrInvalidFile', { defaultValue: "Fichier vide ou invalide" }), "error");
-                return;
-            }
+ const importAudits = useCallback(async (csvContent: string) => {
+ if (!user?.organizationId || !user?.uid) return;
+ try {
+ const lines = CsvParser.parseCSV(csvContent);
+ if (lines.length === 0) {
+ addToast(t('common.toast.emptyOrInvalidFile', { defaultValue: "Fichier vide ou invalide" }), "error");
+ return;
+ }
 
-            // Use AuditService for batch import
-            const count = await AuditService.importAuditsFromCSV(
-                lines,
-                user.organizationId,
-                user.uid
-            );
+ // Use AuditService for batch import
+ const count = await AuditService.importAuditsFromCSV(
+ lines,
+ user.organizationId,
+ user.uid
+ );
 
-            await logAction(user, 'IMPORT', 'Audit', `Import CSV de ${count} audits`);
-            refreshAudits();
-            addToast(t('audits.toast.importSuccess', { defaultValue: `Import de ${count} audits réussi`, count }), "success");
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useAudits.importAudits');
-            throw error;
-        }
-    }, [user, addToast, refreshAudits, t]);
+ await logAction(user, 'IMPORT', 'Audit', `Import CSV de ${count} audits`);
+ refreshAudits();
+ addToast(t('audits.toast.importSuccess', { defaultValue: `Import de ${count} audits réussi`, count }), "success");
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'useAudits.importAudits');
+ throw error;
+ }
+ }, [user, addToast, refreshAudits, t]);
 
-    const handleExportCalendar = () => {
-        const scheduledAudits = audits.filter(a => a.status === 'Planifié' && a.dateScheduled);
-        if (scheduledAudits.length === 0) {
-            addToast(t('audits.toast.noAuditsToExport', { defaultValue: "Aucun audit planifié à exporter." }), "info");
-            return;
-        }
+ const handleExportCalendar = () => {
+ const scheduledAudits = audits.filter(a => a.status === 'Planifié' && a.dateScheduled);
+ if (scheduledAudits.length === 0) {
+ addToast(t('audits.toast.noAuditsToExport', { defaultValue: "Aucun audit planifié à exporter." }), "info");
+ return;
+ }
 
-        const events = scheduledAudits.map(audit => ({
-            title: `Audit: ${audit.name}`,
-            description: `Audit de type ${audit.type} assigné à ${audit.auditor || 'Non assigné'}.`,
-            startTime: new Date(audit.dateScheduled!),
-            endTime: new Date(new Date(audit.dateScheduled!).getTime() + 3600000), // Default 1 hour
-            location: 'Sentinel GRC',
-            url: buildAppUrl(`/audits/${audit.id}`)
-        }));
+ const events = scheduledAudits.map(audit => ({
+ title: `Audit: ${audit.name}`,
+ description: `Audit de type ${audit.type} assigné à ${audit.auditor || 'Non assigné'}.`,
+ startTime: new Date(audit.dateScheduled!),
+ endTime: new Date(new Date(audit.dateScheduled!).getTime() + 3600000), // Default 1 hour
+ location: 'Sentinel GRC',
+ url: buildAppUrl(`/audits/${audit.id}`)
+ }));
 
-        const icsContent = generateICS(events);
-        downloadICS('audit_calendar.ics', icsContent);
+ const icsContent = generateICS(events);
+ downloadICS('audit_calendar.ics', icsContent);
 
-        addToast(t('audits.toast.calendarExported', { defaultValue: `${scheduledAudits.length} audits exportés vers le calendrier.`, count: scheduledAudits.length }), "success");
-    };
+ addToast(t('audits.toast.calendarExported', { defaultValue: `${scheduledAudits.length} audits exportés vers le calendrier.`, count: scheduledAudits.length }), "success");
+ };
 
-    return {
-        // Data
-        audits, controls, assets, risks, usersList: effectiveUsers, documents, allFindings, loading, projects: rawProjects,
-        selectedAudit, setSelectedAudit, auditFindings, setAuditFindings, auditChecklist, setAuditChecklist,
+ return {
+ // Data
+ audits, controls, assets, risks, usersList: effectiveUsers, documents, allFindings, loading, projects: rawProjects,
+ selectedAudit, setSelectedAudit, auditFindings, setAuditFindings, auditChecklist, setAuditChecklist,
 
-        // Actions
-        fetchAuditDetails,
-        handleCreateAudit,
-        handleUpdateAudit,
-        handleDeleteAudit,
-        bulkDeleteAudits,
-        checkDependencies,
-        handleGeneratePlan,
-        refreshAudits,
-        handleExportCSV,
-        handleExportCalendar,
-        importAudits,
+ // Actions
+ fetchAuditDetails,
+ handleCreateAudit,
+ handleUpdateAudit,
+ handleDeleteAudit,
+ bulkDeleteAudits,
+ checkDependencies,
+ handleGeneratePlan,
+ refreshAudits,
+ handleExportCSV,
+ handleExportCalendar,
+ importAudits,
 
-        // Permissions
-        canEdit, canDelete
-    };
+ // Permissions
+ canEdit, canDelete
+ };
 };

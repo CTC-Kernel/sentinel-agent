@@ -6,17 +6,17 @@ const PORT = process.env.PORT || 3000;
 
 // Configuration des variables d'environnement requises
 const requiredEnvVars = [
-  'JWT_SECRET',
-  'ENCRYPTION_KEY',
-  'NODE_ENV'
+ 'JWT_SECRET',
+ 'ENCRYPTION_KEY',
+ 'NODE_ENV'
 ];
 
 // Vérification des variables d'environnement requises
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {
-  console.error('Variables d\'environnement manquantes:', missingVars.join(', '));
-  process.exit(1);
+ console.error('Variables d\'environnement manquantes:', missingVars.join(', '));
+ process.exit(1);
 }
 
 // Configuration et démarrage du serveur
@@ -27,12 +27,12 @@ startServer(PORT, app);
 
 // Gestion des erreurs non capturées
 process.on('uncaughtException', (_error) => {
-  process.exit(1);
+ process.exit(1);
 });
 
 // Gestion des rejets de promesse non gérés
 process.on('unhandledRejection', (_reason, _promise) => {
-  });
+ });
 
 // Exporter l'application pour les tests
 export default app;

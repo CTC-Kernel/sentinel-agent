@@ -9,9 +9,9 @@
 
 import { z } from 'zod';
 import {
-  type SupportedLocale,
-  type ZodMessages,
-  getZodMessages,
+ type SupportedLocale,
+ type ZodMessages,
+ getZodMessages,
 } from '../config/localeConfig';
 
 /**
@@ -25,13 +25,13 @@ import {
  * ```typescript
  * const msg = getLocalizedMessages('fr');
  * const schema = z.object({
- *   name: z.string().min(3, msg.tooShort(3)),
- *   email: z.string().email(msg.invalidEmail),
+ * name: z.string().min(3, msg.tooShort(3)),
+ * email: z.string().email(msg.invalidEmail),
  * });
  * ```
  */
 export function getLocalizedMessages(locale: SupportedLocale): ZodMessages {
-  return getZodMessages(locale);
+ return getZodMessages(locale);
 }
 
 /**
@@ -45,244 +45,244 @@ export function getLocalizedMessages(locale: SupportedLocale): ZodMessages {
  * ```typescript
  * const errorMap = createLocalizedErrorMap('fr');
  * const form = useForm({
- *   resolver: zodResolver(schema, { errorMap }),
+ * resolver: zodResolver(schema, { errorMap }),
  * });
  * ```
  */
 export function createLocalizedErrorMap(locale: SupportedLocale): z.ZodErrorMap {
-  const messages = getZodMessages(locale);
+ const messages = getZodMessages(locale);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return ((issue: any, ctx: any): { message: string } => {
-    const i = issue;
-    const c = ctx;
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
+ return ((issue: any, ctx: any): { message: string } => {
+ const i = issue;
+ const c = ctx;
 
-    // Handle specific error codes with localized messages
-    switch (i.code) {
-      case z.ZodIssueCode.invalid_type:
-        if (i.received === 'undefined' || i.received === 'null') {
-          return { message: messages.required };
-        }
-        if (i.expected === 'string') {
-          return { message: messages.invalidString };
-        }
-        if (i.expected === 'number') {
-          return { message: messages.invalidNumber };
-        }
-        return { message: messages.invalidType };
+ // Handle specific error codes with localized messages
+ switch (i.code) {
+ case z.ZodIssueCode.invalid_type:
+ if (i.received === 'undefined' || i.received === 'null') {
+ return { message: messages.required };
+ }
+ if (i.expected === 'string') {
+ return { message: messages.invalidString };
+ }
+ if (i.expected === 'number') {
+ return { message: messages.invalidNumber };
+ }
+ return { message: messages.invalidType };
 
-      case z.ZodIssueCode.too_small:
-        if (i.type === 'string') {
-          if (i.minimum === 1) {
-            return { message: messages.required };
-          }
-          return { message: messages.tooShort(Number(i.minimum)) };
-        }
-        if (i.type === 'number') {
-          return { message: messages.tooSmall(Number(i.minimum)) };
-        }
-        if (i.type === 'array') {
-          return { message: messages.arrayTooShort(Number(i.minimum)) };
-        }
-        break;
+ case z.ZodIssueCode.too_small:
+ if (i.type === 'string') {
+ if (i.minimum === 1) {
+ return { message: messages.required };
+ }
+ return { message: messages.tooShort(Number(i.minimum)) };
+ }
+ if (i.type === 'number') {
+ return { message: messages.tooSmall(Number(i.minimum)) };
+ }
+ if (i.type === 'array') {
+ return { message: messages.arrayTooShort(Number(i.minimum)) };
+ }
+ break;
 
-      case z.ZodIssueCode.too_big:
-        if (i.type === 'string') {
-          return { message: messages.tooLong(Number(i.maximum)) };
-        }
-        if (i.type === 'number') {
-          return { message: messages.tooBig(Number(i.maximum)) };
-        }
-        if (i.type === 'array') {
-          return { message: messages.arrayTooLong(Number(i.maximum)) };
-        }
-        break;
+ case z.ZodIssueCode.too_big:
+ if (i.type === 'string') {
+ return { message: messages.tooLong(Number(i.maximum)) };
+ }
+ if (i.type === 'number') {
+ return { message: messages.tooBig(Number(i.maximum)) };
+ }
+ if (i.type === 'array') {
+ return { message: messages.arrayTooLong(Number(i.maximum)) };
+ }
+ break;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      case (z.ZodIssueCode as any).invalid_string:
-        if (i.validation === 'email') {
-          return { message: messages.invalidEmail };
-        }
-        if (i.validation === 'url') {
-          return { message: messages.invalidUrl };
-        }
-        if (i.validation === 'uuid') {
-          return { message: messages.invalidUuid };
-        }
-        if (i.validation === 'regex') {
-          return { message: messages.invalidRegex };
-        }
-        return { message: messages.invalidString };
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
+ case (z.ZodIssueCode as any).invalid_string:
+ if (i.validation === 'email') {
+ return { message: messages.invalidEmail };
+ }
+ if (i.validation === 'url') {
+ return { message: messages.invalidUrl };
+ }
+ if (i.validation === 'uuid') {
+ return { message: messages.invalidUuid };
+ }
+ if (i.validation === 'regex') {
+ return { message: messages.invalidRegex };
+ }
+ return { message: messages.invalidString };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      case (z.ZodIssueCode as any).invalid_date:
-        return { message: messages.invalidDate };
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
+ case (z.ZodIssueCode as any).invalid_date:
+ return { message: messages.invalidDate };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      case (z.ZodIssueCode as any).invalid_enum_value:
-        return { message: messages.invalidEnum(i.options as string[]) };
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
+ case (z.ZodIssueCode as any).invalid_enum_value:
+ return { message: messages.invalidEnum(i.options as string[]) };
 
-      case z.ZodIssueCode.custom:
-        return { message: i.message || messages.custom };
-    }
+ case z.ZodIssueCode.custom:
+ return { message: i.message || messages.custom };
+ }
 
-    // Fall back to default message
-    return { message: c.defaultError };
-  }) as z.ZodErrorMap;
+ // Fall back to default message
+ return { message: c.defaultError };
+ }) as z.ZodErrorMap;
 }
 
 /**
  * Creates a locale-aware string schema with common validations
  */
 export function createLocalizedString(
-  locale: SupportedLocale,
-  options?: {
-    min?: number;
-    max?: number;
-    required?: boolean;
-  }
+ locale: SupportedLocale,
+ options?: {
+ min?: number;
+ max?: number;
+ required?: boolean;
+ }
 ): z.ZodString | z.ZodOptional<z.ZodString> {
-  const messages = getZodMessages(locale);
-  const { min, max, required = true } = options ?? {};
+ const messages = getZodMessages(locale);
+ const { min, max, required = true } = options ?? {};
 
-  let schema = z.string({
-    required_error: messages.required,
-    invalid_type_error: messages.invalidString,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any);
+ let schema = z.string({
+ required_error: messages.required,
+ invalid_type_error: messages.invalidString,
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
+ } as any);
 
-  if (min !== undefined) {
-    schema = schema.min(min, min === 1 ? messages.required : messages.tooShort(min));
-  }
+ if (min !== undefined) {
+ schema = schema.min(min, min === 1 ? messages.required : messages.tooShort(min));
+ }
 
-  if (max !== undefined) {
-    schema = schema.max(max, messages.tooLong(max));
-  }
+ if (max !== undefined) {
+ schema = schema.max(max, messages.tooLong(max));
+ }
 
-  if (!required) {
-    return schema.optional();
-  }
+ if (!required) {
+ return schema.optional();
+ }
 
-  return schema;
+ return schema;
 }
 
 /**
  * Creates a locale-aware email schema
  */
 export function createLocalizedEmail(
-  locale: SupportedLocale,
-  required = true
+ locale: SupportedLocale,
+ required = true
 ): z.ZodString | z.ZodOptional<z.ZodString> {
-  const messages = getZodMessages(locale);
+ const messages = getZodMessages(locale);
 
-  const schema = z.string({
-    required_error: messages.required,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any).email(messages.invalidEmail);
+ const schema = z.string({
+ required_error: messages.required,
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
+ } as any).email(messages.invalidEmail);
 
-  if (!required) {
-    return schema.optional();
-  }
+ if (!required) {
+ return schema.optional();
+ }
 
-  return schema;
+ return schema;
 }
 
 /**
  * Creates a locale-aware URL schema
  */
 export function createLocalizedUrl(
-  locale: SupportedLocale,
-  required = true
+ locale: SupportedLocale,
+ required = true
 ): z.ZodString | z.ZodOptional<z.ZodString> {
-  const messages = getZodMessages(locale);
+ const messages = getZodMessages(locale);
 
-  const schema = z.string({
-    required_error: messages.required,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any).url(messages.invalidUrl);
+ const schema = z.string({
+ required_error: messages.required,
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
+ } as any).url(messages.invalidUrl);
 
-  if (!required) {
-    return schema.optional();
-  }
+ if (!required) {
+ return schema.optional();
+ }
 
-  return schema;
+ return schema;
 }
 
 /**
  * Creates a locale-aware number schema
  */
 export function createLocalizedNumber(
-  locale: SupportedLocale,
-  options?: {
-    min?: number;
-    max?: number;
-    integer?: boolean;
-    positive?: boolean;
-    required?: boolean;
-  }
+ locale: SupportedLocale,
+ options?: {
+ min?: number;
+ max?: number;
+ integer?: boolean;
+ positive?: boolean;
+ required?: boolean;
+ }
 ): z.ZodNumber | z.ZodOptional<z.ZodNumber> {
-  const messages = getZodMessages(locale);
-  const { min, max, integer, positive, required = true } = options ?? {};
+ const messages = getZodMessages(locale);
+ const { min, max, integer, positive, required = true } = options ?? {};
 
-  let schema = z.number({
-    required_error: messages.required,
-    invalid_type_error: messages.invalidNumber,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any);
+ let schema = z.number({
+ required_error: messages.required,
+ invalid_type_error: messages.invalidNumber,
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
+ } as any);
 
-  if (integer) {
-    schema = schema.int(messages.notInteger);
-  }
+ if (integer) {
+ schema = schema.int(messages.notInteger);
+ }
 
-  if (positive) {
-    schema = schema.positive(messages.notPositive);
-  }
+ if (positive) {
+ schema = schema.positive(messages.notPositive);
+ }
 
-  if (min !== undefined) {
-    schema = schema.min(min, messages.tooSmall(min));
-  }
+ if (min !== undefined) {
+ schema = schema.min(min, messages.tooSmall(min));
+ }
 
-  if (max !== undefined) {
-    schema = schema.max(max, messages.tooBig(max));
-  }
+ if (max !== undefined) {
+ schema = schema.max(max, messages.tooBig(max));
+ }
 
-  if (!required) {
-    return schema.optional();
-  }
+ if (!required) {
+ return schema.optional();
+ }
 
-  return schema;
+ return schema;
 }
 
 /**
  * Creates a locale-aware array schema
  */
 export function createLocalizedArray<T extends z.ZodTypeAny>(
-  locale: SupportedLocale,
-  itemSchema: T,
-  options?: {
-    min?: number;
-    max?: number;
-    required?: boolean;
-  }
+ locale: SupportedLocale,
+ itemSchema: T,
+ options?: {
+ min?: number;
+ max?: number;
+ required?: boolean;
+ }
 ): z.ZodArray<T> | z.ZodOptional<z.ZodArray<T>> {
-  const messages = getZodMessages(locale);
-  const { min, max, required = true } = options ?? {};
+ const messages = getZodMessages(locale);
+ const { min, max, required = true } = options ?? {};
 
-  let schema = z.array(itemSchema);
+ let schema = z.array(itemSchema);
 
-  if (min !== undefined) {
-    schema = schema.min(min, messages.arrayTooShort(min));
-  }
+ if (min !== undefined) {
+ schema = schema.min(min, messages.arrayTooShort(min));
+ }
 
-  if (max !== undefined) {
-    schema = schema.max(max, messages.arrayTooLong(max));
-  }
+ if (max !== undefined) {
+ schema = schema.max(max, messages.arrayTooLong(max));
+ }
 
-  if (!required) {
-    return schema.optional();
-  }
+ if (!required) {
+ return schema.optional();
+ }
 
-  return schema;
+ return schema;
 }
 
 /**
@@ -296,34 +296,34 @@ export function createLocalizedArray<T extends z.ZodTypeAny>(
  * ```typescript
  * const result = validateData(UserSchema, formData);
  * if (result.success) {
- *   // result.data is the validated data
+ * // result.data is the validated data
  * } else {
- *   // result.errors is an array of { path, message }
+ * // result.errors is an array of { path, message }
  * }
  * ```
  */
 export function validateData<T>(
-  schema: z.ZodSchema<T>,
-  data: unknown
+ schema: z.ZodSchema<T>,
+ data: unknown
 ): {
-  success: true;
-  data: T;
+ success: true;
+ data: T;
 } | {
-  success: false;
-  errors: Array<{ path: string; message: string }>;
+ success: false;
+ errors: Array<{ path: string; message: string }>;
 } {
-  const result = schema.safeParse(data);
+ const result = schema.safeParse(data);
 
-  if (result.success) {
-    return { success: true, data: result.data };
-  }
+ if (result.success) {
+ return { success: true, data: result.data };
+ }
 
-  const errors = result.error.issues.map((issue) => ({
-    path: issue.path.join('.'),
-    message: issue.message,
-  }));
+ const errors = result.error.issues.map((issue) => ({
+ path: issue.path.join('.'),
+ message: issue.message,
+ }));
 
-  return { success: false, errors };
+ return { success: false, errors };
 }
 
 /**
@@ -335,35 +335,35 @@ export function validateData<T>(
  * @example
  * ```typescript
  * try {
- *   schema.parse(data);
+ * schema.parse(data);
  * } catch (error) {
- *   if (error instanceof z.ZodError) {
- *     const errors = getErrorMessages(error);
- *     // { "name": "Ce champ est requis", "email": "Adresse email invalide" }
- *   }
+ * if (error instanceof z.ZodError) {
+ * const errors = getErrorMessages(error);
+ * // { "name": "Ce champ est requis", "email": "Adresse email invalide" }
+ * }
  * }
  * ```
  */
 export function getErrorMessages(
-  error: z.ZodError
+ error: z.ZodError
 ): Record<string, string> {
-  const errors: Record<string, string> = {};
+ const errors: Record<string, string> = {};
 
-  for (const issue of error.issues) {
-    const path = issue.path.join('.') || '_root';
-    errors[path] = issue.message;
-  }
+ for (const issue of error.issues) {
+ const path = issue.path.join('.') || '_root';
+ errors[path] = issue.message;
+ }
 
-  return errors;
+ return errors;
 }
 
 /**
  * Type guard for checking if a result has errors
  */
 export function hasValidationErrors<T>(
-  result: { success: true; data: T } | { success: false; errors: Array<{ path: string; message: string }> }
+ result: { success: true; data: T } | { success: false; errors: Array<{ path: string; message: string }> }
 ): result is { success: false; errors: Array<{ path: string; message: string }> } {
-  return !result.success;
+ return !result.success;
 }
 
 /**
@@ -376,47 +376,47 @@ export function hasValidationErrors<T>(
  * @example
  * ```tsx
  * function MyForm() {
- *   const { locale } = useLocale();
- *   const s = createSchemaBuilder(locale);
+ * const { locale } = useLocale();
+ * const s = createSchemaBuilder(locale);
  *
- *   const schema = z.object({
- *     name: s.string({ min: 3, max: 100 }),
- *     email: s.email(),
- *     age: s.number({ min: 18 }),
- *   });
+ * const schema = z.object({
+ * name: s.string({ min: 3, max: 100 }),
+ * email: s.email(),
+ * age: s.number({ min: 18 }),
+ * });
  * }
  * ```
  */
 export function createSchemaBuilder(locale: SupportedLocale) {
-  const messages = getZodMessages(locale);
+ const messages = getZodMessages(locale);
 
-  return {
-    /** Get raw messages object */
-    messages,
+ return {
+ /** Get raw messages object */
+ messages,
 
-    /** Create a localized string schema */
-    string: (options?: { min?: number; max?: number; required?: boolean }) =>
-      createLocalizedString(locale, options),
+ /** Create a localized string schema */
+ string: (options?: { min?: number; max?: number; required?: boolean }) =>
+ createLocalizedString(locale, options),
 
-    /** Create a localized email schema */
-    email: (required = true) => createLocalizedEmail(locale, required),
+ /** Create a localized email schema */
+ email: (required = true) => createLocalizedEmail(locale, required),
 
-    /** Create a localized URL schema */
-    url: (required = true) => createLocalizedUrl(locale, required),
+ /** Create a localized URL schema */
+ url: (required = true) => createLocalizedUrl(locale, required),
 
-    /** Create a localized number schema */
-    number: (options?: {
-      min?: number;
-      max?: number;
-      integer?: boolean;
-      positive?: boolean;
-      required?: boolean;
-    }) => createLocalizedNumber(locale, options),
+ /** Create a localized number schema */
+ number: (options?: {
+ min?: number;
+ max?: number;
+ integer?: boolean;
+ positive?: boolean;
+ required?: boolean;
+ }) => createLocalizedNumber(locale, options),
 
-    /** Create a localized array schema */
-    array: <T extends z.ZodTypeAny>(
-      itemSchema: T,
-      options?: { min?: number; max?: number; required?: boolean }
-    ) => createLocalizedArray(locale, itemSchema, options),
-  };
+ /** Create a localized array schema */
+ array: <T extends z.ZodTypeAny>(
+ itemSchema: T,
+ options?: { min?: number; max?: number; required?: boolean }
+ ) => createLocalizedArray(locale, itemSchema, options),
+ };
 }

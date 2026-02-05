@@ -5,26 +5,26 @@ import { useStore } from '../../store';
 import { Tooltip } from './Tooltip';
 
 export const SyncIndicator: React.FC = () => {
-    const { isOnline, lastSynced } = useSyncStatus();
-    const { t } = useStore();
+ const { isOnline, lastSynced } = useSyncStatus();
+ const { t } = useStore();
 
-    if (!isOnline) {
-        return (
-            <Tooltip content={t('common.offlineMode') || "Mode Hors-ligne"} position="bottom">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-muted-foreground rounded-full text-xs font-medium border border-border/40 dark:border-slate-700 animate-pulse">
-                    <CloudOff className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t('common.offline') || "Hors-ligne"}</span>
-                </div>
-            </Tooltip>
-        );
-    }
+ if (!isOnline) {
+ return (
+ <Tooltip content={t('common.offlineMode') || "Mode Hors-ligne"} position="bottom">
+ <div className="flex items-center gap-2 px-3 py-1.5 bg-muted text-muted-foreground rounded-full text-xs font-medium border border-border/40 animate-pulse">
+  <CloudOff className="h-4 w-4" />
+  <span className="hidden sm:inline">{t('common.offline') || "Hors-ligne"}</span>
+ </div>
+ </Tooltip>
+ );
+ }
 
-    return (
-        <Tooltip content={`${t('common.synced') || "Synchronisé"} (${lastSynced?.toLocaleTimeString()})`} position="bottom">
-            <div className="flex items-center gap-2 px-2 py-1.5 text-success-text rounded-full text-xs font-medium hover:bg-success-bg transition-colors cursor-help">
-                <Cloud className="h-4 w-4" />
-                <span className="hidden lg:inline text-success-text/80">{t('common.saved') || "Sauvegardé"}</span>
-            </div>
-        </Tooltip>
-    );
+ return (
+ <Tooltip content={`${t('common.synced') || "Synchronisé"} (${lastSynced?.toLocaleTimeString()})`} position="bottom">
+ <div className="flex items-center gap-2 px-2 py-1.5 text-success-text rounded-full text-xs font-medium hover:bg-success-bg transition-colors cursor-help">
+ <Cloud className="h-4 w-4" />
+ <span className="hidden lg:inline text-success-text/80">{t('common.saved') || "Sauvegardé"}</span>
+ </div>
+ </Tooltip>
+ );
 };

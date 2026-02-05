@@ -9,255 +9,255 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 
 // Mock react-dom createPortal
 vi.mock('react-dom', async () => {
-    const actual = await vi.importActual('react-dom');
-    return {
-        ...actual,
-        createPortal: (node: React.ReactNode) => node
-    };
+ const actual = await vi.importActual('react-dom');
+ return {
+ ...actual,
+ createPortal: (node: React.ReactNode) => node
+ };
 });
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
-    motion: {
-        div: ({ children, ...props }: React.HTMLProps<HTMLDivElement>) =>
-            React.createElement('div', props, children)
-    },
-    AnimatePresence: ({ children }: { children: React.ReactNode }) => children
+ motion: {
+ div: ({ children, ...props }: React.HTMLProps<HTMLDivElement>) =>
+ React.createElement('div', props, children)
+ },
+ AnimatePresence: ({ children }: { children: React.ReactNode }) => children
 }));
 
 import { Tooltip } from '../Tooltip';
 
 describe('Tooltip', () => {
-    beforeEach(() => {
-        vi.useFakeTimers();
-    });
+ beforeEach(() => {
+ vi.useFakeTimers();
+ });
 
-    afterEach(() => {
-        vi.useRealTimers();
-    });
+ afterEach(() => {
+ vi.useRealTimers();
+ });
 
-    it('should render children', () => {
-        render(
-            React.createElement(Tooltip, {
-                content: 'Tooltip text',
-                children: React.createElement('button', null, 'Hover me')
-            })
-        );
-        expect(screen.getByText('Hover me')).toBeInTheDocument();
-    });
+ it('should render children', () => {
+ render(
+ React.createElement(Tooltip, {
+ content: 'Tooltip text',
+ children: React.createElement('button', null, 'Hover me')
+ })
+ );
+ expect(screen.getByText('Hover me')).toBeInTheDocument();
+ });
 
-    it('should show tooltip on hover after delay', async () => {
-        render(
-            React.createElement(Tooltip, {
-                content: 'Tooltip text',
-                children: React.createElement('button', null, 'Hover me')
-            })
-        );
+ it('should show tooltip on hover after delay', async () => {
+ render(
+ React.createElement(Tooltip, {
+ content: 'Tooltip text',
+ children: React.createElement('button', null, 'Hover me')
+ })
+ );
 
-        const trigger = screen.getByText('Hover me').parentElement!;
-        fireEvent.mouseEnter(trigger);
+ const trigger = screen.getByText('Hover me').parentElement!;
+ fireEvent.mouseEnter(trigger);
 
-        // Tooltip should not be visible immediately
-        expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+ // Tooltip should not be visible immediately
+ expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
-        // Advance past the delay
-        await act(async () => {
-            vi.advanceTimersByTime(250);
-        });
+ // Advance past the delay
+ await act(async () => {
+ vi.advanceTimersByTime(250);
+ });
 
-        expect(screen.getByRole('tooltip')).toBeInTheDocument();
-        expect(screen.getByText('Tooltip text')).toBeInTheDocument();
-    });
+ expect(screen.getByRole('tooltip')).toBeInTheDocument();
+ expect(screen.getByText('Tooltip text')).toBeInTheDocument();
+ });
 
-    it('should hide tooltip on mouse leave', async () => {
-        render(
-            React.createElement(Tooltip, {
-                content: 'Tooltip text',
-                children: React.createElement('button', null, 'Hover me')
-            })
-        );
+ it('should hide tooltip on mouse leave', async () => {
+ render(
+ React.createElement(Tooltip, {
+ content: 'Tooltip text',
+ children: React.createElement('button', null, 'Hover me')
+ })
+ );
 
-        const trigger = screen.getByText('Hover me').parentElement!;
+ const trigger = screen.getByText('Hover me').parentElement!;
 
-        // Show tooltip
-        fireEvent.mouseEnter(trigger);
-        await act(async () => {
-            vi.advanceTimersByTime(250);
-        });
+ // Show tooltip
+ fireEvent.mouseEnter(trigger);
+ await act(async () => {
+ vi.advanceTimersByTime(250);
+ });
 
-        expect(screen.getByRole('tooltip')).toBeInTheDocument();
+ expect(screen.getByRole('tooltip')).toBeInTheDocument();
 
-        // Hide tooltip
-        fireEvent.mouseLeave(trigger);
-        expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
-    });
+ // Hide tooltip
+ fireEvent.mouseLeave(trigger);
+ expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+ });
 
-    it('should show tooltip on focus', async () => {
-        render(
-            React.createElement(Tooltip, {
-                content: 'Tooltip text',
-                children: React.createElement('button', null, 'Hover me')
-            })
-        );
+ it('should show tooltip on focus', async () => {
+ render(
+ React.createElement(Tooltip, {
+ content: 'Tooltip text',
+ children: React.createElement('button', null, 'Hover me')
+ })
+ );
 
-        const trigger = screen.getByText('Hover me').parentElement!;
-        fireEvent.focus(trigger);
+ const trigger = screen.getByText('Hover me').parentElement!;
+ fireEvent.focus(trigger);
 
-        await act(async () => {
-            vi.advanceTimersByTime(250);
-        });
+ await act(async () => {
+ vi.advanceTimersByTime(250);
+ });
 
-        expect(screen.getByRole('tooltip')).toBeInTheDocument();
-    });
+ expect(screen.getByRole('tooltip')).toBeInTheDocument();
+ });
 
-    it('should hide tooltip on blur', async () => {
-        render(
-            React.createElement(Tooltip, {
-                content: 'Tooltip text',
-                children: React.createElement('button', null, 'Hover me')
-            })
-        );
+ it('should hide tooltip on blur', async () => {
+ render(
+ React.createElement(Tooltip, {
+ content: 'Tooltip text',
+ children: React.createElement('button', null, 'Hover me')
+ })
+ );
 
-        const trigger = screen.getByText('Hover me').parentElement!;
-        fireEvent.focus(trigger);
+ const trigger = screen.getByText('Hover me').parentElement!;
+ fireEvent.focus(trigger);
 
-        await act(async () => {
-            vi.advanceTimersByTime(250);
-        });
+ await act(async () => {
+ vi.advanceTimersByTime(250);
+ });
 
-        fireEvent.blur(trigger);
-        expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
-    });
+ fireEvent.blur(trigger);
+ expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+ });
 
-    it('should toggle tooltip on Enter key', async () => {
-        render(
-            React.createElement(Tooltip, {
-                content: 'Tooltip text',
-                children: React.createElement('button', null, 'Hover me')
-            })
-        );
+ it('should toggle tooltip on Enter key', async () => {
+ render(
+ React.createElement(Tooltip, {
+ content: 'Tooltip text',
+ children: React.createElement('button', null, 'Hover me')
+ })
+ );
 
-        const trigger = screen.getByText('Hover me').parentElement!;
-        fireEvent.keyDown(trigger, { key: 'Enter' });
+ const trigger = screen.getByText('Hover me').parentElement!;
+ fireEvent.keyDown(trigger, { key: 'Enter' });
 
-        await act(async () => {
-            vi.advanceTimersByTime(250);
-        });
+ await act(async () => {
+ vi.advanceTimersByTime(250);
+ });
 
-        expect(screen.getByRole('tooltip')).toBeInTheDocument();
-    });
+ expect(screen.getByRole('tooltip')).toBeInTheDocument();
+ });
 
-    it('should toggle tooltip on Space key', async () => {
-        render(
-            React.createElement(Tooltip, {
-                content: 'Tooltip text',
-                children: React.createElement('button', null, 'Hover me')
-            })
-        );
+ it('should toggle tooltip on Space key', async () => {
+ render(
+ React.createElement(Tooltip, {
+ content: 'Tooltip text',
+ children: React.createElement('button', null, 'Hover me')
+ })
+ );
 
-        const trigger = screen.getByText('Hover me').parentElement!;
-        fireEvent.keyDown(trigger, { key: ' ' });
+ const trigger = screen.getByText('Hover me').parentElement!;
+ fireEvent.keyDown(trigger, { key: ' ' });
 
-        await act(async () => {
-            vi.advanceTimersByTime(250);
-        });
+ await act(async () => {
+ vi.advanceTimersByTime(250);
+ });
 
-        expect(screen.getByRole('tooltip')).toBeInTheDocument();
-    });
+ expect(screen.getByRole('tooltip')).toBeInTheDocument();
+ });
 
-    it('should close on Escape key', async () => {
-        render(
-            React.createElement(Tooltip, {
-                content: 'Tooltip text',
-                children: React.createElement('button', null, 'Hover me')
-            })
-        );
+ it('should close on Escape key', async () => {
+ render(
+ React.createElement(Tooltip, {
+ content: 'Tooltip text',
+ children: React.createElement('button', null, 'Hover me')
+ })
+ );
 
-        const trigger = screen.getByText('Hover me').parentElement!;
-        fireEvent.mouseEnter(trigger);
+ const trigger = screen.getByText('Hover me').parentElement!;
+ fireEvent.mouseEnter(trigger);
 
-        await act(async () => {
-            vi.advanceTimersByTime(250);
-        });
+ await act(async () => {
+ vi.advanceTimersByTime(250);
+ });
 
-        expect(screen.getByRole('tooltip')).toBeInTheDocument();
+ expect(screen.getByRole('tooltip')).toBeInTheDocument();
 
-        fireEvent.keyDown(window, { key: 'Escape' });
-        expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
-    });
+ fireEvent.keyDown(window, { key: 'Escape' });
+ expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+ });
 
-    it('should have accessible role button', () => {
-        render(
-            React.createElement(Tooltip, {
-                content: 'Tooltip text',
-                children: React.createElement('button', null, 'Hover me')
-            })
-        );
+ it('should have accessible role button', () => {
+ render(
+ React.createElement(Tooltip, {
+ content: 'Tooltip text',
+ children: React.createElement('button', null, 'Hover me')
+ })
+ );
 
-        const trigger = screen.getByText('Hover me').parentElement!;
-        expect(trigger).toHaveAttribute('role', 'button');
-        expect(trigger).toHaveAttribute('tabIndex', '0');
-    });
+ const trigger = screen.getByText('Hover me').parentElement!;
+ expect(trigger).toHaveAttribute('role', 'button');
+ expect(trigger).toHaveAttribute('tabIndex', '0');
+ });
 
-    it('should support custom delay', async () => {
-        render(
-            React.createElement(Tooltip, {
-                content: 'Tooltip text',
-                delay: 500,
-                children: React.createElement('button', null, 'Hover me')
-            })
-        );
+ it('should support custom delay', async () => {
+ render(
+ React.createElement(Tooltip, {
+ content: 'Tooltip text',
+ delay: 500,
+ children: React.createElement('button', null, 'Hover me')
+ })
+ );
 
-        const trigger = screen.getByText('Hover me').parentElement!;
-        fireEvent.mouseEnter(trigger);
+ const trigger = screen.getByText('Hover me').parentElement!;
+ fireEvent.mouseEnter(trigger);
 
-        // Should not be visible after 250ms
-        await act(async () => {
-            vi.advanceTimersByTime(250);
-        });
-        expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+ // Should not be visible after 250ms
+ await act(async () => {
+ vi.advanceTimersByTime(250);
+ });
+ expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
-        // Should be visible after 500ms
-        await act(async () => {
-            vi.advanceTimersByTime(250);
-        });
-        expect(screen.getByRole('tooltip')).toBeInTheDocument();
-    });
+ // Should be visible after 500ms
+ await act(async () => {
+ vi.advanceTimersByTime(250);
+ });
+ expect(screen.getByRole('tooltip')).toBeInTheDocument();
+ });
 
-    it('should render different positions', async () => {
-        const positions: Array<'top' | 'bottom' | 'left' | 'right'> = ['top', 'bottom', 'left', 'right'];
+ it('should render different positions', async () => {
+ const positions: Array<'top' | 'bottom' | 'left' | 'right'> = ['top', 'bottom', 'left', 'right'];
 
-        for (const position of positions) {
-            const { unmount } = render(
-                React.createElement(Tooltip, {
-                    content: 'Tooltip text',
-                    position,
-                    children: React.createElement('button', null, 'Hover me')
-                })
-            );
+ for (const position of positions) {
+ const { unmount } = render(
+ React.createElement(Tooltip, {
+  content: 'Tooltip text',
+  position,
+  children: React.createElement('button', null, 'Hover me')
+ })
+ );
 
-            const trigger = screen.getByText('Hover me').parentElement!;
-            fireEvent.mouseEnter(trigger);
+ const trigger = screen.getByText('Hover me').parentElement!;
+ fireEvent.mouseEnter(trigger);
 
-            await act(async () => {
-                vi.advanceTimersByTime(250);
-            });
+ await act(async () => {
+ vi.advanceTimersByTime(250);
+ });
 
-            expect(screen.getByRole('tooltip')).toBeInTheDocument();
-            unmount();
-        }
-    });
+ expect(screen.getByRole('tooltip')).toBeInTheDocument();
+ unmount();
+ }
+ });
 
-    it('should support custom className', () => {
-        render(
-            React.createElement(Tooltip, {
-                content: 'Tooltip text',
-                className: 'custom-class',
-                children: React.createElement('button', null, 'Hover me')
-            })
-        );
+ it('should support custom className', () => {
+ render(
+ React.createElement(Tooltip, {
+ content: 'Tooltip text',
+ className: 'custom-class',
+ children: React.createElement('button', null, 'Hover me')
+ })
+ );
 
-        const trigger = screen.getByText('Hover me').parentElement!;
-        expect(trigger.className).toContain('custom-class');
-    });
+ const trigger = screen.getByText('Hover me').parentElement!;
+ expect(trigger.className).toContain('custom-class');
+ });
 });

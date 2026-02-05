@@ -10,88 +10,88 @@ import { CalendarView } from '../CalendarView';
 
 // Mock react-i18next
 vi.mock('react-i18next', () => ({
-    useTranslation: () => ({
-        t: (key: string) => {
-            const translations: Record<string, string> = {
-                'calendar.title': 'Calendrier',
-                'calendar.subtitle': 'Vue d\'ensemble des échéances, audits et maintenances.',
-                'calendar.keywords': 'Calendrier, Planning, Échéances, Audits, Projets'
-            };
-            return translations[key] || key;
-        }
-    })
+ useTranslation: () => ({
+ t: (key: string) => {
+ const translations: Record<string, string> = {
+ 'calendar.title': 'Calendrier',
+ 'calendar.subtitle': 'Vue d\'ensemble des échéances, audits et maintenances.',
+ 'calendar.keywords': 'Calendrier, Planning, Échéances, Audits, Projets'
+ };
+ return translations[key] || key;
+ }
+ })
 }));
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
-    motion: {
-        div: ({ children, ...props }: React.PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>) =>
-            <div {...props}>{children}</div>
-    }
+ motion: {
+ div: ({ children, ...props }: React.PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>) =>
+ <div {...props}>{children}</div>
+ }
 }));
 
 // Mock MasterpieceBackground
 vi.mock('../../components/ui/MasterpieceBackground', () => ({
-    MasterpieceBackground: () => <div data-testid="masterpiece-background" />
+ MasterpieceBackground: () => <div data-testid="masterpiece-background" />
 }));
 
 // Mock SEO component
 vi.mock('../../components/SEO', () => ({
-    SEO: ({ title }: { title: string }) => <div data-testid="seo" data-title={title} />
+ SEO: ({ title }: { title: string }) => <div data-testid="seo" data-title={title} />
 }));
 
 // Mock PageHeader
 vi.mock('../../components/ui/PageHeader', () => ({
-    PageHeader: ({ title, subtitle }: { title: string; subtitle: string }) => (
-        <div data-testid="page-header">
-            <h1>{title}</h1>
-            <p>{subtitle}</p>
-        </div>
-    )
+ PageHeader: ({ title, subtitle }: { title: string; subtitle: string }) => (
+ <div data-testid="page-header">
+ <h1>{title}</h1>
+ <p>{subtitle}</p>
+ </div>
+ )
 }));
 
 // Mock CalendarDashboard
 vi.mock('../../components/calendar/CalendarDashboard', () => ({
-    CalendarDashboard: () => <div data-testid="calendar-dashboard">Calendar Dashboard</div>
+ CalendarDashboard: () => <div data-testid="calendar-dashboard">Calendar Dashboard</div>
 }));
 
 describe('CalendarView', () => {
-    const renderComponent = () => {
-        return render(
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <CalendarView />
-            </BrowserRouter>
-        );
-    };
+ const renderComponent = () => {
+ return render(
+ <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+ <CalendarView />
+ </BrowserRouter>
+ );
+ };
 
-    it('should render SEO component with correct title', () => {
-        renderComponent();
+ it('should render SEO component with correct title', () => {
+ renderComponent();
 
-        const seo = screen.getByTestId('seo');
-        expect(seo).toHaveAttribute('data-title', 'Calendrier');
-    });
+ const seo = screen.getByTestId('seo');
+ expect(seo).toHaveAttribute('data-title', 'Calendrier');
+ });
 
-    it('should render PageHeader with correct title', () => {
-        renderComponent();
+ it('should render PageHeader with correct title', () => {
+ renderComponent();
 
-        expect(screen.getByText('Calendrier')).toBeInTheDocument();
-    });
+ expect(screen.getByText('Calendrier')).toBeInTheDocument();
+ });
 
-    it('should render PageHeader with correct subtitle', () => {
-        renderComponent();
+ it('should render PageHeader with correct subtitle', () => {
+ renderComponent();
 
-        expect(screen.getByText("Vue d'ensemble des échéances, audits et maintenances.")).toBeInTheDocument();
-    });
+ expect(screen.getByText("Vue d'ensemble des échéances, audits et maintenances.")).toBeInTheDocument();
+ });
 
-    it('should render MasterpieceBackground', () => {
-        renderComponent();
+ it('should render MasterpieceBackground', () => {
+ renderComponent();
 
-        expect(screen.getByTestId('masterpiece-background')).toBeInTheDocument();
-    });
+ expect(screen.getByTestId('masterpiece-background')).toBeInTheDocument();
+ });
 
-    it('should render CalendarDashboard component', () => {
-        renderComponent();
+ it('should render CalendarDashboard component', () => {
+ renderComponent();
 
-        expect(screen.getByTestId('calendar-dashboard')).toBeInTheDocument();
-    });
+ expect(screen.getByTestId('calendar-dashboard')).toBeInTheDocument();
+ });
 });

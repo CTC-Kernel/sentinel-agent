@@ -11,20 +11,20 @@ import { useEffect, useRef } from 'react';
  * @param delay - The interval delay in ms, or null to pause
  */
 export function useInterval(callback: () => void, delay: number | null): void {
-    const savedCallback = useRef(callback);
+ const savedCallback = useRef(callback);
 
-    // Remember the latest callback
-    useEffect(() => {
-        savedCallback.current = callback;
-    }, [callback]);
+ // Remember the latest callback
+ useEffect(() => {
+ savedCallback.current = callback;
+ }, [callback]);
 
-    // Set up the interval
-    useEffect(() => {
-        if (delay === null) return;
+ // Set up the interval
+ useEffect(() => {
+ if (delay === null) return;
 
-        const id = setInterval(() => savedCallback.current(), delay);
-        return () => clearInterval(id);
-    }, [delay]);
+ const id = setInterval(() => savedCallback.current(), delay);
+ return () => clearInterval(id);
+ }, [delay]);
 }
 
 /**
@@ -38,16 +38,16 @@ export function useInterval(callback: () => void, delay: number | null): void {
  * @param delay - The timeout delay in ms, or null to cancel
  */
 export function useTimeout(callback: () => void, delay: number | null): void {
-    const savedCallback = useRef(callback);
+ const savedCallback = useRef(callback);
 
-    useEffect(() => {
-        savedCallback.current = callback;
-    }, [callback]);
+ useEffect(() => {
+ savedCallback.current = callback;
+ }, [callback]);
 
-    useEffect(() => {
-        if (delay === null) return;
+ useEffect(() => {
+ if (delay === null) return;
 
-        const id = setTimeout(() => savedCallback.current(), delay);
-        return () => clearTimeout(id);
-    }, [delay]);
+ const id = setTimeout(() => savedCallback.current(), delay);
+ return () => clearTimeout(id);
+ }, [delay]);
 }

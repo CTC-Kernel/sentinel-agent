@@ -15,36 +15,36 @@ import { VoxelSkeleton } from '@/components/voxel/fallback/VoxelSkeleton';
 
 // Lazy-load VoxelViewer to reduce initial bundle size
 const VoxelViewer = React.lazy(() =>
-  import('@/components/voxel/VoxelViewer').then(m => ({ default: m.VoxelViewer }))
+ import('@/components/voxel/VoxelViewer').then(m => ({ default: m.VoxelViewer }))
 );
 
 export const VoxelPage: React.FC = () => {
-  const { t } = useStore();
+ const { t } = useStore();
 
-  return (
-    <div className="flex flex-col h-full min-h-[calc(100vh-48px)]">
-      <SEO
-        title={t('voxel.title')}
-        description={t('voxel.description')}
-        keywords="3D, Visualization, GRC, Cybersecurity, Risk Management"
-      />
+ return (
+ <div className="flex flex-col h-full min-h-[calc(100vh-48px)]">
+ <SEO
+ title={t('voxel.title')}
+ description={t('voxel.description')}
+ keywords="3D, Visualization, GRC, Cybersecurity, Risk Management"
+ />
 
-      <PageHeader
-        title={t('voxel.title')}
-        subtitle={t('voxel.subtitle')}
-        breadcrumbs={[
-          { label: t('common.pilotage') },
-          { label: t('voxel.title') }
-        ]}
-      />
+ <PageHeader
+ title={t('voxel.title')}
+ subtitle={t('voxel.subtitle')}
+ breadcrumbs={[
+ { label: t('common.pilotage') },
+ { label: t('voxel.title') }
+ ]}
+ />
 
-      <div className="flex-1 relative">
-        <Suspense fallback={<VoxelSkeleton />}>
-          <VoxelViewer />
-        </Suspense>
-      </div>
-    </div>
-  );
+ <div className="flex-1 relative">
+ <Suspense fallback={<VoxelSkeleton />}>
+ <VoxelViewer />
+ </Suspense>
+ </div>
+ </div>
+ );
 };
 
 export default VoxelPage;
