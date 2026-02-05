@@ -13,13 +13,13 @@ pub fn resource_bar(ui: &mut Ui, label: &str, value: &str, fraction: f32) {
     let bar_height = 6.0;
     let full_width = ui.available_width();
 
-    ui.horizontal(|ui| {
+    ui.horizontal(|ui: &mut egui::Ui| {
         ui.label(
             egui::RichText::new(label)
                 .font(theme::font_small())
                 .color(theme::text_secondary()),
         );
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new(value)
                     .font(theme::font_small())

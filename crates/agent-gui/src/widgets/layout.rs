@@ -56,7 +56,7 @@ impl ResponsiveGrid {
 
         if cols == 1 {
             // Stack vertically
-            ui.vertical(|ui| {
+            ui.vertical(|ui: &mut egui::Ui| {
                 ui.spacing_mut().item_spacing.y = self.gap;
                 for item in items {
                     render_fn(ui, item_width, item);
@@ -64,11 +64,11 @@ impl ResponsiveGrid {
             });
         } else {
             // Use rows
-            ui.vertical(|ui| {
+            ui.vertical(|ui: &mut egui::Ui| {
                 ui.spacing_mut().item_spacing.y = self.gap;
 
                 for row_chunk in items.chunks(cols) {
-                    ui.horizontal_top(|ui| {
+                    ui.horizontal_top(|ui: &mut egui::Ui| {
                         ui.spacing_mut().item_spacing.x = self.gap;
                         for item in row_chunk {
                             render_fn(ui, item_width, item);

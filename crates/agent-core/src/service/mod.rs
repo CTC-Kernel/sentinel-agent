@@ -5,6 +5,18 @@
 //! - Linux: systemd service
 //! - macOS: launchd (future)
 
+/// Check if the current process has administrative/root privileges.
+pub fn is_admin() -> bool {
+    #[cfg(windows)]
+    {
+        windows::is_elevated()
+    }
+    #[cfg(unix)]
+    {
+        unix::is_root()
+    }
+}
+
 #[cfg(windows)]
 mod windows;
 

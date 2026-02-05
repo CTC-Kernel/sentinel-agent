@@ -34,7 +34,7 @@ impl Sidebar {
             inner_margin: Margin::same(0),
             ..Default::default()
         }
-        .show(ui, |ui| {
+        .show(ui, |ui: &mut egui::Ui| {
             ui.set_min_width(theme::SIDEBAR_WIDTH);
             ui.set_max_width(theme::SIDEBAR_WIDTH);
 
@@ -89,10 +89,10 @@ impl Sidebar {
 
             egui::ScrollArea::vertical()
                 .auto_shrink(egui::Vec2b::new(false, false))
-                .show(ui, |ui| {
+                .show(ui, |ui: &mut egui::Ui| {
                     // Logo / brand section
                     ui.add_space(theme::SPACE);
-                    ui.vertical_centered(|ui| {
+                    ui.vertical_centered(|ui: &mut egui::Ui| {
                         // IA.png logo
                         let logo = egui::Image::from_bytes(
                             "bytes://ia_sidebar",
@@ -103,7 +103,7 @@ impl Sidebar {
 
                         ui.add_space(theme::SPACE_SM);
 
-                        ui.horizontal(|ui| {
+                        ui.horizontal(|ui: &mut egui::Ui| {
                             ui.add_space(ui.available_width() / 4.0);
                             ui.label(
                                 egui::RichText::new("SENTINEL")
@@ -131,7 +131,7 @@ impl Sidebar {
                         // Bell badge with unread count
                         if unread_notifications > 0 {
                             ui.add_space(theme::SPACE_SM);
-                            ui.horizontal(|ui| {
+                            ui.horizontal(|ui: &mut egui::Ui| {
                                 ui.add_space(theme::SIDEBAR_WIDTH / 2.0 - 30.0);
                                 let bell_response = ui.label(
                                     egui::RichText::new(icons::BELL)
@@ -166,7 +166,7 @@ impl Sidebar {
                         ui.add_space(theme::SPACE_LG);
                     });
 
-                    ui.vertical(|ui| {
+                    ui.vertical(|ui: &mut egui::Ui| {
                         ui.set_width(theme::SIDEBAR_WIDTH);
 
                         // Sync status at the top
@@ -258,7 +258,7 @@ impl Sidebar {
 
     fn section_label(ui: &mut Ui, text: &str) {
         ui.add_space(theme::SPACE_XS);
-        ui.horizontal(|ui| {
+        ui.horizontal(|ui: &mut egui::Ui| {
             ui.add_space(theme::SPACE_MD);
             ui.label(
                 egui::RichText::new(text)
@@ -409,7 +409,7 @@ impl Sidebar {
         };
 
         // Row 1: dot + label
-        let row_response = ui.horizontal(|ui| {
+        let row_response = ui.horizontal(|ui: &mut egui::Ui| {
             ui.add_space(theme::SPACE_MD + 8.0);
             // Animated dot
             let (dot_rect, _) = ui.allocate_exact_size(Vec2::new(8.0, 8.0), egui::Sense::empty());
@@ -438,7 +438,7 @@ impl Sidebar {
 
         // Row 2: relative timestamp
         if let Some(last) = state.last_sync_at {
-            ui.horizontal(|ui| {
+            ui.horizontal(|ui: &mut egui::Ui| {
                 ui.add_space(theme::SPACE_MD + 8.0 + 8.0 + theme::SPACE_XS);
                 ui.label(
                     egui::RichText::new(Self::relative_time_fr(now, last))

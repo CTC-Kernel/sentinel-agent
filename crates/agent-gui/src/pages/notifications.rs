@@ -19,11 +19,12 @@ impl NotificationsPage {
             ui,
             "Notifications",
             Some("Alertes, avertissements et informations de l'agent"),
+            Some("Restez informé des événements importants nécessitant votre attention. Les alertes de scan, les rapports de conformité et les messages système sont archivés ici."),
         );
         ui.add_space(theme::SPACE_LG);
 
         // Summary + mark all read button
-        ui.horizontal(|ui| {
+        ui.horizontal(|ui: &mut egui::Ui| {
             let total = state.notifications.len();
             let unread = state.notifications.iter().filter(|n| !n.read).count();
 
@@ -33,7 +34,7 @@ impl NotificationsPage {
                     .color(theme::text_secondary()),
             );
 
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                 if unread > 0 {
                     let btn = egui::Button::new(
                         egui::RichText::new(format!("{}  Tout marquer comme lu", icons::CHECK))
@@ -69,7 +70,7 @@ impl NotificationsPage {
         ui.add_space(theme::SPACE_MD);
 
         if state.notifications.is_empty() {
-            widgets::card(ui, |ui| {
+            widgets::card(ui, |ui: &mut egui::Ui| {
                 widgets::empty_state(
                     ui,
                     icons::BELL,
@@ -98,8 +99,8 @@ impl NotificationsPage {
                             border_color
                         },
                     ))
-                    .show(ui, |ui| {
-                        ui.horizontal(|ui| {
+                    .show(ui, |ui: &mut egui::Ui| {
+                        ui.horizontal(|ui: &mut egui::Ui| {
                             // Severity badge
                             widgets::status_badge(ui, &notif.severity.to_uppercase(), border_color);
 
@@ -115,7 +116,7 @@ impl NotificationsPage {
                                 ui.add_space(12.0);
                             }
 
-                            ui.vertical(|ui| {
+                            ui.vertical(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&notif.title)
                                         .font(theme::font_body())
@@ -133,7 +134,7 @@ impl NotificationsPage {
 
                             ui.with_layout(
                                 egui::Layout::right_to_left(egui::Align::Center),
-                                |ui| {
+                                |ui: &mut egui::Ui| {
                                     ui.label(
                                         egui::RichText::new(
                                             notif.timestamp.format("%d/%m/%Y %H:%M").to_string(),

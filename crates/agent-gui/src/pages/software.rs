@@ -25,17 +25,18 @@ impl SoftwarePage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
-            "Logiciels",
-            Some("Inventaire complet des applications install\u{00e9}es et suivi des versions"),
+            "Inventaire Logiciel",
+            Some("CATALOGUE DES APPLICATIONS ET COMPOSANTS SYSTÈME INSTALLÉS SUR L'HÔTE"),
+            Some("Consultez la liste exhaustive des paquets système et des applications installées. Le système vérifie automatiquement si vos logiciels sont à jour pour réduire la surface d'attaque."),
         );
         ui.add_space(theme::SPACE_LG);
 
-        // Action bar
-        ui.horizontal(|ui| {
+        // Action bar (AAA Grade)
+        ui.horizontal(|ui: &mut egui::Ui| {
             let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
             if widgets::button::primary_button_loading(
                 ui,
-                format!("{}  {}", if is_scanning { "Scan en cours..." } else { "Lancer le scan" }, icons::PLAY),
+                format!("{}  {}", if is_scanning { "SCAN EN COURS" } else { "ACTUALISER L'INVENTAIRE" }, icons::PLAY),
                 !is_scanning,
                 is_scanning,
             )
@@ -46,16 +47,16 @@ impl SoftwarePage {
         });
         ui.add_space(theme::SPACE_MD);
 
-        // Tab bar
+        // Tab bar (AAA Grade)
         let active = if state.software_active_tab == 1 {
             SoftwareTab::Applications
         } else {
             SoftwareTab::Packages
         };
-        ui.horizontal(|ui| {
+        ui.horizontal(|ui: &mut egui::Ui| {
             if Self::tab_button(
                 ui,
-                &format!("{} Paquets", icons::SOFTWARE),
+                &format!("{} DÉPENDANCES ET PAQUETS", icons::SOFTWARE),
                 active == SoftwareTab::Packages,
             ) {
                 state.software_active_tab = 0;
@@ -63,7 +64,7 @@ impl SoftwarePage {
             ui.add_space(theme::SPACE_SM);
             if Self::tab_button(
                 ui,
-                &format!("{} Applications", icons::CUBE),
+                &format!("{} APPLICATIONS UTILISATEUR", icons::CUBE),
                 active == SoftwareTab::Applications,
             ) {
                 state.software_active_tab = 1;
@@ -73,11 +74,11 @@ impl SoftwarePage {
         ui.add_space(theme::SPACE_LG);
 
         // Search filter bar (shared for both tabs)
-        let search_lower = state.software_search.to_lowercase();
+        let search_upper = state.software_search.to_uppercase();
 
         match active {
-            SoftwareTab::Packages => Self::show_packages(ui, state, &search_lower),
-            SoftwareTab::Applications => Self::show_macos_apps(ui, state, &search_lower),
+            SoftwareTab::Packages => Self::show_packages(ui, state, &search_upper),
+            SoftwareTab::Applications => Self::show_macos_apps(ui, state, &search_upper),
         }
 
         ui.add_space(theme::SPACE_XL);
@@ -87,30 +88,29 @@ impl SoftwarePage {
 
     // -- Tab: Paquets (Homebrew) --
 
-    fn show_packages(ui: &mut Ui, state: &mut AppState, search_lower: &str) {
-        // Filter
+    fn show_packages(ui: &mut Ui, state: &mut AppState, search_upper: &str) {
         let filtered: Vec<usize> = state
             .software_packages
             .iter()
             .enumerate()
             .filter(|(_, p)| {
-                if search_lower.is_empty() {
+                if search_upper.is_empty() {
                     return true;
                 }
                 let haystack = format!(
                     "{} {} {}",
-                    p.name.to_lowercase(),
-                    p.version.to_lowercase(),
-                    p.publisher.as_deref().unwrap_or("").to_lowercase(),
+                    p.name.to_uppercase(),
+                    p.version.to_uppercase(),
+                    p.publisher.as_deref().unwrap_or("").to_uppercase(),
                 );
-                haystack.contains(search_lower)
+                haystack.contains(search_upper)
             })
             .map(|(i, _)| i)
             .collect();
 
         let result_count = filtered.len();
 
-        // Summary cards
+        // Summary cards (AAA Grade)
         let total = state.software_packages.len() as u32;
         let up_to_date = state
             .software_packages
@@ -122,25 +122,21 @@ impl SoftwarePage {
         let card_grid = widgets::ResponsiveGrid::new(280.0, theme::SPACE_SM);
         let items = vec![
             (
-                "TOTAL",
+                "COMPOSANTS DÉTECTÉS",
                 total.to_string(),
                 theme::text_primary(),
                 icons::CUBE,
             ),
             (
-                "\u{00c0} JOUR",
+                "VERSIONS CONFORMES",
                 up_to_date.to_string(),
                 theme::SUCCESS,
                 icons::CIRCLE_CHECK,
             ),
             (
-                "OBSOL\u{00c8}TES",
+                "MISES À JOUR REQUISES",
                 outdated.to_string(),
-                if outdated > 0 {
-                    theme::WARNING
-                } else {
-                    theme::text_tertiary()
-                },
+                if outdated > 0 { theme::WARNING } else { theme::text_tertiary() },
                 icons::ARROW_UP,
             ),
         ];
@@ -153,20 +149,21 @@ impl SoftwarePage {
 
         widgets::SearchFilterBar::new(
             &mut state.software_search,
-            "Rechercher (nom, version, \u{00e9}diteur)...",
+            "Rechercher un paquet, une version ou un éditeur...",
         )
         .result_count(result_count)
         .show(ui);
 
         ui.add_space(theme::SPACE_SM);
 
-        // CSV export
-        ui.horizontal(|ui| {
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+        // Action Buttons (AAA Grade)
+        ui.horizontal(|ui: &mut egui::Ui| {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                 let export_btn = egui::Button::new(
                     egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                        .font(theme::font_small())
-                        .color(theme::text_secondary()),
+                        .font(egui::FontId::proportional(10.0))
+                        .color(theme::text_tertiary())
+                        .strong(),
                 )
                 .fill(theme::bg_elevated())
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
@@ -178,12 +175,13 @@ impl SoftwarePage {
 
         ui.add_space(theme::SPACE_SM);
 
-        // Packages table
-        widgets::card(ui, |ui| {
+        // Packages table (AAA Grade)
+        widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("PAQUETS HOMEBREW")
-                    .font(theme::font_small())
+                egui::RichText::new("REGISTRE DES PAQUETS ET DÉPENDANCES")
+                    .font(egui::FontId::proportional(10.0))
                     .color(theme::text_tertiary())
+                    .extra_letter_spacing(0.5)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -192,10 +190,8 @@ impl SoftwarePage {
                 widgets::empty_state(
                     ui,
                     icons::SOFTWARE,
-                    "Aucun paquet correspondant",
-                    Some(
-                        "Modifiez votre recherche ou aucun paquet n'a \u{00e9}t\u{00e9} d\u{00e9}tect\u{00e9}.",
-                    ),
+                    "AUCUNE OCCURRENCE TROUVÉE",
+                    Some("Ajustez vos critères de recherche ou actualisez l'inventaire."),
                 );
             } else {
                 use egui_extras::{Column, TableBuilder};
@@ -204,93 +200,83 @@ impl SoftwarePage {
                     .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(150.0).range(100.0..=400.0).at_least(100.0))
-                    .column(Column::initial(100.0).at_least(80.0))
-                    .column(Column::initial(120.0).at_least(100.0))
-                    .column(Column::initial(100.0).at_least(80.0))
+                    .column(Column::initial(220.0).at_least(150.0))
+                    .column(Column::initial(110.0).at_least(80.0))
+                    .column(Column::initial(180.0).at_least(120.0))
+                    .column(Column::initial(110.0).at_least(90.0))
                     .column(Column::remainder());
 
                 table
-                    .header(28.0, |mut header| {
-                        header.col(|ui| {
-                            ui.strong("NOM DU LOGICIEL");
+                    .header(30.0, |mut header| {
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("DÉSIGNATION").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
-                        header.col(|ui| {
-                            ui.strong("VERSION");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("VERSION").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
-                        header.col(|ui| {
-                            ui.strong("\u{00c9}DITEUR");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("ÉDITEUR / ORIGINE").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
-                        header.col(|ui| {
-                            ui.strong("STATUT");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("ÉTAT").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
-                        header.col(|ui| {
-                            ui.strong("MAJ DISPONIBLE");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("CIBLE DE MAJ").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
                     })
                     .body(|body| {
-                        body.rows(40.0, filtered.len(), |mut row| {
+                        body.rows(44.0, filtered.len(), |mut row| {
                             let pkg = &state.software_packages[filtered[row.index()]];
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&pkg.name)
-                                        .font(theme::font_body())
+                                        .font(egui::FontId::proportional(13.0))
                                         .color(theme::text_primary())
                                         .strong(),
                                 );
                             });
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&pkg.version)
                                         .font(theme::font_mono())
+                                        .size(11.0)
                                         .color(theme::text_secondary()),
                                 );
                             });
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 let publisher = pkg.publisher.as_deref().unwrap_or("--");
                                 ui.label(
-                                    egui::RichText::new(publisher)
-                                        .font(theme::font_small())
-                                        .color(theme::text_tertiary()),
+                                    egui::RichText::new(publisher.to_uppercase())
+                                        .font(egui::FontId::proportional(11.0))
+                                        .color(theme::text_tertiary())
+                                        .strong(),
                                 );
                             });
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 if pkg.up_to_date {
-                                    widgets::status_badge(
-                                        ui,
-                                        &format!("{} \u{00c0} JOUR", icons::CHECK),
-                                        theme::SUCCESS.linear_multiply(0.8),
-                                    );
+                                    widgets::status_badge(ui, "CONFORME", theme::SUCCESS);
                                 } else {
-                                    widgets::status_badge(
-                                        ui,
-                                        &format!("{} OBSOL\u{00c8}TE", icons::ARROW_UP),
-                                        theme::WARNING.linear_multiply(0.8),
-                                    );
+                                    widgets::status_badge(ui, "OBSOLÈTE", theme::WARNING);
                                 }
                             });
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 if let Some(latest) = &pkg.latest_version {
                                     if !pkg.up_to_date {
-                                        ui.label(
-                                            egui::RichText::new(format!(
-                                                "{} {}",
-                                                icons::ARROW_RIGHT,
-                                                latest
-                                            ))
-                                            .font(theme::font_mono())
-                                            .color(theme::ACCENT_LIGHT)
-                                            .strong(),
-                                        );
+                                        ui.horizontal(|ui: &mut egui::Ui| {
+                                            ui.label(egui::RichText::new(icons::ARROW_RIGHT).color(theme::ACCENT).strong());
+                                            ui.label(
+                                                egui::RichText::new(latest)
+                                                    .font(theme::font_mono())
+                                                    .size(11.0)
+                                                    .color(theme::ACCENT)
+                                                    .strong(),
+                                            );
+                                        });
                                     } else {
-                                        ui.label(
-                                            egui::RichText::new("--").color(theme::text_tertiary()),
-                                        );
+                                        ui.label(egui::RichText::new("--").color(theme::text_tertiary()));
                                     }
                                 } else {
-                                    ui.label(
-                                        egui::RichText::new("--").color(theme::text_tertiary()),
-                                    );
+                                    ui.label(egui::RichText::new("--").color(theme::text_tertiary()));
                                 }
                             });
                         });
@@ -301,22 +287,22 @@ impl SoftwarePage {
 
     // -- Tab: Applications (macOS native) --
 
-    fn show_macos_apps(ui: &mut Ui, state: &mut AppState, search_lower: &str) {
+    fn show_macos_apps(ui: &mut Ui, state: &mut AppState, search_upper: &str) {
         let filtered: Vec<usize> = state
             .macos_apps
             .iter()
             .enumerate()
             .filter(|(_, a)| {
-                if search_lower.is_empty() {
+                if search_upper.is_empty() {
                     return true;
                 }
                 let haystack = format!(
                     "{} {} {}",
-                    a.name.to_lowercase(),
-                    a.version.to_lowercase(),
-                    a.publisher.to_lowercase(),
+                    a.name.to_uppercase(),
+                    a.version.to_uppercase(),
+                    a.publisher.to_uppercase(),
                 );
-                haystack.contains(search_lower)
+                haystack.contains(search_upper)
             })
             .map(|(i, _)| i)
             .collect();
@@ -327,19 +313,19 @@ impl SoftwarePage {
         let card_grid = widgets::ResponsiveGrid::new(280.0, theme::SPACE_SM);
         let items = vec![
             (
-                "APPLICATIONS",
+                "APPLICATIONS UTILISATEUR",
                 total.to_string(),
                 theme::ACCENT,
                 icons::CUBE,
             ),
             (
-                "SOURCE",
+                "SYSTÈME EXPLOITATION",
                 "macOS".to_string(),
                 theme::text_secondary(),
                 icons::SETTINGS,
             ),
             (
-                "R\u{00c9}PERTOIRE",
+                "PÉRIMÈTRE D'AUDIT",
                 "/Applications".to_string(),
                 theme::text_secondary(),
                 icons::DATABASE,
@@ -354,20 +340,21 @@ impl SoftwarePage {
 
         widgets::SearchFilterBar::new(
             &mut state.software_search,
-            "Rechercher (nom, version, \u{00e9}diteur)...",
+            "Rechercher une application, un bundle ou un éditeur...",
         )
         .result_count(result_count)
         .show(ui);
 
         ui.add_space(theme::SPACE_SM);
 
-        // CSV export
-        ui.horizontal(|ui| {
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+        // Action Buttons (AAA Grade)
+        ui.horizontal(|ui: &mut egui::Ui| {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                 let export_btn = egui::Button::new(
                     egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                        .font(theme::font_small())
-                        .color(theme::text_secondary()),
+                        .font(egui::FontId::proportional(10.0))
+                        .color(theme::text_tertiary())
+                        .strong(),
                 )
                 .fill(theme::bg_elevated())
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
@@ -379,11 +366,12 @@ impl SoftwarePage {
 
         ui.add_space(theme::SPACE_SM);
 
-        widgets::card(ui, |ui| {
+        widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("APPLICATIONS macOS")
-                    .font(theme::font_small())
+                egui::RichText::new("REGISTRE DES APPLICATIONS NATIVES")
+                    .font(egui::FontId::proportional(10.0))
                     .color(theme::text_tertiary())
+                    .extra_letter_spacing(0.5)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -392,8 +380,8 @@ impl SoftwarePage {
                 widgets::empty_state(
                     ui,
                     icons::CUBE,
-                    "Aucune application correspondante",
-                    Some("Modifiez votre recherche."),
+                    "AUCUNE ENTITÉ IDENTIFIÉE",
+                    Some("Veuillez patienter pendant la fin de la synchronisation de l'inventaire."),
                 );
             } else {
                 use egui_extras::{Column, TableBuilder};
@@ -402,61 +390,64 @@ impl SoftwarePage {
                     .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(180.0).range(120.0..=400.0).at_least(120.0))
-                    .column(Column::initial(90.0).at_least(70.0))
-                    .column(Column::initial(200.0).at_least(140.0))
-                    .column(Column::remainder());
+                    .column(Column::initial(220.0).range(140.0..=500.0)) // Application
+                    .column(Column::initial(100.0).at_least(80.0))  // Version
+                    .column(Column::initial(250.0).at_least(160.0)) // Bundle ID
+                    .column(Column::remainder());                   // Publisher
 
                 table
-                    .header(28.0, |mut header| {
-                        header.col(|ui| {
-                            ui.strong("APPLICATION");
+                    .header(30.0, |mut header| {
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("POINT D'ENTRÉE").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
-                        header.col(|ui| {
-                            ui.strong("VERSION");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("VERSION").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
-                        header.col(|ui| {
-                            ui.strong("BUNDLE ID");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("IDENTIFIANT (BUNDLE ID)").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
-                        header.col(|ui| {
-                            ui.strong("\u{00c9}DITEUR");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("CERTIFICAT D'ÉDITEUR").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
                     })
                     .body(|body| {
-                        body.rows(36.0, filtered.len(), |mut row| {
+                        body.rows(44.0, filtered.len(), |mut row| {
                             let app = &state.macos_apps[filtered[row.index()]];
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&app.name)
-                                        .font(theme::font_body())
+                                        .font(egui::FontId::proportional(13.0))
                                         .color(theme::text_primary())
                                         .strong(),
                                 );
                             });
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&app.version)
                                         .font(theme::font_mono())
+                                        .size(11.0)
                                         .color(theme::text_secondary()),
                                 );
                             });
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&app.bundle_id)
                                         .font(theme::font_mono())
+                                        .size(10.0)
                                         .color(theme::text_tertiary()),
                                 );
                             });
-                            row.col(|ui| {
-                                let pub_text = if app.publisher.len() > 50 {
-                                    format!("{}...", &app.publisher[..47])
+                            row.col(|ui: &mut egui::Ui| {
+                                let pub_text = if app.publisher.len() > 64 {
+                                    format!("{}...", &app.publisher[..61])
                                 } else {
                                     app.publisher.clone()
                                 };
                                 ui.label(
-                                    egui::RichText::new(pub_text)
-                                        .font(theme::font_small())
-                                        .color(theme::text_tertiary()),
+                                    egui::RichText::new(pub_text.to_uppercase())
+                                        .font(egui::FontId::proportional(11.0))
+                                        .color(theme::text_tertiary())
+                                        .strong(),
                                 );
                             });
                         });
@@ -509,7 +500,7 @@ impl SoftwarePage {
         }
     }
 
-    // -- Shared helpers --
+    // -- Shared helpers (AAA Grade) --
 
     fn tab_button(ui: &mut Ui, label: &str, active: bool) -> bool {
         let text_color = if active {
@@ -518,19 +509,19 @@ impl SoftwarePage {
             theme::text_secondary()
         };
         let bg = if active {
-            theme::ACCENT
+            theme::ACCENT.linear_multiply(0.9)
         } else {
             theme::bg_elevated()
         };
         let btn = egui::Button::new(
             egui::RichText::new(label)
-                .font(theme::font_body())
+                .font(egui::FontId::proportional(11.0))
                 .color(text_color)
                 .strong(),
         )
         .fill(bg)
         .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
-        .min_size(egui::vec2(140.0, 36.0));
+        .min_size(egui::vec2(140.0, 32.0));
         ui.add(btn).clicked()
     }
 
@@ -542,24 +533,30 @@ impl SoftwarePage {
         color: egui::Color32,
         icon: &str,
     ) {
-        ui.vertical(|ui| {
+        ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
-            widgets::card(ui, |ui| {
-                ui.horizontal(|ui| {
-                    ui.vertical(|ui| {
-                        ui.label(egui::RichText::new(value).size(24.0).color(color).strong());
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.vertical(|ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new(value)
+                                .font(egui::FontId::proportional(24.0))
+                                .color(color)
+                                .strong()
+                        );
                         ui.label(
                             egui::RichText::new(label)
-                                .font(theme::font_small())
+                                .font(egui::FontId::proportional(10.0))
                                 .color(theme::text_tertiary())
+                                .extra_letter_spacing(0.5)
                                 .strong(),
                         );
                     });
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(icon)
                                 .size(28.0)
-                                .color(color.linear_multiply(0.4)),
+                                .color(color.linear_multiply(0.25)),
                         );
                     });
                 });

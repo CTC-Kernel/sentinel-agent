@@ -11,7 +11,7 @@ use rusqlite::Connection;
 use tracing::{debug, error, info, warn};
 
 /// Current schema version (incremented with each migration).
-pub const CURRENT_SCHEMA_VERSION: i32 = 3;
+pub const CURRENT_SCHEMA_VERSION: i32 = 4;
 
 /// A database migration.
 struct Migration {
@@ -196,6 +196,29 @@ const MIGRATIONS: &[Migration] = &[
             DROP INDEX IF EXISTS idx_discovered_devices_subnet;
             DROP INDEX IF EXISTS idx_discovered_devices_last_seen;
             DROP TABLE IF EXISTS discovered_devices;
+        "#,
+    },
+    Migration {
+        version: 4,
+        name: "audit_trail",
+        up: r#"
+            -- Persistent local audit trail for GRC compliance
+            CREATE TABLE IF NOT EXISTS audit_trail (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                action_type TEXT NOT NULL,
+                action_data TEXT NOT NULL,  -- JSON representation of AuditAction
+                actor TEXT NOT NULL,
+                details TEXT
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_audit_trail_timestamp ON audit_trail(timestamp);
+            CREATE INDEX IF NOT EXISTS idx_audit_trail_action_type ON audit_trail(action_type);
+        "#,
+        down: r#"
+            DROP INDEX IF EXISTS idx_audit_trail_action_type;
+            DROP INDEX IF EXISTS idx_audit_trail_timestamp;
+            DROP TABLE IF EXISTS audit_trail;
         "#,
     },
 ];

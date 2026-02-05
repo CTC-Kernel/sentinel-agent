@@ -39,46 +39,36 @@ impl ThreatsPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
-            "Menaces",
-            Some(
-                "Vue consolid\u{00e9}e des menaces et \u{00e9}v\u{00e9}nements de s\u{00e9}curit\u{00e9}",
-            ),
+            "Menaces Détectées",
+            Some("ANALYSE DES ÉVÉNEMENTS SUSPECTS ET CORRÉLATION IA"),
+            Some("Consultez le flux consolidé des événements suspects (processus anormaux, clés USB non autorisées, modifications FIM). Le score de confiance IA aide à distinguer les faux positifs des menaces réelles."),
         );
         ui.add_space(theme::SPACE_LG);
 
-        // ── Summary counts ──────────────────────────────────────────────
+        // ── Summary counts (AAA Grade) ──────────────────────────────────
         let process_count = state.suspicious_processes.len();
         let usb_count = state.usb_events.len();
         let fim_unack_count = state.fim_alerts.iter().filter(|a| !a.acknowledged).count();
         let risk_score = Self::compute_risk_score(process_count, usb_count, fim_unack_count);
 
-        // 4-card summary row
         let card_gap = theme::SPACE_SM;
         let card_w = (ui.available_width() - card_gap * 3.0) / 4.0;
-        ui.horizontal(|ui| {
+        ui.horizontal(|ui: &mut egui::Ui| {
             ui.spacing_mut().item_spacing.x = card_gap;
             Self::summary_card(
                 ui,
                 card_w,
                 "PROCESSUS SUSPECTS",
                 &process_count.to_string(),
-                if process_count > 0 {
-                    theme::ERROR
-                } else {
-                    theme::text_tertiary()
-                },
+                if process_count > 0 { theme::ERROR } else { theme::text_tertiary() },
                 icons::BUG,
             );
             Self::summary_card(
                 ui,
                 card_w,
-                "\u{00c9}V\u{00c9}NEMENTS USB",
+                "ÉVÉNEMENTS USB",
                 &usb_count.to_string(),
-                if usb_count > 0 {
-                    theme::WARNING
-                } else {
-                    theme::text_tertiary()
-                },
+                if usb_count > 0 { theme::WARNING } else { theme::text_tertiary() },
                 icons::PLUG,
             );
             Self::summary_card(
@@ -86,11 +76,7 @@ impl ThreatsPage {
                 card_w,
                 "ALERTES FIM",
                 &fim_unack_count.to_string(),
-                if fim_unack_count > 0 {
-                    theme::WARNING
-                } else {
-                    theme::text_tertiary()
-                },
+                if fim_unack_count > 0 { theme::WARNING } else { theme::text_tertiary() },
                 icons::EYE,
             );
             Self::summary_card(
@@ -105,7 +91,7 @@ impl ThreatsPage {
 
         ui.add_space(theme::SPACE_LG);
 
-        // ── Search / filter bar ─────────────────────────────────────────
+        // ── Search / filter bar (AAA Grade) ─────────────────────────────
         let proc_active = state.threats_filter.as_deref() == Some("process");
         let usb_active = state.threats_filter.as_deref() == Some("usb");
         let fim_active = state.threats_filter.as_deref() == Some("fim");
@@ -139,7 +125,7 @@ impl ThreatsPage {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.threats_search,
-            "Rechercher (processus, fichier, p\u{00e9}riph\u{00e9}rique)...",
+            "RECHERCHER (PROCESSUS, FICHIER, PÉRIPHÉRIQUE)...",
         )
         .chip("PROCESSUS", proc_active, theme::ERROR)
         .chip("USB", usb_active, theme::WARNING)
@@ -163,12 +149,12 @@ impl ThreatsPage {
 
         ui.add_space(theme::SPACE_SM);
 
-        // Action bar: Scan & Export
-        ui.horizontal(|ui| {
+        // Action bar: Scan & Export (AAA Grade)
+        ui.horizontal(|ui: &mut egui::Ui| {
             let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
             if widgets::button::primary_button_loading(
                 ui,
-                format!("{}  {}", if is_scanning { "Scan en cours..." } else { "Lancer le scan" }, icons::PLAY),
+                format!("{}  {}", if is_scanning { "SCAN EN COURS" } else { "LANCER LE SCAN" }, icons::PLAY),
                 !is_scanning,
                 is_scanning,
             )
@@ -179,11 +165,12 @@ impl ThreatsPage {
 
             ui.add_space(theme::SPACE_SM);
 
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                 let export_btn = egui::Button::new(
-                    egui::RichText::new(format!("{}  Export CSV", icons::DOWNLOAD))
-                        .font(theme::font_small())
-                        .color(theme::text_secondary()),
+                    egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
+                        .font(egui::FontId::proportional(10.0))
+                        .color(theme::text_tertiary())
+                        .strong(),
                 )
                 .fill(theme::bg_elevated())
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
@@ -195,12 +182,13 @@ impl ThreatsPage {
 
         ui.add_space(theme::SPACE_SM);
 
-        // ── Threat feed ─────────────────────────────────────────────────
-        widgets::card(ui, |ui| {
+        // ── Threat feed (AAA Grade) ─────────────────────────────────────
+        widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("FIL DE MENACES")
-                    .font(theme::font_small())
+                egui::RichText::new("FIL DE SÉCURITÉ CONSOLIDÉ")
+                    .font(egui::FontId::proportional(10.0))
                     .color(theme::text_tertiary())
+                    .extra_letter_spacing(0.5)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -209,8 +197,8 @@ impl ThreatsPage {
                 widgets::protected_state(
                     ui,
                     icons::SHIELD_CHECK,
-                    "Aucune menace d\u{00e9}tect\u{00e9}e",
-                    "Le syst\u{00e8}me ne pr\u{00e9}sente aucun \u{00e9}v\u{00e9}nement de s\u{00e9}curit\u{00e9} suspect.",
+                    "AUCUNE MENACE IDENTIFIÉE",
+                    "Le système ne présente aucun événement de sécurité suspect à ce jour.",
                 );
             } else {
                 for threat in &threats {
@@ -364,12 +352,12 @@ impl ThreatsPage {
         let (kind_label, kind_color) = Self::kind_badge(threat.kind);
 
         egui::Frame::new()
-            .fill(theme::bg_elevated())
+            .fill(theme::bg_elevated().linear_multiply(0.5)) // Glassy feel
             .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
             .inner_margin(egui::Margin::same(12))
             .stroke(egui::Stroke::new(0.5, theme::border()))
-            .show(ui, |ui| {
-                ui.horizontal(|ui| {
+            .show(ui, |ui: &mut egui::Ui| {
+                ui.horizontal(|ui: &mut egui::Ui| {
                     // Severity icon
                     ui.label(egui::RichText::new(sev_icon).size(20.0).color(sev_color));
 
@@ -381,22 +369,22 @@ impl ThreatsPage {
                     ui.add_space(theme::SPACE_SM);
 
                     // Title + description
-                    ui.vertical(|ui| {
+                    ui.vertical(|ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(&threat.title)
-                                .font(theme::font_body())
+                                .font(egui::FontId::proportional(13.0))
                                 .color(theme::text_primary())
                                 .strong(),
                         );
                         ui.label(
                             egui::RichText::new(&threat.description)
-                                .font(theme::font_small())
+                                .font(egui::FontId::proportional(11.0))
                                 .color(theme::text_secondary()),
                         );
                     });
 
                     // Right side: timestamp + optional confidence
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                         // Timestamp
                         ui.label(
                             egui::RichText::new(format!(
@@ -404,7 +392,7 @@ impl ThreatsPage {
                                 icons::CLOCK,
                                 threat.timestamp.format("%d/%m/%Y %H:%M"),
                             ))
-                            .font(theme::font_small())
+                            .font(egui::FontId::proportional(10.0))
                             .color(theme::text_tertiary()),
                         );
 
@@ -427,7 +415,7 @@ impl ThreatsPage {
             });
     }
 
-    /// Draw a summary card (same pattern as other pages).
+    /// Draw a summary card (AAA Grade)
     fn summary_card(
         ui: &mut Ui,
         width: f32,
@@ -436,24 +424,30 @@ impl ThreatsPage {
         color: egui::Color32,
         icon: &str,
     ) {
-        ui.vertical(|ui| {
+        ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
-            widgets::card(ui, |ui| {
-                ui.horizontal(|ui| {
-                    ui.vertical(|ui| {
-                        ui.label(egui::RichText::new(value).size(24.0).color(color).strong());
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.vertical(|ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new(value)
+                                .font(egui::FontId::proportional(24.0))
+                                .color(color)
+                                .strong()
+                        );
                         ui.label(
                             egui::RichText::new(label)
-                                .font(theme::font_small())
+                                .font(egui::FontId::proportional(10.0))
                                 .color(theme::text_tertiary())
+                                .extra_letter_spacing(0.5)
                                 .strong(),
                         );
                     });
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(icon)
                                 .size(28.0)
-                                .color(color.linear_multiply(0.4)),
+                                .color(color.linear_multiply(0.25)),
                         );
                     });
                 });

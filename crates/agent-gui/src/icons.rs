@@ -81,3 +81,10 @@ pub const FILE: &str = "\u{f15b}"; // fa-file
 pub const WRENCH_FA: &str = "\u{f7d9}"; // fa-screwdriver-wrench (remediation)
 pub const SHIELD: &str = "\u{f132}"; // fa-shield
 pub const SHIELD_CHECK: &str = "\u{f305}"; // fa-shield-check (or similar)
+
+// ── Premium dashboard ───────────────────────────────────────────────
+pub const BUILDING: &str = "\u{f1ad}"; // fa-building
+pub const STREAM: &str = "\u{f550}"; // fa-stream
+pub const CHART_PIE: &str = "\u{f200}"; // fa-chart-pie
+pub const GAUGE_HIGH: &str = "\u{f625}"; // fa-gauge-high
+

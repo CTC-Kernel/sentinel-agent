@@ -47,7 +47,7 @@ impl<'a> SearchFilterBar<'a> {
     pub fn show(self, ui: &mut Ui) -> Option<usize> {
         let mut toggled: Option<usize> = None;
 
-        ui.horizontal(|ui| {
+        ui.horizontal(|ui: &mut egui::Ui| {
             // Search input
             let search_width = 220.0_f32.min(ui.available_width() * 0.35);
             ui.add_sized(
@@ -100,7 +100,7 @@ impl<'a> SearchFilterBar<'a> {
 
             // Result count on right
             if let Some(n) = self.count {
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                     ui.label(
                         egui::RichText::new(format!("{} résultat(s)", n))
                             .font(theme::font_small())

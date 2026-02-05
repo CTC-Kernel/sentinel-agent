@@ -11,6 +11,24 @@ use egui::{
     Color32, CornerRadius, FontId, Margin, Stroke, Style, TextStyle, Vec2, Visuals, epaint::Shadow,
 };
 
+/// Extension trait to restore chaining methods for FontId.
+pub trait FontIdExt {
+    fn size(self, size: f32) -> Self;
+    fn strong(self) -> Self;
+}
+
+impl FontIdExt for FontId {
+    fn size(mut self, size: f32) -> Self {
+        self.size = size;
+        self
+    }
+    fn strong(self) -> Self {
+        // Note: egui doesn't support font weights directly, so strong() just returns self.
+        // Actual bold styling should be done via RichText::strong()
+        self
+    }
+}
+
 // ============================================================================
 // Theme mode (thread-local – GUI is single-threaded)
 // ============================================================================
@@ -40,18 +58,18 @@ pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(90, 200, 250); // #5AC8FA (A
 /// Accent hover state.
 pub const ACCENT_HOVER: Color32 = Color32::from_rgb(0, 113, 237);
 
-/// Success green (Apple System Green - softened).
-pub const SUCCESS: Color32 = Color32::from_rgb(48, 176, 85); // #30B055 (less saturated)
-/// Warning orange (Apple System Orange - softened).
-pub const WARNING: Color32 = Color32::from_rgb(230, 140, 0); // #E68C00 (less saturated)
-/// Error red (Apple System Red - softened).
-pub const ERROR: Color32 = Color32::from_rgb(220, 53, 69); // #DC3545 (less saturated)
-/// Info blue (Apple System Blue - softened).
-pub const INFO: Color32 = Color32::from_rgb(0, 123, 255); // #007BFF (slightly less saturated)
-/// Severity-high amber (web app risk amber - softened).
-pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 193, 7); // #FFC107 (more yellow, less harsh)
-/// Severity-medium (distinct from WARNING - softened).
-pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 184, 0); // #FFB800 (more muted orange)
+/// Success green (Refined Mint - more premium/professional).
+pub const SUCCESS: Color32 = Color32::from_rgb(52, 199, 89); // Apple System Green
+/// Warning orange (Refined Amber).
+pub const WARNING: Color32 = Color32::from_rgb(255, 159, 10); // Apple System Orange
+/// Error red (Refined Crimson).
+pub const ERROR: Color32 = Color32::from_rgb(255, 69, 58); // Apple System Red
+/// Info blue (Refined Azure).
+pub const INFO: Color32 = Color32::from_rgb(10, 132, 255); // Apple System Blue
+/// Severity-high amber (high contrast).
+pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 214, 10); // Apple System Yellow
+/// Severity-medium (Sophisticated Orange).
+pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 159, 10); 
 
 // ============================================================================
 // Surface colors (dynamic – depends on active theme)
@@ -84,6 +102,15 @@ pub fn bg_elevated() -> Color32 {
         Color32::from_rgb(58, 58, 60) // System Gray 4 Dark
     } else {
         Color32::WHITE
+    }
+}
+
+#[inline]
+pub fn bg_tertiary() -> Color32 {
+    if is_dark_mode() {
+        Color32::from_rgb(28, 28, 30) // System Gray 6 Dark
+    } else {
+        Color32::from_rgb(229, 229, 234) // System Gray 5 Light
     }
 }
 

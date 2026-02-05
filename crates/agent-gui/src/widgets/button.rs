@@ -172,7 +172,7 @@ fn draw_premium_button(
         // ─── Text Paint ───
         let text_pos = if loading {
             ui.layout()
-                .align_size_within_rect(text_galley.size(), rect.shrink(20.0))
+                .align_size_within_rect(text_galley.size(), rect.shrink2(egui::vec2(16.0, 0.0)))
                 .min
         } else {
             ui.layout()

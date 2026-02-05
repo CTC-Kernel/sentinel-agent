@@ -14,6 +14,7 @@ static TRAY_ICON_PNG: &[u8] = include_bytes!("../../../assets/icons/png/icon_32x
 #[derive(Debug, Clone)]
 pub enum TrayAction {
     ShowWindow,
+    QuickStatus,
     RunCheck,
     ForceSync,
     Quit,
@@ -22,6 +23,7 @@ pub enum TrayAction {
 /// Tray icon menu item IDs.
 mod ids {
     pub const SHOW: &str = "tray_show";
+    pub const QUICK_STATUS: &str = "tray_quick_status";
     pub const CHECK: &str = "tray_check";
     pub const SYNC: &str = "tray_sync";
     pub const QUIT: &str = "tray_quit";
@@ -35,19 +37,22 @@ pub struct TrayBridge {
 impl TrayBridge {
     /// Create the tray icon and menu.
     pub fn new() -> Result<Self, String> {
-        let show_item = MenuItem::with_id(ids::SHOW, "Ouvrir Sentinel Agent", true, None);
+        let show_item = MenuItem::with_id(ids::SHOW, "\u{25cf} Ouvrir Sentinel Agent", true, None);
+        let quick_item = MenuItem::with_id(ids::QUICK_STATUS, "\u{1f6f0} Dashboard Radar Premium", true, None);
         let check_item = MenuItem::with_id(
             ids::CHECK,
-            "V\u{00e9}rifier la conformit\u{00e9}",
+            "\u{1f6e1} V\u{00e9}rifier la conformit\u{00e9}",
             true,
             None,
         );
-        let sync_item = MenuItem::with_id(ids::SYNC, "Synchroniser les donn\u{00e9}es", true, None);
-        let quit_item = MenuItem::with_id(ids::QUIT, "Quitter", true, None);
+        let sync_item = MenuItem::with_id(ids::SYNC, "\u{2601} Synchroniser les donn\u{00e9}es", true, None);
+        let quit_item = MenuItem::with_id(ids::QUIT, "\u{23fb} Quitter", true, None);
 
         let menu = Menu::new();
         menu.append(&show_item)
             .map_err(|e| format!("menu show: {}", e))?;
+        menu.append(&quick_item)
+            .map_err(|e| format!("menu quick: {}", e))?;
         menu.append(&PredefinedMenuItem::separator())
             .map_err(|e| format!("menu sep1: {}", e))?;
         menu.append(&check_item)
@@ -84,6 +89,10 @@ impl TrayBridge {
                 ids::SHOW => {
                     debug!("Tray: show window requested");
                     actions.push(TrayAction::ShowWindow);
+                }
+                ids::QUICK_STATUS => {
+                    debug!("Tray: quick status requested");
+                    actions.push(TrayAction::QuickStatus);
                 }
                 ids::CHECK => {
                     debug!("Tray: run check requested");
