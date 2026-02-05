@@ -196,8 +196,12 @@ impl LogSigner {
     }
 
     /// Sign a string and return the signature (for LogEntry integration).
+    ///
+    /// # Panics
+    /// Panics if HMAC computation fails due to invalid key configuration.
+    /// This should never happen in production as keys are validated at construction.
     pub fn sign_data(&self, data: &str) -> String {
-        self.compute_hmac(data).unwrap_or_default()
+        self.compute_hmac(data).expect("HMAC computation failed - invalid key configuration")
     }
 
     /// Verify a signature against data (for LogEntry integration).
@@ -281,7 +285,7 @@ impl SignatureValidator {
 
     /// Verify a binary's signature.
     ///
-    /// On Windows, uses Authenticode verification.
+    /// On Windows, uses Authenticode verification via PowerShell.
     /// On Linux, uses GPG verification.
     #[cfg(windows)]
     pub async fn verify_binary(
@@ -303,25 +307,84 @@ impl SignatureValidator {
 
         info!("Verifying Authenticode signature for {:?}", path);
 
-        // TODO: Implement Windows Authenticode verification using:
-        // - WinVerifyTrust API
-        // - CryptQueryObject for certificate details
-        // - CRL/OCSP for revocation checking
-        //
-        // For now, return invalid to enforce security-by-default
-        warn!("Authenticode verification not yet implemented - rejecting binary");
+        // Use PowerShell Get-AuthenticodeSignature for verification
+        let path_str = path.to_string_lossy();
+        let output = tokio::process::Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                &format!(
+                    "$sig = Get-AuthenticodeSignature -FilePath '{}'; \
+                     $json = @{{ \
+                         Status = $sig.Status.ToString(); \
+                         SignerCertificate = if($sig.SignerCertificate) {{ $sig.SignerCertificate.Subject }} else {{ $null }}; \
+                         TimeStamperCertificate = if($sig.TimeStamperCertificate) {{ $sig.TimeStamperCertificate.Subject }} else {{ $null }}; \
+                         StatusMessage = $sig.StatusMessage \
+                     }}; \
+                     $json | ConvertTo-Json -Compress",
+                    path_str
+                ),
+            ])
+            .output()
+            .await
+            .map_err(|e| SyncError::Config(format!("Failed to run PowerShell: {}", e)))?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            error!("Authenticode verification failed: {}", stderr);
+            return Ok(SignatureVerificationResult {
+                valid: false,
+                signature_type: SignatureType::Authenticode,
+                signer: None,
+                certificate: None,
+                timestamp: None,
+                error: Some(format!("PowerShell error: {}", stderr)),
+            });
+        }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+
+        // Parse JSON response
+        #[derive(Deserialize)]
+        #[serde(rename_all = "PascalCase")]
+        struct AuthenticodeResult {
+            status: String,
+            signer_certificate: Option<String>,
+            time_stamper_certificate: Option<String>,
+            status_message: Option<String>,
+        }
+
+        let result: AuthenticodeResult = serde_json::from_str(&stdout)
+            .map_err(|e| SyncError::Config(format!("Failed to parse Authenticode result: {}", e)))?;
+
+        let valid = result.status == "Valid";
+
+        if valid {
+            info!(
+                "Authenticode signature VALID for {:?}, signer: {:?}",
+                path, result.signer_certificate
+            );
+        } else {
+            warn!(
+                "Authenticode signature INVALID for {:?}: {} - {}",
+                path,
+                result.status,
+                result.status_message.as_deref().unwrap_or("No details")
+            );
+        }
 
         Ok(SignatureVerificationResult {
-            valid: false,
+            valid,
             signature_type: SignatureType::Authenticode,
-            signer: None,
-            certificate: None,
+            signer: result.signer_certificate,
+            certificate: result.time_stamper_certificate,
             timestamp: None,
-            error: Some("Authenticode verification not yet implemented".to_string()),
+            error: if valid { None } else { result.status_message },
         })
     }
 
-    /// Verify a binary's signature (Linux).
+    /// Verify a binary's signature (Linux/macOS).
     #[cfg(not(windows))]
     pub async fn verify_binary(
         &self,
@@ -347,14 +410,10 @@ impl SignatureValidator {
         let asc_path = path.with_extension("asc");
 
         let signature_file = if sig_path.exists() {
-            Some(sig_path)
+            sig_path
         } else if asc_path.exists() {
-            Some(asc_path)
+            asc_path
         } else {
-            None
-        };
-
-        if signature_file.is_none() {
             warn!("No signature file found for {:?}", path);
             return Ok(SignatureVerificationResult {
                 valid: false,
@@ -364,22 +423,92 @@ impl SignatureValidator {
                 timestamp: None,
                 error: Some("No detached signature file (.sig or .asc) found".to_string()),
             });
+        };
+
+        // Run GPG verification with status output for parsing
+        let output = tokio::process::Command::new("gpg")
+            .args([
+                "--verify",
+                "--status-fd=1",
+                &signature_file.to_string_lossy(),
+                &path.to_string_lossy(),
+            ])
+            .output()
+            .await
+            .map_err(|e| SyncError::Config(format!("Failed to run gpg: {}", e)))?;
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+
+        // Parse GPG status output
+        // GOODSIG = valid signature from a known key
+        // VALIDSIG = valid signature with fingerprint
+        // BADSIG = bad signature
+        // ERRSIG = error during verification
+        // NO_PUBKEY = signing key not in keyring
+
+        let valid = stdout.contains("[GNUPG:] GOODSIG") || stdout.contains("[GNUPG:] VALIDSIG");
+        let bad_sig = stdout.contains("[GNUPG:] BADSIG");
+        let no_pubkey = stdout.contains("[GNUPG:] NO_PUBKEY");
+
+        // Extract signer information from GOODSIG line
+        // Format: [GNUPG:] GOODSIG <keyid> <username>
+        let signer = stdout
+            .lines()
+            .find(|line| line.contains("[GNUPG:] GOODSIG"))
+            .and_then(|line| {
+                let parts: Vec<&str> = line.splitn(4, ' ').collect();
+                if parts.len() >= 4 {
+                    Some(parts[3].to_string())
+                } else {
+                    None
+                }
+            });
+
+        // Extract key fingerprint from VALIDSIG
+        // Format: [GNUPG:] VALIDSIG <fingerprint> <creation_date> <sig_timestamp> ...
+        let fingerprint = stdout
+            .lines()
+            .find(|line| line.contains("[GNUPG:] VALIDSIG"))
+            .and_then(|line| {
+                let parts: Vec<&str> = line.split(' ').collect();
+                if parts.len() >= 3 {
+                    Some(parts[2].to_string())
+                } else {
+                    None
+                }
+            });
+
+        let error = if bad_sig {
+            Some("Signature verification FAILED - signature is invalid".to_string())
+        } else if no_pubkey {
+            Some("Signing key not found in GPG keyring".to_string())
+        } else if !valid && !output.status.success() {
+            Some(format!("GPG error: {}", stderr.trim()))
+        } else {
+            None
+        };
+
+        if valid {
+            info!(
+                "GPG signature VALID for {:?}, signer: {:?}, fingerprint: {:?}",
+                path, signer, fingerprint
+            );
+        } else {
+            warn!(
+                "GPG signature INVALID for {:?}: {:?}",
+                path,
+                error.as_deref().unwrap_or("Unknown error")
+            );
         }
 
-        // TODO: Implement GPG verification using:
-        // - gpg --verify command
-        // - Parse output for signer and validity
-        //
-        // For now, return invalid to enforce security-by-default
-        warn!("GPG verification not yet implemented - rejecting binary");
-
         Ok(SignatureVerificationResult {
-            valid: false,
+            valid,
             signature_type: SignatureType::Gpg,
-            signer: None,
-            certificate: None,
+            signer,
+            certificate: fingerprint,
             timestamp: None,
-            error: Some("GPG verification not yet implemented".to_string()),
+            error,
         })
     }
 
