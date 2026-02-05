@@ -464,3 +464,263 @@ pub struct DiscoveryResult {
     /// When the scan was performed.
     pub timestamp: DateTime<Utc>,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_network_interface_serialization() {
+        let interface = NetworkInterface {
+            name: "eth0".to_string(),
+            mac_address: Some("00:11:22:33:44:55".to_string()),
+            ipv4_addresses: vec!["192.168.1.100".to_string()],
+            ipv6_addresses: vec![],
+            status: InterfaceStatus::Up,
+            speed_mbps: Some(1000),
+            mtu: Some(1500),
+            is_virtual: false,
+            interface_type: InterfaceType::Ethernet,
+        };
+
+        let json = serde_json::to_string(&interface).unwrap();
+        assert!(json.contains("eth0"));
+        assert!(json.contains("192.168.1.100"));
+
+        let parsed: NetworkInterface = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed.name, "eth0");
+        assert_eq!(parsed.status, InterfaceStatus::Up);
+    }
+
+    #[test]
+    fn test_interface_status_variants() {
+        assert_eq!(
+            serde_json::to_string(&InterfaceStatus::Up).unwrap(),
+            "\"up\""
+        );
+        assert_eq!(
+            serde_json::to_string(&InterfaceStatus::Down).unwrap(),
+            "\"down\""
+        );
+        assert_eq!(
+            serde_json::to_string(&InterfaceStatus::Unknown).unwrap(),
+            "\"unknown\""
+        );
+    }
+
+    #[test]
+    fn test_interface_type_variants() {
+        assert_eq!(
+            serde_json::to_string(&InterfaceType::Ethernet).unwrap(),
+            "\"ethernet\""
+        );
+        assert_eq!(
+            serde_json::to_string(&InterfaceType::WiFi).unwrap(),
+            "\"wiFi\""
+        );
+        assert_eq!(
+            serde_json::to_string(&InterfaceType::Vpn).unwrap(),
+            "\"vpn\""
+        );
+    }
+
+    #[test]
+    fn test_network_connection_serialization() {
+        let connection = NetworkConnection {
+            protocol: ConnectionProtocol::Tcp,
+            local_address: "127.0.0.1".to_string(),
+            local_port: 8080,
+            remote_address: Some("93.184.216.34".to_string()),
+            remote_port: Some(443),
+            state: ConnectionState::Established,
+            pid: Some(1234),
+            process_name: Some("curl".to_string()),
+            process_path: Some("/usr/bin/curl".to_string()),
+        };
+
+        let json = serde_json::to_string(&connection).unwrap();
+        assert!(json.contains("127.0.0.1"));
+        assert!(json.contains("established"));
+
+        let parsed: NetworkConnection = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed.local_port, 8080);
+        assert_eq!(parsed.state, ConnectionState::Established);
+    }
+
+    #[test]
+    fn test_connection_protocol_variants() {
+        assert_eq!(
+            serde_json::to_string(&ConnectionProtocol::Tcp).unwrap(),
+            "\"tcp\""
+        );
+        assert_eq!(
+            serde_json::to_string(&ConnectionProtocol::Udp).unwrap(),
+            "\"udp\""
+        );
+        assert_eq!(
+            serde_json::to_string(&ConnectionProtocol::Tcp6).unwrap(),
+            "\"tcp6\""
+        );
+    }
+
+    #[test]
+    fn test_connection_state_variants() {
+        assert_eq!(
+            serde_json::to_string(&ConnectionState::Established).unwrap(),
+            "\"established\""
+        );
+        assert_eq!(
+            serde_json::to_string(&ConnectionState::Listen).unwrap(),
+            "\"listen\""
+        );
+        assert_eq!(
+            serde_json::to_string(&ConnectionState::TimeWait).unwrap(),
+            "\"timeWait\""
+        );
+    }
+
+    #[test]
+    fn test_route_entry_serialization() {
+        let route = RouteEntry {
+            destination: "0.0.0.0".to_string(),
+            gateway: Some("192.168.1.1".to_string()),
+            netmask: "0.0.0.0".to_string(),
+            interface: "eth0".to_string(),
+            metric: Some(100),
+            flags: vec!["UG".to_string()],
+            is_default: true,
+        };
+
+        let json = serde_json::to_string(&route).unwrap();
+        assert!(json.contains("isDefault"));
+        assert!(json.contains("true"));
+
+        let parsed: RouteEntry = serde_json::from_str(&json).unwrap();
+        assert!(parsed.is_default);
+    }
+
+    #[test]
+    fn test_dns_configuration_default() {
+        let dns = DnsConfiguration::default();
+        assert!(dns.servers.is_empty());
+        assert!(dns.search_domains.is_empty());
+        assert!(dns.suffix.is_none());
+    }
+
+    #[test]
+    fn test_network_security_alert_serialization() {
+        let alert = NetworkSecurityAlert {
+            alert_type: NetworkAlertType::C2Communication,
+            severity: AlertSeverity::Critical,
+            title: "C2 detected".to_string(),
+            description: "Suspicious outbound connection".to_string(),
+            connection: None,
+            evidence: serde_json::json!({"port": 4444}),
+            confidence: 95,
+            detected_at: Utc::now(),
+            iocs_matched: vec!["malware.bad".to_string()],
+        };
+
+        let json = serde_json::to_string(&alert).unwrap();
+        assert!(json.contains("c2Communication"));
+        assert!(json.contains("critical"));
+
+        let parsed: NetworkSecurityAlert = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed.alert_type, NetworkAlertType::C2Communication);
+        assert_eq!(parsed.severity, AlertSeverity::Critical);
+    }
+
+    #[test]
+    fn test_alert_severity_ordering() {
+        assert!(AlertSeverity::Low < AlertSeverity::Medium);
+        assert!(AlertSeverity::Medium < AlertSeverity::High);
+        assert!(AlertSeverity::High < AlertSeverity::Critical);
+    }
+
+    #[test]
+    fn test_network_scheduler_config_default() {
+        let config = NetworkSchedulerConfig::default();
+        assert_eq!(config.static_info_interval_secs, 15 * 60);
+        assert_eq!(config.connection_scan_interval_secs, 5 * 60);
+        assert_eq!(config.security_scan_interval_secs, 60);
+        assert_eq!(config.jitter_percent, 20);
+    }
+
+    #[test]
+    fn test_discovered_device_serialization() {
+        let device = DiscoveredDevice {
+            ip: "192.168.1.50".to_string(),
+            mac: Some("AA:BB:CC:DD:EE:FF".to_string()),
+            hostname: Some("printer.local".to_string()),
+            vendor: Some("HP Inc.".to_string()),
+            device_type: DeviceType::Printer,
+            open_ports: vec![80, 443, 9100],
+            first_seen: Utc::now(),
+            last_seen: Utc::now(),
+            is_gateway: false,
+            subnet: "192.168.1.0/24".to_string(),
+        };
+
+        let json = serde_json::to_string(&device).unwrap();
+        assert!(json.contains("printer"));
+
+        let parsed: DiscoveredDevice = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed.device_type, DeviceType::Printer);
+        assert_eq!(parsed.open_ports, vec![80, 443, 9100]);
+    }
+
+    #[test]
+    fn test_device_type_display() {
+        assert_eq!(format!("{}", DeviceType::Router), "router");
+        assert_eq!(format!("{}", DeviceType::Server), "server");
+        assert_eq!(format!("{}", DeviceType::IoT), "iot");
+        assert_eq!(format!("{}", DeviceType::Unknown), "unknown");
+    }
+
+    #[test]
+    fn test_threat_intelligence_default() {
+        let ti = ThreatIntelligence::default();
+        assert!(ti.malicious_ips.is_empty());
+        assert!(ti.malicious_domains.is_empty());
+        assert!(ti.c2_ports.is_empty());
+        assert!(ti.last_updated.is_none());
+    }
+
+    #[test]
+    fn test_network_delta_serialization() {
+        let delta = NetworkDelta {
+            timestamp: Utc::now(),
+            added_interfaces: vec![],
+            removed_interfaces: vec!["old_eth0".to_string()],
+            changed_interfaces: vec![],
+            connections: vec![],
+            dns_changed: None,
+            routes_changed: false,
+            routes: None,
+            hash: "abc123".to_string(),
+        };
+
+        let json = serde_json::to_string(&delta).unwrap();
+        assert!(json.contains("removedInterfaces"));
+        assert!(json.contains("old_eth0"));
+
+        let parsed: NetworkDelta = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed.removed_interfaces, vec!["old_eth0"]);
+    }
+
+    #[test]
+    fn test_network_segment_variants() {
+        assert_eq!(
+            serde_json::to_string(&NetworkSegment::It).unwrap(),
+            "\"it\""
+        );
+        assert_eq!(
+            serde_json::to_string(&NetworkSegment::Ot).unwrap(),
+            "\"ot\""
+        );
+        assert_eq!(
+            serde_json::to_string(&NetworkSegment::Dmz).unwrap(),
+            "\"dmz\""
+        );
+    }
+}

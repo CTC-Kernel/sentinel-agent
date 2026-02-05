@@ -786,4 +786,240 @@ mod tests {
             _ => panic!("Expected already_enrolled"),
         }
     }
+
+    #[test]
+    fn test_agent_command_validation() {
+        // Valid commands
+        let valid_commands = vec![
+            AgentCommand {
+                id: "1".to_string(),
+                command_type: "force_sync".to_string(),
+                payload: serde_json::Value::Null,
+            },
+            AgentCommand {
+                id: "2".to_string(),
+                command_type: "run_checks".to_string(),
+                payload: serde_json::Value::Null,
+            },
+            AgentCommand {
+                id: "3".to_string(),
+                command_type: "revoke".to_string(),
+                payload: serde_json::Value::Null,
+            },
+            AgentCommand {
+                id: "4".to_string(),
+                command_type: "diagnostics".to_string(),
+                payload: serde_json::Value::Null,
+            },
+            AgentCommand {
+                id: "5".to_string(),
+                command_type: "update".to_string(),
+                payload: serde_json::Value::Null,
+            },
+        ];
+
+        for cmd in valid_commands {
+            assert!(cmd.is_valid(), "Command {} should be valid", cmd.command_type);
+        }
+
+        // Invalid commands (not in whitelist)
+        let invalid_commands = vec![
+            AgentCommand {
+                id: "1".to_string(),
+                command_type: "execute_shell".to_string(),
+                payload: serde_json::Value::Null,
+            },
+            AgentCommand {
+                id: "2".to_string(),
+                command_type: "rm_rf".to_string(),
+                payload: serde_json::Value::Null,
+            },
+            AgentCommand {
+                id: "3".to_string(),
+                command_type: "download_malware".to_string(),
+                payload: serde_json::Value::Null,
+            },
+        ];
+
+        for cmd in invalid_commands {
+            assert!(!cmd.is_valid(), "Command {} should be invalid", cmd.command_type);
+        }
+    }
+
+    #[test]
+    fn test_server_agent_config_defaults() {
+        let json = r#"{}"#;
+        let config: ServerAgentConfig = serde_json::from_str(json).unwrap();
+
+        assert_eq!(config.check_interval_secs, 3600);
+        assert_eq!(config.heartbeat_interval_secs, 60);
+        assert_eq!(config.log_level, "info");
+        assert!(config.enabled_checks.is_empty());
+        assert_eq!(config.offline_mode_days, 7);
+        assert!(config.auto_update_enabled);
+        assert_eq!(config.update_channel, "stable");
+        assert!(!config.enable_auto_remediation);
+        assert!(!config.enable_realtime_monitoring);
+    }
+
+    #[test]
+    fn test_server_agent_config_full() {
+        let json = r#"{
+            "check_interval_secs": 7200,
+            "heartbeat_interval_secs": 120,
+            "log_level": "debug",
+            "enabled_checks": ["disk_encryption", "firewall"],
+            "offline_mode_days": 14,
+            "enable_auto_remediation": true,
+            "enable_realtime_monitoring": true,
+            "enable_process_monitoring": true,
+            "enable_network_monitoring": true,
+            "auto_update_enabled": false,
+            "update_channel": "beta",
+            "disabled_checks": ["usb_storage"],
+            "proxy_enabled": true,
+            "proxy_url": "http://proxy.example.com:8080"
+        }"#;
+
+        let config: ServerAgentConfig = serde_json::from_str(json).unwrap();
+
+        assert_eq!(config.check_interval_secs, 7200);
+        assert_eq!(config.heartbeat_interval_secs, 120);
+        assert_eq!(config.log_level, "debug");
+        assert_eq!(config.enabled_checks, vec!["disk_encryption", "firewall"]);
+        assert_eq!(config.offline_mode_days, 14);
+        assert!(config.enable_auto_remediation);
+        assert!(config.enable_realtime_monitoring);
+        assert!(config.enable_process_monitoring);
+        assert!(config.enable_network_monitoring);
+        assert!(!config.auto_update_enabled);
+        assert_eq!(config.update_channel, "beta");
+        assert_eq!(config.disabled_checks, vec!["usb_storage"]);
+        assert!(config.proxy_enabled);
+        assert_eq!(config.proxy_url, Some("http://proxy.example.com:8080".to_string()));
+    }
+
+    #[test]
+    fn test_heartbeat_response_deserialization() {
+        let json = r#"{
+            "acknowledged": true,
+            "server_time": "2024-01-01T12:00:00Z",
+            "commands": [
+                {"id": "cmd-1", "type": "force_sync", "payload": null}
+            ],
+            "config_changed": true,
+            "rules_changed": false
+        }"#;
+
+        let response: HeartbeatResponse = serde_json::from_str(json).unwrap();
+        assert!(response.acknowledged);
+        assert_eq!(response.server_time, "2024-01-01T12:00:00Z");
+        assert_eq!(response.commands.len(), 1);
+        assert!(response.config_changed);
+        assert!(!response.rules_changed);
+    }
+
+    #[test]
+    fn test_heartbeat_response_minimal() {
+        let json = r#"{
+            "acknowledged": true,
+            "server_time": "2024-01-01T12:00:00Z"
+        }"#;
+
+        let response: HeartbeatResponse = serde_json::from_str(json).unwrap();
+        assert!(response.acknowledged);
+        assert!(response.commands.is_empty());
+        assert!(!response.config_changed);
+        assert!(!response.rules_changed);
+    }
+
+    #[test]
+    fn test_config_response_deserialization() {
+        let json = r#"{
+            "config_version": 5,
+            "check_interval_secs": 3600,
+            "heartbeat_interval_secs": 60,
+            "log_level": "info",
+            "enabled_checks": ["disk_encryption"],
+            "offline_mode_days": 7,
+            "rules_version": 10,
+            "rules": [
+                {
+                    "id": "rule-1",
+                    "name": "Test Rule",
+                    "type": "registry",
+                    "framework": "NIS2",
+                    "control_id": "AC-1",
+                    "severity": "high",
+                    "platforms": ["windows"]
+                }
+            ]
+        }"#;
+
+        let config: ConfigResponse = serde_json::from_str(json).unwrap();
+        assert_eq!(config.config_version, 5);
+        assert_eq!(config.rules_version, 10);
+        assert_eq!(config.rules.len(), 1);
+        assert_eq!(config.rules[0].name, "Test Rule");
+        assert_eq!(config.rules[0].framework, "NIS2");
+    }
+
+    #[test]
+    fn test_result_request_serialization() {
+        let request = ResultRequest {
+            check_id: "disk_encryption".to_string(),
+            framework: "NIS2".to_string(),
+            control_id: "AC-17".to_string(),
+            status: "pass".to_string(),
+            evidence: serde_json::json!({"encryption_enabled": true}),
+            timestamp: "2024-01-01T00:00:00Z".to_string(),
+            duration_ms: 150,
+        };
+
+        let json = serde_json::to_string(&request).unwrap();
+        assert!(json.contains("disk_encryption"));
+        assert!(json.contains("NIS2"));
+        assert!(json.contains("pass"));
+        assert!(json.contains("duration_ms"));
+    }
+
+    #[test]
+    fn test_software_entry_serialization() {
+        let entry = SoftwareEntry {
+            name: "Firefox".to_string(),
+            version: "120.0".to_string(),
+            vendor: Some("Mozilla".to_string()),
+        };
+
+        let json = serde_json::to_string(&entry).unwrap();
+        assert!(json.contains("Firefox"));
+        assert!(json.contains("120.0"));
+        assert!(json.contains("Mozilla"));
+    }
+
+    #[test]
+    fn test_check_rule_deserialization() {
+        let json = r#"{
+            "id": "rule-123",
+            "name": "Password Policy Check",
+            "type": "script",
+            "framework": "DORA",
+            "control_id": "IA-5",
+            "check_command": "pwpolicy getaccountpolicies",
+            "expected_result": "minChars=12",
+            "remediation": "Set minimum password length to 12",
+            "severity": "medium",
+            "platforms": ["macos", "linux"]
+        }"#;
+
+        let rule: CheckRule = serde_json::from_str(json).unwrap();
+        assert_eq!(rule.id, "rule-123");
+        assert_eq!(rule.name, "Password Policy Check");
+        assert_eq!(rule.rule_type, "script");
+        assert_eq!(rule.framework, "DORA");
+        assert_eq!(rule.severity, "medium");
+        assert_eq!(rule.platforms, vec!["macos", "linux"]);
+        assert!(rule.check_command.is_some());
+        assert!(rule.remediation.is_some());
+    }
 }
