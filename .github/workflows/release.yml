@@ -501,7 +501,7 @@ jobs:
         run: |
           cargo cyclonedx --format json --override-filename bom
           mkdir -p sbom
-          cp bom.json sbom/sentinel-agent-${{ needs.version.outputs.version }}.cdx.json
+          cp crates/agent-core/bom.json sbom/sentinel-agent-${{ needs.version.outputs.version }}.cdx.json
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
