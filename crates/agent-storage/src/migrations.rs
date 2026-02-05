@@ -24,9 +24,9 @@ struct Migration {
 /// All migrations in order.
 const MIGRATIONS: &[Migration] = &[
     Migration {
-    version: 1,
-    name: "initial_schema",
-    up: r#"
+        version: 1,
+        name: "initial_schema",
+        up: r#"
             -- Agent configuration table
             -- Stores local agent settings synced from SaaS
             CREATE TABLE IF NOT EXISTS agent_config (
@@ -112,7 +112,7 @@ const MIGRATIONS: &[Migration] = &[
             CREATE INDEX IF NOT EXISTS idx_sync_queue_next_retry ON sync_queue(next_retry_at);
             CREATE INDEX IF NOT EXISTS idx_sync_queue_entity ON sync_queue(entity_type, entity_id);
         "#,
-    down: r#"
+        down: r#"
             DROP INDEX IF EXISTS idx_sync_queue_entity;
             DROP INDEX IF EXISTS idx_sync_queue_next_retry;
             DROP INDEX IF EXISTS idx_sync_queue_priority;
@@ -555,9 +555,15 @@ mod tests {
 
         // Run migrations
         run_migrations(&mut conn).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 4);
+
+        // Rollback from v4 down to v0
+        rollback_migration(&mut conn, 4).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 3);
+
+        rollback_migration(&mut conn, 3).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 2);
 
-        // Rollback v2 first, then v1
         rollback_migration(&mut conn, 2).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 1);
 
@@ -590,11 +596,15 @@ mod tests {
         run_migrations(&mut conn).unwrap();
 
         let migrations = get_applied_migrations(&conn).unwrap();
-        assert_eq!(migrations.len(), 2);
+        assert_eq!(migrations.len(), 4);
         assert_eq!(migrations[0].0, 1);
         assert_eq!(migrations[0].1, "initial_schema");
         assert_eq!(migrations[1].0, 2);
         assert_eq!(migrations[1].1, "extend_check_rules");
+        assert_eq!(migrations[2].0, 3);
+        assert_eq!(migrations[2].1, "discovered_devices");
+        assert_eq!(migrations[3].0, 4);
+        assert_eq!(migrations[3].1, "audit_trail");
     }
 
     #[test]

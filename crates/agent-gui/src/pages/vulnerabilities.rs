@@ -5,7 +5,6 @@ use egui::Ui;
 use crate::app::AppState;
 use crate::dto::GuiAgentStatus;
 
-
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -22,7 +21,9 @@ impl VulnerabilitiesPage {
             ui,
             "Vulnérabilités",
             Some("ANALYSE DYNAMIQUE DES FAILLES ET EXPOSITION AUX CVE"),
-            Some("Identifiez les failles de sécurité connues (CVE) affectant vos logiciels. Le score critique (V3) priorise les vulnérabilités les plus dangereuses nécessitant une mise à jour immédiate."),
+            Some(
+                "Identifiez les failles de sécurité connues (CVE) affectant vos logiciels. Le score critique (V3) priorise les vulnérabilités les plus dangereuses nécessitant une mise à jour immédiate.",
+            ),
         );
         ui.add_space(theme::SPACE_LG);
 
@@ -31,7 +32,15 @@ impl VulnerabilitiesPage {
             let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
             if widgets::button::primary_button_loading(
                 ui,
-                format!("{}  {}", if is_scanning { "SCAN EN COURS" } else { "LANCER LE SCAN" }, icons::PLAY),
+                format!(
+                    "{}  {}",
+                    if is_scanning {
+                        "SCAN EN COURS"
+                    } else {
+                        "LANCER LE SCAN"
+                    },
+                    icons::PLAY
+                ),
                 !is_scanning,
                 is_scanning,
             )
@@ -42,33 +51,59 @@ impl VulnerabilitiesPage {
 
             ui.add_space(theme::SPACE_SM);
 
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                let export_btn = egui::Button::new(
-                    egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                        .font(egui::FontId::proportional(10.0))
-                        .color(theme::text_tertiary())
-                        .strong(),
-                )
-                .fill(theme::bg_elevated())
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                if ui.add(export_btn).clicked() {
-                    let search_lower = state.vulnerability_search.to_lowercase();
-                    let filtered_indices: Vec<usize> = state
-                        .vulnerability_findings
-                        .iter()
-                        .enumerate()
-                        .filter(|(_, f)| {
-                            if !search_lower.is_empty() {
-                                let haystack = format!("{} {} {}", f.cve_id.to_lowercase(), f.affected_software.to_lowercase(), f.description.to_lowercase());
-                                if !haystack.contains(&search_lower) { return false; }
-                            }
-                            if let Some(ref sev) = state.vulnerability_severity_filter { f.severity == *sev } else { true }
-                        })
-                        .map(|(i, _)| i)
-                        .collect();
-                    Self::export_csv(state, &filtered_indices);
-                }
-            });
+            ui.with_layout(
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui: &mut egui::Ui| {
+                    let export_btn = egui::Button::new(
+                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .strong(),
+                    )
+                    .fill(theme::bg_elevated())
+                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                    if ui.add(export_btn).clicked() {
+                        let search_lower = state.vulnerability_search.to_lowercase();
+                        let filtered_indices: Vec<usize> = state
+                            .vulnerability_findings
+                            .iter()
+                            .enumerate()
+                            .filter(|(_, f)| {
+                                if !search_lower.is_empty() {
+                                    let haystack = format!(
+                                        "{} {} {}",
+                                        f.cve_id.to_lowercase(),
+                                        f.affected_software.to_lowercase(),
+                                        f.description.to_lowercase()
+                                    );
+                                    if !haystack.contains(&search_lower) {
+                                        return false;
+                                    }
+                                }
+                                if let Some(ref sev) = state.vulnerability_severity_filter {
+                                    f.severity == *sev
+                                } else {
+                                    true
+                                }
+                            })
+                            .map(|(i, _)| i)
+                            .collect();
+                        let success = Self::export_csv(state, &filtered_indices);
+                        let time = ui.input(|i| i.time);
+                        if success {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success("Export CSV réussi")
+                                    .with_time(time),
+                            );
+                        } else {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::error("Échec de l'export CSV")
+                                    .with_time(time),
+                            );
+                        }
+                    }
+                },
+            );
         });
 
         ui.add_space(theme::SPACE_MD);
@@ -85,25 +120,41 @@ impl VulnerabilitiesPage {
             (
                 "CRITIQUES",
                 critical.to_string(),
-                if critical > 0 { theme::ERROR } else { theme::text_tertiary() },
+                if critical > 0 {
+                    theme::ERROR
+                } else {
+                    theme::text_tertiary()
+                },
                 icons::SEVERITY_CRITICAL,
             ),
             (
                 "ÉLEVÉES",
                 high.to_string(),
-                if high > 0 { theme::SEVERITY_HIGH } else { theme::text_tertiary() },
+                if high > 0 {
+                    theme::SEVERITY_HIGH
+                } else {
+                    theme::text_tertiary()
+                },
                 icons::SEVERITY_HIGH,
             ),
             (
                 "MOYENNES",
                 medium.to_string(),
-                if medium > 0 { theme::SEVERITY_MEDIUM } else { theme::text_tertiary() },
+                if medium > 0 {
+                    theme::SEVERITY_MEDIUM
+                } else {
+                    theme::text_tertiary()
+                },
                 icons::SEVERITY_MEDIUM,
             ),
             (
                 "FAIBLES",
                 low.to_string(),
-                if low > 0 { theme::INFO } else { theme::text_tertiary() },
+                if low > 0 {
+                    theme::INFO
+                } else {
+                    theme::text_tertiary()
+                },
                 icons::SEVERITY_LOW,
             ),
         ];
@@ -153,7 +204,7 @@ impl VulnerabilitiesPage {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("FAILLES DE SÉCURITÉ IDENTIFIÉES")
-                    .font(egui::FontId::proportional(10.0))
+                    .font(theme::font_label())
                     .color(theme::text_tertiary())
                     .extra_letter_spacing(0.5)
                     .strong(),
@@ -176,10 +227,21 @@ impl VulnerabilitiesPage {
             .enumerate()
             .filter(|(_, f)| {
                 if !search_lower.is_empty() {
-                    let haystack = format!("{} {} {}", f.cve_id.to_lowercase(), f.affected_software.to_lowercase(), f.description.to_lowercase());
-                    if !haystack.contains(search_lower) { return false; }
+                    let haystack = format!(
+                        "{} {} {}",
+                        f.cve_id.to_lowercase(),
+                        f.affected_software.to_lowercase(),
+                        f.description.to_lowercase()
+                    );
+                    if !haystack.contains(search_lower) {
+                        return false;
+                    }
                 }
-                if let Some(ref sev) = state.vulnerability_severity_filter { f.severity == *sev } else { true }
+                if let Some(ref sev) = state.vulnerability_severity_filter {
+                    f.severity == *sev
+                } else {
+                    true
+                }
             })
             .map(|(i, _)| i)
             .collect();
@@ -214,23 +276,53 @@ impl VulnerabilitiesPage {
             table
                 .header(28.0, |mut header| {
                     header.col(|ui: &mut egui::Ui| {
-                        ui.label(egui::RichText::new("IDENTIFIANT").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                        ui.label(
+                            egui::RichText::new("IDENTIFIANT")
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .strong()
+                                .extra_letter_spacing(0.5),
+                        );
                     });
                     header.col(|ui: &mut egui::Ui| {
-                        ui.label(egui::RichText::new("LOGICIEL AFFÉRENT").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                        ui.label(
+                            egui::RichText::new("LOGICIEL AFFÉRENT")
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .strong()
+                                .extra_letter_spacing(0.5),
+                        );
                     });
                     header.col(|ui: &mut egui::Ui| {
-                        ui.label(egui::RichText::new("SÉVÉRITÉ").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                        ui.label(
+                            egui::RichText::new("SÉVÉRITÉ")
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .strong()
+                                .extra_letter_spacing(0.5),
+                        );
                     });
                     header.col(|ui: &mut egui::Ui| {
-                        ui.label(egui::RichText::new("SCORE CVSS").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                        ui.label(
+                            egui::RichText::new("SCORE CVSS")
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .strong()
+                                .extra_letter_spacing(0.5),
+                        );
                     });
                     header.col(|ui: &mut egui::Ui| {
-                        ui.label(egui::RichText::new("ANALYSE ET CORRECTIFS").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                        ui.label(
+                            egui::RichText::new("ANALYSE ET CORRECTIFS")
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .strong()
+                                .extra_letter_spacing(0.5),
+                        );
                     });
                 })
                 .body(|body| {
-                    body.rows(52.0, filtered.len(), |mut row| {
+                    body.rows(theme::TABLE_ROW_HEIGHT + 16.0, filtered.len(), |mut row| {
                         let finding = &state.vulnerability_findings[filtered[row.index()]];
 
                         row.col(|ui: &mut egui::Ui| {
@@ -246,13 +338,13 @@ impl VulnerabilitiesPage {
                             ui.vertical(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&finding.affected_software)
-                                        .font(egui::FontId::proportional(13.0))
+                                        .font(theme::font_body())
                                         .color(theme::text_primary())
                                         .strong(),
                                 );
                                 ui.label(
                                     egui::RichText::new(&finding.affected_version)
-                                        .font(egui::FontId::proportional(10.0))
+                                        .font(theme::font_label())
                                         .color(theme::text_tertiary())
                                         .strong(),
                                 );
@@ -268,7 +360,7 @@ impl VulnerabilitiesPage {
                             if let Some(s) = finding.cvss_score {
                                 ui.label(
                                     egui::RichText::new(format!("{:.1}", s))
-                                        .font(egui::FontId::proportional(13.0))
+                                        .font(theme::font_body())
                                         .color(theme::score_color(s * 10.0))
                                         .strong(),
                                 );
@@ -281,16 +373,12 @@ impl VulnerabilitiesPage {
                             ui.vertical(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&finding.description)
-                                        .font(egui::FontId::proportional(11.0))
+                                        .font(theme::font_min())
                                         .color(theme::text_secondary()),
                                 );
                                 if finding.fix_available {
                                     ui.add_space(2.0);
-                                    widgets::status_badge(
-                                        ui,
-                                        "FIX DISPONIBLE",
-                                        theme::SUCCESS,
-                                    );
+                                    widgets::status_badge(ui, "FIX DISPONIBLE", theme::SUCCESS);
                                 }
                             });
                         });
@@ -315,25 +403,28 @@ impl VulnerabilitiesPage {
                     ui.vertical(|ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(value)
-                                .font(egui::FontId::proportional(28.0))
+                                .font(theme::font_card_value())
                                 .color(color)
-                                .strong()
+                                .strong(),
                         );
                         ui.label(
                             egui::RichText::new(label)
-                                .font(egui::FontId::proportional(10.0))
+                                .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .extra_letter_spacing(0.5)
                                 .strong(),
                         );
                     });
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(icon)
-                                .size(28.0)
-                                .color(color.linear_multiply(0.25)),
-                        );
-                    });
+                    ui.with_layout(
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new(icon)
+                                    .size(28.0)
+                                    .color(color.linear_multiply(0.25)),
+                            );
+                        },
+                    );
                 });
             });
         });
@@ -349,7 +440,7 @@ impl VulnerabilitiesPage {
         }
     }
 
-    fn export_csv(state: &AppState, indices: &[usize]) {
+    fn export_csv(state: &AppState, indices: &[usize]) -> bool {
         let headers = &[
             "cve_id",
             "logiciel",
@@ -375,8 +466,12 @@ impl VulnerabilitiesPage {
             })
             .collect();
         let path = crate::export::default_export_path("vulnerabilites.csv");
-        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
-            tracing::warn!("Export CSV failed: {}", e);
+        match crate::export::export_csv(headers, &rows, &path) {
+            Ok(_) => true,
+            Err(e) => {
+                tracing::warn!("Export CSV failed: {}", e);
+                false
+            }
         }
     }
 }

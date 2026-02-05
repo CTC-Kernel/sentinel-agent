@@ -57,38 +57,37 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
     ui.vertical(|ui: &mut egui::Ui| {
         // Header
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.label(
-                RichText::new(icons::STREAM)
-                    .size(12.0)
-                    .color(theme::ACCENT),
-            );
+            ui.label(RichText::new(icons::STREAM).size(12.0).color(theme::ACCENT));
             ui.add_space(theme::SPACE_XS);
             ui.label(
                 RichText::new("ACTIVITÉ EN DIRECT")
-                    .font(egui::FontId::proportional(10.0))
+                    .font(theme::font_label())
                     .color(theme::text_tertiary())
                     .extra_letter_spacing(0.5)
                     .strong(),
             );
 
             // Live indicator
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                let time = ui.input(|i| i.time);
-                let pulse = ((time * 2.0).sin() * 0.5 + 0.5) as f32;
+            ui.with_layout(
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui: &mut egui::Ui| {
+                    let time = ui.input(|i| i.time);
+                    let pulse = ((time * 2.0).sin() * 0.5 + 0.5) as f32;
 
-                ui.label(
-                    RichText::new("●")
-                        .size(8.0)
-                        .color(theme::SUCCESS.linear_multiply(0.5 + 0.5 * pulse)),
-                );
-                ui.label(
-                    RichText::new("LIVE")
-                        .font(egui::FontId::proportional(8.0))
-                        .color(theme::SUCCESS.linear_multiply(0.7)),
-                );
+                    ui.label(
+                        RichText::new("●")
+                            .size(8.0)
+                            .color(theme::SUCCESS.linear_multiply(0.5 + 0.5 * pulse)),
+                    );
+                    ui.label(
+                        RichText::new("LIVE")
+                            .font(theme::font_label())
+                            .color(theme::SUCCESS.linear_multiply(0.7)),
+                    );
 
-                ui.ctx().request_repaint();
-            });
+                    ui.ctx().request_repaint();
+                },
+            );
         });
 
         ui.add_space(theme::SPACE_SM);
@@ -108,7 +107,7 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
                 ui.add_space(theme::SPACE_XS);
                 ui.label(
                     RichText::new("Aucune activité récente")
-                        .font(egui::FontId::proportional(11.0))
+                        .font(theme::font_min())
                         .color(theme::text_tertiary()),
                 );
                 ui.add_space(theme::SPACE_MD);
@@ -150,10 +149,7 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
         }
 
         // Left color indicator bar
-        let bar_rect = egui::Rect::from_min_size(
-            rect.left_top(),
-            Vec2::new(3.0, rect.height()),
-        );
+        let bar_rect = egui::Rect::from_min_size(rect.left_top(), Vec2::new(3.0, rect.height()));
         painter.rect_filled(bar_rect, CornerRadius::same(2), color.linear_multiply(0.8));
 
         // Icon
@@ -162,7 +158,7 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
             icon_pos,
             egui::Align2::CENTER_CENTER,
             icon,
-            egui::FontId::proportional(12.0),
+            theme::font_body(),
             color,
         );
 
@@ -172,7 +168,7 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
             title_pos,
             egui::Align2::LEFT_CENTER,
             &event.title,
-            egui::FontId::proportional(11.0),
+            theme::font_min(),
             theme::text_primary(),
         );
 
@@ -183,7 +179,7 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
                 detail_pos,
                 egui::Align2::LEFT_CENTER,
                 detail,
-                egui::FontId::proportional(9.0),
+                theme::font_label(),
                 theme::text_tertiary(),
             );
         }
@@ -203,7 +199,7 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
             time_pos,
             egui::Align2::RIGHT_CENTER,
             &time_text,
-            egui::FontId::proportional(9.0),
+            theme::font_label(),
             theme::text_tertiary(),
         );
     }

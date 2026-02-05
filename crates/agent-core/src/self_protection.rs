@@ -8,8 +8,8 @@
 
 use sha2::{Digest, Sha256};
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use tracing::{error, info, warn};
 
 /// Tamper protection status.
@@ -55,7 +55,10 @@ impl SelfProtection {
         let startup_config_hash = compute_file_hash(&config_path).ok();
 
         if let Some(ref hash) = startup_binary_hash {
-            info!("Self-protection initialized. Binary hash: {}...", &hash[..16]);
+            info!(
+                "Self-protection initialized. Binary hash: {}...",
+                &hash[..16]
+            );
         }
 
         Self {
@@ -199,9 +202,7 @@ fn check_debugger_linux() -> bool {
 #[cfg(target_os = "windows")]
 fn check_debugger_windows() -> bool {
     // Use windows crate for IsDebuggerPresent
-    unsafe {
-        windows::Win32::System::Diagnostics::Debug::IsDebuggerPresent().as_bool()
-    }
+    unsafe { windows::Win32::System::Diagnostics::Debug::IsDebuggerPresent().as_bool() }
 }
 
 /// Check for debugger on macOS using sysctl.

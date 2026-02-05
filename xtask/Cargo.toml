@@ -6,3 +6,5 @@ license.workspace = true
 publish = false
 
 [dependencies]
+clap = { version = "4", features = ["derive"] }
+anyhow = "1"

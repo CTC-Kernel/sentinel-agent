@@ -8,11 +8,11 @@
 //! - Uninstall: `sentinel-agent uninstall` (requires admin/root)
 
 use agent_common::config::AgentConfig;
+#[cfg(feature = "gui")]
+use agent_core::events::GuiNotification;
 #[cfg(feature = "tray")]
 use agent_core::tray;
 use agent_core::{AgentRuntime, init_logging, service};
-#[cfg(feature = "gui")]
-use agent_core::events::GuiNotification;
 use clap::{Parser, Subcommand};
 #[cfg(feature = "tray")]
 use muda::MenuEvent;
@@ -95,8 +95,8 @@ fn main() -> ExitCode {
             .map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
             .unwrap_or_else(|| "unknown".to_string());
         eprintln!("PANIC at {}: {}", location, payload);
-        // Try to flush logs before exit
-        std::process::exit(1);
+        // Let the natural unwind complete so destructors run (DB WAL merge, key zeroize).
+        // Do NOT call std::process::exit() here as it skips all destructors.
     }));
 
     let cli = Cli::parse();
@@ -1067,10 +1067,17 @@ fn show_enrollment_dialog() -> Option<String> {
 fn show_error_dialog(title: &str, message: &str) {
     use std::process::Command;
 
+    // Sanitize inputs for AppleScript: escape backslashes, quotes, and ampersands
+    fn sanitize_applescript(s: &str) -> String {
+        s.replace('\\', "\\\\")
+            .replace('"', "\\\"")
+            .replace('&', "and")
+    }
+
     let script = format!(
         r#"display dialog "{}" with title "{}" buttons {{"OK"}} default button "OK" with icon stop"#,
-        message.replace('"', r#"\""#),
-        title.replace('"', r#"\""#)
+        sanitize_applescript(message),
+        sanitize_applescript(title)
     );
 
     let _ = Command::new("osascript").arg("-e").arg(script).output();
@@ -1080,10 +1087,15 @@ fn show_error_dialog(title: &str, message: &str) {
 fn show_error_dialog(title: &str, message: &str) {
     use std::process::Command;
 
+    // Sanitize inputs for PowerShell: escape single quotes and backticks
+    fn sanitize_powershell(s: &str) -> String {
+        s.replace('\'', "''").replace('`', "``").replace('$', "`$")
+    }
+
     let script = format!(
         r#"Add-Type -AssemblyName PresentationFramework; [System.Windows.MessageBox]::Show('{}', '{}', 'OK', 'Error')"#,
-        message.replace('\'', "''"),
-        title.replace('\'', "''")
+        sanitize_powershell(message),
+        sanitize_powershell(title)
     );
 
     let _ = Command::new("powershell")
@@ -1115,11 +1127,12 @@ mod ctrlc {
     static SHUTDOWN_FLAG: AtomicBool = AtomicBool::new(false);
 
     #[cfg(windows)]
-    static mut HANDLER_CALLBACK: Option<Box<dyn Fn() + Send + 'static>> = None;
+    static HANDLER_CALLBACK: std::sync::OnceLock<Box<dyn Fn() + Send + Sync + 'static>> =
+        std::sync::OnceLock::new();
 
     pub fn handle<F>(handler: F) -> Result<(), &'static str>
     where
-        F: Fn() + Send + 'static,
+        F: Fn() + Send + Sync + 'static,
     {
         if HANDLER_SET.swap(true, Ordering::SeqCst) {
             return Err("Handler already set");
@@ -1168,10 +1181,8 @@ mod ctrlc {
         {
             use windows::Win32::System::Console::SetConsoleCtrlHandler;
 
-            // Store the handler in a thread-safe way
-            unsafe {
-                HANDLER_CALLBACK = Some(Box::new(handler));
-            }
+            // Store the handler in a thread-safe way using OnceLock (no UB)
+            let _ = HANDLER_CALLBACK.set(Box::new(handler));
 
             // Console control handler function
             unsafe extern "system" fn console_handler(
@@ -1182,11 +1193,9 @@ mod ctrlc {
                 if ctrl_type <= 2 || ctrl_type == 5 || ctrl_type == 6 {
                     SHUTDOWN_FLAG.store(true, Ordering::SeqCst);
 
-                    // Trigger the callback if it exists
-                    unsafe {
-                        if let Some(ref callback) = HANDLER_CALLBACK {
-                            callback();
-                        }
+                    // Trigger the callback if it exists (safe: OnceLock is Sync)
+                    if let Some(callback) = HANDLER_CALLBACK.get() {
+                        callback();
                     }
 
                     return true.into(); // TRUE - we handled it
@@ -1199,13 +1208,6 @@ mod ctrlc {
                     eprintln!("Failed to set Windows console control handler.");
                 }
             }
-
-            // Also support the polling thread as a backup for non-console environments (like services)
-            std::thread::spawn(|| {
-                while !SHUTDOWN_FLAG.load(Ordering::SeqCst) {
-                    std::thread::sleep(std::time::Duration::from_millis(500));
-                }
-            });
         }
 
         Ok(())

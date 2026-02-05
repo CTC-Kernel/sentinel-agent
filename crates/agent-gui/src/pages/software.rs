@@ -27,7 +27,9 @@ impl SoftwarePage {
             ui,
             "Inventaire Logiciel",
             Some("CATALOGUE DES APPLICATIONS ET COMPOSANTS SYSTÈME INSTALLÉS SUR L'HÔTE"),
-            Some("Consultez la liste exhaustive des paquets système et des applications installées. Le système vérifie automatiquement si vos logiciels sont à jour pour réduire la surface d'attaque."),
+            Some(
+                "Consultez la liste exhaustive des paquets système et des applications installées. Le système vérifie automatiquement si vos logiciels sont à jour pour réduire la surface d'attaque.",
+            ),
         );
         ui.add_space(theme::SPACE_LG);
 
@@ -36,7 +38,15 @@ impl SoftwarePage {
             let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
             if widgets::button::primary_button_loading(
                 ui,
-                format!("{}  {}", if is_scanning { "SCAN EN COURS" } else { "ACTUALISER L'INVENTAIRE" }, icons::PLAY),
+                format!(
+                    "{}  {}",
+                    if is_scanning {
+                        "SCAN EN COURS"
+                    } else {
+                        "ACTUALISER L'INVENTAIRE"
+                    },
+                    icons::PLAY
+                ),
                 !is_scanning,
                 is_scanning,
             )
@@ -136,7 +146,11 @@ impl SoftwarePage {
             (
                 "MISES À JOUR REQUISES",
                 outdated.to_string(),
-                if outdated > 0 { theme::WARNING } else { theme::text_tertiary() },
+                if outdated > 0 {
+                    theme::WARNING
+                } else {
+                    theme::text_tertiary()
+                },
                 icons::ARROW_UP,
             ),
         ];
@@ -158,19 +172,34 @@ impl SoftwarePage {
 
         // Action Buttons (AAA Grade)
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                let export_btn = egui::Button::new(
-                    egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                        .font(egui::FontId::proportional(10.0))
-                        .color(theme::text_tertiary())
-                        .strong(),
-                )
-                .fill(theme::bg_elevated())
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                if ui.add(export_btn).clicked() {
-                    Self::export_packages_csv(state, &filtered);
-                }
-            });
+            ui.with_layout(
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui: &mut egui::Ui| {
+                    let export_btn = egui::Button::new(
+                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .strong(),
+                    )
+                    .fill(theme::bg_elevated())
+                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                    if ui.add(export_btn).clicked() {
+                        let success = Self::export_packages_csv(state, &filtered);
+                        let time = ui.input(|i| i.time);
+                        if success {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success("Export CSV réussi")
+                                    .with_time(time),
+                            );
+                        } else {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::error("Échec de l'export CSV")
+                                    .with_time(time),
+                            );
+                        }
+                    }
+                },
+            );
         });
 
         ui.add_space(theme::SPACE_SM);
@@ -179,7 +208,7 @@ impl SoftwarePage {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("REGISTRE DES PAQUETS ET DÉPENDANCES")
-                    .font(egui::FontId::proportional(10.0))
+                    .font(theme::font_label())
                     .color(theme::text_tertiary())
                     .extra_letter_spacing(0.5)
                     .strong(),
@@ -209,28 +238,58 @@ impl SoftwarePage {
                 table
                     .header(30.0, |mut header| {
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("DÉSIGNATION").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("DÉSIGNATION")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("VERSION").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("VERSION")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("ÉDITEUR / ORIGINE").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("ÉDITEUR / ORIGINE")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("ÉTAT").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("ÉTAT")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("CIBLE DE MAJ").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("CIBLE DE MAJ")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                     })
                     .body(|body| {
-                        body.rows(44.0, filtered.len(), |mut row| {
+                        body.rows(theme::TABLE_ROW_HEIGHT, filtered.len(), |mut row| {
                             let pkg = &state.software_packages[filtered[row.index()]];
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&pkg.name)
-                                        .font(egui::FontId::proportional(13.0))
+                                        .font(theme::font_body())
                                         .color(theme::text_primary())
                                         .strong(),
                                 );
@@ -247,7 +306,7 @@ impl SoftwarePage {
                                 let publisher = pkg.publisher.as_deref().unwrap_or("--");
                                 ui.label(
                                     egui::RichText::new(publisher.to_uppercase())
-                                        .font(egui::FontId::proportional(11.0))
+                                        .font(theme::font_min())
                                         .color(theme::text_tertiary())
                                         .strong(),
                                 );
@@ -263,7 +322,11 @@ impl SoftwarePage {
                                 if let Some(latest) = &pkg.latest_version {
                                     if !pkg.up_to_date {
                                         ui.horizontal(|ui: &mut egui::Ui| {
-                                            ui.label(egui::RichText::new(icons::ARROW_RIGHT).color(theme::ACCENT).strong());
+                                            ui.label(
+                                                egui::RichText::new(icons::ARROW_RIGHT)
+                                                    .color(theme::ACCENT)
+                                                    .strong(),
+                                            );
                                             ui.label(
                                                 egui::RichText::new(latest)
                                                     .font(theme::font_mono())
@@ -273,10 +336,14 @@ impl SoftwarePage {
                                             );
                                         });
                                     } else {
-                                        ui.label(egui::RichText::new("--").color(theme::text_tertiary()));
+                                        ui.label(
+                                            egui::RichText::new("--").color(theme::text_tertiary()),
+                                        );
                                     }
                                 } else {
-                                    ui.label(egui::RichText::new("--").color(theme::text_tertiary()));
+                                    ui.label(
+                                        egui::RichText::new("--").color(theme::text_tertiary()),
+                                    );
                                 }
                             });
                         });
@@ -349,19 +416,34 @@ impl SoftwarePage {
 
         // Action Buttons (AAA Grade)
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                let export_btn = egui::Button::new(
-                    egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                        .font(egui::FontId::proportional(10.0))
-                        .color(theme::text_tertiary())
-                        .strong(),
-                )
-                .fill(theme::bg_elevated())
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                if ui.add(export_btn).clicked() {
-                    Self::export_apps_csv(state, &filtered);
-                }
-            });
+            ui.with_layout(
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui: &mut egui::Ui| {
+                    let export_btn = egui::Button::new(
+                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .strong(),
+                    )
+                    .fill(theme::bg_elevated())
+                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                    if ui.add(export_btn).clicked() {
+                        let success = Self::export_apps_csv(state, &filtered);
+                        let time = ui.input(|i| i.time);
+                        if success {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success("Export CSV réussi")
+                                    .with_time(time),
+                            );
+                        } else {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::error("Échec de l'export CSV")
+                                    .with_time(time),
+                            );
+                        }
+                    }
+                },
+            );
         });
 
         ui.add_space(theme::SPACE_SM);
@@ -369,7 +451,7 @@ impl SoftwarePage {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("REGISTRE DES APPLICATIONS NATIVES")
-                    .font(egui::FontId::proportional(10.0))
+                    .font(theme::font_label())
                     .color(theme::text_tertiary())
                     .extra_letter_spacing(0.5)
                     .strong(),
@@ -381,7 +463,9 @@ impl SoftwarePage {
                     ui,
                     icons::CUBE,
                     "AUCUNE ENTITÉ IDENTIFIÉE",
-                    Some("Veuillez patienter pendant la fin de la synchronisation de l'inventaire."),
+                    Some(
+                        "Veuillez patienter pendant la fin de la synchronisation de l'inventaire.",
+                    ),
                 );
             } else {
                 use egui_extras::{Column, TableBuilder};
@@ -391,32 +475,56 @@ impl SoftwarePage {
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
                     .column(Column::initial(220.0).range(140.0..=500.0)) // Application
-                    .column(Column::initial(100.0).at_least(80.0))  // Version
+                    .column(Column::initial(100.0).at_least(80.0)) // Version
                     .column(Column::initial(250.0).at_least(160.0)) // Bundle ID
-                    .column(Column::remainder());                   // Publisher
+                    .column(Column::remainder()); // Publisher
 
                 table
                     .header(30.0, |mut header| {
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("POINT D'ENTRÉE").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("POINT D'ENTRÉE")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("VERSION").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("VERSION")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("IDENTIFIANT (BUNDLE ID)").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("IDENTIFIANT (BUNDLE ID)")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("CERTIFICAT D'ÉDITEUR").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("CERTIFICAT D'ÉDITEUR")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                     })
                     .body(|body| {
-                        body.rows(44.0, filtered.len(), |mut row| {
+                        body.rows(theme::TABLE_ROW_HEIGHT, filtered.len(), |mut row| {
                             let app = &state.macos_apps[filtered[row.index()]];
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&app.name)
-                                        .font(egui::FontId::proportional(13.0))
+                                        .font(theme::font_body())
                                         .color(theme::text_primary())
                                         .strong(),
                                 );
@@ -445,7 +553,7 @@ impl SoftwarePage {
                                 };
                                 ui.label(
                                     egui::RichText::new(pub_text.to_uppercase())
-                                        .font(egui::FontId::proportional(11.0))
+                                        .font(theme::font_min())
                                         .color(theme::text_tertiary())
                                         .strong(),
                                 );
@@ -458,7 +566,7 @@ impl SoftwarePage {
 
     // -- CSV export helpers --
 
-    fn export_packages_csv(state: &AppState, indices: &[usize]) {
+    fn export_packages_csv(state: &AppState, indices: &[usize]) -> bool {
         let headers = &["nom", "version", "editeur", "a_jour", "derniere_version"];
         let rows: Vec<Vec<String>> = indices
             .iter()
@@ -474,12 +582,16 @@ impl SoftwarePage {
             })
             .collect();
         let path = crate::export::default_export_path("logiciels_paquets.csv");
-        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
-            tracing::warn!("Export CSV failed: {}", e);
+        match crate::export::export_csv(headers, &rows, &path) {
+            Ok(_) => true,
+            Err(e) => {
+                tracing::warn!("Export CSV failed: {}", e);
+                false
+            }
         }
     }
 
-    fn export_apps_csv(state: &AppState, indices: &[usize]) {
+    fn export_apps_csv(state: &AppState, indices: &[usize]) -> bool {
         let headers = &["nom", "version", "bundle_id", "editeur", "chemin"];
         let rows: Vec<Vec<String>> = indices
             .iter()
@@ -495,8 +607,12 @@ impl SoftwarePage {
             })
             .collect();
         let path = crate::export::default_export_path("logiciels_apps.csv");
-        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
-            tracing::warn!("Export CSV failed: {}", e);
+        match crate::export::export_csv(headers, &rows, &path) {
+            Ok(_) => true,
+            Err(e) => {
+                tracing::warn!("Export CSV failed: {}", e);
+                false
+            }
         }
     }
 
@@ -515,7 +631,7 @@ impl SoftwarePage {
         };
         let btn = egui::Button::new(
             egui::RichText::new(label)
-                .font(egui::FontId::proportional(11.0))
+                .font(theme::font_min())
                 .color(text_color)
                 .strong(),
         )
@@ -540,25 +656,28 @@ impl SoftwarePage {
                     ui.vertical(|ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(value)
-                                .font(egui::FontId::proportional(24.0))
+                                .font(theme::font_card_value())
                                 .color(color)
-                                .strong()
+                                .strong(),
                         );
                         ui.label(
                             egui::RichText::new(label)
-                                .font(egui::FontId::proportional(10.0))
+                                .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .extra_letter_spacing(0.5)
                                 .strong(),
                         );
                     });
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(icon)
-                                .size(28.0)
-                                .color(color.linear_multiply(0.25)),
-                        );
-                    });
+                    ui.with_layout(
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new(icon)
+                                    .size(28.0)
+                                    .color(color.linear_multiply(0.25)),
+                            );
+                        },
+                    );
                 });
             });
         });

@@ -19,6 +19,7 @@ pub mod audit_trail;
 pub mod cleanup;
 pub mod events;
 pub mod resources;
+pub mod self_protection;
 pub mod service;
 pub mod state;
 pub mod tracing_layer;
@@ -35,9 +36,9 @@ use agent_network::{
     DiscoveryConfig, NetworkDiscovery, NetworkManager, NetworkSecurityAlert, NetworkSnapshot,
 };
 use agent_scanner::{
-    CheckExecutionResult, CheckRunner, CheckRegistry, CheckScoreInput, ComplianceScore,
-    RemediationEngine, ScanSummary, ScanType, ScoreCalculator, SecurityMonitor,
-    SecurityScanResult, VulnerabilityScanResult, VulnerabilityScanner,
+    CheckExecutionResult, CheckRegistry, CheckRunner, CheckScoreInput, ComplianceScore,
+    RemediationEngine, ScanSummary, ScanType, ScoreCalculator, SecurityMonitor, SecurityScanResult,
+    VulnerabilityScanResult, VulnerabilityScanner,
     checks::{
         AdminAccountsCheck, AntivirusCheck, AuditLoggingCheck, AutoLoginCheck, BackupCheck,
         BluetoothCheck, BrowserSecurityCheck, DiskEncryptionCheck, FirewallCheck,
@@ -231,12 +232,18 @@ impl RuntimeHandle {
 
     /// Trigger remediation for a check.
     pub fn remediate(&self, check_id: String) {
-        let _ = self.state.remediation_tx.try_send(state::RemediationRequest::Execute { check_id });
+        let _ = self
+            .state
+            .remediation_tx
+            .try_send(state::RemediationRequest::Execute { check_id });
     }
 
     /// Trigger remediation preview for a check.
     pub fn remediate_preview(&self, check_id: String) {
-        let _ = self.state.remediation_tx.try_send(state::RemediationRequest::Preview { check_id });
+        let _ = self
+            .state
+            .remediation_tx
+            .try_send(state::RemediationRequest::Preview { check_id });
     }
 
     /// Get a clone of the shutdown signal.
@@ -332,14 +339,14 @@ impl AgentRuntime {
         let auth_client = Arc::new(AuthenticatedClient::new(self.config.clone(), db.clone()));
         self.db = Some(db.clone());
         self.authenticated_client = Some(auth_client);
-        
+
         let trail = Arc::new(audit_trail::LocalAuditTrail::new(db));
         self.audit_trail = Some(trail.clone());
-        
+
         let (events_mgr, _gui_event_rx) = events::EventManager::new(Some(trail.clone()));
         let events = Arc::new(events_mgr);
         self.events = events;
-        
+
         self
     }
 
@@ -379,7 +386,7 @@ impl AgentRuntime {
             GuiAgentStatus::Connected
         };
 
-        let last_sync_at = self.last_sync_at.try_read().ok().map(|g| *g).flatten();
+        let last_sync_at = self.last_sync_at.try_read().ok().and_then(|g| *g);
 
         let summary = AgentSummary {
             status,
@@ -395,7 +402,7 @@ impl AgentRuntime {
             active_frameworks: self
                 .active_frameworks
                 .read()
-                .expect("lock active_frameworks")
+                .unwrap_or_else(|e| e.into_inner())
                 .clone(),
         };
 
@@ -480,7 +487,10 @@ impl AgentRuntime {
             .vulnerabilities
             .iter()
             .map(|v| GuiVulnerabilityFinding {
-                cve_id: v.cve_id.clone().unwrap_or_else(|| format!("OUTDATED-{}", v.package_name.to_uppercase())),
+                cve_id: v
+                    .cve_id
+                    .clone()
+                    .unwrap_or_else(|| format!("OUTDATED-{}", v.package_name.to_uppercase())),
                 affected_software: v.package_name.clone(),
                 affected_version: v.installed_version.clone(),
                 severity: format!("{}", v.severity).to_lowercase(),
@@ -863,7 +873,7 @@ impl AgentRuntime {
             .vulnerability_scanner
             .scan(ScanType::Packages)
             .await
-            .map_err(|e| CommonError::config(format!("Vulnerability scan failed: {}", e)))?;
+            .map_err(|e| CommonError::internal(format!("Vulnerability scan failed: {}", e)))?;
 
         info!(
             "Vulnerability scan complete: {} findings from {} packages",
@@ -987,7 +997,7 @@ impl AgentRuntime {
             .security_monitor
             .scan()
             .await
-            .map_err(|e| CommonError::config(format!("Security scan failed: {}", e)))?;
+            .map_err(|e| CommonError::internal(format!("Security scan failed: {}", e)))?;
 
         if !result.incidents.is_empty() {
             info!(
@@ -1056,7 +1066,7 @@ impl AgentRuntime {
         let snapshot = network_manager
             .collect_snapshot()
             .await
-            .map_err(|e| CommonError::config(format!("Network collection failed: {}", e)))?;
+            .map_err(|e| CommonError::internal(format!("Network collection failed: {}", e)))?;
 
         info!(
             "Network collection complete: {} interfaces, {} connections, {} routes",
@@ -1079,7 +1089,7 @@ impl AgentRuntime {
         let alerts = network_manager
             .detect_threats(&snapshot.connections)
             .await
-            .map_err(|e| CommonError::config(format!("Network detection failed: {}", e)))?;
+            .map_err(|e| CommonError::internal(format!("Network detection failed: {}", e)))?;
 
         if !alerts.is_empty() {
             warn!("Network security detection found {} alerts", alerts.len());
@@ -1129,27 +1139,32 @@ impl AgentRuntime {
     #[cfg(feature = "gui")]
     pub async fn remediate(&self, check_id: &str) -> bool {
         info!("Applying remediation for check \'{}\'", check_id);
-        
+
         let actions = self.remediation_engine.get_platform_remediation(check_id);
         if let Some(action) = actions.first() {
             let result = self.remediation_engine.execute(action);
-            
+
             // Audit the action
             if let Some(audit) = &self.audit_trail {
-                audit.log(
-                    audit_trail::AuditAction::RemediationApplied { 
-                        check_id: check_id.to_string() 
-                    },
-                    "user",
-                    Some(format!(
-                        "Status: {:?}, Duration: {}ms, Output: {}", 
-                        result.status, result.duration_ms, result.output
-                    )),
-                ).await;
+                audit
+                    .log(
+                        audit_trail::AuditAction::RemediationApplied {
+                            check_id: check_id.to_string(),
+                        },
+                        "user",
+                        Some(format!(
+                            "Status: {:?}, Duration: {}ms, Output: {}",
+                            result.status, result.duration_ms, result.output
+                        )),
+                    )
+                    .await;
             }
 
-            let success = matches!(result.status, agent_common::types::remediation::RemediationStatus::Success);
-            
+            let success = matches!(
+                result.status,
+                agent_common::types::remediation::RemediationStatus::Success
+            );
+
             // Notify GUI
             if success {
                 self.emit_notification(
@@ -1160,20 +1175,27 @@ impl AgentRuntime {
             } else {
                 self.emit_notification(
                     "Échec de Remédiation",
-                    &format!("Impossible de corriger \'{}\' : {}", check_id, result.error.unwrap_or_default()),
+                    &format!(
+                        "Impossible de corriger \'{}\' : {}",
+                        check_id,
+                        result.error.unwrap_or_default()
+                    ),
                     "error",
                 );
             }
 
             // Force a re-check to update status
             self.state.force_check.store(true, Ordering::Release);
-            
+
             success
         } else {
             warn!("No remediation action found for check '{}'", check_id);
             self.emit_notification(
                 "Remédiation Indisponible",
-                &format!("Aucun script de remédiation automatisé n'est configuré pour \'{}\'.", check_id),
+                &format!(
+                    "Aucun script de remédiation automatisé n'est configuré pour \'{}\'.",
+                    check_id
+                ),
                 "warning",
             );
             false
@@ -1184,7 +1206,7 @@ impl AgentRuntime {
     #[cfg(feature = "gui")]
     pub fn remediate_preview(&self, check_id: &str) {
         info!("Generating remediation preview for check \'{}\'", check_id);
-        
+
         let actions = self.remediation_engine.get_platform_remediation(check_id);
 
         if let Some(action) = actions.first() {
@@ -1220,23 +1242,30 @@ impl AgentRuntime {
     /// Run all compliance checks, calculate score, store results in DB.
     ///
     /// Returns the execution results and the calculated compliance score.
-    pub (crate) async fn run_compliance_checks(&self) -> (Vec<CheckExecutionResult>, ComplianceScore) {
+    pub(crate) async fn run_compliance_checks(
+        &self,
+    ) -> (Vec<CheckExecutionResult>, ComplianceScore) {
         info!("Running compliance checks...");
 
         let active_frameworks = self
             .active_frameworks
             .read()
-            .expect("lock active_frameworks")
+            .unwrap_or_else(|e| e.into_inner())
             .clone();
 
         if let Some(ref audit) = self.audit_trail {
-            audit.log(
-                audit_trail::AuditAction::ScanStarted { 
-                    scan_type: format!("{:?}", active_frameworks.as_deref().unwrap_or(&["all".to_string()])) 
-                },
-                "user",
-                None,
-            ).await;
+            audit
+                .log(
+                    audit_trail::AuditAction::ScanStarted {
+                        scan_type: format!(
+                            "{:?}",
+                            active_frameworks.as_deref().unwrap_or(&["all".to_string()])
+                        ),
+                    },
+                    "user",
+                    None,
+                )
+                .await;
         }
 
         let runner = CheckRunner::with_defaults(self.check_registry.clone());
@@ -1284,14 +1313,19 @@ impl AgentRuntime {
         );
 
         if let Some(ref audit) = self.audit_trail {
-            audit.log(
-                audit_trail::AuditAction::ScanFinished { 
-                    scan_type: "compliance".to_string(), 
-                    score: score.score as f32 
-                },
-                "system",
-                Some(format!("Passed: {}, Failed: {}, Errors: {}", score.passed_count, score.failed_count, score.error_count)),
-            ).await;
+            audit
+                .log(
+                    audit_trail::AuditAction::ScanFinished {
+                        scan_type: "compliance".to_string(),
+                        score: score.score as f32,
+                    },
+                    "system",
+                    Some(format!(
+                        "Passed: {}, Failed: {}, Errors: {}",
+                        score.passed_count, score.failed_count, score.error_count
+                    )),
+                )
+                .await;
         }
 
         (results, score)
@@ -1483,7 +1517,7 @@ impl AgentRuntime {
                             let mut current = self
                                 .active_frameworks
                                 .write()
-                                .expect("lock active_frameworks");
+                                .unwrap_or_else(|e| e.into_inner());
                             if current.as_ref() != Some(&frameworks) {
                                 info!(
                                     "Active frameworks updated: {:?} → {:?}",
@@ -2218,7 +2252,7 @@ impl AgentRuntime {
 
             // Check for force_update flag (trigger from GUI button)
             if self.state.force_update.swap(false, Ordering::AcqRel) {
-            let _ = self.run_self_update().await;
+                let _ = self.run_self_update().await;
             }
 
             // Check for force_discovery flag (GUI network discovery)
@@ -2294,31 +2328,36 @@ impl AgentRuntime {
                                     devices.len(),
                                     result.scan_duration_ms
                                 );
-                                
+
                                 // Persist discovered devices to database
                                 if let Some(ref db) = db_clone {
                                     let repo = agent_storage::repositories::DiscoveredDevicesRepository::new(db);
-                                    let stored: Vec<agent_storage::repositories::StoredDevice> = devices.iter().map(|d| {
-                                        agent_storage::repositories::StoredDevice {
-                                            ip: d.ip.clone(),
-                                            mac: d.mac.clone(),
-                                            hostname: d.hostname.clone(),
-                                            vendor: d.vendor.clone(),
-                                            device_type: d.device_type.clone(),
-                                            open_ports: d.open_ports.clone(),
-                                            first_seen: d.first_seen,
-                                            last_seen: d.last_seen,
-                                            is_gateway: d.is_gateway,
-                                            subnet: d.subnet.clone(),
-                                        }
-                                    }).collect();
+                                    let stored: Vec<agent_storage::repositories::StoredDevice> =
+                                        devices
+                                            .iter()
+                                            .map(|d| agent_storage::repositories::StoredDevice {
+                                                ip: d.ip.clone(),
+                                                mac: d.mac.clone(),
+                                                hostname: d.hostname.clone(),
+                                                vendor: d.vendor.clone(),
+                                                device_type: d.device_type.clone(),
+                                                open_ports: d.open_ports.clone(),
+                                                first_seen: d.first_seen,
+                                                last_seen: d.last_seen,
+                                                is_gateway: d.is_gateway,
+                                                subnet: d.subnet.clone(),
+                                            })
+                                            .collect();
                                     if let Err(e) = repo.upsert_batch(&stored).await {
                                         warn!("Failed to persist discovered devices: {}", e);
                                     } else {
-                                        info!("Persisted {} discovered devices to database", stored.len());
+                                        info!(
+                                            "Persisted {} discovered devices to database",
+                                            stored.len()
+                                        );
                                     }
                                 }
-                                
+
                                 let _ = tx.send(AgentEvent::DiscoveryUpdate { devices });
                             }
                             Err(e) => {
@@ -2457,11 +2496,11 @@ impl AgentRuntime {
         // Rate limiting: prevent checking more than once every 5 minutes manually
         {
             let last_check = self.last_update_check.read().await;
-            if let Some(instant) = *last_check {
-                if instant.elapsed().as_secs() < 300 {
-                    info!("Skipping update check (rate limited)");
-                    return Ok(());
-                }
+            if let Some(instant) = *last_check
+                && instant.elapsed().as_secs() < 300
+            {
+                info!("Skipping update check (rate limited)");
+                return Ok(());
             }
         }
 

@@ -38,14 +38,24 @@ impl TrayBridge {
     /// Create the tray icon and menu.
     pub fn new() -> Result<Self, String> {
         let show_item = MenuItem::with_id(ids::SHOW, "\u{25cf} Ouvrir Sentinel Agent", true, None);
-        let quick_item = MenuItem::with_id(ids::QUICK_STATUS, "\u{1f6f0} Dashboard Radar Premium", true, None);
+        let quick_item = MenuItem::with_id(
+            ids::QUICK_STATUS,
+            "\u{1f6f0} Dashboard Radar Premium",
+            true,
+            None,
+        );
         let check_item = MenuItem::with_id(
             ids::CHECK,
             "\u{1f6e1} V\u{00e9}rifier la conformit\u{00e9}",
             true,
             None,
         );
-        let sync_item = MenuItem::with_id(ids::SYNC, "\u{2601} Synchroniser les donn\u{00e9}es", true, None);
+        let sync_item = MenuItem::with_id(
+            ids::SYNC,
+            "\u{2601} Synchroniser les donn\u{00e9}es",
+            true,
+            None,
+        );
         let quit_item = MenuItem::with_id(ids::QUIT, "\u{23fb} Quitter", true, None);
 
         let menu = Menu::new();

@@ -18,8 +18,12 @@ impl SyncPage {
         widgets::page_header(
             ui,
             "Synchronisation",
-            Some("Gestion de la connectivit\u{00e9} et transfert de donn\u{00e9}es avec le serveur"),
-            Some("Gérez la synchronisation des données avec le serveur Sentinel central. Vérifiez l'état de la connexion et forcez une mise à jour manuelle des politiques et référentiels."),
+            Some(
+                "Gestion de la connectivit\u{00e9} et transfert de donn\u{00e9}es avec le serveur",
+            ),
+            Some(
+                "Gérez la synchronisation des données avec le serveur Sentinel central. Vérifiez l'état de la connexion et forcez une mise à jour manuelle des politiques et référentiels.",
+            ),
         );
         ui.add_space(theme::SPACE_LG);
 
@@ -32,31 +36,34 @@ impl SyncPage {
                         .color(theme::text_tertiary())
                         .strong(),
                 );
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                    if state.sync_in_progress {
-                        widgets::status_badge(
-                            ui,
-                            &format!("{} SYNCHRONISATION...", icons::SYNC),
-                            theme::INFO,
-                        );
-                    } else if state.summary.pending_sync_count > 0 {
-                        widgets::status_badge(
-                            ui,
-                            &format!(
-                                "{} {} EN ATTENTE",
-                                icons::ARROW_UP,
-                                state.summary.pending_sync_count
-                            ),
-                            theme::WARNING,
-                        );
-                    } else {
-                        widgets::status_badge(
-                            ui,
-                            &format!("{} \u{00c0} JOUR", icons::CHECK),
-                            theme::SUCCESS,
-                        );
-                    }
-                });
+                ui.with_layout(
+                    egui::Layout::right_to_left(egui::Align::Center),
+                    |ui: &mut egui::Ui| {
+                        if state.sync_in_progress {
+                            widgets::status_badge(
+                                ui,
+                                &format!("{} SYNCHRONISATION...", icons::SYNC),
+                                theme::INFO,
+                            );
+                        } else if state.summary.pending_sync_count > 0 {
+                            widgets::status_badge(
+                                ui,
+                                &format!(
+                                    "{} {} EN ATTENTE",
+                                    icons::ARROW_UP,
+                                    state.summary.pending_sync_count
+                                ),
+                                theme::WARNING,
+                            );
+                        } else {
+                            widgets::status_badge(
+                                ui,
+                                &format!("{} \u{00c0} JOUR", icons::CHECK),
+                                theme::SUCCESS,
+                            );
+                        }
+                    },
+                );
             });
 
             ui.add_space(theme::SPACE_MD);
@@ -85,23 +92,29 @@ impl SyncPage {
                     }
                 });
 
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                    // Force sync button
-                    let btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  SYNCHRONISER MAINTENANT", icons::SYNC))
+                ui.with_layout(
+                    egui::Layout::right_to_left(egui::Align::Center),
+                    |ui: &mut egui::Ui| {
+                        // Force sync button
+                        let btn = egui::Button::new(
+                            egui::RichText::new(format!(
+                                "{}  SYNCHRONISER MAINTENANT",
+                                icons::SYNC
+                            ))
                             .font(theme::font_body())
                             .color(theme::text_on_accent())
                             .strong(),
-                    )
-                    .fill(theme::ACCENT)
-                    .min_size(egui::vec2(220.0, 40.0))
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                        )
+                        .fill(theme::ACCENT)
+                        .min_size(egui::vec2(220.0, 40.0))
+                        .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
 
-                    let enabled = !state.sync_in_progress;
-                    if ui.add_enabled(enabled, btn).clicked() {
-                        command = Some(GuiCommand::ForceSync);
-                    }
-                });
+                        let enabled = !state.sync_in_progress;
+                        if ui.add_enabled(enabled, btn).clicked() {
+                            command = Some(GuiCommand::ForceSync);
+                        }
+                    },
+                );
             });
 
             if let Some(ref err) = state.sync_error {

@@ -25,7 +25,9 @@ impl AboutPage {
             ui,
             "\u{00c0} propos",
             Some("Informations sur le produit et support technique"),
-            Some("Informations sur la version de l'agent Sentinel et les crédits. En cas de support, veuillez mentionner le numéro de build et l'identifiant unique de votre installation."),
+            Some(
+                "Informations sur la version de l'agent Sentinel et les crédits. En cas de support, veuillez mentionner le numéro de build et l'identifiant unique de votre installation.",
+            ),
         );
         ui.add_space(theme::SPACE_LG);
 
@@ -166,14 +168,17 @@ impl AboutPage {
                     .font(theme::font_body())
                     .color(theme::text_secondary()),
             );
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                ui.label(
-                    egui::RichText::new(value)
-                        .font(theme::font_mono())
-                        .color(theme::text_primary())
-                        .strong(),
-                );
-            });
+            ui.with_layout(
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new(value)
+                            .font(theme::font_mono())
+                            .color(theme::text_primary())
+                            .strong(),
+                    );
+                },
+            );
         });
     }
 
@@ -191,19 +196,22 @@ impl AboutPage {
                     .font(theme::font_body())
                     .color(theme::text_secondary()),
             );
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                if ui
-                    .link(
-                        egui::RichText::new("OUVRIR")
-                            .font(theme::font_small())
-                            .color(theme::ACCENT_LIGHT)
-                            .strong(),
-                    )
-                    .clicked()
-                {
-                    let _ = open::that(url);
-                }
-            });
+            ui.with_layout(
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui: &mut egui::Ui| {
+                    if ui
+                        .link(
+                            egui::RichText::new("OUVRIR")
+                                .font(theme::font_small())
+                                .color(theme::ACCENT_LIGHT)
+                                .strong(),
+                        )
+                        .clicked()
+                    {
+                        let _ = open::that(url);
+                    }
+                },
+            );
         });
     }
 }

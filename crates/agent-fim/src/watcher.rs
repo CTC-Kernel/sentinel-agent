@@ -167,8 +167,14 @@ fn process_event(
             }
         }
 
-        // Send alert (non-blocking)
-        let _ = alert_tx.try_send(alert);
+        // Send alert (non-blocking). Log if channel is full to avoid silent data loss.
+        if let Err(e) = alert_tx.try_send(alert) {
+            tracing::warn!(
+                "FIM alert channel full, alert dropped for {}: {}",
+                path.display(),
+                e
+            );
+        }
     }
 }
 

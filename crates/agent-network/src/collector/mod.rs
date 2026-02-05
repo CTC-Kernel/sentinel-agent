@@ -47,34 +47,39 @@ impl NetworkCollector {
     pub async fn collect_snapshot(&self) -> NetworkResult<NetworkSnapshot> {
         debug!("Collecting network snapshot");
 
-        // Collect all data in parallel where possible
-        let interfaces = self
-            .interface_collector
-            .collect()
-            .await
-            .unwrap_or_else(|e| {
-                warn!("Failed to collect interfaces: {}", e);
-                Vec::new()
-            });
-
-        let connections = self
-            .connection_collector
-            .collect()
-            .await
-            .unwrap_or_else(|e| {
-                warn!("Failed to collect connections: {}", e);
-                Vec::new()
-            });
-
-        let routes = self.route_collector.collect().await.unwrap_or_else(|e| {
-            warn!("Failed to collect routes: {}", e);
-            Vec::new()
-        });
-
-        let dns = self.dns_collector.collect().await.unwrap_or_else(|e| {
-            warn!("Failed to collect DNS config: {}", e);
-            DnsConfiguration::default()
-        });
+        // Collect all data in parallel using tokio::join!
+        let (interfaces, connections, routes, dns) = tokio::join!(
+            async {
+                self.interface_collector
+                    .collect()
+                    .await
+                    .unwrap_or_else(|e| {
+                        warn!("Failed to collect interfaces: {}", e);
+                        Vec::new()
+                    })
+            },
+            async {
+                self.connection_collector
+                    .collect()
+                    .await
+                    .unwrap_or_else(|e| {
+                        warn!("Failed to collect connections: {}", e);
+                        Vec::new()
+                    })
+            },
+            async {
+                self.route_collector.collect().await.unwrap_or_else(|e| {
+                    warn!("Failed to collect routes: {}", e);
+                    Vec::new()
+                })
+            },
+            async {
+                self.dns_collector.collect().await.unwrap_or_else(|e| {
+                    warn!("Failed to collect DNS config: {}", e);
+                    DnsConfiguration::default()
+                })
+            }
+        );
 
         // Determine primary IP and MAC
         let (primary_ip, primary_mac) = Self::find_primary_interface(&interfaces);

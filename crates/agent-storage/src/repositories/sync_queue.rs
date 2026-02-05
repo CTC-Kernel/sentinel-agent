@@ -294,11 +294,7 @@ impl<'a> SyncQueueRepository<'a> {
     ///
     /// Increments the attempt counter, records the error message, and
     /// calculates the next retry time using exponential backoff.
-    pub async fn record_failure(
-        &self,
-        id: i64,
-        error_message: &str,
-    ) -> StorageResult<()> {
+    pub async fn record_failure(&self, id: i64, error_message: &str) -> StorageResult<()> {
         let error_message = error_message.to_string();
         let now = Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string();
 
@@ -321,10 +317,9 @@ impl<'a> SyncQueueRepository<'a> {
 
                 // Exponential backoff: min(2^attempts, 3600) seconds
                 let delay_secs = std::cmp::min(2u64.pow(attempts + 1), 3600);
-                let next_retry =
-                    (Utc::now() + chrono::Duration::seconds(delay_secs as i64))
-                        .format("%Y-%m-%dT%H:%M:%SZ")
-                        .to_string();
+                let next_retry = (Utc::now() + chrono::Duration::seconds(delay_secs as i64))
+                    .format("%Y-%m-%dT%H:%M:%SZ")
+                    .to_string();
 
                 conn.execute(
                     r#"
@@ -461,15 +456,11 @@ impl<'a> SyncQueueRepository<'a> {
                     })?;
 
                 let oldest_created_at: Option<String> = conn
-                    .query_row(
-                        "SELECT MIN(created_at) FROM sync_queue",
-                        [],
-                        |row| row.get(0),
-                    )
+                    .query_row("SELECT MIN(created_at) FROM sync_queue", [], |row| {
+                        row.get(0)
+                    })
                     .optional()
-                    .map_err(|e| {
-                        StorageError::Query(format!("Failed to get oldest item: {}", e))
-                    })?
+                    .map_err(|e| StorageError::Query(format!("Failed to get oldest item: {}", e)))?
                     .flatten();
 
                 let oldest_item_age_secs = oldest_created_at.and_then(|s| {
@@ -509,10 +500,7 @@ impl<'a> SyncQueueRepository<'a> {
         self.db
             .with_connection(|conn| {
                 let count = conn
-                    .execute(
-                        "DELETE FROM sync_queue WHERE attempts >= max_attempts",
-                        [],
-                    )
+                    .execute("DELETE FROM sync_queue WHERE attempts >= max_attempts", [])
                     .map_err(|e| {
                         StorageError::Query(format!("Failed to purge failed items: {}", e))
                     })?;
@@ -606,11 +594,7 @@ mod tests {
 
         assert_eq!(repo.count().await.unwrap(), 0);
 
-        let entry = SyncQueueEntry::new(
-            SyncEntityType::CheckResult,
-            1,
-            r#"{"result": "pass"}"#,
-        );
+        let entry = SyncQueueEntry::new(SyncEntityType::CheckResult, 1, r#"{"result": "pass"}"#);
         let id = repo.enqueue(&entry).await.unwrap();
         assert!(id > 0);
 
@@ -623,18 +607,13 @@ mod tests {
         let repo = SyncQueueRepository::new(&db);
 
         // Enqueue low priority
-        repo.enqueue(&SyncQueueEntry::new(
-            SyncEntityType::Heartbeat,
-            1,
-            "{}",
-        ))
-        .await
-        .unwrap();
+        repo.enqueue(&SyncQueueEntry::new(SyncEntityType::Heartbeat, 1, "{}"))
+            .await
+            .unwrap();
 
         // Enqueue high priority
         repo.enqueue(
-            &SyncQueueEntry::new(SyncEntityType::Proof, 2, r#"{"proof": true}"#)
-                .with_priority(10),
+            &SyncQueueEntry::new(SyncEntityType::Proof, 2, r#"{"proof": true}"#).with_priority(10),
         )
         .await
         .unwrap();
@@ -674,18 +653,12 @@ mod tests {
         let repo = SyncQueueRepository::new(&db);
 
         let id = repo
-            .enqueue(&SyncQueueEntry::new(
-                SyncEntityType::CheckResult,
-                1,
-                "{}",
-            ))
+            .enqueue(&SyncQueueEntry::new(SyncEntityType::CheckResult, 1, "{}"))
             .await
             .unwrap();
 
         // Record a failure
-        repo.record_failure(id, "Connection refused")
-            .await
-            .unwrap();
+        repo.record_failure(id, "Connection refused").await.unwrap();
 
         // Item should not be immediately pending (next_retry_at is in the future)
         let pending = repo.get_pending(10).await.unwrap();
@@ -713,28 +686,16 @@ mod tests {
         let repo = SyncQueueRepository::new(&db);
 
         let id1 = repo
-            .enqueue(&SyncQueueEntry::new(
-                SyncEntityType::CheckResult,
-                1,
-                "{}",
-            ))
+            .enqueue(&SyncQueueEntry::new(SyncEntityType::CheckResult, 1, "{}"))
             .await
             .unwrap();
         let id2 = repo
-            .enqueue(&SyncQueueEntry::new(
-                SyncEntityType::Proof,
-                2,
-                "{}",
-            ))
+            .enqueue(&SyncQueueEntry::new(SyncEntityType::Proof, 2, "{}"))
             .await
             .unwrap();
-        repo.enqueue(&SyncQueueEntry::new(
-            SyncEntityType::Heartbeat,
-            3,
-            "{}",
-        ))
-        .await
-        .unwrap();
+        repo.enqueue(&SyncQueueEntry::new(SyncEntityType::Heartbeat, 3, "{}"))
+            .await
+            .unwrap();
 
         assert_eq!(repo.count().await.unwrap(), 3);
 
@@ -770,20 +731,12 @@ mod tests {
         let repo = SyncQueueRepository::new(&db);
 
         // Enqueue some items
-        repo.enqueue(&SyncQueueEntry::new(
-            SyncEntityType::CheckResult,
-            1,
-            "{}",
-        ))
-        .await
-        .unwrap();
-        repo.enqueue(&SyncQueueEntry::new(
-            SyncEntityType::Proof,
-            2,
-            "{}",
-        ))
-        .await
-        .unwrap();
+        repo.enqueue(&SyncQueueEntry::new(SyncEntityType::CheckResult, 1, "{}"))
+            .await
+            .unwrap();
+        repo.enqueue(&SyncQueueEntry::new(SyncEntityType::Proof, 2, "{}"))
+            .await
+            .unwrap();
 
         let stats = repo.queue_stats().await.unwrap();
         assert_eq!(stats.total_count, 2);
@@ -802,8 +755,7 @@ mod tests {
         // Enqueue an item with max_attempts = 1
         let id = repo
             .enqueue(
-                &SyncQueueEntry::new(SyncEntityType::CheckResult, 1, "{}")
-                    .with_max_attempts(1),
+                &SyncQueueEntry::new(SyncEntityType::CheckResult, 1, "{}").with_max_attempts(1),
             )
             .await
             .unwrap();
@@ -825,20 +777,15 @@ mod tests {
         // Enqueue items with max_attempts = 1
         let id = repo
             .enqueue(
-                &SyncQueueEntry::new(SyncEntityType::CheckResult, 1, "{}")
-                    .with_max_attempts(1),
+                &SyncQueueEntry::new(SyncEntityType::CheckResult, 1, "{}").with_max_attempts(1),
             )
             .await
             .unwrap();
 
         // Still pending
-        repo.enqueue(&SyncQueueEntry::new(
-            SyncEntityType::Proof,
-            2,
-            "{}",
-        ))
-        .await
-        .unwrap();
+        repo.enqueue(&SyncQueueEntry::new(SyncEntityType::Proof, 2, "{}"))
+            .await
+            .unwrap();
 
         // Exhaust attempts on the first item
         repo.record_failure(id, "error").await.unwrap();
@@ -855,13 +802,9 @@ mod tests {
 
         // Enqueue a few items
         for i in 0..5 {
-            repo.enqueue(&SyncQueueEntry::new(
-                SyncEntityType::CheckResult,
-                i,
-                "{}",
-            ))
-            .await
-            .unwrap();
+            repo.enqueue(&SyncQueueEntry::new(SyncEntityType::CheckResult, i, "{}"))
+                .await
+                .unwrap();
         }
 
         // Under limit, so no eviction
@@ -898,12 +841,8 @@ mod tests {
         // Enqueue one more high-priority item - should evict a low-priority item
         let id = repo
             .enqueue(
-                &SyncQueueEntry::new(
-                    SyncEntityType::Proof,
-                    99999,
-                    r#"{"important": true}"#,
-                )
-                .with_priority(10),
+                &SyncQueueEntry::new(SyncEntityType::Proof, 99999, r#"{"important": true}"#)
+                    .with_priority(10),
             )
             .await
             .unwrap();

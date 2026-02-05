@@ -287,7 +287,10 @@ impl Default for IntegrityChecker {
                 // In production, we should handle this error.
                 // For the Default trait, we use a dummy path that will fail gracefully
                 // when check() is called, rather than panicking at creation.
-                warn!("Failed to create default IntegrityChecker: {}. Using fallback.", e);
+                warn!(
+                    "Failed to create default IntegrityChecker: {}. Using fallback.",
+                    e
+                );
                 Self {
                     executable_path: std::path::PathBuf::from("/invalid/path/for/integrity/check"),
                 }

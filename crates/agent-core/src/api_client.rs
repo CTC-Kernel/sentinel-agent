@@ -43,7 +43,7 @@ pub struct EnrollmentResponse {
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum EnrollmentResult {
-    Success(EnrollmentResponse),
+    Success(Box<EnrollmentResponse>),
     AlreadyEnrolled {
         agent_id: String,
         organization_id: String,
@@ -65,6 +65,50 @@ pub struct ServerAgentConfig {
     pub enabled_checks: Vec<String>,
     #[serde(default = "default_offline_days")]
     pub offline_mode_days: u32,
+
+    /// Whether auto-remediation is enabled.
+    #[serde(default)]
+    pub enable_auto_remediation: bool,
+
+    /// Whether real-time monitoring is enabled (FIM, process, USB).
+    #[serde(default)]
+    pub enable_realtime_monitoring: bool,
+
+    /// Whether process monitoring is enabled.
+    #[serde(default)]
+    pub enable_process_monitoring: bool,
+
+    /// Whether network monitoring is enabled.
+    #[serde(default)]
+    pub enable_network_monitoring: bool,
+
+    /// Whether software inventory is enabled.
+    #[serde(default)]
+    pub enable_software_inventory: bool,
+
+    /// Whether CIS benchmarks are enabled.
+    #[serde(default)]
+    pub enable_cis_benchmarks: bool,
+
+    /// Whether auto-update is enabled.
+    #[serde(default = "default_true_fn")]
+    pub auto_update_enabled: bool,
+
+    /// Update channel (stable, beta, canary).
+    #[serde(default = "default_update_channel")]
+    pub update_channel: String,
+
+    /// Disabled check IDs.
+    #[serde(default)]
+    pub disabled_checks: Vec<String>,
+
+    /// Proxy enabled flag.
+    #[serde(default)]
+    pub proxy_enabled: bool,
+
+    /// Proxy URL.
+    #[serde(default)]
+    pub proxy_url: Option<String>,
 }
 
 fn default_check_interval() -> u64 {
@@ -78,6 +122,12 @@ fn default_log_level() -> String {
 }
 fn default_offline_days() -> u32 {
     7
+}
+fn default_true_fn() -> bool {
+    true
+}
+fn default_update_channel() -> String {
+    "stable".to_string()
 }
 
 /// Heartbeat request sent to the server.
@@ -227,7 +277,9 @@ impl ApiClient {
         // SECURITY: Only accept invalid certs if explicitly allowed in config.
         // This is primarily for development and troubleshooting.
         if !config.tls_verify {
-            warn!("DANGER: Agent is configured to bypass TLS certificate verification. This is insecure!");
+            warn!(
+                "DANGER: Agent is configured to bypass TLS certificate verification. This is insecure!"
+            );
             builder = builder.danger_accept_invalid_certs(true);
         }
 
@@ -340,7 +392,7 @@ impl ApiClient {
                     "Agent enrolled successfully with ID: {}",
                     enrollment.agent_id
                 );
-                Ok(enrollment)
+                Ok(*enrollment)
             }
             EnrollmentResult::AlreadyEnrolled {
                 message, agent_id, ..
