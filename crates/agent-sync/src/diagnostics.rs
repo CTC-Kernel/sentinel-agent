@@ -460,16 +460,18 @@ impl ConnectionTracker {
         // Calculate uptime
         let uptime_secs = connected_at.map(|t| (Utc::now() - t).num_seconds() as u64);
 
-        // Calculate p95 latency
+        // Calculate p95 latency using select_nth_unstable for O(n) instead of O(n log n)
         let latency_p95 = {
             let latencies = self.latencies.read().await;
             if latencies.is_empty() {
                 None
             } else {
-                let mut sorted = latencies.clone();
-                sorted.sort();
+                let mut sorted: Vec<_> = latencies.iter().copied().collect();
                 let idx = (sorted.len() as f64 * 0.95) as usize;
-                Some(sorted[idx.min(sorted.len() - 1)])
+                let idx = idx.min(sorted.len() - 1);
+                // Use select_nth_unstable for O(n) percentile calculation
+                let (_, p95, _) = sorted.select_nth_unstable(idx);
+                Some(*p95)
             }
         };
 
