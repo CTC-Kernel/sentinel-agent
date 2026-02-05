@@ -193,6 +193,7 @@ impl UpdateManager {
         {
             info!("Executing: /usr/sbin/installer -pkg {} -target /", path_str);
             
+            // First try without sudo
             let output = Command::new("/usr/sbin/installer")
                 .args(["-pkg", path_str, "-target", "/"])
                 .output()
@@ -208,6 +209,37 @@ impl UpdateManager {
                     "macOS installer failed with exit status {}: stderr: {}, stdout: {}",
                     status, stderr, stdout
                 );
+                
+                // Check if it's a permission issue and try with sudo
+                if stderr.contains("Must be run as root") || status.code() == Some(1) {
+                    warn!("Installer requires root privileges. Attempting with sudo...");
+                    
+                    // Try with sudo
+                    let sudo_output = Command::new("sudo")
+                        .args(["/usr/sbin/installer", "-pkg", path_str, "-target", "/"])
+                        .output()
+                        .map_err(|e| CommonError::system(format!("Failed to launch installer with sudo: {}", e)))?;
+                    
+                    let sudo_status = sudo_output.status;
+                    if sudo_status.success() {
+                        info!("macOS installer completed successfully with sudo");
+                        return Ok(());
+                    } else {
+                        let sudo_stderr = String::from_utf8_lossy(&sudo_output.stderr);
+                        let sudo_stdout = String::from_utf8_lossy(&sudo_output.stdout);
+                        
+                        error!(
+                            "macOS installer with sudo failed with exit status {}: stderr: {}, stdout: {}",
+                            sudo_status, sudo_stderr, sudo_stdout
+                        );
+                        
+                        return Err(CommonError::system(format!(
+                            "macOS installer failed even with sudo: exit code={:?}, stderr: {}",
+                            sudo_status.code(),
+                            sudo_stderr
+                        )));
+                    }
+                }
                 
                 // Common installer issues and suggestions
                 match status.code() {
