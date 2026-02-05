@@ -379,7 +379,7 @@ impl DashboardPage {
                     format!(
                         "{}  {}",
                         icons::PLAY,
-                        if is_scanning { "SCAN..." } else { "SCAN" }
+                        if is_scanning { "SCAN EN COURS..." } else { "SCAN" }
                     ),
                     !is_scanning,
                     is_scanning,
@@ -397,22 +397,23 @@ impl DashboardPage {
                     format!(
                         "{}  {}",
                         icons::SYNC,
-                        if is_syncing { "SYNC..." } else { "SYNC" }
+                        if is_syncing { "SYNCHRONISATION..." } else { "SYNCHRONISER" }
                     ),
                     !is_syncing,
                     is_syncing,
                 )
                 .clicked()
                 {
-                    command = Some(GuiCommand::ForceSync);
+                    command = Some(GuiCommand::RunSync);
                 }
 
                 ui.add_space(theme::SPACE_SM);
 
-                if widgets::button::secondary_button(
+                if widgets::button::secondary_button_loading(
                     ui,
                     format!("{}  EXPORT", icons::DOWNLOAD),
                     true,
+                    false,
                 )
                 .clicked()
                 {

@@ -84,7 +84,7 @@ impl MonitoringPage {
         let main_charts_grid = widgets::ResponsiveGrid::new(450.0, theme::SPACE_LG);
         let main_items = vec![
             ("CPU", &state.cpu_history, theme::SUCCESS, true),
-            ("MÉMOIRE", &state.memory_history, theme::ACCENT, false),
+            ("MÉMOIRE", &state.memory_history, theme::ACCENT, true),
         ];
 
         main_charts_grid.show(
@@ -110,7 +110,7 @@ impl MonitoringPage {
         io_grid.show(ui, &io_items, |ui, width, (title, history, color, auto_y)| {
             ui.vertical(|ui: &mut egui::Ui| {
                 ui.set_width(width);
-                Self::chart_card(ui, title, history, *color, false, 200.0, *auto_y);
+                Self::chart_card(ui, title, history, *color, true, 200.0, *auto_y);
             });
         });
 
@@ -245,21 +245,14 @@ impl MonitoringPage {
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
                         if !history.is_empty() {
-                            // Live dot - simple, clean
+                            // Simple live dot
                             let time = ui.input(|i| i.time);
                             let pulse = ((time * 1.5).sin() * 0.5 + 0.5) as f32;
 
                             ui.label(
                                 egui::RichText::new("●")
-                                    .size(8.0)
-                                    .color(theme::SUCCESS.linear_multiply(0.6 + pulse * 0.4)),
-                            );
-                            ui.add_space(4.0);
-                            ui.label(
-                                egui::RichText::new("EN DIRECT")
-                                    .font(egui::FontId::proportional(9.0))
-                                    .color(theme::SUCCESS.linear_multiply(0.7))
-                                    .strong(),
+                                    .size(6.0)
+                                    .color(theme::SUCCESS.linear_multiply(0.4 + pulse * 0.3)),
                             );
                         }
                     },
@@ -315,17 +308,13 @@ impl MonitoringPage {
     ) {
         let values: Vec<f64> = history.iter().map(|p| p[1]).collect();
         let current = values.last().copied().unwrap_or(0.0);
-        let min_val = values.iter().cloned().fold(f64::INFINITY, f64::min);
-        let max_val = values.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-        let avg_val = values.iter().sum::<f64>() / values.len() as f64;
 
-        // Stats row
+        // Current value only - cleaner design
         ui.horizontal(|ui: &mut egui::Ui| {
-            // Current value (prominent)
             ui.vertical(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new(format!("{:.1}", current))
-                        .font(egui::FontId::proportional(28.0))
+                        .font(egui::FontId::proportional(24.0))
                         .color(line_color)
                         .strong(),
                 );
@@ -336,20 +325,6 @@ impl MonitoringPage {
                         .strong(),
                 );
             });
-
-            ui.add_space(theme::SPACE_LG);
-
-            // Secondary stats
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui: &mut egui::Ui| {
-                    Self::mini_stat(ui, "MAX", max_val);
-                    ui.add_space(theme::SPACE_MD);
-                    Self::mini_stat(ui, "MOY", avg_val);
-                    ui.add_space(theme::SPACE_MD);
-                    Self::mini_stat(ui, "MIN", min_val);
-                },
-            );
         });
 
         ui.add_space(theme::SPACE_SM);
@@ -375,20 +350,6 @@ impl MonitoringPage {
         }
 
         plot.show(ui, |plot_ui| {
-            // Threshold lines for percentage metrics
-            if !auto_y {
-                plot_ui.hline(
-                    egui_plot::HLine::new(90.0)
-                        .color(theme::ERROR.linear_multiply(0.2))
-                        .style(egui_plot::LineStyle::Dashed { length: 6.0 }),
-                );
-                plot_ui.hline(
-                    egui_plot::HLine::new(70.0)
-                        .color(theme::WARNING.linear_multiply(0.15))
-                        .style(egui_plot::LineStyle::Dashed { length: 6.0 }),
-                );
-            }
-
             // Fill under line (subtle)
             if fill {
                 plot_ui.line(
@@ -398,13 +359,6 @@ impl MonitoringPage {
                 );
             }
 
-            // Soft glow - just 2 layers, subtle
-            plot_ui.line(
-                Line::new(PlotPoints::new(history.to_vec()))
-                    .color(line_color.linear_multiply(0.2))
-                    .width(4.0),
-            );
-
             // Main line - crisp
             plot_ui.line(
                 Line::new(PlotPoints::new(history.to_vec()))
@@ -412,47 +366,17 @@ impl MonitoringPage {
                     .width(1.5),
             );
 
-            // Current point indicator
+            // Simple current point
             if let Some(&latest) = history.last() {
-                // Subtle outer ring
-                plot_ui.points(
-                    egui_plot::Points::new(PlotPoints::new(vec![latest]))
-                        .color(line_color.linear_multiply(0.3))
-                        .radius(6.0),
-                );
-                // Main dot
                 plot_ui.points(
                     egui_plot::Points::new(PlotPoints::new(vec![latest]))
                         .color(line_color)
                         .radius(3.0),
                 );
-                // Center highlight
-                plot_ui.points(
-                    egui_plot::Points::new(PlotPoints::new(vec![latest]))
-                        .color(egui::Color32::WHITE.linear_multiply(0.7))
-                        .radius(1.2),
-                );
             }
         });
 
         ui.ctx().request_repaint();
-    }
-
-    fn mini_stat(ui: &mut Ui, label: &str, value: f64) {
-        ui.vertical(|ui: &mut egui::Ui| {
-            ui.label(
-                egui::RichText::new(format!("{:.1}", value))
-                    .font(egui::FontId::proportional(13.0))
-                    .color(theme::text_primary())
-                    .strong(),
-            );
-            ui.label(
-                egui::RichText::new(label)
-                    .font(egui::FontId::proportional(9.0))
-                    .color(theme::text_tertiary())
-                    .strong(),
-            );
-        });
     }
 
     fn export_metrics_csv(state: &AppState) {

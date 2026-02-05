@@ -166,9 +166,11 @@ pub enum GuiCommand {
     RunCheck,
     /// Force a sync with the server.
     ForceSync,
+    /// Trigger a sync with the server.
+    RunSync,
     /// Request the current agent summary.
     GetSummary,
-    /// Request the list of check results.
+    /// Request list of check results.
     GetCheckResults,
     /// Mark a notification as read.
     MarkNotificationRead {
