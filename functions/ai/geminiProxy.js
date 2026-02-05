@@ -19,7 +19,7 @@ exports.geminiProxy = onCall(
     }
 
     // Rate limiting: AI operations use the 'heavy' preset (5 req/min)
-    checkCallableRateLimit(request, 'heavy');
+    await checkCallableRateLimit(request, 'heavy');
 
     const { prompt, model, maxTokens, temperature } = request.data;
     if (!prompt || typeof prompt !== 'string') {

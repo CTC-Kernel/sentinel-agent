@@ -10,7 +10,7 @@ const { defineString } = require('firebase-functions/params');
 // firebase functions:config:set security.encryption_key="..."
 // or defineString in Gen2
 const encryptionKeyParam = defineString('ENCRYPTION_KEY', {
-    default: '0000000000000000000000000000000000000000000000000000000000000000' // Placeholder for dev
+    default: '' // No default - MUST be set via environment or Firebase Secrets
 });
 
 const ALGORITHM = 'aes-256-gcm';
@@ -25,16 +25,11 @@ const TAG_LENGTH = 16;
 function encrypt(text) {
     if (!text) return text;
 
-    // In production, ensure ENCRYPTION_KEY is set and valid
-    // For this fix, we use the param or placeholder
     const keyValues = encryptionKeyParam.value();
-    const key = Buffer.from(keyValues, 'hex');
-
-    // Check key length
-    if (key.length !== 32) {
-        console.warn('Invalid encryption key length. Must be 32 bytes (64 hex class). Using fallback/dev key or erroring.');
-        // If critical, throw error. For now, proceeding (assuming dev).
+    if (!keyValues || keyValues.length !== 64 || !/^[0-9a-fA-F]{64}$/.test(keyValues)) {
+        throw new Error('CRITICAL: ENCRYPTION_KEY is missing or invalid. Must be a 64-character hex string (32 bytes). Set via Firebase Secrets or environment variable.');
     }
+    const key = Buffer.from(keyValues, 'hex');
 
     const iv = crypto.randomBytes(IV_LENGTH);
     const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
@@ -56,6 +51,9 @@ function decrypt(encryptedText) {
     if (!encryptedText || !encryptedText.includes(':')) return encryptedText;
 
     const keyValues = encryptionKeyParam.value();
+    if (!keyValues || keyValues.length !== 64 || !/^[0-9a-fA-F]{64}$/.test(keyValues)) {
+        throw new Error('CRITICAL: ENCRYPTION_KEY is missing or invalid. Must be a 64-character hex string (32 bytes).');
+    }
     const key = Buffer.from(keyValues, 'hex');
 
     const parts = encryptedText.split(':');

@@ -162,7 +162,7 @@ exports.generateAuditShareLink = onCall({ region: 'europe-west1' }, async (reque
 // 2. Get Shared Audit Data (External Public Access via Token)
 exports.getSharedAuditData = onCall({ region: 'europe-west1', enforceAppCheck: false }, async (request) => {
     // Rate limiting for external endpoint
-    checkCallableRateLimit(request, 'standard');
+    await checkCallableRateLimit(request, 'standard');
 
     const { token } = request.data;
     const clientIp = request.rawRequest?.ip || request.rawRequest?.headers?.['x-forwarded-for'] || null;
@@ -250,7 +250,7 @@ exports.getSharedAuditData = onCall({ region: 'europe-west1', enforceAppCheck: f
 // 3. Submit Finding (External)
 exports.portal_submitFinding = onCall({ region: 'europe-west1', enforceAppCheck: false }, async (request) => {
     // Rate limiting for external endpoint
-    checkCallableRateLimit(request, 'standard');
+    await checkCallableRateLimit(request, 'standard');
 
     const { token, finding } = request.data;
     const clientIp = request.rawRequest?.ip || request.rawRequest?.headers?.['x-forwarded-for'] || null;
@@ -302,7 +302,7 @@ exports.portal_submitFinding = onCall({ region: 'europe-west1', enforceAppCheck:
 // 4. Update Status / Certify
 exports.portal_updateStatus = onCall({ region: 'europe-west1', enforceAppCheck: false }, async (request) => {
     // Rate limiting for external endpoint
-    checkCallableRateLimit(request, 'standard');
+    await checkCallableRateLimit(request, 'standard');
 
     const { token, status, certificationData } = request.data;
     const clientIp = request.rawRequest?.ip || request.rawRequest?.headers?.['x-forwarded-for'] || null;

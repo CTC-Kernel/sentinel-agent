@@ -13,6 +13,41 @@ const { validate, z } = require('../utils/validation');
 const stripeSecretKey = defineSecret("STRIPE_SECRET_KEY");
 const stripeWebhookSecret = defineSecret("STRIPE_WEBHOOK_SECRET");
 
+// SECURITY: Allowed redirect domains to prevent open redirect attacks
+const ALLOWED_REDIRECT_DOMAINS = [
+    'app.cyber-threat-consulting.com',
+    'cyber-threat-consulting.com',
+    'sentinel-grc-a8701.web.app',
+    'sentinel-grc-a8701.firebaseapp.com',
+    'localhost',
+];
+
+/**
+ * Validate that a redirect URL points to an allowed domain
+ * @param {string} url - URL to validate
+ * @param {string} fieldName - Field name for error messages
+ * @throws {HttpsError} if domain is not allowed
+ */
+function validateRedirectUrl(url, fieldName) {
+    try {
+        const parsed = new URL(url);
+        const hostname = parsed.hostname;
+        if (!ALLOWED_REDIRECT_DOMAINS.includes(hostname)) {
+            throw new Error(`Domain "${hostname}" is not allowed for redirects`);
+        }
+        if (parsed.protocol !== 'https:' && hostname !== 'localhost') {
+            throw new Error('Only HTTPS URLs are allowed for redirects');
+        }
+    } catch (error) {
+        if (error.message.includes('not allowed') || error.message.includes('Only HTTPS')) {
+            const { HttpsError } = require("firebase-functions/v2/https");
+            throw new HttpsError('invalid-argument', `Invalid ${fieldName}: ${error.message}`);
+        }
+        const { HttpsError } = require("firebase-functions/v2/https");
+        throw new HttpsError('invalid-argument', `Invalid ${fieldName}: must be a valid URL`);
+    }
+}
+
 // Define Plans mapping for backend
 const PLANS = {
     'discovery': { monthly: null, yearly: null },
@@ -61,6 +96,10 @@ exports.createCheckoutSession = onCall({
         cancelUrl: z.string().url(),
         interval: z.enum(['month', 'year']).default('month')
     }), request.data);
+
+    // SECURITY: Validate redirect URLs against allowed domains to prevent open redirect
+    validateRedirectUrl(successUrl, 'successUrl');
+    validateRedirectUrl(cancelUrl, 'cancelUrl');
 
     // SECURITY: Force organizationId from the authenticated user's token claims, not from request data
     const organizationId = request.auth.token.organizationId;
@@ -170,6 +209,11 @@ exports.createPortalSession = onCall({
 
     const organizationId = request.auth.token.organizationId;
     const { returnUrl } = request.data;
+
+    // SECURITY: Validate return URL domain
+    if (returnUrl) {
+        validateRedirectUrl(returnUrl, 'returnUrl');
+    }
 
     if (!organizationId) {
         logger.error("No organizationId found in auth token");
