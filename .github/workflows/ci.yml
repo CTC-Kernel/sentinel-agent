@@ -201,12 +201,14 @@ jobs:
       - name: Install WiX Toolset
         run: |
           dotnet tool install --global wix
+          wix extension add -g WixToolset.UI.wixext
           wix extension add -g WixToolset.Util.wixext
+          wix extension add -g WixToolset.Firewall.wixext
 
       - name: Build MSI
         run: |
           $version = (Select-String -Path "Cargo.toml" -Pattern '^version\s*=\s*"(.+)"' | Select-Object -First 1).Matches.Groups[1].Value
-          wix build -ext WixToolset.Util.wixext -d "TargetDir=.\target\release" -d "Version=$version" -d "AssetsDir=.\assets" -o "sentinel-agent-$version.msi" wix/main.wxs
+          wix build -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -ext WixToolset.Firewall.wixext -d "TargetDir=.\target\release" -d "Version=$version" -d "AssetsDir=.\assets" -o "sentinel-agent-$version.msi" wix/main.wxs
           echo "MSI_VERSION=$version" >> $env:GITHUB_ENV
         shell: pwsh
 

@@ -2,6 +2,7 @@
   "server_url": "https://app.cyber-threat-consulting.com",
   "agent_id": null,
   "check_interval_secs": 3600,
+  "heartbeat_interval_secs": 60,
   "offline_mode_days": 7,
   "log_level": "info",
   "tls_verify": true,

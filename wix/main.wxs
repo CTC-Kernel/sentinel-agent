@@ -4,7 +4,7 @@
 
   Build with WiX v4:
     dotnet tool install -g wix
-    wix build -o sentinel-agent.msi main.wxs -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext
+    wix build -o sentinel-agent.msi main.wxs -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -ext WixToolset.Firewall.wixext
 
   Silent installation:
     msiexec /i sentinel-agent.msi /qn ENROLLMENTTOKEN=xxx
@@ -14,7 +14,8 @@
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util"
-     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:fire="http://wixtoolset.org/schemas/v4/wxs/firewall">
 
   <!-- Product definition -->
   <Package
@@ -87,6 +88,12 @@
     <!-- Auto-start property default -->
     <Property Id="AUTOSTART" Value="1" />
 
+    <!-- Prerequisite checks -->
+    <Launch Condition="VersionNT64 &gt;= 1000"
+            Message="Sentinel Agent requiert Windows 10 ou Windows Server 2016 (ou ulterieur)." />
+    <Launch Condition="Privileged"
+            Message="Droits administrateur requis. Relancez l'installation en tant qu'administrateur." />
+
     <!-- Media definition -->
     <Media Id="1" Cabinet="sentinel.cab" EmbedCab="yes" />
 
@@ -156,6 +163,15 @@
           Stop="both"
           Remove="uninstall"
           Wait="yes" />
+
+        <!-- Windows Firewall rule for agent communication -->
+        <fire:FirewallException Id="SentinelAgentFirewall"
+            Name="Sentinel GRC Agent"
+            Description="Communications sortantes de l'agent Sentinel GRC"
+            File="SentinelAgentExe"
+            Protocol="tcp"
+            Scope="any"
+            Profile="all" />
       </Component>
 
       <!-- Icon file for shortcuts -->
@@ -164,6 +180,22 @@
               Name="sentinel-agent.ico"
               Source="$(var.AssetsDir)\sentinel-agent.ico"
               KeyPath="yes" />
+      </Component>
+
+      <!-- Event Log source registration -->
+      <Component Id="EventLogSource" Guid="F1E2D3C4-B5A6-9788-7654-321098FEDCBA">
+        <util:EventSource Name="SentinelGRCAgent"
+            Log="Application"
+            EventMessageFile="[BinDir]sentinel-agent.exe"
+            KeyPath="yes" />
+      </Component>
+
+      <!-- Add to system PATH -->
+      <Component Id="PathEnvComponent" Guid="A9B8C7D6-E5F4-3210-FEDC-BA9876543210">
+        <Environment Id="SentinelPath" Name="PATH" Value="[BinDir]"
+            Permanent="no" Part="last" Action="set" System="yes" />
+        <RegistryValue Root="HKLM" Key="Software\Sentinel\Agent"
+            Name="PathAdded" Type="integer" Value="1" KeyPath="yes" />
       </Component>
     </ComponentGroup>
 
@@ -237,6 +269,29 @@
       </Component>
     </ComponentGroup>
 
+    <!-- Windows Defender exclusion -->
+    <CustomAction Id="AddDefenderExclusion"
+                  Directory="BinDir"
+                  ExeCommand='powershell.exe -NoProfile -NonInteractive -Command "Add-MpPreference -ExclusionPath ''[INSTALLDIR]'' -ExclusionProcess ''[BinDir]sentinel-agent.exe''"'
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+
+    <CustomAction Id="RemoveDefenderExclusion"
+                  Directory="BinDir"
+                  ExeCommand='powershell.exe -NoProfile -NonInteractive -Command "Remove-MpPreference -ExclusionPath ''[INSTALLDIR]'' -ExclusionProcess ''[BinDir]sentinel-agent.exe''"'
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+
+    <!-- Uninstall cleanup (only on full uninstall, not upgrade) -->
+    <CustomAction Id="CleanupDataOnUninstall"
+                  Directory="INSTALLDIR"
+                  ExeCommand='cmd.exe /c rmdir /s /q "[CommonAppDataFolder]Sentinel"'
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+
     <!-- Custom actions for configuration -->
     <CustomAction Id="SetServerUrl"
                   Property="SERVERURL"
@@ -283,6 +338,12 @@
       <Custom Action="SetRunEnrollmentProps" Before="RunEnrollment" Condition="NOT Installed AND ENROLLMENTTOKEN" />
       <Custom Action="RunEnrollment" After="CreateConfigFile" Condition="NOT Installed AND ENROLLMENTTOKEN" />
       <Custom Action="StartServiceAfterEnroll" After="RunEnrollment" Condition="NOT Installed AND ENROLLMENTTOKEN" />
+      <!-- Defender exclusion on install -->
+      <Custom Action="AddDefenderExclusion" After="InstallFinalize" Condition="NOT Installed" />
+      <!-- Defender exclusion removal on uninstall -->
+      <Custom Action="RemoveDefenderExclusion" Before="RemoveFiles" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <!-- Data cleanup on full uninstall -->
+      <Custom Action="CleanupDataOnUninstall" After="RemoveDefenderExclusion" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
     </InstallExecuteSequence>
 
   </Package>
