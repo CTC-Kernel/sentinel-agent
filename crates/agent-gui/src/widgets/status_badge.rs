@@ -12,8 +12,8 @@ pub fn status_badge(ui: &mut Ui, text: &str, color: egui::Color32) {
     let padding = Vec2::new(theme::SPACE_SM, theme::SPACE_XS);
     
     // Softer approach: muted background with better text contrast
-    let bg_color = color.linear_multiply(0.15); // Much more subtle background
-    let border_color = color.linear_multiply(0.4);   // Subtle border
+    let bg_color = color.linear_multiply(0.10); // Even more subtle background for contrast
+    let border_color = color.linear_multiply(0.3);   // Subtle border
     let text_color = color; // Use the semantic color for text instead of white
     
     let galley = ui.painter().layout_no_wrap(
@@ -21,6 +21,10 @@ pub fn status_badge(ui: &mut Ui, text: &str, color: egui::Color32) {
         theme::font_small(),
         text_color,
     );
+    // Use strong font manually or wrap in RichText if possible, but status_badge uses galley directly.
+    // Let's modify the font to be slightly bolder if possible, or just rely on the 10% bg.
+    // Since we're using galley, let's just ensure the bg is very light.
+
     let text_size = galley.size();
     let desired_size = text_size + padding * 2.0;
 

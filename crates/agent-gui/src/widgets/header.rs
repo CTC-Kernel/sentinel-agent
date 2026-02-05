@@ -4,15 +4,23 @@ use egui::Ui;
 
 use crate::theme;
 
-/// Draw a page header with title and optional subtitle.
-pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>) {
-    ui.vertical(|ui| {
-        ui.label(
-            egui::RichText::new(title)
-                .font(theme::font_comex())
-                .color(theme::text_primary())
-                .strong(),
-        );
+/// Draw a page header with title, optional subtitle and contextual help.
+pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>, help_text: Option<&str>) {
+    ui.vertical(|ui: &mut egui::Ui| {
+        ui.horizontal(|ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new(title)
+                    .font(theme::font_comex())
+                    .color(theme::text_primary())
+                    .strong(),
+            );
+            
+            if let Some(help) = help_text {
+                ui.add_space(theme::SPACE_SM);
+                super::help_button(ui, help);
+            }
+        });
+
         if let Some(sub) = subtitle {
             ui.add_space(theme::SPACE_XS);
             ui.label(

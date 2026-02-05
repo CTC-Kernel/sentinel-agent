@@ -14,25 +14,39 @@ pub struct RuntimeState {
     pub force_discovery: Arc<AtomicBool>,
     pub force_update: Arc<AtomicBool>,
     pub discovery_cancel: Arc<AtomicBool>,
+    /// Channel for sending remediation requests from GUI to the background loop.
+    pub remediation_tx: tokio::sync::mpsc::Sender<RemediationRequest>,
 }
 
-impl Default for RuntimeState {
-    fn default() -> Self {
-        Self {
-            shutdown: Arc::new(AtomicBool::new(false)),
-            paused: Arc::new(AtomicBool::new(false)),
-            scanning: Arc::new(AtomicBool::new(false)),
-            syncing: Arc::new(AtomicBool::new(false)),
-            force_check: Arc::new(AtomicBool::new(false)),
-            force_sync: Arc::new(AtomicBool::new(false)),
-            force_discovery: Arc::new(AtomicBool::new(false)),
-            force_update: Arc::new(AtomicBool::new(false)),
-            discovery_cancel: Arc::new(AtomicBool::new(false)),
-        }
-    }
+/// A request to remediate or preview a check.
+#[derive(Debug, Clone)]
+pub enum RemediationRequest {
+    /// Execute remediation for a check.
+    Execute { check_id: String },
+    /// Generate and emit a preview for a check.
+    Preview { check_id: String },
 }
 
 impl RuntimeState {
+    pub fn new() -> (Self, tokio::sync::mpsc::Receiver<RemediationRequest>) {
+        let (tx, rx) = tokio::sync::mpsc::channel(32);
+        (
+            Self {
+                shutdown: Arc::new(AtomicBool::new(false)),
+                paused: Arc::new(AtomicBool::new(false)),
+                scanning: Arc::new(AtomicBool::new(false)),
+                syncing: Arc::new(AtomicBool::new(false)),
+                force_check: Arc::new(AtomicBool::new(false)),
+                force_sync: Arc::new(AtomicBool::new(false)),
+                force_discovery: Arc::new(AtomicBool::new(false)),
+                force_update: Arc::new(AtomicBool::new(false)),
+                discovery_cancel: Arc::new(AtomicBool::new(false)),
+                remediation_tx: tx,
+            },
+            rx,
+        )
+    }
+
     pub fn is_shutdown(&self) -> bool {
         self.shutdown.load(Ordering::SeqCst)
     }

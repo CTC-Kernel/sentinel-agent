@@ -18,22 +18,21 @@ impl SyncPage {
         widgets::page_header(
             ui,
             "Synchronisation",
-            Some(
-                "Gestion de la connectivit\u{00e9} et transfert de donn\u{00e9}es avec le serveur",
-            ),
+            Some("Gestion de la connectivit\u{00e9} et transfert de donn\u{00e9}es avec le serveur"),
+            Some("Gérez la synchronisation des données avec le serveur Sentinel central. Vérifiez l'état de la connexion et forcez une mise à jour manuelle des politiques et référentiels."),
         );
         ui.add_space(theme::SPACE_LG);
 
         // Status card
-        widgets::card(ui, |ui| {
-            ui.horizontal(|ui| {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new("\u{00c9}TAT DE LA CONNEXION")
                         .font(theme::font_small())
                         .color(theme::text_tertiary())
                         .strong(),
                 );
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                     if state.sync_in_progress {
                         widgets::status_badge(
                             ui,
@@ -62,8 +61,8 @@ impl SyncPage {
 
             ui.add_space(theme::SPACE_MD);
 
-            ui.horizontal(|ui| {
-                ui.vertical(|ui| {
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.vertical(|ui: &mut egui::Ui| {
                     if let Some(ref ts) = state.summary.last_sync_at {
                         ui.label(
                             egui::RichText::new("Derni\u{00e8}re synchronisation r\u{00e9}ussie :")
@@ -86,7 +85,7 @@ impl SyncPage {
                     }
                 });
 
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                     // Force sync button
                     let btn = egui::Button::new(
                         egui::RichText::new(format!("{}  SYNCHRONISER MAINTENANT", icons::SYNC))
@@ -111,7 +110,7 @@ impl SyncPage {
                     .fill(theme::ERROR.linear_multiply(0.1))
                     .corner_radius(egui::CornerRadius::same(4))
                     .inner_margin(egui::Margin::symmetric(8, 4))
-                    .show(ui, |ui| {
+                    .show(ui, |ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(format!("{} ERREUR : {}", icons::WARNING, err))
                                 .font(theme::font_small())
@@ -124,7 +123,7 @@ impl SyncPage {
         ui.add_space(theme::SPACE_LG);
 
         // Sync history
-        widgets::card(ui, |ui| {
+        widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("HISTORIQUE DES TRANSFERTS")
                     .font(theme::font_small())
@@ -134,7 +133,7 @@ impl SyncPage {
             ui.add_space(theme::SPACE_MD);
 
             if state.sync_history.is_empty() {
-                ui.vertical_centered(|ui| {
+                ui.vertical_centered(|ui: &mut egui::Ui| {
                     ui.add_space(theme::SPACE_LG);
                     ui.label(
                         egui::RichText::new("Aucun historique disponible")
@@ -155,13 +154,13 @@ impl SyncPage {
 
                 table
                     .header(24.0, |mut header| {
-                        header.col(|ui| {
+                        header.col(|ui: &mut egui::Ui| {
                             ui.strong("");
                         });
-                        header.col(|ui| {
+                        header.col(|ui: &mut egui::Ui| {
                             ui.strong("HEURE");
                         });
-                        header.col(|ui| {
+                        header.col(|ui: &mut egui::Ui| {
                             ui.strong("MESSAGE");
                         });
                     })
@@ -169,7 +168,7 @@ impl SyncPage {
                         body.rows(32.0, state.sync_history.len(), |mut row| {
                             let entry = &state.sync_history[row.index()];
 
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 let (icon, color) = if entry.success {
                                     (icons::CIRCLE_CHECK, theme::SUCCESS)
                                 } else {
@@ -178,7 +177,7 @@ impl SyncPage {
                                 ui.label(egui::RichText::new(icon).size(18.0).color(color));
                             });
 
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(
                                         entry.timestamp.format("%H:%M:%S").to_string(),
@@ -188,7 +187,7 @@ impl SyncPage {
                                 );
                             });
 
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&entry.message)
                                         .font(theme::font_body())

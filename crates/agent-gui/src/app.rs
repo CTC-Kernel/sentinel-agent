@@ -78,6 +78,7 @@ use crate::enrollment::{EnrollmentCommand, EnrollmentWizard};
 use crate::events::{AgentEvent, GuiCommand};
 use crate::pages;
 use crate::theme;
+use crate::icons;
 use crate::tray_bridge::{TrayAction, TrayBridge};
 use crate::widgets;
 
@@ -359,6 +360,9 @@ pub struct SentinelApp {
     // Splash screen timing.
     splash_start: std::time::Instant,
     splash_done: bool,
+
+    /// Whether to show the premium "Satellite" tray dashboard view.
+    show_tray_satellite: bool,
 }
 
 impl SentinelApp {
@@ -395,6 +399,7 @@ impl SentinelApp {
             quit_requested: false,
             splash_start: std::time::Instant::now(),
             splash_done: false,
+            show_tray_satellite: false,
         }
     }
 
@@ -625,11 +630,25 @@ impl SentinelApp {
         for action in TrayBridge::poll_events() {
             match action {
                 TrayAction::ShowWindow => {
+                    self.show_tray_satellite = false;
                     #[cfg(target_os = "macos")]
                     macos_dock::show_dock_icon();
                     self.visible = true;
                     ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
                     ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
+                }
+                TrayAction::QuickStatus => {
+                    self.show_tray_satellite = !self.show_tray_satellite;
+                    if self.show_tray_satellite {
+                        self.visible = true;
+                        ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
+                        // Borderless satellite style
+                        ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(false));
+                        ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(320.0, 480.0)));
+                    } else {
+                        ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(true));
+                        ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(1280.0, 750.0)));
+                    }
                 }
                 TrayAction::RunCheck => {
                     self.send_command(GuiCommand::RunCheck);
@@ -687,6 +706,102 @@ impl SentinelApp {
         if let Err(e) = self.command_tx.send(cmd) {
             tracing::warn!("Failed to send GUI command: {}", e);
         }
+    }
+
+    /// Render the premium satellite tray view.
+    fn show_tray_satellite_view(&mut self, ctx: &egui::Context) {
+        egui::CentralPanel::default()
+            .frame(egui::Frame::new().fill(theme::bg_primary()).inner_margin(0.0))
+            .show(ctx, |ui: &mut egui::Ui| {
+                ui.vertical(|ui: &mut egui::Ui| {
+                    // Title Bar (Satellite style)
+                    widgets::card(ui, |ui: &mut egui::Ui| {
+                        ui.horizontal(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new(icons::SHIELD).color(theme::ACCENT));
+                            ui.add_space(theme::SPACE_XS);
+                            ui.label(
+                                egui::RichText::new("RAPPORT CYBER RAPIDE")
+                                    .font(theme::font_title())
+                                    .size(11.0)
+                                    .strong(),
+                            );
+                            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
+                                if ui.button(icons::XMARK).clicked() {
+                                    self.show_tray_satellite = false;
+                                    ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(true));
+                                    ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(1280.0, 750.0)));
+                                }
+                                if ui.button(icons::EXTERNAL_LINK).clicked() {
+                                    self.show_tray_satellite = false;
+                                    self.visible = true;
+                                    ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(true));
+                                    ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(1280.0, 750.0)));
+                                }
+                            });
+                        });
+                    });
+
+                    ui.add_space(theme::SPACE_MD);
+
+                    // Radar Chart Section
+                    ui.vertical_centered(|ui: &mut egui::Ui| {
+                        let compliance = self.state.summary.compliance_score.unwrap_or(0.0) / 100.0;
+                        let threats = 1.0 - (self.state.suspicious_processes.len() as f32 / 10.0).min(1.0);
+                        let vulns = 1.0 - (self.state.vulnerability_findings.len() as f32 / 20.0).min(1.0);
+                        let resources = 1.0 - (self.state.resources.cpu_percent / 100.0).min(1.0);
+                        let network = 1.0 - (self.state.network_alerts as f32 / 5.0).min(1.0);
+
+                        let radar = widgets::TrayRadar::new(
+                            compliance,
+                            threats,
+                            vulns,
+                            resources as f32,
+                            network,
+                        );
+                        radar.show(ui, 240.0);
+                    });
+
+                    ui.add_space(theme::SPACE_MD);
+
+                    // Quick Stats Cards
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        ui.add_space(theme::SPACE_MD);
+                        widgets::card(ui, |ui: &mut egui::Ui| {
+                            ui.set_width(135.0);
+                            ui.vertical_centered(|ui: &mut egui::Ui| {
+                                ui.label(egui::RichText::new("SCORE").font(theme::font_small()));
+                                ui.label(
+                                    egui::RichText::new(format!("{:.0}%", self.state.summary.compliance_score.unwrap_or(0.0)))
+                                        .font(theme::font_title())
+                                        .color(theme::ACCENT),
+                                );
+                            });
+                        });
+                        ui.add_space(theme::SPACE_SM);
+                        widgets::card(ui, |ui: &mut egui::Ui| {
+                            ui.set_width(135.0);
+                            ui.vertical_centered(|ui: &mut egui::Ui| {
+                                ui.label(egui::RichText::new("MENACES").font(theme::font_small()));
+                                let count = self.state.suspicious_processes.len();
+                                ui.label(
+                                    egui::RichText::new(count.to_string())
+                                        .font(theme::font_title())
+                                        .color(if count > 0 { theme::ERROR } else { theme::SUCCESS }),
+                                );
+                            });
+                        });
+                    });
+
+                    ui.add_space(theme::SPACE_LG);
+
+                    // Actions
+                    ui.vertical_centered(|ui: &mut egui::Ui| {
+                        if ui.button("LANCER UNE ANALYSE COMPLÈTE").clicked() {
+                            self.send_command(GuiCommand::RunCheck);
+                        }
+                    });
+                });
+            });
     }
 }
 
@@ -749,7 +864,7 @@ impl eframe::App for SentinelApp {
                         .fill(theme::bg_primary())
                         .inner_margin(0.0),
                 )
-                .show(ctx, |ui| {
+                .show(ctx, |ui: &mut egui::Ui| {
                     if let Some(cmd) = self.enrollment_wizard.show(ui) {
                         match &cmd {
                             EnrollmentCommand::Finish => {
@@ -775,6 +890,14 @@ impl eframe::App for SentinelApp {
             return;
         }
 
+        // ── Satellite Tray View (Premium Animated Radar) ──
+        if self.show_tray_satellite {
+            self.show_tray_satellite_view(ctx);
+            // In satellite mode, we might want to still have the main window hidden or shown.
+            // For now, if satellite is on, we take over the whole frame (borderless small window style).
+            return;
+        }
+
         // ── Main UI ──
 
         // Sidebar
@@ -785,7 +908,7 @@ impl eframe::App for SentinelApp {
                     .fill(theme::bg_sidebar())
                     .stroke(egui::Stroke::new(0.5, theme::border())),
             )
-            .show(ctx, |ui| {
+            .show(ctx, |ui: &mut egui::Ui| {
                 let scanning = self.state.summary.status == crate::dto::GuiAgentStatus::Scanning;
                 let sync_state = widgets::sidebar::SidebarSyncState {
                     syncing: self.state.sync_in_progress,
@@ -817,10 +940,10 @@ impl eframe::App for SentinelApp {
                         bottom: 24,
                     }),
             )
-            .show(ctx, |ui| {
+            .show(ctx, |ui: &mut egui::Ui| {
                 egui::ScrollArea::vertical()
                     .auto_shrink(egui::Vec2b::new(false, false))
-                    .show(ui, |ui| {
+                    .show(ui, |ui: &mut egui::Ui| {
                         egui::Frame::new()
                             .inner_margin(egui::Margin {
                                 left: 0,
@@ -828,7 +951,7 @@ impl eframe::App for SentinelApp {
                                 top: 0,
                                 bottom: 0,
                             })
-                            .show(ui, |ui| match self.page {
+                            .show(ui, |ui: &mut egui::Ui| match self.page {
                                 Page::Dashboard => {
                                     if let Some(cmd) = pages::DashboardPage::show(ui, &self.state) {
                                         self.send_command(cmd);
@@ -951,15 +1074,15 @@ impl SentinelApp {
 
         egui::CentralPanel::default()
             .frame(egui::Frame::new().fill(theme::bg_primary()))
-            .show(ctx, |ui| {
+            .show(ctx, |ui: &mut egui::Ui| {
                 let size = ui.available_size();
                 ui.allocate_new_ui(
                     egui::UiBuilder::new().max_rect(egui::Rect::from_center_size(
                         egui::pos2(size.x / 2.0, size.y / 2.0),
                         egui::vec2(400.0, 360.0),
                     )),
-                    |ui| {
-                        ui.vertical_centered(|ui| {
+                    |ui: &mut egui::Ui| {
+                        ui.vertical_centered(|ui: &mut egui::Ui| {
                             // Logo image
                             let logo = egui::Image::from_bytes(
                                 "bytes://ia_logo",

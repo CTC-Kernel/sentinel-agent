@@ -11,6 +11,8 @@ use agent_common::config::AgentConfig;
 #[cfg(feature = "tray")]
 use agent_core::tray;
 use agent_core::{AgentRuntime, init_logging, service};
+#[cfg(feature = "gui")]
+use agent_core::events::GuiNotification;
 use clap::{Parser, Subcommand};
 #[cfg(feature = "tray")]
 use muda::MenuEvent;
@@ -784,7 +786,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
             if let Some(db) = db_arc {
                 runtime = runtime.with_database(db);
             }
-            runtime.set_gui_event_tx(bg_event_tx);
+            runtime.set_gui_event_tx(bg_event_tx.clone());
             let handle = runtime.handle();
 
             // Spawn command processor
@@ -844,6 +846,29 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 _ => "trace",
                             };
                             info!("[AUDIT] GUI user set log level to {}", level_str);
+                        }
+                        Ok(GuiCommand::Remediate { check_id }) => {
+                            if agent_core::service::is_admin() {
+                                info!("[AUDIT] GUI user requested remediation for check: {}", check_id);
+                                handle.remediate(check_id);
+                            } else {
+                                warn!("[AUDIT] GUI user requested remediation but lacks admin privileges: {}", check_id);
+                                let _ = bg_event_tx.send(AgentEvent::Notification {
+                                    notification: GuiNotification {
+                                        id: uuid::Uuid::new_v4(),
+                                        title: "Privilèges insuffisants".to_string(),
+                                        body: "L'application doit être lancée en tant qu'administrateur pour appliquer les remédiations.".to_string(),
+                                        severity: "error".to_string(),
+                                        timestamp: chrono::Utc::now(),
+                                        read: false,
+                                        action: None,
+                                    },
+                                });
+                            }
+                        }
+                        Ok(GuiCommand::RemediatePreview { check_id }) => {
+                            info!("[AUDIT] GUI user previewed remediation for check: {}", check_id);
+                            handle.remediate_preview(check_id);
                         }
                         Ok(_) => {}
                         Err(mpsc::TryRecvError::Empty) => {

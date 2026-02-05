@@ -18,8 +18,9 @@ impl NetworkPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
-            "R\u{00e9}seau",
-            Some("Cartographie des interfaces et connexions actives"),
+            "Réseau",
+            Some("CARTOGRAPHIE DES INTERFACES ET CONNEXIONS ACTIVES"),
+            Some("Analysez l'état des interfaces réseau et la liste des connexions actives. Les alertes DNS ou les flux vers des IPs suspectes sont mis en évidence pour faciliter l'investigation."),
         );
         ui.add_space(theme::SPACE_LG);
 
@@ -28,16 +29,16 @@ impl NetworkPage {
             widgets::protected_state(
                 ui,
                 icons::WARNING,
-                "Aucune donn\u{00e9}e r\u{00e9}seau",
-                "Veuillez lancer un scan pour d\u{00e9}tecter les interfaces et les connexions.",
+                "AUCUNE DONNÉE RÉSEAU",
+                "Veuillez lancer un scan pour détecter les interfaces et les connexions.",
             );
 
             ui.add_space(theme::SPACE_MD);
-            ui.vertical_centered(|ui| {
+            ui.vertical_centered(|ui: &mut egui::Ui| {
                 let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
                 if widgets::button::primary_button_loading(
                     ui,
-                    format!("{}  {}", if is_scanning { "Scan en cours..." } else { "Lancer un scan" }, icons::PLAY),
+                    format!("{}  {}", if is_scanning { "SCAN EN COURS" } else { "LANCER UN SCAN" }, icons::PLAY),
                     !is_scanning,
                     is_scanning,
                 )
@@ -50,12 +51,12 @@ impl NetworkPage {
             return command;
         }
 
-        // Action bar
-        ui.horizontal(|ui| {
+        // Action bar (AAA Grade)
+        ui.horizontal(|ui: &mut egui::Ui| {
             let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
             if widgets::button::primary_button_loading(
                 ui,
-                format!("{}  {}", if is_scanning { "Scan en cours..." } else { "Lancer le scan" }, icons::PLAY),
+                format!("{}  {}", if is_scanning { "SCAN EN COURS" } else { "LANCER LE SCAN" }, icons::PLAY),
                 !is_scanning,
                 is_scanning,
             )
@@ -66,84 +67,69 @@ impl NetworkPage {
         });
         ui.add_space(theme::SPACE_MD);
 
-        // Summary row
-        let iface_count = if state.network_interface_list.is_empty() {
-            state.network_interfaces
-        } else {
-            state.network_interface_list.len() as u32
-        };
-        let conn_count = if state.network_connection_list.is_empty() {
-            state.network_connections
-        } else {
-            state.network_connection_list.len() as u32
-        };
-        let card_gap = theme::SPACE_SM;
-        let card_w = (ui.available_width() - card_gap * 2.0) / 3.0;
-        let (alert_color, alert_icon) = if state.network_alerts > 0 {
-            (theme::ERROR, icons::WARNING)
-        } else {
-            (theme::SUCCESS, icons::CIRCLE_CHECK)
-        };
-        ui.horizontal(|ui| {
-            ui.spacing_mut().item_spacing.x = card_gap;
-            Self::summary_card(
-                ui,
-                card_w,
-                "INTERFACES",
-                &iface_count.to_string(),
+        // Summary row (AAA Grade)
+        let iface_count = if state.network_interface_list.is_empty() { state.network_interfaces } else { state.network_interface_list.len() as u32 };
+        let conn_count = if state.network_connection_list.is_empty() { state.network_connections } else { state.network_connection_list.len() as u32 };
+        
+        let card_grid = widgets::ResponsiveGrid::new(280.0, theme::SPACE_SM);
+        let items = vec![
+            (
+                "INTERFACES RÉSEAU",
+                iface_count.to_string(),
                 theme::ACCENT,
                 icons::WIFI,
-            );
-            Self::summary_card(
-                ui,
-                card_w,
-                "CONNEXIONS",
-                &conn_count.to_string(),
+            ),
+            (
+                "CONNEXIONS ACTIVES",
+                conn_count.to_string(),
                 theme::ACCENT_LIGHT,
                 icons::NETWORK,
-            );
-            Self::summary_card(
-                ui,
-                card_w,
-                "ALERTES",
-                &state.network_alerts.to_string(),
-                alert_color,
-                alert_icon,
-            );
+            ),
+            (
+                "ALERTES FLUX",
+                state.network_alerts.to_string(),
+                if state.network_alerts > 0 { theme::ERROR } else { theme::SUCCESS },
+                if state.network_alerts > 0 { icons::WARNING } else { icons::CIRCLE_CHECK },
+            ),
+        ];
+
+        card_grid.show(ui, &items, |ui, width, (label, value, color, icon)| {
+            Self::summary_card(ui, width, label, value, *color, icon);
         });
 
         ui.add_space(theme::SPACE_LG);
 
         // Interfaces table
-        ui.push_id("interfaces_section", |ui| {
+        ui.push_id("interfaces_section", |ui: &mut egui::Ui| {
             Self::interfaces_table(ui, state);
         });
 
         ui.add_space(theme::SPACE_LG);
 
         // Connections table
-        ui.push_id("connections_section", |ui| {
+        ui.push_id("connections_section", |ui: &mut egui::Ui| {
             Self::connections_table(ui, state);
         });
 
         ui.add_space(theme::SPACE_LG);
 
-        // Security section
-        widgets::card(ui, |ui| {
+        // Security section (AAA Grade)
+        widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("S\u{00c9}CURIT\u{00c9}")
-                    .font(theme::font_small())
+                egui::RichText::new("ANALYSE DE SÉCURITÉ RÉSEAU")
+                    .font(egui::FontId::proportional(10.0))
                     .color(theme::text_tertiary())
+                    .extra_letter_spacing(0.5)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
 
-            ui.vertical_centered(|ui| {
+            ui.vertical_centered(|ui: &mut egui::Ui| {
                 if state.network_alerts == 0 {
                     widgets::protected_state(
                         ui,
                         icons::SHIELD_CHECK,
-                        "Réseau Sécurisé",
+                        "RÉSEAU SÉCURISÉ",
                         "Le trafic est analysé en temps réel. Aucun flux malveillant détecté.",
                     );
                 } else {
@@ -155,15 +141,16 @@ impl NetworkPage {
                     );
                     ui.add_space(theme::SPACE_SM);
                     ui.label(
-                        egui::RichText::new(format!("{} ALERTE(S)", state.network_alerts))
-                            .font(theme::font_small())
+                        egui::RichText::new(format!("{} ALERTE(S) DÉTECTÉE(S)", state.network_alerts))
+                            .font(egui::FontId::proportional(14.0))
                             .color(theme::ERROR)
                             .strong(),
                     );
                     ui.label(
-                        egui::RichText::new("Actions requises imm\u{00e9}diatement")
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary()),
+                        egui::RichText::new("ACTIONS DE MITIGATION REQUISES IMMÉDIATEMENT")
+                            .font(egui::FontId::proportional(10.0))
+                            .color(theme::text_tertiary())
+                            .extra_letter_spacing(0.5),
                     );
                 }
             });
@@ -175,19 +162,21 @@ impl NetworkPage {
     }
 
     fn interfaces_table(ui: &mut Ui, state: &AppState) {
-        widgets::card(ui, |ui| {
-            ui.horizontal(|ui| {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
-                    egui::RichText::new("INTERFACES R\u{00c9}SEAU")
-                        .font(theme::font_small())
+                    egui::RichText::new("INTERFACES RÉSEAU DETECTÉES")
+                        .font(egui::FontId::proportional(10.0))
                         .color(theme::text_tertiary())
+                        .extra_letter_spacing(0.5)
                         .strong(),
                 );
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                     let export_btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                            .font(theme::font_small())
-                            .color(theme::text_secondary()),
+                        egui::RichText::new(format!("{}  EXPORT CSV", icons::DOWNLOAD))
+                            .font(egui::FontId::proportional(10.0))
+                            .color(theme::text_tertiary())
+                            .strong(),
                     )
                     .fill(theme::bg_elevated())
                     .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
@@ -199,7 +188,7 @@ impl NetworkPage {
             ui.add_space(theme::SPACE_MD);
 
             if state.network_interface_list.is_empty() {
-                widgets::empty_state(ui, icons::WIFI, "Aucune interface détectée", None);
+                widgets::empty_state(ui, icons::WIFI, "AUCUNE INTERFACE DÉTECTÉE", None);
             } else {
                 use egui_extras::{Column, TableBuilder};
 
@@ -207,82 +196,57 @@ impl NetworkPage {
                     .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(100.0).at_least(80.0)) // Name
-                    .column(Column::initial(100.0).at_least(80.0)) // Type
-                    .column(Column::initial(80.0).at_least(60.0)) // Status
-                    .column(Column::initial(150.0).at_least(100.0)) // IPv4
+                    .column(Column::initial(120.0).at_least(80.0)) // Name
+                    .column(Column::initial(120.0).at_least(80.0)) // Type
+                    .column(Column::initial(100.0).at_least(60.0)) // Status
+                    .column(Column::initial(160.0).at_least(100.0)) // IPv4
                     .column(Column::remainder()); // MAC
 
                 table
-                    .header(32.0, |mut header| {
-                        header.col(|ui| {
-                            ui.label(
-                                egui::RichText::new("NOM")
-                                    .font(theme::font_small())
-                                    .color(theme::text_tertiary())
-                                    .strong(),
-                            );
+                    .header(30.0, |mut header| {
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("NOM").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
                         });
-                        header.col(|ui| {
-                            ui.label(
-                                egui::RichText::new("TYPE")
-                                    .font(theme::font_small())
-                                    .color(theme::text_tertiary())
-                                    .strong(),
-                            );
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("TYPE").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
                         });
-                        header.col(|ui| {
-                            ui.label(
-                                egui::RichText::new("STATUT")
-                                    .font(theme::font_small())
-                                    .color(theme::text_tertiary())
-                                    .strong(),
-                            );
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("STATUT").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
                         });
-                        header.col(|ui| {
-                            ui.label(
-                                egui::RichText::new("IPV4")
-                                    .font(theme::font_small())
-                                    .color(theme::text_tertiary())
-                                    .strong(),
-                            );
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("IPV4").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
                         });
-                        header.col(|ui| {
-                            ui.label(
-                                egui::RichText::new("MAC")
-                                    .font(theme::font_small())
-                                    .color(theme::text_tertiary())
-                                    .strong(),
-                            );
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("MAC").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
                         });
                     })
                     .body(|body| {
-                        body.rows(40.0, state.network_interface_list.len(), |mut row| {
+                        body.rows(44.0, state.network_interface_list.len(), |mut row| {
                             let iface = &state.network_interface_list[row.index()];
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&iface.name)
-                                        .font(theme::font_body())
+                                        .font(egui::FontId::proportional(13.0))
                                         .color(theme::text_primary())
                                         .strong(),
                                 );
                             });
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&iface.interface_type)
-                                        .font(theme::font_small())
+                                        .font(egui::FontId::proportional(11.0))
                                         .color(theme::text_secondary()),
                                 );
                             });
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 let (label, color) = if iface.status == "up" {
-                                    ("UP", theme::SUCCESS)
+                                    ("OPÉRATIONNEL", theme::SUCCESS)
                                 } else {
-                                    ("DOWN", theme::text_tertiary())
+                                    ("HORS-LIGNE", theme::text_tertiary())
                                 };
                                 widgets::status_badge(ui, label, color);
                             });
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 let addr = iface
                                     .ipv4_addresses
                                     .first()
@@ -294,7 +258,7 @@ impl NetworkPage {
                                         .color(theme::text_secondary()),
                                 );
                             });
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 let mac = iface.mac_address.as_deref().unwrap_or("--");
                                 ui.label(
                                     egui::RichText::new(mac)
@@ -309,19 +273,21 @@ impl NetworkPage {
     }
 
     fn connections_table(ui: &mut Ui, state: &mut AppState) {
-        widgets::card(ui, |ui| {
-            ui.horizontal(|ui| {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new("CONNEXIONS ACTIVES")
-                        .font(theme::font_small())
+                        .font(egui::FontId::proportional(10.0))
                         .color(theme::text_tertiary())
+                        .extra_letter_spacing(0.5)
                         .strong(),
                 );
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                     let export_btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                            .font(theme::font_small())
-                            .color(theme::text_secondary()),
+                        egui::RichText::new(format!("{}  EXPORT CSV", icons::DOWNLOAD))
+                            .font(egui::FontId::proportional(10.0))
+                            .color(theme::text_tertiary())
+                            .strong(),
                     )
                     .fill(theme::bg_elevated())
                     .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
@@ -361,7 +327,7 @@ impl NetworkPage {
             ui.add_space(theme::SPACE_MD);
 
             if filtered.is_empty() {
-                widgets::empty_state(ui, icons::NETWORK, "Aucune connexion active", None);
+                widgets::empty_state(ui, icons::NETWORK, "AUCUNE CONNEXION ACTIVE", None);
             } else {
                 use egui_extras::{Column, TableBuilder};
 
@@ -369,67 +335,37 @@ impl NetworkPage {
                     .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(60.0).at_least(40.0)) // Proto
-                    .column(Column::initial(180.0).at_least(100.0)) // Local
-                    .column(Column::initial(180.0).at_least(100.0)) // Remote
-                    .column(Column::initial(100.0).at_least(80.0)) // State
+                    .column(Column::initial(80.0).at_least(40.0)) // Proto
+                    .column(Column::initial(200.0).at_least(100.0)) // Local
+                    .column(Column::initial(200.0).at_least(100.0)) // Remote
+                    .column(Column::initial(110.0).at_least(80.0)) // State
                     .column(Column::remainder()); // Process
 
                 table
-                    .header(32.0, |mut header| {
-                        header.col(|ui| {
-                            ui.label(
-                                egui::RichText::new("PROTO")
-                                    .font(theme::font_small())
-                                    .color(theme::text_tertiary())
-                                    .strong(),
-                            );
+                    .header(30.0, |mut header| {
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("PROTO").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
                         });
-                        header.col(|ui| {
-                            ui.label(
-                                egui::RichText::new("LOCAL")
-                                    .font(theme::font_small())
-                                    .color(theme::text_tertiary())
-                                    .strong(),
-                            );
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("LOCAL").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
                         });
-                        header.col(|ui| {
-                            ui.label(
-                                egui::RichText::new("DISTANT")
-                                    .font(theme::font_small())
-                                    .color(theme::text_tertiary())
-                                    .strong(),
-                            );
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("DISTANT").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
                         });
-                        header.col(|ui| {
-                            ui.label(
-                                egui::RichText::new("\u{00c9}TAT")
-                                    .font(theme::font_small())
-                                    .color(theme::text_tertiary())
-                                    .strong(),
-                            );
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("ÉTAT").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
                         });
-                        header.col(|ui| {
-                            ui.label(
-                                egui::RichText::new("PROCESSUS")
-                                    .font(theme::font_small())
-                                    .color(theme::text_tertiary())
-                                    .strong(),
-                            );
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("PROCESSUS").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
                         });
                     })
                     .body(|body| {
-                        body.rows(40.0, filtered.len(), |mut row| {
+                        body.rows(44.0, filtered.len(), |mut row| {
                             let conn = &state.network_connection_list[filtered[row.index()]];
-                            row.col(|ui| {
-                                ui.label(
-                                    egui::RichText::new(&conn.protocol)
-                                        .font(theme::font_small())
-                                        .color(theme::text_secondary())
-                                        .strong(),
-                                );
+                            row.col(|ui: &mut egui::Ui| {
+                                widgets::status_badge(ui, &conn.protocol, theme::bg_elevated().linear_multiply(2.0));
                             });
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(format!(
                                         "{}:{}",
@@ -439,7 +375,7 @@ impl NetworkPage {
                                     .color(theme::text_primary()),
                                 );
                             });
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 let remote = if let (Some(addr), Some(port)) =
                                     (&conn.remote_address, conn.remote_port)
                                 {
@@ -455,7 +391,7 @@ impl NetworkPage {
                                         .color(theme::text_secondary()),
                                 );
                             });
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 let (label, color) = match conn.state.as_str() {
                                     "ESTABLISHED" => ("ESTABLISHED", theme::SUCCESS),
                                     "LISTEN" => ("LISTEN", theme::INFO),
@@ -464,17 +400,15 @@ impl NetworkPage {
                                 };
                                 widgets::status_badge(ui, label, color);
                             });
-                            row.col(|ui| {
-                                ui.horizontal(|ui| {
-                                    ui.label(
-                                        egui::RichText::new(icons::CUBE)
-                                            .color(theme::text_tertiary()),
-                                    );
+                            row.col(|ui: &mut egui::Ui| {
+                                ui.horizontal(|ui: &mut egui::Ui| {
+                                    ui.label(egui::RichText::new(icons::CUBE).color(theme::text_tertiary()));
                                     let proc_name = conn.process_name.as_deref().unwrap_or("--");
                                     ui.label(
                                         egui::RichText::new(proc_name)
-                                            .font(theme::font_body())
-                                            .color(theme::text_primary()),
+                                            .font(egui::FontId::proportional(12.0))
+                                            .color(theme::text_primary())
+                                            .strong(),
                                     );
                                 });
                             });
@@ -492,24 +426,30 @@ impl NetworkPage {
         color: egui::Color32,
         icon: &str,
     ) {
-        ui.vertical(|ui| {
+        ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
-            widgets::card(ui, |ui| {
-                ui.horizontal(|ui| {
-                    ui.vertical(|ui| {
-                        ui.label(egui::RichText::new(value).size(24.0).color(color).strong());
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.vertical(|ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new(value)
+                                .font(egui::FontId::proportional(24.0))
+                                .color(color)
+                                .strong()
+                        );
                         ui.label(
                             egui::RichText::new(label)
-                                .font(theme::font_small())
+                                .font(egui::FontId::proportional(10.0))
                                 .color(theme::text_tertiary())
+                                .extra_letter_spacing(0.5)
                                 .strong(),
                         );
                     });
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(icon)
                                 .size(28.0)
-                                .color(color.linear_multiply(0.4)),
+                                .color(color.linear_multiply(0.25)),
                         );
                     });
                 });

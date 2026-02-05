@@ -16,20 +16,20 @@ impl FimPage {
         let mut command = None;
 
         ui.add_space(theme::SPACE_MD);
-        ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
-            "Int\u{00e9}grit\u{00e9} des fichiers",
-            Some("Surveillance de l\u{2019}int\u{00e9}grit\u{00e9} des fichiers syst\u{00e8}me"),
+            "Intégrité des fichiers",
+            Some("SURVEILLANCE DE L’INTÉGRITÉ DES FICHIERS SYSTÈME ET DES CONFIGURATIONS"),
+            Some("Surveillez en temps réel les modifications apportées aux fichiers critiques et aux fichiers de configuration. Toute création, suppression ou modification de permission génère une alerte."),
         );
         ui.add_space(theme::SPACE_LG);
 
-        // Action bar
-        ui.horizontal(|ui| {
+        // Action bar (AAA Grade)
+        ui.horizontal(|ui: &mut egui::Ui| {
             let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
             if widgets::button::primary_button_loading(
                 ui,
-                format!("{}  {}", if is_scanning { "Scan en cours..." } else { "Lancer le scan" }, icons::PLAY),
+                format!("{}  {}", if is_scanning { "SCAN EN COURS" } else { "LANCER LE SCAN FIM" }, icons::PLAY),
                 !is_scanning,
                 is_scanning,
             )
@@ -40,53 +40,40 @@ impl FimPage {
         });
         ui.add_space(theme::SPACE_MD);
 
-        // ── Summary cards row ───────────────────────────────────────────
+        // Summary row (AAA Grade)
         let monitored = state.fim_monitored_count;
         let changes_today = state.fim_changes_today;
         let active_alerts = state.fim_alerts.iter().filter(|a| !a.acknowledged).count();
 
-        let card_gap = theme::SPACE_SM;
-        let card_w = (ui.available_width() - card_gap * 2.0) / 3.0;
-        ui.horizontal(|ui| {
-            ui.spacing_mut().item_spacing.x = card_gap;
-            Self::summary_card(
-                ui,
-                card_w,
-                "FICHIERS SURVEILL\u{00c9}S",
-                &monitored.to_string(),
+        let card_grid = widgets::ResponsiveGrid::new(280.0, theme::SPACE_SM);
+        let items = vec![
+            (
+                "FICHIERS SURVEILLÉS",
+                monitored.to_string(),
                 theme::ACCENT,
-                // fa-file
-                "\u{f15b}",
-            );
-            Self::summary_card(
-                ui,
-                card_w,
-                "MODIFICATIONS AUJOURD\u{2019}HUI",
-                &changes_today.to_string(),
-                if changes_today > 0 {
-                    theme::WARNING
-                } else {
-                    theme::text_tertiary()
-                },
+                "\u{f15b}", // fa-file
+            ),
+            (
+                "MODIFICATIONS /24H",
+                changes_today.to_string(),
+                if changes_today > 0 { theme::WARNING } else { theme::SUCCESS },
                 icons::CLOCK,
-            );
-            Self::summary_card(
-                ui,
-                card_w,
+            ),
+            (
                 "ALERTES ACTIVES",
-                &active_alerts.to_string(),
-                if active_alerts > 0 {
-                    theme::ERROR
-                } else {
-                    theme::text_tertiary()
-                },
+                active_alerts.to_string(),
+                if active_alerts > 0 { theme::ERROR } else { theme::SUCCESS },
                 icons::WARNING,
-            );
+            ),
+        ];
+
+        card_grid.show(ui, &items, |ui, width, (label, value, color, icon)| {
+            Self::summary_card(ui, width, label, value, *color, icon);
         });
 
         ui.add_space(theme::SPACE_LG);
 
-        // ── Search / filter bar ─────────────────────────────────────────
+        // Search / filter bar (AAA Grade)
         let created_active = state.fim_filter.as_deref() == Some("created");
         let modified_active = state.fim_filter.as_deref() == Some("modified");
         let deleted_active = state.fim_filter.as_deref() == Some("deleted");
@@ -118,11 +105,11 @@ impl FimPage {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.fim_search,
-            "Rechercher (chemin, type de modification)...",
+            "RECHERCHER (CHEMIN, TYPE DE MODIFICATION)...",
         )
-        .chip("CR\u{00c9}\u{00c9}", created_active, theme::SUCCESS)
-        .chip("MODIFI\u{00c9}", modified_active, theme::WARNING)
-        .chip("SUPPRIM\u{00c9}", deleted_active, theme::ERROR)
+        .chip("CRÉÉ", created_active, theme::SUCCESS)
+        .chip("MODIFIÉ", modified_active, theme::WARNING)
+        .chip("SUPPRIMÉ", deleted_active, theme::ERROR)
         .chip("PERMISSIONS", perm_active, theme::INFO)
         .result_count(result_count)
         .show(ui);
@@ -144,13 +131,14 @@ impl FimPage {
 
         ui.add_space(theme::SPACE_SM);
 
-        // CSV Export
-        ui.horizontal(|ui| {
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+        // Action Buttons (AAA Grade)
+        ui.horizontal(|ui: &mut egui::Ui| {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                 let export_btn = egui::Button::new(
-                    egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                        .font(theme::font_small())
-                        .color(theme::text_secondary()),
+                    egui::RichText::new(format!("{}  EXPORT CSV", icons::DOWNLOAD))
+                        .font(egui::FontId::proportional(10.0))
+                        .color(theme::text_tertiary())
+                        .strong(),
                 )
                 .fill(theme::bg_elevated())
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
@@ -162,12 +150,13 @@ impl FimPage {
 
         ui.add_space(theme::SPACE_SM);
 
-        // ── Events table ────────────────────────────────────────────────
-        widgets::card(ui, |ui| {
+        // Events table (AAA Grade)
+        widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("\u{00c9}V\u{00c9}NEMENTS FIM")
-                    .font(theme::font_small())
+                egui::RichText::new("ÉVÉNEMENTS FIM RÉCENTS")
+                    .font(egui::FontId::proportional(10.0))
                     .color(theme::text_tertiary())
+                    .extra_letter_spacing(0.5)
                     .strong(),
             );
             ui.add_space(theme::SPACE_MD);
@@ -175,15 +164,15 @@ impl FimPage {
             if state.fim_alerts.is_empty() {
                 widgets::protected_state(
                     ui,
-                    icons::FILE_SHIELD, // or SHIELD_CHECK
-                    "Intégrité Confirmée",
-                    "Tous les fichiers critiques sont sous surveillance. Aucune anomalie.",
+                    icons::FILE_SHIELD,
+                    "INTÉGRITÉ CONFIRMÉE",
+                    "Tous les fichiers critiques sont sous surveillance. Aucune anomalie détectée.",
                 );
             } else if filtered.is_empty() {
                 widgets::empty_state(
                     ui,
                     icons::FILTER,
-                    "Aucun résultat",
+                    "AUCUN RÉSULTAT",
                     Some("Aucun événement ne correspond à vos critères de recherche."),
                 );
             } else {
@@ -193,88 +182,90 @@ impl FimPage {
                     .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(140.0).at_least(100.0)) // Timestamp
+                    .column(Column::initial(150.0).at_least(100.0)) // Timestamp
                     .column(Column::remainder().at_least(180.0)) // File path
-                    .column(Column::initial(120.0).at_least(90.0)) // Change type
-                    .column(Column::initial(100.0).at_least(80.0)); // Action
+                    .column(Column::initial(130.0).at_least(90.0)) // Change type
+                    .column(Column::initial(110.0).at_least(80.0)); // Action
 
                 table
-                    .header(28.0, |mut header| {
-                        header.col(|ui| {
-                            ui.strong("HORODATAGE");
+                    .header(30.0, |mut header| {
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("HORODATAGE").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
                         });
-                        header.col(|ui| {
-                            ui.strong("FICHIER");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("FICHIER").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
                         });
-                        header.col(|ui| {
-                            ui.strong("TYPE");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("TYPE").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
                         });
-                        header.col(|ui| {
-                            ui.strong("ACTION");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("ACTIONS").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong());
                         });
                     })
                     .body(|body| {
-                        body.rows(44.0, filtered.len(), |mut row| {
+                        body.rows(48.0, filtered.len(), |mut row| {
                             let idx = filtered[row.index()];
 
-                            // Timestamp column
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 let ts = state.fim_alerts[idx]
                                     .timestamp
                                     .format("%d/%m/%Y %H:%M:%S")
                                     .to_string();
                                 ui.label(
                                     egui::RichText::new(ts)
-                                        .font(theme::font_small())
+                                        .font(theme::font_mono())
+                                        .size(11.0)
                                         .color(theme::text_secondary()),
                                 );
                             });
 
-                            // File path column (truncated if long)
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 let path = &state.fim_alerts[idx].path;
                                 let display_path = if path.len() > 60 {
                                     format!("...{}", &path[path.len() - 57..])
                                 } else {
                                     path.clone()
                                 };
-                                ui.label(
-                                    egui::RichText::new(format!("\u{f15b}  {}", display_path))
-                                        .font(theme::font_body())
-                                        .color(theme::text_primary()),
-                                )
-                                .on_hover_text(path);
+                                ui.horizontal(|ui: &mut egui::Ui| {
+                                    ui.label(egui::RichText::new(icons::FILE).color(theme::text_tertiary()));
+                                    ui.label(
+                                        egui::RichText::new(display_path)
+                                            .font(egui::FontId::proportional(13.0))
+                                            .color(theme::text_primary())
+                                            .strong(),
+                                    )
+                                    .on_hover_text(path);
+                                });
                             });
 
-                            // Change type badge
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 let (label, color) =
                                     Self::change_type_display(&state.fim_alerts[idx].change_type);
                                 widgets::status_badge(ui, label, color);
                             });
 
-                            // Acknowledge button
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 let alert = &state.fim_alerts[idx];
                                 if alert.acknowledged {
                                     ui.label(
                                         egui::RichText::new(format!(
-                                            "{}  Acquitt\u{00e9}",
+                                            "{}  ACQUITTÉ",
                                             icons::CIRCLE_CHECK
                                         ))
-                                        .font(theme::font_small())
-                                        .color(theme::text_tertiary()),
+                                        .font(egui::FontId::proportional(9.0))
+                                        .color(theme::text_tertiary())
+                                        .strong(),
                                     );
                                 } else {
                                     let btn = egui::Button::new(
-                                        egui::RichText::new(format!("{}  Acquitter", icons::CHECK))
-                                            .font(theme::font_small())
+                                        egui::RichText::new(format!("{}  ACQUITTER", icons::CHECK))
+                                            .font(egui::FontId::proportional(10.0))
                                             .color(theme::text_on_accent())
                                             .strong(),
                                     )
-                                    .fill(theme::ACCENT)
+                                    .fill(theme::ACCENT.linear_multiply(0.8))
                                     .corner_radius(
-                                        egui::CornerRadius::same(theme::BUTTON_ROUNDING),
+                                        egui::CornerRadius::same(theme::BADGE_ROUNDING),
                                     );
                                     if ui.add(btn).clicked() {
                                         let alert_id = state.fim_alerts[idx].id.clone();
@@ -304,24 +295,30 @@ impl FimPage {
         color: egui::Color32,
         icon: &str,
     ) {
-        ui.vertical(|ui| {
+        ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
-            widgets::card(ui, |ui| {
-                ui.horizontal(|ui| {
-                    ui.vertical(|ui| {
-                        ui.label(egui::RichText::new(value).size(24.0).color(color).strong());
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.vertical(|ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new(value)
+                                .font(egui::FontId::proportional(24.0))
+                                .color(color)
+                                .strong()
+                        );
                         ui.label(
                             egui::RichText::new(label)
-                                .font(theme::font_small())
+                                .font(egui::FontId::proportional(10.0))
                                 .color(theme::text_tertiary())
+                                .extra_letter_spacing(0.5)
                                 .strong(),
                         );
                     });
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(icon)
                                 .size(28.0)
-                                .color(color.linear_multiply(0.4)),
+                                .color(color.linear_multiply(0.25)),
                         );
                     });
                 });
@@ -331,11 +328,11 @@ impl FimPage {
 
     fn change_type_display(change_type: &str) -> (&'static str, egui::Color32) {
         match change_type {
-            "created" => ("CR\u{00c9}\u{00c9}", theme::SUCCESS),
-            "modified" => ("MODIFI\u{00c9}", theme::WARNING),
-            "deleted" => ("SUPPRIM\u{00c9}", theme::ERROR),
+            "created" => ("CRÉÉ", theme::SUCCESS),
+            "modified" => ("MODIFIÉ", theme::WARNING),
+            "deleted" => ("SUPPRIMÉ", theme::ERROR),
             "permission_changed" => ("PERMISSIONS", theme::INFO),
-            "renamed" => ("RENOMM\u{00c9}", theme::WARNING),
+            "renamed" => ("RENOMMÉ", theme::WARNING),
             _ => ("INCONNU", theme::text_tertiary()),
         }
     }
@@ -351,9 +348,9 @@ impl FimPage {
                     e.change_type.clone(),
                     e.timestamp.to_rfc3339(),
                     if e.acknowledged {
-                        "Acquitt\u{00e9}"
+                        "Acquitté"
                     } else {
-                        "Non acquitt\u{00e9}"
+                        "Non acquitté"
                     }
                     .to_string(),
                 ]

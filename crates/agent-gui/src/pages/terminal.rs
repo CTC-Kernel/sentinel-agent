@@ -44,18 +44,20 @@ impl TerminalPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
-            "Terminal",
-            Some("Flux temps-r\u{00e9}el de l'activit\u{00e9} de l'agent"),
+            "Terminal Analytique",
+            Some("FLUX EN TEMPS RÉEL DES ÉVÉNEMENTS ET DE L'ACTIVITÉ DE L'AGENT"),
+            Some("Suivez en temps réel l'activité technique de l'agent. Ce flux bas niveau est utile pour le diagnostic et la vérification du bon fonctionnement des modules de scan et de surveillance."),
         );
         ui.add_space(theme::SPACE_LG);
 
-        // Action bar
-        ui.horizontal(|ui| {
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+        // Action bar (AAA Grade)
+        ui.horizontal(|ui: &mut egui::Ui| {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                 let export_btn = egui::Button::new(
-                    egui::RichText::new(format!("{}  Export logs", icons::DOWNLOAD))
-                        .font(theme::font_small())
-                        .color(theme::text_secondary()),
+                    egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
+                        .font(egui::FontId::proportional(10.0))
+                        .color(theme::text_tertiary())
+                        .strong(),
                 )
                 .fill(theme::bg_elevated())
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
@@ -66,15 +68,15 @@ impl TerminalPage {
         });
         ui.add_space(theme::SPACE_MD);
 
-        // ── Stats bar ──
+        // Stats bar
         Self::stats_bar(ui, state);
         ui.add_space(theme::SPACE_MD);
 
-        // ── Filter bar ──
+        // Filter bar
         Self::filter_bar(ui, state);
         ui.add_space(theme::SPACE_MD);
 
-        // ── Terminal viewport ──
+        // Terminal viewport
         Self::terminal_viewport(ui, state);
 
         ui.add_space(theme::SPACE_XL);
@@ -87,8 +89,8 @@ impl TerminalPage {
     // ------------------------------------------------------------------
 
     fn stats_bar(ui: &mut Ui, state: &AppState) {
-        widgets::card(ui, |ui| {
-            ui.horizontal(|ui| {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.horizontal(|ui: &mut egui::Ui| {
                 // Uptime
                 let uptime_secs = state.resources.uptime_secs;
                 let hours = uptime_secs / 3600;
@@ -96,7 +98,7 @@ impl TerminalPage {
                 let secs = uptime_secs % 60;
                 Self::stat_item(
                     ui,
-                    "Dur\u{00e9}e",
+                    "DURÉE D'ACTIVITÉ",
                     &format!("{:02}h {:02}m {:02}s", hours, mins, secs),
                     theme::ACCENT_LIGHT,
                 );
@@ -106,14 +108,14 @@ impl TerminalPage {
                 // Total events
                 Self::stat_item(
                     ui,
-                    "\u{00c9}v\u{00e9}nements",
+                    "ÉVÉNEMENTS GÉNÉRÉS",
                     &state.terminal_event_count.to_string(),
                     theme::text_primary(),
                 );
 
                 ui.add_space(theme::SPACE_LG);
 
-                // Events per minute (rough estimate)
+                // Events per minute
                 let epm = if uptime_secs > 0 {
                     (state.terminal_event_count as f64 / (uptime_secs as f64 / 60.0)) as u64
                 } else {
@@ -121,9 +123,9 @@ impl TerminalPage {
                 };
                 Self::stat_item(
                     ui,
-                    "\u{00c9}v./min",
+                    "DÉBIT (ÉV./MIN)",
                     &epm.to_string(),
-                    theme::text_secondary(),
+                    theme::text_tertiary(),
                 );
 
                 ui.add_space(theme::SPACE_LG);
@@ -131,7 +133,7 @@ impl TerminalPage {
                 // Errors
                 Self::stat_item(
                     ui,
-                    "Erreurs",
+                    "ERREURS DÉTECTÉES",
                     &state.terminal_error_count.to_string(),
                     if state.terminal_error_count > 0 {
                         theme::ERROR
@@ -144,15 +146,17 @@ impl TerminalPage {
     }
 
     fn stat_item(ui: &mut Ui, label: &str, value: &str, color: Color32) {
-        ui.vertical(|ui| {
+        ui.vertical(|ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new(label)
-                    .font(theme::font_small())
-                    .color(theme::text_tertiary()),
+                    .font(egui::FontId::proportional(9.0))
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(0.5)
+                    .strong(),
             );
             ui.label(
                 egui::RichText::new(value)
-                    .font(theme::font_heading())
+                    .font(egui::FontId::proportional(16.0))
                     .color(color)
                     .strong(),
             );
@@ -164,12 +168,14 @@ impl TerminalPage {
     // ------------------------------------------------------------------
 
     fn filter_bar(ui: &mut Ui, state: &mut AppState) {
-        widgets::card(ui, |ui| {
-            ui.horizontal(|ui| {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
-                    egui::RichText::new("Niveau :")
-                        .font(theme::font_body())
-                        .color(theme::text_secondary()),
+                    egui::RichText::new("NIVEAU D'EXPOSITION :")
+                        .font(egui::FontId::proportional(10.0))
+                        .color(theme::text_tertiary())
+                        .strong()
+                        .extra_letter_spacing(0.5),
                 );
                 ui.add_space(theme::SPACE_SM);
 
@@ -177,7 +183,7 @@ impl TerminalPage {
                     let selected = i == state.terminal_filter_level;
                     let color = level_color(name);
                     let btn_text = egui::RichText::new(*name)
-                        .font(theme::font_small())
+                        .font(egui::FontId::proportional(10.0))
                         .strong()
                         .color(if selected {
                             theme::text_on_accent()
@@ -187,7 +193,7 @@ impl TerminalPage {
 
                     let btn = egui::Button::new(btn_text)
                         .fill(if selected {
-                            color.linear_multiply(0.6)
+                            color.linear_multiply(0.8)
                         } else {
                             theme::bg_elevated()
                         })
@@ -196,22 +202,25 @@ impl TerminalPage {
                     if ui.add(btn).clicked() {
                         state.terminal_filter_level = i;
                     }
-                    ui.add_space(2.0);
+                    ui.add_space(4.0);
                 }
 
-                ui.add_space(theme::SPACE_MD);
+                ui.add_space(theme::SPACE_LG);
 
                 // Search field
                 ui.label(
-                    egui::RichText::new("Recherche :")
-                        .font(theme::font_body())
-                        .color(theme::text_secondary()),
+                    egui::RichText::new("FILTRAGE ANALYTIQUE :")
+                        .font(egui::FontId::proportional(10.0))
+                        .color(theme::text_tertiary())
+                        .strong()
+                        .extra_letter_spacing(0.5),
                 );
                 ui.add_space(theme::SPACE_XS);
                 let search_edit = egui::TextEdit::singleline(&mut state.terminal_search)
-                    .desired_width(180.0)
-                    .font(theme::font_mono())
-                    .hint_text("filtrer...");
+                    .desired_width(200.0)
+                    .margin(egui::Margin::symmetric(8, 4))
+                    .font(egui::FontId::monospace(11.0))
+                    .hint_text("rechercher...");
                 ui.add(search_edit);
             });
         });
@@ -226,7 +235,6 @@ impl TerminalPage {
         let filter_level = state.terminal_filter_level;
         let search_lower = state.terminal_search.to_lowercase();
 
-        // Collect filtered lines
         let filtered: Vec<_> = state
             .terminal_lines
             .iter()
@@ -245,23 +253,21 @@ impl TerminalPage {
             })
             .collect();
 
-        let _line_count = filtered.len();
-
         egui::Frame::new()
             .fill(terminal_bg)
             .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
             .inner_margin(egui::Margin::same(12))
-            .shadow(theme::premium_shadow(12, 40))
-            .show(ui, |ui| {
-                ui.set_min_height(380.0);
+            .show(ui, |ui: &mut egui::Ui| {
+                ui.set_min_height(400.0);
 
                 if filtered.is_empty() {
-                    ui.vertical_centered(|ui| {
-                        ui.add_space(theme::SPACE_XL * 3.0);
+                    ui.vertical_centered(|ui: &mut egui::Ui| {
+                        ui.add_space(160.0);
                         ui.label(
-                            egui::RichText::new("Aucun \u{00e9}v\u{00e9}nement \u{00e0} afficher")
-                                .font(theme::font_body())
-                                .color(theme::text_tertiary()),
+                            egui::RichText::new("AUCUN ÉVÉNEMENT DÉTECTÉ DANS CE FLUX")
+                                .font(egui::FontId::proportional(11.0))
+                                .color(theme::text_tertiary())
+                                .strong(),
                         );
                     });
                     return;
@@ -272,61 +278,44 @@ impl TerminalPage {
                     .resizable(true)
                     .max_scroll_height(400.0)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(100.0).at_least(80.0)) // Heure
-                    .column(Column::initial(70.0).at_least(60.0)) // Niveau
-                    .column(Column::initial(150.0).at_least(100.0)) // Cible
-                    .column(Column::remainder()); // Message
+                    .column(Column::initial(90.0).at_least(80.0))
+                    .column(Column::initial(70.0).at_least(60.0))
+                    .column(Column::initial(130.0).at_least(100.0))
+                    .column(Column::remainder());
 
                 table
                     .header(28.0, |mut header| {
-                        header.col(|ui| {
-                            ui.strong("HEURE");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("HEURE").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
-                        header.col(|ui| {
-                            ui.strong("NIVEAU");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("NIVEAU").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
-                        header.col(|ui| {
-                            ui.strong("CIBLE");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("CIBLE").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
-                        header.col(|ui| {
-                            ui.strong("MESSAGE");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("MESSAGE D'ACTIVITÉ").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
                     })
                     .body(|body| {
-                        body.rows(24.0, filtered.len(), |mut row| {
+                        body.rows(22.0, filtered.len(), |mut row| {
                             let entry = filtered[row.index()];
                             let ts = entry.timestamp.format("%H:%M:%S%.3f").to_string();
                             let color = level_color(&entry.level);
                             let target_short = shorten_target(&entry.target);
 
-                            row.col(|ui| {
-                                ui.label(
-                                    egui::RichText::new(&ts)
-                                        .font(theme::font_mono())
-                                        .color(theme::text_tertiary()),
-                                );
+                            row.col(|ui: &mut egui::Ui| {
+                                ui.label(egui::RichText::new(&ts).font(egui::FontId::monospace(11.0)).color(theme::text_tertiary()));
                             });
-                            row.col(|ui| {
-                                ui.label(
-                                    egui::RichText::new(format!("{:5}", entry.level))
-                                        .font(theme::font_mono())
-                                        .color(color)
-                                        .strong(),
-                                );
+                            row.col(|ui: &mut egui::Ui| {
+                                ui.label(egui::RichText::new(&entry.level).font(egui::FontId::monospace(10.0)).color(color).strong());
                             });
-                            row.col(|ui| {
-                                ui.label(
-                                    egui::RichText::new(target_short)
-                                        .font(theme::font_mono())
-                                        .color(theme::ACCENT_LIGHT.linear_multiply(0.6)),
-                                );
+                            row.col(|ui: &mut egui::Ui| {
+                                ui.label(egui::RichText::new(target_short).font(egui::FontId::monospace(11.0)).color(theme::ACCENT_LIGHT.linear_multiply(0.7)));
                             });
-                            row.col(|ui| {
-                                ui.label(
-                                    egui::RichText::new(&entry.message)
-                                        .font(theme::font_mono())
-                                        .color(theme::text_primary()),
-                                );
+                            row.col(|ui: &mut egui::Ui| {
+                                ui.label(egui::RichText::new(&entry.message).font(egui::FontId::monospace(11.0)).color(theme::text_primary()));
                             });
                         });
                     });
@@ -334,7 +323,7 @@ impl TerminalPage {
     }
 
     fn export_logs_csv(state: &AppState) {
-        let headers = &["date", "niveau", "cible", "message"];
+        let headers = &["timestamp", "level", "target", "message"];
         let rows: Vec<Vec<String>> = state
             .terminal_lines
             .iter()
@@ -347,7 +336,7 @@ impl TerminalPage {
                 ]
             })
             .collect();
-        let path = crate::export::default_export_path("agent_logs.csv");
+        let path = crate::export::default_export_path("agent_terminal_logs.csv");
         if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
             tracing::warn!("Export CSV failed: {}", e);
         }

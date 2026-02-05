@@ -18,11 +18,10 @@ pub fn card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) {
     let frame_resp = Frame::new()
         .fill(theme::bg_secondary())
         .corner_radius(CornerRadius::same(theme::CARD_ROUNDING))
-        .inner_margin(Margin::same(32)) // Airy padding
+        .inner_margin(Margin::same(24)) // Balanced padding
         .stroke(egui::Stroke::new(0.5, theme::border()))
         .shadow(shadow)
-        .clip(true) // Ensure content doesn't overflow rounded corners
-        .show(ui, |ui| {
+        .show(ui, |ui: &mut egui::Ui| {
             add_contents(ui);
         });
 
@@ -34,7 +33,9 @@ pub fn card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) {
             Stroke::new(1.0, theme::border().linear_multiply(0.7))
         };
 
-        ui.painter().rect_stroke(
+        // Use a clipped painter to ensure the stroke stays within rounding bounds if needed,
+        // although Inside stroke kind usually handles this well.
+        ui.painter_at(frame_resp.response.rect).rect_stroke(
             frame_resp.response.rect,
             CornerRadius::same(theme::CARD_ROUNDING),
             hover_stroke,

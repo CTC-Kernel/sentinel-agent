@@ -3,7 +3,7 @@ use egui::{RichText, Ui};
 
 /// Renders a premium empty state with an icon, title, and optional description and action.
 pub fn empty_state(ui: &mut Ui, icon: &str, title: &str, description: Option<&str>) {
-    ui.vertical_centered(|ui| {
+    ui.vertical_centered(|ui: &mut egui::Ui| {
         ui.add_space(theme::SPACE_XL);
 
         // Icon with animated subtle breathing effect

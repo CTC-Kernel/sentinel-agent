@@ -7,7 +7,7 @@ use egui::{RichText, Stroke, Ui, Vec2};
 /// * `title` - Main headline (e.g. "Système Protégé").
 /// * `subtitle` - Detailed reassurance (e.g. "Aucune menace détectée.").
 pub fn protected_state(ui: &mut Ui, icon: &str, title: &str, subtitle: &str) {
-    ui.vertical_centered(|ui| {
+    ui.vertical_centered(|ui: &mut egui::Ui| {
         ui.add_space(theme::SPACE_XL);
 
         // Animation parameters
@@ -43,10 +43,19 @@ pub fn protected_state(ui: &mut Ui, icon: &str, title: &str, subtitle: &str) {
             Stroke::new(2.0, base_color.linear_multiply(ring_alpha)),
         );
 
-        // 2. Inner Glow (pulsing)
-        let glow_radius = (icon_size * 0.6) + (icon_size * 0.1 * pulse as f32);
-        ui.painter()
-            .circle_filled(center, glow_radius, base_color.linear_multiply(0.15));
+        // 2. Multi-layered Diffuse Glow (breathing)
+        let glow_base_radius = icon_size * 0.6;
+        let glow_pulse = pulse as f32;
+        
+        for i in (0..12).rev() {
+            let layer_radius = glow_base_radius * (1.1 + i as f32 * 0.15 + glow_pulse * 0.1);
+            let layer_alpha = 0.08 / (i as f32 * 0.8 + 1.0).powi(2);
+            ui.painter().circle_filled(
+                center, 
+                layer_radius, 
+                base_color.linear_multiply(layer_alpha * (0.5 + 0.5 * glow_pulse))
+            );
+        }
 
         // 3. The Icon itself
         ui.painter().text(

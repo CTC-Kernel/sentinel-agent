@@ -1,0 +1,283 @@
+//! Organization banner widget - displays tenant info and connection status.
+
+use egui::{CornerRadius, RichText, Ui, Vec2};
+
+use crate::app::AppState;
+use crate::dto::GuiAgentStatus;
+use crate::events::GuiCommand;
+use crate::icons;
+use crate::theme;
+use crate::widgets;
+
+/// Renders the premium organization banner with connection status and quick actions.
+pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
+    let mut command: Option<GuiCommand> = None;
+
+    widgets::card(ui, |ui: &mut egui::Ui| {
+        ui.horizontal(|ui: &mut egui::Ui| {
+            // Left side: Organization info
+            ui.vertical(|ui: &mut egui::Ui| {
+                ui.set_min_width(ui.available_width() * 0.55);
+
+                // Organization name with icon
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        RichText::new(icons::BUILDING)
+                            .size(20.0)
+                            .color(theme::ACCENT),
+                    );
+                    ui.add_space(theme::SPACE_SM);
+
+                    let org_name = state
+                        .summary
+                        .organization
+                        .as_deref()
+                        .unwrap_or("Organisation non configurée");
+
+                    ui.label(
+                        RichText::new(org_name.to_uppercase())
+                            .font(egui::FontId::proportional(16.0))
+                            .color(theme::text_primary())
+                            .strong(),
+                    );
+                });
+
+                ui.add_space(theme::SPACE_SM);
+
+                // Connection status with animated pulse
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    let is_connected = matches!(
+                        state.summary.status,
+                        GuiAgentStatus::Connected | GuiAgentStatus::Scanning | GuiAgentStatus::Syncing
+                    );
+
+                    let time = ui.input(|i| i.time);
+                    let pulse = ((time * 2.5).sin() * 0.5 + 0.5) as f32;
+
+                    let status_color = if is_connected {
+                        theme::SUCCESS
+                    } else if state.summary.status == GuiAgentStatus::Disconnected {
+                        theme::WARNING
+                    } else {
+                        theme::text_tertiary()
+                    };
+
+                    // Animated status dot
+                    let dot_size = 8.0;
+                    let (dot_rect, _) =
+                        ui.allocate_exact_size(Vec2::splat(dot_size * 2.0), egui::Sense::hover());
+                    let dot_center = dot_rect.center();
+
+                    if ui.is_rect_visible(dot_rect) {
+                        // Outer glow ring
+                        if is_connected {
+                            ui.painter().circle_filled(
+                                dot_center,
+                                dot_size * (0.8 + 0.4 * pulse),
+                                status_color.linear_multiply(0.15 * pulse),
+                            );
+                        }
+                        // Main dot
+                        ui.painter().circle_filled(
+                            dot_center,
+                            dot_size * 0.5,
+                            status_color.linear_multiply(0.8 + 0.2 * pulse),
+                        );
+                    }
+
+                    ui.add_space(theme::SPACE_XS);
+
+                    let status_text = if is_connected {
+                        "CONNECTÉ AU SERVEUR"
+                    } else if state.summary.status == GuiAgentStatus::Disconnected {
+                        "DÉCONNECTÉ"
+                    } else {
+                        "EN ATTENTE"
+                    };
+
+                    ui.label(
+                        RichText::new(status_text)
+                            .font(egui::FontId::proportional(10.0))
+                            .color(status_color)
+                            .extra_letter_spacing(0.3)
+                            .strong(),
+                    );
+                });
+
+                ui.add_space(theme::SPACE_XS);
+
+                // Server URL and sync info
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        RichText::new(icons::NETWORK)
+                            .size(11.0)
+                            .color(theme::text_tertiary()),
+                    );
+                    ui.add_space(4.0);
+
+                    // Truncate server URL for display
+                    let server_display = state
+                        .server_url
+                        .replace("https://", "")
+                        .replace("http://", "");
+                    let server_short = if server_display.len() > 30 {
+                        format!("{}...", &server_display[..27])
+                    } else {
+                        server_display
+                    };
+
+                    ui.label(
+                        RichText::new(server_short)
+                            .font(egui::FontId::proportional(10.0))
+                            .color(theme::text_tertiary()),
+                    );
+                });
+
+                // Last sync time
+                if let Some(last_sync) = state.summary.last_sync_at {
+                    ui.add_space(theme::SPACE_XS);
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        ui.label(
+                            RichText::new(icons::SYNC)
+                                .size(11.0)
+                                .color(theme::text_tertiary()),
+                        );
+                        ui.add_space(4.0);
+
+                        let elapsed = chrono::Utc::now().signed_duration_since(last_sync);
+                        let elapsed_text = if elapsed.num_minutes() < 1 {
+                            "il y a quelques secondes".to_string()
+                        } else if elapsed.num_minutes() < 60 {
+                            format!("il y a {} min", elapsed.num_minutes())
+                        } else {
+                            format!("il y a {}h", elapsed.num_hours())
+                        };
+
+                        ui.label(
+                            RichText::new(format!("Dernière sync: {}", elapsed_text))
+                                .font(egui::FontId::proportional(10.0))
+                                .color(theme::text_tertiary()),
+                        );
+                    });
+                }
+            });
+
+            // Separator
+            let sep_rect = ui.available_rect_before_wrap();
+            ui.painter().vline(
+                sep_rect.left(),
+                sep_rect.top()..=sep_rect.bottom(),
+                egui::Stroke::new(1.0, theme::border()),
+            );
+
+            ui.add_space(theme::SPACE_MD);
+
+            // Right side: Metrics and actions
+            ui.vertical(|ui: &mut egui::Ui| {
+                // Pending sync count with badge
+                if state.summary.pending_sync_count > 0 {
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        let time = ui.input(|i| i.time);
+                        let pulse = ((time * 1.5).sin() * 0.3 + 0.7) as f32;
+
+                        let badge_color = theme::INFO.linear_multiply(pulse);
+                        let badge_text = format!("{}", state.summary.pending_sync_count);
+
+                        let badge_rect = egui::Rect::from_min_size(
+                            ui.cursor().min,
+                            Vec2::new(24.0, 18.0),
+                        );
+
+                        ui.painter().rect_filled(
+                            badge_rect,
+                            CornerRadius::same(9),
+                            badge_color.linear_multiply(0.2),
+                        );
+                        ui.painter().rect_stroke(
+                            badge_rect,
+                            CornerRadius::same(9),
+                            egui::Stroke::new(1.0, badge_color.linear_multiply(0.5)),
+                            egui::StrokeKind::Inside,
+                        );
+                        ui.painter().text(
+                            badge_rect.center(),
+                            egui::Align2::CENTER_CENTER,
+                            &badge_text,
+                            egui::FontId::proportional(10.0),
+                            badge_color,
+                        );
+
+                        ui.add_space(28.0);
+                        ui.label(
+                            RichText::new("éléments en attente de sync")
+                                .font(egui::FontId::proportional(10.0))
+                                .color(theme::text_secondary()),
+                        );
+
+                        ui.ctx().request_repaint();
+                    });
+
+                    ui.add_space(theme::SPACE_SM);
+                }
+
+                // Agent ID
+                if let Some(ref agent_id) = state.summary.agent_id {
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        ui.label(
+                            RichText::new("ID:")
+                                .font(egui::FontId::proportional(9.0))
+                                .color(theme::text_tertiary()),
+                        );
+                        ui.add_space(4.0);
+                        ui.label(
+                            RichText::new(&agent_id[..agent_id.len().min(12)])
+                                .font(egui::FontId::monospace(9.0))
+                                .color(theme::ACCENT_LIGHT),
+                        );
+                    });
+                    ui.add_space(theme::SPACE_SM);
+                }
+
+                // Action buttons
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    // Open console button
+                    if widgets::button::secondary_button(
+                        ui,
+                        format!("{}  CONSOLE", icons::EXTERNAL_LINK),
+                        true,
+                    )
+                    .clicked()
+                    {
+                        // Open browser to console URL
+                        let console_url = format!("{}/dashboard", state.server_url);
+                        let _ = open::that(&console_url);
+                    }
+
+                    ui.add_space(theme::SPACE_SM);
+
+                    // Force sync button
+                    let is_syncing = state.summary.status == GuiAgentStatus::Syncing;
+                    if widgets::button::primary_button_loading(
+                        ui,
+                        format!(
+                            "{}  {}",
+                            icons::SYNC,
+                            if is_syncing { "SYNC..." } else { "SYNC" }
+                        ),
+                        !is_syncing,
+                        is_syncing,
+                    )
+                    .clicked()
+                    {
+                        command = Some(GuiCommand::ForceSync);
+                    }
+                });
+            });
+        });
+    });
+
+    // Request repaint for animations
+    ui.ctx().request_repaint();
+
+    command
+}

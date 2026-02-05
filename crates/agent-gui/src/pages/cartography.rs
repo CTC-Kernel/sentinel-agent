@@ -34,8 +34,8 @@ impl CartographyPage {
             widgets::protected_state(
                 ui,
                 icons::WARNING,
-                "Aucun actif d\u{00e9}couvert",
-                "Veuillez lancer une d\u{00e9}couverte r\u{00e9}seau pour cartographier votre infrastructure.",
+                "AUCUN ACTIF DÉCOUVERT",
+                "Veuillez lancer une découverte réseau pour cartographier votre infrastructure.",
             );
             return None;
         }
@@ -43,59 +43,64 @@ impl CartographyPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
-            "Cartographie R\u{00e9}seau",
-            Some("Visualisation topologique des appareils d\u{00e9}couverts"),
+            "Cartographie Réseau",
+            Some("VISUALISATION TOPOLOGIQUE ET ANALYSE DES RELATIONS INTER-ACTIFS"),
+            Some("Explorez les relations entre les actifs de votre réseau. Les noeuds représentent les machines et les liens indiquent les interactions détectées. Utilisez le zoom et le panoramique pour naviguer."),
         );
         ui.add_space(theme::SPACE_LG);
 
-        // Controls bar
-        ui.push_id("cartography_controls", |ui| {
-            widgets::card(ui, |ui| {
-                ui.horizontal(|ui| {
+        // Control bar (AAA Grade)
+        ui.push_id("cartography_controls", |ui: &mut egui::Ui| {
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                ui.horizontal(|ui: &mut egui::Ui| {
                     ui.label(
                         egui::RichText::new(format!(
-                            "{} n\u{0153}ud(s)",
+                            "{} NOEUD(S) RÉSEAU",
                             state.discovered_devices.len()
                         ))
-                        .font(theme::font_body())
-                        .color(theme::text_secondary()),
+                        .font(egui::FontId::proportional(10.0))
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(0.5)
+                        .strong(),
                     );
 
                     ui.add_space(theme::SPACE_LG);
 
                     // Reset layout button
                     let reset_btn = egui::Button::new(
-                        egui::RichText::new("R\u{00e9}initialiser")
-                            .font(theme::font_small())
-                            .color(theme::text_on_accent()),
+                        egui::RichText::new("RÉINITIALISER")
+                            .font(egui::FontId::proportional(10.0))
+                            .color(theme::text_primary())
+                            .strong(),
                     )
-                    .fill(theme::ACCENT.linear_multiply(0.7))
+                    .fill(theme::bg_elevated())
                     .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
                     if ui.add(reset_btn).clicked() {
-                        state.graph_layout = None; // Force re-layout
+                        state.graph_layout = None; 
                         state.graph_zoom = 1.0;
                         state.graph_pan = Vec2::ZERO;
                     }
 
                     ui.add_space(theme::SPACE_MD);
 
-                    // Zoom controls
+                    // Zoom indicators (AAA)
                     ui.label(
-                        egui::RichText::new(format!("Zoom: {:.0}%", state.graph_zoom * 100.0))
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary()),
+                        egui::RichText::new(format!("ZOOM: {:.0}%", state.graph_zoom * 100.0))
+                            .font(egui::FontId::proportional(10.0))
+                            .color(theme::text_tertiary())
+                            .strong(),
                     );
 
                     ui.add_space(theme::SPACE_LG);
 
                     // Open 3D view button
                     let view3d_btn = egui::Button::new(
-                        egui::RichText::new(format!("Voir en 3D {}", icons::EXTERNAL_LINK))
-                            .font(theme::font_small())
+                        egui::RichText::new(format!("VUE 3D {}", icons::EXTERNAL_LINK))
+                            .font(egui::FontId::proportional(10.0))
                             .strong()
                             .color(theme::text_on_accent()),
                     )
-                    .fill(theme::SUCCESS.linear_multiply(0.8))
+                    .fill(theme::ACCENT.linear_multiply(0.8))
                     .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
                     if ui.add(view3d_btn).clicked() {
                         let _ = open::that("https://app.cyber-threat-consulting.com/voxel");
@@ -106,8 +111,9 @@ impl CartographyPage {
                     // Export CSV
                     let export_btn = egui::Button::new(
                         egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                            .font(theme::font_small())
-                            .color(theme::text_primary()),
+                            .font(egui::FontId::proportional(10.0))
+                            .color(theme::text_tertiary())
+                            .strong(),
                     )
                     .fill(theme::bg_elevated())
                     .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
@@ -115,49 +121,24 @@ impl CartographyPage {
                         Self::export_csv(state);
                     }
 
-                    ui.add_space(theme::SPACE_XL);
-
-                    // Run Scan
-                    let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
-                    if widgets::button::primary_button_loading(
-                        ui,
-                        format!("{}  {}", if is_scanning { "Scan en cours..." } else { "Lancer le scan" }, icons::PLAY),
-                        !is_scanning,
-                        is_scanning,
-                    )
-                    .clicked()
-                    {
-                        command = Some(GuiCommand::RunCheck);
-                    }
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
+                        let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
+                        if widgets::button::primary_button_loading(
+                            ui,
+                            format!("{}  {}", if is_scanning { "SCAN EN COURS" } else { "LANCER LE SCAN" }, icons::PLAY),
+                            !is_scanning,
+                            is_scanning,
+                        )
+                        .clicked()
+                        {
+                            command = Some(GuiCommand::RunCheck);
+                        }
+                    });
                 });
             });
         });
 
         ui.add_space(theme::SPACE_MD);
-
-        if state.discovered_devices.is_empty() {
-            // Empty state
-            widgets::card(ui, |ui| {
-                ui.vertical_centered(|ui| {
-                    ui.add_space(theme::SPACE_XL * 3.0);
-                    ui.label(
-                        egui::RichText::new("Aucun appareil \u{00e0} afficher")
-                            .font(theme::font_heading())
-                            .color(theme::text_tertiary()),
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                    ui.label(
-                        egui::RichText::new(
-                            "Lancez une d\u{00e9}couverte r\u{00e9}seau pour g\u{00e9}n\u{00e9}rer la cartographie",
-                        )
-                        .font(theme::font_body())
-                        .color(theme::text_tertiary()),
-                    );
-                    ui.add_space(theme::SPACE_XL * 3.0);
-                });
-            });
-            return None;
-        }
 
         // Build graph layout if needed
         let devices = state.discovered_devices.clone();
@@ -168,17 +149,26 @@ impl CartographyPage {
         // Run force simulation
         run_force_simulation(layout);
 
-        // Graph viewport
+        // Graph viewport (AAA Grade)
         let canvas_size = egui::Vec2::new(ui.available_width(), 500.0);
         let (response, painter) = ui.allocate_painter(canvas_size, egui::Sense::click_and_drag());
         let rect = response.rect;
 
-        // Dark background
+        // Sophisticated background (AAA)
         painter.rect_filled(
             rect,
             egui::CornerRadius::same(theme::CARD_ROUNDING),
             theme::bg_deep(),
         );
+        
+        // Background grid simulation (Subtle institutional lines)
+        let grid_color = theme::border().linear_multiply(0.1);
+        for i in 1..8 {
+            let x = rect.min.x + (rect.width() * i as f32 / 8.0);
+            painter.line_segment([egui::pos2(x, rect.min.y), egui::pos2(x, rect.max.y)], egui::Stroke::new(0.5, grid_color));
+            let y = rect.min.y + (rect.height() * i as f32 / 8.0);
+            painter.line_segment([egui::pos2(rect.min.x, y), egui::pos2(rect.max.x, y)], egui::Stroke::new(0.5, grid_color));
+        }
 
         // Handle pan
         if response.dragged() {
@@ -194,7 +184,7 @@ impl CartographyPage {
         let center = rect.center().to_vec2() + state.graph_pan;
         let zoom = state.graph_zoom;
 
-        // Draw edges
+        // Draw edges (AAA grade subtlety)
         for edge in &layout.edges {
             if edge.source < layout.nodes.len() && edge.target < layout.nodes.len() {
                 let p1 = Pos2::new(
@@ -207,12 +197,14 @@ impl CartographyPage {
                 );
                 painter.line_segment(
                     [p1, p2],
-                    egui::Stroke::new(1.0, theme::border().linear_multiply(0.5)),
+                    egui::Stroke::new(1.0, theme::border().linear_multiply(0.2)),
                 );
             }
         }
 
-        // Draw nodes
+        let anim_time = ui.input(|i| i.time);
+
+        // Draw nodes (AAA Glow System)
         for (i, node) in layout.nodes.iter().enumerate() {
             let screen_pos = Pos2::new(node.pos.x * zoom + center.x, node.pos.y * zoom + center.y);
 
@@ -221,164 +213,154 @@ impl CartographyPage {
             }
 
             let color = device_type_color(&node.device.device_type);
-            let radius = if node.device.is_gateway { 10.0 } else { 7.0 } * zoom;
+            let base_radius = if node.device.is_gateway { 10.0 } else { 7.0 } * zoom;
+            let breathing = (anim_time * 1.5 + i as f64 * 0.1).sin().powi(2) as f32;
 
-            // Glow effect for selected
+            // 1. Ambient Ambient Glow
+            painter.circle_filled(
+                screen_pos, 
+                base_radius * (1.5 + 0.3 * breathing), 
+                color.linear_multiply(0.08 + 0.04 * breathing)
+            );
+
+            // 2. Core Glow for Gateway or Selected
             let is_selected = state.graph_selected_device.as_ref() == Some(&node.device.ip);
-            if is_selected {
-                painter.circle_filled(screen_pos, radius + 4.0, color.linear_multiply(0.3));
+            if is_selected || node.device.is_gateway {
+                let intensity = if is_selected { 0.4 } else { 0.2 };
+                painter.circle_filled(
+                    screen_pos, 
+                    base_radius * 2.0, 
+                    color.linear_multiply(intensity * breathing)
+                );
             }
 
-            // Node circle
-            painter.circle_filled(screen_pos, radius, color);
+            // 3. Node Body (Glassy / Solid)
+            painter.circle_filled(screen_pos, base_radius, color);
             painter.circle_stroke(
                 screen_pos,
-                radius,
-                egui::Stroke::new(1.0, Color32::from_white_alpha(40)),
+                base_radius,
+                egui::Stroke::new(1.0, egui::Color32::from_white_alpha(100)),
             );
 
-            // Label
-            let label = node.device.hostname.as_deref().unwrap_or(&node.device.ip);
+            // 4. Label (Institutional AAA)
+            let label = node.device.hostname.as_deref().unwrap_or(&node.device.ip).to_uppercase();
             painter.text(
-                Pos2::new(screen_pos.x, screen_pos.y + radius + 10.0),
+                Pos2::new(screen_pos.x, screen_pos.y + base_radius + 12.0),
                 egui::Align2::CENTER_TOP,
                 label,
-                theme::font_small(),
-                theme::text_secondary(),
+                egui::FontId::proportional(9.0),
+                theme::text_tertiary(),
             );
 
-            // Click detection
-            let click_rect =
-                egui::Rect::from_center_size(screen_pos, egui::Vec2::splat(radius * 2.5));
-            if response.clicked()
-                && let Some(pointer_pos) = response.interact_pointer_pos()
-                && click_rect.contains(pointer_pos)
-            {
+            // Click interaction
+            let click_radius = base_radius * 2.0;
+            let interact_rect = egui::Rect::from_center_size(screen_pos, egui::Vec2::splat(click_radius));
+            if response.clicked() && interact_rect.contains(ui.input(|i| i.pointer.interact_pos().unwrap_or(Pos2::ZERO))) {
                 state.graph_selected_device = Some(node.device.ip.clone());
-            }
-
-            // Tooltip on hover
-            if let Some(hover_pos) = ui.input(|i| i.pointer.hover_pos())
-                && click_rect.contains(hover_pos)
-            {
-                egui::show_tooltip_at_pointer(
-                    ui.ctx(),
-                    ui.layer_id(),
-                    ui.id().with(format!("node_{}", i)),
-                    |ui: &mut egui::Ui| {
-                        ui.label(egui::RichText::new(&node.device.ip).strong());
-                        if let Some(ref h) = node.device.hostname {
-                            ui.label(format!("Hostname: {}", h));
-                        }
-                        if let Some(ref v) = node.device.vendor {
-                            ui.label(format!("Vendor: {}", v));
-                        }
-                        ui.label(format!("Type: {}", node.device.device_type));
-                        if !node.device.open_ports.is_empty() {
-                            ui.label(format!(
-                                "Ports: {}",
-                                node.device
-                                    .open_ports
-                                    .iter()
-                                    .map(|p| p.to_string())
-                                    .collect::<Vec<_>>()
-                                    .join(", ")
-                            ));
-                        }
-                    },
-                );
             }
         }
 
-        // Legend
+        // Legend (AAA Institutional)
         ui.add_space(theme::SPACE_MD);
-        widgets::card(ui, |ui| {
-            ui.horizontal(|ui| {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
-                    egui::RichText::new("L\u{00e9}gende:")
-                        .font(theme::font_small())
-                        .strong()
-                        .color(theme::text_secondary()),
+                    egui::RichText::new("LÉGENDE INFRASTRUCTURE")
+                        .font(egui::FontId::proportional(9.0))
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(0.5)
+                        .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
-                for (label, color) in &[
-                    ("Routeur", theme::ACCENT),
-                    ("Serveur", theme::SUCCESS),
-                    ("Poste", theme::text_primary()),
-                    ("Imprimante", theme::text_tertiary()),
-                    ("IoT", theme::WARNING),
-                    ("Inconnu", theme::text_secondary()),
-                ] {
-                    let (dot_rect, _) =
-                        ui.allocate_exact_size(egui::Vec2::splat(8.0), egui::Sense::hover());
-                    ui.painter().circle_filled(dot_rect.center(), 4.0, *color);
+                let legend_items = [
+                    ("PASSERELLE", theme::ACCENT),
+                    ("SERVEUR", theme::SUCCESS),
+                    ("POSTE CLIENT", theme::text_primary()),
+                    ("PÉRIPHÉRIQUE", theme::text_tertiary()),
+                    ("IOT / EMBARQUÉ", theme::WARNING),
+                    ("NON IDENTIFIÉ", theme::text_secondary()),
+                ];
+                for (label, color) in legend_items {
+                    let (dot_rect, _) = ui.allocate_exact_size(egui::vec2(8.0, 8.0), egui::Sense::hover());
+                    ui.painter().circle_filled(dot_rect.center(), 4.0, color);
                     ui.label(
-                        egui::RichText::new(*label)
-                            .font(theme::font_small())
-                            .color(theme::text_secondary()),
+                        egui::RichText::new(label)
+                            .font(egui::FontId::proportional(9.0))
+                            .color(theme::text_tertiary())
+                            .strong(),
                     );
                     ui.add_space(theme::SPACE_SM);
                 }
             });
         });
 
-        // Detail panel for selected device
+        // Selected Object Detail Panel (AAA Grade)
         if let Some(ref selected_ip) = state.graph_selected_device.clone()
-            && let Some(device) = state
-                .discovered_devices
-                .iter()
-                .find(|d| &d.ip == selected_ip)
+            && let Some(device) = state.discovered_devices.iter().find(|d| &d.ip == selected_ip)
         {
             ui.add_space(theme::SPACE_MD);
-            widgets::card(ui, |ui| {
-                ui.horizontal(|ui| {
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                ui.horizontal(|ui: &mut egui::Ui| {
                     ui.label(
                         egui::RichText::new(&device.ip)
-                            .font(theme::font_heading())
+                            .font(egui::FontId::proportional(14.0))
                             .strong()
                             .color(theme::text_primary()),
                     );
-                    ui.add_space(theme::SPACE_MD);
-                    if ui
-                        .small_button(format!("{} Fermer", icons::XMARK))
-                        .clicked()
-                    {
-                        state.graph_selected_device = None;
+                    ui.add_space(theme::SPACE_LG);
+                    
+                    if let Some(ref h) = device.hostname {
+                        ui.label(
+                            egui::RichText::new(h.to_uppercase())
+                                .font(egui::FontId::proportional(10.0))
+                                .color(theme::text_tertiary())
+                                .strong(),
+                        );
                     }
+                    
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
+                        if ui.button(egui::RichText::new(icons::XMARK).strong()).clicked() {
+                            state.graph_selected_device = None;
+                        }
+                    });
                 });
-                ui.add_space(theme::SPACE_SM);
-                if let Some(ref h) = device.hostname {
-                    ui.label(format!("Hostname: {}", h));
-                }
-                if let Some(ref mac) = device.mac {
-                    ui.label(format!("MAC: {}", mac));
-                }
-                if let Some(ref v) = device.vendor {
-                    ui.label(format!("Vendor: {}", v));
-                }
-                ui.label(format!("Type: {}", device.device_type));
+                
+                ui.add_space(theme::SPACE_MD);
+                ui.separator();
+                ui.add_space(theme::SPACE_MD);
+                
+                egui::Grid::new("device_detail_grid")
+                    .spacing(egui::vec2(24.0, 8.0))
+                    .show(ui, |ui: &mut egui::Ui| {
+                        ui.label(egui::RichText::new("ADRESSE MAC").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                        ui.label(egui::RichText::new(device.mac.as_deref().unwrap_or("--")).font(egui::FontId::monospace(11.0)));
+                        ui.end_row();
+                        
+                        ui.label(egui::RichText::new("CONSTRUCTEUR").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                        ui.label(egui::RichText::new(device.vendor.as_deref().unwrap_or("--")).strong());
+                        ui.end_row();
+                        
+                        ui.label(egui::RichText::new("CLASSIFICATION").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                        ui.label(egui::RichText::new(device.device_type.to_uppercase()).strong());
+                        ui.end_row();
+                    });
+
                 if device.is_gateway {
-                    ui.label(
-                        egui::RichText::new("Passerelle d\u{00e9}tect\u{00e9}e")
-                            .color(theme::ACCENT),
-                    );
+                    ui.add_space(theme::SPACE_MD);
+                    widgets::status_badge(ui, "CENTRAL GATEWAY", theme::ACCENT);
                 }
+                
                 if !device.open_ports.is_empty() {
-                    ui.label(format!(
-                        "Ports ouverts: {}",
-                        device
-                            .open_ports
-                            .iter()
-                            .map(|p| p.to_string())
-                            .collect::<Vec<_>>()
-                            .join(", ")
-                    ));
+                    ui.add_space(theme::SPACE_MD);
+                    ui.label(egui::RichText::new("VECTEURS D'EXPOSITION (PORTS OUVERTS)").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                    ui.add_space(2.0);
+                    ui.label(device.open_ports.iter().map(|p| p.to_string()).collect::<Vec<_>>().join(", "));
                 }
             });
         }
 
         ui.add_space(theme::SPACE_XL);
-
+        ui.ctx().request_repaint(); 
         command
     }
 
