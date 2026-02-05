@@ -82,3 +82,5 @@ pub use vulnerability::{
 };
 
 pub mod remediation;
+
+pub use remediation::RemediationEngine;

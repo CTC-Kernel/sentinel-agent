@@ -12,6 +12,12 @@ pub use agent_gui::{
     events::{AgentEvent, GuiCommand},
 };
 
+#[cfg(not(feature = "gui"))]
+#[derive(Debug, Clone)]
+pub enum AgentEvent {
+    Dummy,
+}
+
 /// Manages event dispatching and command processing.
 pub struct EventManager {
     #[cfg(feature = "gui")]
@@ -25,6 +31,7 @@ impl EventManager {
         
         (
             Self {
+                #[cfg(feature = "gui")]
                 gui_event_tx,
                 audit_trail,
             },

@@ -25,12 +25,13 @@ impl AboutPage {
             ui,
             "\u{00c0} propos",
             Some("Informations sur le produit et support technique"),
+            Some("Informations sur la version de l'agent Sentinel et les crédits. En cas de support, veuillez mentionner le numéro de build et l'identifiant unique de votre installation."),
         );
         ui.add_space(theme::SPACE_LG);
 
         // Brand card
-        widgets::card(ui, |ui| {
-            ui.vertical_centered(|ui| {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.vertical_centered(|ui: &mut egui::Ui| {
                 ui.add_space(theme::SPACE_LG);
                 ui.label(
                     egui::RichText::new(icons::VULNERABILITIES)
@@ -69,12 +70,12 @@ impl AboutPage {
         let total_width = ui.available_width();
         let col_gap = theme::SPACE;
         let col_w = (total_width - col_gap) * 0.5;
-        ui.horizontal_top(|ui| {
+        ui.horizontal_top(|ui: &mut egui::Ui| {
             ui.spacing_mut().item_spacing.x = col_gap;
-            ui.vertical(|ui| {
+            ui.vertical(|ui: &mut egui::Ui| {
                 ui.set_width(col_w);
                 // System info
-                widgets::card(ui, |ui| {
+                widgets::card(ui, |ui: &mut egui::Ui| {
                     ui.label(
                         egui::RichText::new("SYST\u{00c8}ME")
                             .font(theme::font_small())
@@ -95,9 +96,9 @@ impl AboutPage {
             }); // end left vertical
 
             // Links
-            ui.vertical(|ui| {
+            ui.vertical(|ui: &mut egui::Ui| {
                 ui.set_width(col_w);
-                widgets::card(ui, |ui| {
+                widgets::card(ui, |ui: &mut egui::Ui| {
                     ui.label(
                         egui::RichText::new("RESSOURCES")
                             .font(theme::font_small())
@@ -121,7 +122,7 @@ impl AboutPage {
         ui.add_space(theme::SPACE);
 
         // Legal
-        widgets::card(ui, |ui| {
+        widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("MENTIONS L\u{00c9}GALES")
                     .font(theme::font_small())
@@ -152,7 +153,7 @@ impl AboutPage {
     }
 
     fn info_row(ui: &mut Ui, label: &str, value: &str, icon: &str) {
-        ui.horizontal(|ui| {
+        ui.horizontal(|ui: &mut egui::Ui| {
             ui.set_min_height(28.0);
             ui.label(
                 egui::RichText::new(icon)
@@ -165,7 +166,7 @@ impl AboutPage {
                     .font(theme::font_body())
                     .color(theme::text_secondary()),
             );
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new(value)
                         .font(theme::font_mono())
@@ -177,7 +178,7 @@ impl AboutPage {
     }
 
     fn link_row(ui: &mut Ui, label: &str, url: &str, icon: &str) {
-        ui.horizontal(|ui| {
+        ui.horizontal(|ui: &mut egui::Ui| {
             ui.set_min_height(28.0);
             ui.label(
                 egui::RichText::new(icon)
@@ -190,7 +191,7 @@ impl AboutPage {
                     .font(theme::font_body())
                     .color(theme::text_secondary()),
             );
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                 if ui
                     .link(
                         egui::RichText::new("OUVRIR")

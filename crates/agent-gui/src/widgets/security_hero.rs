@@ -1,7 +1,10 @@
+//! Security hero widget - premium clean design.
+
 use crate::app::AppState;
 use crate::icons;
 use crate::theme;
-use egui::{Color32, RichText, Stroke, Ui, Vec2};
+use crate::widgets;
+use egui::{Color32, RichText, Ui, Vec2};
 
 /// Security state categories.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -30,47 +33,48 @@ impl SecurityState {
 
     pub fn title(&self) -> &'static str {
         match self {
-            Self::Secure => "Poste de travail prot\u{00e9}g\u{00e9}",
-            Self::Attention => "Vigilance recommand\u{00e9}e",
-            Self::Critical => "Alerte de s\u{00e9}curit\u{00e9} critique",
+            Self::Secure => "Poste de travail protégé",
+            Self::Attention => "Vigilance recommandée",
+            Self::Critical => "Alerte de sécurité critique",
         }
     }
 }
 
-/// Renders the premium security hero component.
+/// Renders the premium security hero component - clean Apple-style.
 pub fn security_hero(ui: &mut Ui, state: &AppState) {
     let security_state = determine_security_state(state);
     let base_color = security_state.color();
 
-    widgets::card(ui, |ui| {
-        ui.vertical_centered(|ui| {
+    widgets::card(ui, |ui: &mut egui::Ui| {
+        ui.vertical_centered(|ui: &mut egui::Ui| {
             ui.add_space(theme::SPACE_MD);
 
-            // Pulsing animation logic
-            let time = ui.input(|i| i.time);
-            let pulse = (time * 1.5).sin() * 0.5 + 0.5;
-
-            let icon_size = 48.0;
+            let icon_size = 44.0;
+            let container_size = icon_size * 2.0;
             let (rect, _resp) =
-                ui.allocate_exact_size(Vec2::splat(icon_size * 2.2), egui::Sense::hover());
+                ui.allocate_exact_size(Vec2::splat(container_size), egui::Sense::hover());
             let center = rect.center();
+            let painter = ui.painter_at(rect);
 
-            // 1. Background glow
-            ui.painter().circle_filled(
+            // Clean background circle (no fake glow)
+            painter.circle_filled(center, icon_size * 0.9, base_color.linear_multiply(0.1));
+
+            // Subtle border ring
+            painter.circle_stroke(
                 center,
-                icon_size * (0.7 + 0.1 * pulse as f32),
-                base_color.linear_multiply(0.1),
+                icon_size * 0.9,
+                egui::Stroke::new(1.5, base_color.linear_multiply(0.25)),
             );
 
-            // 2. Pulsing ring
-            ui.painter().circle_stroke(
-                center,
-                icon_size * (0.8 + 0.2 * pulse as f32),
-                Stroke::new(1.5, base_color.linear_multiply(0.3 * (1.0 - pulse as f32))),
+            // Icon with subtle shadow
+            painter.text(
+                center + Vec2::new(1.0, 1.5),
+                egui::Align2::CENTER_CENTER,
+                security_state.icon(),
+                egui::FontId::proportional(icon_size),
+                Color32::BLACK.linear_multiply(0.15),
             );
-
-            // 3. Main Icon
-            ui.painter().text(
+            painter.text(
                 center,
                 egui::Align2::CENTER_CENTER,
                 security_state.icon(),
@@ -80,27 +84,59 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
 
             ui.add_space(theme::SPACE_MD);
 
-            // Textual status
+            // Title
             ui.label(
-                RichText::new(security_state.title())
-                    .font(theme::font_heading())
+                RichText::new(security_state.title().to_uppercase())
+                    .font(egui::FontId::proportional(12.0))
+                    .extra_letter_spacing(0.6)
                     .color(theme::text_primary())
                     .strong(),
             );
 
+            // Score display
+            if let Some(score) = state.summary.compliance_score {
+                ui.add_space(theme::SPACE_XS);
+
+                let score_color = theme::score_color(score);
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        RichText::new(format!("{}%", score as i32))
+                            .font(egui::FontId::proportional(18.0))
+                            .color(score_color)
+                            .strong(),
+                    );
+
+                    // Trend indicator
+                    if let Some(prev) = state.previous_compliance_score {
+                        let diff = score - prev;
+                        if diff.abs() > 0.5 {
+                            let (arrow, arrow_color) = if diff > 0.0 {
+                                ("▲", theme::SUCCESS)
+                            } else {
+                                ("▼", theme::ERROR)
+                            };
+                            ui.label(
+                                RichText::new(format!("{}{:.1}", arrow, diff.abs()))
+                                    .font(egui::FontId::proportional(10.0))
+                                    .color(arrow_color),
+                            );
+                        }
+                    }
+                });
+            }
+
             ui.add_space(theme::SPACE_XS);
+
+            // Summary text
             ui.label(
                 RichText::new(get_security_summary(state, security_state))
                     .font(theme::font_body())
-                    .color(theme::text_secondary()),
+                    .color(theme::text_tertiary()),
             );
 
-            ui.add_space(theme::SPACE_MD);
+            ui.add_space(theme::SPACE_SM);
         });
     });
-
-    // Smooth infinite animation
-    ui.ctx().request_repaint();
 }
 
 fn determine_security_state(state: &AppState) -> SecurityState {
@@ -139,43 +175,37 @@ fn determine_security_state(state: &AppState) -> SecurityState {
 fn get_security_summary(state: &AppState, status: SecurityState) -> String {
     match status {
         SecurityState::Secure => {
-            "Aucune menace d\u{00e9}tect\u{00e9}e. Votre configuration est conforme aux standards."
-                .to_string()
+            "Aucune menace détectée. Configuration conforme aux standards.".to_string()
         }
         SecurityState::Attention => {
             let mut reasons = Vec::new();
             if state.summary.compliance_score.unwrap_or(100.0) < 85.0 {
-                reasons.push("Conformit\u{00e9} imparfaite");
+                reasons.push("Conformité imparfaite");
             }
             if let Some(ref vuln) = state.vulnerability_summary
                 && vuln.high > 0
             {
-                reasons.push("Vuln\u{00e9}rabilit\u{00e9}s \u{00e9}lev\u{00e9}es");
+                reasons.push("Vulnérabilités élevées");
             }
-            format!(
-                "Points d'attention d\u{00e9}tect\u{00e9}s : {}.",
-                reasons.join(", ")
-            )
+            if reasons.is_empty() {
+                "Points d'attention détectés.".to_string()
+            } else {
+                format!("Attention : {}.", reasons.join(", "))
+            }
         }
         SecurityState::Critical => {
             if !state.suspicious_processes.is_empty() {
                 return format!(
-                    "{} processus suspects d\u{00e9}tect\u{0089}s !",
+                    "{} processus suspects détectés !",
                     state.suspicious_processes.len()
                 );
             }
             if let Some(ref vuln) = state.vulnerability_summary
                 && vuln.critical > 0
             {
-                return format!(
-                    "{} vuln\u{00e9}rabilit\u{00e9}s CRITIQUES d\u{00e9}tect\u{00e9}es.",
-                    vuln.critical
-                );
+                return format!("{} vulnérabilités CRITIQUES.", vuln.critical);
             }
-            "Niveau de protection insuffisant. Action corrective requise.".to_string()
+            "Niveau de protection insuffisant.".to_string()
         }
     }
 }
-
-// Internal widgets reference
-use crate::widgets;

@@ -35,9 +35,9 @@ use agent_network::{
     DiscoveryConfig, NetworkDiscovery, NetworkManager, NetworkSecurityAlert, NetworkSnapshot,
 };
 use agent_scanner::{
-    CheckExecutionResult, CheckRegistry, CheckRunner, CheckScoreInput, ComplianceScore,
-    ScanSummary, ScanType, ScoreCalculator, SecurityMonitor, SecurityScanResult,
-    VulnerabilityScanResult, VulnerabilityScanner,
+    CheckExecutionResult, CheckRunner, CheckRegistry, CheckScoreInput, ComplianceScore,
+    RemediationEngine, ScanSummary, ScanType, ScoreCalculator, SecurityMonitor,
+    SecurityScanResult, VulnerabilityScanResult, VulnerabilityScanner,
     checks::{
         AdminAccountsCheck, AntivirusCheck, AuditLoggingCheck, AutoLoginCheck, BackupCheck,
         BluetoothCheck, BrowserSecurityCheck, DiskEncryptionCheck, FirewallCheck,
@@ -131,8 +131,13 @@ pub struct AgentRuntime {
     audit_trail: Option<Arc<audit_trail::LocalAuditTrail>>,
     /// Event and notification manager.
     events: Arc<events::EventManager>,
-    /// Runtime state flags.
+    /// Metadata and rules sync flags.
     state: Arc<state::RuntimeState>,
+    /// Automated remediation engine for compliance checks.
+    #[cfg(feature = "gui")]
+    remediation_engine: Arc<RemediationEngine>,
+    /// Receiver for remediation requests.
+    remediation_rx: tokio::sync::Mutex<tokio::sync::mpsc::Receiver<state::RemediationRequest>>,
 }
 
 /// A lightweight handle to the running agent that can be shared with the GUI
@@ -224,6 +229,16 @@ impl RuntimeHandle {
         }
     }
 
+    /// Trigger remediation for a check.
+    pub fn remediate(&self, check_id: String) {
+        let _ = self.state.remediation_tx.try_send(state::RemediationRequest::Execute { check_id });
+    }
+
+    /// Trigger remediation preview for a check.
+    pub fn remediate_preview(&self, check_id: String) {
+        let _ = self.state.remediation_tx.try_send(state::RemediationRequest::Preview { check_id });
+    }
+
     /// Get a clone of the shutdown signal.
     pub fn shutdown_signal(&self) -> ShutdownSignal {
         self.state.shutdown.clone()
@@ -237,6 +252,11 @@ impl AgentRuntime {
         let vulnerability_scanner = VulnerabilityScanner::new();
         let security_monitor = SecurityMonitor::new();
         let network_manager = NetworkManager::new();
+
+        let (state, rx) = state::RuntimeState::new();
+        let state = Arc::new(state);
+        let (events_mgr, _rx) = events::EventManager::new(None);
+        let events = Arc::new(events_mgr);
 
         // Register all 21 compliance checks
         let mut registry = CheckRegistry::new();
@@ -273,10 +293,6 @@ impl AgentRuntime {
         let compliance_check_interval_secs = config.check_interval_secs;
         let active_frameworks = config.active_frameworks.clone();
 
-        let (events, _) = events::EventManager::new(None);
-        let events = Arc::new(events);
-        let state = Arc::new(state::RuntimeState::default());
-
         Self {
             config,
             active_frameworks: std::sync::RwLock::new(active_frameworks),
@@ -303,6 +319,9 @@ impl AgentRuntime {
             audit_trail: None,
             events,
             state,
+            #[cfg(feature = "gui")]
+            remediation_engine: Arc::new(RemediationEngine::new()),
+            remediation_rx: tokio::sync::Mutex::new(rx),
         }
     }
 
@@ -317,9 +336,9 @@ impl AgentRuntime {
         let trail = Arc::new(audit_trail::LocalAuditTrail::new(db));
         self.audit_trail = Some(trail.clone());
         
-        // Re-initialize events with audit trail
-        let (events, _) = events::EventManager::new(Some(trail));
-        self.events = Arc::new(events);
+        let (events_mgr, _gui_event_rx) = events::EventManager::new(Some(trail.clone()));
+        let events = Arc::new(events_mgr);
+        self.events = events;
         
         self
     }
@@ -1106,10 +1125,102 @@ impl AgentRuntime {
         Ok(())
     }
 
+    /// Execute remediation for a specific check.
+    #[cfg(feature = "gui")]
+    pub async fn remediate(&self, check_id: &str) -> bool {
+        info!("Applying remediation for check \'{}\'", check_id);
+        
+        let actions = self.remediation_engine.get_platform_remediation(check_id);
+        if let Some(action) = actions.first() {
+            let result = self.remediation_engine.execute(action);
+            
+            // Audit the action
+            if let Some(audit) = &self.audit_trail {
+                audit.log(
+                    audit_trail::AuditAction::RemediationApplied { 
+                        check_id: check_id.to_string() 
+                    },
+                    "user",
+                    Some(format!(
+                        "Status: {:?}, Duration: {}ms, Output: {}", 
+                        result.status, result.duration_ms, result.output
+                    )),
+                ).await;
+            }
+
+            let success = matches!(result.status, agent_common::types::remediation::RemediationStatus::Success);
+            
+            // Notify GUI
+            if success {
+                self.emit_notification(
+                    "Remédiation Réussie",
+                    &format!("Le contrôle \'{}\' a été corrigé avec succès.", check_id),
+                    "success",
+                );
+            } else {
+                self.emit_notification(
+                    "Échec de Remédiation",
+                    &format!("Impossible de corriger \'{}\' : {}", check_id, result.error.unwrap_or_default()),
+                    "error",
+                );
+            }
+
+            // Force a re-check to update status
+            self.state.force_check.store(true, Ordering::Release);
+            
+            success
+        } else {
+            warn!("No remediation action found for check '{}'", check_id);
+            self.emit_notification(
+                "Remédiation Indisponible",
+                &format!("Aucun script de remédiation automatisé n'est configuré pour \'{}\'.", check_id),
+                "warning",
+            );
+            false
+        }
+    }
+
+    /// Preview remediation for a specific check.
+    #[cfg(feature = "gui")]
+    pub fn remediate_preview(&self, check_id: &str) {
+        info!("Generating remediation preview for check \'{}\'", check_id);
+        
+        let actions = self.remediation_engine.get_platform_remediation(check_id);
+
+        if let Some(action) = actions.first() {
+            let preview_text = format!(
+                "## Audit Visuel : {}\n\n**Action :** {}\n**Commande :** `{}`\n**Risque :** {}\n**Redémarrage requis :** {}\n\n> [!NOTE]\n> Cliquez sur 'Recours / Remédiation' pour exécuter ce script. Des privilèges Administrateur peuvent être requis.",
+                action.description,
+                action.description,
+                action.script,
+                action.risk_level.label(),
+                if action.requires_reboot { "Oui" } else { "Non" }
+            );
+
+            self.emit_gui_event(AgentEvent::Notification {
+                notification: GuiNotification {
+                    id: uuid::Uuid::new_v4(),
+                    title: format!("Aperçu : {}", check_id),
+                    body: preview_text,
+                    severity: "info".to_string(),
+                    timestamp: chrono::Utc::now(),
+                    read: false,
+                    action: None,
+                },
+            });
+        } else {
+            self.emit_notification(
+                "Aperçu Indisponible",
+                &format!("Aucun aperçu disponible pour le contrôle \'{}\'.", check_id),
+                "info",
+            );
+        }
+    }
+
     /// Run all compliance checks, calculate score, store results in DB.
     ///
     /// Returns the execution results and the calculated compliance score.
-    async fn run_compliance_checks(&self) -> (Vec<CheckExecutionResult>, ComplianceScore) {
+    pub (crate) async fn run_compliance_checks(&self) -> (Vec<CheckExecutionResult>, ComplianceScore) {
         info!("Running compliance checks...");
 
         let active_frameworks = self
@@ -2256,6 +2367,26 @@ impl AgentRuntime {
             // Sleep for a short interval before checking shutdown again
             tokio::select! {
                 _ = tokio::time::sleep(tokio::time::Duration::from_secs(1)) => {}
+                req = async {
+                    let mut rx = self.remediation_rx.lock().await;
+                    rx.recv().await
+                } => {
+                    if let Some(req) = req {
+                        #[cfg(feature = "gui")]
+                        match req {
+                            state::RemediationRequest::Execute { check_id } => {
+                                self.remediate(&check_id).await;
+                            }
+                            state::RemediationRequest::Preview { check_id } => {
+                                self.remediate_preview(&check_id);
+                            }
+                        }
+                        #[cfg(not(feature = "gui"))]
+                        {
+                            let _ = req; // Avoid unused warning
+                        }
+                    }
+                }
                 _ = self.wait_for_shutdown() => {
                     info!("Shutdown signal received, initiating graceful exit sequence...");
                     break;

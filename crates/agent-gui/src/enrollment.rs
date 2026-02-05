@@ -125,8 +125,8 @@ impl EnrollmentWizard {
         egui::Frame::new()
             .fill(egui::Color32::TRANSPARENT)
             .inner_margin(egui::Margin::same(32))
-            .show(ui, |ui| {
-                ui.vertical_centered(|ui| {
+            .show(ui, |ui: &mut egui::Ui| {
+                ui.vertical_centered(|ui: &mut egui::Ui| {
                     ui.add_space(theme::SPACE_XL);
 
                     // Hero Image (IA.png) with Glow
@@ -159,7 +159,7 @@ impl EnrollmentWizard {
                     ui.add_space(theme::SPACE_LG);
 
                     // ScrollArea for content protection
-                    egui::ScrollArea::vertical().show(ui, |ui| match &self.step {
+                    egui::ScrollArea::vertical().show(ui, |ui: &mut egui::Ui| match &self.step {
                         EnrollmentStep::Welcome => {
                             command = self.show_welcome(ui);
                         }
@@ -182,9 +182,9 @@ impl EnrollmentWizard {
     fn show_welcome(&mut self, ui: &mut Ui) -> Option<EnrollmentCommand> {
         let command = None;
 
-        widgets::card(ui, |ui| {
+        widgets::card(ui, |ui: &mut egui::Ui| {
             ui.set_max_width(480.0);
-            ui.vertical_centered(|ui| {
+            ui.vertical_centered(|ui: &mut egui::Ui| {
                 ui.add_space(theme::SPACE);
 
                 ui.label(
@@ -226,7 +226,7 @@ impl EnrollmentWizard {
         ui.add_space(theme::SPACE_XL);
 
         // CENTERING CONTAINER: Glass Card
-        ui.vertical_centered(|ui| {
+        ui.vertical_centered(|ui: &mut egui::Ui| {
             ui.set_max_width(420.0); // Restrict width for "Card" look
 
             // Glass Card Frame
@@ -247,7 +247,7 @@ impl EnrollmentWizard {
                 .corner_radius(egui::CornerRadius::same(16))
                 .stroke(card_stroke)
                 .inner_margin(egui::Margin::same(32))
-                .show(ui, |ui| {
+                .show(ui, |ui: &mut egui::Ui| {
                     // Header
                     ui.label(
                         egui::RichText::new("AUTHENTIFICATION")
@@ -316,7 +316,7 @@ impl EnrollmentWizard {
                         {
                             let mut pill_child_ui =
                                 ui.new_child(egui::UiBuilder::new().max_rect(pill_rect));
-                            pill_frame.show(&mut pill_child_ui, |ui| {
+                            pill_frame.show(&mut pill_child_ui, |ui: &mut egui::Ui| {
                                 ui.allocate_space(ui.available_size());
                             });
                         }
@@ -391,7 +391,7 @@ impl EnrollmentWizard {
                             .corner_radius(egui::CornerRadius::same(input_rounding))
                             .stroke(egui::Stroke::new(1.0, theme::border().linear_multiply(0.3)))
                             .inner_margin(egui::Margin::same(12))
-                            .show(ui, |ui| {
+                            .show(ui, |ui: &mut egui::Ui| {
                                 ui.add(
                                     egui::TextEdit::multiline(&mut self.qr_input)
                                         .desired_rows(5)
@@ -417,8 +417,8 @@ impl EnrollmentWizard {
                             .corner_radius(egui::CornerRadius::same(input_rounding))
                             .stroke(egui::Stroke::new(1.0, theme::border().linear_multiply(0.3)))
                             .inner_margin(egui::Margin::same(12))
-                            .show(ui, |ui| {
-                                ui.horizontal(|ui| {
+                            .show(ui, |ui: &mut egui::Ui| {
+                                ui.horizontal(|ui: &mut egui::Ui| {
                                     ui.add(
                                         egui::TextEdit::singleline(&mut self.token_input)
                                             .desired_width(ui.available_width() - 40.0) // Space for toggle button
@@ -451,7 +451,7 @@ impl EnrollmentWizard {
                         !self.token_input.trim().is_empty()
                     };
 
-                    ui.add_enabled_ui(has_input, |ui| {
+                    ui.add_enabled_ui(has_input, |ui: &mut egui::Ui| {
                         let btn_txt = egui::RichText::new("ENRÔLER L'AGENT").size(14.0).strong();
                         // Custom Hero Button Loop
                         // Use corner_radius instead of rounding which is deprecated
@@ -480,13 +480,13 @@ impl EnrollmentWizard {
                     ui.add_space(theme::SPACE_MD);
 
                     // AUTH LINKS FOOTER
-                    ui.vertical_centered(|ui| {
+                    ui.vertical_centered(|ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new("Pas de token ?")
                                 .font(theme::font_small())
                                 .color(theme::text_secondary()),
                         );
-                        ui.horizontal(|ui| {
+                        ui.horizontal(|ui: &mut egui::Ui| {
                             ui.spacing_mut().item_spacing.x = 8.0;
                             let link_attr = egui::RichText::new("Se connecter")
                                 .font(theme::font_small())
@@ -514,9 +514,9 @@ impl EnrollmentWizard {
     }
 
     fn show_progress(ui: &mut Ui, message: &str) {
-        widgets::card(ui, |ui| {
+        widgets::card(ui, |ui: &mut egui::Ui| {
             ui.set_max_width(480.0);
-            ui.vertical_centered(|ui| {
+            ui.vertical_centered(|ui: &mut egui::Ui| {
                 ui.add_space(theme::SPACE_LG);
                 ui.spinner();
                 ui.add_space(theme::SPACE);
@@ -539,9 +539,9 @@ impl EnrollmentWizard {
     fn show_complete(ui: &mut Ui, success: bool, message: &str) -> Option<EnrollmentCommand> {
         let mut command = None;
 
-        widgets::card(ui, |ui| {
+        widgets::card(ui, |ui: &mut egui::Ui| {
             ui.set_max_width(480.0);
-            ui.vertical_centered(|ui| {
+            ui.vertical_centered(|ui: &mut egui::Ui| {
                 ui.add_space(theme::SPACE_LG);
 
                 if success {
@@ -615,7 +615,7 @@ impl EnrollmentWizard {
             EnrollmentStep::Complete { .. } => 3,
         };
 
-        ui.horizontal(|ui| {
+        ui.horizontal(|ui: &mut egui::Ui| {
             for (i, (label, _)) in steps.iter().enumerate() {
                 let color = if i <= current_idx {
                     theme::ACCENT

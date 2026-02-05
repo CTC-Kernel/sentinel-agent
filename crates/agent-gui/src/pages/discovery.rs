@@ -16,36 +16,41 @@ impl DiscoveryPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header(
             ui,
-            "D\u{00e9}couverte R\u{00e9}seau",
-            Some("Scanner et cartographier les appareils du r\u{00e9}seau local"),
+            "Reconnaissance Réseau",
+            Some("IDENTIFICATION ET CARTOGRAPHIE DES ACTIFS SUR LE PÉRIMÈTRE LOCAL"),
+            Some("Identifiez les nouveaux équipements sur votre segment réseau. Le scan ARP et ICMP permet de détecter les noms d'hôtes et les constructeurs pour enrichir votre inventaire d'actifs."),
         );
         ui.add_space(theme::SPACE_LG);
 
-        // Control bar
-        widgets::card(ui, |ui| {
-            ui.horizontal(|ui| {
-                let btn_label = if state.discovery_in_progress {
-                    "ARR\u{00ca}TER LE SCAN"
+        // Control bar (AAA Grade)
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.horizontal(|ui: &mut egui::Ui| {
+                let is_scanning = state.discovery_in_progress;
+                let btn_label = if is_scanning {
+                    format!("{}  INTERROMPRE LE SCAN", icons::TRASH)
                 } else {
-                    "LANCER LE SCAN"
+                    format!("{}  LANCER LA DÉCOUVERTE", icons::PLAY)
                 };
-                let btn_color = if state.discovery_in_progress {
+                
+                let btn_color = if is_scanning {
                     theme::ERROR
                 } else {
-                    theme::ACCENT
+                    theme::SUCCESS
                 };
 
+                // AAA Primary button style
                 let btn = egui::Button::new(
                     egui::RichText::new(btn_label)
-                        .font(theme::font_body())
+                        .font(egui::FontId::proportional(11.0))
                         .strong()
                         .color(theme::text_on_accent()),
                 )
-                .fill(btn_color)
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                .fill(btn_color.linear_multiply(0.9))
+                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
+                .min_size(egui::vec2(200.0, 32.0));
 
                 if ui.add(btn).clicked() {
-                    if state.discovery_in_progress {
+                    if is_scanning {
                         cmd = Some(crate::events::GuiCommand::StopDiscovery);
                     } else {
                         cmd = Some(crate::events::GuiCommand::StartDiscovery);
@@ -54,118 +59,124 @@ impl DiscoveryPage {
 
                 ui.add_space(theme::SPACE_MD);
 
-                // Progress
-                if state.discovery_in_progress {
-                    ui.add_space(theme::SPACE_SM);
-                    let progress = state.discovery_progress;
-                    let bar_width = 200.0;
-                    let bar_height = 6.0;
-                    let (bar_rect, _) = ui
-                        .allocate_exact_size(egui::Vec2::new(bar_width, bar_height), egui::Sense::hover());
-                    
-                    if ui.is_rect_visible(bar_rect) {
-                        let time = ui.input(|i| i.time);
-                        let pulse = ((time * 3.0).sin() * 0.5 + 0.5) as f32;
-                        
-                        // Track background
-                        ui.painter().rect_filled(
-                            bar_rect,
-                            egui::CornerRadius::same(3),
-                            theme::bg_elevated(),
+                // AAA Progress System
+                if is_scanning {
+                    ui.vertical(|ui: &mut egui::Ui| {
+                        ui.add_space(6.0);
+                        let progress = state.discovery_progress;
+                        let bar_width = 300.0;
+                        let bar_height = 4.0;
+                        let (bar_rect, _) = ui.allocate_exact_size(
+                            egui::Vec2::new(bar_width, bar_height),
+                            egui::Sense::hover(),
                         );
                         
-                        // Animated fill with gradient
-                        let fill_width = bar_width * progress;
-                        if fill_width > 0.0 {
-                            let fill_rect = egui::Rect::from_min_size(
-                                bar_rect.min,
-                                egui::Vec2::new(fill_width, bar_height),
-                            );
-                            
-                            // Glow behind fill
-                            ui.painter().rect_filled(
-                                fill_rect.expand(1.5),
-                                egui::CornerRadius::same(4),
-                                theme::ACCENT.linear_multiply(0.2 + pulse * 0.1),
-                            );
-                            
-                            // Main fill with gradient (using two halves)
-                            let top_half = egui::Rect::from_min_size(
-                                fill_rect.min,
-                                egui::Vec2::new(fill_width, bar_height / 2.0),
-                            );
-                            let bot_half = egui::Rect::from_min_size(
-                                fill_rect.left_center(),
-                                egui::Vec2::new(fill_width, bar_height / 2.0),
-                            );
+                        if ui.is_rect_visible(bar_rect) {
+                            let time = ui.input(|i| i.time);
+                            let pulse = (((time * 2.0).sin() * 0.5 + 0.5) as f32).powi(2);
                             
                             ui.painter().rect_filled(
-                                top_half,
-                                egui::CornerRadius { nw: 3, ne: 3, sw: 0, se: 0 },
-                                theme::ACCENT.linear_multiply(1.2),
-                            );
-                            ui.painter().rect_filled(
-                                bot_half,
-                                egui::CornerRadius { nw: 0, ne: 0, sw: 3, se: 3 },
-                                theme::ACCENT,
+                                bar_rect,
+                                egui::CornerRadius::same(2),
+                                theme::bg_elevated(),
                             );
                             
-                            // Shimmer effect (moving highlight)
-                            let shimmer_x = (time * 0.5).fract() as f32 * fill_width;
-                            let shimmer_rect = egui::Rect::from_min_size(
-                                fill_rect.min + egui::Vec2::new(shimmer_x - 10.0, 0.0),
-                                egui::Vec2::new(20.0, bar_height),
-                            );
-                            if shimmer_rect.intersects(fill_rect) {
-                                ui.painter().rect_filled(
-                                    shimmer_rect.intersect(fill_rect),
-                                    egui::CornerRadius::same(3),
-                                    egui::Color32::from_white_alpha(30),
+                            let fill_width = bar_width * progress;
+                            if fill_width > 0.0 {
+                                let fill_rect = egui::Rect::from_min_size(
+                                    bar_rect.min,
+                                    egui::Vec2::new(fill_width, bar_height),
                                 );
+                                
+                                for i in 1..4 {
+                                    let expansion = i as f32 * 2.0;
+                                    let alpha = 0.12 / (i as f32);
+                                    ui.painter().rect_filled(
+                                        fill_rect.expand(expansion),
+                                        egui::CornerRadius::same(4),
+                                        theme::ACCENT.linear_multiply(alpha * (0.8 + pulse * 0.2)),
+                                    );
+                                }
+                                
+                                ui.painter().rect_filled(
+                                    fill_rect,
+                                    egui::CornerRadius::same(2),
+                                    theme::ACCENT,
+                                );
+                                
+                                let shimmer_x = (time * 0.4).fract() as f32 * (fill_width + 40.0) - 20.0;
+                                let shimmer_rect = egui::Rect::from_min_size(
+                                    bar_rect.min + egui::vec2(shimmer_x, 0.0),
+                                    egui::vec2(20.0, bar_height),
+                                );
+                                let visible_shimmer = shimmer_rect.intersect(fill_rect);
+                                if visible_shimmer.is_positive() {
+                                    ui.painter().rect_filled(
+                                        visible_shimmer,
+                                        egui::CornerRadius::same(2),
+                                        egui::Color32::from_white_alpha(40),
+                                    );
+                                }
                             }
+                            ui.ctx().request_repaint();
                         }
                         
-                        ui.ctx().request_repaint();
-                    }
-                    ui.add_space(theme::SPACE_SM);
-                    ui.label(
-                        egui::RichText::new(&state.discovery_phase)
-                            .font(theme::font_small())
-                            .color(theme::text_secondary()),
-                    );
+                        ui.horizontal(|ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new(state.discovery_phase.to_uppercase())
+                                    .font(egui::FontId::proportional(9.0))
+                                    .color(theme::text_tertiary())
+                                    .extra_letter_spacing(0.5)
+                                    .strong(),
+                            );
+                            ui.label(
+                                egui::RichText::new(format!("{:.0}% COMPLET", progress * 100.0))
+                                    .font(egui::FontId::proportional(9.0))
+                                    .color(theme::ACCENT)
+                                    .strong(),
+                            );
+                        });
+                    });
                 }
 
-                ui.add_space(theme::SPACE_LG);
-                ui.label(
-                    egui::RichText::new(format!(
-                        "{} appareil(s) d\u{00e9}couvert(s)",
-                        state.discovered_devices.len()
-                    ))
-                    .font(theme::font_body())
-                    .color(theme::text_secondary()),
-                );
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new(format!("{}", state.discovered_devices.len()))
+                            .font(egui::FontId::proportional(20.0))
+                            .color(theme::text_primary())
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE_XS);
+                    ui.label(
+                        egui::RichText::new("ACTIFS DÉTECTÉS")
+                            .font(egui::FontId::proportional(9.0))
+                            .color(theme::text_tertiary())
+                            .extra_letter_spacing(0.5)
+                            .strong(),
+                    );
+                });
             });
         });
 
         ui.add_space(theme::SPACE_MD);
 
-        // Search / filter
-        let search_lower = state.discovery_search.to_lowercase();
+        // Search / filter (AAA Grade)
+        let search_upper = state.discovery_search.to_uppercase();
         let filtered: Vec<usize> = state
             .discovered_devices
             .iter()
             .enumerate()
             .filter(|(_, d)| {
-                if search_lower.is_empty() {
+                if search_upper.is_empty() {
                     return true;
                 }
                 let haystack = format!(
                     "{} {} {}",
-                    d.ip.to_lowercase(),
-                    d.hostname.as_deref().unwrap_or("").to_lowercase(),
-                    d.vendor.as_deref().unwrap_or("").to_lowercase(),
+                    d.ip.to_uppercase(),
+                    d.hostname.as_deref().unwrap_or("").to_uppercase(),
+                    d.vendor.as_deref().unwrap_or("").to_uppercase(),
                 );
-                haystack.contains(&search_lower)
+                haystack.contains(&search_upper)
             })
             .map(|(i, _)| i)
             .collect();
@@ -174,20 +185,21 @@ impl DiscoveryPage {
 
         widgets::SearchFilterBar::new(
             &mut state.discovery_search,
-            "Rechercher (IP, hostname, vendor)...",
+            "Filtrer par adresse IP, nom d'hôte ou constructeur...",
         )
         .result_count(result_count)
         .show(ui);
 
         ui.add_space(theme::SPACE_SM);
 
-        // CSV export
-        ui.horizontal(|ui| {
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+        // Action Buttons (AAA Grade)
+        ui.horizontal(|ui: &mut egui::Ui| {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                 let export_btn = egui::Button::new(
                     egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                        .font(theme::font_small())
-                        .color(theme::text_secondary()),
+                        .font(egui::FontId::proportional(10.0))
+                        .color(theme::text_tertiary())
+                        .strong(),
                 )
                 .fill(theme::bg_elevated())
                 .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
@@ -199,112 +211,108 @@ impl DiscoveryPage {
 
         ui.add_space(theme::SPACE_SM);
 
-        // Device table
+        // Device table (AAA Grade)
         if filtered.is_empty() && !state.discovery_in_progress {
-            widgets::card(ui, |ui| {
-                ui.vertical_centered(|ui| {
-                    ui.add_space(theme::SPACE_XL * 2.0);
-                    ui.label(
-                        egui::RichText::new("Aucun appareil d\u{00e9}couvert")
-                            .font(theme::font_heading())
-                            .color(theme::text_tertiary()),
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                ui.vertical_centered(|ui: &mut egui::Ui| {
+                    ui.add_space(theme::SPACE_XL);
+                    widgets::protected_state(
+                        ui,
+                        icons::NETWORK,
+                        "AUCUNE ENTITÉ DÉTECTÉE",
+                        "Veuillez initier un scan pour identifier les actifs présents sur votre segment réseau.",
                     );
-                    ui.add_space(theme::SPACE_SM);
-                    ui.label(
-                        egui::RichText::new(
-                            "Lancez un scan pour cartographier votre r\u{00e9}seau",
-                        )
-                        .font(theme::font_body())
-                        .color(theme::text_tertiary()),
-                    );
-                    ui.add_space(theme::SPACE_XL * 2.0);
+                    ui.add_space(theme::SPACE_XL);
                 });
             });
         } else if !filtered.is_empty() {
-            widgets::card(ui, |ui| {
+            widgets::card(ui, |ui: &mut egui::Ui| {
                 let table = TableBuilder::new(ui)
                     .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(100.0).at_least(80.0))
-                    .column(Column::initial(140.0).at_least(100.0))
-                    .column(Column::initial(140.0).at_least(100.0))
-                    .column(Column::initial(100.0).at_least(80.0))
-                    .column(Column::initial(80.0).at_least(60.0))
-                    .column(Column::initial(100.0).at_least(80.0))
-                    .column(Column::remainder());
+                    .column(Column::initial(130.0).at_least(100.0)) // IP
+                    .column(Column::initial(180.0).range(120.0..=400.0)) // Hostname
+                    .column(Column::initial(140.0).at_least(120.0)) // MAC
+                    .column(Column::initial(140.0).at_least(100.0)) // Vendor
+                    .column(Column::initial(100.0).at_least(80.0)) // Type
+                    .column(Column::initial(120.0).at_least(80.0)) // Ports
+                    .column(Column::remainder()); // Actions
 
                 table
-                    .header(28.0, |mut header| {
-                        header.col(|ui| {
-                            ui.strong("IP");
+                    .header(30.0, |mut header| {
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("ADRESSE IP").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
-                        header.col(|ui| {
-                            ui.strong("HOSTNAME");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("NOM D'HÔTE (DNS/NETBIOS)").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
-                        header.col(|ui| {
-                            ui.strong("MAC");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("ADRESSE MAC").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
-                        header.col(|ui| {
-                            ui.strong("VENDOR");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("CONSTRUCTEUR").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
-                        header.col(|ui| {
-                            ui.strong("TYPE");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("TYPE D'ACTIF").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
-                        header.col(|ui| {
-                            ui.strong("PORTS");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("SERVICES").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
-                        header.col(|ui| {
-                            ui.strong("ACTIONS");
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(egui::RichText::new("OPÉRATIONS").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
                         });
                     })
                     .body(|body| {
-                        body.rows(32.0, filtered.len(), |mut row| {
+                        body.rows(48.0, filtered.len(), |mut row| {
                             let device = &state.discovered_devices[filtered[row.index()]];
 
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&device.ip)
                                         .font(theme::font_mono())
+                                        .color(theme::text_primary())
+                                        .strong(),
+                                );
+                            });
+                            row.col(|ui: &mut egui::Ui| {
+                                let text = device.hostname.as_deref().unwrap_or("--");
+                                ui.label(
+                                    egui::RichText::new(text)
+                                        .font(egui::FontId::proportional(13.0))
                                         .color(theme::text_primary()),
                                 );
                             });
-                            row.col(|ui| {
-                                let text = device.hostname.as_deref().unwrap_or("-");
-                                ui.label(text);
-                            });
-                            row.col(|ui| {
-                                let text = device.mac.as_deref().unwrap_or("-");
+                            row.col(|ui: &mut egui::Ui| {
+                                let text = device.mac.as_deref().unwrap_or("--");
                                 ui.label(
                                     egui::RichText::new(text)
                                         .font(theme::font_mono())
+                                        .size(11.0)
                                         .color(theme::text_tertiary()),
                                 );
                             });
-                            row.col(|ui| {
-                                let text = device.vendor.as_deref().unwrap_or("Inconnu");
-                                ui.label(egui::RichText::new(text).font(theme::font_small()));
+                            row.col(|ui: &mut egui::Ui| {
+                                let text = device.vendor.as_deref().unwrap_or("Non identifié");
+                                ui.label(
+                                    egui::RichText::new(text.to_uppercase())
+                                        .font(egui::FontId::proportional(11.0))
+                                        .color(theme::text_secondary())
+                                        .strong()
+                                );
                             });
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 let (label, color) = device_type_badge(&device.device_type);
-                                let badge = egui::Button::new(
-                                    egui::RichText::new(label)
-                                        .font(theme::font_small())
-                                        .color(color),
-                                )
-                                .fill(color.linear_multiply(0.15))
-                                .corner_radius(egui::CornerRadius::same(4))
-                                .sense(egui::Sense::hover());
-                                ui.add(badge);
+                                widgets::status_badge(ui, label, color);
                             });
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 let ports_str = if device.open_ports.is_empty() {
-                                    "-".to_string()
+                                    "--".to_string()
                                 } else {
                                     device
                                         .open_ports
                                         .iter()
-                                        .take(4)
+                                        .take(3)
                                         .map(|p| p.to_string())
                                         .collect::<Vec<_>>()
                                         .join(", ")
@@ -312,17 +320,20 @@ impl DiscoveryPage {
                                 ui.label(
                                     egui::RichText::new(&ports_str)
                                         .font(theme::font_mono())
+                                        .size(11.0)
                                         .color(theme::text_tertiary()),
                                 );
                             });
-                            row.col(|ui| {
+                            row.col(|ui: &mut egui::Ui| {
                                 let propose_btn = egui::Button::new(
-                                    egui::RichText::new("+ Actif")
-                                        .font(theme::font_small())
-                                        .color(theme::ACCENT),
+                                    egui::RichText::new(format!("{}  IDENTIFIER", icons::PLUS))
+                                        .font(egui::FontId::proportional(10.0))
+                                        .color(theme::text_on_accent())
+                                        .strong(),
                                 )
-                                .fill(theme::ACCENT.linear_multiply(0.1))
-                                .corner_radius(egui::CornerRadius::same(4));
+                                .fill(theme::ACCENT.linear_multiply(0.8))
+                                .corner_radius(egui::CornerRadius::same(theme::BADGE_ROUNDING));
+                                
                                 if ui.add(propose_btn).clicked() {
                                     cmd = Some(crate::events::GuiCommand::ProposeAsset {
                                         ip: device.ip.clone(),
@@ -370,13 +381,13 @@ impl DiscoveryPage {
 
 fn device_type_badge(device_type: &str) -> (&str, egui::Color32) {
     match device_type {
-        "router" => ("Routeur", theme::ACCENT),
-        "server" => ("Serveur", theme::SUCCESS),
-        "workstation" => ("Poste", theme::text_primary()),
-        "printer" => ("Imprimante", theme::text_tertiary()),
-        "iot" => ("IoT", theme::WARNING),
-        "phone" => ("T\u{00e9}l\u{00e9}phone", theme::ACCENT_LIGHT),
-        "switch" => ("Switch", theme::INFO),
-        _ => ("Inconnu", theme::text_secondary()),
+        "router" => ("ROUTEUR", theme::ACCENT),
+        "server" => ("SERVEUR", theme::SUCCESS),
+        "workstation" => ("POSTE", theme::text_primary()),
+        "printer" => ("IMPRIMANTE", theme::text_tertiary()),
+        "iot" => ("IOT", theme::WARNING),
+        "phone" => ("TÉLÉPHONE", theme::ACCENT_LIGHT),
+        "switch" => ("SWITCH", theme::INFO),
+        _ => ("INCONNU", theme::text_secondary()),
     }
 }

@@ -35,8 +35,9 @@ pub use error::{StorageError, StorageResult};
 pub use key::KeyManager;
 pub use migrations::{CURRENT_SCHEMA_VERSION, run_migrations};
 pub use repositories::{
-    CheckResultsRepository, CheckRulesRepository, ConfigRepository, ProofsRepository,
-    SyncQueueRepository,
+    AuditTrailRepository, CheckResultsRepository, CheckRulesRepository, ConfigRepository,
+    ProofsRepository, SyncQueueRepository,
+    audit_trail::StoredAuditEntry,
     check_results::{CheckResult, CheckResultQuery, CheckStatus},
     check_rules::{CheckRule, RuleCacheMetadata, Severity},
     config::{ConfigEntry, ConfigSource, MergeResult},

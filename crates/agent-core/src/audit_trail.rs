@@ -56,9 +56,31 @@ impl LocalAuditTrail {
         }
     }
 
-    async fn store_entry(&self, _entry: &AuditEntry) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        // Implementation for agent-storage repository would go here
-        // For now, it's a placeholder that we'll integrate with agent-storage later
+    async fn store_entry(&self, entry: &AuditEntry) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        use agent_storage::{AuditTrailRepository, StoredAuditEntry};
+
+        let repo = AuditTrailRepository::new(&self.db);
+        let action_data = serde_json::to_string(&entry.action).unwrap_or_default();
+        let action_type = match &entry.action {
+            AuditAction::ScanStarted { .. } => "scan_started",
+            AuditAction::ScanFinished { .. } => "scan_finished",
+            AuditAction::RemediationApplied { .. } => "remediation_applied",
+            AuditAction::ConfigChanged { .. } => "config_changed",
+            AuditAction::AgentStarted => "agent_started",
+            AuditAction::AgentShutdown => "agent_shutdown",
+            AuditAction::UpdateChecked { .. } => "update_checked",
+        };
+
+        let stored_entry = StoredAuditEntry {
+            id: None,
+            timestamp: entry.timestamp,
+            action_type: action_type.to_string(),
+            action_data,
+            actor: entry.actor.clone(),
+            details: entry.details.clone(),
+        };
+
+        repo.insert(&stored_entry).await?;
         Ok(())
     }
 }
