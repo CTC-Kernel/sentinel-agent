@@ -4,7 +4,7 @@ use agent_common::types::UpdateInfo;
 use semver::Version;
 use std::process::Command;
 use std::sync::Arc;
-use tracing::{debug, error, info};
+use tracing::{error, info, debug, warn};
 
 /// Orchestrates the agent self-update process.
 pub struct UpdateManager {
@@ -192,16 +192,43 @@ impl UpdateManager {
         #[cfg(target_os = "macos")]
         {
             info!("Executing: /usr/sbin/installer -pkg {} -target /", path_str);
-            let status = Command::new("/usr/sbin/installer")
+            
+            let output = Command::new("/usr/sbin/installer")
                 .args(["-pkg", path_str, "-target", "/"])
-                .status()
+                .output()
                 .map_err(|e| CommonError::system(format!("Failed to launch installer: {}", e)))?;
-
+            
+            let status = output.status;
             if !status.success() {
-                return Err(CommonError::system(format!(
-                    "Installer exited with error: {}",
-                    status
-                )));
+                // Enhanced error logging for macOS installer
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                
+                error!(
+                    "macOS installer failed with exit status {}: stderr: {}, stdout: {}",
+                    status, stderr, stdout
+                );
+                
+                // Common installer issues and suggestions
+                match status.code() {
+                    Some(1) => {
+                        warn!("Installer exit code 1: Possible causes - insufficient permissions, corrupted package, or target directory conflicts");
+                        return Err(CommonError::system("macOS installer failed: Permission denied or package corruption. Try running with sudo or check disk space.".to_string()));
+                    }
+                    Some(64) => {
+                        warn!("Installer exit code 64: Package validation failed");
+                        return Err(CommonError::system("Package validation failed. The downloaded package may be corrupted.".to_string()));
+                    }
+                    _ => {
+                        return Err(CommonError::system(format!(
+                            "Installer exited with error: exit code={:?}, stderr: {}",
+                            status.code(),
+                            stderr
+                        )));
+                    }
+                }
+            } else {
+                info!("macOS installer completed successfully");
             }
         }
 
