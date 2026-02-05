@@ -499,7 +499,7 @@ jobs:
 
       - name: Generate CycloneDX SBOM
         run: |
-          cargo cyclonedx --format json --output-pattern bom
+          cargo cyclonedx --format json --override-filename bom
           mkdir -p sbom
           cp bom.json sbom/sentinel-agent-${{ needs.version.outputs.version }}.cdx.json
 
