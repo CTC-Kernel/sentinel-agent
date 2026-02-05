@@ -353,17 +353,20 @@ jobs:
         shell: pwsh
 
       - name: Sign MSI (Authenticode)
-        if: secrets.WINDOWS_CERT_P12
         env:
           WINDOWS_CERT_P12: ${{ secrets.WINDOWS_CERT_P12 }}
           WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
         run: |
           $version = "${{ env.RELEASE_VERSION }}"
+          if ([string]::IsNullOrEmpty($env:WINDOWS_CERT_P12)) {
+            Write-Host "⚠️ Windows certificate not configured - skipping MSI signing"
+            exit 0
+          }
           $certPath = "$env:RUNNER_TEMP\code_signing.pfx"
           [System.IO.File]::WriteAllBytes($certPath, [System.Convert]::FromBase64String($env:WINDOWS_CERT_P12))
           & signtool sign /f $certPath /p $env:WINDOWS_CERT_PASSWORD /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d "Sentinel GRC Agent" "target\release\SentinelAgentSetup-$version.msi"
           Remove-Item $certPath -Force
-          echo "MSI signed with Authenticode"
+          echo "✅ MSI signed with Authenticode"
         shell: pwsh
 
       - name: Generate checksums
