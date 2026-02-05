@@ -272,14 +272,14 @@
     <!-- Windows Defender exclusion -->
     <CustomAction Id="AddDefenderExclusion"
                   Directory="BinDir"
-                  ExeCommand='powershell.exe -NoProfile -NonInteractive -Command "Add-MpPreference -ExclusionPath ''[INSTALLDIR]'' -ExclusionProcess ''[BinDir]sentinel-agent.exe''"'
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -Command &quot;Add-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe'&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
 
     <CustomAction Id="RemoveDefenderExclusion"
                   Directory="BinDir"
-                  ExeCommand='powershell.exe -NoProfile -NonInteractive -Command "Remove-MpPreference -ExclusionPath ''[INSTALLDIR]'' -ExclusionProcess ''[BinDir]sentinel-agent.exe''"'
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -Command &quot;Remove-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe'&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
@@ -287,7 +287,7 @@
     <!-- Uninstall cleanup (only on full uninstall, not upgrade) -->
     <CustomAction Id="CleanupDataOnUninstall"
                   Directory="INSTALLDIR"
-                  ExeCommand='cmd.exe /c rmdir /s /q "[CommonAppDataFolder]Sentinel"'
+                  ExeCommand="cmd.exe /c rmdir /s /q &quot;[CommonAppDataFolder]Sentinel&quot;"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
