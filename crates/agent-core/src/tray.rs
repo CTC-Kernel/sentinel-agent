@@ -31,7 +31,7 @@ const STATUS_REFRESH_INTERVAL_SECS: u64 = 30;
 /// Branding URLs for the agent.
 pub mod branding {
     use super::company_info;
-    
+
     /// Main website URL.
     pub const WEBSITE: &str = "https://cyber-threat-consulting.com";
     /// User guide URL.
@@ -39,7 +39,7 @@ pub mod branding {
     /// Dashboard URL (currently unused, kept for reference).
     #[allow(dead_code)]
     pub const DASHBOARD: &str = "https://app.cyber-threatconsulting.com/settings?tab=agents";
-    
+
     /// Product name (re-exported from company_info).
     pub const PRODUCT_NAME: &str = company_info::PRODUCT_NAME;
     /// Company name (re-exported from company_info).
@@ -348,7 +348,7 @@ impl AgentTray {
             && *status != new_status
         {
             *status = new_status;
-            
+
             // Update tray icon with premium indicator
             if let Ok(new_icon) = create_icon(new_status) {
                 if let Err(e) = self.tray_icon.set_icon(Some(new_icon)) {
@@ -358,7 +358,7 @@ impl AgentTray {
                     warn!("Failed to update tray tooltip: {}", e);
                 }
             }
-            
+
             self.menu_items
                 .status_item
                 .set_text(new_status.display_text());
@@ -492,14 +492,14 @@ impl AgentTray {
 
     /// Update sync animation frame (called periodically).
     pub fn update_sync_animation(&self) {
-        if let Ok(status) = self.status.read() {
-            if *status == AgentTrayStatus::Syncing {
-                // Refresh icon to update animation
-                if let Ok(new_icon) = create_icon(AgentTrayStatus::Syncing) {
-                    if let Err(e) = self.tray_icon.set_icon(Some(new_icon)) {
-                        warn!("Failed to update sync animation: {}", e);
-                    }
-                }
+        if let Ok(status) = self.status.read()
+            && *status == AgentTrayStatus::Syncing
+        {
+            // Refresh icon to update animation
+            if let Ok(new_icon) = create_icon(AgentTrayStatus::Syncing)
+                && let Err(e) = self.tray_icon.set_icon(Some(new_icon))
+            {
+                warn!("Failed to update sync animation: {}", e);
             }
         }
     }
@@ -519,7 +519,7 @@ fn create_icon(status: AgentTrayStatus) -> Result<Icon, TrayError> {
 
     let mut rgba_image = base_img.to_rgba8();
     let (width, height) = rgba_image.dimensions();
-    
+
     // Add premium sync indicator for syncing status
     if status == AgentTrayStatus::Syncing {
         add_sync_indicator(&mut rgba_image, width, height)?;
@@ -528,35 +528,39 @@ fn create_icon(status: AgentTrayStatus) -> Result<Icon, TrayError> {
     } else if status == AgentTrayStatus::Error {
         add_error_indicator(&mut rgba_image, width, height)?;
     }
-    
+
     let rgba_data = rgba_image.into_raw();
 
     Icon::from_rgba(rgba_data, width, height).map_err(|e| TrayError::IconCreate(e.to_string()))
 }
 
 /// Add animated sync indicator to tray icon.
-fn add_sync_indicator(img: &mut image::RgbaImage, width: u32, height: u32) -> Result<(), TrayError> {
+fn add_sync_indicator(
+    img: &mut image::RgbaImage,
+    width: u32,
+    height: u32,
+) -> Result<(), TrayError> {
     let center_x = width as i32 - 6;
     let center_y = 6;
     let radius = 4;
-    
+
     // Draw rotating arc for sync effect
     let time = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
         .as_secs_f32();
     let angle = (time * 2.0) % (2.0 * std::f32::consts::PI);
-    
+
     // Draw sync circle with arc
     for i in 0..8 {
         let theta = (i as f32 / 8.0) * 2.0 * std::f32::consts::PI;
         let next_theta = ((i + 1) as f32 / 8.0) * 2.0 * std::f32::consts::PI;
-        
+
         if (theta..next_theta).contains(&angle) {
             // Active segment - bright blue
             let x = center_x + (radius as f32 * theta.cos()) as i32;
             let y = center_y + (radius as f32 * theta.sin()) as i32;
-            
+
             if x >= 0 && y >= 0 && x < width as i32 && y < height as i32 {
                 let pixel = img.get_pixel_mut(x as u32, y as u32);
                 *pixel = image::Rgba([0, 150, 255, 255]); // Bright blue
@@ -565,50 +569,58 @@ fn add_sync_indicator(img: &mut image::RgbaImage, width: u32, height: u32) -> Re
             // Inactive segment - dim blue
             let x = center_x + (radius as f32 * theta.cos()) as i32;
             let y = center_y + (radius as f32 * theta.sin()) as i32;
-            
+
             if x >= 0 && y >= 0 && x < width as i32 && y < height as i32 {
                 let pixel = img.get_pixel_mut(x as u32, y as u32);
                 *pixel = image::Rgba([0, 80, 150, 180]); // Dim blue
             }
         }
     }
-    
+
     Ok(())
 }
 
 /// Add check indicator to tray icon.
-fn add_check_indicator(img: &mut image::RgbaImage, width: u32, height: u32) -> Result<(), TrayError> {
+fn add_check_indicator(
+    img: &mut image::RgbaImage,
+    width: u32,
+    height: u32,
+) -> Result<(), TrayError> {
     let center_x = width as i32 - 6;
     let center_y = 6;
-    
+
     // Draw orange check indicator
     for dx in -2i32..=2i32 {
         for dy in -2i32..=2i32 {
             let x = center_x + dx;
             let y = center_y + dy;
-            
+
             if x >= 0 && y >= 0 && x < width as i32 && y < height as i32 {
                 let pixel = img.get_pixel_mut(x as u32, y as u32);
                 *pixel = image::Rgba([255, 150, 0, 200]); // Orange
             }
         }
     }
-    
+
     Ok(())
 }
 
 /// Add error indicator to tray icon.
-fn add_error_indicator(img: &mut image::RgbaImage, width: u32, height: u32) -> Result<(), TrayError> {
+fn add_error_indicator(
+    img: &mut image::RgbaImage,
+    width: u32,
+    height: u32,
+) -> Result<(), TrayError> {
     let center_x = width as i32 - 6;
     let center_y = 6;
-    
+
     // Draw red error indicator
     for dx in -2i32..=2i32 {
         for dy in -2i32..=2i32 {
             if dx.abs() == dy.abs() || (dx == 0 && dy == 0) {
                 let x = center_x + dx;
                 let y = center_y + dy;
-                
+
                 if x >= 0 && y >= 0 && x < width as i32 && y < height as i32 {
                     let pixel = img.get_pixel_mut(x as u32, y as u32);
                     *pixel = image::Rgba([255, 50, 50, 255]); // Red
@@ -616,7 +628,7 @@ fn add_error_indicator(img: &mut image::RgbaImage, width: u32, height: u32) -> R
             }
         }
     }
-    
+
     Ok(())
 }
 

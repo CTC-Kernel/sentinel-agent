@@ -339,6 +339,9 @@ impl SyncOrchestrator {
             disk_used_bytes: None,
             disk_total_bytes: None,
             uptime_seconds: None,
+            ip_address: None,
+            network_bytes_sent: None,
+            network_bytes_recv: None,
         };
 
         let _response: crate::types::HeartbeatResponse = client

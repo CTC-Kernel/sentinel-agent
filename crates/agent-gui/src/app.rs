@@ -76,9 +76,9 @@ use crate::dto::{
 };
 use crate::enrollment::{EnrollmentCommand, EnrollmentWizard};
 use crate::events::{AgentEvent, GuiCommand};
+use crate::icons;
 use crate::pages;
 use crate::theme;
-use crate::icons;
 use crate::tray_bridge::{TrayAction, TrayBridge};
 use crate::widgets;
 
@@ -217,6 +217,9 @@ pub struct AppState {
     pub usb_events: Vec<crate::dto::GuiUsbEvent>,
     pub threats_search: String,
     pub threats_filter: Option<String>,
+
+    // Toast notifications
+    pub toasts: Vec<crate::widgets::toast::Toast>,
 }
 
 impl Default for AppState {
@@ -316,6 +319,19 @@ impl Default for AppState {
             usb_events: Vec::new(),
             threats_search: String::new(),
             threats_filter: None,
+            toasts: Vec::new(),
+        }
+    }
+}
+
+impl AppState {
+    /// Push a toast notification with the current egui time.
+    pub fn push_toast(&mut self, toast: crate::widgets::toast::Toast, ctx: &egui::Context) {
+        let time = ctx.input(|i| i.time);
+        self.toasts.push(toast.with_time(time));
+        // Keep at most 5 toasts visible
+        if self.toasts.len() > 5 {
+            self.toasts.remove(0);
         }
     }
 }
@@ -363,6 +379,9 @@ pub struct SentinelApp {
 
     /// Whether to show the premium "Satellite" tray dashboard view.
     show_tray_satellite: bool,
+
+    /// Page transition animation progress (0.0 = just switched, 1.0 = fully visible).
+    page_transition: f32,
 }
 
 impl SentinelApp {
@@ -415,6 +434,7 @@ impl SentinelApp {
             splash_start: std::time::Instant::now(),
             splash_done: false,
             show_tray_satellite: is_tray_popup,
+            page_transition: 1.0,
         }
     }
 
@@ -507,7 +527,7 @@ impl SentinelApp {
                             .network_io_history
                             .push([t, usage.network_io_bytes as f64 / 1024.0]); // In KB/s for graph
                     }
-                    
+
                     // Truncate to 300 data points
                     const MAX_HISTORY: usize = 300;
                     if self.state.cpu_history.len() > MAX_HISTORY {
@@ -686,10 +706,14 @@ impl SentinelApp {
                         ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
                         // Borderless satellite style
                         ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(false));
-                        ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(320.0, 480.0)));
+                        ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(
+                            320.0, 480.0,
+                        )));
                     } else {
                         ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(true));
-                        ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(1280.0, 750.0)));
+                        ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(
+                            1280.0, 750.0,
+                        )));
                     }
                 }
                 TrayAction::RunCheck => {
@@ -753,7 +777,11 @@ impl SentinelApp {
     /// Render the premium satellite tray view.
     fn show_tray_satellite_view(&mut self, ctx: &egui::Context) {
         egui::CentralPanel::default()
-            .frame(egui::Frame::new().fill(theme::bg_primary()).inner_margin(0.0))
+            .frame(
+                egui::Frame::new()
+                    .fill(theme::bg_primary())
+                    .inner_margin(0.0),
+            )
             .show(ctx, |ui: &mut egui::Ui| {
                 ui.vertical(|ui: &mut egui::Ui| {
                     // Title Bar (Satellite style)
@@ -767,19 +795,30 @@ impl SentinelApp {
                                     .size(11.0)
                                     .strong(),
                             );
-                            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                                if ui.button(icons::XMARK).clicked() {
-                                    self.show_tray_satellite = false;
-                                    ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(true));
-                                    ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(1280.0, 750.0)));
-                                }
-                                if ui.button(icons::EXTERNAL_LINK).clicked() {
-                                    self.show_tray_satellite = false;
-                                    self.visible = true;
-                                    ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(true));
-                                    ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(1280.0, 750.0)));
-                                }
-                            });
+                            ui.with_layout(
+                                egui::Layout::right_to_left(egui::Align::Center),
+                                |ui: &mut egui::Ui| {
+                                    if ui.button(icons::XMARK).clicked() {
+                                        self.show_tray_satellite = false;
+                                        ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(
+                                            true,
+                                        ));
+                                        ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(
+                                            egui::vec2(1280.0, 750.0),
+                                        ));
+                                    }
+                                    if ui.button(icons::EXTERNAL_LINK).clicked() {
+                                        self.show_tray_satellite = false;
+                                        self.visible = true;
+                                        ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(
+                                            true,
+                                        ));
+                                        ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(
+                                            egui::vec2(1280.0, 750.0),
+                                        ));
+                                    }
+                                },
+                            );
                         });
                     });
 
@@ -788,8 +827,10 @@ impl SentinelApp {
                     // Radar Chart Section
                     ui.vertical(|ui: &mut egui::Ui| {
                         let compliance = self.state.summary.compliance_score.unwrap_or(0.0) / 100.0;
-                        let threats = 1.0 - (self.state.suspicious_processes.len() as f32 / 10.0).min(1.0);
-                        let vulns = 1.0 - (self.state.vulnerability_findings.len() as f32 / 20.0).min(1.0);
+                        let threats =
+                            1.0 - (self.state.suspicious_processes.len() as f32 / 10.0).min(1.0);
+                        let vulns =
+                            1.0 - (self.state.vulnerability_findings.len() as f32 / 20.0).min(1.0);
                         let resources = 1.0 - (self.state.resources.cpu_percent / 100.0).min(1.0);
                         let network = 1.0 - (self.state.network_alerts as f32 / 5.0).min(1.0);
 
@@ -813,9 +854,12 @@ impl SentinelApp {
                                 ui.label(egui::RichText::new("SCORE").font(theme::font_small()));
                                 ui.add_space(4.0);
                                 ui.label(
-                                    egui::RichText::new(format!("{:.0}%", self.state.summary.compliance_score.unwrap_or(0.0)))
-                                        .font(theme::font_title())
-                                        .color(theme::ACCENT),
+                                    egui::RichText::new(format!(
+                                        "{:.0}%",
+                                        self.state.summary.compliance_score.unwrap_or(0.0)
+                                    ))
+                                    .font(theme::font_title())
+                                    .color(theme::ACCENT),
                                 );
                             });
                         });
@@ -829,7 +873,11 @@ impl SentinelApp {
                                 ui.label(
                                     egui::RichText::new(count.to_string())
                                         .font(theme::font_title())
-                                        .color(if count > 0 { theme::ERROR } else { theme::SUCCESS }),
+                                        .color(if count > 0 {
+                                            theme::ERROR
+                                        } else {
+                                            theme::SUCCESS
+                                        }),
                                 );
                             });
                         });
@@ -943,6 +991,45 @@ impl eframe::App for SentinelApp {
 
         // ── Main UI ──
 
+        // Keyboard shortcuts for page navigation
+        if let Some(new_page) = ctx.input(|i| {
+            if i.modifiers.command {
+                if i.key_pressed(egui::Key::Num1) {
+                    Some(Page::Dashboard)
+                } else if i.key_pressed(egui::Key::Num2) {
+                    Some(Page::Compliance)
+                } else if i.key_pressed(egui::Key::Num3) {
+                    Some(Page::Vulnerabilities)
+                } else if i.key_pressed(egui::Key::Num4) {
+                    Some(Page::Software)
+                } else if i.key_pressed(egui::Key::Num5) {
+                    Some(Page::Network)
+                } else if i.key_pressed(egui::Key::Num6) {
+                    Some(Page::FileIntegrity)
+                } else if i.key_pressed(egui::Key::Num7) {
+                    Some(Page::Threats)
+                } else if i.key_pressed(egui::Key::Num8) {
+                    Some(Page::Settings)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        }) && new_page != self.page
+        {
+            self.page = new_page;
+            self.page_transition = 0.0;
+        }
+
+        // Cmd+R = Run check, Cmd+Shift+S = Force sync
+        if ctx.input(|i| i.modifiers.command && !i.modifiers.shift && i.key_pressed(egui::Key::R)) {
+            self.send_command(GuiCommand::RunCheck);
+        }
+        if ctx.input(|i| i.modifiers.command && i.modifiers.shift && i.key_pressed(egui::Key::S)) {
+            self.send_command(GuiCommand::ForceSync);
+        }
+
         // Sidebar
         egui::SidePanel::left("sidebar")
             .exact_width(theme::SIDEBAR_WIDTH)
@@ -965,10 +1052,20 @@ impl eframe::App for SentinelApp {
                     scanning,
                     self.state.unread_notification_count,
                     &sync_state,
-                ) {
+                ) && new_page != self.page
+                {
                     self.page = new_page;
+                    self.page_transition = 0.0;
                 }
             });
+
+        // Advance page transition animation
+        if self.page_transition < 1.0 {
+            let dt = ctx.input(|i| i.stable_dt).min(0.05);
+            self.page_transition =
+                (self.page_transition + dt / theme::PAGE_TRANSITION_DURATION).min(1.0);
+            ctx.request_repaint();
+        }
 
         // Content area – ScrollArea is here so the scrollbar sits at the
         // window edge while content keeps a 24 px right margin.
@@ -984,6 +1081,12 @@ impl eframe::App for SentinelApp {
                     }),
             )
             .show(ctx, |ui: &mut egui::Ui| {
+                // Apply page transition fade-in
+                let transition_alpha = self.page_transition;
+                if transition_alpha < 1.0 {
+                    ui.set_opacity(transition_alpha);
+                }
+
                 egui::ScrollArea::vertical()
                     .auto_shrink(egui::Vec2b::new(false, false))
                     .show(ui, |ui: &mut egui::Ui| {
@@ -1096,6 +1199,18 @@ impl eframe::App for SentinelApp {
                             });
                     });
             });
+
+        // Render toast notifications (overlay on top of content)
+        if !self.state.toasts.is_empty() {
+            egui::Area::new(egui::Id::new("toast_overlay"))
+                .fixed_pos(egui::pos2(0.0, 0.0))
+                .order(egui::Order::Foreground)
+                .show(ctx, |ui: &mut egui::Ui| {
+                    let screen = ctx.screen_rect();
+                    ui.set_min_size(screen.size());
+                    self.state.toasts = widgets::render_toasts(ui, &self.state.toasts);
+                });
+        }
 
         // Request periodic repaint for event processing.
         ctx.request_repaint_after(std::time::Duration::from_millis(100));

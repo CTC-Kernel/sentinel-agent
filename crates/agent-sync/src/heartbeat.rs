@@ -233,6 +233,22 @@ impl HeartbeatService {
         // System uptime
         let uptime_seconds = Some(System::uptime());
 
+        // Network metrics
+        let networks = sysinfo::Networks::new_with_refreshed_list();
+        let (mut total_sent, mut total_recv) = (0u64, 0u64);
+        let mut ip_address: Option<String> = None;
+        for (_name, data) in &networks {
+            total_sent += data.total_transmitted();
+            total_recv += data.total_received();
+        }
+        // Try to get the local IP address from network interfaces
+        if let Ok(addrs) = std::net::UdpSocket::bind("0.0.0.0:0")
+            && addrs.connect("8.8.8.8:80").is_ok()
+            && let Ok(local) = addrs.local_addr()
+        {
+            ip_address = Some(local.ip().to_string());
+        }
+
         HeartbeatRequest {
             timestamp: Utc::now(),
             agent_version: AGENT_VERSION.to_string(),
@@ -255,6 +271,9 @@ impl HeartbeatService {
             disk_used_bytes: disk_used,
             disk_total_bytes: disk_total,
             uptime_seconds,
+            ip_address,
+            network_bytes_sent: Some(total_sent),
+            network_bytes_recv: Some(total_recv),
         }
     }
 

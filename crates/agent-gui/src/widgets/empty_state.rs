@@ -10,13 +10,13 @@ pub fn empty_state(ui: &mut Ui, icon: &str, title: &str, description: Option<&st
         let time = ui.input(|i| i.time);
         let pulse = ((time * 1.2).sin() * 0.5 + 0.5) as f32;
         let icon_alpha = 0.4 + pulse * 0.2;
-        
+
         ui.label(
             RichText::new(icon)
                 .size(64.0)
                 .color(theme::text_tertiary().linear_multiply(icon_alpha)),
         );
-        
+
         // Request repaint for smooth animation
         ui.ctx().request_repaint();
 

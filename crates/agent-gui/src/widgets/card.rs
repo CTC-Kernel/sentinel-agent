@@ -25,6 +25,24 @@ pub fn card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) {
             add_contents(ui);
         });
 
+    // Glassmorphism: subtle top-edge highlight for depth
+    {
+        let rect = frame_resp.response.rect;
+        let painter = ui.painter_at(rect);
+
+        // Top edge: bright glass-like border
+        let top_line = egui::Rect::from_min_size(rect.min, egui::vec2(rect.width(), 1.0));
+        painter.rect_filled(
+            top_line,
+            CornerRadius {
+                nw: theme::CARD_ROUNDING,
+                ne: theme::CARD_ROUNDING,
+                ..Default::default()
+            },
+            theme::glass_border_top(),
+        );
+    }
+
     // Subtle hover effect: just slightly brighter border, no glow
     if ui.rect_contains_pointer(frame_resp.response.rect) {
         let hover_stroke = if is_dark {
@@ -33,8 +51,6 @@ pub fn card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) {
             Stroke::new(1.0, theme::border().linear_multiply(0.7))
         };
 
-        // Use a clipped painter to ensure the stroke stays within rounding bounds if needed,
-        // although Inside stroke kind usually handles this well.
         ui.painter_at(frame_resp.response.rect).rect_stroke(
             frame_resp.response.rect,
             CornerRadius::same(theme::CARD_ROUNDING),

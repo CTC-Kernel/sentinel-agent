@@ -8,7 +8,9 @@
 
 use crate::authenticated_client::AuthenticatedClient;
 use crate::error::{SyncError, SyncResult};
-use agent_storage::{CheckResult, CheckResultsRepository, Database, ProofsRepository};
+use agent_storage::{
+    CheckResult, CheckResultsRepository, CheckRulesRepository, Database, ProofsRepository,
+};
 use chrono::{DateTime, Utc};
 use flate2::Compression;
 use flate2::write::GzEncoder;
@@ -69,6 +71,12 @@ pub struct CheckResultPayload {
     /// Raw data JSON (if included).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub raw_data: Option<serde_json::Value>,
+    /// Check category (from check rule definition).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category: Option<String>,
+    /// Check severity (from check rule definition).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub severity: Option<String>,
 }
 
 impl From<&CheckResult> for CheckResultPayload {
@@ -84,6 +92,8 @@ impl From<&CheckResult> for CheckResultPayload {
                 .raw_data
                 .as_ref()
                 .and_then(|s| serde_json::from_str(s).ok()),
+            category: None, // Populated from CheckRule during upload
+            severity: None, // Populated from CheckRule during upload
         }
     }
 }
@@ -294,12 +304,30 @@ impl ResultUploader {
 
         let agent_id = self.client.agent_id().await?;
 
-        // Build request payload with proof hashes
+        // Build request payload with proof hashes and rule metadata
         let proofs_repo = ProofsRepository::new(&self.db);
+        let rules_repo = CheckRulesRepository::new(&self.db);
         let mut payloads: Vec<CheckResultPayload> = Vec::with_capacity(results.len());
 
         for result in results {
             let mut payload = CheckResultPayload::from(result);
+
+            // Enrich with category/severity from check rule definition
+            match rules_repo.get(&result.check_rule_id).await {
+                Ok(Some(rule)) => {
+                    payload.category = Some(rule.category);
+                    payload.severity = Some(rule.severity.as_str().to_string());
+                }
+                Ok(None) => {
+                    debug!("No check rule found for {}", result.check_rule_id);
+                }
+                Err(e) => {
+                    warn!(
+                        "Failed to get check rule for {}: {}",
+                        result.check_rule_id, e
+                    );
+                }
+            }
 
             // Try to get the proof hash for this result
             if let Some(result_id) = result.id {
@@ -452,6 +480,8 @@ mod tests {
         assert_eq!(payload.status, "pass");
         assert_eq!(payload.score, Some(100));
         assert_eq!(payload.duration_ms, Some(150));
+        assert!(payload.category.is_none());
+        assert!(payload.severity.is_none());
     }
 
     #[test]
@@ -465,6 +495,8 @@ mod tests {
                 executed_at: Utc::now(),
                 duration_ms: Some(50),
                 raw_data: None,
+                category: Some("encryption".to_string()),
+                severity: Some("high".to_string()),
             }],
             agent_id: Uuid::new_v4(),
             timestamp: Utc::now(),
@@ -558,6 +590,8 @@ mod tests {
             executed_at: Utc::now(),
             duration_ms: None,
             raw_data: None,
+            category: None,
+            severity: None,
         };
 
         let json = serde_json::to_string(&payload).unwrap();

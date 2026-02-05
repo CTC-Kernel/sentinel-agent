@@ -19,7 +19,9 @@ impl NotificationsPage {
             ui,
             "Notifications",
             Some("Alertes, avertissements et informations de l'agent"),
-            Some("Restez informé des événements importants nécessitant votre attention. Les alertes de scan, les rapports de conformité et les messages système sont archivés ici."),
+            Some(
+                "Restez informé des événements importants nécessitant votre attention. Les alertes de scan, les rapports de conformité et les messages système sont archivés ici.",
+            ),
         );
         ui.add_space(theme::SPACE_LG);
 
@@ -34,37 +36,40 @@ impl NotificationsPage {
                     .color(theme::text_secondary()),
             );
 
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                if unread > 0 {
-                    let btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  Tout marquer comme lu", icons::CHECK))
-                            .font(theme::font_small())
-                            .color(theme::text_on_accent())
-                            .strong(),
-                    )
-                    .fill(theme::ACCENT)
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                    if ui.add(btn).clicked() {
-                        for n in &mut state.notifications {
-                            n.read = true;
+            ui.with_layout(
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui: &mut egui::Ui| {
+                    if unread > 0 {
+                        let btn = egui::Button::new(
+                            egui::RichText::new(format!("{}  Tout marquer comme lu", icons::CHECK))
+                                .font(theme::font_small())
+                                .color(theme::text_on_accent())
+                                .strong(),
+                        )
+                        .fill(theme::ACCENT)
+                        .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                        if ui.add(btn).clicked() {
+                            for n in &mut state.notifications {
+                                n.read = true;
+                            }
+                            state.unread_notification_count = 0;
                         }
-                        state.unread_notification_count = 0;
-                    }
 
-                    ui.add_space(theme::SPACE_SM);
+                        ui.add_space(theme::SPACE_SM);
 
-                    let export_btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                            .font(theme::font_small())
-                            .color(theme::text_secondary()),
-                    )
-                    .fill(theme::bg_elevated())
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                    if ui.add(export_btn).clicked() {
-                        Self::export_notifications_csv(state);
+                        let export_btn = egui::Button::new(
+                            egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
+                                .font(theme::font_small())
+                                .color(theme::text_secondary()),
+                        )
+                        .fill(theme::bg_elevated())
+                        .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                        if ui.add(export_btn).clicked() {
+                            Self::export_notifications_csv(state);
+                        }
                     }
-                }
-            });
+                },
+            );
         });
 
         ui.add_space(theme::SPACE_MD);

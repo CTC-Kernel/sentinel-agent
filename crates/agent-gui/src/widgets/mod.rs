@@ -15,6 +15,11 @@ mod status_badge;
 mod toggle_switch;
 pub mod tray_radar;
 
+// UX feedback & input widgets
+pub mod loading_state;
+pub mod text_input;
+pub mod toast;
+
 // Premium dashboard widgets
 mod activity_feed;
 mod org_banner;
@@ -37,7 +42,11 @@ pub use toggle_switch::toggle_switch;
 pub use tray_radar::TrayRadar;
 
 // Premium dashboard exports
-pub use activity_feed::{activity_feed, ActivityEvent, ActivityEventType};
+pub use activity_feed::{ActivityEvent, ActivityEventType, activity_feed};
 pub use org_banner::org_banner;
-pub use sparkline::{mini_gauge, sparkline, sparkline_with_value, SparklineConfig};
+pub use sparkline::{SparklineConfig, mini_gauge, sparkline, sparkline_with_value};
 
+// UX feedback & input exports
+pub use loading_state::{error_state, loading_skeleton};
+pub use text_input::text_input;
+pub use toast::{Toast, ToastLevel, render_toasts};

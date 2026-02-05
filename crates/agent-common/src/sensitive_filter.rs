@@ -3,8 +3,8 @@
 //! This module provides utilities to filter out sensitive information
 //! like tokens, passwords, API keys, and other secrets from logs.
 
-use regex::Regex;
 use once_cell::sync::Lazy;
+use regex::Regex;
 
 /// Patterns to detect and mask sensitive data
 static TOKEN_PATTERNS: Lazy<Vec<Regex>> = Lazy::new(|| {
@@ -35,11 +35,11 @@ const MASK_REPLACEMENT: &str = "***REDACTED***";
 /// sensitive information and replaces them with a placeholder.
 pub fn filter_sensitive_data(input: &str) -> String {
     let mut filtered = input.to_string();
-    
+
     for pattern in TOKEN_PATTERNS.iter() {
         filtered = pattern.replace_all(&filtered, MASK_REPLACEMENT).to_string();
     }
-    
+
     filtered
 }
 
@@ -89,14 +89,14 @@ fn filter_sensitive_json_value(value: &mut serde_json::Value) {
 /// Check if a JSON key name suggests sensitive data.
 fn is_sensitive_key(key: &str) -> bool {
     let key_lower = key.to_lowercase();
-    key_lower.contains("token") ||
-    key_lower.contains("password") ||
-    key_lower.contains("secret") ||
-    key_lower.contains("key") ||
-    key_lower.contains("auth") ||
-    key_lower.contains("credential") ||
-    key_lower.contains("certificate") ||
-    key_lower.contains("private")
+    key_lower.contains("token")
+        || key_lower.contains("password")
+        || key_lower.contains("secret")
+        || key_lower.contains("key")
+        || key_lower.contains("auth")
+        || key_lower.contains("credential")
+        || key_lower.contains("certificate")
+        || key_lower.contains("private")
 }
 
 #[cfg(test)]

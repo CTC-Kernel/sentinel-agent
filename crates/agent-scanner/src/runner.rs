@@ -105,7 +105,9 @@ impl CheckRunner {
         &self,
         active_frameworks: Option<&[String]>,
     ) -> Vec<CheckExecutionResult> {
-        let checks = self.registry.enabled_checks_for_frameworks(active_frameworks);
+        let checks = self
+            .registry
+            .enabled_checks_for_frameworks(active_frameworks);
         self.run_checks(checks).await
     }
 
@@ -186,7 +188,10 @@ impl CheckRunner {
         };
 
         let duration_ms = start.elapsed().as_millis() as u64;
-        let nfr_limit = check.definition().nfr_duration_ms.unwrap_or(MAX_CHECK_DURATION_MS);
+        let nfr_limit = check
+            .definition()
+            .nfr_duration_ms
+            .unwrap_or(MAX_CHECK_DURATION_MS);
 
         // Log NFR warning if check took too long
         if duration_ms > nfr_limit {
@@ -335,7 +340,6 @@ mod tests {
     use crate::check::{CheckDefinitionBuilder, CheckOutput};
     use agent_common::types::CheckCategory;
     use async_trait::async_trait;
-
     struct PassingCheck {
         definition: agent_common::types::CheckDefinition,
     }

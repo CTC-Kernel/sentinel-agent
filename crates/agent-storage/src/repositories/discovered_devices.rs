@@ -110,7 +110,9 @@ impl<'a> DiscoveredDevicesRepository<'a> {
         self.db
             .with_connection(|conn| {
                 let count: i64 = conn
-                    .query_row("SELECT COUNT(*) FROM discovered_devices", [], |row| row.get(0))
+                    .query_row("SELECT COUNT(*) FROM discovered_devices", [], |row| {
+                        row.get(0)
+                    })
                     .map_err(|e| StorageError::Query(format!("Failed to count devices: {}", e)))?;
                 Ok(count as usize)
             })
@@ -127,7 +129,9 @@ impl<'a> DiscoveredDevicesRepository<'a> {
                         "DELETE FROM discovered_devices WHERE last_seen < ?1",
                         [&older_than_str],
                     )
-                    .map_err(|e| StorageError::Query(format!("Failed to delete stale devices: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to delete stale devices: {}", e))
+                    })?;
                 info!("Deleted {} stale devices", deleted);
                 Ok(deleted)
             })

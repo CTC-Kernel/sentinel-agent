@@ -26,16 +26,18 @@ pub struct EventManager {
 }
 
 impl EventManager {
-    pub fn new(audit_trail: Option<Arc<LocalAuditTrail>>) -> (Self, tokio::sync::broadcast::Receiver<AgentEvent>) {
+    pub fn new(
+        audit_trail: Option<Arc<LocalAuditTrail>>,
+    ) -> (Self, tokio::sync::broadcast::Receiver<AgentEvent>) {
         let (gui_event_tx, gui_event_rx) = tokio::sync::broadcast::channel(100);
-        
+
         (
             Self {
                 #[cfg(feature = "gui")]
                 gui_event_tx,
                 audit_trail,
             },
-            gui_event_rx
+            gui_event_rx,
         )
     }
 
@@ -53,10 +55,8 @@ impl EventManager {
         } else {
             GuiNotification::info(title, message)
         };
-        
-        self.emit_gui(AgentEvent::Notification {
-            notification,
-        });
+
+        self.emit_gui(AgentEvent::Notification { notification });
     }
 
     /// Log an action to the audit trail and optionally notify the GUI.

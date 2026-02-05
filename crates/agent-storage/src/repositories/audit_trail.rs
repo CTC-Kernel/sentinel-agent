@@ -55,7 +55,11 @@ impl<'a> AuditTrailRepository<'a> {
     }
 
     /// Get audit entries with pagination.
-    pub async fn get_recent(&self, limit: usize, offset: usize) -> StorageResult<Vec<StoredAuditEntry>> {
+    pub async fn get_recent(
+        &self,
+        limit: usize,
+        offset: usize,
+    ) -> StorageResult<Vec<StoredAuditEntry>> {
         self.db
             .with_connection(move |conn| {
                 let mut stmt = conn
@@ -71,9 +75,13 @@ impl<'a> AuditTrailRepository<'a> {
 
                 let entries = stmt
                     .query_map(rusqlite::params![limit, offset], Self::row_to_entry)
-                    .map_err(|e| StorageError::Query(format!("Failed to query audit entries: {}", e)))?
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to query audit entries: {}", e))
+                    })?
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| StorageError::Query(format!("Failed to collect audit entries: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect audit entries: {}", e))
+                    })?;
 
                 debug!("Retrieved {} audit entries from database", entries.len());
                 Ok(entries)
@@ -87,7 +95,9 @@ impl<'a> AuditTrailRepository<'a> {
             .with_connection(|conn| {
                 let count: i64 = conn
                     .query_row("SELECT COUNT(*) FROM audit_trail", [], |row| row.get(0))
-                    .map_err(|e| StorageError::Query(format!("Failed to count audit entries: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to count audit entries: {}", e))
+                    })?;
                 Ok(count as usize)
             })
             .await

@@ -36,7 +36,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
 
                     ui.label(
                         RichText::new(org_name.to_uppercase())
-                            .font(egui::FontId::proportional(16.0))
+                            .font(theme::font_heading())
                             .color(theme::text_primary())
                             .strong(),
                     );
@@ -48,7 +48,9 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                 ui.horizontal(|ui: &mut egui::Ui| {
                     let is_connected = matches!(
                         state.summary.status,
-                        GuiAgentStatus::Connected | GuiAgentStatus::Scanning | GuiAgentStatus::Syncing
+                        GuiAgentStatus::Connected
+                            | GuiAgentStatus::Scanning
+                            | GuiAgentStatus::Syncing
                     );
 
                     let time = ui.input(|i| i.time);
@@ -97,7 +99,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
 
                     ui.label(
                         RichText::new(status_text)
-                            .font(egui::FontId::proportional(10.0))
+                            .font(theme::font_label())
                             .color(status_color)
                             .extra_letter_spacing(0.3)
                             .strong(),
@@ -128,7 +130,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
 
                     ui.label(
                         RichText::new(server_short)
-                            .font(egui::FontId::proportional(10.0))
+                            .font(theme::font_label())
                             .color(theme::text_tertiary()),
                     );
                 });
@@ -155,7 +157,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
 
                         ui.label(
                             RichText::new(format!("Dernière sync: {}", elapsed_text))
-                                .font(egui::FontId::proportional(10.0))
+                                .font(theme::font_label())
                                 .color(theme::text_tertiary()),
                         );
                     });
@@ -183,10 +185,8 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                         let badge_color = theme::INFO.linear_multiply(pulse);
                         let badge_text = format!("{}", state.summary.pending_sync_count);
 
-                        let badge_rect = egui::Rect::from_min_size(
-                            ui.cursor().min,
-                            Vec2::new(24.0, 18.0),
-                        );
+                        let badge_rect =
+                            egui::Rect::from_min_size(ui.cursor().min, Vec2::new(24.0, 18.0));
 
                         ui.painter().rect_filled(
                             badge_rect,
@@ -203,14 +203,14 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                             badge_rect.center(),
                             egui::Align2::CENTER_CENTER,
                             &badge_text,
-                            egui::FontId::proportional(10.0),
+                            theme::font_label(),
                             badge_color,
                         );
 
                         ui.add_space(28.0);
                         ui.label(
                             RichText::new("éléments en attente de sync")
-                                .font(egui::FontId::proportional(10.0))
+                                .font(theme::font_label())
                                 .color(theme::text_secondary()),
                         );
 
@@ -225,7 +225,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                     ui.horizontal(|ui: &mut egui::Ui| {
                         ui.label(
                             RichText::new("ID:")
-                                .font(egui::FontId::proportional(9.0))
+                                .font(theme::font_label())
                                 .color(theme::text_tertiary()),
                         );
                         ui.add_space(4.0);

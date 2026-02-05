@@ -157,7 +157,7 @@ impl Sidebar {
                                     badge_rect.center(),
                                     egui::Align2::CENTER_CENTER,
                                     &badge_text,
-                                    egui::FontId::proportional(9.0),
+                                    theme::font_label(),
                                     theme::text_on_accent(),
                                 );
                             });
@@ -229,7 +229,8 @@ impl Sidebar {
 
                         // Flexible spacer: push bottom items down when space allows,
                         // but never overlap -- ScrollArea handles overflow.
-                        let bottom_height = 42.0 * 2.0 + theme::SPACE_SM * 2.0 + theme::SPACE_XL + 2.0;
+                        let bottom_height =
+                            42.0 * 2.0 + theme::SPACE_SM * 2.0 + theme::SPACE_XL + 2.0;
                         let remaining = ui.available_height() - bottom_height;
                         if remaining > 0.0 {
                             ui.add_space(remaining);
@@ -328,7 +329,7 @@ impl Sidebar {
                 icon_pos,
                 egui::Align2::LEFT_TOP,
                 icon,
-                egui::FontId::proportional(16.0),
+                theme::font_heading(),
                 if is_current {
                     theme::ACCENT
                 } else {
@@ -362,7 +363,7 @@ impl Sidebar {
                     badge_center,
                     egui::Align2::CENTER_CENTER,
                     &badge_text,
-                    egui::FontId::proportional(10.0),
+                    theme::font_label(),
                     theme::text_on_accent(),
                 );
             }
@@ -398,7 +399,11 @@ impl Sidebar {
                 (theme::WARNING, "En attente".to_string(), 0.0)
             }
         } else {
-            (theme::text_tertiary(), "Non synchronis\u{00e9}".to_string(), 0.0)
+            (
+                theme::text_tertiary(),
+                "Non synchronis\u{00e9}".to_string(),
+                0.0,
+            )
         };
 
         // Pulse animation (cosine ease)

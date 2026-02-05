@@ -18,7 +18,9 @@ impl DiscoveryPage {
             ui,
             "Reconnaissance Réseau",
             Some("IDENTIFICATION ET CARTOGRAPHIE DES ACTIFS SUR LE PÉRIMÈTRE LOCAL"),
-            Some("Identifiez les nouveaux équipements sur votre segment réseau. Le scan ARP et ICMP permet de détecter les noms d'hôtes et les constructeurs pour enrichir votre inventaire d'actifs."),
+            Some(
+                "Identifiez les nouveaux équipements sur votre segment réseau. Le scan ARP et ICMP permet de détecter les noms d'hôtes et les constructeurs pour enrichir votre inventaire d'actifs.",
+            ),
         );
         ui.add_space(theme::SPACE_LG);
 
@@ -31,7 +33,7 @@ impl DiscoveryPage {
                 } else {
                     format!("{}  LANCER LA DÉCOUVERTE", icons::PLAY)
                 };
-                
+
                 let btn_color = if is_scanning {
                     theme::ERROR
                 } else {
@@ -41,7 +43,7 @@ impl DiscoveryPage {
                 // AAA Primary button style
                 let btn = egui::Button::new(
                     egui::RichText::new(btn_label)
-                        .font(egui::FontId::proportional(11.0))
+                        .font(theme::font_min())
                         .strong()
                         .color(theme::text_on_accent()),
                 )
@@ -70,24 +72,24 @@ impl DiscoveryPage {
                             egui::Vec2::new(bar_width, bar_height),
                             egui::Sense::hover(),
                         );
-                        
+
                         if ui.is_rect_visible(bar_rect) {
                             let time = ui.input(|i| i.time);
                             let pulse = (((time * 2.0).sin() * 0.5 + 0.5) as f32).powi(2);
-                            
+
                             ui.painter().rect_filled(
                                 bar_rect,
                                 egui::CornerRadius::same(2),
                                 theme::bg_elevated(),
                             );
-                            
+
                             let fill_width = bar_width * progress;
                             if fill_width > 0.0 {
                                 let fill_rect = egui::Rect::from_min_size(
                                     bar_rect.min,
                                     egui::Vec2::new(fill_width, bar_height),
                                 );
-                                
+
                                 for i in 1..4 {
                                     let expansion = i as f32 * 2.0;
                                     let alpha = 0.12 / (i as f32);
@@ -97,14 +99,15 @@ impl DiscoveryPage {
                                         theme::ACCENT.linear_multiply(alpha * (0.8 + pulse * 0.2)),
                                     );
                                 }
-                                
+
                                 ui.painter().rect_filled(
                                     fill_rect,
                                     egui::CornerRadius::same(2),
                                     theme::ACCENT,
                                 );
-                                
-                                let shimmer_x = (time * 0.4).fract() as f32 * (fill_width + 40.0) - 20.0;
+
+                                let shimmer_x =
+                                    (time * 0.4).fract() as f32 * (fill_width + 40.0) - 20.0;
                                 let shimmer_rect = egui::Rect::from_min_size(
                                     bar_rect.min + egui::vec2(shimmer_x, 0.0),
                                     egui::vec2(20.0, bar_height),
@@ -120,18 +123,18 @@ impl DiscoveryPage {
                             }
                             ui.ctx().request_repaint();
                         }
-                        
+
                         ui.horizontal(|ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new(state.discovery_phase.to_uppercase())
-                                    .font(egui::FontId::proportional(9.0))
+                                    .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .extra_letter_spacing(0.5)
                                     .strong(),
                             );
                             ui.label(
                                 egui::RichText::new(format!("{:.0}% COMPLET", progress * 100.0))
-                                    .font(egui::FontId::proportional(9.0))
+                                    .font(theme::font_label())
                                     .color(theme::ACCENT)
                                     .strong(),
                             );
@@ -139,22 +142,25 @@ impl DiscoveryPage {
                     });
                 }
 
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new(format!("{}", state.discovered_devices.len()))
-                            .font(egui::FontId::proportional(20.0))
-                            .color(theme::text_primary())
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_XS);
-                    ui.label(
-                        egui::RichText::new("ACTIFS DÉTECTÉS")
-                            .font(egui::FontId::proportional(9.0))
-                            .color(theme::text_tertiary())
-                            .extra_letter_spacing(0.5)
-                            .strong(),
-                    );
-                });
+                ui.with_layout(
+                    egui::Layout::right_to_left(egui::Align::Center),
+                    |ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new(format!("{}", state.discovered_devices.len()))
+                                .font(theme::font_stat())
+                                .color(theme::text_primary())
+                                .strong(),
+                        );
+                        ui.add_space(theme::SPACE_XS);
+                        ui.label(
+                            egui::RichText::new("ACTIFS DÉTECTÉS")
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .extra_letter_spacing(0.5)
+                                .strong(),
+                        );
+                    },
+                );
             });
         });
 
@@ -194,19 +200,22 @@ impl DiscoveryPage {
 
         // Action Buttons (AAA Grade)
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
-                let export_btn = egui::Button::new(
-                    egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                        .font(egui::FontId::proportional(10.0))
-                        .color(theme::text_tertiary())
-                        .strong(),
-                )
-                .fill(theme::bg_elevated())
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                if ui.add(export_btn).clicked() {
-                    Self::export_csv(state, &filtered);
-                }
-            });
+            ui.with_layout(
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui: &mut egui::Ui| {
+                    let export_btn = egui::Button::new(
+                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .strong(),
+                    )
+                    .fill(theme::bg_elevated())
+                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
+                    if ui.add(export_btn).clicked() {
+                        Self::export_csv(state, &filtered);
+                    }
+                },
+            );
         });
 
         ui.add_space(theme::SPACE_SM);
@@ -242,25 +251,67 @@ impl DiscoveryPage {
                 table
                     .header(30.0, |mut header| {
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("ADRESSE IP").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("ADRESSE IP")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("NOM D'HÔTE (DNS/NETBIOS)").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("NOM D'HÔTE (DNS/NETBIOS)")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("ADRESSE MAC").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("ADRESSE MAC")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("CONSTRUCTEUR").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("CONSTRUCTEUR")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("TYPE D'ACTIF").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("TYPE D'ACTIF")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("SERVICES").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("SERVICES")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                         header.col(|ui: &mut egui::Ui| {
-                            ui.label(egui::RichText::new("OPÉRATIONS").font(egui::FontId::proportional(9.0)).color(theme::text_tertiary()).strong().extra_letter_spacing(0.5));
+                            ui.label(
+                                egui::RichText::new("OPÉRATIONS")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
                         });
                     })
                     .body(|body| {
@@ -279,7 +330,7 @@ impl DiscoveryPage {
                                 let text = device.hostname.as_deref().unwrap_or("--");
                                 ui.label(
                                     egui::RichText::new(text)
-                                        .font(egui::FontId::proportional(13.0))
+                                        .font(theme::font_body())
                                         .color(theme::text_primary()),
                                 );
                             });
@@ -296,9 +347,9 @@ impl DiscoveryPage {
                                 let text = device.vendor.as_deref().unwrap_or("Non identifié");
                                 ui.label(
                                     egui::RichText::new(text.to_uppercase())
-                                        .font(egui::FontId::proportional(11.0))
+                                        .font(theme::font_min())
                                         .color(theme::text_secondary())
-                                        .strong()
+                                        .strong(),
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {
@@ -327,13 +378,13 @@ impl DiscoveryPage {
                             row.col(|ui: &mut egui::Ui| {
                                 let propose_btn = egui::Button::new(
                                     egui::RichText::new(format!("{}  IDENTIFIER", icons::PLUS))
-                                        .font(egui::FontId::proportional(10.0))
+                                        .font(theme::font_label())
                                         .color(theme::text_on_accent())
                                         .strong(),
                                 )
                                 .fill(theme::ACCENT.linear_multiply(0.8))
                                 .corner_radius(egui::CornerRadius::same(theme::BADGE_ROUNDING));
-                                
+
                                 if ui.add(propose_btn).clicked() {
                                     cmd = Some(crate::events::GuiCommand::ProposeAsset {
                                         ip: device.ip.clone(),

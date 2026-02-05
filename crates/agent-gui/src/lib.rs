@@ -49,9 +49,7 @@ pub fn run_gui(
     eframe::run_native(
         "Sentinel Agent",
         options,
-        Box::new(|_cc| {
-            Ok(Box::new(sentinel_app))
-        }),
+        Box::new(|_cc| Ok(Box::new(sentinel_app))),
     )
 }
 
@@ -66,14 +64,13 @@ pub fn run_tray_popup(
     command_tx: std::sync::mpsc::Sender<events::GuiCommand>,
     enrollment_tx: std::sync::mpsc::Sender<enrollment::EnrollmentCommand>,
 ) -> Result<(), eframe::Error> {
-    let sentinel_app = app::SentinelApp::new_tray_popup(enrolled, event_rx, command_tx, enrollment_tx);
+    let sentinel_app =
+        app::SentinelApp::new_tray_popup(enrolled, event_rx, command_tx, enrollment_tx);
     let options = app::SentinelApp::tray_popup_options();
 
     eframe::run_native(
         "Sentinel - Vue Rapide",
         options,
-        Box::new(|_cc| {
-            Ok(Box::new(sentinel_app))
-        }),
+        Box::new(|_cc| Ok(Box::new(sentinel_app))),
     )
 }

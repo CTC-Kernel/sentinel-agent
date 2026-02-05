@@ -2,10 +2,10 @@
 //!
 //! Stores user actions and system events in the encrypted SQLCipher database.
 
+use agent_storage::Database;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use agent_storage::Database;
 use tracing::{error, info};
 
 /// Type of audit event.
@@ -56,7 +56,10 @@ impl LocalAuditTrail {
         }
     }
 
-    async fn store_entry(&self, entry: &AuditEntry) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn store_entry(
+        &self,
+        entry: &AuditEntry,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         use agent_storage::{AuditTrailRepository, StoredAuditEntry};
 
         let repo = AuditTrailRepository::new(&self.db);

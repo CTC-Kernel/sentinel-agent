@@ -17,10 +17,10 @@ pub struct TrayRadar {
 impl TrayRadar {
     pub fn new(
         compliance: f32,
-        threats: f32,    // 1.0 = safe, 0.0 = high threat
+        threats: f32,         // 1.0 = safe, 0.0 = high threat
         vulnerabilities: f32, // 1.0 = safe, 0.0 = high vuln
-        resources: f32,  // 1.0 = low usage, 0.0 = saturated
-        network: f32,    // 1.0 = stable, 0.0 = alerts
+        resources: f32,       // 1.0 = low usage, 0.0 = saturated
+        network: f32,         // 1.0 = stable, 0.0 = alerts
     ) -> Self {
         use crate::theme;
         Self {
@@ -72,7 +72,7 @@ impl TrayRadar {
 
         // 4. Labelling
         self.draw_labels(painter, center, radius);
-        
+
         // Request continuous repaint for animation
         ui.ctx().request_repaint();
     }
@@ -80,7 +80,7 @@ impl TrayRadar {
     fn draw_grid(&self, painter: &Painter, center: Pos2, radius: f32, steps: usize) {
         use crate::theme;
         let n = self.points.len();
-        
+
         // Concentric polygons
         for i in 1..=steps {
             let r = radius * (i as f32 / steps as f32);
@@ -131,7 +131,7 @@ impl TrayRadar {
         for pt in pts {
             // Main dot
             painter.circle_filled(pt, 2.5, theme::ACCENT);
-            
+
             // Diffuse glow
             let pulse = (time * 2.0).sin() * 0.5 + 0.5;
             for i in (0..8).rev() {
@@ -147,7 +147,7 @@ impl TrayRadar {
         // Rotating semi-transparent wedge/scan line
         let scan_angle = (time * 0.5) % TAU - TAU / 4.0;
         let scan_end = center + Vec2::new(scan_angle.cos() * radius, scan_angle.sin() * radius);
-        
+
         painter.line_segment(
             [center, scan_end],
             Stroke::new(1.5, theme::ACCENT.linear_multiply(0.4)),
@@ -159,8 +159,9 @@ impl TrayRadar {
         let n = self.points.len();
         for (i, p) in self.points.iter().enumerate() {
             let angle = (i as f32 / n as f32) * TAU - TAU / 4.0;
-            let label_pos = center + Vec2::new(angle.cos() * (radius + 25.0), angle.sin() * (radius + 20.0));
-            
+            let label_pos =
+                center + Vec2::new(angle.cos() * (radius + 25.0), angle.sin() * (radius + 20.0));
+
             painter.text(
                 label_pos,
                 egui::Align2::CENTER_CENTER,

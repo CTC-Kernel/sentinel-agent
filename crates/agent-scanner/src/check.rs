@@ -174,14 +174,14 @@ impl CheckRegistry {
                         // Let's assume Option::None means "all", Option::Some(empty) means "none".
                         // Wait, Config loads it as Option<Vec<String>>.
                     }
-                    
+
                     let def = c.definition();
                     if def.frameworks.is_empty() {
                         // Checks without specific framework tag are usually baseline/general.
                         // We'll include them for now to be safe, or should we exclude?
                         // "Align Compliance Frameworks" suggests we only want those in the framework.
                         // Let's match: if active_frameworks is present, check MUST have overlap.
-                        return false; 
+                        return false;
                     }
 
                     // Check if any of the check's frameworks are in the active list
@@ -329,6 +329,7 @@ impl CheckDefinitionBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use async_trait::async_trait;
 
     struct MockCheck {
         definition: CheckDefinition,

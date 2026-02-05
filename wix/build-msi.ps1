@@ -59,9 +59,18 @@ if (-not $WixPath) {
 $MsiOutput = Join-Path $OutputDir "sentinel-agent-$Version.msi"
 $WxsFile = Join-Path $ScriptDir "main.wxs"
 
+# Add required WiX extensions
+wix extension add WixToolset.UI.wixext
+wix extension add WixToolset.Util.wixext
+wix extension add WixToolset.Firewall.wixext
+
 wix build `
     -d "TargetDir=.\target\release" `
+    -d "AssetsDir=.\assets" `
     -d "Version=$Version" `
+    -ext WixToolset.UI.wixext `
+    -ext WixToolset.Util.wixext `
+    -ext WixToolset.Firewall.wixext `
     -o $MsiOutput `
     $WxsFile
 

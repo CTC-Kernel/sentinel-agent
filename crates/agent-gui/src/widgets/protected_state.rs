@@ -46,14 +46,14 @@ pub fn protected_state(ui: &mut Ui, icon: &str, title: &str, subtitle: &str) {
         // 2. Multi-layered Diffuse Glow (breathing)
         let glow_base_radius = icon_size * 0.6;
         let glow_pulse = pulse as f32;
-        
+
         for i in (0..12).rev() {
             let layer_radius = glow_base_radius * (1.1 + i as f32 * 0.15 + glow_pulse * 0.1);
             let layer_alpha = 0.08 / (i as f32 * 0.8 + 1.0).powi(2);
             ui.painter().circle_filled(
-                center, 
-                layer_radius, 
-                base_color.linear_multiply(layer_alpha * (0.5 + 0.5 * glow_pulse))
+                center,
+                layer_radius,
+                base_color.linear_multiply(layer_alpha * (0.5 + 0.5 * glow_pulse)),
             );
         }
 

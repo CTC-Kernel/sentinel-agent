@@ -87,7 +87,7 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
             // Title
             ui.label(
                 RichText::new(security_state.title().to_uppercase())
-                    .font(egui::FontId::proportional(12.0))
+                    .font(theme::font_body())
                     .extra_letter_spacing(0.6)
                     .color(theme::text_primary())
                     .strong(),
@@ -101,7 +101,7 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.label(
                         RichText::new(format!("{}%", score as i32))
-                            .font(egui::FontId::proportional(18.0))
+                            .font(theme::font_heading())
                             .color(score_color)
                             .strong(),
                     );
@@ -117,7 +117,7 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
                             };
                             ui.label(
                                 RichText::new(format!("{}{:.1}", arrow, diff.abs()))
-                                    .font(egui::FontId::proportional(10.0))
+                                    .font(theme::font_label())
                                     .color(arrow_color),
                             );
                         }

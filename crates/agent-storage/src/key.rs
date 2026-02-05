@@ -110,15 +110,17 @@ impl KeyManager {
             if let Ok(output) = std::process::Command::new("ioreg")
                 .args(["-rd1", "-c", "IOPlatformExpertDevice"])
                 .output()
-                && let Ok(content) = String::from_utf8(output.stdout) {
-                    for line in content.lines() {
-                        if line.contains("IOPlatformUUID")
-                            && let Some(uuid) = line.split('"').nth(3) {
-                                id = uuid.to_string();
-                                break;
-                            }
+                && let Ok(content) = String::from_utf8(output.stdout)
+            {
+                for line in content.lines() {
+                    if line.contains("IOPlatformUUID")
+                        && let Some(uuid) = line.split('"').nth(3)
+                    {
+                        id = uuid.to_string();
+                        break;
                     }
                 }
+            }
         }
 
         if id.is_empty() {
@@ -217,6 +219,13 @@ impl KeyManager {
             )
             .map_err(|e| StorageError::KeyManagement(format!("DPAPI decryption failed: {}", e)))?;
 
+            // Null pointer check before accessing decrypted data
+            if data_out.pbData.is_null() {
+                return Err(StorageError::KeyManagement(
+                    "DPAPI decryption returned null pointer".to_string(),
+                ));
+            }
+
             if data_out.cbData as usize != KEY_LENGTH {
                 // Free the allocated memory
                 windows::Win32::Foundation::LocalFree(windows::Win32::Foundation::HLOCAL(
@@ -249,15 +258,16 @@ impl KeyManager {
     fn store_key(path: &Path, key: &[u8; KEY_LENGTH]) -> StorageResult<()> {
         // Ensure parent directory exists
         if let Some(parent) = path.parent()
-            && !parent.exists() {
-                fs::create_dir_all(parent).map_err(|e| {
-                    StorageError::KeyManagement(format!(
-                        "Failed to create key directory {}: {}",
-                        parent.display(),
-                        e
-                    ))
-                })?;
-            }
+            && !parent.exists()
+        {
+            fs::create_dir_all(parent).map_err(|e| {
+                StorageError::KeyManagement(format!(
+                    "Failed to create key directory {}: {}",
+                    parent.display(),
+                    e
+                ))
+            })?;
+        }
 
         // Write the key
         fs::write(path, key).map_err(|e| {
@@ -317,6 +327,13 @@ impl KeyManager {
             )
             .map_err(|e| StorageError::KeyManagement(format!("DPAPI encryption failed: {}", e)))?;
 
+            // Null pointer check before accessing encrypted data
+            if data_out.pbData.is_null() {
+                return Err(StorageError::KeyManagement(
+                    "DPAPI encryption returned null pointer".to_string(),
+                ));
+            }
+
             // Copy encrypted data to a Vec before freeing
             let encrypted =
                 std::slice::from_raw_parts(data_out.pbData, data_out.cbData as usize).to_vec();
@@ -344,6 +361,18 @@ impl KeyManager {
     }
 }
 
+/// Zeroize the key from memory on drop to prevent key leakage.
+impl Drop for KeyManager {
+    fn drop(&mut self) {
+        // Volatile write to prevent the compiler from optimizing away the zeroization
+        for byte in self.key.iter_mut() {
+            unsafe {
+                std::ptr::write_volatile(byte, 0);
+            }
+        }
+    }
+}
+
 impl Default for KeyManager {
     fn default() -> Self {
         match Self::new() {
@@ -353,7 +382,10 @@ impl Default for KeyManager {
                 // weak key in production. However, Default trait usually doesn't allow errors.
                 // We'll log a critical error and use a dummy key to prevent catastrophic failure,
                 // but any actual database access using this will fail.
-                warn!("CRITICAL: Failed to initialize KeyManager: {}. Using volatile session-only key.", e);
+                warn!(
+                    "CRITICAL: Failed to initialize KeyManager: {}. Using volatile session-only key.",
+                    e
+                );
                 Self::new_with_test_key()
             }
         }

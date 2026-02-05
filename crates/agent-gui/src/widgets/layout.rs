@@ -33,7 +33,8 @@ impl ResponsiveGrid {
         let total_width = (ui.available_width() - 12.0).max(0.0);
 
         // Calculate max columns that can fit
-        let mut cols = ((total_width + self.gap) / (self.min_item_width + self.gap)).floor() as usize;
+        let mut cols =
+            ((total_width + self.gap) / (self.min_item_width + self.gap)).floor() as usize;
         cols = cols.max(1);
 
         // Calculate item width based on actual columns
