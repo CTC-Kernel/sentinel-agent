@@ -198,7 +198,69 @@ impl ResourceMonitor {
     /// Check if current usage is within limits.
     pub fn check_limits(&self, is_active: bool) -> bool {
         let usage = self.get_usage();
-        self.check_limits_with_usage(&usage, is_active)
+        
+        // Improved activity detection: check if agent is actually performing work
+        let is_actively_working = self.is_actively_working();
+        let should_use_active_limits = is_active && is_actively_working;
+        
+        let (cpu_limit, state_name) = if should_use_active_limits {
+            (self.limits.max_cpu_active, "active")
+        } else {
+            (self.limits.max_cpu_idle, "idle")
+        };
+        
+        let cpu_over = usage.cpu_percent > cpu_limit;
+        let memory_over = usage.memory_bytes > self.limits.max_memory_bytes;
+        let disk_over = usage.disk_iops > self.limits.max_disk_iops;
+        
+        let within_limits = !cpu_over && !memory_over && !disk_over;
+        
+        if !within_limits {
+            // Rate-limit warnings to once per 60 seconds
+            let now_secs = self.start_time.elapsed().as_secs();
+            let last_warning = self.last_warning_time.load(Ordering::Relaxed);
+            
+            if now_secs >= last_warning + 60 {
+                self.last_warning_time.store(now_secs, Ordering::Relaxed);
+                
+                let mut breaches = Vec::new();
+                if cpu_over {
+                    breaches.push(format!(
+                        "CPU={:.1}% (limit: {:.1}%)",
+                        usage.cpu_percent, cpu_limit
+                    ));
+                }
+                if memory_over {
+                    breaches.push(format!(
+                        "RAM={}MB (limit: {}MB)",
+                        usage.memory_bytes / (1024 * 1024),
+                        self.limits.max_memory_bytes / (1024 * 1024)
+                    ));
+                }
+                if disk_over {
+                    breaches.push(format!(
+                        "DiskIO={} (limit: {})",
+                        usage.disk_iops, self.limits.max_disk_iops
+                    ));
+                }
+                
+                warn!(
+                    "Resource limits exceeded during {} state: {}",
+                    state_name,
+                    breaches.join(", ")
+                );
+            }
+        }
+        
+        within_limits
+    }
+    
+    /// Check if agent is actively working (scans, network activity, etc.)
+    fn is_actively_working(&self) -> bool {
+        // Simple heuristic: if CPU > 15%, agent is likely doing work
+        // This prevents false positives during normal system activity
+        let usage = self.get_usage();
+        usage.cpu_percent > 15.0
     }
 
     /// Check if provided usage is within limits.
