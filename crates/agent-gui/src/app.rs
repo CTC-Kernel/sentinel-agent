@@ -367,17 +367,32 @@ pub struct SentinelApp {
 
 impl SentinelApp {
     /// Create a new `SentinelApp`.
-    ///
-    /// # Arguments
-    /// * `enrolled` -- Whether the agent is already enrolled.
-    /// * `event_rx` -- Channel receiving events from the runtime.
-    /// * `command_tx` -- Channel sending commands to the runtime.
-    /// * `enrollment_tx` -- Channel sending enrollment commands.
     pub fn new(
         enrolled: bool,
-        event_rx: mpsc::Receiver<AgentEvent>,
-        command_tx: mpsc::Sender<GuiCommand>,
-        enrollment_tx: mpsc::Sender<EnrollmentCommand>,
+        event_rx: std::sync::mpsc::Receiver<crate::events::AgentEvent>,
+        command_tx: std::sync::mpsc::Sender<crate::events::GuiCommand>,
+        enrollment_tx: std::sync::mpsc::Sender<crate::enrollment::EnrollmentCommand>,
+    ) -> Self {
+        Self::new_with_mode(enrolled, event_rx, command_tx, enrollment_tx, false)
+    }
+
+    /// Create a new SentinelApp instance with tray popup mode.
+    pub fn new_tray_popup(
+        enrolled: bool,
+        event_rx: std::sync::mpsc::Receiver<crate::events::AgentEvent>,
+        command_tx: std::sync::mpsc::Sender<crate::events::GuiCommand>,
+        enrollment_tx: std::sync::mpsc::Sender<crate::enrollment::EnrollmentCommand>,
+    ) -> Self {
+        Self::new_with_mode(enrolled, event_rx, command_tx, enrollment_tx, true)
+    }
+
+    /// Internal constructor with mode flag.
+    fn new_with_mode(
+        enrolled: bool,
+        event_rx: std::sync::mpsc::Receiver<crate::events::AgentEvent>,
+        command_tx: std::sync::mpsc::Sender<crate::events::GuiCommand>,
+        enrollment_tx: std::sync::mpsc::Sender<crate::enrollment::EnrollmentCommand>,
+        is_tray_popup: bool,
     ) -> Self {
         let tray = TrayBridge::new().ok();
         if tray.is_none() {
@@ -399,7 +414,7 @@ impl SentinelApp {
             quit_requested: false,
             splash_start: std::time::Instant::now(),
             splash_done: false,
-            show_tray_satellite: false,
+            show_tray_satellite: is_tray_popup,
         }
     }
 
@@ -411,6 +426,21 @@ impl SentinelApp {
                 .with_inner_size([1280.0, 750.0])
                 .with_min_inner_size([800.0, 600.0])
                 .with_icon(Self::load_app_icon()),
+            ..Default::default()
+        }
+    }
+
+    /// Configure compact options for tray menu popup.
+    pub fn tray_popup_options() -> eframe::NativeOptions {
+        eframe::NativeOptions {
+            viewport: egui::ViewportBuilder::default()
+                .with_title("Sentinel - Vue Rapide")
+                .with_inner_size([400.0, 500.0])
+                .with_min_inner_size([350.0, 400.0])
+                .with_max_inner_size([600.0, 800.0])
+                .with_icon(Self::load_app_icon())
+                .with_decorations(false) // No title bar for menu-like feel
+                .with_transparent(true),
             ..Default::default()
         }
     }
@@ -458,14 +488,26 @@ impl SentinelApp {
                     self.recompute_policy();
                 }
                 AgentEvent::ResourceUpdate { usage } => {
-                    // Push to monitoring history (max 300 points = 5 min at 1s)
-                    let t = self.state.resources.uptime_secs as f64;
-                    self.state.cpu_history.push([t, usage.cpu_percent]);
-                    self.state.memory_history.push([t, usage.memory_percent]);
-                    self.state.disk_io_history.push([t, usage.disk_iops as f64]);
-                    self.state
-                        .network_io_history
-                        .push([t, usage.network_io_bytes as f64 / 1024.0]); // In KB/s for graph
+                    // Only push valid data to monitoring history (ignore initial 0.0 values)
+                    if usage.cpu_percent > 0.0 {
+                        let t = self.state.resources.uptime_secs as f64;
+                        self.state.cpu_history.push([t, usage.cpu_percent]);
+                    }
+                    if usage.memory_percent > 0.0 {
+                        let t = self.state.resources.uptime_secs as f64;
+                        self.state.memory_history.push([t, usage.memory_percent]);
+                    }
+                    if usage.disk_iops > 0 {
+                        let t = self.state.resources.uptime_secs as f64;
+                        self.state.disk_io_history.push([t, usage.disk_iops as f64]);
+                    }
+                    if usage.network_io_bytes > 0 {
+                        let t = self.state.resources.uptime_secs as f64;
+                        self.state
+                            .network_io_history
+                            .push([t, usage.network_io_bytes as f64 / 1024.0]); // In KB/s for graph
+                    }
+                    
                     // Truncate to 300 data points
                     const MAX_HISTORY: usize = 300;
                     if self.state.cpu_history.len() > MAX_HISTORY {
@@ -744,7 +786,7 @@ impl SentinelApp {
                     ui.add_space(theme::SPACE_MD);
 
                     // Radar Chart Section
-                    ui.vertical_centered(|ui: &mut egui::Ui| {
+                    ui.vertical(|ui: &mut egui::Ui| {
                         let compliance = self.state.summary.compliance_score.unwrap_or(0.0) / 100.0;
                         let threats = 1.0 - (self.state.suspicious_processes.len() as f32 / 10.0).min(1.0);
                         let vulns = 1.0 - (self.state.vulnerability_findings.len() as f32 / 20.0).min(1.0);
@@ -765,11 +807,11 @@ impl SentinelApp {
 
                     // Quick Stats Cards
                     ui.horizontal(|ui: &mut egui::Ui| {
-                        ui.add_space(theme::SPACE_MD);
                         widgets::card(ui, |ui: &mut egui::Ui| {
                             ui.set_width(135.0);
-                            ui.vertical_centered(|ui: &mut egui::Ui| {
+                            ui.vertical(|ui: &mut egui::Ui| {
                                 ui.label(egui::RichText::new("SCORE").font(theme::font_small()));
+                                ui.add_space(4.0);
                                 ui.label(
                                     egui::RichText::new(format!("{:.0}%", self.state.summary.compliance_score.unwrap_or(0.0)))
                                         .font(theme::font_title())
@@ -777,11 +819,12 @@ impl SentinelApp {
                                 );
                             });
                         });
-                        ui.add_space(theme::SPACE_SM);
+                        ui.add_space(theme::SPACE_MD);
                         widgets::card(ui, |ui: &mut egui::Ui| {
                             ui.set_width(135.0);
-                            ui.vertical_centered(|ui: &mut egui::Ui| {
+                            ui.vertical(|ui: &mut egui::Ui| {
                                 ui.label(egui::RichText::new("MENACES").font(theme::font_small()));
+                                ui.add_space(4.0);
                                 let count = self.state.suspicious_processes.len();
                                 ui.label(
                                     egui::RichText::new(count.to_string())
@@ -830,7 +873,7 @@ impl eframe::App for SentinelApp {
         self.process_tray_actions(ctx);
 
         // ── Splash screen (first ~2.5 seconds) ──
-        if !self.splash_done {
+        if !self.splash_done && !self.show_tray_satellite {
             let elapsed = self.splash_start.elapsed().as_secs_f32();
             if elapsed < 2.5 {
                 self.show_splash(ctx, elapsed);
