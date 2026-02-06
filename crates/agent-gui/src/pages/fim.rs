@@ -16,8 +16,9 @@ impl FimPage {
         let mut command = None;
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(
+        widgets::page_header_nav(
             ui,
+            &["Pilotage", "Intégrité fichiers"],
             "Intégrité des fichiers",
             Some("SURVEILLANCE DE L’INTÉGRITÉ DES FICHIERS SYSTÈME ET DES CONFIGURATIONS"),
             Some(
@@ -154,15 +155,7 @@ impl FimPage {
             ui.with_layout(
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
-                    let export_btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  EXPORT CSV", icons::DOWNLOAD))
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    )
-                    .fill(theme::bg_elevated())
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                    if ui.add(export_btn).clicked() {
+                    if widgets::ghost_button(ui, format!("{}  EXPORT CSV", icons::DOWNLOAD)).clicked() {
                         let success = Self::export_events_csv(state, &filtered);
                         let time = ui.input(|i| i.time);
                         if success {
@@ -313,15 +306,7 @@ impl FimPage {
                                         .strong(),
                                     );
                                 } else {
-                                    let btn = egui::Button::new(
-                                        egui::RichText::new(format!("{}  ACQUITTER", icons::CHECK))
-                                            .font(theme::font_label())
-                                            .color(theme::text_on_accent())
-                                            .strong(),
-                                    )
-                                    .fill(theme::ACCENT.linear_multiply(0.8))
-                                    .corner_radius(egui::CornerRadius::same(theme::BADGE_ROUNDING));
-                                    if ui.add(btn).clicked() {
+                                    if widgets::chip_button(ui, &format!("{}  ACQUITTER", icons::CHECK), false, theme::ACCENT).clicked() {
                                         let alert_id = state.fim_alerts[idx].id.clone();
                                         state.fim_alerts[idx].acknowledged = true;
                                         command =

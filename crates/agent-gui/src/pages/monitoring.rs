@@ -18,8 +18,9 @@ impl MonitoringPage {
         let command = None;
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(
+        let _ = widgets::page_header_nav(
             ui,
+            &["Pilotage", "Monitoring"],
             "Surveillance Système",
             Some("MONITORAGE DES RESSOURCES ET DES PERFORMANCES EN TEMPS RÉEL"),
             Some(

@@ -18,8 +18,9 @@ impl SoftwarePage {
         let mut command = None;
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(
+        let _ = widgets::page_header_nav(
             ui,
+            &["Pilotage", "Logiciels"],
             "Inventaire Logiciel",
             Some("CATALOGUE DES APPLICATIONS ET COMPOSANTS SYSTÈME INSTALLÉS SUR L'HÔTE"),
             Some(
@@ -166,15 +167,7 @@ impl SoftwarePage {
             ui.with_layout(
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
-                    let export_btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    )
-                    .fill(theme::bg_elevated())
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                    if ui.add(export_btn).clicked() {
+                    if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
                         let success = Self::export_packages_csv(state, &filtered);
                         let time = ui.input(|i| i.time);
                         if success {
@@ -410,15 +403,7 @@ impl SoftwarePage {
             ui.with_layout(
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
-                    let export_btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    )
-                    .fill(theme::bg_elevated())
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                    if ui.add(export_btn).clicked() {
+                    if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
                         let success = Self::export_apps_csv(state, &filtered);
                         let time = ui.input(|i| i.time);
                         if success {
@@ -610,26 +595,7 @@ impl SoftwarePage {
     // -- Shared helpers (AAA Grade) --
 
     fn tab_button(ui: &mut Ui, label: &str, active: bool) -> bool {
-        let text_color = if active {
-            theme::text_on_accent()
-        } else {
-            theme::text_secondary()
-        };
-        let bg = if active {
-            theme::ACCENT.linear_multiply(0.9)
-        } else {
-            theme::bg_elevated()
-        };
-        let btn = egui::Button::new(
-            egui::RichText::new(label)
-                .font(theme::font_min())
-                .color(text_color)
-                .strong(),
-        )
-        .fill(bg)
-        .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
-        .min_size(egui::vec2(140.0, 32.0));
-        ui.add(btn).clicked()
+        widgets::chip_button(ui, label, active, theme::ACCENT).clicked()
     }
 
     fn summary_card(

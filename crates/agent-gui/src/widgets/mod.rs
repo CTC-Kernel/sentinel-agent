@@ -55,7 +55,7 @@ pub use compliance_gauge::compliance_gauge;
 pub use empty_state::{
     empty_state, empty_state_compact, empty_state_with_action, no_results_state, pending_state,
 };
-pub use header::page_header;
+pub use header::{page_header, page_header_nav};
 pub use help_info::help_button;
 pub use layout::ResponsiveGrid;
 pub use premium_badge::{BadgeSize, ComplianceBadge, PremiumBadge, StatusBadge, StatusLevel};
