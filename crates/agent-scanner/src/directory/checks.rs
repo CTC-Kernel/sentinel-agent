@@ -66,10 +66,8 @@ pub fn check_password_policy(policy: &PasswordPolicy) -> Vec<DirectoryFinding> {
         },
         compliance_status: if policy.min_length >= 14 {
             ComplianceStatus::Compliant
-        } else if policy.min_length >= 8 {
-            ComplianceStatus::NonCompliant // Meets NIST but not CIS
         } else {
-            ComplianceStatus::NonCompliant
+            ComplianceStatus::NonCompliant // <8 or 8-13: Meets NIST but not CIS
         },
         current_value: policy.min_length.to_string(),
         expected_value: ">=14 characters (CIS), >=8 (NIST)".to_string(),
@@ -139,10 +137,8 @@ pub fn check_password_policy(policy: &PasswordPolicy) -> Vec<DirectoryFinding> {
         } else {
             DirectorySeverity::Low
         },
-        compliance_status: if policy.max_age_days > 0 && policy.max_age_days <= 365 {
-            ComplianceStatus::Compliant
-        } else if policy.max_age_days == 0 {
-            ComplianceStatus::Compliant // NIST SP 800-63B recommends no expiration
+        compliance_status: if policy.max_age_days <= 365 {
+            ComplianceStatus::Compliant // NIST SP 800-63B recommends no expiration (0) or <=365
         } else {
             ComplianceStatus::NonCompliant
         },
@@ -202,10 +198,8 @@ pub fn check_lockout_policy(policy: &AccountLockoutPolicy) -> Vec<DirectoryFindi
         } else {
             DirectorySeverity::Low
         },
-        compliance_status: if policy.threshold >= 3 && policy.threshold <= 10 {
+        compliance_status: if (3..=10).contains(&policy.threshold) {
             ComplianceStatus::Compliant
-        } else if policy.threshold == 0 {
-            ComplianceStatus::NonCompliant
         } else {
             ComplianceStatus::NonCompliant
         },
@@ -227,10 +221,8 @@ pub fn check_lockout_policy(policy: &AccountLockoutPolicy) -> Vec<DirectoryFindi
             id: "DIR-LOCK-002".to_string(),
             policy_name: "Account Lockout Duration".to_string(),
             category: DirectoryCategory::AccountLockout,
-            severity: if policy.duration_minutes == 0 {
-                DirectorySeverity::Info // Requires admin unlock - most secure
-            } else if policy.duration_minutes >= 15 {
-                DirectorySeverity::Info
+            severity: if policy.duration_minutes == 0 || policy.duration_minutes >= 15 {
+                DirectorySeverity::Info // 0 = requires admin unlock (most secure), >=15 = acceptable
             } else {
                 DirectorySeverity::Medium
             },
