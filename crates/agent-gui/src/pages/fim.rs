@@ -3,7 +3,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::GuiAgentStatus;
+use crate::dto::{FimChangeType, GuiAgentStatus};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -105,13 +105,13 @@ impl FimPage {
             .filter(|(_, a)| {
                 if !search_lower.is_empty() {
                     let haystack =
-                        format!("{} {}", a.path.to_lowercase(), a.change_type.to_lowercase(),);
+                        format!("{} {}", a.path.to_lowercase(), a.change_type.as_str());
                     if !haystack.contains(&search_lower) {
                         return false;
                     }
                 }
                 if let Some(ref filter) = state.fim_filter {
-                    a.change_type == *filter
+                    a.change_type.as_str() == filter.as_str()
                 } else {
                     true
                 }
@@ -383,14 +383,13 @@ impl FimPage {
         });
     }
 
-    fn change_type_display(change_type: &str) -> (&'static str, egui::Color32) {
+    fn change_type_display(change_type: &FimChangeType) -> (&'static str, egui::Color32) {
         match change_type {
-            "created" => ("CRÉÉ", theme::SUCCESS),
-            "modified" => ("MODIFIÉ", theme::WARNING),
-            "deleted" => ("SUPPRIMÉ", theme::ERROR),
-            "permission_changed" => ("PERMISSIONS", theme::INFO),
-            "renamed" => ("RENOMMÉ", theme::WARNING),
-            _ => ("INCONNU", theme::text_tertiary()),
+            FimChangeType::Created => ("CRÉÉ", theme::SUCCESS),
+            FimChangeType::Modified => ("MODIFIÉ", theme::WARNING),
+            FimChangeType::Deleted => ("SUPPRIMÉ", theme::ERROR),
+            FimChangeType::PermissionChanged => ("PERMISSIONS", theme::INFO),
+            FimChangeType::Renamed => ("RENOMMÉ", theme::WARNING),
         }
     }
 
@@ -402,7 +401,7 @@ impl FimPage {
                 let e = &state.fim_alerts[i];
                 vec![
                     e.path.clone(),
-                    e.change_type.clone(),
+                    e.change_type.to_string(),
                     e.timestamp.to_rfc3339(),
                     if e.acknowledged {
                         "Acquitté"

@@ -1,5 +1,6 @@
 pub mod button;
 mod card;
+pub mod copy_button;
 mod compliance_gauge;
 mod empty_state;
 mod header;
@@ -75,8 +76,8 @@ pub use sparkline::{SparklineConfig, mini_gauge, sparkline, sparkline_with_value
 // UX feedback & input exports
 pub use loading_state::{error_state, loading_skeleton};
 pub use text_input::{
-    InputValidation, search_input, text_input, text_input_clearable, text_input_validated,
-    text_input_with_limit, text_input_with_options,
+    InputValidation, ValidationState, form_field, search_input, text_input, text_input_clearable,
+    text_input_validated, text_input_with_limit, text_input_with_options,
 };
 pub use toast::{Toast, ToastLevel, ToastPosition, render_toasts, render_toasts_at};
 
@@ -143,6 +144,9 @@ pub use pagination::{
     Pagination, PaginationState, PaginationStyle, pagination, pagination_compact,
     pagination_minimal,
 };
+
+// Copy-to-clipboard exports
+pub use copy_button::{copy_button, copyable_value};
 
 // Form components exports
 pub use checkbox::{
