@@ -1,9 +1,21 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Fix 14: Use __dirname equivalent for reliable file path resolution
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Charger le contenu du whitepaper
-const whitepaperContent = fs.readFileSync('./WHITEPAPER_SENTINEL_GRC.md', 'utf8');
+let whitepaperContent;
+try {
+  whitepaperContent = fs.readFileSync(path.join(__dirname, '../WHITEPAPER_SENTINEL_GRC.md'), 'utf8');
+} catch (err) {
+  console.error('Failed to read whitepaper file:', err.message);
+  process.exit(1);
+}
 
 // Configuration PDF
 const doc = new jsPDF({
@@ -180,19 +192,18 @@ function parseMarkdownToPDF(content) {
     } else if (line.startsWith('##### ')) {
       addTitle(line.substring(6), 5);
     }
-    // Tableaux (détection simple)
-    else if (line.includes('|') && line.includes('-')) {
-      // C'est un en-tête de tableau
-      if (!currentTable) {
-        currentTable = { headers: [], data: [] };
-      }
-    } else if (line.includes('|') && currentTable) {
+    // Fix 16: Fixed markdown table parsing - correct header/separator/data detection
+    else if (line.includes('|') && !currentTable) {
+      // First line with | is the header row
+      currentTable = { headers: [], data: [] };
       const cells = line.split('|').map(cell => cell.trim()).filter(cell => cell);
-      if (currentTable.headers.length === 0) {
-        currentTable.headers = cells;
-      } else {
-        currentTable.data.push(cells);
-      }
+      currentTable.headers = cells;
+    } else if (line.includes('|') && line.includes('-') && currentTable && currentTable.data.length === 0) {
+      // Separator line (e.g., |---|---|) - skip it
+    } else if (line.includes('|') && currentTable) {
+      // Data rows
+      const cells = line.split('|').map(cell => cell.trim()).filter(cell => cell);
+      currentTable.data.push(cells);
     }
     // Lignes vides
     else if (line.trim() === '') {
@@ -210,6 +221,12 @@ function parseMarkdownToPDF(content) {
       addText(cleanText);
     }
   });
+
+  // Fix 17: Flush any remaining table at end of file
+  if (currentTable) {
+    addTable(currentTable.headers, currentTable.data);
+    currentTable = null;
+  }
 }
 
 // Génération du PDF
@@ -237,17 +254,20 @@ const toc = [
   '12. Feuille de Route'
 ];
 
-toc.forEach((item, index) => {
-  addText(`${index + 1}. ${item}`, 11);
+// Fix 15: Items already contain numbers, don't double-number them
+toc.forEach((item) => {
+  addText(item, 11);
 });
 
 // Contenu principal
 addNewPage();
 parseMarkdownToPDF(whitepaperContent);
 
-// Sauvegarde du PDF
+// Fix 18: Fix doc.save for Node.js environment
 const fileName = 'WHITEPAPER_SENTINEL_GRC.pdf';
-doc.save(fileName);
+const buffer = Buffer.from(doc.output('arraybuffer'));
+fs.writeFileSync(fileName, buffer);
+console.log(`PDF generated: ${fileName}`);
 
 console.log(`✅ PDF généré avec succès : ${fileName}`);
 console.log(`📊 Statistiques :`);

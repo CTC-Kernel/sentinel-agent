@@ -1,9 +1,21 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Fix 29/14: Use __dirname equivalent for reliable file path resolution
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Charger le contenu du whitepaper
-const whitepaperContent = fs.readFileSync('./WHITEPAPER_SENTINEL_GRC.md', 'utf8');
+let whitepaperContent;
+try {
+  whitepaperContent = fs.readFileSync(path.join(__dirname, '../WHITEPAPER_SENTINEL_GRC.md'), 'utf8');
+} catch (err) {
+  console.error('Failed to read whitepaper file:', err.message);
+  process.exit(1);
+}
 
 // Configuration PDF professionnelle
 const doc = new jsPDF({
@@ -29,9 +41,8 @@ const colors = {
   accent: [0, 128, 255],       // Bleu vif
   text: [51, 51, 51],           // Gris foncé
   light: [245, 245, 245],        // Gris très clair
-  success: [0, 128, 0],          // Vert
-  warning: [255, 128, 0],        // Orange
-  error: [255, 0, 0]            // Rouge
+  success: [0, 128, 0]           // Vert
+  // Fix 28: Removed unused 'warning' and 'error' color definitions
 };
 
 // Polices
@@ -166,23 +177,27 @@ function addBullet(text, level = 0) {
 }
 
 function addCodeBlock(text) {
-  checkPageBreak(lineHeight * 4);
+  // Fix 22: Calculate dynamic height for code blocks
+  doc.setFontSize(fonts.code.size);
+  const codeLines = doc.splitTextToSize(text, contentWidth - 10);
+  const blockHeight = codeLines.length * smallLineHeight + 4;
+  
+  checkPageBreak(blockHeight + 4);
   
   // Fond pour le code
   doc.setFillColor(...colors.light);
-  doc.rect(margin, yPosition - 2, contentWidth, lineHeight * 3 + 4, 'F');
+  doc.rect(margin, yPosition - 2, contentWidth, blockHeight, 'F');
   
   // Bordure
   doc.setDrawColor(...colors.secondary);
   doc.setLineWidth(0.5);
-  doc.rect(margin, yPosition - 2, contentWidth, lineHeight * 3 + 4);
+  doc.rect(margin, yPosition - 2, contentWidth, blockHeight);
   
   // Texte du code
-  doc.setFontSize(fonts.code.size);
   doc.setFont('courier', 'normal');
   doc.setTextColor(...colors.text);
   
-  const lines = doc.splitTextToSize(text, contentWidth - 10);
+  const lines = codeLines;
   lines.forEach(line => {
     doc.text(line, margin + 5, yPosition + 3);
     yPosition += smallLineHeight;
@@ -192,7 +207,7 @@ function addCodeBlock(text) {
 }
 
 function addTable(headers, data, options = {}) {
-  checkPageBorder(60);
+  checkPageBreak(60);
   
   const defaultOptions = {
     startY: yPosition,
@@ -224,16 +239,20 @@ function addTable(headers, data, options = {}) {
 }
 
 function addBox(content, title = '', boxColor = colors.light) {
-  checkPageBorder(40);
+  checkPageBreak(40);
+  
+  // Fix 21: Calculate dynamic height based on content
+  const boxLines = doc.splitTextToSize(content, contentWidth - 10);
+  const boxHeight = boxLines.length * 5 + 8; // 5mm per line + padding
   
   // Fond de la boîte
   doc.setFillColor(...boxColor);
-  doc.rect(margin, yPosition - 2, contentWidth, 30, 'F');
+  doc.rect(margin, yPosition - 2, contentWidth, boxHeight, 'F');
   
-  // Bordure
+  // Fix 20: Use 'S' (stroke) for border, not 'F' (fill)
   doc.setDrawColor(...colors.secondary);
   doc.setLineWidth(0.5);
-  doc.rect(margin, yPosition - 2, contentWidth, 30, 'F');
+  doc.rect(margin, yPosition - 2, contentWidth, boxHeight, 'S');
   
   // Titre si fourni
   if (title) {
@@ -249,8 +268,7 @@ function addBox(content, title = '', boxColor = colors.light) {
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...colors.text);
   
-  const lines = doc.splitTextToSize(content, contentWidth - 10);
-  lines.forEach(line => {
+  boxLines.forEach(line => {
     doc.text(line, margin + 5, yPosition);
     yPosition += smallLineHeight;
   });
@@ -265,11 +283,7 @@ function addSeparator() {
   yPosition += 5;
 }
 
-function checkPageBorder(requiredHeight) {
-  if (yPosition + requiredHeight > pageHeight - 25) {
-    addNewPage();
-  }
-}
+// Fix 19: Removed duplicate checkPageBorder - using checkPageBreak instead
 
 // Page de garde professionnelle
 function createCoverPage() {
@@ -372,7 +386,13 @@ function parseMarkdownToPDF(content) {
   let inTable = false;
   let skipNextLine = false;
   
+  // Fix 23: Add skipUntilIndex for ASCII box parsing
+  let skipUntilIndex = -1;
+  
   lines.forEach((line, index) => {
+    // Fix 23: Skip lines consumed by ASCII box parsing
+    if (index <= skipUntilIndex) return;
+    
     // Skip lignes vides après traitement
     if (skipNextLine) {
       skipNextLine = false;
@@ -410,16 +430,16 @@ function parseMarkdownToPDF(content) {
     } else if (line.trim().startsWith('    - ')) {
       addBullet(line.trim().substring(6), 2);
     }
-    // Tableaux
-    else if (line.includes('|') && line.includes('-')) {
-      if (!inTable) {
-        inTable = true;
-        // C'est un en-tête de tableau
-        const headers = line.split('|').map(cell => cell.trim()).filter(cell => cell);
-        currentTable.headers = headers;
-      }
-      skipNextLine = true; // Skip la ligne de séparation ---
+    // Fix 25: Fixed markdown table parsing - correct header/separator/data detection
+    else if (line.includes('|') && !inTable) {
+      // First line with | is the header row
+      inTable = true;
+      const headers = line.split('|').map(cell => cell.trim()).filter(cell => cell);
+      currentTable.headers = headers;
+    } else if (line.includes('|') && line.includes('-') && inTable && currentTable.data.length === 0) {
+      // Separator line (e.g., |---|---|) - skip it
     } else if (line.includes('|') && inTable) {
+      // Data rows
       const cells = line.split('|').map(cell => cell.trim()).filter(cell => cell);
       if (cells.length > 0) {
         currentTable.data.push(cells);
@@ -439,19 +459,22 @@ function parseMarkdownToPDF(content) {
         // Début de boîte - collecter les lignes
         let boxContent = [];
         let boxTitle = '';
-        let i = index;
+        let endIndex = index;
         
-        while (i < lines.length && !lines[i].includes('└')) {
-          if (lines[i].includes('│') && !lines[i].includes('┌') && !lines[i].includes('└')) {
-            const content = lines[i].replace(/│/g, '').trim();
-            if (content && !boxTitle) {
-              boxTitle = content;
-            } else if (content) {
-              boxContent.push(content);
+        while (endIndex < lines.length && !lines[endIndex].includes('└')) {
+          if (lines[endIndex].includes('│') && !lines[endIndex].includes('┌') && !lines[endIndex].includes('└')) {
+            const boxLineContent = lines[endIndex].replace(/│/g, '').trim();
+            if (boxLineContent && !boxTitle) {
+              boxTitle = boxLineContent;
+            } else if (boxLineContent) {
+              boxContent.push(boxLineContent);
             }
           }
-          i++;
+          endIndex++;
         }
+        
+        // Fix 23: Skip all consumed lines
+        skipUntilIndex = endIndex;
         
         if (boxContent.length > 0) {
           addBox(boxContent.join(' '), boxTitle);
@@ -459,7 +482,7 @@ function parseMarkdownToPDF(content) {
       }
     }
     // Lignes de séparation
-    else if (line.includes('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')) {
+    else if (/\u2501{10,}/.test(line)) {
       addSeparator();
     }
     // Texte normal
@@ -487,9 +510,7 @@ function parseMarkdownToPDF(content) {
 // Génération du PDF
 console.log('🎨 Génération du PDF professionnel en cours...');
 
-// Initialisation
-addHeader();
-addFooter();
+// Fix 24: Removed wasted addHeader()/addFooter() calls before cover page
 
 // Page de garde
 createCoverPage();
@@ -501,9 +522,11 @@ createTableOfContents();
 addNewPage();
 parseMarkdownToPDF(whitepaperContent);
 
-// Sauvegarde du PDF
+// Fix 26: Fix doc.save for Node.js environment
 const fileName = 'WHITEPAPER_SENTINEL_GRC_PROFESSIONNEL.pdf';
-doc.save(fileName);
+const buffer = Buffer.from(doc.output('arraybuffer'));
+fs.writeFileSync(fileName, buffer);
+console.log(`PDF generated: ${fileName}`);
 
 console.log(`✅ PDF professionnel généré avec succès : ${fileName}`);
 console.log(`📊 Statistiques avancées :`);
