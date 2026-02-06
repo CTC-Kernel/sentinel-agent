@@ -31,12 +31,12 @@ impl LdapAuditor {
     pub async fn get_security_config(&self, uri: &str) -> ScannerResult<LdapSecurityConfig> {
         info!("Auditing LDAP server security: {}", uri);
 
-        let mut config = LdapSecurityConfig::default();
-        config.server_uri = uri.to_string();
-
-        // Parse URI to determine connection type
-        config.uses_tls = uri.starts_with("ldaps://");
-        config.uses_starttls = false; // Would need to probe
+        let mut config = LdapSecurityConfig {
+            server_uri: uri.to_string(),
+            uses_tls: uri.starts_with("ldaps://"),
+            uses_starttls: false, // Would need to probe
+            ..Default::default()
+        };
 
         // Try to connect and gather configuration
         #[cfg(target_os = "linux")]

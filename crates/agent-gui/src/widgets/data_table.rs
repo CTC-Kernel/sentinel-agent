@@ -532,7 +532,7 @@ pub fn simple_table(
 
     let mut clicked_row = None;
     for (i, row) in rows.iter().enumerate() {
-        let cells: Vec<&str> = row.iter().copied().collect();
+        let cells: Vec<&str> = row.to_vec();
         if table.show_row(ui, i, false, &cells) {
             clicked_row = Some(i);
         }
