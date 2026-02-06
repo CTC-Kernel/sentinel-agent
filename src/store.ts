@@ -77,7 +77,17 @@ export const useStore = create<AppState>((set) => ({
  set({ language: lang });
  },
  t: (key: string, options?: Record<string, unknown>) => {
- return i18n.t(key, options) as string;
+ // Handle returnObjects option for nested translations
+ const opts = { ...options, returnObjects: true };
+ const result = i18n.t(key, opts);
+ 
+ // If result is an object and returnObjects wasn't explicitly requested, return a fallback
+ if (typeof result === 'object' && result !== null && !options?.returnObjects) {
+ const fallback = options?.defaultValue || key;
+ return typeof fallback === 'string' ? fallback : key;
+ }
+ 
+ return result as string;
  },
  toggleTheme: () => set((state) => {
  const newTheme = state.theme === 'light' ? 'dark' : 'light';

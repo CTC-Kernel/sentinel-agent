@@ -75,7 +75,7 @@ export const SystemEntrance: React.FC = () => {
  </div>
 
  {/* Central HUD / Interface */}
- <div className="relative z-10 w-full max-w-md mx-auto p-6 flex flex-col items-center text-center">
+ <div className="relative z-decorator w-full max-w-md mx-auto p-6 flex flex-col items-center text-center">
 
  {/* Brand Identity / Status */}
  <div className={`mb-12 transition-all duration-700 ${isScanning ? 'scale-90 opacity-60' : 'scale-100 opacity-70'}`}>
@@ -142,7 +142,7 @@ export const SystemEntrance: React.FC = () => {
  </div >
 
  {/* Footer Status Bar */}
- < div className="absolute bottom-0 left-0 right-0 p-6 flex justify-between items-end text-xs font-mono text-muted-foreground uppercase tracking-widest pointer-events-none z-10 font-bold" >
+ < div className="absolute bottom-0 left-0 right-0 p-6 flex justify-between items-end text-xs font-mono text-muted-foreground uppercase tracking-widest pointer-events-none z-decorator font-bold" >
  <div className="hidden md:block">
   LAT: 48.8566 N <br /> LON: 2.3522 E
  </div>

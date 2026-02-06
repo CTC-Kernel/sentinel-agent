@@ -38,7 +38,7 @@ export const RiskFormIdentificationTab: React.FC<RiskFormIdentificationTabProps>
   placeholder={t('risks.searchPlaceholder') || "Ex: Attaque par ingénierie sociale..."}
  // icon={Search} - Search icon usage was incorrect for this component variant or passed incorrectly
  />
- <div className="absolute right-2 top-2 z-10 flex gap-2">
+ <div className="absolute right-2 top-2 z-decorator flex gap-2">
   <button
   type="button"
   onClick={() => setShowLibraryModal(true)}
@@ -71,7 +71,7 @@ export const RiskFormIdentificationTab: React.FC<RiskFormIdentificationTabProps>
   />
   )}
  />
- <div className="absolute right-2 top-2 z-10">
+ <div className="absolute right-2 top-2 z-decorator">
   <AIAssistButton
   context={{ asset: assets.find(a => a.id === getValues('assetId')), threat: getValues('threat') }}
   fieldName={t('common.vulnerability')}

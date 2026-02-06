@@ -146,7 +146,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
   )}
   </div>
 
-  <div className="relative z-10 flex flex-col h-full">
+  <div className="relative z-decorator flex flex-col h-full">
   <div className="flex justify-between items-start mb-5">
   <div className="flex items-center gap-2">
    <Badge status={level.status} variant="soft" size="sm">

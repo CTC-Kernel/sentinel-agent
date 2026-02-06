@@ -155,11 +155,15 @@
   transform: translateY(-1px);
 }
 
-/* Card interaction styles */
+/* ====================================================================
+   Card Premium - Uses unified glass tokens
+   AUDIT FIX: Using standardized glass blur variables
+   ==================================================================== */
 .card-premium {
   @apply interactive-element;
   background: var(--glass-bg);
-  backdrop-filter: blur(var(--blur-md));
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   border-radius: var(--radius-2xl);
@@ -178,7 +182,7 @@
 .card-premium:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-xl);
-  background: var(--glass-medium-bg);
+  background: var(--glass-bg-intense);
 }
 
 .shine-effect {
@@ -243,8 +247,9 @@
 
 /* Modal overlay states - standardized */
 .modal-overlay {
-  backdrop-filter: blur(4px);
-  background-color: hsl(var(--background) / 0.5);
+  backdrop-filter: blur(var(--glass-blur-xs));
+  -webkit-backdrop-filter: blur(var(--glass-blur-xs));
+  background-color: var(--overlay-bg);
   transition: all var(--transition-normal) var(--ease-out);
 }
 

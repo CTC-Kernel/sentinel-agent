@@ -102,7 +102,7 @@ const TimelineEvent: React.FC<TimelineEventProps> = ({ event, isLast }) => {
       {/* Timeline line and dot */}
       <div className="flex flex-col items-center">
         <div className={cn(
-          'p-2 rounded-xl z-10',
+          'p-2 rounded-xl z-decorator',
           getEventColor(event.type)
         )}>
           <CurrentIcon className="h-4 w-4" />

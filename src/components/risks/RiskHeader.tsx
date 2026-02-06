@@ -1,5 +1,6 @@
-import React from 'react';
-import { Menu, Transition } from '@headlessui/react';
+import React, { useRef } from 'react';
+import { Menu } from '@headlessui/react';
+import { MenuPortal } from '../ui/MenuPortal';
 import {
  Download, FileText, FileSpreadsheet, FileCode, MoreVertical,
  Loader2, Plus, BrainCircuit, Copy
@@ -48,6 +49,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
  onNewRisk,
  isAnalyzing = false,
 }) => {
+ const toolsMenuButtonRef = useRef<HTMLButtonElement>(null);
  return (
  <PageHeader
  title={risksTitle}
@@ -64,19 +66,12 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
  actions={
  <>
   <Menu as="div" className="relative inline-block text-left">
-  <Menu.Button as={Button} variant="ghost" size="icon" aria-label="Plus d'actions" className="bg-background border border-border text-foreground rounded-3xl hover:bg-muted/50 shadow-sm h-9 w-9">
+  {({ open }) => (
+  <>
+  <Menu.Button ref={toolsMenuButtonRef} as={Button} variant="ghost" size="icon" aria-label="Plus d'actions" className="bg-background border border-border text-foreground rounded-3xl hover:bg-muted/50 shadow-sm h-9 w-9">
   <MoreVertical className="h-5 w-5" />
   </Menu.Button>
-  <Transition
-  as={React.Fragment}
-  enter="transition ease-out duration-100"
-  enterFrom="transform opacity-0 scale-95"
-  enterTo="transform opacity-100 scale-100"
-  leave="transition ease-in duration-75"
-  leaveFrom="transform opacity-100 scale-100"
-  leaveTo="transform opacity-0 scale-95"
-  >
-  <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border/50 rounded-xl bg-popover text-popover-foreground shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-dropdown">
+  <MenuPortal buttonRef={toolsMenuButtonRef} open={open}>
   <div className="p-1">
    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
    Rapports & Exports
@@ -179,8 +174,9 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
    </>
    )}
   </div>
-  </Menu.Items>
-  </Transition>
+  </MenuPortal>
+  </>
+  )}
   </Menu>
 
   {canEdit && (

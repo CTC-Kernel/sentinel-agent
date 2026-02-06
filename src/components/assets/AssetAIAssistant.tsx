@@ -174,7 +174,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
  return (
  <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-4xl p-6 border border-border/40 relative overflow-hidden">
  <div className="absolute inset-0 bg-white/40 dark:bg-black/20 backdrop-blur-sm pointer-events-none" />
- <div className="relative z-10">
+ <div className="relative z-decorator">
  <div className="flex items-center gap-3 mb-6">
   <div className="p-2.5 bg-card rounded-2xl shadow-sm border border-border/40">
   <Sparkles className="h-5 w-5 text-primary" />

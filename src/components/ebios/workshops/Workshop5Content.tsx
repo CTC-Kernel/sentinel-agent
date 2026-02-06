@@ -818,7 +818,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
    step="5"
    value={residualRisk?.controlEffectiveness || 0}
    onChange={(e) => handleUpdateResidualRisk(opScenario.id, Number(e.target.value))}
-   className="absolute w-full h-full opacity-0 cursor-pointer z-10"
+   className="absolute w-full h-full opacity-0 cursor-pointer z-decorator"
    />
    ) : null}
 

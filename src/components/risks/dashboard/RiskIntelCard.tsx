@@ -63,7 +63,7 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
  {/* Ambient Background Gradient for "Hero" feel */}
  <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none" />
 
- <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 p-6 lg:p-8 relative z-10">
+ <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 p-6 lg:p-8 relative z-decorator">
 
  {/* LEFT: Vital Signs (Vertical Stack) */}
  <div className="lg:col-span-4 flex flex-col justify-between gap-6 border-r border-border/40 dark:border-white/5 pr-0 lg:pr-8">
@@ -150,7 +150,7 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
   initial={{ width: "100%" }}
   animate={{ width: `${Math.max((metrics.avgResidual / metrics.avgInherent) * 100, 25)}%` }}
   transition={{ duration: 1.2, ease: "circOut", delay: 0.3 }}
-  className="absolute top-6 left-0 h-12 md:h-16 bg-gradient-to-r from-success-text to-primary rounded-full shadow-lg shadow-primary/20 z-10 flex items-center justify-end overflow-hidden"
+  className="absolute top-6 left-0 h-12 md:h-16 bg-gradient-to-r from-success-text to-primary rounded-full shadow-lg shadow-primary/20 z-decorator flex items-center justify-end overflow-hidden"
   >
   <div className="pr-4 text-right shrink-0">
   <span className="block text-xs font-bold text-white/90 uppercase tracking-wider text-shadow-sm">Risque Résiduel</span>

@@ -74,7 +74,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
  <motion.div
   initial={{ opacity: 0, y: 20 }}
   animate={{ opacity: 1, y: 0 }}
-  className="w-full max-w-md p-6 relative z-10"
+  className="w-full max-w-md p-6 relative z-decorator"
  >
   <PremiumCard glass className="p-8 text-center border-primary/20 dark:border-primary/10 shadow-xl shadow-primary/5">
   <div className="w-20 h-20 bg-primary/10 dark:bg-primary/10 text-primary rounded-full flex items-center justify-center mb-6 mx-auto ring-8 ring-primary/10 dark:ring-primary/5">
@@ -131,7 +131,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
  <motion.div
   initial={{ opacity: 0, y: 20 }}
   animate={{ opacity: 1, y: 0 }}
-  className="w-full max-w-md p-6 relative z-10"
+  className="w-full max-w-md p-6 relative z-decorator"
  >
   <PremiumCard glass className="p-8 text-center border-red-500/20 dark:border-red-500/10 shadow-xl shadow-red-500/5">
   <div className="w-20 h-20 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mb-6 mx-auto ring-8 ring-red-50 dark:ring-red-500/5">

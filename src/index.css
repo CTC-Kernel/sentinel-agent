@@ -1,46 +1,31 @@
-/* CSS Import Order - Critical for proper cascade */
+/* ====================================================================
+   CSS Import Order - Critical for proper cascade
+   AUDIT FIX: Consolidated import order with animations
+   ==================================================================== */
+
 /* 1. Design tokens first (CSS variables) */
 @import './styles/design-tokens.css';
-/* 2. Base accessibility utilities */
+/* 2. Animations (keyframes before utilities) */
+@import './styles/animations.css';
+/* 3. Base accessibility utilities */
 @import './styles/accessibility.css';
-/* 3. Focus indicators */
+/* 4. Focus indicators */
 @import './styles/focus.css';
-/* 4. Interaction states */
+/* 5. Interaction states */
 @import './styles/interactions.css';
-/* 5. Component-specific styles */
+/* 6. Component-specific styles */
 @import './styles/calendar.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Shine animation for cards */
-@keyframes shine {
-  0% {
-    transform: translateX(-100%) skewX(-12deg);
-  }
-
-  100% {
-    transform: translateX(200%) skewX(-12deg);
-  }
-}
-
-.animate-shine {
-  animation: shine 1.5s ease-in-out;
-}
-
-/* Animation delay utilities */
-.animation-delay-2000 {
-  animation-delay: 2000ms;
-}
-
-.animation-delay-3000 {
-  animation-delay: 3000ms;
-}
-
-.animation-delay-4000 {
-  animation-delay: 4000ms;
-}
+/* ====================================================================
+   AUDIT FIX: Animation utilities moved to src/styles/animations.css
+   - shine keyframe
+   - animation-delay utilities
+   - skeleton-loading keyframe (removed duplicate below)
+   ==================================================================== */
 
 @layer base {
   ::selection {
@@ -153,7 +138,11 @@
   pointer-events: none !important;
 }
 
-/* ===== TYPOGRAPHY SYSTEM - Apple Precision ===== */
+/* ====================================================================
+   TYPOGRAPHY SYSTEM - Apple Precision
+   AUDIT FIX: Unified scale - h1-h6 as source of truth
+   Use semantic HTML elements (h1-h6) or utility classes (.text-*)
+   ==================================================================== */
 
 /* Base heading styles */
 h1,
@@ -168,83 +157,68 @@ h6 {
   line-height: 1.2;
 }
 
-/* Heading scale - Refined for professional appearance */
-h1 {
-  font-size: 1.75rem;
+/* Heading scale - Unified (matches both h* and .heading-* needs) */
+h1, .heading-1 {
+  font-size: 1.75rem;     /* 28px */
   letter-spacing: var(--tracking-tight);
   font-weight: var(--font-weight-bold);
+  line-height: 1.25;
 }
 
-h2 {
-  font-size: 1.375rem;
+h2, .heading-2 {
+  font-size: 1.375rem;    /* 22px */
   letter-spacing: var(--tracking-tight);
   font-weight: var(--font-weight-bold);
+  line-height: 1.3;
 }
 
-h3 {
-  font-size: 1.125rem;
+h3, .heading-3 {
+  font-size: 1.125rem;    /* 18px */
   letter-spacing: var(--tracking-tight);
   font-weight: var(--font-weight-semibold);
+  line-height: 1.35;
 }
 
-h4 {
-  font-size: 1rem;
+h4, .heading-4 {
+  font-size: 1rem;        /* 16px */
   letter-spacing: var(--tracking-normal);
   font-weight: var(--font-weight-semibold);
+  line-height: 1.4;
 }
 
-h5 {
-  font-size: 0.9375rem;
+h5, .heading-5 {
+  font-size: 0.9375rem;   /* 15px */
   letter-spacing: var(--tracking-normal);
   font-weight: var(--font-weight-medium);
+  line-height: 1.4;
 }
 
-h6 {
-  font-size: 0.875rem;
+h6, .heading-6 {
+  font-size: 0.875rem;    /* 14px */
   letter-spacing: var(--tracking-normal);
   font-weight: var(--font-weight-medium);
+  line-height: 1.4;
 }
 
-/* Typography utility classes */
+/* Page Title - Larger variant for page headers */
 .page-title {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.5rem;      /* 24px - between h1 and h2 */
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-tight);
   line-height: 1.25;
   color: hsl(var(--foreground));
 }
 
-.heading-1 {
+/* Heading utility classes inherit from combined selectors above */
+.heading-1,
+.heading-2,
+.heading-3,
+.heading-4,
+.heading-5,
+.heading-6 {
   font-family: var(--font-display);
-  font-size: 1.375rem;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-tight);
-  line-height: 1.3;
-}
-
-.heading-2 {
-  font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--tracking-tight);
-  line-height: 1.35;
-}
-
-.heading-3 {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--tracking-normal);
-  line-height: 1.4;
-}
-
-.heading-4 {
-  font-family: var(--font-display);
-  font-size: 0.9375rem;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: var(--tracking-normal);
-  line-height: 1.4;
+  color: hsl(var(--foreground));
 }
 
 /* Body text variants */
@@ -290,16 +264,22 @@ h6 {
   color: hsl(var(--muted-foreground));
 }
 
-/* ===== GLASS PANELS ===== */
+/* ====================================================================
+   GLASS PANELS - Unified Design System
+   AUDIT FIX: Using design token variables for blur values
+   ==================================================================== */
+
+/* Standard Glass Panel */
 .glass-panel {
   background: var(--glass-bg);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   transition: all 0.3s var(--ease-apple);
 }
 
+/* Lite Glass Panel (no blur - performance optimized) */
 .glass-panel-lite {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -307,10 +287,11 @@ h6 {
   transition: all 0.2s var(--ease-apple);
 }
 
+/* Premium Glass Panel (heavier blur) */
 .glass-premium {
-  background: var(--glass-bg);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  background: var(--glass-bg-intense);
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   position: relative;
@@ -323,6 +304,14 @@ h6 {
   inset: 0;
   background: var(--glass-highlight);
   pointer-events: none;
+}
+
+/* Subtle Glass Panel (lighter effect) */
+.glass-subtle {
+  background: var(--glass-bg-subtle);
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
 }
 
 /* Premium Input Styles - Glass Effect */
@@ -400,20 +389,10 @@ textarea:focus {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* ===== ANIMATIONS ===== */
-/* fadeIn, slideUp, shimmer keyframes and animate-fade-in, animate-slide-up classes
-   are now defined in tailwind.config.js (keyframes + animation sections) */
-
-/* Enhanced Skeleton Shimmer Animation */
-@keyframes skeleton-loading {
-  0% {
-    background-position: -200% 0;
-  }
-
-  100% {
-    background-position: 200% 0;
-  }
-}
+/* ====================================================================
+   AUDIT FIX: Skeleton animation consolidated in src/styles/animations.css
+   Use .animate-skeleton or .skeleton-shimmer classes
+   ==================================================================== */
 
 .skeleton-shimmer {
   background: linear-gradient(90deg,
@@ -430,4 +409,16 @@ textarea:focus {
       hsl(var(--muted) / 0.4) 50%,
       hsl(var(--muted) / 0.2) 75%);
   background-size: 200% 100%;
+}
+
+/* ====================================================================
+   CHART CELL STYLES - For Recharts Bar/Pie cells
+   AUDIT FIX: Using CSS variables for dark/light mode support
+   ==================================================================== */
+.chart-cell-shadow {
+  filter: drop-shadow(0 2px 4px hsl(var(--chart-text) / 0.15));
+}
+
+.dark .chart-cell-shadow {
+  filter: drop-shadow(0 2px 4px hsl(0 0% 0% / 0.3));
 }

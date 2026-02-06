@@ -66,7 +66,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
  <div className="glass-premium p-6 md:p-8 rounded-3xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group">
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
 
- <div className="space-y-2 relative z-10">
+ <div className="space-y-2 relative z-decorator">
   <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
   <span className="inline-flex h-2 w-2 rounded-full bg-red-500 animate-pulse" />
   Menaces en temps réel
@@ -79,7 +79,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
   </div>
  </div>
 
- <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-10">
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-decorator">
   {/* Critical Threats Card */}
   <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-border/40 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-red-500 dark:hover:bg-red-900/20">
   <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-70 transition-opacity" />

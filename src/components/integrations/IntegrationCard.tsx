@@ -20,7 +20,7 @@ export const IntegrationCard: React.FC<IntegrationCardProps> = ({ provider, onCo
  {/* Inner Glow Effect */}
  <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/50 to-transparent dark:to-transparent opacity-0 group-hover:opacity-70 transition-opacity pointer-events-none" />
 
- <div className="flex items-start justify-between mb-4 relative z-10">
+ <div className="flex items-start justify-between mb-4 relative z-decorator">
  <div className={`p-3.5 rounded-2xl transition-colors duration-300 ${isConnected
   ? 'bg-gradient-to-br from-emerald-100 to-emerald-50 text-emerald-600 dark:from-emerald-500/20 dark:to-emerald-500/10 dark:text-emerald-400'
   : 'bg-muted text-muted-foreground group-hover:bg-primary/10 dark:group-hover:bg-primary group-hover:text-primary dark:group-hover:text-primary/70'
@@ -36,12 +36,12 @@ export const IntegrationCard: React.FC<IntegrationCardProps> = ({ provider, onCo
  )}
  </div>
 
- <h3 className="text-lg font-bold text-foreground mb-2 relative z-10">{provider.name}</h3>
- <p className="text-sm text-muted-foreground mb-6 min-h-[40px] leading-relaxed relative z-10">
+ <h3 className="text-lg font-bold text-foreground mb-2 relative z-decorator">{provider.name}</h3>
+ <p className="text-sm text-muted-foreground mb-6 min-h-[40px] leading-relaxed relative z-decorator">
  {provider.description}
  </p>
 
- <div className="flex items-center justify-between mt-auto relative z-10">
+ <div className="flex items-center justify-between mt-auto relative z-decorator">
  <button
   onClick={() => isConnected ? onDisconnect(provider) : onConnect(provider)}
   disabled={isConnecting}

@@ -12,7 +12,7 @@ import {
     Tooltip,
     ResponsiveContainer
 } from 'recharts';
-import { SENTINEL_PALETTE, CHART_STYLES } from '../../theme/chartTheme';
+import { SENTINEL_PALETTE, CHART_STYLES, CHART_AXIS_COLORS, DONUT_COLORS } from '../../theme/chartTheme';
 import { Document } from '../../types';
 import { SentinelPieActiveShapeProps } from '../../types/charts';
 import {
@@ -538,13 +538,9 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                                     width={30}
                                 />
                                 <Tooltip
-                                    contentStyle={{
-                                        ...CHART_STYLES.tooltip.contentStyle,
-                                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                                        border: '1px solid rgba(255,255,255,0.1)'
-                                    }}
-                                    labelStyle={{ ...CHART_STYLES.tooltip.labelStyle, color: '#fff' }}
-                                    itemStyle={{ fontSize: '12px', color: '#fff' }}
+                                    contentStyle={CHART_STYLES.tooltip.contentStyle}
+                                    labelStyle={CHART_STYLES.tooltip.labelStyle}
+                                    itemStyle={CHART_STYLES.tooltip.itemStyle}
                                 />
                                 <Area
                                     type="monotone"

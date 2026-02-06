@@ -512,7 +512,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                                                             handleUpdateLikelihood(opScenario.id, level.level as 1 | 2 | 3 | 4);
                                                                                         }}
                                                                                         className={cn(
-                                                                                            "w-8 h-8 rounded-md text-xs font-bold transition-all relative z-10",
+                                                                                            "w-8 h-8 rounded-md text-xs font-bold transition-all relative z-decorator",
                                                                                             opScenario.likelihood === level.level
                                                                                                 ? `bg-${level.color}-500 text-white shadow-sm scale-110`
                                                                                                 : "text-muted-foreground hover:text-muted-foreground hover:bg-muted"
@@ -578,7 +578,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                                                 opScenario.attackSequence.map((step) => (
                                                                                     <div key={step.id || 'unknown'} className="relative flex items-start group/step">
                                                                                         {/* Step Number Bubble */}
-                                                                                        <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-card bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center relative z-10 shadow-sm mt-2.5 mr-4 ring-4 ring-muted dark:ring-muted">
+                                                                                        <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-card bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center relative z-decorator shadow-sm mt-2.5 mr-4 ring-4 ring-muted dark:ring-muted">
                                                                                             {step.order}
                                                                                         </div>
 

@@ -310,7 +310,7 @@ export const ImpactBlastRadius: React.FC<ImpactBlastRadiusProps> = ({
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(239,68,68,0.1)_0%,transparent_70%)] pointer-events-none" />
 
       {/* Stats bar */}
-      <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
+      <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-decorator">
         <div className="flex items-center gap-3">
           <Badge variant="glass" className="bg-destructive/10 text-destructive border-destructive/20">
             <Target className="h-3 w-3 mr-1" />
@@ -478,7 +478,7 @@ export const ImpactBlastRadius: React.FC<ImpactBlastRadiusProps> = ({
       </svg>
 
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 flex flex-wrap gap-2 z-10">
+      <div className="absolute bottom-4 left-4 flex flex-wrap gap-2 z-decorator">
         {Object.entries(IMPACT_COLORS).map(([level, colors]) => (
           <Badge
             key={level}

@@ -19,7 +19,7 @@ export const ActivityLogs: React.FC = () => {
  return (
  <div className="relative min-h-screen">
  <MasterpieceBackground />
- <div className="relative z-10 p-6 md:p-8 flex flex-col gap-6 sm:gap-8 lg:gap-10 max-w-[1920px] mx-auto pb-24">
+ <div className="relative z-decorator p-6 md:p-8 flex flex-col gap-6 sm:gap-8 lg:gap-10 max-w-[1920px] mx-auto pb-24">
  <PageHeader
   title={t('activity.title')}
   subtitle={t('activity.subtitle')}

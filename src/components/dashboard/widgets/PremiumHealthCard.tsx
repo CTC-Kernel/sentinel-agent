@@ -117,7 +117,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 dark:bg-primary/60/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-40 h-40 bg-success-bg rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
-            <div className="relative z-10">
+            <div className="relative z-decorator">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">

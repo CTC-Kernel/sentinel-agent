@@ -40,7 +40,8 @@ type DocumentFormPayload = DocumentFormData & { fileUrl?: string; fileHash?: str
 
 import { ImportService } from '../services/ImportService';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
-import { Menu, Transition } from '@headlessui/react';
+import { Menu } from '@headlessui/react';
+import { MenuPortal } from '../components/ui/MenuPortal';
 import { OnboardingService } from '../services/onboardingService';
 
 // --- Premium Skeleton (Matches Card Layout) ---
@@ -128,6 +129,7 @@ export const Documents: React.FC = () => {
  const [templateData, setTemplateData] = useState<DocumentTemplate | null>(null);
  const [isFormDirty, setIsFormDirty] = useState(false);
  const pendingSelectId = useRef<string | null>(null);
+ const toolsMenuButtonRef = useRef<HTMLButtonElement>(null);
 
  // Tabs configuration
  const tabs = useMemo(() => [
@@ -504,11 +506,12 @@ export const Documents: React.FC = () => {
    <div className="flex items-center gap-2">
    {/* Secondary Actions Menu */}
    <Menu as="div" className="relative inline-block text-left">
-    <Menu.Button className="p-2 bg-background border border-border text-foreground rounded-xl hover:bg-muted/50 transition-colors shadow-sm">
+    {({ open }) => (
+    <>
+    <Menu.Button ref={toolsMenuButtonRef} className="p-2 bg-background border border-border text-foreground rounded-xl hover:bg-muted/50 transition-colors shadow-sm">
     <MoreVertical className="h-5 w-5" />
     </Menu.Button>
-    <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
-    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border/50 rounded-xl bg-popover text-popover-foreground shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-dropdown">
+    <MenuPortal buttonRef={toolsMenuButtonRef} open={open}>
     <div className="p-1">
     <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('common.actions.title')}</div>
     <Menu.Item>
@@ -541,8 +544,9 @@ export const Documents: React.FC = () => {
      </Menu.Item>
     )}
     </div>
-    </Menu.Items>
-    </Transition>
+    </MenuPortal>
+    </>
+    )}
    </Menu>
 
    {canCreate && (

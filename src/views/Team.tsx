@@ -283,7 +283,7 @@ const Team: React.FC = () => {
  </div>
 
  {/* Stats Grid */}
- <div className="grid grid-cols-3 gap-4 md:gap-8 w-full md:w-auto relative z-10">
+ <div className="grid grid-cols-3 gap-4 md:gap-8 w-full md:w-auto relative z-decorator">
   <div className="flex items-center justify-between p-2.5 bg-success-bg rounded-2xl border border-success-border/30 shadow-sm">
   <div className="flex items-center gap-2">
   <Check className="h-4 w-4 text-success-text" />

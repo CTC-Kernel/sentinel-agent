@@ -103,7 +103,7 @@ export const AgentSetup: React.FC = () => {
   <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-primary/10/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float"></div>
  </div>
 
- <div className="w-full max-w-2xl relative z-10 flex-1 flex flex-col items-center justify-center mx-auto px-4 sm:px-6">
+ <div className="w-full max-w-2xl relative z-decorator flex-1 flex flex-col items-center justify-center mx-auto px-4 sm:px-6">
   <motion.div
   initial={{ opacity: 0, y: 20 }}
   animate={{ opacity: 1, y: 0 }}
@@ -119,7 +119,7 @@ export const AgentSetup: React.FC = () => {
   className="w-16 h-16 rounded-3xl bg-success text-success-foreground flex items-center justify-center shadow-2xl mb-4 ring-1 ring-white/10 relative overflow-hidden"
   >
   <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-60"></div>
-  <ShieldCheck className="h-8 w-8 relative z-10" strokeWidth={2.5} />
+  <ShieldCheck className="h-8 w-8 relative z-decorator" strokeWidth={2.5} />
   </motion.div>
   <h2 className="text-2xl font-display font-bold text-foreground tracking-tight text-center">
   {t('agentSetup.tokenReady.heading', { defaultValue: "Votre token d'enrolement" })}
@@ -173,7 +173,7 @@ export const AgentSetup: React.FC = () => {
   <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-primary/10/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float"></div>
  </div>
 
- <div className="w-full max-w-lg relative z-10 flex-1 flex flex-col items-center justify-center mx-auto px-4 sm:px-6">
+ <div className="w-full max-w-lg relative z-decorator flex-1 flex flex-col items-center justify-center mx-auto px-4 sm:px-6">
   <motion.div
   initial={{ opacity: 0, y: 20 }}
   animate={{ opacity: 1, y: 0 }}
@@ -187,7 +187,7 @@ export const AgentSetup: React.FC = () => {
   className="w-16 h-16 rounded-3xl bg-amber-500 text-white flex items-center justify-center shadow-2xl mb-6 mx-auto ring-1 ring-white/10 relative overflow-hidden"
   >
   <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-60"></div>
-  <Briefcase className="h-8 w-8 relative z-10" strokeWidth={2.5} />
+  <Briefcase className="h-8 w-8 relative z-decorator" strokeWidth={2.5} />
   </motion.div>
 
   <h2 className="text-2xl font-display font-bold text-foreground tracking-tight mb-3">
@@ -201,7 +201,7 @@ export const AgentSetup: React.FC = () => {
   onClick={handleNavigateToOnboarding}
   className="w-full py-6 font-bold rounded-2xl shadow-primary/20 shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all relative overflow-hidden group/btn"
   >
-  <span className="relative z-10 flex items-center justify-center">
+  <span className="relative z-decorator flex items-center justify-center">
   {t('agentSetup.needsOnboarding.goToOnboarding', { defaultValue: 'Configurer mon organisation' })}
   <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1" strokeWidth={2.5} />
   </span>
@@ -232,7 +232,7 @@ export const AgentSetup: React.FC = () => {
  <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-primary/10/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float" style={{ animationDelay: '3s' }}></div>
  </div>
 
- <div className="w-full max-w-3xl relative z-10 flex-1 flex flex-col items-center justify-center mx-auto px-4 sm:px-6">
+ <div className="w-full max-w-3xl relative z-decorator flex-1 flex flex-col items-center justify-center mx-auto px-4 sm:px-6">
  <motion.div
   initial={{ opacity: 0, y: 30 }}
   animate={{ opacity: 1, y: 0 }}
@@ -246,7 +246,7 @@ export const AgentSetup: React.FC = () => {
   className="w-20 h-20 rounded-3xl bg-foreground text-background flex items-center justify-center shadow-2xl mb-6 mx-auto ring-1 ring-white/10 relative overflow-hidden"
   >
   <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-60"></div>
-  <Lock className="h-10 w-10 relative z-10" strokeWidth={2.5} />
+  <Lock className="h-10 w-10 relative z-decorator" strokeWidth={2.5} />
   </motion.div>
   <h1 className="text-3xl sm:text-4xl font-display font-bold tracking-tighter text-foreground mb-3">
   {t('agentSetup.title', { defaultValue: "Installer l'Agent Sentinel" })}
@@ -269,7 +269,7 @@ export const AgentSetup: React.FC = () => {
 
   <div className="w-14 h-14 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg mb-5 ring-1 ring-white/10 relative overflow-hidden">
   <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-60"></div>
-  <UserPlus className="h-7 w-7 relative z-10" strokeWidth={2} />
+  <UserPlus className="h-7 w-7 relative z-decorator" strokeWidth={2} />
   </div>
 
   <h3 className="text-lg font-bold text-foreground mb-2">
@@ -296,7 +296,7 @@ export const AgentSetup: React.FC = () => {
 
   <div className="w-14 h-14 rounded-2xl bg-foreground text-background flex items-center justify-center shadow-lg mb-5 ring-1 ring-white/10 relative overflow-hidden">
   <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-60"></div>
-  <LogIn className="h-7 w-7 relative z-10" strokeWidth={2} />
+  <LogIn className="h-7 w-7 relative z-decorator" strokeWidth={2} />
   </div>
 
   <h3 className="text-lg font-bold text-foreground mb-2">
@@ -316,7 +316,7 @@ export const AgentSetup: React.FC = () => {
  </div>
 
  {/* Footer */}
- <div className="py-6 text-center relative z-10 px-4 sm:px-6">
+ <div className="py-6 text-center relative z-decorator px-4 sm:px-6">
  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
   {t('auth.footer.developedBy', { defaultValue: 'Developpe par' })}{' '}
   <a

@@ -39,30 +39,20 @@ import { OTVulnerabilityService } from '@/services/OTVulnerabilityService';
 import { useStore } from '@/store';
 import type { OTExposureMetrics } from '@/types/otVulnerability';
 import { SEGMENT_COLORS } from '@/components/voxel/OTNodeMesh';
+import { SEVERITY_COLORS, CHART_STYLES, CHART_AXIS_COLORS } from '@/theme/chartTheme';
 
 // ============================================================================
 // Types
 // ============================================================================
 
 interface OTExposureWidgetProps {
- /** Widget size variant */
- size?: 'compact' | 'full';
- /** Additional class name */
- className?: string;
- /** Click handler for drill-down */
- onDrillDown?: (filter: string) => void;
+  /** Widget size variant */
+  size?: 'compact' | 'full';
+  /** Additional class name */
+  className?: string;
+  /** Click handler for drill-down */
+  onDrillDown?: (filter: string) => void;
 }
-
-// ============================================================================
-// Constants
-// ============================================================================
-
-const SEVERITY_COLORS = {
- Critical: '#ef4444',
- High: '#f97316',
- Medium: '#eab308',
- Low: '#22c55e',
-};
 
 // ============================================================================
 // Stat Card Component
@@ -79,13 +69,13 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({
- label,
- value,
- icon,
- trend,
- color = '#3b82f6',
- onClick,
- loading,
+  label,
+  value,
+  icon,
+  trend,
+  color = 'hsl(var(--primary))',
+  onClick,
+  loading,
 }) => {
  if (loading) {
  return (
@@ -114,7 +104,7 @@ const StatCard: React.FC<StatCardProps> = ({
  <span className="text-xs text-muted-foreground">{label}</span>
  </div>
  <div className="flex items-end gap-2">
- <span className="text-2xl font-semibold text-white">{value}</span>
+ <span className="text-2xl font-semibold text-foreground">{value}</span>
  {trend && (
  <span
  className={cn(
@@ -160,18 +150,18 @@ const MiniTrendChart: React.FC<MiniTrendChartProps> = ({ data, loading }) => {
  <AreaChart data={data} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
  <defs>
  <linearGradient id="criticalGradient" x1="0" y1="0" x2="0" y2="1">
- <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
- <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+ <stop offset="5%" stopColor="hsl(var(--chart-critical))" stopOpacity={0.3} />
+ <stop offset="95%" stopColor="hsl(var(--chart-critical))" stopOpacity={0} />
  </linearGradient>
  <linearGradient id="highGradient" x1="0" y1="0" x2="0" y2="1">
- <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
- <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+ <stop offset="5%" stopColor="hsl(var(--chart-high))" stopOpacity={0.3} />
+ <stop offset="95%" stopColor="hsl(var(--chart-high))" stopOpacity={0} />
  </linearGradient>
  </defs>
- <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
+ <CartesianGrid strokeDasharray="3 3" stroke={CHART_AXIS_COLORS.grid} vertical={false} />
  <XAxis
  dataKey="date"
- tick={{ fontSize: 10, fill: '#9ca3af' }}
+ tick={{ fontSize: 11, fill: CHART_AXIS_COLORS.tick }}
  axisLine={false}
  tickLine={false}
  />
@@ -185,7 +175,7 @@ const MiniTrendChart: React.FC<MiniTrendChartProps> = ({ data, loading }) => {
  payload={payload.map(p => ({
   name: String(p.dataKey || 'unknown'),
   value: Number(p.value) || 0,
-  color: p.color || '#000',
+  color: p.color || 'hsl(var(--foreground))',
   payload: p.payload
  })) as Array<{
   name: string;
@@ -203,14 +193,14 @@ const MiniTrendChart: React.FC<MiniTrendChartProps> = ({ data, loading }) => {
  <Area
  type="monotone"
  dataKey="critical"
- stroke="#ef4444"
+ stroke={SEVERITY_COLORS.Critical}
  fill="url(#criticalGradient)"
  strokeWidth={2}
  />
  <Area
  type="monotone"
  dataKey="high"
- stroke="#f97316"
+ stroke={SEVERITY_COLORS.High}
  fill="url(#highGradient)"
  strokeWidth={2}
  />
@@ -278,7 +268,7 @@ const SegmentChart: React.FC<SegmentChartProps> = ({ data, loading }) => {
  style={{ backgroundColor: entry.color }}
  />
  <span className="text-muted-foreground">{entry.name}</span>
- <span className="text-white font-medium">{entry.value}</span>
+ <span className="text-foreground font-medium">{entry.value}</span>
  </div>
  ))}
  </div>
@@ -335,7 +325,7 @@ const TopAssetsList: React.FC<TopAssetsListProps> = ({ assets, onAssetClick, loa
  <div className="flex items-center gap-3">
  <span className="text-muted-foreground text-xs w-4">{index + 1}.</span>
  <Server className="h-4 w-4 text-orange-400" />
- <span className="text-sm text-white truncate max-w-[150px]">
+ <span className="text-sm text-foreground truncate max-w-[150px]">
  {asset.assetName}
  </span>
  </div>
@@ -436,7 +426,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
  <div className="flex items-center justify-between mb-3">
  <div className="flex items-center gap-2">
  <Server className="h-5 w-5 text-orange-400" />
- <h3 className="text-sm font-medium text-white">
+ <h3 className="text-sm font-medium text-foreground">
  {t('otVulnerability.widget.title', 'OT Exposure')}
  </h3>
  </div>
@@ -462,7 +452,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
  label={t('otVulnerability.widget.critical', 'Critical')}
  value={metrics?.criticalOnSafetySystems || 0}
  icon={<AlertTriangle className="h-4 w-4" />}
- color="#ef4444"
+ color={SEVERITY_COLORS.Critical}
  loading={loading}
  />
  </div>
@@ -480,7 +470,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
  <Server className="h-6 w-6 text-orange-400" />
  </div>
  <div>
- <h3 className="text-lg font-semibold text-white">
+ <h3 className="text-lg font-semibold text-foreground">
  {t('otVulnerability.widget.title', 'OT Vulnerability Exposure')}
  </h3>
  <p className="text-xs text-muted-foreground">
@@ -508,7 +498,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
  label={t('otVulnerability.widget.criticalSafety', 'Critical on Safety')}
  value={metrics?.criticalOnSafetySystems || 0}
  icon={<Shield className="h-4 w-4" />}
- color="#ef4444"
+ color={SEVERITY_COLORS.Critical}
  onClick={() => handleDrillDown('critical-safety')}
  loading={loading}
  />
@@ -516,7 +506,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
  label={t('otVulnerability.widget.highProduction', 'High on Production')}
  value={metrics?.highOnProductionSystems || 0}
  icon={<AlertTriangle className="h-4 w-4" />}
- color="#f97316"
+ color={SEVERITY_COLORS.High}
  onClick={() => handleDrillDown('high-production')}
  loading={loading}
  />
@@ -524,7 +514,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
  label={t('otVulnerability.widget.noPatch', 'No Patch Available')}
  value={metrics?.assetsWithoutPatch || 0}
  icon={<AlertTriangle className="h-4 w-4" />}
- color="#ef4444"
+ color={SEVERITY_COLORS.Critical}
  onClick={() => handleDrillDown('no-patch')}
  loading={loading}
  />

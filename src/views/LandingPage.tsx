@@ -42,7 +42,7 @@ export const LandingPage: React.FC = () => {
  </header>
 
  {/* Mockup Section - "The Console" */}
- <section className="relative z-10 py-20 px-6">
+ <section className="relative z-decorator py-20 px-6">
  <div className="max-w-6xl mx-auto relative group perspective-1000">
   <div className="absolute inset-x-0 -top-40 h-[500px] bg-gradient-to-b from-transparent via-border/50 dark:via-primary/5 to-transparent pointer-events-none"></div>
 
@@ -53,17 +53,17 @@ export const LandingPage: React.FC = () => {
   <svg className="absolute bottom-8 left-8 w-6 h-6 text-muted-foreground/30 -rotate-90 z-20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
   <svg className="absolute bottom-8 right-8 w-6 h-6 text-muted-foreground/30 rotate-180 z-20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-  <div className="absolute inset-0 bg-grid-slate-900/[0.02] dark:bg-grid-white/[0.05] pointer-events-none z-10"></div>
+  <div className="absolute inset-0 bg-grid-slate-900/[0.02] dark:bg-grid-white/[0.05] pointer-events-none z-decorator"></div>
   <LandingDashboardMockup aria-hidden="true" />
 
   {/* Reflection Gradient */}
-  <div className="absolute inset-0 bg-gradient-to-t from-muted via-transparent to-transparent dark:from-slate-900 dark:via-transparent dark:to-transparent opacity-60 z-10"></div>
+  <div className="absolute inset-0 bg-gradient-to-t from-muted via-transparent to-transparent dark:from-slate-900 dark:via-transparent dark:to-transparent opacity-60 z-decorator"></div>
   </div>
  </div>
  </section>
 
  {/* Core Capabilities - Simplified & Direct */}
- <section className="relative z-10 py-32 px-6">
+ <section className="relative z-decorator py-32 px-6">
  <div className="max-w-7xl mx-auto">
   <div className="text-center mb-20 max-w-3xl mx-auto space-y-6">
   <h2 className="text-4xl md:text-5xl font-black text-foreground tracking-tighter">
@@ -98,7 +98,7 @@ export const LandingPage: React.FC = () => {
  </section>
 
  {/* Trust Footer */}
- <footer className="relative z-10 py-12 border-t border-border dark:border-white/5 bg-muted/80/80 backdrop-blur-xl text-center">
+ <footer className="relative z-decorator py-12 border-t border-border dark:border-white/5 bg-muted/80/80 backdrop-blur-xl text-center">
  <div className="max-w-7xl mx-auto px-6 flex flex-col items-center justify-center space-y-6 sm:space-y-8">
   <div className="w-12 h-1 bg-muted rounded-full"></div>
   <p className="text-xs font-bold font-mono text-muted-foreground uppercase tracking-widest">{t('landing.footer.operational', { defaultValue: "Opérationnel dans toute l'Europe" })}</p>

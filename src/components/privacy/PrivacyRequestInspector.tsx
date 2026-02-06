@@ -88,7 +88,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
  {/* Summary Card */}
  <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 shadow-sm relative overflow-hidden">
   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 dark:bg-primary/60/15 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 relative z-10">
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 relative z-decorator">
   <div>
   <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">{t('privacy.request.requester', { defaultValue: 'Demandeur' })}</h4>
   <div className="flex items-center gap-4 mb-4">

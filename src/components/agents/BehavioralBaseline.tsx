@@ -238,7 +238,7 @@ const HourlyPatternChart: React.FC<{
   {/* Tooltip */}
   <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2
    hidden group-hover:block bg-popover text-popover-foreground
-   text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap z-10">
+   text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap z-decorator">
   {formatHourLabel(hour)}: {value.toFixed(1)}
   </div>
   </div>
@@ -311,7 +311,7 @@ const WeeklyPatternChart: React.FC<{
   {/* Tooltip */}
   <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2
    hidden group-hover:block bg-popover text-popover-foreground
-   text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap z-10">
+   text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap z-decorator">
    {days[day]}: {value.toFixed(1)}
   </div>
   </div>

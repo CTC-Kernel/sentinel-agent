@@ -200,7 +200,7 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
  initial={{ opacity: 0, scale: 0.95 }}
  animate={{ opacity: 1, scale: 1 }}
  exit={{ opacity: 0, scale: 0.95 }}
- className="absolute right-0 top-8 z-10 w-48 bg-muted rounded-3xl border border-border/40 shadow-xl overflow-hidden"
+ className="absolute right-0 top-8 z-decorator w-48 bg-muted rounded-3xl border border-border/40 shadow-xl overflow-hidden"
  >
  <button
   onClick={(e) => {

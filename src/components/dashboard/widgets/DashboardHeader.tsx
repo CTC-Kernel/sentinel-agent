@@ -210,7 +210,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         return (
             <PremiumCard glass className="relative overflow-hidden rounded-xl p-0 text-center animate-fade-in group shadow-apple" gradientOverlay={true}>
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background/0 to-background/0 opacity-60 transition-opacity duration-1000 group-hover:opacity-70" />
-                <div className="relative z-10 flex flex-col items-center max-w-5xl mx-auto p-8 md:p-16">
+                <div className="relative z-decorator flex flex-col items-center max-w-5xl mx-auto p-8 md:p-16">
                     <div className="inline-flex items-center px-4 py-2 rounded-full bg-background/60 border border-border mb-4 backdrop-blur-md shadow-sm">
                         <span className="relative flex h-2.5 w-2.5 mr-3">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success/60 opacity-75"></span>
@@ -242,7 +242,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <card.icon className={`h-7 w-7 ${styles.iconText}`} />
                                     </div>
                                     <h3 className="text-lg font-bold text-foreground mb-2 tracking-tight group-hover/card:text-primary transition-colors">{card.title}</h3>
-                                    <p className="text-sm text-muted-foreground leading-relaxed relative z-10">{card.desc}</p>
+                                    <p className="text-sm text-muted-foreground leading-relaxed relative z-decorator">{card.desc}</p>
                                 </button>
                             );
                         })}
@@ -282,8 +282,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 <div className="absolute bottom-10 right-[15%] w-40 h-40 bg-info/20 rounded-full blur-3xl animate-float-delayed pointer-events-none" />
 
                 {/* Inner Content Container */}
-                <div className="relative z-10 p-6 md:p-8 lg:p-10">
-                    <div className="relative z-10">
+                <div className="relative z-decorator p-6 md:p-8 lg:p-10">
+                    <div className="relative z-decorator">
                         {/* Main Grid Layout */}
                         <div className="grid grid-cols-1 xl:grid-cols-[auto_1fr_auto] gap-6 lg:gap-8 items-center">
 
@@ -315,7 +315,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                             />
                                         </div>
 
-                                        <div className="absolute inset-0 flex items-center justify-center relative z-10 p-3">
+                                        <div className="absolute inset-0 flex items-center justify-center relative z-decorator p-3">
                                             <img
                                                 src="/images/pilotage.png"
                                                 alt="Sentinel GRC Dashboard"
@@ -632,7 +632,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                 >
                                     <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-success-bg ring-1 ring-success-border/50 shadow-sm relative overflow-hidden shrink-0 group-hover/healthy:scale-105 transition-transform duration-500">
                                         <div className="absolute inset-0 bg-success/10 animate-pulse" />
-                                        <Activity className="w-7 h-7 text-success-text relative z-10 filter drop-shadow-sm" />
+                                        <Activity className="w-7 h-7 text-success-text relative z-decorator filter drop-shadow-sm" />
                                     </div>
                                     <div>
                                         <p className="font-black text-foreground tracking-tight leading-none mb-1.5 uppercase text-xs tracking-widest">{t('dashboard.allSystemsOperational')}</p>

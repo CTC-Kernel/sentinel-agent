@@ -202,7 +202,7 @@ export const GeminiAssistant: React.FC = () => {
                     <div className="absolute inset-0 bg-primary/40 dark:bg-primary/60/30 blur-xl animate-pulse"></div>
 
                     {/* Icon */}
-                    <Sparkles className="h-6 w-6 text-primary/70 drop-shadow-[0_0_5px_rgba(129,140,248,0.8)] relative z-10 transition-transform duration-500 group-hover:scale-110" />
+                    <Sparkles className="h-6 w-6 text-primary/70 drop-shadow-[0_0_5px_rgba(129,140,248,0.8)] relative z-decorator transition-transform duration-500 group-hover:scale-110" />
                 </div>
 
                 {/* High-Tech Status Label */}

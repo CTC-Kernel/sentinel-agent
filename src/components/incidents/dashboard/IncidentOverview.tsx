@@ -28,6 +28,7 @@ import {
     DONUT_COLORS,
     SEVERITY_COLORS,
     CHART_AXIS_COLORS,
+    CHART_STYLES,
     SENTINEL_PALETTE
 } from '../../../theme/chartTheme';
 import {
@@ -284,7 +285,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                 <text x={cx} y={cyValue - 8} textAnchor="middle" fill="currentColor" className="text-foreground text-lg font-black">
                     {payload.value}
                 </text>
-                <text x={cx} y={cyValue + 12} textAnchor="middle" className="text-[11px] fill-muted-foreground font-bold uppercase">
+                <text x={cx} y={cyValue + 12} textAnchor="middle" className="text-xs fill-muted-foreground font-bold uppercase">
                     {payload.name}
                 </text>
                 <Sector
@@ -378,7 +379,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                 <div className="absolute bottom-0 right-0 w-32 h-32 border-r-2 border-b-2 border-primary/20 rounded-br-xl pointer-events-none" />
 
                 {/* Main Gauge - RadialBarChart */}
-                <div className="flex items-center gap-8 relative z-10">
+                <div className="flex items-center gap-8 relative z-decorator">
                     <div className="relative w-36 h-36">
                         <ResponsiveContainer width="100%" height="100%" >
                             <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
@@ -405,7 +406,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div className="text-center">
                                 <span className="text-3xl font-black text-foreground">{stats.resolutionRate}%</span>
-                                <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{t('incidents.resolution', { defaultValue: 'Résolution' })}</p>
+                                <p className="text-xs text-muted-foreground uppercase font-black tracking-widest">{t('incidents.resolution', { defaultValue: 'Résolution' })}</p>
                             </div>
                         </div>
                         {/* Animated pulse ring */}
@@ -415,7 +416,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full ${stats.resolutionRate >= 70 ? 'bg-success' : stats.resolutionRate >= 40 ? 'bg-warning' : 'bg-destructive'} animate-pulse shadow-glow`} />
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Performance</span>
+                            <span className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">Performance</span>
                         </div>
                         <h3 className="text-xl font-bold text-foreground">{t('incidents.resolutionRate', { defaultValue: 'Taux de Résolution' })}</h3>
                         <p className="text-sm text-muted-foreground max-w-[200px]">
@@ -431,31 +432,31 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                 </div>
 
                 {/* KPI Cards - Enhanced */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full xl:w-auto relative z-10">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full xl:w-auto relative z-decorator">
                     {/* Total */}
                     <div className="group/card relative rounded-xl bg-background/40 border border-border/40 p-4 backdrop-blur-xl shadow-sm transition-all duration-normal ease-apple hover:scale-[1.03] hover:shadow-premium hover:border-primary/30">
                         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-xl opacity-0 group-hover/card:opacity-100 transition-opacity" />
                         <div className="flex items-center justify-between mb-2 relative">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-70">{t('common.total', { defaultValue: 'Total' })}</span>
+                            <span className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-70">{t('common.total', { defaultValue: 'Total' })}</span>
                             <div className="p-2 rounded-xl bg-muted/10 text-muted-foreground shadow-inner">
                                 <Target className="h-4 w-4" />
                             </div>
                         </div>
                         <p className="text-3xl font-black text-foreground relative">{stats.total}</p>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">incidents</p>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">incidents</p>
                     </div>
 
                     {/* Open */}
                     <div className="group/card relative rounded-xl bg-background/40 border border-border/40 p-4 backdrop-blur-xl shadow-sm transition-all duration-normal ease-apple hover:scale-[1.03] hover:shadow-premium hover:border-warning/30">
                         <div className="absolute inset-0 bg-gradient-to-br from-warning/5 to-transparent rounded-xl opacity-0 group-hover/card:opacity-100 transition-opacity" />
                         <div className="flex items-center justify-between mb-2 relative">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-warning opacity-80">{t('incidents.active', { defaultValue: 'Actifs' })}</span>
+                            <span className="text-xs font-black uppercase tracking-widest text-warning opacity-80">{t('incidents.active', { defaultValue: 'Actifs' })}</span>
                             <div className="p-2 rounded-xl bg-warning/10 text-warning shadow-inner ring-1 ring-warning/20">
                                 <Siren className="h-4 w-4" />
                             </div>
                         </div>
                         <p className={`text-3xl font-black relative ${stats.open > 0 ? 'text-warning' : 'text-foreground'}`}>{stats.open}</p>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t('incidents.inProgress', { defaultValue: 'en cours' })}</p>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('incidents.inProgress', { defaultValue: 'en cours' })}</p>
                         {stats.open > 0 && <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-warning animate-pulse" />}
                     </div>
 
@@ -463,13 +464,13 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                     <div className="group/card relative rounded-xl bg-background/40 border border-border/40 p-4 backdrop-blur-xl shadow-sm transition-all duration-normal ease-apple hover:scale-[1.03] hover:shadow-premium hover:border-destructive/30">
                         <div className="absolute inset-0 bg-gradient-to-br from-destructive/5 to-transparent rounded-xl opacity-0 group-hover/card:opacity-100 transition-opacity" />
                         <div className="flex items-center justify-between mb-2 relative">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-destructive opacity-80">{t('incidents.critical', { defaultValue: 'Critiques' })}</span>
+                            <span className="text-xs font-black uppercase tracking-widest text-destructive opacity-80">{t('incidents.critical', { defaultValue: 'Critiques' })}</span>
                             <div className="p-2 rounded-xl bg-destructive/10 text-destructive shadow-inner ring-1 ring-destructive/20">
                                 <Flame className="h-4 w-4" />
                             </div>
                         </div>
                         <p className={`text-3xl font-black relative ${stats.critical > 0 ? 'text-destructive' : 'text-foreground'}`}>{stats.critical}</p>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t('incidents.toProcess', { defaultValue: 'à traiter' })}</p>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('incidents.toProcess', { defaultValue: 'à traiter' })}</p>
                         {stats.critical > 0 && <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-destructive animate-ping" />}
                     </div>
 
@@ -477,7 +478,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                     <div className="group/card relative rounded-xl bg-background/40 border border-border/40 p-4 backdrop-blur-xl shadow-sm transition-all duration-normal ease-apple hover:scale-[1.03] hover:shadow-premium hover:border-success/30">
                         <div className="absolute inset-0 bg-gradient-to-br from-success/5 to-transparent rounded-xl opacity-0 group-hover/card:opacity-100 transition-opacity" />
                         <div className="flex items-center justify-between mb-2 relative">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-success opacity-80">MTTR</span>
+                            <span className="text-xs font-black uppercase tracking-widest text-success opacity-80">MTTR</span>
                             <div className="p-2 rounded-xl bg-success/10 text-success shadow-inner ring-1 ring-success/20">
                                 <Zap className="h-4 w-4" />
                             </div>
@@ -485,12 +486,12 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                         <p className="text-3xl font-black text-foreground relative">
                             {stats.mttrHours !== null ? `${stats.mttrHours}h` : '-'}
                         </p>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t('incidents.avgDelay', { defaultValue: 'délai moyen' })}</p>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('incidents.avgDelay', { defaultValue: 'délai moyen' })}</p>
                     </div>
                 </div>
 
                 {/* Alerts Section */}
-                <div className="flex flex-col gap-2 min-w-0 xl:min-w-[240px] relative z-10">
+                <div className="flex flex-col gap-2 min-w-0 xl:min-w-[240px] relative z-decorator">
                     {stats.nis2Pending > 0 && (
                         <div className="group flex items-center gap-3 text-xs font-black text-primary bg-primary/10 px-4 py-3 rounded-xl border border-primary/20 backdrop-blur-sm transition-all duration-normal ease-apple hover:scale-[1.02] hover:shadow-md">
                             <Bell className="h-4 w-4 shrink-0 group-hover:animate-bounce" />
@@ -523,7 +524,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                 {/* Severity Distribution (Interactive Donut) */}
                 <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-xl border border-border/40 shadow-premium relative overflow-hidden group transition-all duration-normal ease-apple">
                     <div className="absolute inset-0 bg-gradient-to-br from-destructive/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-normal ease-apple" />
-                    <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-6 px-2 flex items-center gap-2 relative">
+                    <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] mb-6 px-2 flex items-center gap-2 relative">
                         <AlertTriangle className="w-4 h-4 text-warning" />
                         {t('incidents.bySeverity', { defaultValue: 'Par Sévérité' })}
                     </h3>
@@ -560,7 +561,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                                 <Cell
                                                     key={`sev-${index || 'unknown'}`}
                                                     fill={`url(#severityGradient-${uid}-${index})`}
-                                                    stroke="rgba(255,255,255,0.2)"
+                                                    stroke="hsl(var(--chart-active-stroke))"
                                                     strokeWidth={2}
                                                     style={{
                                                         filter: activeIndex === index ? `url(#${svgIds.glowSeverity})` : 'none',
@@ -577,7 +578,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                         <div className="text-center">
                                             <p className="text-3xl font-black text-foreground">{stats.total}</p>
-                                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Total</p>
+                                            <p className="text-xs text-muted-foreground uppercase font-black tracking-widest">Total</p>
                                         </div>
                                     </div>
                                 )}
@@ -598,7 +599,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                 aria-label={`Sévérité: ${item.name} (${item.value})`}
                             >
                                 <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
-                                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{item.name} ({item.value})</span>
+                                <span className="text-xs font-black uppercase tracking-wider text-muted-foreground">{item.name} ({item.value})</span>
                             </div>
                         ))}
                     </div>
@@ -607,7 +608,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                 {/* Category Distribution (Enhanced Bars) */}
                 <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-xl border border-border/40 shadow-premium relative overflow-hidden group transition-all duration-normal ease-apple">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-success/5 opacity-0 group-hover:opacity-100 transition-opacity duration-normal ease-apple" />
-                    <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-6 px-2 flex items-center gap-2 relative">
+                    <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] mb-6 px-2 flex items-center gap-2 relative">
                         <Activity className="w-4 h-4 text-primary" />
                         {t('incidents.byCategory', { defaultValue: 'Par Catégorie' })}
                     </h3>
@@ -634,9 +635,9 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                         <div className="flex items-center justify-between mb-1">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-sm">{cat.icon}</span>
-                                                <span className="text-[10px] font-black uppercase tracking-wider text-foreground">{cat.name}</span>
+                                                <span className="text-xs font-black uppercase tracking-wider text-foreground">{cat.name}</span>
                                             </div>
-                                            <span className={`text-[10px] font-black transition-colors ${isHovered ? 'text-primary' : 'text-muted-foreground'}`}>{cat.value}</span>
+                                            <span className={`text-xs font-black transition-colors ${isHovered ? 'text-primary' : 'text-muted-foreground'}`}>{cat.value}</span>
                                         </div>
                                         <div className="h-2 bg-muted/10 rounded-full overflow-hidden">
                                             <div
@@ -658,7 +659,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                 {/* Status Distribution (Radial) */}
                 <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-xl border border-border/40 shadow-premium relative overflow-hidden group transition-all duration-normal ease-apple">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-normal ease-apple" />
-                    <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-6 px-2 flex items-center gap-2 relative">
+                    <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] mb-6 px-2 flex items-center gap-2 relative">
                         <CheckCircle2 className="w-4 h-4 text-success" />
                         {t('incidents.byStatus', { defaultValue: 'Par Statut' })}
                     </h3>
@@ -681,8 +682,8 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                         ))}
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke={CHART_AXIS_COLORS.grid} strokeOpacity={CHART_AXIS_COLORS.gridOpacity} />
-                                    <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 11 }} />
-                                    <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 11 }} width={70} />
+                                    <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 12 }} />
+                                    <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 12 }} width={70} />
                                     <Tooltip content={<ChartTooltip />} cursor={{ fill: 'currentColor', opacity: 0.05 }} />
                                     <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={20}>
                                         {statusData.map((_, index) => (
@@ -705,7 +706,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                 {/* ComposedChart - Timeline with cumulative line */}
                 <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-xl border border-border/40 shadow-premium lg:col-span-2 relative overflow-hidden group transition-all duration-normal ease-apple">
                     <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-success/5 opacity-0 group-hover:opacity-100 transition-opacity duration-normal ease-apple" />
-                    <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-6 px-2 flex items-center gap-2 relative">
+                    <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] mb-6 px-2 flex items-center gap-2 relative">
                         <TrendingUp className="w-4 h-4 text-primary" />
                         {t('incidents.evolution30d', { defaultValue: 'Évolution (30 jours)' })}
                     </h3>
@@ -735,14 +736,14 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                         </filter>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_AXIS_COLORS.grid} strokeOpacity={CHART_AXIS_COLORS.gridOpacity} />
-                                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 10 }} interval="preserveStartEnd" />
-                                    <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 11 }} allowDecimals={false} />
-                                    <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fill: SENTINEL_PALETTE.primary, fontSize: 11 }} allowDecimals={false} />
+                                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 12 }} interval="preserveStartEnd" />
+                                    <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 12 }} allowDecimals={false} />
+                                    <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fill: SENTINEL_PALETTE.primary, fontSize: 12 }} allowDecimals={false} />
                                     <Tooltip content={<ChartTooltip />} />
-                                    <Area yAxisId="left" type="monotone" dataKey="nouveaux" name="Nouveaux" stroke={SEVERITY_COLORS.critical} strokeWidth={2.5} fillOpacity={1} fill={`url(#${svgIds.gradientNew})`} dot={false} activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }} />
-                                    <Area yAxisId="left" type="monotone" dataKey="resolus" name="Résolus" stroke={SENTINEL_PALETTE.success} strokeWidth={2.5} fillOpacity={1} fill={`url(#${svgIds.gradientResolved})`} dot={false} activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }} />
+                                    <Area yAxisId="left" type="monotone" dataKey="nouveaux" name="Nouveaux" stroke={SEVERITY_COLORS.critical} strokeWidth={2.5} fillOpacity={1} fill={`url(#${svgIds.gradientNew})`} dot={false} activeDot={{ r: 6, strokeWidth: 2, stroke: 'hsl(var(--chart-active-stroke))' }} />
+                                    <Area yAxisId="left" type="monotone" dataKey="resolus" name="Résolus" stroke={SENTINEL_PALETTE.success} strokeWidth={2.5} fillOpacity={1} fill={`url(#${svgIds.gradientResolved})`} dot={false} activeDot={{ r: 6, strokeWidth: 2, stroke: 'hsl(var(--chart-active-stroke))' }} />
                                     <Line yAxisId="right" type="monotone" dataKey="cumul" name="Cumul ouvert" stroke={SENTINEL_PALETTE.primary} strokeWidth={3} dot={false} strokeDasharray="5 5" style={{ filter: `url(#${svgIds.glowLine})` }} />
-                                    <Legend iconSize={10} iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '15px' }} />
+                                    <Legend iconSize={10} iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '15px' }} />
                                 </ComposedChart>
                             </ResponsiveContainer>
                         )}
@@ -752,12 +753,12 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                 {/* Activity Heatmap */}
                 <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-xl border border-border/40 shadow-premium relative overflow-hidden group transition-all duration-normal ease-apple">
                     <div className="absolute inset-0 bg-gradient-to-br from-warning/5 via-transparent to-destructive/5 opacity-0 group-hover:opacity-100 transition-opacity duration-normal ease-apple" />
-                    <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-6 px-2 flex items-center gap-2 relative">
+                    <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] mb-6 px-2 flex items-center gap-2 relative">
                         <Activity className="w-4 h-4 text-warning" />
                         {t('incidents.activity4w', { defaultValue: 'Activité (4 semaines)' })}
                     </h3>
                     <div className="space-y-2">
-                        <div className="flex justify-between text-[9px] text-muted-foreground font-black uppercase tracking-widest px-1 mb-3">
+                        <div className="flex justify-between text-xs text-muted-foreground font-black uppercase tracking-widest px-1 mb-3">
                             {[0, 1, 2, 3, 4, 5, 6].map(day => (
                                 <span key={day}>{new Date(2024, 0, day).toLocaleDateString(config.intlLocale, { weekday: 'short' }).slice(0, 3)}</span>
                             ))}
@@ -770,7 +771,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                         className={`flex-1 aspect-square rounded-lg ${getHeatColor(day.count)} transition-all duration-normal ease-apple hover:scale-110 hover:shadow-md cursor-pointer relative group/cell border border-border/10`}
                                         title={`${day.date.toLocaleDateString(config.intlLocale)}: ${day.count} incident(s)`}
                                     >
-                                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-background/95 backdrop-blur-md text-foreground text-[10px] font-black px-2 py-1 rounded border border-border/40 shadow-premium opacity-0 group-hover/cell:opacity-100 transition-all duration-normal ease-apple whitespace-nowrap pointer-events-none z-10 translate-y-1 group-hover/cell:translate-y-0">
+                                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-background/95 backdrop-blur-md text-foreground text-xs font-black px-2 py-1 rounded border border-border/40 shadow-premium opacity-0 group-hover/cell:opacity-100 transition-all duration-normal ease-apple whitespace-nowrap pointer-events-none z-decorator translate-y-1 group-hover/cell:translate-y-0">
                                             {day.count} incident{day.count > 1 ? 's' : ''}
                                         </div>
                                     </div>
@@ -779,14 +780,14 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                         ))}
                     </div>
                     <div className="flex items-center justify-center gap-3 mt-6 pt-4 border-t border-border/20">
-                        <span className="text-[10px] text-muted-foreground font-black uppercase tracking-wider">{t('common.less', { defaultValue: 'Moins' })}</span>
+                        <span className="text-xs text-muted-foreground font-black uppercase tracking-wider">{t('common.less', { defaultValue: 'Moins' })}</span>
                         <div className="flex gap-1.5">
                             <div className="w-3 h-3 rounded bg-muted/10 border border-border/10" />
                             <div className="w-3 h-3 rounded bg-success/20 border border-success/20" />
                             <div className="w-3 h-3 rounded bg-warning/40 border border-warning/20" />
                             <div className="w-3 h-3 rounded bg-destructive/40 border border-destructive/20" />
                         </div>
-                        <span className="text-[10px] text-muted-foreground font-black uppercase tracking-wider">{t('common.more', { defaultValue: 'Plus' })}</span>
+                        <span className="text-xs text-muted-foreground font-black uppercase tracking-wider">{t('common.more', { defaultValue: 'Plus' })}</span>
                     </div>
                 </div>
             </div>

@@ -99,7 +99,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
  {/* Icon Content */}
  <div className={`
-  relative z-10 flex items-center justify-center h-full w-full p-3 sm:p-4 lg:p-6
+  relative z-decorator flex items-center justify-center h-full w-full p-3 sm:p-4 lg:p-6
   ${compact ? '[&>svg]:w-10 [&>svg]:h-10 sm:[&>svg]:w-12 sm:[&>svg]:h-12' : '[&>svg]:w-12 [&>svg]:h-12 sm:[&>svg]:w-16 sm:[&>svg]:h-16 md:[&>svg]:w-20 md:[&>svg]:h-20 lg:[&>svg]:w-24 lg:[&>svg]:h-24'}
   [&>svg]:stroke-[1.5]
   [&>img]:w-full [&>img]:h-full [&>img]:object-contain [&>img]:drop-shadow-2xl

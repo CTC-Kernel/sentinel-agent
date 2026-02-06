@@ -12,12 +12,14 @@ import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { useHotkeys } from './hooks/useHotkeys';
 
 // Services & Utils
+import './i18n'; // Ensure i18n is initialized before app renders
 import { ErrorLogger } from './services/errorLogger';
 import { hasPermission } from './utils/permissions';
 import { db } from './firebase';
 import { CustomRole } from './types';
 
 // Layout & Navigation
+import { I18nProvider } from './components/ui/I18nProvider';
 import { AnimatedRoutes } from './components/layout/AnimatedRoutes';
 import { Sidebar } from './components/layout/Sidebar';
 import { TopBar } from './components/layout/TopBar';
@@ -310,7 +312,11 @@ const router = createHashRouter([
 });
 
 const AppContent: React.FC = () => {
- return <RouterProvider router={router} future={{ v7_startTransition: true }} />;
+ return (
+  <I18nProvider>
+   <RouterProvider router={router} future={{ v7_startTransition: true }} />
+  </I18nProvider>
+ );
 };
 
 export default AppContent;

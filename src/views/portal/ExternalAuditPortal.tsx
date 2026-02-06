@@ -109,7 +109,7 @@ export const ExternalAuditPortal: React.FC = () => {
  <div className="bg-card rounded-2xl p-8 border border-border dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none mb-8 relative overflow-hidden">
  <div className="absolute top-0 right-0 p-32 bg-primary/20 dark:bg-primary/60/15 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
 
- <div className="relative z-10">
+ <div className="relative z-decorator">
   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
   <div>
   <div className="flex items-center gap-2 text-primary font-medium text-sm mb-2">

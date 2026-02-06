@@ -50,13 +50,13 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
  >
   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 dark:bg-primary/60/15 rounded-full blur-2xl -mr-16 -mt-16 transition-opacity group-hover:opacity-70 pointer-events-none" />
   <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">Santé de l'audit</h4>
-  <div className="flex items-end gap-2 relative z-10">
+  <div className="flex items-end gap-2 relative z-decorator">
   <span className="text-4xl font-black text-foreground">
   {healthScore}%
   </span>
   <span className="text-sm text-muted-foreground mb-1 font-medium">Score estimé</span>
   </div>
-  <p className="text-xs text-muted-foreground mt-2 relative z-10">
+  <p className="text-xs text-muted-foreground mt-2 relative z-decorator">
   Pondéré par sévérité : Majeure (-20), Mineure (-10), Observation (-5).
   </p>
  </PremiumCard>
@@ -64,7 +64,7 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
  {/* Findings Summary */}
  <PremiumCard glass className="p-6 relative overflow-hidden">
   <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4">État des Constats</h4>
-  <div className="flex items-center justify-between relative z-10">
+  <div className="flex items-center justify-between relative z-decorator">
   <div className="flex flex-col gap-1">
   <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
   <AlertTriangle className="w-4 h-4" />
@@ -85,11 +85,11 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
 
  {/* Completion Rate */}
  <PremiumCard glass className="p-6 relative overflow-hidden flex items-center justify-between">
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-1">Progression</h4>
   <p className="text-sm text-muted-foreground">Des actions de remédiation</p>
   </div>
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <svg className="w-20 h-20 transform -rotate-90">
   <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-muted-foreground/40" />
   <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={226} strokeDashoffset={226 - (226 * completionRate) / 100} className="text-blue-500 transition-all duration-1000" />
@@ -104,7 +104,7 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
  {/* Distribution Chart */}
  <PremiumCard glass className="p-6">
  <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-6">Répartition par Sévérité</h4>
- <div className="h-[200px] w-full relative z-10">
+ <div className="h-[200px] w-full relative z-decorator">
   {findings.length > 0 ? (
   <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
@@ -135,7 +135,7 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
   )}
  </div>
  {/* Legend */}
- <div className="flex flex-wrap gap-4 justify-center mt-4 relative z-10">
+ <div className="flex flex-wrap gap-4 justify-center mt-4 relative z-decorator">
   {findingsByType.map((item) => (
   <div key={item.name || 'unknown'} className="flex items-center gap-2">
   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />

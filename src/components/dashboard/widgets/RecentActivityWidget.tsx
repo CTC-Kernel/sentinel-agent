@@ -105,7 +105,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = React.m
    aria-label={`Voir les détails: ${log.action}`}
   />
   )}
-  <span className="absolute -left-[41px] flex h-6 w-6 items-center justify-center rounded-full bg-card border border-border shadow-sm group-hover:scale-110 group-hover:border-primary/50 transition-all z-10">
+  <span className="absolute -left-[41px] flex h-6 w-6 items-center justify-center rounded-full bg-card border border-border shadow-sm group-hover:scale-110 group-hover:border-primary/50 transition-all z-decorator">
   {getActivityIcon(log.resource)}
   </span>
   <div className="flex justify-between items-start bg-card/60 p-3 rounded-xl border border-transparent hover:border-border transition-all duration-normal ease-apple group-hover:bg-muted/50">

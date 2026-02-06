@@ -57,7 +57,7 @@ export const CertifierLogin: React.FC = () => {
  return (
  <div className="flex min-h-[calc(100vh-200px)] flex-col justify-center py-12 px-6 lg:px-8 relative overflow-hidden">
  <MasterpieceBackground className="opacity-60" />
- <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+ <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-decorator">
  <div className="flex justify-center">
   <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
   <ShieldCheck className="w-10 h-10 text-primary" />

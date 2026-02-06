@@ -96,7 +96,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
  >
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
 
- <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
+ <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-decorator">
   <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
   <div className="p-2 rounded-3xl bg-gradient-to-br from-warning-500 to-orange-600 shadow-sm shadow-warning-500/20">
   <Target className="w-4 h-4 text-white" />
@@ -105,7 +105,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
   </h3>
  </div>
 
- <div className="flex-1 flex items-center justify-center relative z-10">
+ <div className="flex-1 flex items-center justify-center relative z-decorator">
   <EmptyState
   icon={ShieldCheck}
   title="Aucun risque identifié"
@@ -131,7 +131,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
  <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-warning-bg rounded-full blur-2xl pointer-events-none" />
 
  {/* Header */}
- <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
+ <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-decorator">
  <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
   <div className="p-2 rounded-3xl bg-gradient-to-br from-warning-500 to-orange-600 shadow-sm shadow-warning-500/20">
   <Target className="w-4 h-4 text-white" />
@@ -148,7 +148,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
  </div>
 
  {/* Stats Summary */}
- <div className="flex items-center gap-3 py-3 relative z-10">
+ <div className="flex items-center gap-3 py-3 relative z-decorator">
  <div className="flex items-center gap-4 flex-1">
   <div className="flex items-center gap-1.5">
   <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-red-500 to-red-600 shadow-sm" />
@@ -174,7 +174,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
  </div>
 
  {/* Heatmap Grid */}
- <div className="flex-1 flex flex-col justify-center items-center relative z-10 py-2">
+ <div className="flex-1 flex flex-col justify-center items-center relative z-decorator py-2">
  <div className="grid grid-cols-[auto_1fr] gap-3 w-full max-w-[380px]">
   {/* Y Axis Label */}
   <div className="flex items-center justify-center">
@@ -253,7 +253,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
  <motion.div
   initial={{ opacity: 0, y: 10 }}
   animate={{ opacity: 1, y: 0 }}
-  className="mt-auto pt-3 border-t border-border/40 dark:border-white/5 relative z-10"
+  className="mt-auto pt-3 border-t border-border/40 dark:border-white/5 relative z-decorator"
  >
   <div className="flex items-center gap-3 p-2.5 rounded-3xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30">
   <div className="p-1.5 rounded-lg bg-red-50">

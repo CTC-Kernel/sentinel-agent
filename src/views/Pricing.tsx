@@ -162,7 +162,7 @@ const Pricing = () => {
  <MasterpieceBackground />
  <SEO title={t('pricing.seo.title', { defaultValue: 'Tarifs | Sentinel GRC' })} description={t('pricing.seo.description', { defaultValue: 'Des solutions flexibles pour sécuriser votre entreprise, de la startup au grand groupe.' })} />
 
- <div className="relative z-10 container mx-auto px-4 pt-32 lg:pt-40">
+ <div className="relative z-decorator container mx-auto px-4 pt-32 lg:pt-40">
  {/* Header */}
  <div className="text-center max-w-3xl mx-auto mb-16">
  <motion.div
@@ -247,7 +247,7 @@ const Pricing = () => {
   hover={true}
   className={cn(
   "h-full flex flex-col pt-10 px-8 pb-8",
-  isPopular ? 'scale-105 z-10 border-primary/40' : 'border-white/60 dark:border-white/10'
+  isPopular ? 'scale-105 z-decorator border-primary/40' : 'border-white/60 dark:border-white/10'
   )}
  >
   {isPopular && (
@@ -503,7 +503,7 @@ const Pricing = () => {
  <TechCorner position="bottom-left" className="dark:text-white/40" />
  <TechCorner position="top-right" className="dark:text-white/40" />
 
- <div className="relative z-10">
+ <div className="relative z-decorator">
  <h3 className="text-2xl font-black text-foreground mb-4">
  {t('pricing.custom_solution_title')}
  </h3>

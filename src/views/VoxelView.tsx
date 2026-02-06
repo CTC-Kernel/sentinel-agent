@@ -768,7 +768,7 @@ export const VoxelView: React.FC = () => {
  </button>
  <div className="flex items-center gap-2">
  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 ring-1 ring-white/10 shadow-lg relative overflow-hidden group">
- <Box className="w-6 h-6 text-primary relative z-10 transition-transform duration-500 group-hover:scale-110" />
+ <Box className="w-6 h-6 text-primary relative z-decorator transition-transform duration-500 group-hover:scale-110" />
  </div>
  <div className="hidden sm:block">
  <h1 className="text-sm font-bold text-white tracking-tight">CTC Engine</h1>

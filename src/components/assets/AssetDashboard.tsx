@@ -248,7 +248,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-success-bg rounded-full blur-3xl -ml-20 -mb-20" />
                 </div>
 
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 relative z-10">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 relative z-decorator">
                     {/* Health Score Gauge */}
                     <div className="flex items-center gap-6">
                         <div className="relative">

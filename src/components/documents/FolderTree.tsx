@@ -208,7 +208,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
  >
   <div className="glass-premium p-4 sm:p-6 rounded-4xl shadow-2xl w-80 border border-white/20 relative overflow-hidden" onClick={e => e.stopPropagation()} role="presentation">
   <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 dark:from-white/10 dark:to-transparent pointer-events-none" />
-  <h3 className="text-lg font-bold mb-4 text-foreground relative z-10">{t('documents.folders.newFolder', { defaultValue: 'Nouveau Dossier' })}</h3>
+  <h3 className="text-lg font-bold mb-4 text-foreground relative z-decorator">{t('documents.folders.newFolder', { defaultValue: 'Nouveau Dossier' })}</h3>
   <form onSubmit={handleSubmit(onSubmitFolder)}>
   <div>
   <input
@@ -223,7 +223,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
    <p className="text-red-500 text-xs mb-3">{errors.name.message}</p>
   )}
   </div>
-  <div className="flex justify-end gap-2 relative z-10">
+  <div className="flex justify-end gap-2 relative z-decorator">
   <Button
    aria-label="Annuler la création"
    type="button"

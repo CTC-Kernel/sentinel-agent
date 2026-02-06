@@ -12,7 +12,7 @@ export const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => 
  <div>
  <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Objectif</h3>
  <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
-  <p className="relative z-10 text-sm text-foreground leading-relaxed">
+  <p className="relative z-decorator text-sm text-foreground leading-relaxed">
   {project.description || "Aucune description disponible."}
   </p>
  </div>
@@ -22,7 +22,7 @@ export const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => 
  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
  <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-border/40 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
   <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent dark:from-indigo-900/20 pointer-events-none" />
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <h4 className="text-xs font-bold uppercase tracking-widest text-indigo-600/80 mb-4 flex items-center gap-2">
   <Server className="h-4 w-4" /> Actifs Concernés
   </h4>
@@ -31,7 +31,7 @@ export const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => 
  </div>
  <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-border/40 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
   <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-900/20 pointer-events-none" />
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-4 flex items-center gap-2">
   <ShieldAlert className="h-4 w-4" /> Risques Traités
   </h4>
@@ -40,7 +40,7 @@ export const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => 
  </div>
  <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-border/40 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
   <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent dark:from-emerald-900/20 pointer-events-none" />
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-4 flex items-center gap-2">
   <ClipboardCheck className="h-4 w-4" /> Contrôles Implémentés
   </h4>

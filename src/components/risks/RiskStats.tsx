@@ -24,7 +24,7 @@ export const RiskStats: React.FC<RiskStatsProps> = ({ stats }) => {
  className="p-6 md:p-8 relative overflow-hidden group"
  gradientOverlay={true}
  >
- <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative z-10">
+ <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative z-decorator">
   <div className="space-y-2">
   <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
   <span className="inline-flex h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(99,102,241,0.5)]" />

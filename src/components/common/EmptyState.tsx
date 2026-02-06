@@ -47,7 +47,7 @@ export const EmptyState = ({
   <img
   src={image}
   alt={title}
-  className="w-48 h-48 object-contain relative z-10 drop-shadow-2xl"
+  className="w-48 h-48 object-contain relative z-decorator drop-shadow-2xl"
   />
  </motion.div>
  )}

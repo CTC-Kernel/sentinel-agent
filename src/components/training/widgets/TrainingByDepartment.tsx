@@ -111,7 +111,7 @@ export const TrainingByDepartment: React.FC<TrainingByDepartmentProps> = ({
  {/* Dynamic Background Effect */}
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
 
- <div className="flex items-center gap-4 mb-6 relative z-10">
+ <div className="flex items-center gap-4 mb-6 relative z-decorator">
  <div className="p-2.5 rounded-3xl bg-primary/10 transition-transform group-hover/chart:scale-110 duration-300">
  <Building2 className="w-5 h-5 text-primary" />
  </div>
@@ -125,7 +125,7 @@ export const TrainingByDepartment: React.FC<TrainingByDepartmentProps> = ({
  </div>
  </div>
 
- <div className="h-[300px] relative z-10">
+ <div className="h-[300px] relative z-decorator">
  <ResponsiveContainer width="100%" height="100%" >
  <BarChart
  data={displayData}

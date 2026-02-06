@@ -10,7 +10,7 @@ export const SSOPlaceholder: React.FC = () => {
  <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden flex flex-col h-full col-span-1 md:col-span-2">
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
 
- <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 flex items-center justify-between">
+ <div className="relative z-decorator p-6 border-b border-white/20 dark:border-white/5 flex items-center justify-between">
  <div className="flex items-center gap-3">
   <div className="p-2.5 bg-purple-500/10 dark:bg-purple-500/20 rounded-3xl text-purple-600 dark:text-purple-400 backdrop-blur-md">
   <Shield className="w-5 h-5" />
@@ -25,7 +25,7 @@ export const SSOPlaceholder: React.FC = () => {
  </div>
  </div>
 
- <div className="relative z-10 p-8 flex flex-col items-center text-center space-y-6">
+ <div className="relative z-decorator p-8 flex flex-col items-center text-center space-y-6">
  <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-2">
   <Lock className="w-8 h-8 text-muted-foreground" />
  </div>

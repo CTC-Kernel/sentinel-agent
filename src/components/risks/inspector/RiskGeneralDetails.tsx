@@ -36,7 +36,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
  <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-border/40 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
   <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-900/20 pointer-events-none" />
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-4 flex items-center gap-2">
   <ShieldAlert className="h-4 w-4" /> Risque Brut
   </h4>
@@ -48,7 +48,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
  </div>
  <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-border/40 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
   <div className="absolute inset-0 bg-gradient-to-br from-success-bg/50 to-transparent dark:from-success-bg/20 pointer-events-none" />
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <h4 className="text-xs font-bold uppercase tracking-widest text-success-text/80 mb-4 flex items-center gap-2">
   <CheckCircle2 className="h-4 w-4" /> Risque Résiduel
   </h4>

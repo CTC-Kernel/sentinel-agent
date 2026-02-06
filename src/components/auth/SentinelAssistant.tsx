@@ -31,7 +31,7 @@ export const SentinelAssistant: React.FC = () => {
  </div>
 
  {/* Main Card - Fluid Premium Design */}
- <div className="relative z-10 glass-premium glass-noise rounded-[3rem] p-12 shadow-2xl overflow-hidden group hover:shadow-[0_0_50px_-12px_rgba(var(--brand-500),0.3)] transition-all duration-700 ease-out h-[600px] flex flex-col justify-between">
+ <div className="relative z-decorator glass-premium glass-noise rounded-[3rem] p-12 shadow-2xl overflow-hidden group hover:shadow-[0_0_50px_-12px_rgba(var(--brand-500),0.3)] transition-all duration-700 ease-out h-[600px] flex flex-col justify-between">
 
  {/* Subtle glow effect on hover */}
  <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-70 transition-opacity duration-700 pointer-events-none"></div>
@@ -57,7 +57,7 @@ export const SentinelAssistant: React.FC = () => {
   <Sentinel3DCore />
   </div>
   </div>
-  <div className="z-10">
+  <div className="z-decorator">
   <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
   Sentinel-Core AI
   <span className="px-2 py-0.5 rounded-full bg-primary/15 dark:bg-primary text-primary dark:text-primary/50 text-[11px] border border-primary/30 dark:border-primary/90 font-bold">BETA</span>

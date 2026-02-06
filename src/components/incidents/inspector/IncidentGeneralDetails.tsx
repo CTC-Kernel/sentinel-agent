@@ -29,7 +29,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
  {/* Description */}
  <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
   <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
   <BookOpen className="h-5 w-5 text-primary" />
   {t('incidents.inspector.description', { defaultValue: 'Description' })}
@@ -48,7 +48,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
  {incident.isSignificant && (
   <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-error/30 shadow-premium relative overflow-hidden glass-premium">
   <div className="absolute inset-0 bg-error-bg/30 pointer-events-none" />
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <h3 className="text-sm font-bold text-error mb-4 uppercase tracking-wider flex items-center gap-2">
   <span className="animate-pulse h-2 w-2 rounded-full bg-error" />
   {t('incidents.inspector.nis2Deadlines', { defaultValue: 'Délais de Notification (NIS 2)' })}
@@ -63,7 +63,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
   <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
   <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <span className="text-xs text-muted-foreground block mb-1">{t('incidents.inspector.severity', { defaultValue: 'Sévérité' })}</span>
   <Badge
   status={incident.severity === Criticality.CRITICAL ? 'error' : incident.severity === Criticality.HIGH ? 'warning' : 'info'}
@@ -75,7 +75,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
   </div>
   <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
   <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <span className="text-xs text-muted-foreground block mb-1">{t('incidents.inspector.status', { defaultValue: 'Statut' })}</span>
   <Badge status={incident.status === 'Résolu' ? 'success' : 'info'} variant="outline">
   {incident.status}
@@ -95,14 +95,14 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
   </div>
   <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
   <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <span className="text-xs text-muted-foreground block mb-1">{t('incidents.inspector.financialImpact', { defaultValue: 'Impact Financier' })}</span>
   <span className="font-bold text-foreground">{incident.financialImpact ? `${incident.financialImpact} €` : '-'}</span>
   </div>
   </div>
   <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
   <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <span className="text-xs text-muted-foreground block mb-1">{t('incidents.inspector.reporter', { defaultValue: 'Reporter' })}</span>
   <span className="font-bold text-foreground">{incident.reporter}</span>
   </div>
@@ -114,7 +114,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
  {/* Meta Info */}
  <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium space-y-4 relative overflow-hidden glass-premium">
   <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <div>
   <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('incidents.inspector.reportedOn', { defaultValue: 'Déclaré le' })}</div>
   <p className="font-medium text-foreground mt-1">

@@ -1,7 +1,7 @@
-
-import React from 'react';
+import React, { useRef } from 'react';
 import { PageHeader } from '../ui/PageHeader';
-import { Menu, Transition } from '@headlessui/react';
+import { Menu } from '@headlessui/react';
+import { MenuPortal } from '../ui/MenuPortal';
 import { ChevronDown, Link, FileSpreadsheet, Plus, Box } from '../ui/Icons';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Button } from '../ui/button';
@@ -21,6 +21,7 @@ export const AssetHeader: React.FC<AssetHeaderProps> = ({
  canEdit
 }) => {
  const { t } = useLocale();
+ const actionsMenuButtonRef = useRef<HTMLButtonElement>(null);
  return (
  <PageHeader
  title={t('assets.header.title', { defaultValue: 'Actifs & Inventaire' })}
@@ -33,19 +34,12 @@ export const AssetHeader: React.FC<AssetHeaderProps> = ({
  actions={(
  <>
   <Menu as="div" className="relative inline-block text-left mr-3">
-  <Menu.Button as={Button} variant="outline" className="text-foreground font-bold shadow-sm hover:bg-muted/50 dark:hover:bg-muted transition-all flex items-center">
+  {({ open }) => (
+  <>
+  <Menu.Button ref={actionsMenuButtonRef} as={Button} variant="outline" className="text-foreground font-bold shadow-sm hover:bg-muted/50 dark:hover:bg-muted transition-all flex items-center">
   {t('assets.header.actions', { defaultValue: 'Actions' })} <ChevronDown className="ml-2 h-4 w-4" />
   </Menu.Button>
-  <Transition
-  as={React.Fragment}
-  enter="transition ease-out duration-100"
-  enterFrom="transform opacity-0 scale-95"
-  enterTo="transform opacity-100 scale-100"
-  leave="transition ease-in duration-75"
-  leaveFrom="transform opacity-100 scale-100"
-  leaveTo="transform opacity-0 scale-95"
-  >
-  <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border/50 rounded-xl bg-popover text-popover-foreground shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-dropdown">
+  <MenuPortal buttonRef={actionsMenuButtonRef} open={open}>
   <div className="p-1">
    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
    {t('assets.header.tools', { defaultValue: 'Outils' })}
@@ -75,8 +69,9 @@ export const AssetHeader: React.FC<AssetHeaderProps> = ({
    )}
    </Menu.Item>
   </div>
-  </Menu.Items>
-  </Transition>
+  </MenuPortal>
+  </>
+  )}
   </Menu>
 
   {canEdit && (

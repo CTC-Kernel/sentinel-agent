@@ -196,7 +196,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
   tabIndex={0}
   aria-expanded={!!isExpanded}
   aria-label={t('compliance.toggleDomain', { defaultValue: `${domain.id} - ${domain.title}` })}
-  className={`p-4 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isExpanded ? 'bg-muted/50/80 dark:bg-white/5' : 'hover:bg-muted/50 dark:hover:bg-muted/50'}`}
+  className={`p-4 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-decorator focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isExpanded ? 'bg-muted/50/80 dark:bg-white/5' : 'hover:bg-muted/50 dark:hover:bg-muted/50'}`}
   >
   <div className="flex items-center gap-5 flex-1 min-w-0">
   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border shrink-0 shadow-sm shadow-black/5 transition-all group-hover:scale-110 ${fwStyles.bg} ${fwStyles.accent} ${fwStyles.border}`}>
@@ -224,7 +224,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
   </div>
 
   {isExpanded && (
-  <div className="p-4 bg-muted/50 dark:bg-black/20 backdrop-blur-sm border-t border-border/40 dark:border-white/5 relative z-10">
+  <div className="p-4 bg-muted/50 dark:bg-black/20 backdrop-blur-sm border-t border-border/40 dark:border-white/5 relative z-decorator">
   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
    {domainControls.map(control => {
    const riskCount = risks.filter(r => r.mitigationControlIds?.includes(control.id)).length;

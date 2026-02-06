@@ -59,7 +59,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
  <div className="glass-premium rounded-4xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-border/40 animate-scale-in relative">
  <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 dark:from-white/10 dark:to-transparent pointer-events-none" />
  {/* Header */}
- <div className="flex items-center justify-between p-6 border-b border-border/60 relative z-10 glass-premium backdrop-blur-md">
+ <div className="flex items-center justify-between p-6 border-b border-border/60 relative z-decorator glass-premium backdrop-blur-md">
   <div>
   <h2 className="text-2xl font-bold text-foreground">
   Créer depuis un Template
@@ -77,7 +77,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
   </button>
  </div>
 
- <div className="overflow-y-auto max-h-[calc(90vh-200px)] relative z-10">
+ <div className="overflow-y-auto max-h-[calc(90vh-200px)] relative z-decorator">
   {!selectedTemplate ? (
   /* Template Selection */
   <div className="p-6">

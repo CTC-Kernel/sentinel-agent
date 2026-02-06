@@ -302,7 +302,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button
-                                className="relative z-10 h-7 w-7 p-0 rounded-md opacity-70 md:opacity-0 md:group-hover:opacity-70 transition-opacity flex items-center justify-center hover:bg-muted"
+                                className="relative z-decorator h-7 w-7 p-0 rounded-md opacity-70 md:opacity-0 md:group-hover:opacity-70 transition-opacity flex items-center justify-center hover:bg-muted"
                                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
                                 aria-label={`Actions pour ${agent.hostname || agent.name || agent.id.slice(0, 8)}`}
                             >

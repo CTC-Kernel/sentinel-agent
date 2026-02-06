@@ -241,7 +241,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
  {showEcosystemMap && (
  <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] animate-fade-in">
  <div className="relative w-full max-w-6xl h-[85vh] glass-premium rounded-3xl shadow-2xl border border-border/40 overflow-hidden animate-scale-in">
- <div className="absolute top-6 right-6 z-10">
+ <div className="absolute top-6 right-6 z-decorator">
  <button
  onClick={() => setShowEcosystemMap(false)}
  className="p-3 rounded-full bg-card border border-border/40 shadow-lg hover:scale-110 transition-transform hover:bg-muted/50"
@@ -249,7 +249,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
  <X className="w-5 h-5 text-muted-foreground" />
  </button>
  </div>
- <div className="absolute top-6 left-6 z-10 glass-premium backdrop-blur-md px-6 py-3 rounded-2xl border border-border/40">
+ <div className="absolute top-6 left-6 z-decorator glass-premium backdrop-blur-md px-6 py-3 rounded-2xl border border-border/40">
  <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
  <div className="p-2 rounded-3xl bg-primary text-primary-foreground shadow-lg shadow-primary">
   <Network className="w-5 h-5" />

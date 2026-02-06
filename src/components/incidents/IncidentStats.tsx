@@ -22,14 +22,14 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
  {loading ? (
  /* Skeleton Loader for Summary Card */
  <>
-  <div className="space-y-4 relative z-10">
+  <div className="space-y-4 relative z-decorator">
   <Skeleton className="h-4 w-48 rounded" />
   <div className="flex items-baseline gap-3">
   <Skeleton className="h-12 w-24 rounded-lg" />
   <Skeleton className="h-4 w-32 rounded" />
   </div>
   </div>
-  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-10">
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-decorator">
   {[1, 2, 3].map((i) => (
   <div key={i || 'unknown'} className="w-[180px] h-[100px]">
   <CardSkeleton count={1} className="h-full" />
@@ -39,7 +39,7 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
  </>
  ) : (
  <>
-  <div className="space-y-2 relative z-10">
+  <div className="space-y-2 relative z-decorator">
   <p className="text-[11px] font-black uppercase tracking-[0.25em] text-muted-foreground/80 flex items-center gap-2 mb-2">
   <span className="inline-flex h-2 w-2 rounded-full bg-error-text animate-pulse shadow-glow shadow-error-text/30" />
   {t('incidents.stats.globalView', { defaultValue: 'Vue globale des incidents' })}
@@ -52,7 +52,7 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
   </div>
   </div>
 
-  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-10">
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-decorator">
   {/* Active Incidents Card */}
   <PremiumCard glass hover={true} className="p-5 rounded-3xl hover:bg-error-bg border-border/40 shadow-sm transition-all duration-300">
   <div className="flex items-center justify-between mb-3">

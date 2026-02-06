@@ -267,7 +267,7 @@ const UptimeChart: React.FC<UptimeChartProps> = ({ data }) => {
   className="w-full bg-success transition-all duration-300"
   style={{ height: `${activePercent}%` }}
   />
-  <div className="absolute -top-6 left-1/2 -translate-x-1/2 hidden group-hover:block bg-foreground text-background text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+  <div className="absolute -top-6 left-1/2 -translate-x-1/2 hidden group-hover:block bg-foreground text-background text-xs px-2 py-1 rounded whitespace-nowrap z-decorator">
   {point.avgUptime.toFixed(1)}% uptime
   </div>
   </div>

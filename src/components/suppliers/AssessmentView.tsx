@@ -173,7 +173,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
  {/* Main Content */}
  <main className="flex-1 flex flex-col min-w-0">
  {/* Header */}
- <header className="bg-card border-b border-border/40 p-4 flex justify-between items-center shadow-sm z-10">
+ <header className="bg-card border-b border-border/40 p-4 flex justify-between items-center shadow-sm z-decorator">
   <div className="flex items-center lg:hidden">
   <span className="font-bold text-foreground truncate max-w-[150px]">{currentSection?.title}</span>
   </div>
@@ -278,7 +278,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
  </div>
 
  {/* Footer Navigation */}
- <div className="bg-card p-4 border-t border-border/40 flex justify-between items-center z-10">
+ <div className="bg-card p-4 border-t border-border/40 flex justify-between items-center z-decorator">
   <Button
   variant="ghost"
   onClick={() => setCurrentSectionIndex(prev => Math.max(0, prev - 1))}

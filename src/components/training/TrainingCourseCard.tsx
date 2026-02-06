@@ -7,7 +7,7 @@
  * @module TrainingCourseCard
  */
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
  PlayCircle,
@@ -23,7 +23,8 @@ import {
  Play,
  Award,
 } from '../ui/Icons';
-import { Menu, Transition } from '@headlessui/react';
+import { Menu } from '@headlessui/react';
+import { MenuPortal } from '../ui/MenuPortal';
 import { Tooltip } from '../ui/Tooltip';
 import type { TrainingCourse, TrainingCategory, TrainingSource, TrainingContentType } from '../../types/training';
 import { useStore } from '../../store';
@@ -120,6 +121,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
  canEdit = false,
 }) => {
  const { t } = useStore();
+ const menuButtonRef = useRef<HTMLButtonElement>(null);
 
  const categoryConfig = getCategoryConfig(course.category);
  const sourceConfig = getSourceConfig(course.source);
@@ -150,7 +152,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
  >
  {/* Required Badge */}
  {course.isRequired && (
- <div className="absolute -top-2 -right-2 z-10">
+ <div className="absolute -top-2 -right-2 z-decorator">
  <Tooltip content={t('training.course.isRequired')}>
  <div className="px-2 py-0.5 rounded-full bg-error-bg text-error-text text-[11px] font-bold uppercase tracking-wider border border-error-border/50 shadow-sm">
  {t('common.required') || 'Obligatoire'}
@@ -180,21 +182,16 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
  {/* Actions Menu */}
  {canEdit && (
  <Menu as="div" className="relative">
+ {({ open }) => (
+ <>
  <Menu.Button
+ ref={menuButtonRef}
  onClick={(e) => e.stopPropagation()}
  className="p-2 rounded-3xl bg-muted/50 hover:bg-muted border border-muted transition-colors"
  >
  <MoreVertical className="w-4 h-4 text-muted-foreground" />
  </Menu.Button>
- <Transition
- enter="transition duration-100 ease-out"
- enterFrom="transform scale-95 opacity-0"
- enterTo="transform scale-100 opacity-100"
- leave="transition duration-75 ease-in"
- leaveFrom="transform scale-100 opacity-100"
- leaveTo="transform scale-95 opacity-0"
- >
- <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right glass-premium rounded-2xl p-1 shadow-lg z-dropdown border border-border/40">
+ <MenuPortal buttonRef={menuButtonRef} open={open} width={192}>
   {onAssign && (
   <Menu.Item>
   {({ active }) => (
@@ -246,8 +243,9 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
   )}
   </Menu.Item>
   )}
- </Menu.Items>
- </Transition>
+ </MenuPortal>
+ </>
+ )}
  </Menu>
  )}
  </div>

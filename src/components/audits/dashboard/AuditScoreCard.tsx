@@ -30,7 +30,7 @@ export const AuditScoreCard: React.FC<AuditScoreCardProps> = ({
  <svg className="absolute bottom-5 right-5 w-4 h-4 text-muted-foreground/30 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h20v2H2z" /><path fill="currentColor" d="M2 2v20h2V2z" /></svg>
 
  {/* Global Score */}
- <div className="flex items-center gap-6 relative z-10">
+ <div className="flex items-center gap-6 relative z-decorator">
  <div className="relative">
   <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
   <circle
@@ -67,7 +67,7 @@ export const AuditScoreCard: React.FC<AuditScoreCardProps> = ({
  </div>
 
  {/* Key Metrics Breakdown */}
- <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-border/40 dark:border-white/5 px-6 mx-2 relative z-10">
+ <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-border/40 dark:border-white/5 px-6 mx-2 relative z-decorator">
  <div
   onClick={() => onFilterChange?.(null)}
   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onFilterChange?.(null); } }}
@@ -92,7 +92,7 @@ export const AuditScoreCard: React.FC<AuditScoreCardProps> = ({
  </div>
 
  {/* Alerts/Status */}
- <div className="flex flex-col gap-3 min-w-0 sm:min-w-[200px] relative z-10">
+ <div className="flex flex-col gap-3 min-w-0 sm:min-w-[200px] relative z-decorator">
  {openFindings > 0 && (
   <div className="flex items-center gap-3 text-xs font-bold text-red-600 dark:text-red-400 bg-red-100/50 dark:bg-red-50 px-4 py-3 rounded-lg border border-red-200 dark:border-red-800 dark:border-red-500/20 backdrop-blur-md animate-pulse-slow">
   <AlertTriangle className="h-4 w-4 shrink-0" />

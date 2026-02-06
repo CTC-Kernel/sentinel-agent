@@ -30,7 +30,7 @@ export const AIAssistantHeader = <TTemplate extends BaseTemplate>({
  <div className="absolute top-0 right-0 p-4 opacity-30 group-hover:opacity-20 transition-opacity pointer-events-none">
  <Sparkles className="w-24 h-24 text-primary" />
  </div>
- <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+ <div className="relative z-decorator flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
  <h4 className="text-sm font-bold text-foreground flex items-center">
   <div className="p-1.5 bg-primary/15 dark:bg-primary rounded-lg mr-2">
   <Sparkles className="h-4 w-4 text-primary" />

@@ -228,7 +228,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
    }`}
   style={{ height: `${Math.max(height, 5)}%`, minHeight: '4px' }}
   />
-  <div className="absolute -top-6 left-1/2 -translate-x-1/2 hidden group-hover:block bg-foreground text-background text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+  <div className="absolute -top-6 left-1/2 -translate-x-1/2 hidden group-hover:block bg-foreground text-background text-xs px-2 py-1 rounded whitespace-nowrap z-decorator">
   {point.averageScore.toFixed(1)}%
   </div>
   </div>

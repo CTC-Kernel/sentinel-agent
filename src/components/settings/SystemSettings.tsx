@@ -168,7 +168,7 @@ export const SystemSettings: React.FC = () => {
  {hasPermission(user, 'Settings', 'read') && (
  <PremiumCard glass className="p-0 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-lg">
   <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
-  <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
+  <div className="relative z-decorator p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
   <div className="flex items-center gap-3">
   <div className="p-2.5 bg-info-bg dark:bg-info-500/20 rounded-3xl text-info-600 dark:text-info-400 backdrop-blur-md shadow-sm">
   <Activity className="w-5 h-5" />
@@ -176,7 +176,7 @@ export const SystemSettings: React.FC = () => {
   <h3 className="text-lg font-bold text-foreground">{t('settings.activityHistory')}</h3>
   </div>
   </div>
-  <div className="relative z-10 p-2">
+  <div className="relative z-decorator p-2">
   {loadingLogs ? (
   <div className="space-y-3 p-4 animate-pulse">
   <div className="h-10 bg-muted/50 rounded-lg" />
@@ -199,7 +199,7 @@ export const SystemSettings: React.FC = () => {
  {/* Data Export */}
  <PremiumCard glass className="p-8 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden group">
  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-70 opacity-60" />
- <div className="relative z-10">
+ <div className="relative z-decorator">
   <div className="flex items-start gap-4">
   <div className="p-3 bg-primary/10 rounded-3xl text-primary shrink-0 backdrop-blur-md border border-primary/20 dark:border-primary/20 shadow-inner">
   <Download className="h-6 w-6" />
@@ -237,7 +237,7 @@ export const SystemSettings: React.FC = () => {
  {/* GDPR Personal Data Export - Always Available */}
  <PremiumCard glass className="p-8 rounded-3xl border border-success-500/30 dark:border-success-500/20 shadow-sm relative overflow-hidden group">
  <div className="absolute inset-0 bg-gradient-to-br from-success-500/5 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-70 opacity-60" />
- <div className="relative z-10">
+ <div className="relative z-decorator">
   <div className="flex items-start gap-4">
   <div className="p-3 bg-success-bg dark:bg-success-500/20 rounded-3xl text-success-600 dark:text-success-400 shrink-0 backdrop-blur-md border border-success-500/20 shadow-inner">
   <Shield className="h-6 w-6" />
@@ -279,7 +279,7 @@ export const SystemSettings: React.FC = () => {
  {(user?.email === 'demo@sentinel-grc.com' || import.meta.env.DEV) && (
  <PremiumCard glass className="p-8 rounded-3xl border border-violet-500/30 dark:border-violet-500/20 shadow-sm relative overflow-hidden group">
   <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-70 opacity-60" />
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <div className="flex items-start gap-4">
   <div className="p-3 bg-violet-500/10 dark:bg-violet-500/20 rounded-3xl text-violet-600 dark:text-violet-400 shrink-0 backdrop-blur-md border border-violet-500/20 shadow-inner">
   <Activity className="h-6 w-6" />
@@ -330,7 +330,7 @@ export const SystemSettings: React.FC = () => {
  {/* Danger Zone */}
  <PremiumCard glass className="p-8 rounded-3xl border border-red-500/30 dark:border-red-500/20 shadow-sm relative overflow-hidden group">
  <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-70 opacity-60" />
- <div className="relative z-10">
+ <div className="relative z-decorator">
   <div className="flex items-start gap-4">
   <div className="p-3 bg-red-50 dark:bg-red-500/20 rounded-3xl text-red-600 dark:text-red-400 shrink-0 backdrop-blur-md border border-red-500/20 shadow-inner">
   <AlertTriangle className="h-6 w-6" />

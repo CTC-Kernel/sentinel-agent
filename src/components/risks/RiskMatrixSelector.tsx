@@ -188,7 +188,7 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
    focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400 dark:focus-visible:ring-slate-500
    ${getCellColor(p, i)}
    ${isCurrent
-   ? 'ring-4 ring-offset-2 ring-slate-900/10 dark:ring-white/20 scale-110 z-10 shadow-xl'
+   ? 'ring-4 ring-offset-2 ring-slate-900/10 dark:ring-white/20 scale-110 z-decorator shadow-xl'
    : isResidual
     ? 'ring-2 ring-offset-1 ring-blue-500/50 dark:ring-blue-400/50 opacity-80'
     : 'opacity-40 hover:opacity-70 hover:scale-105 hover:shadow-md'}

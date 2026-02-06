@@ -56,7 +56,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
    />
    )}
-   <span className="relative z-10 flex items-center">
+   <span className="relative z-decorator flex items-center">
    <tab.icon className={cn("w-4 h-4 mr-2", isActive ? "text-white" : "text-current opacity-70")} />
    {tab.label}
    </span>

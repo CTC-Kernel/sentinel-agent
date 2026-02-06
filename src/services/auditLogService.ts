@@ -61,7 +61,10 @@ export const AUDITABLE_ENTITIES = [
  'dormant_account',
  'questionnaire',
  'questionnaire_response',
- 'evidence_request'
+ 'evidence_request',
+ 'configuration_item',
+ 'configuration_item_relationship',
+ 'impact_report'
 ] as const;
 
 export type AuditableEntity = typeof AUDITABLE_ENTITIES[number];
@@ -485,7 +488,10 @@ function getCollectionName(entityType: AuditableEntity): string {
  dormant_account: 'dormant_accounts',
  questionnaire: 'questionnaires',
  questionnaire_response: 'questionnaire_responses',
- evidence_request: 'evidence_requests'
+ evidence_request: 'evidence_requests',
+ configuration_item: 'cmdb_cis',
+ configuration_item_relationship: 'cmdb_relationships',
+ impact_report: 'cmdb_impact_reports'
  };
 
  return mapping[entityType] || entityType;
@@ -874,7 +880,10 @@ export class AuditLogService {
  dormant_account: 'Compte dormant',
  questionnaire: 'Questionnaire',
  questionnaire_response: 'Réponse questionnaire',
- evidence_request: 'Demande de preuve'
+ evidence_request: 'Demande de preuve',
+ configuration_item: 'Configuration Item',
+ configuration_item_relationship: 'Relation CI',
+ impact_report: 'Rapport d\'impact'
  };
 
  return labels[entityType] || entityType;

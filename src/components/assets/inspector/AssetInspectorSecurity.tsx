@@ -81,7 +81,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
   <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400 mb-4 flex items-center">
   <Server className="h-4 w-4 mr-2" /> {t('common.inspector.security.shodanResult')}
   </h3>
-  <div className="space-y-3 text-sm font-mono relative z-10">
+  <div className="space-y-3 text-sm font-mono relative z-decorator">
   <p className="flex justify-between items-center"><span className="text-text-description font-sans font-bold">IP:</span> <span className="text-foreground">{shodanResult.ip_str}</span></p>
   <p className="flex justify-between items-center"><span className="text-text-description font-sans font-bold">OS:</span> <span className="text-foreground">{shodanResult.os || 'N/A'}</span></p>
   <p className="flex justify-between items-center"><span className="text-text-description font-sans font-bold">Ports:</span> <span className="text-foreground">{shodanResult.ports?.join(', ') || 'None'}</span></p>

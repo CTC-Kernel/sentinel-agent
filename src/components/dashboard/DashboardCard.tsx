@@ -160,7 +160,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
  {/* Hover Shine Effect */}
  <div className="absolute inset-0 opacity-0 group-hover:opacity-70 transition-opacity duration-700 pointer-events-none bg-gradient-to-tr from-transparent via-white/5 to-transparent skew-x-12 translate-x-[-100%] group-hover:animate-shine" />
 
- <div className="relative z-10 flex flex-col h-full">
+ <div className="relative z-decorator flex flex-col h-full">
  {CardContent}
  </div>
  </PremiumCard>

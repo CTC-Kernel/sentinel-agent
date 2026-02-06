@@ -61,7 +61,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
  <Sparkles className="w-24 h-24 text-primary" />
  </div>
 
- <div className="flex items-center gap-3 mb-6 relative z-10">
+ <div className="flex items-center gap-3 mb-6 relative z-decorator">
  <div className="p-2 bg-white dark:bg-white/10 rounded-3xl shadow-sm text-primary">
   <Bot className="w-5 h-5" />
  </div>
@@ -72,7 +72,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
  </div>
 
  {!response && !loading && (
- <div className="grid grid-cols-1 gap-3 relative z-10">
+ <div className="grid grid-cols-1 gap-3 relative z-decorator">
   <button onClick={() => handleAction('status')} className="flex items-center p-4 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-muted rounded-3xl text-sm font-medium text-foreground transition-all text-left border border-transparent hover:border-primary/20 dark:hover:border-border/40 group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
   <div className="p-2 bg-info/10 text-info rounded-lg mr-4 group-hover:scale-110 transition-transform">
   <FileText className="w-5 h-5" />
@@ -113,7 +113,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
  )}
 
  {response && (
- <div className="animate-fade-in relative z-10 flex-1 flex flex-col min-h-0">
+ <div className="animate-fade-in relative z-decorator flex-1 flex flex-col min-h-0">
   <div className="bg-card/80 rounded-2xl p-6 text-sm text-foreground leading-relaxed shadow-sm border border-white/50 dark:border-white/5 mb-4 overflow-y-auto custom-scrollbar flex-1">
   <div className="prose dark:prose-invert max-w-none text-sm">
   <ReactMarkdown>

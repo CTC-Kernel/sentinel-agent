@@ -1,5 +1,6 @@
-import { Menu, Transition } from '@headlessui/react';
-import React from 'react';
+import { Menu } from '@headlessui/react';
+import React, { useRef } from 'react';
+import { MenuPortal } from '../ui/MenuPortal';
 import {
  FileSpreadsheet, MoreVertical,
  Plus, BrainCircuit, Calendar as CalendarIcon, Upload, Trash2
@@ -63,6 +64,7 @@ export const AuditsToolbar: React.FC<AuditsToolbarProps> = ({
  loading
 }) => {
  const { t } = useStore();
+ const toolsMenuButtonRef = useRef<HTMLButtonElement>(null);
 
  return (
  <PremiumPageControl
@@ -103,19 +105,12 @@ export const AuditsToolbar: React.FC<AuditsToolbarProps> = ({
 
   {/* Actions Menu */}
   <Menu as="div" className="relative inline-block text-left">
-  <Menu.Button as={Button} variant="outline" size="icon" className="h-10 w-10">
+  {({ open }) => (
+  <>
+  <Menu.Button ref={toolsMenuButtonRef} as={Button} variant="outline" size="icon" className="h-10 w-10">
   <MoreVertical className="h-5 w-5" />
   </Menu.Button>
-  <Transition
-  as={React.Fragment}
-  enter="transition ease-out duration-100"
-  enterFrom="transform opacity-0 scale-95"
-  enterTo="transform opacity-100 scale-100"
-  leave="transition ease-in duration-75"
-  leaveFrom="transform opacity-100 scale-100"
-  leaveTo="transform opacity-0 scale-95"
-  >
-  <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border/50 rounded-xl bg-popover text-popover-foreground shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-dropdown">
+  <MenuPortal buttonRef={toolsMenuButtonRef} open={open}>
   <div className="p-1">
    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('audits.exports')}</div>
    <Menu.Item>
@@ -145,8 +140,9 @@ export const AuditsToolbar: React.FC<AuditsToolbarProps> = ({
    </Menu.Item>
    </div>
   )}
-  </Menu.Items>
-  </Transition>
+  </MenuPortal>
+  </>
+  )}
   </Menu>
 
   {selectedAudits.length > 0 && canDelete && (

@@ -85,7 +85,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
             >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
 
-                <div className="flex items-center justify-between pb-4 border-b border-border/40 relative z-10">
+                <div className="flex items-center justify-between pb-4 border-b border-border/40 relative z-decorator">
                     <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
                         <div className="p-2 rounded-lg bg-gradient-to-br from-success to-success/80 shadow-sm shadow-success/20">
                             <ShieldCheck className="w-4 h-4 text-white" />
@@ -94,7 +94,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                     </h3>
                 </div>
 
-                <div className="flex-1 flex items-center justify-center relative z-10">
+                <div className="flex-1 flex items-center justify-center relative z-decorator">
                     <EmptyState
                         icon={ClipboardList}
                         title="Aucun contrôle défini"
@@ -133,7 +133,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-success-bg rounded-full blur-2xl pointer-events-none" />
 
             {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-border/40 relative z-10">
+            <div className="flex items-center justify-between pb-4 border-b border-border/40 relative z-decorator">
                 <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
                     <div className="p-2 rounded-lg bg-gradient-to-br from-success to-success/80 shadow-sm shadow-success/20">
                         <ShieldCheck className="w-4 h-4 text-white" />
@@ -150,7 +150,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
             </div>
 
             {/* Main Content */}
-            <div className="flex items-center gap-4 flex-1 relative z-10 py-4">
+            <div className="flex items-center gap-4 flex-1 relative z-decorator py-4">
                 {/* Gauge */}
                 <div
                     className="relative flex-shrink-0 cursor-pointer group/chart"
@@ -224,7 +224,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
             </div>
 
             {/* Distribution Mini Stats */}
-            <div className="grid grid-cols-3 gap-2 mt-auto relative z-10">
+            <div className="grid grid-cols-3 gap-2 mt-auto relative z-decorator">
                 <div className="p-2 rounded-xl bg-background/40 border border-border/40">
                     <div className="flex items-center gap-1.5 mb-1">
                         <CheckCircle2 className="w-3 h-3 text-success-500" />
@@ -255,7 +255,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
             </div>
 
             {/* Progress Bar */}
-            <div className="mt-3 space-y-1.5 relative z-10">
+            <div className="mt-3 space-y-1.5 relative z-decorator">
                 <div className="flex justify-between items-center text-xs">
                     <span className="text-muted-foreground font-bold uppercase tracking-wider text-[11px]">Progression</span>
                     <span className="font-bold text-foreground">{stats.implementedControls}/{stats.totalControls}</span>

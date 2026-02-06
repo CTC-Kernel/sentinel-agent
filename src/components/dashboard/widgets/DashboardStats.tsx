@@ -103,7 +103,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
  </div>
 
  <div className="p-6 h-full flex flex-col justify-between">
-  <div className="flex items-start justify-between mb-4 relative z-10">
+  <div className="flex items-start justify-between mb-4 relative z-decorator">
   <div className="flex items-center gap-3">
   <div className="p-2.5 rounded-2xl bg-secondary/50 border border-border/40 shadow-sm">
   <BrainCircuit className="w-5 h-5 text-muted-foreground" />
@@ -130,7 +130,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
   </Tooltip>
   </div>
 
-  <div className="relative z-10 min-h-[100px]">
+  <div className="relative z-decorator min-h-[100px]">
   {aiLoading && !aiSummary ? (
   <div className="flex flex-col items-center justify-center h-full gap-3 py-4">
   <Sparkles className="w-6 h-6 text-primary animate-pulse" />

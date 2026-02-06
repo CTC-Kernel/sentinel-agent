@@ -24,7 +24,6 @@ import {
   QueryConstraint,
 } from 'firebase/firestore';
 import { db } from '@/firebase';
-// TODO: Re-enable audit logging with AuditLogService.logCreate/logUpdate/logDelete
 import {
   ConfigurationItem,
   CMDBFilters,
@@ -74,8 +73,14 @@ export class CMDBService {
 
     const docRef = await addDoc(collection(db, COLLECTION_NAME), ciData);
 
-    // TODO: Add audit logging
-    // await AuditLogService.logCreate(organizationId, user, 'configuration_item', docRef.id, ciData);
+    // Audit logging
+    await this.logActivity(organizationId, {
+      type: 'create',
+      message: `CI "${validated.data.name}" créé`,
+      ciId: docRef.id,
+      ciName: validated.data.name,
+      userId,
+    });
 
     return docRef.id;
   }
@@ -278,8 +283,17 @@ export class CMDBService {
     const docRef = doc(db, COLLECTION_NAME, ciId);
     await updateDoc(docRef, updateData);
 
-    // TODO: Add audit logging
-    // await AuditLogService.logUpdate(organizationId, user, 'configuration_item', ciId, currentCI, updateData);
+    // Audit logging
+    await this.logActivity(organizationId, {
+      type: 'update',
+      message: `CI "${currentCI.name}" mis à jour`,
+      ciId,
+      ciName: currentCI.name,
+      userId,
+      metadata: {
+        changedFields: Object.keys(validated.data),
+      },
+    });
   }
 
   /**
@@ -339,8 +353,14 @@ export class CMDBService {
       updatedBy: userId,
     });
 
-    // TODO: Add audit logging
-    // await AuditLogService.logDelete(organizationId, user, 'configuration_item', ciId, currentCI);
+    // Audit logging
+    await this.logActivity(organizationId, {
+      type: 'delete',
+      message: `CI "${currentCI.name}" retiré`,
+      ciId,
+      ciName: currentCI.name,
+      userId,
+    });
   }
 
   // ===========================================================================

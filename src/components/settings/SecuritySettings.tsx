@@ -108,7 +108,7 @@ export const SecuritySettings: React.FC = () => {
 
  <div className="glass-premium rounded-3xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-full relative">
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
- <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
+ <div className="relative z-decorator p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
   <div className="flex items-center gap-3">
   <div className="p-2.5 bg-primary/10 rounded-3xl text-primary">
   <Key className="w-5 h-5" />
@@ -116,7 +116,7 @@ export const SecuritySettings: React.FC = () => {
   <h3 className="text-lg font-bold text-foreground">{t('settings.changePassword')}</h3>
   </div>
  </div>
- <form onSubmit={passwordForm.handleSubmit(handleChangePassword)} className="relative z-10 p-6 space-y-6 flex-1 flex flex-col justify-between">
+ <form onSubmit={passwordForm.handleSubmit(handleChangePassword)} className="relative z-decorator p-6 space-y-6 flex-1 flex flex-col justify-between">
   <div className="space-y-6">
   <div>
   <FloatingLabelInput
@@ -156,7 +156,7 @@ export const SecuritySettings: React.FC = () => {
  {/* MFA Settings */}
  <div className="glass-premium rounded-3xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-full relative">
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
- <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
+ <div className="relative z-decorator p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
   <div className="flex items-center gap-3">
   <div className="p-2.5 bg-success/10 rounded-3xl text-success">
   <ShieldAlert className="w-5 h-5" />
@@ -164,7 +164,7 @@ export const SecuritySettings: React.FC = () => {
   <h3 className="text-lg font-bold text-foreground">{t('settings.mfa.title', { defaultValue: 'Authentification à deux facteurs' })}</h3>
   </div>
  </div>
- <div className="relative z-10 p-6 flex-1 flex flex-col justify-between space-y-6">
+ <div className="relative z-decorator p-6 flex-1 flex flex-col justify-between space-y-6">
   <p className="text-sm text-muted-foreground">
   {t('settings.mfa.description', { defaultValue: 'Sécurisez votre compte en ajoutant une seconde étape de validation.' })}
   </p>

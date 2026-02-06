@@ -114,13 +114,13 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
    onSelect(incident);
    }
    }}
-   className="group relative bg-background/80 p-4 rounded-xl border border-border/40 shadow-premium hover:shadow-xl hover:scale-[1.02] transition-all duration-normal ease-apple cursor-pointer overflow-hidden ring-1 ring-transparent hover:ring-primary/20"
+   className="group relative bg-background/80 p-4 rounded-xl border border-border/40 shadow-premium hover:shadow-xl hover:scale-[1.02] transition-all duration-normal ease-apple cursor-pointer ring-1 ring-transparent hover:ring-primary/20"
    role="button"
    tabIndex={0}
    aria-label={`Incident: ${incident.title}`}
   >
    {/* Actions Overlay */}
-   <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-normal ease-apple z-10 translate-y-1 group-hover:translate-y-0">
+   <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-normal ease-apple z-decorator translate-y-1 group-hover:translate-y-0">
    {canEdit && onEdit && (
    <CustomTooltip content={t('common.edit')}>
    <button

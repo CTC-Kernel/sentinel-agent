@@ -547,7 +547,7 @@ export const CMDBDependencyGraph: React.FC<CMDBDependencyGraphProps> = ({
       </svg>
 
       {/* Controls */}
-      <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+      <div className="absolute top-4 right-4 flex items-center gap-2 z-decorator">
         <CustomTooltip content={t('cmdb.graph.zoomIn', { defaultValue: 'Zoom +' })}>
           <Button
             variant="glass"
@@ -581,7 +581,7 @@ export const CMDBDependencyGraph: React.FC<CMDBDependencyGraphProps> = ({
       </div>
 
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 flex flex-wrap gap-2 z-10">
+      <div className="absolute bottom-4 left-4 flex flex-wrap gap-2 z-decorator">
         {Object.entries(CI_CLASS_COLORS).map(([cls, colors]) => (
           <Badge
             key={cls}
@@ -598,7 +598,7 @@ export const CMDBDependencyGraph: React.FC<CMDBDependencyGraphProps> = ({
       </div>
 
       {/* Stats */}
-      <div className="absolute top-4 left-4 flex items-center gap-3 z-10">
+      <div className="absolute top-4 left-4 flex items-center gap-3 z-decorator">
         <Badge variant="soft" className="bg-primary/10 text-primary">
           <Layers className="h-3 w-3 mr-1" />
           {nodes.length} CIs

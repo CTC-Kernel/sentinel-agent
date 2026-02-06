@@ -1,6 +1,6 @@
 /**
  * HARMONIZED CHART PALETTE
- * Matches design-tokens.css with consistent hues and reduced saturation
+ * AUDIT FIX: All colors now use CSS custom properties for dark/light mode support
  *
  * Hue Reference:
  * - Primary: 221° (Blue)
@@ -11,87 +11,105 @@
  * - Purple: 270°
  */
 export const SENTINEL_PALETTE = {
- // Semantic colors (harmonized with design tokens)
- primary: 'hsl(var(--primary))',
- secondary: 'hsl(var(--nav-repository))', // Purpleish
- success: 'hsl(var(--success))',
- warning: 'hsl(var(--warning))',
- danger: 'hsl(var(--error))',
- info: 'hsl(var(--info))',
- tertiary: 'hsl(var(--nav-support))',
+  // Semantic colors (harmonized with design tokens)
+  primary: 'hsl(var(--primary))',
+  secondary: 'hsl(var(--nav-repository))',
+  success: 'hsl(var(--success))',
+  warning: 'hsl(var(--warning))',
+  danger: 'hsl(var(--error))',
+  info: 'hsl(var(--info))',
+  tertiary: 'hsl(var(--nav-support))',
 
- // Data Series Colors (for multi-series charts)
- series1: '#4a7fc7', // Primary blue
- series2: '#2d9d6a', // Teal-green
- series3: '#9b6dd7', // Purple
- series4: '#2a8ab8', // Cyan-blue
- series5: '#c87f1a', // Amber
- series6: '#d64545', // Red
- series7: '#6b8fa3', // Slate-blue
- series8: '#7c5cbd', // Violet
+  // Data Series Colors - USING CSS VARIABLES for dark/light support
+  series1: 'hsl(var(--chart-series-1))',
+  series2: 'hsl(var(--chart-series-2))',
+  series3: 'hsl(var(--chart-series-3))',
+  series4: 'hsl(var(--chart-series-4))',
+  series5: 'hsl(var(--chart-series-5))',
+  series6: 'hsl(var(--chart-series-6))',
+  series7: 'hsl(var(--chart-series-7))',
+  series8: 'hsl(var(--chart-series-8))',
 };
 
 export const SEVERITY_COLORS = {
- critical: 'hsl(var(--error))',
- high: 'hsl(var(--warning))',
- medium: 'hsl(var(--nav-operations))', // Orange
- low: 'hsl(var(--success))',
- info: 'hsl(var(--info))',
+  critical: 'hsl(var(--chart-critical))',
+  high: 'hsl(var(--chart-high))',
+  medium: 'hsl(var(--chart-medium))',
+  low: 'hsl(var(--chart-low))',
+  info: 'hsl(var(--chart-info))',
+  // Uppercase aliases for compatibility
+  Critical: 'hsl(var(--chart-critical))',
+  High: 'hsl(var(--chart-high))',
+  Medium: 'hsl(var(--chart-medium))',
+  Low: 'hsl(var(--chart-low))',
+  Info: 'hsl(var(--chart-info))',
 };
 
 export const CHART_STYLES = {
- // Grid
- grid: {
- strokeDasharray: '3 3',
- stroke: 'hsl(var(--border))',
- opacity: 0.3,
- vertical: false
- },
- // Axis
- // Base Axis Style (Common)
- axis: {
- stroke: 'hsl(var(--muted-foreground))',
- fontSize: 12,
- tickLine: false,
- axisLine: false,
- tickMargin: 8
- },
- // Specific X-Axis Style
- xAxis: {
- padding: { left: 10, right: 10 }
- },
- // Tooltip (Recharts internal wrapper style)
- tooltip: {
- contentStyle: {
- backgroundColor: 'rgba(255, 255, 255, 0.8)', // Fallback / Light
- borderRadius: '12px',
- border: '1px solid hsl(var(--border))',
- boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
- backdropFilter: 'blur(8px)',
- padding: '8px 12px',
- },
- itemStyle: {
- fontSize: '13px',
- fontWeight: 500,
- },
- labelStyle: {
- color: 'hsl(var(--foreground))',
- fontWeight: 600,
- marginBottom: '4px',
- fontSize: '12px',
- textTransform: 'uppercase' as const,
- letterSpacing: '0.05em'
- }
- },
- // Reference Lines (Thresholds)
- referenceLine: {
- stroke: 'hsl(var(--destructive))',
- strokeDasharray: '3 3',
- strokeWidth: 2,
- opacity: 0.7
- },
- // Cursor/Hover Indicator
- cursor: 'hsl(var(--muted-foreground))' // Simple string for stroke/fill reference
+  // Grid - Uses CSS variables for dark/light mode
+  grid: {
+    strokeDasharray: '3 3',
+    stroke: 'hsl(var(--chart-grid))',
+    opacity: 'var(--chart-grid-opacity)',
+    vertical: false
+  },
+  // Axis - Uses CSS variables for dark/light mode
+  axis: {
+    stroke: 'hsl(var(--chart-axis-tick))',
+    fill: 'hsl(var(--chart-axis-tick))',
+    fontSize: 12,
+    tickLine: false,
+    axisLine: false,
+    tickMargin: 8
+  },
+  // Tick style for XAxis/YAxis
+  tick: {
+    fontSize: 11,
+    fill: 'hsl(var(--chart-axis-tick))',
+  },
+  // Specific X-Axis Style
+  xAxis: {
+    padding: { left: 10, right: 10 }
+  },
+  // Tooltip - Uses CSS variables for dark/light mode
+  tooltip: {
+    contentStyle: {
+      backgroundColor: 'hsl(var(--chart-tooltip-bg))',
+      borderRadius: '12px',
+      border: '1px solid hsl(var(--chart-tooltip-border))',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+      backdropFilter: 'blur(8px)',
+      padding: '8px 12px',
+    },
+    itemStyle: {
+      fontSize: '13px',
+      fontWeight: 500,
+      color: 'hsl(var(--chart-tooltip-text))',
+    },
+    labelStyle: {
+      color: 'hsl(var(--chart-tooltip-text))',
+      fontWeight: 600,
+      marginBottom: '4px',
+      fontSize: '12px',
+      textTransform: 'uppercase' as const,
+      letterSpacing: '0.05em'
+    }
+  },
+  // Reference Lines (Thresholds)
+  referenceLine: {
+    stroke: 'hsl(var(--chart-critical))',
+    strokeDasharray: '3 3',
+    strokeWidth: 2,
+    opacity: 0.7
+  },
+  // Cursor/Hover Indicator
+  cursor: 'hsl(var(--chart-text-muted))',
+  // Active dot for line/area charts
+  activeDot: {
+    r: 6,
+    strokeWidth: 2,
+    stroke: 'hsl(var(--chart-active-stroke))',
+  }
 };
 
 // Helper for Recharts Gradient Definitions (harmonized)
@@ -109,43 +127,71 @@ export const ChartGradients = {
  cyan: { id: 'gradientCyan', from: 'hsl(var(--info))', to: 'hsl(var(--info) / 0.6)' },
 };
 
-// Score gauge gradient colors (harmonized)
+// Score gauge gradient colors - USING CSS VARIABLES
 export const SCORE_GRADIENT_COLORS = {
- critical: { start: '#eb9090', end: '#d64545' }, // Light red to red
- warning: { start: '#e8b86d', end: '#c87f1a' }, // Light amber to amber
- good: { start: '#6fcca3', end: '#2d9d6a' }, // Light teal to teal
+  critical: {
+    start: 'hsl(var(--chart-critical) / 0.6)',
+    end: 'hsl(var(--chart-critical))'
+  },
+  warning: {
+    start: 'hsl(var(--chart-high) / 0.6)',
+    end: 'hsl(var(--chart-high))'
+  },
+  good: {
+    start: 'hsl(var(--chart-low) / 0.6)',
+    end: 'hsl(var(--chart-low))'
+  },
 } as const;
 
-// Finding type colors for audit charts (harmonized)
+// Finding type colors for audit charts - USING CSS VARIABLES
 export const FINDING_COLORS = {
- majeure: '#d64545', // Red (hsl 4 68% 50%)
- mineure: '#c87f1a', // Amber (hsl 38 72% 48%)
- observation: '#4a7fc7', // Blue (hsl 221 55% 54%)
- opportunite: '#2d9d6a', // Teal (hsl 152 62% 38%)
+  majeure: 'hsl(var(--chart-critical))',
+  mineure: 'hsl(var(--chart-high))',
+  observation: 'hsl(var(--chart-series-1))',
+  opportunite: 'hsl(var(--chart-low))',
 } as const;
 
-// Audit status colors
+// Audit status colors - USING CSS VARIABLES
 export const AUDIT_STATUS_COLORS = {
- planifie: '#6b8fa3', // Slate-blue (neutral)
- en_cours: '#4a7fc7', // Blue (primary)
- termine: '#2d9d6a', // Teal (success)
- annule: '#d64545', // Red (error)
+  planifie: 'hsl(var(--chart-series-7))',
+  en_cours: 'hsl(var(--chart-series-1))',
+  termine: 'hsl(var(--chart-low))',
+  annule: 'hsl(var(--chart-critical))',
 } as const;
 
-// Chart axis and grid colors
+// Chart axis and grid colors - USING CSS VARIABLES
 export const CHART_AXIS_COLORS = {
- grid: '#94a3b8', // Slate-400
- tick: '#475569', // Slate-600 (better contrast)
- gridOpacity: 0.2, // Slightly increased for visibility
- gridDark: '#475569', // Slate-600 for dark mode
+  grid: 'hsl(var(--chart-grid))',
+  tick: 'hsl(var(--chart-axis-tick))',
+  gridOpacity: 'var(--chart-grid-opacity)',
+  text: 'hsl(var(--chart-text))',
+  textMuted: 'hsl(var(--chart-text-muted))',
 } as const;
 
-// Donut/Pie chart color sequences
+// Donut/Pie chart color sequences - USING CSS VARIABLES
 export const DONUT_COLORS = {
- // For status distribution
- status: ['#2d9d6a', '#4a7fc7', '#c87f1a', '#d64545', '#6b8fa3'],
- // For category distribution
- category: ['#4a7fc7', '#2d9d6a', '#9b6dd7', '#2a8ab8', '#c87f1a', '#7c5cbd'],
- // For severity distribution
- severity: ['#d64545', '#c87f1a', '#d4a820', '#2d9d6a'],
+  // For status distribution
+  status: [
+    'hsl(var(--chart-low))',
+    'hsl(var(--chart-series-1))',
+    'hsl(var(--chart-high))',
+    'hsl(var(--chart-critical))',
+    'hsl(var(--chart-series-7))'
+  ],
+  // For category distribution
+  category: [
+    'hsl(var(--chart-series-1))',
+    'hsl(var(--chart-series-2))',
+    'hsl(var(--chart-series-3))',
+    'hsl(var(--chart-series-4))',
+    'hsl(var(--chart-series-5))',
+    'hsl(var(--chart-series-8))'
+  ],
+  // For severity distribution
+  severity: [
+    'hsl(var(--chart-critical))',
+    'hsl(var(--chart-high))',
+    'hsl(var(--chart-medium))',
+    'hsl(var(--chart-low))'
+  ],
 } as const;

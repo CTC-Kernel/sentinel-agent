@@ -48,21 +48,22 @@ export interface VoxelFilterPanelProps {
 // Constants
 // ============================================================================
 
+// AUDIT FIX: Using CSS variables for theme-aware colors
 const NODE_TYPE_CONFIG: Record<VoxelNodeType, { icon: React.ReactNode; label: string; color: string }> = {
- asset: { icon: <Server className="w-3.5 h-3.5" />, label: 'Assets', color: '#3B82F6' },
- risk: { icon: <AlertTriangle className="w-3.5 h-3.5" />, label: 'Risks', color: '#EF4444' },
- control: { icon: <Shield className="w-3.5 h-3.5" />, label: 'Controls', color: '#8B5CF6' },
- audit: { icon: <ClipboardCheck className="w-3.5 h-3.5" />, label: 'Audits', color: '#F59E0B' },
- project: { icon: <FolderKanban className="w-3.5 h-3.5" />, label: 'Projects', color: '#10B981' },
- incident: { icon: <Flame className="w-3.5 h-3.5" />, label: 'Incidents', color: '#F97316' },
- supplier: { icon: <Building2 className="w-3.5 h-3.5" />, label: 'Suppliers', color: '#6366F1' },
+  asset: { icon: <Server className="w-3.5 h-3.5" />, label: 'Assets', color: 'hsl(var(--chart-series-1))' },
+  risk: { icon: <AlertTriangle className="w-3.5 h-3.5" />, label: 'Risks', color: 'hsl(var(--chart-critical))' },
+  control: { icon: <Shield className="w-3.5 h-3.5" />, label: 'Controls', color: 'hsl(var(--chart-series-3))' },
+  audit: { icon: <ClipboardCheck className="w-3.5 h-3.5" />, label: 'Audits', color: 'hsl(var(--chart-high))' },
+  project: { icon: <FolderKanban className="w-3.5 h-3.5" />, label: 'Projects', color: 'hsl(var(--chart-low))' },
+  incident: { icon: <Flame className="w-3.5 h-3.5" />, label: 'Incidents', color: 'hsl(var(--chart-series-5))' },
+  supplier: { icon: <Building2 className="w-3.5 h-3.5" />, label: 'Suppliers', color: 'hsl(var(--chart-series-4))' },
 };
 
 const STATUS_CONFIG: Record<VoxelNodeStatus, { label: string; color: string }> = {
- normal: { label: 'Normal', color: '#22C55E' },
- warning: { label: 'Warning', color: '#F59E0B' },
- critical: { label: 'Critical', color: '#EF4444' },
- inactive: { label: 'Inactive', color: '#64748B' },
+  normal: { label: 'Normal', color: 'hsl(var(--chart-low))' },
+  warning: { label: 'Warning', color: 'hsl(var(--chart-medium))' },
+  critical: { label: 'Critical', color: 'hsl(var(--chart-critical))' },
+  inactive: { label: 'Inactive', color: 'hsl(var(--muted-foreground))' },
 };
 
 const ALL_NODE_TYPES: VoxelNodeType[] = ['asset', 'risk', 'control', 'audit', 'project', 'incident', 'supplier'];
@@ -94,10 +95,10 @@ const CheckboxFilter: React.FC<CheckboxFilterProps> = ({
  type="checkbox"
  checked={checked}
  onChange={onChange}
- className="w-3.5 h-3.5 rounded border-border bg-muted text-blue-500 focus-visible:ring-primary focus:ring-offset-0"
+ className="w-3.5 h-3.5 rounded border-border bg-muted text-primary focus-visible:ring-primary focus:ring-offset-0"
  />
  {icon && (
- <span style={{ color: color || '#94A3B8' }}>{icon}</span>
+ <span style={{ color: color || 'hsl(var(--muted-foreground))' }}>{icon}</span>
  )}
  <span className="text-sm text-muted-foreground flex-1">{label}</span>
  {typeof count === 'number' && (

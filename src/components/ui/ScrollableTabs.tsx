@@ -110,7 +110,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({
   tabIndex={isActive ? 0 : -1}
   onClick={() => onTabChange(tab.id)}
   disabled={isLoading}
-  className={`relative px-4 py-2 text-sm font-medium rounded-full transition-colors flex items-center whitespace-nowrap z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isActive
+  className={`relative px-4 py-2 text-sm font-medium rounded-full transition-colors flex items-center whitespace-nowrap z-decorator focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isActive
   ? 'text-foreground'
   : 'text-muted-foreground hover:text-foreground'
   } ${isLoading ? 'cursor-wait opacity-80' : ''}`}

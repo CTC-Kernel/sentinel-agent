@@ -542,7 +542,7 @@ export const ARScene: React.FC<ARSceneProps> = ({
  <div className="relative w-full h-full">
  {/* AR Entry Button */}
  <ARButton
- className="absolute bottom-4 right-4 z-10 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-3xl shadow-lg transition-colors"
+ className="absolute bottom-4 right-4 z-decorator px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-3xl shadow-lg transition-colors"
  sessionInit={{
  requiredFeatures: ['hit-test'],
  optionalFeatures: ['dom-overlay', 'anchors', 'plane-detection'],
@@ -557,7 +557,7 @@ export const ARScene: React.FC<ARSceneProps> = ({
  <ARInstructions visible={showInstructions} />
 
  {/* Info text when not in AR */}
- <div className="absolute top-4 left-4 z-10 bg-card/80 backdrop-blur-sm border border-border/40 rounded-lg px-4 py-2">
+ <div className="absolute top-4 left-4 z-decorator bg-card/80 backdrop-blur-sm border border-border/40 rounded-lg px-4 py-2">
  <div className="flex items-center gap-2">
  <svg
  className="w-5 h-5 text-purple-400"

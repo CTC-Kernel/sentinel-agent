@@ -228,7 +228,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
   <table className="w-full text-sm">
   <thead>
   <tr className="bg-muted/50">
-  <th className="sticky left-0 bg-muted/50 px-4 py-3 text-left font-semibold text-foreground min-w-[200px] z-10">
+  <th className="sticky left-0 bg-muted/50 px-4 py-3 text-left font-semibold text-foreground min-w-[200px] z-decorator">
    Contrôle
   </th>
   {activeFrameworks.map(fw => (
@@ -248,7 +248,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
    className="group hover:bg-muted/30 cursor-pointer transition-colors"
    onClick={() => onControlClick?.(control)}
   >
-   <td className="sticky left-0 bg-card/95 group-hover:bg-muted dark:group-hover:bg-muted/30 px-4 py-3 z-10 transition-colors">
+   <td className="sticky left-0 bg-card/95 group-hover:bg-muted dark:group-hover:bg-muted/30 px-4 py-3 z-decorator transition-colors">
    <div className="flex items-center gap-2">
    <span className="font-mono text-xs text-muted-foreground">{control.code}</span>
    <span className="text-foreground truncate max-w-[150px]">

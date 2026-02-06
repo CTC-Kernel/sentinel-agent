@@ -186,15 +186,31 @@
   --blur-lg: 24px;
   --blur-xl: 40px;
 
-  /* ===== GLASSMORPHISM ===== */
-  /* Glassmorphism Evolution - Apple-style multi-layer */
-  /* Card-level glass: subtle transparency for layered cards */
-  --glass-bg: rgba(255, 255, 255, 0.75);
+  /* ====================================================================
+     GLASSMORPHISM - Unified Design System
+     AUDIT FIX: Standardized to 2 main variants + blur scale
+     ==================================================================== */
+
+  /* Blur Scale (use with backdrop-filter) */
+  --glass-blur-xs: 4px;      /* Subtle blur for overlays */
+  --glass-blur-sm: 12px;     /* Light glass effect */
+  --glass-blur-md: 20px;     /* Standard glass panels */
+  --glass-blur-lg: 28px;     /* Premium glass effect */
+  --glass-saturate: 180%;    /* Standard saturation boost */
+
+  /* Glass Backgrounds */
+  --glass-bg: rgba(255, 255, 255, 0.75);           /* Default glass */
+  --glass-bg-subtle: rgba(255, 255, 255, 0.6);    /* Lighter glass */
+  --glass-bg-intense: rgba(255, 255, 255, 0.9);   /* Heavier glass */
+
+  /* Glass Borders & Effects */
   --glass-border: rgba(255, 255, 255, 0.3);
   --glass-shadow: var(--shadow-lg);
   --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
-  --glass-medium-bg: rgba(255, 255, 255, 0.85);
-  --glass-heavy-bg: rgba(255, 255, 255, 0.95);
+
+  /* Legacy aliases (for backwards compatibility) */
+  --glass-medium-bg: var(--glass-bg);
+  --glass-heavy-bg: var(--glass-bg-intense);
 
   /* Modal/Drawer Solid Background - Full opacity for readability on overlays */
   --modal-bg: hsl(0 0% 100%);
@@ -207,6 +223,65 @@
   /* Modal Overlay - 70% for sufficient contrast */
   --overlay-bg: rgba(15, 23, 42, 0.7);
   --overlay-blur: var(--blur-sm);
+
+  /* ====================================================================
+     Z-INDEX CSS VARIABLES - For use in component styles
+     AUDIT FIX: CSS variable aliases for z-index hierarchy
+     ==================================================================== */
+  --z-decorator: 10;
+  --z-sticky: 20;
+  --z-fixed-nav: 30;
+  --z-header: 40;
+  --z-sidebar: 50;
+  --z-dropdown: 70;
+  --z-popover: 80;
+  --z-modal: 90;
+  --z-tooltip: 100;
+  --z-voxel-ui: 150;
+  --z-voxel-panel: 200;
+  --z-toast: 950;
+  --z-supreme: 9999;
+
+  /* ====================================================================
+     CHART THEME VARIABLES - For Recharts and visualizations
+     AUDIT FIX: Centralized chart colors with dark mode support
+     ==================================================================== */
+
+  /* Chart Axes & Grid */
+  --chart-grid: 220 10% 85%;
+  --chart-grid-opacity: 0.3;
+  --chart-axis-tick: 220 10% 35%;
+  --chart-axis-line: 220 10% 80%;
+
+  /* Chart Text */
+  --chart-text: 220 15% 25%;
+  --chart-text-muted: 220 10% 50%;
+
+  /* Chart Series Colors (for multi-series charts) */
+  --chart-series-1: 221 68% 55%;    /* Primary blue */
+  --chart-series-2: 152 55% 42%;    /* Teal-green */
+  --chart-series-3: 270 55% 60%;    /* Purple */
+  --chart-series-4: 201 55% 50%;    /* Cyan */
+  --chart-series-5: 35 65% 50%;     /* Amber */
+  --chart-series-6: 4 60% 55%;      /* Red */
+  --chart-series-7: 215 25% 55%;    /* Slate-blue */
+  --chart-series-8: 280 50% 55%;    /* Violet */
+
+  /* Severity Colors for Charts */
+  --chart-critical: 4 75% 55%;      /* Red */
+  --chart-high: 25 90% 55%;         /* Orange */
+  --chart-medium: 45 90% 50%;       /* Yellow/Amber */
+  --chart-low: 152 55% 45%;         /* Green */
+  --chart-info: 201 55% 55%;        /* Cyan */
+
+  /* Chart Tooltip */
+  --chart-tooltip-bg: 0 0% 100%;
+  --chart-tooltip-border: 220 10% 90%;
+  --chart-tooltip-text: 220 15% 15%;
+
+  /* Chart Active/Hover States */
+  --chart-active-stroke: 0 0% 100%;
+  --chart-hover-opacity: 0.8;
 }
 
 .dark {
@@ -297,13 +372,31 @@
   --shadow-xl: 0 16px 40px -8px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.25);
   --shadow-2xl: 0 24px 56px -12px rgba(0, 0, 0, 0.6);
 
-  /* Glassmorphism Dark - Enhanced Contrast & Depth */
+  /* ====================================================================
+     GLASSMORPHISM - Dark Mode
+     AUDIT FIX: Standardized to match light mode structure
+     ==================================================================== */
+
+  /* Blur Scale (same as light mode) */
+  --glass-blur-xs: 4px;
+  --glass-blur-sm: 12px;
+  --glass-blur-md: 20px;
+  --glass-blur-lg: 28px;
+  --glass-saturate: 180%;
+
+  /* Glass Backgrounds - Dark */
   --glass-bg: rgba(10, 11, 14, 0.85);
+  --glass-bg-subtle: rgba(10, 11, 14, 0.7);
+  --glass-bg-intense: rgba(10, 11, 14, 0.95);
+
+  /* Glass Borders & Effects - Dark */
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-shadow: var(--shadow-xl);
   --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
-  --glass-medium-bg: rgba(10, 11, 14, 0.9);
-  --glass-heavy-bg: rgba(10, 11, 14, 0.95);
+
+  /* Legacy aliases */
+  --glass-medium-bg: var(--glass-bg);
+  --glass-heavy-bg: var(--glass-bg-intense);
 
   /* Modal/Drawer Solid Background - Full opacity for readability on overlays */
   --modal-bg: hsl(220 12% 9%);
@@ -316,4 +409,45 @@
   /* Modal Overlay - Dark Mode */
   --overlay-bg: rgba(0, 0, 0, 0.75);
   --overlay-blur: var(--blur-sm);
+
+  /* ====================================================================
+     CHART THEME VARIABLES - Dark Mode
+     AUDIT FIX: Brighter colors for dark backgrounds
+     ==================================================================== */
+
+  /* Chart Axes & Grid - Dark */
+  --chart-grid: 220 12% 25%;
+  --chart-grid-opacity: 0.2;
+  --chart-axis-tick: 220 10% 65%;
+  --chart-axis-line: 220 12% 20%;
+
+  /* Chart Text - Dark */
+  --chart-text: 0 0% 92%;
+  --chart-text-muted: 220 10% 60%;
+
+  /* Chart Series Colors - Brighter for dark mode */
+  --chart-series-1: 221 75% 65%;
+  --chart-series-2: 152 60% 55%;
+  --chart-series-3: 270 60% 68%;
+  --chart-series-4: 201 60% 58%;
+  --chart-series-5: 35 70% 58%;
+  --chart-series-6: 4 65% 62%;
+  --chart-series-7: 215 30% 62%;
+  --chart-series-8: 280 55% 62%;
+
+  /* Severity Colors for Charts - Dark */
+  --chart-critical: 4 72% 62%;
+  --chart-high: 25 85% 60%;
+  --chart-medium: 45 85% 55%;
+  --chart-low: 152 55% 55%;
+  --chart-info: 201 55% 60%;
+
+  /* Chart Tooltip - Dark */
+  --chart-tooltip-bg: 220 12% 12%;
+  --chart-tooltip-border: 220 12% 20%;
+  --chart-tooltip-text: 0 0% 95%;
+
+  /* Chart Active/Hover States - Dark */
+  --chart-active-stroke: 0 0% 100%;
+  --chart-hover-opacity: 0.85;
 }

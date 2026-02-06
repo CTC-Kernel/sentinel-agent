@@ -19,7 +19,7 @@ export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
  {type === 'spinner' && (
   <>
   <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
-  <Spinner size="lg" className="text-primary relative z-10" />
+  <Spinner size="lg" className="text-primary relative z-decorator" />
   </>
  )}
 

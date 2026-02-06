@@ -295,7 +295,7 @@ const BlastRadius: React.FC<BlastRadiusProps> = ({ center, directCount, indirect
       )}
 
       {/* Center CI */}
-      <div className="relative z-10 p-4 bg-destructive/10 rounded-full border-2 border-destructive">
+      <div className="relative z-decorator p-4 bg-destructive/10 rounded-full border-2 border-destructive">
         <CenterIcon className="h-8 w-8 text-destructive" />
       </div>
 

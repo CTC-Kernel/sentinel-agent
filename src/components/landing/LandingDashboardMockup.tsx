@@ -163,7 +163,7 @@ export const LandingDashboardMockup: React.FC = () => {
   {/* Grid lines background */}
   <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
 
-  <div className="flex justify-between items-center mb-6 relative z-10">
+  <div className="flex justify-between items-center mb-6 relative z-decorator">
   {/* Heading hierarchy: h2 for chart title (follows h1) */}
   <h2 className="font-bold text-white">Évolution de la maturité ISO 27001</h2>
   <div className="flex gap-4 text-xs">
@@ -171,7 +171,7 @@ export const LandingDashboardMockup: React.FC = () => {
    <span className="flex items-center gap-1.5 text-muted-foreground"><div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>Actuel</span>
   </div>
   </div>
-  <div className="flex-1 flex items-end justify-between gap-4 px-2 pb-2 relative z-10">
+  <div className="flex-1 flex items-end justify-between gap-4 px-2 pb-2 relative z-decorator">
   {[40, 55, 45, 60, 75, 65, 80, 70, 85, 90, 82, 88].map((h, i) => (
    <div key={`bar-${i || 'unknown'}`} className="w-full bg-white/5 rounded-t-sm relative group h-full flex items-end overflow-hidden">
    <div
@@ -191,7 +191,7 @@ export const LandingDashboardMockup: React.FC = () => {
   <div className="lg:col-span-1 bg-white/5 rounded-2xl border border-border/40 p-6 flex flex-col relative overflow-hidden min-h-[250px]">
   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/25 dark:bg-primary/60/15 blur-[50px] rounded-full pointer-events-none"></div>
 
-  <h3 className="font-bold text-white mb-6 relative z-10">Répartition</h3>
+  <h3 className="font-bold text-white mb-6 relative z-decorator">Répartition</h3>
   <div className="flex-1 flex items-center justify-center relative scale-110">
   <div className="w-28 h-28 rounded-full border-[12px] border-green-500 border-r-brand-500 border-b-yellow-500 border-l-slate-800 -rotate-45 shadow-[0_0_20px_-5px_rgba(0,0,0,0.5)]"></div>
   <div className="absolute flex flex-col items-center">
@@ -199,7 +199,7 @@ export const LandingDashboardMockup: React.FC = () => {
    <span className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider">Total</span>
   </div>
   </div>
-  <div className="mt-6 flex flex-col gap-2 relative z-10">
+  <div className="mt-6 flex flex-col gap-2 relative z-decorator">
   <div className="flex justify-between text-xs items-center">
    <span className="flex items-center gap-2 text-muted-foreground"><div className="w-1.5 h-1.5 rounded-full bg-primary"></div>En cours</span>
    <span className="font-bold text-muted-foreground/60">45%</span>

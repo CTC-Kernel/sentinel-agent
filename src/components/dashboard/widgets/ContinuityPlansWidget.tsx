@@ -72,7 +72,7 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
  hover={true}
  gradientOverlay={true}
  >
- <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
+ <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-decorator">
   <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
   <div className="p-1.5 rounded-lg bg-error-bg dark:bg-error/10 text-error-text dark:text-error">
   <HeartPulse className="w-4 h-4" />
@@ -81,7 +81,7 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
   </h3>
  </div>
 
- <div className="flex-1 flex items-center justify-center relative z-10">
+ <div className="flex-1 flex items-center justify-center relative z-decorator">
   <EmptyState
   icon={LifeBuoy}
   title="Aucun processus métier"
@@ -100,7 +100,7 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
  <div className="h-full flex flex-col p-5 glass-premium rounded-2xl border border-border/40 shadow-sm relative overflow-hidden group hover:shadow-apple transition-all duration-300">
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
 
- <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
+ <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-decorator">
  <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
   <div className="p-1.5 rounded-lg bg-error-bg dark:bg-error/10 text-error-text dark:text-error">
   <HeartPulse className="w-4 h-4" />
@@ -115,7 +115,7 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
  </button>
  </div>
 
- <div className="flex-1 flex items-center justify-between relative z-10 pt-2 px-1">
+ <div className="flex-1 flex items-center justify-between relative z-decorator pt-2 px-1">
  {/* Circular Chart */}
  <div className="relative w-20 h-20 flex-shrink-0">
   <svg className="w-full h-full transform -rotate-90">

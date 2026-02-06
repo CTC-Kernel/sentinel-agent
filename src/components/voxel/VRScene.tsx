@@ -298,7 +298,7 @@ export const VRScene: React.FC<VRSceneProps> = ({
  <div className="relative w-full h-full">
  {/* VR Entry Button */}
  <VRButton
- className="absolute bottom-4 right-4 z-10 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-3xl shadow-lg transition-colors"
+ className="absolute bottom-4 right-4 z-decorator px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-3xl shadow-lg transition-colors"
  enterOnly={false}
  exitOnly={false}
  />

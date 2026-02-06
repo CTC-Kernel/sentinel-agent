@@ -262,7 +262,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
 
  {/* Incident list */}
  {viewMode === 'list' ? (
- <div className="bg-[var(--glass-bg)] backdrop-blur-xl w-full max-w-full rounded-xl overflow-hidden shadow-premium border border-border/40">
+ <div className="bg-[var(--glass-bg)] backdrop-blur-xl w-full max-w-full rounded-xl shadow-premium border border-border/40">
   <DataTable
   columns={columns}
   data={filteredIncidents}
@@ -301,10 +301,10 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
   role="button"
   tabIndex={0}
   hover={true}
-  className="p-7 flex flex-col relative overflow-hidden group border border-border/40 focus:outline-none focus:ring-2 focus-visible:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background rounded-xl transition-all duration-normal ease-apple"
+  className="p-7 flex flex-col relative group border border-border/40 focus:outline-none focus:ring-2 focus-visible:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background rounded-xl transition-all duration-normal ease-apple"
   >
   {inc.severity === Criticality.CRITICAL && (
-   <div className="absolute top-6 right-6 z-10">
+   <div className="absolute top-6 right-6 z-decorator">
    <span className="relative flex h-3.5 w-3.5">
    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
    <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-destructive shadow-sm border-2 border-white dark:border-background"></span>

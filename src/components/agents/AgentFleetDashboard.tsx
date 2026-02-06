@@ -228,7 +228,7 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
  {/* Gradient overlay */}
  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-success/5 pointer-events-none" />
 
- <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+ <div className="relative z-decorator flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
   {/* Left: Main Stats */}
   <div className="space-y-3">
   <div className="flex items-center gap-2 justify-between">

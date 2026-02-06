@@ -54,7 +54,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
  hover={true}
  gradientOverlay={true}
  >
- <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
+ <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-decorator">
   <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
   <div className="p-1.5 rounded-lg bg-info-bg dark:bg-info/10 text-info-text dark:text-info">
   <FileText className="w-4 h-4" />
@@ -63,7 +63,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
   </h3>
  </div>
 
- <div className="flex-1 flex items-center justify-center relative z-10">
+ <div className="flex-1 flex items-center justify-center relative z-decorator">
   <EmptyState
   icon={FolderOpen}
   title="Aucun document"
@@ -84,7 +84,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
  hover={true}
  gradientOverlay={true}
  >
- <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
+ <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-decorator">
  <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
   <div className="p-1.5 rounded-lg bg-info-bg dark:bg-info/10 text-info-text dark:text-info">
   <FileText className="w-4 h-4" />
@@ -99,7 +99,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
  </button>
  </div>
 
- <div className="flex items-center gap-6 flex-1 justify-center relative z-10 py-2">
+ <div className="flex items-center gap-6 flex-1 justify-center relative z-decorator py-2">
  {/* Score Circle */}
  <div
   className="relative group/chart cursor-pointer transform hover:scale-105 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
@@ -168,7 +168,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
  </div>
  </div>
 
- <div className="grid grid-cols-2 gap-2 mt-auto relative z-10">
+ <div className="grid grid-cols-2 gap-2 mt-auto relative z-decorator">
  <div className="bg-white/50 dark:bg-white/5 rounded-3xl p-2.5 flex items-center gap-3 border border-border/40 dark:border-white/5 hover:bg-white/80 dark:hover:bg-muted transition-colors">
   <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
   <div className="flex flex-col min-w-0">

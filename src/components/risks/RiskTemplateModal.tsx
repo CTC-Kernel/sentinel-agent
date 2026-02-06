@@ -70,7 +70,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
   <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] transition-opacity" />
  </Transition.Child>
 
- <div className="fixed inset-0 z-10 overflow-y-auto">
+ <div className="fixed inset-0 z-decorator overflow-y-auto">
   <div className="flex min-h-full items-center justify-center p-4 text-center">
   <Transition.Child
   as={React.Fragment}

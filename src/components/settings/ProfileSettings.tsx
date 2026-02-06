@@ -188,7 +188,7 @@ export const ProfileSettings: React.FC = () => {
  <div className="space-y-8 animate-fade-in-up">
  <div className="glass-premium p-8 rounded-3xl border border-border/40 shadow-apple relative overflow-hidden">
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
- <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start">
+ <div className="relative z-decorator flex flex-col md:flex-row gap-8 items-start">
   {/* Avatar Section */}
   <div className="flex-shrink-0 w-full md:w-auto flex flex-col items-center space-y-4">
   <div className="relative group mx-auto">
@@ -502,7 +502,7 @@ export const ProfileSettings: React.FC = () => {
  {/* Danger Zone */}
  <div className="glass-premium p-8 rounded-3xl border border-error-border/30 shadow-apple-sm relative overflow-hidden group">
  <div className="absolute inset-0 bg-gradient-to-br from-error-bg/30 to-transparent dark:from-error-bg/10 pointer-events-none" />
- <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center justify-between">
+ <div className="relative z-decorator flex flex-col md:flex-row gap-8 items-center justify-between">
   <div className="space-y-2">
   <h3 className="text-xl font-black text-error-text flex items-center gap-2 uppercase tracking-wide">
   <AlertTriangle className="w-6 h-6" />

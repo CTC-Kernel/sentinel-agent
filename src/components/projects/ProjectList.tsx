@@ -233,7 +233,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
  return (
  <motion.div variants={slideUpVariants} className="glass-premium w-full max-w-full rounded-3xl overflow-hidden shadow-sm border border-border/40 relative">
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
- <div className="relative z-10">
+ <div className="relative z-decorator">
  <DataTable
   columns={columns}
   data={projects}

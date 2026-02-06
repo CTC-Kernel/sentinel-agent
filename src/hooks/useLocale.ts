@@ -1,5 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { type Locale } from 'date-fns';
+import i18n from '../i18n';
 import { useStore } from '../store';
 import {
  type SupportedLocale,
@@ -56,6 +57,27 @@ export interface UseLocaleReturn {
  /** Translate a key */
  t: (key: string, defaultValueOrOptions?: string | Record<string, unknown>) => string;
 }
+
+/**
+ * Safe translation function that handles i18next initialization
+ */
+const safeT = (storeT: (key: string, options?: Record<string, unknown>) => string, key: string, defaultValueOrOptions?: string | Record<string, unknown>): string => {
+ // Check if i18next is initialized
+ if (!i18n.isInitialized) {
+ // Return default value or key if not initialized
+ if (typeof defaultValueOrOptions === 'string') {
+ return defaultValueOrOptions;
+ }
+ return (defaultValueOrOptions?.defaultValue as string) || key;
+ }
+ 
+ // Handle options object
+ const options = typeof defaultValueOrOptions === 'string' 
+ ? { defaultValue: defaultValueOrOptions }
+ : defaultValueOrOptions;
+ 
+ return storeT(key, options);
+};
 
 /**
  * Hook to access locale-aware formatting and validation utilities
@@ -143,6 +165,11 @@ export function useLocale(): UseLocaleReturn {
  [language]
  );
 
+ // Safe translation function
+ const safeTranslate = useCallback((key: string, defaultValueOrOptions?: string | Record<string, unknown>) => {
+ return safeT(t, key, defaultValueOrOptions);
+ }, [t]);
+
  return {
  locale: language,
  config,
@@ -156,6 +183,6 @@ export function useLocale(): UseLocaleReturn {
  zodMessages,
  createDateSchema,
  createNumberSchema,
- t,
+ t: safeTranslate,
  };
 }

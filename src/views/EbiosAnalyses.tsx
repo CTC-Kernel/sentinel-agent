@@ -175,7 +175,7 @@ export const EbiosAnalyses: React.FC = () => {
  <div className="min-h-screen">
  <MasterpieceBackground />
 
- <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+ <div className="relative z-decorator max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
  {/* Header */}
  <PageHeader
  title={t('ebios.title')}

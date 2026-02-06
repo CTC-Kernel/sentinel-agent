@@ -124,7 +124,7 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
    : 'bg-transparent border-transparent hover:bg-muted/50 hover:border-border/40 text-foreground/60 hover:text-foreground'
    }`}
    >
-   <div className="relative z-10 flex items-center justify-between gap-2">
+   <div className="relative z-decorator flex items-center justify-between gap-2">
    <span className="font-medium truncate">{item.label}</span>
    {item.meta && (
    <span className={`text-[11px] px-1.5 py-0.5 rounded bg-muted/50 border border-border/20 ${selectedNodeId === item.id ? 'text-primary/40' : 'text-foreground/30 group-hover:text-foreground/50'

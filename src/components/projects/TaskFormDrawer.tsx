@@ -227,7 +227,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
   </div>
 
   <div className="relative">
-  <div className="absolute right-0 -top-8 z-10">
+  <div className="absolute right-0 -top-8 z-decorator">
   {watchedDueDate && watchedTitle && (
    <AddToCalendar
    event={{

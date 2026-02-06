@@ -56,7 +56,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
  {/* Background pattern */}
  <div className="absolute inset-0 bg-grid-slate-200/50 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/50 -z-10" />
 
- <div className="flex-1 flex flex-col md:flex-row items-center gap-8 relative z-10">
+ <div className="flex-1 flex flex-col md:flex-row items-center gap-8 relative z-decorator">
  <div className="relative">
   <div className="w-32 h-32 md:w-36 md:h-36">
   <svg className="w-full h-full transform -rotate-90">

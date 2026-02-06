@@ -214,7 +214,7 @@ export const CommandPalette: React.FC = () => {
  />
 
  <div className="relative w-full max-w-[95vw] sm:max-w-xl md:max-w-2xl glass-premium rounded-3xl sm:rounded-4xl shadow-2xl overflow-hidden animate-scale-in flex flex-col border border-border/40 ring-1 ring-black/5 pointer-events-none">
- <div className="pointer-events-auto flex items-center px-4 sm:px-6 py-4 sm:py-5 border-b border-border/40 relative z-10">
+ <div className="pointer-events-auto flex items-center px-4 sm:px-6 py-4 sm:py-5 border-b border-border/40 relative z-decorator">
   <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent pointer-events-none" />
   <Search className="h-5 w-5 text-primary mr-4 font-bold" />
   <input value={queryStr} onChange={e => { setQueryStr(e.target.value); setSelectedIndex(0); }}
@@ -231,7 +231,7 @@ export const CommandPalette: React.FC = () => {
   </div>
  </div>
 
- <div className="overflow-y-auto p-2 sm:p-3 max-h-[50vh] sm:max-h-[60vh] custom-scrollbar relative z-10">
+ <div className="overflow-y-auto p-2 sm:p-3 max-h-[50vh] sm:max-h-[60vh] custom-scrollbar relative z-decorator">
   {filteredItems.length === 0 && !loading ? (
   <div className="p-16 text-center text-muted-foreground text-sm flex flex-col items-center">
   <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -274,7 +274,7 @@ export const CommandPalette: React.FC = () => {
   )}
  </div>
 
- <div className="px-6 py-3 bg-muted/50 border-t border-border/40 flex justify-between items-center text-[11px] font-medium text-muted-foreground uppercase tracking-wider backdrop-blur-md relative z-10">
+ <div className="px-6 py-3 bg-muted/50 border-t border-border/40 flex justify-between items-center text-[11px] font-medium text-muted-foreground uppercase tracking-wider backdrop-blur-md relative z-decorator">
   <span className="flex items-center gap-2">
   <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
   <span className="font-bold">Sentinel GRC Pro</span>

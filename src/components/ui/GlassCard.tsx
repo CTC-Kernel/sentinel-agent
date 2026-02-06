@@ -15,7 +15,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
  return (
  <div
  className={cn(
- "relative overflow-hidden rounded-2xl border border-border/40 bg-[var(--glass-bg)] backdrop-blur-xl shadow-sm transition-all duration-300",
+ "relative rounded-2xl border border-border/40 bg-[var(--glass-bg)] backdrop-blur-xl shadow-sm transition-all duration-300",
  hoverEffect && "hover:shadow-md hover:scale-[1.01] hover:bg-[var(--glass-medium-bg)] cursor-pointer",
  className
  )}

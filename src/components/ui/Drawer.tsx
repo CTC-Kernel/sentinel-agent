@@ -152,7 +152,7 @@ export const Drawer: React.FC<DrawerProps> = ({
   <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" />
   </Transition.Child>
 
-  <div className="fixed inset-0 z-10 overflow-y-auto">
+  <div className="fixed inset-0 z-decorator overflow-y-auto">
   <div className="flex min-h-full items-center justify-center p-4">
   <Transition.Child
   as={React.Fragment}

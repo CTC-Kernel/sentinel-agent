@@ -331,7 +331,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
  <table className="w-full min-w-max">
  <thead>
  <tr className="border-b border-border/40">
- <th className="sticky left-0 z-10 bg-muted/80 backdrop-blur-sm px-4 py-3 text-left text-sm font-semibold text-foreground min-w-[200px]">
+ <th className="sticky left-0 z-decorator bg-muted/80 backdrop-blur-sm px-4 py-3 text-left text-sm font-semibold text-foreground min-w-[200px]">
   {t('mapping.control')}
  </th>
  {frameworks.map((framework) => (
@@ -361,7 +361,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
   selectedControlId === control.controlId && 'bg-primary/10'
   )}
  >
-  <td className="sticky left-0 z-10 bg-card px-4 py-3">
+  <td className="sticky left-0 z-decorator bg-card px-4 py-3">
   <button
   onClick={() => handleControlSelect(control)}
   className="text-left group"

@@ -353,7 +353,7 @@ export const CalendarDashboard: React.FC = () => {
  <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/20 dark:bg-primary/60/15 rounded-full blur-[100px] -mr-20 -mt-20 pointer-events-none mix-blend-multiply dark:mix-blend-screen"></div>
  <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-500/20 dark:bg-indigo-400/15 rounded-full blur-[80px] -ml-20 -mb-20 pointer-events-none mix-blend-multiply dark:mix-blend-screen"></div>
 
- <div className="relative z-10 h-full">
+ <div className="relative z-decorator h-full">
   <DnDCalendar
   localizer={localizer}
   events={filteredEvents}

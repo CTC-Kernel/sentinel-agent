@@ -183,7 +183,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                 className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
             >
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
-                <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10">
+                <div className="flex flex-col sm:flex-row items-center gap-6 relative z-decorator">
                     <div className="relative">
                         <div className="h-[140px] w-[140px]">
                             <ResponsiveContainer width="100%" height="100%" >
@@ -243,13 +243,13 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                     <svg className="absolute bottom-5 left-5 w-3 h-3 text-muted-foreground/30 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-muted-foreground/30 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
-                    <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-decorator flex items-center gap-2">
                         <div className="p-2 bg-primary/10 rounded-3xl">
                             <PieChartIcon className="w-4 h-4 text-primary" />
                         </div>
                         {t('compliance.dashboard.distributionTitle')}
                     </h4>
-                    <div className="h-[280px] w-full relative z-10">
+                    <div className="h-[280px] w-full relative z-decorator">
                         <ResponsiveContainer width="100%" height="100%" >
                             <PieChart>
                                 <defs>
@@ -300,13 +300,13 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-muted-foreground/30 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
                     <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
-                    <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-decorator flex items-center gap-2">
                         <div className="p-2 bg-violet-500/10 rounded-3xl">
                             <BarChartIcon className="w-4 h-4 text-violet-500" />
                         </div>
                         {t('compliance.dashboard.domainConformityTitle')}
                     </h4>
-                    <div className="h-[280px] w-full relative z-10">
+                    <div className="h-[280px] w-full relative z-decorator">
                         <ResponsiveContainer width="100%" height="100%" >
                             <BarChart data={domainChartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
@@ -349,13 +349,13 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-muted-foreground/30 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
                     <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
-                    <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-decorator flex items-center gap-2">
                         <div className="p-2 bg-success/10 rounded-3xl">
                             <Target className="w-4 h-4 text-success" />
                         </div>
                         {t('compliance.dashboard.radarTitle')}
                     </h4>
-                    <div className="h-[280px] w-full relative z-10">
+                    <div className="h-[280px] w-full relative z-decorator">
                         <ResponsiveContainer width="100%" height="100%" >
                             <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                                 <PolarGrid stroke={chartTheme.grid} strokeDasharray="3 3" />

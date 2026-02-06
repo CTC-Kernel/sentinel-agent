@@ -122,7 +122,7 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
  style={{ backgroundImage: 'linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
 
  <div
- className="relative w-[280px] h-[280px] md:w-[320px] md:h-[320px] shrink-0 cursor-pointer transition-all duration-300 hover:scale-[1.05] z-10"
+ className="relative w-[280px] h-[280px] md:w-[320px] md:h-[320px] shrink-0 cursor-pointer transition-all duration-300 hover:scale-[1.05] z-decorator"
  style={{
   transform: `perspective(1000px) rotateX(${(mousePos.y - 50) / -15}deg) rotateY(${(mousePos.x - 50) / 15}deg)`,
  }}
@@ -162,7 +162,7 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
   />
   ))}
 
-  <div className="w-full h-full relative z-10 flex items-center justify-center">
+  <div className="w-full h-full relative z-decorator flex items-center justify-center">
   {radarData.length === 0 ? (
   <EmptyChartState variant="radar" message={t('agents.widget.title')} />
   ) : (

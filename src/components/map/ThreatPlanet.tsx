@@ -272,7 +272,7 @@ export const ThreatPlanet: React.FC<ThreatPlanetProps> = ({ data }) => {
  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950/80 to-slate-950 z-0 pointer-events-none" />
 
  {/* HUD Overlay */}
- <div className="absolute top-6 left-8 z-10 pointer-events-none" aria-hidden="true">
+ <div className="absolute top-6 left-8 z-decorator pointer-events-none" aria-hidden="true">
  <div className="text-cyan-500 text-xs font-mono mb-1 tracking-widest">SYSTEM STATUS</div>
  <div className="text-white text-xl font-bold tracking-tighter flex items-center gap-2">
   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />

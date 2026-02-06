@@ -42,6 +42,7 @@ import { usePendingValidations } from '@/hooks/cmdb/useCMDBValidation';
 import { useCMDBActions, usePendingValidationCount } from '@/stores/cmdbStore';
 import { DiscoveryStats, CIClass } from '@/types/cmdb';
 import { cn } from '@/lib/utils';
+import { SENTINEL_PALETTE, CHART_STYLES } from '@/theme/chartTheme';
 
 // =============================================================================
 // TYPES
@@ -55,14 +56,14 @@ interface CMDBPremiumDashboardProps {
 // CONSTANTS
 // =============================================================================
 
-const CI_CLASS_CONFIG: Record<CIClass, { icon: React.FC<{ className?: string; style?: React.CSSProperties }>; color: string; gradient: string }> = {
-  Hardware: { icon: Server, color: '#3B82F6', gradient: 'from-blue-500 to-blue-600' },
-  Software: { icon: Database, color: '#22C55E', gradient: 'from-green-500 to-green-600' },
-  Service: { icon: Globe, color: '#8B5CF6', gradient: 'from-purple-500 to-purple-600' },
-  Cloud: { icon: Cloud, color: '#06B6D4', gradient: 'from-cyan-500 to-cyan-600' },
-  Document: { icon: FileText, color: '#F59E0B', gradient: 'from-amber-500 to-amber-600' },
-  Network: { icon: Network, color: '#EF4444', gradient: 'from-red-500 to-red-600' },
-  Container: { icon: Box, color: '#EC4899', gradient: 'from-pink-500 to-pink-600' },
+const CI_CLASS_CONFIG: Record<CIClass, { icon: React.FC<{ className?: string; style?: React.CSSProperties }>; color: string; cssVar: string; gradient: string }> = {
+  Hardware: { icon: Server, color: 'hsl(var(--chart-series-1))', cssVar: '--chart-series-1', gradient: 'from-[hsl(var(--chart-series-1))] to-[hsl(var(--chart-series-1)/0.8)]' },
+  Software: { icon: Database, color: 'hsl(var(--success))', cssVar: '--success', gradient: 'from-[hsl(var(--success))] to-[hsl(var(--success)/0.8)]' },
+  Service: { icon: Globe, color: 'hsl(var(--chart-series-2))', cssVar: '--chart-series-2', gradient: 'from-[hsl(var(--chart-series-2))] to-[hsl(var(--chart-series-2)/0.8)]' },
+  Cloud: { icon: Cloud, color: 'hsl(var(--info))', cssVar: '--info', gradient: 'from-[hsl(var(--info))] to-[hsl(var(--info)/0.8)]' },
+  Document: { icon: FileText, color: 'hsl(var(--warning))', cssVar: '--warning', gradient: 'from-[hsl(var(--warning))] to-[hsl(var(--warning)/0.8)]' },
+  Network: { icon: Network, color: 'hsl(var(--error))', cssVar: '--error', gradient: 'from-[hsl(var(--error))] to-[hsl(var(--error)/0.8)]' },
+  Container: { icon: Box, color: 'hsl(var(--chart-series-5))', cssVar: '--chart-series-5', gradient: 'from-[hsl(var(--chart-series-5))] to-[hsl(var(--chart-series-5)/0.8)]' },
 };
 
 // =============================================================================
@@ -217,9 +218,9 @@ const PremiumKPICard: React.FC<PremiumKPICardProps> = ({
 
         <div
           className={cn('p-4 rounded-2xl bg-gradient-to-br', gradient)}
-          style={{ boxShadow: `0 8px 32px ${color}30` }}
+          style={{ boxShadow: `0 8px 32px hsl(var(--primary) / 0.2)` }}
         >
-          <Icon className="h-6 w-6 text-white" />
+          <Icon className="h-6 w-6 text-foreground" />
         </div>
       </div>
     </motion.div>
@@ -257,7 +258,7 @@ const CIClassDistribution: React.FC<CIClassDistributionProps> = ({ stats, loadin
   const pieData = distribution.map((d) => ({
     name: d.class,
     value: d.count,
-    color: CI_CLASS_CONFIG[d.class]?.color || '#6B7280',
+    color: CI_CLASS_CONFIG[d.class]?.color || 'hsl(var(--muted-foreground))',
   }));
 
   if (loading) {
@@ -377,10 +378,17 @@ const DataQualityGauge: React.FC<DataQualityGaugeProps> = ({ score, loading, qua
   const { t } = useStore();
 
   const getScoreColor = (s: number) => {
-    if (s >= 80) return '#22C55E';
-    if (s >= 60) return '#EAB308';
-    if (s >= 40) return '#F59E0B';
-    return '#EF4444';
+    if (s >= 80) return 'hsl(var(--success))';
+    if (s >= 60) return 'hsl(var(--warning))';
+    if (s >= 40) return 'hsl(var(--chart-high))';
+    return 'hsl(var(--error))';
+  };
+
+  const getScoreCssVar = (s: number) => {
+    if (s >= 80) return '--success';
+    if (s >= 60) return '--warning';
+    if (s >= 40) return '--chart-high';
+    return '--error';
   };
 
   const scoreColor = getScoreColor(score);
@@ -474,9 +482,9 @@ const DataQualityGauge: React.FC<DataQualityGaugeProps> = ({ score, loading, qua
         {/* Quality breakdown */}
         <div className="w-full mt-4 grid grid-cols-3 gap-2">
           {[
-            { label: 'Excellent', range: '80-100', color: '#22C55E', count: qualityDistribution?.excellent || 0 },
-            { label: 'Bon', range: '60-79', color: '#EAB308', count: qualityDistribution?.good || 0 },
-            { label: 'À améliorer', range: '<60', color: '#EF4444', count: qualityDistribution?.needsImprovement || 0 },
+            { label: 'Excellent', range: '80-100', color: 'hsl(var(--success))', count: qualityDistribution?.excellent || 0 },
+            { label: 'Bon', range: '60-79', color: 'hsl(var(--warning))', count: qualityDistribution?.good || 0 },
+            { label: 'À améliorer', range: '<60', color: 'hsl(var(--error))', count: qualityDistribution?.needsImprovement || 0 },
           ].map((item) => (
             <div
               key={item.label}
@@ -563,14 +571,12 @@ const DiscoveryActivityChart: React.FC<DiscoveryActivityChartProps> = ({ loading
               dataKey="date"
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 10 }}
-              className="text-muted-foreground"
+              tick={{ fontSize: 10, fill: 'hsl(var(--chart-axis-tick))' }}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 10 }}
-              className="text-muted-foreground"
+              tick={{ fontSize: 10, fill: 'hsl(var(--chart-axis-tick))' }}
             />
             <Tooltip
               contentStyle={{
@@ -765,8 +771,8 @@ export const CMDBPremiumDashboard: React.FC<CMDBPremiumDashboardProps> = ({ clas
           value={stats?.total || 0}
           icon={Server}
           trend={{ value: 12, positive: true }}
-          color="#3B82F6"
-          gradient="from-blue-500 to-blue-600"
+          color="hsl(var(--chart-series-1))"
+          gradient="from-[hsl(var(--chart-series-1))] to-[hsl(var(--chart-series-1)/0.8)]"
           onClick={() => navigate('/cmdb/cis')}
           loading={statsLoading}
         />
@@ -774,8 +780,8 @@ export const CMDBPremiumDashboard: React.FC<CMDBPremiumDashboardProps> = ({ clas
           title={t('cmdb.stats.pending', { defaultValue: 'En Attente' })}
           value={stats?.pending || 0}
           icon={Clock}
-          color="#EAB308"
-          gradient="from-amber-500 to-amber-600"
+          color="hsl(var(--warning))"
+          gradient="from-[hsl(var(--warning))] to-[hsl(var(--warning)/0.8)]"
           onClick={() => navigate('/cmdb/validation')}
           loading={statsLoading}
           pulse={!!stats?.pending && stats.pending > 0}
@@ -785,16 +791,16 @@ export const CMDBPremiumDashboard: React.FC<CMDBPremiumDashboardProps> = ({ clas
           value={stats?.matched || 0}
           icon={CheckCircle}
           trend={{ value: 8, positive: true }}
-          color="#22C55E"
-          gradient="from-green-500 to-green-600"
+          color="hsl(var(--success))"
+          gradient="from-[hsl(var(--success))] to-[hsl(var(--success)/0.8)]"
           loading={statsLoading}
         />
         <PremiumKPICard
           title={t('cmdb.stats.missing', { defaultValue: 'Manquants' })}
           value={stats?.missing || 0}
           icon={AlertTriangle}
-          color="#EF4444"
-          gradient="from-red-500 to-red-600"
+          color="hsl(var(--error))"
+          gradient="from-[hsl(var(--error))] to-[hsl(var(--error)/0.8)]"
           loading={statsLoading}
           pulse={!!stats?.missing && stats.missing > 5}
         />
@@ -837,10 +843,10 @@ export const CMDBPremiumDashboard: React.FC<CMDBPremiumDashboardProps> = ({ clas
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { icon: GitBranch, label: 'Relations', path: '/cmdb/relationships', color: '#8B5CF6' },
-            { icon: BarChart3, label: 'Impact', path: '/cmdb/impact', color: '#EF4444' },
-            { icon: RefreshCw, label: 'Reconciliation', path: '/cmdb/reconciliation', color: '#22C55E' },
-            { icon: Layers, label: 'Topologie', path: '/cmdb/topology', color: '#06B6D4' },
+            { icon: GitBranch, label: 'Relations', path: '/cmdb/relationships', color: 'hsl(var(--chart-series-2))' },
+            { icon: BarChart3, label: 'Impact', path: '/cmdb/impact', color: 'hsl(var(--error))' },
+            { icon: RefreshCw, label: 'Reconciliation', path: '/cmdb/reconciliation', color: 'hsl(var(--success))' },
+            { icon: Layers, label: 'Topologie', path: '/cmdb/topology', color: 'hsl(var(--info))' },
           ].map((action) => (
             <motion.button
               key={action.label}

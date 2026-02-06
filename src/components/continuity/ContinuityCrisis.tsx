@@ -60,7 +60,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
  <div className="space-y-6 sm:space-y-8">
  {/* Status Header */}
  <div className={`p-8 rounded-4xl border-2 transition-all duration-500 overflow-hidden relative ${crisisActive ? 'bg-red-950/30 border-red-2000 shadow-[0_0_50px_rgba(239,68,68,0.2)]' : 'glass-premium border-border/40'}`}>
- <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+ <div className="relative z-decorator flex flex-col md:flex-row items-center justify-between gap-6">
   <div className="flex items-center gap-6">
   <div className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-lg ${crisisActive ? 'bg-red-600 text-white animate-pulse' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20'}`}>
   {crisisActive ? <AlertTriangle className="w-10 h-10" /> : <ShieldAlert className="w-10 h-10" />}

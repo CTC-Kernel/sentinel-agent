@@ -23,11 +23,11 @@ export const ComplianceCriticalControls: React.FC<ComplianceCriticalControlsProp
  return (
  <div className="glass-premium p-6 md:p-8 rounded-3xl relative group hover:shadow-apple overflow-hidden transition-all duration-300">
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
- <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2 relative z-10 uppercase tracking-wider">
+ <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2 relative z-decorator uppercase tracking-wider">
  <AlertTriangle className="h-4 w-4 text-warning-text" />
  {t('compliance.dashboard.criticalControlsTitle')} ({criticalControls.length})
  </h4>
- <div className="space-y-3 relative z-10">
+ <div className="space-y-3 relative z-decorator">
  {criticalControls.slice(0, 5).map((control, index) => (
   <div key={`task-${index || 'unknown'}`} className="flex items-center justify-between p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 hover:bg-white/70 dark:hover:bg-muted transition-colors shadow-sm shadow-black/5">
   <div className="flex-1">

@@ -140,7 +140,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
  <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-primary/10/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float" style={{ animationDelay: '3s' }}></div>
  </div>
 
- <div className="relative z-10 h-screen flex flex-col overflow-hidden">
+ <div className="relative z-decorator h-screen flex flex-col overflow-hidden">
  {/* Main Content - Takes remaining space minus footer */}
  <div className="flex-1 flex items-center justify-center px-4 py-2 overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
   <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-2 lg:gap-12">
@@ -179,13 +179,13 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
   </div>
 
   {/* Logo - Desktop w/o Assistant Context (if simplified) -> Keep centered for form consistency */}
-  <div className="hidden lg:flex flex-col items-center mb-2 sm:mb-4 relative z-10">
+  <div className="hidden lg:flex flex-col items-center mb-2 sm:mb-4 relative z-decorator">
   <motion.div
   whileHover={{ scale: 1.1, rotate: 5 }}
   className="w-16 h-16 rounded-3xl bg-foreground text-background flex items-center justify-center shadow-2xl mb-4 ring-1 ring-white/10 relative overflow-hidden"
   >
   <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-60"></div>
-  <Lock className="h-8 w-8 relative z-10" strokeWidth={2.5} />
+  <Lock className="h-8 w-8 relative z-decorator" strokeWidth={2.5} />
   </motion.div>
   <h2 className="text-3xl font-display font-bold text-foreground tracking-tight">
   {isLogin ? (
@@ -350,7 +350,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
    disabled={loading || (!isLogin && !privacyAccepted)}
    className="w-full py-3 sm:py-4 lg:py-5 font-bold rounded-2xl shadow-primary/20 shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:border-muted relative overflow-hidden group/btn"
    >
-   <span className="relative z-10 flex items-center justify-center">
+   <span className="relative z-decorator flex items-center justify-center">
    {isLogin ? t('auth.login') : t('auth.signup')}
    {!loading && <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1" strokeWidth={2.5} />}
    </span>
@@ -359,7 +359,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
   </AnimatePresence>
   </div>
 
-  <div className="mt-2 sm:mt-4 text-center relative z-10">
+  <div className="mt-2 sm:mt-4 text-center relative z-decorator">
   <Button
   variant="ghost"
   onClick={() => { setIsLogin(!isLogin); setErrorMsg(null); setPrivacyAccepted(false); }}

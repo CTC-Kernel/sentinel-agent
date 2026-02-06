@@ -322,7 +322,7 @@ export const AgentComplianceHeatmap: React.FC<AgentComplianceHeatmapProps> = ({
   {/* Header Row - Check Names */}
   <thead>
   <tr className="border-b border-border/30">
-  <th className="sticky left-0 bg-card z-10 px-4 py-3 text-left">
+  <th className="sticky left-0 bg-card z-decorator px-4 py-3 text-left">
   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
    {t('agent.agent', { defaultValue: 'Agent' })}
   </span>
@@ -365,7 +365,7 @@ export const AgentComplianceHeatmap: React.FC<AgentComplianceHeatmapProps> = ({
   onClick={() => onAgentClick?.(agent)}
   >
   {/* Agent Name Cell */}
-  <td className="sticky left-0 bg-card z-10 px-4 py-2">
+  <td className="sticky left-0 bg-card z-decorator px-4 py-2">
    <button
    onClick={() => onAgentClick?.(agent)}
    className="flex items-center gap-2 group text-left"

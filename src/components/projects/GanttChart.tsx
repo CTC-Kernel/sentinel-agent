@@ -218,7 +218,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
  return (
  <div
  style={{ height: headerHeight }}
- className="flex items-center px-4 border-b border-border/40 bg-muted/50/80/80 backdrop-blur-md sticky top-0 z-10"
+ className="flex items-center px-4 border-b border-border/40 bg-muted/50/80/80 backdrop-blur-md sticky top-0 z-decorator"
  >
  <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex-1">
   Tâche

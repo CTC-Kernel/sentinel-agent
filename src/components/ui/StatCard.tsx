@@ -67,7 +67,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
  role={isInteractive ? 'button' : undefined}
  aria-label={isInteractive ? (ariaLabel || `Voir les détails: ${title}`) : undefined}
  className={cn(
- 'relative group p-6 rounded-3xl border transition-all duration-500 overflow-hidden',
+ 'relative group p-6 rounded-3xl border transition-all duration-500',
  'glass-premium shadow-apple',
  'hover:shadow-apple-xl dark:hover:shadow-primary/20',
  'hover:-translate-y-1',
@@ -77,7 +77,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
  {/* Gradient overlay - visible at 60%, 100% on hover */}
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none opacity-60 group-hover:opacity-70 transition-opacity duration-500" />
 
- <div className="flex flex-col h-full justify-between relative z-10">
+ <div className="flex flex-col h-full justify-between relative z-decorator">
  {/* Header with icon and trend */}
  <div className="flex justify-between items-start mb-6">
   <div className={cn(

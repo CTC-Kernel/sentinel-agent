@@ -116,7 +116,7 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
  {/* Background Decorator */}
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
 
- <div className="flex items-center justify-between mb-6 relative z-10">
+ <div className="flex items-center justify-between mb-6 relative z-decorator">
  <div className="flex items-center gap-4">
  <div className="p-2.5 rounded-3xl bg-red-50">
  <AlertTriangle className="w-5 h-5 text-red-500" />
@@ -144,7 +144,7 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
  </div>
 
  {assignments.length === 0 ? (
- <div className="relative z-10">
+ <div className="relative z-decorator">
  <EmptyState
  icon={Clock}
  title={t('training.dashboard.noOverdue')}
@@ -154,7 +154,7 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
  />
  </div>
  ) : (
- <div className="space-y-3 relative z-10">
+ <div className="space-y-3 relative z-decorator">
  <AnimatePresence>
  {displayAssignments.map((assignment, index) => {
  const dueDate = assignment.dueDate.toDate();

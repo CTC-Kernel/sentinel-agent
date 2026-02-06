@@ -197,7 +197,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
  >
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
  {/* Header */}
- <div className="px-8 py-6 border-b border-border/40 glass-premium backdrop-blur-md relative z-10">
+ <div className="px-8 py-6 border-b border-border/40 glass-premium backdrop-blur-md relative z-decorator">
   <div>
   <h2 className="text-2xl font-bold text-foreground font-display">Nouveau Document</h2>
   <p className="text-sm text-muted-foreground mt-1">Assistant d'importation et de classification</p>
@@ -222,7 +222,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
  </div>
 
  {/* Content */}
- <div className="flex-1 overflow-y-auto p-8 custom-scrollbar relative z-10">
+ <div className="flex-1 overflow-y-auto p-8 custom-scrollbar relative z-decorator">
   <form id="wizard-form" onSubmit={handleSubmit(handleFinalSubmit)}>
   <input type="hidden" {...register('owner', { required: true })} />
 
@@ -530,7 +530,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
  </div>
 
  {/* Footer Buttons */}
- <div className="px-8 py-6 border-t border-border/40 glass-premium backdrop-blur-md relative z-10 flex justify-between items-center">
+ <div className="px-8 py-6 border-t border-border/40 glass-premium backdrop-blur-md relative z-decorator flex justify-between items-center">
   <Button
   type="button"
   variant="ghost"

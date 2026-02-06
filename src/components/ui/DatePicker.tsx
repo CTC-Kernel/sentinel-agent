@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar as CalendarIcon } from './Icons';
 import { Calendar } from './Calendar';
 import { useLocale } from '@/hooks/useLocale';
@@ -27,17 +28,47 @@ export const DatePicker: React.FC<DatePickerProps> = ({
  const { config } = useLocale();
  const [isOpen, setIsOpen] = useState(false);
  const containerRef = useRef<HTMLDivElement>(null);
+ const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
+
+ // Update position when open
+ const updatePosition = React.useCallback(() => {
+ if (containerRef.current) {
+ const rect = containerRef.current.getBoundingClientRect();
+ setCoords({
+ top: rect.bottom + 8,
+ left: rect.left,
+ width: Math.max(rect.width, 300)
+ });
+ }
+ }, []);
 
  // Close on click outside
  useEffect(() => {
  const handleClickOutside = (event: MouseEvent) => {
  if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+ // Also check if click is on the portal content
+ const portalContent = document.querySelector('[data-datepicker-portal]');
+ if (portalContent && portalContent.contains(event.target as Node)) {
+  return;
+ }
  setIsOpen(false);
  }
  };
  document.addEventListener('mousedown', handleClickOutside);
  return () => document.removeEventListener('mousedown', handleClickOutside);
  }, []);
+
+ useEffect(() => {
+ if (isOpen) {
+ updatePosition();
+ window.addEventListener('scroll', updatePosition, true);
+ window.addEventListener('resize', updatePosition);
+ return () => {
+ window.removeEventListener('scroll', updatePosition, true);
+ window.removeEventListener('resize', updatePosition);
+ };
+ }
+ }, [isOpen, updatePosition]);
 
  const handleSelect = (date: Date | undefined) => {
  setIsOpen(false);
@@ -58,6 +89,36 @@ export const DatePicker: React.FC<DatePickerProps> = ({
  }) : '';
 
  const selectedDate = value ? new Date(value) : undefined;
+
+ const calendarContent = isOpen && !disabled && (
+ <div
+ data-datepicker-portal
+ className="fixed z-tooltip p-2 bg-card rounded-2xl shadow-xl border border-border/40 animate-fade-in"
+ style={{
+ top: coords.top,
+ left: coords.left,
+ minWidth: coords.width,
+ }}
+ onClick={(e) => e.stopPropagation()}
+ >
+ <Calendar
+ mode="single"
+ selected={selectedDate}
+ onSelect={handleSelect}
+ initialFocus
+ />
+ {value && (
+ <div className="p-2 border-t border-border/40 dark:border-white/5 mt-2">
+ <button
+  onClick={(e) => { e.stopPropagation(); onChange(undefined); setIsOpen(false); }}
+  className="w-full py-2 text-xs font-bold text-destructive hover:bg-destructive/5 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
+ >
+  Effacer la date
+ </button>
+ </div>
+ )}
+ </div>
+ );
 
  return (
  <div className={`relative ${className} ${disabled ? 'opacity-70 cursor-not-allowed pointer-events-none' : ''}`} ref={containerRef}>
@@ -102,26 +163,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
  </label>
  </div>
 
- {isOpen && !disabled && (
- <div className="absolute z-tooltip mt-2 p-2 bg-card rounded-2xl shadow-xl border border-border/40 w-auto min-w-[300px] animate-fade-in">
-  <Calendar
-  mode="single"
-  selected={selectedDate}
-  onSelect={handleSelect}
-  initialFocus
-  />
-  {value && (
-  <div className="p-2 border-t border-border/40 dark:border-white/5 mt-2">
-  <button
-  onClick={(e) => { e.stopPropagation(); onChange(undefined); setIsOpen(false); }}
-  className="w-full py-2 text-xs font-bold text-destructive hover:bg-destructive/5 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
-  >
-  Effacer la date
-  </button>
-  </div>
-  )}
- </div>
- )}
+ {/* Use Portal to escape overflow:hidden containers */}
+ {typeof document !== 'undefined' && createPortal(calendarContent, document.body)}
 
  {error && (
  <p className="text-destructive text-xs mt-1.5 ml-1 font-medium animate-fade-in">

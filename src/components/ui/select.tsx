@@ -1,4 +1,5 @@
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { ChevronDown } from './Icons'
 import { cn } from "@/lib/utils"
 
@@ -10,6 +11,7 @@ const SelectContext = React.createContext<{
  setOpen?: (open: boolean) => void
  listboxId?: string
  disabled?: boolean
+ triggerRef?: React.RefObject<HTMLButtonElement>
 } | null>(null)
 
 interface SelectProps {
@@ -25,6 +27,7 @@ interface SelectProps {
 const Select: React.FC<SelectProps> = ({ children, value, onValueChange, defaultValue, open, onOpenChange, disabled }) => {
  const [internalValue, setInternalValue] = React.useState(defaultValue || "")
  const [internalOpen, setInternalOpen] = React.useState(false)
+ const triggerRef = React.useRef<HTMLButtonElement>(null)
 
  const isControlled = value !== undefined
  const currentValue = isControlled ? value : internalValue
@@ -43,7 +46,7 @@ const Select: React.FC<SelectProps> = ({ children, value, onValueChange, default
  const listboxId = React.useId()
 
  return (
- <SelectContext.Provider value={{ value: currentValue, onValueChange: handleValueChange, open: currentOpen, setOpen: handleOpenChange, listboxId, disabled }}>
+ <SelectContext.Provider value={{ value: currentValue, onValueChange: handleValueChange, open: currentOpen, setOpen: handleOpenChange, listboxId, disabled, triggerRef }}>
  <div className="relative inline-block w-full text-left">
  {children}
  </div>
@@ -55,7 +58,17 @@ const SelectTrigger = React.forwardRef<
  HTMLButtonElement,
  React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, children, ...props }, ref) => {
- const { open, setOpen, listboxId, disabled } = React.useContext(SelectContext)!
+ const { open, setOpen, listboxId, disabled, triggerRef } = React.useContext(SelectContext)!
+
+ // Merge refs
+ const mergedRef = React.useCallback(
+ (node: HTMLButtonElement | null) => {
+ if (typeof ref === 'function') ref(node)
+ else if (ref) ref.current = node
+ if (triggerRef) (triggerRef as React.MutableRefObject<HTMLButtonElement | null>).current = node
+ },
+ [ref, triggerRef]
+ )
 
  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -80,7 +93,7 @@ const SelectTrigger = React.forwardRef<
  <button
  onClick={() => !disabled && setOpen?.(!open)}
  onKeyDown={handleKeyDown}
- ref={ref}
+ ref={mergedRef}
  role="combobox"
  aria-expanded={open}
  aria-controls={listboxId}
@@ -117,7 +130,33 @@ const SelectContent = React.forwardRef<
  HTMLDivElement,
  React.HTMLAttributes<HTMLDivElement> & { position?: "popper" | "item-aligned" }
 >(({ className, children, position = "popper", ...props }, ref) => {
- const { open, setOpen, listboxId } = React.useContext(SelectContext)!
+ const { open, setOpen, listboxId, triggerRef } = React.useContext(SelectContext)!
+ const [coords, setCoords] = React.useState({ top: 0, left: 0, width: 0 })
+
+ // Calculate position based on trigger element
+ const updatePosition = React.useCallback(() => {
+ if (triggerRef?.current) {
+ const rect = triggerRef.current.getBoundingClientRect()
+ setCoords({
+ top: rect.bottom + 4,
+ left: rect.left,
+ width: rect.width
+ })
+ }
+ }, [triggerRef])
+
+ React.useEffect(() => {
+ if (open) {
+ updatePosition()
+ window.addEventListener('scroll', updatePosition, true)
+ window.addEventListener('resize', updatePosition)
+ return () => {
+ window.removeEventListener('scroll', updatePosition, true)
+ window.removeEventListener('resize', updatePosition)
+ }
+ }
+ }, [open, updatePosition])
+
  if (!open) return null
 
  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -153,24 +192,34 @@ const SelectContent = React.forwardRef<
  }
  }
 
- return (
+ const content = (
  <div
  ref={ref}
  id={listboxId}
  role="listbox"
  tabIndex={-1}
  className={cn(
- "absolute z-dropdown min-w-[8rem] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-apple-md animate-in fade-in-0 zoom-in-95",
- position === "popper" && "translate-y-1",
+ "fixed z-dropdown min-w-[8rem] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-apple-md animate-in fade-in-0 zoom-in-95",
  className
  )}
- style={{ top: "100%", left: 0, width: "100%" }}
+ style={{
+ top: coords.top,
+ left: coords.left,
+ width: coords.width,
+ }}
  onKeyDown={handleKeyDown}
  {...props}
  >
- <div className="p-1">{children}</div>
+ <div className="p-1 max-h-[300px] overflow-y-auto custom-scrollbar">{children}</div>
  </div>
  )
+
+ // Use Portal to escape overflow:hidden containers
+ if (typeof document !== 'undefined') {
+ return createPortal(content, document.body)
+ }
+
+ return content
 })
 SelectContent.displayName = "SelectContent"
 

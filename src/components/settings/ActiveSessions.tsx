@@ -74,7 +74,7 @@ export const ActiveSessions: React.FC = () => {
  <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden flex flex-col h-full col-span-1 md:col-span-2">
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
 
- <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 flex items-center justify-between">
+ <div className="relative z-decorator p-6 border-b border-white/20 dark:border-white/5 flex items-center justify-between">
  <div className="flex items-center gap-3">
   <div className="p-2.5 bg-info-bg dark:bg-info-500/20 rounded-3xl text-info-600 dark:text-info-400 backdrop-blur-md">
   <Globe className="w-5 h-5" />
@@ -96,7 +96,7 @@ export const ActiveSessions: React.FC = () => {
  )}
  </div>
 
- <div className="relative z-10 p-6 space-y-4">
+ <div className="relative z-decorator p-6 space-y-4">
  {sessions.map((session) => (
   <div key={session.id || 'unknown'} className="flex items-center justify-between p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/40 dark:border-white/5 transition-all hover:bg-white/80 dark:hover:bg-muted">
   <div className="flex items-center gap-4">

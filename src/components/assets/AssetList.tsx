@@ -303,7 +303,7 @@ export const AssetList = React.memo<AssetListProps>(({
   className="glass-premium p-4 sm:p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-border/40 transition-all duration-300 relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
-  <div className="relative z-10 flex flex-col h-full">
+  <div className="relative z-decorator flex flex-col h-full">
   <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-70 transition-opacity flex gap-2">
    <div className="flex gap-2">
    <Tooltip content={t('assets.printLabel')}>

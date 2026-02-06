@@ -210,7 +210,7 @@ export const TrainingProgressCard: React.FC<TrainingProgressCardProps> = ({
  }`}
  >
  {/* Status Badge */}
- <div className="absolute -top-2 -right-2 z-10">
+ <div className="absolute -top-2 -right-2 z-decorator">
  <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${statusConfig.bg} ${statusConfig.color} ${statusConfig.border} border shadow-sm`}>
  <StatusIcon className="w-3 h-3" />
  {t(statusConfig.label)}

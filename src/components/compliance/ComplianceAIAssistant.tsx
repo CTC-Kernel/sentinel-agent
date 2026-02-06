@@ -47,7 +47,7 @@ export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ co
                 <Sparkles className="w-24 h-24 text-primary" />
             </div>
 
-            <div className="flex items-center gap-3 mb-4 relative z-10">
+            <div className="flex items-center gap-3 mb-4 relative z-decorator">
                 <div className="p-2 bg-white dark:bg-white/10 rounded-3xl shadow-sm text-primary">
                     <Bot className="w-5 h-5" />
                 </div>
@@ -56,7 +56,7 @@ export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ co
             </div>
 
             {!response && !loading && (
-                <div className="grid grid-cols-1 gap-2 relative z-10">
+                <div className="grid grid-cols-1 gap-2 relative z-decorator">
                     <button onClick={() => handleAction('explain')} className="flex items-center p-3 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-muted rounded-3xl text-sm font-medium text-foreground transition-all text-left border border-transparent hover:border-primary/20 dark:hover:border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Comprendre ce contrôle avec l'IA">
                         <Lightbulb className="w-4 h-4 mr-3 text-warning" />
                         Comprendre ce contrôle
@@ -84,7 +84,7 @@ export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ co
             )}
 
             {response && (
-                <div className="animate-fade-in relative z-10">
+                <div className="animate-fade-in relative z-decorator">
                     <div className="bg-card/80 rounded-2xl p-4 text-sm text-foreground leading-relaxed shadow-sm border border-white/50 dark:border-white/5 mb-4 max-h-60 overflow-y-auto custom-scrollbar">
                         <div className="prose dark:prose-invert max-w-none text-sm">
                             {response.split('\n').map((line, i) => <p key={`line-${i || 'unknown'}`} className="mb-2 last:mb-0">{line}</p>)}

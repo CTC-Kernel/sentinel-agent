@@ -160,7 +160,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
   <div className="space-y-6 sm:space-y-8">
   <div className="relative">
   {isStatusUpdating && (
-   <div className="absolute inset-0 bg-card/50 z-10 flex items-center justify-center rounded-xl">
+   <div className="absolute inset-0 bg-card/50 z-decorator flex items-center justify-center rounded-xl">
    <Loader2 className="h-6 w-6 animate-spin text-primary" />
    </div>
   )}

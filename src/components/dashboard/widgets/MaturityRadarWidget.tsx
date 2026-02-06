@@ -45,7 +45,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
   <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_180deg,transparent_0deg,transparent_350deg,hsl(var(--brand-500)/0.4)_360deg)]" />
  </div>
 
- <div className="w-full h-full relative z-10">
+ <div className="w-full h-full relative z-decorator">
   {radarData.every(d => d.A === 0) ? (
   <div className="w-full h-full flex flex-col items-center justify-center pointer-events-none">
   <EmptyChartState

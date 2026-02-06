@@ -2,6 +2,15 @@
   "a11y": {
     "skipToContent": "Aller au contenu principal"
   },
+  "ui": {
+    "pageControl": {
+      "refresh": "Actualiser",
+      "viewList": "Vue Liste",
+      "viewGrid": "Vue Grille",
+      "viewMatrix": "Vue Matrice",
+      "viewKanban": "Vue Kanban"
+    }
+  },
   "common": {
     "unsavedChanges": "Modifications non sauvegardées",
     "unsavedChangesMessage": "Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter ?",
@@ -53,6 +62,9 @@
     "logout": "Déconnexion",
     "search": "Rechercher",
     "clearFilters": "Effacer les filtres",
+    "share": "Partager",
+    "viewAll": "Voir tout",
+    "daysShort": "j",
     "adminShort": "Admin",
     "darkMode": "Mode Sombre",
     "lightMode": "Mode Clair",
@@ -530,11 +542,10 @@
       "title": "Analyse IA",
       "subtitle": "Recommandations intelligentes",
       "loading": "Analyse en cours...",
-      "noData": "Aucune donnée disponible pour l'analyse"
-    },
-    "actions": {
-      "update": "Mettre à jour",
-      "create": "Créer"
+      "noData": "Aucune donnée disponible pour l'analyse",
+      "noDataToRefresh": "Aucune analyse disponible à actualiser",
+      "refresh": "Actualiser l'analyse",
+      "insufficientData": "Données insuffisantes pour l'analyse"
     },
     "securityTips": [
       "Changez vos mots de passe régulièrement",
@@ -667,6 +678,8 @@
       }
     },
     "actions": {
+      "update": "Mettre à jour",
+      "create": "Créer",
       "USERS_CREATE": "Utilisateur créé",
       "USERS_UPDATE": "Utilisateur mis à jour",
       "USERS_DELETE": "Utilisateur supprimé",
@@ -1130,7 +1143,78 @@
     "partnerBlocked": "Organisation bloquée",
     "updateError": "Erreur lors de la mise à jour",
     "sightingConfirmed": "Signalement confirmé (+1)",
-    "demoModeError": "Action non autorisée (Mode Démo)"
+    "demoModeError": "Action non autorisée (Mode Démo)",
+    "seoTitle": "Renseignement collaboratif sur les menaces",
+    "seoDescription": "Carte des menaces en temps réel et flux collaboratif.",
+    "subtitle": "Intelligence collaborative et cartographie mondiale",
+    "globalView": "Vue globale",
+    "liveMap": "Carte en direct",
+    "threatFeed": "Flux de menaces",
+    "community": "Communauté",
+    "operationsAlt": "Opérations",
+    "refreshFeeds": "Actualiser les flux",
+    "communitySettings": "Paramètres de la communauté",
+    "searchPlaceholder": "Rechercher une menace...",
+    "view3D": "Vue 3D",
+    "view2D": "Vue 2D",
+    "communityDescription": "Rejoignez la communauté de",
+    "experts": "experts",
+    "communityDescriptionEnd": "en veille stratégique des menaces cyber.",
+    "submit": {
+      "title": "Signaler une Menace",
+      "subtitle": "Partagez une observation avec la communauté.",
+      "publish": "Publier"
+    }
+  },
+  "threatIntel": {
+    "communitySettings": {
+      "title": "Gestion de la Communauté",
+      "subtitle": "Confidentialité et Réseau de Confiance",
+      "closeWindow": "Fermer la fenêtre",
+      "generalSettingsTab": "Onglet Paramètres Généraux",
+      "generalSettings": "Paramètres Généraux",
+      "myNetworkTab": "Onglet Mon Réseau, 0 partenaires de confiance",
+      "myNetwork": "Mon Réseau",
+      "privacyByDefault": "Confidentialité par défaut",
+      "privacyDescription": "Sentinel anonymise automatiquement vos soumissions publiques. Seuls vos partenaires de confiance voient votre identité complète.",
+      "defaultSharingScope": "Portée de partage par défaut",
+      "scope": {
+        "public": "Publique (Tout le monde)",
+        "community": "Communauté Sentinel (Auth)",
+        "trustedOnly": "Partenaires de Confiance",
+        "private": "Privé (Interne seulement)"
+      },
+      "setScopeTo": "Définir la portée sur",
+      "anonymizeIdentity": "Anonymiser mon identité",
+      "anonymizeDescription": "Votre organisation apparaîtra comme \"Anonyme\" pour la communauté.",
+      "autoShareCritical": "Partage auto. (Critique)",
+      "autoShareDescription": "Partager automatiquement les menaces critiques détectées.",
+      "autoShareCriticalLabel": "Partage automatique pour sévérité critique",
+      "save": "Enregistrer"
+    },
+    "hunterProfile": {
+      "ranking": "Classement",
+      "contributions": "Contributions",
+      "verified": "Vérifiées",
+      "response": "Réponse",
+      "thisMonth": "Ce mois",
+      "expertise": "Expertise",
+      "recentActivity": "Activité Récente",
+      "performance": "Performance",
+      "accuracy": "Précision",
+      "reputation": "Réputation",
+      "collaborations": "Collaborations",
+      "memberSince": "Membre depuis"
+    },
+    "discussion": {
+      "title": "Discussion",
+      "closePanel": "Fermer panel"
+    }
+  },
+  "threatToRisk": {
+    "title": "Mettre en Risque",
+    "subtitle": "Transformer cette menace en risque formel.",
+    "submit": "Créer Risque"
   },
   "tour": {
     "welcome": {
@@ -1577,7 +1661,16 @@
       "late": "En retard",
       "today": "Aujourd'hui",
       "placeholder_title": "Ex: Mettre à jour la politique de sécurité",
-      "placeholder_description": "Décrivez l'action à réaliser..."
+      "placeholder_description": "Décrivez l'action à réaliser...",
+      "noDeadline": "Sans échéance"
+    },
+    "saveViewTitle": "Enregistrer la vue",
+    "viewNamePlaceholder": "Nom de la vue...",
+    "dashboardStatDesc": "Statistique du tableau de bord des risques",
+    "charts": {
+      "defaultCategory": "Sans catégorie",
+      "inherent": "Inhérent",
+      "residual": "Résiduel"
     },
     "context": "Contexte",
     "ebios": "EBIOS"
@@ -1959,7 +2052,9 @@
       "bySeverity": "Par sévérité",
       "byStatus": "Par statut",
       "timeline": "Évolution dans le temps",
-      "resolution": "Temps de résolution"
+      "resolution": "Temps de résolution",
+      "noCategory": "Aucune catégorie",
+      "noHistory": "Aucun historique récent"
     },
     "newIncident": "Nouvel Incident",
     "declare": "Déclarer Incident",
@@ -4681,6 +4776,24 @@
     "subtitle": "Explorez votre écosystème GRC en 3D",
     "description": "Visualisation interactive 3D de vos données de gouvernance, risques et conformité",
     "loading": "Chargement de l'environnement 3D...",
+    "loadingEngine": "Chargement du moteur 3D...",
+    "loading3D": "Chargement de la vue 3D...",
+    "seoDescription": "Visualisation 3D interactive de vos risques et de votre conformité.",
+    "critical": "Critique",
+    "alerts": "Alertes",
+    "nodes": "Nœuds",
+    "selectFramework": "Sélectionner un référentiel",
+    "allFrameworks": "Tous les référentiels",
+    "ai": "IA",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "layers": "Couches",
+    "resetView": "Réinitialiser la vue",
+    "fullscreen": "Plein écran",
+    "legend": "Légende",
+    "shortcuts": "Raccourcis",
+    "scrollZoom": "Molette pour zoomer",
+    "dragOrbit": "Cliquer-glisser pour orbiter",
     "error": "Impossible de charger la visualisation 3D",
     "webglUnsupported": "WebGL non supporté",
     "webglUnsupportedDesc": "Votre navigateur ne prend pas en charge WebGL, nécessaire pour la visualisation 3D.",

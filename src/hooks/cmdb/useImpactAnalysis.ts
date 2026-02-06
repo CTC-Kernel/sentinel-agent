@@ -7,9 +7,11 @@
  * @module hooks/cmdb/useImpactAnalysis
  */
 
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useStore } from '@/store';
 import { ErrorLogger } from '@/services/errorLogger';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/firebase';
 import {
   ConfigurationItem,
   CMDBRelationship,
@@ -312,16 +314,60 @@ export function useBlastRadius(ciId: string) {
  * Mutation to save impact analysis report
  */
 export function useSaveImpactReport() {
-  const { addToast } = useStore();
+  const { user, addToast } = useStore();
+  const queryClient = useQueryClient();
+  const organizationId = user?.organizationId || '';
 
   return useMutation({
     mutationFn: async (assessment: ImpactAssessment) => {
-      // In production, this would save to Firestore
-      // For now, just log it
-      console.log('Saving impact report:', assessment);
-      return assessment;
+      if (!organizationId) {
+        throw new Error('Organization ID is required');
+      }
+
+      // Prepare report data for Firestore
+      const reportData = {
+        organizationId,
+        sourceCIId: assessment.sourceCI.id,
+        sourceCIName: assessment.sourceCI.name,
+        scenario: assessment.scenario,
+        maxDepth: assessment.maxDepth,
+        summary: assessment.summary,
+        directImpactCount: assessment.directImpact.length,
+        indirectImpactCount: assessment.indirectImpact.length,
+        affectedServicesCount: assessment.affectedServices.length,
+        // Store simplified data to avoid Firestore document size limits
+        affectedCIIds: [
+          ...assessment.directImpact.map((n) => n.ciId),
+          ...assessment.indirectImpact.map((n) => n.ciId),
+        ],
+        affectedServiceIds: assessment.affectedServices.map((s) => s.service.id),
+        createdAt: serverTimestamp(),
+        createdBy: user?.uid || 'system',
+      };
+
+      const docRef = await addDoc(
+        collection(db, 'cmdb_impact_reports'),
+        reportData
+      );
+
+      // Log activity
+      await CMDBService.logActivity(organizationId, {
+        type: 'create',
+        message: `Rapport d'impact créé pour "${assessment.sourceCI.name}"`,
+        ciId: assessment.sourceCI.id,
+        ciName: assessment.sourceCI.name,
+        userId: user?.uid || 'system',
+        metadata: {
+          reportId: docRef.id,
+          scenario: assessment.scenario,
+          totalAffectedCIs: assessment.summary.totalAffectedCIs,
+        },
+      });
+
+      return { ...assessment, reportId: docRef.id };
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: impactKeys.all });
       addToast('Rapport d\'impact enregistré', 'success');
     },
     onError: (error) => {

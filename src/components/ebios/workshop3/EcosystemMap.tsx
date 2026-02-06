@@ -475,7 +475,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
  return (
  <div className="relative w-full h-[500px] rounded-2xl border border-border/40 bg-gradient-to-br from-muted/50 to-muted dark:from-card dark:to-muted overflow-hidden">
  {/* Controls */}
- <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+ <div className="absolute top-4 right-4 z-decorator flex flex-col gap-2">
  <button
  onClick={handleZoomIn}
  className="p-2 rounded-lg bg-card border border-border/40 shadow-sm hover:bg-muted/50 transition-colors"
@@ -519,7 +519,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
  initial={{ opacity: 0, x: -20 }}
  animate={{ opacity: 1, x: 0 }}
  exit={{ opacity: 0, x: -20 }}
- className="absolute top-4 left-4 z-10 p-3 rounded-3xl bg-card border border-border/40 shadow-lg max-w-[200px]"
+ className="absolute top-4 left-4 z-decorator p-3 rounded-3xl bg-card border border-border/40 shadow-lg max-w-[200px]"
  >
  <h4 className="text-xs font-semibold text-foreground mb-2">
  {t('ebios.ecosystem.legend')}
@@ -596,7 +596,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  exit={{ opacity: 0, y: 20 }}
- className="absolute bottom-4 left-4 right-4 z-10 p-4 rounded-3xl bg-card border border-border/40 shadow-lg"
+ className="absolute bottom-4 left-4 right-4 z-decorator p-4 rounded-3xl bg-card border border-border/40 shadow-lg"
  >
  <button
  onClick={() => {

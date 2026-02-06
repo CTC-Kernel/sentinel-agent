@@ -67,7 +67,7 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
  hover={true}
  gradientOverlay={true}
  >
- <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
+ <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-decorator">
   <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
   <span className="relative flex h-2.5 w-2.5">
   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
@@ -76,7 +76,7 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
   </h3>
  </div>
 
- <div className="flex-1 flex items-center justify-center relative z-10">
+ <div className="flex-1 flex items-center justify-center relative z-decorator">
   <EmptyState
   icon={ShieldCheck}
   title="Aucun incident enregistré"
@@ -97,7 +97,7 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
  hover={true}
  gradientOverlay={true}
  >
- <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
+ <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-decorator">
  <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
   <span className="relative flex h-2.5 w-2.5">
   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive/60 opacity-75"></span>
@@ -115,7 +115,7 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
  </button>
  </div>
 
- <div className="flex flex-col gap-4 mt-4 flex-1 relative z-10">
+ <div className="flex flex-col gap-4 mt-4 flex-1 relative z-decorator">
  <div className="flex items-baseline gap-2">
   <p className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-card to-slate-600 dark:from-white dark:to-slate-400 tracking-tighter">
   {stats.open}

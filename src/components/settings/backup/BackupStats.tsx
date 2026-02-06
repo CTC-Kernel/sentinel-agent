@@ -29,7 +29,7 @@ export const BackupStats: React.FC<BackupStatsProps> = ({ stats }) => {
  gradientOverlay={true}
  >
  <div className="absolute top-0 right-0 w-32 h-32 bg-info-bg rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-info-500/20 transition-colors"></div>
- <div className="flex items-center relative z-10">
+ <div className="flex items-center relative z-decorator">
   <div className="p-3 bg-info-50 dark:bg-info-900/20 rounded-2xl text-info-600 dark:text-info-400 mr-4 border border-info-100 dark:border-info-500/20">
   <Database className="h-8 w-8" />
   </div>
@@ -46,7 +46,7 @@ export const BackupStats: React.FC<BackupStatsProps> = ({ stats }) => {
  gradientOverlay={true}
  >
  <div className="absolute top-0 right-0 w-32 h-32 bg-success-bg rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-success-500/20 transition-colors"></div>
- <div className="flex items-center relative z-10">
+ <div className="flex items-center relative z-decorator">
   <div className="p-3 bg-success-50 dark:bg-success-900/20 rounded-2xl text-success-600 dark:text-success-400 mr-4 border border-success-100 dark:border-success-500/20">
   <HardDrive className="h-8 w-8" />
   </div>
@@ -63,7 +63,7 @@ export const BackupStats: React.FC<BackupStatsProps> = ({ stats }) => {
  gradientOverlay={true}
  >
  <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/15 dark:bg-violet-400/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-violet-500/25 dark:group-hover:bg-violet-400/20 transition-colors"></div>
- <div className="flex items-center relative z-10">
+ <div className="flex items-center relative z-decorator">
   <div className="p-3 bg-violet-50 dark:bg-violet-900/20 rounded-2xl text-violet-600 dark:text-violet-400 mr-4 border border-violet-100 dark:border-violet-500/20">
   <CalendarDays className="h-8 w-8" />
   </div>

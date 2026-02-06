@@ -117,11 +117,13 @@
 }
 
 /* ============================================================================
-   Motion Preferences - Reduced motion support (consolidated from all CSS files)
+   Motion Preferences - Reduced motion support
+   AUDIT FIX: Single consolidated location for all reduced motion rules
    ============================================================================ */
 
 @media (prefers-reduced-motion: reduce) {
 
+  /* Global reduction for all elements */
   *,
   *::before,
   *::after {
@@ -131,11 +133,37 @@
     scroll-behavior: auto !important;
   }
 
+  /* Disable all infinite/continuous animations */
+  .animate-shimmer,
+  .animate-shimmer-rotate,
+  .animate-pulse-glow,
+  .animate-pulse-slow,
+  .animate-float,
+  .animate-float-delayed,
+  .animate-spin-slow,
+  .animate-spin-slow-reverse,
+  .animate-monitoring-ping,
+  .animate-bounce,
+  .animate-gradient-shift,
+  .animate-particle-float,
+  .animate-glow-text,
+  .animate-border-pulse,
+  .animate-skeleton,
+  .animate-morph,
+  .animate-pulse-ring,
+  .animate-heartbeat,
+  .animate-shine {
+    animation: none !important;
+  }
+
   /* Disable hover transforms */
   .hover-primary:hover,
   .hover-secondary:hover,
   .hover-danger:hover,
-  .hover-success:hover {
+  .hover-success:hover,
+  .hover-lift:hover,
+  .animate-hover-lift:hover,
+  .animate-wave:hover {
     transform: none !important;
   }
 
@@ -149,6 +177,11 @@
   .interactive-element-fast,
   .interactive-element-slow {
     transition: none !important;
+  }
+
+  /* Disable loading animations */
+  .loading-state::after {
+    animation: none !important;
   }
 }
 

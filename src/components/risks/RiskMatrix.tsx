@@ -114,7 +114,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
  <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 dark:bg-primary/60/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
  <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-500/20 dark:bg-violet-400/15 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
- <div className="relative z-10 overflow-x-auto pb-6 scrollbar-hide">
+ <div className="relative z-decorator overflow-x-auto pb-6 scrollbar-hide">
   <div className="min-w-[600px] md:min-w-[700px] mx-auto max-w-5xl grid grid-cols-[auto_auto_repeat(5,1fr)] gap-2 md:gap-4">
 
   {/* Y-Axis Label */}

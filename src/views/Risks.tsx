@@ -373,7 +373,7 @@ export const Risks: React.FC = () => {
         { id: 'ebios', label: t('risks.ebios') || t('risks.tabs.ebios', { defaultValue: 'EBIOS RM' }), icon: Scale },
         { id: 'list', label: t('risks.registry'), icon: List },
         { id: 'financial', label: t('risks.financial') || t('risks.tabs.financial', { defaultValue: 'Risques financiers' }), icon: Calculator },
-        { id: 'matrix', label: t('risks.matrix'), icon: Grid3x3 },
+        { id: 'matrix', label: t('risks.tabs.matrix', { defaultValue: 'Matrice' }), icon: Grid3x3 },
     ], [t]);
 
     return (

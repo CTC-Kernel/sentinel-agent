@@ -60,7 +60,7 @@ export const KioskPage: React.FC = () => {
  </div>
 
  {/* Header */}
- <header className="relative z-10 px-6 py-6 flex items-center justify-between">
+ <header className="relative z-decorator px-6 py-6 flex items-center justify-between">
  <div className="flex items-center gap-3">
   <div className="w-10 h-10 bg-card dark:bg-white rounded-3xl flex items-center justify-center shadow-lg">
   <ShieldCheck className="h-6 w-6 text-white " />
@@ -77,7 +77,7 @@ export const KioskPage: React.FC = () => {
  </header>
 
  {/* Main Content */}
- <main className="flex-1 relative z-10 flex flex-col items-center justify-center p-4 md:p-8">
+ <main className="flex-1 relative z-decorator flex flex-col items-center justify-center p-4 md:p-8">
  {loading ? (
   <div className="text-center animate-fade-in">
   <div className="w-16 h-16 border-4 border-primary/30 border-t-brand-600 rounded-full animate-spin mx-auto mb-6"></div>
@@ -107,7 +107,7 @@ export const KioskPage: React.FC = () => {
  </main>
 
  {/* Footer */}
- <footer className="relative z-10 py-6 text-center text-xs text-muted-foreground">
+ <footer className="relative z-decorator py-6 text-center text-xs text-muted-foreground">
  &copy; {new Date().getFullYear()} Cyber Threat Consulting. Sentinel GRC. Tous droits réservés.
  </footer>
  </div>

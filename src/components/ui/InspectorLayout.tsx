@@ -68,7 +68,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
  disableScroll={true}
  hasUnsavedChanges={hasUnsavedChanges}
  title={
- <div className="flex items-center gap-3 relative z-10">
+ <div className="flex items-center gap-3 relative z-decorator">
   {Icon && (
   <div className="p-2.5 bg-primary/10/20 rounded-3xl text-primary dark:text-primary/70 shadow-sm border border-primary/30 dark:border-primary/40/30">
   <Icon className="h-5 w-5" />
@@ -82,8 +82,8 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
   </div>
  </div>
  }
- subtitle={<div className="relative z-10">{subtitle}</div>}
- actions={<div className="relative z-10">{actions}</div>}
+ subtitle={<div className="relative z-decorator">{subtitle}</div>}
+ actions={<div className="relative z-decorator">{actions}</div>}
  >
  <div className="flex flex-col h-full bg-transparent relative overflow-hidden">
  {/* Header Background Pattern */}

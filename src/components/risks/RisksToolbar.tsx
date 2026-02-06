@@ -1,6 +1,7 @@
 
-import React from 'react';
-import { Menu, Transition } from '@headlessui/react';
+import React, { useRef } from 'react';
+import { Menu } from '@headlessui/react';
+import { MenuPortal } from '../ui/MenuPortal';
 import {
  FileText, FileSpreadsheet, FileCode, MoreVertical,
  Plus, BrainCircuit, Filter, HelpCircle, List, Grid3x3, Upload
@@ -84,6 +85,7 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
  onClearAll
 }) => {
  const { t } = useLocale();
+ const toolsMenuButtonRef = useRef<HTMLButtonElement>(null);
 
  return (
  <PremiumPageControl
@@ -140,11 +142,12 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
   <div className="h-6 w-px bg-muted dark:bg-white/10 mx-1" />
 
   <Menu as="div" className="relative inline-block text-left">
-  <Menu.Button as={Button} variant="outline" size="icon" aria-label={t('risks.moreActions') || 'Plus d\'actions'}>
+  {({ open }) => (
+  <>
+  <Menu.Button ref={toolsMenuButtonRef} as={Button} variant="outline" size="icon" aria-label={t('risks.moreActions') || 'Plus d\'actions'}>
   <MoreVertical className="h-5 w-5" />
   </Menu.Button>
-  <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
-  <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border/50 rounded-xl bg-popover text-popover-foreground shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-dropdown">
+  <MenuPortal buttonRef={toolsMenuButtonRef} open={open}>
   <div className="p-1">
    <Menu.Item>
    {({ active }) => (
@@ -197,8 +200,9 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
    </Menu.Item>
    </div>
   )}
-  </Menu.Items>
-  </Transition>
+  </MenuPortal>
+  </>
+  )}
   </Menu>
 
   {canEdit && (

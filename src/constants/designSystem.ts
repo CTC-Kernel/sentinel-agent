@@ -141,13 +141,32 @@ export const ICON_SIZES = {
 } as const;
 
 // Z-index scale - must use these instead of arbitrary values
+// AUDIT FIX: New hierarchy with logical ordering
+// Layout (10-30) < Content (40-60) < Overlay (70-100) < System (150-200) < Top (950-9999)
 export const Z_INDEX = {
- DECORATOR: 'z-decorator', // 10 - decorative elements
- STICKY: 'z-sticky', // 20 - sticky headers
- HEADER: 'z-header', // 40 - main header
- MODAL: 'z-modal', // 50 - modals, dialogs
- TOOLTIP: 'z-tooltip', // 60 - tooltips
- MAX: 'z-max', // 9999 - maximum priority
+ // Layout Layers (10-30)
+ DECORATOR: 'z-decorator', // 10 - decorative elements, badges, markers
+ STICKY: 'z-sticky', // 20 - sticky headers, floating elements
+ FIXED_NAV: 'z-fixed-nav', // 30 - fixed navigation bars
+
+ // Content Layers (40-60)
+ HEADER: 'z-header', // 40 - app header
+ SIDEBAR: 'z-sidebar', // 50 - sidebar navigation
+
+ // Overlay Layers (700-1000) - ELEVATED for proper stacking above all content
+ DROPDOWN: 'z-dropdown', // 700 - dropdown menus
+ POPOVER: 'z-popover', // 800 - popovers, tooltips triggers
+ MODAL: 'z-modal', // 900 - modal dialogs
+ TOOLTIP: 'z-tooltip', // 1000 - tooltips (always on top of modals)
+
+ // UI System Layers (150-200)
+ VOXEL_UI: 'z-voxel-ui', // 150 - voxel UI interface layer
+ VOXEL_PANEL: 'z-voxel-panel', // 200 - voxel side panels
+
+ // Top Layers (950-9999)
+ TOAST: 'z-toast', // 950 - toast notifications
+ SUPREME: 'z-supreme', // 9999 - absolute maximum (cursor, drag, critical)
+ MAX: 'z-max', // 9999 - alias for supreme
 } as const;
 
 // Semantic color classes (use these instead of hardcoded hex values)

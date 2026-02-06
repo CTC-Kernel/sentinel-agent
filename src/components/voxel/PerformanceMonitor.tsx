@@ -139,8 +139,8 @@ const FPSGraph: React.FC<{ history: number[]; width: number; height: number }> =
  strokeLinejoin="round"
  />
  {/* Reference lines */}
- <line x1="0" y1={height * 0.5} x2={width} y2={height * 0.5} stroke="#ffffff20" strokeWidth="1" />
- <line x1="0" y1={height * 0.75} x2={width} y2={height * 0.75} stroke="#ffffff10" strokeWidth="1" strokeDasharray="2,2" />
+ <line x1="0" y1={height * 0.5} x2={width} y2={height * 0.5} stroke="hsl(var(--foreground) / 0.12)" strokeWidth="1" />
+ <line x1="0" y1={height * 0.75} x2={width} y2={height * 0.75} stroke="hsl(var(--foreground) / 0.06)" strokeWidth="1" strokeDasharray="2,2" />
  </svg>
  );
 };

@@ -19,11 +19,15 @@ i18n
  },
  react: {
  useSuspense: false, // Disable suspense to prevent accessing translations before loading
+ bindI18n: 'languageChanged',
+ bindI18nStore: 'added removed',
  },
+ returnObjects: true, // Enable returning objects for nested translations
  saveMissing: import.meta.env.DEV,
  missingKeyHandler: import.meta.env.DEV ? (lng, _ns, key) => {
  console.warn(`Missing translation key: ${key} for language: ${lng}`);
- } : undefined
+ } : undefined,
+ initImmediate: false, // Ensure initialization is complete before rendering
  });
 
 export default i18n;

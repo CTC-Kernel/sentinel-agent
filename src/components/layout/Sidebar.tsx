@@ -245,7 +245,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                                                     <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-300 ${isActive ? 'text-white bg-white/20 shadow-[0_0_10px_rgba(255,255,255,0.3)]' : `${groupIconColor} group-hover:text-foreground`}`}>
                                                         <item.icon className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                                                     </span>
-                                                    <span className="flex-1 truncate relative z-10">{item.name}</span>
+                                                    <span className="flex-1 truncate relative z-decorator">{item.name}</span>
                                                     {isActive && (
                                                         <motion.span
                                                             layoutId="sidebar-active-indicator"
@@ -281,7 +281,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                                 <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-200 ${isActive ? 'text-white bg-white/20' : 'text-nav-support group-hover:text-foreground'}`}>
                                     <HelpCircle className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                                 </span>
-                                <span className="flex-1 truncate relative z-10">{t('common.helpCenter')}</span>
+                                <span className="flex-1 truncate relative z-decorator">{t('common.helpCenter')}</span>
                                 {isActive && (
                                     <motion.span
                                         layoutId="sidebar-active-indicator"
@@ -309,7 +309,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                                 <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-200 ${isActive ? 'text-white bg-white/20' : 'bg-muted text-muted-foreground group-hover:bg-background/80 group-hover:text-foreground'}`}>
                                     <Settings className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                                 </span>
-                                <span className="flex-1 relative z-10">{t('sidebar.settings')}</span>
+                                <span className="flex-1 relative z-decorator">{t('sidebar.settings')}</span>
                                 {isActive ? (
                                     <motion.span
                                         layoutId="sidebar-active-indicator"

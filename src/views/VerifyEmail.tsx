@@ -61,7 +61,7 @@ export const VerifyEmail: React.FC = () => {
  <div className="min-h-screen py-10 flex flex-col items-center justify-center relative font-sans">
  <MasterpieceBackground />
 
- <div className="w-full max-w-md p-6 relative z-10 animate-scale-in">
+ <div className="w-full max-w-md p-6 relative z-decorator animate-scale-in">
  <div className="glass-premium rounded-3xl p-10 flex flex-col items-center shadow-2xl border border-white/50 dark:border-white/10 bg-white/90 dark:bg-black/60 backdrop-blur-xl text-center">
 
   <div className="w-20 h-20 rounded-full bg-yellow-50 dark:bg-yellow-900/20 flex items-center justify-center mb-6 text-yellow-600 dark:text-yellow-500 shadow-lg">

@@ -138,7 +138,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
  {/* Global Health - Radial Premium Card */}
  <div className="lg:col-span-2 glass-premium p-6 md:p-8 rounded-4xl shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group border border-transparent overflow-hidden">
   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
-  <div className="flex items-center gap-6 relative z-10">
+  <div className="flex items-center gap-6 relative z-decorator">
   <div className="relative">
   <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 96 96">
   <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-muted-foreground/60" />

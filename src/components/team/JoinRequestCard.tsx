@@ -18,7 +18,7 @@ export const JoinRequestCard = React.memo(({ req, onApprove, onReject }: JoinReq
  return (
  <div className="glass-premium p-5 rounded-2xl border border-border/40 shadow-sm flex flex-col relative overflow-hidden group">
  <div className="absolute inset-0 bg-blue-50/30 dark:bg-blue-900/30 dark:bg-blue-900 pointer-events-none" />
- <div className="relative z-10">
+ <div className="relative z-decorator">
  <div className="flex items-center gap-3 mb-3">
   <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold shadow-sm">
   {req.displayName.charAt(0).toUpperCase()}

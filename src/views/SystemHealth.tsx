@@ -68,7 +68,7 @@ export const SystemHealth: React.FC = () => {
   <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-30 transition-opacity">
   <metric.icon className="h-24 w-24" />
   </div>
-  <div className="relative z-10 flex flex-col h-full justify-between">
+  <div className="relative z-decorator flex flex-col h-full justify-between">
   <div>
   <p className="text-muted-foreground text-sm font-medium uppercase tracking-wider">{metric.label}</p>
   <h3 className="text-3xl font-bold mt-2 text-foreground">{metric.value}</h3>

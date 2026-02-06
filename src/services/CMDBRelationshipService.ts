@@ -23,7 +23,6 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { db } from '@/firebase';
-// TODO: Re-enable audit logging with AuditLogService
 import {
   CMDBRelationship,
   RelationshipType,
@@ -198,7 +197,20 @@ export class CMDBRelationshipService {
       }
     }
 
-    // TODO: Add audit logging
+    // Audit logging
+    await CMDBService.logActivity(organizationId, {
+      type: 'create',
+      message: `Relation "${relData.relationshipType}" créée entre ${sourceCI.name} et ${targetCI.name}`,
+      ciId: relData.sourceId,
+      ciName: sourceCI.name,
+      userId,
+      metadata: {
+        relationshipId: docRef.id,
+        targetCiId: relData.targetId,
+        targetCiName: targetCI.name,
+        relationshipType: relData.relationshipType,
+      },
+    });
 
     return docRef.id;
   }
@@ -416,7 +428,7 @@ export class CMDBRelationshipService {
     organizationId: string,
     relationshipId: string,
     updates: UpdateRelationshipFormData,
-    _userId: string
+    userId: string
   ): Promise<void> {
     const currentRel = await this.getRelationship(organizationId, relationshipId);
     if (!currentRel) {
@@ -436,17 +448,29 @@ export class CMDBRelationshipService {
     const docRef = doc(db, COLLECTION_NAME, relationshipId);
     await updateDoc(docRef, updateData);
 
-    // TODO: Add audit logging
+    // Audit logging
+    await CMDBService.logActivity(organizationId, {
+      type: 'update',
+      message: `Relation "${currentRel.relationshipType}" mise à jour`,
+      ciId: currentRel.sourceId,
+      userId,
+      metadata: {
+        relationshipId,
+        changedFields: Object.keys(validated.data),
+      },
+    });
   }
 
   /**
    * Validate a pending relationship
    */
   static async validateRelationship(
-    _organizationId: string,
+    organizationId: string,
     relationshipId: string,
     userId: string
   ): Promise<void> {
+    const currentRel = await this.getRelationship(organizationId, relationshipId);
+
     const docRef = doc(db, COLLECTION_NAME, relationshipId);
     await updateDoc(docRef, {
       status: 'Active',
@@ -455,7 +479,19 @@ export class CMDBRelationshipService {
       updatedAt: serverTimestamp(),
     });
 
-    // TODO: Add audit logging
+    // Audit logging
+    if (currentRel) {
+      await CMDBService.logActivity(organizationId, {
+        type: 'approve',
+        message: `Relation "${currentRel.relationshipType}" validée`,
+        ciId: currentRel.sourceId,
+        userId,
+        metadata: {
+          relationshipId,
+          targetCiId: currentRel.targetId,
+        },
+      });
+    }
   }
 
   // ===========================================================================
@@ -468,7 +504,7 @@ export class CMDBRelationshipService {
   static async deleteRelationship(
     organizationId: string,
     relationshipId: string,
-    _userId: string
+    userId: string
   ): Promise<void> {
     const currentRel = await this.getRelationship(organizationId, relationshipId);
     if (!currentRel) {
@@ -478,7 +514,17 @@ export class CMDBRelationshipService {
     const docRef = doc(db, COLLECTION_NAME, relationshipId);
     await deleteDoc(docRef);
 
-    // TODO: Add audit logging
+    // Audit logging
+    await CMDBService.logActivity(organizationId, {
+      type: 'delete',
+      message: `Relation "${currentRel.relationshipType}" supprimée`,
+      ciId: currentRel.sourceId,
+      userId,
+      metadata: {
+        relationshipId,
+        targetCiId: currentRel.targetId,
+      },
+    });
   }
 
   /**
@@ -487,7 +533,7 @@ export class CMDBRelationshipService {
   static async deleteRelationshipsForCI(
     organizationId: string,
     ciId: string,
-    _userId: string
+    userId: string
   ): Promise<number> {
     const relationships = await this.getRelationshipsForCI(organizationId, ciId, 'both');
 
@@ -502,7 +548,17 @@ export class CMDBRelationshipService {
     if (count > 0) {
       await batch.commit();
 
-      // TODO: Add audit logging
+      // Audit logging
+      await CMDBService.logActivity(organizationId, {
+        type: 'delete',
+        message: `${count} relation(s) supprimée(s) pour le CI`,
+        ciId,
+        userId,
+        metadata: {
+          deletedCount: count,
+          relationshipIds: relationships.map((r) => r.id),
+        },
+      });
     }
 
     return count;

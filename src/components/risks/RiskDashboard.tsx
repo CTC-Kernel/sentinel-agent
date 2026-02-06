@@ -351,7 +351,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
             >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 dark:bg-primary/60/15 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
 
-                <div className="flex items-center gap-3 mb-6 relative z-10">
+                <div className="flex items-center gap-3 mb-6 relative z-decorator">
                     <div className="p-2 bg-primary/10 rounded-3xl">
                         <TrendingUp className="h-5 w-5 text-primary" />
                     </div>
@@ -361,7 +361,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                     </div>
                 </div>
 
-                <div className="h-[250px] w-full relative z-10" aria-label="Graphique de réduction du risque">
+                <div className="h-[250px] w-full relative z-decorator" aria-label="Graphique de réduction du risque">
                     <RiskResidualChart risks={risks} />
                 </div>
             </motion.div>

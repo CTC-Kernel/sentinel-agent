@@ -88,7 +88,7 @@ const KPICard: React.FC<KPICardProps> = ({
  >
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
 
- <div className="relative z-10">
+ <div className="relative z-decorator">
  <div className="flex items-start justify-between mb-4">
  <div className={`p-3 rounded-2xl ${config.bg} transition-transform group-hover:scale-110 duration-300`}>
  <Icon className={`w-6 h-6 ${config.text}`} />

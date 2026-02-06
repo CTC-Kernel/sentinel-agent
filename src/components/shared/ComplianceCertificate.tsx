@@ -29,7 +29,7 @@ export const ComplianceCertificate: React.FC<ComplianceCertificateProps> = ({
   <Award className="h-16 w-16 text-primary opacity-20" />
  </div>
 
- <div className="text-center space-y-6 relative z-10">
+ <div className="text-center space-y-6 relative z-decorator">
   <div className="flex justify-center mb-4">
   <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center border-4 border-primary/20">
   <ShieldCheck className="h-10 w-10 text-primary" />

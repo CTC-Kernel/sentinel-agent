@@ -25,7 +25,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
  <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
- <div className="relative z-10">
+ <div className="relative z-decorator">
   <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
   <Server className="h-4 w-4 text-primary" />
   {t('incidents.inspector.affectedAsset', { defaultValue: 'Actif Impacté' })}
@@ -56,7 +56,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
 
  <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
- <div className="relative z-10">
+ <div className="relative z-decorator">
   <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
   <Activity className="h-4 w-4 text-primary" />
   {t('incidents.inspector.affectedService', { defaultValue: 'Service Impacté' })}
@@ -86,7 +86,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
 
  <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium relative overflow-hidden md:col-span-2 glass-premium">
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
- <div className="relative z-10">
+ <div className="relative z-decorator">
   <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
   <AlertTriangle className="h-4 w-4 text-warning" />
   {t('incidents.inspector.relatedRisk', { defaultValue: 'Risque Lié' })}

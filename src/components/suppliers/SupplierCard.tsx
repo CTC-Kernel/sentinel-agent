@@ -46,7 +46,7 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
  className="glass-premium p-4 sm:p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-border/40 relative overflow-hidden h-full transition-colors w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
  >
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
- <div className="relative z-10 flex flex-col h-full">
+ <div className="relative z-decorator flex flex-col h-full">
 
  <div className="flex justify-between items-start mb-5">
   <div className="p-3 bg-muted rounded-2xl text-muted-foreground shadow-inner group-hover:bg-primary/10 dark:group-hover:bg-primary/10 group-hover:text-primary transition-colors">

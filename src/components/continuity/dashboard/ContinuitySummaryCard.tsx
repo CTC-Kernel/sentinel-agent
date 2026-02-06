@@ -51,7 +51,7 @@ export const ContinuitySummaryCard: React.FC<ContinuitySummaryCardProps> = ({ pr
  </div>
 
  {/* 1. Global Coverage Gauge (Radial) */}
- <div className="flex items-center gap-8 relative z-10 min-w-[300px]">
+ <div className="flex items-center gap-8 relative z-decorator min-w-[300px]">
  <div className="relative group/ring">
   <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
   <circle
@@ -91,7 +91,7 @@ export const ContinuitySummaryCard: React.FC<ContinuitySummaryCardProps> = ({ pr
  </div>
 
  {/* Quick Stats Grid inside the main card */}
- <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4 border-l border-r border-border/50 px-6 mx-2 relative z-10">
+ <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4 border-l border-r border-border/50 px-6 mx-2 relative z-decorator">
  <button type="button" onClick={() => navigate('/continuity?tab=drills')} className="text-center group/metric cursor-pointer hover:shadow-md transition-all rounded-2xl p-2">
   <div className="flex items-center justify-center gap-2 mb-2">
   <History className="h-4 w-4 text-muted-foreground group-hover/metric:text-amber-500 transition-colors" />
@@ -123,7 +123,7 @@ export const ContinuitySummaryCard: React.FC<ContinuitySummaryCardProps> = ({ pr
  </div>
 
  {/* Drill Success Rate Mini-Card */}
- <div className="min-w-0 sm:min-w-[200px] flex flex-col justify-center relative z-10 pl-4">
+ <div className="min-w-0 sm:min-w-[200px] flex flex-col justify-center relative z-decorator pl-4">
  <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/10 rounded-3xl border border-emerald-100 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/20 transition-colors cursor-default mb-2">
   <div className="flex items-center gap-2">
   <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />

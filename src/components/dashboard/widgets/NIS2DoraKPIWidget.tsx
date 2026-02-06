@@ -41,7 +41,7 @@ export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers =
  <Shield className="w-24 h-24 text-primary" />
  </div>
 
- <div className="flex items-center gap-3 mb-6 relative z-10">
+ <div className="flex items-center gap-3 mb-6 relative z-decorator">
  <div className="p-3 rounded-3xl bg-primary/10 dark:bg-primary text-primary">
   <Shield className="w-6 h-6" />
  </div>

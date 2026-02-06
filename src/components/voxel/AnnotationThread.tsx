@@ -448,7 +448,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
  </button>
 
  {showActions && (
- <div className="absolute right-0 top-full mt-2 w-48 py-2 bg-muted rounded-3xl shadow-xl border border-border/50 z-10">
+ <div className="absolute right-0 top-full mt-2 w-48 py-2 bg-muted rounded-3xl shadow-xl border border-border/50 z-decorator">
   <button
   onClick={handleTogglePin}
   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-muted-foreground hover:bg-muted/50"

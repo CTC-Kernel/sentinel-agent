@@ -212,7 +212,7 @@ export function DataTable<TData extends { id: string }, TValue>({
  </div>
 
  {/* Table */}
- <div className="w-full overflow-x-auto rounded-3xl glass-premium overflow-hidden [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]">
+ <div className="w-full overflow-x-auto overflow-y-visible rounded-3xl glass-premium [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]">
  <table
   className="w-full min-w-[600px]"
   role="table"

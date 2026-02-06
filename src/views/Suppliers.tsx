@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { Menu, Transition } from '@headlessui/react';
+import { Menu } from '@headlessui/react';
+import { MenuPortal } from '../components/ui/MenuPortal';
 import { SEO } from '../components/SEO';
 import { canEditResource } from '../utils/permissions';
 
@@ -84,6 +85,7 @@ export const Suppliers: React.FC = () => {
  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
  const [isSubmitting, setIsSubmitting] = useState(false);
  const pendingSelectId = useRef<string | null>(null);
+ const toolsMenuButtonRef = useRef<HTMLButtonElement>(null);
 
  const [isFormDirty, setIsFormDirty] = useState(false);
  const [isExportingCSV, setIsExportingCSV] = useState(false);
@@ -555,19 +557,12 @@ export const Suppliers: React.FC = () => {
   actions={canEdit && (
   <>
    <Menu as="div" className="relative inline-block text-left">
-   <Menu.Button aria-label={t('common.more')} className="p-2.5 bg-background border border-border text-foreground rounded-xl hover:bg-muted/50 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+   {({ open }) => (
+   <>
+   <Menu.Button ref={toolsMenuButtonRef} aria-label={t('common.more')} className="p-2.5 bg-background border border-border text-foreground rounded-xl hover:bg-muted/50 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
    <MoreVertical className="h-5 w-5" />
    </Menu.Button>
-   <Transition
-   as={React.Fragment}
-   enter="transition ease-out duration-100"
-   enterFrom="transform opacity-0 scale-95"
-   enterTo="transform opacity-100 scale-100"
-   leave="transition ease-in duration-75"
-   leaveFrom="transform opacity-100 scale-100"
-   leaveTo="transform opacity-0 scale-95"
-   >
-   <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border/50 rounded-xl bg-popover text-popover-foreground shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-dropdown">
+   <MenuPortal buttonRef={toolsMenuButtonRef} open={open}>
    <div className="p-1">
     <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
     {t('suppliers.tools')}
@@ -619,8 +614,9 @@ export const Suppliers: React.FC = () => {
     )}
     </Menu.Item>
    </div>
-   </Menu.Items>
-   </Transition>
+   </MenuPortal>
+   </>
+   )}
    </Menu>
 
 

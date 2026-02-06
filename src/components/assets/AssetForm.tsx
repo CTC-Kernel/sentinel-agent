@@ -317,7 +317,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
   <button
   type="button"
   onClick={() => handleSuggestField('type')}
-  className="absolute right-8 top-1/2 -translate-y-1/2 mt-0 text-muted-foreground hover:text-primary transition-colors z-10"
+  className="absolute right-8 top-1/2 -translate-y-1/2 mt-0 text-muted-foreground hover:text-primary transition-colors z-decorator"
   title={t('assets.form.suggestType', { defaultValue: 'Suggérer le type' })}
   >
   <Sparkles className={`h-4 w-4 ${suggestingField === 'type' ? 'animate-spin' : ''}`} />

@@ -8,7 +8,7 @@ import { ChartTooltip } from '../../ui/ChartTooltip';
 import { slideUpVariants } from '../../ui/animationVariants';
 import { BusinessProcess, BcpDrill } from '../../../types';
 import { EmptyChartState } from '../../ui/EmptyChartState';
-import { SEVERITY_COLORS, SENTINEL_PALETTE } from '../../../theme/chartTheme';
+import { SEVERITY_COLORS, SENTINEL_PALETTE, CHART_STYLES } from '../../../theme/chartTheme';
 import { AlertTriangle, Target, Activity } from '../../ui/Icons';
 import { SentinelPieActiveShapeProps } from '../../../types/charts';
 
@@ -169,7 +169,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                     className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
-                    <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10">
+                    <div className="flex flex-col sm:flex-row items-center gap-6 relative z-decorator">
                         <div className="relative">
                             <div className="h-[140px] w-[140px]">
                                 <ResponsiveContainer width="100%" height="100%" >
@@ -225,13 +225,13 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-muted-foreground/30 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
                     <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
-                    <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider relative z-10 flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider relative z-decorator flex items-center gap-2">
                         <div className="p-2 bg-orange-500/10 rounded-3xl">
                             <AlertTriangle className="w-4 h-4 text-orange-500" />
                         </div>
                         Criticité des Processus
                     </h3>
-                    <div className="h-[280px] w-full relative z-10">
+                    <div className="h-[280px] w-full relative z-decorator">
                         {criticalityData.length === 0 ? (
                             <EmptyChartState
                                 variant="pie"
@@ -290,13 +290,13 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-muted-foreground/30 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
                     <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
-                    <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider relative z-10 flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider relative z-decorator flex items-center gap-2">
                         <div className="p-2 bg-primary/10 rounded-3xl">
                             <Target className="w-4 h-4 text-primary" />
                         </div>
                         Résultats des Exercices
                     </h3>
-                    <div className="h-[280px] w-full relative z-10">
+                    <div className="h-[280px] w-full relative z-decorator">
                         {drillResultsData.length === 0 ? (
                             <EmptyChartState
                                 variant="bar"
@@ -312,7 +312,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                                     <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.1)' }} />
                                     <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={40} animationDuration={1200}>
                                         {drillResultsData.map((entry, index) => (
-                                            <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' }} />
+                                            <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} className="chart-cell-shadow" />
                                         ))}
                                     </Bar>
                                 </BarChart>
@@ -329,13 +329,13 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-muted-foreground/30 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
                     <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
-                    <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider relative z-10 flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider relative z-decorator flex items-center gap-2">
                         <div className="p-2 bg-emerald-500/10 rounded-3xl">
                             <Activity className="w-4 h-4 text-emerald-500" />
                         </div>
                         Historique (12 Mois)
                     </h3>
-                    <div className="h-[280px] w-full relative z-10">
+                    <div className="h-[280px] w-full relative z-decorator">
                         {drillsEvolutionData.every(m => m.success === 0 && m.failure === 0 && m.partial === 0) ? (
                             <EmptyChartState
                                 variant="bar"

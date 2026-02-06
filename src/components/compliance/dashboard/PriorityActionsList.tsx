@@ -309,7 +309,7 @@ export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
  className
  )}>
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-4xl" />
- <div className="relative z-10 flex flex-col items-center justify-center py-8 text-center">
+ <div className="relative z-decorator flex flex-col items-center justify-center py-8 text-center">
  <div className="w-16 h-16 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-4">
  <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
  </div>
@@ -332,7 +332,7 @@ export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-4xl" />
 
  {/* Header */}
- <div className="flex items-center justify-between mb-6 relative z-10">
+ <div className="flex items-center justify-between mb-6 relative z-decorator">
  <div className="flex items-center gap-3">
  <div className="w-10 h-10 rounded-3xl bg-primary/15 dark:bg-primary flex items-center justify-center">
  <Shield className="w-5 h-5 text-primary" />
@@ -353,7 +353,7 @@ export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
  </div>
 
  {/* Actions list */}
- <div className="space-y-3 relative z-10">
+ <div className="space-y-3 relative z-decorator">
  <AnimatePresence mode="popLayout">
  {priorityActions.map((action, index) => (
  <ActionCard
@@ -367,7 +367,7 @@ export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
  </div>
 
  {/* Footer hint */}
- <div className="mt-4 pt-4 border-t border-white/20 dark:border-white/5 relative z-10">
+ <div className="mt-4 pt-4 border-t border-white/20 dark:border-white/5 relative z-decorator">
  <p className="text-xs text-muted-foreground text-center">
  {t('actions.hint', 'Cliquez sur une action pour commencer')}
  </p>

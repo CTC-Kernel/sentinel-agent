@@ -216,7 +216,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
  )}
  <div className="glass-premium p-6 rounded-4xl border border-border/40 shadow-sm relative overflow-hidden">
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
- <div className="relative z-10 space-y-6">
+ <div className="relative z-decorator space-y-6">
   <FloatingLabelInput
   label={t('audits.form.name')}
   {...register('name')}
@@ -285,7 +285,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
   )}
   />
   {watchedDateScheduled && watchedName && (
-  <div className="absolute right-2 top-2 z-10">
+  <div className="absolute right-2 top-2 z-decorator">
    <AddToCalendar
    event={{
    title: watchedName,

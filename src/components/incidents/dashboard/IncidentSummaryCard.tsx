@@ -32,7 +32,7 @@ export const IncidentSummaryCard: React.FC<IncidentSummaryCardProps> = ({
  </div>
 
  {/* Global Score */}
- <div className="flex items-center gap-6 relative z-10">
+ <div className="flex items-center gap-6 relative z-decorator">
  <div className="relative">
   <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="-4 -4 104 104">
   <defs>
@@ -76,7 +76,7 @@ export const IncidentSummaryCard: React.FC<IncidentSummaryCardProps> = ({
  </div>
 
  {/* Key Metrics Breakdown */}
- <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-border/40 px-6 mx-2 relative z-10">
+ <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-border/40 px-6 mx-2 relative z-decorator">
  <div>
   <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Total</div>
   <div className="text-2xl font-black text-foreground">{totalIncidents}</div>
@@ -96,7 +96,7 @@ export const IncidentSummaryCard: React.FC<IncidentSummaryCardProps> = ({
  </div>
 
  {/* Alerts/Status */}
- <div className="flex flex-col gap-3 min-w-0 sm:min-w-[200px] relative z-10">
+ <div className="flex flex-col gap-3 min-w-0 sm:min-w-[200px] relative z-decorator">
  {criticalIncidents > 0 && (
   <div className="flex items-center gap-3 text-xs font-bold text-destructive bg-destructive/10 px-4 py-2.5 rounded-xl border border-destructive/20 backdrop-blur-sm transition-all duration-normal ease-apple hover:scale-[1.02] animate-pulse">
   <ShieldAlert className="h-4 w-4 shrink-0" />

@@ -143,7 +143,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
  {/* NIS 2 Section */}
  <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-error/30 space-y-4 relative overflow-hidden group">
   <div className="absolute inset-0 bg-gradient-to-br from-error-bg/50 to-transparent pointer-events-none" />
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <div className="flex items-center space-x-3">
   <input {...register('isSignificant')}
   id="is-significant"
@@ -207,7 +207,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
   />
   )}
   />
-  <div className="absolute right-2 top-2 z-10">
+  <div className="absolute right-2 top-2 z-decorator">
   <AIAssistButton
   context={{
   title: title || '',

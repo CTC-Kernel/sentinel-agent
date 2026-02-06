@@ -158,7 +158,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
   control={control}
   render={({ field }) => (
    <div className="relative">
-   <Clock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground z-10" />
+   <Clock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground z-decorator" />
    <FloatingLabelInput
    label="RTO (Recovery Time)"
    placeholder="ex: 4h"
@@ -177,7 +177,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
   control={control}
   render={({ field }) => (
    <div className="relative">
-   <DatabaseIcon className="absolute left-3 top-3 w-4 h-4 text-muted-foreground z-10" />
+   <DatabaseIcon className="absolute left-3 top-3 w-4 h-4 text-muted-foreground z-decorator" />
    <FloatingLabelInput
    label="RPO (Data Loss)"
    placeholder="ex: 15min"

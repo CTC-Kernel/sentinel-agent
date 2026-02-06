@@ -70,7 +70,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
  };
 
  return (
- <div className="space-y-6 animate-fade-in relative z-10 text-balance">
+ <div className="space-y-6 animate-fade-in relative z-decorator text-balance">
  <ConfigurableDashboardGrid
  layout={layout}
  onLayoutChange={updateLayout}

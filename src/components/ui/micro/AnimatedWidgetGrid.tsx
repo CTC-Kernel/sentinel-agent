@@ -269,7 +269,7 @@ export const AnimatedWidgetCard: React.FC<AnimatedWidgetCardProps> = ({
  )}
 
  {/* Content */}
- <div className="relative z-10">{children}</div>
+ <div className="relative z-decorator">{children}</div>
  </motion.div>
  );
 };

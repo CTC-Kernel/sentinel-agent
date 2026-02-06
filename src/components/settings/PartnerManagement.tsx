@@ -196,7 +196,7 @@ export const PartnerManagement: React.FC = () => {
   transition={{ delay: index * 0.1 }}
   className="group glass-premium p-6 rounded-3xl border border-border/40 dark:border-white/5 hover:border-primary/40 dark:hover:border-primary/40 shadow-sm hover:shadow-xl hover:shadow-primary/25 transition-all duration-300 relative overflow-hidden"
   >
-  <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-70 transition-opacity z-10">
+  <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-70 transition-opacity z-decorator">
    <button
    onClick={() => setPartnerToDelete(partner)}
    className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors"
@@ -270,7 +270,7 @@ export const PartnerManagement: React.FC = () => {
   initial={{ scale: 0.95, opacity: 0, y: 20 }}
   animate={{ scale: 1, opacity: 1, y: 0 }}
   exit={{ scale: 0.95, opacity: 0, y: 20 }}
-  className="glass-premium rounded-2xl w-full max-w-md p-6 shadow-2xl border border-border/40 relative z-10"
+  className="glass-premium rounded-2xl w-full max-w-md p-6 shadow-2xl border border-border/40 relative z-decorator"
   >
   <h3 className="text-xl font-bold mb-2 text-foreground">
   {t('certifier.partners.modalTitle') || "Inviter un partenaire"}

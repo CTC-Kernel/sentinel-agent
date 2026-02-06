@@ -45,7 +45,7 @@ export const SuppliersStatsWidget: React.FC<SuppliersStatsWidgetProps> = ({ navi
  hover={true}
  gradientOverlay={true}
  >
- <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
+ <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-decorator">
   <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
   <div className="p-1.5 rounded-lg bg-info-bg dark:bg-info/10 text-info-text dark:text-info">
   <Truck className="w-4 h-4" />
@@ -54,7 +54,7 @@ export const SuppliersStatsWidget: React.FC<SuppliersStatsWidgetProps> = ({ navi
   </h3>
  </div>
 
- <div className="flex-1 flex items-center justify-center relative z-10">
+ <div className="flex-1 flex items-center justify-center relative z-decorator">
   <EmptyState
   icon={Users}
   title="Aucun fournisseur"
@@ -75,7 +75,7 @@ export const SuppliersStatsWidget: React.FC<SuppliersStatsWidgetProps> = ({ navi
  hover={true}
  gradientOverlay={true}
  >
- <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
+ <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-decorator">
  <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
   <div className="p-1.5 rounded-lg bg-info-bg dark:bg-info/10 text-info-text dark:text-info">
   <Truck className="w-4 h-4" />
@@ -90,7 +90,7 @@ export const SuppliersStatsWidget: React.FC<SuppliersStatsWidgetProps> = ({ navi
  </button>
  </div>
 
- <div className="flex-1 flex flex-col justify-center relative z-10 pt-4">
+ <div className="flex-1 flex flex-col justify-center relative z-decorator pt-4">
  <div className="flex items-end gap-3 mb-6">
   <span className="text-4xl font-black text-foreground tracking-tight">{stats.total}</span>
   <span className="text-sm font-medium text-muted-foreground mb-1.5 pb-0.5">tiers gérés</span>

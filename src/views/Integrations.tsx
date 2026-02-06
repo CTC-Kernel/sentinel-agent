@@ -172,7 +172,7 @@ export const Integrations: React.FC = () => {
   variant="ghost"
   aria-label={t('integrations.tabs.providers')}
   onClick={() => setActiveTab('providers')}
-  className={`relative z-10 px-8 py-2.5 h-auto text-sm font-bold rounded-xl transition-colors duration-300 hover:bg-transparent ${activeTab === 'providers'
+  className={`relative z-decorator px-8 py-2.5 h-auto text-sm font-bold rounded-xl transition-colors duration-300 hover:bg-transparent ${activeTab === 'providers'
   ? 'text-foreground'
   : 'text-muted-foreground hover:text-foreground dark:hover:text-foreground'
   }`}
@@ -183,7 +183,7 @@ export const Integrations: React.FC = () => {
   variant="ghost"
   aria-label={t('integrations.tabs.jobs')}
   onClick={() => setActiveTab('jobs')}
-  className={`relative z-10 px-8 py-2.5 h-auto text-sm font-bold rounded-xl transition-colors duration-300 hover:bg-transparent ${activeTab === 'jobs'
+  className={`relative z-decorator px-8 py-2.5 h-auto text-sm font-bold rounded-xl transition-colors duration-300 hover:bg-transparent ${activeTab === 'jobs'
   ? 'text-foreground'
   : 'text-muted-foreground hover:text-foreground dark:hover:text-foreground'
   }`}

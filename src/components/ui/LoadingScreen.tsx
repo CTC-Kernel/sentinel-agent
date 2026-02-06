@@ -27,7 +27,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
  <div className="absolute inset-0 pointer-events-none">
  <div className="absolute top-[-20%] left-[-10%] w-[50rem] h-[50rem] bg-primary/15/20 rounded-full mix-blend-multiply filter blur-[100px] animate-float"></div>
  </div>
- <div className="relative z-10 flex flex-col items-center">
+ <div className="relative z-decorator flex flex-col items-center">
  <div className="w-20 h-20 rounded-2xl bg-[var(--glass-bg)] backdrop-blur-xl flex items-center justify-center shadow-xl animate-pulse mb-8 border border-border/40">
   <Lock className="h-10 w-10 text-primary" strokeWidth={2.5} />
  </div>

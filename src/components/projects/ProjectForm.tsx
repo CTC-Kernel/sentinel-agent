@@ -256,7 +256,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
   {...register('name')}
   error={errors.name?.message}
   />
-  <div className="absolute right-2 top-2 z-10">
+  <div className="absolute right-2 top-2 z-decorator">
   <AIAssistButton
   context={{ relatedRisks: availableRisks.filter(r => relatedRiskIds?.includes(r.id)) }}
   fieldName="Nom du projet"
@@ -273,7 +273,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
   rows={4}
   error={errors.description?.message}
   />
-  <div className="absolute right-2 top-2 z-10">
+  <div className="absolute right-2 top-2 z-decorator">
   <AIAssistButton
   context={{ name: watchedName }}
   fieldName="Description"

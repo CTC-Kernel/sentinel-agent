@@ -24,7 +24,7 @@ import { ChartTooltip } from '../../ui/ChartTooltip';
 import { useStore } from '../../../store';
 import i18n from '../../../i18n';
 import type { TrainingTrendPoint } from '../../../types/training';
-import { SENTINEL_PALETTE, CHART_STYLES } from '../../../theme/chartTheme';
+import { SENTINEL_PALETTE, CHART_STYLES, CHART_AXIS_COLORS } from '../../../theme/chartTheme';
 
 // ============================================================================
 // Types
@@ -43,13 +43,13 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
  data,
  isLoading,
 }) => {
- const { t, theme } = useStore();
+ const { t } = useStore();
  const completedGradientId = useId();
  const assignedGradientId = useId();
 
  const chartColors = {
- grid: theme === 'dark' ? 'hsl(var(--border) / 0.35)' : 'hsl(var(--border) / 0.6)',
- text: 'hsl(var(--muted-foreground))',
+ grid: CHART_AXIS_COLORS.grid,
+ text: CHART_AXIS_COLORS.tick,
  completed: SENTINEL_PALETTE.success,
  assigned: SENTINEL_PALETTE.primary,
  };
@@ -144,7 +144,7 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
  {/* Dynamic Background Effect */}
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
 
- <div className="flex items-center justify-between mb-6 relative z-10">
+ <div className="flex items-center justify-between mb-6 relative z-decorator">
  <div className="flex items-center gap-4">
  <div className="p-2.5 rounded-3xl bg-success-bg/20">
  <TrendingUp className="w-5 h-5 text-success-text" />
@@ -162,13 +162,13 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
  {/* Period totals */}
  <div className="flex items-center gap-6 text-sm font-medium">
  <div className="flex items-center gap-2">
- <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: chartColors.completed }} />
+ <span className="w-2.5 h-2.5 rounded-full bg-[hsl(var(--success))]" />
  <span className="text-foreground">
  {periodTotals.completed} <span className="text-muted-foreground font-normal">{t('training.dashboard.completedLabel')}</span>
  </span>
  </div>
  <div className="flex items-center gap-2">
- <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: chartColors.assigned }} />
+ <span className="w-2.5 h-2.5 rounded-full bg-[hsl(var(--primary))]" />
  <span className="text-foreground">
  {periodTotals.assigned} <span className="text-muted-foreground font-normal">{t('training.dashboard.assignedLabel')}</span>
  </span>
@@ -176,7 +176,7 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
  </div>
  </div>
 
- <div className="h-[300px] relative z-10 -ml-4">
+ <div className="h-[300px] relative z-decorator -ml-4">
  <ResponsiveContainer width="100%" height="100%" >
  <AreaChart
  data={aggregatedData}
@@ -200,7 +200,7 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
  />
  <XAxis
  dataKey="date"
- tick={{ fontSize: 11, fill: chartColors.text, fontWeight: 600 }}
+ tick={{ fontSize: 11, fill: 'hsl(var(--chart-axis-tick))', fontWeight: 600 }}
  axisLine={false}
  tickLine={false}
  dy={10}
@@ -212,7 +212,7 @@ export const TrainingTrendChart: React.FC<TrainingTrendChartProps> = ({
  }
  />
  <YAxis
- tick={{ fontSize: 11, fill: chartColors.text }}
+ tick={{ fontSize: 11, fill: 'hsl(var(--chart-axis-tick))' }}
  axisLine={false}
  tickLine={false}
  allowDecimals={false}

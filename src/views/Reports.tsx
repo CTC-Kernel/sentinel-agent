@@ -344,7 +344,7 @@ export const Reports: React.FC = () => {
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
   <div className={`glass-premium p-4 sm:p-6 rounded-3xl border transition-all duration-300 group relative overflow-hidden ${activeFramework?.toUpperCase() === 'ISO27001' ? 'border-primary ring-2 ring-primary/20' : 'border-border/40 hover:border-primary/50'}`}>
   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 dark:bg-primary/60/15 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/20 dark:group-hover:bg-primary/30 transition-colors"></div>
-  <div className="relative z-10">
+  <div className="relative z-decorator">
    <div className="flex items-center gap-4 mb-4">
    <div className="p-3 bg-primary/15 dark:bg-primary rounded-xl text-primary group-hover:scale-110 transition-transform">
    <ShieldCheck className="h-8 w-8" />
@@ -383,7 +383,7 @@ export const Reports: React.FC = () => {
 
   <div className={`glass-premium p-4 sm:p-6 rounded-3xl border transition-all duration-300 group relative overflow-hidden ${activeFramework?.toUpperCase() === 'GDPR' ? 'border-primary ring-2 ring-primary/20' : 'border-border/40 hover:border-primary/50'}`}>
   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 dark:bg-primary/60/15 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/20 dark:group-hover:bg-primary/30 transition-colors"></div>
-  <div className="relative z-10">
+  <div className="relative z-decorator">
    <div className="flex items-center gap-4 mb-4">
    <div className="p-3 bg-primary/15 dark:bg-primary rounded-xl text-primary group-hover:scale-110 transition-transform">
    <Lock className="h-8 w-8" />
@@ -431,7 +431,7 @@ export const Reports: React.FC = () => {
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
   <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 hover:border-violet-500/50 transition-all duration-300 group relative overflow-hidden">
   <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/15 dark:bg-violet-400/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-violet-500/25 dark:group-hover:bg-violet-400/20 transition-colors"></div>
-  <div className="relative z-10">
+  <div className="relative z-decorator">
    <div className="flex items-center gap-4 mb-4">
    <div className="p-3 bg-violet-100 dark:bg-violet-900/30 rounded-xl text-violet-600 group-hover:scale-110 transition-transform">
    <Settings className="h-8 w-8" />

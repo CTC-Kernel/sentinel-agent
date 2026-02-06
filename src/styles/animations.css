@@ -1,4 +1,39 @@
-/* Premium Animations - Sentinel GRC */
+/* ====================================================================
+   Premium Animations - Sentinel GRC
+   AUDIT FIX: Consolidated all keyframes here (single source of truth)
+   ==================================================================== */
+
+/* Shine Effect - Card hover animation */
+@keyframes shine {
+  0% {
+    transform: translateX(-100%) skewX(-12deg);
+  }
+
+  100% {
+    transform: translateX(200%) skewX(-12deg);
+  }
+}
+
+.animate-shine {
+  animation: shine 1.5s ease-in-out;
+}
+
+/* Animation Delay Utilities */
+.animation-delay-1000 {
+  animation-delay: 1000ms;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2000ms;
+}
+
+.animation-delay-3000 {
+  animation-delay: 3000ms;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4000ms;
+}
 
 /* Shimmer Effect */
 @keyframes shimmer {
@@ -494,58 +529,7 @@
   animation: pulse-slow 3s ease-in-out infinite;
 }
 
-/* ============================================================================
-   WCAG 2.1 - Accessibility: Reduced Motion Support
-   Users who have requested reduced motion will see minimal or no animations
-   ============================================================================ */
-
-@media (prefers-reduced-motion: reduce) {
-
-  /* Disable all infinite/continuous animations */
-  .animate-shimmer,
-  .animate-shimmer-rotate,
-  .animate-pulse-glow,
-  .animate-pulse-slow,
-  .animate-float,
-  .animate-float-delayed,
-  .animate-spin-slow,
-  .animate-spin-slow-reverse,
-  .animate-monitoring-ping,
-  .animate-bounce,
-  .animate-gradient-shift,
-  .animate-particle-float,
-  .animate-glow-text,
-  .animate-border-pulse,
-  .animate-skeleton,
-  .animate-morph,
-  .animate-pulse-ring {
-    animation: none !important;
-  }
-
-  /* Reduce one-time animations to instant transitions */
-  .animate-slide-in-left,
-  .animate-slide-in-right,
-  .animate-scale-in,
-  .animate-fade-in-up,
-  .animate-typewriter {
-    animation-duration: 1ms !important;
-    animation-iteration-count: 1 !important;
-  }
-
-  /* Disable hover animations */
-  .animate-hover-lift:hover,
-  .animate-wave:hover {
-    animation: none !important;
-    transform: none !important;
-  }
-
-  /* Global transition reduction for smoother experience */
-  *,
-  *::before,
-  *::after {
-    animation-duration: 1ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 1ms !important;
-    scroll-behavior: auto !important;
-  }
-}
+/* ====================================================================
+   AUDIT FIX: Reduced Motion Support consolidated in accessibility.css
+   See src/styles/accessibility.css for @media (prefers-reduced-motion)
+   ==================================================================== */

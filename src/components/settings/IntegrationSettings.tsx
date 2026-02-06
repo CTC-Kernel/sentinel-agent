@@ -120,7 +120,7 @@ export const IntegrationSettings: React.FC = () => {
  {/* AI Settings */}
  <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden flex flex-col h-full">
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
- <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5">
+ <div className="relative z-decorator p-6 border-b border-white/20 dark:border-white/5">
   <div className="flex items-center gap-3">
   <div className="p-2.5 bg-purple-500/10 dark:bg-purple-500/20 rounded-3xl text-purple-600 dark:text-purple-400 backdrop-blur-md">
   <BrainCircuit className="w-5 h-5" />
@@ -128,7 +128,7 @@ export const IntegrationSettings: React.FC = () => {
   <h3 className="text-lg font-bold text-foreground">{t('settings.aiSettings')}</h3>
   </div>
  </div>
- <div className="relative z-10 p-6 flex-1 flex flex-col justify-between space-y-6">
+ <div className="relative z-decorator p-6 flex-1 flex flex-col justify-between space-y-6">
   <div>
   <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
   {t('settings.aiDescription')}
@@ -170,7 +170,7 @@ export const IntegrationSettings: React.FC = () => {
  {/* Google Calendar */}
  <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden flex flex-col h-full">
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
- <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5">
+ <div className="relative z-decorator p-6 border-b border-white/20 dark:border-white/5">
   <div className="flex items-center gap-3">
   <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-3xl text-blue-600 dark:text-blue-400 backdrop-blur-md">
   <Calendar className="w-5 h-5" />
@@ -180,7 +180,7 @@ export const IntegrationSettings: React.FC = () => {
   </h3>
   </div>
  </div>
- <div className="relative z-10 p-6 flex-1 flex flex-col justify-center space-y-6">
+ <div className="relative z-decorator p-6 flex-1 flex flex-col justify-center space-y-6">
   <div className="space-y-4">
   <p className="text-sm text-muted-foreground leading-relaxed">
   {t('settings.googleCalendarDescription')}
@@ -239,7 +239,7 @@ export const IntegrationSettings: React.FC = () => {
  {/* SSO Settings - Enterprise */}
  <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden flex flex-col h-full md:col-span-2">
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
- <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5">
+ <div className="relative z-decorator p-6 border-b border-white/20 dark:border-white/5">
   <div className="flex items-center gap-3">
   <div className="p-2.5 bg-primary/10 rounded-3xl text-primary backdrop-blur-md">
   <ShieldCheck className="w-5 h-5" />
@@ -248,7 +248,7 @@ export const IntegrationSettings: React.FC = () => {
   <span className="ml-auto px-2 py-1 text-[11px] font-bold bg-primary/15 text-primary rounded-full border border-primary/30">ENTERPRISE</span>
   </div>
  </div>
- <div className="relative z-10 p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+ <div className="relative z-decorator p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
   <div className="space-y-4">
   <p className="text-sm text-muted-foreground leading-relaxed">
   {t('settings.integrationsPage.ssoDesc')}

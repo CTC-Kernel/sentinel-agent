@@ -21,7 +21,7 @@ export const NotFound: React.FC = () => {
  variants={slideUpVariants}
  initial="initial"
  animate="visible"
- className="relative z-10 glass-premium p-12 md:p-16 rounded-3xl max-w-lg w-full mx-6 text-center shadow-apple dark:shadow-2xl overflow-hidden"
+ className="relative z-decorator glass-premium p-12 md:p-16 rounded-3xl max-w-lg w-full mx-6 text-center shadow-apple dark:shadow-2xl overflow-hidden"
  >
  <div className="w-20 h-20 rounded-3xl bg-muted dark:bg-white/10 flex items-center justify-center mx-auto mb-8 text-muted-foreground shadow-inner">
   <AlertTriangle className="h-10 w-10" />

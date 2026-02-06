@@ -428,7 +428,7 @@ export const Onboarding: React.FC = () => {
  initialTab={legalTab}
  />
 
- <div className="w-full max-w-xl p-6 relative z-10 animate-scale-in">
+ <div className="w-full max-w-xl p-6 relative z-decorator animate-scale-in">
  <div className="glass-premium rounded-3xl p-10 md:p-12 shadow-2xl">
   {/* ... (Header and UI structure) ... */}
   <div className="text-center mb-10">

@@ -269,7 +269,7 @@ export const OrganizationSettings: React.FC = () => {
  <div className="bg-gradient-to-r from-violet-900 via-violet-800 to-violet-900 rounded-4xl p-6 sm:p-8 shadow-2xl text-white relative overflow-hidden group border border-border/40">
   <div className="absolute top-0 right-0 p-32 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-white/15 transition-colors duration-500"></div>
 
-  <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+  <div className="relative z-decorator flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
   <div className="flex items-center gap-5">
   <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20 shadow-inner">
   <FileSpreadsheet className="h-7 w-7 text-white" />
@@ -308,7 +308,7 @@ export const OrganizationSettings: React.FC = () => {
  {hasPermission(user, 'Settings', 'manage') && (
  <PremiumCard glass className="p-0 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
   <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
-  <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
+  <div className="relative z-decorator p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
   <div className="flex items-center gap-3">
   <div className="p-2.5 bg-primary/10 rounded-3xl text-primary">
   <Building className="w-5 h-5" />
@@ -317,7 +317,7 @@ export const OrganizationSettings: React.FC = () => {
   </div>
   </div>
 
-  <div className="relative z-10 p-6">
+  <div className="relative z-decorator p-6">
   <form onSubmit={orgForm.handleSubmit(handleUpdateOrg)} className="space-y-6">
   {updateError && (
   <div className="bg-error-bg border border-error-border/40 rounded-2xl p-4 flex items-center gap-3">
@@ -478,7 +478,7 @@ export const OrganizationSettings: React.FC = () => {
  {user && hasPermission(user, 'User', 'manage') && (
  <PremiumCard glass className="p-0 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
   <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
-  <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex justify-between items-center">
+  <div className="relative z-decorator p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex justify-between items-center">
   <div className="flex items-center gap-3">
   <div className="p-2.5 bg-violet-500/10 dark:bg-violet-500/20 rounded-3xl text-violet-600 dark:text-violet-400">
   <Users className="w-5 h-5" />
@@ -502,7 +502,7 @@ export const OrganizationSettings: React.FC = () => {
   </div>
   </div>
 
-  <div className="relative z-10 divide-y divide-white/20 dark:divide-white/5">
+  <div className="relative z-decorator divide-y divide-white/20 dark:divide-white/5">
   {filteredUsers.map(u => (
   <UserRow
   key={u.uid || 'unknown'}

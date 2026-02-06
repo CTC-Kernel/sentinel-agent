@@ -935,13 +935,7 @@ export const AgentManagement: React.FC = () => {
                                     width={30}
                                 />
                                 <Tooltip
-                                    contentStyle={{
-                                        ...CHART_STYLES.tooltip.contentStyle,
-                                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                                        border: '1px solid rgba(255,255,255,0.1)'
-                                    }}
-                                    labelStyle={{ ...CHART_STYLES.tooltip.labelStyle, color: '#fff' }}
-                                    itemStyle={{ fontSize: '12px', color: '#fff' }}
+                                    {...CHART_STYLES.tooltip}
                                 />
                                 <Area
                                     type="monotone"
@@ -988,7 +982,7 @@ export const AgentManagement: React.FC = () => {
                         className="glass-premium rounded-3xl border border-border/40 overflow-hidden relative"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
-                        <div className="relative z-10 px-6 py-4 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex items-center justify-between">
+                        <div className="relative z-decorator px-6 py-4 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex items-center justify-between">
                             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                                 <Server className="w-4 h-4 text-primary" />
                                 {t('settings.agents.agentList', { defaultValue: 'Liste des Agents' })} ({agentStats.total})
@@ -997,7 +991,7 @@ export const AgentManagement: React.FC = () => {
                                 {agentStats.active} {t('settings.agents.connected', { defaultValue: 'connectés' })}
                             </Badge>
                         </div>
-                        <div className="relative z-10 overflow-x-auto">
+                        <div className="relative z-decorator overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-border/40">
@@ -1105,13 +1099,13 @@ export const AgentManagement: React.FC = () => {
                         className="glass-premium rounded-3xl border border-border/40 overflow-hidden relative"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
-                        <div className="relative z-10 px-6 py-4 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex items-center justify-between">
+                        <div className="relative z-decorator px-6 py-4 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex items-center justify-between">
                             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                                 <Lock className="w-4 h-4 text-primary" />
                                 {t('settings.agents.enrollmentTokens', { defaultValue: "Tokens d'enrôlement" })} ({enrollmentTokens.length})
                             </h3>
                         </div>
-                        <div className="relative z-10 overflow-x-auto">
+                        <div className="relative z-decorator overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-border/40">

@@ -178,7 +178,7 @@ export const ThreatToRiskDrawer: React.FC<ThreatToRiskDrawerProps> = ({ isOpen, 
   />
  </div>
 
- <div className="px-6 py-4 border-t border-border/40 shrink-0 flex justify-end gap-3 bg-card z-10">
+ <div className="px-6 py-4 border-t border-border/40 shrink-0 flex justify-end gap-3 bg-card z-decorator">
   <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
   {t('common.cancel', { defaultValue: 'Annuler' })}
   </Button>

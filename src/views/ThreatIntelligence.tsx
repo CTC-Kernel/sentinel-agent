@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 
 import { SEO } from '../components/SEO';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -7,7 +7,8 @@ import { motion } from 'framer-motion';
 import { staggerContainerVariants, slideUpVariants } from '../components/ui/animationVariants';
 import { Globe, AlertOctagon, Users, MessageSquare, ThumbsUp, Shield, Activity, Share2, Box, LayoutDashboard, List, Network } from '../components/ui/Icons';
 import { RefreshCw, Settings, ChevronRight } from '../components/ui/Icons';
-import { Menu, Transition } from '@headlessui/react';
+import { Menu } from '@headlessui/react';
+import { MenuPortal } from '../components/ui/MenuPortal';
 import { Button } from '../components/ui/button';
 import { Threat } from '../types';
 import { ThreatFeedService } from '../services/ThreatFeedService';
@@ -49,6 +50,7 @@ export const ThreatIntelligence: React.FC = () => {
  // Filters (PremiumPageControl)
  const [searchTerm, setSearchTerm] = useState('');
  const [activeTypeFilter, setActiveTypeFilter] = useState('All'); // 'All', 'Ransomware', 'Vulnerability'
+ const filterMenuButtonRef = useRef<HTMLButtonElement>(null);
 
  // Community Features State
  const [selectedThreatId, setSelectedThreatId] = useState<string | null>(null);
@@ -318,12 +320,13 @@ export const ThreatIntelligence: React.FC = () => {
  actions={
   activeTab === 'feed' && (
   <Menu as="div" className="relative inline-block text-left">
-  <Menu.Button className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground rounded-xl hover:bg-muted/50 transition-colors text-sm font-medium" aria-label="Filter threats" title="Filter threats">
+  {({ open }) => (
+  <>
+  <Menu.Button ref={filterMenuButtonRef} className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground rounded-xl hover:bg-muted/50 transition-colors text-sm font-medium" aria-label="Filter threats" title="Filter threats">
   <Network className="h-4 w-4 text-muted-foreground" />
   <span className="hidden md:inline">{t('threats.filter', { defaultValue: 'Filtrer' })}:</span> <span className="font-bold ml-1">{activeTypeFilter}</span>
   </Menu.Button>
-  <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" />
-  <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right divide-y divide-border/50 rounded-xl bg-popover text-popover-foreground shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-dropdown">
+  <MenuPortal buttonRef={filterMenuButtonRef} open={open} width={192}>
   <div className="p-1">
    {filterOptions.map(f => (
    <Menu.Item key={f || 'unknown'}>
@@ -335,7 +338,9 @@ export const ThreatIntelligence: React.FC = () => {
    </Menu.Item>
    ))}
   </div>
-  </Menu.Items>
+  </MenuPortal>
+  </>
+  )}
   </Menu>
   )
  }
@@ -360,7 +365,7 @@ export const ThreatIntelligence: React.FC = () => {
  {
  activeTab === 'map' && (
   <motion.div key="map" variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="relative h-[70vh] min-h-[500px] w-full bg-card rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
-  <div className="absolute top-6 right-6 z-10 flex gap-3">
+  <div className="absolute top-6 right-6 z-decorator flex gap-3">
   <Button
   aria-label="Toggle 2D/3D view"
   onClick={handleToggleViewMode}
@@ -429,7 +434,7 @@ export const ThreatIntelligence: React.FC = () => {
   <div className="bg-gradient-to-br from-primary to-violet-900 rounded-3xl p-8 text-white relative overflow-hidden ring-1 ring-white/10 shadow-2xl">
   <div className="absolute top-0 right-0 p-8 opacity-20 animate-pulse"><Globe className="h-64 w-64" /></div>
 
-  <div className="relative z-10">
+  <div className="relative z-decorator">
   <Badge status="success" className="mb-4">Verified Community</Badge>
   <h3 className="text-3xl font-black mb-2 tracking-tight">Sentinel Force</h3>
   <p className="text-white/80 text-lg mb-8 max-w-sm leading-relaxed">

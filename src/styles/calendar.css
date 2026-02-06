@@ -1,103 +1,117 @@
-/* Calendar Custom Styles */
-/* Hide 'Show More' text link that is often hard to click, we will style it as a badge */
-/* WCAG AAA: minimum text size 11px */
-.rbc-show-more {
-    @apply bg-muted dark:bg-white/10 text-muted-foreground dark:text-white/90 text-[11px] font-bold px-2.5 py-1 rounded-full mt-1 inline-block transition-colors hover:bg-muted/80 dark:hover:bg-white/20 min-h-[24px] !important;
-    text-decoration: none !important;
-    display: block !important;
+/* ====================================================================
+   Calendar Custom Styles - React Big Calendar Overrides
+   AUDIT FIX: Using :where() to reduce specificity instead of !important
+   :where() has 0 specificity, allowing clean overrides
+   ==================================================================== */
+
+/* Show More Badge - WCAG AAA: minimum text size 11px */
+:where(.rbc-show-more) {
+    @apply bg-muted dark:bg-white/10 text-muted-foreground dark:text-white/90;
+    @apply text-[11px] font-bold px-2.5 py-1 rounded-full mt-1 inline-block;
+    @apply transition-colors hover:bg-muted/80 dark:hover:bg-white/20 min-h-[24px];
+    text-decoration: none;
+    display: block;
     text-align: center;
     width: fit-content;
-    margin: 2px auto !important;
-    background-color: transparent !important;
+    margin: 2px auto;
+    background-color: transparent;
 }
 
-/* Ensure the popup (overlay) is glassmorphic and respects dark mode */
-.rbc-overlay {
-    @apply bg-white/80 dark:bg-card/80 backdrop-blur-2xl border border-border/50 dark:border-white/10 shadow-apple-xl rounded-2xl p-4 !important;
-    z-index: 50 !important;
+/* Overlay popup - glassmorphic style */
+:where(.rbc-overlay) {
+    @apply bg-white/80 dark:bg-card/80 backdrop-blur-2xl;
+    @apply border border-border/50 dark:border-white/10;
+    @apply shadow-elevation-xl rounded-2xl p-4;
+    z-index: var(--z-popover, 80);
     animation: scaleIn 0.2s ease-out forwards;
 }
 
-/* Header of the popup (The Date) */
-.rbc-overlay-header {
-    @apply border-b border-border/40 dark:border-white/5 pb-3 mb-3 text-sm font-black text-foreground dark:text-white uppercase tracking-wider font-display !important;
+/* Overlay Header */
+:where(.rbc-overlay-header) {
+    @apply border-b border-border/40 dark:border-white/5;
+    @apply pb-3 mb-3 text-sm font-black text-foreground dark:text-white;
+    @apply uppercase tracking-wider font-display;
     text-align: center;
 }
 
-/* The Day Cell Date Number */
-.rbc-date-cell {
-    @apply text-muted-foreground dark:text-muted-foreground/80 font-bold p-2 text-xs uppercase tracking-wide transition-colors !important;
+/* Day Cell Date Number */
+:where(.rbc-date-cell) {
+    @apply text-muted-foreground dark:text-muted-foreground/80;
+    @apply font-bold p-2 text-xs uppercase tracking-wide transition-colors;
 }
 
-.rbc-date-cell.rbc-now {
-    @apply text-primary font-black !important;
+:where(.rbc-date-cell.rbc-now) {
+    @apply text-primary font-black;
 }
 
-.rbc-date-cell a {
-    @apply no-underline !important;
+:where(.rbc-date-cell a) {
+    @apply no-underline;
 }
 
-/* Current Day Highlight - much softer in dark mode */
-.rbc-day-bg.rbc-today {
-    @apply bg-primary/5 !important;
+/* Current Day Highlight */
+:where(.rbc-day-bg.rbc-today) {
+    @apply bg-primary/5;
 }
 
 /* Hover effect on cells */
-.rbc-day-bg:not(.rbc-today):hover {
-    @apply bg-muted/50 dark:bg-white/[0.02] transition-colors duration-200 cursor-pointer !important;
+:where(.rbc-day-bg:not(.rbc-today)):hover {
+    @apply bg-muted/50 dark:bg-white/[0.02] transition-colors duration-200 cursor-pointer;
 }
 
-/* Grid Lines - Barely visible in dark mode for premium feel */
-.rbc-month-view,
-.rbc-time-view,
-.rbc-header,
-.rbc-time-header-content {
-    @apply border-border/60 dark:border-white/5 !important;
+/* Grid Lines - Subtle in dark mode */
+:where(.rbc-month-view),
+:where(.rbc-time-view),
+:where(.rbc-header),
+:where(.rbc-time-header-content) {
+    @apply border-border/60 dark:border-white/5;
 }
 
-.rbc-day-bg+.rbc-day-bg,
-.rbc-month-row+.rbc-month-row,
-.rbc-header+.rbc-header {
-    @apply border-border/40 dark:border-white/5 !important;
+:where(.rbc-day-bg+.rbc-day-bg),
+:where(.rbc-month-row+.rbc-month-row),
+:where(.rbc-header+.rbc-header) {
+    @apply border-border/40 dark:border-white/5;
 }
 
 /* Off-range days (previous/next month) */
-.rbc-off-range-bg {
-    @apply bg-muted/30 dark:bg-black/20 !important;
+:where(.rbc-off-range-bg) {
+    @apply bg-muted/30 dark:bg-black/20;
 }
 
-.rbc-off-range .rbc-date-cell {
-    @apply text-muted-foreground/50 dark:text-muted-foreground/30 !important;
+:where(.rbc-off-range .rbc-date-cell) {
+    @apply text-muted-foreground/50 dark:text-muted-foreground/30;
 }
 
-/* Events in the view */
-/* WCAG AAA: minimum text size 11px, minimum touch target 24px */
-.rbc-event {
-    @apply rounded-md border-none shadow-sm text-[11px] font-bold px-2 py-1 transition-all hover:scale-[1.02] hover:shadow-md cursor-pointer !important;
-    min-height: 24px !important;
-    margin-bottom: 2px !important;
-    line-height: 1.4 !important;
+/* Events - WCAG AAA: minimum text size 11px, touch target 24px */
+:where(.rbc-event) {
+    @apply rounded-md border-none shadow-sm text-[11px] font-bold px-2 py-1;
+    @apply transition-all hover:scale-[1.02] hover:shadow-md cursor-pointer;
+    min-height: 24px;
+    margin-bottom: 2px;
+    line-height: 1.4;
 }
 
-/* Time Gutter (Day/Week view left side) */
-.rbc-time-gutter .rbc-timeslot-group {
-    @apply border-border/40 dark:border-white/5 !important;
+/* Time Gutter */
+:where(.rbc-time-gutter .rbc-timeslot-group) {
+    @apply border-border/40 dark:border-white/5;
 }
 
-.rbc-label {
-    @apply text-xs font-medium text-muted-foreground dark:text-muted-foreground !important;
+:where(.rbc-label) {
+    @apply text-xs font-medium text-muted-foreground dark:text-muted-foreground;
 }
 
-/* Header of Week/Day View */
-.rbc-header {
-    @apply py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground dark:text-muted-foreground border-b border-border/60 dark:border-white/5 bg-muted/30 dark:bg-white/5 !important;
+/* Week/Day View Header */
+:where(.rbc-header) {
+    @apply py-3 text-xs font-bold uppercase tracking-wider;
+    @apply text-muted-foreground dark:text-muted-foreground;
+    @apply border-b border-border/60 dark:border-white/5;
+    @apply bg-muted/30 dark:bg-white/5;
 }
 
 /* Current Time Indicator */
-.rbc-current-time-indicator {
-    @apply bg-primary h-[2px] !important;
+:where(.rbc-current-time-indicator) {
+    @apply bg-primary h-[2px];
 }
 
-.rbc-current-time-indicator::before {
-    @apply bg-brand-500 !important;
+:where(.rbc-current-time-indicator)::before {
+    @apply bg-primary;
 }

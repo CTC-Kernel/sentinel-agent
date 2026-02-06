@@ -123,7 +123,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
  return (
  <div
  key={num || 'unknown'}
- className="flex flex-col items-center relative z-10 flex-1 group"
+ className="flex flex-col items-center relative z-decorator flex-1 group"
  >
  <button
  onClick={() => handleClick(num)}

@@ -161,7 +161,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 dark:bg-primary/60/15 rounded-full blur-3xl -mr-32 -mt-32" />
                 </div>
 
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 relative z-10">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 relative z-decorator">
                     {/* Health Score Gauge */}
                     <div className="flex items-center gap-6">
                         <div className="relative">
@@ -361,13 +361,13 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                 transition={{ delay: 0.2 }}
                 className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
             >
-                <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2 relative z-10">
+                <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2 relative z-decorator">
                     <div className="p-2 bg-emerald-500/10 rounded-3xl">
                         <TrendingDown className="w-4 h-4 text-emerald-500" />
                     </div>
                     Burndown Chart
                 </h4>
-                <div className="h-[280px] relative z-10">
+                <div className="h-[280px] relative z-decorator">
                     <EmptyChartState
                         variant="bar"
                         message="Données insuffisantes"

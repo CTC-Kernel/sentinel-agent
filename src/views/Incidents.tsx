@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { cn } from '../lib/utils';
 
-import { Menu, Transition } from '@headlessui/react';
+import { Menu } from '@headlessui/react';
+import { MenuPortal } from '../components/ui/MenuPortal';
 import { useStore } from '../store';
 import { Incident, UserProfile, Criticality } from '../types';
 import { IncidentDashboard } from '../components/incidents/IncidentDashboard';
@@ -84,6 +85,7 @@ export const Incidents: React.FC = () => {
  setSeverityFilter('');
  }, [activeTab]);
  const pendingSelectId = useRef<string | null>(null);
+ const toolsMenuButtonRef = useRef<HTMLButtonElement>(null);
 
  // Optimized Data Hooks
  const {
@@ -501,89 +503,86 @@ export const Incidents: React.FC = () => {
    <div className="h-8 w-px bg-border mx-2 hidden md:block" />
 
    <Menu as="div" className="relative inline-block text-left">
-   <Menu.Button className="p-2 bg-background border border-border text-foreground rounded-xl hover:bg-muted/50 transition-colors shadow-sm">
-   <MoreVertical className="h-5 w-5" />
-   </Menu.Button>
-   <Transition
-   as={React.Fragment}
-   enter="transition ease-apple duration-normal"
-   enterFrom="transform opacity-0 scale-95 translate-y-2"
-   enterTo="transform opacity-100 scale-100 translate-y-0"
-   leave="transition ease-apple duration-fast"
-   leaveFrom="transform opacity-100 scale-100 translate-y-0"
-   leaveTo="transform opacity-0 scale-95 translate-y-2"
+   {({ open }) => (
+   <>
+   <Menu.Button
+    ref={toolsMenuButtonRef}
+    className="p-2 bg-background border border-border text-foreground rounded-xl hover:bg-muted/50 transition-colors shadow-sm"
    >
-   <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border/20 rounded-xl bg-background/95 backdrop-blur-xl text-popover-foreground shadow-premium ring-1 ring-border/40 focus:outline-none z-dropdown overflow-hidden">
-   <div className="p-1.5 bg-[var(--glass-bg)]">
+    <MoreVertical className="h-5 w-5" />
+   </Menu.Button>
+   <MenuPortal buttonRef={toolsMenuButtonRef} open={open}>
+    <div className="p-1.5 bg-[var(--glass-bg)]">
     <div className="px-3 py-2 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-70">
-    {t('incidents.tools')}
+     {t('incidents.tools')}
     </div>
     {canEdit && (
-    <>
-    <Menu.Item>
-    {({ active }) => (
-     <button
-     aria-label={t('incidents.importSiem')}
-     onClick={handleOpenImport}
-     className={cn(
-     "group flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-normal ease-apple",
-     active ? "bg-primary text-primary-foreground shadow-md" : "text-foreground hover:bg-muted/50"
+     <>
+     <Menu.Item>
+     {({ active }) => (
+      <button
+      aria-label={t('incidents.importSiem')}
+      onClick={handleOpenImport}
+      className={cn(
+       "group flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-normal ease-apple",
+       active ? "bg-primary text-primary-foreground shadow-md" : "text-foreground hover:bg-muted/50"
+      )}
+      >
+      <BrainCircuit className={cn("mr-2.5 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
+      {t('incidents.importSiem')}
+      </button>
      )}
-     >
-     <BrainCircuit className={cn("mr-2.5 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
-     {t('incidents.importSiem')}
-     </button>
-    )}
-    </Menu.Item>
-    <Menu.Item>
-    {({ active }) => (
-     <button
-     aria-label={t('incidents.simulateAttack')}
-     onClick={handleSimulateAttack}
-     className={cn(
-     "group flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-normal ease-apple",
-     active ? "bg-destructive text-destructive-foreground shadow-md" : "text-destructive hover:bg-destructive/10"
+     </Menu.Item>
+     <Menu.Item>
+     {({ active }) => (
+      <button
+      aria-label={t('incidents.simulateAttack')}
+      onClick={handleSimulateAttack}
+      className={cn(
+       "group flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-normal ease-apple",
+       active ? "bg-destructive text-destructive-foreground shadow-md" : "text-destructive hover:bg-destructive/10"
+      )}
+      >
+      <Siren className={cn("mr-2.5 h-4 w-4", active ? "text-destructive-foreground" : "text-destructive")} />
+      {t('incidents.simulateAttack')}
+      </button>
      )}
-     >
-     <Siren className={cn("mr-2.5 h-4 w-4", active ? "text-destructive-foreground" : "text-destructive")} />
-     {t('incidents.simulateAttack')}
-     </button>
-    )}
-    </Menu.Item>
-    <Menu.Item>
-    {({ active }) => (
-     <button
-     onClick={() => setCsvImportOpen(true)}
-     className={cn(
-     "group flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-normal ease-apple",
-     active ? "bg-primary text-primary-foreground shadow-md" : "text-foreground hover:bg-muted/50"
+     </Menu.Item>
+     <Menu.Item>
+     {({ active }) => (
+      <button
+      onClick={() => setCsvImportOpen(true)}
+      className={cn(
+       "group flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-normal ease-apple",
+       active ? "bg-primary text-primary-foreground shadow-md" : "text-foreground hover:bg-muted/50"
+      )}
+      >
+      <ListIcon className={cn("mr-2.5 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
+      {t('common.importCsv')}
+      </button>
      )}
-     >
-     <ListIcon className={cn("mr-2.5 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
-     {t('common.importCsv')}
-     </button>
-    )}
-    </Menu.Item>
-    </>
+     </Menu.Item>
+     </>
     )}
     <Menu.Item>
-    {({ active }) => (
-    <button
-    aria-label={t('common.exportCsv')}
-    onClick={handleExportCSV}
-    className={cn(
-     "group flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-normal ease-apple",
-     active ? "bg-primary text-primary-foreground shadow-md" : "text-foreground hover:bg-muted/50"
-    )}
-    >
-    <Download className={cn("mr-2.5 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
-    {t('common.exportCsv')}
-    </button>
-    )}
+     {({ active }) => (
+     <button
+      aria-label={t('common.exportCsv')}
+      onClick={handleExportCSV}
+      className={cn(
+      "group flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-normal ease-apple",
+      active ? "bg-primary text-primary-foreground shadow-md" : "text-foreground hover:bg-muted/50"
+      )}
+     >
+      <Download className={cn("mr-2.5 h-4 w-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
+      {t('common.exportCsv')}
+     </button>
+     )}
     </Menu.Item>
-   </div>
-   </Menu.Items>
-   </Transition>
+    </div>
+   </MenuPortal>
+   </>
+   )}
    </Menu>
 
    {(canEdit || canCreate) && (

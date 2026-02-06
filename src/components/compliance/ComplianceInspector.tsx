@@ -82,7 +82,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
  </div>
 
  {/* Tabs Header */}
- <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm sticky top-0 z-10 border-b border-border/40 dark:border-white/5">
+ <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm sticky top-0 z-decorator border-b border-border/40 dark:border-white/5">
  {linkingToProjectId && canEdit && (
   <div className="bg-primary/10 px-6 py-3 border-b border-primary/20 dark:border-primary/90 flex items-center justify-between animate-fade-in">
   <div className="flex items-center text-sm text-primary dark:text-primary/50">

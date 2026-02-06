@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 
@@ -31,7 +31,8 @@ import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { PdfService } from '../services/PdfService';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
-import { Menu, Transition } from '@headlessui/react';
+import { Menu } from '@headlessui/react';
+import { MenuPortal } from '../components/ui/MenuPortal';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { LayoutDashboard, List, CalendarDays, FolderKanban } from '../components/ui/Icons';
@@ -65,6 +66,7 @@ export const Projects: React.FC = () => {
  const [showTemplateModal, setShowTemplateModal] = useState(false);
  const [csvImportOpen, setCsvImportOpen] = useState(false);
  const [isFormDirty, setIsFormDirty] = useState(false);
+ const toolsMenuButtonRef = useRef<HTMLButtonElement>(null);
 
  // Dependencies Logic: Only fetch detailed collections when needed (optimization)
  const shouldFetchDetails = creationMode || !!editingProject || !!selectedProject;
@@ -340,11 +342,12 @@ export const Projects: React.FC = () => {
 
   {/* Secondary Actions Menu */}
   <Menu as="div" className="relative inline-block text-left">
-  <Menu.Button as={Button} variant="ghost" size="icon" aria-label={t('common.actions.title')} className="border border-border text-foreground rounded-xl hover:bg-muted shadow-sm">
+  {({ open }) => (
+  <>
+  <Menu.Button ref={toolsMenuButtonRef} as={Button} variant="ghost" size="icon" aria-label={t('common.actions.title')} className="border border-border text-foreground rounded-xl hover:bg-muted shadow-sm">
    <MoreVertical className="h-5 w-5" />
   </Menu.Button>
-  <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
-   <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border/50 rounded-xl bg-popover text-popover-foreground shadow-lg ring-1 ring-black ring-opacity-20 focus:outline-none z-dropdown">
+  <MenuPortal buttonRef={toolsMenuButtonRef} open={open}>
    <div className="p-1">
    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('common.actions.title')}</div>
    <Menu.Item>
@@ -369,8 +372,9 @@ export const Projects: React.FC = () => {
    )}
    </Menu.Item>
    </div>
-   </Menu.Items>
-  </Transition>
+  </MenuPortal>
+  </>
+  )}
   </Menu>
   </>
   )}
