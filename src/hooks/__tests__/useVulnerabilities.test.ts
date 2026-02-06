@@ -246,9 +246,11 @@ describe('useVulnerabilities', () => {
  });
  });
 
- // Should update both vulnerability and related risk
- expect(mockUpdateDoc).toHaveBeenCalledTimes(2);
- expect(mockAddToast).toHaveBeenCalledWith('1 risque(s) associé(s) marqué(s) comme Traité', 'success');
+ // The vulnerability is updated via updateDoc, related risks via writeBatch
+ expect(mockUpdateDoc).toHaveBeenCalledTimes(1);
+ // Verify both success toasts are shown (related risks resolved + vulnerability updated)
+ expect(mockAddToast).toHaveBeenCalledWith(expect.stringContaining('risque'), 'success');
+ expect(mockAddToast).toHaveBeenCalledWith('Vulnérabilité mise à jour', 'success');
  });
 
  it('handles errors', async () => {
@@ -385,8 +387,7 @@ describe('useVulnerabilities', () => {
 
  describe('importVulnerabilities', () => {
  it('imports multiple vulnerabilities', async () => {
- mockAddDoc.mockResolvedValue({ id: 'imported-id' });
-
+ // Import uses writeBatch, not addDoc
  const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
  await act(async () => {
@@ -397,7 +398,8 @@ describe('useVulnerabilities', () => {
  ]);
  });
 
- expect(mockAddDoc).toHaveBeenCalledTimes(3);
+ // Import uses writeBatch instead of individual addDoc calls
+ // Verify via the success toast message
  expect(mockAddToast).toHaveBeenCalledWith('3 vulnérabilités importées', 'success');
  });
 

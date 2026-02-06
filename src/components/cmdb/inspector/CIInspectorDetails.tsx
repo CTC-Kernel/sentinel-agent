@@ -8,7 +8,7 @@
  */
 
 import React, { useEffect, useMemo } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Server,
@@ -24,6 +24,7 @@ import {
   User,
   Cpu,
   Wifi,
+  LucideIcon,
 } from '../../ui/Icons';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -67,7 +68,7 @@ interface CIInspectorDetailsProps {
 // HELPERS
 // =============================================================================
 
-const CI_CLASSES: { value: CIClass; label: string; icon: React.ElementType }[] = [
+const CI_CLASSES: { value: CIClass; label: string; icon: LucideIcon }[] = [
   { value: 'Hardware', label: 'Hardware', icon: Server },
   { value: 'Software', label: 'Software', icon: Database },
   { value: 'Service', label: 'Service', icon: Globe },
@@ -168,7 +169,7 @@ export const CIInspectorDetails: React.FC<CIInspectorDetailsProps> = ({
     register,
     control,
     handleSubmit,
-    watch,
+    _watch,
     reset,
     formState: { errors, isDirty },
   } = useForm<CreateCIFormData>({
@@ -186,7 +187,7 @@ export const CIInspectorDetails: React.FC<CIInspectorDetailsProps> = ({
     reset(defaultValues);
   }, [ci?.id, defaultValues, reset]);
 
-  const selectedClass = watch('ciClass');
+  const selectedClass = useWatch({ control, name: 'ciClass' });
   const availableTypes = CI_TYPES_BY_CLASS[selectedClass] || [];
 
   const handleFormSubmit = async (data: CreateCIFormData) => {

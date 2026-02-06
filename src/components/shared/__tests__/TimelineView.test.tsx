@@ -9,22 +9,30 @@ import { TimelineView } from '../TimelineView';
 
 // Mock framer-motion - render as regular divs to avoid role="button" interference
 vi.mock('framer-motion', () => ({
- motion: {
- div: ({ children, className, onClick }: React.PropsWithChildren<{ className?: string; onClick?: () => void }>) => (
- <div className={className} onClick={onClick}>{children}</div>
- )
- },
- AnimatePresence: ({ children }: React.PropsWithChildren<{ mode?: string }>) => <>{children}</>
+  motion: {
+    div: ({ children, className, onClick }: React.PropsWithChildren<{ className?: string; onClick?: () => void }>) => (
+      <div 
+        className={className} 
+        onClick={onClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={onClick ? (e) => e.key === 'Enter' && onClick() : undefined}
+      >
+        {children}
+      </div>
+    )
+  },
+  AnimatePresence: ({ children }: React.PropsWithChildren<{ mode?: string }>) => <>{children}</>
 }));
 
 // Mock react-diff-viewer
 vi.mock('react-diff-viewer-continued', () => ({
- default: ({ oldValue, newValue }: { oldValue: string; newValue: string }) => (
- <div data-testid="diff-viewer">
- <pre>{oldValue}</pre>
- <pre>{newValue}</pre>
- </div>
- )
+  default: ({ oldValue, newValue }: { oldValue: string; newValue: string }) => (
+    <div data-testid="diff-viewer">
+      <pre>{oldValue}</pre>
+      <pre>{newValue}</pre>
+    </div>
+  )
 }));
 
 // Mock useLocale for date formatting

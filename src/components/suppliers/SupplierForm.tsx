@@ -467,11 +467,11 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
   {t('suppliers.form.doraHelperText', { defaultValue: 'Les champs DORA sont requis pour les prestataires TIC critiques soumis au r\u00e8glement DORA. Cochez "Prestataire TIC Critique" si ce fournisseur fournit des services TIC essentiels.' })}
   </p>
   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-  <div className="flex items-center space-x-3 p-4 bg-card rounded-2xl border border-white/50 dark:border-white/5">
+  <div className="flex items-center space-x-3 p-4 glass-premium rounded-2xl border border-white/50 dark:border-white/5">
   <input id="isICTProvider" type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-primary focus-visible:ring-primary border-border/40" {...register('isICTProvider')} />
   <label htmlFor="isICTProvider" className="text-sm font-bold text-foreground cursor-pointer">{t('suppliers.form.ictProviderLabel', { defaultValue: 'Prestataire TIC Critique' })}</label>
   </div>
-  <div className="flex items-center space-x-3 p-4 bg-card rounded-2xl border border-white/50 dark:border-white/5">
+  <div className="flex items-center space-x-3 p-4 glass-premium rounded-2xl border border-white/50 dark:border-white/5">
   <input id="supportsCriticalFunction" type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-primary focus-visible:ring-primary border-border/40" {...register('supportsCriticalFunction')} />
   <label htmlFor="supportsCriticalFunction" className="text-sm font-bold text-foreground cursor-pointer">{t('suppliers.form.supportsCriticalFunctionLabel', { defaultValue: 'Supporte Fonction Critique' })}</label>
   </div>

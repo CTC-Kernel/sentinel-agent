@@ -3,6 +3,26 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { ScoreBreakdownPanel } from '../ScoreBreakdownPanel';
 import type { ScoreBreakdown, CalculationDetails } from '../../../types/score.types';
 
+// Mock useLocale hook with interpolation support
+vi.mock('../../../hooks/useLocale', () => ({
+ useLocale: () => ({
+ locale: 'fr',
+ t: (key: string, options?: Record<string, unknown>) => {
+ if (options?.defaultValue) {
+ let result = options.defaultValue as string;
+ // Handle interpolation for {{key}} patterns
+ for (const [k, v] of Object.entries(options)) {
+ if (k !== 'defaultValue') {
+  result = result.replace(new RegExp(`\\{\\{${k}\\}\\}`, 'g'), String(v));
+ }
+ }
+ return result;
+ }
+ return key;
+ }
+ })
+}));
+
 describe('ScoreBreakdownPanel', () => {
  const mockBreakdown: ScoreBreakdown = {
  controls: { score: 80, weight: 0.40 },

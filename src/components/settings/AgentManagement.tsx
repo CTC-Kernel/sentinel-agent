@@ -985,9 +985,10 @@ export const AgentManagement: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.35 }}
-                        className="bg-card/50 rounded-3xl border border-border/40 overflow-hidden backdrop-blur-sm"
+                        className="glass-premium rounded-3xl border border-border/40 overflow-hidden relative"
                     >
-                        <div className="px-6 py-4 border-b border-border/40 dark:border-white/5 flex items-center justify-between">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+                        <div className="relative z-10 px-6 py-4 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex items-center justify-between">
                             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                                 <Server className="w-4 h-4 text-primary" />
                                 {t('settings.agents.agentList', { defaultValue: 'Liste des Agents' })} ({agentStats.total})
@@ -996,7 +997,7 @@ export const AgentManagement: React.FC = () => {
                                 {agentStats.active} {t('settings.agents.connected', { defaultValue: 'connectés' })}
                             </Badge>
                         </div>
-                        <div className="overflow-x-auto">
+                        <div className="relative z-10 overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-border/40">
@@ -1101,15 +1102,16 @@ export const AgentManagement: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.38 }}
-                        className="bg-card/50 rounded-3xl border border-border/40 overflow-hidden backdrop-blur-sm"
+                        className="glass-premium rounded-3xl border border-border/40 overflow-hidden relative"
                     >
-                        <div className="px-6 py-4 border-b border-border/40 dark:border-white/5 flex items-center justify-between">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+                        <div className="relative z-10 px-6 py-4 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex items-center justify-between">
                             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                                 <Lock className="w-4 h-4 text-primary" />
                                 {t('settings.agents.enrollmentTokens', { defaultValue: "Tokens d'enrôlement" })} ({enrollmentTokens.length})
                             </h3>
                         </div>
-                        <div className="overflow-x-auto">
+                        <div className="relative z-10 overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-border/40">

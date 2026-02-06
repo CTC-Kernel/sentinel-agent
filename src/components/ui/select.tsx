@@ -9,6 +9,7 @@ const SelectContext = React.createContext<{
  open?: boolean
  setOpen?: (open: boolean) => void
  listboxId?: string
+ disabled?: boolean
 } | null>(null)
 
 interface SelectProps {
@@ -18,9 +19,10 @@ interface SelectProps {
  defaultValue?: string
  open?: boolean
  onOpenChange?: (open: boolean) => void
+ disabled?: boolean
 }
 
-const Select: React.FC<SelectProps> = ({ children, value, onValueChange, defaultValue, open, onOpenChange }) => {
+const Select: React.FC<SelectProps> = ({ children, value, onValueChange, defaultValue, open, onOpenChange, disabled }) => {
  const [internalValue, setInternalValue] = React.useState(defaultValue || "")
  const [internalOpen, setInternalOpen] = React.useState(false)
 
@@ -41,7 +43,7 @@ const Select: React.FC<SelectProps> = ({ children, value, onValueChange, default
  const listboxId = React.useId()
 
  return (
- <SelectContext.Provider value={{ value: currentValue, onValueChange: handleValueChange, open: currentOpen, setOpen: handleOpenChange, listboxId }}>
+ <SelectContext.Provider value={{ value: currentValue, onValueChange: handleValueChange, open: currentOpen, setOpen: handleOpenChange, listboxId, disabled }}>
  <div className="relative inline-block w-full text-left">
  {children}
  </div>
@@ -53,7 +55,7 @@ const SelectTrigger = React.forwardRef<
  HTMLButtonElement,
  React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, children, ...props }, ref) => {
- const { open, setOpen, listboxId } = React.useContext(SelectContext)!
+ const { open, setOpen, listboxId, disabled } = React.useContext(SelectContext)!
 
  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -76,13 +78,15 @@ const SelectTrigger = React.forwardRef<
 
  return (
  <button
- onClick={() => setOpen?.(!open)}
+ onClick={() => !disabled && setOpen?.(!open)}
  onKeyDown={handleKeyDown}
  ref={ref}
  role="combobox"
  aria-expanded={open}
  aria-controls={listboxId}
  aria-haspopup="listbox"
+ aria-disabled={disabled}
+ disabled={disabled}
  className={cn(
  "flex h-11 w-full items-center justify-between rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground",
  className

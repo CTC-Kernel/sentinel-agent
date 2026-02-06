@@ -236,16 +236,44 @@ vi.mock('./i18n', () => ({
 // Mock useLocale hook globally to delegate to react-i18next's useTranslation
 // This ensures components using useLocale get translations from test mocks of react-i18next
 vi.mock('./hooks/useLocale', () => {
- return {
- useLocale: () => {
- // Import useTranslation dynamically to get the mocked version
- // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
- const { useTranslation } = require('react-i18next');
- const { t: i18nT } = useTranslation();
- return {
-  locale: 'fr' as const,
-  config: {
-  code: 'fr',
+return {
+useLocale: () => {
+// Import useTranslation dynamically to get the mocked version
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+const { useTranslation } = require('react-i18next');
+const { t: i18nT } = useTranslation();
+return {
+locale: 'en' as const,
+config: {
+code: 'en',
+name: 'English',
+dateFormat: 'MM/dd/yyyy',
+dateTimeFormat: 'MM/dd/yyyy HH:mm',
+numberFormat: { decimal: '.', thousands: ',' },
+currency: 'USD',
+},
+dateFnsLocale: {},
+formatDate: (date: Date) => date.toLocaleDateString('en-US'),
+formatLocalizedDate: (date: Date | string | null) => date ? new Date(date).toLocaleDateString('en-US') : '',
+parseDate: (str: string) => new Date(str),
+formatNumber: (val: number) => val.toLocaleString('en-US'),
+formatCurrency: (val: number) => val.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
+formatPercentage: (val: number) => `${(val * 100).toFixed(0)}%`,
+zodMessages: {
+required: 'This field is required',
+invalidType: 'Invalid type',
+tooSmall: 'Value too small',
+tooBig: 'Value too big',
+invalidDate: 'Invalid date',
+invalidEmail: 'Invalid email',
+invalidUrl: 'Invalid URL',
+},
+createDateSchema: () => ({}),
+createNumberSchema: () => ({}),
+t: i18nT,
+};
+},
+};
   name: 'Français',
   dateFormat: 'dd/MM/yyyy',
   dateTimeFormat: 'dd/MM/yyyy HH:mm',

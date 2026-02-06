@@ -56,7 +56,7 @@ const KPICard: React.FC<KPICardProps> = ({
   onClick,
   loading,
 }) => {
-  const colorClasses = {
+  const colorClasses: Record<KPICardProps['color'], string> = {
     default: 'bg-muted/50 text-muted-foreground',
     success: 'bg-success/10 text-success',
     warning: 'bg-warning/10 text-warning',

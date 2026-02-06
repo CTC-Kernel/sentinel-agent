@@ -171,7 +171,8 @@ describe('DocumentVersionHistory', () => {
  it('highlights current version', () => {
  const { container } = render(<DocumentVersionHistory versions={mockVersions} currentVersionId="ver-1" />);
 
- expect(container.querySelector('.bg-primary/10')).toBeInTheDocument();
+ // Use attribute selector since bg-primary/10 contains a slash
+ expect(container.querySelector('[class*="bg-primary"]')).toBeInTheDocument();
  });
  });
 

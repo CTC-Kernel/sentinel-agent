@@ -213,7 +213,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
 
   <div className="space-y-6">
    {currentSection?.questions.map((question) => (
-   <div key={question.id || 'unknown'} className="bg-card p-6 rounded-2xl border border-border/40 shadow-sm">
+   <div key={question.id || 'unknown'} className="glass-premium p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
    <label htmlFor={`assessment-question-${question.id}`} className="block text-base font-semibold text-foreground mb-2">
    {question.text}
    {question.required && <span className="text-destructive ml-1">*</span>}

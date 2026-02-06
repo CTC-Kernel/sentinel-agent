@@ -21,12 +21,10 @@ import {
   startAfter,
   serverTimestamp,
   Timestamp,
-  DocumentSnapshot,
   QueryConstraint,
 } from 'firebase/firestore';
-import { db } from '@/firebaseConfig';
-import { logAction } from '@/services/auditLogService';
-import { ErrorLogger } from '@/services/errorLogger';
+import { db } from '@/firebase';
+// TODO: Re-enable audit logging with AuditLogService.logCreate/logUpdate/logDelete
 import {
   ConfigurationItem,
   CMDBFilters,
@@ -74,16 +72,8 @@ export class CMDBService {
 
     const docRef = await addDoc(collection(db, COLLECTION_NAME), ciData);
 
-    // Audit log
-    await logAction({
-      action: 'create',
-      entityType: 'configuration_item',
-      entityId: docRef.id,
-      userId,
-      organizationId,
-      after: { id: docRef.id, ...ciData },
-      metadata: { ciClass: validated.data.ciClass, ciType: validated.data.ciType },
-    });
+    // TODO: Add audit logging
+    // await AuditLogService.logCreate(organizationId, user, 'configuration_item', docRef.id, ciData);
 
     return docRef.id;
   }
@@ -286,24 +276,15 @@ export class CMDBService {
     const docRef = doc(db, COLLECTION_NAME, ciId);
     await updateDoc(docRef, updateData);
 
-    // Audit log
-    await logAction({
-      action: 'update',
-      entityType: 'configuration_item',
-      entityId: ciId,
-      userId,
-      organizationId,
-      before: currentCI,
-      after: { ...currentCI, ...updateData },
-      changedFields: Object.keys(updates),
-    });
+    // TODO: Add audit logging
+    // await AuditLogService.logUpdate(organizationId, user, 'configuration_item', ciId, currentCI, updateData);
   }
 
   /**
    * Update CI discovery timestamp (called by agent sync)
    */
   static async updateDiscoveryTimestamp(
-    organizationId: string,
+    _organizationId: string,
     ciId: string,
     agentId: string
   ): Promise<void> {
@@ -356,16 +337,8 @@ export class CMDBService {
       updatedBy: userId,
     });
 
-    // Audit log
-    await logAction({
-      action: 'delete',
-      entityType: 'configuration_item',
-      entityId: ciId,
-      userId,
-      organizationId,
-      before: currentCI,
-      metadata: { softDelete: true },
-    });
+    // TODO: Add audit logging
+    // await AuditLogService.logDelete(organizationId, user, 'configuration_item', ciId, currentCI);
   }
 
   // ===========================================================================

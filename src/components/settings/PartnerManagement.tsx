@@ -169,7 +169,7 @@ export const PartnerManagement: React.FC = () => {
   animate={{ opacity: 1 }}
   className="col-span-full"
   >
-  <div className="text-center py-16 bg-card rounded-3xl border border-dashed border-border/40 flex flex-col items-center">
+  <div className="text-center py-16 glass-premium rounded-3xl border border-dashed border-border/40 flex flex-col items-center relative overflow-hidden">
   <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-6 shadow-inner">
    <Building2 className="w-10 h-10 text-muted-foreground" />
   </div>
@@ -194,7 +194,7 @@ export const PartnerManagement: React.FC = () => {
   initial={{ opacity: 0, y: 20 }}
   animate={{ opacity: 1, y: 0 }}
   transition={{ delay: index * 0.1 }}
-  className="group bg-card p-6 rounded-2xl border border-border/40 dark:border-white/5 hover:border-primary/40 dark:hover:border-primary/40 shadow-sm hover:shadow-xl hover:shadow-primary/25 transition-all duration-300 relative overflow-hidden"
+  className="group glass-premium p-6 rounded-3xl border border-border/40 dark:border-white/5 hover:border-primary/40 dark:hover:border-primary/40 shadow-sm hover:shadow-xl hover:shadow-primary/25 transition-all duration-300 relative overflow-hidden"
   >
   <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-70 transition-opacity z-10">
    <button
@@ -270,7 +270,7 @@ export const PartnerManagement: React.FC = () => {
   initial={{ scale: 0.95, opacity: 0, y: 20 }}
   animate={{ scale: 1, opacity: 1, y: 0 }}
   exit={{ scale: 0.95, opacity: 0, y: 20 }}
-  className="bg-card rounded-2xl w-full max-w-md p-6 shadow-2xl border border-border/40 relative z-10"
+  className="glass-premium rounded-2xl w-full max-w-md p-6 shadow-2xl border border-border/40 relative z-10"
   >
   <h3 className="text-xl font-bold mb-2 text-foreground">
   {t('certifier.partners.modalTitle') || "Inviter un partenaire"}

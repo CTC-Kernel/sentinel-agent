@@ -64,6 +64,13 @@ export const relationshipTypeSchema = z.enum([
   'consumes',
   'owned_by',
   'supported_by',
+  // Inverse relationship types
+  'hosts',
+  'has_installed',
+  'contained_in',
+  'has_member',
+  'owns',
+  'supports',
 ]);
 
 export const relationshipDirectionSchema = z.enum(['unidirectional', 'bidirectional']);
@@ -117,7 +124,7 @@ export const createCISchema = z.object({
   discoverySource: discoverySourceSchema.default('Manual'),
   sourceAgentId: z.string().optional(),
   legacyAssetId: z.string().optional(),
-  attributes: z.record(z.unknown()).default({}),
+  attributes: z.record(z.string(), z.unknown()).default({}),
 });
 
 /**
@@ -169,7 +176,7 @@ export const hardwareCIAttributesSchema = z.object({
   storageGB: z.number().positive().optional(),
   storageType: z.enum(['SSD', 'HDD', 'NVMe', 'Hybrid']).optional(),
   storageHealth: z.enum(['Good', 'Warning', 'Critical']).optional(),
-  primaryIpAddress: z.string().ip().optional(),
+  primaryIpAddress: z.string().regex(/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/, 'Invalid IP address').optional(),
   primaryMacAddress: z
     .string()
     .regex(/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/i)
@@ -230,9 +237,9 @@ export const serviceCIAttributesSchema = z.object({
 // =============================================================================
 
 /**
- * Schema for creating a relationship
+ * Base schema for relationship (without refinement, for extension)
  */
-export const createRelationshipSchema = z.object({
+const relationshipBaseSchema = z.object({
   sourceId: z.string().min(1, 'Source CI is required'),
   sourceCIClass: ciClassSchema,
   targetId: z.string().min(1, 'Target CI is required'),
@@ -244,9 +251,25 @@ export const createRelationshipSchema = z.object({
   status: relationshipStatusSchema.default('Active'),
   discoveredBy: relationshipDiscoveryMethodSchema.default('Manual'),
   confidence: z.number().min(0).max(100).default(100),
-}).refine(
-  (data) => data.sourceId !== data.targetId,
-  { message: 'Source and target CI cannot be the same', path: ['targetId'] }
+});
+
+/**
+ * Refinement for relationship validation
+ */
+const relationshipRefinement = (data: { sourceId: string; targetId: string }) =>
+  data.sourceId !== data.targetId;
+
+const relationshipRefinementMessage = {
+  message: 'Source and target CI cannot be the same',
+  path: ['targetId'],
+};
+
+/**
+ * Schema for creating a relationship
+ */
+export const createRelationshipSchema = relationshipBaseSchema.refine(
+  relationshipRefinement,
+  relationshipRefinementMessage
 );
 
 /**
@@ -259,17 +282,19 @@ export const updateRelationshipSchema = z.object({
 });
 
 /**
- * Full relationship schema
+ * Full relationship schema (extends base, then applies refinement)
  */
-export const cmdbRelationshipSchema = createRelationshipSchema.extend({
-  id: z.string(),
-  organizationId: z.string(),
-  createdAt: z.any(),
-  updatedAt: z.any(),
-  createdBy: z.string(),
-  validatedBy: z.string().optional(),
-  validatedAt: z.any().optional(),
-});
+export const cmdbRelationshipSchema = relationshipBaseSchema
+  .extend({
+    id: z.string(),
+    organizationId: z.string(),
+    createdAt: z.any(),
+    updatedAt: z.any(),
+    createdBy: z.string(),
+    validatedBy: z.string().optional(),
+    validatedAt: z.any().optional(),
+  })
+  .refine(relationshipRefinement, relationshipRefinementMessage);
 
 // =============================================================================
 // RECONCILIATION SCHEMAS

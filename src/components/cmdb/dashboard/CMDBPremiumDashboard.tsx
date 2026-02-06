@@ -7,7 +7,7 @@
  * @module components/cmdb/dashboard/CMDBPremiumDashboard
  */
 
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, Variants } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
@@ -498,17 +498,19 @@ interface DiscoveryActivityChartProps {
 const DiscoveryActivityChart: React.FC<DiscoveryActivityChartProps> = ({ loading }) => {
   const { t } = useStore();
 
-  // Mock activity data
-  const activityData = useMemo(() => {
-    return Array.from({ length: 14 }, (_, i) => ({
-      date: new Date(Date.now() - (13 - i) * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: 'short',
-      }),
-      discovered: Math.floor(Math.random() * 20) + 5,
-      reconciled: Math.floor(Math.random() * 15) + 3,
-    }));
-  }, []);
+  // Mock activity data - use lazy initialization to avoid effect
+  const activityData = useState<{
+    date: string;
+    discovered: number;
+    reconciled: number;
+  }[]>(() => Array.from({ length: 14 }, (_, i) => ({
+    date: new Date(Date.now() - (13 - i) * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'short',
+    }),
+    discovered: Math.floor(Math.random() * 20) + 5,
+    reconciled: Math.floor(Math.random() * 15) + 3,
+  })))[0];
 
   if (loading) {
     return (

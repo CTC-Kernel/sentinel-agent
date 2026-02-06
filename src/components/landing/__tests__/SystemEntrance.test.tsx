@@ -70,7 +70,7 @@ describe('SystemEntrance', () => {
  it('has correct background color classes', () => {
  const { container } = renderComponent();
 
- expect(container.querySelector('.bg-muted/50')).toBeInTheDocument();
+ expect(container.querySelector('.bg-muted')).toBeInTheDocument();
  });
  });
 

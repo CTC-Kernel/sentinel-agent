@@ -161,7 +161,7 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         transition: { duration: 0.2 }
       }}
       className={cn(
-        "bg-card border border-border/40 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-200 overflow-hidden",
+        "glass-premium border border-border/40 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-200 overflow-hidden",
         isDragging && "shadow-2xl ring-2 ring-primary/60"
       )}
       onMouseEnter={() => setIsHovered(true)}
@@ -212,7 +212,7 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="absolute top-full left-0 mt-2 bg-card border border-border/40 rounded-lg shadow-apple-xl p-2 z-dropdown"
+          className="absolute top-full left-0 mt-2 glass-premium border border-border/40 rounded-lg shadow-apple-xl p-2 z-dropdown"
         >
           <div className="flex gap-1">
             {(['small', 'medium', 'large', 'full'] as const).map((size) => (

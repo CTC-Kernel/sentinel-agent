@@ -49,7 +49,7 @@ export const BackupList: React.FC<BackupListProps> = ({
         return new Date();
       }
       return date;
-    } catch (error) {
+    } catch {
       // Return a valid fallback date (current date) for any errors
       return new Date();
     }
@@ -115,7 +115,7 @@ export const BackupList: React.FC<BackupListProps> = ({
                   </div>
                 </div>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2.5 bg-card rounded-lg shadow-sm">
+                  <div className="p-2.5 glass-premium rounded-lg shadow-sm">
                     <Database className="h-5 w-5 text-primary" />
                   </div>
                   <div>

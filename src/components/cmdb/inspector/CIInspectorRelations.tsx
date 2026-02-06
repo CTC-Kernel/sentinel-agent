@@ -25,6 +25,7 @@ import {
   AlertCircle,
   Link2,
   Unlink,
+  LucideIcon,
 } from '../../ui/Icons';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/Badge';
@@ -70,7 +71,7 @@ interface CIInspectorRelationsProps {
 // HELPERS
 // =============================================================================
 
-const getCIClassIcon = (ciClass: CIClass | undefined): React.ElementType => {
+const getCIClassIcon = (ciClass: CIClass | undefined): LucideIcon => {
   switch (ciClass) {
     case 'Hardware': return Server;
     case 'Software': return Database;

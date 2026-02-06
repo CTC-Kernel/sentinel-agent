@@ -7,7 +7,7 @@
  * @module hooks/cmdb/useImpactAnalysis
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useStore } from '@/store';
 import { ErrorLogger } from '@/services/errorLogger';
 import {
@@ -312,10 +312,7 @@ export function useBlastRadius(ciId: string) {
  * Mutation to save impact analysis report
  */
 export function useSaveImpactReport() {
-  const { user, addToast } = useStore();
-  const _queryClient = useQueryClient();
-  const _organizationId = user?.organizationId || '';
-  const _userId = user?.uid || '';
+  const { addToast } = useStore();
 
   return useMutation({
     mutationFn: async (assessment: ImpactAssessment) => {

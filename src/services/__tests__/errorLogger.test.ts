@@ -27,22 +27,22 @@ vi.mock('../../firebase', () => ({
 
 describe('ErrorLogger', () => {
  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
- let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
- let consoleInfoSpy: ReturnType<typeof vi.spyOn>;
- let consoleDebugSpy: ReturnType<typeof vi.spyOn>;
+ let _consoleWarnSpy: ReturnType<typeof vi.spyOn>;
+ let _consoleInfoSpy: ReturnType<typeof vi.spyOn>;
+ let _consoleDebugSpy: ReturnType<typeof vi.spyOn>;
  let consoleGroupSpy: ReturnType<typeof vi.spyOn>;
  let consoleGroupEndSpy: ReturnType<typeof vi.spyOn>;
- let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+ let _consoleLogSpy: ReturnType<typeof vi.spyOn>;
 
  beforeEach(() => {
  vi.clearAllMocks();
  consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
- consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
- consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
- consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+ _consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+ _consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+ _consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
  consoleGroupSpy = vi.spyOn(console, 'group').mockImplementation(() => {});
  consoleGroupEndSpy = vi.spyOn(console, 'groupEnd').mockImplementation(() => {});
- consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+ _consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
  });
 
  afterEach(() => {

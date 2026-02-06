@@ -89,7 +89,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
 
  return (
  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
- <div className="bg-card p-6 rounded-2xl border border-border/40 shadow-sm">
+ <div className="glass-premium p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
  <div className="grid grid-cols-1 gap-4">
   <div>
   <label htmlFor="questionnaire-title" className="block text-sm font-medium text-foreground mb-1">

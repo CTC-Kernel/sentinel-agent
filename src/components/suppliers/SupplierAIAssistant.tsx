@@ -147,7 +147,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
  )}
 
  {response && (
- <div className="bg-card rounded-3xl p-4 border border-primary/20 dark:border-primary/80 shadow-sm animate-fade-in">
+ <div className="glass-premium rounded-3xl p-4 border border-primary/20 dark:border-primary/80 shadow-sm animate-fade-in relative overflow-hidden">
   <div className="flex justify-between items-start mb-2">
   <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center">
   <Bot className="h-3.5 w-3.5 mr-1.5" />

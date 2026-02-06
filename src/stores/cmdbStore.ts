@@ -8,7 +8,7 @@
  */
 
 import { create } from 'zustand';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import {
   ConfigurationItem,
   CMDBRelationship,
@@ -17,10 +17,6 @@ import {
   DiscoveryStats,
   ImpactAssessment,
   ImpactScenario,
-  CIClass,
-  CIStatus,
-  CIEnvironment,
-  CICriticality,
 } from '@/types/cmdb';
 
 // =============================================================================
@@ -133,7 +129,7 @@ const defaultImpactAnalysis = {
 // STORE CREATION
 // =============================================================================
 
-export const useCMDBStore = create<CMDBState>((set, get) => ({
+export const useCMDBStore = create<CMDBState>((set, _get) => ({
   // Initial state
   selectedCIId: null,
   selectedCI: null,
@@ -280,7 +276,7 @@ export const useCIsLoading = () => useCMDBStore((s) => s.cisLoading);
 export const useCIsError = () => useCMDBStore((s) => s.cisError);
 
 // Filters
-export const useCMDBFilters = () => useCMDBStore((s) => s.filters, shallow);
+export const useCMDBFilters = () => useCMDBStore(useShallow((s) => s.filters));
 export const useCMDBFilterValue = <K extends keyof CMDBFilters>(key: K) =>
   useCMDBStore((s) => s.filters[key]);
 
@@ -295,7 +291,7 @@ export const useSelectedCIRelationships = () => useCMDBStore((s) => s.selectedCI
 export const useRelationshipsLoading = () => useCMDBStore((s) => s.relationshipsLoading);
 
 // Impact Analysis
-export const useImpactAnalysis = () => useCMDBStore((s) => s.impactAnalysis, shallow);
+export const useImpactAnalysis = () => useCMDBStore(useShallow((s) => s.impactAnalysis));
 export const useImpactResult = () => useCMDBStore((s) => s.impactAnalysis.result);
 export const useImpactCalculating = () => useCMDBStore((s) => s.impactAnalysis.isCalculating);
 
@@ -308,7 +304,7 @@ export const useImpactAnalysisModalOpen = () => useCMDBStore((s) => s.impactAnal
 // Actions (stable references)
 export const useCMDBActions = () =>
   useCMDBStore(
-    (s) => ({
+    useShallow((s) => ({
       selectCI: s.selectCI,
       setSelectedCI: s.setSelectedCI,
       setFilter: s.setFilter,
@@ -321,8 +317,7 @@ export const useCMDBActions = () =>
       closeImpactAnalysisModal: s.closeImpactAnalysisModal,
       clearImpact: s.clearImpact,
       removePendingValidation: s.removePendingValidation,
-    }),
-    shallow
+    }))
   );
 
 // Computed selectors

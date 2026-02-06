@@ -14,7 +14,7 @@ export const QuestionItem = memo(({ sIndex, qIndex, register, onRemove }: Questi
  const handleRemove = useCallback(() => onRemove(qIndex), [onRemove, qIndex]);
 
  return (
- <div className="flex gap-4 items-start bg-card p-4 rounded-3xl shadow-sm border border-border/40/50 group hover:border-primary/30 dark:hover:border-primary/90 transition-colors">
+ <div className="flex gap-4 items-start glass-premium p-4 rounded-3xl shadow-sm border border-border/40 group hover:border-primary/30 dark:hover:border-primary/90 transition-colors relative overflow-hidden">
  <div className="mt-2 text-muted-foreground group-hover:text-muted-foreground transition-colors">
  <Grip className="w-4 h-4 cursor-grab" />
  </div>

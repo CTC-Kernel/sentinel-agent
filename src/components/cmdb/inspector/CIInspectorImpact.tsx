@@ -27,6 +27,7 @@ import {
   ChevronRight,
   Target,
   Activity,
+  LucideIcon,
 } from '../../ui/Icons';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/Badge';
@@ -64,17 +65,14 @@ interface CIInspectorImpactProps {
 // HELPERS
 // =============================================================================
 
-const getCIClassIcon = (ciClass: CIClass | undefined): React.ElementType => {
-  switch (ciClass) {
-    case 'Hardware': return Server;
-    case 'Software': return Database;
-    case 'Service': return Globe;
-    case 'Cloud': return Cloud;
-    case 'Document': return FileText;
-    case 'Network': return Network;
-    case 'Container': return Box;
-    default: return Server;
-  }
+const CI_CLASS_ICON_MAP: Record<CIClass, LucideIcon> = {
+  Hardware: Server,
+  Software: Database,
+  Service: Globe,
+  Cloud: Cloud,
+  Document: FileText,
+  Network: Network,
+  Container: Box,
 };
 
 const getImpactColor = (level: ImpactLevel): string => {
@@ -104,7 +102,7 @@ const getImpactBorderColor = (level: ImpactLevel): string => {
 interface ImpactSummaryCardProps {
   title: string;
   value: number;
-  icon: React.ElementType;
+  icon: LucideIcon;
   color: 'destructive' | 'warning' | 'success' | 'info' | 'muted';
   suffix?: string;
 }
@@ -152,7 +150,7 @@ interface AffectedCIRowProps {
 }
 
 const AffectedCIRow: React.FC<AffectedCIRowProps> = ({ node, expanded, onToggle }) => {
-  const Icon = getCIClassIcon(node.ci.ciClass);
+  const CurrentIcon = CI_CLASS_ICON_MAP[node.ci.ciClass] || Server;
 
   return (
     <div className={cn(
@@ -176,7 +174,7 @@ const AffectedCIRow: React.FC<AffectedCIRowProps> = ({ node, expanded, onToggle 
 
         {/* CI Icon */}
         <div className="p-2 rounded-lg bg-muted/50 shrink-0">
-          <Icon className="h-4 w-4 text-muted-foreground" />
+          <CurrentIcon className="h-4 w-4 text-muted-foreground" />
         </div>
 
         {/* CI Info */}
@@ -282,7 +280,7 @@ interface BlastRadiusProps {
 }
 
 const BlastRadius: React.FC<BlastRadiusProps> = ({ center, directCount, indirectCount }) => {
-  const CenterIcon = getCIClassIcon(center.ciClass);
+  const CenterIcon = CI_CLASS_ICON_MAP[center.ciClass] || Server;
 
   return (
     <div className="relative flex items-center justify-center py-8">

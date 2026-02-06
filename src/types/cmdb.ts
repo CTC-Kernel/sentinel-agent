@@ -83,7 +83,14 @@ export type RelationshipType =
   | 'provides'        // A provides B (Service provides Capability)
   | 'consumes'        // A consumes B (Team consumes Service)
   | 'owned_by'        // A is owned by B
-  | 'supported_by';   // A is supported by B (Team)
+  | 'supported_by'    // A is supported by B (Team)
+  // Inverse relationship types
+  | 'hosts'           // Inverse of runs_on/hosted_on
+  | 'has_installed'   // Inverse of installed_on
+  | 'contained_in'    // Inverse of contains
+  | 'has_member'      // Inverse of member_of
+  | 'owns'            // Inverse of owned_by
+  | 'supports';       // Inverse of supported_by
 
 /**
  * Relationship direction

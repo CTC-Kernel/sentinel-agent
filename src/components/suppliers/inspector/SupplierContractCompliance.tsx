@@ -140,7 +140,7 @@ export const SupplierContractCompliance: React.FC<Props> = ({ supplier, canEdit,
   w-full text-left group relative p-4 rounded-3xl border transition-all cursor-pointer select-none
   ${isChecked
    ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800'
-   : 'bg-card/50 border-border/40 hover:border-indigo-300 dark:hover:border-indigo-700'
+   : 'glass-premium border-border/40 hover:border-indigo-300 dark:hover:border-indigo-700'
   }
   `}
   >

@@ -7,7 +7,7 @@
  * @module components/cmdb/inspector/CIInspectorHistory
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   History,
   RefreshCw,
@@ -18,6 +18,7 @@ import {
   User,
   Server,
   ArrowRight,
+  LucideIcon,
 } from '../../ui/Icons';
 import { Badge } from '../../ui/Badge';
 import { useStore } from '@/store';
@@ -53,15 +54,12 @@ interface HistoryEvent {
 // HELPERS
 // =============================================================================
 
-const getEventIcon = (type: HistoryEvent['type']): React.ElementType => {
-  switch (type) {
-    case 'status_change': return AlertCircle;
-    case 'attribute_update': return Edit;
-    case 'reconciliation': return RefreshCw;
-    case 'creation': return CheckCircle;
-    case 'relationship': return Server;
-    default: return History;
-  }
+const EVENT_ICON_MAP: Record<HistoryEvent['type'], LucideIcon> = {
+  status_change: AlertCircle,
+  attribute_update: Edit,
+  reconciliation: RefreshCw,
+  creation: CheckCircle,
+  relationship: Server,
 };
 
 const getEventColor = (type: HistoryEvent['type']): string => {
@@ -97,7 +95,7 @@ interface TimelineEventProps {
 }
 
 const TimelineEvent: React.FC<TimelineEventProps> = ({ event, isLast }) => {
-  const Icon = getEventIcon(event.type);
+  const CurrentIcon = EVENT_ICON_MAP[event.type] || History;
 
   return (
     <div className="flex gap-4">
@@ -107,7 +105,7 @@ const TimelineEvent: React.FC<TimelineEventProps> = ({ event, isLast }) => {
           'p-2 rounded-xl z-10',
           getEventColor(event.type)
         )}>
-          <Icon className="h-4 w-4" />
+          <CurrentIcon className="h-4 w-4" />
         </div>
         {!isLast && (
           <div className="w-0.5 flex-1 bg-border/40 mt-2" />
@@ -169,11 +167,11 @@ export const CIInspectorHistory: React.FC<CIInspectorHistoryProps> = ({ ci }) =>
   const { t } = useStore();
   const { users = [] } = useTeamData();
 
-  // Get user name by ID
-  const getUserName = (userId: string): string => {
+  // Get user name by ID - memoized to prevent unnecessary re-renders
+  const getUserName = useCallback((userId: string): string => {
     const user = (users || []).find((u: { uid: string; displayName?: string; email?: string }) => u.uid === userId);
     return user?.displayName || user?.email || userId;
-  };
+  }, [users]);
 
   // Generate mock history from CI data
   // In production, this would come from a dedicated audit log collection
@@ -233,7 +231,7 @@ export const CIInspectorHistory: React.FC<CIInspectorHistoryProps> = ({ ci }) =>
 
     // Sort by timestamp descending
     return history.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  }, [ci, users]);
+  }, [ci, getUserName]);
 
   return (
     <div className="space-y-8">
@@ -298,7 +296,7 @@ export const CIInspectorHistory: React.FC<CIInspectorHistoryProps> = ({ ci }) =>
             <p className={cn(
               'text-lg font-bold',
               ci.dataQualityScore >= 80 ? 'text-success' :
-              ci.dataQualityScore >= 60 ? 'text-warning' : 'text-destructive'
+                ci.dataQualityScore >= 60 ? 'text-warning' : 'text-destructive'
             )}>
               {ci.dataQualityScore}%
             </p>

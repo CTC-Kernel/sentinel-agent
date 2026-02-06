@@ -33,6 +33,7 @@ import {
   GitBranch,
   History,
   Zap,
+  LucideIcon,
 } from '../ui/Icons';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Button } from '../ui/button';
@@ -46,7 +47,7 @@ import { cn } from '@/lib/utils';
 // HELPERS
 // =============================================================================
 
-const getCIClassIcon = (ciClass: CIClass | undefined): React.ElementType => {
+const getCIClassIcon = (ciClass: CIClass | undefined): LucideIcon => {
   switch (ciClass) {
     case 'Hardware': return Server;
     case 'Software': return Database;

@@ -128,7 +128,7 @@ describe('RequirementCard', () => {
  );
 
  const card = screen.getByText('Article 21').closest('div[class*="cursor-pointer"]');
- expect(card?.className).toContain('brand');
+ expect(card?.className).toContain('bg-primary');
  });
 
  it('should use localized title when available', () => {

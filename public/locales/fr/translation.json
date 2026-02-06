@@ -1766,7 +1766,42 @@
     "systemHealth": "État du Système",
     "training": "Formation",
     "certificates": "Certificats",
-    "accessReview": "Revue des Accès"
+    "accessReview": "Revue des Accès",
+    "cmdb": "CMDB"
+  },
+  "cmdb": {
+    "title": "CMDB",
+    "subtitle": "Configuration Management Database",
+    "tabs": {
+      "dashboard": "Tableau de bord",
+      "discovery": "Découverte",
+      "topology": "Topologie",
+      "validation": "Validation"
+    },
+    "topology": {
+      "title": "Carte Topologique",
+      "selectCI": "Sélectionnez un CI pour visualiser ses dépendances"
+    },
+    "validation": {
+      "empty": "Aucun CI en attente",
+      "emptyDescription": "Tous les CIs ont été traités",
+      "approved": "CI approuvé",
+      "rejected": "CI rejeté",
+      "merged": "CI fusionné"
+    },
+    "dashboard": {
+      "totalCIs": "Total CIs",
+      "pendingValidation": "En attente",
+      "avgDqs": "DQS Moyen",
+      "activeRelations": "Relations Actives"
+    },
+    "discovery": {
+      "title": "Découverte",
+      "subtitle": "CIs découverts par les agents",
+      "discovered": "Découverts",
+      "reconciled": "Réconciliés",
+      "pending": "En attente"
+    }
   },
   "documents": {
     "title": "Base Documentaire",

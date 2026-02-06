@@ -404,7 +404,42 @@
     "systemHealth": "System Health",
     "training": "Training",
     "certificates": "Certificates",
-    "accessReview": "Access Review"
+    "accessReview": "Access Review",
+    "cmdb": "CMDB"
+  },
+  "cmdb": {
+    "title": "CMDB",
+    "subtitle": "Configuration Management Database",
+    "tabs": {
+      "dashboard": "Dashboard",
+      "discovery": "Discovery",
+      "topology": "Topology",
+      "validation": "Validation"
+    },
+    "topology": {
+      "title": "Topology Map",
+      "selectCI": "Select a CI to view its dependencies"
+    },
+    "validation": {
+      "empty": "No pending CIs",
+      "emptyDescription": "All CIs have been processed",
+      "approved": "CI approved",
+      "rejected": "CI rejected",
+      "merged": "CI merged"
+    },
+    "dashboard": {
+      "totalCIs": "Total CIs",
+      "pendingValidation": "Pending",
+      "avgDqs": "Average DQS",
+      "activeRelations": "Active Relations"
+    },
+    "discovery": {
+      "title": "Discovery",
+      "subtitle": "CIs discovered by agents",
+      "discovered": "Discovered",
+      "reconciled": "Reconciled",
+      "pending": "Pending"
+    }
   },
   "frameworks": {
     "ISO27001": "ISO 27001 (IS Security)",

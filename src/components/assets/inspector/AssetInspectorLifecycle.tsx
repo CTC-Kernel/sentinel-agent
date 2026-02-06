@@ -263,7 +263,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
   onClick={handleAddMaintenance}
   disabled={isAddingMaintenance}
   aria-label={t('assets.lifecycle.addMaintenance', 'Ajouter une intervention')}
-  className="w-full py-3 bg-card dark:bg-white text-white rounded-3xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:bg-muted disabled:text-muted-foreground flex justify-center items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="w-full py-3 bg-primary text-primary-foreground rounded-3xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:bg-muted disabled:text-muted-foreground flex justify-center items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   {isAddingMaintenance ? <span className="animate-spin mr-2">⏳</span> : null}
   {t('common.save', 'Enregistrer')}
@@ -277,7 +277,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
   </p>
   ) : (
   maintenanceRecords.map(rec => (
-  <div key={rec.id || 'unknown'} className="flex items-start p-4 bg-card/40 backdrop-blur-sm border border-border/40 rounded-3xl shadow-sm hover:shadow-md transition-all">
+  <div key={rec.id || 'unknown'} className="flex items-start p-4 glass-premium border border-border/40 rounded-3xl shadow-sm hover:shadow-md transition-all">
   <div className={`mt-1.5 w-2.5 h-2.5 rounded-full mr-4 flex-shrink-0 ${rec.type === 'Corrective' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'}`}></div>
   <div className="flex-1">
    <div className="flex items-center justify-between mb-1">

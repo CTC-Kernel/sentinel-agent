@@ -119,6 +119,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             title: t('common.repository'),
             items: [
                 { key: 'assets', name: t('sidebar.assets'), to: '/assets', icon: Server, resource: 'Asset' },
+                { key: 'cmdb', name: t('sidebar.cmdb', { defaultValue: 'CMDB' }), to: '/cmdb', icon: Database, resource: 'Asset' },
                 { key: 'suppliers', name: t('sidebar.suppliers'), to: '/suppliers', icon: Building, resource: 'Supplier' },
                 { key: 'documents', name: t('sidebar.documents'), to: '/documents', icon: Briefcase, resource: 'Document' },
             ]

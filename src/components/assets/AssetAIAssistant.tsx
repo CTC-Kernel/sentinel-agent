@@ -220,7 +220,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
  )}
 
  {response && (
-  <div className="bg-card/90 rounded-3xl p-5 border border-border/40 shadow-sm animate-fade-in backdrop-blur-md">
+  <div className="glass-premium rounded-3xl p-5 border border-border/40 shadow-sm animate-fade-in relative overflow-hidden">
   <div className="flex justify-between items-start mb-2">
   <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center">
   <Bot className="h-3.5 w-3.5 mr-1.5" />

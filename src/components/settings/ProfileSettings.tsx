@@ -192,7 +192,7 @@ export const ProfileSettings: React.FC = () => {
   {/* Avatar Section */}
   <div className="flex-shrink-0 w-full md:w-auto flex flex-col items-center space-y-4">
   <div className="relative group mx-auto">
-  <div className="w-32 h-32 rounded-full overflow-hidden shadow-2xl ring-1 ring-black/5 dark:ring-white/20 bg-card">
+  <div className="w-32 h-32 rounded-full overflow-hidden shadow-2xl ring-1 ring-black/5 dark:ring-white/20 glass-premium">
   {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
   <img
    src={getDefaultAvatarUrl(user?.role)}
@@ -328,7 +328,7 @@ export const ProfileSettings: React.FC = () => {
   </div>
 
   <div className={`flex items-center gap-4 p-5 rounded-3xl border transition-all duration-300 ${user?.mfaEnabled ? 'bg-success-bg border-success-border/30 shadow-sm' : 'bg-primary/10 dark:bg-white/5 border-border/40'}`}>
-  <div className={`p-3 rounded-2xl shadow-sm ${user?.mfaEnabled ? 'bg-success-bg text-success-text border border-success-border/20' : 'bg-card text-primary border border-border/40'}`}>
+  <div className={`p-3 rounded-2xl shadow-sm ${user?.mfaEnabled ? 'bg-success-bg text-success-text border border-success-border/20' : 'glass-premium text-primary border border-border/40'}`}>
    <ShieldCheck className="w-6 h-6" />
   </div>
   <div className="flex-1">

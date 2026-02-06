@@ -60,6 +60,9 @@ const Training = React.lazy(() => import('../../views/Training'));
 // Access Review Module (NIS2 Art. 21.2i)
 const AccessReview = React.lazy(() => import('../../views/AccessReview'));
 
+// CMDB Module (Configuration Management Database)
+const CMDB = React.lazy(() => import('../../views/CMDB'));
+
 // DORA ICT Register Module (DORA Art. 28)
 
 
@@ -124,6 +127,7 @@ export const AnimatedRoutes: React.FC = () => {
   </RoleGuardComponent>
  } />
  <Route path="/suppliers" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Suppliers /></AnimatedPage></RoleGuardComponent>} />
+        <Route path="/cmdb" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><CMDB /></AnimatedPage></RoleGuardComponent>} />
  <Route path="/vendor-concentration" element={<Navigate to="/suppliers?tab=concentration" replace />} />
  <Route path="/dora/providers" element={<Navigate to="/suppliers?tab=dora" replace />} />
  <Route path="/financial-risk" element={<Navigate to="/risks?tab=financial" replace />} />

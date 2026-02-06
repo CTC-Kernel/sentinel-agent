@@ -251,7 +251,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
  return (
  <div
  key={assessment.id || 'unknown'}
- className="bg-card rounded-3xl p-5 border border-border/40 hover:border-primary/40 dark:hover:border-primary/80 transition-colors group"
+ className="glass-premium rounded-3xl p-5 border border-border/40 hover:border-primary/40 dark:hover:border-primary/80 transition-colors group relative overflow-hidden"
  >
  <div className="flex justify-between items-start">
   <div className="flex items-start gap-4 flex-1 min-w-0">

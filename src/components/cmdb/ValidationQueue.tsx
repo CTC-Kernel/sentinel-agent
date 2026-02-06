@@ -111,8 +111,12 @@ const ValidationItem: React.FC<ValidationItemProps> = ({
   };
 
   // Extract display info from agent data
-  const hostname = (item.agentData as any)?.hostname || item.fingerprint.hostname || 'Unknown';
-  const ipAddress = (item.agentData as any)?.networkInterfaces?.[0]?.ipv4?.[0] || '-';
+  const agentData = item.agentData as {
+    hostname?: string;
+    networkInterfaces?: Array<{ ipv4?: string[] }>;
+  };
+  const hostname = agentData.hostname || item.fingerprint.hostname || 'Unknown';
+  const ipAddress = agentData.networkInterfaces?.[0]?.ipv4?.[0] || '-';
 
   return (
     <div

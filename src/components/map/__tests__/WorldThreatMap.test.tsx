@@ -71,7 +71,7 @@ describe('WorldThreatMap', () => {
  it('renders map container', () => {
  const { container } = render(<WorldThreatMap data={mockData} />);
 
- expect(container.querySelector('.bg-slate-950')).toBeInTheDocument();
+ expect(container.querySelector('.bg-background')).toBeInTheDocument();
  });
 
  it('renders composable map', () => {

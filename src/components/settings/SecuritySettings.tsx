@@ -106,16 +106,17 @@ export const SecuritySettings: React.FC = () => {
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 animate-fade-in-up">
  <h2 className="text-2xl font-bold text-foreground mb-6 col-span-1 md:col-span-2">{t('settings.security')}</h2>
 
- <div className="bg-card rounded-3xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-full">
- <div className="p-6 border-b border-border/40 bg-muted/50 dark:bg-white/5 backdrop-blur-md">
+ <div className="glass-premium rounded-3xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-full relative">
+ <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+ <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
   <div className="flex items-center gap-3">
-  <div className="p-2 bg-primary/10/40 rounded-2xl text-primary border border-primary/20/50 dark:border-primary/20 shadow-inner">
+  <div className="p-2.5 bg-primary/10 rounded-3xl text-primary">
   <Key className="w-5 h-5" />
   </div>
   <h3 className="text-lg font-bold text-foreground">{t('settings.changePassword')}</h3>
   </div>
  </div>
- <form onSubmit={passwordForm.handleSubmit(handleChangePassword)} className="p-6 space-y-6 flex-1 flex flex-col justify-between">
+ <form onSubmit={passwordForm.handleSubmit(handleChangePassword)} className="relative z-10 p-6 space-y-6 flex-1 flex flex-col justify-between">
   <div className="space-y-6">
   <div>
   <FloatingLabelInput
@@ -153,16 +154,17 @@ export const SecuritySettings: React.FC = () => {
  </div>
 
  {/* MFA Settings */}
- <div className="bg-card rounded-3xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-full">
- <div className="p-6 border-b border-border/40 bg-muted/50 dark:bg-white/5 backdrop-blur-md">
+ <div className="glass-premium rounded-3xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-full relative">
+ <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+ <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
   <div className="flex items-center gap-3">
-  <div className="p-2 bg-success-50 dark:bg-success-900/30 rounded-2xl text-success-600 dark:text-success-400 border border-success-100/50 dark:border-success-500/10 shadow-inner">
+  <div className="p-2.5 bg-success/10 rounded-3xl text-success">
   <ShieldAlert className="w-5 h-5" />
   </div>
   <h3 className="text-lg font-bold text-foreground">{t('settings.mfa.title', { defaultValue: 'Authentification à deux facteurs' })}</h3>
   </div>
  </div>
- <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
+ <div className="relative z-10 p-6 flex-1 flex flex-col justify-between space-y-6">
   <p className="text-sm text-muted-foreground">
   {t('settings.mfa.description', { defaultValue: 'Sécurisez votre compte en ajoutant une seconde étape de validation.' })}
   </p>

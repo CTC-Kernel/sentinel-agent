@@ -26,7 +26,7 @@ export const AIAssistantHeader = <TTemplate extends BaseTemplate>({
  readOnly = false
 }: AIAssistantHeaderProps<TTemplate>) => {
  return (
- <div className="bg-card p-4 rounded-2xl border border-border/40 shadow-sm mb-6 relative overflow-hidden group">
+ <div className="glass-premium p-4 rounded-2xl border border-border/40 shadow-sm mb-6 relative overflow-hidden group">
  <div className="absolute top-0 right-0 p-4 opacity-30 group-hover:opacity-20 transition-opacity pointer-events-none">
  <Sparkles className="w-24 h-24 text-primary" />
  </div>
