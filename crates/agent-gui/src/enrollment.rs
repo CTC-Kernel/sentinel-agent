@@ -428,18 +428,22 @@ impl EnrollmentWizard {
                                             .hint_text("xxxxx-xxxxx-xxxxx"),
                                     );
 
-                                    // Toggle visibility button
-                                    if ui
-                                        .add(
-                                            egui::Button::new(if self.show_token {
-                                                "🙈"
-                                            } else {
-                                                "👁️"
-                                            })
-                                            .fill(egui::Color32::TRANSPARENT)
-                                            .corner_radius(egui::CornerRadius::same(4)),
-                                        )
-                                        .clicked()
+                                    // Toggle visibility button (FA icons instead of emoji)
+                                    let vis_icon = if self.show_token {
+                                        icons::EYE_SLASH
+                                    } else {
+                                        icons::EYE
+                                    };
+                                    if widgets::button::icon_button(
+                                        ui,
+                                        vis_icon,
+                                        Some(if self.show_token {
+                                            "Masquer le token"
+                                        } else {
+                                            "Afficher le token"
+                                        }),
+                                    )
+                                    .clicked()
                                     {
                                         self.show_token = !self.show_token;
                                     }

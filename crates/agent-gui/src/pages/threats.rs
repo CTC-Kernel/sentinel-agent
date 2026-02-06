@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::GuiAgentStatus;
+use crate::dto::{FimChangeType, GuiAgentStatus, UsbEventType};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -295,10 +295,9 @@ impl ThreatsPage {
 
         // USB events
         for u in &state.usb_events {
-            let severity = match u.event_type.as_str() {
-                "connected" => "medium",
-                "disconnected" => "low",
-                _ => "low",
+            let severity = match u.event_type {
+                UsbEventType::Connected => "medium",
+                UsbEventType::Disconnected => "low",
             };
             events.push(ThreatEvent {
                 kind: "usb",
@@ -315,12 +314,11 @@ impl ThreatsPage {
 
         // FIM alerts
         for f in &state.fim_alerts {
-            let severity = match f.change_type.as_str() {
-                "deleted" | "permission_changed" => "high",
-                "created" => "medium",
-                "modified" => "medium",
-                "renamed" => "low",
-                _ => "low",
+            let severity = match f.change_type {
+                FimChangeType::Deleted | FimChangeType::PermissionChanged => "high",
+                FimChangeType::Created => "medium",
+                FimChangeType::Modified => "medium",
+                FimChangeType::Renamed => "low",
             };
             events.push(ThreatEvent {
                 kind: "fim",
@@ -328,7 +326,7 @@ impl ThreatsPage {
                 title: f.path.clone(),
                 description: format!(
                     "Changement d\u{00e9}tect\u{00e9} : {}{}",
-                    Self::change_type_label(&f.change_type),
+                    Self::change_type_label(f.change_type),
                     if f.acknowledged {
                         " (acquitt\u{00e9})"
                     } else {
@@ -344,14 +342,13 @@ impl ThreatsPage {
     }
 
     /// French label for a FIM change type.
-    fn change_type_label(change_type: &str) -> &'static str {
+    fn change_type_label(change_type: FimChangeType) -> &'static str {
         match change_type {
-            "created" => "cr\u{00e9}ation",
-            "modified" => "modification",
-            "deleted" => "suppression",
-            "permission_changed" => "permissions modifi\u{00e9}es",
-            "renamed" => "renommage",
-            _ => "inconnu",
+            FimChangeType::Created => "cr\u{00e9}ation",
+            FimChangeType::Modified => "modification",
+            FimChangeType::Deleted => "suppression",
+            FimChangeType::PermissionChanged => "permissions modifi\u{00e9}es",
+            FimChangeType::Renamed => "renommage",
         }
     }
 

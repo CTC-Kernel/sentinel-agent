@@ -4,6 +4,7 @@ use egui::{Color32, Ui};
 use egui_extras::{Column, TableBuilder};
 
 use crate::app::AppState;
+use crate::dto::LogLevel;
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -185,7 +186,8 @@ impl TerminalPage {
                 ui.add_space(theme::SPACE_SM);
 
                 for (i, name) in LEVEL_NAMES.iter().enumerate() {
-                    let selected = i == state.terminal_filter_level;
+                    let level = LogLevel::from_index(i);
+                    let selected = state.terminal_filter_level == level;
                     let color = level_color(name);
                     let btn_text = egui::RichText::new(*name)
                         .font(theme::font_label())
@@ -205,7 +207,7 @@ impl TerminalPage {
                         .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
 
                     if ui.add(btn).clicked() {
-                        state.terminal_filter_level = i;
+                        state.terminal_filter_level = level;
                     }
                     ui.add_space(4.0);
                 }
@@ -237,7 +239,7 @@ impl TerminalPage {
 
     fn terminal_viewport(ui: &mut Ui, state: &mut AppState) {
         let terminal_bg = theme::bg_deep();
-        let filter_level = state.terminal_filter_level;
+        let filter_level_index = state.terminal_filter_level.index();
         let search_lower = state.terminal_search.to_lowercase();
 
         let filtered: Vec<_> = state
@@ -245,7 +247,7 @@ impl TerminalPage {
             .iter()
             .filter(|e| {
                 let entry_level = level_index(&e.level);
-                if entry_level < filter_level {
+                if entry_level < filter_level_index {
                     return false;
                 }
                 if !search_lower.is_empty() {

@@ -3,7 +3,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::{GuiAgentStatus, GuiCheckStatus};
+use crate::dto::{ComplianceGroupBy, GuiAgentStatus, GuiCheckStatus};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -127,9 +127,9 @@ impl CompliancePage {
         ui.add_space(theme::SPACE_LG);
 
         // Search / filter bar (AAA Grade)
-        let pass_active = state.compliance_status_filter == Some(0);
-        let fail_active = state.compliance_status_filter == Some(1);
-        let err_active = state.compliance_status_filter == Some(2);
+        let pass_active = state.compliance_status_filter == Some(GuiCheckStatus::Pass);
+        let fail_active = state.compliance_status_filter == Some(GuiCheckStatus::Fail);
+        let err_active = state.compliance_status_filter == Some(GuiCheckStatus::Error);
 
         let search_lower = state.compliance_search.to_lowercase();
         let filtered: Vec<usize> = state
@@ -149,9 +149,9 @@ impl CompliancePage {
                     }
                 }
                 match state.compliance_status_filter {
-                    Some(0) => c.status == GuiCheckStatus::Pass,
-                    Some(1) => c.status == GuiCheckStatus::Fail,
-                    Some(2) => c.status == GuiCheckStatus::Error,
+                    Some(GuiCheckStatus::Pass) => c.status == GuiCheckStatus::Pass,
+                    Some(GuiCheckStatus::Fail) => c.status == GuiCheckStatus::Fail,
+                    Some(GuiCheckStatus::Error) => c.status == GuiCheckStatus::Error,
                     _ => true,
                 }
             })
@@ -172,9 +172,9 @@ impl CompliancePage {
 
         if let Some(idx) = toggled {
             let target = match idx {
-                0 => Some(0),
-                1 => Some(1),
-                2 => Some(2),
+                0 => Some(GuiCheckStatus::Pass),
+                1 => Some(GuiCheckStatus::Fail),
+                2 => Some(GuiCheckStatus::Error),
                 _ => None,
             };
             if state.compliance_status_filter == target {
@@ -197,9 +197,9 @@ impl CompliancePage {
             );
             ui.add_space(theme::SPACE_XS);
             for (val, label) in [
-                (0u8, "LISTE PLATE"),
-                (1, "PAR CATÉGORIE"),
-                (2, "PAR RÉFÉRENTIEL"),
+                (ComplianceGroupBy::None, "LISTE PLATE"),
+                (ComplianceGroupBy::Category, "PAR CATÉGORIE"),
+                (ComplianceGroupBy::Framework, "PAR RÉFÉRENTIEL"),
             ] {
                 let active = state.compliance_group_by == val;
                 let (btn_color, text_color) = if active {
@@ -282,7 +282,7 @@ impl CompliancePage {
             ui.add_space(theme::SPACE_MD);
 
             if filtered.is_empty() {
-                if state.compliance_status_filter == Some(1) {
+                if state.compliance_status_filter == Some(GuiCheckStatus::Fail) {
                     widgets::protected_state(
                         ui,
                         icons::SHIELD_CHECK,
@@ -306,7 +306,7 @@ impl CompliancePage {
                         Some("Modifiez vos critères de recherche ou de filtrage."),
                     );
                 }
-            } else if state.compliance_group_by == 0 {
+            } else if state.compliance_group_by == ComplianceGroupBy::None {
                 ui.push_id("compliance_table_flat", |ui: &mut egui::Ui| {
                     Self::render_check_table(ui, state, &filtered, &mut command);
                 });
@@ -364,7 +364,7 @@ impl CompliancePage {
         let mut map: BTreeMap<String, Vec<usize>> = BTreeMap::new();
         for &i in indices {
             let check = &state.checks[i];
-            let key = if state.compliance_group_by == 1 {
+            let key = if state.compliance_group_by == ComplianceGroupBy::Category {
                 Self::format_category(&check.category)
             } else if check.frameworks.is_empty() {
                 "NON CLASSÉ".to_string()
@@ -589,7 +589,7 @@ impl CompliancePage {
                         });
 
                         row.col(|ui: &mut egui::Ui| {
-                            let color = theme::severity_color(&check.severity);
+                            let color = theme::severity_color_typed(&check.severity);
                             ui.horizontal(|ui: &mut egui::Ui| {
                                 ui.painter().circle_filled(
                                     ui.available_rect_before_wrap().min + egui::vec2(6.0, 10.0),
@@ -598,7 +598,7 @@ impl CompliancePage {
                                 );
                                 ui.add_space(14.0);
                                 ui.label(
-                                    egui::RichText::new(check.severity.to_uppercase())
+                                    egui::RichText::new(check.severity.label())
                                         .font(theme::font_label())
                                         .color(color)
                                         .strong(),
@@ -656,7 +656,7 @@ impl CompliancePage {
                     c.name.clone(),
                     c.category.clone(),
                     st.to_string(),
-                    c.severity.clone(),
+                    c.severity.as_str().to_string(),
                     c.score.map_or("--".into(), |s| format!("{}", s)),
                     c.frameworks.join(", "),
                 ]

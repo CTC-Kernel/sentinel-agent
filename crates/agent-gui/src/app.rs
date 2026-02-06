@@ -124,7 +124,7 @@ pub struct AppState {
     pub summary: AgentSummary,
     pub resources: GuiResourceUsage,
     pub checks: Vec<GuiCheckResult>,
-    pub logs: Vec<GuiLogEntry>,
+    pub logs: std::collections::VecDeque<GuiLogEntry>,
     pub policy: GuiPolicySummary,
     pub vulnerability_summary: Option<GuiVulnerabilitySummary>,
 
@@ -149,12 +149,12 @@ pub struct AppState {
     // Sync state
     pub sync_in_progress: bool,
     pub sync_error: Option<String>,
-    pub sync_history: Vec<SyncHistoryEntry>,
+    pub sync_history: std::collections::VecDeque<SyncHistoryEntry>,
 
     // Terminal state
     pub terminal_lines: std::collections::VecDeque<crate::events::TerminalLogEntry>,
     pub terminal_auto_scroll: bool,
-    pub terminal_filter_level: usize, // 0=TRACE, 1=DEBUG, 2=INFO, 3=WARN, 4=ERROR
+    pub terminal_filter_level: crate::dto::LogLevel,
     pub terminal_search: String,
     pub terminal_event_count: u64,
     pub terminal_error_count: u64,
@@ -177,19 +177,19 @@ pub struct AppState {
     pub server_url: String,
     pub check_interval_secs: u64,
     pub heartbeat_interval_secs: u64,
-    pub log_level: u8, // 0=ERROR, 1=WARN, 2=INFO, 3=DEBUG, 4=TRACE
+    pub log_level: crate::dto::LogLevel,
     pub dark_mode: bool,
     pub update_status: crate::dto::UpdateStatus,
 
-    // Software page tab state (0=Packages, 1=Applications)
-    pub software_active_tab: u8,
+    // Software page tab state
+    pub software_active_tab: crate::dto::SoftwareTab,
 
     // Search/filter state per page
     pub compliance_search: String,
-    pub compliance_status_filter: Option<u8>, // None=all, 0=pass, 1=fail, 2=error
-    pub compliance_group_by: u8,              // 0=none, 1=category, 2=framework
+    pub compliance_status_filter: Option<crate::dto::GuiCheckStatus>,
+    pub compliance_group_by: crate::dto::ComplianceGroupBy,
     pub vulnerability_search: String,
-    pub vulnerability_severity_filter: Option<String>,
+    pub vulnerability_severity_filter: Option<crate::dto::Severity>,
     pub software_search: String,
     pub discovery_search: String,
 
@@ -200,22 +200,22 @@ pub struct AppState {
     // Compliance trending
     pub previous_compliance_score: Option<f32>,
 
-    // Monitoring history (for real-time charts)
-    pub cpu_history: Vec<[f64; 2]>,
-    pub memory_history: Vec<[f64; 2]>,
-    pub disk_io_history: Vec<[f64; 2]>,
-    pub network_io_history: Vec<[f64; 2]>,
+    // Monitoring history (VecDeque for O(1) removal at front)
+    pub cpu_history: std::collections::VecDeque<[f64; 2]>,
+    pub memory_history: std::collections::VecDeque<[f64; 2]>,
+    pub disk_io_history: std::collections::VecDeque<[f64; 2]>,
+    pub network_io_history: std::collections::VecDeque<[f64; 2]>,
 
     // FIM (File Integrity Monitoring)
     pub fim_monitored_count: u32,
     pub fim_changes_today: u32,
-    pub fim_alerts: Vec<crate::dto::GuiFimAlert>,
+    pub fim_alerts: std::collections::VecDeque<crate::dto::GuiFimAlert>,
     pub fim_search: String,
     pub fim_filter: Option<String>,
 
     // Threats / Security events
-    pub suspicious_processes: Vec<crate::dto::GuiSuspiciousProcess>,
-    pub usb_events: Vec<crate::dto::GuiUsbEvent>,
+    pub suspicious_processes: std::collections::VecDeque<crate::dto::GuiSuspiciousProcess>,
+    pub usb_events: std::collections::VecDeque<crate::dto::GuiUsbEvent>,
     pub threats_search: String,
     pub threats_filter: Option<String>,
     pub audit_trail_search: String,
@@ -252,7 +252,7 @@ impl Default for AppState {
                 network_io_bytes: 0,
             },
             checks: Vec::new(),
-            logs: Vec::new(),
+            logs: std::collections::VecDeque::new(),
             policy: GuiPolicySummary {
                 total_policies: 0,
                 passing: 0,
@@ -275,13 +275,13 @@ impl Default for AppState {
             network_connection_search: String::new(),
             terminal_lines: std::collections::VecDeque::new(),
             terminal_auto_scroll: true,
-            terminal_filter_level: 2, // INFO
+            terminal_filter_level: crate::dto::LogLevel::Info,
             terminal_search: String::new(),
             terminal_event_count: 0,
             terminal_error_count: 0,
             sync_in_progress: false,
             sync_error: None,
-            sync_history: Vec::new(),
+            sync_history: std::collections::VecDeque::new(),
             discovered_devices: Vec::new(),
             discovery_in_progress: false,
             discovery_progress: 0.0,
@@ -295,13 +295,13 @@ impl Default for AppState {
             server_url: agent_common::constants::DEFAULT_SERVER_URL.to_string(),
             check_interval_secs: agent_common::constants::DEFAULT_CHECK_INTERVAL_SECS,
             heartbeat_interval_secs: agent_common::constants::DEFAULT_HEARTBEAT_INTERVAL_SECS,
-            log_level: 2, // INFO
+            log_level: crate::dto::LogLevel::Info,
             dark_mode: true,
             update_status: crate::dto::UpdateStatus::Idle,
-            software_active_tab: 0,
+            software_active_tab: crate::dto::SoftwareTab::default(),
             compliance_search: String::new(),
             compliance_status_filter: None,
-            compliance_group_by: 0,
+            compliance_group_by: crate::dto::ComplianceGroupBy::default(),
             vulnerability_search: String::new(),
             vulnerability_severity_filter: None,
             software_search: String::new(),
@@ -309,17 +309,17 @@ impl Default for AppState {
             notifications: Vec::new(),
             unread_notification_count: 0,
             previous_compliance_score: None,
-            cpu_history: Vec::new(),
-            memory_history: Vec::new(),
-            disk_io_history: Vec::new(),
-            network_io_history: Vec::new(),
+            cpu_history: std::collections::VecDeque::new(),
+            memory_history: std::collections::VecDeque::new(),
+            disk_io_history: std::collections::VecDeque::new(),
+            network_io_history: std::collections::VecDeque::new(),
             fim_monitored_count: 0,
             fim_changes_today: 0,
-            fim_alerts: Vec::new(),
+            fim_alerts: std::collections::VecDeque::new(),
             fim_search: String::new(),
             fim_filter: None,
-            suspicious_processes: Vec::new(),
-            usb_events: Vec::new(),
+            suspicious_processes: std::collections::VecDeque::new(),
+            usb_events: std::collections::VecDeque::new(),
             threats_search: String::new(),
             threats_filter: None,
             audit_trail_search: String::new(),
@@ -334,8 +334,8 @@ impl AppState {
     pub fn push_toast(&mut self, toast: crate::widgets::toast::Toast, ctx: &egui::Context) {
         let time = ctx.input(|i| i.time);
         self.toasts.push(toast.with_time(time));
-        // Keep at most 5 toasts visible
-        if self.toasts.len() > 5 {
+        // Keep at most 5 toasts visible (remove oldest first)
+        while self.toasts.len() > 5 {
             self.toasts.remove(0);
         }
     }
@@ -513,62 +513,48 @@ impl SentinelApp {
                     self.recompute_policy();
                 }
                 AgentEvent::ResourceUpdate { usage } => {
+                    const MAX_HISTORY: usize = 300;
+                    let t = self.state.resources.uptime_secs as f64;
+
                     // Only push valid data to monitoring history (ignore initial 0.0 values)
                     if usage.cpu_percent > 0.0 {
-                        let t = self.state.resources.uptime_secs as f64;
-                        self.state.cpu_history.push([t, usage.cpu_percent]);
+                        self.state.cpu_history.push_back([t, usage.cpu_percent]);
+                        while self.state.cpu_history.len() > MAX_HISTORY {
+                            self.state.cpu_history.pop_front();
+                        }
                     }
                     if usage.memory_percent > 0.0 {
-                        let t = self.state.resources.uptime_secs as f64;
-                        self.state.memory_history.push([t, usage.memory_percent]);
+                        self.state.memory_history.push_back([t, usage.memory_percent]);
+                        while self.state.memory_history.len() > MAX_HISTORY {
+                            self.state.memory_history.pop_front();
+                        }
                     }
                     if usage.disk_iops > 0 {
-                        let t = self.state.resources.uptime_secs as f64;
-                        self.state.disk_io_history.push([t, usage.disk_iops as f64]);
+                        self.state.disk_io_history.push_back([t, usage.disk_iops as f64]);
+                        while self.state.disk_io_history.len() > MAX_HISTORY {
+                            self.state.disk_io_history.pop_front();
+                        }
                     }
                     if usage.network_io_bytes > 0 {
-                        let t = self.state.resources.uptime_secs as f64;
                         self.state
                             .network_io_history
-                            .push([t, usage.network_io_bytes as f64 / 1024.0]); // In KB/s for graph
+                            .push_back([t, usage.network_io_bytes as f64 / 1024.0]);
+                        while self.state.network_io_history.len() > MAX_HISTORY {
+                            self.state.network_io_history.pop_front();
+                        }
                     }
 
-                    // Truncate to 300 data points
-                    const MAX_HISTORY: usize = 300;
-                    if self.state.cpu_history.len() > MAX_HISTORY {
-                        self.state
-                            .cpu_history
-                            .drain(..self.state.cpu_history.len() - MAX_HISTORY);
-                    }
-                    if self.state.memory_history.len() > MAX_HISTORY {
-                        self.state
-                            .memory_history
-                            .drain(..self.state.memory_history.len() - MAX_HISTORY);
-                    }
-                    if self.state.disk_io_history.len() > MAX_HISTORY {
-                        self.state
-                            .disk_io_history
-                            .drain(..self.state.disk_io_history.len() - MAX_HISTORY);
-                    }
-                    if self.state.network_io_history.len() > MAX_HISTORY {
-                        self.state
-                            .network_io_history
-                            .drain(..self.state.network_io_history.len() - MAX_HISTORY);
-                    }
                     self.state.resources = usage;
                 }
                 AgentEvent::Notification { notification } => {
-                    // Add as log entry for now
-                    self.state.logs.insert(
-                        0,
-                        GuiLogEntry {
-                            id: notification.id,
-                            timestamp: notification.timestamp,
-                            level: notification.severity.clone(),
-                            message: notification.title.clone(),
-                            source: None,
-                        },
-                    );
+                    // Add as log entry for now (O(1) push_front with VecDeque)
+                    self.state.logs.push_front(GuiLogEntry {
+                        id: notification.id,
+                        timestamp: notification.timestamp,
+                        level: notification.severity.clone(),
+                        message: notification.title.clone(),
+                        source: None,
+                    });
                     // Keep max 200 log entries
                     self.state.logs.truncate(200);
                 }
@@ -582,16 +568,13 @@ impl SentinelApp {
                     self.state.summary.pending_sync_count = pending_count;
                     if let Some(ts) = last_sync_at {
                         self.state.summary.last_sync_at = Some(ts);
-                        self.state.sync_history.insert(
-                            0,
-                            SyncHistoryEntry {
-                                timestamp: ts,
-                                success: error.is_none(),
-                                message: error.clone().unwrap_or_else(|| {
-                                    "Synchronisation termin\u{00e9}e".to_string()
-                                }),
-                            },
-                        );
+                        self.state.sync_history.push_front(SyncHistoryEntry {
+                            timestamp: ts,
+                            success: error.is_none(),
+                            message: error.clone().unwrap_or_else(|| {
+                                "Synchronisation termin\u{00e9}e".to_string()
+                            }),
+                        });
                         self.state.sync_history.truncate(50);
                     }
                     self.state.sync_error = error;
@@ -664,15 +647,15 @@ impl SentinelApp {
                     }
                 }
                 AgentEvent::FimAlert { alert } => {
-                    self.state.fim_alerts.insert(0, alert);
+                    self.state.fim_alerts.push_front(alert);
                     self.state.fim_alerts.truncate(500);
                 }
                 AgentEvent::UsbEvent { event } => {
-                    self.state.usb_events.insert(0, event);
+                    self.state.usb_events.push_front(event);
                     self.state.usb_events.truncate(200);
                 }
                 AgentEvent::SuspiciousProcess { process } => {
-                    self.state.suspicious_processes.insert(0, process);
+                    self.state.suspicious_processes.push_front(process);
                     self.state.suspicious_processes.truncate(200);
                 }
                 AgentEvent::FimStats {

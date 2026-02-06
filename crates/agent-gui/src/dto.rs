@@ -10,6 +10,213 @@ use uuid::Uuid;
 
 pub use agent_common::types::UpdateStatus;
 
+// ============================================================================
+// Type-safe enums (replacing String-based fields)
+// ============================================================================
+
+/// Severity level for compliance checks and vulnerabilities.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[serde(rename_all = "snake_case")]
+pub enum Severity {
+    Critical,
+    High,
+    Medium,
+    Low,
+    Info,
+}
+
+impl Severity {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Severity::Critical => "critical",
+            Severity::High => "high",
+            Severity::Medium => "medium",
+            Severity::Low => "low",
+            Severity::Info => "info",
+        }
+    }
+
+    pub fn label(&self) -> &'static str {
+        match self {
+            Severity::Critical => "CRITIQUE",
+            Severity::High => "ÉLEVÉ",
+            Severity::Medium => "MOYEN",
+            Severity::Low => "FAIBLE",
+            Severity::Info => "INFO",
+        }
+    }
+}
+
+impl std::fmt::Display for Severity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// Log level for terminal and log filtering.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum LogLevel {
+    Trace = 0,
+    Debug = 1,
+    Info = 2,
+    Warn = 3,
+    Error = 4,
+}
+
+impl LogLevel {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            LogLevel::Trace => "TRACE",
+            LogLevel::Debug => "DEBUG",
+            LogLevel::Info => "INFO",
+            LogLevel::Warn => "WARN",
+            LogLevel::Error => "ERROR",
+        }
+    }
+
+    pub fn from_index(idx: usize) -> Self {
+        match idx {
+            0 => LogLevel::Trace,
+            1 => LogLevel::Debug,
+            2 => LogLevel::Info,
+            3 => LogLevel::Warn,
+            4 => LogLevel::Error,
+            _ => LogLevel::Info,
+        }
+    }
+
+    pub fn index(&self) -> usize {
+        *self as usize
+    }
+}
+
+impl std::fmt::Display for LogLevel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// Compliance grouping mode.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ComplianceGroupBy {
+    #[default]
+    None,
+    Category,
+    Framework,
+}
+
+impl ComplianceGroupBy {
+    pub fn index(&self) -> u8 {
+        match self {
+            ComplianceGroupBy::None => 0,
+            ComplianceGroupBy::Category => 1,
+            ComplianceGroupBy::Framework => 2,
+        }
+    }
+
+    pub fn from_index(idx: u8) -> Self {
+        match idx {
+            1 => ComplianceGroupBy::Category,
+            2 => ComplianceGroupBy::Framework,
+            _ => ComplianceGroupBy::None,
+        }
+    }
+}
+
+/// Software page tab selection.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum SoftwareTab {
+    #[default]
+    Packages,
+    Applications,
+}
+
+impl SoftwareTab {
+    pub fn index(&self) -> u8 {
+        match self {
+            SoftwareTab::Packages => 0,
+            SoftwareTab::Applications => 1,
+        }
+    }
+
+    pub fn from_index(idx: u8) -> Self {
+        match idx {
+            1 => SoftwareTab::Applications,
+            _ => SoftwareTab::Packages,
+        }
+    }
+}
+
+/// FIM change type.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum FimChangeType {
+    Created,
+    Modified,
+    Deleted,
+    PermissionChanged,
+    Renamed,
+}
+
+impl FimChangeType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            FimChangeType::Created => "created",
+            FimChangeType::Modified => "modified",
+            FimChangeType::Deleted => "deleted",
+            FimChangeType::PermissionChanged => "permission_changed",
+            FimChangeType::Renamed => "renamed",
+        }
+    }
+
+    pub fn label(&self) -> &'static str {
+        match self {
+            FimChangeType::Created => "Créé",
+            FimChangeType::Modified => "Modifié",
+            FimChangeType::Deleted => "Supprimé",
+            FimChangeType::PermissionChanged => "Permissions",
+            FimChangeType::Renamed => "Renommé",
+        }
+    }
+}
+
+impl std::fmt::Display for FimChangeType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// USB event type.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum UsbEventType {
+    Connected,
+    Disconnected,
+}
+
+impl UsbEventType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            UsbEventType::Connected => "connected",
+            UsbEventType::Disconnected => "disconnected",
+        }
+    }
+
+    pub fn label(&self) -> &'static str {
+        match self {
+            UsbEventType::Connected => "Connecté",
+            UsbEventType::Disconnected => "Déconnecté",
+        }
+    }
+}
+
+impl std::fmt::Display for UsbEventType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
 /// Overall agent status displayed in the GUI dashboard.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -70,8 +277,8 @@ pub struct GuiCheckResult {
     pub category: String,
     /// Result status.
     pub status: GuiCheckStatus,
-    /// Severity level.
-    pub severity: String,
+    /// Severity level (typed).
+    pub severity: Severity,
     /// Compliance score (0-100).
     pub score: Option<i32>,
     /// Summary message.
@@ -263,8 +470,8 @@ pub struct GuiVulnerabilityFinding {
     pub affected_software: String,
     /// Affected version.
     pub affected_version: String,
-    /// Severity level (critical, high, medium, low).
-    pub severity: String,
+    /// Severity level (typed).
+    pub severity: Severity,
     /// CVSS score (0.0 - 10.0).
     pub cvss_score: Option<f32>,
     /// Short description.
@@ -345,8 +552,8 @@ pub struct GuiFimAlert {
     pub id: String,
     /// File path that changed.
     pub path: String,
-    /// Change type (created, modified, deleted, permission_changed, renamed).
-    pub change_type: String,
+    /// Change type (typed).
+    pub change_type: FimChangeType,
     /// Previous file hash.
     pub old_hash: Option<String>,
     /// New file hash.
@@ -383,8 +590,8 @@ pub struct GuiUsbEvent {
     pub vendor_id: u16,
     /// USB product ID.
     pub product_id: u16,
-    /// Event type (connected, disconnected).
-    pub event_type: String,
+    /// Event type (typed).
+    pub event_type: UsbEventType,
     /// When the event occurred.
     pub timestamp: DateTime<Utc>,
 }
@@ -422,7 +629,7 @@ mod tests {
             name: "Disk Encryption".to_string(),
             category: "encryption".to_string(),
             status: GuiCheckStatus::Pass,
-            severity: "high".to_string(),
+            severity: Severity::High,
             score: Some(100),
             message: Some("BitLocker enabled".to_string()),
             details: None,

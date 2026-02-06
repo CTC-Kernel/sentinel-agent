@@ -38,57 +38,34 @@ impl SettingsPage {
             ui.add_space(theme::SPACE_MD);
 
             ui.horizontal(|ui: &mut egui::Ui| {
-                let (label, cmd, icon) = if state.is_paused {
-                    ("REPRENDRE L'AGENT", GuiCommand::Resume, icons::PLAY)
+                let is_paused = state.is_paused;
+                let (label, cmd) = if is_paused {
+                    (format!("{}  REPRENDRE L'AGENT", icons::PLAY), GuiCommand::Resume)
                 } else {
-                    ("METTRE EN PAUSE", GuiCommand::Pause, icons::STOP)
+                    (format!("{}  METTRE EN PAUSE", icons::STOP), GuiCommand::Pause)
                 };
 
-                let btn_color = if state.is_paused {
-                    theme::SUCCESS
-                } else {
-                    theme::WARNING
-                };
-
-                let btn = egui::Button::new(
-                    egui::RichText::new(format!("{}  {}", icon, label))
-                        .font(theme::font_min())
-                        .color(theme::text_on_accent())
-                        .strong(),
-                )
-                .fill(btn_color)
-                .min_size(egui::vec2(160.0, 40.0))
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-
-                if ui.add(btn).clicked() {
-                    state.is_paused = !state.is_paused;
+                if widgets::button::primary_button(ui, label, true).clicked() {
+                    state.is_paused = !is_paused;
                     command = Some(cmd);
                 }
 
                 ui.add_space(theme::SPACE_SM);
 
                 let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
-                let check_btn = egui::Button::new(
-                    egui::RichText::new(format!(
-                        "{}  {}",
-                        if is_scanning {
-                            "VÉRIFICATION..."
-                        } else {
-                            "VÉRIFIER MAINTENANT"
-                        },
-                        icons::CHECK
-                    ))
-                    .font(theme::font_min())
-                    .color(theme::text_on_accent())
-                    .strong(),
+                let check_label = if is_scanning {
+                    format!("{}  VÉRIFICATION...", icons::CHECK)
+                } else {
+                    format!("{}  VÉRIFIER MAINTENANT", icons::CHECK)
+                };
+                let can_check = !state.is_paused && !is_scanning;
+                if widgets::button::primary_button_loading(
+                    ui,
+                    check_label,
+                    can_check,
+                    is_scanning,
                 )
-                .fill(theme::ACCENT)
-                .min_size(egui::vec2(200.0, 40.0))
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-
-                if ui
-                    .add_enabled(!state.is_paused && !is_scanning, check_btn)
-                    .clicked()
+                .clicked()
                 {
                     command = Some(GuiCommand::RunCheck);
                 }
@@ -177,33 +154,20 @@ impl SettingsPage {
             ui.add_space(theme::SPACE_SM);
 
             ui.horizontal(|ui: &mut egui::Ui| {
-                let levels: &[(u8, &str, egui::Color32)] = &[
-                    (0, "ERROR", theme::ERROR),
-                    (1, "WARN", theme::WARNING),
-                    (2, "INFO", theme::INFO),
-                    (3, "DEBUG", theme::text_secondary()),
-                    (4, "TRACE", theme::text_tertiary()),
+                use crate::dto::LogLevel;
+                let levels: &[(LogLevel, egui::Color32)] = &[
+                    (LogLevel::Error, theme::ERROR),
+                    (LogLevel::Warn, theme::WARNING),
+                    (LogLevel::Info, theme::INFO),
+                    (LogLevel::Debug, theme::text_secondary()),
+                    (LogLevel::Trace, theme::text_tertiary()),
                 ];
 
-                for &(val, label, color) in levels {
-                    let active = state.log_level == val;
-                    let (bg, fg) = if active {
-                        (color, theme::text_on_accent())
-                    } else {
-                        (theme::bg_elevated(), color)
-                    };
-                    let btn = egui::Button::new(
-                        egui::RichText::new(label)
-                            .font(theme::font_label())
-                            .color(fg)
-                            .strong(),
-                    )
-                    .fill(bg)
-                    .corner_radius(egui::CornerRadius::same(theme::BADGE_ROUNDING))
-                    .min_size(egui::vec2(60.0, 28.0));
-                    if ui.add(btn).clicked() && !active {
-                        state.log_level = val;
-                        command = Some(GuiCommand::SetLogLevel { level: val });
+                for &(ref level, color) in levels {
+                    let active = state.log_level == *level;
+                    if widgets::chip_button(ui, level.as_str(), active, color).clicked() && !active {
+                        state.log_level = *level;
+                        command = Some(GuiCommand::SetLogLevel { level: level.index() as u8 });
                     }
                 }
             });
@@ -223,15 +187,10 @@ impl SettingsPage {
             ui.add_space(theme::SPACE_MD);
 
             ui.horizontal(|ui: &mut egui::Ui| {
-                let mode_label = if state.dark_mode {
-                    "MODE SOMBRE"
+                let (mode_label, mode_icon) = if state.dark_mode {
+                    ("MODE SOMBRE", icons::MOON)
                 } else {
-                    "MODE CLAIR"
-                };
-                let mode_icon = if state.dark_mode {
-                    icons::CIRCLE
-                } else {
-                    icons::CIRCLE_CHECK
+                    ("MODE CLAIR", icons::SUN)
                 };
                 ui.label(
                     egui::RichText::new(format!("{}  {}", mode_icon, mode_label))
@@ -288,34 +247,22 @@ impl SettingsPage {
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                     use crate::dto::UpdateStatus;
 
-                    let (btn_text, is_busy, btn_color) = match &state.update_status {
-                        UpdateStatus::Idle => (format!("{}  VÉRIFIER", icons::DOWNLOAD), false, theme::ACCENT),
-                        UpdateStatus::Available(v) => (format!("{}  INSTALLER v{}", icons::DOWNLOAD, v), false, theme::SUCCESS),
-                        UpdateStatus::UpToDate => (format!("{}  À JOUR", icons::CHECK), false, theme::ACCENT),
-                        UpdateStatus::Downloading(p) => (format!("{}  {}%", icons::DOWNLOAD, (p * 100.0) as u32), true, theme::ACCENT),
-                        UpdateStatus::Verifying => (format!("{}  VÉRIFICATION", icons::DOWNLOAD), true, theme::ACCENT),
-                        UpdateStatus::Installing => (format!("{}  INSTALLATION", icons::DOWNLOAD), true, theme::ACCENT),
-                        UpdateStatus::Completed => (format!("{}  TERMINÉ", icons::CHECK), false, theme::SUCCESS),
-                        UpdateStatus::Failed(_) => (format!("{}  RÉESSAYER", icons::REFRESH), false, theme::ERROR),
+                    let (btn_text, is_busy) = match &state.update_status {
+                        UpdateStatus::Idle => (format!("{}  VÉRIFIER", icons::DOWNLOAD), false),
+                        UpdateStatus::Available(v) => (format!("{}  INSTALLER v{}", icons::DOWNLOAD, v), false),
+                        UpdateStatus::UpToDate => (format!("{}  À JOUR", icons::CHECK), false),
+                        UpdateStatus::Downloading(p) => (format!("{}  {}%", icons::DOWNLOAD, (p * 100.0) as u32), true),
+                        UpdateStatus::Verifying => (format!("{}  VÉRIFICATION", icons::DOWNLOAD), true),
+                        UpdateStatus::Installing => (format!("{}  INSTALLATION", icons::DOWNLOAD), true),
+                        UpdateStatus::Completed => (format!("{}  TERMINÉ", icons::CHECK), false),
+                        UpdateStatus::Failed(_) => (format!("{}  RÉESSAYER", icons::REFRESH), false),
                     };
 
-                    let update_btn = egui::Button::new(
-                        egui::RichText::new(btn_text)
-                            .font(theme::font_label())
-                            .color(theme::text_on_accent())
-                            .strong(),
-                    )
-                    .fill(btn_color)
-                    .min_size(egui::vec2(140.0, 32.0))
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-
                     let can_click = !state.is_paused && !is_busy;
-                    if ui.add_enabled(can_click, update_btn).clicked() {
+                    if widgets::button::primary_button_loading(ui, btn_text, can_click, is_busy)
+                        .clicked()
+                    {
                         command = Some(GuiCommand::CheckUpdate);
-                    }
-
-                    if is_busy {
-                        ui.add(egui::Spinner::new().size(16.0));
                     }
                 });
             });
@@ -484,20 +431,13 @@ impl SettingsPage {
                 );
                 ui.add_space(theme::SPACE_MD);
 
-                let btn = egui::Button::new(
-                    egui::RichText::new(format!(
-                        "{}  VOIR SUR LE PORTAIL WEB",
-                        icons::EXTERNAL_LINK
-                    ))
-                    .font(theme::font_min())
-                    .color(theme::text_on_accent())
-                    .strong(),
+                if widgets::primary_button(
+                    ui,
+                    format!("{}  VOIR SUR LE PORTAIL WEB", icons::EXTERNAL_LINK),
+                    true,
                 )
-                .fill(theme::ACCENT)
-                .min_size(egui::vec2(ui.available_width(), 40.0))
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-
-                if ui.add(btn).clicked() {
+                .clicked()
+                {
                     let _ = open::that(&url);
                 }
             } else {
@@ -542,50 +482,32 @@ impl SettingsPage {
                 ui.add_space(theme::SPACE_MD);
 
                 ui.horizontal(|ui: &mut egui::Ui| {
-                    let cancel_btn = egui::Button::new(
-                        egui::RichText::new("ANNULER")
-                            .font(theme::font_min())
-                            .color(theme::text_primary())
-                            .strong(),
-                    )
-                    .fill(theme::bg_elevated())
-                    .min_size(egui::vec2(120.0, 40.0))
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-
-                    if ui.add(cancel_btn).clicked() {
+                    if widgets::secondary_button(ui, "ANNULER", true).clicked() {
                         ui.memory_mut(|mem| mem.data.insert_temp(confirm_id, false));
                     }
 
                     ui.add_space(theme::SPACE_SM);
 
-                    let confirm_btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  CONFIRMER L'ARRÊT", icons::XMARK))
-                            .font(theme::font_min())
-                            .color(theme::text_on_accent())
-                            .strong(),
+                    if widgets::destructive_button(
+                        ui,
+                        format!("{}  CONFIRMER L'ARRÊT", icons::POWER_OFF),
+                        true,
                     )
-                    .fill(theme::ERROR)
-                    .min_size(egui::vec2(180.0, 40.0))
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-
-                    if ui.add(confirm_btn).clicked() {
+                    .clicked()
+                    {
                         ui.memory_mut(|mem| mem.data.insert_temp(confirm_id, false));
                         *command = Some(GuiCommand::Shutdown);
                     }
                 });
             } else {
                 // Normal state
-                let quit_btn = egui::Button::new(
-                    egui::RichText::new(format!("{}  QUITTER L'AGENT SENTINEL", icons::XMARK))
-                        .font(theme::font_min())
-                        .color(theme::text_on_accent())
-                        .strong(),
+                if widgets::destructive_button(
+                    ui,
+                    format!("{}  QUITTER L'AGENT SENTINEL", icons::POWER_OFF),
+                    true,
                 )
-                .fill(theme::ERROR.linear_multiply(0.8))
-                .min_size(egui::vec2(ui.available_width(), 40.0))
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-
-                if ui.add(quit_btn).clicked() {
+                .clicked()
+                {
                     ui.memory_mut(|mem| mem.data.insert_temp(confirm_id, true));
                 }
             }
@@ -610,6 +532,9 @@ impl SettingsPage {
             ui.with_layout(
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
+                    // Copy button for easy clipboard access
+                    widgets::copy_button(ui, value, Some("Copier la valeur"));
+                    ui.add_space(4.0);
                     ui.label(
                         egui::RichText::new(value)
                             .font(egui::FontId::monospace(11.0))

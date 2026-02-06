@@ -11,12 +11,7 @@ use crate::widgets;
 
 pub struct SoftwarePage;
 
-/// Active tab on the software page.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum SoftwareTab {
-    Packages,
-    Applications,
-}
+use crate::dto::SoftwareTab;
 
 impl SoftwarePage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
@@ -58,18 +53,14 @@ impl SoftwarePage {
         ui.add_space(theme::SPACE_MD);
 
         // Tab bar (AAA Grade)
-        let active = if state.software_active_tab == 1 {
-            SoftwareTab::Applications
-        } else {
-            SoftwareTab::Packages
-        };
+        let active = state.software_active_tab;
         ui.horizontal(|ui: &mut egui::Ui| {
             if Self::tab_button(
                 ui,
                 &format!("{} DÉPENDANCES ET PAQUETS", icons::SOFTWARE),
                 active == SoftwareTab::Packages,
             ) {
-                state.software_active_tab = 0;
+                state.software_active_tab = SoftwareTab::Packages;
             }
             ui.add_space(theme::SPACE_SM);
             if Self::tab_button(
@@ -77,7 +68,7 @@ impl SoftwarePage {
                 &format!("{} APPLICATIONS UTILISATEUR", icons::CUBE),
                 active == SoftwareTab::Applications,
             ) {
-                state.software_active_tab = 1;
+                state.software_active_tab = SoftwareTab::Applications;
             }
         });
 

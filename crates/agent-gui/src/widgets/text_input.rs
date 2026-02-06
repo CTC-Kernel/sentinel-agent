@@ -5,13 +5,108 @@ use crate::theme;
 use egui::{Response, Sense, Ui};
 
 /// Validation state for text input.
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub enum InputValidation {
     #[default]
     None,
     Valid,
+    /// Invalid with an optional error message displayed below the input.
     Invalid,
     Warning,
+}
+
+/// Validation state with an error message for display.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct ValidationState {
+    pub status: InputValidation,
+    pub message: Option<String>,
+}
+
+impl ValidationState {
+    pub fn none() -> Self {
+        Self { status: InputValidation::None, message: None }
+    }
+    pub fn valid() -> Self {
+        Self { status: InputValidation::Valid, message: None }
+    }
+    pub fn invalid(msg: impl Into<String>) -> Self {
+        Self { status: InputValidation::Invalid, message: Some(msg.into()) }
+    }
+    pub fn warning(msg: impl Into<String>) -> Self {
+        Self { status: InputValidation::Warning, message: Some(msg.into()) }
+    }
+}
+
+/// A form field wrapper that renders label + input + validation error + help text.
+/// Returns the inner response from the input widget.
+pub fn form_field(
+    ui: &mut Ui,
+    label: &str,
+    value: &mut String,
+    placeholder: &str,
+    validation: &ValidationState,
+    help: Option<&str>,
+) -> Response {
+    ui.vertical(|ui: &mut egui::Ui| {
+        // Label
+        ui.label(
+            egui::RichText::new(label.to_uppercase())
+                .font(theme::font_label())
+                .color(theme::text_tertiary())
+                .extra_letter_spacing(theme::TRACKING_TIGHT)
+                .strong(),
+        );
+        ui.add_space(theme::SPACE_XS);
+
+        // Input
+        let response = text_input_with_options(
+            ui,
+            value,
+            placeholder,
+            validation.status.clone(),
+            true,
+            None,
+        );
+
+        // Validation error message
+        if let Some(ref msg) = validation.message {
+            ui.add_space(2.0);
+            let (icon, color) = match validation.status {
+                InputValidation::Invalid => (crate::icons::CIRCLE_XMARK, theme::ERROR),
+                InputValidation::Warning => (crate::icons::WARNING, theme::WARNING),
+                InputValidation::Valid => (crate::icons::CIRCLE_CHECK, theme::SUCCESS),
+                InputValidation::None => ("", theme::text_tertiary()),
+            };
+            ui.horizontal(|ui: &mut egui::Ui| {
+                if !icon.is_empty() {
+                    ui.label(
+                        egui::RichText::new(icon)
+                            .font(theme::font_label())
+                            .color(color),
+                    );
+                    ui.add_space(2.0);
+                }
+                ui.label(
+                    egui::RichText::new(msg.as_str())
+                        .font(theme::font_label())
+                        .color(color),
+                );
+            });
+        }
+
+        // Help text
+        if let Some(help_text) = help {
+            ui.add_space(2.0);
+            ui.label(
+                egui::RichText::new(help_text)
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary()),
+            );
+        }
+
+        response
+    })
+    .inner
 }
 
 /// A premium-styled single-line text input.
@@ -64,7 +159,7 @@ pub fn text_input_with_options(
     let input_height = 40.0;
 
     // Determine border color based on validation
-    let (border_color, icon_color) = match validation {
+    let (border_color, icon_color) = match &validation {
         InputValidation::None => (theme::border(), None),
         InputValidation::Valid => (theme::SUCCESS, Some(theme::SUCCESS)),
         InputValidation::Invalid => (theme::ERROR, Some(theme::ERROR)),

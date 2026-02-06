@@ -191,11 +191,12 @@ impl DashboardPage {
                 show_stats: false,
             };
 
+            let cpu_data: Vec<[f64; 2]> = state.cpu_history.iter().copied().collect();
             widgets::sparkline_with_value(
                 ui,
                 "CPU",
                 &format!("{:.1}%", state.resources.cpu_percent),
-                &state.cpu_history,
+                &cpu_data,
                 &config,
             );
         });
@@ -213,11 +214,12 @@ impl DashboardPage {
                 show_stats: false,
             };
 
+            let mem_data: Vec<[f64; 2]> = state.memory_history.iter().copied().collect();
             widgets::sparkline_with_value(
                 ui,
                 "MÉMOIRE",
                 &format!("{:.1}%", state.resources.memory_percent),
-                &state.memory_history,
+                &mem_data,
                 &config,
             );
         });
