@@ -34,13 +34,13 @@ export const UserRow = memo(({ user, currentUser, currentOrg, updating, onUpdate
   {user.displayName}
   </p>
   {currentOrg?.ownerId === user.uid && (
-  <span className="px-2 py-0.5 text-[11px] font-bold bg-warning-bg text-warning-text rounded-full flex items-center gap-1 border border-warning-border/20">
+  <span className="px-2 py-0.5 text-xs font-bold bg-warning-bg text-warning-text rounded-full flex items-center gap-1 border border-warning-border/20">
   <Star size={10} />
   {t('settings.owner')}
   </span>
   )}
   {user.uid === currentUser?.uid && (
-  <span className="px-2 py-0.5 text-[11px] font-medium bg-muted/50 text-muted-foreground/50 rounded-full border border-border/40">
+  <span className="px-2 py-0.5 text-xs font-medium bg-muted/50 text-muted-foreground/50 rounded-full border border-border/40">
   {t('settings.you')}
   </span>
   )}

@@ -271,7 +271,7 @@ const UptimeChart: React.FC<UptimeChartProps> = ({ data }) => {
   {point.avgUptime.toFixed(1)}% uptime
   </div>
   </div>
-  <span className="text-[11px] text-muted-foreground">
+  <span className="text-xs text-muted-foreground">
   {date.toLocaleDateString(config.intlLocale, { day: '2-digit' })}
   </span>
   </div>

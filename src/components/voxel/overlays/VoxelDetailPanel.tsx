@@ -346,21 +346,21 @@ const AssetDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
  {confidentiality && (
  <div className="text-center p-3 rounded-3xl bg-muted/30">
  <Lock className="w-4 h-4 mx-auto mb-1 text-blue-400" />
- <div className="text-[11px] text-muted-foreground uppercase">Conf.</div>
+ <div className="text-xs text-muted-foreground uppercase">Conf.</div>
  <div className="text-xs font-medium text-muted-foreground/60 mt-0.5">{confidentiality}</div>
  </div>
  )}
  {integrity && (
  <div className="text-center p-3 rounded-3xl bg-muted/30">
  <CheckCircle2 className="w-4 h-4 mx-auto mb-1 text-green-400" />
- <div className="text-[11px] text-muted-foreground uppercase">Intég.</div>
+ <div className="text-xs text-muted-foreground uppercase">Intég.</div>
  <div className="text-xs font-medium text-muted-foreground/60 mt-0.5">{integrity}</div>
  </div>
  )}
  {availability && (
  <div className="text-center p-3 rounded-3xl bg-muted/30">
  <Wifi className="w-4 h-4 mx-auto mb-1 text-amber-400" />
- <div className="text-[11px] text-muted-foreground uppercase">Disp.</div>
+ <div className="text-xs text-muted-foreground uppercase">Disp.</div>
  <div className="text-xs font-medium text-muted-foreground/60 mt-0.5">{availability}</div>
  </div>
  )}

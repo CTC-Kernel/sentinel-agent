@@ -441,7 +441,7 @@ const ThreatRegistryCard = React.memo(({
   <div className={`p-3 rounded-xl ${threat.source === 'Standard' ? 'bg-info-bg text-info-text' : 'bg-violet-100 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400'}`}>
   <Shield className="h-6 w-6" />
   </div>
-  <span className="text-[11px] uppercase font-bold tracking-wider text-muted-foreground border border-border px-2 py-1 rounded-full">
+  <span className="text-xs uppercase font-bold tracking-wider text-muted-foreground border border-border px-2 py-1 rounded-full">
   {threat.framework}
   </span>
  </div>

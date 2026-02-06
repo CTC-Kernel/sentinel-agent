@@ -282,7 +282,7 @@ const ConnectionLabel: React.FC<ConnectionLabelProps> = React.memo(
  }}
  >
  <div className="font-semibold">{CONNECTION_LABELS[connectionType]}</div>
- <div className="text-muted-foreground text-[11px]">{EDGE_TYPE_LABELS[edgeType]}</div>
+ <div className="text-muted-foreground text-xs">{EDGE_TYPE_LABELS[edgeType]}</div>
  </div>
  </Html>
  </Billboard>

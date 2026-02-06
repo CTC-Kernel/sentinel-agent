@@ -160,7 +160,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
  </p>
  <div className="flex justify-center">
   <span className={cn(
-  "text-[11px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full",
+  "text-xs uppercase tracking-wider font-medium px-2 py-0.5 rounded-full",
   isDone ? "bg-success-bg text-success-text" :
   isActive ? "bg-primary text-primary-foreground" :
   "bg-muted text-muted-foreground"

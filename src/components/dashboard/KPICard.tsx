@@ -116,7 +116,7 @@ const SIZE_CONFIG = {
  sm: {
  value: 'text-xl',
  title: 'text-xs',
- subtitle: 'text-[11px]',
+ subtitle: 'text-xs',
  padding: 'p-3',
  minWidth: 'min-w-[120px]',
  },

@@ -7,7 +7,7 @@
 /* Show More Badge - WCAG AAA: minimum text size 11px */
 :where(.rbc-show-more) {
     @apply bg-muted dark:bg-white/10 text-muted-foreground dark:text-white/90;
-    @apply text-[11px] font-bold px-2.5 py-1 rounded-full mt-1 inline-block;
+    @apply text-xs font-bold px-2.5 py-1 rounded-full mt-1 inline-block;
     @apply transition-colors hover:bg-muted/80 dark:hover:bg-white/20 min-h-[24px];
     text-decoration: none;
     display: block;
@@ -83,7 +83,7 @@
 
 /* Events - WCAG AAA: minimum text size 11px, touch target 24px */
 :where(.rbc-event) {
-    @apply rounded-md border-none shadow-sm text-[11px] font-bold px-2 py-1;
+    @apply rounded-md border-none shadow-sm text-xs font-bold px-2 py-1;
     @apply transition-all hover:scale-[1.02] hover:shadow-md cursor-pointer;
     min-height: 24px;
     margin-bottom: 2px;

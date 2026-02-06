@@ -423,10 +423,10 @@ export const RiskForm: React.FC<RiskFormProps> = ({
   <div key={threat.id || 'unknown'} onClick={() => handleSelectThreatFromLibrary(threat)} onKeyDown={(e) => e.key === 'Enter' && handleSelectThreatFromLibrary(threat)} role="button" tabIndex={0} aria-label={t('risks.selectThreat', { defaultValue: 'Sélectionner la menace', name: threat.name }) + ` ${threat.name}`} className="border border-border/40 p-4 rounded-xl hover:border-primary/50 cursor-pointer bg-background transition-all duration-normal ease-apple hover:shadow-md group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
   <div className="flex justify-between items-start mb-2">
    <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-primary" /><span className="font-bold text-foreground line-clamp-1">{threat.name}</span></div>
-   <span className="text-[11px] uppercase font-bold text-muted-foreground border px-1.5 py-0.5 rounded-lg">{threat.framework}</span>
+   <span className="text-xs uppercase font-bold text-muted-foreground border px-1.5 py-0.5 rounded-lg">{threat.framework}</span>
   </div>
   <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{threat.description}</p>
-  <div className="flex gap-2 text-[11px] text-muted-foreground">
+  <div className="flex gap-2 text-xs text-muted-foreground">
    <span className="bg-muted px-2 py-1 rounded">{t('risks.scoreRef', { defaultValue: 'Score Ref' })}: {threat.probability * threat.impact}</span>
    <span className="bg-muted px-2 py-1 rounded truncate flex-1">{threat.strategy}</span>
   </div>

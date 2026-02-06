@@ -155,7 +155,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
    {aiSummary}
   </ReactMarkdown>
   <div className="mt-3 flex items-center justify-end">
-   <span className="text-[11px] font-medium text-muted-foreground px-2 py-0.5 rounded-full bg-secondary/50 border border-border/20">
+   <span className="text-xs font-medium text-muted-foreground px-2 py-0.5 rounded-full bg-secondary/50 border border-border/20">
    Généré par Sentinel AI
    </span>
   </div>

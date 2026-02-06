@@ -235,14 +235,14 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             return (
                                 <button key={card.link || `card-${i}`} onClick={() => {
                                     if (card.link && card.link.startsWith('/')) navigate(card.link); // validateUrl check
-                                }} className="group/card relative p-8 rounded-xl bg-card/60 border border-border hover:border-primary/50 transition-all duration-normal ease-apple hover:shadow-xl hover:-translate-y-1 overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={card.title}>
+                                }} className="group/card relative p-8 rounded-[2rem] bg-card/60 border border-border hover:border-primary/50 transition-all duration-normal ease-apple hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={card.title}>
                                     <div className={`absolute -right-10 -bottom-10 w-40 h-40 ${styles.bg} rounded-full blur-3xl ${styles.bgHover} transition-all duration-500`} />
 
-                                    <div className={`w-14 h-14 rounded-xl ${styles.iconBg} flex items-center justify-center mb-3 group-hover/card:scale-110 transition-transform duration-500 shadow-sm`}>
+                                    <div className={`w-14 h-14 rounded-2xl ${styles.iconBg} flex items-center justify-center mb-4 group-hover/card:scale-110 group-hover/card:rotate-3 transition-all duration-500 shadow-sm relative z-decorator`}>
                                         <card.icon className={`h-7 w-7 ${styles.iconText}`} />
                                     </div>
-                                    <h3 className="text-lg font-bold text-foreground mb-2 tracking-tight group-hover/card:text-primary transition-colors">{card.title}</h3>
-                                    <p className="text-sm text-muted-foreground leading-relaxed relative z-decorator">{card.desc}</p>
+                                    <h3 className="text-xl font-bold text-foreground mb-2 tracking-tight group-hover/card:text-primary transition-colors relative z-decorator">{card.title}</h3>
+                                    <p className="text-sm font-medium text-muted-foreground leading-relaxed relative z-decorator">{card.desc}</p>
                                 </button>
                             );
                         })}
@@ -257,13 +257,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             initial={{ opacity: 0, scale: 0.96, filter: 'blur(20px)' }}
             animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="group relative rounded-2xl p-[1.5px] overflow-hidden shadow-2xl shadow-primary/20"
+            className="group relative rounded-2xl p-[1.5px] overflow-hidden shadow-2xl shadow-primary/20 isolation-isolate [mask-image:radial-gradient(white,black)]"
         >
             {/* Premium Animated Border Gradient */}
             <div className="absolute inset-0 bg-[conic-gradient(from_var(--shimmer-angle),var(--primary)_0%,var(--info)_25%,var(--primary)_50%,var(--success)_75%,var(--primary)_100%)] animate-shimmer-rotate opacity-50 group-hover:opacity-80 transition-opacity duration-1000" style={{ '--shimmer-angle': '0deg' } as React.CSSProperties} />
-            <div className="absolute inset-[1.5px] rounded-[0.95rem] bg-background/80 backdrop-blur-xl" />
+            <div className="absolute inset-[1.5px] rounded-[1.45rem] bg-background/80 backdrop-blur-xl" />
 
-            <PremiumCard glass className="relative rounded-[0.9rem] overflow-hidden shadow-none border-none !bg-transparent p-0">
+            <PremiumCard glass className="relative rounded-[1.4rem] overflow-hidden shadow-none border-none !bg-transparent p-0">
                 {/* Multi-layer Spotlight Effects */}
                 <Spotlight className="-top-40 left-0 md:left-60 md:-top-20 opacity-80" fill="var(--primary)" />
                 <Spotlight className="-top-20 right-0 md:right-40 md:-top-10 opacity-70" fill="var(--info)" />
@@ -296,11 +296,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     {/* Main Logo Container */}
                                     <div className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-44 lg:h-44 rounded-2xl bg-card/40 backdrop-blur-xl shadow-xl overflow-hidden transition-all duration-700 ease-apple group-hover/orb:scale-[1.03] group-hover/orb:shadow-[0_25px_80px_-15px_rgba(var(--primary-rgb),0.15)] border border-border/40">
 
-                                        {/* Inner Gradient Overlay */}
-                                        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-info-500/10 opacity-0 group-hover/orb:opacity-70 transition-opacity duration-700" />
+                                        {/* Inner Gradient Overlay - AAA Prismatic feel */}
+                                        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-info-500/20 opacity-0 group-hover/orb:opacity-90 transition-opacity duration-700" />
 
-                                        {/* Shimmer Effect */}
-                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover/orb:translate-x-full transition-transform duration-1000 ease-out" />
+                                        {/* Prismatic Shimmer Effect */}
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full group-hover/orb:translate-x-full transition-transform duration-1000 ease-in-out" />
 
                                         {/* Sparkles */}
                                         <div className="absolute inset-0 opacity-0 group-hover/orb:opacity-70 transition-opacity duration-1000">
@@ -322,10 +322,6 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                                 className="w-full h-full object-contain filter drop-shadow-[0_10px_30px_rgba(var(--brand-500-rgb),0.3)] animate-pulse-subtle"
                                             />
                                         </div>
-
-                                        {/* Premium Holographic Rings */}
-                                        <div className="absolute inset-2 border-2 border-primary/20 rounded-2xl animate-spin-slow" />
-                                        <div className="absolute inset-4 border border-info/10 rounded-xl animate-spin-slow-reverse" />
                                     </div>
 
                                     {/* Status Indicator - Premium */}
@@ -338,14 +334,15 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             </div>
 
                             {/* Center: Organization Info */}
-                            <div className="flex flex-col gap-3 text-center xl:text-left p-4 rounded-3xl bg-card/40 backdrop-blur-xl border border-border/40 shadow-sm">
+                            <div className="flex flex-col gap-3 text-center xl:text-left p-6 rounded-[2rem] bg-card/40 backdrop-blur-xl border border-border/40 shadow-sm group/info relative overflow-hidden transition-all duration-500 hover:border-primary/20 hover:bg-card/50">
+                                <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent opacity-0 group-hover/info:opacity-100 transition-opacity duration-700 pointer-events-none" />
                                 <motion.div
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                                     className="flex items-center gap-3 justify-center xl:justify-start"
                                 >
-                                    <span className="text-[11px] font-black text-foreground uppercase tracking-[0.35em] px-3 py-1.5 rounded-full bg-muted border border-border/40">
+                                    <span className="text-xs font-black text-foreground uppercase tracking-[0.35em] px-3 py-1.5 rounded-full bg-muted border border-border/40">
                                         {t('common.pilotage')}
                                     </span>
                                     <div className="hidden sm:block h-[2px] w-10 bg-gradient-to-r from-muted-foreground to-transparent rounded-full" />
@@ -410,7 +407,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <Tooltip content={isEditing ? t('dashboard.edit.finish') : t('dashboard.edit.customize')} position="bottom">
                                             <button
                                                 onClick={onToggleEdit}
-                                                className={`p-2.5 rounded-lg transition-all duration-300 ${isEditing
+                                                className={`p-2.5 rounded-xl transition-all duration-300 active:scale-95 ${isEditing
                                                     ? 'bg-primary text-primary-foreground shadow-md shadow-primary/30'
                                                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                                     }`}
@@ -435,7 +432,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <Tooltip content={t('dashboard.exportIcal')} position="bottom">
                                         <button
                                             onClick={generateICal}
-                                            className="p-2.5 rounded-3xl text-muted-foreground hover:text-foreground/60 hover:bg-muted/50 transition-all duration-300"
+                                            className="p-2.5 rounded-xl text-muted-foreground hover:text-foreground/60 hover:bg-muted/50 transition-all duration-300 active:scale-95"
                                             aria-label={t('dashboard.exportIcal')}
                                         >
                                             <CalendarDays className="h-4 w-4" />
@@ -459,12 +456,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                 <Tooltip content="Télécharger les agents" position="bottom">
                                     <button
                                         onClick={() => navigate('/settings?tab=agents')}
-                                        className="flex items-center gap-2 px-4 py-2.5 bg-foreground dark:bg-foreground/90 hover:bg-foreground/90 dark:hover:bg-foreground/80 text-background text-xs font-bold rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 border border-white/10"
+                                        className="flex items-center gap-2 px-5 py-2.5 bg-foreground dark:bg-foreground/90 hover:bg-foreground/90 dark:hover:bg-foreground/80 text-background text-xs font-bold rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 border border-white/10 active:scale-95 group/download"
                                         aria-label="Télécharger les agents"
                                     >
-                                        <Bot className="h-4 w-4" />
-                                        <span className="hidden lg:inline">Agents</span>
-                                        <Download className="h-3.5 w-3.5 opacity-60" />
+                                        <Bot className="h-4 w-4 group-hover/download:rotate-12 transition-transform" />
+                                        <span className="hidden lg:inline uppercase tracking-widest">Agents</span>
+                                        <Download className="h-3.5 w-3.5 opacity-60 group-hover/download:translate-y-0.5 transition-transform" />
                                     </button>
                                 </Tooltip>
 
@@ -473,7 +470,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <Tooltip content={t('dashboard.inviteTooltip')} position="bottom">
                                         <button
                                             onClick={() => navigate('/team')}
-                                            className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-card/40 hover:bg-muted text-foreground text-xs font-bold rounded-3xl border border-border/40 transition-all duration-300 backdrop-blur-md"
+                                            className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-card/40 hover:bg-muted text-foreground text-xs font-bold rounded-3xl border border-border/40 transition-all duration-300 backdrop-blur-md active:scale-95"
                                             aria-label={t('dashboard.inviteMember')}
                                         >
                                             <Users className="h-4 w-4" />
@@ -486,25 +483,24 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
                         {/* Conseil Sécurité & Prochaine Échéance */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-                            {/* Conseil Sécurité du Jour */}
                             <motion.div
                                 initial={{ opacity: 0, y: 15 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                                className="p-4 rounded-3xl bg-muted/40 dark:bg-white/5 border border-border/40 backdrop-blur-sm"
+                                className="p-5 rounded-[2rem] bg-muted/40 dark:bg-white/5 border border-border/40 backdrop-blur-xl group/tip transition-all duration-500 hover:border-primary/30"
                             >
-                                <div className="flex items-start gap-3">
-                                    <div className="p-2 rounded-3xl bg-muted/50 shrink-0">
-                                        <Lightbulb className="h-5 w-5 text-muted-foreground" />
+                                <div className="flex items-start gap-4">
+                                    <div className="p-3 rounded-2xl bg-white/60 dark:bg-white/10 shrink-0 shadow-sm group-hover/tip:scale-110 transition-transform duration-500">
+                                        <Lightbulb className="h-5 w-5 text-primary" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-[11px] font-black text-muted-foreground uppercase tracking-wider">
+                                        <div className="flex items-center gap-2 mb-1.5">
+                                            <span className="text-xs font-black text-primary/60 dark:text-primary/40 uppercase tracking-[0.2em]">
                                                 {t('dashboard.dailyTip', { defaultValue: 'Conseil du jour' })}
                                             </span>
-                                            <Sparkles className="h-3 w-3 text-muted-foreground" />
+                                            <Sparkles className="h-3 w-3 text-primary/40 animate-pulse" />
                                         </div>
-                                        <p className="text-sm font-medium text-foreground leading-relaxed">
+                                        <p className="text-sm font-semibold text-foreground leading-relaxed">
                                             {todayTip.tip}
                                         </p>
                                     </div>
@@ -529,18 +525,18 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
+                                            <span className="text-xs font-black uppercase tracking-wider text-muted-foreground">
                                                 {t('dashboard.nextDeadline', { defaultValue: 'Prochaine échéance' })}
                                             </span>
                                         </div>
                                         {nextDeadline ? (
                                             <div className="flex items-center justify-between gap-3">
-                                                <p className="text-sm font-bold text-foreground truncate">
+                                                <p className="text-base font-bold text-foreground truncate tracking-tight">
                                                     {nextDeadline.title}
                                                 </p>
-                                                <div className="flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-full bg-primary/20 dark:bg-primary-foreground/20 border border-primary/30 dark:border-primary-foreground/30">
-                                                    <Calendar className="h-3 w-3 text-primary dark:text-primary-foreground" />
-                                                    <span className="text-[11px] font-black text-primary dark:text-primary-foreground">
+                                                <div className="flex items-center gap-2 shrink-0 px-3 py-1.5 rounded-full bg-primary/10 dark:bg-primary/20 border border-primary/20 shadow-sm transition-colors group-hover/deadline:bg-primary/20">
+                                                    <Calendar className="h-3.5 w-3.5 text-primary" />
+                                                    <span className="text-sm font-bold text-primary tabular-nums">
                                                         {nextDeadline.date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                                                     </span>
                                                 </div>
@@ -560,17 +556,20 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
                         {/* Bottom Row: Stats Cards */}
                         <div className="flex flex-col sm:flex-row items-stretch gap-4 mt-4">
-                            {/* Active Incidents Quick View - Premium */}
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                                className="relative flex flex-col p-5 rounded-3xl bg-card/40 border border-border/40 backdrop-blur-xl shadow-sm min-w-[200px] group/incidents hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 overflow-hidden"
+                                className="relative flex flex-col p-5 rounded-[2rem] bg-card/40 border border-border/40 backdrop-blur-xl shadow-sm min-w-[200px] group/incidents hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 overflow-hidden"
                             >
                                 <div className="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-primary/20 to-info-500/10 rounded-full blur-2xl opacity-0 group-hover/incidents:opacity-100 transition-opacity duration-700" />
 
-                                <div className="relative flex items-center justify-between mb-2">
-                                    <span className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em]">
+                                {activeIncidentsCount > 0 && (
+                                    <BorderBeam size={100} duration={4} colorFrom="hsl(var(--destructive))" colorTo="hsl(var(--destructive)/0.5)" borderWidth={1.5} />
+                                )}
+
+                                <div className="relative flex items-center justify-between mb-3">
+                                    <span className="text-xs font-black text-muted-foreground uppercase tracking-[0.25em]">
                                         {t('dashboard.incidents')} Actifs
                                     </span>
                                     <div className="relative flex h-3 w-3">
@@ -579,11 +578,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     </div>
                                 </div>
                                 <div className="relative flex items-end gap-3">
-                                    <span className="text-5xl font-black text-foreground leading-none tracking-tighter">
+                                    <span className={`text-5xl font-black leading-none tracking-tighter transition-colors duration-500 ${activeIncidentsCount > 0 ? 'text-destructive' : 'text-foreground'}`}>
                                         {activeIncidentsCount}
                                     </span>
-                                    <div className="flex flex-col -mb-0.5">
-                                        <span className="text-[11px] font-black text-muted-foreground leading-tight uppercase tracking-widest">
+                                    <div className="flex flex-col -mb-1">
+                                        <span className="text-xs font-black text-muted-foreground leading-tight uppercase tracking-widest">
                                             {t('common.inProgress', { defaultValue: 'En cours' })}
                                         </span>
                                     </div>
@@ -630,13 +629,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     transition={{ delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
                                     className="flex-1 flex items-center gap-5 p-5 rounded-3xl bg-card/40 border border-border/40 backdrop-blur-xl shadow-sm group/healthy hover:border-primary/30 transition-all duration-500"
                                 >
-                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-success-bg ring-1 ring-success-border/50 shadow-sm relative overflow-hidden shrink-0 group-hover/healthy:scale-105 transition-transform duration-500">
-                                        <div className="absolute inset-0 bg-success/10 animate-pulse" />
-                                        <Activity className="w-7 h-7 text-success-text relative z-decorator filter drop-shadow-sm" />
+                                    <div className="flex h-16 w-16 items-center justify-center rounded-[1.25rem] bg-success-bg ring-1 ring-success-border/50 shadow-sm relative overflow-hidden shrink-0 group-hover/healthy:scale-105 transition-transform duration-500">
+                                        <div className="absolute inset-0 bg-success/10 animate-pulse-gentle" />
+                                        <Activity className="w-8 h-8 text-success-text relative z-decorator filter drop-shadow-sm" />
                                     </div>
                                     <div>
-                                        <p className="font-black text-foreground tracking-tight leading-none mb-1.5 uppercase text-xs tracking-widest">{t('dashboard.allSystemsOperational')}</p>
-                                        <p className="text-[11px] font-bold text-muted-foreground flex items-center gap-2 uppercase tracking-wider">
+                                        <p className="font-black text-foreground tracking-tight leading-none mb-2 uppercase text-xs tracking-[0.2em]">{t('dashboard.allSystemsOperational')}</p>
+                                        <p className="text-xs font-bold text-muted-foreground flex items-center gap-2 uppercase tracking-widest bg-success/10 px-3 py-1 rounded-full border border-success/20 w-fit transition-colors group-hover/healthy:bg-success/20">
                                             <span className="flex h-2 w-2">
                                                 <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-success/75 opacity-75"></span>
                                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>

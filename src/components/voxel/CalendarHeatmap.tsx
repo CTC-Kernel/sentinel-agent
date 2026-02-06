@@ -475,7 +475,7 @@ export function CalendarHeatmap({
  {DAYS_OF_WEEK.map((day, i) => (
   <div
   key={day || 'unknown'}
-  className="h-3 text-[11px] text-muted-foreground leading-3"
+  className="h-3 text-xs text-muted-foreground leading-3"
   style={{ visibility: i % 2 === 1 ? 'visible' : 'hidden' }}
   >
   {day}

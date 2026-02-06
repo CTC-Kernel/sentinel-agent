@@ -754,7 +754,7 @@ const MemoizedDocumentCard = React.memo(({ doc, viewMode, onSelect, users }: { d
  </div>
  </div>
  <div className="shrink-0 flex items-center">
- <span className={`px-4 py-1.5 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-sm border ${doc.status === 'Publié' || doc.status === 'Approuvé' ? 'bg-success-bg text-success-text border-success-border/30' :
+ <span className={`px-4 py-1.5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-sm border ${doc.status === 'Publié' || doc.status === 'Approuvé' ? 'bg-success-bg text-success-text border-success-border/30' :
   doc.status === 'En revue' ? 'bg-warning-bg text-warning-text border-warning-border/30' : 'bg-muted/80 text-muted-foreground border-border/50'
   }`}>
   {doc.status}

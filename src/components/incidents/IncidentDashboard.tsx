@@ -145,7 +145,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
   <CategoryIcon className="h-4 w-4" />
   </div>
   <div>
-  <div className="font-bold text-foreground text-[15px]">{row.original.title}</div>
+  <div className="font-bold text-foreground text-base">{row.original.title}</div>
   <div className="text-xs text-muted-foreground font-medium line-clamp-1">{row.original.description}</div>
   </div>
   </div>
@@ -157,7 +157,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
  header: t('incidents.column.severity'),
  meta: { className: 'hidden sm:table-cell' },
  cell: ({ row }) => (
- <span className={`px-2 py-0.5 rounded-xl text-[11px] font-bold uppercase tracking-wider border transition-all duration-normal ease-apple ${getSeverityColor(row.original.severity)}`}>
+ <span className={`px-2 py-0.5 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all duration-normal ease-apple ${getSeverityColor(row.original.severity)}`}>
   {getSeverityLabel(row.original.severity)}
  </span>
  )
@@ -167,7 +167,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
  header: t('incidents.column.status'),
  meta: { className: 'hidden md:table-cell' },
  cell: ({ row }) => (
- <span className={`px-2 py-0.5 rounded-xl text-[11px] font-bold uppercase tracking-wider border transition-all duration-normal ease-apple ${getStatusColor(row.original.status)}`}>
+ <span className={`px-2 py-0.5 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all duration-normal ease-apple ${getStatusColor(row.original.status)}`}>
   {getStatusLabel(row.original.status)}
  </span>
  )
@@ -318,10 +318,10 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
    </div>
    <div className="flex flex-col gap-1">
    <div className="flex gap-2">
-   <span className={`px-2 py-0.5 rounded-xl text-[11px] font-bold uppercase tracking-wider border transition-all duration-normal ease-apple ${getSeverityColor(inc.severity)}`}>
+   <span className={`px-2 py-0.5 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all duration-normal ease-apple ${getSeverityColor(inc.severity)}`}>
     {getSeverityLabel(inc.severity)}
    </span>
-   <span className={`px-2 py-0.5 rounded-xl text-[11px] font-bold uppercase tracking-wider border transition-all duration-normal ease-apple ${getStatusColor(inc.status)}`}>
+   <span className={`px-2 py-0.5 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all duration-normal ease-apple ${getStatusColor(inc.status)}`}>
     {getStatusLabel(inc.status)}
    </span>
    </div>

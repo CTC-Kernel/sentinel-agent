@@ -276,7 +276,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                             <span className={`text-2xl font-black bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent mb-1`}>
                                 {item.value}
                             </span>
-                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{item.label}</span>
+                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{item.label}</span>
                         </button>
                     ))}
                 </motion.div>

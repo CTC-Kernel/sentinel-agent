@@ -137,7 +137,7 @@ export const AssetList = React.memo<AssetListProps>(({
   <div className={`p-1.5 rounded-3xl ${styles.bg} ${styles.color} border ${styles.border}`}>
   <TypeIcon className="h-3.5 w-3.5" />
   </div>
-  <span className={`px-2 py-0.5 rounded-3xl text-[11px] font-bold border shadow-sm ${styles.badge}`}>
+  <span className={`px-2 py-0.5 rounded-3xl text-xs font-bold border shadow-sm ${styles.badge}`}>
   {row.original.type}
   </span>
   </div>
@@ -147,7 +147,7 @@ export const AssetList = React.memo<AssetListProps>(({
  {
  header: t('common.criticality'),
  accessorKey: 'confidentiality',
- cell: ({ row }) => <span className={`px-2 py-1 rounded-3xl text-[11px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span>
+ cell: ({ row }) => <span className={`px-2 py-1 rounded-3xl text-xs font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span>
  },
  {
  header: t('common.owner'),
@@ -342,12 +342,12 @@ export const AssetList = React.memo<AssetListProps>(({
    {React.createElement(getTypeStyles(asset.type).icon, { className: "h-6 w-6" })}
    </div>
    <div className="flex gap-2">
-   <span className={`px-2 py-1 rounded-3xl text-[11px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span>
+   <span className={`px-2 py-1 rounded-3xl text-xs font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span>
    </div>
   </div>
   <h3 className="text-lg font-bold text-foreground mb-1 leading-tight">{asset.name}</h3>
   <div className="flex items-center gap-2 mb-4">
-   <span className={`text-[11px] font-bold px-2 py-0.5 rounded-3xl border shadow-sm ${getTypeStyles(asset.type).badge}`}>{asset.type}</span>
+   <span className={`text-xs font-bold px-2 py-0.5 rounded-3xl border shadow-sm ${getTypeStyles(asset.type).badge}`}>{asset.type}</span>
    <span className="text-muted-foreground/50">•</span>
    <div className="flex items-center gap-1.5">
    <img
@@ -376,7 +376,7 @@ export const AssetList = React.memo<AssetListProps>(({
    })()}
    </span>
    </div>
-   {warrantyExpired && <span className="text-[11px] font-bold bg-error-bg text-error-text border border-error-border/50 px-2 py-1 rounded-3xl shadow-sm">{t('assets.warrantyExp')}</span>}
+   {warrantyExpired && <span className="text-xs font-bold bg-error-bg text-error-text border border-error-border/50 px-2 py-1 rounded-3xl shadow-sm">{t('assets.warrantyExp')}</span>}
   </div>
   </div>
   </div>

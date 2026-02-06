@@ -493,7 +493,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
    <p className="text-sm font-bold text-foreground">{getValues('title')}</p>
    <p className="text-xs text-muted-foreground">{docType} - v{getValues('version')}</p>
    </div>
-   <span className={`px-2 py-1 rounded text-[11px] font-bold uppercase ${status === 'Publié' ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400' : 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'}`}>
+   <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${status === 'Publié' ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400' : 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'}`}>
    {status}
    </span>
    </div>

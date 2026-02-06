@@ -66,7 +66,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
  <div className="glass-premium rounded-3xl overflow-hidden shadow-sm border border-border/40 animate-in fade-in duration-500">
  <div className="overflow-x-auto">
   <table className="w-full text-sm text-left">
-  <thead className="bg-muted/50/80/50 border-b border-border/40 dark:border-white/5 text-muted-foreground font-bold uppercase text-[11px] tracking-widest backdrop-blur-sm">
+  <thead className="bg-muted/50/80/50 border-b border-border/40 dark:border-white/5 text-muted-foreground font-bold uppercase text-xs tracking-widest backdrop-blur-sm">
   <tr>
   <th className="px-8 py-5">{t('continuity.table.process', { defaultValue: 'Processus' })}</th>
   <th className="px-6 py-5">{t('common.priority', { defaultValue: 'Priorité' })}</th>
@@ -101,7 +101,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
    {proc.name}
    </td>
    <td className="px-6 py-5">
-   <span className={`px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider border shadow-sm ${getPriorityColor(proc.priority)}`}>
+   <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border shadow-sm ${getPriorityColor(proc.priority)}`}>
    {proc.priority}
    </span>
    </td>
@@ -179,7 +179,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
   <div className="p-3 bg-error-bg rounded-2xl text-error-text shadow-inner">
   <HeartPulse className="h-6 w-6" />
   </div>
-  <span className={`px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider border shadow-sm ${getPriorityColor(proc.priority)}`}>
+  <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border shadow-sm ${getPriorityColor(proc.priority)}`}>
   {proc.priority}
   </span>
   </div>
@@ -189,11 +189,11 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
 
   <div className="grid grid-cols-2 gap-4 mb-6">
   <div className="bg-muted/50 p-3 rounded-2xl border border-border/40 dark:border-white/5 text-center">
-  <span className="text-[11px] text-muted-foreground uppercase font-bold block mb-1">{t('continuity.rtoTime', { defaultValue: 'RTO (Temps)' })}</span>
+  <span className="text-xs text-muted-foreground uppercase font-bold block mb-1">{t('continuity.rtoTime', { defaultValue: 'RTO (Temps)' })}</span>
   <span className="text-3xl font-black text-foreground dark:text-white">{proc.rto}</span>
   </div>
   <div className="bg-muted/50 p-3 rounded-2xl border border-border/40 dark:border-white/5 text-center">
-  <span className="text-[11px] text-muted-foreground uppercase font-bold block mb-1">{t('continuity.rpoData', { defaultValue: 'RPO (Données)' })}</span>
+  <span className="text-xs text-muted-foreground uppercase font-bold block mb-1">{t('continuity.rpoData', { defaultValue: 'RPO (Données)' })}</span>
   <span className="text-3xl font-black text-foreground dark:text-white">{proc.rpo}</span>
   </div>
   </div>

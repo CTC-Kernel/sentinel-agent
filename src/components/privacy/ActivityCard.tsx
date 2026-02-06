@@ -34,7 +34,7 @@ export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }
  <div className="p-3 bg-purple-50 rounded-2xl text-purple-600 shadow-inner">
   <Fingerprint className="h-6 w-6" />
  </div>
- <span className={`px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider border ${activity.status === 'Actif' ? 'bg-green-50 text-green-700 dark:text-green-400 border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400' : 'bg-muted text-muted-foreground border-border/40 dark:bg-white/5 '}`}>
+ <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border ${activity.status === 'Actif' ? 'bg-green-50 text-green-700 dark:text-green-400 border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400' : 'bg-muted text-muted-foreground border-border/40 dark:bg-white/5 '}`}>
   {activity.status}
  </span>
  </div>

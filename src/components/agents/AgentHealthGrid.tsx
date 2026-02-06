@@ -173,7 +173,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                     </span>
                     {agent.status === 'offline' && (
                         <span
-                            className="text-[11px] text-warning font-medium block cursor-help"
+                            className="text-xs text-warning font-medium block cursor-help"
                             title={t('agent.offlineTooltip', { defaultValue: "L'agent ne répond plus. Vérifiez qu'il est en cours d'exécution et que la connexion réseau est active. Heartbeat attendu toutes les ~60s." })}
                         >
                             {t('agent.seenAgo', { defaultValue: 'Vu' })} {formatRelativeTime(agent.lastHeartbeat, t)} — {t('agent.offline', { defaultValue: 'hors ligne' })}
@@ -226,7 +226,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                 {/* Status badge */}
                 <Badge
                     status={isActive ? 'success' : 'neutral'}
-                    className="hidden lg:inline-flex text-[11px]"
+                    className="hidden lg:inline-flex text-xs"
                 >
                     {isActive ? t('agent.active', { defaultValue: 'Actif' }) : t('agent.offlineStatus', { defaultValue: 'Offline' })}
                 </Badge>
@@ -280,17 +280,17 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                                 {agent.name || agent.hostname || agent.id.slice(0, 8)}
                             </h3>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                                <Badge variant="outline" className="text-[11px] px-1.5 py-0 h-4">
+                                <Badge variant="outline" className="text-xs px-1.5 py-0 h-4">
                                     v{agent.version}
                                 </Badge>
-                                <span className="text-[11px] text-muted-foreground">
+                                <span className="text-xs text-muted-foreground">
                                     {agent.osVersion || agent.os}
                                 </span>
                             </div>
                             {agent.status === 'offline' && (
                                 <div className="flex items-center gap-1 mt-1">
                                     <Clock className="h-3 w-3 text-warning" />
-                                    <span className="text-[11px] text-warning font-medium">
+                                    <span className="text-xs text-warning font-medium">
                                         {t('agent.seenAgo', { defaultValue: 'Vu' })} {formatRelativeTime(agent.lastHeartbeat, t)}
                                     </span>
                                 </div>
@@ -364,7 +364,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                         )}>
                             {agent.cpuPercent !== undefined ? `${agent.cpuPercent.toFixed(0)}%` : '-'}
                         </span>
-                        <span className="block text-[11px] text-muted-foreground uppercase tracking-wider">CPU</span>
+                        <span className="block text-xs text-muted-foreground uppercase tracking-wider">CPU</span>
                     </div>
 
                     {/* Memory - show percentage like CPU, with used/total as sublabel */}
@@ -383,7 +383,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                                     ? formatBytes(agent.memoryBytes)
                                     : '-'}
                         </span>
-                        <span className="block text-[11px] text-muted-foreground uppercase tracking-wider">RAM</span>
+                        <span className="block text-xs text-muted-foreground uppercase tracking-wider">RAM</span>
                     </div>
 
                     {/* Compliance */}
@@ -396,7 +396,7 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                                 ? `${displayScore}%`
                                 : '-'}
                         </span>
-                        <span className="block text-[11px] text-muted-foreground uppercase tracking-wider">Score</span>
+                        <span className="block text-xs text-muted-foreground uppercase tracking-wider">Score</span>
                     </div>
                 </div>
 

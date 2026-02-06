@@ -157,12 +157,12 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
  {/* Matrix Grid */}
  <div className="relative">
  {/* Y-axis label (Probability) */}
- <div className="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-[11px] font-bold text-muted-foreground uppercase tracking-widest whitespace-nowrap">
+ <div className="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-xs font-bold text-muted-foreground uppercase tracking-widest whitespace-nowrap">
   Probabilité
  </div>
 
  {/* X-axis label (Impact) */}
- <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
+ <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
   Impact
  </div>
 
@@ -228,7 +228,7 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
 
    {/* Score tooltip on hover */}
    <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-70 transition-opacity">
-   <span className="text-[11px] font-bold text-white drop-shadow-md">
+   <span className="text-xs font-bold text-white drop-shadow-md">
    {score}
    </span>
    </div>
@@ -242,7 +242,7 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
 
  {/* Legend */}
  {showLegend && (
- <div className="flex justify-center items-center gap-3 text-[11px] text-muted-foreground mt-4">
+ <div className="flex justify-center items-center gap-3 text-xs text-muted-foreground mt-4">
   <div className="flex items-center gap-1">
   <div className="w-3 h-3 rounded bg-success-text" />
   <span>Faible (1-4)</span>
@@ -264,7 +264,7 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
 
  {/* Position markers legend (when residual exists) */}
  {residualScore !== null && (
- <div className="flex justify-center items-center gap-4 text-[11px] text-muted-foreground">
+ <div className="flex justify-center items-center gap-4 text-xs text-muted-foreground">
   <div className="flex items-center gap-1.5">
   <div className="w-3 h-3 bg-white rounded-full shadow ring-2 ring-slate-300" />
   <span>Position brute</span>

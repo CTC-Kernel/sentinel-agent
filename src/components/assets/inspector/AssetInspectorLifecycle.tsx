@@ -155,7 +155,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
   <div className="mt-6 pt-6 border-t border-dashed border-border/40">
   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
   <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-3xl border border-emerald-100 dark:border-emerald-900/30 shadow-sm">
-   <p className="text-[11px] font-bold uppercase text-emerald-600 mb-1">
+   <p className="text-xs font-bold uppercase text-emerald-600 mb-1">
    {t('assets.lifecycle.currentValue', 'Valeur Actuelle (Net)')}
    </p>
    <p className="text-xl font-black text-emerald-700 dark:text-emerald-400">
@@ -163,7 +163,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
    </p>
   </div>
   <div className="p-4 bg-blue-50/20 rounded-3xl border border-blue-100 dark:border-blue-900/30 shadow-sm">
-   <p className="text-[11px] font-bold uppercase text-blue-600 dark:text-blue-400 mb-1">
+   <p className="text-xs font-bold uppercase text-blue-600 dark:text-blue-400 mb-1">
    {t('common.tco', 'TCO (Coût Total)')}
    </p>
    <p className="text-xl font-black text-blue-700 dark:text-blue-400">
@@ -284,20 +284,20 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
    <span className="text-xs font-bold text-foreground">
    {new Date(rec.date).toLocaleDateString()}
    </span>
-   <span className="text-[11px] uppercase tracking-wider bg-muted dark:bg-white/10 px-2 py-0.5 rounded-3xl text-muted-foreground font-bold">
+   <span className="text-xs uppercase tracking-wider bg-muted dark:bg-white/10 px-2 py-0.5 rounded-3xl text-muted-foreground font-bold">
    {t(`assets.lifecycle.types.${rec.type === 'Préventive' ? 'preventive' : rec.type === 'Corrective' ? 'corrective' : rec.type === 'Mise à jour' ? 'update' : 'inspection'}`, rec.type)}
    </span>
    </div>
    <p className="text-sm text-muted-foreground leading-relaxed">{rec.description}</p>
    <div className="flex justify-between mt-2">
    <div className="flex flex-col gap-0.5">
-   <span className="text-[11px] text-muted-foreground font-medium">Tech: {rec.technician}</span>
+   <span className="text-xs text-muted-foreground font-medium">Tech: {rec.technician}</span>
    {rec.performedBy && (
    <span className="text-xs text-muted-foreground italic">Performed by: {rec.performedBy.userName}</span>
    )}
    </div>
    {rec.cost && (
-   <span className="text-[11px] font-bold text-muted-foreground">
+   <span className="text-xs font-bold text-muted-foreground">
    {new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: 'EUR' }).format(rec.cost)}
    </span>
    )}

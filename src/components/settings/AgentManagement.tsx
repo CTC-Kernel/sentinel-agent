@@ -41,6 +41,7 @@ import {
 } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
+import { Pagination } from '../ui/Pagination';
 import { toast } from '@/lib/toast';
 import { AgentService } from '../../services/AgentService';
 import { SentinelAgent, AgentStatus, AgentEnrollmentToken } from '../../types/agent';
@@ -155,7 +156,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
                 {icon}
                 <div className="min-w-0">
                     <div className="text-sm font-bold text-foreground truncate">{label}</div>
-                    <div className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider truncate">{sublabel}</div>
+                    <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider truncate">{sublabel}</div>
                 </div>
             </div>
             {loading ? (
@@ -163,7 +164,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
             ) : available ? (
                 <Download className="w-4 h-4 text-muted-foreground group-hover:text-foreground dark:group-hover:text-foreground transition-colors" />
             ) : (
-                <Badge variant="outline" className="text-[11px] border-amber-500/30 text-amber-600">
+                <Badge variant="outline" className="text-xs border-amber-500/30 text-amber-600">
                     {t('settings.agents.comingSoon', { defaultValue: 'Bientôt' })}
                 </Badge>
             )}
@@ -307,6 +308,22 @@ export const AgentManagement: React.FC = () => {
     const [revokingTokenId, setRevokingTokenId] = useState<string | null>(null);
     const [revealedTokenId, setRevealedTokenId] = useState<string | null>(null);
     const [copiedTokenId, setCopiedTokenId] = useState<string | null>(null);
+
+    // Pagination for Enrollment Tokens
+    const [tokenPage, setTokenPage] = useState(1);
+    const tokenPageSize = 5;
+
+    const paginatedTokens = useMemo(() => {
+        const start = (tokenPage - 1) * tokenPageSize;
+        return enrollmentTokens.slice(start, start + tokenPageSize);
+    }, [enrollmentTokens, tokenPage]);
+
+    // Reset to page 1 if tokens change significantly
+    useEffect(() => {
+        if (tokenPage > 1 && enrollmentTokens.length <= (tokenPage - 1) * tokenPageSize) {
+            setTokenPage(1);
+        }
+    }, [enrollmentTokens.length, tokenPage]);
 
     // FAQ Data
     const faqItems = [
@@ -692,7 +709,7 @@ export const AgentManagement: React.FC = () => {
                             <span className="text-3xl font-black text-foreground">
                                 {agentStats.healthRate}%
                             </span>
-                            <span className="text-[11px] text-muted-foreground uppercase tracking-wider mt-1">
+                            <span className="text-xs text-muted-foreground uppercase tracking-wider mt-1">
                                 {agentStats.healthRate >= 80 ? t('settings.agents.excellent', { defaultValue: 'Excellent' }) : agentStats.healthRate >= 50 ? t('settings.agents.attention', { defaultValue: 'Attention' }) : t('settings.agents.critical', { defaultValue: 'Critique' })}
                             </span>
                         </div>
@@ -710,7 +727,7 @@ export const AgentManagement: React.FC = () => {
                         <div className="p-3 bg-success-bg rounded-2xl">
                             <Wifi className="w-5 h-5 text-success-500" />
                         </div>
-                        <Badge className="bg-success-bg text-success-600 border-success-500/20 text-[11px]">
+                        <Badge className="bg-success-bg text-success-600 border-success-500/20 text-xs">
                             +{Math.round(agentStats.active * 0.1)} {t('settings.agents.thisMonth', { defaultValue: 'ce mois' })}
                         </Badge>
                     </div>
@@ -740,7 +757,7 @@ export const AgentManagement: React.FC = () => {
                         <div className="p-3 bg-muted/500/10 rounded-2xl">
                             <WifiOff className="w-5 h-5 text-muted-foreground" />
                         </div>
-                        <Badge className="bg-muted/500/10 text-muted-foreground border-border/400/20 text-[11px]">
+                        <Badge className="bg-muted/500/10 text-muted-foreground border-border/400/20 text-xs">
                             {t('settings.agents.inactive', { defaultValue: 'Inactifs' })}
                         </Badge>
                     </div>
@@ -771,7 +788,7 @@ export const AgentManagement: React.FC = () => {
                             <AlertTriangle className="w-5 h-5 text-red-500" />
                         </div>
                         {agentStats.error > 0 && (
-                            <Badge className="bg-red-50 text-red-600 dark:text-red-400 border-red-500/20 text-[11px] animate-pulse">
+                            <Badge className="bg-red-50 text-red-600 dark:text-red-400 border-red-500/20 text-xs animate-pulse">
                                 {t('settings.agents.actionRequired', { defaultValue: 'Action requise' })}
                             </Badge>
                         )}
@@ -987,7 +1004,7 @@ export const AgentManagement: React.FC = () => {
                                 <Server className="w-4 h-4 text-primary" />
                                 {t('settings.agents.agentList', { defaultValue: 'Liste des Agents' })} ({agentStats.total})
                             </h3>
-                            <Badge variant="outline" className="text-[11px]">
+                            <Badge variant="outline" className="text-xs">
                                 {agentStats.active} {t('settings.agents.connected', { defaultValue: 'connectés' })}
                             </Badge>
                         </div>
@@ -1049,7 +1066,7 @@ export const AgentManagement: React.FC = () => {
                                                                 <div className="font-bold text-foreground text-sm">
                                                                     {agent.name}
                                                                 </div>
-                                                                <div className="text-[11px] text-muted-foreground font-mono mt-0.5">
+                                                                <div className="text-xs text-muted-foreground font-mono mt-0.5">
                                                                     v{agent.version} • {agent.ipAddress}
                                                                 </div>
                                                             </div>
@@ -1062,7 +1079,7 @@ export const AgentManagement: React.FC = () => {
                                                         </Badge>
                                                     </td>
                                                     <td className="px-6 py-5">
-                                                        <div className={cn("inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border", styles.badge)}>
+                                                        <div className={cn("inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border", styles.badge)}>
                                                             {styles.icon}
                                                             {agent.status.toUpperCase()}
                                                         </div>
@@ -1124,7 +1141,7 @@ export const AgentManagement: React.FC = () => {
                                             </td>
                                         </tr>
                                     ) : (
-                                        enrollmentTokens.map((token) => (
+                                        paginatedTokens.map((token) => (
                                             <tr key={token.id || 'unknown'} className="hover:bg-muted/30 dark:hover:bg-white/5 transition-colors group/row">
                                                 <td className="px-4 py-3">
                                                     <div
@@ -1190,10 +1207,10 @@ export const AgentManagement: React.FC = () => {
                                                                 token.status === 'revoked' ? t('settings.agents.statusRevoked', { defaultValue: 'Révoqué' }) : t('settings.agents.statusExhausted', { defaultValue: 'Épuisé' })}
                                                     </Badge>
                                                 </td>
-                                                <td className="px-4 py-3 text-[11px] text-muted-foreground hidden sm:table-cell">
+                                                <td className="px-4 py-3 text-xs text-muted-foreground hidden sm:table-cell">
                                                     {token.usedCount}{token.maxUses ? ` / ${token.maxUses}` : ''}
                                                 </td>
-                                                <td className="px-4 py-3 text-[11px] text-muted-foreground hidden md:table-cell">
+                                                <td className="px-4 py-3 text-xs text-muted-foreground hidden md:table-cell">
                                                     <div className="flex flex-col gap-0.5">
                                                         <span className={cn(
                                                             'font-medium',
@@ -1225,6 +1242,18 @@ export const AgentManagement: React.FC = () => {
                                 </tbody>
                             </table>
                         </div>
+
+                        {enrollmentTokens.length > tokenPageSize && (
+                            <div className="p-4 border-t border-border/40 bg-white/20 dark:bg-white/5">
+                                <Pagination
+                                    currentPage={tokenPage}
+                                    totalItems={enrollmentTokens.length}
+                                    itemsPerPage={tokenPageSize}
+                                    onPageChange={setTokenPage}
+                                    showItemsPerPage={false}
+                                />
+                            </div>
+                        )}
                     </motion.div>
                 </div>
 
@@ -1315,11 +1344,11 @@ export const AgentManagement: React.FC = () => {
                                             <h3 className="text-lg font-bold text-foreground truncate">{t('settings.agents.downloads', { defaultValue: 'Téléchargements' })}</h3>
                                             {releaseInfo?.currentVersion && (
                                                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                                    <Badge variant="outline" className="text-[11px] bg-primary/10 border-primary/40 text-primary whitespace-nowrap">
+                                                    <Badge variant="outline" className="text-xs bg-primary/10 border-primary/40 text-primary whitespace-nowrap">
                                                         v{releaseInfo.currentVersion}
                                                     </Badge>
                                                     {releaseInfo.releaseDate && (
-                                                        <span className="text-[11px] text-muted-foreground flex items-center gap-1 whitespace-nowrap">
+                                                        <span className="text-xs text-muted-foreground flex items-center gap-1 whitespace-nowrap">
                                                             <Calendar className="w-3 h-3" />
                                                             {new Date(releaseInfo.releaseDate).toLocaleDateString(config.intlLocale)}
                                                         </span>
@@ -1393,9 +1422,9 @@ export const AgentManagement: React.FC = () => {
                                             >
                                                 <Cpu className="w-6 h-6 text-muted-foreground mb-2" />
                                                 <div className="text-sm font-bold text-foreground">iOS</div>
-                                                <div className="text-[11px] text-muted-foreground">App Store</div>
+                                                <div className="text-xs text-muted-foreground">App Store</div>
                                                 {releaseInfo?.mobile?.ios?.comingSoon && (
-                                                    <Badge variant="outline" className="mt-2 text-[11px] border-amber-500/30 text-amber-600">
+                                                    <Badge variant="outline" className="mt-2 text-xs border-amber-500/30 text-amber-600">
                                                         Bientôt
                                                     </Badge>
                                                 )}
@@ -1408,9 +1437,9 @@ export const AgentManagement: React.FC = () => {
                                             >
                                                 <Server className="w-6 h-6 text-success-500 mb-2" />
                                                 <div className="text-sm font-bold text-foreground">Android</div>
-                                                <div className="text-[11px] text-muted-foreground">Play Store</div>
+                                                <div className="text-xs text-muted-foreground">Play Store</div>
                                                 {releaseInfo?.mobile?.android?.comingSoon && (
-                                                    <Badge variant="outline" className="mt-2 text-[11px] border-amber-500/30 text-amber-600">
+                                                    <Badge variant="outline" className="mt-2 text-xs border-amber-500/30 text-amber-600">
                                                         Bientôt
                                                     </Badge>
                                                 )}
@@ -1469,7 +1498,7 @@ export const AgentManagement: React.FC = () => {
                                                 <Zap className="w-4 h-4 text-amber-500" />
                                                 <div>
                                                     <span className="text-sm font-medium text-foreground block">Guide de démarrage rapide</span>
-                                                    <span className="text-[11px] text-muted-foreground">Installation en 5 minutes</span>
+                                                    <span className="text-xs text-muted-foreground">Installation en 5 minutes</span>
                                                 </div>
                                             </div>
                                             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-muted-foreground dark:group-hover:text-muted-foreground" />
@@ -1484,7 +1513,7 @@ export const AgentManagement: React.FC = () => {
                                                 <Settings className="w-4 h-4 text-muted-foreground" />
                                                 <div>
                                                     <span className="text-sm font-medium text-foreground block">Configuration avancée</span>
-                                                    <span className="text-[11px] text-muted-foreground">Paramètres et personnalisation</span>
+                                                    <span className="text-xs text-muted-foreground">Paramètres et personnalisation</span>
                                                 </div>
                                             </div>
                                             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-muted-foreground dark:group-hover:text-muted-foreground" />
@@ -1499,7 +1528,7 @@ export const AgentManagement: React.FC = () => {
                                                 <Shield className="w-4 h-4 text-success-500" />
                                                 <div>
                                                     <span className="text-sm font-medium text-foreground block">Sécurité et confidentialité</span>
-                                                    <span className="text-[11px] text-muted-foreground">Données collectées et chiffrement</span>
+                                                    <span className="text-xs text-muted-foreground">Données collectées et chiffrement</span>
                                                 </div>
                                             </div>
                                             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-muted-foreground dark:group-hover:text-muted-foreground" />
@@ -1514,7 +1543,7 @@ export const AgentManagement: React.FC = () => {
                                                 <AlertTriangle className="w-4 h-4 text-amber-500" />
                                                 <div>
                                                     <span className="text-sm font-medium text-foreground block">Dépannage</span>
-                                                    <span className="text-[11px] text-muted-foreground">Résolution des problèmes courants</span>
+                                                    <span className="text-xs text-muted-foreground">Résolution des problèmes courants</span>
                                                 </div>
                                             </div>
                                             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-muted-foreground dark:group-hover:text-muted-foreground" />
@@ -1529,7 +1558,7 @@ export const AgentManagement: React.FC = () => {
                                                 <Network className="w-4 h-4 text-primary" />
                                                 <div>
                                                     <span className="text-sm font-medium text-foreground block">API Reference</span>
-                                                    <span className="text-[11px] text-muted-foreground">Intégration et automatisation</span>
+                                                    <span className="text-xs text-muted-foreground">Intégration et automatisation</span>
                                                 </div>
                                             </div>
                                             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-muted-foreground dark:group-hover:text-muted-foreground" />
@@ -1551,7 +1580,7 @@ export const AgentManagement: React.FC = () => {
                                                         {os === 'linux' && <Terminal className="w-4 h-4 text-orange-500" />}
                                                         <span className="text-sm font-bold text-foreground capitalize">{os}</span>
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                                    <div className="grid grid-cols-2 gap-2 text-xs">
                                                         <div>
                                                             <span className="text-muted-foreground">OS:</span>
                                                             <span className="ml-1 text-foreground">{req.os}</span>
@@ -1682,7 +1711,7 @@ export const AgentManagement: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <span className="text-sm font-bold text-foreground block">Support par email</span>
-                                                    <span className="text-[11px] text-muted-foreground">support@sentinel-grc.com</span>
+                                                    <span className="text-xs text-muted-foreground">support@sentinel-grc.com</span>
                                                 </div>
                                             </div>
                                             <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-muted-foreground dark:group-hover:text-muted-foreground" />
@@ -1700,7 +1729,7 @@ export const AgentManagement: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <span className="text-sm font-bold text-foreground block">Signaler un bug</span>
-                                                    <span className="text-[11px] text-muted-foreground">GitHub Issues</span>
+                                                    <span className="text-xs text-muted-foreground">GitHub Issues</span>
                                                 </div>
                                             </div>
                                             <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-muted-foreground dark:group-hover:text-muted-foreground" />
@@ -1718,7 +1747,7 @@ export const AgentManagement: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <span className="text-sm font-bold text-foreground block">Communauté</span>
-                                                    <span className="text-[11px] text-muted-foreground">Forum et discussions</span>
+                                                    <span className="text-xs text-muted-foreground">Forum et discussions</span>
                                                 </div>
                                             </div>
                                             <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-muted-foreground dark:group-hover:text-muted-foreground" />
@@ -1735,7 +1764,7 @@ export const AgentManagement: React.FC = () => {
                                                 Exécutez cette commande pour vérifier l'état de l'agent :
                                             </p>
                                             <div className="relative">
-                                                <pre className="p-3 bg-card dark:bg-muted rounded-3xl text-[11px] text-success-400 overflow-x-auto border border-border">
+                                                <pre className="p-3 bg-card dark:bg-muted rounded-3xl text-xs text-success-400 overflow-x-auto border border-border">
                                                     <code>sentinel-agent status --verbose</code>
                                                 </pre>
                                                 <button

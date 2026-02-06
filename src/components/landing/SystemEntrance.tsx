@@ -81,7 +81,7 @@ export const SystemEntrance: React.FC = () => {
  <div className={`mb-12 transition-all duration-700 ${isScanning ? 'scale-90 opacity-60' : 'scale-100 opacity-70'}`}>
   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 dark:bg-white/5 border border-border/40 mb-6 backdrop-blur-md shadow-sm">
   <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-  <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground font-bold">Système Sécurisé • Niveau 4</span>
+  <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground font-bold">Système Sécurisé • Niveau 4</span>
   </div>
   <h1 className="text-6xl md:text-7xl font-black tracking-tighter mb-2 bg-clip-text text-transparent bg-gradient-to-b from-card via-slate-700 to-muted/500 dark:from-white dark:via-white dark:to-muted/500 drop-shadow-2xl animate-fade-in">
   SENTINEL <span className="text-primary dark:text-primary animate-pulse">_</span>
@@ -114,11 +114,11 @@ export const SystemEntrance: React.FC = () => {
   <div className="grid grid-cols-2 gap-4">
   <div className="p-4 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/5 flex flex-col items-center gap-2 group hover:bg-white/40 dark:hover:bg-muted dark:hover:bg-muted transition-colors cursor-default">
   <Shield className="h-6 w-6 text-muted-foreground group-hover:text-foreground dark:group-hover:text-foreground transition-colors" />
-  <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold">Protéger</span>
+  <span className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Protéger</span>
   </div>
   <div className="p-4 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/5 flex flex-col items-center gap-2 group hover:bg-white/40 dark:hover:bg-muted dark:hover:bg-muted transition-colors cursor-default">
   <Globe className="h-6 w-6 text-muted-foreground group-hover:text-foreground dark:group-hover:text-foreground transition-colors" />
-  <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold">Surveiller</span>
+  <span className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Surveiller</span>
   </div>
   </div>
 

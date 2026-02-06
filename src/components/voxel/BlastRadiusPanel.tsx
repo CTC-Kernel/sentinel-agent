@@ -139,7 +139,7 @@ const ImpactBadge: React.FC<{ impact: number; className?: string }> = ({ impact,
  const colors = IMPACT_COLORS[level];
 
  return (
- <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${colors.bg} ${colors.text} ${className}`}>
+ <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors.bg} ${colors.text} ${className}`}>
  {Math.round(impact * 100)}%
  </span>
  );
@@ -234,9 +234,9 @@ const AffectedNodeItem: React.FC<{
  </div>
 
  <div className="flex items-center gap-2 mt-1">
- <span className="text-[11px] text-foreground/40">{typeLabel}</span>
- <span className="text-[11px] text-foreground/30">|</span>
- <span className="text-[11px] text-foreground/40">Profondeur: {node.depth}</span>
+ <span className="text-xs text-foreground/40">{typeLabel}</span>
+ <span className="text-xs text-foreground/30">|</span>
+ <span className="text-xs text-foreground/40">Profondeur: {node.depth}</span>
  </div>
  </div>
 
@@ -337,7 +337,7 @@ const ConfigPanel: React.FC<{
 
  <div className="space-y-2">
  <div>
- <label htmlFor="max-depth" className="text-[11px] text-foreground/50 block mb-1">Profondeur max</label>
+ <label htmlFor="max-depth" className="text-xs text-foreground/50 block mb-1">Profondeur max</label>
  <input
  id="max-depth"
  type="range"
@@ -351,7 +351,7 @@ const ConfigPanel: React.FC<{
  </div>
 
  <div>
- <label htmlFor="min-impact" className="text-[11px] text-foreground/50 block mb-1">Seuil min impact</label>
+ <label htmlFor="min-impact" className="text-xs text-foreground/50 block mb-1">Seuil min impact</label>
  <input
  id="min-impact"
  type="range"
@@ -365,7 +365,7 @@ const ConfigPanel: React.FC<{
  </div>
 
  <div className="flex items-center justify-between">
- <label htmlFor="bidirectional" className="text-[11px] text-foreground/50">Bidirectionnel</label>
+ <label htmlFor="bidirectional" className="text-xs text-foreground/50">Bidirectionnel</label>
  <input
  id="bidirectional"
  type="checkbox"
@@ -552,7 +552,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   </div>
   <div className="mt-1 flex items-center gap-2">
   <span className="text-sm font-medium text-foreground">{sourceNode.label || sourceNodeId}</span>
-  <span className="text-[11px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
+  <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
   {NODE_TYPE_LABELS[sourceNode.type]}
   </span>
   </div>
@@ -611,7 +611,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   className={`flex-1 px-2 py-1.5 rounded-lg ${color.bg} ${color.border} border text-center`}
   >
   <div className={`text-lg font-bold ${color.text}`}>{count}</div>
-  <div className="text-[11px] text-foreground/40">{label}</div>
+  <div className="text-xs text-foreground/40">{label}</div>
   </div>
   ))}
  </div>
@@ -626,7 +626,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   key={type || 'unknown'}
   onClick={() => setFilterType(filterType === type ? 'all' : type as VoxelNodeType)}
   className={`
-  flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] transition-colors
+  flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors
   ${filterType === type ? 'bg-primary/15 text-primary/50' : 'bg-muted/50 text-foreground/60 hover:bg-muted'}
   `}
   >
@@ -833,7 +833,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   {whatIfResult.impactDelta > 0 ? '+' : ''}
   {(Math.abs(whatIfResult.impactDelta) * 100).toFixed(0)}%
   </motion.div>
-  <div className="text-[11px] text-foreground/50">
+  <div className="text-xs text-foreground/50">
   {whatIfResult.impactDelta < 0 ? 'Réduction d\'impact' : 'Augmentation d\'impact'}
   </div>
   </div>
@@ -850,7 +850,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   <div className={`text-sm font-bold ${whatIfResult.impactDelta > 0 ? 'text-red-400' : 'text-green-400'}`}>
   {whatIfResult.impactDelta > 0 ? '+' : ''}{whatIfResult.impactDelta.toFixed(2)}
   </div>
-  <div className="text-[11px] text-foreground/40">Impact</div>
+  <div className="text-xs text-foreground/40">Impact</div>
   </motion.div>
   <motion.div
   initial={{ opacity: 0, y: 10 }}
@@ -861,7 +861,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   <div className="text-sm font-bold text-yellow-400">
   {whatIfResult.newlyAffected.length}
   </div>
-  <div className="text-[11px] text-foreground/40">Nouveaux</div>
+  <div className="text-xs text-foreground/40">Nouveaux</div>
   </motion.div>
   <motion.div
   initial={{ opacity: 0, y: 10 }}
@@ -872,7 +872,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   <div className="text-sm font-bold text-green-400">
   {whatIfResult.noLongerAffected.length}
   </div>
-  <div className="text-[11px] text-foreground/40">Protégés</div>
+  <div className="text-xs text-foreground/40">Protégés</div>
   </motion.div>
   </div>
 

@@ -40,7 +40,7 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({ 
   <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
    <span>{version.uploadedAt ? format(new Date(version.uploadedAt), 'PPP à p', { locale: dateFnsLocale }) : t('documents.versionHistory.unknownDate', { defaultValue: 'Date inconnue' })}</span>
    {version.id === currentVersionId && (
-   <span className="bg-primary/15 text-primary px-1.5 py-0.5 rounded text-[11px] font-bold">{t('documents.versionHistory.current', { defaultValue: 'ACTUEL' })}</span>
+   <span className="bg-primary/15 text-primary px-1.5 py-0.5 rounded text-xs font-bold">{t('documents.versionHistory.current', { defaultValue: 'ACTUEL' })}</span>
    )}
   </div>
   </div>

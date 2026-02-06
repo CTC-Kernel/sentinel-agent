@@ -149,8 +149,8 @@ const ToolButton: React.FC<ToolButtonProps> = ({ icon, label, onClick, active, b
  relative transition - all duration - 200
  ${compact ? 'p-1.5 rounded-lg' : 'p-2 rounded-xl'}
  ${active
- ? 'bg-white/15 text-white shadow-lg'
- : 'text-white/60 hover:text-foreground hover:bg-muted'
+ ? 'bg-primary/20 text-foreground shadow-lg'
+ : 'text-muted-foreground hover:text-foreground hover:bg-muted'
  }
  ${disabled ? 'opacity-40 cursor-not-allowed' : ''}
 `}
@@ -159,7 +159,7 @@ const ToolButton: React.FC<ToolButtonProps> = ({ icon, label, onClick, active, b
  >
  {icon}
  {badge !== undefined && (
- <span className={`absolute - top - 0.5 - right - 0.5 flex items - center justify - center rounded - full bg - brand - 500 font - bold text - white ${compact ? 'min-w-[14px] h-[14px] text-[11px] px-0.5' : 'min-w-[16px] h-[16px] text-[11px] px-1'} `}>
+ <span className={`absolute - top - 0.5 - right - 0.5 flex items - center justify - center rounded - full bg - brand - 500 font - bold text - white ${compact ? 'min-w-[14px] h-[14px] text-xs px-0.5' : 'min-w-[16px] h-[16px] text-xs px-1'} `}>
  {badge}
  </span>
  )}
@@ -187,28 +187,28 @@ const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selecte
  {/* Left - Stats (compact) */}
  <div className="flex items-center gap-2 sm:gap-4">
  <div className="flex items-center gap-1.5">
- <Network className="w-3.5 h-3.5 text-white/50" />
- <span className="text-xs font-medium text-white">{totalNodes}</span>
- <span className="text-xs text-white/40 hidden sm:inline">{t('voxel.nodes', { defaultValue: 'nodes' })}</span>
+ <Network className="w-3.5 h-3.5 text-muted-foreground" />
+ <span className="text-xs font-medium text-foreground">{totalNodes}</span>
+ <span className="text-xs text-muted-foreground hidden sm:inline">{t('voxel.nodes', { defaultValue: 'nodes' })}</span>
  </div>
 
- <div className="w-px h-4 bg-white/10 hidden sm:block" />
+ <div className="w-px h-4 bg-muted hidden sm:block" />
 
  <div className="flex items-center gap-1.5 hidden sm:flex">
- <Layers className="w-3.5 h-3.5 text-white/50" />
- <span className="text-xs font-medium text-white">{activeLayers}/7</span>
+ <Layers className="w-3.5 h-3.5 text-muted-foreground" />
+ <span className="text-xs font-medium text-foreground">{activeLayers}/7</span>
  </div>
 
  {criticalCount > 0 && (
  <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-500/20 border border-red-500/30">
  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
- <span className="text-[11px] font-medium text-red-400">{criticalCount}</span>
+ <span className="text-xs font-medium text-red-600 dark:text-red-400">{criticalCount}</span>
  </div>
  )}
  {warningCount > 0 && (
  <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30">
  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
- <span className="text-[11px] font-medium text-amber-400">{warningCount}</span>
+ <span className="text-xs font-medium text-amber-600 dark:text-amber-400">{warningCount}</span>
  </div>
  )}
  </div>
@@ -224,21 +224,21 @@ const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selecte
  className="hidden md:flex items-center gap-2 px-3 py-1 rounded-lg bg-gradient-to-r from-primary/20 to-violet-500/20 border border-primary/40"
  >
  <span className="w-2 h-2 rounded-full bg-primary/60" />
- <span className="text-xs text-white/90 font-medium max-w-[150px] truncate">
+ <span className="text-xs text-foreground font-medium max-w-[150px] truncate">
  {safeRender((selectedNode.data as { name?: string; title?: string; threat?: string }).name || (selectedNode.data as { title?: string }).title || (selectedNode.data as { threat?: string }).threat)}
  </span>
- <span className="text-[11px] text-white/40 capitalize">{selectedNode.type}</span>
+ <span className="text-xs text-muted-foreground capitalize">{selectedNode.type}</span>
  {connectionCount > 0 && (
- <span className="text-[11px] text-primary/70">{connectionCount}</span>
+ <span className="text-xs text-primary/70">{connectionCount}</span>
  )}
  </motion.div>
  )}
  </AnimatePresence>
 
  {/* Right - Controls hint (compact) */}
- <div className="flex items-center gap-2 sm:gap-3 text-[11px] text-white/30">
+ <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground">
  {isFullscreen && (
- <span className="px-1.5 py-0.5 rounded bg-white/5 text-white/50">ESC</span>
+ <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground">ESC</span>
  )}
  <span className="hidden lg:inline">{t('voxel.scrollZoom', { defaultValue: 'Scroll: zoom' })}</span>
  <span className="hidden lg:inline">{t('voxel.dragOrbit', { defaultValue: 'Drag: orbit' })}</span>
@@ -762,7 +762,7 @@ export const VoxelView: React.FC = () => {
  <div className="flex items-center gap-2 sm:gap-3">
  <button
  onClick={() => navigate(-1)}
- className="p-1.5 rounded-lg bg-white/5 hover:bg-muted text-white/60 hover:text-foreground transition-all duration-200"
+ className="p-1.5 rounded-lg bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200"
  >
  <ChevronLeft className="w-4 h-4" />
  </button>
@@ -771,8 +771,8 @@ export const VoxelView: React.FC = () => {
  <Box className="w-6 h-6 text-primary relative z-decorator transition-transform duration-500 group-hover:scale-110" />
  </div>
  <div className="hidden sm:block">
- <h1 className="text-sm font-bold text-white tracking-tight">CTC Engine</h1>
- <p className="text-[11px] text-white/40 hidden lg:block">Cyber Threat Cartography</p>
+ <h1 className="text-sm font-bold text-foreground tracking-tight">CTC Engine</h1>
+ <p className="text-xs text-muted-foreground hidden lg:block">Cyber Threat Cartography</p>
  </div>
  </div>
  </div>
@@ -789,21 +789,21 @@ export const VoxelView: React.FC = () => {
   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
   <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
  </span>
- <span className="text-xs font-medium text-red-400">{criticalCount}</span>
- <span className="text-[11px] text-red-400/70 hidden lg:inline">{t('voxel.critical', { defaultValue: 'critical' })}</span>
+ <span className="text-xs font-medium text-red-700 dark:text-red-300">{criticalCount}</span>
+ <span className="text-xs text-red-600 dark:text-red-400 hidden lg:inline">{t('voxel.critical', { defaultValue: 'critical' })}</span>
  </motion.div>
  )}
  {warningCount > 0 && (
  <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-900/30 border border-amber-500/30">
  <span className="w-2 h-2 rounded-full bg-amber-500" />
- <span className="text-xs font-medium text-amber-400">{warningCount}</span>
- <span className="text-[11px] text-amber-400/70 hidden lg:inline">{t('voxel.alerts', { defaultValue: 'alerts' })}</span>
+ <span className="text-xs font-medium text-amber-700 dark:text-amber-300">{warningCount}</span>
+ <span className="text-xs text-amber-600 dark:text-amber-400 hidden lg:inline">{t('voxel.alerts', { defaultValue: 'alerts' })}</span>
  </div>
  )}
  <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-success/15 border border-success/30">
  <Activity className="w-3.5 h-3.5 text-success" />
  <span className="text-xs font-medium text-success">{orderedNodes.length}</span>
- <span className="text-[11px] text-success/70 hidden lg:inline">{t('voxel.nodes', { defaultValue: 'nodes' })}</span>
+ <span className="text-xs text-success/70 hidden lg:inline">{t('voxel.nodes', { defaultValue: 'nodes' })}</span>
  </div>
  </div>
 
@@ -812,21 +812,21 @@ export const VoxelView: React.FC = () => {
  {/* Search Button */}
  <button
  onClick={() => setShowCommandPalette(true)}
- className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white/5 hover:bg-muted text-white/60 hover:text-foreground transition-all duration-200 group"
+ className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 group"
  >
  <Search className="w-4 h-4" />
- <kbd className="hidden sm:flex items-center gap-0.5 px-1 py-0.5 rounded bg-white/10 text-[11px] font-medium text-white/40 group-hover:text-foreground/60">
+ <kbd className="hidden sm:flex items-center gap-0.5 px-1 py-0.5 rounded bg-muted text-xs font-medium text-muted-foreground group-hover:text-foreground">
  <Command className="w-2.5 h-2.5" />K
  </kbd>
  </button>
 
  {/* Framework Selector */}
- <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 border border-white/5">
+ <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-muted/50 border border-border/40">
  <Shield className="w-3.5 h-3.5 text-primary/70" />
  <select
  value={activeFramework || ''}
  onChange={(e) => setActiveFramework(e.target.value || null)}
- className="bg-transparent text-[11px] font-medium text-white outline-none cursor-pointer border-none focus:ring-0 px-1"
+ className="bg-transparent text-xs font-medium text-foreground outline-none cursor-pointer border-none focus:ring-0 px-1"
  aria-label={t('voxel.selectFramework', { defaultValue: 'Sélectionner un référentiel' })}
  >
  <option value="" className="bg-card">{t('voxel.allFrameworks', { defaultValue: 'Tous les référentiels' })}</option>
@@ -854,7 +854,7 @@ export const VoxelView: React.FC = () => {
  {/* Refresh */}
  <button
  onClick={refresh}
- className="p-1.5 rounded-lg bg-white/5 hover:bg-muted text-white/60 hover:text-foreground transition-all duration-200 hover:rotate-180"
+ className="p-1.5 rounded-lg bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 hover:rotate-180"
  title={t('common.refresh', { defaultValue: 'Refresh' })}
  >
  <RefreshCw className="w-4 h-4 transition-transform duration-500" />
@@ -912,8 +912,8 @@ export const VoxelView: React.FC = () => {
  className="absolute right-10 top-0 w-44 p-1.5 rounded-xl bg-card/95 backdrop-blur-xl border border-white/10 shadow-2xl"
  >
  <div className="flex items-center justify-between px-2 py-1 mb-0.5">
-  <span className="text-[11px] font-medium text-white/60">{t('voxel.layers', { defaultValue: 'Layers' })}</span>
-  <span className="text-[11px] text-white/40">{activeLayers.length}/7</span>
+  <span className="text-xs font-medium text-muted-foreground">{t('voxel.layers', { defaultValue: 'Layers' })}</span>
+  <span className="text-xs text-muted-foreground">{activeLayers.length}/7</span>
  </div>
  {LAYER_CONFIG.map(layer => {
   const isActive = activeLayers.includes(layer.id);
@@ -922,14 +922,14 @@ export const VoxelView: React.FC = () => {
   <button
   key={layer.id || 'unknown'}
   onClick={() => handleLayerToggle(layer.id)}
-  className={`w - full flex items - center justify - between px - 2 py - 1 rounded - lg text - [11px] transition ${isActive ? 'bg-white/10 text-white' : 'text-white/50 hover:bg-muted/50 hover:text-foreground/80'
+  className={`w - full flex items - center justify - between px - 2 py - 1 rounded - lg text - [11px] transition ${isActive ? 'bg-primary/15 text-foreground' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
   } `}
   >
   <div className="flex items-center gap-1.5">
   <span className={`w - 2 h - 2 rounded - full ${layer.bgColor} `} />
   <span>{layer.label}</span>
   </div>
-  <span className="text-[11px] text-white/40">{count}</span>
+  <span className="text-xs text-muted-foreground">{count}</span>
   </button>
   );
  })}
@@ -982,20 +982,20 @@ export const VoxelView: React.FC = () => {
  className="absolute top-20 right-16 z-voxel-ui w-48 p-2.5 rounded-xl bg-card/95 backdrop-blur-xl border border-white/10 shadow-2xl"
  >
  <div className="flex items-center justify-between mb-2">
- <span className="text-xs font-semibold text-white">{t('voxel.legend', { defaultValue: 'Legend' })}</span>
+ <span className="text-xs font-semibold text-foreground">{t('voxel.legend', { defaultValue: 'Legend' })}</span>
  <button onClick={() => setShowLegend(false)} className="p-0.5 hover:bg-muted rounded transition">
- <X className="w-3.5 h-3.5 text-white/60" />
+ <X className="w-3.5 h-3.5 text-muted-foreground" />
  </button>
  </div>
 
  {/* Node Types */}
  <div className="mb-2">
- <span className="text-[11px] font-medium text-white/40 uppercase tracking-wide">Types</span>
+ <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Types</span>
  <div className="mt-1 grid grid-cols-2 gap-x-2 gap-y-0.5">
  {LAYER_CONFIG.map(layer => (
   <div key={layer.id || 'unknown'} className="flex items-center gap-1 py-0.5">
   <span className={`w - 2 h - 2 rounded - full ${layer.bgColor} `} />
-  <span className="text-[11px] text-white/80 truncate">{layer.label}</span>
+  <span className="text-xs text-foreground/80 truncate">{layer.label}</span>
   </div>
  ))}
  </div>
@@ -1003,34 +1003,34 @@ export const VoxelView: React.FC = () => {
 
  {/* Status */}
  <div className="mb-2 pt-2 border-t border-white/5">
- <span className="text-[11px] font-medium text-white/40 uppercase tracking-wide">{t('voxel.states', { defaultValue: 'States' })}</span>
+ <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('voxel.states', { defaultValue: 'States' })}</span>
  <div className="mt-1 flex flex-wrap gap-2">
  <div className="flex items-center gap-1">
   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-  <span className="text-[11px] text-red-400">{criticalCount}</span>
+  <span className="text-xs text-red-600 dark:text-red-400">{criticalCount}</span>
  </div>
  <div className="flex items-center gap-1">
   <span className="w-2 h-2 rounded-full bg-amber-500" />
-  <span className="text-[11px] text-amber-400">{warningCount}</span>
+  <span className="text-xs text-amber-600 dark:text-amber-400">{warningCount}</span>
  </div>
  <div className="flex items-center gap-1">
   <span className="w-2 h-2 rounded-full bg-success" />
-  <span className="text-[11px] text-success">{orderedNodes.length - criticalCount - warningCount}</span>
+  <span className="text-xs text-success">{orderedNodes.length - criticalCount - warningCount}</span>
  </div>
  </div>
  </div>
 
  {/* Connections */}
  <div className="pt-2 border-t border-white/5">
- <span className="text-[11px] font-medium text-white/40 uppercase tracking-wide">{t('voxel.links', { defaultValue: 'Links' })}</span>
+ <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('voxel.links', { defaultValue: 'Links' })}</span>
  <div className="mt-1 space-y-1">
  <div className="flex items-center gap-1.5">
   <div className="w-4 h-0.5 bg-gradient-to-r from-primary to-violet-500 rounded" />
-  <span className="text-[11px] text-white/70">{t('voxel.dependency', { defaultValue: 'Dependency' })}</span>
+  <span className="text-xs text-foreground/70">{t('voxel.dependency', { defaultValue: 'Dependency' })}</span>
  </div>
  <div className="flex items-center gap-1.5">
   <div className="w-4 h-0.5 bg-gradient-to-r from-red-500 to-orange-500 rounded" />
-  <span className="text-[11px] text-white/70">Impact</span>
+  <span className="text-xs text-foreground/70">Impact</span>
  </div>
  </div>
  </div>
@@ -1050,14 +1050,14 @@ export const VoxelView: React.FC = () => {
  <div className="flex items-center justify-between mb-2">
  <span className="text-xs font-medium text-white">{t('voxel.shortcuts', { defaultValue: 'Shortcuts' })}</span>
  <button onClick={() => setShowShortcuts(false)} className="p-0.5 hover:bg-muted rounded">
- <X className="w-3.5 h-3.5 text-white/60" />
+ <X className="w-3.5 h-3.5 text-muted-foreground" />
  </button>
  </div>
  <div className="space-y-1">
  {KEYBOARD_SHORTCUTS.map(({ key, action }) => (
- <div key={key || 'unknown'} className="flex items-center justify-between text-[11px]">
-  <span className="text-white/60">{action}</span>
-  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white/80 font-mono">{key}</kbd>
+ <div key={key || 'unknown'} className="flex items-center justify-between text-xs">
+  <span className="text-muted-foreground">{action}</span>
+  <kbd className="px-1.5 py-0.5 rounded bg-muted text-foreground font-mono">{key}</kbd>
  </div>
  ))}
  </div>
@@ -1088,7 +1088,7 @@ export const VoxelView: React.FC = () => {
  <div className="mx-4 overflow-hidden rounded-2xl bg-card/95 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50">
  {/* Search Input */}
  <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
-  <Search className="w-5 h-5 text-white/40" />
+  <Search className="w-5 h-5 text-muted-foreground" />
   <input
   type="text"
   value={commandSearch}
@@ -1096,13 +1096,13 @@ export const VoxelView: React.FC = () => {
   placeholder={t('voxel.searchNode', { defaultValue: 'Rechercher un noeud...' })}
   className="flex-1 bg-transparent text-white text-lg placeholder:text-white/30 outline-none"
   />
-  <kbd className="px-2 py-1 rounded bg-white/10 text-xs text-white/40">ESC</kbd>
+  <kbd className="px-2 py-1 rounded bg-muted text-xs text-muted-foreground">ESC</kbd>
  </div>
 
  {/* Results */}
  <div className="max-h-80 overflow-y-auto p-2">
   {commandPaletteResults.length === 0 ? (
-  <div className="py-8 text-center text-white/40">
+  <div className="py-8 text-center text-muted-foreground">
   <Target className="w-8 h-8 mx-auto mb-2 opacity-60" />
   <p>{t('voxel.noResults', { defaultValue: 'Aucun résultat trouvé' })}</p>
   </div>
@@ -1120,10 +1120,10 @@ export const VoxelView: React.FC = () => {
   <span className={`w - 3 h - 3 rounded - full ${layer?.bgColor || 'bg-muted/500'} `} />
   <div className="flex-1 min-w-0">
   <span className="text-sm text-white truncate block">{node.label}</span>
-  <span className="text-xs text-white/40 capitalize">{layer?.label || node.type}</span>
+  <span className="text-xs text-muted-foreground capitalize">{layer?.label || node.type}</span>
   </div>
   {index === 0 && (
-  <kbd className="px-2 py-0.5 rounded bg-white/10 text-[11px] text-white/50">↵</kbd>
+  <kbd className="px-2 py-0.5 rounded bg-muted text-xs text-muted-foreground">↵</kbd>
   )}
   </button>
   );
@@ -1133,7 +1133,7 @@ export const VoxelView: React.FC = () => {
  </div>
 
  {/* Footer */}
- <div className="px-4 py-3 border-t border-white/10 flex items-center justify-between text-xs text-white/40">
+ <div className="px-4 py-3 border-t border-white/10 flex items-center justify-between text-xs text-muted-foreground">
   <div className="flex items-center gap-4">
   <span className="flex items-center gap-1">
   <ChevronUp className="w-3 h-3" />

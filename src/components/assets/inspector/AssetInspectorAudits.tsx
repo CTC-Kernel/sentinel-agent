@@ -25,7 +25,7 @@ export const AssetInspectorAudits: React.FC<AssetInspectorAuditsProps> = ({
   <div key={audit.id || 'unknown'} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
   <div className="flex justify-between items-start mb-2">
   <span className="text-sm font-bold text-foreground">{audit.name}</span>
-  <span className={`text-[11px] uppercase font-bold px-2.5 py-1 rounded-3xl ${audit.status === 'Terminé' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500/20' : 'bg-amber-100 text-amber-700 dark:text-amber-400 ring-1 ring-amber-500/20'}`}>
+  <span className={`text-xs uppercase font-bold px-2.5 py-1 rounded-3xl ${audit.status === 'Terminé' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500/20' : 'bg-amber-100 text-amber-700 dark:text-amber-400 ring-1 ring-amber-500/20'}`}>
    {audit.status}
   </span>
   </div>

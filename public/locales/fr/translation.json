@@ -2034,6 +2034,7 @@
       "selectCI": "Sélectionnez un CI pour visualiser ses dépendances"
     },
     "validation": {
+      "title": "Queue de Validation",
       "empty": "Aucun CI en attente",
       "emptyDescription": "Tous les CIs ont été traités",
       "approved": "CI approuvé",
@@ -2053,7 +2054,8 @@
       "total": "Total CIs",
       "pending": "En Attente",
       "matched": "Réconciliés",
-      "missing": "Manquants"
+      "missing": "Manquants",
+      "today": "aujourd'hui"
     },
     "quickActions": {
       "title": "Actions Rapides"
@@ -2062,7 +2064,11 @@
       "title": "Activité de Découverte"
     },
     "quality": {
-      "title": "Qualité des Données"
+      "title": "Qualité des Données",
+      "excellent": "Excellente",
+      "good": "Bonne",
+      "fair": "Moyenne",
+      "poor": "Faible"
     },
     "distribution": {
       "title": "Distribution par Classe"

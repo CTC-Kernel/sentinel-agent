@@ -94,42 +94,29 @@ export interface ControlsDocumentData {
 function replacePlaceholders(content: string, context: DocumentGenerationContext): string {
  let result = content;
 
- // Organization placeholders
- result = result.replace(/\{\{organization\.name\}\}/g, context.organization.name);
- result = result.replace(/\{\{organization\.address\}\}/g, context.organization.address || '[Adresse]');
- result = result.replace(/\{\{organization\.sector\}\}/g, context.organization.sector || '[Secteur]');
-
- // Dossier placeholders
- result = result.replace(/\{\{dossier\.name\}\}/g, context.dossier.name);
- result = result.replace(/\{\{dossier\.systemScope\}\}/g, context.dossier.systemScope);
- result = result.replace(/\{\{dossier\.description\}\}/g, context.dossier.description || '');
- result = result.replace(
- /\{\{dossier\.level\}\}/g,
- LEVEL_INFO[context.dossier.level].label
- );
- result = result.replace(/\{\{dossier\.levelJustification\}\}/g, context.dossier.levelJustification);
- result = result.replace(/\{\{dossier\.validityYears\}\}/g, String(context.dossier.validityYears));
- result = result.replace(/\{\{dossier\.responsibleName\}\}/g, '[Responsable SSI]');
- result = result.replace(
- /\{\{dossier\.authorityName\}\}/g,
- context.dossier.authorityName || '[Autorité d\'homologation]'
- );
-
- // Date placeholders
+ // Fix 18 - Optimized: single-pass replacement using a lookup map
  const currentDate = format(new Date(), 'PPP', { locale: getDateFnsLocale() });
- result = result.replace(/\{\{date\.current\}\}/g, currentDate);
- result = result.replace(
- /\{\{date\.validityStart\}\}/g,
- context.dossier.validityStartDate
- ? format(new Date(context.dossier.validityStartDate), 'PPP', { locale: getDateFnsLocale() })
- : '[Date de début]'
- );
- result = result.replace(
- /\{\{date\.validityEnd\}\}/g,
- context.dossier.validityEndDate
- ? format(new Date(context.dossier.validityEndDate), 'PPP', { locale: getDateFnsLocale() })
- : '[Date de fin]'
- );
+ const placeholderMap: Record<string, string> = {
+ 'organization.name': context.organization.name,
+ 'organization.address': context.organization.address || '[Adresse]',
+ 'organization.sector': context.organization.sector || '[Secteur]',
+ 'dossier.name': context.dossier.name,
+ 'dossier.systemScope': context.dossier.systemScope,
+ 'dossier.description': context.dossier.description || '',
+ 'dossier.level': LEVEL_INFO[context.dossier.level].label,
+ 'dossier.levelJustification': context.dossier.levelJustification,
+ 'dossier.validityYears': String(context.dossier.validityYears),
+ 'dossier.responsibleName': '[Responsable SSI]',
+ 'dossier.authorityName': context.dossier.authorityName || '[Autorité d\'homologation]',
+ 'date.current': currentDate,
+ 'date.validityStart': context.dossier.validityStartDate
+  ? format(new Date(context.dossier.validityStartDate), 'PPP', { locale: getDateFnsLocale() })
+  : '[Date de début]',
+ 'date.validityEnd': context.dossier.validityEndDate
+  ? format(new Date(context.dossier.validityEndDate), 'PPP', { locale: getDateFnsLocale() })
+  : '[Date de fin]',
+ };
+ result = result.replace(/\{\{([^}]+)\}\}/g, (match, key) => placeholderMap[key] ?? match);
 
  // EBIOS placeholders
  if (context.ebiosData) {
@@ -158,31 +145,13 @@ function replacePlaceholders(content: string, context: DocumentGenerationContext
  formatList(context.ebiosData.residualRisks, 'Risques résiduels à évaluer')
  );
  } else {
- // No EBIOS data - use placeholders
- result = result.replace(
- /\{\{ebios\.fearedEvents\}\}/g,
- '*Aucune analyse EBIOS liée. Compléter manuellement.*'
- );
- result = result.replace(
- /\{\{ebios\.riskSources\}\}/g,
- '*Aucune analyse EBIOS liée. Compléter manuellement.*'
- );
- result = result.replace(
- /\{\{ebios\.strategicScenarios\}\}/g,
- '*Aucune analyse EBIOS liée. Compléter manuellement.*'
- );
- result = result.replace(
- /\{\{ebios\.operationalScenarios\}\}/g,
- '*Aucune analyse EBIOS liée. Compléter manuellement.*'
- );
- result = result.replace(
- /\{\{ebios\.treatmentPlan\}\}/g,
- '*Aucune analyse EBIOS liée. Compléter manuellement.*'
- );
- result = result.replace(
- /\{\{ebios\.residualRisks\}\}/g,
- '*Aucune analyse EBIOS liée. Compléter manuellement.*'
- );
+ // Fix 17 - Replace duplicate EBIOS placeholder fallbacks with a loop
+ const ebiosKeys = ['fearedEvents', 'riskSources', 'strategicScenarios',
+  'operationalScenarios', 'treatmentPlan', 'residualRisks'];
+ const fallback = '*Aucune analyse EBIOS liée. Compléter manuellement.*';
+ ebiosKeys.forEach(key => {
+  result = result.replace(new RegExp(`\\{\\{ebios\\.${key}\\}\\}`, 'g'), fallback);
+ });
  }
 
  // Controls placeholders
@@ -286,6 +255,10 @@ export function generateAllDocuments(
  * Get documents collection reference
  */
 function getDocumentsCollection(organizationId: string, dossierId: string) {
+ // Fix 16 - Input validation
+ if (!organizationId || !dossierId) {
+ throw new Error('organizationId and dossierId are required');
+ }
  return collection(
  db,
  'organizations',
@@ -305,21 +278,26 @@ export async function saveDocument(
  userId: string,
  document: GeneratedDocument
 ): Promise<string> {
+ try {
  const collectionRef = getDocumentsCollection(organizationId, dossierId);
  const docRef = doc(collectionRef);
 
  const documentData = {
- ...document,
- id: docRef.id,
- dossierId,
- generatedBy: userId,
- updatedBy: userId,
- generatedAt: serverTimestamp(),
- updatedAt: serverTimestamp()
+  ...document,
+  id: docRef.id,
+  dossierId,
+  generatedBy: userId,
+  updatedBy: userId,
+  generatedAt: serverTimestamp(),
+  updatedAt: serverTimestamp()
  };
 
  await setDoc(docRef, sanitizeData(documentData));
  return docRef.id;
+ } catch (error) {
+ ErrorLogger.error(error, 'HomologationDocumentService.saveDocument');
+ throw error;
+ }
 }
 
 /**
@@ -329,11 +307,16 @@ export async function getDocuments(
  organizationId: string,
  dossierId: string
 ): Promise<GeneratedDocument[]> {
+ try {
  const collectionRef = getDocumentsCollection(organizationId, dossierId);
  const snapshot = await getDocs(collectionRef);
 
  return snapshot.docs.map((doc) => {
  const data = doc.data();
+  // Fix 21 - Validate required fields instead of blind cast
+  if (!data.title || !data.type) {
+   console.warn('Malformed document data:', doc.id);
+  }
  return {
  ...data,
  id: doc.id,
@@ -345,6 +328,10 @@ export async function getDocuments(
  data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : data.updatedAt
  } as GeneratedDocument;
  });
+ } catch (error) {
+  ErrorLogger.error(error, 'HomologationDocumentService.getDocuments');
+  throw error;
+ }
 }
 
 /**
@@ -355,6 +342,7 @@ export async function getDocument(
  dossierId: string,
  documentId: string
 ): Promise<GeneratedDocument | null> {
+ try {
  const docRef = doc(
  db,
  'organizations',
@@ -369,6 +357,10 @@ export async function getDocument(
  if (!snapshot.exists()) return null;
 
  const data = snapshot.data();
+  // Fix 21 - Validate required fields instead of blind cast
+  if (!data.title || !data.type) {
+   console.warn('Malformed document data:', snapshot.id);
+  }
  return {
  ...data,
  id: snapshot.id,
@@ -379,6 +371,10 @@ export async function getDocument(
  updatedAt:
  data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : data.updatedAt
  } as GeneratedDocument;
+ } catch (error) {
+  ErrorLogger.error(error, 'HomologationDocumentService.getDocument');
+  throw error;
+ }
 }
 
 /**
@@ -392,22 +388,27 @@ export async function updateDocumentContent(
  content: string,
  sections: GeneratedSection[]
 ): Promise<void> {
+ try {
  const docRef = doc(
- db,
- 'organizations',
- organizationId,
- 'homologations',
- dossierId,
- 'documents',
- documentId
+  db,
+  'organizations',
+  organizationId,
+  'homologations',
+  dossierId,
+  'documents',
+  documentId
  );
 
  await updateDoc(docRef, sanitizeData({
- content,
- sections,
- updatedAt: serverTimestamp(),
- updatedBy: userId
+  content,
+  sections,
+  updatedAt: serverTimestamp(),
+  updatedBy: userId
  }));
+ } catch (error) {
+ ErrorLogger.error(error, 'HomologationDocumentService.updateDocumentContent');
+ throw error;
+ }
 }
 
 /**
@@ -420,21 +421,26 @@ export async function updateDocumentStatus(
  userId: string,
  status: 'draft' | 'completed' | 'validated'
 ): Promise<void> {
+ try {
  const docRef = doc(
- db,
- 'organizations',
- organizationId,
- 'homologations',
- dossierId,
- 'documents',
- documentId
+  db,
+  'organizations',
+  organizationId,
+  'homologations',
+  dossierId,
+  'documents',
+  documentId
  );
 
  await updateDoc(docRef, sanitizeData({
- status,
- updatedAt: serverTimestamp(),
- updatedBy: userId
+  status,
+  updatedAt: serverTimestamp(),
+  updatedBy: userId
  }));
+ } catch (error) {
+ ErrorLogger.error(error, 'HomologationDocumentService.updateDocumentStatus');
+ throw error;
+ }
 }
 
 // ============================================================================
@@ -452,6 +458,14 @@ export function exportToPDF(
  orientation: 'portrait',
  unit: 'mm',
  format: 'a4'
+ });
+
+ // Fix 22 - Add PDF metadata
+ pdf.setProperties({
+ title: document.title,
+ author: context.dossier.authorityName || 'Sentinel GRC',
+ subject: `Homologation - ${context.dossier.name}`,
+ creator: 'Sentinel GRC v2',
  });
 
  const pageWidth = pdf.internal.pageSize.getWidth();
@@ -510,7 +524,6 @@ export function exportToPDF(
  };
 
  addHeader();
- addWatermark();
 
  // Title
  pdf.setFontSize(18);
@@ -582,10 +595,16 @@ export function exportToPDF(
  // Empty line
  yPosition += 3;
  } else if (line.startsWith('|')) {
- // Table row (simplified - just render as text)
- checkPageBreak(6);
- pdf.text(line, margin, yPosition);
- yPosition += 5;
+ // Fix 20 - Improved table rendering: parse markdown table and format as aligned columns
+ const cells = line.split('|').map(c => c.trim()).filter(c => c && !c.match(/^-+$/));
+ if (cells.length > 0 && !line.includes('---')) {
+  checkPageBreak(6);
+  const cellWidth = (pageWidth - margin * 2) / cells.length;
+  cells.forEach((cell, i) => {
+  pdf.text(cell.substring(0, 30), margin + i * cellWidth, yPosition);
+  });
+  yPosition += 5;
+ }
  } else {
  // Regular paragraph
  checkPageBreak(6);
@@ -603,6 +622,14 @@ export function exportToPDF(
  for (let i = 1; i <= totalPages; i++) {
  pdf.setPage(i);
  addFooter(i, totalPages);
+ }
+
+ // Fix 19 - Add watermarks to ALL pages, not just the first
+ if (document.status === 'draft') {
+ for (let i = 1; i <= totalPages; i++) {
+  pdf.setPage(i);
+  addWatermark();
+ }
  }
 
  return pdf.output('blob');

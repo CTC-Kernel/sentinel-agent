@@ -282,7 +282,7 @@ export const OrganizationSettings: React.FC = () => {
    currentOrg?.subscription?.planId === 'enterprise' ? t('settings.plans.enterprise') :
    t('settings.plans.discovery')}
    </h2>
-   <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide border ${currentOrg?.subscription?.status === 'active' ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-white/10 text-white/70 border-white/20'}`}>
+   <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide border ${currentOrg?.subscription?.status === 'active' ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-white/10 text-white/70 border-white/20'}`}>
    {currentOrg?.subscription?.status === 'active' ? t('settings.active') : t('settings.free')}
    </span>
   </div>

@@ -71,6 +71,18 @@ const CMDB = React.lazy(() => import('../../views/CMDB'));
 // ANSSI Homologation Module (Epic 38)
 const HomologationDossierDetail = React.lazy(() => import('../homologation').then(module => ({ default: module.HomologationDossierDetail })));
 
+// Board Governance Module (Audit Sprint)
+const Governance = React.lazy(() => import('../../views/Governance').then(module => ({ default: module.Governance })));
+
+// Regulatory Change Management Module (Audit Sprint)
+const RegulatoryChanges = React.lazy(() => import('../../views/RegulatoryChanges').then(module => ({ default: module.RegulatoryChanges })));
+
+// Compliance Calendar Module (Audit Sprint)
+const ComplianceCalendarView = React.lazy(() => import('../../views/ComplianceCalendar'));
+
+// Certification Tracking Module (Audit Sprint)
+const Certifications = React.lazy(() => import('../../views/Certifications').then(module => ({ default: module.Certifications })));
+
 // New Professional 404 Page
 import { NotFound } from '../../views/NotFound';
 
@@ -133,6 +145,10 @@ export const AnimatedRoutes: React.FC = () => {
  <Route path="/financial-risk" element={<Navigate to="/risks?tab=financial" replace />} />
  <Route path="/homologation" element={<Navigate to="/compliance?tab=homologation" replace />} />
  <Route path="/homologation/:dossierId" element={<RoleGuardComponent allowedRoles={['admin', 'rssi']}><AnimatedPage><HomologationDossierDetail /></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/governance" element={<RoleGuardComponent allowedRoles={['admin', 'rssi', 'direction']}><AnimatedPage><Governance /></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/regulatory-changes" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RegulatoryChanges /></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/compliance-calendar" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><ComplianceCalendarView /></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/certifications" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Certifications /></AnimatedPage></RoleGuardComponent>} />
  <Route path="/privacy" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Privacy /></AnimatedPage></RoleGuardComponent>} />
  <Route path="/continuity" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Continuity /></AnimatedPage></RoleGuardComponent>} />
  <Route path="/ctc-engine" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage className="!p-0 !pb-0 !min-h-0 !h-full !max-w-none"><VoxelView /></AnimatedPage></RoleGuardComponent>} />

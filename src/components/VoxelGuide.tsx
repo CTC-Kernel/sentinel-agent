@@ -98,7 +98,7 @@ const GUIDE_SECTIONS = [
   <span className={`w-3 h-3 rounded-full ${item.color}`} />
   <div>
   <span className="text-xs font-medium text-foreground">{item.label}</span>
-  <p className="text-[11px] text-muted-foreground">{item.desc}</p>
+  <p className="text-xs text-muted-foreground">{item.desc}</p>
   </div>
   </div>
   ))}
@@ -248,7 +248,7 @@ const GUIDE_SECTIONS = [
   <div className="flex items-center gap-3 mb-3">
   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
   <span className="text-sm text-muted-foreground">Rechercher un nœud...</span>
-  <kbd className="ml-auto px-2 py-0.5 rounded bg-muted text-[11px] text-muted-foreground">
+  <kbd className="ml-auto px-2 py-0.5 rounded bg-muted text-xs text-muted-foreground">
   <Command className="w-3 h-3 inline" />K
   </kbd>
   </div>
@@ -394,7 +394,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
 
   {/* Keyboard hint */}
   <div className="px-4 pb-3 text-center">
-  <span className="text-[11px] text-muted-foreground">
+  <span className="text-xs text-muted-foreground">
   Utilisez ← → pour naviguer, Échap pour fermer
   </span>
   </div>

@@ -217,7 +217,7 @@ const ScaleIndicator: React.FC<ScaleIndicatorProps> = ({
  </div>
 
  {/* Min/Max labels */}
- <div className="flex justify-between text-muted-foreground text-[11px] mt-0.5">
+ <div className="flex justify-between text-muted-foreground text-xs mt-0.5">
  <span>{(minScale * 100).toFixed(0)}%</span>
  <span>{(maxScale * 100).toFixed(0)}%</span>
  </div>

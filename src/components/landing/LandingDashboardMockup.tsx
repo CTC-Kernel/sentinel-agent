@@ -17,7 +17,7 @@ import {
 
 export const LandingDashboardMockup: React.FC = () => {
  return (
- <div className="w-full h-full bg-card/80 backdrop-blur-sm rounded-[1.5rem] overflow-hidden flex text-sans shadow-2xl ring-1 ring-white/10 select-none text-[11px] sm:text-xs md:text-sm font-medium">
+ <div className="w-full h-full bg-card/80 backdrop-blur-sm rounded-[1.5rem] overflow-hidden flex text-sans shadow-2xl ring-1 ring-white/10 select-none text-xs sm:text-xs md:text-sm font-medium">
  {/* Sidebar Mockup */}
  <div className="w-16 sm:w-20 md:w-64 bg-background/50 backdrop-blur-md flex flex-col border-r border-white/5 flex-shrink-0 relative">
  <div className="p-4 md:p-6 flex items-center gap-3 mb-6">
@@ -74,7 +74,7 @@ export const LandingDashboardMockup: React.FC = () => {
   <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-border/40 text-muted-foreground hover:bg-muted transition-colors">
   <Search className="h-3.5 w-3.5" />
   <span className="text-xs">Rechercher...</span>
-  <span className="text-[11px] border border-border/40 px-1.5 py-0.5 rounded ml-4 text-muted-foreground">⌘K</span>
+  <span className="text-xs border border-border/40 px-1.5 py-0.5 rounded ml-4 text-muted-foreground">⌘K</span>
   </div>
   <div className="w-8 h-8 rounded-full bg-white/5 border border-border/40 flex items-center justify-center text-muted-foreground relative hover:text-foreground transition-colors hover:bg-muted">
   <Bell className="h-4 w-4" />
@@ -197,7 +197,7 @@ export const LandingDashboardMockup: React.FC = () => {
   <div className="w-28 h-28 rounded-full border-[12px] border-success border-r-brand-500 border-b-warning border-l-muted -rotate-45 shadow-[0_0_20px_-5px_hsl(var(--foreground)/0.2)]"></div>
   <div className="absolute flex flex-col items-center">
    <span className="text-2xl font-bold text-foreground">124</span>
-   <span className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider">Total</span>
+   <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Total</span>
   </div>
   </div>
   <div className="mt-6 flex flex-col gap-2 relative z-decorator">

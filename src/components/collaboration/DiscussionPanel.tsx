@@ -282,12 +282,12 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
    {comment.userName}
   </span>
   {isMe && (
-   <span className="text-[11px] bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-medium">
+   <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-medium">
    Vous
    </span>
   )}
   {comment.mentions && comment.mentions.length > 0 && (
-   <div className="flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400">
+   <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
    <Users className="h-3 w-3" />
    {comment.mentions.length}
    </div>
@@ -427,7 +427,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
    <Filter className="h-3 w-3" />
    Filtres
    {filterBy !== 'all' && (
-   <span className="bg-primary dark:bg-primary/60 text-white text-[11px] px-1.5 py-0.5 rounded-full">
+   <span className="bg-primary dark:bg-primary/60 text-white text-xs px-1.5 py-0.5 rounded-full">
     1
    </span>
    )}

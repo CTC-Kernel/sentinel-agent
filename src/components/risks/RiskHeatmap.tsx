@@ -43,12 +43,12 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({ risks }) => {
  <div className="flex flex-col items-center justify-center p-4">
  <div className="relative">
  {/* Y-Axis Label */}
- <div className="absolute -left-8 top-1/2 -translate-y-1/2 -rotate-90 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-center w-32">
+ <div className="absolute -left-8 top-1/2 -translate-y-1/2 -rotate-90 text-xs font-bold text-muted-foreground uppercase tracking-widest text-center w-32">
   {t('risks.matrix.probabilityAxis', { defaultValue: 'Probabilité' })}
  </div>
 
  {/* X-Axis Label */}
- <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-center w-32">
+ <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs font-bold text-muted-foreground uppercase tracking-widest text-center w-32">
   {t('risks.matrix.impactAxis', { defaultValue: 'Impact' })}
  </div>
 
@@ -88,7 +88,7 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({ risks }) => {
  </div>
 
  {/* Legend */}
- <div className="mt-8 flex gap-4 text-[11px] font-medium text-muted-foreground">
+ <div className="mt-8 flex gap-4 text-xs font-medium text-muted-foreground">
  <div className="flex items-center gap-1.5">
   <div className="w-2.5 h-2.5 rounded bg-success-text" /> {t('risks.matrix.legend.low', { defaultValue: 'Faible' })}
  </div>

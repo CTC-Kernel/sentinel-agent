@@ -719,7 +719,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
   <div className="flex items-center justify-between lg:justify-end gap-6 pt-4 lg:pt-0 border-t lg:border-t-0 border-border/40/50">
   {/* Relevance Selector */}
   <div className="flex flex-col items-center lg:items-end gap-2">
-   <span className="text-[11px] items-center uppercase font-bold text-muted-foreground tracking-wider">
+   <span className="text-xs items-center uppercase font-bold text-muted-foreground tracking-wider">
    {t('ebios.workshop2.relevance')}
    </span>
    {!readOnly ? (

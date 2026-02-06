@@ -51,7 +51,7 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
  <div className="glass-premium rounded-3xl overflow-hidden shadow-sm border border-border/40">
   <div className="overflow-x-auto">
   <table className="w-full text-sm text-left">
-  <thead className="bg-muted/50/80/50 border-b border-border/40 dark:border-border text-muted-foreground font-bold uppercase text-[11px] tracking-widest backdrop-blur-sm">
+  <thead className="bg-muted/50/80/50 border-b border-border/40 dark:border-border text-muted-foreground font-bold uppercase text-xs tracking-widest backdrop-blur-sm">
   <tr>
    <th className="px-8 py-5">{t('continuity.drills.date', { defaultValue: 'Date' })}</th>
    <th className="px-6 py-5">{t('continuity.drills.testedProcess', { defaultValue: 'Processus testé' })}</th>

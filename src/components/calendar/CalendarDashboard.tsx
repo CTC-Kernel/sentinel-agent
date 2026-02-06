@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Calendar, dateFnsLocalizer, Views, View, ToolbarProps, EventProps } from 'react-big-calendar';
 import withDragAndDrop, { withDragAndDropProps } from 'react-big-calendar/lib/addons/dragAndDrop';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
@@ -47,19 +47,21 @@ const messages = {
   showMore: (total: number) => `+ ${total} autres`,
 };
 
-const typeToIcon = (type: string) => {
-  switch (type) {
-    case 'audit': return ShieldCheck;
-    case 'project': return Briefcase;
-    case 'maintenance': return Wrench;
-    case 'incident': return ShieldAlert;
-    case 'drill': return Siren;
-    default: return FileText;
-  }
+/** Static icon map - resolved once at module level, not during render */
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  audit: ShieldCheck,
+  project: Briefcase,
+  maintenance: Wrench,
+  incident: ShieldAlert,
+  drill: Siren,
 };
 
-const EventComponent = ({ event }: EventProps<CalendarEvent>) => {
-  const Icon = typeToIcon(event.type) || FileText;
+const typeToIcon = (type: string): React.ComponentType<{ className?: string }> => {
+  return iconMap[type] || FileText;
+};
+
+const EventComponent = React.memo(({ event }: EventProps<CalendarEvent>) => {
+  const Icon = useMemo(() => typeToIcon(event.type), [event.type]);
 
   return (
     <div className="flex items-center gap-1.5 px-1 py-0.5 overflow-hidden">
@@ -67,7 +69,9 @@ const EventComponent = ({ event }: EventProps<CalendarEvent>) => {
       <span className="truncate">{event.title}</span>
     </div>
   );
-};
+});
+
+EventComponent.displayName = 'EventComponent';
 
 const eventStyleGetter = (event: CalendarEvent) => {
   let className = 'border-none rounded-md shadow-sm font-semibold text-xs transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus-visible:ring-primary ';

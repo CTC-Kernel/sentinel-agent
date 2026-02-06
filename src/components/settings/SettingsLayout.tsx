@@ -76,7 +76,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
    key={tab.id || 'unknown'}
    onClick={() => onTabChange(tab.id)}
    className={cn(
-   "group flex items-center w-full px-4 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all text-left relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset",
+   "group flex items-center w-full px-4 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all text-left relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset",
    isActive
    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 border border-border/40"
    : "text-muted-foreground hover:bg-muted/50/80 dark:hover:bg-muted/50 hover:text-foreground/60"

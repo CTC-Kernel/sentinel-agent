@@ -32,7 +32,7 @@ export const ProjectTeam: React.FC<ProjectTeamProps> = ({ project, usersList }) 
   <h4 className="font-bold text-foreground truncate">{member.displayName || 'Utilisateur'}</h4>
   <p className="text-xs text-muted-foreground truncate">{member.email}</p>
   <div className="mt-1.5 inline-flex">
-   <Badge variant="soft" status="neutral" className="text-[11px] px-2 py-0.5 h-auto">{member.role}</Badge>
+   <Badge variant="soft" status="neutral" className="text-xs px-2 py-0.5 h-auto">{member.role}</Badge>
   </div>
   </div>
   </div>

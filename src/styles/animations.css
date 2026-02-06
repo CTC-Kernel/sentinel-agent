@@ -489,7 +489,7 @@
 }
 
 .animate-shimmer-rotate {
-  animation: shimmer-rotate 4s linear infinite;
+  animation: shimmer-rotate 8s linear infinite;
 }
 
 /* Float Delayed - Floating with delay offset */
@@ -526,7 +526,7 @@
 }
 
 .animate-pulse-slow {
-  animation: pulse-slow 3s ease-in-out infinite;
+  animation: pulse-slow 8s ease-in-out infinite;
 }
 
 /* ====================================================================

@@ -73,7 +73,7 @@ export const NIS2DeadlineTimer: React.FC<Props> = ({ incident, compact = false }
   <span className="text-lg font-bold">
   {d.remainingHours > 0 ? `${d.remainingHours}h` : t('incidents.nis2.expired', { defaultValue: 'EXPIRÉ' })}
   </span>
-  {d.remainingHours > 0 && <p className="text-[11px] uppercase">{t('incidents.nis2.remaining', { defaultValue: 'Restant' })}</p>}
+  {d.remainingHours > 0 && <p className="text-xs uppercase">{t('incidents.nis2.remaining', { defaultValue: 'Restant' })}</p>}
   </div>
   )}
  </div>

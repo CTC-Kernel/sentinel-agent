@@ -218,7 +218,7 @@ const Pricing = () => {
  )}
  >
  {t('pricing.annual', { defaultValue: 'Annuel' })}
- <span className="px-2 py-0.5 rounded-lg bg-gradient-to-r from-success to-success/70 text-white text-[11px] uppercase tracking-wider font-black shadow-sm">
+ <span className="px-2 py-0.5 rounded-lg bg-gradient-to-r from-success to-success/70 text-white text-xs uppercase tracking-wider font-black shadow-sm">
  -20%
  </span>
  </button>

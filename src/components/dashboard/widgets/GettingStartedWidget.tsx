@@ -243,7 +243,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
   </span>
   </div>
   {step.isCompleted ? (
-  <span className="text-[11px] font-bold uppercase tracking-wider bg-success-bg dark:bg-success/20 px-2 py-1 rounded-full text-success-text dark:text-success shadow-sm">
+  <span className="text-xs font-bold uppercase tracking-wider bg-success-bg dark:bg-success/20 px-2 py-1 rounded-full text-success-text dark:text-success shadow-sm">
   {t('common.done')}
   </span>
   ) : (

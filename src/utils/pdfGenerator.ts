@@ -2,16 +2,19 @@
 import { BusinessProcess, BcpDrill } from '../types';
 import { getLocaleConfig, type SupportedLocale } from '../config/localeConfig';
 import i18n from '../i18n';
+import { ErrorLogger } from '../services/errorLogger';
+
+// Type for jsPDF with autoTable plugin
+interface AutoTableJsPDF {
+  lastAutoTable: { finalY: number };
+}
 
 /**
  * Generate a Business Continuity Plan (BCP) Report
  * Fixed: Proper layout positioning to prevent element overlap
  */
-/**
- * Generate a Business Continuity Plan (BCP) Report
- * Fixed: Proper layout positioning to prevent element overlap
- */
 export const generateContinuityReport = async (processes: BusinessProcess[], drills: BcpDrill[]) => {
+ try {
  // 1. Calculate Metrics
  const totalProcesses = processes.length;
  const criticalProcesses = processes.filter(p => p.priority === 'Critique').length;
@@ -87,7 +90,7 @@ Le programme d'exercices affiche un taux de succès de ${drillSuccessRate}%. ${d
   styles: { fontSize: 9 },
   margin: { left: marginLeft, right: marginRight, bottom: bottomMargin }
  });
- currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
+ currentY = (doc as unknown as AutoTableJsPDF).lastAutoTable.finalY + 15;
  } else {
  doc.setFontSize(10);
  doc.setTextColor('#64748B');
@@ -110,8 +113,12 @@ Le programme d'exercices affiche un taux de succès de ${drillSuccessRate}%. ${d
  doc.text("Exercices & Tests de Continuité", marginLeft, currentY);
 
  // Draw Donut Chart to the RIGHT of the title (properly positioned)
- const donutRadius = 18;
- const donutX = pageWidth - marginRight - donutRadius * 2 - 30; // Position from right edge
+ // Layout assumptions: The donut chart is placed in the top-right area of
+ // the drills section. The drills table below reduces its width by
+ // (DONUT_RADIUS * 2 + 40) to avoid overlapping with the chart.
+ // If the donut radius changes, the table margin must be updated accordingly.
+ const DONUT_RADIUS = 18;
+ const donutX = pageWidth - marginRight - DONUT_RADIUS * 2 - 30; // Position from right edge
  const donutY = currentY + 5; // Below title line
 
  if (drills.length > 0) {
@@ -119,7 +126,7 @@ Le programme d'exercices affiche un taux de succès de ${drillSuccessRate}%. ${d
   doc,
   donutX,
   donutY,
-  donutRadius,
+  DONUT_RADIUS,
   [
   { label: 'Succès', value: successfulDrills, color: '#10B981' },
   { label: 'Échec', value: drills.length - successfulDrills, color: '#EF4444' }
@@ -147,8 +154,8 @@ Le programme d'exercices affiche un taux de succès de ${drillSuccessRate}%. ${d
   headStyles: { fillColor: '#10B981', textColor: '#FFFFFF' },
   theme: 'striped',
   styles: { fontSize: 9 },
-  tableWidth: contentWidth - (donutRadius * 2 + 40), // Reduce width to avoid donut
-  margin: { left: marginLeft, right: marginRight + donutRadius * 2 + 40, bottom: bottomMargin }
+  tableWidth: contentWidth - (DONUT_RADIUS * 2 + 40), // Reduce width to avoid donut
+  margin: { left: marginLeft, right: marginRight + DONUT_RADIUS * 2 + 40, bottom: bottomMargin }
  });
  } else {
  doc.setFontSize(10);
@@ -158,4 +165,8 @@ Le programme d'exercices affiche un taux de succès de ${drillSuccessRate}%. ${d
  }
  }
  );
+ } catch (error) {
+ ErrorLogger.error('Failed to generate continuity report', 'pdfGenerator', { error });
+ throw error;
+ }
 };

@@ -189,7 +189,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
    <div key={`risk-${i || 'unknown'}`} className="bg-muted/50 p-3 rounded-lg border border-border/40 dark:border-white/5">
    <div className="flex justify-between items-center mb-1">
    <span className="font-bold text-foreground">{c.title}</span>
-   <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold uppercase ${c.importance === 'High' ? 'bg-error/10 text-error' : 'bg-info/10 text-info'}`}>{c.importance}</span>
+   <span className={`text-xs px-2 py-0.5 rounded-full font-bold uppercase ${c.importance === 'High' ? 'bg-error/10 text-error' : 'bg-info/10 text-info'}`}>{c.importance}</span>
    </div>
    <p className="text-xs text-muted-foreground">{c.description}</p>
    </div>

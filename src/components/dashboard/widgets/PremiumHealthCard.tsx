@@ -176,7 +176,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                                 <span className="text-3xl font-black text-foreground">
                                     {effectiveCompliance}%
                                 </span>
-                                <span className="text-[11px] text-muted-foreground uppercase tracking-wider">
+                                <span className="text-xs text-muted-foreground uppercase tracking-wider">
                                     Conformité
                                 </span>
                             </div>
@@ -204,7 +204,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                             <div className="text-2xl font-black text-foreground">
                                 {stats.totalRisks}
                             </div>
-                            <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
+                            <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                                 Risques
                             </div>
                             {stats.criticalRisks > 0 && (
@@ -213,7 +213,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                                         <span className="animate-ping absolute h-2 w-2 rounded-full bg-destructive/75 opacity-75"></span>
                                         <span className="relative rounded-full h-2 w-2 bg-destructive"></span>
                                     </span>
-                                    <span className="text-[11px] text-destructive font-bold">
+                                    <span className="text-xs text-destructive font-bold">
                                         {stats.criticalRisks} critiques
                                     </span>
                                 </div>
@@ -252,7 +252,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                             )}>
                                 {activeIncidentsCount}
                             </div>
-                            <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
+                            <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                                 Incidents Actifs
                             </div>
                             {activeIncidentsCount > 0 && (
@@ -261,7 +261,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                                         <span className="animate-ping absolute h-2 w-2 rounded-full bg-destructive/75 opacity-75"></span>
                                         <span className="relative rounded-full h-2 w-2 bg-destructive"></span>
                                     </span>
-                                    <span className="text-[11px] text-destructive font-bold">
+                                    <span className="text-xs text-destructive font-bold">
                                         Action requise
                                     </span>
                                 </div>
@@ -269,7 +269,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                             {activeIncidentsCount === 0 && (
                                 <div className="mt-2 flex items-center gap-1.5">
                                     <span className="rounded-full h-2 w-2 bg-success"></span>
-                                    <span className="text-[11px] text-success font-bold">
+                                    <span className="text-xs text-success font-bold">
                                         Aucun incident
                                     </span>
                                 </div>
@@ -291,10 +291,10 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                             <div className="text-2xl font-black text-foreground truncate" title={new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: 'EUR' }).format(stats.financialRisk)}>
                                 {new Intl.NumberFormat(config.intlLocale, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0, notation: "compact" }).format(stats.financialRisk)}
                             </div>
-                            <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
+                            <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                                 Exposition
                             </div>
-                            <div className="mt-2 text-[11px] text-info-text font-medium">
+                            <div className="mt-2 text-xs text-info-text font-medium">
                                 Estimation basée sur les risques
                             </div>
                             <div className="mt-1 h-1 bg-muted rounded-full overflow-hidden">
@@ -319,7 +319,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                                 </span>
                                 <div className="flex items-center gap-3">
                                     {riskDistribution.map((item) => (
-                                        <div key={item.name || 'unknown'} className="flex items-center gap-1.5 text-[11px]">
+                                        <div key={item.name || 'unknown'} className="flex items-center gap-1.5 text-xs">
                                             <div
                                                 className="w-2 h-2 rounded-full"
                                                 style={{ backgroundColor: item.fill }}

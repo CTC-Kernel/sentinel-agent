@@ -101,7 +101,7 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
   <div className="flex flex-col items-center p-3 bg-success-bg/80 dark:bg-success/10 rounded-2xl border border-success-border dark:border-success/20">
    <CheckCircle2 className="h-5 w-5 text-success-text dark:text-success mb-1" />
    <span className="text-lg font-black text-success-text dark:text-success">{activeAgents}</span>
-   <span className="text-[11px] font-semibold text-success-text/70 dark:text-success/70 uppercase tracking-wide">
+   <span className="text-xs font-semibold text-success-text/70 dark:text-success/70 uppercase tracking-wide">
    {t('agents.status.active')}
    </span>
   </div>
@@ -111,7 +111,7 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
   <div className="flex flex-col items-center p-3 bg-warning-bg/80 dark:bg-warning/10 rounded-2xl border border-warning-border dark:border-warning/20">
    <WifiOff className="h-5 w-5 text-warning-text dark:text-warning mb-1" />
    <span className="text-lg font-black text-warning-text dark:text-warning">{offlineAgents}</span>
-   <span className="text-[11px] font-semibold text-warning-text/70 dark:text-warning/70 uppercase tracking-wide">
+   <span className="text-xs font-semibold text-warning-text/70 dark:text-warning/70 uppercase tracking-wide">
    {t('agents.status.offline')}
    </span>
   </div>
@@ -121,7 +121,7 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
   <div className="flex flex-col items-center p-3 bg-error-bg/80 dark:bg-error/10 rounded-2xl border border-error-border dark:border-error/20">
    <AlertTriangle className="h-5 w-5 text-error-text dark:text-error mb-1" />
    <span className="text-lg font-black text-error-text dark:text-error">{errorAgents}</span>
-   <span className="text-[11px] font-semibold text-error-text/70 dark:text-error/70 uppercase tracking-wide">
+   <span className="text-xs font-semibold text-error-text/70 dark:text-error/70 uppercase tracking-wide">
    {t('agents.status.error')}
    </span>
   </div>
@@ -193,7 +193,7 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
    <span className="text-sm font-semibold text-foreground block truncate">
    {agent.name || agent.hostname || agent.id}
    </span>
-   <span className="text-[11px] text-muted-foreground uppercase">
+   <span className="text-xs text-muted-foreground uppercase">
    {agent.os === 'windows' ? 'Windows' : agent.os === 'darwin' ? 'macOS' : 'Linux'}
    {agent.osVersion && ` ${agent.osVersion}`}
    </span>

@@ -237,7 +237,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                             <span className={`text-2xl font-black bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent mb-1`}>
                                 {item.value}
                             </span>
-                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{item.label}</span>
+                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{item.label}</span>
                         </div>
                     ))}
                 </motion.div>
@@ -407,7 +407,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                                                 Score {risk.score}
                                             </span>
                                         </div>
-                                        <span className="text-[11px] text-muted-foreground">
+                                        <span className="text-xs text-muted-foreground">
                                             {risk.treatmentDeadline ? new Date(risk.treatmentDeadline).toLocaleDateString() : t('risks.treatment.noDeadline', { defaultValue: 'Pas d\'échéance' })}
                                         </span>
                                     </div>
@@ -417,7 +417,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                                     <p className="text-xs text-muted-foreground mb-3 line-clamp-1">{risk.category || 'Général'}</p>
 
                                     <div className="mt-auto pt-3 border-t border-border/50 flex justify-between items-center">
-                                        <span className={`text-[11px] uppercase font-bold px-2 py-1 rounded-md
+                                        <span className={`text-xs uppercase font-bold px-2 py-1 rounded-md
    ${risk.strategy === RiskStrategy.MITIGATE ? 'bg-info-bg text-info-text' :
                                                 risk.strategy === RiskStrategy.TRANSFER ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/20 dark:text-violet-400' :
                                                     risk.strategy === RiskStrategy.AVOID ? 'bg-success-bg text-success-text' :
@@ -426,7 +426,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                                             {risk.strategy || t('common.unknown', { defaultValue: 'Non défini' })}
                                         </span>
                                         {risk.residualScore !== undefined && (
-                                            <span className="text-[11px] text-muted-foreground">
+                                            <span className="text-xs text-muted-foreground">
                                                 Résiduel: <span className="font-bold text-foreground">{risk.residualScore}</span>
                                             </span>
                                         )}

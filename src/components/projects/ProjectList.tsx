@@ -67,7 +67,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
  header: t('projects.columns.name'),
  cell: ({ row }) => (
  <div>
-  <div className="font-bold text-foreground text-[15px]">{row.original.name}</div>
+  <div className="font-bold text-foreground text-base">{row.original.name}</div>
   <div className="text-xs text-muted-foreground font-medium line-clamp-1">{row.original.description}</div>
  </div>
  )
@@ -135,7 +135,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
   </CustomTooltip>
   ))}
   {remaining > 0 && (
-  <div className="w-6 h-6 rounded-full bg-muted border-2 border-white flex items-center justify-center text-[11px] font-bold text-muted-foreground">
+  <div className="w-6 h-6 rounded-full bg-muted border-2 border-white flex items-center justify-center text-xs font-bold text-muted-foreground">
   +{remaining}
   </div>
   )}

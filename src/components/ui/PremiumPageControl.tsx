@@ -115,7 +115,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
    key={option.id || 'unknown'}
    onClick={() => onViewChange(option.id)}
    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-300 ${activeView === option.id
-   ? 'bg-white text-foreground shadow-sm dark:text-white font-bold'
+   ? 'bg-card text-foreground shadow-sm dark:bg-muted dark:text-foreground font-bold'
    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted'
    }`}
    title={option.label}
@@ -134,7 +134,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
   <button
   onClick={() => onViewModeChange?.('list')}
   className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'list'
-   ? 'bg-white text-primary shadow-sm dark:text-primary/70'
+   ? 'bg-card text-foreground shadow-sm dark:bg-muted dark:text-foreground'
    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted'
    }`}
   title={t('ui.pageControl.viewList', { defaultValue: 'Vue Liste' })}
@@ -144,7 +144,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
   <button
   onClick={() => onViewModeChange?.('grid')}
   className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'grid'
-   ? 'bg-white text-primary shadow-sm dark:text-primary/70'
+   ? 'bg-card text-foreground shadow-sm dark:bg-muted dark:text-foreground'
    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted'
    }`}
   title={t('ui.pageControl.viewGrid', { defaultValue: 'Vue Grille' })}
@@ -154,7 +154,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
   <button
   onClick={() => onViewModeChange?.('matrix')}
   className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'matrix'
-   ? 'bg-white text-primary shadow-sm dark:text-primary/70'
+   ? 'bg-card text-foreground shadow-sm dark:bg-muted dark:text-foreground'
    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted'
    }`}
   title={t('ui.pageControl.viewMatrix', { defaultValue: 'Vue Matrice' })}
@@ -164,7 +164,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
   <button
   onClick={() => onViewModeChange?.('kanban')}
   className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'kanban'
-   ? 'bg-white text-primary shadow-sm dark:text-primary/70'
+   ? 'bg-card text-foreground shadow-sm dark:bg-muted dark:text-foreground'
    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted'
    }`}
   title={t('ui.pageControl.viewKanban', { defaultValue: 'Vue Kanban' })}

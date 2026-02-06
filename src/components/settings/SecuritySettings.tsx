@@ -192,7 +192,7 @@ export const SecuritySettings: React.FC = () => {
    <div className="bg-white p-2 rounded-3xl border border-border/40 shadow-lg">
    <img src={qrCodeUrl} alt="QR Code" className="w-32 h-32 sm:w-40 sm:h-40 mix-blend-multiply" />
    </div>
-   <p className="text-[11px] text-muted-foreground mt-4 text-center max-w-[200px]">Utilisez Google Authenticator ou Authy</p>
+   <p className="text-xs text-muted-foreground mt-4 text-center max-w-[200px]">Utilisez Google Authenticator ou Authy</p>
   </div>
   )}
 

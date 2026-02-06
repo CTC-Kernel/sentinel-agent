@@ -425,15 +425,15 @@ export const AnalyticsDashboard: React.FC = () => {
   <div className="mt-6 grid grid-cols-3 gap-4 text-center">
   <div className="p-3 rounded-2xl bg-success-bg border border-success-border">
   <p className="text-2xl font-bold text-success">{controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length}</p>
-  <p className="text-[11px] font-bold uppercase tracking-wider text-success/70 mt-1">{t('dashboard.implemented', { defaultValue: 'Implémentés' })}</p>
+  <p className="text-xs font-bold uppercase tracking-wider text-success/70 mt-1">{t('dashboard.implemented', { defaultValue: 'Implémentés' })}</p>
   </div>
   <div className="p-3 rounded-2xl bg-warning-bg border border-warning-border">
   <p className="text-2xl font-bold text-warning">{controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length}</p>
-  <p className="text-[11px] font-bold uppercase tracking-wider text-warning/70 mt-1">{t('dashboard.partial', { defaultValue: 'Partiels' })}</p>
+  <p className="text-xs font-bold uppercase tracking-wider text-warning/70 mt-1">{t('dashboard.partial', { defaultValue: 'Partiels' })}</p>
   </div>
   <div className="p-3 rounded-2xl bg-muted/50 border border-border/40">
   <p className="text-2xl font-bold text-foreground">{controls.filter(c => c.status === CONTROL_STATUS.NOT_STARTED).length}</p>
-  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mt-1">{t('dashboard.notStarted', { defaultValue: 'Non commencés' })}</p>
+  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mt-1">{t('dashboard.notStarted', { defaultValue: 'Non commencés' })}</p>
   </div>
   </div>
   </div>

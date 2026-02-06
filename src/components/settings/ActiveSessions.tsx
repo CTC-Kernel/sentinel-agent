@@ -107,7 +107,7 @@ export const ActiveSessions: React.FC = () => {
   <div className="flex items-center gap-2">
    <h4 className="text-sm font-bold text-foreground">{session.device}</h4>
    {session.isCurrent && (
-   <span className="px-2 py-0.5 bg-success-100 text-success-700 dark:bg-success-500/20 dark:text-success-300 text-[11px] font-bold uppercase tracking-wide rounded-full">
+   <span className="px-2 py-0.5 bg-success-100 text-success-700 dark:bg-success-500/20 dark:text-success-300 text-xs font-bold uppercase tracking-wide rounded-full">
    {t('settings.thisDevice') || "Cet appareil"}
    </span>
    )}
@@ -121,7 +121,7 @@ export const ActiveSessions: React.FC = () => {
    <span>•</span>
    <span className="font-mono opacity-70">{session.ip}</span>
   </div>
-  <div className="flex items-center gap-1 mt-1.5 text-[11px] font-medium text-muted-foreground">
+  <div className="flex items-center gap-1 mt-1.5 text-xs font-medium text-muted-foreground">
    <Clock className="w-3 h-3" />
    {session.isCurrent ? (t('settings.onlineNow') || 'En ligne maintenant') : `${t('settings.lastActive') || 'Dernière activité'} : ${format(session.lastActive, "d MMM à HH:mm", { locale: dateFnsLocale })}`}
   </div>

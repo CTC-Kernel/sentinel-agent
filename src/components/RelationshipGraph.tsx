@@ -65,7 +65,7 @@ export const RelationshipGraph = React.memo<RelationshipGraphProps>(({ rootId, r
   <text
   y={node.type === rootType ? 45 : 35}
   textAnchor="middle"
-  className="text-[11px] font-bold fill-muted-foreground pointer-events-none uppercase tracking-wider"
+  className="text-xs font-bold fill-muted-foreground pointer-events-none uppercase tracking-wider"
   >
   {node.label.length > 15 ? node.label.substring(0, 15) + '...' : node.label}
   </text>

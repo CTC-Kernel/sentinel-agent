@@ -232,7 +232,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
   {point.averageScore.toFixed(1)}%
   </div>
   </div>
-  <span className="text-[11px] text-muted-foreground">
+  <span className="text-xs text-muted-foreground">
   {date.toLocaleDateString(config.intlLocale, { day: '2-digit', month: 'short' })}
   </span>
   </div>

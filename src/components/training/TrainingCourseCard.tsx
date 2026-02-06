@@ -154,7 +154,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
  {course.isRequired && (
  <div className="absolute -top-2 -right-2 z-decorator">
  <Tooltip content={t('training.course.isRequired')}>
- <div className="px-2 py-0.5 rounded-full bg-error-bg text-error-text text-[11px] font-bold uppercase tracking-wider border border-error-border/50 shadow-sm">
+ <div className="px-2 py-0.5 rounded-full bg-error-bg text-error-text text-xs font-bold uppercase tracking-wider border border-error-border/50 shadow-sm">
  {t('common.required') || 'Obligatoire'}
  </div>
  </Tooltip>
@@ -265,7 +265,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
  <Clock className="w-3.5 h-3.5" />
  <span>{formatDuration(course.duration)}</span>
  </div>
- <div className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider border ${sourceConfig.color}`}>
+ <div className={`px-2 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider border ${sourceConfig.color}`}>
  {sourceConfig.label}
  </div>
  </div>
@@ -276,7 +276,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
  {frameworkBadges.map((badge) => (
  <span
  key={badge.label || 'unknown'}
- className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider border ${badge.color}`}
+ className={`px-2 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider border ${badge.color}`}
  >
  {badge.label}
  </span>

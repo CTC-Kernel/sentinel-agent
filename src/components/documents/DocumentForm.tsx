@@ -374,7 +374,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
    type="checkbox"
    className="rounded text-primary focus-visible:ring-primary"
    />
-   <span className="text-[11px] font-bold text-muted-foreground">{t('documents.form.secure', { defaultValue: 'Sécurisé' })}</span>
+   <span className="text-xs font-bold text-muted-foreground">{t('documents.form.secure', { defaultValue: 'Sécurisé' })}</span>
    </label>
    <button type="button" onClick={() => { setUploadedFileUrl(''); setUploadedFileHash(''); }} className="text-destructive hover:text-destructive/80"><Trash2 className="h-4 w-4" /></button>
    </div>

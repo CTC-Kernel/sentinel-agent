@@ -307,7 +307,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
   )}
  >
   <div className="text-right">
-  <span className="text-[11px] opacity-80 block uppercase tracking-wider font-medium text-white">{t('common.next')}</span>
+  <span className="text-xs opacity-80 block uppercase tracking-wider font-medium text-white">{t('common.next')}</span>
   <span className="hidden sm:block">{currentWorkshop < 5 ? WORKSHOP_INFO[(currentWorkshop + 1) as EbiosWorkshopNumber].shortName[locale] : t('ebios.nextWorkshop')}</span>
   </div>
   <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />

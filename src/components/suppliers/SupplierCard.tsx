@@ -52,7 +52,7 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
   <div className="p-3 bg-muted rounded-2xl text-muted-foreground shadow-inner group-hover:bg-primary/10 dark:group-hover:bg-primary/10 group-hover:text-primary transition-colors">
   {supplier.category === 'Matériel' ? <Truck className="h-6 w-6" /> : <Building className="h-6 w-6" />}
   </div>
-  <span className={`px-3 py-1 rounded-lg text-[11px] font-bold uppercase border shadow-sm ${getCriticalityColor(supplier.criticality || Criticality.MEDIUM)}`}>
+  <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase border shadow-sm ${getCriticalityColor(supplier.criticality || Criticality.MEDIUM)}`}>
   {supplier.criticality}
   </span>
  </div>

@@ -60,7 +60,7 @@ export const SentinelAssistant: React.FC = () => {
   <div className="z-decorator">
   <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
   Sentinel-Core AI
-  <span className="px-2 py-0.5 rounded-full bg-primary/15 dark:bg-primary text-primary dark:text-primary/50 text-[11px] border border-primary/30 dark:border-primary/90 font-bold">BETA</span>
+  <span className="px-2 py-0.5 rounded-full bg-primary/15 dark:bg-primary text-primary dark:text-primary/50 text-xs border border-primary/30 dark:border-primary/90 font-bold">BETA</span>
   </h2>
   <div className="flex items-center gap-2">
   <span className="relative flex h-2 w-2">
@@ -114,11 +114,11 @@ export const SentinelAssistant: React.FC = () => {
  <div className="mt-10 pt-6 border-t border-border/40 flex justify-between items-center opacity-70 hover:opacity-70 transition-opacity">
   <div className="flex items-center gap-2" title={t('auth.secNumCloudTitle', { defaultValue: 'Hebergement certifie SecNumCloud' })}>
   <Globe className="w-4 h-4 text-primary" />
-  <span className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold">SecNumCloud Ready</span>
+  <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">SecNumCloud Ready</span>
   </div>
   <div className="flex items-center gap-2" title={t('auth.encryptionTitle', { defaultValue: 'Chiffrement de bout en bout' })}>
   <Lock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-  <span className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold">End-To-End Encrypted</span>
+  <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">End-To-End Encrypted</span>
   </div>
  </div>
 

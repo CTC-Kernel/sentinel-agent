@@ -828,7 +828,7 @@ export const Onboarding: React.FC = () => {
     <div className="flex flex-col">
     <span className="font-bold text-foreground dark:text-white">{fw.name}</span>
     {fw.isMandatory && (
-    <span className="text-[11px] font-bold text-warning uppercase tracking-wider">
+    <span className="text-xs font-bold text-warning uppercase tracking-wider">
     {t('common.mandatory') || 'Obligatoire'}
     </span>
     )}
@@ -908,7 +908,7 @@ export const Onboarding: React.FC = () => {
     </div>
     <div className="flex flex-col">
     <span className="font-medium text-foreground text-sm">{userInvite.email}</span>
-    <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold">{userInvite.role}</span>
+    <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">{userInvite.role}</span>
     </div>
     </div>
     <Button variant="ghost" size="icon" aria-label="Retirer l'invitation" onClick={() => handleRemoveInvite(userInvite.email)} className="text-muted-foreground hover:text-destructive transition-colors">
@@ -1030,7 +1030,7 @@ export const Onboarding: React.FC = () => {
     </div>
     <div className="flex flex-col">
     <span className="font-medium text-foreground text-sm">{asset.name}</span>
-    <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold">{asset.type}</span>
+    <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">{asset.type}</span>
     </div>
     </div>
     <Button variant="ghost" size="icon" onClick={() => handleRemoveAsset(i)} aria-label="Supprimer l'actif" className="text-muted-foreground hover:text-destructive transition-colors">

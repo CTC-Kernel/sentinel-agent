@@ -113,8 +113,8 @@ export const ProjectTasksWidget: React.FC<ProjectTasksWidgetProps> = ({ navigate
   <div className="flex-1 min-w-0">
   <p className="text-sm font-medium truncate text-foreground group-hover:text-primary transition-colors">{project.name}</p>
   <div className="flex items-center gap-2 mt-0.5">
-   {isOverdue && <span className="text-[11px] font-bold text-error-text dark:text-error bg-error-bg dark:bg-error/10 px-1.5 py-0.5 rounded">En retard</span>}
-   <span className="text-[11px] text-muted-foreground">
+   {isOverdue && <span className="text-xs font-bold text-error-text dark:text-error bg-error-bg dark:bg-error/10 px-1.5 py-0.5 rounded">En retard</span>}
+   <span className="text-xs text-muted-foreground">
    {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'Sans date'}
    </span>
   </div>

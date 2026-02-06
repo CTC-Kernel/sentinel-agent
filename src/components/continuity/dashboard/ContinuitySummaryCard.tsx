@@ -95,28 +95,28 @@ export const ContinuitySummaryCard: React.FC<ContinuitySummaryCardProps> = ({ pr
  <button type="button" onClick={() => navigate('/continuity?tab=drills')} className="text-center group/metric cursor-pointer hover:shadow-md transition-all rounded-2xl p-2">
   <div className="flex items-center justify-center gap-2 mb-2">
   <History className="h-4 w-4 text-muted-foreground group-hover/metric:text-amber-500 transition-colors" />
-  <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest font-mono">Expirés</div>
+  <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest font-mono">Expirés</div>
   </div>
   <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.overdueTests}</div>
  </button>
  <button type="button" onClick={() => navigate('/continuity?tab=bia')} className="text-center group/metric cursor-pointer hover:shadow-md transition-all rounded-2xl p-2">
   <div className="flex items-center justify-center gap-2 mb-2">
   <Activity className="h-4 w-4 text-muted-foreground group-hover/metric:text-primary transition-colors" />
-  <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest font-mono">Processus</div>
+  <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest font-mono">Processus</div>
   </div>
   <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.total}</div>
  </button>
  <button type="button" onClick={() => navigate('/continuity?tab=bia')} className="text-center group/metric cursor-pointer hover:shadow-md transition-all rounded-2xl p-2">
   <div className="flex items-center justify-center gap-2 mb-2">
   <ShieldCheck className="h-4 w-4 text-muted-foreground group-hover/metric:text-rose-500 transition-colors" />
-  <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest font-mono">Critiques</div>
+  <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest font-mono">Critiques</div>
   </div>
   <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.critical}</div>
  </button>
  <button type="button" onClick={() => navigate('/continuity?tab=drills')} className="text-center group/metric cursor-pointer hover:shadow-md transition-all rounded-2xl p-2">
   <div className="flex items-center justify-center gap-2 mb-2">
   <Zap className="h-4 w-4 text-muted-foreground group-hover/metric:text-blue-500 transition-colors" />
-  <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest font-mono">Exercices</div>
+  <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest font-mono">Exercices</div>
   </div>
   <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.totalDrills}</div>
  </button>
@@ -127,12 +127,12 @@ export const ContinuitySummaryCard: React.FC<ContinuitySummaryCardProps> = ({ pr
  <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/10 rounded-3xl border border-emerald-100 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/20 transition-colors cursor-default mb-2">
   <div className="flex items-center gap-2">
   <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-  <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide font-mono">Succès Drills</span>
+  <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide font-mono">Succès Drills</span>
   </div>
  </div>
  <div className="text-center">
   <div className="text-3xl font-black text-foreground">{stats.successRate}%</div>
-  <div className="text-[11px] text-muted-foreground uppercase tracking-wide">Taux de réussite</div>
+  <div className="text-xs text-muted-foreground uppercase tracking-wide">Taux de réussite</div>
  </div>
  </div>
  </div>

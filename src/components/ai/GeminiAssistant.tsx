@@ -206,7 +206,7 @@ export const GeminiAssistant: React.FC = () => {
                 </div>
 
                 {/* High-Tech Status Label */}
-                <div className="absolute right-full mr-6 top-1/2 -translate-y-1/2 px-4 py-2 bg-card backdrop-blur border border-white/20 text-white text-[11px] font-mono tracking-widest uppercase rounded-lg opacity-0 group-hover:opacity-70 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 shadow-2xl flex items-center gap-3">
+                <div className="absolute right-full mr-6 top-1/2 -translate-y-1/2 px-4 py-2 bg-card backdrop-blur border border-white/20 text-white text-xs font-mono tracking-widest uppercase rounded-lg opacity-0 group-hover:opacity-70 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 shadow-2xl flex items-center gap-3">
                     <span className="relative flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
@@ -235,7 +235,7 @@ export const GeminiAssistant: React.FC = () => {
                     </div>
                     <div>
                         <h3 className="font-bold text-foreground text-sm">Sentinel AI</h3>
-                        <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
+                        <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
@@ -292,7 +292,7 @@ export const GeminiAssistant: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => setIsLoading(false)}
-                                className="ml-2 text-[11px] font-medium text-muted-foreground hover:text-destructive transition-colors"
+                                className="ml-2 text-xs font-medium text-muted-foreground hover:text-destructive transition-colors"
                                 aria-label={t('common.cancel', { defaultValue: 'Annuler' })}
                             >
                                 <X className="h-3.5 w-3.5" />
@@ -343,7 +343,7 @@ export const GeminiAssistant: React.FC = () => {
                             {isLoading ? (
                                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                             ) : (
-                                <div className="text-[11px] font-bold text-muted-foreground border border-border/40 rounded px-1.5 py-0.5 pointer-events-none">
+                                <div className="text-xs font-bold text-muted-foreground border border-border/40 rounded px-1.5 py-0.5 pointer-events-none">
                                     ⏎
                                 </div>
                             )}
@@ -363,7 +363,7 @@ export const GeminiAssistant: React.FC = () => {
                         <Send className="h-5 w-5" />
                     </button>
                 </div>
-                <p className="text-[11px] text-center text-muted-foreground mt-3 flex items-center justify-center gap-1.5 opacity-60">
+                <p className="text-xs text-center text-muted-foreground mt-3 flex items-center justify-center gap-1.5 opacity-60">
                     <Sparkles className="h-3 w-3" /> Propulsé par Cyber Threat Consulting
                 </p>
             </form>

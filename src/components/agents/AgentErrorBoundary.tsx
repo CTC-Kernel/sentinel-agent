@@ -45,7 +45,7 @@ export class AgentErrorBoundary extends Component<Props, State> {
   <p className="text-sm font-medium text-red-600 dark:text-red-400">
   {this.props.fallbackMessage ?? i18n.t('agent.componentError', { defaultValue: 'Ce composant a rencontré une erreur.' })}
   </p>
-  <p className="text-[11px] text-red-400/70 dark:text-red-500/50 mt-1 font-mono">
+  <p className="text-xs text-red-400/70 dark:text-red-500/50 mt-1 font-mono">
   {i18n.t('agent.errorRef', { defaultValue: 'Réf :' })} {errorId}
   </p>
   <div className="flex items-center gap-3 mt-3">

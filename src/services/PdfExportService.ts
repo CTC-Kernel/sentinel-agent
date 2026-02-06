@@ -1,4 +1,5 @@
 import { PdfService, ReportOptions } from '../services/PdfService';
+import { ErrorLogger } from '../services/errorLogger';
 
 export interface PdfExportOptions extends Omit<ReportOptions, 'watermark'> {
  planId?: string;
@@ -9,6 +10,8 @@ export interface PdfExportOptions extends Omit<ReportOptions, 'watermark'> {
  * Service helper pour gérer les exports PDF avec vérification des limites de plan
  */
 export class PdfExportService {
+ private static readonly DISCOVERY_PLAN_ID = 'discovery';
+
  /**
  * Generate PDF with automatic watermark based on plan
  */
@@ -16,7 +19,8 @@ export class PdfExportService {
  content: (options: ReportOptions) => Promise<void> | void,
  options: PdfExportOptions
  ): Promise<void> {
- const { planId = 'discovery', hasWhiteLabelReports = false, ...pdfOptions } = options;
+ try {
+ const { planId = PdfExportService.DISCOVERY_PLAN_ID, hasWhiteLabelReports = false, ...pdfOptions } = options;
  
  // Get watermark options based on plan
  const watermarkOptions = PdfService.getWatermarkOptions(planId, hasWhiteLabelReports);
@@ -29,13 +33,17 @@ export class PdfExportService {
 
  // Generate PDF with final options
  await content(finalOptions);
+ } catch (error) {
+ ErrorLogger.error('Failed to generate PDF with plan limits', 'PdfExportService', { error });
+ throw error;
+ }
  }
 
  /**
  * Check if export requires upgrade and get appropriate message
  */
  static getExportLimitInfo(planId: string, hasWhiteLabelReports: boolean) {
- const needsUpgrade = !hasWhiteLabelReports && planId === 'discovery';
+ const needsUpgrade = !hasWhiteLabelReports && planId === PdfExportService.DISCOVERY_PLAN_ID;
  
  return {
  needsUpgrade,

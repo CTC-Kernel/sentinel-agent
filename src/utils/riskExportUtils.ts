@@ -11,6 +11,7 @@ import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 import { format } from 'date-fns';
 import { getDateFnsLocale } from '../config/localeConfig';
 import { RISK_COLORS, STATUS_COLORS } from '../constants/colors';
+import { ErrorLogger } from '../services/errorLogger';
 
 interface RiskExportContext {
  risks: Risk[];
@@ -41,6 +42,7 @@ function getAssetName(assetId: string | undefined, assets: Asset[]): string {
  * Export risk register to Excel format
  */
 export async function exportRisksToExcel(context: RiskExportContext): Promise<void> {
+ try {
  const { risks, assets, users, organizationName } = context;
 
  const exportData = risks.map(risk => ({
@@ -87,12 +89,17 @@ export async function exportRisksToExcel(context: RiskExportContext): Promise<vo
  }
  ]
  });
+ } catch (error) {
+ ErrorLogger.error('Failed to export risks to Excel', 'riskExportUtils', { error });
+ throw error;
+ }
 }
 
 /**
  * Export risk register to PDF format
  */
 export function exportRisksToPdf(context: RiskExportContext): void {
+ try {
  const { risks, organizationName } = context;
 
  const doc = PdfService.generateRiskExecutiveReport(
@@ -103,12 +110,16 @@ export function exportRisksToPdf(context: RiskExportContext): void {
  orientation: 'landscape',
  filename: `Registre_Risques_${format(new Date(), 'yyyy-MM-dd')}`,
  organizationName,
- autoDownload: true
+ autoDownload: false
  }
  );
 
  // Save the PDF
  doc.save(`Registre_Risques_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+ } catch (error) {
+ ErrorLogger.error('Failed to export risks to PDF', 'riskExportUtils', { error });
+ throw error;
+ }
 }
 
 /**
@@ -128,6 +139,8 @@ export function getRiskSummaryStats(risks: Risk[]): {
  { label: 'Faible', count: risks.filter(r => r.score < RISK_THRESHOLDS.MEDIUM).length, color: STATUS_COLORS.success }
  ];
 
+ // Risk status strings must match the status values defined in the Risk type (src/types/index.ts)
+ // Source of truth: 'Ouvert' | 'En cours' | 'En attente de validation' | 'Fermé'
  const byStatus = [
  { label: 'Ouvert', count: risks.filter(r => r.status === 'Ouvert').length },
  { label: 'En cours', count: risks.filter(r => r.status === 'En cours').length },

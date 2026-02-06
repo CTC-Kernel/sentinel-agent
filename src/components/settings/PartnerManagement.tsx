@@ -218,7 +218,7 @@ export const PartnerManagement: React.FC = () => {
    {partner.tenantName || partner.contactEmail}
    </h4>
    <div className="flex items-center gap-2 mt-1">
-   <span className={`text-[11px] uppercase font-bold px-2 py-0.5 rounded-full ${partner.status === 'ACTIVE'
+   <span className={`text-xs uppercase font-bold px-2 py-0.5 rounded-full ${partner.status === 'ACTIVE'
    ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
    : 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'
    }`}>

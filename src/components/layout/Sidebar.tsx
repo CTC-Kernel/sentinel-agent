@@ -8,7 +8,7 @@ import {
     Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse,
     LogOut, Box, ChevronRight, Database, Calendar, Loader2, Bug, Globe,
     Scale, Shield, Printer, LucideIcon, RefreshCcw, X, Bot, GraduationCap,
-    UserCheck, Info,
+    UserCheck, Info, Landmark, CalendarCheck, Award, BookOpen,
 } from '../ui/Icons';
 import { LegalModal } from '../ui/LegalModal';
 import { Button } from '../ui/button';
@@ -111,6 +111,10 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                 { key: 'audits', name: t('sidebar.audits'), to: '/audits', icon: Activity, resource: 'Audit' },
                 { key: 'training', name: t('sidebar.training'), to: '/training', icon: GraduationCap, resource: 'User' }, // NIS2 Art. 21.2(g)
                 { key: 'access-review', name: t('sidebar.accessReview'), to: '/access-review', icon: UserCheck, resource: 'User', action: 'manage' }, // NIS2 Art. 21.2(i)
+                { key: 'governance', name: t('sidebar.governance', { defaultValue: 'Gouvernance' }), to: '/governance', icon: Landmark, resource: 'Risk' }, // Board governance
+                { key: 'regulatory-changes', name: t('sidebar.regulatoryChanges', { defaultValue: 'Veille Reglementaire' }), to: '/regulatory-changes', icon: BookOpen, resource: 'Audit' },
+                { key: 'compliance-calendar', name: t('sidebar.complianceCalendar', { defaultValue: 'Calendrier Conformite' }), to: '/compliance-calendar', icon: CalendarCheck, resource: 'Audit' },
+                { key: 'certifications', name: t('sidebar.certifications', { defaultValue: 'Certifications' }), to: '/certifications', icon: Award, resource: 'Audit' },
                 { key: 'continuity', name: t('sidebar.continuity'), to: '/continuity', icon: HeartPulse, resource: 'Risk' }, // BCP
                 { key: 'privacy', name: t('common.privacyGdpr'), to: '/privacy', icon: Fingerprint, resource: 'Document' }, // Privacy
             ]
@@ -242,7 +246,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                                         >
                                             {({ isActive }) => (
                                                 <>
-                                                    <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-all duration-300 ${isActive ? 'text-white bg-white/20 shadow-lg' : `${groupIconColor} group-hover:text-foreground`}`}>
+                                                    <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-all duration-300 ${isActive ? 'text-primary-foreground bg-primary-foreground/20 shadow-lg' : `${groupIconColor} group-hover:text-foreground`}`}>
                                                         <item.icon className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                                                     </span>
                                                     <span className="flex-1 truncate relative z-decorator">{item.name}</span>
@@ -278,7 +282,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                     >
                         {({ isActive }) => (
                             <>
-                                <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-all duration-300 ${isActive ? 'text-white bg-white/20 shadow-lg' : 'text-nav-support group-hover:text-foreground'}`}>
+                                <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-all duration-300 ${isActive ? 'text-primary-foreground bg-primary-foreground/20 shadow-lg' : 'text-nav-support group-hover:text-foreground'}`}>
                                     <HelpCircle className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                                 </span>
                                 <span className="flex-1 truncate relative z-decorator">{t('common.helpCenter')}</span>
@@ -295,7 +299,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                 </nav>
 
                 {/* User Settings & Logout */}
-                <div className="mt-auto pt-4 px-3 mx-3 mb-2 bg-white/5 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-border/40 space-y-1">
+                <div className="mt-auto pt-4 px-3 mx-3 mb-2 bg-muted/30 dark:bg-muted/30 backdrop-blur-md rounded-2xl border border-border/40 space-y-1">
                     <NavLink
                         to="/settings"
                         data-tour="settings"
@@ -306,7 +310,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                     >
                         {({ isActive }) => (
                             <>
-                                <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-all duration-300 ${isActive ? 'text-white bg-white/20 shadow-lg' : 'bg-muted text-muted-foreground group-hover:bg-background/80 group-hover:text-foreground'}`}>
+                                <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-all duration-300 ${isActive ? 'text-primary-foreground bg-primary-foreground/20 shadow-lg' : 'bg-muted text-muted-foreground group-hover:bg-background/80 group-hover:text-foreground'}`}>
                                     <Settings className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                                 </span>
                                 <span className="flex-1 relative z-decorator">{t('sidebar.settings')}</span>

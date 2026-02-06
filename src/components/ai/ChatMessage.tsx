@@ -79,13 +79,13 @@ const markdownComponents: Components = {
  return !inline && match ? (
  <div className="rounded-lg overflow-hidden my-3 shadow-md border border-border/40/50 group/code">
  <div className="flex items-center justify-between px-3 py-1.5 bg-muted border-b border-border/40/50">
-  <span className="text-[11px] font-mono font-medium text-muted-foreground uppercase tracking-widest">{match[1]}</span>
+  <span className="text-xs font-mono font-medium text-muted-foreground uppercase tracking-widest">{match[1]}</span>
   <button
   type="button"
   onClick={() => {
   navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
   }}
-  className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-primary dark:hover:text-primary/70 transition-colors opacity-70"
+  className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary dark:hover:text-primary/70 transition-colors opacity-70"
   aria-label="Copier le code"
   >
   <Copy className="h-3 w-3" />
@@ -106,7 +106,7 @@ const markdownComponents: Components = {
  ) : (
  <code
  className={cn(
-  "px-1.5 py-0.5 mx-0.5 rounded-md bg-muted/50 border border-border/40 font-mono text-[11px] font-medium text-violet-600 dark:text-violet-400",
+  "px-1.5 py-0.5 mx-0.5 rounded-md bg-muted/50 border border-border/40 font-mono text-xs font-medium text-violet-600 dark:text-violet-400",
   className
  )}
  >
@@ -173,7 +173,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onCopy, copie
  </div>
 
  <div className="flex flex-col gap-1 max-w-[85%]">
- <span className={cn("text-[11px] font-bold opacity-60 px-1", message.role === 'user' ? "text-right" : "text-left")}>
+ <span className={cn("text-xs font-bold opacity-60 px-1", message.role === 'user' ? "text-right" : "text-left")}>
   {message.role === 'user' ? 'Vous' : 'Sentinel AI'}
  </span>
 
@@ -210,7 +210,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onCopy, copie
    <button
    type="button"
    onClick={() => onCopy(message.content, message.id)}
-   className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-primary transition-colors"
+   className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
    aria-label="Copier la réponse"
    >
    {copiedId === message.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
@@ -236,7 +236,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onCopy, copie
   <div className="whitespace-pre-wrap">{message.content}</div>
   )}
  </div>
- <span className={cn("text-[11px] opacity-40 px-1", message.role === 'user' ? "text-right" : "text-left")}>
+ <span className={cn("text-xs opacity-40 px-1", message.role === 'user' ? "text-right" : "text-left")}>
   {message.timestamp instanceof Date
   ? message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   : ''}

@@ -172,11 +172,11 @@ const DockItem: React.FC<DockItemProps> = ({ icon: Icon, label, onClick, color, 
  <Icon className="h-7 w-7" />
  </div>
  {(badge || 0) > 0 && (
- <span className={`absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full ${badgeColors[color]} text-[11px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-slate-900`}>
+ <span className={`absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full ${badgeColors[color]} text-xs font-bold text-white shadow-sm ring-2 ring-white dark:ring-slate-900`}>
   {badge}
  </span>
  )}
- <span className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground bg-card px-2 py-1 rounded-full shadow-sm whitespace-nowrap z-tooltip pointer-events-none">
+ <span className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 text-xs font-bold uppercase tracking-wider text-muted-foreground bg-card px-2 py-1 rounded-full shadow-sm whitespace-nowrap z-tooltip pointer-events-none">
  {label}
  </span>
  <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-muted opacity-70 md:opacity-0 md:group-hover:opacity-70 transition-opacity" />

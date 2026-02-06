@@ -6,283 +6,286 @@
 import React, { useId, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
- RadialBarChart,
- RadialBar,
- ResponsiveContainer
+    RadialBarChart,
+    RadialBar,
+    ResponsiveContainer
 } from 'recharts';
 import { SENTINEL_PALETTE } from '../../theme/chartTheme';
 import { Control, Framework } from '../../types';
 import { CONTROL_STATUS, PARTIAL_CONTROL_WEIGHT } from '../../constants/complianceConfig';
 import {
- TrendingUp,
- CheckCircle2,
- AlertTriangle,
- Paperclip,
- ShieldCheck,
- Activity
+    TrendingUp,
+    CheckCircle2,
+    AlertTriangle,
+    Paperclip,
+    ShieldCheck,
+    Activity
 } from '../ui/Icons';
 import { cn } from '../../lib/utils';
 
+import { PremiumCard } from '../ui/PremiumCard';
+
 interface ComplianceStatsWidgetProps {
- controls: Control[];
- currentFramework: Framework;
+    controls: Control[];
+    currentFramework: Framework;
 }
 
 // Tech corner decoration
 const TechCorners: React.FC<{ className?: string }> = ({ className }) => (
- <div className={cn("pointer-events-none", className)}>
- <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary/40 rounded-tl-lg" />
- <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary/40 rounded-tr-lg" />
- <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-primary/40 rounded-bl-lg" />
- <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-primary/40 rounded-br-lg" />
- </div>
+    <div className={cn("pointer-events-none opacity-40", className)}>
+        <div className="absolute top-0 left-0 w-6 h-6 border-t border-l border-primary/60 rounded-tl-3xl" />
+        <div className="absolute top-0 right-0 w-6 h-6 border-t border-r border-primary/60 rounded-tr-3xl" />
+        <div className="absolute bottom-0 left-0 w-6 h-6 border-b border-l border-primary/60 rounded-bl-3xl" />
+        <div className="absolute bottom-0 right-0 w-6 h-6 border-b border-r border-primary/60 rounded-br-3xl" />
+    </div>
 );
 
 export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ controls, currentFramework }) => {
- const uid = useId();
- const complianceGlowId = `complianceGlow-${uid}`;
- const stats = useMemo(() => {
- const implementedControls = controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
- const partialControls = controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
- // Actionable = Not N/A and Not Excluded
- const actionableControls = controls.filter(c => c.status !== CONTROL_STATUS.NOT_APPLICABLE && c.status !== CONTROL_STATUS.EXCLUDED).length;
- const totalControls = controls.length;
+    const uid = useId();
+    const complianceGlowId = `complianceGlow-${uid}`;
+    const stats = useMemo(() => {
+        const implementedControls = controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
+        const partialControls = controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
+        // Actionable = Not N/A and Not Excluded
+        const actionableControls = controls.filter(c => c.status !== CONTROL_STATUS.NOT_APPLICABLE && c.status !== CONTROL_STATUS.EXCLUDED).length;
+        const totalControls = controls.length;
 
- // Global Score: Implemented (100%) + Partial (PARTIAL_CONTROL_WEIGHT) over Actionable
- const globalScore = actionableControls > 0
- ? Math.round(((implementedControls + (partialControls * PARTIAL_CONTROL_WEIGHT)) / actionableControls) * 100)
- : 100;
+        // Global Score: Implemented (100%) + Partial (PARTIAL_CONTROL_WEIGHT) over Actionable
+        const globalScore = actionableControls > 0
+            ? Math.round(((implementedControls + (partialControls * PARTIAL_CONTROL_WEIGHT)) / actionableControls) * 100)
+            : 100;
 
- const evidenceCount = controls.reduce((acc, curr) => acc + (curr.evidenceIds?.length || 0), 0);
+        const evidenceCount = controls.reduce((acc, curr) => acc + (curr.evidenceIds?.length || 0), 0);
 
- // Critical (or just missing evidence/high priority) - simplistic metric for now
- // Let's count "En cours" or "Non commencé" as 'In Progress/To Do'
- const todoControls = controls.filter(c => c.status === CONTROL_STATUS.NOT_STARTED || c.status === CONTROL_STATUS.IN_PROGRESS).length;
+        // Critical (or just missing evidence/high priority) - simplistic metric for now
+        // Let's count "En cours" or "Non commencé" as 'In Progress/To Do'
+        const todoControls = controls.filter(c => c.status === CONTROL_STATUS.NOT_STARTED || c.status === CONTROL_STATUS.IN_PROGRESS).length;
 
- return {
- totalControls,
- implementedControls,
- partialControls,
- actionableControls,
- globalScore,
- evidenceCount,
- todoControls
- };
- }, [controls]);
+        return {
+            totalControls,
+            implementedControls,
+            partialControls,
+            actionableControls,
+            globalScore,
+            evidenceCount,
+            todoControls
+        };
+    }, [controls]);
 
- // Gauge data
- const gaugeData = useMemo(() => [{
- name: 'Conformité',
- value: stats.globalScore,
- fill: stats.globalScore >= 80 ? SENTINEL_PALETTE.success :
- stats.globalScore >= 50 ? SENTINEL_PALETTE.warning : SENTINEL_PALETTE.danger
- }], [stats.globalScore]);
+    // Gauge data
+    const gaugeData = useMemo(() => [{
+        name: 'Conformité',
+        value: stats.globalScore,
+        fill: stats.globalScore >= 80 ? SENTINEL_PALETTE.success :
+            stats.globalScore >= 50 ? SENTINEL_PALETTE.warning : SENTINEL_PALETTE.danger
+    }], [stats.globalScore]);
 
- return (
- <motion.div
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- className="glass-premium p-6 rounded-4xl border border-border/40 relative overflow-hidden mb-6"
- >
- <TechCorners />
+    return (
+        <PremiumCard
+            glass
+            hover={false}
+            gradientOverlay
+            className="p-6 rounded-4xl relative overflow-hidden mb-6"
+        >
+            <TechCorners />
 
- {/* SVG Definitions */}
- <svg width="0" height="0" className="absolute">
- <defs>
-  <filter id={complianceGlowId} x="-50%" y="-50%" width="200%" height="200%">
-  <feGaussianBlur stdDeviation="4" result="coloredBlur" />
-  <feMerge>
-  <feMergeNode in="coloredBlur" />
-  <feMergeNode in="SourceGraphic" />
-  </feMerge>
-  </filter>
- </defs>
- </svg>
+            {/* SVG Definitions */}
+            <svg width="0" height="0" className="absolute">
+                <defs>
+                    <filter id={complianceGlowId} x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+                        <feMerge>
+                            <feMergeNode in="coloredBlur" />
+                            <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                    </filter>
+                </defs>
+            </svg>
 
- <div className="flex flex-col lg:flex-row lg:items-center gap-6">
- {/* Gauge Section */}
- <div className="flex-shrink-0 flex items-center gap-4">
-  <div className="relative w-32 h-32">
-  <ResponsiveContainer width="100%" height="100%" >
-  <RadialBarChart
-  cx="50%"
-  cy="50%"
-  innerRadius="70%"
-  outerRadius="100%"
-  barSize={10}
-  data={gaugeData}
-  startAngle={180}
-  endAngle={-180}
-  >
-  <RadialBar
-   background={{ fill: 'hsl(var(--muted))' }}
-   dataKey="value"
-   cornerRadius={10}
-   style={{ filter: `url(#${complianceGlowId})` }}
-  />
-  </RadialBarChart>
-  </ResponsiveContainer>
-  <div className="absolute inset-0 flex flex-col items-center justify-center">
-  <span className="text-2xl font-black text-foreground">
-  {stats.globalScore}%
-  </span>
-  <span className="text-[11px] text-muted-foreground uppercase tracking-wider">
-  {currentFramework}
-  </span>
-  </div>
-  </div>
-  <div className="hidden sm:block">
-  <div className="flex items-center gap-2 mb-1">
-  <TrendingUp className="w-4 h-4 text-primary" />
-  <span className="text-xs font-bold text-foreground uppercase tracking-wider">
-  Conformité
-  </span>
-  </div>
-  <p className="text-xs text-muted-foreground max-w-[180px]">
-  {stats.globalScore >= 80 ? 'Excellent niveau de conformité' :
-  stats.globalScore >= 50 ? 'Progression en cours' : 'Attention requise'}
-  </p>
-  </div>
- </div>
+            <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                {/* Gauge Section */}
+                <div className="flex-shrink-0 flex items-center gap-4">
+                    <div className="relative w-32 h-32">
+                        <ResponsiveContainer width="100%" height="100%" >
+                            <RadialBarChart
+                                cx="50%"
+                                cy="50%"
+                                innerRadius="70%"
+                                outerRadius="100%"
+                                barSize={10}
+                                data={gaugeData}
+                                startAngle={180}
+                                endAngle={-180}
+                            >
+                                <RadialBar
+                                    background={{ fill: 'hsl(var(--muted))' }}
+                                    dataKey="value"
+                                    cornerRadius={10}
+                                    style={{ filter: `url(#${complianceGlowId})` }}
+                                />
+                            </RadialBarChart>
+                        </ResponsiveContainer>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <span className="text-2xl font-black text-foreground">
+                                {stats.globalScore}%
+                            </span>
+                            <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                                {currentFramework}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="hidden sm:block">
+                        <div className="flex items-center gap-2 mb-1">
+                            <TrendingUp className="w-4 h-4 text-primary" />
+                            <span className="text-xs font-bold text-foreground uppercase tracking-wider">
+                                Conformité
+                            </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground max-w-[180px]">
+                            {stats.globalScore >= 80 ? 'Excellent niveau de conformité' :
+                                stats.globalScore >= 50 ? 'Progression en cours' : 'Attention requise'}
+                        </p>
+                    </div>
+                </div>
 
- {/* Divider */}
- <div className="hidden lg:block w-px h-20 bg-gradient-to-b from-transparent via-border to-transparent" />
+                {/* Divider */}
+                <div className="hidden lg:block w-px h-20 bg-gradient-to-b from-transparent via-border to-transparent" />
 
- {/* Stats Grid */}
- <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3">
-  {/* Implemented Controls */}
-  <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 group hover:scale-[1.02] transition-transform">
-  <div className="flex items-center justify-between mb-2">
-  <div className="p-2 bg-success-bg rounded-3xl">
-  <CheckCircle2 className="w-4 h-4 text-success" />
-  </div>
-  </div>
-  <div className="text-2xl font-black text-foreground">
-  {stats.implementedControls}
-  </div>
-  <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
-  Implémentés
-  </div>
-  <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
-  <motion.div
-  initial={{ width: 0 }}
-  animate={{ width: `${(stats.implementedControls / Math.max(stats.actionableControls, 1)) * 100}%` }}
-  transition={{ duration: 0.8, ease: "easeOut" }}
-  className="h-full bg-success rounded-full"
-  />
-  </div>
-  </div>
+                {/* Stats Grid */}
+                <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {/* Implemented Controls */}
+                    <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 group hover:scale-[1.02] transition-transform">
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="p-2 bg-success-bg rounded-3xl">
+                                <CheckCircle2 className="w-4 h-4 text-success" />
+                            </div>
+                        </div>
+                        <div className="text-2xl font-black text-foreground">
+                            {stats.implementedControls}
+                        </div>
+                        <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
+                            Implémentés
+                        </div>
+                        <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${(stats.implementedControls / Math.max(stats.actionableControls, 1)) * 100}%` }}
+                                transition={{ duration: 0.8, ease: "easeOut" }}
+                                className="h-full bg-success rounded-full"
+                            />
+                        </div>
+                    </div>
 
-  {/* To Do */}
-  <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 group hover:scale-[1.02] transition-transform">
-  <div className="flex items-center justify-between mb-2">
-  <div className={cn(
-  "p-2 rounded-3xl",
-  stats.todoControls > 0 ? "bg-warning-bg" : "bg-success-bg"
-  )}>
-  <AlertTriangle className={cn(
-   "w-4 h-4",
-   stats.todoControls > 0 ? "text-warning" : "text-success"
-  )} />
-  </div>
-  {stats.todoControls > 5 && (
-  <span className="flex h-2 w-2">
-   <span className="animate-ping absolute h-2 w-2 rounded-full bg-warning/75 opacity-75"></span>
-   <span className="relative rounded-full h-2 w-2 bg-warning"></span>
-  </span>
-  )}
-  </div>
-  <div className={cn(
-  "text-2xl font-black",
-  stats.todoControls > 0 ? "text-warning" : "text-foreground"
-  )}>
-  {stats.todoControls}
-  </div>
-  <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
-  À traiter
-  </div>
-  <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
-  <motion.div
-  initial={{ width: 0 }}
-  animate={{ width: `${(stats.todoControls / Math.max(stats.actionableControls, 1)) * 100}%` }}
-  transition={{ duration: 0.8, ease: "easeOut" }}
-  className={cn(
-   "h-full rounded-full",
-   stats.todoControls > 0 ? "bg-warning" : "bg-success"
-  )}
-  />
-  </div>
-  </div>
+                    {/* To Do */}
+                    <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 group hover:scale-[1.02] transition-transform">
+                        <div className="flex items-center justify-between mb-2">
+                            <div className={cn(
+                                "p-2 rounded-3xl",
+                                stats.todoControls > 0 ? "bg-warning-bg" : "bg-success-bg"
+                            )}>
+                                <AlertTriangle className={cn(
+                                    "w-4 h-4",
+                                    stats.todoControls > 0 ? "text-warning" : "text-success"
+                                )} />
+                            </div>
+                            {stats.todoControls > 5 && (
+                                <span className="flex h-2 w-2">
+                                    <span className="animate-ping absolute h-2 w-2 rounded-full bg-warning/75 opacity-75"></span>
+                                    <span className="relative rounded-full h-2 w-2 bg-warning"></span>
+                                </span>
+                            )}
+                        </div>
+                        <div className={cn(
+                            "text-2xl font-black",
+                            stats.todoControls > 0 ? "text-warning" : "text-foreground"
+                        )}>
+                            {stats.todoControls}
+                        </div>
+                        <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
+                            À traiter
+                        </div>
+                        <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${(stats.todoControls / Math.max(stats.actionableControls, 1)) * 100}%` }}
+                                transition={{ duration: 0.8, ease: "easeOut" }}
+                                className={cn(
+                                    "h-full rounded-full",
+                                    stats.todoControls > 0 ? "bg-warning" : "bg-success"
+                                )}
+                            />
+                        </div>
+                    </div>
 
-  {/* Evidence Count */}
-  <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 group hover:scale-[1.02] transition-transform">
-  <div className="flex items-center justify-between mb-2">
-  <div className="p-2 bg-info-bg rounded-3xl">
-  <Paperclip className="w-4 h-4 text-info-text" />
-  </div>
-  </div>
-  <div className="text-2xl font-black text-foreground">
-  {stats.evidenceCount}
-  </div>
-  <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
-  Preuves
-  </div>
-  <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
-  <motion.div
-  initial={{ width: 0 }}
-  animate={{ width: `${Math.min((stats.evidenceCount / Math.max(stats.totalControls * 2, 1)) * 100, 100)}%` }}
-  transition={{ duration: 0.8, ease: "easeOut" }}
-  className="h-full bg-info-text rounded-full"
-  />
-  </div>
-  </div>
+                    {/* Evidence Count */}
+                    <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 group hover:scale-[1.02] transition-transform">
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="p-2 bg-info-bg rounded-3xl">
+                                <Paperclip className="w-4 h-4 text-info-text" />
+                            </div>
+                        </div>
+                        <div className="text-2xl font-black text-foreground">
+                            {stats.evidenceCount}
+                        </div>
+                        <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
+                            Preuves
+                        </div>
+                        <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${Math.min((stats.evidenceCount / Math.max(stats.totalControls * 2, 1)) * 100, 100)}%` }}
+                                transition={{ duration: 0.8, ease: "easeOut" }}
+                                className="h-full bg-info-text rounded-full"
+                            />
+                        </div>
+                    </div>
 
-  {/* Total Scope */}
-  <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 group hover:scale-[1.02] transition-transform">
-  <div className="flex items-center justify-between mb-2">
-  <div className="p-2 bg-primary/10 rounded-3xl">
-  <ShieldCheck className="w-4 h-4 text-primary" />
-  </div>
-  </div>
-  <div className="text-2xl font-black text-foreground">
-  {stats.actionableControls}
-  </div>
-  <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
-  Périmètre
-  </div>
-  <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
-  <motion.div
-  initial={{ width: 0 }}
-  animate={{ width: '100%' }}
-  transition={{ duration: 0.8, ease: "easeOut" }}
-  className="h-full bg-primary rounded-full"
-  />
-  </div>
-  </div>
- </div>
- </div>
+                    {/* Total Scope */}
+                    <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 group hover:scale-[1.02] transition-transform">
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="p-2 bg-primary/10 rounded-3xl">
+                                <ShieldCheck className="w-4 h-4 text-primary" />
+                            </div>
+                        </div>
+                        <div className="text-2xl font-black text-foreground">
+                            {stats.actionableControls}
+                        </div>
+                        <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
+                            Périmètre
+                        </div>
+                        <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: '100%' }}
+                                transition={{ duration: 0.8, ease: "easeOut" }}
+                                className="h-full bg-primary rounded-full"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
 
- {/* Bottom activity indicator */}
- <div className="mt-4 pt-4 border-t border-border/40 dark:border-white/5 flex items-center justify-between">
- <div className="flex items-center gap-2 text-xs text-muted-foreground">
-  <Activity className="w-3.5 h-3.5" />
-  <span>{stats.partialControls} partiels • {stats.totalControls - stats.actionableControls} exclus/N/A</span>
- </div>
- <div className="flex items-center gap-4">
-  <div className="flex items-center gap-1.5 text-[11px]">
-  <div className="w-2 h-2 rounded-full bg-success" />
-  <span className="text-muted-foreground">Implémentés</span>
-  </div>
-  <div className="flex items-center gap-1.5 text-[11px]">
-  <div className="w-2 h-2 rounded-full bg-warning" />
-  <span className="text-muted-foreground">À traiter</span>
-  </div>
-  <div className="flex items-center gap-1.5 text-[11px]">
-  <div className="w-2 h-2 rounded-full bg-primary" />
-  <span className="text-muted-foreground">Périmètre</span>
-  </div>
- </div>
- </div>
- </motion.div>
- );
+            {/* Bottom activity indicator */}
+            <div className="mt-4 pt-4 border-t border-border/40 dark:border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Activity className="w-3.5 h-3.5" />
+                    <span>{stats.partialControls} partiels • {stats.totalControls - stats.actionableControls} exclus/N/A</span>
+                </div>
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1.5 text-xs">
+                        <div className="w-2 h-2 rounded-full bg-success" />
+                        <span className="text-muted-foreground">Implémentés</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs">
+                        <div className="w-2 h-2 rounded-full bg-warning" />
+                        <span className="text-muted-foreground">À traiter</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs">
+                        <div className="w-2 h-2 rounded-full bg-primary" />
+                        <span className="text-muted-foreground">Périmètre</span>
+                    </div>
+                </div>
+            </div>
+        </PremiumCard>
+    );
 };

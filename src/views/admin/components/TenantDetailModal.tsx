@@ -130,7 +130,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
    </Dialog.Title>
    <div className="flex items-center space-x-2">
    <span className="text-sm text-muted-foreground font-mono">{tenant.id}</span>
-   <span className={`px-2 py-0.5 text-[11px] rounded-full uppercase font-bold tracking-wide ${isTenantActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-50 text-red-400'
+   <span className={`px-2 py-0.5 text-xs rounded-full uppercase font-bold tracking-wide ${isTenantActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-50 text-red-400'
    }`}>
    {isTenantActive ? 'Actif' : 'Suspendu'}
    </span>

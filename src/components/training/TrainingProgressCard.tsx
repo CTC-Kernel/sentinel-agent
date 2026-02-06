@@ -252,7 +252,7 @@ export const TrainingProgressCard: React.FC<TrainingProgressCardProps> = ({
  {/* Required badge */}
  {course.isRequired && (
  <Tooltip content={t('training.course.isRequired')}>
- <div className="px-2 py-0.5 rounded-full bg-error-bg text-error-text text-[11px] font-bold uppercase">
+ <div className="px-2 py-0.5 rounded-full bg-error-bg text-error-text text-xs font-bold uppercase">
  {t('common.required')}
  </div>
  </Tooltip>

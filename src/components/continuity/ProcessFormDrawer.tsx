@@ -409,7 +409,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
   <div className="space-y-3">
   {watchedRecoveryTasks?.map((_, index) => (
   <div key={`resource-${index || 'unknown'}`} className="flex gap-3 items-start bg-muted/50 dark:bg-white/5 p-3 rounded-3xl border border-border/40">
-   <div className="mt-2.5 text-[11px] font-bold text-muted-foreground w-5 text-center bg-white dark:bg-black/20 rounded h-5 leading-5 border border-border/40">{index + 1}</div>
+   <div className="mt-2.5 text-xs font-bold text-muted-foreground w-5 text-center bg-white dark:bg-black/20 rounded h-5 leading-5 border border-border/40">{index + 1}</div>
    <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3">
    <div className="md:col-span-6">
    <Controller

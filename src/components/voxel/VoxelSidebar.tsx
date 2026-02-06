@@ -52,7 +52,7 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
   </div>
   <div>
   <span className="text-sm font-bold tracking-tight block">CTC Engine</span>
-  <span className="text-[11px] text-foreground/50 font-medium uppercase tracking-wider">
+  <span className="text-xs text-foreground/50 font-medium uppercase tracking-wider">
   {orderedNodesLength} Éléments
   </span>
   </div>
@@ -82,7 +82,7 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
  <div className="space-y-6 overflow-y-auto flex-1 pr-1 custom-scrollbar">
  {categorizedNodes.map((category) => (
   <div key={category.id || 'unknown'} className="animate-[fadeIn_0.5s_ease-out]">
-  <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.2em] font-bold text-foreground/40 mb-3 px-1">
+  <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] font-bold text-foreground/40 mb-3 px-1">
   <span className="flex items-center gap-2">
   <span className={`w-1.5 h-1.5 rounded-full ${category.color} shadow-[0_0_8px_currentColor]`}></span>
   {category.label}
@@ -127,7 +127,7 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
    <div className="relative z-decorator flex items-center justify-between gap-2">
    <span className="font-medium truncate">{item.label}</span>
    {item.meta && (
-   <span className={`text-[11px] px-1.5 py-0.5 rounded bg-muted/50 border border-border/20 ${selectedNodeId === item.id ? 'text-primary/40' : 'text-foreground/30 group-hover:text-foreground/50'
+   <span className={`text-xs px-1.5 py-0.5 rounded bg-muted/50 border border-border/20 ${selectedNodeId === item.id ? 'text-primary/40' : 'text-foreground/30 group-hover:text-foreground/50'
     }`}>
     {item.meta}
    </span>

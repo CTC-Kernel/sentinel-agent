@@ -168,7 +168,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
   <h3 id="assessment-modal-title" className="text-lg font-black text-foreground tracking-tight">
    {t('compliance.assessment.title')}
   </h3>
-  <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">{t('compliance.assessment.framework', { defaultValue: 'ISO 27002' })}</p>
+  <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">{t('compliance.assessment.framework', { defaultValue: 'ISO 27002' })}</p>
   </div>
   </div>
   <button

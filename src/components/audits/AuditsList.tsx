@@ -108,7 +108,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
   <button type="button" className="text-left font-bold text-foreground hover:text-primary dark:hover:text-primary/70 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded" onClick={() => onOpen(row.original)} aria-label={`Ouvrir l'audit ${row.original.name}`}>
   {row.original.name}
   </button>
-  <span className={`text-[11px] font-bold uppercase tracking-wider ${styles.color}`}>{row.original.type}</span>
+  <span className={`text-xs font-bold uppercase tracking-wider ${styles.color}`}>{row.original.type}</span>
   </div>
   </div>
  );

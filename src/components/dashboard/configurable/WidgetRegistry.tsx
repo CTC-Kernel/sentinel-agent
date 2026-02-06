@@ -21,6 +21,7 @@ import { ContinuityPlansWidget } from '../widgets/ContinuityPlansWidget';
 import { NIS2DoraKPIWidget } from '../widgets/NIS2DoraKPIWidget';
 import { AgentStatusWidget } from '../widgets/AgentStatusWidget';
 import { AgentMaturityRadarWidget } from '../widgets/AgentMaturityRadarWidget';
+import { IntelligenceHub } from '../widgets/IntelligenceHub';
 
 // Import Story 2-2 to 2-5 widgets
 import { ComplianceScoreWidget } from '../ComplianceScoreWidget';
@@ -38,227 +39,233 @@ export type DashboardWidgetProps = Record<string, unknown>;
 // Define the Registry
 // This maps a string ID to the Component and its implicit Grid sizing
 export const WIDGET_REGISTRY: Record<string, {
- id?: string;
- // eslint-disable-next-line @typescript-eslint/no-explicit-any
- component: React.ComponentType<any>; // Keep ComponentType<any> to allow diverse widgets, but we could narrow if possible
- defaultColSpan: 1 | 2 | 3;
- defaultRowSpan?: number;
- minColSpan?: number;
- minRowSpan?: number;
- titleKey: string; // for the "Add Widget" menu
+    id?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    component: React.ComponentType<any>; // Keep ComponentType<any> to allow diverse widgets, but we could narrow if possible
+    defaultColSpan: 1 | 2 | 3;
+    defaultRowSpan?: number;
+    minColSpan?: number;
+    minRowSpan?: number;
+    titleKey: string; // for the "Add Widget" menu
 }> = {
- 'stats-overview': {
- component: DashboardStats,
- defaultColSpan: 3,
- titleKey: 'dashboard.statsOverview'
- },
- 'my-workspace': {
- component: MyWorkspaceWidget,
- defaultColSpan: 2,
- titleKey: 'dashboard.myWorkspace'
- },
- 'compliance-evolution': {
- component: ComplianceEvolutionWidget,
- defaultColSpan: 2,
- titleKey: 'dashboard.complianceEvolution'
- },
- 'health-check': {
- component: HealthCheckWidget,
- defaultColSpan: 1,
- titleKey: 'dashboard.healthCheck'
- },
- 'priority-risks': {
- component: PriorityRisksWidget,
- defaultColSpan: 1,
- titleKey: 'dashboard.priorityRisks'
- },
- 'recent-activity': {
- component: RecentActivityWidget,
- defaultColSpan: 1,
- titleKey: 'dashboard.recentActivity'
- },
- 'maturity-radar': {
- component: MaturityRadarWidget,
- defaultColSpan: 1,
- titleKey: 'dashboard.maturityRadar'
- },
- 'cyber-news': {
- component: CyberNewsWidget,
- defaultColSpan: 1,
- titleKey: 'dashboard.cyberNews'
- },
- 'risk-heatmap': {
- component: RiskHeatmapWidget,
- defaultColSpan: 1,
- titleKey: 'dashboard.riskHeatmap'
- },
- 'audits-donut': {
- component: AuditsDonutWidget,
- defaultColSpan: 1,
- titleKey: 'dashboard.auditsStatus'
- },
- 'project-tasks': {
- id: 'project-tasks',
- component: ProjectTasksWidget,
- defaultColSpan: 1,
- defaultRowSpan: 1,
- minColSpan: 1,
- minRowSpan: 1,
- titleKey: 'dashboard.projectStatus'
- },
- 'incidents-stats': {
- id: 'incidents-stats',
- titleKey: 'dashboard.incidentsStats',
- component: IncidentsStatsWidget,
- defaultColSpan: 1,
- defaultRowSpan: 1,
- minColSpan: 1,
- minRowSpan: 1
- },
- 'documents-stats': {
- id: 'documents-stats',
- titleKey: 'dashboard.documentsStats',
- component: DocumentsStatsWidget,
- defaultColSpan: 1,
- defaultRowSpan: 1,
- minColSpan: 1,
- minRowSpan: 1
- },
- 'compliance-progress': {
- id: 'compliance-progress',
- titleKey: 'dashboard.complianceProgress',
- component: ComplianceProgressWidget,
- defaultColSpan: 1,
- defaultRowSpan: 1,
- minColSpan: 1,
- minRowSpan: 1
- },
- 'asset-stats': {
- id: 'asset-stats',
- titleKey: 'dashboard.assetStats',
- component: AssetStatsWidget,
- defaultColSpan: 1,
- defaultRowSpan: 1,
- minColSpan: 1,
- minRowSpan: 1
- },
- 'suppliers-stats': {
- id: 'suppliers-stats',
- titleKey: 'dashboard.suppliersStats',
- component: SuppliersStatsWidget,
- defaultColSpan: 1,
- defaultRowSpan: 1,
- minColSpan: 1,
- minRowSpan: 1
- },
- 'continuity-plans': {
- id: 'continuity-plans',
- titleKey: 'dashboard.continuityPlans',
- component: ContinuityPlansWidget,
- defaultColSpan: 1,
- defaultRowSpan: 1,
- minColSpan: 1,
- minRowSpan: 1
- },
- 'nis2-dora-kpi': {
- component: NIS2DoraKPIWidget,
- defaultColSpan: 1,
- titleKey: 'dashboard.nis2doraConfig'
- },
- // Story 2-2: Apple Health Style Score Gauge
- 'compliance-score': {
- id: 'compliance-score',
- component: ComplianceScoreWidget,
- defaultColSpan: 1,
- defaultRowSpan: 1,
- minColSpan: 1,
- minRowSpan: 1,
- titleKey: 'dashboard.complianceScore'
- },
- // Story 2-3: Executive KPI Cards
- 'executive-kpi': {
- id: 'executive-kpi',
- component: ExecutiveKPIWidget,
- defaultColSpan: 3,
- defaultRowSpan: 1,
- minColSpan: 2,
- minRowSpan: 1,
- titleKey: 'dashboard.executiveKpi'
- },
- // Story 2-4: RSSI Risk & Incident View
- 'rssi-critical-risks': {
- id: 'rssi-critical-risks',
- component: RSSICriticalRisksWidget,
- defaultColSpan: 1,
- defaultRowSpan: 1,
- minColSpan: 1,
- minRowSpan: 1,
- titleKey: 'dashboard.rssiCriticalRisks'
- },
- 'rssi-incidents': {
- id: 'rssi-incidents',
- component: RSSIIncidentsWidget,
- defaultColSpan: 1,
- defaultRowSpan: 1,
- minColSpan: 1,
- minRowSpan: 1,
- titleKey: 'dashboard.rssiIncidents'
- },
- 'rssi-actions': {
- id: 'rssi-actions',
- component: RSSIActionsWidget,
- defaultColSpan: 1,
- defaultRowSpan: 1,
- minColSpan: 1,
- minRowSpan: 1,
- titleKey: 'dashboard.rssiActions'
- },
- // Story 2-5: Project Manager Progress View
- 'pm-actions-overdue': {
- id: 'pm-actions-overdue',
- component: PMActionsOverdueWidget,
- defaultColSpan: 1,
- defaultRowSpan: 1,
- minColSpan: 1,
- minRowSpan: 1,
- titleKey: 'dashboard.pmActionsOverdue'
- },
- 'pm-timeline': {
- id: 'pm-timeline',
- component: PMTimelineWidget,
- defaultColSpan: 1,
- defaultRowSpan: 1,
- minColSpan: 1,
- minRowSpan: 1,
- titleKey: 'dashboard.pmTimeline'
- },
- 'pm-progress': {
- id: 'pm-progress',
- component: PMProgressWidget,
- defaultColSpan: 1,
- defaultRowSpan: 1,
- minColSpan: 1,
- minRowSpan: 1,
- titleKey: 'dashboard.pmProgress'
- },
- // Story: Agent Status Widget - Endpoint compliance monitoring
- 'agent-status': {
- id: 'agent-status',
- component: AgentStatusWidget,
- defaultColSpan: 1,
- defaultRowSpan: 1,
- minColSpan: 1,
- minRowSpan: 1,
- titleKey: 'agents.widget.title'
- },
- 'agent-maturity-radar': {
- id: 'agent-maturity-radar',
- component: AgentMaturityRadarWidget,
- defaultColSpan: 1,
- defaultRowSpan: 1,
- minColSpan: 1,
- minRowSpan: 1,
- titleKey: 'dashboard.agentMaturityRadar'
- }
+    'stats-overview': {
+        component: DashboardStats,
+        defaultColSpan: 3,
+        titleKey: 'dashboard.statsOverview'
+    },
+    'my-workspace': {
+        component: MyWorkspaceWidget,
+        defaultColSpan: 2,
+        titleKey: 'dashboard.myWorkspace'
+    },
+    'compliance-evolution': {
+        component: ComplianceEvolutionWidget,
+        defaultColSpan: 2,
+        titleKey: 'dashboard.complianceEvolution'
+    },
+    'health-check': {
+        component: HealthCheckWidget,
+        defaultColSpan: 1,
+        titleKey: 'dashboard.healthCheck'
+    },
+    'priority-risks': {
+        component: PriorityRisksWidget,
+        defaultColSpan: 1,
+        titleKey: 'dashboard.priorityRisks'
+    },
+    'recent-activity': {
+        component: RecentActivityWidget,
+        defaultColSpan: 1,
+        titleKey: 'dashboard.recentActivity'
+    },
+    'maturity-radar': {
+        component: MaturityRadarWidget,
+        defaultColSpan: 1,
+        titleKey: 'dashboard.maturityRadar'
+    },
+    'cyber-news': {
+        component: CyberNewsWidget,
+        defaultColSpan: 1,
+        titleKey: 'dashboard.cyberNews'
+    },
+    'risk-heatmap': {
+        component: RiskHeatmapWidget,
+        defaultColSpan: 1,
+        titleKey: 'dashboard.riskHeatmap'
+    },
+    'audits-donut': {
+        component: AuditsDonutWidget,
+        defaultColSpan: 1,
+        titleKey: 'dashboard.auditsStatus'
+    },
+    'project-tasks': {
+        id: 'project-tasks',
+        component: ProjectTasksWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.projectStatus'
+    },
+    'incidents-stats': {
+        id: 'incidents-stats',
+        titleKey: 'dashboard.incidentsStats',
+        component: IncidentsStatsWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1
+    },
+    'documents-stats': {
+        id: 'documents-stats',
+        titleKey: 'dashboard.documentsStats',
+        component: DocumentsStatsWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1
+    },
+    'compliance-progress': {
+        id: 'compliance-progress',
+        titleKey: 'dashboard.complianceProgress',
+        component: ComplianceProgressWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1
+    },
+    'asset-stats': {
+        id: 'asset-stats',
+        titleKey: 'dashboard.assetStats',
+        component: AssetStatsWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1
+    },
+    'suppliers-stats': {
+        id: 'suppliers-stats',
+        titleKey: 'dashboard.suppliersStats',
+        component: SuppliersStatsWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1
+    },
+    'continuity-plans': {
+        id: 'continuity-plans',
+        titleKey: 'dashboard.continuityPlans',
+        component: ContinuityPlansWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1
+    },
+    'nis2-dora-kpi': {
+        component: NIS2DoraKPIWidget,
+        defaultColSpan: 1,
+        titleKey: 'dashboard.nis2doraConfig'
+    },
+    // Story 2-2: Apple Health Style Score Gauge
+    'compliance-score': {
+        id: 'compliance-score',
+        component: ComplianceScoreWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.complianceScore'
+    },
+    // Story 2-3: Executive KPI Cards
+    'executive-kpi': {
+        id: 'executive-kpi',
+        component: ExecutiveKPIWidget,
+        defaultColSpan: 3,
+        defaultRowSpan: 1,
+        minColSpan: 2,
+        minRowSpan: 1,
+        titleKey: 'dashboard.executiveKpi'
+    },
+    // Story 2-4: RSSI Risk & Incident View
+    'rssi-critical-risks': {
+        id: 'rssi-critical-risks',
+        component: RSSICriticalRisksWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.rssiCriticalRisks'
+    },
+    'rssi-incidents': {
+        id: 'rssi-incidents',
+        component: RSSIIncidentsWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.rssiIncidents'
+    },
+    'rssi-actions': {
+        id: 'rssi-actions',
+        component: RSSIActionsWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.rssiActions'
+    },
+    // Story 2-5: Project Manager Progress View
+    'pm-actions-overdue': {
+        id: 'pm-actions-overdue',
+        component: PMActionsOverdueWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.pmActionsOverdue'
+    },
+    'pm-timeline': {
+        id: 'pm-timeline',
+        component: PMTimelineWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.pmTimeline'
+    },
+    'pm-progress': {
+        id: 'pm-progress',
+        component: PMProgressWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.pmProgress'
+    },
+    // Story: Agent Status Widget - Endpoint compliance monitoring
+    'agent-status': {
+        id: 'agent-status',
+        component: AgentStatusWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'agents.widget.title'
+    },
+    'agent-maturity-radar': {
+        id: 'agent-maturity-radar',
+        component: AgentMaturityRadarWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.agentMaturityRadar'
+    },
+    'intelligence-hub': {
+        id: 'intelligence-hub',
+        component: IntelligenceHub,
+        defaultColSpan: 1,
+        titleKey: 'dashboard.intelligenceHub'
+    }
 };
 export type WidgetId = keyof typeof WIDGET_REGISTRY;

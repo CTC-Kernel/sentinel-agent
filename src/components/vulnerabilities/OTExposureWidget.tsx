@@ -331,7 +331,7 @@ const TopAssetsList: React.FC<TopAssetsListProps> = ({ assets, onAssetClick, loa
  </div>
  <div className="flex items-center gap-2">
  <span
- className="px-1.5 py-0.5 rounded text-[11px] font-medium"
+ className="px-1.5 py-0.5 rounded text-xs font-medium"
  style={{
  backgroundColor: `${SEVERITY_COLORS[asset.highestSeverity as keyof typeof SEVERITY_COLORS]}20`,
  color: SEVERITY_COLORS[asset.highestSeverity as keyof typeof SEVERITY_COLORS],

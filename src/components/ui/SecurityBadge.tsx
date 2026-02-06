@@ -81,7 +81,7 @@ export const SecurityBadge: React.FC<SecurityBadgeProps> = ({ feature, className
  ${colorClasses[config.color as keyof typeof colorClasses]}
  `}>
  <Icon className="w-3 h-3" strokeWidth={2.5} />
- <span className="text-[11px] font-bold uppercase tracking-wider opacity-90">{config.label}</span>
+ <span className="text-xs font-bold uppercase tracking-wider opacity-90">{config.label}</span>
  </div>
 
  </div>

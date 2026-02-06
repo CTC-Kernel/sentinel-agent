@@ -525,7 +525,7 @@ export const CIInspectorDetails: React.FC<CIInspectorDetailsProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="p-4 bg-muted/50 rounded-2xl">
-              <span className="text-[11px] uppercase text-muted-foreground font-bold block mb-1">
+              <span className="text-xs uppercase text-muted-foreground font-bold block mb-1">
                 Source
               </span>
               <p className="text-sm font-medium">{ci.discoverySource}</p>
@@ -533,7 +533,7 @@ export const CIInspectorDetails: React.FC<CIInspectorDetailsProps> = ({
 
             {ci.lastDiscoveredAt && (
               <div className="p-4 bg-muted/50 rounded-2xl">
-                <span className="text-[11px] uppercase text-muted-foreground font-bold block mb-1">
+                <span className="text-xs uppercase text-muted-foreground font-bold block mb-1">
                   Dernière Découverte
                 </span>
                 <p className="text-sm font-medium">
@@ -543,7 +543,7 @@ export const CIInspectorDetails: React.FC<CIInspectorDetailsProps> = ({
             )}
 
             <div className="p-4 bg-muted/50 rounded-2xl">
-              <span className="text-[11px] uppercase text-muted-foreground font-bold block mb-1">
+              <span className="text-xs uppercase text-muted-foreground font-bold block mb-1">
                 Score Qualité
               </span>
               <p className={cn(

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { LayoutDashboard, List, Grid3x3, Target, Scale, Calculator, Siren } from '../components/ui/Icons';
+import { LayoutDashboard, List, Grid3x3, Target, Scale, Calculator, Siren, FileSpreadsheet, AlertTriangle, ShieldAlert } from '../components/ui/Icons';
 import { OnboardingService } from '../services/onboardingService';
 import { ErrorLogger } from '../services/errorLogger';
 import { DEFAULT_VIEWS, SavedView } from '../components/ui/SavedViewsBar';
@@ -18,7 +18,11 @@ import { useRiskDependencies } from '../hooks/risks/useRiskDependencies';
 import { useRiskActions } from '../hooks/risks/useRiskActions';
 import { useRiskFilters } from '../hooks/risks/useRiskFilters';
 import { RiskCalculator } from '../utils/RiskCalculator';
+import { useContextualIntelligence } from '../hooks/useContextualIntelligence';
+import { ContextualAlert } from '../components/ui/ContextualAlert';
+import { SmartSummary, SmartInsight } from '../components/ui/SmartSummary';
 import { useDeepLinkAction } from '../hooks/useDeepLinkAction';
+import { getRiskLevel } from '../utils/riskUtils';
 import { RiskFormData } from '../schemas/riskSchema';
 import { Dialog, Transition } from '@headlessui/react';
 import { Drawer } from '../components/ui/Drawer';
@@ -112,6 +116,58 @@ export const Risks: React.FC = () => {
         matrixFilter, setMatrixFilter,
         availableCategories
     } = useRiskFilters(risks);
+
+    // Contextual Intelligence
+    const { unprotectedRisks } = useContextualIntelligence(assets, risks);
+    const [showUnprotectedAlert, setShowUnprotectedAlert] = usePersistedState('risks-unprotected-alert-hidden', true);
+
+    // Smart Insights
+    const riskInsights = useMemo<SmartInsight[]>(() => {
+        if (loading) return [];
+
+        const criticalCount = risks.filter(r => {
+            const level = getRiskLevel(r.score).label;
+            return level === 'Critique' || level === 'Élevé';
+        }).length;
+
+        // Find top category
+        const catCounts = risks.reduce((acc, r) => {
+            const cat = r.category || 'N/A';
+            acc[cat] = (acc[cat] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+        const topCat = Object.entries(catCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+
+        return [
+            {
+                label: t('risks.stats.total', { defaultValue: 'Total Risques' }),
+                value: risks.length,
+                icon: <Siren className="w-5 h-5" />,
+                variant: 'primary'
+            },
+            {
+                label: t('risks.stats.critical', { defaultValue: 'Risques Majeurs' }),
+                value: criticalCount,
+                subValue: t('risks.stats.urgency', { defaultValue: 'À traiter priorité 1' }),
+                icon: <AlertTriangle className="w-5 h-5" />,
+                variant: 'destructive'
+            },
+            {
+                label: t('risks.stats.mix', { defaultValue: 'Top Catégorie' }),
+                value: topCat,
+                subValue: t('risks.stats.mostAffected', { defaultValue: 'Secteur le plus exposé' }),
+                icon: <FileSpreadsheet className="w-5 h-5" />,
+                variant: 'secondary'
+            },
+            {
+                label: t('risks.stats.unprotected', { defaultValue: 'Non Couverts' }),
+                value: unprotectedRisks.length,
+                subValue: t('risks.stats.missingControls', { defaultValue: 'Sans contrôles de réduction' }),
+                icon: <ShieldAlert className="w-5 h-5" />,
+                variant: unprotectedRisks.length > 0 ? 'warning' : 'success'
+            }
+        ];
+    }, [risks, loading, unprotectedRisks.length, t]);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -376,6 +432,19 @@ export const Risks: React.FC = () => {
         { id: 'matrix', label: t('risks.tabs.matrix', { defaultValue: 'Matrice' }), icon: Grid3x3 },
     ], [t]);
 
+    const handleFilterChange = React.useCallback((filter: { type: string; value: string | string[] } | null) => {
+        if (!filter) {
+            setActiveFilters(prev => ({ ...prev, criticality: null }));
+            return;
+        }
+
+        if (filter.type === 'criticality') {
+            const values = Array.isArray(filter.value) ? filter.value : [filter.value];
+            setActiveFilters(prev => ({ ...prev, criticality: values }));
+            setActiveTab('list');
+        }
+    }, [setActiveFilters, setActiveTab]);
+
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24">
             <PageHeader
@@ -386,9 +455,26 @@ export const Risks: React.FC = () => {
                 }
             />
 
+            {/* Contextual Intelligence Overlay */}
+            <ContextualAlert
+                isOpen={showUnprotectedAlert && unprotectedRisks.length > 0}
+                onClose={() => setShowUnprotectedAlert(false)}
+                variant="destructive"
+                title={t('risks.intel.unprotectedTitle', { defaultValue: 'Failles de Sécurité Identifiées' })}
+                description={t('risks.intel.unprotectedDesc', {
+                    defaultValue: `Attention : ${unprotectedRisks.length} risque(s) majeur(s) ne sont couverts par aucun contrôle de réduction.`,
+                    count: unprotectedRisks.length
+                })}
+                actionLabel={t('risks.intel.viewUnprotected', { defaultValue: 'Voir les risques' })}
+                onAction={() => handleFilterChange({ type: 'criticality', value: ['Élevé', 'Critique'] })}
+                icon={<Siren className="w-5 h-5 text-destructive" />}
+            />
+
             <React.Suspense fallback={<RiskDashboardSkeleton />}>
                 <RiskIntelCard risks={filteredRisks} />
             </React.Suspense>
+
+            <SmartSummary insights={riskInsights} loading={loading} />
 
             <ScrollableTabs tabs={tabs} activeTab={activeTab} onTabChange={(id) => setActiveTab(id as RiskTab)} isChanging={loading} />
 

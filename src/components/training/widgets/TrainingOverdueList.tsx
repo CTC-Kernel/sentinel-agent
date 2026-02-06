@@ -182,7 +182,7 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
   <div className="text-xs text-muted-foreground truncate mb-1">
   {assignment.courseName || assignment.courseId}
   </div>
-  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 dark:bg-red-900/20 text-[11px] font-bold text-red-600 dark:text-red-400">
+  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 dark:bg-red-900/20 text-xs font-bold text-red-600 dark:text-red-400">
   <Calendar className="w-3 h-3" />
   <span>
   {daysOverdue} {t('training.dashboard.daysOverdue')}

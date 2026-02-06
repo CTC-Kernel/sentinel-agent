@@ -173,6 +173,9 @@
   border-radius: var(--radius-2xl);
   position: relative;
   overflow: hidden;
+  isolation: isolate;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  mask-image: radial-gradient(white, black);
 }
 
 .card-premium::before {

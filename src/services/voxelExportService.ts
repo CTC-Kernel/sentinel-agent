@@ -251,15 +251,13 @@ export async function captureScreenshot(
 
  // If including overlays, composite with HTML overlays
  if (includeOverlays) {
- // Note: This would require html2canvas or similar library
- // For now, return just the 3D scene
- ErrorLogger.warn('Overlay capture requires html2canvas library', 'VoxelExport');
+ console.warn('[VoxelExport] includeOverlays is not yet implemented');
  }
 
  // Restore original settings
  renderer.setPixelRatio(originalPixelRatio);
  renderer.setSize(originalSize.width, originalSize.height, false);
- renderer.setClearColor(originalClearColor.r, originalClearAlpha);
+ renderer.setClearColor(originalClearColor, originalClearAlpha);
 
  return dataUrl;
  } catch (error) {
@@ -286,7 +284,9 @@ export async function downloadScreenshot(
  const link = document.createElement('a');
  link.href = dataUrl;
  link.download = `${filename}.${extension}`;
+ document.body.appendChild(link);
  link.click();
+ document.body.removeChild(link);
 }
 
 /**
@@ -333,6 +333,7 @@ export async function exportToPDF(
  screenshotDataUrl: string | null,
  options: PDFReportOptions = {}
 ): Promise<Blob> {
+ try {
  // Dynamically import jsPDF to avoid bundling issues
  const { default: jsPDF } = await import('jspdf');
 
@@ -365,7 +366,7 @@ export async function exportToPDF(
  doc.setFontSize(fontSize);
  const lines = doc.splitTextToSize(text, maxWidth);
  doc.text(lines, x, y);
- return y + lines.length * fontSize * 0.4;
+ return y + lines.length * (fontSize * 0.352778 + 1.5); // proper points-to-mm + leading
  };
 
  // ===== Header =====
@@ -412,7 +413,7 @@ export async function exportToPDF(
  if (includeMetrics) {
  doc.setFontSize(14);
  doc.setFont('helvetica', 'bold');
- doc.text('Metriques Globales', margin, yPos);
+ doc.text('Métriques Globales', margin, yPos);
  yPos += 8;
 
  doc.setFont('helvetica', 'normal');
@@ -437,7 +438,7 @@ export async function exportToPDF(
 
  // Node type breakdown
  yPos += 4;
- doc.text('Repartition par type:', margin + 5, yPos);
+ doc.text('Répartition par type:', margin + 5, yPos);
  yPos += 6;
 
  Object.entries(nodesByType).forEach(([type, count]) => {
@@ -458,7 +459,7 @@ export async function exportToPDF(
 
  doc.setFontSize(14);
  doc.setFont('helvetica', 'bold');
- doc.text('Resume des Anomalies', margin, yPos);
+ doc.text('Résumé des Anomalies', margin, yPos);
  yPos += 8;
 
  doc.setFont('helvetica', 'normal');
@@ -590,7 +591,7 @@ export async function exportToPDF(
  doc.setFontSize(8);
  doc.setTextColor(150, 150, 150);
  doc.text(
- `Genere par Sentinel GRC - Page ${i} sur ${pageCount}`,
+ `Généré par Sentinel GRC - Page ${i} sur ${pageCount}`,
  pageWidth / 2,
  pageHeight - 10,
  { align: 'center' }
@@ -598,6 +599,10 @@ export async function exportToPDF(
  }
 
  return doc.output('blob');
+ } catch (error) {
+ ErrorLogger.error('Failed to export voxel PDF', 'VoxelExportService', { error });
+ throw error;
+ }
 }
 
 /**
@@ -617,7 +622,9 @@ export async function downloadPDFReport(
  const link = document.createElement('a');
  link.href = url;
  link.download = `${filename}.pdf`;
+ document.body.appendChild(link);
  link.click();
+ document.body.removeChild(link);
 
  URL.revokeObjectURL(url);
 }
@@ -653,7 +660,8 @@ export async function exportToGLTF(
  maxTextureSize: 1024,
  };
 
- // Add metadata to scene userData
+ // Add metadata to scene userData (save and restore to avoid mutation)
+ const originalUserData = { ...scene.userData };
  if (includeMetadata) {
  scene.userData = {
  ...scene.userData,
@@ -676,9 +684,11 @@ export async function exportToGLTF(
  exporter.parse(
  scene,
  (result) => {
+ scene.userData = originalUserData;
  resolve(result as ArrayBuffer | string);
  },
  (error) => {
+ scene.userData = originalUserData;
  reject(error);
  },
  exportOptions
@@ -714,7 +724,9 @@ export async function downloadGLTF(
  const link = document.createElement('a');
  link.href = url;
  link.download = `${filename}.${extension}`;
+ document.body.appendChild(link);
  link.click();
+ document.body.removeChild(link);
 
  URL.revokeObjectURL(url);
 }
@@ -764,7 +776,8 @@ export async function exportForVR(
  generatorVersion: '2.0.0',
  };
 
- // Add VR-specific metadata to scene
+ // Add VR-specific metadata to scene (save and restore to avoid mutation)
+ const originalUserData = { ...scene.userData };
  scene.userData = {
  ...scene.userData,
  voxelVRExport: {
@@ -810,6 +823,7 @@ export async function exportForVR(
  exporter.parse(
  scene,
  (result) => {
+ scene.userData = originalUserData;
  const data = result as ArrayBuffer | string;
 
  // Calculate file size
@@ -844,6 +858,7 @@ export async function exportForVR(
  });
  },
  (error) => {
+ scene.userData = originalUserData;
  reject(error);
  },
  exportOptions
@@ -863,15 +878,15 @@ export async function downloadVRExport(
 ): Promise<VRExportResult> {
  const result = await exportForVR(scene, nodes, edges, options);
 
- const blob = result.data instanceof ArrayBuffer
- ? new Blob([result.data], { type: result.mimeType })
- : new Blob([result.data], { type: result.mimeType });
+ const blob = new Blob([result.data], { type: result.mimeType });
 
  const url = URL.createObjectURL(blob);
  const link = document.createElement('a');
  link.href = url;
  link.download = `${filename}.${result.extension}`;
+ document.body.appendChild(link);
  link.click();
+ document.body.removeChild(link);
 
  URL.revokeObjectURL(url);
 

@@ -152,7 +152,7 @@ export const IntegrationSettings: React.FC = () => {
   icon={Key}
   placeholder={user?.hasGeminiKey ? '••••••••••••••••' : ''}
   />
-  <p className="text-[11px] text-muted-foreground ml-1">
+  <p className="text-xs text-muted-foreground ml-1">
   {t('settings.geminiPlaceholder')}
   </p>
   <Button
@@ -245,7 +245,7 @@ export const IntegrationSettings: React.FC = () => {
   <ShieldCheck className="w-5 h-5" />
   </div>
   <h3 className="text-lg font-bold text-foreground">{t('settings.integrationsPage.ssoTitle')}</h3>
-  <span className="ml-auto px-2 py-1 text-[11px] font-bold bg-primary/15 text-primary rounded-full border border-primary/30">ENTERPRISE</span>
+  <span className="ml-auto px-2 py-1 text-xs font-bold bg-primary/15 text-primary rounded-full border border-primary/30">ENTERPRISE</span>
   </div>
  </div>
  <div className="relative z-decorator p-6 grid grid-cols-1 md:grid-cols-2 gap-8">

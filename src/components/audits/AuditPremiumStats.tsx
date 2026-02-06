@@ -115,7 +115,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                             <span className="text-2xl font-black text-foreground">
                                 {stats.complianceRate}%
                             </span>
-                            <span className="text-[11px] text-muted-foreground uppercase tracking-wider">
+                            <span className="text-xs text-muted-foreground uppercase tracking-wider">
                                 {t('audits.stats.completion', { defaultValue: 'Réalisation' })}
                             </span>
                         </div>
@@ -149,7 +149,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                         <div className="text-2xl font-black text-foreground">
                             {stats.total}
                         </div>
-                        <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                             {t('audits.stats.plannedAudits', { defaultValue: 'Audits Planifiés' })}
                         </div>
                         <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
@@ -172,7 +172,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                         <div className="text-2xl font-black text-foreground">
                             {stats.completed}
                         </div>
-                        <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                             {t('audits.stats.completed', { defaultValue: 'Terminés' })}
                         </div>
                         <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
@@ -195,7 +195,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                         <div className="text-2xl font-black text-foreground">
                             {stats.upcoming}
                         </div>
-                        <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                             {t('audits.stats.upcoming30days', { defaultValue: 'Prochains (30j)' })}
                         </div>
                         <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
@@ -233,7 +233,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                         )}>
                             {findingsCount}
                         </div>
-                        <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                             {t('audits.stats.nonConformities', { defaultValue: 'Non-conformités' })}
                         </div>
                         <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
@@ -258,15 +258,15 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                     <span>{stats.inProgress} {t('audits.stats.inProgressLabel', { defaultValue: 'en cours' })} • {stats.planned} {t('audits.stats.plannedLabel', { defaultValue: 'planifiés' })}</span>
                 </div>
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1.5 text-[11px]">
+                    <div className="flex items-center gap-1.5 text-xs">
                         <div className="w-2 h-2 rounded-full bg-success-500" />
                         <span className="text-muted-foreground">{t('audits.stats.completedLegend', { defaultValue: 'Terminés' })}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[11px]">
+                    <div className="flex items-center gap-1.5 text-xs">
                         <div className="w-2 h-2 rounded-full bg-primary" />
                         <span className="text-muted-foreground">{t('audits.stats.inProgressLegend', { defaultValue: 'En cours' })}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[11px]">
+                    <div className="flex items-center gap-1.5 text-xs">
                         <div className="w-2 h-2 rounded-full bg-muted" />
                         <span className="text-muted-foreground">{t('audits.stats.plannedLegend', { defaultValue: 'Planifiés' })}</span>
                     </div>

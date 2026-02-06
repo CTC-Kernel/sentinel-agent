@@ -78,17 +78,17 @@ export const IncidentSummaryCard: React.FC<IncidentSummaryCardProps> = ({
  {/* Key Metrics Breakdown */}
  <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-border/40 px-6 mx-2 relative z-decorator">
  <div>
-  <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Total</div>
+  <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Total</div>
   <div className="text-2xl font-black text-foreground">{totalIncidents}</div>
  </div>
  <div>
-  <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('incidents.open', { defaultValue: 'En Cours' })}</div>
+  <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('incidents.open', { defaultValue: 'En Cours' })}</div>
   <div className={`text-2xl font-black ${openIncidents > 0 ? 'text-warning' : 'text-foreground'}`}>
   {openIncidents}
   </div>
  </div>
  <div>
-  <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('incidents.critical', { defaultValue: 'Critiques' })}</div>
+  <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('incidents.critical', { defaultValue: 'Critiques' })}</div>
   <div className={`text-2xl font-black ${criticalIncidents > 0 ? 'text-destructive' : 'text-foreground'}`}>
   {criticalIncidents}
   </div>

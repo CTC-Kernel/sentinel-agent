@@ -34,7 +34,7 @@ export const ComplianceCriticalControls: React.FC<ComplianceCriticalControlsProp
   <p className="font-bold text-sm text-foreground">{control.code} - {control.name}</p>
   <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{control.description}</p>
   </div>
-  <div className={`shrink-0 px-3 py-1 rounded-3xl text-[11px] font-black uppercase tracking-wider border shadow-sm ${control.status === CONTROL_STATUS.PARTIAL ? 'bg-warning-bg text-warning-text border-warning-border/50' :
+  <div className={`shrink-0 px-3 py-1 rounded-3xl text-xs font-black uppercase tracking-wider border shadow-sm ${control.status === CONTROL_STATUS.PARTIAL ? 'bg-warning-bg text-warning-text border-warning-border/50' :
   'bg-error-bg text-error-text border-error-border/50'
   }`}>
   {t(`common.status.${control.status === CONTROL_STATUS.PARTIAL ? 'partial' : control.status === CONTROL_STATUS.NOT_STARTED ? 'notStarted' : 'inProgress'}`)}

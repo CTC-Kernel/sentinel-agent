@@ -152,24 +152,24 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
  <div className="flex items-center gap-4 flex-1">
   <div className="flex items-center gap-1.5">
   <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-red-500 to-red-600 shadow-sm" />
-  <span className="text-[11px] font-bold text-muted-foreground">{stats.critical} critiques</span>
+  <span className="text-xs font-bold text-muted-foreground">{stats.critical} critiques</span>
   </div>
   <div className="flex items-center gap-1.5">
   <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 shadow-sm" />
-  <span className="text-[11px] font-bold text-muted-foreground">{stats.high} élevés</span>
+  <span className="text-xs font-bold text-muted-foreground">{stats.high} élevés</span>
   </div>
   <div className="flex items-center gap-1.5">
   <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 shadow-sm" />
-  <span className="text-[11px] font-bold text-muted-foreground">{stats.medium} moyens</span>
+  <span className="text-xs font-bold text-muted-foreground">{stats.medium} moyens</span>
   </div>
   <div className="flex items-center gap-1.5">
   <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 shadow-sm" />
-  <span className="text-[11px] font-bold text-muted-foreground">{stats.low} faibles</span>
+  <span className="text-xs font-bold text-muted-foreground">{stats.low} faibles</span>
   </div>
  </div>
  <div className="text-right">
   <div className="text-lg font-black text-foreground">{stats.total}</div>
-  <div className="text-[11px] text-muted-foreground uppercase tracking-wider">Total</div>
+  <div className="text-xs text-muted-foreground uppercase tracking-wider">Total</div>
  </div>
  </div>
 
@@ -178,7 +178,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
  <div className="grid grid-cols-[auto_1fr] gap-3 w-full max-w-[380px]">
   {/* Y Axis Label */}
   <div className="flex items-center justify-center">
-  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider -rotate-90 whitespace-nowrap">
+  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider -rotate-90 whitespace-nowrap">
   {t('risks.probability')}
   </span>
   </div>
@@ -190,7 +190,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
   <div className="flex flex-col justify-between pr-1">
   {[5, 4, 3, 2, 1].map(num => (
    <div key={num || 'unknown'} className="h-10 flex items-center justify-center">
-   <span className="text-[11px] font-bold text-muted-foreground">{num}</span>
+   <span className="text-xs font-bold text-muted-foreground">{num}</span>
    </div>
   ))}
   </div>
@@ -233,14 +233,14 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
   <div className="flex gap-1.5 pl-6">
   {[1, 2, 3, 4, 5].map(num => (
   <div key={num || 'unknown'} className="flex-1 flex items-center justify-center">
-   <span className="text-[11px] font-bold text-muted-foreground">{num}</span>
+   <span className="text-xs font-bold text-muted-foreground">{num}</span>
   </div>
   ))}
   </div>
 
   {/* X Axis Label */}
   <div className="flex items-center justify-center pt-1">
-  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
   {t('risks.impact')}
   </span>
   </div>
@@ -266,7 +266,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
   </div>
   <button
   onClick={() => navigate && navigate('/risks?filter=critical')}
-  className="text-[11px] font-bold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+  className="text-xs font-bold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
   >
   Voir
   </button>

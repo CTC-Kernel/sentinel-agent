@@ -91,7 +91,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
   <Filter className="h-3.5 w-3.5" />
   <span className="hidden sm:inline">{t('ui.pageControls.filters', { defaultValue: 'Filtres' })}</span>
   {activeFiltersCount && activeFiltersCount > 0 ? (
-  <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-[11px]">
+  <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">
    {activeFiltersCount}
   </span>
   ) : null}

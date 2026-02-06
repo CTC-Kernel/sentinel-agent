@@ -338,14 +338,14 @@ export const AgentComplianceHeatmap: React.FC<AgentComplianceHeatmapProps> = ({
    }
    position="top"
    >
-   <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap max-w-[60px] truncate block cursor-help">
+   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap max-w-[60px] truncate block cursor-help">
    {check.name.split(' ')[0]}
    </span>
    </Tooltip>
   </th>
   ))}
   <th className="px-4 py-3 text-center">
-  <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
    {t('agent.score', { defaultValue: 'Score' })}
   </span>
   </th>
@@ -383,7 +383,7 @@ export const AgentComplianceHeatmap: React.FC<AgentComplianceHeatmapProps> = ({
    <div className="text-sm font-medium text-foreground truncate max-w-[120px] group-hover:text-primary transition-colors">
    {agent.name || agent.hostname || agent.id.slice(0, 8)}
    </div>
-   <div className="text-[11px] text-muted-foreground truncate max-w-[120px]">
+   <div className="text-xs text-muted-foreground truncate max-w-[120px]">
    {agent.ipAddress}
    </div>
    </div>

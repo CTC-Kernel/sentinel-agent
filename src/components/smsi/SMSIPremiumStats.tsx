@@ -141,7 +141,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                             <span className="text-2xl font-black text-foreground">
                                 {program.overallProgress}%
                             </span>
-                            <span className="text-[11px] text-muted-foreground uppercase tracking-wider">
+                            <span className="text-xs text-muted-foreground uppercase tracking-wider">
                                 Conformité
                             </span>
                         </div>
@@ -175,7 +175,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                                 <PhaseIcon className={cn("w-4 h-4", phaseColors.text)} />
                             </div>
                             <Badge className={cn(
-                                "text-[11px] font-bold",
+                                "text-xs font-bold",
                                 phaseColors.bg, phaseColors.text, phaseColors.border
                             )}>
                                 Actif
@@ -184,7 +184,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                         <div className={cn("text-2xl font-black", phaseColors.text)}>
                             {phaseLabel}
                         </div>
-                        <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                             Phase Active
                         </div>
                         {/* Phase Progress Dots */}
@@ -236,7 +236,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                         )}>
                             {overdueCount}
                         </div>
-                        <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                             Jalons en retard
                         </div>
                         <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
@@ -265,7 +265,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                                 )} />
                             </div>
                             {targetDate && (
-                                <span className="text-[11px] text-muted-foreground font-medium">
+                                <span className="text-xs text-muted-foreground font-medium">
                                     {targetDate.toLocaleDateString(config.intlLocale, { day: 'numeric', month: 'short', year: 'numeric' })}
                                 </span>
                             )}
@@ -282,12 +282,12 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                                 ) : '—'}
                             </div>
                             {certOverdue && (
-                                <Badge className="bg-red-50 text-red-600 dark:text-red-400 border-red-500/20 text-[11px]">
+                                <Badge className="bg-red-50 text-red-600 dark:text-red-400 border-red-500/20 text-xs">
                                     En retard
                                 </Badge>
                             )}
                         </div>
-                        <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
+                        <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
                             {targetDate ? 'Objectif Certification' : 'Certification non définie'}
                         </div>
                         {daysUntilCertification !== null && !certOverdue && (
@@ -331,7 +331,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                                     isActive || isPast ? colors.text : "text-muted-foreground"
                                 )} />
                                 <span className={cn(
-                                    "text-[11px] font-bold uppercase",
+                                    "text-xs font-bold uppercase",
                                     isActive || isPast ? colors.text : "text-muted-foreground"
                                 )}>
                                     {PHASE_LABELS[phase]}

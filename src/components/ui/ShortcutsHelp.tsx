@@ -83,7 +83,7 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onClose })
    {shortcut.keys.map((key, i) => (
    <kbd
     key={`key-${i || 'unknown'}-${key}`}
-    className="min-w-[24px] px-2 py-1 flex items-center justify-center bg-muted border-b-2 border-border/40 rounded-lg text-[11px] font-bold text-muted-foreground uppercase tracking-wider font-mono"
+    className="min-w-[24px] px-2 py-1 flex items-center justify-center bg-muted border-b-2 border-border/40 rounded-lg text-xs font-bold text-muted-foreground uppercase tracking-wider font-mono"
    >
     {key === 'Cmd' ? <Command className="h-3 w-3" /> : key}
    </kbd>

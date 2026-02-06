@@ -103,7 +103,7 @@ export const LandingPage: React.FC = () => {
   <div className="w-12 h-1 bg-muted rounded-full"></div>
   <p className="text-xs font-bold font-mono text-muted-foreground uppercase tracking-widest">{t('landing.footer.operational', { defaultValue: "Opérationnel dans toute l'Europe" })}</p>
 
-  <p className="text-[11px] text-muted-foreground font-mono">
+  <p className="text-xs text-muted-foreground font-mono">
   {t('landing.footer.copyright', { defaultValue: '© 2022 SENTINEL GRC. CYBER THREAT CONSULTING.' })}
   </p>
  </div>

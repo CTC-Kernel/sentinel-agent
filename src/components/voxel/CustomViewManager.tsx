@@ -87,7 +87,7 @@ function LayerPreview({ layers }: { layers: string[] }) {
  <span
  key={layer || 'unknown'}
  className={cn(
- 'px-1.5 py-0.5 text-[11px] font-medium rounded text-white',
+ 'px-1.5 py-0.5 text-xs font-medium rounded text-white',
  layerColors[layer] || 'bg-muted/500'
  )}
  >
@@ -143,7 +143,7 @@ function CustomViewCard({
  </div>
 
  <div className="mt-3 pt-3 border-t flex items-center justify-between">
- <span className="text-[11px] text-muted-foreground">
+ <span className="text-xs text-muted-foreground">
  {formatDistanceToNow(view.updatedAt, { addSuffix: true, locale: dateFnsLocale })}
  </span>
  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-70 transition-opacity">

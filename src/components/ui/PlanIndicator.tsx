@@ -189,7 +189,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
   ) : (
   <span className={`inline-flex rounded-full h-1.5 w-1.5 ${statusConfig.bgColor}`}></span>
   )}
-  <span className={`text-[11px] font-semibold uppercase tracking-wider ${statusConfig.color}`}>
+  <span className={`text-xs font-semibold uppercase tracking-wider ${statusConfig.color}`}>
   {statusConfig.label}
   </span>
   </div>
@@ -269,7 +269,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
    <span className="text-xs font-bold text-foreground /40">
    Passez à Pro
    </span>
-   <p className="text-[11px] text-muted-foreground mt-0.5">
+   <p className="text-xs text-muted-foreground mt-0.5">
    Fonctionnalités avancées
    </p>
    </div>
@@ -281,7 +281,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
   )}
 
   {/* Footer */}
-  <p className="text-[11px] text-center text-muted-foreground mt-3">
+  <p className="text-xs text-center text-muted-foreground mt-3">
   Cliquer pour gérer l'abonnement
   </p>
   </div>

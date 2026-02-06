@@ -29,7 +29,7 @@ export const AssetInspectorHistory: React.FC<AssetInspectorHistoryProps> = ({
   </div>
   <div className="grid grid-cols-3 gap-2 text-xs">
    <div className="flex flex-col items-center p-2 rounded-3xl bg-white dark:bg-black/20">
-   <span className="text-[11px] text-muted-foreground uppercase">{t('common.inspector.history.confidentiality')}</span>
+   <span className="text-xs text-muted-foreground uppercase">{t('common.inspector.history.confidentiality')}</span>
    <div className="flex items-center gap-1 mt-1">
    <span className="line-through opacity-60">{h.previousConfidentiality}</span>
    <span>→</span>
@@ -37,7 +37,7 @@ export const AssetInspectorHistory: React.FC<AssetInspectorHistoryProps> = ({
    </div>
    </div>
    <div className="flex flex-col items-center p-2 rounded-3xl bg-white dark:bg-black/20">
-   <span className="text-[11px] text-muted-foreground uppercase">{t('common.inspector.history.integrity')}</span>
+   <span className="text-xs text-muted-foreground uppercase">{t('common.inspector.history.integrity')}</span>
    <div className="flex items-center gap-1 mt-1">
    <span className="line-through opacity-60">{h.previousIntegrity}</span>
    <span>→</span>
@@ -45,7 +45,7 @@ export const AssetInspectorHistory: React.FC<AssetInspectorHistoryProps> = ({
    </div>
    </div>
    <div className="flex flex-col items-center p-2 rounded-3xl bg-white dark:bg-black/20">
-   <span className="text-[11px] text-muted-foreground uppercase">{t('common.inspector.history.availability')}</span>
+   <span className="text-xs text-muted-foreground uppercase">{t('common.inspector.history.availability')}</span>
    <div className="flex items-center gap-1 mt-1">
    <span className="line-through opacity-60">{h.previousAvailability}</span>
    <span>→</span>

@@ -26,7 +26,7 @@ const getFrameworkStyles = (framework: Framework) => {
  case 'ISO27001':
  return {
  accent: 'text-primary',
- bg: 'bg-primary/10 dark:bg-primary',
+ bg: 'bg-primary/10 dark:bg-primary/15',
  border: 'border-primary/20 dark:border-primary/80',
  progress: 'bg-primary shadow-primary/20'
  };
@@ -260,10 +260,10 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
     <h4 className={`text-sm font-bold truncate pr-2 leading-tight ${isActive ? 'text-primary dark:text-primary/30' : 'text-foreground'}`}>
     {control.name}
     </h4>
-    <p className="text-[11px] text-muted-foreground font-mono mt-0.5 uppercase tracking-wider">{control.code}</p>
+    <p className="text-xs text-muted-foreground font-mono mt-0.5 uppercase tracking-wider">{control.code}</p>
     </div>
     </div>
-    <div className={`shrink-0 px-2.5 py-1 rounded-3xl text-[11px] font-bold uppercase tracking-wide border shadow-sm whitespace-nowrap ${control.status === CONTROL_STATUS.IMPLEMENTED ? 'text-success-text bg-success-bg border-success-border/50' :
+    <div className={`shrink-0 px-2.5 py-1 rounded-3xl text-xs font-bold uppercase tracking-wide border shadow-sm whitespace-nowrap ${control.status === CONTROL_STATUS.IMPLEMENTED ? 'text-success-text bg-success-bg border-success-border/50' :
     control.status === CONTROL_STATUS.PARTIAL ? 'text-warning-text bg-warning-bg border-warning-border/50' :
     control.status === CONTROL_STATUS.NOT_APPLICABLE ? 'text-muted-foreground bg-muted border-border/40 ' :
     'text-muted-foreground bg-card border-border/40 '
@@ -274,13 +274,13 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
 
    <div className="flex items-center gap-2 mt-4 pl-[3.25rem]">
     {control.evidenceIds && control.evidenceIds.length > 0 ? (
-    <span className="flex items-center text-success-text bg-success-bg px-2 py-1 rounded-lg text-[11px] font-bold border border-success-border/30">
+    <span className="flex items-center text-success-text bg-success-bg px-2 py-1 rounded-lg text-xs font-bold border border-success-border/30">
     <Paperclip className="h-3 w-3 mr-1.5" />
     {control.evidenceIds.length}
     </span>
     ) : (control.status === CONTROL_STATUS.IMPLEMENTED) ? (
     <CustomTooltip content="Preuve obligatoire manquante">
-    <span className="flex items-center text-warning-text bg-warning-bg px-2 py-1 rounded-lg text-[11px] font-bold border border-warning-border/30">
+    <span className="flex items-center text-warning-text bg-warning-bg px-2 py-1 rounded-lg text-xs font-bold border border-warning-border/30">
     <AlertTriangle className="h-3 w-3 mr-1.5" />
     {t('compliance.missing', { defaultValue: 'Manquante' })}
     </span>
@@ -288,14 +288,14 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
     ) : null}
 
     {riskCount > 0 && (
-    <span className="flex items-center text-info-text bg-info-bg px-2 py-1 rounded-lg text-[11px] font-bold border border-info-border/30">
+    <span className="flex items-center text-info-text bg-info-bg px-2 py-1 rounded-lg text-xs font-bold border border-info-border/30">
     <ShieldAlert className="h-3 w-3 mr-1.5" />
     {riskCount}
     </span>
     )}
 
     {findingsCount > 0 && (
-    <span className="flex items-center text-error-text bg-error-bg px-2 py-1 rounded-lg text-[11px] font-bold border border-error-border/30">
+    <span className="flex items-center text-error-text bg-error-bg px-2 py-1 rounded-lg text-xs font-bold border border-error-border/30">
     <AlertOctagon className="h-3 w-3 mr-1.5" />
     {findingsCount}
     </span>

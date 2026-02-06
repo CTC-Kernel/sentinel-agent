@@ -108,7 +108,7 @@ export const SystemHealth: React.FC = () => {
   </div>
   <div className="text-right">
   <p className="text-xs font-bold text-success-text">{service.uptime}</p>
-  <p className="text-[11px] text-muted-foreground">uptime</p>
+  <p className="text-xs text-muted-foreground">uptime</p>
   </div>
   </div>
   ))}

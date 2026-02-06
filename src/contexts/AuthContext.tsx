@@ -52,47 +52,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
  loadingRef.current = loading;
  }, [loading]);
 
- const refreshingRef = useRef(false);
+ const refreshPromiseRef = useRef<Promise<void> | null>(null);
 
  const refreshSession = useCallback(async () => {
  if (!auth.currentUser) return;
- if (refreshingRef.current) return;
- refreshingRef.current = true;
- try {
- // Force le rafraîchissement du token
- await auth.currentUser.getIdToken(true);
- const tokenResult = await auth.currentUser.getIdTokenResult();
-
- // Si l'organisationId manque dans les claims mais existe dans le profil, on tente de réparer
- if (!tokenResult.claims.organizationId) {
- const refreshUserTokenFn = httpsCallable(functions, 'refreshUserToken');
- try {
-  await refreshUserTokenFn();
-  // Re-rafraîchir après l'appel de la fonction
-  await auth.currentUser.getIdToken(true);
-  setClaimsSynced(true);
- } catch (_e) {
-  ErrorLogger.warn('Failed to refresh custom claims via Cloud Function', 'AuthContext.refreshSession', { metadata: { error: _e } });
+ if (refreshPromiseRef.current) {
+ await refreshPromiseRef.current;
+ return;
  }
+
+ const doRefresh = async () => {
+ try {
+ await auth.currentUser!.getIdToken(true);
+ const tokenResult = await auth.currentUser!.getIdTokenResult();
+
+ if (!tokenResult.claims.organizationId) {
+  const refreshUserTokenFn = httpsCallable(functions, 'refreshUserToken');
+  try {
+  await refreshUserTokenFn();
+  await auth.currentUser!.getIdToken(true);
+  setClaimsSynced(true);
+  } catch (_e) {
+  ErrorLogger.warn('Failed to refresh custom claims via Cloud Function', 'AuthContext.refreshSession', { metadata: { error: _e } });
+  }
  } else {
- setClaimsSynced(true);
+  setClaimsSynced(true);
  }
  } catch (_err) {
  ErrorLogger.error(_err, 'AuthContext.refreshSession');
  setError(_err as Error);
+ } finally {
+ refreshPromiseRef.current = null;
  }
+ };
+
+ refreshPromiseRef.current = doRefresh();
+ await refreshPromiseRef.current;
  }, [setClaimsSynced]);
 
  const logout = useCallback(async () => {
  try {
+ // Cancel all in-flight queries first to prevent race conditions
+ queryClient.cancelQueries();
  await firebaseSignOut(auth);
  setUser(null);
  setFirebaseUser(null);
  setOrganization(null);
  setIsBlocked(false);
- // Clear React Query cache to prevent cross-user data leakage
  queryClient.clear();
- // Nettoyer le stockage local si nécessaire
  localStorage.removeItem('last_org_id');
  } catch (_err) {
  ErrorLogger.error(_err, 'AuthContext.logout');

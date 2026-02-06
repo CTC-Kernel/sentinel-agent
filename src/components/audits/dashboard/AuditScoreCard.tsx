@@ -76,17 +76,17 @@ export const AuditScoreCard: React.FC<AuditScoreCardProps> = ({
   aria-label="Afficher tous les audits"
   className="cursor-pointer group/item text-center hover:bg-muted/50 dark:hover:bg-muted/50 rounded-3xl transition-colors p-2"
  >
-  <div className="text-[11px] uppercase font-bold text-muted-foreground mb-2 tracking-widest group-hover/item:text-primary transition-colors">Total Audits</div>
+  <div className="text-xs uppercase font-bold text-muted-foreground mb-2 tracking-widest group-hover/item:text-primary transition-colors">Total Audits</div>
   <div className="text-3xl font-black text-foreground font-mono">{totalAudits}</div>
  </div>
  <div className="text-center">
-  <div className="text-[11px] uppercase font-bold text-muted-foreground mb-2 tracking-widest">Actions Requises</div>
+  <div className="text-xs uppercase font-bold text-muted-foreground mb-2 tracking-widest">Actions Requises</div>
   <div className={`text-3xl font-black font-mono ${openFindings > 0 ? 'text-red-500 drop-shadow-red-md' : 'text-foreground'}`}>
   {openFindings}
   </div>
  </div>
  <div className="text-center">
-  <div className="text-[11px] uppercase font-bold text-muted-foreground mb-2 tracking-widest">À Venir (30j)</div>
+  <div className="text-xs uppercase font-bold text-muted-foreground mb-2 tracking-widest">À Venir (30j)</div>
   <div className="text-3xl font-black text-foreground font-mono">{upcomingAudits}</div>
  </div>
  </div>

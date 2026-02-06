@@ -205,7 +205,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
   <div className="w-full mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex flex-col gap-2 text-xs font-bold text-destructive shadow-sm animate-slide-up">
   <p className="flex items-center justify-center"><AlertTriangle className="h-4 w-4 mr-2" /> {errorMsg}</p>
   {errorMsg.includes('restreint') && (
-   <p className="text-[11px] font-normal text-destructive/80 text-center mt-1">{t('auth.errors.contactAdmin')}</p>
+   <p className="text-xs font-normal text-destructive/80 text-center mt-1">{t('auth.errors.contactAdmin')}</p>
   )}
   </div>
   )}
@@ -218,7 +218,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
   className="w-full py-3 sm:py-4 lg:py-5 rounded-2xl border-muted card-hover shadow-sm"
   >
   {!loading && <GoogleIcon />}
-  <span className="ml-3 text-[15px] font-bold text-foreground">{t('auth.google')}</span>
+  <span className="ml-3 text-base font-bold text-foreground">{t('auth.google')}</span>
   </Button>
 
   {/* Apple Sign-In button - bg-black text-white is mandated by Apple branding guidelines */}
@@ -235,12 +235,12 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
    <path d="M17.03 11.28c-.6-.7-1.55-1.15-2.55-1.15-1.03 0-2.03.45-3.08.45-1.03 0-2.03-.45-3.08-.45-2.05 0-4.1 1.65-4.1 4.8 0 2.2 1 3.75 2.05 4.6 1.03.85 2.03.85 3.08.4 1.03-.8 2.1-.8 3.08.4 1.03.48 2.1.55 3.08-.4 1.03-.85 2.03-2.4 2.05-4.6-.05-.15-2.05-1.15-2.05-3.75.05-.15 2.05-1.15 2.05-3.75z" />
    </svg>
   )}
-  <span className="ml-3 text-[15px] font-bold">{t('auth.apple')}</span>
+  <span className="ml-3 text-base font-bold">{t('auth.apple')}</span>
   </Button>
 
   <div className="relative py-2">
   <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-muted"></div></div>
-  <div className="relative flex justify-center"><span className="px-4 bg-background/80 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-muted-foreground">{t('auth.orEmail')}</span></div>
+  <div className="relative flex justify-center"><span className="px-4 bg-background/80 backdrop-blur-sm text-xs uppercase tracking-widest font-bold text-muted-foreground">{t('auth.orEmail')}</span></div>
   </div>
 
   <AnimatePresence mode="wait">
@@ -273,7 +273,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
     variant="link"
     size="sm"
     onClick={() => setShowResetModal(true)}
-    className="text-[13px] font-bold text-primary hover:text-primary/80 p-0 h-auto"
+    className="text-sm font-bold text-primary hover:text-primary/80 p-0 h-auto"
    >
     {t('auth.forgotPassword')}
    </Button>

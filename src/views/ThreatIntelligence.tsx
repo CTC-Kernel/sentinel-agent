@@ -279,7 +279,7 @@ export const ThreatIntelligence: React.FC = () => {
   <Button
   aria-label="Refresh threat feeds"
   onClick={handleRefreshLiveFeed}
-  className="bg-white/5 hover:bg-muted text-white border border-white/10 p-2.5 h-auto rounded-xl backdrop-blur-md shadow-sm"
+  className="bg-muted/50 hover:bg-muted text-foreground border border-border/40 p-2.5 h-auto rounded-xl backdrop-blur-md shadow-sm"
   title={t('threats.refreshFeeds', { defaultValue: 'Actualiser les flux' })}
   >
   <RefreshCw className={`h-5 w-5 ${isSeeding ? 'animate-spin text-primary/70' : 'text-muted-foreground/60'}`} />
@@ -300,7 +300,7 @@ export const ThreatIntelligence: React.FC = () => {
   <Button
   aria-label="Community settings"
   onClick={handleSettingsOpen}
-  className="bg-white/5 hover:bg-muted text-white p-2.5 h-auto rounded-xl border border-white/10 shadow-sm"
+  className="bg-muted/50 hover:bg-muted text-foreground p-2.5 h-auto rounded-xl border border-border/40 shadow-sm"
   title={t('threats.communitySettings', { defaultValue: 'Paramètres de la communauté' })}
   >
   <Settings className="h-5 w-5 text-muted-foreground/60" />
@@ -369,7 +369,7 @@ export const ThreatIntelligence: React.FC = () => {
   <Button
   aria-label="Toggle 2D/3D view"
   onClick={handleToggleViewMode}
-  className="bg-card/40 hover:bg-card/60 text-white px-4 py-2 h-auto rounded-full text-sm font-bold backdrop-blur-md border border-white/10 shadow-lg"
+  className="bg-card/80 hover:bg-card text-foreground px-4 py-2 h-auto rounded-full text-sm font-bold backdrop-blur-md border border-border/40 shadow-lg"
   title="Toggle 2D/3D view"
   >
   {viewMode === '2d' ? <Box className="h-4 w-4 mr-2" /> : <Globe className="h-4 w-4 mr-2" />}
@@ -442,14 +442,14 @@ export const ThreatIntelligence: React.FC = () => {
   </p>
 
   <div className="grid grid-cols-2 gap-4">
-   <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-muted transition-colors">
+   <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors">
    <div className="flex items-center gap-2 mb-2">
-   <Users className="h-5 w-5 text-primary/50" />
+   <Users className="h-5 w-5 text-white/70" />
    <div className="text-xs uppercase tracking-wider opacity-70">Experts</div>
    </div>
    <div className="text-4xl font-black tracking-tight">12.4k</div>
    </div>
-   <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-muted transition-colors">
+   <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors">
    <div className="flex items-center gap-2 mb-2">
    <Shield className="h-5 w-5 text-success-text" />
    <div className="text-xs uppercase tracking-wider opacity-70">Mitigations</div>
@@ -548,7 +548,7 @@ const ThreatCard = React.memo(({
  </div>
 
  <div className="flex gap-5">
- <div className={`p-3 rounded-2xl h-fit ${threat.type === 'Ransomware' ? 'bg-error-bg text-error-text' : 'bg-primary/10 text-primary dark:bg-primary'}`}>
+ <div className={`p-3 rounded-2xl h-fit ${threat.type === 'Ransomware' ? 'bg-error-bg text-error-text' : 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary'}`}>
   <AlertOctagon className="h-6 w-6" />
  </div>
  <div className="flex-1">

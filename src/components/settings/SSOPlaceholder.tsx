@@ -20,7 +20,7 @@ export const SSOPlaceholder: React.FC = () => {
   <p className="text-xs text-muted-foreground">{t('settings.ssoDescription') || "Authentification d'entreprise (SAML/OIDC)"}</p>
   </div>
  </div>
- <div className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 rounded-full text-[11px] font-bold uppercase tracking-wide">
+ <div className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 rounded-full text-xs font-bold uppercase tracking-wide">
   Enterprise
  </div>
  </div>
@@ -43,7 +43,7 @@ export const SSOPlaceholder: React.FC = () => {
   <span className="text-xs font-medium text-muted-foreground">Azure AD</span>
   </div>
   <div className="p-4 rounded-3xl border border-border/40 bg-white/50 dark:bg-white/5 flex flex-col items-center gap-2">
-  <div className="h-6 w-6 bg-foreground rounded-full flex items-center justify-center text-background text-[11px] font-bold">O</div>
+  <div className="h-6 w-6 bg-foreground rounded-full flex items-center justify-center text-background text-xs font-bold">O</div>
   <span className="text-xs font-medium text-muted-foreground">Okta</span>
   </div>
   <div className="p-4 rounded-3xl border border-border/40 bg-white/50 dark:bg-white/5 flex flex-col items-center gap-2">

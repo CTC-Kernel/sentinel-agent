@@ -67,7 +67,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
 
  <div className="space-y-2 relative z-decorator">
-  <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+  <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
   <span className="inline-flex h-2 w-2 rounded-full bg-red-500 animate-pulse" />
   Menaces en temps réel
   </p>
@@ -86,14 +86,14 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
   <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-70 transition-opacity" />
 
   <div className="flex items-center justify-between mb-3">
-  <span className="text-[11px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400">Critiques</span>
+  <span className="text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400">Critiques</span>
   <div className="p-1.5 rounded-lg bg-red-100/50 dark:bg-red-500/20 text-red-600 dark:text-red-400">
   <AlertTriangle className="h-4 w-4" />
   </div>
   </div>
   <div className="space-y-1">
   <p className="text-3xl font-black text-foreground tracking-tight">{stats.critical}</p>
-  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Priorité haute</p>
+  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Priorité haute</p>
   </div>
   </div>
 
@@ -103,7 +103,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
   <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover/card:opacity-70 transition-opacity" />
 
   <div className="flex items-center justify-between mb-3">
-  <span className="text-[11px] font-bold uppercase tracking-widest text-primary">Ransomware</span>
+  <span className="text-xs font-bold uppercase tracking-widest text-primary">Ransomware</span>
   <div className="p-1.5 rounded-lg bg-primary/15 dark:bg-primary text-primary">
   <Shield className="h-4 w-4" />
   </div>
@@ -112,7 +112,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
   <p className="text-3xl font-black text-foreground tracking-tight">
   {stats.ransomware}
   </p>
-  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Campagnes</p>
+  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Campagnes</p>
   </div>
   </div>
 
@@ -122,7 +122,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
   <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-70 transition-opacity" />
 
   <div className="flex items-center justify-between mb-3">
-  <span className="text-[11px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">Malware</span>
+  <span className="text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">Malware</span>
   <div className="p-1.5 rounded-lg bg-orange-100/50 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400">
   <Activity className="h-4 w-4" />
   </div>
@@ -131,7 +131,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
   <p className="text-3xl font-black text-foreground tracking-tight">
   {stats.malware}
   </p>
-  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Détectés</p>
+  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Détectés</p>
   </div>
   </div>
  </div>

@@ -124,13 +124,13 @@ const AssetMatchCard: React.FC<{
  {asset.assetName}
  </span>
  {asset.isManual && (
- <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-indigo-500/20 text-indigo-400 uppercase">
+ <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-indigo-500/20 text-indigo-400 uppercase">
  Manual
  </span>
  )}
  {!asset.isManual && (
  <span
- className={`px-1.5 py-0.5 rounded text-[11px] font-medium ${
+ className={`px-1.5 py-0.5 rounded text-xs font-medium ${
   asset.matchType === 'exact'
   ? 'bg-green-500/20 text-green-500'
   : asset.matchType === 'partial'
@@ -148,14 +148,14 @@ const AssetMatchCard: React.FC<{
  </div>
 
  <div className="mt-1.5 flex flex-wrap items-center gap-1">
- <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium ${critColors.bg} ${critColors.text}`}>
+ <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${critColors.bg} ${critColors.text}`}>
  {asset.otCriticality}
  </span>
- <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium ${segColors.bg} ${segColors.text}`}>
+ <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${segColors.bg} ${segColors.text}`}>
  {asset.networkSegment}
  </span>
  {asset.safetyRating && (
- <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-red-500/20 text-red-400">
+ <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-red-500/20 text-red-400">
  SIL: {asset.safetyRating}
  </span>
  )}
@@ -223,7 +223,7 @@ const ScorePreview: React.FC<{
  <div className="flex items-center gap-4">
  {/* Base score */}
  <div className="text-center">
- <p className="text-[11px] uppercase tracking-wider text-muted-foreground dark:text-white/40">Base</p>
+ <p className="text-xs uppercase tracking-wider text-muted-foreground dark:text-white/40">Base</p>
  <p className="text-lg font-bold text-foreground dark:text-white/70">{baseScore.toFixed(1)}</p>
  </div>
 
@@ -240,7 +240,7 @@ const ScorePreview: React.FC<{
 
  {/* Adjusted score */}
  <div className="text-center">
- <p className="text-[11px] uppercase tracking-wider text-muted-foreground dark:text-white/40">OT-Adjusted</p>
+ <p className="text-xs uppercase tracking-wider text-muted-foreground dark:text-white/40">OT-Adjusted</p>
  <p className={`text-2xl font-bold ${adjustedScore.severity === 'Critical' ? 'text-red-500' : adjustedScore.severity === 'High' ? 'text-orange-500' : adjustedScore.severity === 'Medium' ? 'text-yellow-500' : 'text-green-500'}`}>
  {adjustedScore.adjustedScore.toFixed(1)}
  </p>
@@ -270,7 +270,7 @@ const ScorePreview: React.FC<{
  {/* Factor breakdown */}
  {showDetails && adjustedScore.factors.length > 0 && (
  <div className={`border-t border-border/40 ${compact ? 'p-3' : 'p-4'} space-y-2`}>
- <p className="text-[11px] uppercase tracking-wider text-muted-foreground dark:text-white/40 mb-2">
+ <p className="text-xs uppercase tracking-wider text-muted-foreground dark:text-white/40 mb-2">
  Adjustment Factors
  </p>
  {adjustedScore.factors.map((factor, i) => (

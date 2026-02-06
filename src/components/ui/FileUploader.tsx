@@ -217,7 +217,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   <ShieldCheck className={`h-5 w-5 ${isSecure ? 'text-success' : 'text-muted-foreground'}`} />
   <div>
    <p className="text-sm font-bold text-foreground">Document Stratégique</p>
-   <p className="text-[11px] text-muted-foreground">Active le filigrane et la vérification d'intégrité</p>
+   <p className="text-xs text-muted-foreground">Active le filigrane et la vérification d'intégrité</p>
   </div>
   </div>
   <Switch

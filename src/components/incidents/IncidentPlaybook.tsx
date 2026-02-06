@@ -194,7 +194,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
  <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-xl border border-border/40 shadow-premium">
  <div className="flex justify-between items-center mb-4">
   <div>
-  <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-1">{t('incidents.playbook.activePlaybook', { defaultValue: 'Playbook Actif' })}</h3>
+  <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">{t('incidents.playbook.activePlaybook', { defaultValue: 'Playbook Actif' })}</h3>
   <h2 className="font-bold text-xl text-foreground">{playbook.title}</h2>
   </div>
   <Badge status={progress === 100 ? 'success' : 'info'} size="md" variant="soft" className="font-bold">{progress}%</Badge>
@@ -206,7 +206,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
   </div>
  </div>
 
- <div className="flex gap-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+ <div className="flex gap-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
   <div className="flex items-center gap-1.5">
   <Clock className="h-3.5 w-3.5" />
   <span>{t('incidents.playbook.startedOn', { defaultValue: 'Débuté le' })}: {new Date(response.startedAt).toLocaleDateString()}</span>
@@ -220,7 +220,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
 
  {/* Steps List */}
  <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-6 rounded-xl border border-border/40 shadow-premium">
- <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-6">{t('incidents.playbook.resolutionSteps', { defaultValue: 'Étapes de résolution' })}</h3>
+ <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">{t('incidents.playbook.resolutionSteps', { defaultValue: 'Étapes de résolution' })}</h3>
  <div className="space-y-4">
   {playbook.steps.sort((a, b) => a.order - b.order).map((step) => {
   const isCompleted = response.completedSteps.includes(step.id);

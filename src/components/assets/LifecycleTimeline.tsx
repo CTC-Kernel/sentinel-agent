@@ -69,7 +69,7 @@ export const LifecycleTimeline: React.FC<LifecycleTimelineProps> = ({
    {step.label}
   </p>
   {step.date && (
-   <p className="text-[11px] font-medium text-muted-foreground mt-0.5">
+   <p className="text-xs font-medium text-muted-foreground mt-0.5">
    {step.date.includes('Prochaine') ? step.date : new Date(step.date).toLocaleDateString()}
    </p>
   )}

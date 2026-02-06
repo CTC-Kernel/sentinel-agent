@@ -26,7 +26,7 @@ export const AssetInspectorDocuments: React.FC<AssetInspectorDocumentsProps> = (
   <div key={doc.id || 'unknown'} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
   <div className="flex justify-between items-start mb-2">
   <span className="text-sm font-bold text-foreground truncate pr-4">{doc.title}</span>
-  <span className={`text-[11px] uppercase font-bold px-2.5 py-1 rounded-3xl ${doc.status === 'Publié' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500/20' : 'bg-muted/500/10 text-muted-foreground ring-1 ring-slate-500/20'}`}>
+  <span className={`text-xs uppercase font-bold px-2.5 py-1 rounded-3xl ${doc.status === 'Publié' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500/20' : 'bg-muted/500/10 text-muted-foreground ring-1 ring-slate-500/20'}`}>
    {doc.status}
   </span>
   </div>

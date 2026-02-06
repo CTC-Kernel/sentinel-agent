@@ -515,7 +515,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
   <div className="flex items-center text-muted-foreground">
   <span className="w-8 h-px bg-current"></span>
-  <span className="text-[11px] uppercase font-bold tracking-wider px-1">Via</span>
+  <span className="text-xs uppercase font-bold tracking-wider px-1">Via</span>
   <span className="w-8 h-px bg-current"></span>
   </div>
 

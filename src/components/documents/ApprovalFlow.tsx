@@ -123,7 +123,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
    <option key={u.uid || 'unknown'} value={u.uid}>{u.displayName || u.email}</option>
   ))}
   </select>
-  <p className="text-[11px] text-muted-foreground mt-1">{t('approvalFlow.holdCtrlCmd', { defaultValue: 'Maintenez Ctrl/Cmd pour sélectionner plusieurs.' })}</p>
+  <p className="text-xs text-muted-foreground mt-1">{t('approvalFlow.holdCtrlCmd', { defaultValue: 'Maintenez Ctrl/Cmd pour sélectionner plusieurs.' })}</p>
   </div>
   <input value={comment} onChange={(e) => setComment(e.target.value)}
   aria-label={t('documents.approvalFlow.ariaMessageReviewers', { defaultValue: 'Message pour les réviseurs' })}

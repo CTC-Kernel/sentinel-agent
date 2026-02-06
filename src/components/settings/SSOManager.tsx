@@ -91,7 +91,7 @@ export const SSOManager: React.FC = () => {
   <p className="text-xs text-muted-foreground">{t('settings.sso.subtitle', { defaultValue: "Gestion de l'authentification centralisée" })}</p>
   </div>
  </div>
- <div className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 dark:bg-green-500/20 dark:text-green-300 rounded-full text-[11px] font-bold uppercase tracking-wide flex items-center gap-2">
+ <div className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 dark:bg-green-500/20 dark:text-green-300 rounded-full text-xs font-bold uppercase tracking-wide flex items-center gap-2">
   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
   {t('settings.sso.active', { defaultValue: 'Actif' })}
  </div>

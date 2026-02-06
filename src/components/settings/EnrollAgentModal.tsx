@@ -97,7 +97,7 @@ const DownloadButton: React.FC<DownloadButtonProps & { downloadUrl?: string }> =
  {icon}
  <div>
   <div className="text-sm font-bold text-foreground">{label}</div>
-  <div className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider">{sublabel}</div>
+  <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{sublabel}</div>
  </div>
  </div>
  {loading ? (
@@ -105,7 +105,7 @@ const DownloadButton: React.FC<DownloadButtonProps & { downloadUrl?: string }> =
  ) : available ? (
  <Download className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
  ) : (
- <Badge variant="outline" className="text-[11px] border-amber-500/30 text-amber-600">
+ <Badge variant="outline" className="text-xs border-amber-500/30 text-amber-600">
   Bientôt
  </Badge>
  )}
@@ -241,10 +241,10 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
    <h3 className="text-base font-bold text-foreground">Dernière version</h3>
    {releaseInfo?.currentVersion && (
    <div className="flex items-center gap-2 mt-1">
-    <Badge variant="outline" className="text-[11px] bg-primary/10 border-primary/30 text-primary">
+    <Badge variant="outline" className="text-xs bg-primary/10 border-primary/30 text-primary">
     v{releaseInfo.currentVersion}
     </Badge>
-    <span className="text-[11px] text-muted-foreground">
+    <span className="text-xs text-muted-foreground">
     {releaseInfo.releaseDate && new Date(releaseInfo.releaseDate).toLocaleDateString(config.intlLocale)}
     </span>
    </div>
@@ -313,7 +313,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
    {/* System Requirements Mini Table */}
    <div className="mt-6 pt-4 border-t border-border/40 dark:border-white/5">
    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Requis</h4>
-   <div className="space-y-2 text-[11px]">
+   <div className="space-y-2 text-xs">
    {Object.entries(systemRequirements).map(([os, req]) => (
    <div key={os || 'unknown'} className="flex items-center justify-between py-1.5 border-b border-border/40 dark:border-white/5 last:border-0">
     <span className="font-medium text-foreground capitalize flex items-center gap-2">

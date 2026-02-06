@@ -115,7 +115,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
      </span>
-     <span className="text-[11px] font-mono text-red-500 font-bold tracking-wider">LIVE</span>
+     <span className="text-xs font-mono text-red-500 font-bold tracking-wider">LIVE</span>
      </div>
     )}
     </div>
@@ -123,13 +123,13 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
     {/* Stats Grid */}
     <div className="grid grid-cols-2 gap-2 mb-3">
     <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
-     <div className="text-[11px] text-muted-foreground uppercase tracking-widest mb-0.5">Score</div>
+     <div className="text-xs text-muted-foreground uppercase tracking-widest mb-0.5">Score</div>
      <div className={`text-lg font-bold font-mono ${hasThreats ? 'text-orange-400' : 'text-emerald-400'}`}>
      {intensity.toFixed(0)}
      </div>
     </div>
     <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
-     <div className="text-[11px] text-muted-foreground uppercase tracking-widest mb-0.5">Events</div>
+     <div className="text-xs text-muted-foreground uppercase tracking-widest mb-0.5">Events</div>
      <div className="text-lg font-bold font-mono text-white">
      {threatCount}
      </div>
@@ -139,7 +139,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
     {/* Active Threats List */}
     {topThreats.length > 0 && (
     <div className="space-y-2">
-     <div className="text-[11px] uppercase text-muted-foreground font-bold tracking-wider border-l-2 border-border pl-2">
+     <div className="text-xs uppercase text-muted-foreground font-bold tracking-wider border-l-2 border-border pl-2">
      Latest Intelligence
      </div>
      <div className="space-y-1.5">
@@ -154,7 +154,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
       <div className="leading-tight opacity-90 group-hover:opacity-70 transition-opacity truncate font-medium">
       {t.name}
       </div>
-      <div className="text-[11px] text-muted-foreground flex gap-2 mt-0.5">
+      <div className="text-xs text-muted-foreground flex gap-2 mt-0.5">
       <span>{t.type}</span>
       <span>•</span>
       <span className={t.severity === 'Critical' ? 'text-red-400' : 'text-orange-400'}>{t.severity}</span>
@@ -164,7 +164,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
      ))}
      </div>
      {threatCount > 3 && (
-     <div className="text-[11px] text-center text-muted-foreground italic pt-1">
+     <div className="text-xs text-center text-muted-foreground italic pt-1">
      + {threatCount - 3} other active events
      </div>
      )}
@@ -264,7 +264,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
 
  {/* Legend overlay */}
  <div className="absolute bottom-4 left-8 pointer-events-none">
- <div className="flex items-center gap-4 text-[11px] font-mono text-muted-foreground bg-card/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/5 shadow-xl">
+ <div className="flex items-center gap-4 text-xs font-mono text-muted-foreground bg-card/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/5 shadow-xl">
   <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-muted"></div> SAFE</div>
   <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500"></div> LOW</div>
   <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-orange-500"></div> MED</div>

@@ -209,7 +209,7 @@ export const Privacy: React.FC = () => {
   <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 dark:bg-primary/60/15 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
  </div>
  <div className="space-y-2">
-  <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+  <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
   <span className="inline-flex h-2 w-2 rounded-full bg-primary animate-pulse" />
   {t('privacy.registryLabel')}
   </p>
@@ -223,14 +223,14 @@ export const Privacy: React.FC = () => {
 
  <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6">
   <div>
-  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('privacy.stats.sensitiveData')}</p>
+  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('privacy.stats.sensitiveData')}</p>
   <div className="flex items-center gap-2">
   <span className="text-2xl font-black text-orange-500">{stats.sensitive}</span>
   <Badge status="warning" variant="soft" size="sm">{t('privacy.stats.priority')}</Badge>
   </div>
   </div>
   <div>
-  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('privacy.stats.dpiaRequired')}</p>
+  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('privacy.stats.dpiaRequired')}</p>
   <div className="flex items-center gap-2">
   <span className="text-2xl font-black text-foreground">
   {stats.dpiaMissing}
@@ -239,7 +239,7 @@ export const Privacy: React.FC = () => {
   </div>
   </div>
   <div>
-  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('privacy.stats.inProgress')}</p>
+  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('privacy.stats.inProgress')}</p>
   <div className="flex items-center gap-2">
   <span className="text-2xl font-black text-blue-500">
   {stats.review}
@@ -248,7 +248,7 @@ export const Privacy: React.FC = () => {
   </div>
   </div>
   <div>
-  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('privacy.stats.activeCompliance')}</p>
+  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('privacy.stats.activeCompliance')}</p>
   <div className="flex items-center gap-2">
   <span className="text-2xl font-black text-emerald-500">
   {stats.total > 0 ? Math.round(((stats.total - stats.review) / stats.total) * 100) : 0}%

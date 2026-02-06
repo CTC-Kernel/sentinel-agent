@@ -36,12 +36,12 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
   <span className="text-sm font-bold text-foreground flex items-center gap-2">
    {ctrl.code}
   </span>
-  <span className={`text-[11px] uppercase font-bold px-2.5 py-1 rounded-3xl ${ctrl.status === CONTROL_STATUS.IMPLEMENTED ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500/20' : ctrl.status === CONTROL_STATUS.PARTIAL ? 'bg-amber-100 text-amber-700 dark:text-amber-400 ring-1 ring-amber-500/20' : 'bg-red-100 text-red-700 dark:text-red-400 ring-1 ring-red-500/20'}`}>
+  <span className={`text-xs uppercase font-bold px-2.5 py-1 rounded-3xl ${ctrl.status === CONTROL_STATUS.IMPLEMENTED ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500/20' : ctrl.status === CONTROL_STATUS.PARTIAL ? 'bg-amber-100 text-amber-700 dark:text-amber-400 ring-1 ring-amber-500/20' : 'bg-red-100 text-red-700 dark:text-red-400 ring-1 ring-red-500/20'}`}>
    {t(`common.status.${ctrl.status === CONTROL_STATUS.IMPLEMENTED ? 'implemented' : ctrl.status === CONTROL_STATUS.PARTIAL ? 'partial' : 'notSupported'}`)}
   </span>
   </div>
   <p className="text-xs text-muted-foreground mb-2">{ctrl.name}</p>
-  <div className="text-[11px] text-muted-foreground">{t('common.type')}: {ctrl.type || t('common.undefined')}</div>
+  <div className="text-xs text-muted-foreground">{t('common.type')}: {ctrl.type || t('common.undefined')}</div>
   </div>
   ))}
  </div>
@@ -60,7 +60,7 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
   {supported.map(p => (
   <div key={p.id || 'unknown'} className="p-3 bg-muted/50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-white/5 flex justify-between items-center">
    <span className="text-sm font-medium text-foreground dark:text-white">{p.name}</span>
-   <span className={`text-[11px] px-2 py-0.5 rounded-3xl font-bold ${p.priority === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-muted text-muted-foreground'}`}>{p.priority}</span>
+   <span className={`text-xs px-2 py-0.5 rounded-3xl font-bold ${p.priority === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-muted text-muted-foreground'}`}>{p.priority}</span>
   </div>
   ))}
   </div>

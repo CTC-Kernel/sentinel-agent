@@ -272,7 +272,7 @@ export const TrainingAssignmentForm: React.FC<TrainingAssignmentFormProps> = ({
   {formatDuration(selectedCourse.duration)}
   </span>
   {selectedCourse.isRequired && (
-  <span className="px-2 py-0.5 rounded-full bg-error-bg text-error-text text-[11px] font-bold uppercase">
+  <span className="px-2 py-0.5 rounded-full bg-error-bg text-error-text text-xs font-bold uppercase">
   {t('common.required')}
   </span>
   )}

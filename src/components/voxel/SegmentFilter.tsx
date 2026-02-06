@@ -128,7 +128,7 @@ const SegmentToggle: React.FC<SegmentToggleProps> = React.memo(
  {nodeCount !== undefined && nodeCount > 0 && (
  <span
  className={cn(
- 'px-1.5 py-0.5 text-[11px] font-medium rounded-full transition-colors',
+ 'px-1.5 py-0.5 text-xs font-medium rounded-full transition-colors',
  isActive ? 'bg-muted/50 text-foreground' : 'bg-muted text-muted-foreground'
  )}
  >

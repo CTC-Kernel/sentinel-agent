@@ -159,7 +159,7 @@ const SentinelChat: React.FC = () => {
                             <p className="text-xs font-bold text-warning">
                                 {t('auth.chat.limitReached', { defaultValue: 'Limite de questions atteinte pour cette session.' })}
                             </p>
-                            <p className="text-[11px] text-warning/80 mt-1">
+                            <p className="text-xs text-warning/80 mt-1">
                                 {t('auth.chat.loginToContinue', { defaultValue: 'Connectez-vous ou creez un compte pour continuer a echanger avec Sentinel.' })}
                             </p>
                         </div>

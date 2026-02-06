@@ -218,7 +218,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                             <div className="h-2 w-full bg-muted/30 rounded-full overflow-hidden">
                                 <div className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-1000" style={{ width: `${projectHealth.progressRate}%` }} />
                             </div>
-                            <div className="text-[11px] text-muted-foreground mt-1">Attendue: {Math.round(projectHealth.expectedProgress)}%</div>
+                            <div className="text-xs text-muted-foreground mt-1">Attendue: {Math.round(projectHealth.expectedProgress)}%</div>
                         </div>
                         <div className="text-center">
                             <div className="flex items-center justify-center gap-2 mb-2">

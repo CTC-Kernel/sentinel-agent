@@ -80,28 +80,28 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
   <span className="w-3 h-3 rounded-full bg-success-text shadow-glow shadow-success-text/40"></span>
   <div className="flex flex-col">
   <span className="text-xs font-bold text-foreground">{t('risks.matrix.legend.low', { defaultValue: 'Faible' })}</span>
-  <span className="text-[11px] text-muted-foreground">Score 1-4</span>
+  <span className="text-xs text-muted-foreground">Score 1-4</span>
   </div>
   </div>
   <div className="flex items-center gap-2 px-3 py-1.5 rounded-3xl bg-muted/50 border border-border/40">
   <span className="w-3 h-3 rounded-full bg-info-text shadow-glow shadow-info-text/40"></span>
   <div className="flex flex-col">
   <span className="text-xs font-bold text-foreground">{t('risks.matrix.legend.medium', { defaultValue: 'Moyen' })}</span>
-  <span className="text-[11px] text-muted-foreground">Score 5-9</span>
+  <span className="text-xs text-muted-foreground">Score 5-9</span>
   </div>
   </div>
   <div className="flex items-center gap-2 px-3 py-1.5 rounded-3xl bg-muted/50 border border-border/40">
   <span className="w-3 h-3 rounded-full bg-warning-text shadow-glow shadow-warning-text/40"></span>
   <div className="flex flex-col">
   <span className="text-xs font-bold text-foreground">{t('risks.matrix.legend.high', { defaultValue: 'Élevé' })}</span>
-  <span className="text-[11px] text-muted-foreground">Score 10-14</span>
+  <span className="text-xs text-muted-foreground">Score 10-14</span>
   </div>
   </div>
   <div className="flex items-center gap-2 px-3 py-1.5 rounded-3xl bg-muted/50 border border-border/40">
   <span className="w-3 h-3 rounded-full bg-error-text shadow-glow shadow-error-text/40"></span>
   <div className="flex flex-col">
   <span className="text-xs font-bold text-foreground">{t('risks.matrix.legend.critical', { defaultValue: 'Critique' })}</span>
-  <span className="text-[11px] text-muted-foreground">Score 15-25</span>
+  <span className="text-xs text-muted-foreground">Score 15-25</span>
   </div>
   </div>
  </div>
@@ -132,7 +132,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
    <span className="text-sm font-bold text-foreground">
    {probObj.label}
    </span>
-   <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
    {probObj.sub}
    </span>
   </div>
@@ -183,7 +183,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
    <div className="text-center">
     <div className="font-bold">Score: {score}</div>
     <div className="text-xs opacity-80">{count} {t('risks.matrix.risksLabel', { defaultValue: 'Risque(s)' })}</div>
-    <div className="text-[11px] mt-1 text-muted-foreground">{t('risks.matrix.probabilityAxis')}: {probObj.val} x {t('risks.matrix.impactAxis')}: {impactObj.val}</div>
+    <div className="text-xs mt-1 text-muted-foreground">{t('risks.matrix.probabilityAxis')}: {probObj.val} x {t('risks.matrix.impactAxis')}: {impactObj.val}</div>
    </div>
    }
    >
@@ -210,7 +210,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
    `}
    >
    {/* Score Indicator (Always visible, faint) */}
-   <span className={`absolute top-2 right-3 text-[11px] font-bold opacity-0 group-hover:opacity-70 transition-opacity ${textStyle}`}>
+   <span className={`absolute top-2 right-3 text-xs font-bold opacity-0 group-hover:opacity-70 transition-opacity ${textStyle}`}>
     {score}
    </span>
 
@@ -221,7 +221,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
 
    {/* Label for populated cells */}
    {hasRisks && (
-    <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground mt-1">
+    <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground mt-1">
     {t('risks.matrix.risksLabel', { defaultValue: 'Risques' })}
     </span>
    )}

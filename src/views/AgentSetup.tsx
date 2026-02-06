@@ -317,7 +317,7 @@ export const AgentSetup: React.FC = () => {
 
  {/* Footer */}
  <div className="py-6 text-center relative z-decorator px-4 sm:px-6">
- <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+ <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
   {t('auth.footer.developedBy', { defaultValue: 'Developpe par' })}{' '}
   <a
   href="https://cyber-threat-consulting.com"

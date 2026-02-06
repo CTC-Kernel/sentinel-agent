@@ -103,7 +103,7 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
    <Clock className="w-3 h-3" />
    Expire {formatDistanceToNow(new Date(link.expiresAt), { addSuffix: true, locale: dateFnsLocale })}
    </span>
-   {isActive && <span className="text-primary font-mono text-[11px] select-all">...{link.id.substring(0, 8)}</span>}
+   {isActive && <span className="text-primary font-mono text-xs select-all">...{link.id.substring(0, 8)}</span>}
   </div>
   </div>
   </div>

@@ -186,7 +186,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
   `}>
 
   <div className="flex items-center justify-between mb-2">
-   <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border flex items-center gap-1.5 ${getActionColor(log.action)}`}>
+   <span className={`px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border flex items-center gap-1.5 ${getActionColor(log.action)}`}>
    {getActionIcon(log.action)}
    {log.action}
    </span>
@@ -213,7 +213,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
    </div>
    ))}
    {log.changes.length > 3 && (
-   <div className="text-[11px] text-primary pl-2.5 font-medium">
+   <div className="text-xs text-primary pl-2.5 font-medium">
    +{log.changes.length - 3} autres modifications...
    </div>
    )}

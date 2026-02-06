@@ -324,7 +324,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                             <h2 className="text-lg font-bold text-foreground">
                                 {agent.name || agent.hostname || agent.id.slice(0, 8)}
                             </h2>
-                            <Badge status={isActive ? 'success' : 'neutral'} className="text-[11px]">
+                            <Badge status={isActive ? 'success' : 'neutral'} className="text-xs">
                                 {isActive ? 'En ligne' : 'Hors ligne'}
                             </Badge>
                         </div>
@@ -372,7 +372,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                     <div className="p-3 rounded-2xl bg-muted/30 border border-border/30">
                         <div className="flex items-center gap-1.5 mb-1">
                             <Cpu className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">CPU</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">CPU</span>
                             <span className="text-xs text-muted-foreground" title="Utilisation CPU validée (max 100%)">ⓘ</span>
                         </div>
                         <span className={cn(
@@ -388,7 +388,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                     <div className="p-3 rounded-2xl bg-muted/30 border border-border/30">
                         <div className="flex items-center gap-1.5 mb-1">
                             <HardDrive className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">RAM</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">RAM</span>
                         </div>
                         <span className={cn(
                             'text-xl font-bold block',
@@ -398,7 +398,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                             {agent.memoryPercent !== undefined ? `${agent.memoryPercent.toFixed(1)}%` : formatBytes(agent.memoryBytes) || '-'}
                         </span>
                         {agent.memoryBytes !== undefined && agent.memoryTotalBytes !== undefined && (
-                            <span className="text-[11px] text-muted-foreground block mt-0.5">
+                            <span className="text-xs text-muted-foreground block mt-0.5">
                                 {formatBytes(agent.memoryBytes)} / {formatBytes(agent.memoryTotalBytes)}
                             </span>
                         )}
@@ -408,7 +408,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                     <div className="p-3 rounded-2xl bg-muted/30 border border-border/30">
                         <div className="flex items-center gap-1.5 mb-1">
                             <HardDrive className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Disque</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Disque</span>
                         </div>
                         <span className={cn(
                             'text-xl font-bold block',
@@ -418,7 +418,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                             {agent.diskPercent !== undefined ? `${agent.diskPercent.toFixed(1)}%` : '-'}
                         </span>
                         {agent.diskUsedBytes !== undefined && agent.diskTotalBytes !== undefined && (
-                            <span className="text-[11px] text-muted-foreground block mt-0.5">
+                            <span className="text-xs text-muted-foreground block mt-0.5">
                                 {formatBytes(agent.diskUsedBytes)} / {formatBytes(agent.diskTotalBytes)}
                             </span>
                         )}
@@ -428,7 +428,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                     <div className="p-3 rounded-2xl bg-muted/30 border border-border/30">
                         <div className="flex items-center gap-1.5 mb-1">
                             <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Uptime</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Uptime</span>
                         </div>
                         <span className="text-xl font-bold text-foreground block">
                             {formatUptime(agent.uptimeSeconds)}
@@ -445,7 +445,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                     )}>
                         <div className="flex items-center gap-1.5 mb-1" title="Calculé depuis les résultats des checks : (pass / total applicable) × 100. Améliorez le score en corrigeant les checks en erreur.">
                             <Shield className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Score Conformité</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Score Conformité</span>
                             <span className="text-xs text-muted-foreground/50 cursor-help" aria-label="Comment ce score est-il calculé ?">ⓘ</span>
                         </div>
                         <div className="flex items-baseline gap-2">
@@ -453,7 +453,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                                 {reliableComplianceScore !== null ? `${reliableComplianceScore}%` : '-'}
                             </span>
                             {computedComplianceScore !== null && (
-                                <span className="text-[11px] text-muted-foreground">
+                                <span className="text-xs text-muted-foreground">
                                     (calculé depuis {agentDetails?.resultsSummary?.total ?? 0} résultats)
                                 </span>
                             )}
@@ -464,7 +464,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                     <div className="flex-1 p-3 rounded-2xl bg-muted/30 border border-border/30">
                         <div className="flex items-center gap-1.5 mb-2">
                             <Activity className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Résultats des Checks</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Résultats des Checks</span>
                         </div>
                         {detailsLoading ? (
                             <div className="h-6 bg-muted/50 rounded animate-pulse" />
@@ -473,22 +473,22 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                                 <div className="flex items-center gap-1">
                                     <CheckCircle className="h-3.5 w-3.5 text-success" />
                                     <span className="text-sm font-bold text-success">{agentDetails.resultsSummary.pass}</span>
-                                    <span className="text-[11px] text-muted-foreground">pass</span>
+                                    <span className="text-xs text-muted-foreground">pass</span>
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <XCircle className="h-3.5 w-3.5 text-destructive" />
                                     <span className="text-sm font-bold text-destructive">{agentDetails.resultsSummary.fail}</span>
-                                    <span className="text-[11px] text-muted-foreground">fail</span>
+                                    <span className="text-xs text-muted-foreground">fail</span>
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <AlertTriangle className="h-3.5 w-3.5 text-warning" />
                                     <span className="text-sm font-bold text-warning">{agentDetails.resultsSummary.error}</span>
-                                    <span className="text-[11px] text-muted-foreground">erreur</span>
+                                    <span className="text-xs text-muted-foreground">erreur</span>
                                 </div>
                                 {agentDetails.resultsSummary.not_applicable > 0 && (
                                     <div className="flex items-center gap-1">
                                         <span className="text-sm font-bold text-muted-foreground">{agentDetails.resultsSummary.not_applicable}</span>
-                                        <span className="text-[11px] text-muted-foreground">N/A</span>
+                                        <span className="text-xs text-muted-foreground">N/A</span>
                                     </div>
                                 )}
                             </div>
@@ -518,7 +518,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                                 <Cpu className="h-4 w-4" />
                                 <span className="hidden sm:inline">Processus</span>
                                 {realtimeData && realtimeData.processes.length > 0 && (
-                                    <Badge status="neutral" className="text-[11px] ml-1">
+                                    <Badge status="neutral" className="text-xs ml-1">
                                         {realtimeData.processes.length}
                                     </Badge>
                                 )}
@@ -530,7 +530,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                                 <Network className="h-4 w-4" />
                                 <span className="hidden sm:inline">Réseau</span>
                                 {realtimeData && realtimeData.connections.length > 0 && (
-                                    <Badge status="neutral" className="text-[11px] ml-1">
+                                    <Badge status="neutral" className="text-xs ml-1">
                                         {realtimeData.connections.length}
                                     </Badge>
                                 )}

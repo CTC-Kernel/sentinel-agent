@@ -176,7 +176,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
   <div className="font-bold text-foreground /40 text-sm truncate pr-4 flex-1">
   {task.name}
   </div>
-  <div className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${task.progress === 100
+  <div className={`px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide ${task.progress === 100
   ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400'
   : 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
   }`}>
@@ -199,14 +199,14 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
   />
  </div>
 
- <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground">
+ <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
   <div className="flex flex-col">
-  <span className="text-[11px] uppercase tracking-wider text-muted-foreground mb-0.5">Début</span>
+  <span className="text-xs uppercase tracking-wider text-muted-foreground mb-0.5">Début</span>
   <span>{startDate.toLocaleDateString(config.intlLocale, { day: 'numeric', month: 'short' })}</span>
   </div>
   <div className="text-muted-foreground">→</div>
   <div className="flex flex-col items-end">
-  <span className="text-[11px] uppercase tracking-wider text-muted-foreground mb-0.5">Fin</span>
+  <span className="text-xs uppercase tracking-wider text-muted-foreground mb-0.5">Fin</span>
   <span>{endDate.toLocaleDateString(config.intlLocale, { day: 'numeric', month: 'short' })}</span>
   </div>
  </div>
@@ -257,7 +257,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
    <div className="text-sm font-semibold text-foreground truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
    {t.name}
    </div>
-   <div className="text-[11px] text-muted-foreground truncate">
+   <div className="text-xs text-muted-foreground truncate">
    {new Date(t.start).toLocaleDateString()} - {new Date(t.end).toLocaleDateString()}
    </div>
   </div>
@@ -282,7 +282,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
   </div>
   <div>
   <p className="text-xs font-bold text-foreground">Planning Projet</p>
-  <p className="text-[11px] text-muted-foreground">{tasks.length} tâches • {Math.round(tasks.reduce((acc, t) => acc + (t.progress || 0), 0) / (tasks.length || 1))}% global</p>
+  <p className="text-xs text-muted-foreground">{tasks.length} tâches • {Math.round(tasks.reduce((acc, t) => acc + (t.progress || 0), 0) / (tasks.length || 1))}% global</p>
   </div>
  </div>
 
@@ -314,7 +314,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
   <button
   key={mode || 'unknown'}
   onClick={() => onViewModeChange(mode)}
-  className={`px-3 py-1 text-[11px] font-bold uppercase tracking-wide rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${viewMode === mode
+  className={`px-3 py-1 text-xs font-bold uppercase tracking-wide rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${viewMode === mode
    ? 'bg-card text-foreground shadow-sm scale-105'
    : 'text-muted-foreground hover:text-foreground'
    }`}

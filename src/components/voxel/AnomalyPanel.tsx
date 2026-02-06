@@ -158,11 +158,11 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
  <div className="flex-1 min-w-0">
  <div className="flex items-center gap-2">
  <span
- className={`text-[11px] px-2 py-0.5 rounded-full font-medium uppercase tracking-wider ${config.color} bg-muted/50`}
+ className={`text-xs px-2 py-0.5 rounded-full font-medium uppercase tracking-wider ${config.color} bg-muted/50`}
  >
  {anomaly.severity}
  </span>
- <span className="text-[11px] text-foreground/40">{typeLabel}</span>
+ <span className="text-xs text-foreground/40">{typeLabel}</span>
  </div>
 
  <p className="text-sm text-foreground/90 mt-1 line-clamp-2">
@@ -175,7 +175,7 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
  </p>
  )}
 
- <p className="text-[11px] text-foreground/30 mt-2">
+ <p className="text-xs text-foreground/30 mt-2">
  Détecté le{' '}
  {anomaly.detectedAt instanceof Date
  ? anomaly.detectedAt.toLocaleDateString(localeConfig.intlLocale)
@@ -530,7 +530,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
  <Filter className="h-3 w-3" />
  Filtres
  {typeFilter.length > 0 && (
-  <span className="bg-primary text-primary-foreground px-1.5 rounded-full text-[11px]">
+  <span className="bg-primary text-primary-foreground px-1.5 rounded-full text-xs">
   {typeFilter.length}
   </span>
  )}
@@ -588,7 +588,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
   {(severityFilter.length > 0 || typeFilter.length > 0) && (
   <button
   onClick={clearFilters}
-  className="text-[11px] text-primary/70 hover:text-primary/50"
+  className="text-xs text-primary/70 hover:text-primary/50"
   >
   Effacer tout
   </button>
@@ -600,7 +600,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
   key={type || 'unknown'}
   onClick={() => toggleTypeFilter(type)}
   className={`
-  px-2 py-1 rounded text-[11px] transition-colors
+  px-2 py-1 rounded text-xs transition-colors
   ${typeFilter.includes(type) ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground/60 hover:text-foreground'}
   `}
   >

@@ -512,7 +512,7 @@ const strategyStyles = getStrategyStyles(strategy.color);
   "border-border",
   initialRiskStyles.text
   )}>
-  <span className="text-[11px] font-bold uppercase tracking-wider opacity-70">Initial</span>
+  <span className="text-xs font-bold uppercase tracking-wider opacity-70">Initial</span>
   <span className="text-xl font-bold leading-none">R{opScenario.riskLevel}</span>
   </div>
 
@@ -527,7 +527,7 @@ const strategyStyles = getStrategyStyles(strategy.color);
   "border-border",
   residualRiskStyles.text
   )}>
-  <span className="text-[11px] font-bold uppercase tracking-wider opacity-70">Resid.</span>
+  <span className="text-xs font-bold uppercase tracking-wider opacity-70">Resid.</span>
   <span className="text-xl font-bold leading-none">R{residualRisk.residualRiskLevel}</span>
   </div>
   </>
@@ -657,7 +657,7 @@ const strategyStyles = getStrategyStyles(strategy.color);
    )}>
    {strategy.label[locale]}
    </p>
-   <p className="text-[11px] leading-tight text-muted-foreground line-clamp-2">
+   <p className="text-xs leading-tight text-muted-foreground line-clamp-2">
    {strategy.description[locale]}
    </p>
    </button>

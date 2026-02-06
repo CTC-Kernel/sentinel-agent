@@ -199,7 +199,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
   </div>
   <div>
   <p className="text-2xl font-black tracking-tight text-foreground">{stats.total}</p>
-  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{t('dora.stats.totalProviders')}</p>
+  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('dora.stats.totalProviders')}</p>
   </div>
   </div>
   </button>
@@ -215,7 +215,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
   </div>
   <div>
   <p className="text-2xl font-black tracking-tight text-foreground">{stats.critical}</p>
-  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{t('dora.stats.criticalProviders')}</p>
+  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('dora.stats.criticalProviders')}</p>
   </div>
   </div>
   </button>
@@ -231,7 +231,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
   </div>
   <div>
   <p className="text-2xl font-black tracking-tight text-foreground">{stats.expiringSoon}</p>
-  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{t('dora.stats.expiringContracts')}</p>
+  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('dora.stats.expiringContracts')}</p>
   </div>
   </div>
   </button>
@@ -249,7 +249,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
   <p className="text-2xl font-black tracking-tight text-foreground">
    {concentrationAnalysis.nonEuProviders?.length || 0}
   </p>
-  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{t('dora.stats.nonEuProviders')}</p>
+  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('dora.stats.nonEuProviders')}</p>
   </div>
   </div>
   </button>

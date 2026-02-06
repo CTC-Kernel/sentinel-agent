@@ -11,6 +11,7 @@ import { CONTROL_STATUS } from '../constants/complianceConfig';
 import { ISO_DOMAINS } from '../data/complianceData';
 import { getLocaleConfig, type SupportedLocale } from '../config/localeConfig';
 import i18n from '../i18n';
+import { ErrorLogger } from './errorLogger';
 
 interface DossierOptions {
  framework: Framework;
@@ -124,11 +125,29 @@ export const generateEvidenceDossier = (
  documents: Document[],
  options: DossierOptions
 ): void => {
+ // Fix 2 - Input validation
+ if (!controls || !Array.isArray(controls)) {
+ throw new Error('Controls array is required');
+ }
+ if (!documents || !Array.isArray(documents)) {
+ throw new Error('Documents array is required');
+ }
+ const sanitizedOrgName = (options.organizationName || 'Organisation').replace(/[\x00-\x1F\x7F]/g, '').substring(0, 200);
+
+ try {
  const doc = new jsPDF();
  const pageWidth = doc.internal.pageSize.getWidth();
  const pageHeight = doc.internal.pageSize.getHeight();
  const margin = 14;
  let yPos = 20;
+
+ // Fix 4 - Add PDF document metadata
+ doc.setProperties({
+  title: `Dossier de Preuves - ${sanitizedOrgName}`,
+  author: options.generatedBy || 'Sentinel GRC',
+  subject: `Framework: ${options.framework}`,
+  creator: 'Sentinel GRC v2',
+ });
 
  // Group controls by domain
  const domainGroups = groupControlsByDomain(controls, documents);
@@ -148,9 +167,9 @@ export const generateEvidenceDossier = (
  doc.setFont('helvetica', 'normal');
  doc.text(`Référentiel: ${options.framework}`, pageWidth / 2, 80, { align: 'center' });
 
- if (options.organizationName) {
- doc.setFontSize(14);
- doc.text(options.organizationName, pageWidth / 2, 95, { align: 'center' });
+ if (sanitizedOrgName) {
+  doc.setFontSize(14);
+  doc.text(sanitizedOrgName, pageWidth / 2, 95, { align: 'center' });
  }
 
  doc.setFontSize(12);
@@ -348,8 +367,15 @@ export const generateEvidenceDossier = (
  }
 
  // Save the PDF
- const filename = `Evidence_Dossier_${options.framework}_${new Date().toISOString().split('T')[0]}.pdf`;
+ const now = new Date();
+ const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+ const filename = `Evidence_Dossier_${options.framework}_${dateStr}.pdf`;
  doc.save(filename);
+ } catch (error) {
+ // Fix 1 - Error handling with ErrorLogger
+ ErrorLogger.error(error, 'EvidenceDossierService.generateEvidenceDossier');
+ throw error;
+ }
 };
 
 export const EvidenceDossierService = {

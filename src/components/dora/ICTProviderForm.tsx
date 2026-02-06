@@ -656,17 +656,17 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
     {/* Zones overlay */}
     <div className="absolute inset-0 flex">
     <div className="w-[40%] border-r border-white/30 flex items-center justify-center">
-     <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider">
+     <span className="text-xs font-bold text-white/80 uppercase tracking-wider">
      {t('dora.risk.lowZone', 'Faible')}
      </span>
     </div>
     <div className="w-[30%] border-r border-white/30 flex items-center justify-center">
-     <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider">
+     <span className="text-xs font-bold text-white/80 uppercase tracking-wider">
      {t('dora.risk.mediumZone', 'Moyen')}
      </span>
     </div>
     <div className="w-[30%] flex items-center justify-center">
-     <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider">
+     <span className="text-xs font-bold text-white/80 uppercase tracking-wider">
      {t('dora.risk.highZone', 'Élevé')}
      </span>
     </div>

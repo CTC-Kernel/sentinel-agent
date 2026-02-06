@@ -80,8 +80,8 @@ export const BackupList: React.FC<BackupListProps> = ({
               >
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">#{backup.id.slice(0, 6)}...</span>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider border ${getStatusColor(backup.status).replace('bg-', 'border-').replace('/20', '/30')}`}>
+                    <span className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">#{backup.id.slice(0, 6)}...</span>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider border ${getStatusColor(backup.status).replace('bg-', 'border-').replace('/20', '/30')}`}>
                       {getStatusIcon(backup.status)}
                       <span className="ml-1.5">{backup.status}</span>
                     </span>
@@ -129,10 +129,10 @@ export const BackupList: React.FC<BackupListProps> = ({
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {backup.collections.slice(0, 3).map(c => (
-                    <span key={c || 'unknown'} className="text-[11px] font-medium px-1.5 py-0.5 bg-muted rounded text-muted-foreground capitalize">{c}</span>
+                    <span key={c || 'unknown'} className="text-xs font-medium px-1.5 py-0.5 bg-muted rounded text-muted-foreground capitalize">{c}</span>
                   ))}
                   {backup.collections.length > 3 && (
-                    <span className="text-[11px] font-medium px-1.5 py-0.5 bg-muted rounded text-muted-foreground">+{backup.collections.length - 3}</span>
+                    <span className="text-xs font-medium px-1.5 py-0.5 bg-muted rounded text-muted-foreground">+{backup.collections.length - 3}</span>
                   )}
                 </div>
               </motion.div>

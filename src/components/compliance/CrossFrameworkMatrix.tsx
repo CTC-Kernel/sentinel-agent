@@ -607,7 +607,7 @@ export const CrossFrameworkMatrix: React.FC<CrossFrameworkMatrixProps> = ({
   className="w-8 text-center"
   >
   <Tooltip content={FRAMEWORK_ABBREV[code]}>
-   <span className="text-[11px] font-medium text-muted-foreground">
+   <span className="text-xs font-medium text-muted-foreground">
    {code.slice(0, 3)}
    </span>
   </Tooltip>

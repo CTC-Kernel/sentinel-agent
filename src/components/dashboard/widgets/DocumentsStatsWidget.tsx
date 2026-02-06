@@ -139,7 +139,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
   </svg>
   <div className="absolute inset-0 flex flex-col items-center justify-center">
   <span className="text-2xl font-black text-foreground tracking-tight">{Math.round(stats.validationRate)}%</span>
-  <span className="text-[11px] uppercase font-bold text-muted-foreground tracking-wide">Validés</span>
+  <span className="text-xs uppercase font-bold text-muted-foreground tracking-wide">Validés</span>
   </div>
  </div>
 
@@ -172,14 +172,14 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
  <div className="bg-white/50 dark:bg-white/5 rounded-3xl p-2.5 flex items-center gap-3 border border-border/40 dark:border-white/5 hover:bg-white/80 dark:hover:bg-muted transition-colors">
   <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
   <div className="flex flex-col min-w-0">
-  <span className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider truncate">Publiés</span>
+  <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider truncate">Publiés</span>
   <span className="text-sm font-black text-foreground leading-none mt-0.5">{stats.publishedDocs}</span>
   </div>
  </div>
  <div className="bg-white/50 dark:bg-white/5 rounded-3xl p-2.5 flex items-center gap-3 border border-border/40 dark:border-white/5 hover:bg-white/80 dark:hover:bg-muted transition-colors">
   <Edit className="w-4 h-4 text-muted-foreground flex-shrink-0" />
   <div className="flex flex-col min-w-0">
-  <span className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider truncate">Brouillons</span>
+  <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider truncate">Brouillons</span>
   <span className="text-sm font-black text-foreground leading-none mt-0.5">{stats.draftDocs}</span>
   </div>
  </div>

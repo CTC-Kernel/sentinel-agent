@@ -9,7 +9,16 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { getDateFnsLocale } from '../config/localeConfig';
+import { ErrorLogger } from './errorLogger';
 import type { SMSIProgram, Milestone, PDCAPhase } from '../types/ebios';
+
+// Type augmentation for jspdf-autotable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: Record<string, unknown>) => void;
+    lastAutoTable: { finalY: number };
+  }
+}
 
 // Apply autoTable plugin
 (jsPDF.API as unknown as { autoTable: typeof autoTable }).autoTable = autoTable;
@@ -148,10 +157,12 @@ export class SMSIService {
  * Get maturity level from score
  */
  static getMaturityLevel(score: number): MaturityLevel {
- const level = MATURITY_LEVELS.find(
- (l) => score >= l.minScore && score < l.maxScore
- );
- return level || MATURITY_LEVELS[MATURITY_LEVELS.length - 1];
+ // Uses >= for upper boundaries to avoid boundary bugs (e.g. score=80 correctly maps to level 5)
+ if (score >= 80) return MATURITY_LEVELS[4]; // Level 5 - Optimise
+ if (score >= 60) return MATURITY_LEVELS[3]; // Level 4 - Maitrise
+ if (score >= 40) return MATURITY_LEVELS[2]; // Level 3 - Defini
+ if (score >= 20) return MATURITY_LEVELS[1]; // Level 2 - Gere
+ return MATURITY_LEVELS[0]; // Level 1 - Initial
  }
 
  /**
@@ -208,12 +219,13 @@ export class SMSIService {
  ): { plan: PhaseMaturity; do: PhaseMaturity; check: PhaseMaturity; act: PhaseMaturity } {
  const phases: PDCAPhase[] = ['plan', 'do', 'check', 'act'];
  const result: Record<string, PhaseMaturity> = {};
+ const now = new Date();
 
  for (const phase of phases) {
  const phaseMilestones = milestones.filter((m) => m.phase === phase);
  const completed = phaseMilestones.filter((m) => m.status === 'completed').length;
  const overdue = phaseMilestones.filter(
- (m) => m.status !== 'completed' && new Date(m.dueDate) < new Date()
+ (m) => m.status !== 'completed' && new Date(m.dueDate) < now
  ).length;
  const total = phaseMilestones.length;
 
@@ -304,10 +316,11 @@ export class SMSIService {
  ): SMSIRecommendation[] {
  const recommendations: SMSIRecommendation[] = [];
  let id = 1;
+ const now = new Date();
 
  // Check for overdue milestones
  const overdueMilestones = milestones.filter(
- (m) => m.status !== 'completed' && new Date(m.dueDate) < new Date()
+ (m) => m.status !== 'completed' && new Date(m.dueDate) < now
  );
  if (overdueMilestones.length > 0) {
  recommendations.push({
@@ -518,13 +531,32 @@ export class SMSIService {
  } = {}
  ): jsPDF {
  const doc = new jsPDF('p', 'mm', 'a4');
+
+ // PDF document metadata
+ doc.setProperties({
+ title: `Rapport de Certification SMSI - ${program.name}`,
+ author: options?.organizationName || 'Sentinel GRC',
+ subject: 'ISO/IEC 27001:2022 Certification Assessment',
+ creator: 'Sentinel GRC v2',
+ });
+
  const pageWidth = doc.internal.pageSize.getWidth();
  const pageHeight = doc.internal.pageSize.getHeight();
- let y = 20;
+
+ // Layout constants
+ const MARGIN = 20;
+ const HEADER_HEIGHT = 80;
+ const SECTION_GAP = 15;
+ const LINE_HEIGHT = 6;
+
+ let y = MARGIN;
+
+ // Capture date once for consistent timestamps
+ const reportDate = new Date();
 
  // ===== Cover Page =====
  doc.setFillColor(15, 23, 42);
- doc.rect(0, 0, pageWidth, 80, 'F');
+ doc.rect(0, 0, pageWidth, HEADER_HEIGHT, 'F');
 
  doc.setTextColor(255, 255, 255);
  doc.setFontSize(28);
@@ -544,13 +576,13 @@ export class SMSIService {
  // Organization & date
  doc.setFontSize(11);
  if (options.organizationName) {
- doc.text(`Organisation: ${options.organizationName}`, 20, y);
+ doc.text(`Organisation: ${options.organizationName}`, MARGIN, y);
  y += 8;
  }
- doc.text(`Date: ${format(new Date(), 'dd MMMM yyyy', { locale: getDateFnsLocale() })}`, 20, y);
+ doc.text(`Date: ${format(reportDate, 'dd MMMM yyyy', { locale: getDateFnsLocale() })}`, MARGIN, y);
  y += 8;
  if (options.author) {
- doc.text(`Auteur: ${options.author}`, 20, y);
+ doc.text(`Auteur: ${options.author}`, MARGIN, y);
  y += 8;
  }
  y += 10;
@@ -558,13 +590,13 @@ export class SMSIService {
  // Readiness summary box
  const boxColor = readiness.ready ? [34, 197, 94] : [239, 68, 68];
  doc.setFillColor(boxColor[0], boxColor[1], boxColor[2]);
- doc.roundedRect(20, y, pageWidth - 40, 25, 3, 3, 'F');
+ doc.roundedRect(MARGIN, y, pageWidth - 2 * MARGIN, 25, 3, 3, 'F');
 
  doc.setTextColor(255, 255, 255);
  doc.setFontSize(14);
  doc.setFont('helvetica', 'bold');
  doc.text(
- readiness.ready ? '✓ PRÊT POUR LA CERTIFICATION' : '✗ NON PRÊT - ACTIONS REQUISES',
+ readiness.ready ? '[OK] PRET POUR LA CERTIFICATION' : '[X] NON PRET - ACTIONS REQUISES',
  pageWidth / 2,
  y + 10,
  { align: 'center' }
@@ -579,12 +611,12 @@ export class SMSIService {
  // Maturity Overview
  doc.setFontSize(16);
  doc.setFont('helvetica', 'bold');
- doc.text('Maturité du SMSI', 20, y);
+ doc.text('Maturité du SMSI', MARGIN, y);
  y += 10;
 
  // Overall maturity gauge representation
  doc.setFontSize(10);
- doc.text('Score global:', 20, y);
+ doc.text('Score global:', MARGIN, y);
 
  // Draw gauge
  const gaugeWidth = 100;
@@ -604,7 +636,7 @@ export class SMSIService {
  doc.roundedRect(60, y - 5, (gaugeWidth * maturity.overall.score) / 100, gaugeHeight, 2, 2, 'F');
 
  doc.text(`${maturity.overall.score}% - ${maturity.overall.level.label}`, 165, y);
- y += 15;
+ y += SECTION_GAP;
 
  // Phase scores table
  doc.autoTable({
@@ -627,9 +659,9 @@ export class SMSIService {
  theme: 'striped',
  styles: { fontSize: 9, cellPadding: 3 },
  headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255] },
- margin: { left: 20, right: 20 },
+ margin: { left: MARGIN, right: MARGIN },
  });
- y = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
+ y = doc.lastAutoTable.finalY + SECTION_GAP;
 
  // Checklist de certification - new page
  doc.addPage();
@@ -637,7 +669,7 @@ export class SMSIService {
 
  doc.setFontSize(16);
  doc.setFont('helvetica', 'bold');
- doc.text('Checklist de Certification', 20, y);
+ doc.text('Checklist de Certification', MARGIN, y);
  y += 10;
 
  doc.autoTable({
@@ -645,9 +677,9 @@ export class SMSIService {
  head: [['Exigence', 'Statut', 'Détails']],
  body: readiness.checklist.map((item) => [
  item.item,
- item.status === 'passed' ? '✓ Conforme' :
- item.status === 'warning' ? '⚠ Attention' :
- item.status === 'failed' ? '✗ Non conforme' : 'N/A',
+ item.status === 'passed' ? '[OK] Conforme' :
+ item.status === 'warning' ? '[!] Attention' :
+ item.status === 'failed' ? '[X] Non conforme' : 'N/A',
  item.details || '-',
  ]),
  theme: 'striped',
@@ -658,29 +690,34 @@ export class SMSIService {
  1: { cellWidth: 30, halign: 'center' },
  2: { cellWidth: 80 },
  },
- margin: { left: 20, right: 20 },
+ margin: { left: MARGIN, right: MARGIN },
  didParseCell: (data: { section: string; column: { index: number }; cell: { text: string[]; styles: { textColor: number[]; fontStyle: string } } }) => {
  if (data.section === 'body' && data.column.index === 1) {
  const value = data.cell.text[0];
- if (value.includes('✓')) {
+ if (value.includes('[OK]')) {
  data.cell.styles.textColor = [34, 197, 94];
  data.cell.styles.fontStyle = 'bold';
- } else if (value.includes('⚠')) {
+ } else if (value.includes('[!]')) {
  data.cell.styles.textColor = [234, 179, 8];
  data.cell.styles.fontStyle = 'bold';
- } else if (value.includes('✗')) {
+ } else if (value.includes('[X]')) {
  data.cell.styles.textColor = [239, 68, 68];
  data.cell.styles.fontStyle = 'bold';
  }
  }
  },
  });
- y = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
+ y = doc.lastAutoTable.finalY + SECTION_GAP;
 
  // Blockers and warnings
  if (readiness.blockers.length > 0) {
+ const blockersHeight = 8 + readiness.blockers.length * 6;
+ if (y + blockersHeight > pageHeight - 30) {
+ doc.addPage();
+ y = 20;
+ }
  doc.setFillColor(254, 226, 226);
- doc.roundedRect(20, y, pageWidth - 40, 8 + readiness.blockers.length * 6, 2, 2, 'F');
+ doc.roundedRect(MARGIN, y, pageWidth - 2 * MARGIN, 8 + readiness.blockers.length * LINE_HEIGHT, 2, 2, 'F');
  doc.setFontSize(10);
  doc.setFont('helvetica', 'bold');
  doc.setTextColor(185, 28, 28);
@@ -688,14 +725,19 @@ export class SMSIService {
  doc.setFont('helvetica', 'normal');
  doc.setFontSize(9);
  readiness.blockers.forEach((b, i) => {
- doc.text(`• ${b}`, 30, y + 12 + i * 6);
+ doc.text(`- ${b}`, 30, y + 12 + i * LINE_HEIGHT);
  });
- y += 15 + readiness.blockers.length * 6;
+ y += SECTION_GAP + readiness.blockers.length * LINE_HEIGHT;
  }
 
  if (readiness.warnings.length > 0) {
+ const warningsHeight = 8 + readiness.warnings.length * 6;
+ if (y + warningsHeight > pageHeight - 30) {
+ doc.addPage();
+ y = 20;
+ }
  doc.setFillColor(254, 243, 199);
- doc.roundedRect(20, y, pageWidth - 40, 8 + readiness.warnings.length * 6, 2, 2, 'F');
+ doc.roundedRect(MARGIN, y, pageWidth - 2 * MARGIN, 8 + readiness.warnings.length * LINE_HEIGHT, 2, 2, 'F');
  doc.setFontSize(10);
  doc.setFont('helvetica', 'bold');
  doc.setTextColor(161, 98, 7);
@@ -703,14 +745,14 @@ export class SMSIService {
  doc.setFont('helvetica', 'normal');
  doc.setFontSize(9);
  readiness.warnings.forEach((w, i) => {
- doc.text(`• ${w}`, 30, y + 12 + i * 6);
+ doc.text(`- ${w}`, 30, y + 12 + i * LINE_HEIGHT);
  });
- y += 15 + readiness.warnings.length * 6;
+ y += SECTION_GAP + readiness.warnings.length * LINE_HEIGHT;
  }
 
  // Recommendations
  if (options.includeRecommendations && maturity.recommendations.length > 0) {
- if (y > pageHeight - 80) {
+ if (y > pageHeight - HEADER_HEIGHT) {
  doc.addPage();
  y = 25;
  }
@@ -718,7 +760,7 @@ export class SMSIService {
  doc.setTextColor(0, 0, 0);
  doc.setFontSize(16);
  doc.setFont('helvetica', 'bold');
- doc.text('Recommandations', 20, y);
+ doc.text('Recommandations', MARGIN, y);
  y += 10;
 
  const priorityColors: Record<string, [number, number, number]> = {
@@ -746,7 +788,7 @@ export class SMSIService {
  2: { cellWidth: 20, halign: 'center' },
  3: { cellWidth: 25, halign: 'center' },
  },
- margin: { left: 20, right: 20 },
+ margin: { left: MARGIN, right: MARGIN },
  didParseCell: (data: { section: string; column: { index: number }; cell: { text: string[]; styles: { textColor: number[]; fontStyle: string } } }) => {
  if (data.section === 'body' && data.column.index === 0) {
  const priority = data.cell.text[0].toLowerCase() as keyof typeof priorityColors;
@@ -767,8 +809,8 @@ export class SMSIService {
  doc.setFontSize(8);
  doc.setTextColor(128);
  doc.text(`Page ${i} / ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
- doc.text('Rapport de Certification SMSI - Sentinel GRC', 20, pageHeight - 10);
- doc.text(format(new Date(), 'dd/MM/yyyy'), pageWidth - 20, pageHeight - 10, { align: 'right' });
+ doc.text('Rapport de Certification SMSI - Sentinel GRC', MARGIN, pageHeight - 10);
+ doc.text(format(reportDate, 'dd/MM/yyyy'), pageWidth - MARGIN, pageHeight - 10, { align: 'right' });
  }
 
  return doc;
@@ -786,11 +828,16 @@ export class SMSIService {
  includeRecommendations?: boolean;
  } = {}
  ): void {
+ try {
  const maturity = this.calculateMaturityAssessment(program, milestones);
  const readiness = this.assessCertificationReadiness(program, milestones, maturity);
  const doc = this.generateCertificationReport(program, milestones, maturity, readiness, options);
  const filename = `smsi-certification-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
  doc.save(filename);
+ } catch (error) {
+ ErrorLogger.error('Failed to generate certification report', 'SMSIService', { error });
+ throw error;
+ }
  }
 
  /**

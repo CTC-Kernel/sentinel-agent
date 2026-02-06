@@ -17,7 +17,7 @@ export const RoleCard: React.FC<RoleCardProps> = ({ role, count }) => {
  <h3 className="text-sm font-bold text-foreground">
   {getRoleName(role)}
  </h3>
- <span className="px-2 py-0.5 bg-primary text-primary-foreground rounded-full text-[11px] font-bold">
+ <span className="px-2 py-0.5 bg-primary text-primary-foreground rounded-full text-xs font-bold">
   {count}
  </span>
  </div>

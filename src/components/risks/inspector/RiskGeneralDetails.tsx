@@ -63,18 +63,18 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
  <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-border/40 shadow-sm space-y-4">
  <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Identification du Risque</h4>
  <div>
-  <span className="text-[11px] uppercase text-muted-foreground font-bold">Menace</span>
+  <span className="text-xs uppercase text-muted-foreground font-bold">Menace</span>
   <p className="text-sm font-medium text-foreground">{risk.threat}</p>
  </div>
  {risk.scenario && (
   <div>
-  <span className="text-[11px] uppercase text-muted-foreground font-bold">Scénario</span>
+  <span className="text-xs uppercase text-muted-foreground font-bold">Scénario</span>
   <p className="text-sm text-muted-foreground">{risk.scenario}</p>
   </div>
  )}
  {risk.vulnerability && (
   <div>
-  <span className="text-[11px] uppercase text-muted-foreground font-bold">Vulnérabilité Exploitée</span>
+  <span className="text-xs uppercase text-muted-foreground font-bold">Vulnérabilité Exploitée</span>
   <SafeHTML content={risk.vulnerability} className="text-sm text-muted-foreground" />
   </div>
  )}
@@ -104,7 +104,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
    key={s || 'unknown'}
    onClick={() => onStatusChangeRequest(s as Risk['status'])}
    disabled={updating}
-   className={`px-4 py-2 rounded-3xl text-xs font-bold border transition-all flex-1 sm:flex-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${risk.status === s ? 'bg-card text-white dark:bg-white border-transparent shadow-md' : 'bg-transparent border-border/40 text-muted-foreground hover:bg-muted'} ${updating ? 'opacity-60 cursor-wait' : ''}`}
+   className={`px-4 py-2 rounded-3xl text-xs font-bold border transition-all flex-1 sm:flex-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${risk.status === s ? 'bg-card text-white dark:bg-primary dark:text-primary-foreground border-transparent shadow-md' : 'bg-transparent border-border/40 text-muted-foreground hover:bg-muted'} ${updating ? 'opacity-60 cursor-wait' : ''}`}
   >
    {s}
   </button>

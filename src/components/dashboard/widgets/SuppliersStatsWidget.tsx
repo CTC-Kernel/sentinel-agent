@@ -100,7 +100,7 @@ export const SuppliersStatsWidget: React.FC<SuppliersStatsWidgetProps> = ({ navi
   <div className="p-3 rounded-3xl bg-error-bg/50 dark:bg-error/5 border border-error-border dark:border-error/10 flex flex-col">
   <div className="flex items-center gap-1.5 text-error-text dark:text-error mb-1">
   <ShieldAlert className="w-3.5 h-3.5" />
-  <span className="text-[11px] uppercase font-bold tracking-wider">Critiques</span>
+  <span className="text-xs uppercase font-bold tracking-wider">Critiques</span>
   </div>
   <span className="text-xl font-bold text-error-text dark:text-error">{stats.critical}</span>
   </div>
@@ -108,7 +108,7 @@ export const SuppliersStatsWidget: React.FC<SuppliersStatsWidgetProps> = ({ navi
   <div className="p-3 rounded-3xl bg-success-bg/50 dark:bg-success/5 border border-success-border dark:border-success/10 flex flex-col">
   <div className="flex items-center gap-1.5 text-success-text dark:text-success mb-1">
   <CheckCircle2 className="w-3.5 h-3.5" />
-  <span className="text-[11px] uppercase font-bold tracking-wider">Actifs</span>
+  <span className="text-xs uppercase font-bold tracking-wider">Actifs</span>
   </div>
   <span className="text-xl font-bold text-success-text dark:text-success">{stats.active}</span>
   </div>

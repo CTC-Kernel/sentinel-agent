@@ -534,7 +534,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                                         riskLevelStyles.container,
                                                                         riskLevelStyles.text
                                                                     )}>
-                                                                        <span className="text-[11px] font-bold uppercase tracking-wider opacity-70">Risk</span>
+                                                                        <span className="text-xs font-bold uppercase tracking-wider opacity-70">Risk</span>
                                                                         <span className="text-lg font-bold leading-none">R{opScenario.riskLevel}</span>
                                                                     </div>
 
@@ -563,7 +563,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                                 <div className="flex items-center gap-6">
                                                                     {/* Likelihood Selector (Compact) */}
                                                                     <div className="flex flex-col items-end mr-4">
-                                                                        <span className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider mb-1">{t('ebios.workshop4.likelihood')}</span>
+                                                                        <span className="text-xs uppercase font-bold text-muted-foreground tracking-wider mb-1">{t('ebios.workshop4.likelihood')}</span>
                                                                         <div className="flex items-center bg-muted/50 rounded-lg p-0.5 border border-border/40">
                                                                             {!readOnly ? (
                                                                                 LIKELIHOOD_SCALE.map((level) => {
@@ -643,7 +643,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                                                 opScenario.attackSequence.map((step) => (
                                                                                     <div key={step.id || 'unknown'} className="relative flex items-start group/step">
                                                                                         {/* Step Number Bubble */}
-                                                                                        <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-card bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center relative z-decorator shadow-sm mt-2.5 mr-4 ring-4 ring-muted dark:ring-muted">
+                                                                                        <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-card bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center relative z-decorator shadow-sm mt-2.5 mr-4 ring-4 ring-muted dark:ring-muted">
                                                                                             {step.order}
                                                                                         </div>
 

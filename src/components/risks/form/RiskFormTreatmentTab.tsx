@@ -147,9 +147,9 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
    <div className="flex items-center justify-between">
    <span className="text-xs font-bold text-foreground flex items-center gap-2">
     {ctrl.code}
-    {isSuggested && <span className="text-[11px] bg-primary/10 text-primary px-1.5 rounded-full flex items-center"><Sparkles className="w-3 h-3 mr-1" /> IA</span>}
+    {isSuggested && <span className="text-xs bg-primary/10 text-primary px-1.5 rounded-full flex items-center"><Sparkles className="w-3 h-3 mr-1" /> IA</span>}
    </span>
-   {ctrl.status === CONTROL_STATUS.IMPLEMENTED && <span className="text-[11px] bg-success/10 text-success px-1.5 rounded-full">{t('common.status.implemented') || "Implémenté"}</span>}
+   {ctrl.status === CONTROL_STATUS.IMPLEMENTED && <span className="text-xs bg-success/10 text-success px-1.5 rounded-full">{t('common.status.implemented') || "Implémenté"}</span>}
    </div>
    <span className="text-xs text-muted-foreground">{ctrl.name}</span>
    </div>
@@ -160,7 +160,7 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
   <div className="p-4 text-center text-xs text-muted-foreground">{t('common.noControls') || "Aucun contrôle disponible."}</div>
   )}
  </div>
- <p className="text-[11px] text-muted-foreground">{t('risks.controls_hint') || "Sélectionnez les contrôles déjà en place réduisant le risque."}</p>
+ <p className="text-xs text-muted-foreground">{t('risks.controls_hint') || "Sélectionnez les contrôles déjà en place réduisant le risque."}</p>
  </div>
  </div>
  );

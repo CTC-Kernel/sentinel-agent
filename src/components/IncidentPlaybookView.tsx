@@ -359,7 +359,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   </div>
   <p className="text-xs text-muted-foreground mb-2 pl-6">{step.description}</p>
 
-  <div className="flex items-center gap-4 text-[11px] text-muted-foreground pl-6 uppercase tracking-wide font-medium">
+  <div className="flex items-center gap-4 text-xs text-muted-foreground pl-6 uppercase tracking-wide font-medium">
   <span className="flex items-center">
   <Timer className="h-3 w-3 mr-1" />
   {step.estimatedTime}
@@ -436,7 +436,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   <div className="absolute -left-[21px] top-1.5 w-3 h-3 bg-card border-2 border-primary rounded-full"></div>
   <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
   <span className="text-xs font-bold text-foreground">{event.type}</span>
-  <span className="text-[11px] text-muted-foreground font-mono">
+  <span className="text-xs text-muted-foreground font-mono">
   {new Date(event.timestamp).toLocaleString()}
   </span>
   </div>

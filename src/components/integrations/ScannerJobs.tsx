@@ -126,7 +126,7 @@ export const ScannerJobs: React.FC = () => {
   <div>
    <div className="flex items-center gap-2">
    <span className="font-bold text-foreground capitalize">{job.scannerId}</span>
-   <span className={`px-2 py-0.5 text-[11px] font-bold uppercase rounded-full ${job.status === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' :
+   <span className={`px-2 py-0.5 text-xs font-bold uppercase rounded-full ${job.status === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' :
    job.status === 'failed' ? 'bg-red-100 text-red-700 dark:text-red-400 dark:bg-red-50 dark:text-red-400' :
    job.status === 'running' ? 'bg-blue-100 text-blue-700 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-400' :
     'bg-amber-100 text-amber-700 dark:text-amber-400 dark:bg-amber-50 dark:text-amber-400'

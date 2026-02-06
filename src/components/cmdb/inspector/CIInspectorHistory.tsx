@@ -272,14 +272,14 @@ export const CIInspectorHistory: React.FC<CIInspectorHistoryProps> = ({ ci }) =>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-4 bg-muted/30 rounded-2xl">
-            <span className="text-[11px] uppercase text-muted-foreground font-bold block mb-1">
+            <span className="text-xs uppercase text-muted-foreground font-bold block mb-1">
               Source
             </span>
             <p className="text-lg font-bold">{ci.discoverySource}</p>
           </div>
 
           <div className="p-4 bg-muted/30 rounded-2xl">
-            <span className="text-[11px] uppercase text-muted-foreground font-bold block mb-1">
+            <span className="text-xs uppercase text-muted-foreground font-bold block mb-1">
               Dernière découverte
             </span>
             <p className="text-lg font-bold">
@@ -290,7 +290,7 @@ export const CIInspectorHistory: React.FC<CIInspectorHistoryProps> = ({ ci }) =>
           </div>
 
           <div className="p-4 bg-muted/30 rounded-2xl">
-            <span className="text-[11px] uppercase text-muted-foreground font-bold block mb-1">
+            <span className="text-xs uppercase text-muted-foreground font-bold block mb-1">
               Score Qualité
             </span>
             <p className={cn(

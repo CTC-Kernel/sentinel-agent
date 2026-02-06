@@ -101,7 +101,7 @@ export const RiskAdvancedFilters: React.FC<RiskAdvancedFiltersProps> = ({
  </div>
 
  <div className="mt-6 pt-6 border-t border-border/40 dark:border-white/5 flex items-center justify-between">
- <p className="text-[11px] text-muted-foreground font-medium tracking-wider uppercase">
+ <p className="text-xs text-muted-foreground font-medium tracking-wider uppercase">
   Les filtres sont appliqués en temps réel
  </p>
  {(statusFilter.length > 0 || categoryFilter.length > 0 || criticalityFilter.length > 0) && (

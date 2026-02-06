@@ -143,7 +143,7 @@ export const AuditLogList: React.FC = () => {
    <div className="group relative inline-block text-left">
    <Info className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
    <div className="absolute right-0 mt-2 w-64 origin-top-right bg-card border border-border rounded-lg shadow-xl p-3 z-decorator hidden group-hover:block">
-    <pre className="text-[11px] text-muted-foreground whitespace-pre-wrap overflow-auto max-h-48">
+    <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-48">
     {JSON.stringify(log.metadata, null, 2)}
     </pre>
    </div>

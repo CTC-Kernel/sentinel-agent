@@ -310,7 +310,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                 </div>
                             </div>
                             <div className="text-2xl font-black bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">{metrics.total}</div>
-                            <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{t('assets.dashboard.total', { defaultValue: 'Total' })}</div>
+                            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('assets.dashboard.total', { defaultValue: 'Total' })}</div>
                         </div>
                         <div
                             className="text-center cursor-pointer hover:opacity-80 transition-opacity group/metric"
@@ -330,7 +330,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                 </div>
                             </div>
                             <div className="text-2xl font-black bg-gradient-to-r from-destructive to-destructive/70 bg-clip-text text-transparent">{metrics.critical}</div>
-                            <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{t('assets.dashboard.critical', { defaultValue: 'Critiques' })}</div>
+                            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('assets.dashboard.critical', { defaultValue: 'Critiques' })}</div>
                         </div>
                         <div className="text-center group/metric">
                             <div className="flex items-center justify-center gap-2 mb-2">
@@ -339,7 +339,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                 </div>
                             </div>
                             <div className="text-2xl font-black bg-gradient-to-r from-success to-success/70 bg-clip-text text-transparent">{(metrics.currentValue / 1000).toFixed(0)}k€</div>
-                            <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{t('assets.dashboard.value', { defaultValue: 'Valeur' })}</div>
+                            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('assets.dashboard.value', { defaultValue: 'Valeur' })}</div>
                         </div>
                     </div>
 
@@ -353,7 +353,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                 <div className="p-1.5 bg-warning/20 rounded-lg">
                                     <Wrench className="h-4 w-4 text-warning" />
                                 </div>
-                                <span className="text-[11px] font-bold text-warning-text uppercase tracking-wide">{t('assets.dashboard.maintenance', { defaultValue: 'Maintenance' })}</span>
+                                <span className="text-xs font-bold text-warning-text uppercase tracking-wide">{t('assets.dashboard.maintenance', { defaultValue: 'Maintenance' })}</span>
                             </div>
                             <span className="text-lg font-black text-warning-text">{metrics.maintenance}</span>
                         </motion.div>
@@ -365,7 +365,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                 <div className="p-1.5 bg-info-text/20 rounded-lg">
                                     <Box className="h-4 w-4 text-info-text" />
                                 </div>
-                                <span className="text-[11px] font-bold text-info-text uppercase tracking-wide">{t('assets.dashboard.new', { defaultValue: 'Nouveaux' })}</span>
+                                <span className="text-xs font-bold text-info-text uppercase tracking-wide">{t('assets.dashboard.new', { defaultValue: 'Nouveaux' })}</span>
                             </div>
                             <span className="text-lg font-black text-info-text">{metrics.newAssets}</span>
                         </motion.div>

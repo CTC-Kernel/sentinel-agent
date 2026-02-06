@@ -64,7 +64,7 @@ function PresetThumbnail({ config }: { config: ExtendedViewPresetConfig }) {
  />
  ))}
  {config.layers.length > 5 && (
- <span className="text-[11px] text-muted-foreground">+{config.layers.length - 5}</span>
+ <span className="text-xs text-muted-foreground">+{config.layers.length - 5}</span>
  )}
  </div>
  );
@@ -166,7 +166,7 @@ export function ViewSelector({
  <PresetThumbnail config={config} />
  </div>
  <div className="flex items-center gap-2">
- <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[11px] font-medium text-muted-foreground">
+ <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium text-muted-foreground">
   {KEYBOARD_SHORTCUTS[key]}
  </kbd>
  {currentPreset === key && (

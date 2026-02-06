@@ -63,7 +63,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
   </div>
   <div className="min-w-0">
   <h4 className="font-bold text-sm text-foreground truncate pr-4">{req.title}</h4>
-  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground mt-0.5">
+  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-0.5">
   <span className={`inline-flex items-center gap-1 font-semibold ${req.status === 'Accepted' ? 'text-emerald-600' : req.status === 'Provided' ? 'text-blue-600' : 'text-amber-600'}`}>
   <span className={`w-1.5 h-1.5 rounded-full ${req.status === 'Accepted' ? 'bg-emerald-500' : req.status === 'Provided' ? 'bg-blue-500' : 'bg-amber-500'}`}></span>
   {req.status}

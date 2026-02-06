@@ -252,7 +252,7 @@ export const CommandPalette: React.FC = () => {
    }`}
   >
    <div className={`p-2.5 rounded-3xl mr-4 transition-colors ${index === selectedIndex
-   ? 'bg-white/20 text-white'
+   ? 'bg-primary-foreground/20 text-primary-foreground'
    : 'bg-muted text-muted-foreground border border-border/40'
    }`}>
    <item.icon className="h-5 w-5" />
@@ -263,10 +263,10 @@ export const CommandPalette: React.FC = () => {
    </div>
    <div className="flex items-center">
    <span className={`text-xs uppercase tracking-wider font-bold mr-3 px-2 py-0.5 rounded-md ${index === selectedIndex
-   ? 'bg-white/20 text-white border border-white/20'
+   ? 'bg-primary-foreground/20 text-primary-foreground border border-primary-foreground/20'
    : 'bg-muted text-muted-foreground border border-border/40'
    }`}>{item.category}</span>
-   <ArrowRight className={`h-4 w-4 transition-transform duration-300 ${index === selectedIndex ? 'text-white translate-x-1' : 'text-muted-foreground/40 opacity-0 group-hover:opacity-70'}`} />
+   <ArrowRight className={`h-4 w-4 transition-transform duration-300 ${index === selectedIndex ? 'text-primary-foreground translate-x-1' : 'text-muted-foreground/40 opacity-0 group-hover:opacity-70'}`} />
    </div>
   </button>
   ))}

@@ -8,7 +8,7 @@
 
 import type { Workbook, Worksheet } from 'exceljs';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { fr, enUS, Locale } from 'date-fns/locale';
 import {
@@ -64,6 +64,115 @@ export interface DORAExportRecord {
  */
 export class DORAExportService {
  private static readonly EXPORT_VERSION = '1.0';
+ // Fix 7 - Extracted risk threshold constants
+ private static readonly RISK_THRESHOLD_HIGH = 70;
+ private static readonly RISK_THRESHOLD_MEDIUM = 40;
+ // Fix 6 - Translations moved to static class property to avoid recreation on every call
+ private static readonly TRANSLATIONS = {
+ fr: {
+  yes: 'Oui',
+  no: 'Non',
+  sheets: {
+  providers: 'Fournisseurs ICT',
+  risks: 'Évaluation des Risques',
+  compliance: 'Conformité',
+  analysis: 'Analyse Concentration'
+  },
+  columns: {
+  name: 'Nom',
+  category: 'Catégorie',
+  services: 'Services',
+  contractEnd: 'Fin Contrat',
+  exitStrategy: 'Stratégie Sortie',
+  auditRights: 'Droits Audit',
+  euLocation: 'Localisation UE',
+  certifications: 'Certifications',
+  status: 'Statut',
+  concentration: 'Concentration',
+  substitutability: 'Substituabilité',
+  riskLevel: 'Niveau Risque',
+  lastAssessment: 'Dern. Évaluation',
+  doraCompliant: 'Conforme DORA',
+  headquarters: 'Siège Social',
+  subcontractors: 'Sous-traitants'
+  },
+  analysis: {
+  title: 'Analyse de Concentration ICT',
+  totalProviders: 'Total Fournisseurs',
+  criticalProviders: 'Fournisseurs Critiques',
+  importantProviders: 'Fournisseurs Importants',
+  standardProviders: 'Fournisseurs Standards',
+  avgConcentration: 'Concentration Moyenne',
+  highRiskCount: 'Fournisseurs Haut Risque',
+  nonEuCount: 'Fournisseurs Hors UE',
+  expiringContracts: 'Contrats Expirant',
+  within30Days: 'Dans 30 jours',
+  within90Days: 'Dans 90 jours'
+  },
+  pdf: {
+  subtitle: 'Registre des Fournisseurs ICT - DORA Art. 28',
+  executiveSummary: 'Résumé Exécutif',
+  totalProviders: 'Total',
+  criticalCount: 'Critiques',
+  highRiskCount: 'Haut Risque',
+  avgConcentration: 'Concentration',
+  providerDetails: 'Détail des Fournisseurs',
+  generatedAt: 'Généré le'
+  }
+ },
+ en: {
+  yes: 'Yes',
+  no: 'No',
+  sheets: {
+  providers: 'ICT Providers',
+  risks: 'Risk Assessment',
+  compliance: 'Compliance',
+  analysis: 'Concentration Analysis'
+  },
+  columns: {
+  name: 'Name',
+  category: 'Category',
+  services: 'Services',
+  contractEnd: 'Contract End',
+  exitStrategy: 'Exit Strategy',
+  auditRights: 'Audit Rights',
+  euLocation: 'EU Location',
+  certifications: 'Certifications',
+  status: 'Status',
+  concentration: 'Concentration',
+  substitutability: 'Substitutability',
+  riskLevel: 'Risk Level',
+  lastAssessment: 'Last Assessment',
+  doraCompliant: 'DORA Compliant',
+  headquarters: 'Headquarters',
+  subcontractors: 'Subcontractors'
+  },
+  analysis: {
+  title: 'ICT Concentration Analysis',
+  totalProviders: 'Total Providers',
+  criticalProviders: 'Critical Providers',
+  importantProviders: 'Important Providers',
+  standardProviders: 'Standard Providers',
+  avgConcentration: 'Average Concentration',
+  highRiskCount: 'High Risk Providers',
+  nonEuCount: 'Non-EU Providers',
+  expiringContracts: 'Expiring Contracts',
+  within30Days: 'Within 30 days',
+  within90Days: 'Within 90 days'
+  },
+  pdf: {
+  subtitle: 'ICT Provider Register - DORA Art. 28',
+  executiveSummary: 'Executive Summary',
+  totalProviders: 'Total',
+  criticalCount: 'Critical',
+  highRiskCount: 'High Risk',
+  avgConcentration: 'Concentration',
+  providerDetails: 'Provider Details',
+  generatedAt: 'Generated on'
+  }
+ }
+ } as const;
+
 
  /**
  * Generate ESA-compliant JSON export
@@ -73,6 +182,9 @@ export class DORAExportService {
  organizationInfo: { name: string; lei?: string; country: string },
  options: DORAExportOptions
  ): Promise<{ data: DORARegisterExport; blob: Blob; filename: string }> {
+ try {
+ // Fix 12 - Capture new Date() once at method start
+ const now = new Date();
  const filteredProviders = this.filterProviders(providers, options);
 
  const providerReports: DORAProviderReport[] = filteredProviders.map(p => ({
@@ -97,18 +209,22 @@ export class DORAExportService {
 
  const exportData: DORARegisterExport = {
  reportingEntity: organizationInfo,
- reportingDate: new Date().toISOString().split('T')[0],
+ reportingDate: now.toISOString().split('T')[0],
  ictProviders: providerReports,
  concentrationAnalysis,
- generatedAt: new Date().toISOString(),
+ generatedAt: now.toISOString(),
  version: this.EXPORT_VERSION
  };
 
  const jsonString = JSON.stringify(exportData, null, 2);
  const blob = new Blob([jsonString], { type: 'application/json' });
- const filename = `dora-register-${format(new Date(), 'yyyy-MM-dd-HHmm')}.json`;
+ const filename = `dora-register-${format(now, 'yyyy-MM-dd-HHmm')}.json`;
 
  return { data: exportData, blob, filename };
+ } catch (error) {
+  ErrorLogger.error(error, 'DORAExportService.generateJSON');
+  throw error;
+ }
  }
 
  /**
@@ -116,7 +232,8 @@ export class DORAExportService {
  */
  static async generateExcel(
  providers: ICTProvider[],
- _organizationInfo: { name: string; lei?: string; country: string },
+ // Parameter kept for API consistency with generateJSON and generatePDF signatures
+ organizationInfo: { name: string; lei?: string; country: string },
  options: DORAExportOptions
  ): Promise<{ workbook: Workbook; blob: Blob; filename: string }> {
  const filteredProviders = this.filterProviders(providers, options);
@@ -184,10 +301,10 @@ export class DORAExportService {
 
  // Color code risk level
  const riskCell = row.getCell(5);
- if (overallRisk > 70) {
+ if (overallRisk > DORAExportService.RISK_THRESHOLD_HIGH) {
  riskCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEF4444' } };
  riskCell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
- } else if (overallRisk > 40) {
+ } else if (overallRisk > DORAExportService.RISK_THRESHOLD_MEDIUM) {
  riskCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF59E0B' } };
  } else {
  riskCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10B981' } };
@@ -268,6 +385,9 @@ export class DORAExportService {
  organizationInfo: { name: string; lei?: string; country: string },
  options: DORAExportOptions
  ): Promise<{ doc: jsPDF; blob: Blob; filename: string }> {
+ try {
+ // Fix 12 - Capture new Date() once at method start
+ const now = new Date();
  const filteredProviders = this.filterProviders(providers, options);
  const t = this.getTranslations(options.language || 'fr');
  const locale = options.language === 'en' ? enUS : fr;
@@ -276,6 +396,14 @@ export class DORAExportService {
  orientation: 'portrait',
  unit: 'mm',
  format: 'a4'
+ });
+
+ // Fix 13 - Add PDF document metadata
+ doc.setProperties({
+  title: `DORA Register - ${organizationInfo.name}`,
+  author: organizationInfo.name,
+  subject: 'DORA ICT Third-Party Risk Register',
+  creator: 'Sentinel GRC v2',
  });
 
  const pageWidth = doc.internal.pageSize.width;
@@ -314,7 +442,7 @@ export class DORAExportService {
 
  const analysis = this.calculateConcentrationAnalysis(filteredProviders);
  const highRiskCount = filteredProviders.filter(p =>
- ICTProviderService.calculateOverallRisk(p) > 70
+ ICTProviderService.calculateOverallRisk(p) > this.RISK_THRESHOLD_HIGH
  ).length;
 
  doc.setFontSize(11);
@@ -362,7 +490,7 @@ export class DORAExportService {
  p.compliance?.doraCompliant ? t.yes : t.no
  ]);
 
- (doc as jsPDF & { autoTable: (options: Record<string, unknown>) => void }).autoTable({
+ autoTable(doc, {
  startY: yPos,
  head: [[t.columns.name, t.columns.category, t.columns.concentration, t.columns.contractEnd, t.columns.doraCompliant]],
  body: tableData,
@@ -388,7 +516,7 @@ export class DORAExportService {
  doc.setFontSize(8);
  doc.setTextColor(100, 116, 139);
  doc.text(
- `${t.pdf.generatedAt} ${format(new Date(), 'dd/MM/yyyy HH:mm')} - Sentinel GRC`,
+ `${t.pdf.generatedAt} ${format(now, 'dd/MM/yyyy HH:mm')} - Sentinel GRC`,
  marginLeft,
  doc.internal.pageSize.height - 10
  );
@@ -401,9 +529,13 @@ export class DORAExportService {
  }
 
  const blob = doc.output('blob');
- const filename = `dora-register-${format(new Date(), 'yyyy-MM-dd-HHmm')}.pdf`;
+ const filename = `dora-register-${format(now, 'yyyy-MM-dd-HHmm')}.pdf`;
 
  return { doc, blob, filename };
+ } catch (error) {
+  ErrorLogger.error(error, 'DORAExportService.generatePDF');
+  throw error;
+ }
  }
 
  /**
@@ -452,6 +584,7 @@ export class DORAExportService {
  /**
  * Delete export record (admin only)
  */
+ // TODO: Role check (admin-only) should be enforced at the caller level (UI/component)
  static async deleteExportRecord(exportId: string, organizationId: string): Promise<void> {
  try {
  const docSnap = await getDoc(doc(db, 'dora_exports', exportId));
@@ -482,7 +615,8 @@ export class DORAExportService {
  // === Private Helper Methods ===
 
  private static filterProviders(providers: ICTProvider[], options: DORAExportOptions): ICTProvider[] {
- let filtered = providers.filter(p => p.status === 'active');
+ // Fix 14 - If includeHistorical is true, don't filter by active status
+ let filtered = options.includeHistorical ? [...providers] : providers.filter(p => p.status === 'active');
 
  if (options.categoryFilter && options.categoryFilter !== 'all') {
  filtered = filtered.filter(p => p.category === options.categoryFilter);
@@ -508,7 +642,7 @@ export class DORAExportService {
  standardProviders: providers.filter(p => p.category === 'standard').length,
  averageConcentrationRisk: avgConcentration,
  highConcentrationProviders: providers
- .filter(p => (p.riskAssessment?.concentration || 0) > 70)
+ .filter(p => (p.riskAssessment?.concentration || 0) > this.RISK_THRESHOLD_HIGH)
  .map(p => p.id),
  nonEuProviders: providers
  .filter(p => !p.compliance?.locationEU)
@@ -568,117 +702,13 @@ export class DORAExportService {
  }
 
  private static getRiskLevelLabel(riskScore: number, lang: string): string {
- if (riskScore > 70) return lang === 'fr' ? 'Élevé' : 'High';
- if (riskScore > 40) return lang === 'fr' ? 'Moyen' : 'Medium';
+ if (riskScore > this.RISK_THRESHOLD_HIGH) return lang === 'fr' ? 'Élevé' : 'High';
+ if (riskScore > this.RISK_THRESHOLD_MEDIUM) return lang === 'fr' ? 'Moyen' : 'Medium';
  return lang === 'fr' ? 'Faible' : 'Low';
  }
 
- private static getTranslations(lang: string) {
- const translations = {
- fr: {
- yes: 'Oui',
- no: 'Non',
- sheets: {
-  providers: 'Fournisseurs ICT',
-  risks: 'Évaluation des Risques',
-  compliance: 'Conformité',
-  analysis: 'Analyse Concentration'
- },
- columns: {
-  name: 'Nom',
-  category: 'Catégorie',
-  services: 'Services',
-  contractEnd: 'Fin Contrat',
-  exitStrategy: 'Stratégie Sortie',
-  auditRights: 'Droits Audit',
-  euLocation: 'Localisation UE',
-  certifications: 'Certifications',
-  status: 'Statut',
-  concentration: 'Concentration',
-  substitutability: 'Substituabilité',
-  riskLevel: 'Niveau Risque',
-  lastAssessment: 'Dern. Évaluation',
-  doraCompliant: 'Conforme DORA',
-  headquarters: 'Siège Social',
-  subcontractors: 'Sous-traitants'
- },
- analysis: {
-  title: 'Analyse de Concentration ICT',
-  totalProviders: 'Total Fournisseurs',
-  criticalProviders: 'Fournisseurs Critiques',
-  importantProviders: 'Fournisseurs Importants',
-  standardProviders: 'Fournisseurs Standards',
-  avgConcentration: 'Concentration Moyenne',
-  highRiskCount: 'Fournisseurs Haut Risque',
-  nonEuCount: 'Fournisseurs Hors UE',
-  expiringContracts: 'Contrats Expirant',
-  within30Days: 'Dans 30 jours',
-  within90Days: 'Dans 90 jours'
- },
- pdf: {
-  subtitle: 'Registre des Fournisseurs ICT - DORA Art. 28',
-  executiveSummary: 'Résumé Exécutif',
-  totalProviders: 'Total',
-  criticalCount: 'Critiques',
-  highRiskCount: 'Haut Risque',
-  avgConcentration: 'Concentration',
-  providerDetails: 'Détail des Fournisseurs',
-  generatedAt: 'Généré le'
- }
- },
- en: {
- yes: 'Yes',
- no: 'No',
- sheets: {
-  providers: 'ICT Providers',
-  risks: 'Risk Assessment',
-  compliance: 'Compliance',
-  analysis: 'Concentration Analysis'
- },
- columns: {
-  name: 'Name',
-  category: 'Category',
-  services: 'Services',
-  contractEnd: 'Contract End',
-  exitStrategy: 'Exit Strategy',
-  auditRights: 'Audit Rights',
-  euLocation: 'EU Location',
-  certifications: 'Certifications',
-  status: 'Status',
-  concentration: 'Concentration',
-  substitutability: 'Substitutability',
-  riskLevel: 'Risk Level',
-  lastAssessment: 'Last Assessment',
-  doraCompliant: 'DORA Compliant',
-  headquarters: 'Headquarters',
-  subcontractors: 'Subcontractors'
- },
- analysis: {
-  title: 'ICT Concentration Analysis',
-  totalProviders: 'Total Providers',
-  criticalProviders: 'Critical Providers',
-  importantProviders: 'Important Providers',
-  standardProviders: 'Standard Providers',
-  avgConcentration: 'Average Concentration',
-  highRiskCount: 'High Risk Providers',
-  nonEuCount: 'Non-EU Providers',
-  expiringContracts: 'Expiring Contracts',
-  within30Days: 'Within 30 days',
-  within90Days: 'Within 90 days'
- },
- pdf: {
-  subtitle: 'ICT Provider Register - DORA Art. 28',
-  executiveSummary: 'Executive Summary',
-  totalProviders: 'Total',
-  criticalCount: 'Critical',
-  highRiskCount: 'High Risk',
-  avgConcentration: 'Concentration',
-  providerDetails: 'Provider Details',
-  generatedAt: 'Generated on'
- }
- }
- };
-
- return translations[lang as keyof typeof translations] || translations.fr;
+ // Fix 8 - Proper return type referencing static TRANSLATIONS property
+ private static getTranslations(lang: 'fr' | 'en'): typeof DORAExportService.TRANSLATIONS.fr {
+ return this.TRANSLATIONS[lang] || this.TRANSLATIONS.fr;
  }
 }

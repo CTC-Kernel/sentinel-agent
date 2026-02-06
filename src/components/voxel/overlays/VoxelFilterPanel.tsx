@@ -291,7 +291,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
  <div className="relative">
  <Filter className="w-5 h-5 text-muted-foreground" />
  {hasActiveFilters && (
- <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-blue-500 text-[11px] text-white flex items-center justify-center">
+ <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-blue-500 text-xs text-white flex items-center justify-center">
   {activeFilterCount}
  </span>
  )}

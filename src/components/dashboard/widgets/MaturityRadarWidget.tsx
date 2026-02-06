@@ -96,7 +96,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
  </div>
  {!radarData.every(d => d.A === 0) && (
   <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center z-20">
-  <span className="inline-flex items-center px-3 py-1 rounded-full bg-background/70 backdrop-blur-md border border-border text-[11px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-widest shadow-sm whitespace-nowrap">
+  <span className="inline-flex items-center px-3 py-1 rounded-full bg-background/70 backdrop-blur-md border border-border text-xs sm:text-xs font-bold text-muted-foreground uppercase tracking-widest shadow-sm whitespace-nowrap">
   {t('dashboard.isoMaturity')}
   </span>
   </div>
@@ -135,12 +135,12 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
  {/* Target Marker */}
  <div className="absolute top-[22px] right-0 flex flex-col items-center transform translate-x-1/2">
   <div className="w-0.5 h-4 bg-muted-foreground/50 mb-0.5"></div>
-  <span className="text-[11px] font-medium text-muted-foreground">100%</span>
+  <span className="text-xs font-medium text-muted-foreground">100%</span>
  </div>
 
  {/* Motivation Text based on score */}
  <div className="mt-2 text-center h-4">
-  <span className="text-[11px] font-medium text-primary animate-pulse tracking-wide">
+  <span className="text-xs font-medium text-primary animate-pulse tracking-wide">
   {totalScore < 100 ? "Atteignez l'excellence opérationnelle" : "Conformité maximale atteinte !"}
   </span>
  </div>

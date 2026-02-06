@@ -40,7 +40,7 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
  ) : (
  <>
   <div className="space-y-2 relative z-decorator">
-  <p className="text-[11px] font-black uppercase tracking-[0.25em] text-muted-foreground/80 flex items-center gap-2 mb-2">
+  <p className="text-xs font-black uppercase tracking-[0.25em] text-muted-foreground/80 flex items-center gap-2 mb-2">
   <span className="inline-flex h-2 w-2 rounded-full bg-error-text animate-pulse shadow-glow shadow-error-text/30" />
   {t('incidents.stats.globalView', { defaultValue: 'Vue globale des incidents' })}
   </p>
@@ -56,21 +56,21 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
   {/* Active Incidents Card */}
   <PremiumCard glass hover={true} className="p-5 rounded-3xl hover:bg-error-bg border-border/40 shadow-sm transition-all duration-300">
   <div className="flex items-center justify-between mb-3">
-  <span className="text-[11px] font-black uppercase tracking-widest text-error-text opacity-70">{t('incidents.stats.active', { defaultValue: 'Actifs' })}</span>
+  <span className="text-xs font-black uppercase tracking-widest text-error-text opacity-70">{t('incidents.stats.active', { defaultValue: 'Actifs' })}</span>
   <div className="p-2 rounded-3xl bg-error-bg ring-1 ring-inset ring-error-border/30 text-error-text shadow-sm">
    <ShieldAlert className="h-4 w-4" />
   </div>
   </div>
   <div className="space-y-1">
   <p className="text-3xl font-black text-foreground tracking-tight">{stats.open}</p>
-  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t('incidents.toTreat')}</p>
+  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('incidents.toTreat')}</p>
   </div>
   </PremiumCard>
 
   {/* MTTR Card */}
   <PremiumCard glass hover={true} className="p-5 rounded-3xl hover:bg-success-bg border-border/40 shadow-sm transition-all duration-300">
   <div className="flex items-center justify-between mb-3">
-  <span className="text-[11px] font-black uppercase tracking-widest text-success-text opacity-70">MTTR</span>
+  <span className="text-xs font-black uppercase tracking-widest text-success-text opacity-70">MTTR</span>
   <div className="p-2 rounded-3xl bg-success-bg ring-1 ring-inset ring-success-border/30 text-success-text shadow-sm">
    <Clock className="h-4 w-4" />
   </div>
@@ -79,14 +79,14 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
   <p className="text-3xl font-black text-foreground tracking-tight">
    {stats.avgMttrHours !== null ? `${stats.avgMttrHours}h` : '-'}
   </p>
-  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t('incidents.avgDelay')}</p>
+  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('incidents.avgDelay')}</p>
   </div>
   </PremiumCard>
 
   {/* Critical Ratio Card */}
   <PremiumCard glass hover={true} className="p-5 rounded-3xl hover:bg-warning-bg border-border/40 shadow-sm transition-all duration-300">
   <div className="flex items-center justify-between mb-3">
-  <span className="text-[11px] font-black uppercase tracking-widest text-warning-text opacity-70">{t('incidents.stats.critical', { defaultValue: 'Critiques' })}</span>
+  <span className="text-xs font-black uppercase tracking-widest text-warning-text opacity-70">{t('incidents.stats.critical', { defaultValue: 'Critiques' })}</span>
   <div className="p-2 rounded-3xl bg-warning-bg ring-1 ring-inset ring-warning-border/30 text-warning-text shadow-sm">
    <AlertTriangle className="h-4 w-4" />
   </div>
@@ -95,7 +95,7 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
   <p className="text-3xl font-black text-foreground tracking-tight">
    {stats.criticalRatio !== null ? `${stats.criticalRatio}%` : '-'}
   </p>
-  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{t('incidents.volumeTotal')}</p>
+  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('incidents.volumeTotal')}</p>
   </div>
   </PremiumCard>
   </div>

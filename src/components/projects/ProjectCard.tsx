@@ -140,13 +140,13 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   </ProjectCardTooltip>
   ))}
   {remaining > 0 && (
-  <div className="w-6 h-6 rounded-full bg-muted border-2 border-white dark:border-card flex items-center justify-center text-[11px] font-bold text-muted-foreground">
+  <div className="w-6 h-6 rounded-full bg-muted border-2 border-white dark:border-card flex items-center justify-center text-xs font-bold text-muted-foreground">
    +{remaining}
   </div>
   )}
   </>
   ) : (
-  <div className="text-muted-foreground text-[11px] italic">Aucune équipe</div>
+  <div className="text-muted-foreground text-xs italic">Aucune équipe</div>
   )}
  </div>
 

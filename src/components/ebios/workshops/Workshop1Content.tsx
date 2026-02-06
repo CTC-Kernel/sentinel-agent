@@ -343,7 +343,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
   <h4 className="font-semibold text-foreground truncate text-base group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
   {asset.name}
   </h4>
-  <span className="px-2 py-0.5 rounded-lg text-[11px] uppercase font-bold bg-muted/50 text-muted-foreground border border-border/40">
+  <span className="px-2 py-0.5 rounded-lg text-xs uppercase font-bold bg-muted/50 text-muted-foreground border border-border/40">
   {t(`ebios.assetTypes.${asset.type}`)}
   </span>
   </div>
@@ -444,12 +444,12 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
   <h4 className="font-semibold text-foreground truncate text-base group-hover:text-foreground dark:group-hover:text-muted-foreground transition-colors">
   {asset.name}
   </h4>
-  <span className="px-2 py-0.5 rounded-lg text-[11px] uppercase font-bold bg-muted/50 text-muted-foreground border border-border/40">
+  <span className="px-2 py-0.5 rounded-lg text-xs uppercase font-bold bg-muted/50 text-muted-foreground border border-border/40">
   {t(`ebios.supportingAssetTypes.${asset.type}`)}
   </span>
   {asset.linkedAssetId && (
   <span
-  className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] uppercase font-bold bg-info-bg text-info-text border border-info-border"
+  className="flex items-center gap-1 px-2 py-0.5 rounded-md text-xs uppercase font-bold bg-info-bg text-info-text border border-info-border"
   title={t('ebios.workshop1.linkedToInventory', 'Lié à l\'inventaire')}
   >
   <Link2 className="w-3 h-3" />
@@ -558,7 +558,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
   {event.name}
   </h4>
   <span className={cn(
-  "px-2 py-0.5 rounded-md text-[11px] uppercase font-bold border",
+  "px-2 py-0.5 rounded-md text-xs uppercase font-bold border",
   event.impactType === 'confidentiality' && "bg-info-bg text-info-text border-info-border",
   event.impactType === 'integrity' && "bg-success-bg text-success-text border-success-border",
   event.impactType === 'availability' && "bg-warning-bg text-warning-text border-warning-border"

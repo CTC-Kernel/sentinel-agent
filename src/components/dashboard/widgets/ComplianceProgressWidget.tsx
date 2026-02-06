@@ -192,7 +192,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                             <span className="text-2xl font-black text-foreground">
                                 {stats.complianceRate}%
                             </span>
-                            <span className="text-[11px] text-muted-foreground uppercase tracking-wider">
+                            <span className="text-xs text-muted-foreground uppercase tracking-wider">
                                 Score
                             </span>
                         </div>
@@ -203,12 +203,12 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                 {/* Stats */}
                 <div className="flex flex-col gap-2 min-w-0 flex-1">
                     <h4 className="text-sm font-bold text-foreground truncate">Score Global</h4>
-                    <p className="text-[11px] text-muted-foreground line-clamp-2">
+                    <p className="text-xs text-muted-foreground line-clamp-2">
                         Contrôles implémentés sur {stats.totalControls} au total
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                         <div className={cn(
-                            "text-[11px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 border",
+                            "text-xs font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 border",
                             stats.complianceRate >= 80
                                 ? "bg-success-bg text-success-600 dark:text-success-400 border-success-500/20"
                                 : stats.complianceRate >= 50
@@ -228,7 +228,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                 <div className="p-2 rounded-xl bg-background/40 border border-border/40">
                     <div className="flex items-center gap-1.5 mb-1">
                         <CheckCircle2 className="w-3 h-3 text-success-500" />
-                        <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold">Impl.</span>
+                        <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Impl.</span>
                     </div>
                     <div className="text-lg font-black text-foreground">
                         {stats.implementedControls}
@@ -237,7 +237,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                 <div className="p-2 rounded-xl bg-background/40 border border-border/40">
                     <div className="flex items-center gap-1.5 mb-1">
                         <Clock className="w-3 h-3 text-warning-500" />
-                        <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold">Partiels</span>
+                        <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Partiels</span>
                     </div>
                     <div className="text-lg font-black text-foreground">
                         {stats.inProgressControls}
@@ -246,7 +246,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                 <div className="p-2 rounded-xl bg-background/40 border border-border/40">
                     <div className="flex items-center gap-1.5 mb-1">
                         <AlertTriangle className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold">Non impl.</span>
+                        <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Non impl.</span>
                     </div>
                     <div className="text-lg font-black text-foreground">
                         {stats.notImplementedControls}
@@ -257,7 +257,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
             {/* Progress Bar */}
             <div className="mt-3 space-y-1.5 relative z-decorator">
                 <div className="flex justify-between items-center text-xs">
-                    <span className="text-muted-foreground font-bold uppercase tracking-wider text-[11px]">Progression</span>
+                    <span className="text-muted-foreground font-bold uppercase tracking-wider text-xs">Progression</span>
                     <span className="font-bold text-foreground">{stats.implementedControls}/{stats.totalControls}</span>
                 </div>
                 <div className="h-2 w-full bg-muted/30 rounded-full overflow-hidden flex">

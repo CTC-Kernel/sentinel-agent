@@ -73,11 +73,11 @@ export const ApprovalsWidget: React.FC<ApprovalsWidgetProps> = ({ documents }) =
   <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
   <span className="text-sm font-bold text-foreground truncate">{doc.title}</span>
   </div>
-  <span className="text-[11px] font-bold px-2 py-1 bg-warning/10 text-warning dark:text-warning rounded-lg whitespace-nowrap">
+  <span className="text-xs font-bold px-2 py-1 bg-warning/10 text-warning dark:text-warning rounded-lg whitespace-nowrap">
   v{doc.version}
   </span>
   </div>
-  <div className="flex items-center gap-2 mt-2 text-[11px] text-muted-foreground">
+  <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
   <Clock className="h-3 w-3" />
   <span>{t('dashboard.waitingSince', { defaultValue: 'En attente depuis {{date}}', date: new Date(doc.updatedAt).toLocaleDateString() })}</span>
   </div>

@@ -49,7 +49,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
  onDrop={(e) => onDrop(e, status)}
  >
  <h4 className="text-xs font-bold uppercase text-muted-foreground mb-3 flex justify-between tracking-wider">
- {status} <span className="bg-card px-2 py-0.5 rounded-lg text-[11px] shadow-sm border border-border">{tasks.length}</span>
+ {status} <span className="bg-card px-2 py-0.5 rounded-lg text-xs shadow-sm border border-border">{tasks.length}</span>
  </h4>
  <div className="space-y-2.5 flex-1">
  {tasks.length === 0 ? (
@@ -81,8 +81,8 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   </div>
   </div>
   <div className="flex items-center justify-between mt-2">
-  <span className="text-[11px] font-medium px-2 py-0.5 bg-muted rounded text-muted-foreground">{task.assignee || 'Non assigné'}</span>
-  {task.dueDate && <span className={`text-[11px] font-bold flex items-center ${new Date(task.dueDate) < new Date() ? 'text-destructive' : 'text-muted-foreground'}`}><CalendarDays className="h-3 w-3 mr-1" />{new Date(task.dueDate).toLocaleDateString()}</span>}
+  <span className="text-xs font-medium px-2 py-0.5 bg-muted rounded text-muted-foreground">{task.assignee || 'Non assigné'}</span>
+  {task.dueDate && <span className={`text-xs font-bold flex items-center ${new Date(task.dueDate) < new Date() ? 'text-destructive' : 'text-muted-foreground'}`}><CalendarDays className="h-3 w-3 mr-1" />{new Date(task.dueDate).toLocaleDateString()}</span>}
   </div>
   </div>
   ))

@@ -74,7 +74,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = React.m
   value={filter}
   onClick={(e) => e.stopPropagation()}
   onChange={(e) => setFilter(e.target.value as ActivityFilter)}
-  className="px-2 py-1.5 bg-background rounded-lg text-[11px] font-bold text-muted-foreground border border-border/40 hover:bg-muted/50 transition-all duration-normal ease-apple outline-none cursor-pointer"
+  className="px-2 py-1.5 bg-background rounded-lg text-xs font-bold text-muted-foreground border border-border/40 hover:bg-muted/50 transition-all duration-normal ease-apple outline-none cursor-pointer"
   aria-label={t('dashboard.filterActivity')}
  >
   <option value="All">{t('common.all')}</option>
@@ -117,7 +117,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = React.m
    </p>
    <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[500px] font-medium leading-relaxed">{log.details}</p>
   </div>
-  <span className="text-[11px] text-muted-foreground font-bold uppercase tracking-wide bg-muted/50 px-2 py-1 rounded-md ml-4 whitespace-nowrap">
+  <span className="text-xs text-muted-foreground font-bold uppercase tracking-wide bg-muted/50 px-2 py-1 rounded-md ml-4 whitespace-nowrap">
    {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
   </span>
   </div>

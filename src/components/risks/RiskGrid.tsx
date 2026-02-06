@@ -154,7 +154,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
    </Badge>
    {trend === 'up' && <span className="text-error-text" title="En hausse"><TrendingUp className="h-4 w-4" /></span>}
    {trend === 'down' && <span className="text-success-text" title="En baisse"><TrendingDown className="h-4 w-4" /></span>}
-   {isMitigated && (<><ArrowRight className="w-3 h-3 text-muted-foreground" /><div className="px-2.5 py-1 text-[11px] font-bold rounded-full border border-border/40 text-muted-foreground bg-white/50">Résiduel: {residualScore}</div></>)}
+   {isMitigated && (<><ArrowRight className="w-3 h-3 text-muted-foreground" /><div className="px-2.5 py-1 text-xs font-bold rounded-full border border-border/40 text-muted-foreground bg-white/50">Résiduel: {residualScore}</div></>)}
   </div>
   </div>
   <div className="mb-4 flex-1">
@@ -177,7 +177,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
    {(() => {
    const sla = getSLAStatus(risk);
    if (sla) return (
-   <span className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-bold ${sla.color}`}>
+   <span className={`inline-flex items-center px-2 py-0.5 rounded-md border text-xs font-bold ${sla.color}`}>
     <Clock className="w-3 h-3 mr-1" /> {sla.label}
    </span>
    )
@@ -186,7 +186,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
    </div>
    <div className="flex items-center gap-2">
    {risk.treatment?.slaStatus && risk.treatment.status !== 'Terminé' && (
-   <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${risk.treatment.slaStatus === 'Breached' ? 'bg-error-bg text-error-text border-error-border' :
+   <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${risk.treatment.slaStatus === 'Breached' ? 'bg-error-bg text-error-text border-error-border' :
    risk.treatment.slaStatus === 'At Risk' ? 'bg-warning-bg text-warning-text border-warning-border' :
     'bg-success-bg text-success-text border-success-border'
    }`}>
@@ -203,7 +203,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
   </div>
   {isReviewOverdue(risk) && (
    <div className="flex items-center justify-between">
-   <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-warning-bg dark:bg-warning-bg/20 text-warning-text dark:text-warning-text border border-warning-border dark:border-warning-border/50 text-[11px] font-bold">
+   <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-warning-bg dark:bg-warning-bg/20 text-warning-text dark:text-warning-text border border-warning-border dark:border-warning-border/50 text-xs font-bold">
    <Clock className="h-3 w-3 mr-1" /> Revue en retard
    </span>
    </div>

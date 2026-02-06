@@ -111,7 +111,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
    }}
    disabled={updating}
    variant={control.status === s ? 'default' : 'outline'}
-   className={`h-auto py-2 text-[11px] font-bold justify-center whitespace-normal ${control.status === s ? 'bg-primary hover:bg-primary/90' : 'text-muted-foreground'}`}
+   className={`h-auto py-2 text-xs font-bold justify-center whitespace-normal ${control.status === s ? 'bg-primary hover:bg-primary/90' : 'text-muted-foreground'}`}
    >
    {updating && control.status === s ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
    {label}
@@ -166,7 +166,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary text-primary-foreground border border-primary">
   <span className="w-1.5 h-1.5 rounded-full bg-white" />
   {getFrameworkLabel(control.framework)}
-  <span className="text-[11px] text-primary/30 ml-1">({t('compliance.primary', { defaultValue: 'principal' })})</span>
+  <span className="text-xs text-primary/30 ml-1">({t('compliance.primary', { defaultValue: 'principal' })})</span>
   </span>
   )}
 
@@ -230,7 +230,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
   disabled={!canEdit || updating || isSaving}
   />
   <div className="flex items-center justify-between mt-1">
-  <div className="text-[11px] text-muted-foreground">
+  <div className="text-xs text-muted-foreground">
   {justification.length}/2000
   </div>
   {justification !== (control.justification || '') && (

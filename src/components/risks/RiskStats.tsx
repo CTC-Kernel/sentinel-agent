@@ -26,7 +26,7 @@ export const RiskStats: React.FC<RiskStatsProps> = ({ stats }) => {
  >
  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative z-decorator">
   <div className="space-y-2">
-  <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+  <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
   <span className="inline-flex h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
   Vue globale des risques
   </p>
@@ -40,14 +40,14 @@ export const RiskStats: React.FC<RiskStatsProps> = ({ stats }) => {
 
   <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-8">
   <div>
-  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Critiques</p>
+  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Critiques</p>
   <div className="flex items-center gap-2">
   <span className="text-2xl font-black text-red-500 drop-shadow-sm">{stats.critical}</span>
   <Badge status="error" variant="soft" size="sm" className="shadow-none">Score 15+</Badge>
   </div>
   </div>
   <div>
-  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Score Moyen</p>
+  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Score Moyen</p>
   <div className="flex items-center gap-2">
   <span className="text-2xl font-black text-foreground">
    {stats.avgScore.toFixed(1)}
@@ -56,7 +56,7 @@ export const RiskStats: React.FC<RiskStatsProps> = ({ stats }) => {
   </div>
   </div>
   <div>
-  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Non Traités</p>
+  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Non Traités</p>
   <div className="flex items-center gap-2">
   <span className="text-2xl font-black text-warning-text drop-shadow-sm">
    {stats.untreatedCritical}
@@ -65,7 +65,7 @@ export const RiskStats: React.FC<RiskStatsProps> = ({ stats }) => {
   </div>
   </div>
   <div>
-  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Réduction</p>
+  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Réduction</p>
   <div className="flex items-center gap-2">
   <span className="text-2xl font-black text-success-text drop-shadow-sm">
    {stats.reductionPercentage}%
