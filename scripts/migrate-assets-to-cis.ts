@@ -10,7 +10,7 @@
  * @module scripts/migrate-assets-to-cis
  */
 
-import { initializeApp, cert, ServiceAccount } from 'firebase-admin/app';
+import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp, WriteBatch } from 'firebase-admin/firestore';
 import * as fs from 'fs';
 import * as path from 'path';
