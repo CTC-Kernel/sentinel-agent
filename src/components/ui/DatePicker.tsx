@@ -93,6 +93,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
  const calendarContent = isOpen && !disabled && (
  <div
  data-datepicker-portal
+ role="dialog"
+ aria-modal="true"
+ aria-label="Date picker calendar"
  className="fixed z-tooltip p-2 bg-card rounded-2xl shadow-xl border border-border/40 animate-fade-in"
  style={{
  top: coords.top,
@@ -100,6 +103,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({
  minWidth: coords.width,
  }}
  onClick={(e) => e.stopPropagation()}
+ onKeyDown={(e) => {
+ if (e.key === 'Escape') {
+ setIsOpen(false);
+ }
+ }}
+ tabIndex={-1}
  >
  <Calendar
  mode="single"

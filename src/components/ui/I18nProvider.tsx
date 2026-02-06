@@ -15,7 +15,7 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
   useEffect(() => {
     // Check if i18next is already initialized
     if (i18n.isInitialized) {
-      setIsReady(true);
+      setTimeout(() => setIsReady(true), 0);
       return;
     }
 

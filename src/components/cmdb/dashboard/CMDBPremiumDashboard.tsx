@@ -252,7 +252,7 @@ const CIClassDistribution: React.FC<CIClassDistributionProps> = ({ stats, loadin
         percent: Math.round((count / total) * 100),
       }))
       .sort((a, b) => b.count - a.count);
-  }, [stats?.classDistribution, stats?.total]);
+  }, [stats?.classDistribution]);
 
   const pieData = distribution.map((d) => ({
     name: d.class,
