@@ -16,9 +16,9 @@ Cet audit exhaustif couvre l'ensemble de l'écosystème Sentinel GRC:
 |-----------|-------|--------|
 | Plateforme SaaS | 80/100 | Bon |
 | Agent Rust | 88/100 | Excellent |
-| Application Mobile | 65/100 | MVP |
+| Application Mobile | 78/100 | Bon |
 | Documentation BMAD | 96/100 | Excellent |
-| **GLOBAL** | **82/100** | **Bon** |
+| **GLOBAL** | **85/100** | **Bon** |
 
 ---
 
@@ -237,19 +237,37 @@ cargo fmt --check && cargo clippy -- -D warnings
 
 ## APPLICATION MOBILE - RÉSUMÉ
 
-### Score: 65/100 (MVP Fonctionnel)
+### Score: 78/100 (Amélioré)
 
 **Points Forts:**
 - Expo 54 + React Native 0.81
 - Firebase Auth intégré
 - Checks conformité ISO 27001
 - TypeScript strict
+- **Firebase App Check** configuré (dev/prod)
+- **Zustand** pour state management
+- **Architecture composants** propre
 
 **Points Faibles:**
-- 0 tests
-- Pas de state management
-- compliance.tsx trop volumineux (634 lignes)
-- Pas d'App Check Firebase
+- 0 tests (à ajouter)
+
+### Améliorations Effectuées
+
+| Modification | Avant | Après |
+|--------------|-------|-------|
+| compliance.tsx | 634 lignes | 199 lignes |
+| State management | useState local | Zustand store |
+| App Check | Absent | Configuré |
+| Composants | Monolithique | 5 composants extraits |
+
+**Nouveaux fichiers créés:**
+- `stores/agentStore.ts` - Store Zustand pour l'état agent/compliance
+- `theme/colors.ts` - Couleurs et helpers partagés
+- `components/compliance/EnrollCard.tsx` - Carte d'enrollment
+- `components/compliance/DeviceCard.tsx` - Infos appareil
+- `components/compliance/ScoreCard.tsx` - Score de conformité
+- `components/compliance/SummaryStats.tsx` - Statistiques résumé
+- `components/compliance/CheckResultCard.tsx` - Résultat de check
 
 ---
 
@@ -257,22 +275,23 @@ cargo fmt --check && cargo clippy -- -D warnings
 
 ### Immédiat (Cette Semaine)
 
-1. **Agent Rust:** Mettre à jour `battery` crate pour corriger RUSTSEC-2021-0119
-2. **SaaS:** Surveiller mise à jour @capacitor/cli pour corriger tar
-3. **Mobile:** Ajouter App Check Firebase
+1. ~~**Mobile:** Ajouter App Check Firebase~~ ✅ **FAIT**
+2. ~~**Mobile:** Ajouter Zustand pour state management~~ ✅ **FAIT**
+3. ~~**Mobile:** Refactorer compliance.tsx~~ ✅ **FAIT**
+4. **Agent Rust:** Attendre mise à jour `battery` crate (dépendance transitive nix)
+5. **SaaS:** Surveiller mise à jour @capacitor/cli pour corriger tar
 
 ### Court Terme (Ce Mois)
 
-4. **Mobile:** Ajouter Zustand pour state management
-5. **Mobile:** Refactorer compliance.tsx
 6. **SaaS:** Implémenter ADR-008 (DORA - deadline passée)
-7. **Tests:** Augmenter couverture vers 70%
+7. **Tests Mobile:** Ajouter tests unitaires (actuellement 0)
+8. **Tests SaaS:** Augmenter couverture vers 70%
 
 ### Moyen Terme (Ce Trimestre)
 
-8. **Documentation:** Maintenir à jour les ADRs
-9. **Sécurité:** Audit de pénétration externe
-10. **Performance:** Optimisation bundle SaaS
+9. **Documentation:** Maintenir à jour les ADRs
+10. **Sécurité:** Audit de pénétration externe
+11. **Performance:** Optimisation bundle SaaS
 
 ---
 
@@ -284,6 +303,12 @@ cargo fmt --check && cargo clippy -- -D warnings
 | `package-lock.json` | Mise à jour dépendances |
 | `docs/archived/*` | 79 fichiers déplacés |
 | `*.json` (lint reports) | 12 fichiers supprimés |
+| `mobile/firebaseConfig.ts` | Ajout App Check |
+| `mobile/package.json` | Ajout Zustand |
+| `mobile/app/compliance.tsx` | Refactoré (634→199 lignes) |
+| `mobile/stores/agentStore.ts` | Créé (store Zustand) |
+| `mobile/theme/colors.ts` | Créé (couleurs partagées) |
+| `mobile/components/compliance/*` | Créé (5 composants) |
 
 ---
 
