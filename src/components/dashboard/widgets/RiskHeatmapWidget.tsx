@@ -94,7 +94,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
  animate={{ opacity: 1, y: 0 }}
  className="glass-premium h-full flex flex-col p-5 border border-border/40 rounded-3xl shadow-sm relative overflow-hidden"
  >
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
 
  <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
   <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
@@ -127,7 +127,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
  className="glass-premium h-full flex flex-col p-5 border border-border/40 rounded-3xl shadow-sm relative overflow-hidden"
  >
  {/* Background effects */}
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
  <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-warning-bg rounded-full blur-2xl pointer-events-none" />
 
  {/* Header */}

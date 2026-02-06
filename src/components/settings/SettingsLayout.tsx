@@ -68,7 +68,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
 
   {/* Desktop: Vertical list */}
   <div className="hidden lg:flex flex-col gap-2">
-  <div className="glass-premium p-2 rounded-3xl border border-border/40 bg-card/40 shadow-apple-sm backdrop-blur-md">
+  <div className="glass-premium p-2 rounded-3xl border border-border/40 shadow-apple-sm">
   {visibleTabs.map(tab => {
   const isActive = currentTab === tab.id;
   return (

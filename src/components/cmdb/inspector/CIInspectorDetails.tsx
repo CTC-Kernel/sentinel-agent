@@ -169,10 +169,9 @@ export const CIInspectorDetails: React.FC<CIInspectorDetailsProps> = ({
     register,
     control,
     handleSubmit,
-    _watch,
     reset,
     formState: { errors, isDirty },
-  } = useForm<CreateCIFormData>({
+  } = useForm({
     resolver: zodResolver(createCISchema),
     defaultValues,
   });

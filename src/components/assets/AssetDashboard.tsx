@@ -382,7 +382,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     transition={{ delay: 0.1 }}
                     className="glass-premium p-6 rounded-4xl relative overflow-hidden border border-border/40 hover:shadow-apple-lg transition-all duration-300"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-4xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-4xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
                         <div className="p-2 bg-warning/10 rounded-3xl">
                             <ShieldAlert className="w-4 h-4 text-warning" />
@@ -442,7 +442,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     transition={{ delay: 0.15 }}
                     className="glass-premium p-6 rounded-4xl relative overflow-hidden border border-border/40 hover:shadow-apple-lg transition-all duration-300"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-4xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-4xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
                         <div className="p-2 bg-primary/10 rounded-3xl">
                             <Layers className="w-4 h-4 text-primary" />
@@ -487,7 +487,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     transition={{ delay: 0.2 }}
                     className="glass-premium p-6 rounded-4xl relative overflow-hidden border border-border/40 hover:shadow-apple-lg transition-all duration-300"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-4xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-4xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
                         <div className="p-2 bg-violet-500/10 rounded-3xl">
                             <Box className="w-4 h-4 text-violet-500" />
@@ -547,7 +547,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     transition={{ delay: 0.25 }}
                     className="glass-premium p-6 rounded-4xl relative overflow-hidden border border-border/40 hover:shadow-apple-lg transition-all duration-300"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-4xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-4xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
                         <div className="p-2 bg-success/10 rounded-3xl">
                             <TrendingUp className="w-4 h-4 text-success" />

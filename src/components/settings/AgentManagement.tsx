@@ -987,7 +987,7 @@ export const AgentManagement: React.FC = () => {
                         transition={{ delay: 0.35 }}
                         className="glass-premium rounded-3xl border border-border/40 overflow-hidden relative"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
                         <div className="relative z-10 px-6 py-4 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex items-center justify-between">
                             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                                 <Server className="w-4 h-4 text-primary" />
@@ -1104,7 +1104,7 @@ export const AgentManagement: React.FC = () => {
                         transition={{ delay: 0.38 }}
                         className="glass-premium rounded-3xl border border-border/40 overflow-hidden relative"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
                         <div className="relative z-10 px-6 py-4 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex items-center justify-between">
                             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                                 <Lock className="w-4 h-4 text-primary" />

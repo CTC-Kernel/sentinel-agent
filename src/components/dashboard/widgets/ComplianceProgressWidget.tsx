@@ -83,7 +83,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                 animate={{ opacity: 1, y: 0 }}
                 className="h-full flex flex-col p-5 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-sm relative overflow-hidden"
             >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
 
                 <div className="flex items-center justify-between pb-4 border-b border-border/40 relative z-10">
                     <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
@@ -129,7 +129,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
             </svg>
 
             {/* Background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-success-bg rounded-full blur-2xl pointer-events-none" />
 
             {/* Header */}

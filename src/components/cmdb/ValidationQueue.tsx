@@ -27,10 +27,9 @@ import { Badge } from '../ui/Badge';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { useStore } from '@/store';
 import {
-  usePendingValidation,
-  usePendingValidationLoading,
-  useCMDBActions,
-} from '@/stores/cmdbStore';
+  usePendingValidations,
+  useValidationMutations,
+} from '@/hooks/cmdb/useCMDBValidation';
 import { CMDBValidationItem, CIClass } from '@/types/cmdb';
 import { cn } from '@/lib/utils';
 
@@ -115,7 +114,7 @@ const ValidationItem: React.FC<ValidationItemProps> = ({
     hostname?: string;
     networkInterfaces?: Array<{ ipv4?: string[] }>;
   };
-  const hostname = agentData.hostname || item.fingerprint.hostname || 'Unknown';
+  const hostname = agentData.hostname || item.fingerprint?.hostname || item.discoveredCI?.name || 'Unknown';
   const ipAddress = agentData.networkInterfaces?.[0]?.ipv4?.[0] || '-';
 
   return (
@@ -172,19 +171,19 @@ const ValidationItem: React.FC<ValidationItemProps> = ({
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
                   <span className="text-muted-foreground">MAC:</span>{' '}
-                  <span className="font-mono">{item.fingerprint.primaryMacAddress || '-'}</span>
+                  <span className="font-mono">{item.fingerprint?.primaryMacAddress || '-'}</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">OS:</span>{' '}
-                  <span>{item.fingerprint.osFingerprint || '-'}</span>
+                  <span>{item.fingerprint?.osFingerprint || '-'}</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Serial:</span>{' '}
-                  <span className="font-mono">{item.fingerprint.serialNumber || '-'}</span>
+                  <span className="font-mono">{item.fingerprint?.serialNumber || '-'}</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Agent:</span>{' '}
-                  <span className="font-mono text-xs">{item.agentId.slice(0, 8)}...</span>
+                  <span className="font-mono text-xs">{item.agentId?.slice(0, 8) || '-'}...</span>
                 </div>
               </div>
             </div>
@@ -272,10 +271,9 @@ export const ValidationQueue: React.FC<ValidationQueueProps> = ({
   compact = false,
   onValidationProcessed,
 }) => {
-  const { t, addToast } = useStore();
-  const pendingItems = usePendingValidation();
-  const isLoading = usePendingValidationLoading();
-  const { removePendingValidation } = useCMDBActions();
+  const { t } = useStore();
+  const { data: pendingItems = [], isLoading } = usePendingValidations(maxItems || 50);
+  const { approveValidation, rejectValidation, mergeValidation } = useValidationMutations();
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -304,25 +302,24 @@ export const ValidationQueue: React.FC<ValidationQueueProps> = ({
   }, [selectedIds.size, displayItems]);
 
   const handleApprove = useCallback(async (id: string) => {
-    // TODO: Call API to approve
-    removePendingValidation(id);
-    addToast(t('cmdb.validation.approved', { defaultValue: 'CI approuvé' }), 'success');
+    await approveValidation.mutateAsync({ itemId: id });
     onValidationProcessed?.();
-  }, [removePendingValidation, addToast, t, onValidationProcessed]);
+  }, [approveValidation, onValidationProcessed]);
 
   const handleReject = useCallback(async (id: string) => {
-    // TODO: Call API to reject
-    removePendingValidation(id);
-    addToast(t('cmdb.validation.rejected', { defaultValue: 'CI rejeté' }), 'info');
+    await rejectValidation.mutateAsync({ itemId: id, reason: 'Rejected by user' });
     onValidationProcessed?.();
-  }, [removePendingValidation, addToast, t, onValidationProcessed]);
+  }, [rejectValidation, onValidationProcessed]);
 
   const handleMerge = useCallback(async (id: string) => {
-    // TODO: Call API to merge
-    removePendingValidation(id);
-    addToast(t('cmdb.validation.merged', { defaultValue: 'CI fusionné' }), 'success');
-    onValidationProcessed?.();
-  }, [removePendingValidation, addToast, t, onValidationProcessed]);
+    // For merge, we need to find the best candidate
+    const item = pendingItems.find((i) => i.id === id);
+    const bestCandidate = item?.matchResult.candidates?.[0];
+    if (bestCandidate?.ciId) {
+      await mergeValidation.mutateAsync({ itemId: id, targetCIId: bestCandidate.ciId });
+      onValidationProcessed?.();
+    }
+  }, [mergeValidation, pendingItems, onValidationProcessed]);
 
   const handleBulkApprove = useCallback(async () => {
     for (const id of selectedIds) {

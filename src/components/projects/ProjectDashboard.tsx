@@ -268,7 +268,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     transition={{ delay: 0.1 }}
                     className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-3xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
                     <h4 className="heading-4 mb-4 flex items-center gap-2">
                         <div className="p-2 bg-primary/10 rounded-3xl">
                             <Layers className="w-4 h-4 text-primary" />
@@ -325,7 +325,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     transition={{ delay: 0.15 }}
                     className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-3xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
                         <div className="p-2 bg-orange-500/10 rounded-3xl">
                             <AlertTriangle className="w-4 h-4 text-orange-500" />
@@ -384,7 +384,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     transition={{ delay: 0.25 }}
                     className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-3xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
                     <h4 className="text-sm font-bold text-foreground mb-6 flex items-center gap-2 uppercase tracking-wider">
                         <div className="p-2 bg-violet-500/10 rounded-3xl">
                             <Calendar className="h-4 w-4 text-violet-500" />

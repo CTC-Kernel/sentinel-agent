@@ -107,7 +107,7 @@ export const SecuritySettings: React.FC = () => {
  <h2 className="text-2xl font-bold text-foreground mb-6 col-span-1 md:col-span-2">{t('settings.security')}</h2>
 
  <div className="glass-premium rounded-3xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-full relative">
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
  <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
   <div className="flex items-center gap-3">
   <div className="p-2.5 bg-primary/10 rounded-3xl text-primary">
@@ -155,7 +155,7 @@ export const SecuritySettings: React.FC = () => {
 
  {/* MFA Settings */}
  <div className="glass-premium rounded-3xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-full relative">
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
  <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
   <div className="flex items-center gap-3">
   <div className="p-2.5 bg-success/10 rounded-3xl text-success">

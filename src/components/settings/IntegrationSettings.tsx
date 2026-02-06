@@ -119,7 +119,7 @@ export const IntegrationSettings: React.FC = () => {
 
  {/* AI Settings */}
  <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden flex flex-col h-full">
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
  <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5">
   <div className="flex items-center gap-3">
   <div className="p-2.5 bg-purple-500/10 dark:bg-purple-500/20 rounded-3xl text-purple-600 dark:text-purple-400 backdrop-blur-md">
@@ -169,7 +169,7 @@ export const IntegrationSettings: React.FC = () => {
 
  {/* Google Calendar */}
  <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden flex flex-col h-full">
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
  <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5">
   <div className="flex items-center gap-3">
   <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-3xl text-blue-600 dark:text-blue-400 backdrop-blur-md">
@@ -238,7 +238,7 @@ export const IntegrationSettings: React.FC = () => {
 
  {/* SSO Settings - Enterprise */}
  <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden flex flex-col h-full md:col-span-2">
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
  <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5">
   <div className="flex items-center gap-3">
   <div className="p-2.5 bg-primary/10 rounded-3xl text-primary backdrop-blur-md">

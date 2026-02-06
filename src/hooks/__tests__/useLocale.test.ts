@@ -5,6 +5,10 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
+
+// Unmock the global useLocale mock from setupTests to test the actual hook
+vi.unmock('../useLocale');
+
 import { useLocale } from '../useLocale';
 
 // Mock the store

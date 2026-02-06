@@ -167,7 +167,7 @@ export const SystemSettings: React.FC = () => {
 
  {hasPermission(user, 'Settings', 'read') && (
  <PremiumCard glass className="p-0 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-lg">
-  <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
   <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
   <div className="flex items-center gap-3">
   <div className="p-2.5 bg-info-bg dark:bg-info-500/20 rounded-3xl text-info-600 dark:text-info-400 backdrop-blur-md shadow-sm">

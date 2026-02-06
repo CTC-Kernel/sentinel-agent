@@ -182,7 +182,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
 
  return (
   <div key={domain.id || 'unknown'} className="glass-premium rounded-3xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-apple group relative border border-border/40">
-  <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
   <div
   data-testid={`domain-header-${domain.id}`}
   onClick={() => toggleDomain(domain.id)}

@@ -45,7 +45,7 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
  aria-label={`${supplier.name} - ${supplier.category} - ${supplier.criticality}`}
  className="glass-premium p-4 sm:p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-border/40 relative overflow-hidden h-full transition-colors w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
  >
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
  <div className="relative z-10 flex flex-col h-full">
 
  <div className="flex justify-between items-start mb-5">

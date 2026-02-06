@@ -114,7 +114,7 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
  return (
  <div className="glass-premium p-6 rounded-3xl border border-border/40 h-full relative overflow-hidden">
  {/* Background Decorator */}
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-3xl" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
 
  <div className="flex items-center justify-between mb-6 relative z-10">
  <div className="flex items-center gap-4">

@@ -109,7 +109,7 @@ export const TrainingByDepartment: React.FC<TrainingByDepartmentProps> = ({
  return (
  <div className="glass-premium p-6 rounded-3xl border border-border/40 h-[400px] relative overflow-hidden group/chart hover:shadow-apple-lg transition-all duration-300">
  {/* Dynamic Background Effect */}
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-3xl" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
 
  <div className="flex items-center gap-4 mb-6 relative z-10">
  <div className="p-2.5 rounded-3xl bg-primary/10 transition-transform group-hover/chart:scale-110 duration-300">

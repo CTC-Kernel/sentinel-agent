@@ -215,7 +215,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
  />
  )}
  <div className="glass-premium p-6 rounded-4xl border border-border/40 shadow-sm relative overflow-hidden">
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
  <div className="relative z-10 space-y-6">
   <FloatingLabelInput
   label={t('audits.form.name')}

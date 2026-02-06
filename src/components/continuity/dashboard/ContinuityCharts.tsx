@@ -224,7 +224,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                     <svg className="absolute bottom-5 left-5 w-3 h-3 text-muted-foreground/30 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-muted-foreground/30 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-3xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
                     <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider relative z-10 flex items-center gap-2">
                         <div className="p-2 bg-orange-500/10 rounded-3xl">
                             <AlertTriangle className="w-4 h-4 text-orange-500" />
@@ -289,7 +289,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                     <svg className="absolute bottom-5 left-5 w-3 h-3 text-muted-foreground/30 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-muted-foreground/30 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-3xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
                     <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider relative z-10 flex items-center gap-2">
                         <div className="p-2 bg-primary/10 rounded-3xl">
                             <Target className="w-4 h-4 text-primary" />
@@ -328,7 +328,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                     <svg className="absolute bottom-5 left-5 w-3 h-3 text-muted-foreground/30 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                     <svg className="absolute bottom-5 right-5 w-3 h-3 text-muted-foreground/30 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-3xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
                     <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider relative z-10 flex items-center gap-2">
                         <div className="p-2 bg-emerald-500/10 rounded-3xl">
                             <Activity className="w-4 h-4 text-emerald-500" />

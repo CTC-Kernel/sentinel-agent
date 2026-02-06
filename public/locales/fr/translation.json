@@ -1,5 +1,13 @@
 {
+  "a11y": {
+    "skipToContent": "Aller au contenu principal"
+  },
   "common": {
+    "unsavedChanges": "Modifications non sauvegardées",
+    "unsavedChangesMessage": "Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter ?",
+    "continueEditing": "Continuer l'édition",
+    "leaveWithoutSaving": "Quitter sans sauvegarder",
+    "cmdb": "CMDB",
     "pagination": {
       "to": "à",
       "of": "sur",
@@ -44,6 +52,7 @@
     "helpCenter": "Centre d'Aide",
     "logout": "Déconnexion",
     "search": "Rechercher",
+    "clearFilters": "Effacer les filtres",
     "adminShort": "Admin",
     "darkMode": "Mode Sombre",
     "lightMode": "Mode Clair",
@@ -314,6 +323,13 @@
         "message": "Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter ?",
         "continue": "Continuer l'édition",
         "discard": "Quitter sans sauvegarder"
+      },
+      "pageControl": {
+        "refresh": "Actualiser",
+        "viewList": "Vue liste",
+        "viewGrid": "Vue grille",
+        "viewMatrix": "Vue matrice",
+        "viewKanban": "Vue Kanban"
       }
     },
     "ebios": "EBIOS",
@@ -324,6 +340,7 @@
   "layout": {
     "topbar": {
       "openMobileMenuAriaLabel": "Ouvrir le menu mobile",
+      "closeMobileMenuAriaLabel": "Fermer le menu mobile",
       "searchAriaLabel": "Rechercher (Cmd+K)",
       "searchMobileAriaLabel": "Rechercher",
       "toggleThemeAriaLabel": "Toggle Theme",
@@ -505,6 +522,20 @@
     },
     "dailyTip": "Conseil du jour",
     "nextDeadline": "Prochaine échéance",
+    "noUpcomingDeadline": "Aucune échéance à venir",
+    "noRiskCritical": "Aucun risque critique",
+    "noControlOngoing": "Aucun contrôle en cours",
+    "kpiIndicators": "Indicateurs KPI",
+    "aiAnalysis": {
+      "title": "Analyse IA",
+      "subtitle": "Recommandations intelligentes",
+      "loading": "Analyse en cours...",
+      "noData": "Aucune donnée disponible pour l'analyse"
+    },
+    "actions": {
+      "update": "Mettre à jour",
+      "create": "Créer"
+    },
     "securityTips": [
       "Changez vos mots de passe régulièrement",
       "Activez l'authentification à deux facteurs",
@@ -841,6 +872,7 @@
     "deleteError": "Erreur lors de la suppression du rapport",
     "permissionDenied": "Permission refusée",
     "searchPlaceholder": "Rechercher un rapport...",
+    "addRecipient": "Ajouter un destinataire",
     "emptyTitle": "Aucun rapport trouvé",
     "emptyDescSearch": "Aucun document ne correspond à votre recherche.",
     "emptyDesc": "Générez votre premier rapport pour le voir apparaître ici.",
@@ -1193,6 +1225,36 @@
   "pricing": {
     "title": "Plans & Tarification",
     "subtitle": "Des tarifs transparents adaptés à votre croissance.",
+    "transparentPricing": "Tarification transparente",
+    "annualBilling": "Facturation annuelle",
+    "startNow": "Commencer maintenant",
+    "recommended": "Recommandé",
+    "perMonth": "par mois",
+    "contactSubject": "Demande d'information - Sentinel GRC",
+    "tooltips": {
+      "dashboard": "Accès au tableau de bord personnalisé",
+      "voxel": "Visualisation 3D des risques",
+      "portal": "Portail fournisseurs intégré",
+      "multiFramework": "Support multi-référentiels (ISO, NIST, etc.)"
+    },
+    "multiFramework": "Multi-Référentiels",
+    "backup": {
+      "title": "Sauvegarde & Restauration",
+      "description": "Sauvegardes automatiques quotidiennes",
+      "frequency": "Fréquence de sauvegarde",
+      "retention": "Durée de rétention"
+    },
+    "seo": {
+      "title": "Plans et Tarifs - Sentinel GRC",
+      "description": "Découvrez nos offres de conformité GRC adaptées à votre organisation",
+      "keywords": "GRC, conformité, ISO 27001, tarifs, plans"
+    },
+    "footer": {
+      "contact": "Contactez-nous",
+      "terms": "Conditions générales",
+      "privacy": "Politique de confidentialité",
+      "support": "Support"
+    },
     "detailed_comparison": "Comparatif détaillé",
     "features_intro": "Toutes les fonctionnalités",
     "features_header": "Fonctionnalités",
@@ -1289,6 +1351,12 @@
       "a3": "Oui, 14 jours gratuits sur le plan Pro.",
       "q4": "Acceptez-vous les virements ?",
       "a4": "Oui pour les plans annuels Entreprise."
+    }
+  },
+  "pm": {
+    "empty": {
+      "title": "Aucun projet",
+      "description": "Vous n'avez pas encore de projet. Créez-en un pour commencer."
     }
   },
   "projects": {
@@ -1772,6 +1840,11 @@
   "cmdb": {
     "title": "CMDB",
     "subtitle": "Configuration Management Database",
+    "seoTitle": "CMDB - Configuration Management Database",
+    "seoDescription": "Gestion complète de votre base de données de configuration",
+    "seoKeywords": "CMDB, configuration, assets, ITIL",
+    "tabsNavigation": "Navigation CMDB",
+    "newCI": "Nouveau CI",
     "tabs": {
       "dashboard": "Tableau de bord",
       "discovery": "Découverte",
@@ -1787,13 +1860,34 @@
       "emptyDescription": "Tous les CIs ont été traités",
       "approved": "CI approuvé",
       "rejected": "CI rejeté",
-      "merged": "CI fusionné"
+      "merged": "CI fusionné",
+      "pending": "En attente"
     },
     "dashboard": {
+      "title": "CMDB Discovery",
+      "subtitle": "Configuration Management Database - Vue d'ensemble",
       "totalCIs": "Total CIs",
       "pendingValidation": "En attente",
       "avgDqs": "DQS Moyen",
       "activeRelations": "Relations Actives"
+    },
+    "stats": {
+      "total": "Total CIs",
+      "pending": "En Attente",
+      "matched": "Réconciliés",
+      "missing": "Manquants"
+    },
+    "quickActions": {
+      "title": "Actions Rapides"
+    },
+    "activity": {
+      "title": "Activité de Découverte"
+    },
+    "quality": {
+      "title": "Qualité des Données"
+    },
+    "distribution": {
+      "title": "Distribution par Classe"
     },
     "discovery": {
       "title": "Découverte",
@@ -1801,7 +1895,19 @@
       "discovered": "Découverts",
       "reconciled": "Réconciliés",
       "pending": "En attente"
+    },
+    "inspector": {
+      "tabs": {
+        "details": "Détails",
+        "relations": "Relations",
+        "history": "Historique"
+      },
+      "newCI": "Nouveau Configuration Item",
+      "newCIDescription": "Ajouter un nouveau CI à la CMDB"
     }
+  },
+  "inspector": {
+    "new": "Nouveau"
   },
   "documents": {
     "title": "Base Documentaire",
@@ -1841,6 +1947,20 @@
   "incidents": {
     "title": "Gestion des Incidents",
     "subtitle": "Réagissez aux alertes, qualifiez les incidents et pilotez la crise.",
+    "searchPlaceholder": "Rechercher un incident...",
+    "resolutionRate": "Taux de résolution",
+    "resolutionRateDesc": "Pourcentage d'incidents résolus dans les délais",
+    "import": {
+      "title": "Importer des incidents",
+      "sourceDesc": "Importez depuis un fichier CSV ou un connecteur SIEM"
+    },
+    "charts": {
+      "byCategory": "Par catégorie",
+      "bySeverity": "Par sévérité",
+      "byStatus": "Par statut",
+      "timeline": "Évolution dans le temps",
+      "resolution": "Temps de résolution"
+    },
     "newIncident": "Nouvel Incident",
     "declare": "Déclarer Incident",
     "importSiem": "Importer SIEM",
@@ -4917,6 +5037,7 @@
   "training": {
     "title": "Formation & Sensibilisation",
     "subtitle": "Gérez les formations et la sensibilisation cyber de votre organisation.",
+    "searchPlaceholder": "Rechercher une formation...",
     "dashboard_tab": "Tableau de Bord",
     "catalog": "Catalogue des formations",
     "campaigns": "Campagnes",
@@ -5192,9 +5313,21 @@
     }
   },
   "agents": {
+    "subtitle": "Gestion et déploiement de la flotte d'agents Sentinel",
+    "downloadAgent": "Télécharger l'agent",
+    "configuration": "Paramétrage",
+    "searchPlaceholder": "Rechercher un agent...",
+    "noAnomalies": "Aucune anomalie détectée",
     "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet agent ?",
     "syncRequested": "Synchronisation demandée",
     "enrollmentSuccess": "Agent enregistré avec succès",
+    "deleteConfirm": {
+      "title": "Confirmer la suppression",
+      "message": "Supprimer l'agent \"{{name}}\" ? Cette action est irréversible."
+    },
+    "liveView": {
+      "subtitle": "Surveillance en temps réel"
+    },
     "widget": {
       "title": "Maturité de la Flotte",
       "subtitle": "Vue d'ensemble de la santé et de la conformité des agents",
@@ -5240,15 +5373,31 @@
     },
     "reports": {
       "title": "Rapports Agent",
-      "description": "Générez des rapports de conformité, santé de la flotte et inventaire logiciel."
+      "description": "Générez des rapports de conformité, santé de la flotte et inventaire logiciel.",
+      "compliance": "Conformité",
+      "fleetHealth": "Santé de flotte"
     },
     "policies": {
+      "title": "Politiques des agents",
+      "subtitle": "Configurer les groupes et politiques pour contrôler le comportement des agents",
       "noConflict": "aucun conflit",
       "distribution": "Distribution des politiques",
       "inheritanceModel": "Modèle d'héritage des politiques",
       "priorityLow": "Priorité basse",
       "priorityMedium": "Priorité moyenne",
-      "priorityHigh": "Priorité haute"
+      "priorityHigh": "Priorité haute",
+      "groups": "Groupes",
+      "defaultCount": "{{count}} par défaut",
+      "policies": "Politiques",
+      "activeCount": "{{count}} actives",
+      "deployed": "Déployées",
+      "onAgents": "sur les agents",
+      "conflicts": "Conflits",
+      "global": "Globale",
+      "agents": "Agents",
+      "group": "Groupe",
+      "agent": "Agent",
+      "inheritanceDesc": "Les règles de politique de niveau supérieur écrasent celles de niveau inférieur. Une politique Agent peut désactiver une règle héritée d'un Groupe."
     }
   },
   "policies": {
@@ -5256,9 +5405,74 @@
     "noPoliciesDesc": "Créez une politique pour configurer vos agents.",
     "createPolicy": "Créer une politique"
   },
+  "agent": {
+    "active": "Actif",
+    "agentFleet": "Flotte d'agents",
+    "lastDataUpdate": "Dernière mise à jour des données",
+    "updatedAt": "Mis à jour :",
+    "deployedEndpoints": "endpoints déployés",
+    "activeStatus": "actifs",
+    "offlineStatus": "hors ligne",
+    "criticalStatus": "critiques",
+    "activityRate": "Taux d'activité",
+    "complianceScore": "Score Conformité",
+    "fleetAverage": "Moyenne de la flotte",
+    "upToDateAgents": "Agents à jour",
+    "criticalAlerts": "Alertes Critiques",
+    "agentsInAlert": "Agents en alerte",
+    "currentComplianceScore": "Score Conformité Actuel",
+    "basedOnLatestResults": "Basé sur les derniers résultats remontés",
+    "complianceScoreLabel": "Score conformité",
+    "insufficientDataForTrend": "Données insuffisantes pour afficher une tendance",
+    "seenAgo": "Vu",
+    "agoMinutes": "il y a {{count}} min",
+    "complianceMatrix": "Matrice de Conformité",
+    "checksOverviewByAgent": "Vue d'ensemble des checks par agent",
+    "complianceMatrixTooltip": "Cette matrice affiche l'état de conformité de chaque agent pour les différents contrôles de sécurité.",
+    "agent": "Agent",
+    "score": "Score",
+    "clickToViewDetails": "Cliquez pour voir les détails de l'agent",
+    "complianceRate": "Taux de conformité:",
+    "status": {
+      "compliant": "Conforme",
+      "nonCompliant": "Non conforme",
+      "pending": "En attente",
+      "notChecked": "Non vérifié"
+    }
+  },
   "software": {
+    "title": "Inventaire logiciel",
+    "subtitle": "Cartographie logicielle et conformité CIS Benchmarks",
+    "defaultTitle": "Software",
+    "searchSoftware": "Rechercher un logiciel...",
+    "riskDistribution": "Répartition des risques",
+    "tabs": {
+      "inventory": "Inventaire"
+    },
     "filter": {
-      "vulnerable": "Vulnérables"
+      "vulnerable": "Vulnérables",
+      "status": "Statut",
+      "risk": "Risque",
+      "category": "Catégorie"
+    },
+    "auth": {
+      "authorized": "Autorisé",
+      "pending": "En attente",
+      "unauthorized": "Non autorisé",
+      "blocked": "Bloqué"
+    },
+    "risk": {
+      "critical": "Critique",
+      "high": "Élevé",
+      "medium": "Moyen",
+      "low": "Faible",
+      "none": "Aucun"
+    },
+    "stats": {
+      "detected": "Logiciels détectés",
+      "authorized": "Autorisé",
+      "pending": "En attente",
+      "withVulnerabilities": "Avec vulnérabilités"
     },
     "displayMode": {
       "software": "Vue par logiciel",

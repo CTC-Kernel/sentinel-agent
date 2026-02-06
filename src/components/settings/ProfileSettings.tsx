@@ -187,7 +187,7 @@ export const ProfileSettings: React.FC = () => {
  return (
  <div className="space-y-8 animate-fade-in-up">
  <div className="glass-premium p-8 rounded-3xl border border-border/40 shadow-apple relative overflow-hidden">
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
  <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start">
   {/* Avatar Section */}
   <div className="flex-shrink-0 w-full md:w-auto flex flex-col items-center space-y-4">

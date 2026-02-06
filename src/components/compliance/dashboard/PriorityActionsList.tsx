@@ -308,7 +308,7 @@ export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
  'glass-premium p-6 md:p-8 rounded-4xl relative overflow-hidden',
  className
  )}>
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-4xl" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-4xl" />
  <div className="relative z-10 flex flex-col items-center justify-center py-8 text-center">
  <div className="w-16 h-16 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-4">
  <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
@@ -329,7 +329,7 @@ export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
  'glass-premium p-6 md:p-8 rounded-4xl relative group hover:shadow-apple overflow-hidden',
  className
  )}>
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-4xl" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-4xl" />
 
  {/* Header */}
  <div className="flex items-center justify-between mb-6 relative z-10">

@@ -20,7 +20,7 @@ interface ChartTooltipProps {
 export const ChartTooltip: React.FC<ChartTooltipProps> = ({ active, payload, label, formatter, hideLabel }) => {
     if (active && payload && payload.length) {
         return (
-            <div className="glass-premium p-3 rounded-xl border border-border/40 shadow-apple bg-card/80 backdrop-blur-xl animate-scale-in max-w-xs" role="tooltip">
+            <div className="glass-premium p-3 rounded-xl border border-border/40 shadow-apple animate-scale-in max-w-xs" role="tooltip">
                 {!hideLabel && label && (
                     <p className="text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wide border-b border-border/40 pb-1">
                         {label}

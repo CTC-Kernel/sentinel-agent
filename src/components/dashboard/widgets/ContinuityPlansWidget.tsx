@@ -98,7 +98,7 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
 
  return (
  <div className="h-full flex flex-col p-5 glass-premium rounded-2xl border border-border/40 shadow-sm relative overflow-hidden group hover:shadow-apple transition-all duration-300">
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
 
  <div className="flex items-center justify-between pb-4 border-b border-border/40 dark:border-white/5 relative z-10">
  <h3 className="text-base font-bold flex items-center gap-2 text-foreground">

@@ -195,7 +195,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
  exit={{ opacity: 0, scale: 0.95 }}
  className="relative w-full max-w-4xl glass-premium rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-border/40"
  >
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
  {/* Header */}
  <div className="px-8 py-6 border-b border-border/40 glass-premium backdrop-blur-md relative z-10">
   <div>

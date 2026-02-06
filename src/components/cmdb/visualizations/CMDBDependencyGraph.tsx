@@ -137,6 +137,13 @@ const RELATIONSHIP_STYLES: Record<RelationshipType, { color: string; dashArray: 
   consumes: { color: 'hsl(0, 84%, 60%)', dashArray: '5,5' },
   owned_by: { color: 'hsl(262, 83%, 58%)', dashArray: '10,5' },
   supported_by: { color: 'hsl(199, 89%, 48%)', dashArray: '10,5' },
+  // Inverse types
+  hosts: { color: 'hsl(221, 83%, 53%)', dashArray: '' },
+  has_installed: { color: 'hsl(199, 89%, 48%)', dashArray: '5,5' },
+  contained_in: { color: 'hsl(142, 71%, 45%)', dashArray: '' },
+  has_member: { color: 'hsl(221, 83%, 53%)', dashArray: '5,5' },
+  owns: { color: 'hsl(262, 83%, 58%)', dashArray: '10,5' },
+  supports: { color: 'hsl(199, 89%, 48%)', dashArray: '10,5' },
 };
 
 // =============================================================================

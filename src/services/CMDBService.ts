@@ -33,6 +33,8 @@ import {
   DiscoveryStats,
   CIClass,
   CIStatus,
+  CMDBActivity,
+  DailyActivityStats,
 } from '@/types/cmdb';
 import { createCISchema, updateCISchema, CreateCIFormData } from '@/schemas/cmdbSchema';
 
@@ -366,10 +368,43 @@ export class CMDBService {
     let updatedToday = 0;
     let totalDQS = 0;
 
+    // Distribution by class
+    const classDistribution: Record<CIClass, number> = {
+      Hardware: 0,
+      Software: 0,
+      Service: 0,
+      Document: 0,
+      Network: 0,
+      Cloud: 0,
+      Container: 0,
+    };
+
+    // Quality score distribution
+    const qualityDistribution = {
+      excellent: 0, // 80-100
+      good: 0,      // 60-79
+      needsImprovement: 0, // <60
+    };
+
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
       total++;
       totalDQS += data.dataQualityScore || 0;
+
+      // Count by class
+      if (data.ciClass && classDistribution[data.ciClass as CIClass] !== undefined) {
+        classDistribution[data.ciClass as CIClass]++;
+      }
+
+      // Count by quality
+      const dqs = data.dataQualityScore || 0;
+      if (dqs >= 80) {
+        qualityDistribution.excellent++;
+      } else if (dqs >= 60) {
+        qualityDistribution.good++;
+      } else {
+        qualityDistribution.needsImprovement++;
+      }
 
       if (data.status === 'Missing') {
         missing++;
@@ -412,7 +447,113 @@ export class CMDBService {
       createdToday,
       updatedToday,
       avgDataQualityScore: total > 0 ? Math.round(totalDQS / total) : 0,
+      classDistribution,
+      qualityDistribution,
     };
+  }
+
+  /**
+   * Get recent CMDB activity from audit logs
+   */
+  static async getRecentActivity(
+    organizationId: string,
+    limitCount: number = 10
+  ): Promise<CMDBActivity[]> {
+    const activityQuery = query(
+      collection(db, 'cmdb_activity'),
+      where('organizationId', '==', organizationId),
+      orderBy('timestamp', 'desc'),
+      limit(limitCount)
+    );
+
+    const snapshot = await getDocs(activityQuery);
+    const activities: CMDBActivity[] = [];
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      activities.push({
+        id: docSnap.id,
+        type: data.type,
+        message: data.message,
+        ciId: data.ciId,
+        ciName: data.ciName,
+        userId: data.userId,
+        userName: data.userName,
+        timestamp: data.timestamp?.toDate() || new Date(),
+        metadata: data.metadata,
+      });
+    });
+
+    return activities;
+  }
+
+  /**
+   * Log CMDB activity
+   */
+  static async logActivity(
+    organizationId: string,
+    activity: Omit<CMDBActivity, 'id' | 'timestamp'>
+  ): Promise<void> {
+    await addDoc(collection(db, 'cmdb_activity'), {
+      ...activity,
+      organizationId,
+      timestamp: serverTimestamp(),
+    });
+  }
+
+  /**
+   * Get daily activity statistics for the last N days
+   */
+  static async getDailyActivityStats(
+    organizationId: string,
+    days: number = 14
+  ): Promise<DailyActivityStats[]> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    startDate.setHours(0, 0, 0, 0);
+
+    const activityQuery = query(
+      collection(db, COLLECTION_NAME),
+      where('organizationId', '==', organizationId),
+      where('createdAt', '>=', Timestamp.fromDate(startDate))
+    );
+
+    const snapshot = await getDocs(activityQuery);
+
+    // Initialize stats for each day
+    const dailyStats: Record<string, { discovered: number; reconciled: number }> = {};
+    for (let i = 0; i < days; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - (days - 1 - i));
+      const key = date.toISOString().split('T')[0];
+      dailyStats[key] = { discovered: 0, reconciled: 0 };
+    }
+
+    // Count CIs by creation date
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      if (data.createdAt) {
+        const createdDate = data.createdAt.toDate();
+        const key = createdDate.toISOString().split('T')[0];
+        if (dailyStats[key]) {
+          dailyStats[key].discovered++;
+          // Count as reconciled if it has a data quality score >= 60
+          if (data.dataQualityScore >= 60) {
+            dailyStats[key].reconciled++;
+          }
+        }
+      }
+    });
+
+    // Convert to array
+    return Object.entries(dailyStats).map(([date, stats]) => ({
+      date: new Date(date).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+      }),
+      discovered: stats.discovered,
+      reconciled: stats.reconciled,
+    }));
   }
 
   // ===========================================================================

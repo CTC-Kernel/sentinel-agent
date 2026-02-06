@@ -64,7 +64,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
  <div className="space-y-6">
  {/* KPI Cards Consolidated (Threat Intel Style) */}
  <div className="glass-premium p-6 md:p-8 rounded-3xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group">
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
 
  <div className="space-y-2 relative z-10">
   <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">

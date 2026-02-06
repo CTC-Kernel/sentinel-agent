@@ -28,7 +28,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
  <div className="lg:col-span-2 space-y-6 sm:space-y-8">
  {/* Description */}
  <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
-  <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
   <div className="relative z-10">
   <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
   <BookOpen className="h-5 w-5 text-primary" />
@@ -62,7 +62,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
  {/* Badges & Status */}
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
   <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
-  <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
   <div className="relative z-10">
   <span className="text-xs text-muted-foreground block mb-1">{t('incidents.inspector.severity', { defaultValue: 'Sévérité' })}</span>
   <Badge
@@ -74,7 +74,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
   </div>
   </div>
   <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
-  <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
   <div className="relative z-10">
   <span className="text-xs text-muted-foreground block mb-1">{t('incidents.inspector.status', { defaultValue: 'Statut' })}</span>
   <Badge status={incident.status === 'Résolu' ? 'success' : 'info'} variant="outline">
@@ -94,14 +94,14 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
   </div>
   </div>
   <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
-  <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
   <div className="relative z-10">
   <span className="text-xs text-muted-foreground block mb-1">{t('incidents.inspector.financialImpact', { defaultValue: 'Impact Financier' })}</span>
   <span className="font-bold text-foreground">{incident.financialImpact ? `${incident.financialImpact} €` : '-'}</span>
   </div>
   </div>
   <div className="p-4 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl border border-border/40 shadow-premium relative overflow-hidden glass-premium">
-  <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
   <div className="relative z-10">
   <span className="text-xs text-muted-foreground block mb-1">{t('incidents.inspector.reporter', { defaultValue: 'Reporter' })}</span>
   <span className="font-bold text-foreground">{incident.reporter}</span>
@@ -113,7 +113,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
  <div className="space-y-6">
  {/* Meta Info */}
  <div className="bg-[var(--glass-bg)] backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-border/40 shadow-premium space-y-4 relative overflow-hidden glass-premium">
-  <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
   <div className="relative z-10">
   <div>
   <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('incidents.inspector.reportedOn', { defaultValue: 'Déclaré le' })}</div>

@@ -388,6 +388,8 @@ export interface ReconciliationMatchResult {
   confidence: number;
   /** Rule that produced the match */
   matchRule: string;
+  /** Match type for UI display */
+  type?: 'exact' | 'merge' | 'review' | 'manual' | 'no_match';
   /** All potential matches with scores */
   candidates?: {
     ciId: string;
@@ -447,11 +449,13 @@ export interface CMDBValidationItem {
   id: string;
   organizationId: string;
   /** Agent ID that discovered this */
-  agentId: string;
+  agentId?: string;
   /** Raw agent data */
-  agentData: Record<string, unknown>;
+  agentData?: Record<string, unknown>;
   /** Generated fingerprint */
-  fingerprint: CIFingerprint;
+  fingerprint?: CIFingerprint;
+  /** Discovered CI data for validation */
+  discoveredCI: Partial<ConfigurationItem>;
   /** Match result from reconciliation */
   matchResult: ReconciliationMatchResult;
   /** Queue status */
@@ -459,11 +463,18 @@ export interface CMDBValidationItem {
   /** Assigned reviewer */
   assignedTo?: string;
   /** When added to queue */
-  createdAt: Timestamp;
+  createdAt: Date;
   /** When processed */
-  processedAt?: Timestamp;
+  processedAt?: Date;
   /** Who processed */
   processedBy?: string;
+  /** Resolution details */
+  resolution?: {
+    action: 'approve' | 'reject' | 'merge';
+    createdCIId?: string;
+    targetCIId?: string;
+    reason?: string;
+  };
   /** Processing notes */
   notes?: string;
 }
@@ -642,6 +653,38 @@ export interface DiscoveryStats {
   updatedToday: number;
   /** Average data quality score */
   avgDataQualityScore: number;
+  /** Distribution by CI class */
+  classDistribution?: Record<CIClass, number>;
+  /** Quality score distribution */
+  qualityDistribution?: {
+    excellent: number;
+    good: number;
+    needsImprovement: number;
+  };
+}
+
+/**
+ * CMDB Activity log entry
+ */
+export interface CMDBActivity {
+  id: string;
+  type: 'create' | 'update' | 'delete' | 'sync' | 'reconcile' | 'approve' | 'reject';
+  message: string;
+  ciId?: string;
+  ciName?: string;
+  userId: string;
+  userName?: string;
+  timestamp: Date;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Daily activity statistics
+ */
+export interface DailyActivityStats {
+  date: string;
+  discovered: number;
+  reconciled: number;
 }
 
 // =============================================================================

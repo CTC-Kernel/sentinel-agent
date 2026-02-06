@@ -90,7 +90,7 @@ export const Search: React.FC = () => {
  icon={<SearchIcon className="h-6 w-6 text-white" strokeWidth={2.5} />}
  />
 
- <div className="glass-premium p-2 rounded-2xl flex items-center space-x-4 shadow-lg ring-1 ring-black/5 dark:ring-white/10 bg-card/80 backdrop-blur-xl sticky top-4 z-30 border border-border/40">
+ <div className="glass-premium p-2 rounded-2xl flex items-center space-x-4 shadow-lg ring-1 ring-black/5 dark:ring-white/10 sticky top-4 z-30 border border-border/40">
  <div className="p-3 bg-muted rounded-xl">
   <SearchIcon className="h-6 w-6 text-muted-foreground" />
  </div>

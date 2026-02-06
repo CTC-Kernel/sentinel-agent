@@ -28,7 +28,7 @@ export const ComplianceDomainDetails: React.FC<ComplianceDomainDetailsProps> = (
 
  return (
  <div className="glass-premium p-6 md:p-8 rounded-4xl relative group hover:shadow-apple transition-all duration-300">
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-4xl" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-4xl" />
  <h4 className="text-sm font-bold text-foreground mb-4 relative z-10 flex items-center gap-2">
  <ShieldAlert className="w-4 h-4 text-primary" />
  {t('compliance.dashboard.domainDetailTitle', { framework: currentFramework })}

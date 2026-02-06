@@ -95,10 +95,6 @@
 
 /* ===== UTILITY CLASSES - Glass & Effects ===== */
 @layer utilities {
-  .glass-premium {
-    @apply bg-[var(--glass-bg)] backdrop-blur-xl border border-[var(--glass-border)] shadow-md transition-all duration-300;
-  }
-
   /* Premium Stat Card - Hover micro-interactions (AAA) */
   .stat-card-premium {
     @apply glass-premium rounded-2xl transition-all duration-300 ease-apple;

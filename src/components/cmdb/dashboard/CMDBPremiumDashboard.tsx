@@ -7,7 +7,7 @@
  * @module components/cmdb/dashboard/CMDBPremiumDashboard
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { motion, Variants } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
@@ -37,7 +37,8 @@ import { Button } from '../../ui/button';
 import { Badge } from '../../ui/Badge';
 import { Skeleton } from '../../ui/Skeleton';
 import { useStore } from '@/store';
-import { useDiscoveryStats } from '@/hooks/cmdb/useCMDBCIs';
+import { useDiscoveryStats, useDailyActivityStats } from '@/hooks/cmdb/useCMDBCIs';
+import { usePendingValidations } from '@/hooks/cmdb/useCMDBValidation';
 import { useCMDBActions, usePendingValidationCount } from '@/stores/cmdbStore';
 import { DiscoveryStats, CIClass } from '@/types/cmdb';
 import { cn } from '@/lib/utils';
@@ -237,23 +238,26 @@ interface CIClassDistributionProps {
 const CIClassDistribution: React.FC<CIClassDistributionProps> = ({ stats, loading }) => {
   const { t } = useStore();
 
-  // Mock distribution based on total
+  // Use real distribution from stats
   const distribution = useMemo(() => {
-    const total = stats?.total || 0;
-    return [
-      { class: 'Hardware' as CIClass, count: Math.floor(total * 0.40), percent: 40 },
-      { class: 'Software' as CIClass, count: Math.floor(total * 0.25), percent: 25 },
-      { class: 'Service' as CIClass, count: Math.floor(total * 0.15), percent: 15 },
-      { class: 'Network' as CIClass, count: Math.floor(total * 0.10), percent: 10 },
-      { class: 'Cloud' as CIClass, count: Math.floor(total * 0.07), percent: 7 },
-      { class: 'Container' as CIClass, count: Math.floor(total * 0.03), percent: 3 },
-    ];
-  }, [stats?.total]);
+    if (!stats?.classDistribution) {
+      return [];
+    }
+    const total = stats.total || 1;
+    return Object.entries(stats.classDistribution)
+      .filter(([, count]) => count > 0)
+      .map(([ciClass, count]) => ({
+        class: ciClass as CIClass,
+        count,
+        percent: Math.round((count / total) * 100),
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [stats?.classDistribution, stats?.total]);
 
   const pieData = distribution.map((d) => ({
     name: d.class,
     value: d.count,
-    color: CI_CLASS_CONFIG[d.class].color,
+    color: CI_CLASS_CONFIG[d.class]?.color || '#6B7280',
   }));
 
   if (loading) {
@@ -362,9 +366,14 @@ const CIClassDistribution: React.FC<CIClassDistributionProps> = ({ stats, loadin
 interface DataQualityGaugeProps {
   score: number;
   loading?: boolean;
+  qualityDistribution?: {
+    excellent: number;
+    good: number;
+    needsImprovement: number;
+  };
 }
 
-const DataQualityGauge: React.FC<DataQualityGaugeProps> = ({ score, loading }) => {
+const DataQualityGauge: React.FC<DataQualityGaugeProps> = ({ score, loading, qualityDistribution }) => {
   const { t } = useStore();
 
   const getScoreColor = (s: number) => {
@@ -465,9 +474,9 @@ const DataQualityGauge: React.FC<DataQualityGaugeProps> = ({ score, loading }) =
         {/* Quality breakdown */}
         <div className="w-full mt-4 grid grid-cols-3 gap-2">
           {[
-            { label: 'Excellent', range: '80-100', color: '#22C55E', count: 45 },
-            { label: 'Bon', range: '60-79', color: '#EAB308', count: 30 },
-            { label: 'À améliorer', range: '<60', color: '#EF4444', count: 12 },
+            { label: 'Excellent', range: '80-100', color: '#22C55E', count: qualityDistribution?.excellent || 0 },
+            { label: 'Bon', range: '60-79', color: '#EAB308', count: qualityDistribution?.good || 0 },
+            { label: 'À améliorer', range: '<60', color: '#EF4444', count: qualityDistribution?.needsImprovement || 0 },
           ].map((item) => (
             <div
               key={item.label}
@@ -498,21 +507,10 @@ interface DiscoveryActivityChartProps {
 const DiscoveryActivityChart: React.FC<DiscoveryActivityChartProps> = ({ loading }) => {
   const { t } = useStore();
 
-  // Mock activity data - use lazy initialization to avoid effect
-  const activityData = useState<{
-    date: string;
-    discovered: number;
-    reconciled: number;
-  }[]>(() => Array.from({ length: 14 }, (_, i) => ({
-    date: new Date(Date.now() - (13 - i) * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: 'short',
-    }),
-    discovered: Math.floor(Math.random() * 20) + 5,
-    reconciled: Math.floor(Math.random() * 15) + 3,
-  })))[0];
+  // Use real daily activity stats from Firestore
+  const { data: activityData = [], isLoading: activityLoading } = useDailyActivityStats(14);
 
-  if (loading) {
+  if (loading || activityLoading) {
     return (
       <motion.div
         variants={cardVariants}
@@ -620,12 +618,16 @@ const ValidationQueueMini: React.FC<ValidationQueueMiniProps> = ({
 }) => {
   const { t } = useStore();
 
-  // Mock pending items
-  const mockItems = [
-    { name: 'SRV-PROD-15', type: 'Hardware', confidence: 95, action: 'merge' },
-    { name: 'DB-REPLICA-03', type: 'Software', confidence: 78, action: 'review' },
-    { name: 'API-GATEWAY-NEW', type: 'Service', confidence: 42, action: 'manual' },
-  ];
+  // Use real validation items from the hook
+  const { data: pendingItems = [] } = usePendingValidations(3);
+
+  // Transform pending items to display format
+  const displayItems = pendingItems.slice(0, 3).map((item) => ({
+    name: item.discoveredCI.name || 'Unknown',
+    type: item.discoveredCI.ciClass || 'Hardware',
+    confidence: item.matchResult.confidence || 0,
+    action: item.matchResult.type || 'review',
+  }));
 
   if (loading) {
     return (
@@ -670,34 +672,41 @@ const ValidationQueueMini: React.FC<ValidationQueueMiniProps> = ({
       </div>
 
       <div className="space-y-2">
-        {mockItems.map((item, index) => (
-          <motion.div
-            key={item.name}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
-          >
-            <div className="p-2 rounded-lg bg-warning/10">
-              <Server className="h-4 w-4 text-warning" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{item.name}</p>
-              <p className="text-[10px] text-muted-foreground">{item.type}</p>
-            </div>
-            <Badge
-              variant="soft"
-              className={cn(
-                'text-[10px]',
-                item.confidence >= 80 && 'bg-success/10 text-success',
-                item.confidence >= 50 && item.confidence < 80 && 'bg-warning/10 text-warning',
-                item.confidence < 50 && 'bg-destructive/10 text-destructive'
-              )}
+        {displayItems.length === 0 ? (
+          <div className="text-center py-4 text-muted-foreground">
+            <CheckCircle className="h-8 w-8 mx-auto mb-2 text-success opacity-50" />
+            <p className="text-sm">{t('cmdb.validation.empty', { defaultValue: 'Aucun CI en attente' })}</p>
+          </div>
+        ) : (
+          displayItems.map((item, index) => (
+            <motion.div
+              key={`${item.name}-${index}`}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
             >
-              {item.confidence}%
-            </Badge>
-          </motion.div>
-        ))}
+              <div className="p-2 rounded-lg bg-warning/10">
+                <Server className="h-4 w-4 text-warning" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{item.name}</p>
+                <p className="text-[10px] text-muted-foreground">{item.type}</p>
+              </div>
+              <Badge
+                variant="soft"
+                className={cn(
+                  'text-[10px]',
+                  item.confidence >= 80 && 'bg-success/10 text-success',
+                  item.confidence >= 50 && item.confidence < 80 && 'bg-warning/10 text-warning',
+                  item.confidence < 50 && 'bg-destructive/10 text-destructive'
+                )}
+              >
+                {item.confidence}%
+              </Badge>
+            </motion.div>
+          ))
+        )}
       </div>
     </motion.div>
   );
@@ -720,7 +729,7 @@ export const CMDBPremiumDashboard: React.FC<CMDBPremiumDashboardProps> = ({ clas
       initial="hidden"
       animate="visible"
       variants={staggerContainer}
-      className={cn('space-y-6 p-6 max-w-7xl mx-auto', className)}
+      className={cn('space-y-6 sm:space-y-8 lg:space-y-10 p-6 max-w-7xl mx-auto', className)}
     >
       {/* Header */}
       <motion.div
@@ -799,7 +808,7 @@ export const CMDBPremiumDashboard: React.FC<CMDBPremiumDashboardProps> = ({ clas
         </div>
 
         {/* Right Column - Quality Gauge */}
-        <DataQualityGauge score={stats?.avgDataQualityScore || 0} loading={statsLoading} />
+        <DataQualityGauge score={stats?.avgDataQualityScore || 0} loading={statsLoading} qualityDistribution={stats?.qualityDistribution} />
       </div>
 
       {/* Second Row */}

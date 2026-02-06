@@ -100,6 +100,13 @@ const getRelationshipLabel = (type: RelationshipType): string => {
     consumes: 'Consomme',
     owned_by: 'Possédé par',
     supported_by: 'Supporté par',
+    // Inverse types
+    hosts: 'Héberge',
+    has_installed: 'A installé',
+    contained_in: 'Contenu dans',
+    has_member: 'A pour membre',
+    owns: 'Possède',
+    supports: 'Supporte',
   };
   return labels[type] || type;
 };

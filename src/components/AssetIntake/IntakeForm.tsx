@@ -124,7 +124,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
  {/* Hardware Detected Section */}
- <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 bg-card/50">
+ <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40">
   <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
   {assetTypeIcons[hardwareType]}
   Matériel Détecté

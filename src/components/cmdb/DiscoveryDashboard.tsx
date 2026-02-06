@@ -23,9 +23,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Skeleton } from '../ui/Skeleton';
 import { Badge } from '../ui/Badge';
 import { useStore } from '@/store';
-import { useDiscoveryStats } from '@/hooks/cmdb/useCMDBCIs';
+import { useDiscoveryStats, useCMDBActivity } from '@/hooks/cmdb/useCMDBCIs';
 import { useCMDBActions, usePendingValidationCount } from '@/stores/cmdbStore';
-import { DiscoveryStats, CIClass } from '@/types/cmdb';
+import { DiscoveryStats, CIClass, CMDBActivity } from '@/types/cmdb';
+import { LucideIcon } from '../ui/Icons';
 import { ValidationQueue } from './ValidationQueue';
 import { cn } from '@/lib/utils';
 
@@ -36,7 +37,7 @@ import { cn } from '@/lib/utils';
 interface KPICardProps {
   title: string;
   value: number | string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   trend?: {
     value: number;
     label: string;
@@ -117,17 +118,33 @@ interface ClassDistributionProps {
   stats: DiscoveryStats | null;
 }
 
+const CLASS_COLORS: Record<CIClass, string> = {
+  Hardware: 'bg-blue-500',
+  Software: 'bg-green-500',
+  Service: 'bg-purple-500',
+  Document: 'bg-yellow-500',
+  Network: 'bg-orange-500',
+  Cloud: 'bg-cyan-500',
+  Container: 'bg-pink-500',
+};
+
 const ClassDistribution: React.FC<ClassDistributionProps> = ({ stats }) => {
   const { t } = useStore();
 
-  // Mock distribution for now - would come from actual stats
-  const distribution = useMemo(() => [
-    { class: 'Hardware' as CIClass, count: Math.floor((stats?.total || 0) * 0.45), color: 'bg-blue-500' },
-    { class: 'Software' as CIClass, count: Math.floor((stats?.total || 0) * 0.30), color: 'bg-green-500' },
-    { class: 'Service' as CIClass, count: Math.floor((stats?.total || 0) * 0.15), color: 'bg-purple-500' },
-    { class: 'Network' as CIClass, count: Math.floor((stats?.total || 0) * 0.07), color: 'bg-orange-500' },
-    { class: 'Cloud' as CIClass, count: Math.floor((stats?.total || 0) * 0.03), color: 'bg-cyan-500' },
-  ], [stats?.total]);
+  // Use real distribution from stats
+  const distribution = useMemo(() => {
+    if (!stats?.classDistribution) {
+      return [];
+    }
+    return Object.entries(stats.classDistribution)
+      .filter(([, count]) => count > 0)
+      .map(([ciClass, count]) => ({
+        class: ciClass as CIClass,
+        count,
+        color: CLASS_COLORS[ciClass as CIClass] || 'bg-gray-500',
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [stats?.classDistribution]);
 
   const total = distribution.reduce((sum, d) => sum + d.count, 0) || 1;
 
@@ -242,26 +259,50 @@ const DataQualityOverview: React.FC<DataQualityOverviewProps> = ({ avgScore }) =
 // RECENT ACTIVITY
 // =============================================================================
 
+const ACTIVITY_ICONS: Record<CMDBActivity['type'], LucideIcon> = {
+  create: Plus,
+  update: RefreshCw,
+  delete: AlertTriangle,
+  sync: RefreshCw,
+  reconcile: Server,
+  approve: CheckCircle,
+  reject: AlertTriangle,
+};
+
+const getActivityColor = (type: CMDBActivity['type']) => {
+  switch (type) {
+    case 'sync':
+    case 'update':
+      return 'text-primary';
+    case 'approve':
+    case 'create':
+      return 'text-success';
+    case 'reconcile':
+      return 'text-info';
+    case 'reject':
+    case 'delete':
+      return 'text-warning';
+    default:
+      return 'text-muted-foreground';
+  }
+};
+
+const formatTimeAgo = (date: Date): string => {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'À l\'instant';
+  if (diffMins < 60) return `${diffMins} min`;
+  if (diffHours < 24) return `${diffHours}h`;
+  return `${diffDays}j`;
+};
+
 const RecentActivity: React.FC = () => {
   const { t } = useStore();
-
-  // Mock activity data
-  const activities = useMemo(() => [
-    { id: '1', type: 'sync', message: 'Agent sync: 15 CIs updated', time: '2 min', icon: RefreshCw },
-    { id: '2', type: 'approval', message: 'Sophie approved 3 CIs', time: '5 min', icon: CheckCircle },
-    { id: '3', type: 'discovery', message: 'New device: PRINTER-FL3-HP', time: '12 min', icon: Plus },
-    { id: '4', type: 'warning', message: 'CI missing: SRV-DB-02', time: '1h', icon: AlertTriangle },
-  ], []);
-
-  const getActivityColor = (type: string) => {
-    switch (type) {
-      case 'sync': return 'text-primary';
-      case 'approval': return 'text-success';
-      case 'discovery': return 'text-info';
-      case 'warning': return 'text-warning';
-      default: return 'text-muted-foreground';
-    }
-  };
+  const { data: activities = [], isLoading } = useCMDBActivity(10);
 
   return (
     <Card>
@@ -275,19 +316,41 @@ const RecentActivity: React.FC = () => {
         </Button>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {activities.map((activity) => (
-            <div key={activity.id} className="flex items-start gap-3">
-              <div className={cn('p-2 rounded-lg bg-muted/50', getActivityColor(activity.type))}>
-                <activity.icon className="h-4 w-4" />
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-start gap-3">
+                <Skeleton className="h-8 w-8 rounded-lg" />
+                <div className="flex-1">
+                  <Skeleton className="h-4 w-3/4 mb-2" />
+                  <Skeleton className="h-3 w-1/4" />
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm">{activity.message}</p>
-                <p className="text-xs text-muted-foreground">{activity.time}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : activities.length === 0 ? (
+          <div className="text-center py-6 text-muted-foreground">
+            <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">{t('cmdb.activity.empty', { defaultValue: 'Aucune activité récente' })}</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {activities.map((activity) => {
+              const Icon = ACTIVITY_ICONS[activity.type] || RefreshCw;
+              return (
+                <div key={activity.id} className="flex items-start gap-3">
+                  <div className={cn('p-2 rounded-lg bg-muted/50', getActivityColor(activity.type))}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm">{activity.message}</p>
+                    <p className="text-xs text-muted-foreground">{formatTimeAgo(activity.timestamp)}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

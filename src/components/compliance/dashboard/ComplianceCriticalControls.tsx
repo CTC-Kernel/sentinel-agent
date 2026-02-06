@@ -22,7 +22,7 @@ export const ComplianceCriticalControls: React.FC<ComplianceCriticalControlsProp
 
  return (
  <div className="glass-premium p-6 md:p-8 rounded-3xl relative group hover:shadow-apple overflow-hidden transition-all duration-300">
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-3xl" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
  <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2 relative z-10 uppercase tracking-wider">
  <AlertTriangle className="h-4 w-4 text-warning-text" />
  {t('compliance.dashboard.criticalControlsTitle')} ({criticalControls.length})

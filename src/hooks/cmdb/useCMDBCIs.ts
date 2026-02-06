@@ -31,6 +31,8 @@ export const cmdbKeys = {
   stats: (orgId: string) => [...cmdbKeys.all, 'stats', orgId] as const,
   relationships: (orgId: string, ciId: string) =>
     [...cmdbKeys.all, 'relationships', orgId, ciId] as const,
+  activity: (orgId: string) => [...cmdbKeys.all, 'activity', orgId] as const,
+  dailyStats: (orgId: string) => [...cmdbKeys.all, 'dailyStats', orgId] as const,
 };
 
 /**
@@ -230,6 +232,37 @@ export function useCMDBMutations() {
     updateCI,
     deleteCI,
   };
+}
+
+/**
+ * Hook to fetch recent CMDB activity
+ */
+export function useCMDBActivity(limitCount: number = 10) {
+  const { user } = useStore();
+  const organizationId = user?.organizationId || '';
+
+  return useQuery({
+    queryKey: cmdbKeys.activity(organizationId),
+    queryFn: () => CMDBService.getRecentActivity(organizationId, limitCount),
+    enabled: !!organizationId,
+    staleTime: 30 * 1000, // 30 seconds
+    refetchInterval: 60 * 1000, // Refresh every minute
+  });
+}
+
+/**
+ * Hook to fetch daily activity statistics
+ */
+export function useDailyActivityStats(days: number = 14) {
+  const { user } = useStore();
+  const organizationId = user?.organizationId || '';
+
+  return useQuery({
+    queryKey: cmdbKeys.dailyStats(organizationId),
+    queryFn: () => CMDBService.getDailyActivityStats(organizationId, days),
+    enabled: !!organizationId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 }
 
 /**

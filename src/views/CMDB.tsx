@@ -7,10 +7,14 @@
  * @module views/CMDB
  */
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollableTabs } from '@/components/ui/ScrollableTabs';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { SEO } from '@/components/SEO';
+import { MasterpieceBackground } from '@/components/ui/MasterpieceBackground';
+import { staggerContainerVariants, slideUpVariants } from '@/components/ui/animationVariants';
 import {
   LayoutDashboard,
   Network,
@@ -19,7 +23,10 @@ import {
   Database,
 } from '@/components/ui/Icons';
 import { useLocale } from '@/hooks/useLocale';
-import { cn } from '@/lib/utils';
+import { useStore } from '@/store';
+import { useCMDBMutations } from '@/hooks/cmdb/useCMDBCIs';
+import { useInspectorOpen, useCMDBActions } from '@/stores/cmdbStore';
+import { CreateCIFormData } from '@/schemas/cmdbSchema';
 
 // Lazy load heavy components
 const CMDBPremiumDashboard = React.lazy(() =>
@@ -40,6 +47,12 @@ const ValidationQueue = React.lazy(() =>
   }))
 );
 
+const CIInspector = React.lazy(() =>
+  import('@/components/cmdb/CIInspector').then((m) => ({
+    default: m.CIInspector,
+  }))
+);
+
 // Loading skeleton for tabs
 const TabSkeleton: React.FC = () => (
   <div className="space-y-6">
@@ -54,7 +67,44 @@ const TabSkeleton: React.FC = () => (
 
 export const CMDB: React.FC = () => {
   const { t } = useLocale();
+  const { addToast } = useStore();
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  // Inspector state
+  const inspectorOpen = useInspectorOpen();
+  const { closeInspector } = useCMDBActions();
+  const { createCI, updateCI, deleteCI } = useCMDBMutations();
+
+  // Handle CI creation
+  const handleCreate = useCallback(async (data: CreateCIFormData): Promise<boolean | string> => {
+    try {
+      const ciId = await createCI.mutateAsync(data);
+      closeInspector();
+      return ciId;
+    } catch {
+      return false;
+    }
+  }, [createCI, closeInspector]);
+
+  // Handle CI update
+  const handleUpdate = useCallback(async (ciId: string, data: CreateCIFormData): Promise<boolean | string> => {
+    try {
+      await updateCI.mutateAsync({ ciId, data });
+      closeInspector();
+      return true;
+    } catch {
+      return false;
+    }
+  }, [updateCI, closeInspector]);
+
+  // Handle CI deletion
+  const handleDelete = useCallback(async (ciId: string, ciName: string) => {
+    if (window.confirm(`Êtes-vous sûr de vouloir retirer "${ciName}" ?`)) {
+      await deleteCI.mutateAsync(ciId);
+      closeInspector();
+      addToast(`CI "${ciName}" retiré avec succès`, 'success');
+    }
+  }, [deleteCI, closeInspector, addToast]);
 
   const tabs = [
     {
@@ -80,49 +130,42 @@ export const CMDB: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
+    <>
+      <SEO
+        title={t('cmdb.seoTitle', { defaultValue: 'CMDB - Configuration Management Database' })}
+        description={t('cmdb.seoDescription', { defaultValue: 'Gestion complète de votre base de données de configuration' })}
+        keywords={t('cmdb.seoKeywords', { defaultValue: 'CMDB, configuration, assets, ITIL' })}
+      />
+      
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col gap-2"
+        variants={staggerContainerVariants}
+        initial="initial"
+        animate="visible"
+        className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24"
       >
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/25">
-            <Database className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">
-              {t('cmdb.title', { defaultValue: 'CMDB' })}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {t('cmdb.subtitle', {
-                defaultValue: 'Configuration Management Database',
-              })}
-            </p>
-          </div>
-        </div>
-      </motion.div>
+        <MasterpieceBackground />
+        {/* Page Header */}
+        <PageHeader
+          title={t('cmdb.title', { defaultValue: 'CMDB' })}
+          subtitle={t('cmdb.subtitle', {
+            defaultValue: 'Configuration Management Database',
+          })}
+          icon={
+            <Database className="text-cyan-500 dark:text-cyan-400" />
+          }
+        />
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="glass-panel p-1 rounded-xl">
-          {tabs.map((tab) => (
-            <TabsTrigger
-              key={tab.id}
-              value={tab.id}
-              className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200',
-                'data-[state=active]:bg-primary data-[state=active]:text-primary-foreground',
-                'data-[state=active]:shadow-md'
-              )}
-            >
-              <tab.icon className="h-4 w-4" />
-              <span className="hidden sm:inline">{tab.label}</span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        {/* Tabs */}
+        <motion.div variants={slideUpVariants}>
+          <ScrollableTabs
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            ariaLabel={t('cmdb.tabsNavigation', { defaultValue: 'Navigation CMDB' })}
+          />
+        </motion.div>
 
+        {/* Tab Content */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -130,23 +173,26 @@ export const CMDB: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="mt-6"
+            className="w-full"
           >
-            <TabsContent value="dashboard" className="mt-0">
+            {activeTab === 'dashboard' && (
               <Suspense fallback={<TabSkeleton />}>
                 <CMDBPremiumDashboard />
               </Suspense>
-            </TabsContent>
+            )}
 
-            <TabsContent value="discovery" className="mt-0">
+            {activeTab === 'discovery' && (
               <Suspense fallback={<TabSkeleton />}>
                 <DiscoveryDashboard />
               </Suspense>
-            </TabsContent>
+            )}
 
-            <TabsContent value="topology" className="mt-0">
+            {activeTab === 'topology' && (
               <Suspense fallback={<TabSkeleton />}>
-                <div className="glass-premium p-8 rounded-3xl text-center">
+                <motion.div
+                  variants={slideUpVariants}
+                  className="glass-premium p-8 rounded-3xl text-center"
+                >
                   <Network className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
                   <h3 className="text-lg font-semibold mb-2">
                     {t('cmdb.topology.title', { defaultValue: 'Carte Topologique' })}
@@ -156,19 +202,30 @@ export const CMDB: React.FC = () => {
                       defaultValue: 'Sélectionnez un CI pour visualiser ses dépendances',
                     })}
                   </p>
-                </div>
+                </motion.div>
               </Suspense>
-            </TabsContent>
+            )}
 
-            <TabsContent value="validation" className="mt-0">
+            {activeTab === 'validation' && (
               <Suspense fallback={<TabSkeleton />}>
                 <ValidationQueue />
               </Suspense>
-            </TabsContent>
+            )}
           </motion.div>
         </AnimatePresence>
-      </Tabs>
-    </div>
+      </motion.div>
+
+      {/* CI Inspector Slide Panel */}
+      <Suspense fallback={null}>
+        <CIInspector
+          isOpen={inspectorOpen}
+          onClose={closeInspector}
+          onCreate={handleCreate}
+          onUpdate={handleUpdate}
+          onDelete={handleDelete}
+        />
+      </Suspense>
+    </>
   );
 };
 

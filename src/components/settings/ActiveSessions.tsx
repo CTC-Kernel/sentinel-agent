@@ -72,7 +72,7 @@ export const ActiveSessions: React.FC = () => {
 
  return (
  <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden flex flex-col h-full col-span-1 md:col-span-2">
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
 
  <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 flex items-center justify-between">
  <div className="flex items-center gap-3">

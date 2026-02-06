@@ -335,7 +335,7 @@ export const AnalyticsDashboard: React.FC = () => {
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
  {/* Trend Chart */}
  <div className="glass-premium p-6 md:p-8 rounded-4xl border border-border/40 relative overflow-hidden group" data-tour="analytics-trends">
-  <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none"></div>
+  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none"></div>
   <div className="relative z-decorator">
   {/* Heading hierarchy: h2 for card title (follows h1 page title) */}
   <h2 className="text-lg font-bold text-foreground mb-6 font-display">
@@ -408,7 +408,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
  {/* Compliance Progress */}
  <div className="glass-premium p-6 md:p-8 rounded-4xl border border-border/40 relative overflow-hidden">
-  <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none"></div>
+  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none"></div>
   <div className="relative z-decorator">
   <h3 className="text-lg font-bold text-foreground mb-6 font-display">
   {t('dashboard.complianceRate', { defaultValue: 'Taux de Conformité ISO 27001' })}
@@ -442,7 +442,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
  {/* Risk Distribution */}
  <div className="glass-premium p-6 md:p-8 rounded-4xl border border-border/40 relative overflow-hidden">
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none"></div>
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none"></div>
  <div className="relative z-decorator">
   <h3 className="text-lg font-bold text-foreground mb-6 font-display">
   {t('dashboard.riskDistribution', { defaultValue: 'Distribution des Risques par Catégorie' })}
@@ -484,7 +484,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
  {/* Top Risks Table */}
  <div className="glass-premium p-6 md:p-8 rounded-4xl border border-border/40 relative overflow-hidden">
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none"></div>
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none"></div>
  <div className="relative z-decorator">
   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
   <div>

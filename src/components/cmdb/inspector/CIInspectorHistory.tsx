@@ -173,8 +173,8 @@ export const CIInspectorHistory: React.FC<CIInspectorHistoryProps> = ({ ci }) =>
     return user?.displayName || user?.email || userId;
   }, [users]);
 
-  // Generate mock history from CI data
-  // In production, this would come from a dedicated audit log collection
+  // Generate history timeline from CI timestamps
+  // Events are derived from real CI data (creation, updates, discovery)
   const events = useMemo<HistoryEvent[]>(() => {
     const history: HistoryEvent[] = [];
 

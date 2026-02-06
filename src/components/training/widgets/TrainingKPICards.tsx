@@ -86,7 +86,7 @@ const KPICard: React.FC<KPICardProps> = ({
  transition={{ delay, duration: 0.4, ease: [0.23, 1, 0.32, 1] }} // Apple-like ease
  className={`glass-premium p-6 rounded-3xl border border-border/40 transition-all duration-300 hover:shadow-apple-md group relative overflow-hidden ${config.border}`}
  >
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-3xl" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none rounded-3xl" />
 
  <div className="relative z-10">
  <div className="flex items-start justify-between mb-4">
