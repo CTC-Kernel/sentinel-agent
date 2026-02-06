@@ -178,6 +178,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
  setLoading(false);
  setLoadingMore(false);
  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- t is stable from useLocale
  }, [documentId, organizationView, userId, filters, nextCursor]);
 
  // Initial fetch

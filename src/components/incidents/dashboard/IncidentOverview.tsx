@@ -240,7 +240,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
             });
         }
         return data;
-    }, [incidents, config.intlLocale]);
+    }, [incidents, config.intlLocale, t]);
 
     // Weekly data for heatmap-style visualization
     const weeklyHeatData = useMemo(() => {

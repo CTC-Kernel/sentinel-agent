@@ -114,6 +114,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
  };
  setEditingScenario(newScenario);
  setShowScenarioForm(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- t is stable from useLocale
  }, [strategicScenarios]);
 
  const handleDeleteScenario = useCallback((id: string) => {

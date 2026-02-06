@@ -88,6 +88,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
  { id: 'intelligence', label: t('assets.inspector.tabs.intelligence', { defaultValue: 'Intelligence' }), icon: BrainCircuit },
  { id: 'comments', label: t('assets.inspector.tabs.discussion', { defaultValue: 'Discussion' }), icon: MessageSquare }
  ];
+ // eslint-disable-next-line react-hooks/exhaustive-deps -- t is stable from useLocale
  }, [selectedAsset]);
 
  // Agent Download Modal State

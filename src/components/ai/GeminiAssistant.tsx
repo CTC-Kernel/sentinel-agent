@@ -152,6 +152,7 @@ export const GeminiAssistant: React.FC = () => {
  } finally {
  setIsLoading(false);
  }
+ // eslint-disable-next-line react-hooks/exhaustive-deps -- t and addToast are stable
  }, [input, aiEnabled, isLoading, conversationRef, navigate, user?.role, user?.organizationId, addMessage, allRisks, allAssets, myProjects, myIncidents]);
 
  const copyToClipboard = useCallback((text: string, id: string) => {

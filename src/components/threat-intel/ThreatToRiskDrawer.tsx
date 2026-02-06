@@ -47,6 +47,7 @@ export const ThreatToRiskDrawer: React.FC<ThreatToRiskDrawerProps> = ({ isOpen, 
  if (threat) {
  setValue('scenario', `${t('threatIntel.detectedThreat', { defaultValue: 'Menace détectée' })} : ${threat.title}\n\n${t('threatIntel.source', { defaultValue: 'Source' })} : Threat Intel (${threat.source || t('threatIntel.community', { defaultValue: 'Community' })})`);
  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- t is stable from useLocale
  }, [threat, setValue]);
 
  const onSubmit = async (data: FormData) => {
