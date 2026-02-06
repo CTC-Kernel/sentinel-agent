@@ -74,8 +74,24 @@ pub enum CheckCategory {
     TimeSync,
     /// Browser security settings.
     BrowserSecurity,
+    /// Directory services policy (AD GPO, LDAP).
+    DirectoryPolicy,
+    /// Privileged access management.
+    PrivilegedAccess,
     /// General security configuration.
     General,
+    /// Network security (DNS, VPN, traffic analysis).
+    NetworkSecurity,
+    /// Access control (SSH, PAM, sudo).
+    AccessControl,
+    /// Container and orchestration security.
+    ContainerSecurity,
+    /// Certificate and PKI management.
+    CertificateManagement,
+    /// Data protection and DLP.
+    DataProtection,
+    /// Cloud security configuration.
+    CloudSecurity,
 }
 
 /// Definition of a compliance check.

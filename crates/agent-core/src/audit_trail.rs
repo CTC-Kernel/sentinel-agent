@@ -81,6 +81,7 @@ impl LocalAuditTrail {
             action_data,
             actor: entry.actor.clone(),
             details: entry.details.clone(),
+            synced: false,
         };
 
         repo.insert(&stored_entry).await?;

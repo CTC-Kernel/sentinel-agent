@@ -59,8 +59,11 @@ impl Ipv6ConfigCheck {
             .description("Verify IPv6 router advertisements and unnecessary features are disabled")
             .category(CheckCategory::NetworkHardening)
             .severity(CheckSeverity::Low)
-            .framework("CIS")
+            .framework("NIS2")
             .framework("DORA")
+            .framework("CIS_V8")
+            .framework("NIST_CSF")
+            .framework("ISO_27001")
             .platforms(vec![
                 "windows".to_string(),
                 "linux".to_string(),
@@ -314,7 +317,7 @@ mod tests {
     fn test_check_frameworks() {
         let check = Ipv6ConfigCheck::new();
         let frameworks = &check.definition().frameworks;
-        assert!(frameworks.contains(&"CIS".to_string()));
+        assert!(frameworks.contains(&"CIS_V8".to_string()));
         assert!(frameworks.contains(&"DORA".to_string()));
     }
 

@@ -145,12 +145,40 @@ pub struct HeartbeatRequest {
     pub disk_percent: f64,
     pub disk_used_bytes: u64,
     pub disk_total_bytes: u64,
+    pub network_bytes_sent: u64,
+    pub network_bytes_recv: u64,
     pub uptime_seconds: u64,
     pub ip_address: Option<String>,
     pub last_check_at: Option<String>,
     pub compliance_score: Option<f64>,
     pub pending_sync_count: u32,
     pub self_check_result: Option<serde_json::Value>,
+    #[serde(default)]
+    pub processes: Vec<AgentProcess>,
+    #[serde(default)]
+    pub connections: Vec<AgentConnection>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AgentProcess {
+    pub pid: u32,
+    pub name: String,
+    pub cpu_percent: f64,
+    pub memory_bytes: u64,
+    pub user: String,
+    pub command_line: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AgentConnection {
+    pub local_address: String,
+    pub local_port: u16,
+    pub remote_address: String,
+    pub remote_port: u16,
+    pub protocol: String,
+    pub state: String,
+    pub process_name: Option<String>,
+    pub pid: Option<u32>,
 }
 
 /// Heartbeat response from the server.
@@ -720,12 +748,16 @@ mod tests {
             disk_percent: 62.5,
             disk_used_bytes: 250 * 1024 * 1024 * 1024,
             disk_total_bytes: 400 * 1024 * 1024 * 1024,
-            uptime_seconds: 3600,
-            ip_address: Some("192.168.1.100".to_string()),
-            last_check_at: Some("2024-01-01T00:00:00Z".to_string()),
-            compliance_score: Some(85.0),
+            network_bytes_sent: 0,
+            network_bytes_recv: 0,
+            uptime_seconds: 0,
+            ip_address: None,
+            last_check_at: None,
+            compliance_score: None,
             pending_sync_count: 0,
             self_check_result: None,
+            processes: vec![],
+            connections: vec![],
         };
 
         let json = serde_json::to_string(&request).unwrap();

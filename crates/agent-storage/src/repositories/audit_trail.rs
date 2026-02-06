@@ -16,6 +16,8 @@ pub struct StoredAuditEntry {
     pub action_data: String, // JSON representation of AuditAction
     pub actor: String,
     pub details: Option<String>,
+    #[serde(default)]
+    pub synced: bool,
 }
 
 /// Repository for the local audit trail.
@@ -36,8 +38,8 @@ impl<'a> AuditTrailRepository<'a> {
             .with_connection(move |conn| {
                 conn.execute(
                     r#"
-                    INSERT INTO audit_trail (timestamp, action_type, action_data, actor, details)
-                    VALUES (?1, ?2, ?3, ?4, ?5)
+                    INSERT INTO audit_trail (timestamp, action_type, action_data, actor, details, synced)
+                    VALUES (?1, ?2, ?3, ?4, ?5, ?6)
                     "#,
                     rusqlite::params![
                         entry.timestamp.to_rfc3339(),
@@ -45,11 +47,69 @@ impl<'a> AuditTrailRepository<'a> {
                         entry.action_data,
                         entry.actor,
                         entry.details,
+                        if entry.synced { 1 } else { 0 },
                     ],
                 )
                 .map_err(|e| StorageError::Query(format!("Failed to insert audit entry: {}", e)))?;
 
                 Ok(conn.last_insert_rowid())
+            })
+            .await
+    }
+
+    /// Get unsynced audit entries.
+    pub async fn fetch_unsynced(&self, limit: usize) -> StorageResult<Vec<StoredAuditEntry>> {
+        self.db
+            .with_connection(move |conn| {
+                let mut stmt = conn
+                    .prepare(
+                        r#"
+                        SELECT id, timestamp, action_type, action_data, actor, details, synced
+                        FROM audit_trail
+                        WHERE synced = 0
+                        ORDER BY timestamp ASC
+                        LIMIT ?1
+                        "#,
+                    )
+                    .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
+
+                let entries = stmt
+                    .query_map(rusqlite::params![limit], Self::row_to_entry)
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to query audit entries: {}", e))
+                    })?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect audit entries: {}", e))
+                    })?;
+
+                Ok(entries)
+            })
+            .await
+    }
+
+    /// Mark specific audit entries as synced.
+    pub async fn mark_synced(&self, ids: &[i64]) -> StorageResult<()> {
+        if ids.is_empty() {
+            return Ok(());
+        }
+
+        let ids_vec = ids.to_vec();
+        self.db
+            .with_connection(move |conn| {
+                let placeholders = ids_vec.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+                let query = format!("UPDATE audit_trail SET synced = 1 WHERE id IN ({})", placeholders);
+                
+                let mut stmt = conn.prepare(&query).map_err(|e| {
+                    StorageError::Query(format!("Failed to prepare batch update: {}", e))
+                })?;
+
+                let params = rusqlite::params_from_iter(ids_vec);
+                stmt.execute(params).map_err(|e| {
+                    StorageError::Query(format!("Failed to mark audit entries as synced: {}", e))
+                })?;
+
+                Ok(())
             })
             .await
     }
@@ -65,7 +125,7 @@ impl<'a> AuditTrailRepository<'a> {
                 let mut stmt = conn
                     .prepare(
                         r#"
-                        SELECT id, timestamp, action_type, action_data, actor, details
+                        SELECT id, timestamp, action_type, action_data, actor, details, synced
                         FROM audit_trail
                         ORDER BY timestamp DESC
                         LIMIT ?1 OFFSET ?2
@@ -117,6 +177,7 @@ impl<'a> AuditTrailRepository<'a> {
             action_data: row.get(3)?,
             actor: row.get(4)?,
             details: row.get(5)?,
+            synced: row.get::<_, i32>(6)? != 0,
         })
     }
 }

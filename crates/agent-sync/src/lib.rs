@@ -51,12 +51,16 @@ pub mod result_upload;
 pub mod rollout;
 pub mod rules;
 pub mod security;
+pub mod audit_sync;
+pub mod command_results;
 pub mod types;
 pub mod update;
 pub mod updater;
 
+pub use audit_sync::AuditSyncService;
 pub use authenticated_client::AuthenticatedClient;
 pub use client::HttpClient;
+pub use command_results::CommandResultsService;
 pub use config_sync::{
     ConfigChangeEvent, ConfigResponse, ConfigSyncResult, ConfigSyncService, config_keys,
 };

@@ -56,6 +56,7 @@
 
 pub mod check;
 pub mod checks;
+pub mod directory;
 pub mod error;
 pub mod proof;
 pub mod runner;
@@ -79,6 +80,16 @@ pub use security::{
 pub use vulnerability::package_scanner::InstalledPackage;
 pub use vulnerability::{
     ScanType, Severity, VulnerabilityFinding, VulnerabilityScanResult, VulnerabilityScanner,
+};
+
+// Directory services auditing
+pub use directory::{
+    DirectoryAuditor, DirectoryAuditResult, DirectoryCategory, DirectoryCheck,
+    DirectoryCheckResult, DirectoryComplianceSummary, DirectoryFinding, DirectorySeverity,
+    DirectoryType, ComplianceStatus, GpoAuditor, GpoSecuritySettings, GpoSetting,
+    LdapAuditor, LdapSecurityConfig, PrivilegedGroupInfo, AuditPolicy, AuditSetting,
+    TlsConfiguration, LdapPasswordPolicy, AclFinding, LdapConfigFinding,
+    check_privileged_groups, run_policy_checks, run_ldap_checks,
 };
 
 pub mod remediation;

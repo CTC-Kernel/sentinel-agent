@@ -41,17 +41,24 @@ use agent_scanner::{
     VulnerabilityScanResult, VulnerabilityScanner,
     checks::{
         AdminAccountsCheck, AntivirusCheck, AuditLoggingCheck, AutoLoginCheck, BackupCheck,
-        BluetoothCheck, BrowserSecurityCheck, DiskEncryptionCheck, FirewallCheck,
-        GuestAccountCheck, Ipv6ConfigCheck, KernelHardeningCheck, LogRotationCheck, MfaCheck,
-        ObsoleteProtocolsCheck, PasswordPolicyCheck, RemoteAccessCheck, SessionLockCheck,
-        SystemUpdatesCheck, TimeSyncCheck, UsbStorageCheck,
+        BluetoothCheck, BrowserSecurityCheck, CertificateValidationCheck, ContainerSecurityCheck,
+        DiskEncryptionCheck, DnsSecurityCheck, FirewallCheck, GpoAuditPolicyCheck,
+        GpoLockoutPolicyCheck, GpoPasswordPolicyCheck, GuestAccountCheck, Ipv6ConfigCheck,
+        KernelHardeningCheck, LdapSecurityCheck, LinuxHardeningCheck, LogRotationCheck,
+        MfaCheck, ObsoleteProtocolsCheck, PasswordPolicyCheck, PrivilegedGroupsCheck,
+        RemoteAccessCheck, SecureBootCheck, SessionLockCheck, SshHardeningCheck,
+        SystemUpdatesCheck, TimeSyncCheck, UpdateStatusCheck, UsbStorageCheck,
+        WindowsHardeningCheck,
     },
 };
 use agent_storage::{
     CheckResult as StorageCheckResult, CheckResultsRepository, CheckRule as StorageCheckRule,
     CheckRulesRepository, CheckStatus as StorageCheckStatus, Database, Severity as StorageSeverity,
 };
-use agent_sync::{AuthenticatedClient, ConfigSyncService, ResultUploader, RuleSyncService};
+use agent_sync::{
+    AuditSyncService, AuthenticatedClient, CommandResultsService, ConfigSyncService,
+    ResultUploader, RuleSyncService,
+};
 use api_client::{ApiClient, EnrollmentRequest, HeartbeatRequest};
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use resources::ResourceMonitor;
@@ -124,6 +131,10 @@ pub struct AgentRuntime {
     rule_sync: RwLock<Option<RuleSyncService>>,
     /// Result uploader for uploading check results to SaaS.
     result_uploader: RwLock<Option<ResultUploader>>,
+    /// Audit trail sync service.
+    audit_sync: RwLock<Option<AuditSyncService>>,
+    /// Command results reporting service.
+    command_results: RwLock<Option<CommandResultsService>>,
     /// Timestamp of the last self-update check.
     last_update_check: RwLock<Option<std::time::Instant>>,
     /// Last successful sync timestamp.
@@ -265,7 +276,7 @@ impl AgentRuntime {
         let (events_mgr, _rx) = events::EventManager::new(None);
         let events = Arc::new(events_mgr);
 
-        // Register all 21 compliance checks
+        // Register all compliance checks (21 base + 5 directory + 4 hardening + 4 advanced = 34 total)
         let mut registry = CheckRegistry::new();
         registry.register(Arc::new(DiskEncryptionCheck::new()));
         registry.register(Arc::new(FirewallCheck::new()));
@@ -288,6 +299,26 @@ impl AgentRuntime {
         registry.register(Arc::new(LogRotationCheck::new()));
         registry.register(Arc::new(TimeSyncCheck::new()));
         registry.register(Arc::new(UsbStorageCheck::new()));
+
+        // Directory policy checks (GPO, LDAP, privileged access)
+        registry.register(Arc::new(GpoPasswordPolicyCheck::new()));
+        registry.register(Arc::new(GpoLockoutPolicyCheck::new()));
+        registry.register(Arc::new(GpoAuditPolicyCheck::new()));
+        registry.register(Arc::new(PrivilegedGroupsCheck::new()));
+        registry.register(Arc::new(LdapSecurityCheck::new()));
+
+        // System hardening checks (Windows/Linux kernel, updates)
+        registry.register(Arc::new(WindowsHardeningCheck::new()));
+        registry.register(Arc::new(SecureBootCheck::new()));
+        registry.register(Arc::new(LinuxHardeningCheck::new()));
+        registry.register(Arc::new(UpdateStatusCheck::new()));
+
+        // Advanced security checks (DNS, SSH, containers, certificates)
+        registry.register(Arc::new(DnsSecurityCheck::new()));
+        registry.register(Arc::new(SshHardeningCheck::new()));
+        registry.register(Arc::new(ContainerSecurityCheck::new()));
+        registry.register(Arc::new(CertificateValidationCheck::new()));
+
         let check_registry = Arc::new(registry);
 
         info!("Registered {} compliance checks", check_registry.count());
@@ -321,6 +352,8 @@ impl AgentRuntime {
             config_sync: RwLock::new(None),
             rule_sync: RwLock::new(None),
             result_uploader: RwLock::new(None),
+            audit_sync: RwLock::new(None),
+            command_results: RwLock::new(None),
             last_update_check: RwLock::new(None),
             last_sync_at: RwLock::new(None),
             audit_trail: None,
@@ -769,6 +802,18 @@ impl AgentRuntime {
         let pending_sync_count = self.get_pending_sync_count().await as u32;
 
         let sys_res = resources::get_system_resources();
+        let processes = self.resource_monitor.get_processes();
+        let connections = self.resource_monitor.get_connections();
+
+        // Get total network bytes since boot
+        let network_bytes = {
+            let networks = self.resource_monitor.get_networks().lock().unwrap();
+            networks
+                .values()
+                .map(|data| (data.transmitted(), data.received()))
+                .fold((0, 0), |acc, (t, r)| (acc.0 + t, acc.1 + r))
+        };
+
         let request = HeartbeatRequest {
             timestamp: chrono::Utc::now().to_rfc3339(),
             agent_version: AGENT_VERSION.to_string(),
@@ -782,12 +827,16 @@ impl AgentRuntime {
             disk_percent: sys_res.disk_percent,
             disk_used_bytes: sys_res.disk_used_bytes,
             disk_total_bytes: sys_res.disk_total_bytes,
+            network_bytes_sent: network_bytes.0,
+            network_bytes_recv: network_bytes.1,
             uptime_seconds: usage.uptime_ms / 1000,
             ip_address: None,
             last_check_at: last_compliance_check.map(|dt| dt.to_rfc3339()),
             compliance_score,
             pending_sync_count,
             self_check_result: None,
+            processes,
+            connections,
         };
 
         let response = client.send_heartbeat(request).await?;
@@ -808,39 +857,56 @@ impl AgentRuntime {
         }
 
         // Process server commands
-        for cmd in &response.commands {
-            if !cmd.is_valid() {
-                warn!(
-                    "Rejecting unknown/disallowed server command type '{}' (id={})",
-                    cmd.command_type, cmd.id
-                );
-                continue;
-            }
+        if !response.commands.is_empty() {
+            let command_results = self.command_results.read().await;
+            if let Some(ref service) = *command_results {
+                for cmd in &response.commands {
+                    if !cmd.is_valid() {
+                        warn!(
+                            "Rejecting unknown/disallowed server command type '{}' (id={})",
+                            cmd.command_type, cmd.id
+                        );
+                        let _ = service.report_failure(&cmd.id, "Unknown or disallowed command type".to_string()).await;
+                        continue;
+                    }
 
-            match cmd.command_type.as_str() {
-                "force_sync" => {
-                    info!("Server command: force_sync ({})", cmd.id);
-                    self.state.force_sync.store(true, Ordering::Release);
+                    info!("Processing server command: {} (id={})", cmd.command_type, cmd.id);
+                    let result = match cmd.command_type.as_str() {
+                        "force_sync" => {
+                            self.state.force_sync.store(true, Ordering::Release);
+                            service.report_success(&cmd.id, Some("Sync triggered".to_string())).await
+                        }
+                        "run_checks" => {
+                            self.state.force_check.store(true, Ordering::Release);
+                            service.report_success(&cmd.id, Some("Compliance scan triggered".to_string())).await
+                        }
+                        "revoke" => {
+                            warn!("Server command: revoke agent credentials ({})", cmd.id);
+                            self.request_shutdown();
+                            service.report_success(&cmd.id, Some("Shutdown initiated".to_string())).await
+                        }
+                        "diagnostics" => {
+                            info!("Server command: diagnostics ({})", cmd.id);
+                            // TODO: Collect and upload diagnostics
+                            service.report_success(&cmd.id, Some("Diagnostics collection started".to_string())).await
+                        }
+                        "update" => {
+                            info!("Server command: update ({})", cmd.id);
+                            self.state.force_update.store(true, Ordering::Release);
+                            service.report_success(&cmd.id, Some("Update triggered".to_string())).await
+                        }
+                        other => {
+                            warn!("Unknown server command: {} ({})", other, cmd.id);
+                            service.report_failure(&cmd.id, format!("Unknown command: {}", other)).await
+                        }
+                    };
+
+                    if let Err(e) = result {
+                        warn!("Failed to report command result for {}: {}", cmd.id, e);
+                    }
                 }
-                "run_checks" => {
-                    info!("Server command: run_checks ({})", cmd.id);
-                    self.state.force_check.store(true, Ordering::Release);
-                }
-                "revoke" => {
-                    warn!("Server command: revoke agent credentials ({})", cmd.id);
-                    self.request_shutdown();
-                }
-                "diagnostics" => {
-                    info!("Server command: diagnostics ({})", cmd.id);
-                    // TODO: Collect and upload diagnostics
-                }
-                "update" => {
-                    info!("Server command: update ({})", cmd.id);
-                    self.state.force_update.store(true, Ordering::Release);
-                }
-                other => {
-                    warn!("Unknown server command: {} ({})", other, cmd.id);
-                }
+            } else {
+                warn!("Received commands but CommandResultsService is not initialized");
             }
         }
 
@@ -1423,8 +1489,16 @@ impl AgentRuntime {
         // Initialize result uploader
         let result_uploader = ResultUploader::new(auth_client.clone(), db.clone());
         *self.result_uploader.write().await = Some(result_uploader);
+        
+        // Initialize audit sync
+        let audit_sync = AuditSyncService::new(auth_client.clone(), db.clone());
+        *self.audit_sync.write().await = Some(audit_sync);
+        
+        // Initialize command results service
+        let command_results = CommandResultsService::new(auth_client.clone());
+        *self.command_results.write().await = Some(command_results);
 
-        info!("Initialized sync services (config, rules, results)");
+        info!("Initialized sync services (config, rules, results, audit, commands)");
 
         // Seed built-in check rules so the FK constraint is satisfied
         // even when rule sync fails (e.g. certificate error).
@@ -1786,6 +1860,18 @@ impl AgentRuntime {
                 {
                     self.emit_status_update(last_check_at, compliance_score);
                     self.emit_resource_update(None);
+                }
+
+                // Trigger audit trail sync periodically
+                if let Some(audit_sync) = self.audit_sync.read().await.as_ref() {
+                    match audit_sync.sync().await {
+                        Ok(count) => {
+                            if count > 0 {
+                                debug!("Synced {} audit trail entries", count);
+                            }
+                        }
+                        Err(e) => warn!("Audit trail sync failed: {}", e),
+                    }
                 }
             }
 
@@ -2461,12 +2547,16 @@ impl AgentRuntime {
                 disk_percent: resources::get_system_resources().disk_percent,
                 disk_used_bytes: resources::get_system_resources().disk_used_bytes,
                 disk_total_bytes: resources::get_system_resources().disk_total_bytes,
+                network_bytes_sent: 0,
+                network_bytes_recv: 0,
                 uptime_seconds: usage.uptime_ms / 1000,
                 ip_address: None,
                 last_check_at: last_compliance_check_at.map(|dt| dt.to_rfc3339()),
                 compliance_score,
                 pending_sync_count: 0,
                 self_check_result: None,
+                processes: vec![],
+                connections: vec![],
             };
 
             if let Err(e) = client.send_heartbeat(request).await {

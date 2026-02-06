@@ -271,6 +271,57 @@ pub struct HeartbeatRequest {
     /// Network bytes received since last heartbeat.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub network_bytes_recv: Option<u64>,
+
+    /// List of running processes (optional, for detailed monitoring).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub processes: Vec<AgentProcess>,
+
+    /// List of network connections (optional, for detailed monitoring).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub connections: Vec<AgentConnection>,
+}
+
+/// Running process information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct AgentProcess {
+    /// Process ID.
+    pub pid: u32,
+    /// Process name.
+    pub name: String,
+    /// CPU usage percentage.
+    pub cpu_percent: f64,
+    /// Memory usage in bytes.
+    pub memory_bytes: u64,
+    /// User running the process.
+    pub user: String,
+    /// Full command line (optional).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub command_line: Option<String>,
+}
+
+/// Network connection information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct AgentConnection {
+    /// Local address.
+    pub local_address: String,
+    /// Local port.
+    pub local_port: u16,
+    /// Remote address.
+    pub remote_address: String,
+    /// Remote port.
+    pub remote_port: u16,
+    /// Protocol (tcp/udp).
+    pub protocol: String,
+    /// Connection state.
+    pub state: String,
+    /// Process name (if known).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub process_name: Option<String>,
+    /// Process ID (if known).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pid: Option<u32>,
 }
 
 /// Self-check result sent in first heartbeat.
@@ -488,6 +539,59 @@ pub struct IncidentReportResponse {
     /// Whether an automatic playbook was triggered.
     #[serde(default)]
     pub playbook_triggered: bool,
+}
+
+// ============================================================================
+// Command Result and Audit Sync Types
+// ============================================================================
+
+/// Status of a command execution.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CommandStatus {
+    Success,
+    Failed,
+}
+
+/// Request to report a command execution result.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct CommandResultRequest {
+    /// Status of the execution.
+    pub status: CommandStatus,
+    /// Output from the command (stdout/stderr).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub output: Option<String>,
+    /// Error message if failed.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+    /// When the command was completed.
+    pub completed_at: DateTime<Utc>,
+}
+
+/// A single audit trail entry to sync.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct AuditTrailEntry {
+    /// Action performed.
+    pub action: String,
+    /// Who performed the action.
+    pub actor: String,
+    /// Detailed description.
+    pub details: Option<String>,
+    /// When the action occurred.
+    pub timestamp: DateTime<Utc>,
+    /// Additional metadata.
+    #[serde(default)]
+    pub metadata: serde_json::Value,
+}
+
+/// Request to sync multiple audit trail entries.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct AuditTrailSyncRequest {
+    /// List of audit entries to sync.
+    pub entries: Vec<AuditTrailEntry>,
 }
 
 #[cfg(test)]

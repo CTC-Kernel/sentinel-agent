@@ -345,7 +345,7 @@ impl CompliancePage {
         for &i in indices {
             let check = &state.checks[i];
             let key = if state.compliance_group_by == 1 {
-                check.category.clone()
+                Self::format_category(&check.category)
             } else if check.frameworks.is_empty() {
                 "NON CLASSÉ".to_string()
             } else {
@@ -556,7 +556,7 @@ impl CompliancePage {
 
                         row.col(|ui: &mut egui::Ui| {
                             ui.label(
-                                egui::RichText::new(check.category.to_uppercase())
+                                egui::RichText::new(Self::format_category(&check.category))
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong(),
@@ -704,20 +704,54 @@ impl CompliancePage {
             GuiCheckStatus::Running => ("EN COURS", theme::INFO),
         }
     }
+
+    /// Format category name for display (snake_case -> TITLE CASE)
+    fn format_category(category: &str) -> String {
+        match category {
+            "encryption" => "CHIFFREMENT".to_string(),
+            "antivirus" => "ANTIVIRUS".to_string(),
+            "firewall" => "PARE-FEU".to_string(),
+            "authentication" => "AUTHENTIFICATION".to_string(),
+            "session_lock" => "VERROUILLAGE".to_string(),
+            "updates" => "MISES À JOUR".to_string(),
+            "protocols" => "PROTOCOLES".to_string(),
+            "backup" => "SAUVEGARDE".to_string(),
+            "accounts" => "COMPTES".to_string(),
+            "mfa" => "MFA".to_string(),
+            "remote_access" => "ACCÈS DISTANT".to_string(),
+            "audit_logging" => "AUDIT".to_string(),
+            "device_control" => "PÉRIPHÉRIQUES".to_string(),
+            "kernel_security" => "NOYAU".to_string(),
+            "network_hardening" => "RÉSEAU".to_string(),
+            "time_sync" => "SYNCHRONISATION".to_string(),
+            "browser_security" => "NAVIGATEUR".to_string(),
+            "directory_policy" => "STRATÉGIES GPO".to_string(),
+            "privileged_access" => "ACCÈS PRIVILÉGIÉS".to_string(),
+            "general" => "GÉNÉRAL".to_string(),
+            _ => category.to_uppercase().replace('_', " "),
+        }
+    }
 }
 
 #[allow(dead_code)]
 fn remediation_hint(category: &str) -> &'static str {
     match category {
         "encryption" => {
-            "Activez le chiffrement du disque (FileVault) dans les Preferences Systeme."
+            "Activez le chiffrement du disque (FileVault/BitLocker) dans les paramètres système."
         }
-        "firewall" => "Activez le pare-feu dans Preferences Systeme > Securite.",
-        "updates" => "Installez les mises a jour en attente.",
-        "antivirus" => "Verifiez que votre solution antivirus est active et a jour.",
-        "passwords" => "Renforcez la politique de mots de passe.",
-        "screen_lock" => "Configurez le verrouillage automatique de l'ecran.",
-        "network" => "Verifiez la configuration reseau et les regles de pare-feu.",
+        "firewall" => "Activez le pare-feu dans les paramètres de sécurité.",
+        "updates" => "Installez les mises à jour en attente.",
+        "antivirus" => "Vérifiez que votre solution antivirus est active et à jour.",
+        "authentication" | "passwords" => "Renforcez la politique de mots de passe.",
+        "session_lock" | "screen_lock" => "Configurez le verrouillage automatique de l'écran.",
+        "network_hardening" | "network" => "Vérifiez la configuration réseau et les règles de pare-feu.",
+        "directory_policy" => "Configurez les stratégies de groupe (GPO) selon les bonnes pratiques de sécurité.",
+        "privileged_access" => "Réduisez le nombre de comptes avec accès privilégié et appliquez le principe du moindre privilège.",
+        "audit_logging" => "Activez l'audit des événements critiques (connexion, gestion des comptes).",
+        "mfa" => "Activez l'authentification multi-facteur pour tous les utilisateurs.",
+        "backup" => "Configurez des sauvegardes automatiques et chiffrées.",
+        "remote_access" => "Sécurisez les accès distants avec VPN et MFA.",
+        "device_control" => "Contrôlez l'utilisation des périphériques USB et Bluetooth.",
         _ => "",
     }
 }
