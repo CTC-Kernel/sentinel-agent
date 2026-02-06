@@ -141,3 +141,4 @@ pub const FINGERPRINT: &str = "\u{f577}"; // fa-fingerprint
 pub const KEY: &str = "\u{f084}"; // fa-key
 pub const ROBOT: &str = "\u{f544}"; // fa-robot
 pub const BRAIN: &str = "\u{f5dc}"; // fa-brain
+pub const LIST: &str = "\u{f0ca}"; // fa-list
