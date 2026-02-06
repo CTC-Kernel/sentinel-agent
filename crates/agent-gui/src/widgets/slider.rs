@@ -198,8 +198,6 @@ impl Slider {
 
                 let thumb_color = if is_dragging {
                     accent.linear_multiply(0.9)
-                } else if is_hovered {
-                    accent
                 } else {
                     accent
                 };
