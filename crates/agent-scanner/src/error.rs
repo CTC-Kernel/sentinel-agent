@@ -59,6 +59,10 @@ pub enum ScannerError {
     /// Internal error.
     #[error("Internal error: {0}")]
     Internal(String),
+
+    /// IO error.
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
 }
 
 impl ScannerError {
