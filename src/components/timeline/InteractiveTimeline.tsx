@@ -51,7 +51,7 @@ export const InteractiveTimeline: React.FC = () => {
  const { user, addToast, t } = useStore();
  const navigate = useNavigate();
  const timelineRef = useRef<HTMLDivElement>(null);
- const timelineInstance = useRef<Timeline | null>(null);
+ const timelineInstance = useRef<TimelineType | null>(null);
 
  const [filters, setFilters] = useState({
  incidents: true,

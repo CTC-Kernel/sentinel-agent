@@ -213,9 +213,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
  if (result.success && result.successCount > 0) {
  toast.success(
  t('otImport.success.title', 'Import réussi'),
- t('otImport.success.description', '{{count}} assets OT importés', {
- count: result.successCount
- })
+ t('otImport.success.description', { defaultValue: '{{count}} assets OT importés', count: result.successCount })
  );
  }
  } catch {
@@ -508,9 +506,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
  </div>
  {validatedRows.length > 20 && (
  <div className="px-4 py-2 bg-muted/50 text-sm text-muted-foreground text-center">
- {t('otImport.preview.showingFirst', 'Affichage des 20 premières lignes sur {{total}}', {
- total: validatedRows.length
- })}
+ {t('otImport.preview.showingFirst', { defaultValue: 'Affichage des 20 premières lignes sur {{total}}', total: validatedRows.length })}
  </div>
  )}
  </Card>
@@ -555,10 +551,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
  : t('otImport.complete.partial', 'Import partiel')}
  </h3>
  <p className="text-muted-foreground mt-1">
- {t('otImport.complete.summary', '{{success}} sur {{total}} assets importés', {
- success: importResult.successCount,
- total: importResult.totalRows
- })}
+ {t('otImport.complete.summary', { defaultValue: '{{success}} sur {{total}} assets importés', success: importResult.successCount, total: importResult.totalRows })}
  </p>
  </div>
 

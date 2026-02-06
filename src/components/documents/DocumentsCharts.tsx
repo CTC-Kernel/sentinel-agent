@@ -66,7 +66,7 @@ const renderActiveShape = (props: SentinelPieActiveShapeProps) => {
     const innerR = innerRadius ?? 0;
     const outerR = outerRadius ?? 0;
     const midA = midAngle ?? 0;
-    const percentValue = percent ?? payload.percent ?? 0;
+    const percentValue = Number(percent ?? payload.percent ?? 0);
     const totalValue = value ?? payload.value ?? 0;
 
     const RADIAN = Math.PI / 180;

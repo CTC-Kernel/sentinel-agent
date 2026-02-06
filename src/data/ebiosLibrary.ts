@@ -589,14 +589,17 @@ export const WORKSHOP_INFO = {
  name: {
  fr: 'Cadrage et socle de sécurité',
  en: 'Scope and security baseline',
+ de: 'Umfang und Sicherheitsgrundlage',
  },
  shortName: {
  fr: 'Cadrage',
  en: 'Scope',
+ de: 'Umfang',
  },
  description: {
  fr: 'Définir le périmètre de l\'étude, identifier les missions, biens essentiels et événements redoutés, évaluer le socle de sécurité.',
  en: 'Define the study scope, identify missions, essential assets and feared events, assess security baseline.',
+ de: 'Studienumfang definieren, Missionen, wesentliche Vermögenswerte und gefürchtete Ereignisse identifizieren, Sicherheitsgrundlage bewerten.',
  },
  objectives: {
  fr: [
@@ -611,20 +614,29 @@ export const WORKSHOP_INFO = {
  'Identify feared events',
  'Assess existing security baseline',
  ],
+ de: [
+ 'Geschäftsmissionen und -werte identifizieren',
+ 'Wesentliche und unterstützende Vermögenswerte kartieren',
+ 'Gefürchtete Ereignisse identifizieren',
+ 'Bestehende Sicherheitsgrundlage bewerten',
+ ],
  },
  },
  2: {
  name: {
  fr: 'Sources de risque',
  en: 'Risk sources',
+ de: 'Risikoquellen',
  },
  shortName: {
  fr: 'Sources',
  en: 'Sources',
+ de: 'Quellen',
  },
  description: {
  fr: 'Identifier et caractériser les sources de risque pertinentes et leurs objectifs visés pour l\'organisation.',
  en: 'Identify and characterize relevant risk sources and their targeted objectives for the organization.',
+ de: 'Relevante Risikoquellen und ihre angestrebten Ziele für die Organisation identifizieren und charakterisieren.',
  },
  objectives: {
  fr: [
@@ -639,20 +651,29 @@ export const WORKSHOP_INFO = {
  'Establish SR/TO pairs',
  'Prioritize for analysis',
  ],
+ de: [
+ 'Relevante Risikoquellen auswählen',
+ 'Angestrebte Ziele definieren',
+ 'SR/ZO-Paare erstellen',
+ 'Für Analyse priorisieren',
+ ],
  },
  },
  3: {
  name: {
  fr: 'Scénarios stratégiques',
  en: 'Strategic scenarios',
+ de: 'Strategische Szenarien',
  },
  shortName: {
  fr: 'Stratégique',
  en: 'Strategic',
+ de: 'Strategisch',
  },
  description: {
  fr: 'Construire une cartographie de l\'écosystème et élaborer les scénarios de menace de haut niveau.',
  en: 'Build an ecosystem map and develop high-level threat scenarios.',
+ de: 'Ökosystemkarte erstellen und hochrangige Bedrohungsszenarien entwickeln.',
  },
  objectives: {
  fr: [
@@ -667,20 +688,29 @@ export const WORKSHOP_INFO = {
  'Build strategic scenarios',
  'Assess gravity',
  ],
+ de: [
+ 'Ökosystem kartieren',
+ 'Angriffswege identifizieren',
+ 'Strategische Szenarien erstellen',
+ 'Schweregrad bewerten',
+ ],
  },
  },
  4: {
  name: {
  fr: 'Scénarios opérationnels',
  en: 'Operational scenarios',
+ de: 'Operative Szenarien',
  },
  shortName: {
  fr: 'Opérationnel',
  en: 'Operational',
+ de: 'Operativ',
  },
  description: {
  fr: 'Détailler les scénarios stratégiques en séquences d\'attaque techniques et évaluer la vraisemblance.',
  en: 'Detail strategic scenarios into technical attack sequences and assess likelihood.',
+ de: 'Strategische Szenarien in technische Angriffssequenzen detaillieren und Wahrscheinlichkeit bewerten.',
  },
  objectives: {
  fr: [
@@ -695,20 +725,29 @@ export const WORKSHOP_INFO = {
  'Assess likelihood',
  'Calculate risk levels',
  ],
+ de: [
+ 'Angriffsmodi detaillieren',
+ 'MITRE ATT&CK Techniken referenzieren',
+ 'Wahrscheinlichkeit bewerten',
+ 'Risikoniveaus berechnen',
+ ],
  },
  },
  5: {
  name: {
  fr: 'Traitement du risque',
  en: 'Risk treatment',
+ de: 'Risikobehandlung',
  },
  shortName: {
  fr: 'Traitement',
  en: 'Treatment',
+ de: 'Behandlung',
  },
  description: {
  fr: 'Définir la stratégie de traitement pour chaque risque et évaluer le risque résiduel.',
  en: 'Define treatment strategy for each risk and assess residual risk.',
+ de: 'Behandlungsstrategie für jedes Risiko definieren und Restrisiko bewerten.',
  },
  objectives: {
  fr: [
@@ -722,6 +761,12 @@ export const WORKSHOP_INFO = {
  'Select security measures',
  'Plan implementation',
  'Assess residual risk',
+ ],
+ de: [
+ 'Behandlungsstrategie wählen',
+ 'Sicherheitsmaßnahmen auswählen',
+ 'Umsetzung planen',
+ 'Restrisiko bewerten',
  ],
  },
  },

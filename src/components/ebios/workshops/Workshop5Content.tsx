@@ -57,40 +57,44 @@ const TREATMENT_STRATEGIES = [
  value: 'mitigate' as const,
  icon: ShieldCheck,
  color: 'blue',
- label: { fr: 'Réduire', en: 'Mitigate' },
+ label: { fr: 'Réduire', en: 'Mitigate', de: 'Mindern' },
  description: {
  fr: 'Mettre en place des mesures pour réduire le risque',
  en: 'Implement measures to reduce the risk',
+ de: 'Maßnahmen zur Risikominderung implementieren',
  },
  },
  {
  value: 'transfer' as const,
  icon: TrendingDown,
  color: 'purple',
- label: { fr: 'Transférer', en: 'Transfer' },
+ label: { fr: 'Transférer', en: 'Transfer', de: 'Übertragen' },
  description: {
  fr: 'Transférer le risque à un tiers (assurance, sous-traitance)',
  en: 'Transfer risk to a third party (insurance, outsourcing)',
+ de: 'Risiko auf Dritte übertragen (Versicherung, Outsourcing)',
  },
  },
  {
  value: 'avoid' as const,
  icon: XCircle,
  color: 'orange',
- label: { fr: 'Éviter', en: 'Avoid' },
+ label: { fr: 'Éviter', en: 'Avoid', de: 'Vermeiden' },
  description: {
  fr: 'Éviter l\'activité génératrice de risque',
  en: 'Avoid the risk-generating activity',
+ de: 'Die risikoverursachende Aktivität vermeiden',
  },
  },
  {
  value: 'accept' as const,
  icon: CheckCircle,
  color: 'green',
- label: { fr: 'Accepter', en: 'Accept' },
+ label: { fr: 'Accepter', en: 'Accept', de: 'Akzeptieren' },
  description: {
  fr: 'Accepter le risque en connaissance de cause',
  en: 'Accept the risk with full knowledge',
+ de: 'Das Risiko wissentlich akzeptieren',
  },
  },
 ];
@@ -98,17 +102,17 @@ const TREATMENT_STRATEGIES = [
 const TREATMENT_STATUS_OPTIONS = [
  {
  value: 'planned' as const,
- label: { fr: 'Planifié', en: 'Planned' },
+ label: { fr: 'Planifié', en: 'Planned', de: 'Geplant' },
  color: 'gray',
  },
  {
  value: 'in_progress' as const,
- label: { fr: 'En cours', en: 'In progress' },
+ label: { fr: 'En cours', en: 'In progress', de: 'In Bearbeitung' },
  color: 'blue',
  },
  {
  value: 'completed' as const,
- label: { fr: 'Terminé', en: 'Completed' },
+ label: { fr: 'Terminé', en: 'Completed', de: 'Abgeschlossen' },
  color: 'green',
  },
 ];
