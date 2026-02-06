@@ -262,6 +262,9 @@ export default {
         'fade-in': 'fadeIn 0.5s var(--ease-apple)',
         'slide-up': 'slideUp 0.4s var(--ease-apple)',
         'scale-in': 'scaleIn 0.3s var(--ease-apple)',
+        'pulse-gentle': 'pulse-gentle 6s ease-in-out infinite',
+        'pulse-slow': 'pulse-slow 8s ease-in-out infinite',
+        'blob': 'blob 15s infinite',
       },
       transitionTimingFunction: {
         'apple': 'var(--ease-apple)',
