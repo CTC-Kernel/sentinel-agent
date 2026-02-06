@@ -41,8 +41,9 @@ impl CartographyPage {
         }
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(
+        widgets::page_header_nav(
             ui,
+            &["Sys & Network", "Cartographie"],
             "Cartographie Réseau",
             Some("VISUALISATION TOPOLOGIQUE ET ANALYSE DES RELATIONS INTER-ACTIFS"),
             Some(
@@ -69,15 +70,7 @@ impl CartographyPage {
                     ui.add_space(theme::SPACE_LG);
 
                     // Reset layout button
-                    let reset_btn = egui::Button::new(
-                        egui::RichText::new("RÉINITIALISER")
-                            .font(theme::font_label())
-                            .color(theme::text_primary())
-                            .strong(),
-                    )
-                    .fill(theme::bg_elevated())
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                    if ui.add(reset_btn).clicked() {
+                    if widgets::secondary_button(ui, "RÉINITIALISER", true).clicked() {
                         state.graph_layout = None;
                         state.graph_zoom = 1.0;
                         state.graph_pan = Vec2::ZERO;
@@ -96,30 +89,14 @@ impl CartographyPage {
                     ui.add_space(theme::SPACE_LG);
 
                     // Open 3D view button
-                    let view3d_btn = egui::Button::new(
-                        egui::RichText::new(format!("VUE 3D {}", icons::EXTERNAL_LINK))
-                            .font(theme::font_label())
-                            .strong()
-                            .color(theme::text_on_accent()),
-                    )
-                    .fill(theme::ACCENT.linear_multiply(0.8))
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                    if ui.add(view3d_btn).clicked() {
+                    if widgets::primary_button(ui, format!("VUE 3D {}", icons::EXTERNAL_LINK), true).clicked() {
                         let _ = open::that("https://app.cyber-threat-consulting.com/voxel");
                     }
 
                     ui.add_space(theme::SPACE_MD);
 
                     // Export CSV
-                    let export_btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    )
-                    .fill(theme::bg_elevated())
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                    if ui.add(export_btn).clicked() {
+                    if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
                         Self::export_csv(state);
                     }
 
@@ -353,9 +330,7 @@ impl CartographyPage {
                     ui.with_layout(
                         egui::Layout::right_to_left(egui::Align::Center),
                         |ui: &mut egui::Ui| {
-                            if ui
-                                .button(egui::RichText::new(icons::XMARK).strong())
-                                .clicked()
+                            if widgets::icon_button(ui, icons::XMARK, Some("Fermer")).clicked()
                             {
                                 state.graph_selected_device = None;
                             }

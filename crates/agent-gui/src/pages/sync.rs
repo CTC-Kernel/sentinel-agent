@@ -15,8 +15,9 @@ impl SyncPage {
         let mut command = None;
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(
+        widgets::page_header_nav(
             ui,
+            &["Sys & Network", "Synchronisation"],
             "Synchronisation",
             Some(
                 "Gestion de la connectivit\u{00e9} et transfert de donn\u{00e9}es avec le serveur",
@@ -96,21 +97,7 @@ impl SyncPage {
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
                         // Force sync button
-                        let btn = egui::Button::new(
-                            egui::RichText::new(format!(
-                                "{}  SYNCHRONISER MAINTENANT",
-                                icons::SYNC
-                            ))
-                            .font(theme::font_body())
-                            .color(theme::text_on_accent())
-                            .strong(),
-                        )
-                        .fill(theme::ACCENT)
-                        .min_size(egui::vec2(220.0, 40.0))
-                        .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-
-                        let enabled = !state.sync_in_progress;
-                        if ui.add_enabled(enabled, btn).clicked() {
+                        if widgets::primary_button_loading(ui, format!("{}  SYNCHRONISER MAINTENANT", icons::SYNC), !state.sync_in_progress, state.sync_in_progress).clicked() {
                             command = Some(GuiCommand::ForceSync);
                         }
                     },

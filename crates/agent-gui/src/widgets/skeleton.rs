@@ -18,6 +18,8 @@ pub struct Skeleton {
     height: f32,
     shape: SkeletonShape,
     animated: bool,
+    /// Optional delay before showing (in seconds). Allocates space but renders nothing until elapsed.
+    delay_secs: Option<f64>,
 }
 
 impl Skeleton {
@@ -28,6 +30,7 @@ impl Skeleton {
             height,
             shape: SkeletonShape::Rectangle,
             animated: true,
+            delay_secs: None,
         }
     }
 
@@ -72,10 +75,36 @@ impl Skeleton {
         self
     }
 
+    /// Add a delay before showing the skeleton (prevents flash for fast loads).
+    /// Uses `theme::SKELETON_DELAY_MS` by default when called without args.
+    pub fn with_delay(mut self) -> Self {
+        self.delay_secs = Some(crate::theme::SKELETON_DELAY_MS as f64 / 1000.0);
+        self
+    }
+
     /// Show the skeleton.
     pub fn show(self, ui: &mut Ui) -> egui::Response {
         let (rect, response) =
             ui.allocate_exact_size(egui::vec2(self.width, self.height), egui::Sense::hover());
+
+        // Check delay: use an ID-based start time stored in egui memory
+        if let Some(delay) = self.delay_secs {
+            let delay_id = egui::Id::new("skeleton_delay").with(rect.min.x as u32).with(rect.min.y as u32);
+            let now = ui.input(|i| i.time);
+            let start_time: f64 = ui.memory(|mem| {
+                mem.data.get_temp::<f64>(delay_id).unwrap_or(now)
+            });
+            if start_time == now {
+                ui.memory_mut(|mem| mem.data.insert_temp(delay_id, now));
+            }
+            if now - start_time < delay {
+                ui.ctx().request_repaint();
+                return response;
+            }
+        }
+
+        // Respect reduced-motion preference
+        let animated = self.animated && !crate::theme::is_reduced_motion();
 
         if ui.is_rect_visible(rect) {
             let base_color = if theme::is_dark_mode() {
@@ -84,7 +113,7 @@ impl Skeleton {
                 Color32::from_rgb(230, 230, 235)
             };
 
-            let color = if self.animated {
+            let color = if animated {
                 let t = ui.input(|i| i.time);
                 let pulse = ((t * 1.5).sin() * 0.5 + 0.5) as f32;
                 let highlight = if theme::is_dark_mode() {
@@ -111,7 +140,7 @@ impl Skeleton {
 
             ui.painter().rect_filled(rect, rounding, color);
 
-            if self.animated {
+            if animated {
                 ui.ctx().request_repaint();
             }
         }

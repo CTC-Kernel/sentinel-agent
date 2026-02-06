@@ -16,8 +16,9 @@ impl DashboardPage {
         let mut command: Option<GuiCommand> = None;
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(
+        let _ = widgets::page_header_nav(
             ui,
+            &["Pilotage", "Tableau de bord"],
             "Tableau de bord",
             Some("CENTRE DE PILOTAGE GRC"),
             Some(

@@ -112,6 +112,14 @@ impl Modal {
 
         let mut result = ModalResult::None;
 
+        // Keyboard: Escape to dismiss, Enter to confirm
+        if self.show_close && ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
+            result = ModalResult::Dismiss;
+        }
+        if ctx.input(|i| i.key_pressed(egui::Key::Enter)) {
+            result = ModalResult::Confirm;
+        }
+
         // Backdrop
         let screen = ctx.screen_rect();
         egui::Area::new(egui::Id::new("modal_backdrop").with(self.id))

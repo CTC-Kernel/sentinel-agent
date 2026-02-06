@@ -4,6 +4,29 @@ use egui::Ui;
 
 use crate::theme;
 
+/// Draw a page header with breadcrumb navigation trail.
+///
+/// `breadcrumbs` is a list of navigation labels, e.g. `&["Pilotage", "Conformité"]`.
+/// The last item is rendered as the current (non-clickable) page.
+/// Returns the clicked breadcrumb index if any ancestor was clicked.
+pub fn page_header_nav(
+    ui: &mut Ui,
+    breadcrumbs: &[&str],
+    title: &str,
+    subtitle: Option<&str>,
+    help_text: Option<&str>,
+) -> Option<usize> {
+    let clicked = if breadcrumbs.len() > 1 {
+        let result = super::breadcrumb_with_home(ui, breadcrumbs);
+        ui.add_space(theme::SPACE_XS);
+        result
+    } else {
+        None
+    };
+    page_header(ui, title, subtitle, help_text);
+    clicked
+}
+
 /// Draw a page header with title, optional subtitle and contextual help.
 pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>, help_text: Option<&str>) {
     ui.vertical(|ui: &mut egui::Ui| {
@@ -38,8 +61,12 @@ pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>, help_text: 
         );
 
         if ui.is_rect_visible(rect) {
-            let time = ui.input(|i| i.time);
-            let shimmer = ((time * 1.5).sin() * 0.5 + 0.5) as f32;
+            let shimmer = if theme::is_reduced_motion() {
+                0.5
+            } else {
+                let time = ui.input(|i| i.time);
+                ((time * 1.5).sin() * 0.5 + 0.5) as f32
+            };
 
             // Gradient from accent to transparent
             let left_color = theme::ACCENT.linear_multiply(0.8 + shimmer * 0.2);
@@ -76,7 +103,9 @@ pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>, help_text: 
 
             ui.painter().add(mesh);
 
-            ui.ctx().request_repaint();
+            if !theme::is_reduced_motion() {
+                ui.ctx().request_repaint();
+            }
         }
     });
 }

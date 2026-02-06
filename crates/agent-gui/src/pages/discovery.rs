@@ -14,8 +14,9 @@ impl DiscoveryPage {
         let mut cmd: Option<crate::events::GuiCommand> = None;
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(
+        widgets::page_header_nav(
             ui,
+            &["Sys & Network", "Découverte"],
             "Reconnaissance Réseau",
             Some("IDENTIFICATION ET CARTOGRAPHIE DES ACTIFS SUR LE PÉRIMÈTRE LOCAL"),
             Some(
@@ -28,30 +29,14 @@ impl DiscoveryPage {
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
                 let is_scanning = state.discovery_in_progress;
-                let btn_label = if is_scanning {
-                    format!("{}  INTERROMPRE LE SCAN", icons::TRASH)
+
+                let btn_response = if is_scanning {
+                    widgets::destructive_button(ui, format!("{}  INTERROMPRE LE SCAN", icons::TRASH), true)
                 } else {
-                    format!("{}  LANCER LA DÉCOUVERTE", icons::PLAY)
+                    widgets::primary_button(ui, format!("{}  LANCER LA DÉCOUVERTE", icons::PLAY), true)
                 };
 
-                let btn_color = if is_scanning {
-                    theme::ERROR
-                } else {
-                    theme::SUCCESS
-                };
-
-                // AAA Primary button style
-                let btn = egui::Button::new(
-                    egui::RichText::new(btn_label)
-                        .font(theme::font_min())
-                        .strong()
-                        .color(theme::text_on_accent()),
-                )
-                .fill(btn_color.linear_multiply(0.9))
-                .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING))
-                .min_size(egui::vec2(200.0, 32.0));
-
-                if ui.add(btn).clicked() {
+                if btn_response.clicked() {
                     if is_scanning {
                         cmd = Some(crate::events::GuiCommand::StopDiscovery);
                     } else {
@@ -203,15 +188,7 @@ impl DiscoveryPage {
             ui.with_layout(
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
-                    let export_btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    )
-                    .fill(theme::bg_elevated())
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                    if ui.add(export_btn).clicked() {
+                    if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
                         Self::export_csv(state, &filtered);
                     }
                 },
@@ -376,16 +353,7 @@ impl DiscoveryPage {
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {
-                                let propose_btn = egui::Button::new(
-                                    egui::RichText::new(format!("{}  IDENTIFIER", icons::PLUS))
-                                        .font(theme::font_label())
-                                        .color(theme::text_on_accent())
-                                        .strong(),
-                                )
-                                .fill(theme::ACCENT.linear_multiply(0.8))
-                                .corner_radius(egui::CornerRadius::same(theme::BADGE_ROUNDING));
-
-                                if ui.add(propose_btn).clicked() {
+                                if widgets::chip_button(ui, &format!("{}  IDENTIFIER", icons::PLUS), false, theme::ACCENT).clicked() {
                                     cmd = Some(crate::events::GuiCommand::ProposeAsset {
                                         ip: device.ip.clone(),
                                         hostname: device.hostname.clone(),
