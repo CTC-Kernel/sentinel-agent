@@ -294,11 +294,10 @@ impl DgaDetector {
 
         // Find the TLD and return the part before it
         for i in (0..parts.len()).rev() {
-            if self.known_tlds.contains(parts[i]) {
-                if i > 0 {
+            if self.known_tlds.contains(parts[i])
+                && i > 0 {
                     return Some(parts[i - 1].to_string());
                 }
-            }
         }
 
         // If no known TLD, return the first part

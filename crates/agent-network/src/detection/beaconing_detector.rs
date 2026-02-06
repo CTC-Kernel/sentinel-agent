@@ -125,7 +125,7 @@ impl BeaconingDetector {
 
             self.connection_history
                 .entry(destination)
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(event);
 
             // Cleanup old entries
@@ -164,7 +164,7 @@ impl BeaconingDetector {
 
                 temp_history
                     .entry(destination)
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(event);
             }
         }
@@ -174,20 +174,18 @@ impl BeaconingDetector {
         for (dest, events) in temp_history {
             combined_history
                 .entry(dest)
-                .or_insert_with(Vec::new)
+                .or_default()
                 .extend(events);
         }
 
         for (destination, events) in &combined_history {
-            if let Some(analysis) = self.analyze_destination(destination, events) {
-                if analysis.is_beaconing {
-                    if let Some(conn) = connections.iter().find(|c| {
+            if let Some(analysis) = self.analyze_destination(destination, events)
+                && analysis.is_beaconing
+                    && let Some(conn) = connections.iter().find(|c| {
                         c.remote_address.as_ref().map(|a| destination.starts_with(a)) == Some(true)
                     }) {
                         alerts.push(self.create_alert(conn, &analysis));
                     }
-                }
-            }
         }
 
         alerts
@@ -285,9 +283,9 @@ impl BeaconingDetector {
         score += data_score;
 
         // Typical C2 intervals (1-15 minutes) = higher confidence (weight: 20%)
-        if avg_interval >= 60.0 && avg_interval <= 900.0 {
+        if (60.0..=900.0).contains(&avg_interval) {
             score += 20.0;
-        } else if avg_interval >= 30.0 && avg_interval <= 1800.0 {
+        } else if (30.0..=1800.0).contains(&avg_interval) {
             score += 10.0;
         }
 

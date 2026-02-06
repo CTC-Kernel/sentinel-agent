@@ -442,6 +442,7 @@ impl CertificateValidationCheck {
     }
 
     /// Parse OpenSSL certificate output.
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     fn parse_openssl_cert(&self, cert_info: &str, status: &mut CertificateValidationStatus) {
         let mut subject = String::new();
         let mut issuer = String::new();
@@ -482,8 +483,8 @@ impl CertificateValidationCheck {
         status.total_certificates += 1;
 
         let days = Self::days_until_expiry(&Some(expires.to_string()));
-        let is_expired = days.map_or(false, |d| d < 0);
-        let expiring_soon = days.map_or(false, |d| d >= 0 && d <= EXPIRATION_WARNING_DAYS);
+        let is_expired = days.is_some_and(|d| d < 0);
+        let expiring_soon = days.is_some_and(|d| (0..=EXPIRATION_WARNING_DAYS).contains(&d));
         let weak_algorithm = Self::is_weak_algorithm(algo);
         let is_self_signed = subject == issuer;
 

@@ -25,7 +25,7 @@ pub struct PaginationState {
 impl PaginationState {
     /// Create a new pagination state.
     pub fn new(total_items: usize, items_per_page: usize) -> Self {
-        let total_pages = (total_items + items_per_page - 1) / items_per_page;
+        let total_pages = total_items.div_ceil(items_per_page);
         Self {
             current_page: 1,
             total_pages: total_pages.max(1),
@@ -76,7 +76,7 @@ impl PaginationState {
     /// Update total items (recalculates total pages).
     pub fn set_total_items(&mut self, total: usize) {
         self.total_items = total;
-        self.total_pages = (total + self.items_per_page - 1) / self.items_per_page;
+        self.total_pages = total.div_ceil(self.items_per_page);
         self.total_pages = self.total_pages.max(1);
         self.current_page = self.current_page.clamp(1, self.total_pages);
     }
@@ -160,12 +160,11 @@ impl Pagination {
             }
 
             // First page button
-            if self.show_first_last {
-                if self.nav_button(ui, icons::CHEVRON_LEFT, true, state.current_page > 1) {
+            if self.show_first_last
+                && self.nav_button(ui, icons::CHEVRON_LEFT, true, state.current_page > 1) {
                     state.go_to(1);
                     changed = true;
                 }
-            }
 
             // Previous button
             if self.nav_button(ui, icons::CHEVRON_LEFT, false, state.has_prev()) {
@@ -210,8 +209,8 @@ impl Pagination {
             }
 
             // Last page button
-            if self.show_first_last {
-                if self.nav_button(
+            if self.show_first_last
+                && self.nav_button(
                     ui,
                     icons::CHEVRON_RIGHT,
                     true,
@@ -220,7 +219,6 @@ impl Pagination {
                     state.go_to(state.total_pages);
                     changed = true;
                 }
-            }
         });
 
         changed
@@ -415,7 +413,7 @@ impl Pagination {
             ui.painter().text(
                 rect.center(),
                 egui::Align2::CENTER_CENTER,
-                &page.to_string(),
+                page.to_string(),
                 theme::font_body(),
                 color,
             );
