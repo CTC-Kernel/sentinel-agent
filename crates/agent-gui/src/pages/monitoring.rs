@@ -83,10 +83,13 @@ impl MonitoringPage {
         ui.add_space(theme::SPACE_LG);
 
         // Main charts grid (CPU + Memory)
+        let cpu_data: Vec<[f64; 2]> = state.cpu_history.iter().copied().collect();
+        let mem_data: Vec<[f64; 2]> = state.memory_history.iter().copied().collect();
+
         let main_charts_grid = widgets::ResponsiveGrid::new(450.0, theme::SPACE_LG);
-        let main_items = vec![
-            ("CPU", &state.cpu_history, theme::SUCCESS, true),
-            ("MÉMOIRE", &state.memory_history, theme::ACCENT, true),
+        let main_items: Vec<(&str, &[[f64; 2]], egui::Color32, bool)> = vec![
+            ("CPU", &cpu_data, theme::SUCCESS, true),
+            ("MÉMOIRE", &mem_data, theme::ACCENT, true),
         ];
 
         main_charts_grid.show(
@@ -103,10 +106,13 @@ impl MonitoringPage {
         ui.add_space(theme::SPACE_LG);
 
         // IO charts grid (Disk + Network)
+        let disk_data: Vec<[f64; 2]> = state.disk_io_history.iter().copied().collect();
+        let net_data: Vec<[f64; 2]> = state.network_io_history.iter().copied().collect();
+
         let io_grid = widgets::ResponsiveGrid::new(450.0, theme::SPACE_LG);
-        let io_items = vec![
-            ("E/S DISQUE", &state.disk_io_history, theme::WARNING, true),
-            ("RÉSEAU", &state.network_io_history, theme::INFO, true),
+        let io_items: Vec<(&str, &[[f64; 2]], egui::Color32, bool)> = vec![
+            ("E/S DISQUE", &disk_data, theme::WARNING, true),
+            ("RÉSEAU", &net_data, theme::INFO, true),
         ];
 
         io_grid.show(

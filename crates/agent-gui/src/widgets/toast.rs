@@ -31,6 +31,22 @@ pub struct Toast {
     pub created_at: f64,
     pub dismissible: bool,
     pub dismissed: bool,
+    /// Custom duration override (if None, uses per-level default).
+    pub duration_override: Option<f64>,
+}
+
+impl Toast {
+    /// Get the display duration for this toast (per-level or custom override).
+    pub fn duration(&self) -> f64 {
+        if let Some(d) = self.duration_override {
+            return d;
+        }
+        match self.level {
+            ToastLevel::Error => theme::TOAST_DURATION_ERROR_SECS,
+            ToastLevel::Warning => theme::TOAST_DURATION_WARNING_SECS,
+            ToastLevel::Success | ToastLevel::Info => theme::TOAST_DURATION_SECS,
+        }
+    }
 }
 
 impl Toast {
@@ -41,6 +57,7 @@ impl Toast {
             created_at: 0.0,
             dismissible: true,
             dismissed: false,
+            duration_override: None,
         }
     }
     pub fn error(msg: impl Into<String>) -> Self {
@@ -50,6 +67,7 @@ impl Toast {
             created_at: 0.0,
             dismissible: true,
             dismissed: false,
+            duration_override: None,
         }
     }
     pub fn info(msg: impl Into<String>) -> Self {
@@ -59,6 +77,7 @@ impl Toast {
             created_at: 0.0,
             dismissible: true,
             dismissed: false,
+            duration_override: None,
         }
     }
     pub fn warning(msg: impl Into<String>) -> Self {
@@ -68,6 +87,7 @@ impl Toast {
             created_at: 0.0,
             dismissible: true,
             dismissed: false,
+            duration_override: None,
         }
     }
     pub fn with_time(mut self, time: f64) -> Self {
@@ -76,6 +96,10 @@ impl Toast {
     }
     pub fn persistent(mut self) -> Self {
         self.dismissible = false;
+        self
+    }
+    pub fn with_duration(mut self, secs: f64) -> Self {
+        self.duration_override = Some(secs);
         self
     }
 }
@@ -101,19 +125,28 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
         }
 
         let age = current_time - toast.created_at;
-        if age > theme::TOAST_DURATION_SECS {
+        let duration = toast.duration();
+        if age > duration {
             continue;
         }
 
         let mut toast_clone = toast.clone();
 
-        // Fade in/out
-        let alpha = if age < 0.2 {
-            (age / 0.2) as f32
-        } else if age > theme::TOAST_DURATION_SECS - 0.5 {
-            ((theme::TOAST_DURATION_SECS - age) / 0.5) as f32
+        // Fade + slide-up entrance, fade-out exit
+        let entrance_duration = 0.25;
+        let exit_start = duration - 0.5;
+        let alpha = if age < entrance_duration {
+            (age / entrance_duration) as f32
+        } else if age > exit_start {
+            ((duration - age) / 0.5) as f32
         } else {
             1.0
+        };
+        // Slide-up offset during entrance (slides from 12px below to 0)
+        let slide_offset = if age < entrance_duration {
+            12.0 * (1.0 - (age / entrance_duration) as f32)
+        } else {
+            0.0
         };
 
         let (icon, color) = match toast.level {
@@ -135,30 +168,30 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
         let toast_width = galley.size().x + 32.0 + close_width;
         let toast_height = 44.0;
 
-        // Calculate position based on ToastPosition
+        // Calculate position based on ToastPosition (with slide-up entrance offset)
         let toast_center = match position {
             ToastPosition::BottomCenter => {
                 egui::pos2(
                     screen.center().x,
-                    screen.max.y - 24.0 - y_offset - toast_height / 2.0,
+                    screen.max.y - 24.0 - y_offset - toast_height / 2.0 + slide_offset,
                 )
             }
             ToastPosition::TopCenter => {
                 egui::pos2(
                     screen.center().x,
-                    screen.min.y + 24.0 + y_offset + toast_height / 2.0,
+                    screen.min.y + 24.0 + y_offset + toast_height / 2.0 - slide_offset,
                 )
             }
             ToastPosition::TopRight => {
                 egui::pos2(
                     screen.max.x - toast_width / 2.0 - 24.0,
-                    screen.min.y + 24.0 + y_offset + toast_height / 2.0,
+                    screen.min.y + 24.0 + y_offset + toast_height / 2.0 - slide_offset,
                 )
             }
             ToastPosition::BottomRight => {
                 egui::pos2(
                     screen.max.x - toast_width / 2.0 - 24.0,
-                    screen.max.y - 24.0 - y_offset - toast_height / 2.0,
+                    screen.max.y - 24.0 - y_offset - toast_height / 2.0 + slide_offset,
                 )
             }
         };

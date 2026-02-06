@@ -3,7 +3,7 @@
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::GuiAgentStatus;
+use crate::dto::{GuiAgentStatus, Severity};
 
 use crate::events::GuiCommand;
 use crate::icons;
@@ -166,10 +166,10 @@ impl VulnerabilitiesPage {
         ui.add_space(theme::SPACE_LG);
 
         // Search / filter bar (AAA Grade)
-        let crit_active = state.vulnerability_severity_filter.as_deref() == Some("critical");
-        let high_active = state.vulnerability_severity_filter.as_deref() == Some("high");
-        let med_active = state.vulnerability_severity_filter.as_deref() == Some("medium");
-        let low_active = state.vulnerability_severity_filter.as_deref() == Some("low");
+        let crit_active = state.vulnerability_severity_filter == Some(Severity::Critical);
+        let high_active = state.vulnerability_severity_filter == Some(Severity::High);
+        let med_active = state.vulnerability_severity_filter == Some(Severity::Medium);
+        let low_active = state.vulnerability_severity_filter == Some(Severity::Low);
 
         let search_lower = state.vulnerability_search.to_lowercase();
 
@@ -185,16 +185,16 @@ impl VulnerabilitiesPage {
 
         if let Some(idx) = toggled {
             let target = match idx {
-                0 => Some("critical"),
-                1 => Some("high"),
-                2 => Some("medium"),
-                3 => Some("low"),
+                0 => Some(Severity::Critical),
+                1 => Some(Severity::High),
+                2 => Some(Severity::Medium),
+                3 => Some(Severity::Low),
                 _ => None,
             };
-            if state.vulnerability_severity_filter.as_deref() == target {
+            if state.vulnerability_severity_filter == target {
                 state.vulnerability_severity_filter = None;
             } else {
-                state.vulnerability_severity_filter = target.map(|s| s.to_string());
+                state.vulnerability_severity_filter = target;
             }
         }
 
@@ -430,13 +430,13 @@ impl VulnerabilitiesPage {
         });
     }
 
-    fn severity_display(severity: &str) -> (&'static str, egui::Color32) {
+    fn severity_display(severity: &Severity) -> (&'static str, egui::Color32) {
         match severity {
-            "critical" => ("CRITIQUE", theme::ERROR),
-            "high" => ("ÉLEVÉE", theme::WARNING),
-            "medium" => ("MOYENNE", theme::INFO),
-            "low" => ("FAIBLE", theme::text_tertiary()),
-            _ => ("INCONNUE", theme::text_tertiary()),
+            Severity::Critical => ("CRITIQUE", theme::ERROR),
+            Severity::High => ("ÉLEVÉE", theme::WARNING),
+            Severity::Medium => ("MOYENNE", theme::INFO),
+            Severity::Low => ("FAIBLE", theme::text_tertiary()),
+            Severity::Info => ("INFO", theme::text_tertiary()),
         }
     }
 
@@ -458,7 +458,7 @@ impl VulnerabilitiesPage {
                     f.cve_id.clone(),
                     f.affected_software.clone(),
                     f.affected_version.clone(),
-                    f.severity.clone(),
+                    f.severity.to_string(),
                     f.cvss_score.map_or("--".into(), |s| format!("{:.1}", s)),
                     f.description.clone(),
                     if f.fix_available { "Oui" } else { "Non" }.to_string(),

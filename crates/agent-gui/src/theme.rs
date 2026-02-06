@@ -79,7 +79,7 @@ pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 159, 10);
 #[inline]
 pub fn bg_primary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(3, 3, 5) // Deep Midnight OLED
+        Color32::from_rgb(16, 16, 20) // Softer dark - easier on OLED, retains depth
     } else {
         Color32::from_rgb(242, 242, 247) // System Gray 6 Light
     }
@@ -118,7 +118,7 @@ pub fn bg_tertiary() -> Color32 {
 #[inline]
 pub fn bg_sidebar() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(7, 7, 10) // Slightly lighter than background for depth
+        Color32::from_rgb(12, 12, 16) // Slightly darker than primary for depth separation
     } else {
         Color32::from_rgb(235, 235, 240)
     }
@@ -285,8 +285,8 @@ pub const OPACITY_STRONG: f32 = 0.85;
 
 /// Minimum table row height for readability and touch targets.
 pub const TABLE_ROW_HEIGHT: f32 = 36.0;
-/// Alternating row tint alpha.
-pub const TABLE_ALT_ROW_ALPHA: u8 = 6;
+/// Alternating row tint alpha (increased for better visibility).
+pub const TABLE_ALT_ROW_ALPHA: u8 = 12;
 
 /// Get alternating row background color.
 pub fn table_row_bg(row_index: usize) -> Color32 {
@@ -345,8 +345,30 @@ pub fn glass_border_bottom() -> Color32 {
 
 /// Duration for page fade transitions.
 pub const PAGE_TRANSITION_DURATION: f32 = 0.15;
-/// Duration for toast notification display.
+
+/// Fast animation (buttons, micro-interactions) - 150ms.
+pub const ANIM_FAST: f32 = 0.15;
+/// Normal animation (modals, panels, transitions) - 250ms.
+pub const ANIM_NORMAL: f32 = 0.25;
+/// Slow animation (page transitions, skeletons, emphasis) - 400ms.
+pub const ANIM_SLOW: f32 = 0.40;
+
+/// Skeleton shimmer animation speed (radians per second).
+pub const ANIM_SKELETON_SPEED: f32 = 1.5;
+/// Spinner rotation speed (rotations per second).
+pub const ANIM_SPINNER_SPEED: f64 = 1.5;
+/// Breathing/pulse animation speed (radians per second).
+pub const ANIM_PULSE_SPEED: f32 = 1.2;
+
+/// Default toast notification display duration (info/success).
 pub const TOAST_DURATION_SECS: f64 = 3.0;
+/// Longer toast duration for warnings.
+pub const TOAST_DURATION_WARNING_SECS: f64 = 4.5;
+/// Longer toast duration for errors (need more time to read).
+pub const TOAST_DURATION_ERROR_SECS: f64 = 6.0;
+
+/// Delay before showing skeleton loading (ms). Prevents flash for fast loads.
+pub const SKELETON_DELAY_MS: u64 = 200;
 
 // ============================================================================
 // Font helpers
@@ -591,6 +613,28 @@ pub fn severity_color(severity: &str) -> Color32 {
         "low" => INFO,               // #007AFF Blue
         "info" => text_secondary(),
         _ => text_secondary(),
+    }
+}
+
+/// Type-safe severity color using the Severity enum.
+pub fn severity_color_typed(severity: &crate::dto::Severity) -> Color32 {
+    match severity {
+        crate::dto::Severity::Critical => ERROR,
+        crate::dto::Severity::High => SEVERITY_HIGH,
+        crate::dto::Severity::Medium => SEVERITY_MEDIUM,
+        crate::dto::Severity::Low => INFO,
+        crate::dto::Severity::Info => text_secondary(),
+    }
+}
+
+/// Color for a LogLevel value.
+pub fn log_level_color(level: &crate::dto::LogLevel) -> Color32 {
+    match level {
+        crate::dto::LogLevel::Error => ERROR,
+        crate::dto::LogLevel::Warn => WARNING,
+        crate::dto::LogLevel::Info => INFO,
+        crate::dto::LogLevel::Debug => text_secondary(),
+        crate::dto::LogLevel::Trace => text_tertiary(),
     }
 }
 
