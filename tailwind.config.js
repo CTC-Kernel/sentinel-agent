@@ -211,13 +211,13 @@ export default {
       },
       letterSpacing: {
         'tightest': '-0.06em',
-        'tighter': '-0.04em',
-        'tight': '-0.02em',
+        'tighter': 'var(--tracking-tighter)',
+        'tight': 'var(--tracking-tight)',
         'snug': '-0.01em',
-        'normal': '0em',
-        'wide': '0.01em',
-        'wider': '0.02em',
-        'widest': '0.05em',
+        'normal': 'var(--tracking-normal)',
+        'wide': 'var(--tracking-wide)',
+        'wider': 'var(--tracking-wider)',
+        'widest': 'var(--tracking-widest)',
       },
       boxShadow: {
         // Elevation system (use CSS variables for theme-aware shadows)

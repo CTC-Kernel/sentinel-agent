@@ -68,7 +68,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({
   animate={{ scaleX: 1, opacity: 1 }}
   exit={{ opacity: 0 }}
   transition={{ duration: 0.5, ease: "easeInOut" }}
-  className="absolute -top-1 left-0 right-0 h-0.5 bg-primary origin-left z-30 rounded-full shadow-[0_0_8px_rgba(var(--brand-500-rgb),0.5)]"
+  className="absolute -top-1 left-0 right-0 h-0.5 bg-primary origin-left z-30 rounded-full shadow-glow"
   />
  )}
  </AnimatePresence>
@@ -135,7 +135,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({
   <span className="relative">{tab.label}</span>
 
   {tab.count !== undefined && !isLoading && (
-  <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[11px] font-bold transition-colors ${isActive
+  <span className={`ml-2 px-1.5 py-0.5 rounded-full text-xs font-bold transition-colors ${isActive
    ? 'bg-primary text-primary-foreground'
    : 'bg-muted text-muted-foreground'
    }`}>

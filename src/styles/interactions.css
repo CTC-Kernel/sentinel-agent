@@ -13,6 +13,10 @@
   transition: all var(--transition-slow);
 }
 
+.hover-secondary:hover {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
 .hover-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 30px -4px hsl(var(--primary) / 0.2);

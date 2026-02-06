@@ -175,10 +175,10 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
 
             <aside className={`
  fixed inset-y-0 left-0 lg:inset-y-auto lg:sticky lg:top-0 z-sidebar w-[82vw] max-w-[320px] lg:w-[260px]
- bg-[var(--glass-bg)] dark:bg-[var(--glass-bg)]
- backdrop-blur-xl border-r border-border/40
+ bg-[var(--glass-bg)]
+ backdrop-blur-[var(--glass-blur-md)] border-r border-border/40
  shadow-[var(--glass-shadow)] lg:shadow-none
- transform transition-transform duration-500 cubic-bezier(0.19, 1, 0.22, 1)
+ transform transition-transform duration-500 ease-apple
  ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
  flex flex-col pb-8 pt-4 pt-safe pb-safe lg:pb-6 min-h-0 lg:h-screen
  `}
@@ -196,15 +196,15 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                             <Lock className="h-5 w-5" strokeWidth={2.5} />
                         </div>
                         <div className="flex flex-col justify-center">
-                            <h1 className="text-[17px] font-extrabold font-display tracking-tight text-foreground leading-none">Sentinel</h1>
-                            <span className="text-[11px] font-bold text-muted-foreground tracking-[0.4em] mt-1 uppercase">GRC</span>
+                            <h1 className="text-lg font-extrabold font-display tracking-tight text-foreground leading-none">Sentinel</h1>
+                            <span className="text-xs font-bold text-muted-foreground tracking-[0.4em] mt-1 uppercase">GRC</span>
                         </div>
                     </a>
                     {/* Mobile Close Button */}
                     <button
                         aria-label={t('common.closeMenu')}
                         onClick={() => setMobileOpen(false)}
-                        className="lg:hidden p-2 -mr-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+                        className="lg:hidden p-2 -mr-2 text-muted-foreground hover:text-foreground transition-colors rounded-xl hover:bg-muted"
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -232,7 +232,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                                             onClick={() => setMobileOpen(false)}
                                             data-tour={`${item.key}-nav`}
                                             className={({ isActive }) => `
-  group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight 
+  group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium tracking-tight
   transition-all duration-300 active:duration-75 active:scale-95 ease-apple
   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary overflow-hidden
   ${isActive
@@ -242,14 +242,14 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                                         >
                                             {({ isActive }) => (
                                                 <>
-                                                    <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-300 ${isActive ? 'text-white bg-white/20 shadow-[0_0_10px_rgba(255,255,255,0.3)]' : `${groupIconColor} group-hover:text-foreground`}`}>
+                                                    <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-all duration-300 ${isActive ? 'text-white bg-white/20 shadow-lg' : `${groupIconColor} group-hover:text-foreground`}`}>
                                                         <item.icon className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                                                     </span>
                                                     <span className="flex-1 truncate relative z-decorator">{item.name}</span>
                                                     {isActive && (
                                                         <motion.span
                                                             layoutId="sidebar-active-indicator"
-                                                            className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-4 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"
+                                                            className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-4 rounded-full bg-white shadow-lg"
                                                             aria-hidden="true"
                                                             transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                                                         />
@@ -270,7 +270,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                         to="/help"
                         onClick={() => setMobileOpen(false)}
                         className={({ isActive }) => `
- group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary overflow-hidden
+ group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium tracking-tight transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary overflow-hidden
  ${isActive
                                 ? 'bg-gradient-primary text-primary-foreground shadow-lg shadow-primary/25'
                                 : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:translate-x-1'}
@@ -278,14 +278,14 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                     >
                         {({ isActive }) => (
                             <>
-                                <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-200 ${isActive ? 'text-white bg-white/20' : 'text-nav-support group-hover:text-foreground'}`}>
+                                <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-all duration-300 ${isActive ? 'text-white bg-white/20 shadow-lg' : 'text-nav-support group-hover:text-foreground'}`}>
                                     <HelpCircle className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                                 </span>
                                 <span className="flex-1 truncate relative z-decorator">{t('common.helpCenter')}</span>
                                 {isActive && (
                                     <motion.span
                                         layoutId="sidebar-active-indicator"
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-5 rounded-full bg-white/70 shadow-sm"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-4 rounded-full bg-white shadow-lg"
                                         aria-hidden="true"
                                         transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                                     />
@@ -300,20 +300,20 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                         to="/settings"
                         data-tour="settings"
                         className={({ isActive }) => `
- group flex items-center gap-3 px-3 py-2.5 text-[13px] font-semibold rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary overflow-hidden
+ group flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary overflow-hidden
  ${isActive ? 'bg-gradient-primary text-primary-foreground shadow-lg shadow-primary/25' : 'text-muted-foreground hover:bg-background/50 hover:text-foreground'}
  `}
                     >
                         {({ isActive }) => (
                             <>
-                                <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-200 ${isActive ? 'text-white bg-white/20' : 'bg-muted text-muted-foreground group-hover:bg-background/80 group-hover:text-foreground'}`}>
+                                <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-all duration-300 ${isActive ? 'text-white bg-white/20 shadow-lg' : 'bg-muted text-muted-foreground group-hover:bg-background/80 group-hover:text-foreground'}`}>
                                     <Settings className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                                 </span>
                                 <span className="flex-1 relative z-decorator">{t('sidebar.settings')}</span>
                                 {isActive ? (
                                     <motion.span
                                         layoutId="sidebar-active-indicator"
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-5 rounded-full bg-white/70 shadow-sm"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-4 rounded-full bg-white shadow-lg"
                                         aria-hidden="true"
                                         transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                                     />
@@ -327,7 +327,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                         variant="ghost"
                         onClick={handleLogout}
                         disabled={isLoggingOut}
-                        className="w-full justify-start px-3 py-2.5 h-auto text-[13px] font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20 dark:hover:text-destructive-300 rounded-xl"
+                        className="w-full justify-start px-3 py-2.5 h-auto text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20 dark:hover:text-destructive-300 rounded-xl"
                     >
                         <span className="flex h-8 w-8 items-center justify-center rounded-lg text-destructive mr-3 bg-destructive/10">
                             {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" strokeWidth={2} />}
@@ -340,7 +340,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                             href="https://cyber-threat-consulting.com/about"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full flex items-center justify-center gap-2 h-8 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors hover:bg-muted/50 rounded-lg no-underline"
+                            className="w-full flex items-center justify-center gap-2 h-8 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors hover:bg-muted/50 rounded-xl no-underline"
                         >
                             <Info className="h-3 w-3" />
                             <span>{t('sidebar.about')}</span>
@@ -349,7 +349,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                             variant="ghost"
                             size="sm"
                             onClick={() => setShowLegalModal(true)}
-                            className="w-full flex items-center justify-center gap-2 h-8 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+                            className="w-full flex items-center justify-center gap-2 h-8 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                         >
                             <Scale className="h-3 w-3" />
                             <span>{t('settings.mentionsLegales')}</span>

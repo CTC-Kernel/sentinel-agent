@@ -63,19 +63,6 @@
     mix-blend-mode: overlay;
   }
 
-  /* Premium Scrollbar Styling */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/20 rounded-full border-[3px] border-transparent bg-clip-padding hover:bg-muted-foreground/40;
-  }
 }
 
 /* ===== UTILITY CLASSES - Glass & Effects ===== */
@@ -317,7 +304,8 @@ h6, .heading-6 {
 /* Premium Input Styles - Glass Effect */
 .glass-input {
   background: var(--glass-bg);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
   border: 1px solid hsl(var(--border));
   transition: all 0.2s var(--ease-apple);
   border-radius: var(--radius-md);

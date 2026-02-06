@@ -225,7 +225,7 @@ export const CommandPalette: React.FC = () => {
   />
   <div className="hidden sm:flex items-center gap-2">
   {loading && <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>}
-  <kbd className="inline-flex items-center gap-1 px-2.5 py-1 bg-muted rounded-lg text-[11px] font-bold text-muted-foreground tracking-wider shadow-sm border border-border/40 font-mono">
+  <kbd className="inline-flex items-center gap-1 px-2.5 py-1 bg-muted rounded-lg text-xs font-bold text-muted-foreground tracking-wider shadow-sm border border-border/40 font-mono">
   ESC
   </kbd>
   </div>
@@ -262,7 +262,7 @@ export const CommandPalette: React.FC = () => {
    {item.subtitle && <span className={`text-xs block mt-0.5 ${index === selectedIndex ? 'text-white/80' : 'text-muted-foreground'}`}>{item.subtitle}</span>}
    </div>
    <div className="flex items-center">
-   <span className={`text-[11px] uppercase tracking-wider font-bold mr-3 px-2 py-0.5 rounded-md ${index === selectedIndex
+   <span className={`text-xs uppercase tracking-wider font-bold mr-3 px-2 py-0.5 rounded-md ${index === selectedIndex
    ? 'bg-white/20 text-white border border-white/20'
    : 'bg-muted text-muted-foreground border border-border/40'
    }`}>{item.category}</span>
@@ -274,7 +274,7 @@ export const CommandPalette: React.FC = () => {
   )}
  </div>
 
- <div className="px-6 py-3 bg-muted/50 border-t border-border/40 flex justify-between items-center text-[11px] font-medium text-muted-foreground uppercase tracking-wider backdrop-blur-md relative z-decorator">
+ <div className="px-6 py-3 bg-muted/50 border-t border-border/40 flex justify-between items-center text-xs font-medium text-muted-foreground uppercase tracking-wider backdrop-blur-md relative z-decorator">
   <span className="flex items-center gap-2">
   <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
   <span className="font-bold">Sentinel GRC Pro</span>

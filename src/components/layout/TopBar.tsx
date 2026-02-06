@@ -92,14 +92,14 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
     }, [toggleTheme, user, theme, updateUser]);
 
     return (
-        <header className="h-16 pt-safe z-sticky sticky top-0 bg-[var(--glass-bg)] backdrop-blur-xl border-b border-[var(--glass-border)] transition-all duration-300 px-4 md:px-8 shadow-sm dark:shadow-none">
+        <header className="h-16 pt-safe z-header sticky top-0 bg-[var(--glass-bg)] backdrop-blur-[var(--glass-blur-md)] border-b border-[var(--glass-border)] transition-all duration-300 px-4 md:px-8 shadow-sm dark:shadow-none">
             <div className="h-full max-w-[1600px] mx-auto flex items-center justify-between">
                 {/* Left: Mobile Menu & Search Trigger */}
                 <div className="flex items-center flex-1 gap-4">
                     <button
                         aria-label={mobileOpen ? t('layout.topbar.closeMobileMenuAriaLabel', { defaultValue: 'Fermer le menu mobile' }) : t('layout.topbar.openMobileMenuAriaLabel', { defaultValue: 'Ouvrir le menu mobile' })}
                         onClick={() => setMobileOpen(!mobileOpen)}
-                        className="p-2.5 -ml-2 text-muted-foreground hover:text-foreground transition-all lg:hidden rounded-lg hover:bg-muted"
+                        className="p-2.5 -ml-2 text-muted-foreground hover:text-foreground transition-all lg:hidden rounded-xl hover:bg-muted"
                     >
                         <div className="relative h-5 w-5">
                             <Menu className={`h-5 w-5 absolute inset-0 transition-all duration-300 ${mobileOpen ? 'opacity-0 rotate-90 scale-75' : 'opacity-70 rotate-0 scale-100'}`} />
@@ -129,7 +129,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                     <button
                         aria-label={t('layout.topbar.searchMobileAriaLabel', { defaultValue: 'Rechercher' })}
                         onClick={openCommandPalette}
-                        className="md:hidden p-2.5 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+                        className="md:hidden p-2.5 text-muted-foreground hover:text-foreground transition-colors rounded-xl hover:bg-muted"
                     >
                         <Search className="h-5 w-5" />
                     </button>
@@ -145,7 +145,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                     {isSuperAdmin && (
                         <Link
                             to="/admin_management"
-                            className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-error-bg text-error-text rounded-lg text-sm font-medium hover:opacity-80 transition-opacity"
+                            className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-error-bg text-error-text rounded-xl text-sm font-medium hover:opacity-80 transition-opacity"
                         >
                             <Shield className="h-4 w-4" />
                             {t('common.adminShort')}
@@ -163,7 +163,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                             data-tour="theme-toggle"
                             onClick={handleThemeToggle}
                             disabled={isTogglingTheme}
-                            className={`p-2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all focus:outline-none focus:ring-2 focus-visible:ring-primary ${isTogglingTheme ? 'opacity-50 cursor-wait animate-pulse' : ''}`}
+                            className={`p-2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isTogglingTheme ? 'opacity-50 cursor-wait animate-pulse' : ''}`}
                             aria-label={t('layout.topbar.toggleThemeAriaLabel', { defaultValue: 'Toggle Theme' })}
                         >
                             {isTogglingTheme ? <Spinner size="sm" /> : (theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />)}
@@ -174,12 +174,12 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                         <button
                             aria-label={t('layout.topbar.userMenuAriaLabel', { defaultValue: 'Menu utilisateur' })}
                             data-tour="header-profile"
-                            className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-[var(--glass-bg)] transition-all group focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-[var(--glass-bg)] transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                             onClick={() => setShowUserMenu(!showUserMenu)}
                         >
                             <div className="hidden sm:flex flex-col items-end mr-1">
                                 <span className="text-sm font-bold text-foreground leading-none">{user?.displayName || t('common.user', { defaultValue: 'Utilisateur' })}</span>
-                                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mt-0.5">{user?.role || t('common.defaultRole', { defaultValue: 'Utilisateur' })}</span>
+                                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide mt-0.5">{user?.role || t('common.defaultRole', { defaultValue: 'Utilisateur' })}</span>
                             </div>
                             <div className="relative">
                                 <img
@@ -203,7 +203,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                             setLanguage(language === 'fr' ? 'en' : 'fr');
                                             setShowUserMenu(false);
                                         }}
-                                        className="w-full flex items-center px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted/50 rounded-lg transition-colors"
+                                        className="w-full flex items-center px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted/50 rounded-xl transition-colors"
                                     >
                                         <Globe className="h-4 w-4 mr-3 text-muted-foreground" />
                                         {t('common.switchLanguage', { defaultValue: language === 'fr' ? 'Switch to English' : 'Passer en Français' })}
@@ -211,7 +211,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                     <Link
                                         to="/settings"
                                         onClick={() => setShowUserMenu(false)}
-                                        className="flex items-center px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted/50 rounded-lg transition-colors"
+                                        className="flex items-center px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted/50 rounded-xl transition-colors"
                                     >
                                         <User className="h-4 w-4 mr-3 text-muted-foreground" />
                                         {t('settings.myProfile')}
@@ -219,7 +219,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                     <Link
                                         to="/settings"
                                         onClick={() => setShowUserMenu(false)}
-                                        className="flex items-center px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted/50 rounded-lg transition-colors"
+                                        className="flex items-center px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted/50 rounded-xl transition-colors"
                                     >
                                         <SettingsIcon className="h-4 w-4 mr-3 text-muted-foreground" />
                                         {t('common.settings.title')}
@@ -227,9 +227,9 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                     <Link
                                         to="/pricing"
                                         onClick={() => setShowUserMenu(false)}
-                                        className="flex items-center px-3 py-2 text-sm font-medium text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                                        className="flex items-center px-3 py-2 text-sm font-medium text-primary hover:bg-primary/5 rounded-xl transition-colors"
                                     >
-                                        <span className="w-4 h-4 mr-3 flex items-center justify-center font-serif italic font-black border border-current rounded-full text-[11px]">€</span>
+                                        <span className="w-4 h-4 mr-3 flex items-center justify-center font-serif italic font-black border border-current rounded-full text-xs">€</span>
                                         {t('settings.plansAndBilling')}
                                     </Link>
                                     <a
@@ -237,7 +237,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         onClick={() => setShowUserMenu(false)}
-                                        className="flex items-center px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted/50 rounded-lg transition-colors"
+                                        className="flex items-center px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted/50 rounded-xl transition-colors"
                                     >
                                         <Info className="h-4 w-4 mr-3 text-muted-foreground" />
                                         {t('sidebar.about')}
@@ -245,7 +245,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                     <button
                                         aria-label={t('common.giveFeedback', { defaultValue: 'Donner un avis' })}
                                         onClick={() => { setShowUserMenu(false); setShowFeedback(true); }}
-                                        className="w-full flex items-center px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted/50 rounded-lg transition-colors"
+                                        className="w-full flex items-center px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted/50 rounded-xl transition-colors"
                                     >
                                         <MessageSquare className="h-4 w-4 mr-3 text-muted-foreground" />
                                         {t('common.giveFeedback', { defaultValue: 'Donner un avis' })}
@@ -258,7 +258,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                         variant="ghost"
                                         onClick={() => { handleLogout(); setShowUserMenu(false); }}
                                         isLoading={isLoggingOut}
-                                        className="w-full justify-start px-3 py-2 text-sm font-medium text-error-text hover:bg-error-bg rounded-lg transition-colors border-none"
+                                        className="w-full justify-start px-3 py-2 text-sm font-medium text-error-text hover:bg-error-bg rounded-xl transition-colors border-none"
                                     >
                                         {!isLoggingOut && <LogOut className="h-4 w-4 mr-3" />}
                                         {t('common.logout')}

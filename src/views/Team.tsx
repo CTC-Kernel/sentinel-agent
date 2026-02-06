@@ -31,7 +31,8 @@ import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { ImportService } from '../services/ImportService';
-import { Upload } from '../components/ui/Icons';
+import { Upload, Shield as ShieldIcon } from '../components/ui/Icons';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 
 const Team: React.FC = () => {
  const { t } = useLocale();
@@ -189,9 +190,11 @@ const Team: React.FC = () => {
  }).length, [users]);
  const activityRate = users.length > 0 ? (activeUsersLast30Days / users.length) * 100 : 0;
 
- const handleMembersTab = React.useCallback(() => setActiveTab('members'), [setActiveTab]);
- const handleRolesTab = React.useCallback(() => setActiveTab('roles'), [setActiveTab]);
- const handleGroupsTab = React.useCallback(() => setActiveTab('groups'), [setActiveTab]);
+ const teamTabs = React.useMemo(() => [
+ { id: 'members', label: t('team.tabs.members'), icon: Users },
+ { id: 'roles', label: t('team.tabs.roles'), icon: ShieldIcon },
+ { id: 'groups', label: t('team.tabs.groups'), icon: User },
+ ], [t]);
 
  const handleCloseConfirm = React.useCallback(() => {
  setConfirmData(prev => ({ ...prev, isOpen: false }));
@@ -236,7 +239,7 @@ const Team: React.FC = () => {
  />
 
  {/* Summary Card */}
- <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-3xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden shadow-apple transition-all duration-500">
+ <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-3xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group overflow-hidden shadow-apple transition-all duration-500">
  <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
   <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 dark:bg-primary/60/15 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70 opacity-70"></div>
  </div>
@@ -271,7 +274,7 @@ const Team: React.FC = () => {
   <span className={`text-2xl font-black ${activityRate >= 80 ? 'text-success-text' : activityRate >= 50 ? 'text-primary' : 'text-warning-text'}`}>
   {Math.round(activityRate)}%
   </span>
-  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{t('team.stats.activeLabel', { defaultValue: 'Actif' })}</span>
+  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('team.stats.activeLabel', { defaultValue: 'Actif' })}</span>
   </div>
   </div>
   <div>
@@ -308,40 +311,13 @@ const Team: React.FC = () => {
  </div>
  </motion.div>
 
- <motion.div variants={slideUpVariants} className="flex space-x-1 bg-muted/50/20 p-1.5 rounded-2xl w-fit backdrop-blur-sm border border-border/50">
- <button
-  type="button"
-  aria-label={t('team.tabs.members')}
-  onClick={handleMembersTab}
-  className={`px-6 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'members'
-  ? 'bg-card text-foreground shadow-apple-sm'
-  : 'text-muted-foreground hover:text-foreground/40'
-  }`}
- >
-  {t('team.tabs.members')}
- </button>
- <button
-  type="button"
-  aria-label={t('team.tabs.roles')}
-  onClick={handleRolesTab}
-  className={`px-6 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'roles'
-  ? 'bg-card text-foreground shadow-apple-sm'
-  : 'text-muted-foreground hover:text-foreground/40'
-  }`}
- >
-  {t('team.tabs.roles')}
- </button>
- <button
-  type="button"
-  aria-label={t('team.tabs.groups')}
-  onClick={handleGroupsTab}
-  className={`px-6 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'groups'
-  ? 'bg-card text-foreground shadow-apple-sm'
-  : 'text-muted-foreground hover:text-foreground/40'
-  }`}
- >
-  {t('team.tabs.groups')}
- </button>
+ <motion.div variants={slideUpVariants}>
+ <ScrollableTabs
+  tabs={teamTabs}
+  activeTab={activeTab}
+  onTabChange={(id) => setActiveTab(id as 'members' | 'roles' | 'groups')}
+  isChanging={loading}
+ />
  </motion.div>
 
  {activeTab === 'roles' ? (

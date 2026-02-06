@@ -113,11 +113,9 @@ const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
  role="tabpanel"
  aria-labelledby={`tab-${value}`}
  data-state={isActive ? "active" : "inactive"}
- style={{
-  display: isActive ? 'block' : 'none'
- }}
  className={cn(
   "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+  isActive ? "block" : "hidden",
   className
  )}
  {...props}

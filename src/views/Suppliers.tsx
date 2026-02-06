@@ -455,7 +455,7 @@ export const Suppliers: React.FC = () => {
  variants={staggerContainerVariants}
  initial="initial"
  animate="visible"
- className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-20 min-w-0"
+ className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24 min-w-0"
  >
  <MasterpieceBackground />
  <SEO

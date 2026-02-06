@@ -24,7 +24,7 @@ export const Badge: React.FC<BadgeProps> = React.memo(({
  ...props
 }) => {
  // Base styles - added focus styles for accessibility
- const baseStyles = "inline-flex items-center justify-center font-medium transition-all duration-200 animate-badge-in focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1";
+ const baseStyles = "inline-flex items-center justify-center font-medium transition-all duration-200 animate-badge-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1";
 
  // Size styles - WCAG AAA: increased font sizes from 10px/12px to 11px/13px minimum
  // Also ensured minimum touch target height of 24px
