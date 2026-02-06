@@ -293,7 +293,7 @@ describe('VoxelGuidedTour', () => {
  fireEvent.click(screen.getByText('Start Tour'));
 
  // Progress bar should be visible (check for progress element)
- const progressBar = document.querySelector('[class*="bg-blue-500"]');
+ const progressBar = document.querySelector('[style*="hsl(var(--chart-series-1))"]');
  expect(progressBar).toBeTruthy();
  if (progressBar) {
  expect(progressBar).toBeInTheDocument();

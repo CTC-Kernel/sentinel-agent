@@ -271,7 +271,7 @@ vi.mock('../Calendar', () => ({
 }));
 
 // Mock useLocale hook to return French locale
-vi.mock('../../hooks/useLocale', () => ({
+vi.mock('@/hooks/useLocale', () => ({
  useLocale: () => ({
   locale: 'fr' as const,
   config: {
