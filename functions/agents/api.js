@@ -570,7 +570,9 @@ app.post('/v1/agents/:agentId/heartbeat', validateAgentAuth, async (req, res) =>
         if (last_check_at) {
             updateData.lastCheckAt = last_check_at;
         }
-        // compliance_score intentionally NOT accepted from agent - calculated server-side only
+        if (typeof compliance_score === 'number') {
+            updateData.proposedComplianceScore = compliance_score;
+        }
         if (typeof pending_sync_count === 'number') {
             updateData.pendingSyncCount = pending_sync_count;
         }
@@ -580,6 +582,36 @@ app.post('/v1/agents/:agentId/heartbeat', validateAgentAuth, async (req, res) =>
 
         // Update agent document
         await agentDoc.ref.update(updateData);
+
+        // 1. Log to metrics_history for historical charts
+        const metricsSnapshot = {
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            cpuPercent: updateData.cpuPercent || 0,
+            memoryBytes: updateData.memoryBytes || 0,
+            memoryPercent: updateData.memoryPercent || 0,
+            diskPercent: updateData.diskPercent || 0,
+            networkBytesSent: updateData.networkBytesSent || 0,
+            networkBytesRecv: updateData.networkBytesRecv || 0,
+        };
+        await agentDoc.ref.collection('metrics_history').add(metricsSnapshot);
+
+        // 2. Snapshot latest processes for Live View
+        if (req.body.processes && Array.isArray(req.body.processes)) {
+            // We store the whole list in a doc or separate docs. 
+            // For efficiency with small lists (20 items), a single doc is often faster for the frontend to subscribe to.
+            await agentDoc.ref.collection('live_data').doc('processes').set({
+                processes: req.body.processes,
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        // 3. Snapshot latest connections for Live View
+        if (req.body.connections && Array.isArray(req.body.connections)) {
+            await agentDoc.ref.collection('live_data').doc('connections').set({
+                connections: req.body.connections,
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+        }
 
         // Check for pending commands
         const commandsSnapshot = await db
@@ -1364,6 +1396,99 @@ app.post('/v1/agents/:agentId/cis', validateAgentAuth, async (req, res) => {
         return await uploadCISResults(req, res, agentId, agentDoc, agentData);
     } catch (error) {
         logger.error('CIS results upload error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
+// Report Command Execution Result - SECURED
+// POST /v1/agents/:agentId/commands/:commandId/results
+// ============================================================================
+app.post('/v1/agents/:agentId/commands/:commandId/results', validateAgentAuth, async (req, res) => {
+    try {
+        const { agentId, commandId } = req.params;
+        const agentData = req.agentData;
+        const organizationId = agentData.organizationId;
+        const { status, output, error, completed_at } = req.body;
+
+        if (!status || !['success', 'failed'].includes(status)) {
+            return res.status(400).json({ error: 'Valid status (success|failed) is required' });
+        }
+
+        const commandRef = db
+            .collection('organizations')
+            .doc(organizationId)
+            .collection('agents')
+            .doc(agentId)
+            .collection('commands')
+            .doc(commandId);
+
+        const commandDoc = await commandRef.get();
+        if (!commandDoc.exists) {
+            return res.status(404).json({ error: 'Command not found' });
+        }
+
+        await commandRef.update({
+            status: status === 'success' ? 'completed' : 'failed',
+            output: output || null,
+            error: error || null,
+            completedAt: completed_at ? admin.firestore.Timestamp.fromDate(new Date(completed_at)) : admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        logger.info(`Command ${commandId} result reported by agent ${agentId}: ${status}`);
+
+        return res.status(200).json({ acknowledged: true });
+    } catch (error) {
+        logger.error('Report command result error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
+// Sync Agent Audit Trail - SECURED
+// POST /v1/agents/:agentId/audit-trail
+// ============================================================================
+app.post('/v1/agents/:agentId/audit-trail', validateAgentAuth, async (req, res) => {
+    try {
+        const { agentId } = req.params;
+        const agentData = req.agentData;
+        const organizationId = agentData.organizationId;
+        const { entries } = req.body;
+
+        if (!entries || !Array.isArray(entries)) {
+            return res.status(400).json({ error: 'Entries array is required' });
+        }
+
+        const auditLogsRef = db.collection('organizations').doc(organizationId).collection('auditLogs');
+        const batch = db.batch();
+
+        for (const entry of entries) {
+            const { action, actor, details, timestamp, metadata } = entry;
+            const newLogRef = auditLogsRef.doc();
+            batch.set(newLogRef, {
+                type: 'agent_action',
+                agentId,
+                hostname: agentData.hostname,
+                action,
+                actor: actor || 'agent',
+                details: details || '',
+                metadata: metadata || {},
+                timestamp: timestamp ? admin.firestore.Timestamp.fromDate(new Date(timestamp)) : admin.firestore.FieldValue.serverTimestamp(),
+                source: 'agent_sync',
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+        }
+
+        await batch.commit();
+        logger.info(`Synced ${entries.length} audit entries from agent ${agentId}`);
+
+        return res.status(200).json({
+            acknowledged: true,
+            received_count: entries.length
+        });
+    } catch (error) {
+        logger.error('Sync audit trail error:', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
