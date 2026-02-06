@@ -28,8 +28,10 @@ export default {
     { pattern: /col-span-(1|2|3|4|5|6|7|8|9|10|11|12)/ },
     // Classes de gap dynamiques
     { pattern: /gap-(0|1|2|3|4|5|6|8|10|12)/ },
-    // Z-index dynamiques
-    { pattern: /z-(0|10|20|30|40|50)/ },
+    // Z-index dynamiques (inclut toute la hiérarchie définie)
+    { pattern: /z-(0|10|20|30|40|50|150|200|700|800|900|950|1000|9999)/ },
+    // Z-index nommés (design system)
+    { pattern: /z-(auto|base|decorator|sticky|fixed-nav|header|sidebar|dropdown|popover|modal|tooltip|voxel-ui|voxel-panel|toast|supreme|max)/ },
   ],
   theme: {
     container: {
@@ -40,20 +42,37 @@ export default {
       },
     },
     extend: {
+      /* ====================================================================
+         Z-INDEX HIERARCHY - Unified Design System
+         AUDIT FIX: Logical ordering from base to supreme
+         ==================================================================== */
       zIndex: {
-        'decorator': '10',
-        'sticky': '20',
-        'header': '40',
-        'sidebar': '45',    // AUDIT FIX: Sidebar between header and modal
-        'modal': '50',
-        'dropdown': '55',   // AUDIT FIX: Dropdowns above modals
-        'popover': '60',    // AUDIT FIX: Popovers above dropdowns
-        'tooltip': '70',    // AUDIT FIX: Tooltips always on top
-        'voxel-ui': '100',  // AUDIT FIX: Voxel UI Interface layer
-        'voxel-panel': '200', // AUDIT FIX: Voxel Side Panels
-        'toast': '900',     // AUDIT FIX: Toasts above everything (except supreme)
-        'supreme': '9999',  // AUDIT FIX: The absolute top (cursor, drag, critical overlays)
-        'max': '9999',
+        'auto': 'auto',
+        'base': '0',
+
+        /* Layout Layers (10-30) */
+        'decorator': '10',      // Decorative elements, badges, markers
+        'sticky': '20',         // Sticky headers, floating elements
+        'fixed-nav': '30',      // Fixed navigation bars
+
+        /* Content Layers (40-60) */
+        'header': '40',         // App header
+        'sidebar': '50',        // Sidebar navigation
+
+        /* Overlay Layers (700-1000) - ELEVATED for proper stacking */
+        'dropdown': '700',      // Dropdown menus (above all content)
+        'popover': '800',       // Popovers, tooltips triggers
+        'modal': '900',         // Modal dialogs
+        'tooltip': '1000',      // Tooltips (always on top of modals)
+
+        /* UI System Layers (150-200) */
+        'voxel-ui': '150',      // Voxel UI Interface layer
+        'voxel-panel': '200',   // Voxel Side Panels
+
+        /* Top Layers (900-9999) */
+        'toast': '950',         // Toast notifications
+        'supreme': '9999',      // The absolute top (cursor, drag, critical)
+        'max': '9999',          // Alias for supreme
       },
       fontFamily: {
         sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
@@ -163,55 +182,11 @@ export default {
           900: '#18181b',
           950: '#09090b',
         },
-        // Standardizing aggressive colors by shadowing default Tailwind palettes
-        blue: {
-          50: '#f0f7ff',
-          100: '#e0effe',
-          200: '#bae0fd',
-          300: '#7cc7fb',
-          400: '#38a9f8',
-          500: '#4a8ce7', // Matches SENTINEL_PALETTE.primary
-          600: '#357ae8', // High contrast blue
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-        },
-        red: {
-          50: '#fef2f2',
-          100: '#fee2e2',
-          200: '#fecaca',
-          300: '#fca5a5',
-          400: '#f87171',
-          500: '#cc6e6e', // Refined desaturated red
-          600: '#bc5e5e',
-          700: '#b91c1c',
-          800: '#991b1b',
-          900: '#7f1d1d',
-        },
-        green: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#5e9b7e', // Refined desaturated green
-          600: '#4e8b6e',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-        },
-        amber: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#c59a6e', // Refined desaturated amber
-          600: '#b58a5e',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
-        },
+        /* ====================================================================
+           AUDIT FIX: Removed duplicate color palettes (blue, red, green, amber)
+           Use semantic tokens instead: primary, success, warning, error, info
+           Legacy code should migrate to semantic colors from design-tokens.css
+           ==================================================================== */
         // Navigation section colors (harmonized with design tokens)
         nav: {
           pilotage: "hsl(var(--nav-pilotage))",
@@ -334,14 +309,7 @@ export default {
           '0%': { opacity: '0', transform: 'scale(0.96)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
-        float: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-15px)' },
-        },
-        shimmer: {
-          '0%': { transform: 'translateX(-100%)' },
-          '100%': { transform: 'translateX(100%)' },
-        },
+        /* AUDIT FIX: float and shimmer keyframes are defined in animations.css */
         badgeIn: {
           '0%': { transform: 'scale(0.9)', opacity: '0' },
           '100%': { transform: 'scale(1)', opacity: '1' },
@@ -368,10 +336,7 @@ export default {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.6" },
         },
-        "shimmer-rotate": {
-          "0%": { transform: "rotate(0deg)" },
-          "100%": { transform: "rotate(360deg)" },
-        },
+        /* AUDIT FIX: shimmer-rotate keyframe is defined in animations.css */
       }
     },
   },
