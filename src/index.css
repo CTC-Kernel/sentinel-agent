@@ -99,6 +99,19 @@
     @apply bg-[var(--glass-bg)] backdrop-blur-xl border border-[var(--glass-border)] shadow-md transition-all duration-300;
   }
 
+  /* Premium Stat Card - Hover micro-interactions (AAA) */
+  .stat-card-premium {
+    @apply glass-premium rounded-2xl transition-all duration-300 ease-apple;
+  }
+
+  .stat-card-premium:hover {
+    @apply scale-[1.02] shadow-xl ring-1 ring-primary/10 -translate-y-0.5;
+  }
+
+  .stat-card-premium:active {
+    @apply scale-[0.98] translate-y-0;
+  }
+
   .glass-noise {
     position: relative;
     overflow: hidden;

@@ -333,3 +333,182 @@ export const ISO22301_SEED_CONTROLS = [
  { code: 'ISO22301.10.1', name: 'Non-conformité et actions correctives' },
  { code: 'ISO22301.10.2', name: 'Amélioration continue' }
 ];
+
+// ============================================================================
+// CIS Controls v8
+// ============================================================================
+
+export const CIS_V8_DOMAINS = [
+ { id: 'CIS.1', title: 'Inventaire des Actifs', description: 'Matériels, logiciels, données, comptes...' },
+ { id: 'CIS.2', title: 'Protection des Données', description: 'Classification, chiffrement, DLP...' },
+ { id: 'CIS.3', title: 'Configuration Sécurisée', description: 'Durcissement, baseline, gestion des changements...' },
+ { id: 'CIS.4', title: 'Gestion des Accès', description: 'Comptes, privilèges, MFA, accès distants...' },
+ { id: 'CIS.5', title: 'Défense Réseau', description: 'Segmentation, pare-feu, flux, surveillance...' },
+ { id: 'CIS.6', title: 'Protection Contre les Malwares', description: 'Antivirus, EDR, contrôle d\'exécution...' },
+ { id: 'CIS.7', title: 'Gestion des Vulnérabilités', description: 'Scans, patchs, tests de pénétration...' },
+ { id: 'CIS.8', title: 'Journalisation & Surveillance', description: 'Logs, alertes, corrélation, SIEM...' }
+];
+
+export const CIS_V8_SEED_CONTROLS = [
+ // CIS 1: Inventaire des actifs
+ { code: 'CIS.1.1', name: 'Inventaire des actifs matériels' },
+ { code: 'CIS.1.2', name: 'Inventaire des actifs logiciels' },
+ { code: 'CIS.1.3', name: 'Utiliser DHCP pour mise à jour de l\'inventaire' },
+ { code: 'CIS.1.4', name: 'Utiliser outils de découverte active' },
+ { code: 'CIS.1.5', name: 'Utiliser une CMDB' },
+
+ // CIS 2: Inventaire logiciels
+ { code: 'CIS.2.1', name: 'Maintenir inventaire logiciels autorisés' },
+ { code: 'CIS.2.2', name: 'Assurer que les logiciels sont supportés' },
+ { code: 'CIS.2.3', name: 'Limiter exécution aux logiciels autorisés' },
+ { code: 'CIS.2.4', name: 'Utiliser outils d\'inventaire automatisés' },
+ { code: 'CIS.2.5', name: 'Liste de logiciels autorisés par fonction' },
+ { code: 'CIS.2.6', name: 'Bibliothèques logicielles autorisées' },
+ { code: 'CIS.2.7', name: 'Limiter les scripts autorisés' },
+
+ // CIS 3: Protection des données
+ { code: 'CIS.3.1', name: 'Processus de gestion des données' },
+ { code: 'CIS.3.2', name: 'Inventaire des données' },
+ { code: 'CIS.3.3', name: 'Configurer listes de contrôle d\'accès' },
+ { code: 'CIS.3.4', name: 'Appliquer la rétention des données' },
+ { code: 'CIS.3.5', name: 'Élimination sécurisée des données' },
+ { code: 'CIS.3.6', name: 'Chiffrer les données sur les terminaux' },
+ { code: 'CIS.3.7', name: 'Chiffrer les données sur supports amovibles' },
+ { code: 'CIS.3.8', name: 'Journaux d\'accès aux données sensibles' },
+ { code: 'CIS.3.9', name: 'Chiffrer les données en transit' },
+ { code: 'CIS.3.10', name: 'Segmenter le traitement des données' },
+ { code: 'CIS.3.11', name: 'Chiffrer les données au repos' },
+ { code: 'CIS.3.12', name: 'Classifier les données sensibles' },
+ { code: 'CIS.3.13', name: 'Déployer solution DLP' },
+ { code: 'CIS.3.14', name: 'Journaliser l\'accès aux données sensibles' },
+
+ // CIS 4: Configuration sécurisée
+ { code: 'CIS.4.1', name: 'Processus de configuration sécurisée' },
+ { code: 'CIS.4.2', name: 'Configuration sécurisée des infrastructures réseau' },
+ { code: 'CIS.4.3', name: 'Configuration sécurisée des postes' },
+ { code: 'CIS.4.4', name: 'Implémenter pare-feu hôte' },
+ { code: 'CIS.4.5', name: 'Implémenter HIDS sur les serveurs' },
+ { code: 'CIS.4.6', name: 'Sécuriser les services DNS' },
+ { code: 'CIS.4.7', name: 'Implémenter et gérer un WAF' },
+ { code: 'CIS.4.8', name: 'Désinstaller services et agents inutilisés' },
+ { code: 'CIS.4.9', name: 'Désactiver les comptes inactifs par défaut' },
+ { code: 'CIS.4.10', name: 'Appliquer le verrouillage automatique' },
+ { code: 'CIS.4.11', name: 'Appliquer la capacité d\'effacement distant' },
+ { code: 'CIS.4.12', name: 'Séparer les espaces de travail' },
+
+ // CIS 5: Gestion des comptes
+ { code: 'CIS.5.1', name: 'Inventaire des comptes' },
+ { code: 'CIS.5.2', name: 'Utiliser des mots de passe uniques' },
+ { code: 'CIS.5.3', name: 'Désactiver les comptes inactifs' },
+ { code: 'CIS.5.4', name: 'Restreindre les privilèges administrateurs' },
+ { code: 'CIS.5.5', name: 'Établir et maintenir un inventaire des comptes de service' },
+ { code: 'CIS.5.6', name: 'Centraliser la gestion des comptes' },
+
+ // CIS 6: Gestion des accès
+ { code: 'CIS.6.1', name: 'Processus de gestion des accès' },
+ { code: 'CIS.6.2', name: 'Révocation des accès au départ' },
+ { code: 'CIS.6.3', name: 'MFA pour applications exposées' },
+ { code: 'CIS.6.4', name: 'MFA pour accès distant' },
+ { code: 'CIS.6.5', name: 'MFA pour accès administrateur' },
+ { code: 'CIS.6.6', name: 'SSO pour les applications' },
+ { code: 'CIS.6.7', name: 'Contrôle d\'accès basé sur les rôles (RBAC)' },
+ { code: 'CIS.6.8', name: 'Définir et maintenir le contrôle d\'accès' },
+
+ // CIS 10: Défense contre les malwares
+ { code: 'CIS.10.1', name: 'Déployer anti-malware' },
+ { code: 'CIS.10.2', name: 'Configurer mises à jour automatiques' },
+ { code: 'CIS.10.3', name: 'Désactiver l\'exécution automatique' },
+ { code: 'CIS.10.4', name: 'Configurer scan automatique des médias amovibles' },
+ { code: 'CIS.10.5', name: 'Activer fonctions anti-exploitation' },
+ { code: 'CIS.10.6', name: 'Gestion centralisée anti-malware' },
+ { code: 'CIS.10.7', name: 'Utiliser logiciel anti-malware basé comportement' },
+
+ // CIS 13: Surveillance et défense réseau
+ { code: 'CIS.13.1', name: 'Centraliser alertes sécurité' },
+ { code: 'CIS.13.2', name: 'Déployer IDS réseau' },
+ { code: 'CIS.13.3', name: 'Déployer solution de contrôle d\'accès réseau' },
+ { code: 'CIS.13.4', name: 'Filtrage du trafic inter-segments' },
+ { code: 'CIS.13.5', name: 'Gérer contrôle d\'accès pour actifs distants' },
+ { code: 'CIS.13.6', name: 'Collecter journaux de flux réseau' }
+];
+
+// ============================================================================
+// ANSSI Guide d'Hygiène Informatique (42 mesures pour TPE/PME)
+// ============================================================================
+
+export const ANSSI_HYGIENE_DOMAINS = [
+ { id: 'ANSSI.1', title: 'Sensibiliser et Former', description: 'Formation, Charte, Responsabilités...' },
+ { id: 'ANSSI.2', title: 'Connaître le SI', description: 'Inventaire, Cartographie, Documentation...' },
+ { id: 'ANSSI.3', title: 'Authentification & Accès', description: 'Mots de passe, MFA, Droits d\'accès...' },
+ { id: 'ANSSI.4', title: 'Sécurité des Postes', description: 'Antivirus, MAJ, Chiffrement, Verrouillage...' },
+ { id: 'ANSSI.5', title: 'Sécurité Réseau', description: 'Pare-feu, Segmentation, Wi-Fi, VPN...' },
+ { id: 'ANSSI.6', title: 'Administration Sécurisée', description: 'Comptes admin, Journaux, Certificats...' },
+ { id: 'ANSSI.7', title: 'Nomadisme', description: 'Chiffrement mobile, VPN, Perte/Vol...' },
+ { id: 'ANSSI.8', title: 'Maintenance du SI', description: 'Audits, Inventaire, Logiciels autorisés...' },
+ { id: 'ANSSI.9', title: 'Supervision & Réaction', description: 'FIM, Sauvegardes, Incidents, Logs...' },
+ { id: 'ANSSI.10', title: 'Mesures Avancées', description: 'Containers, Chiffrement fort, DLP...' }
+];
+
+export const ANSSI_HYGIENE_SEED_CONTROLS = [
+ // Domaine 1: Sensibiliser et Former (M01-M05)
+ { code: 'M01', name: 'Sensibiliser les utilisateurs aux bonnes pratiques' },
+ { code: 'M02', name: 'Rédiger une charte informatique' },
+ { code: 'M03', name: 'Responsabiliser les utilisateurs' },
+ { code: 'M04', name: 'Former les équipes opérationnelles' },
+ { code: 'M05', name: 'Appliquer les mesures à tous les utilisateurs' },
+
+ // Domaine 2: Connaître le SI (M06-M08)
+ { code: 'M06', name: 'Cartographier le système d\'information' },
+ { code: 'M07', name: 'Tenir à jour l\'inventaire des actifs' },
+ { code: 'M08', name: 'Documenter les procédures d\'exploitation' },
+
+ // Domaine 3: Authentification et Accès (M09-M14)
+ { code: 'M09', name: 'Identifier nommément chaque utilisateur' },
+ { code: 'M10', name: 'Définir des règles de mots de passe' },
+ { code: 'M11', name: 'Protéger les mots de passe stockés' },
+ { code: 'M12', name: 'Changer les authentifications par défaut' },
+ { code: 'M13', name: 'Privilégier les authentifications fortes' },
+ { code: 'M14', name: 'Gérer les droits d\'accès (moindre privilège)' },
+
+ // Domaine 4: Sécurité des Postes (M15-M19)
+ { code: 'M15', name: 'Utiliser un antivirus' },
+ { code: 'M16', name: 'Activer le verrouillage automatique' },
+ { code: 'M17', name: 'Appliquer les mises à jour de sécurité' },
+ { code: 'M18', name: 'Chiffrer les données sensibles' },
+ { code: 'M19', name: 'Activer le démarrage sécurisé (Secure Boot)' },
+
+ // Domaine 5: Sécurité Réseau (M20-M25)
+ { code: 'M20', name: 'Installer un pare-feu' },
+ { code: 'M21', name: 'Segmenter le réseau' },
+ { code: 'M22', name: 'Sécuriser les réseaux Wi-Fi' },
+ { code: 'M23', name: 'Sécuriser les communications (DNS/TLS)' },
+ { code: 'M24', name: 'Sécuriser les accès distants' },
+ { code: 'M25', name: 'Contrôler l\'accès aux équipements réseau' },
+
+ // Domaine 6: Sécurité Administration (M26-M29)
+ { code: 'M26', name: 'Utiliser des comptes d\'administration dédiés' },
+ { code: 'M27', name: 'Configurer la journalisation des événements' },
+ { code: 'M28', name: 'Gérer les certificats numériques' },
+ { code: 'M29', name: 'Détecter les comportements suspects' },
+
+ // Domaine 7: Nomadisme (M30-M32)
+ { code: 'M30', name: 'Chiffrer les équipements mobiles' },
+ { code: 'M31', name: 'Utiliser un VPN pour les accès distants' },
+ { code: 'M32', name: 'Sécuriser la perte ou le vol d\'équipement' },
+
+ // Domaine 8: Maintenance du SI (M33-M35)
+ { code: 'M33', name: 'Effectuer des audits de sécurité réguliers' },
+ { code: 'M34', name: 'Maintenir un inventaire des actifs à jour' },
+ { code: 'M35', name: 'Gérer les logiciels autorisés' },
+
+ // Domaine 9: Supervision et Réaction (M36-M39)
+ { code: 'M36', name: 'Surveiller l\'intégrité des fichiers critiques' },
+ { code: 'M37', name: 'Sauvegarder régulièrement les données' },
+ { code: 'M38', name: 'Définir une procédure de gestion des incidents' },
+ { code: 'M39', name: 'Analyser régulièrement les journaux' },
+
+ // Domaine 10: Mesures Avancées (M40-M42)
+ { code: 'M40', name: 'Sécuriser les environnements virtualisés/containers' },
+ { code: 'M41', name: 'Utiliser des solutions de chiffrement conformes ANSSI' },
+ { code: 'M42', name: 'Mettre en place une prévention de fuite de données' }
+];

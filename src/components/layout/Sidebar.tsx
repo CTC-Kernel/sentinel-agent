@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
@@ -245,7 +246,12 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                                                     </span>
                                                     <span className="flex-1 truncate relative z-10">{item.name}</span>
                                                     {isActive && (
-                                                        <span className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-4 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" aria-hidden="true" />
+                                                        <motion.span
+                                                            layoutId="sidebar-active-indicator"
+                                                            className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-4 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"
+                                                            aria-hidden="true"
+                                                            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                                        />
                                                     )}
                                                 </>
                                             )}
@@ -276,9 +282,13 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                                 </span>
                                 <span className="flex-1 truncate relative z-10">{t('common.helpCenter')}</span>
                                 {isActive && (
-                                    <span className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-5 rounded-full bg-white/70 shadow-sm" aria-hidden="true" />
-                                )}
-                            </>
+                                    <motion.span
+                                        layoutId="sidebar-active-indicator"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-5 rounded-full bg-white/70 shadow-sm"
+                                        aria-hidden="true"
+                                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                    />
+                                )}               </>
                         )}
                     </NavLink>
                 </nav>
@@ -300,7 +310,12 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                                 </span>
                                 <span className="flex-1 relative z-10">{t('sidebar.settings')}</span>
                                 {isActive ? (
-                                    <span className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-5 rounded-full bg-white/70 shadow-sm" aria-hidden="true" />
+                                    <motion.span
+                                        layoutId="sidebar-active-indicator"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-5 rounded-full bg-white/70 shadow-sm"
+                                        aria-hidden="true"
+                                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                    />
                                 ) : (
                                     <ChevronRight className="h-3.5 w-3.5 transition-opacity duration-200 opacity-0 text-muted-foreground group-hover:opacity-70" />
                                 )}

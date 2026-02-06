@@ -9,6 +9,8 @@ export const FRAMEWORKS = [
  { id: 'HDS', label: 'HDS (Données de Santé)', type: 'Compliance' },
  { id: 'PCI_DSS', label: 'PCI DSS (Paiements)', type: 'Compliance' },
  { id: 'NIST_CSF', label: 'NIST CSF (Cyber Framework)', type: 'Compliance' },
+ { id: 'CIS_V8', label: 'CIS Controls v8 (Cybersécurité)', type: 'Compliance' },
+ { id: 'ANSSI_HYGIENE', label: 'ANSSI Hygiène (TPE/PME)', type: 'Compliance' },
  { id: 'OWASP', label: 'OWASP Top 10 (AppSec)', type: 'Risk' },
  { id: 'EBIOS', label: 'EBIOS RM (Méthode ANSSI)', type: 'Risk' },
  { id: 'COBIT', label: 'COBIT (Gouvernance)', type: 'Governance' },
