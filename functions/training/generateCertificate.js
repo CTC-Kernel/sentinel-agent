@@ -28,6 +28,9 @@ const CERTIFICATES_COLLECTION = 'training_certificates';
 const PAGE_WIDTH = 841.89;
 const PAGE_HEIGHT = 595.28;
 
+// Signed URL expiry duration
+const SIGNED_URL_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
 // Colors
 const COLORS = {
   primary: rgb(0.09, 0.47, 0.95),      // #1778F2 - Blue
@@ -173,6 +176,14 @@ exports.generateTrainingCertificate = onCall(
       }
 
       const assignment = assignmentDoc.data();
+
+      // Fix 5: Input validation for name and courseName
+      if (!assignment.userName || typeof assignment.userName !== 'string') {
+        throw new HttpsError('invalid-argument', 'Invalid user name');
+      }
+      if (!assignment.courseName || typeof assignment.courseName !== 'string') {
+        throw new HttpsError('invalid-argument', 'Invalid course name');
+      }
 
       // Verify assignment is completed
       if (assignment.status !== 'completed') {
@@ -326,16 +337,19 @@ exports.generateTrainingCertificate = onCall(
         color: COLORS.secondary,
       });
 
+      // Fix 4: Null check for assignment.score
+      const score = typeof assignment.score === 'number' ? assignment.score : null;
+
       // Score if available
-      if (assignment.score !== undefined && assignment.score !== null) {
-        const scoreText = `Score obtenu: ${assignment.score}%`;
+      if (score !== null) {
+        const scoreText = `Score obtenu: ${score}%`;
         const scoreTextWidth = helveticaBold.widthOfTextAtSize(scoreText, 16);
         page.drawText(scoreText, {
           x: (PAGE_WIDTH - scoreTextWidth) / 2,
           y: PAGE_HEIGHT - 430,
           size: 16,
           font: helveticaBold,
-          color: assignment.score >= 70 ? COLORS.success : COLORS.muted,
+          color: score >= 70 ? COLORS.success : COLORS.muted,
         });
       }
 
@@ -411,23 +425,21 @@ exports.generateTrainingCertificate = onCall(
       // Generate signed URL (valid for 7 days)
       const [signedUrl] = await file.getSignedUrl({
         action: 'read',
-        expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
+        expires: Date.now() + SIGNED_URL_EXPIRY_MS,
       });
 
-      // Update assignment with certificate URL
-      await assignmentRef.update({
+      // Fix 2: Use batch for atomic multi-document writes
+      const batch = db.batch();
+
+      batch.update(assignmentRef, {
         certificateUrl: fileName,
         certificateGeneratedAt: Timestamp.now(),
         verificationHash,
       });
 
-      // Store certificate record
-      await db
-        .collection('organizations')
-        .doc(organizationId)
-        .collection(CERTIFICATES_COLLECTION)
-        .doc(assignmentId)
-        .set({
+      batch.set(
+        db.collection('organizations').doc(organizationId).collection(CERTIFICATES_COLLECTION).doc(assignmentId),
+        {
           assignmentId,
           userId: assignment.userId,
           courseId: assignment.courseId,
@@ -435,12 +447,16 @@ exports.generateTrainingCertificate = onCall(
           recipientName: recipient.displayName || recipient.email,
           recipientEmail: recipient.email,
           completedAt: assignment.completedAt,
-          score: assignment.score || null,
+          score: score,
           verificationHash,
           storageUrl: fileName,
+          organizationId,
           generatedAt: Timestamp.now(),
           generatedBy: auth.uid,
-        });
+        }
+      );
+
+      await batch.commit();
 
       logger.info('Certificate generated successfully', {
         assignmentId,
@@ -504,6 +520,11 @@ exports.verifyCertificate = onCall(
 
       const certDoc = certQuery.docs[0];
       const cert = certDoc.data();
+
+      // Fix 1: Verify organization ID matches the certificate's organizationId
+      if (cert.organizationId !== organizationId) {
+        return { valid: false, error: 'Certificate not found' };
+      }
 
       return {
         valid: true,

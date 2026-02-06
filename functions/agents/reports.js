@@ -16,6 +16,15 @@ const { checkCallableRateLimit } = require('../utils/rateLimiter');
 const db = admin.firestore();
 const storage = admin.storage();
 
+// Fix 7: Extracted role-check helper to eliminate duplication
+function assertReportRole(request) {
+  const userRole = request.auth?.token?.role;
+  if (!userRole || !['admin', 'rssi', 'manager', 'auditor'].includes(userRole)) {
+    throw new HttpsError('permission-denied', 'Insufficient permissions for report generation');
+  }
+  return userRole;
+}
+
 // ============================================================================
 // Report Generation
 // ============================================================================
@@ -35,6 +44,9 @@ exports.generateAgentReport = onCall(
       throw new HttpsError('unauthenticated', 'Authentication required');
     }
 
+    // Fix 6: Add role check to generateAgentReport
+    assertReportRole(request);
+
     // SECURITY (C5): Only trust organizationId from auth token, never from request data
     const organizationId = request.auth?.token?.organizationId;
     const { reportId, config } = request.data;
@@ -43,9 +55,29 @@ exports.generateAgentReport = onCall(
       throw new HttpsError('invalid-argument', 'reportId, organizationId, and config are required');
     }
 
+    // Fix 9: Input validation for config.name
+    const reportName = (config.name && typeof config.name === 'string')
+      ? config.name.substring(0, 200).replace(/[^a-zA-Z0-9\s\-_]/g, '_')
+      : 'report';
+
     await checkCallableRateLimit(request, 'heavy');
 
     try {
+      // Fix 13: Idempotency check - avoid duplicate in-progress reports
+      const existingReport = await db.collection('organizations').doc(organizationId)
+        .collection('agentReports')
+        .where('status', '==', 'generating')
+        .where('config.type', '==', config.type)
+        .limit(1)
+        .get();
+      if (!existingReport.empty) {
+        const existing = existingReport.docs[0];
+        const createdAt = existing.data().createdAt?.toDate?.() || new Date(0);
+        if (Date.now() - createdAt.getTime() < 5 * 60 * 1000) {
+          return { reportId: existing.id, status: 'already_generating' };
+        }
+      }
+
       const startTime = Date.now();
       const reportRef = db
         .collection('organizations')
@@ -84,22 +116,22 @@ exports.generateAgentReport = onCall(
         case 'pdf':
           fileBuffer = await generatePDF(config, reportData);
           contentType = 'application/pdf';
-          fileName = `${config.name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+          fileName = `${reportName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
           break;
         case 'excel':
           fileBuffer = await generateExcel(config, reportData);
           contentType = 'text/csv';
-          fileName = `${config.name.replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
+          fileName = `${reportName.replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
           break;
         case 'csv':
           fileBuffer = await generateCSV(config, reportData);
           contentType = 'text/csv';
-          fileName = `${config.name.replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
+          fileName = `${reportName.replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
           break;
         case 'json':
           fileBuffer = Buffer.from(JSON.stringify(reportData, null, 2));
           contentType = 'application/json';
-          fileName = `${config.name.replace(/[^a-zA-Z0-9]/g, '_')}.json`;
+          fileName = `${reportName.replace(/[^a-zA-Z0-9]/g, '_')}.json`;
           break;
         default:
           throw new HttpsError('invalid-argument', `Unknown format: ${config.format}`);
@@ -154,22 +186,25 @@ exports.generateAgentReport = onCall(
 
       return { success: true, reportId, fileName };
     } catch (error) {
-      logger.error('Generate report error:', { reportId, organizationId, error: error.message, stack: error.stack });
-
-      // Update report with error - use generic message to avoid leaking internals
-      await db
-        .collection('organizations')
-        .doc(organizationId)
-        .collection('agentReports')
-        .doc(reportId)
-        .update({
-          status: 'failed',
-          errorMessage: 'Report generation failed. Check Cloud Functions logs for details.',
-          completedAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-
-      if (error instanceof HttpsError) throw error;
-      throw new HttpsError('internal', 'Failed to generate report');
+      logger.error('Generate report error:', { reportId, organizationId, error: error.message });
+      // Fix 8: Wrap report status update in its own try-catch
+      try {
+        if (reportId && organizationId) {
+          await db
+            .collection('organizations')
+            .doc(organizationId)
+            .collection('agentReports')
+            .doc(reportId)
+            .update({
+              status: 'failed',
+              error: error.message,
+              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+        }
+      } catch (updateError) {
+        logger.error('Failed to update report status:', { reportId, error: updateError.message });
+      }
+      throw new HttpsError('internal', 'Report generation failed');
     }
   }
 );
@@ -199,11 +234,8 @@ exports.fetchComplianceReportData = onCall(
 
     await checkCallableRateLimit(request, 'standard');
 
-    // Role check: report data requires at least auditor role
-    const userRole = request.auth?.token?.role;
-    if (!userRole || !['admin', 'rssi', 'manager', 'auditor'].includes(userRole)) {
-      throw new HttpsError('permission-denied', 'Insufficient permissions to access report data');
-    }
+    // Fix 7: Use shared role-check helper
+    assertReportRole(request);
 
     try {
       return await fetchComplianceData(organizationId, filters || {}, dateRange || {});
@@ -239,10 +271,8 @@ exports.fetchFleetHealthReportData = onCall(
 
     await checkCallableRateLimit(request, 'standard');
 
-    const userRole2 = request.auth?.token?.role;
-    if (!userRole2 || !['admin', 'rssi', 'manager', 'auditor'].includes(userRole2)) {
-      throw new HttpsError('permission-denied', 'Insufficient permissions to access report data');
-    }
+    // Fix 7: Use shared role-check helper
+    assertReportRole(request);
 
     try {
       return await fetchFleetHealthData(organizationId, filters || {}, dateRange || {});
@@ -278,10 +308,8 @@ exports.fetchExecutiveSummaryData = onCall(
 
     await checkCallableRateLimit(request, 'standard');
 
-    const userRole3 = request.auth?.token?.role;
-    if (!userRole3 || !['admin', 'rssi', 'manager', 'auditor'].includes(userRole3)) {
-      throw new HttpsError('permission-denied', 'Insufficient permissions to access report data');
-    }
+    // Fix 7: Use shared role-check helper
+    assertReportRole(request);
 
     try {
       return await fetchExecutiveData(organizationId, dateRange || {});
@@ -362,10 +390,10 @@ exports.processScheduledReports = onSchedule(
             // Calculate next run
             const nextRun = calculateNextRunDate(schedule);
 
-            // Update schedule
+            // Fix 10: Update schedule with correct lastRunStatus
             await scheduleDoc.ref.update({
               lastRunAt: admin.firestore.FieldValue.serverTimestamp(),
-              lastRunStatus: 'pending',
+              lastRunStatus: 'completed',
               lastReportId: reportRef.id,
               nextRunAt: nextRun.toISOString(),
               runCount: admin.firestore.FieldValue.increment(1),
@@ -906,16 +934,22 @@ function sanitizeCSVCell(value) {
 async function generateCSV(config, data) {
   const rows = [];
 
+  // Fix 12: Helper for proper CSV double-quote escaping
+  function escapeCSV(value) {
+    const escapedValue = String(sanitizeCSVCell(value)).replace(/"/g, '""');
+    return `"${escapedValue}"`;
+  }
+
   if (data.agentDetails) {
     rows.push('hostname,os,score,status,lastCheck,issues');
 
     for (const agent of data.agentDetails) {
       rows.push([
-        `"${sanitizeCSVCell(agent.hostname)}"`,
-        `"${sanitizeCSVCell(agent.os)}"`,
+        escapeCSV(agent.hostname),
+        escapeCSV(agent.os),
         agent.score?.toFixed(1) || '0',
-        `"${sanitizeCSVCell(agent.status)}"`,
-        `"${sanitizeCSVCell(agent.lastCheck)}"`,
+        escapeCSV(agent.status),
+        escapeCSV(agent.lastCheck),
         agent.issues || '0',
       ].join(','));
     }
@@ -924,11 +958,11 @@ async function generateCSV(config, data) {
 
     for (const agent of data.agentList) {
       rows.push([
-        `"${sanitizeCSVCell(agent.hostname)}"`,
-        `"${sanitizeCSVCell(agent.os)}"`,
-        `"${sanitizeCSVCell(agent.version)}"`,
-        `"${sanitizeCSVCell(agent.status)}"`,
-        `"${sanitizeCSVCell(agent.lastSeen)}"`,
+        escapeCSV(agent.hostname),
+        escapeCSV(agent.os),
+        escapeCSV(agent.version),
+        escapeCSV(agent.status),
+        escapeCSV(agent.lastSeen),
         agent.cpuUsage?.toFixed(1) || '0',
         agent.memoryUsage?.toFixed(1) || '0',
       ].join(','));
@@ -1058,6 +1092,11 @@ function calculateNextRunDate(schedule) {
       }
       break;
     }
+
+    // Fix 11: Default case for unknown frequency
+    default:
+      logger.warn(`Unknown schedule frequency: ${schedule.frequency}, defaulting to daily`);
+      break;
   }
 
   return next;

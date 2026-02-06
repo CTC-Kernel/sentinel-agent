@@ -182,8 +182,8 @@ const checkAuthRateLimit = async (email, ip) => {
         return false;
     } catch (error) {
         logger.error('Error checking rate limit', error);
-        // Fail open - don't block legitimate users if rate limit check fails
-        return false;
+        // Fail closed - block on error for security
+        return true;
     }
 };
 
@@ -473,7 +473,7 @@ exports.requestPasswordReset = onCall({
             type: 'password_reset'
         });
     } catch (rateLimitError) {
-        // Fail open - don't block legitimate users if rate limit check fails
+        // Fail closed - block on error for security
         logger.error('Error checking password reset rate limit', rateLimitError);
     }
 
