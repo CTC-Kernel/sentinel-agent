@@ -26,6 +26,7 @@ impl Sidebar {
         scanning: bool,
         unread_notifications: u32,
         sync_state: &SidebarSyncState,
+        organization: Option<&str>,
     ) -> Option<Page> {
         let mut selected: Option<Page> = None;
 
@@ -183,6 +184,7 @@ impl Sidebar {
                             (Page::Dashboard, icons::DASHBOARD, "Tableau de bord"),
                             (Page::Monitoring, icons::CHART_LINE, "Surveillance"),
                             (Page::Compliance, icons::COMPLIANCE, "Conformit\u{00e9}"),
+                            (Page::AuditTrail, icons::LIST, "Journal d'Audit"),
                             (Page::Software, icons::SOFTWARE, "Logiciels"),
                             (
                                 Page::Vulnerabilities,
@@ -247,6 +249,31 @@ impl Sidebar {
                             if Self::nav_item(ui, icon, label, current == page) {
                                 selected = Some(page.clone());
                             }
+                        }
+
+                        ui.add_space(theme::SPACE_XL);
+
+                        // Workspace context (AAA Grade)
+                        if let Some(org) = organization {
+                            ui.separator();
+                            ui.add_space(theme::SPACE_SM);
+                            ui.horizontal(|ui: &mut egui::Ui| {
+                                ui.add_space(theme::SPACE_MD);
+                                ui.vertical(|ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new(org.to_uppercase())
+                                            .font(theme::font_label())
+                                            .color(theme::ACCENT)
+                                            .strong(),
+                                    );
+                                    ui.label(
+                                        egui::RichText::new("WORKSPACE ACTIF")
+                                            .font(theme::font_min())
+                                            .color(theme::text_tertiary())
+                                            .strong(),
+                                    );
+                                });
+                            });
                         }
 
                         ui.add_space(theme::SPACE_XL);
