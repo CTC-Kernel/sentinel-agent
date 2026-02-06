@@ -79,7 +79,7 @@ pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 159, 10);
 #[inline]
 pub fn bg_primary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(5, 5, 5) // Midnight Dark (OLED friendly)
+        Color32::from_rgb(3, 3, 5) // Deep Midnight OLED
     } else {
         Color32::from_rgb(242, 242, 247) // System Gray 6 Light
     }
@@ -89,7 +89,7 @@ pub fn bg_primary() -> Color32 {
 #[inline]
 pub fn bg_secondary() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(18, 18, 20) // Deep Graphite
+        Color32::from_rgb(12, 12, 15) // Deep Charcoal
     } else {
         Color32::WHITE
     }
@@ -118,7 +118,7 @@ pub fn bg_tertiary() -> Color32 {
 #[inline]
 pub fn bg_sidebar() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgb(10, 10, 12)
+        Color32::from_rgb(7, 7, 10) // Slightly lighter than background for depth
     } else {
         Color32::from_rgb(235, 235, 240)
     }
@@ -159,12 +159,13 @@ pub fn text_secondary() -> Color32 {
 }
 
 /// Tertiary / disabled text.
+/// Note: Light mode uses darker gray for WCAG AA contrast (4.5:1 ratio on white).
 #[inline]
 pub fn text_tertiary() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(99, 99, 102) // System Gray 2
     } else {
-        Color32::from_rgb(140, 140, 145) // Darker than System Gray 3 for readability
+        Color32::from_rgb(115, 115, 120) // Darker gray for WCAG AA contrast (~4.5:1 on white)
     }
 }
 
@@ -239,14 +240,19 @@ pub fn font_stat() -> FontId {
     FontId::new(20.0, egui::FontFamily::Proportional)
 }
 
-/// Label font (10px - for labels and annotations).
+/// Label font (11px - for labels and annotations, WCAG accessible minimum).
 pub fn font_label() -> FontId {
-    FontId::new(10.0, egui::FontFamily::Proportional)
+    FontId::new(11.0, egui::FontFamily::Proportional)
 }
 
 /// Minimum readable font (11px - minimum for accessibility).
 pub fn font_min() -> FontId {
     FontId::new(11.0, egui::FontFamily::Proportional)
+}
+
+/// Caption font (10px - use sparingly, only for decorative/non-essential text).
+pub fn font_caption() -> FontId {
+    FontId::new(10.0, egui::FontFamily::Proportional)
 }
 
 // ============================================================================
@@ -587,3 +593,86 @@ pub fn severity_color(severity: &str) -> Color32 {
         _ => text_secondary(),
     }
 }
+
+// ============================================================================
+// Accessibility helpers
+// ============================================================================
+
+/// Focus ring stroke for interactive elements (WCAG 2.4.7 compliant).
+pub fn focus_ring() -> egui::Stroke {
+    egui::Stroke::new(2.0, ACCENT)
+}
+
+/// Focus ring for dark backgrounds.
+pub fn focus_ring_light() -> egui::Stroke {
+    egui::Stroke::new(2.0, ACCENT_LIGHT)
+}
+
+/// Disabled element opacity multiplier.
+pub const DISABLED_OPACITY: f32 = 0.4;
+
+/// Get a disabled version of a color.
+pub fn disabled_color(color: Color32) -> Color32 {
+    color.linear_multiply(DISABLED_OPACITY)
+}
+
+/// Hover background for interactive elements.
+#[inline]
+pub fn hover_bg() -> Color32 {
+    if is_dark_mode() {
+        Color32::from_white_alpha(10)
+    } else {
+        Color32::from_black_alpha(8)
+    }
+}
+
+/// Active/pressed background for interactive elements.
+#[inline]
+pub fn active_bg() -> Color32 {
+    if is_dark_mode() {
+        Color32::from_white_alpha(20)
+    } else {
+        Color32::from_black_alpha(15)
+    }
+}
+
+/// Selected item background.
+#[inline]
+pub fn selected_bg() -> Color32 {
+    ACCENT.linear_multiply(if is_dark_mode() { 0.15 } else { 0.12 })
+}
+
+// ============================================================================
+// Interactive element sizing (touch targets)
+// ============================================================================
+
+/// Minimum touch target size for accessibility (44x44 on mobile, 32x32 on desktop).
+pub const MIN_TOUCH_TARGET: f32 = 32.0;
+
+/// Standard button height.
+pub const BUTTON_HEIGHT: f32 = 36.0;
+
+/// Large button height.
+pub const BUTTON_HEIGHT_LG: f32 = 44.0;
+
+/// Small button height.
+pub const BUTTON_HEIGHT_SM: f32 = 28.0;
+
+/// Input field height.
+pub const INPUT_HEIGHT: f32 = 40.0;
+
+// ============================================================================
+// Z-index / layer ordering
+// ============================================================================
+
+/// Toast notification z-order.
+pub const Z_TOAST: egui::Order = egui::Order::Foreground;
+
+/// Modal backdrop z-order.
+pub const Z_MODAL_BACKDROP: egui::Order = egui::Order::Foreground;
+
+/// Modal window z-order.
+pub const Z_MODAL_WINDOW: egui::Order = egui::Order::Foreground;
+
+/// Dropdown/popover z-order.
+pub const Z_DROPDOWN: egui::Order = egui::Order::Foreground;

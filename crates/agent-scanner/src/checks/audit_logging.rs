@@ -54,7 +54,11 @@ impl AuditLoggingCheck {
             .category(CheckCategory::AuditLogging)
             .severity(CheckSeverity::High)
             .framework("NIS2")
-            .framework("ISO27001")
+            .framework("DORA")
+            .framework("CIS_V8")
+            .framework("PCI_DSS")
+            .framework("NIST_CSF")
+            .framework("ISO_27001")
             .framework("SOC2")
             .platforms(vec![
                 "windows".to_string(),
@@ -261,7 +265,7 @@ mod tests {
         let check = AuditLoggingCheck::new();
         let frameworks = &check.definition().frameworks;
         assert!(frameworks.contains(&"NIS2".to_string()));
-        assert!(frameworks.contains(&"ISO27001".to_string()));
+        assert!(frameworks.contains(&"ISO_27001".to_string()));
         assert!(frameworks.contains(&"SOC2".to_string()));
     }
 

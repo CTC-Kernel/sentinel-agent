@@ -305,6 +305,54 @@ impl AuthenticatedClient {
         Ok(responses)
     }
 
+    /// Report the result of a command execution.
+    pub async fn report_command_result(
+        &self,
+        command_id: &str,
+        result: crate::types::CommandResultRequest,
+    ) -> SyncResult<()> {
+        let agent_id = self.agent_id().await?;
+        debug!(
+            "Reporting result for command {} on agent {}",
+            command_id, agent_id
+        );
+
+        let _: serde_json::Value = self
+            .post_json(
+                &format!("/v1/agents/{}/commands/{}/results", agent_id, command_id),
+                &result,
+            )
+            .await?;
+
+        Ok(())
+    }
+
+    /// Sync local audit trail entries to the SaaS.
+    pub async fn sync_audit_trail(
+        &self,
+        entries: Vec<crate::types::AuditTrailEntry>,
+    ) -> SyncResult<u32> {
+        if entries.is_empty() {
+            return Ok(0);
+        }
+
+        let agent_id = self.agent_id().await?;
+        debug!("Syncing {} audit entries for agent {}", entries.len(), agent_id);
+
+        let request = crate::types::AuditTrailSyncRequest { entries };
+
+        let response: serde_json::Value = self
+            .post_json(&format!("/v1/agents/{}/audit-trail", agent_id), &request)
+            .await?;
+
+        let received_count = response
+            .get("received_count")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0) as u32;
+
+        Ok(received_count)
+    }
+
     /// Get or create the mTLS HTTP client.
     async fn get_client(&self) -> SyncResult<HttpClient> {
         // Check if we have a valid cached client

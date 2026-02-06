@@ -65,8 +65,12 @@ impl KernelHardeningCheck {
             .description("Check kernel security settings (ASLR, exec-shield, IP forwarding)")
             .category(CheckCategory::KernelSecurity)
             .severity(CheckSeverity::High)
-            .framework("CIS")
             .framework("NIS2")
+            .framework("DORA")
+            .framework("CIS_V8")
+            .framework("PCI_DSS")
+            .framework("NIST_CSF")
+            .framework("ISO_27001")
             .platforms(vec![
                 "windows".to_string(),
                 "linux".to_string(),
@@ -429,7 +433,7 @@ mod tests {
     fn test_check_frameworks() {
         let check = KernelHardeningCheck::new();
         let frameworks = &check.definition().frameworks;
-        assert!(frameworks.contains(&"CIS".to_string()));
+        assert!(frameworks.contains(&"CIS_V8".to_string()));
         assert!(frameworks.contains(&"NIS2".to_string()));
     }
 

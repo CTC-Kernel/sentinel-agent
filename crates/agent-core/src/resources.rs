@@ -181,6 +181,53 @@ impl ResourceMonitor {
         usage
     }
 
+    /// Get detailed process list for telemetry.
+    pub fn get_processes(&self) -> Vec<crate::api_client::AgentProcess> {
+        use sysinfo::{ProcessRefreshKind, ProcessesToUpdate};
+        let mut sys = self.sys.lock().unwrap();
+        
+        sys.refresh_processes_specifics(
+            ProcessesToUpdate::All,
+            true,
+            ProcessRefreshKind::nothing()
+                .with_cpu()
+                .with_memory()
+                .with_user(sysinfo::UpdateKind::Always),
+        );
+
+        let mut processes: Vec<crate::api_client::AgentProcess> = sys
+            .processes()
+            .iter()
+            .map(|(&pid, process)| crate::api_client::AgentProcess {
+                pid: pid.as_u32(),
+                name: process.name().to_string_lossy().to_string(),
+                cpu_percent: process.cpu_usage() as f64,
+                memory_bytes: process.memory(),
+                user: process.user_id().map(|u| u.to_string()).unwrap_or_else(|| "unknown".to_string()),
+                command_line: process.cmd().get(0).map(|c| c.to_string_lossy().to_string()),
+            })
+            .collect();
+
+        // Sort by CPU usage and take top 20
+        processes.sort_by(|a, b| b.cpu_percent.partial_cmp(&a.cpu_percent).unwrap_or(std::cmp::Ordering::Equal));
+        processes.truncate(20);
+        processes
+    }
+
+    /// Get active network connections for telemetry.
+    pub fn get_connections(&self) -> Vec<crate::api_client::AgentConnection> {
+        // sysinfo doesn't provide connections. We'll return an empty list for now 
+        // to satisfy the API structure, or use a platform-specific lookup if available.
+        // For macOS/Linux, we'd traditionally use netstat/lsof or /proc/net/tcp.
+        // For MVP, we provide the structure.
+        Vec::new()
+    }
+
+    /// Get total network bytes since boot.
+    pub fn get_networks(&self) -> &Mutex<sysinfo::Networks> {
+        &self.networks
+    }
+
     /// Check if startup time is within limits.
     pub fn check_startup_time(&self) -> bool {
         let elapsed = self.start_time.elapsed().as_millis() as u64;
@@ -1155,10 +1202,25 @@ fn get_disk_usage() -> (u64, u64) {
 
 #[cfg(target_os = "macos")]
 fn get_disk_iops() -> u32 {
-    // macOS doesn't provide easy per-process I/O stats like Linux's /proc/self/io
-    // Would require using proc_pid_rusage() with RUSAGE_INFO_V2 or higher
-    // For now, return 0 as disk I/O tracking is low priority (NFR-P4 is a design guideline)
-    0
+    // macOS provides disk I/O through proc_pid_rusage
+    // Note: We use the cumulative read+write bytes as a proxy for activity if IOPS is not directly accessible
+    // In many GRC contexts, throughput is as important as IOPS.
+    use libc::{proc_pid_rusage, rusage_info_v4};
+    use std::mem;
+
+    unsafe {
+        let mut info: rusage_info_v4 = mem::zeroed();
+        let pid = libc::getpid();
+        let res = proc_pid_rusage(pid, libc::RUSAGE_INFO_V4, &mut info as *mut _ as *mut _);
+        if res == 0 {
+            // (ri_diskio_bytesread + ri_diskio_byteswritten)
+            // We return this as a u32, but it might overflow if throughput is massive.
+            // However, this is for a 1s (or heartbeat interval) snapshot usually.
+            ((info.ri_diskio_bytesread + info.ri_diskio_byteswritten) / 1024) as u32
+        } else {
+            0
+        }
+    }
 }
 
 #[cfg(windows)]
@@ -1182,20 +1244,59 @@ fn get_process_memory() -> u64 {
 
 #[cfg(windows)]
 fn get_system_memory() -> (u64, u64) {
-    // Placeholder - would use GlobalMemoryStatusEx
+    use windows::Win32::System::SystemInformation::{GlobalMemoryStatusEx, MEMORYSTATUSEX};
+    
+    unsafe {
+        let mut ms = MEMORYSTATUSEX::default();
+        ms.dwLength = std::mem::size_of::<MEMORYSTATUSEX>() as u32;
+        if GlobalMemoryStatusEx(&mut ms).is_ok() {
+            return (ms.ullTotalPhys - ms.ullAvailPhys, ms.ullTotalPhys);
+        }
+    }
     (0, 0)
 }
 
 #[cfg(windows)]
 fn get_disk_usage() -> (u64, u64) {
-    // Placeholder - would use GetDiskFreeSpaceExW
+    use windows::Win32::Storage::FileSystem::GetDiskFreeSpaceExW;
+    use windows::core::PCWSTR;
+
+    unsafe {
+        let mut free_bytes_available = 0;
+        let mut total_number_of_bytes = 0;
+        let mut total_number_of_free_bytes = 0;
+        
+        if GetDiskFreeSpaceExW(
+            None,
+            Some(&mut free_bytes_available),
+            Some(&mut total_number_of_bytes),
+            Some(&mut total_number_of_free_bytes)
+        ).is_ok() {
+            return (total_number_of_bytes - total_number_of_free_bytes, total_number_of_bytes);
+        }
+    }
     (0, 0)
 }
 
 #[cfg(windows)]
+fn get_disk_iops() -> u32 {
+    use windows::Win32::System::Threading::{GetCurrentProcess, GetProcessIoCounters, IO_COUNTERS};
+    
+    unsafe {
+        let mut io_counters = IO_COUNTERS::default();
+        if GetProcessIoCounters(GetCurrentProcess(), &mut io_counters).is_ok() {
+            // ReadTransferCount + WriteTransferCount
+            return ((io_counters.ReadTransferCount + io_counters.WriteTransferCount) / 1024) as u32;
+        }
+    }
+    0
+}
+
+#[cfg(windows)]
 fn get_system_cpu() -> f64 {
-    // Placeholder - would use GetSystemTimes or NtQuerySystemInformation
-    0.0
+    // Basic implementation using sysinfo is preferred if possible, 
+    // but here we align with the system-specific pattern.
+    0.0 // sysinfo handles this well enough in ResourceMonitor
 }
 
 #[cfg(windows)]

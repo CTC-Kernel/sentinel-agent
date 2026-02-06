@@ -249,20 +249,19 @@ impl HeartbeatService {
             ip_address = Some(local.ip().to_string());
         }
 
+        let last_check_at = *self.last_check_at.read().await;
+        let compliance_score = *self.compliance_score.read().await;
+
         HeartbeatRequest {
             timestamp: Utc::now(),
             agent_version: AGENT_VERSION.to_string(),
-            status: if self.is_offline() {
-                "offline".to_string()
-            } else {
-                "online".to_string()
-            },
+            status: if self.is_offline() { "degraded" } else { "active" }.to_string(),
             hostname,
             os_info,
             cpu_percent,
             memory_bytes,
-            last_check_at: *self.last_check_at.read().await,
-            compliance_score: *self.compliance_score.read().await,
+            last_check_at,
+            compliance_score,
             pending_sync_count: self.pending_sync_count.load(Ordering::SeqCst),
             self_check_result,
             memory_percent,
@@ -274,6 +273,8 @@ impl HeartbeatService {
             ip_address,
             network_bytes_sent: Some(total_sent),
             network_bytes_recv: Some(total_recv),
+            processes: Vec::new(),
+            connections: Vec::new(),
         }
     }
 
@@ -535,7 +536,7 @@ mod tests {
         let request = service.build_request().await;
 
         assert_eq!(request.agent_version, AGENT_VERSION);
-        assert_eq!(request.status, "online");
+        assert_eq!(request.status, "active");
         assert!(!request.hostname.is_empty());
         assert!(!request.os_info.is_empty());
         // CPU and memory should have some value

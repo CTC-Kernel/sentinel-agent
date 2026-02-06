@@ -30,6 +30,8 @@ pub enum SyncKind {
     Config,
     /// Rules sync only.
     Rules,
+    /// Audit trail sync only.
+    Audit,
     /// Manual sync triggered by user.
     Manual,
 }
@@ -42,6 +44,7 @@ impl SyncKind {
             SyncKind::Results => "results",
             SyncKind::Config => "config",
             SyncKind::Rules => "rules",
+            SyncKind::Audit => "audit",
             SyncKind::Manual => "manual",
         }
     }
@@ -180,6 +183,7 @@ impl SyncOrchestrator {
             SyncKind::Results => self.sync_results(client).await,
             SyncKind::Config => self.sync_config(client).await,
             SyncKind::Rules => self.sync_rules(client).await,
+            SyncKind::Audit => self.sync_audit(client).await,
             SyncKind::Full | SyncKind::Manual => self.sync_full(client).await,
         };
 
@@ -310,7 +314,53 @@ impl SyncOrchestrator {
             Err(e) => warn!("Results sync failed during full sync: {}", e),
         }
 
+        // Audit sync
+        match self.sync_audit(client).await {
+            Ok(n) => total += n,
+            Err(e) => warn!("Audit sync failed during full sync: {}", e),
+        }
+
         Ok(total)
+    }
+
+    /// Sync audit trail.
+    async fn sync_audit(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
+        use agent_storage::AuditTrailRepository;
+        use crate::types::AuditTrailEntry;
+
+        // 1. Fetch unsynced entries from local storage
+        let repo = AuditTrailRepository::new(&self._db);
+        let stored_entries = repo.fetch_unsynced(50).await.map_err(|e| {
+            crate::error::SyncError::Config(format!("Failed to fetch unsynced audit entries: {}", e))
+        })?;
+
+        if stored_entries.is_empty() {
+            return Ok(0);
+        }
+
+        let ids: Vec<i64> = stored_entries.iter().filter_map(|e| e.id).collect();
+        let api_entries: Vec<AuditTrailEntry> = stored_entries.iter().map(|e| {
+            AuditTrailEntry {
+                action: e.action_type.clone(),
+                actor: e.actor.clone(),
+                details: e.details.clone(),
+                timestamp: e.timestamp,
+                metadata: serde_json::from_str(&e.action_data).unwrap_or_default(),
+            }
+        }).collect();
+
+        debug!("Syncing {} audit entries to SaaS", api_entries.len());
+
+        // 2. Upload to SaaS
+        let server_count = client.sync_audit_trail(api_entries).await?;
+        info!("Successfully synced {} audit entries to SaaS", server_count);
+
+        // 3. Mark as synced in local storage
+        repo.mark_synced(&ids).await.map_err(|e| {
+            crate::error::SyncError::Config(format!("Failed to mark audit entries as synced: {}", e))
+        })?;
+
+        Ok(server_count)
     }
 
     /// Sync heartbeat.
@@ -342,6 +392,8 @@ impl SyncOrchestrator {
             ip_address: None,
             network_bytes_sent: None,
             network_bytes_recv: None,
+            processes: Vec::new(),
+            connections: Vec::new(),
         };
 
         let _response: crate::types::HeartbeatResponse = client

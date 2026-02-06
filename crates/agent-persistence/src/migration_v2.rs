@@ -230,7 +230,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(version, 4); // v1 has 4 migrations, v2 records version 2
+        assert_eq!(version, 5); // v1 has 5 migrations, v2 records version 2
 
         // Verify tables exist
         let tables: Vec<String> = conn
@@ -260,7 +260,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(version, 4); // v1 has 4 migrations, v2 records version 2
+        assert_eq!(version, 5); // v1 has 5 migrations, v2 records version 2
     }
 
     #[test]
@@ -278,7 +278,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(max_version, 4); // v1 has 4 migrations, v2 entry still exists
+        assert_eq!(max_version, 5); // v1 has 5 migrations, v2 entry still exists
 
         // Verify v2 tables are gone
         let tables: Vec<String> = conn
