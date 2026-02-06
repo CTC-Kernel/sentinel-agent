@@ -3,9 +3,79 @@ const { logger } = require("firebase-functions");
 const express = require("express");
 const cors = require("cors");
 const admin = require("firebase-admin");
+const { z } = require("zod");
 
 // Initialize Express app
 const app = express();
+
+// =============================================================================
+// SECURITY: Rate Limiting
+// =============================================================================
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 30; // 30 requests per minute per user
+
+const rateLimiter = (req, res, next) => {
+    const userId = req.user?.uid || req.ip;
+    const now = Date.now();
+    const userRequests = rateLimitMap.get(userId) || [];
+
+    // Clean old requests outside window
+    const recentRequests = userRequests.filter(time => now - time < RATE_LIMIT_WINDOW_MS);
+
+    if (recentRequests.length >= RATE_LIMIT_MAX_REQUESTS) {
+        logger.warn(`Rate limit exceeded for user: ${userId}`);
+        return res.status(429).json({
+            success: false,
+            error: "Too many requests. Please try again later."
+        });
+    }
+
+    recentRequests.push(now);
+    rateLimitMap.set(userId, recentRequests);
+    next();
+};
+
+// =============================================================================
+// SECURITY: SSRF Protection - Block Private IP Ranges
+// =============================================================================
+const isPrivateIP = (hostname) => {
+    // Block private IP ranges and localhost
+    const privatePatterns = [
+        /^localhost$/i,
+        /^127\./,
+        /^10\./,
+        /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
+        /^192\.168\./,
+        /^169\.254\./,
+        /^0\./,
+        /^::1$/,
+        /^fc00:/i,
+        /^fe80:/i,
+        /^fd/i,
+        /\.local$/i,
+        /\.internal$/i,
+        /\.localhost$/i,
+    ];
+    return privatePatterns.some(pattern => pattern.test(hostname));
+};
+
+// =============================================================================
+// SECURITY: Input Validation Schemas
+// =============================================================================
+const consentLogSchema = z.object({
+    document_type: z.string().min(1).max(100),
+    accepted: z.boolean(),
+    version: z.string().min(1).max(50)
+});
+
+const auditLogSchema = z.object({
+    action: z.string().min(1).max(100),
+    resource: z.string().min(1).max(200),
+    details: z.string().max(2000).optional(),
+    metadata: z.record(z.unknown()).optional(),
+    changes: z.record(z.unknown()).optional()
+});
 
 // CORS Configuration - Whitelist approach for security
 const ALLOWED_ORIGINS = [
@@ -63,6 +133,7 @@ const validateFirebaseIdToken = async (req, res, next) => {
 };
 
 app.use(validateFirebaseIdToken);
+app.use(rateLimiter);
 
 // --- Routes ---
 
@@ -112,8 +183,25 @@ app.get("/v1/proxy/threat-feed", async (req, res) => {
             return;
         }
 
-        // Fetch the data server-side
-        const response = await fetch(parsedUrl.href);
+        // SECURITY: Block private IP addresses (SSRF protection)
+        if (isPrivateIP(parsedUrl.hostname)) {
+            logger.warn(`Blocked SSRF attempt to private IP: ${parsedUrl.hostname} by user ${uid}`);
+            res.status(403).json({ success: false, error: "Private IP addresses not allowed" });
+            return;
+        }
+
+        // Fetch the data server-side with timeout
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+        const response = await fetch(parsedUrl.href, {
+            signal: controller.signal,
+            headers: {
+                'User-Agent': 'Sentinel-GRC/2.0'
+            }
+        });
+
+        clearTimeout(timeout);
 
         if (!response.ok) {
             throw new Error(`Upstream server responded with ${response.status}`);
@@ -134,14 +222,21 @@ app.get("/v1/proxy/threat-feed", async (req, res) => {
 // Consent Logging
 app.post("/v1/consent/log", async (req, res) => {
     try {
-        const { document_type, accepted, version } = req.body;
-        const uid = req.user.uid;
-        const organizationId = req.user.organizationId || null; // Optional for consent
-
-        if (!document_type || typeof accepted !== 'boolean' || !version) {
-            res.status(400).json({ success: false, error: "Missing or invalid fields" });
+        // SECURITY: Validate input with Zod schema
+        const validationResult = consentLogSchema.safeParse(req.body);
+        if (!validationResult.success) {
+            logger.warn(`Invalid consent log request: ${JSON.stringify(validationResult.error.errors)}`);
+            res.status(400).json({
+                success: false,
+                error: "Invalid request data",
+                details: validationResult.error.errors.map(e => e.message)
+            });
             return;
         }
+
+        const { document_type, accepted, version } = validationResult.data;
+        const uid = req.user.uid;
+        const organizationId = req.user.organizationId || null; // Optional for consent
 
         await admin.firestore().collection("consents").add({
             documentType: document_type,
@@ -164,17 +259,24 @@ app.post("/v1/consent/log", async (req, res) => {
 // Audit Log
 app.post("/v1/audit/log", async (req, res) => {
     try {
-        const { action, resource, details, metadata, changes } = req.body;
+        // SECURITY: Validate input with Zod schema
+        const validationResult = auditLogSchema.safeParse(req.body);
+        if (!validationResult.success) {
+            logger.warn(`Invalid audit log request: ${JSON.stringify(validationResult.error.errors)}`);
+            res.status(400).json({
+                success: false,
+                error: "Invalid request data",
+                details: validationResult.error.errors.map(e => e.message)
+            });
+            return;
+        }
+
+        const { action, resource, details, metadata, changes } = validationResult.data;
         const uid = req.user.uid;
         const organizationId = req.user.organizationId;
 
         if (!organizationId) {
             res.status(403).json({ success: false, error: "User does not belong to an organization" });
-            return;
-        }
-
-        if (!action || !resource) {
-            res.status(400).json({ success: false, error: "Missing required fields (action, resource)" });
             return;
         }
 
