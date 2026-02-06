@@ -239,7 +239,6 @@ vi.mock('./hooks/useLocale', () => {
 return {
 useLocale: () => {
 // Import useTranslation dynamically to get the mocked version
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
 const { useTranslation } = require('react-i18next');
 const { t: i18nT } = useTranslation();
 return {
