@@ -216,6 +216,7 @@ pub struct AppState {
     // Threats / Security events
     pub suspicious_processes: Vec<crate::dto::GuiSuspiciousProcess>,
     pub usb_events: Vec<crate::dto::GuiUsbEvent>,
+    pub threats_search: String,
     pub threats_filter: Option<String>,
     pub audit_trail_search: String,
     pub audit_trail_filter: Option<String>,
@@ -1053,6 +1054,7 @@ impl eframe::App for SentinelApp {
                 if let Some(new_page) = widgets::Sidebar::show(
                     ui,
                     &self.page,
+                    scanning,
                     self.state.unread_notification_count,
                     &sync_state,
                     self.state.summary.organization.as_deref(),

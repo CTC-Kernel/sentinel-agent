@@ -365,6 +365,9 @@ impl MonitoringPage {
             plot = plot.include_y(100.0);
         }
 
+        // Get time before entering the closure to avoid borrowing conflicts
+        let current_time = ui.ctx().input(|i| i.time);
+
         plot.show(ui, |plot_ui| {
             // Fill under line (subtle)
             if fill {
@@ -384,8 +387,7 @@ impl MonitoringPage {
 
             // Simple current point with pulse
             if let Some(&latest) = history.last() {
-                let time = ui.ctx().input(|i| i.time);
-                let pulse = ((time * 3.0).sin() * 0.5 + 0.5) as f32;
+                let pulse = ((current_time * 3.0).sin() * 0.5 + 0.5) as f32;
 
                 // Outer glow
                 plot_ui.points(
