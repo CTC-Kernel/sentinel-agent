@@ -33,6 +33,19 @@ vi.mock('framer-motion', () => ({
  AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>
 }));
 
+// Mock useLocale
+vi.mock('../../../hooks/useLocale', () => ({
+ useLocale: () => ({
+ locale: 'fr',
+ t: (key: string, options?: { defaultValue?: string; count?: number }) => {
+ if (options?.defaultValue) {
+ return options.defaultValue.replace('${unreadCount}', String(options.count || 0));
+ }
+ return key;
+ }
+ })
+}));
+
 // Mock Tooltip
 vi.mock('../../ui/Tooltip', () => ({
  Tooltip: ({ children, content }: { children: React.ReactNode; content: string }) => (
@@ -166,15 +179,15 @@ describe('NotificationCenter', () => {
  it('shows unread indicator when unread count > 0', () => {
  const { container } = renderWithRouter(<NotificationCenter />);
 
- // Red dot indicator
- expect(container.querySelector('.bg-red-500')).toBeInTheDocument();
+ // Red dot indicator uses bg-destructive
+ expect(container.querySelector('.bg-destructive')).toBeInTheDocument();
  });
 
  it('hides unread indicator when no unread', () => {
  mockUnreadCount = 0;
  const { container } = renderWithRouter(<NotificationCenter />);
 
- expect(container.querySelector('.bg-red-500')).not.toBeInTheDocument();
+ expect(container.querySelector('.bg-destructive')).not.toBeInTheDocument();
  });
  });
 

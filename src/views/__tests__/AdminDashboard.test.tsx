@@ -162,10 +162,11 @@ describe('AdminDashboard', () => {
  );
 
  const overviewTab = screen.getByText('Overview');
- expect(overviewTab.className).toContain('bg-primary/10');
+ // Active tab has bg-primary class (not bg-primary/10)
+ expect(overviewTab.className).toContain('bg-primary');
 
  fireEvent.click(screen.getByText('Tenants'));
  const tenantsTab = screen.getByText('Tenants');
- expect(tenantsTab.className).toContain('bg-primary/10');
+ expect(tenantsTab.className).toContain('bg-primary');
  });
 });

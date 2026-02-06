@@ -11,17 +11,17 @@ import React, { useMemo } from 'react';
 import {
   History,
   RefreshCw,
-  Edit3,
+  Edit,
   CheckCircle,
   AlertCircle,
   Clock,
   User,
   Server,
   ArrowRight,
-  Loader2,
 } from '../../ui/Icons';
-import { Badge } from '../../ui/badge';
+import { Badge } from '../../ui/Badge';
 import { useStore } from '@/store';
+import { useTeamData } from '@/hooks/team/useTeamData';
 import { ConfigurationItem } from '@/types/cmdb';
 import { ResourceHistory } from '../../shared/ResourceHistory';
 import { cn } from '@/lib/utils';
@@ -56,7 +56,7 @@ interface HistoryEvent {
 const getEventIcon = (type: HistoryEvent['type']): React.ElementType => {
   switch (type) {
     case 'status_change': return AlertCircle;
-    case 'attribute_update': return Edit3;
+    case 'attribute_update': return Edit;
     case 'reconciliation': return RefreshCw;
     case 'creation': return CheckCircle;
     case 'relationship': return Server;
@@ -96,7 +96,7 @@ interface TimelineEventProps {
   isLast: boolean;
 }
 
-const TimelineEvent: React.FC<TimelineEventProps> = ({ event, isFirst, isLast }) => {
+const TimelineEvent: React.FC<TimelineEventProps> = ({ event, isLast }) => {
   const Icon = getEventIcon(event.type);
 
   return (
@@ -166,11 +166,12 @@ const TimelineEvent: React.FC<TimelineEventProps> = ({ event, isFirst, isLast })
 // =============================================================================
 
 export const CIInspectorHistory: React.FC<CIInspectorHistoryProps> = ({ ci }) => {
-  const { t, users } = useStore();
+  const { t } = useStore();
+  const { users = [] } = useTeamData();
 
   // Get user name by ID
   const getUserName = (userId: string): string => {
-    const user = users.find((u) => u.uid === userId);
+    const user = (users || []).find((u: { uid: string; displayName?: string; email?: string }) => u.uid === userId);
     return user?.displayName || user?.email || userId;
   };
 

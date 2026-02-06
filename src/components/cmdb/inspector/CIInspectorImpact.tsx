@@ -29,7 +29,7 @@ import {
   Activity,
 } from '../../ui/Icons';
 import { Button } from '../../ui/button';
-import { Badge } from '../../ui/badge';
+import { Badge } from '../../ui/Badge';
 import {
   Select,
   SelectContent,
@@ -45,7 +45,6 @@ import {
   CIClass,
   ImpactScenario,
   ImpactLevel,
-  ImpactAssessment,
   ImpactNode,
   AffectedService,
 } from '@/types/cmdb';
@@ -95,15 +94,6 @@ const getImpactBorderColor = (level: ImpactLevel): string => {
     case 'Medium': return 'border-warning/50';
     case 'Low': return 'border-border';
     default: return 'border-border';
-  }
-};
-
-const getScenarioLabel = (scenario: ImpactScenario): string => {
-  switch (scenario) {
-    case 'down': return 'Panne';
-    case 'maintenance': return 'Maintenance';
-    case 'decommission': return 'Décommissionnement';
-    default: return scenario;
   }
 };
 
@@ -512,7 +502,7 @@ export const CIInspectorImpact: React.FC<CIInspectorImpactProps> = ({ ci }) => {
               <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
                 <Globe className="h-4 w-4" />
                 {t('cmdb.impact.affectedServices', { defaultValue: 'Services Affectés' })}
-                <Badge variant="secondary" className="ml-2">
+                <Badge variant="soft" className="ml-2">
                   {assessment.affectedServices.length}
                 </Badge>
               </h3>
@@ -526,7 +516,7 @@ export const CIInspectorImpact: React.FC<CIInspectorImpactProps> = ({ ci }) => {
               <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
                 <Server className="h-4 w-4" />
                 {t('cmdb.impact.affectedCIs', { defaultValue: 'CIs Impactés' })}
-                <Badge variant="secondary" className="ml-2">{allNodes.length}</Badge>
+                <Badge variant="soft" className="ml-2">{allNodes.length}</Badge>
               </h3>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {allNodes.map((node) => (

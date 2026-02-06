@@ -322,6 +322,100 @@ export class CMDBRelationshipService {
     return results;
   }
 
+  /**
+   * Get upstream dependencies (CIs that this CI depends on)
+   */
+  static async getUpstreamDependencies(
+    organizationId: string,
+    ciId: string
+  ): Promise<CMDBRelationship[]> {
+    const dependencyTypes: RelationshipType[] = [
+      'depends_on',
+      'uses',
+      'runs_on',
+      'hosted_on',
+      'installed_on',
+    ];
+
+    const q = query(
+      collection(db, COLLECTION_NAME),
+      where('organizationId', '==', organizationId),
+      where('sourceId', '==', ciId),
+      where('status', '==', 'Active')
+    );
+
+    const snapshot = await getDocs(q);
+    return snapshot.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() } as CMDBRelationship))
+      .filter((rel) => dependencyTypes.includes(rel.relationshipType));
+  }
+
+  /**
+   * Get downstream dependents (CIs that depend on this CI)
+   */
+  static async getDownstreamDependents(
+    organizationId: string,
+    ciId: string
+  ): Promise<CMDBRelationship[]> {
+    const dependencyTypes: RelationshipType[] = [
+      'depends_on',
+      'uses',
+      'runs_on',
+      'hosted_on',
+      'installed_on',
+    ];
+
+    const q = query(
+      collection(db, COLLECTION_NAME),
+      where('organizationId', '==', organizationId),
+      where('targetId', '==', ciId),
+      where('status', '==', 'Active')
+    );
+
+    const snapshot = await getDocs(q);
+    return snapshot.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() } as CMDBRelationship))
+      .filter((rel) => dependencyTypes.includes(rel.relationshipType));
+  }
+
+  /**
+   * Get relationship graph for visualization
+   */
+  static async getRelationshipGraph(
+    organizationId: string,
+    rootCIId: string,
+    depth: number = 2
+  ): Promise<{ nodes: Set<string>; edges: CMDBRelationship[] }> {
+    const nodes = new Set<string>([rootCIId]);
+    const edges: CMDBRelationship[] = [];
+    const visited = new Set<string>();
+    const queue: { ciId: string; currentDepth: number }[] = [
+      { ciId: rootCIId, currentDepth: 0 },
+    ];
+
+    while (queue.length > 0) {
+      const { ciId, currentDepth } = queue.shift()!;
+
+      if (visited.has(ciId) || currentDepth >= depth) continue;
+      visited.add(ciId);
+
+      // Get all relationships for this CI
+      const rels = await this.getRelationshipsForCI(organizationId, ciId);
+
+      for (const rel of rels) {
+        edges.push(rel);
+        const otherId = rel.sourceId === ciId ? rel.targetId : rel.sourceId;
+        nodes.add(otherId);
+
+        if (!visited.has(otherId)) {
+          queue.push({ ciId: otherId, currentDepth: currentDepth + 1 });
+        }
+      }
+    }
+
+    return { nodes, edges };
+  }
+
   // ===========================================================================
   // UPDATE
   // ===========================================================================

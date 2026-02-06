@@ -27,14 +27,13 @@ import {
   Unlink,
 } from '../../ui/Icons';
 import { Button } from '../../ui/button';
-import { Badge } from '../../ui/badge';
+import { Badge } from '../../ui/Badge';
 import { Tooltip as CustomTooltip } from '../../ui/Tooltip';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '../../ui/dialog';
 import {
   Select,
@@ -254,14 +253,13 @@ const AddRelationshipDialog: React.FC<AddRelationshipDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          {t('cmdb.relations.add', { defaultValue: 'Ajouter une relation' })}
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+    <>
+      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+        <Plus className="h-4 w-4 mr-2" />
+        {t('cmdb.relations.add', { defaultValue: 'Ajouter une relation' })}
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Link2 className="h-5 w-5" />
@@ -387,7 +385,8 @@ const AddRelationshipDialog: React.FC<AddRelationshipDialogProps> = ({
           </Button>
         </div>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 };
 
@@ -479,7 +478,7 @@ export const CIInspectorRelations: React.FC<CIInspectorRelationsProps> = ({
           <GitBranch className="h-4 w-4" />
           {t('cmdb.relations.title', { defaultValue: 'Relations' })}
           {hasRelationships && (
-            <Badge variant="secondary" className="ml-2">
+            <Badge variant="soft" className="ml-2">
               {outgoing.length + incoming.length}
             </Badge>
           )}
@@ -513,7 +512,7 @@ export const CIInspectorRelations: React.FC<CIInspectorRelationsProps> = ({
           <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
             <ArrowRight className="h-4 w-4 text-blue-600" />
             {t('cmdb.relations.outgoing', { defaultValue: 'Relations Sortantes' })}
-            <Badge variant="secondary" className="ml-2">{outgoing.length}</Badge>
+            <Badge variant="soft" className="ml-2">{outgoing.length}</Badge>
           </h4>
           <div className="space-y-3">
             {outgoing.map((rel) => (
@@ -536,7 +535,7 @@ export const CIInspectorRelations: React.FC<CIInspectorRelationsProps> = ({
           <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
             <ArrowLeft className="h-4 w-4 text-green-600" />
             {t('cmdb.relations.incoming', { defaultValue: 'Relations Entrantes' })}
-            <Badge variant="secondary" className="ml-2">{incoming.length}</Badge>
+            <Badge variant="soft" className="ml-2">{incoming.length}</Badge>
           </h4>
           <div className="space-y-3">
             {incoming.map((rel) => (

@@ -16,17 +16,15 @@ import {
   AlertTriangle,
   RefreshCw,
   Plus,
-  Search,
-  Filter,
   ChevronRight,
 } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Skeleton } from '../ui/skeleton';
-import { Badge } from '../ui/badge';
+import { Skeleton } from '../ui/Skeleton';
+import { Badge } from '../ui/Badge';
 import { useStore } from '@/store';
-import { useDiscoveryStats, useCMDB } from '@/hooks/cmdb/useCMDBCIs';
-import { useCMDBStore, useCMDBActions, usePendingValidationCount } from '@/stores/cmdbStore';
+import { useDiscoveryStats } from '@/hooks/cmdb/useCMDBCIs';
+import { useCMDBActions, usePendingValidationCount } from '@/stores/cmdbStore';
 import { DiscoveryStats, CIClass } from '@/types/cmdb';
 import { ValidationQueue } from './ValidationQueue';
 import { cn } from '@/lib/utils';
@@ -389,7 +387,7 @@ export const DiscoveryDashboard: React.FC = () => {
                   {t('cmdb.validation.title', { defaultValue: 'Queue de Validation' })}
                 </CardTitle>
                 {pendingCount > 0 && (
-                  <Badge variant="secondary" className="bg-warning/10 text-warning">
+                  <Badge variant="soft" className="bg-warning/10 text-warning">
                     {pendingCount}
                   </Badge>
                 )}

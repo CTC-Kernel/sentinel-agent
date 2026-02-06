@@ -27,7 +27,9 @@ vi.mock('../../ui/Skeleton', () => ({
 // Mock store
 vi.mock('../../../store', () => ({
  useStore: () => ({
- t: (key: string) => {
+ t: (key: string, options?: { defaultValue?: string }) => {
+ // Return defaultValue if provided
+ if (options?.defaultValue) return options.defaultValue;
  const translations: Record<string, string> = {
  'incidents.activeIncidents': 'incidents actifs',
  'incidents.toTreat': 'à traiter',

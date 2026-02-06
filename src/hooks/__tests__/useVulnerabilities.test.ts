@@ -21,12 +21,18 @@ vi.mock('firebase/firestore', () => ({
  addDoc: (...args: unknown[]) => mockAddDoc(...args),
  updateDoc: (...args: unknown[]) => mockUpdateDoc(...args),
  deleteDoc: (...args: unknown[]) => mockDeleteDoc(...args),
- doc: vi.fn(),
+ doc: vi.fn(() => ({ id: 'mock-doc-id' })),
  query: vi.fn(),
  where: vi.fn((field, op, value) => ({ type: 'where', fieldPath: field, opStr: op, value })),
  onSnapshot: (...args: unknown[]) => mockOnSnapshot(...args),
  getDocs: (...args: unknown[]) => mockGetDocs(...args),
- serverTimestamp: () => 'server-timestamp'
+ serverTimestamp: () => 'server-timestamp',
+ writeBatch: vi.fn(() => ({
+ set: vi.fn(),
+ update: vi.fn(),
+ delete: vi.fn(),
+ commit: vi.fn().mockResolvedValue(undefined)
+ }))
 }));
 
 vi.mock('../../firebase', () => ({

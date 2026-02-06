@@ -23,6 +23,9 @@
     "addStep": "Ajouter une étape",
     "importCsv": "Importer CSV",
     "skipToMainContent": "Aller au contenu principal",
+    "a11y": {
+      "skipToContent": "Aller au contenu principal"
+    },
     "information": "Information",
     "inProgress": "En cours",
     "update": "Mettre à jour",
@@ -317,6 +320,15 @@
     "ue1UQIKZB3E5FfI9Helb": "EBIOS",
     "switchLanguage": "Switch to English",
     "giveFeedback": "Donner un avis"
+  },
+  "layout": {
+    "topbar": {
+      "openMobileMenuAriaLabel": "Ouvrir le menu mobile",
+      "searchAriaLabel": "Rechercher (Cmd+K)",
+      "searchMobileAriaLabel": "Rechercher",
+      "toggleThemeAriaLabel": "Toggle Theme",
+      "userMenuAriaLabel": "Menu utilisateur"
+    }
   },
   "admin": {
     "dashboard": "Tableau de Bord Super Admin",
@@ -4562,7 +4574,11 @@
     "message": "Message",
     "technicalInfo": "Informations techniques",
     "unknownError": "Erreur inconnue",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "errorOccurred": "Une erreur est survenue",
+    "unexpectedError": "Une erreur inattendue s'est produite. Notre équipe a été notifiée.",
+    "reloadPage": "Recharger la page",
+    "backToDashboard": "Retour au tableau de bord"
   },
   "errorLogger": {
     "UNKNOWN_ERROR": {
@@ -4769,9 +4785,17 @@
       "selectBackup": "Veuillez sélectionner une sauvegarde",
       "selectCollection": "Veuillez sélectionner au moins une collection",
       "restoreFailed": "Erreur lors de la restauration",
-      "deleteFailed": "Erreur lors de la suppression",
-      "downloadFailed": "Erreur lors du téléchargement"
-    }
+      "deleteFailed": "Erreur lors de la suppression"
+    },
+    "saveModeLabel": "Mode Sauvegarde",
+    "saveButton": "Sauvegarder",
+    "restoreModeLabel": "Mode Restauration",
+    "restoreButton": "Restaurer",
+    "scheduleDailyLabel": "Programmer une sauvegarde quotidienne",
+    "scheduleWeeklyLabel": "Programmer une sauvegarde hebdomadaire",
+    "scheduleMonthlyLabel": "Programmer une sauvegarde mensuelle",
+    "startBackupLabel": "Lancer la sauvegarde",
+    "startBackup": "Lancer la sauvegarde"
   },
   "threatRegistry": {
     "title": "Bibliothèque de Menaces",

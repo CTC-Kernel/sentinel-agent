@@ -12,7 +12,6 @@ import { useStore } from '@/store';
 import { ErrorLogger } from '@/services/errorLogger';
 import { CMDBRelationship } from '@/types/cmdb';
 import { CreateRelationshipFormData } from '@/schemas/cmdbSchema';
-import { cmdbKeys } from './useCMDBCIs';
 
 // Relationship-specific query keys
 export const relationshipKeys = {
@@ -114,13 +113,10 @@ export function useCMDBRelationshipMutations() {
       queryClient.invalidateQueries({
         queryKey: relationshipKeys.forCI(organizationId, variables.targetId),
       });
-      addToast({
-        type: 'success',
-        message: 'Relation créée avec succès',
-      });
+      addToast('Relation créée avec succès', 'success');
     },
     onError: (error) => {
-      ErrorLogger.handleErrorWithToast(error, 'cmdb.relationship.createError', addToast);
+      ErrorLogger.handleErrorWithToast(error, 'cmdb.relationship.createError');
     },
   });
 
@@ -162,16 +158,13 @@ export function useCMDBRelationshipMutations() {
           context.previousRelationship
         );
       }
-      ErrorLogger.handleErrorWithToast(error, 'cmdb.relationship.updateError', addToast);
+      ErrorLogger.handleErrorWithToast(error, 'cmdb.relationship.updateError');
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: relationshipKeys.all });
     },
     onSuccess: () => {
-      addToast({
-        type: 'success',
-        message: 'Relation mise à jour avec succès',
-      });
+      addToast('Relation mise à jour avec succès', 'success');
     },
   });
 
@@ -181,13 +174,10 @@ export function useCMDBRelationshipMutations() {
       CMDBRelationshipService.deleteRelationship(organizationId, relationshipId, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: relationshipKeys.all });
-      addToast({
-        type: 'success',
-        message: 'Relation supprimée',
-      });
+      addToast('Relation supprimée', 'success');
     },
     onError: (error) => {
-      ErrorLogger.handleErrorWithToast(error, 'cmdb.relationship.deleteError', addToast);
+      ErrorLogger.handleErrorWithToast(error, 'cmdb.relationship.deleteError');
     },
   });
 
@@ -197,13 +187,10 @@ export function useCMDBRelationshipMutations() {
       CMDBRelationshipService.validateRelationship(organizationId, relationshipId, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: relationshipKeys.all });
-      addToast({
-        type: 'success',
-        message: 'Relation validée',
-      });
+      addToast('Relation validée', 'success');
     },
     onError: (error) => {
-      ErrorLogger.handleErrorWithToast(error, 'cmdb.relationship.validateError', addToast);
+      ErrorLogger.handleErrorWithToast(error, 'cmdb.relationship.validateError');
     },
   });
 

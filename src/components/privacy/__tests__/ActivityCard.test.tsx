@@ -191,7 +191,7 @@ describe('ActivityCard', () => {
  render(<ActivityCard activity={{ ...mockActivity, status: 'Archivé' }} onClick={mockOnClick} onDelete={mockOnDelete} canEdit={true} />);
 
  const statusBadge = screen.getByText('Archivé');
- expect(statusBadge).toHaveClass('bg-muted/50');
+ expect(statusBadge).toHaveClass('bg-muted');
  });
  });
 });

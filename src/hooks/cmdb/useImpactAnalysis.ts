@@ -108,7 +108,7 @@ async function performImpactAnalysis(
   visited.add(sourceCI.id);
 
   while (queue.length > 0) {
-    const [currentId, hop, path, lastRelationship] = queue.shift()!;
+    const [currentId, hop, path, _lastRelationship] = queue.shift()!;
 
     if (hop >= maxDepth) continue;
 
@@ -313,9 +313,9 @@ export function useBlastRadius(ciId: string) {
  */
 export function useSaveImpactReport() {
   const { user, addToast } = useStore();
-  const queryClient = useQueryClient();
-  const organizationId = user?.organizationId || '';
-  const userId = user?.uid || '';
+  const _queryClient = useQueryClient();
+  const _organizationId = user?.organizationId || '';
+  const _userId = user?.uid || '';
 
   return useMutation({
     mutationFn: async (assessment: ImpactAssessment) => {
@@ -325,13 +325,10 @@ export function useSaveImpactReport() {
       return assessment;
     },
     onSuccess: () => {
-      addToast({
-        type: 'success',
-        message: 'Rapport d\'impact enregistré',
-      });
+      addToast('Rapport d\'impact enregistré', 'success');
     },
     onError: (error) => {
-      ErrorLogger.handleErrorWithToast(error, 'cmdb.impact.saveError', addToast);
+      ErrorLogger.handleErrorWithToast(error, 'cmdb.impact.saveError');
     },
   });
 }

@@ -7,6 +7,23 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { FindingsList } from '../FindingsList';
 import { Audit, Finding } from '../../../types';
+import { fr } from 'date-fns/locale';
+
+// Mock useLocale
+vi.mock('../../../hooks/useLocale', () => ({
+ useLocale: () => ({
+ locale: 'fr',
+ dateFnsLocale: fr,
+ t: (key: string) => key,
+ formatDate: (date: Date) => date.toLocaleDateString('fr-FR'),
+ formatNumber: (num: number) => num.toLocaleString('fr-FR'),
+ })
+}));
+
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+ useTranslation: () => ({ t: (key: string) => key })
+}));
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({

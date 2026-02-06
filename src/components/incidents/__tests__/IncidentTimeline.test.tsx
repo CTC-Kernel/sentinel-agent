@@ -7,6 +7,33 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { IncidentTimeline } from '../IncidentTimeline';
 import { Incident, Criticality } from '../../../types';
+import { fr } from 'date-fns/locale';
+
+// Mock useLocale - extract defaultValue from options for proper translation handling
+vi.mock('../../../hooks/useLocale', () => ({
+ useLocale: () => ({
+ locale: 'fr',
+ dateFnsLocale: fr,
+ config: { intlLocale: 'fr-FR' },
+ t: (key: string, options?: { defaultValue?: string; reporter?: string }) => {
+ if (options?.defaultValue) {
+ // Handle interpolation for reporter
+ if (options.reporter) {
+  return options.defaultValue.replace('{{reporter}}', options.reporter);
+ }
+ return options.defaultValue;
+ }
+ return key;
+ },
+ formatDate: (date: Date) => date.toLocaleDateString('fr-FR'),
+ formatLocalizedDate: (date: Date | string | null) => date ? new Date(date).toLocaleDateString('fr-FR') : '',
+ })
+}));
+
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+ useTranslation: () => ({ t: (key: string) => key })
+}));
 
 // Mock Icons
 vi.mock('../../ui/Icons', () => ({

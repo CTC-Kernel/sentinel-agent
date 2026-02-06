@@ -13,7 +13,6 @@ import { useInspector } from '@/hooks/useInspector';
 import { useStore } from '@/store';
 import { useCMDBCI } from '@/hooks/cmdb/useCMDBCIs';
 import {
-  useCMDBStore,
   useSelectedCIId,
   useInspectorOpen,
   useCMDBActions,
@@ -34,11 +33,9 @@ import {
   GitBranch,
   History,
   Zap,
-  RefreshCw,
 } from '../ui/Icons';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
 import { CIInspectorDetails } from './inspector/CIInspectorDetails';
 import { CIInspectorRelations } from './inspector/CIInspectorRelations';
 import { CIInspectorHistory } from './inspector/CIInspectorHistory';
@@ -113,7 +110,7 @@ export const CIInspector: React.FC<CIInspectorProps> = ({
   onDelete,
   canEdit = true,
 }) => {
-  const { user, t } = useStore();
+  const { t } = useStore();
 
   // Use props or store
   const storeIsOpen = useInspectorOpen();
@@ -125,7 +122,7 @@ export const CIInspector: React.FC<CIInspectorProps> = ({
 
   // Fetch CI data if using store
   const { data: fetchedCI } = useCMDBCI(propSelectedCI ? null : storeCIId);
-  const selectedCI = propSelectedCI ?? fetchedCI;
+  const selectedCI = propSelectedCI ?? fetchedCI ?? null;
 
   const [isFormDirty, setIsFormDirty] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

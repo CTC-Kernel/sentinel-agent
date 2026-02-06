@@ -1,6 +1,8 @@
 /**
  * CMDB Components Index
  *
+ * Premium AAA-quality Configuration Management Database module.
+ *
  * @module components/cmdb
  */
 
@@ -16,3 +18,14 @@ export {
   CIInspectorHistory,
   CIInspectorImpact,
 } from './inspector';
+
+// Premium Dashboard
+export { CMDBPremiumDashboard } from './dashboard';
+
+// Premium Visualizations
+export {
+  CMDBDependencyGraph,
+  CIHealthGauge,
+  ImpactBlastRadius,
+  CMDBTopologyMap,
+} from './visualizations';

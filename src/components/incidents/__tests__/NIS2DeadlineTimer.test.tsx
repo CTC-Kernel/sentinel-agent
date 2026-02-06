@@ -8,6 +8,26 @@ import { render, screen } from '@testing-library/react';
 import { NIS2DeadlineTimer } from '../NIS2DeadlineTimer';
 import { Incident, Criticality } from '../../../types';
 import { DeadlineStatus } from '../../../utils/nis2Utils';
+import { fr } from 'date-fns/locale';
+
+// Mock useLocale - extract defaultValue from options for proper translation handling
+vi.mock('../../../hooks/useLocale', () => ({
+ useLocale: () => ({
+ locale: 'fr',
+ dateFnsLocale: fr,
+ t: (key: string, options?: { defaultValue?: string }) => {
+ if (options?.defaultValue) return options.defaultValue;
+ return key;
+ },
+ formatDate: (date: Date) => date.toLocaleDateString('fr-FR'),
+ formatLocalizedDate: (date: Date | string | null) => date ? new Date(date).toLocaleDateString('fr-FR') : '',
+ })
+}));
+
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+ useTranslation: () => ({ t: (key: string) => key })
+}));
 
 // Mock nis2Utils
 vi.mock('../../../utils/nis2Utils', () => ({

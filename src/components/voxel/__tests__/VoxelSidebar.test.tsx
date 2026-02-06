@@ -206,8 +206,8 @@ describe('VoxelSidebar', () => {
 
  const { container } = render(<VoxelSidebar {...propsWithInactive} />);
 
- // Inactive layer toggles have bg-white/10
- const inactiveToggles = container.querySelectorAll('.bg-white\\/10');
+ // Inactive layer toggles have bg-muted
+ const inactiveToggles = container.querySelectorAll('.bg-muted');
  expect(inactiveToggles.length).toBeGreaterThan(0);
  });
  });

@@ -18,8 +18,12 @@ i18n
  loadPath: '/locales/{{lng}}/translation.json',
  },
  react: {
- useSuspense: true,
- }
+ useSuspense: false, // Disable suspense to prevent accessing translations before loading
+ },
+ saveMissing: import.meta.env.DEV,
+ missingKeyHandler: import.meta.env.DEV ? (lng, _ns, key) => {
+ console.warn(`Missing translation key: ${key} for language: ${lng}`);
+ } : undefined
  });
 
 export default i18n;

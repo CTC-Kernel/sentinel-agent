@@ -30,14 +30,18 @@ vi.mock('@headlessui/react', () => {
  };
 });
 
-// Mock store
+// Mock store with proper t() function that handles defaultValue
 vi.mock('../../../store', () => ({
  useStore: () => ({
  user: {
  uid: 'user-1',
  organizationId: 'org-1'
  },
- addToast: vi.fn()
+ addToast: vi.fn(),
+ t: (key: string, options?: { defaultValue?: string }) => {
+ if (options?.defaultValue) return options.defaultValue;
+ return key;
+ }
  })
 }));
 

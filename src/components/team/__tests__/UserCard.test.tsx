@@ -25,6 +25,26 @@ vi.mock('react-i18next', () => ({
  })
 }));
 
+// Mock useLocale - component uses this, not useTranslation
+vi.mock('../../../hooks/useLocale', () => ({
+ useLocale: () => ({
+ locale: 'fr',
+ t: (key: string, options?: { defaultValue?: string }) => {
+ if (options?.defaultValue) return options.defaultValue;
+ const translations: Record<string, string> = {
+ 'team.actions.edit': 'Modifier',
+ 'team.actions.delete': 'Supprimer',
+ 'team.delete.titleInvite': 'Supprimer l\'invitation ?',
+ 'team.invite.success': 'Invitation envoyée',
+ 'team.stats.pending': 'en attente',
+ 'team.columns.lastLogin': 'Dernière connexion',
+ 'team.defaultDepartment': 'Général'
+ };
+ return translations[key] || key;
+ }
+ })
+}));
+
 // Mock avatar utils
 vi.mock('../../../utils/avatarUtils', () => ({
  getDefaultAvatarUrl: vi.fn((role) => `https://avatar.vercel.sh/${role}`)

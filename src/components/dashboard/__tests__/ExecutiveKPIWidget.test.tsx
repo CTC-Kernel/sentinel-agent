@@ -2,6 +2,30 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ExecutiveKPIWidget } from '../ExecutiveKPIWidget';
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+ useTranslation: () => ({ t: (key: string) => key })
+}));
+
+// Mock useLocale - extract defaultValue from options for proper translation handling
+vi.mock('../../../hooks/useLocale', () => ({
+ useLocale: () => ({
+ locale: 'fr',
+ t: (key: string, options?: { defaultValue?: string; count?: number }) => {
+ if (options?.defaultValue) {
+ // Handle interpolation for count
+ if (options.count !== undefined) {
+  return options.defaultValue.replace('{{count}}', String(options.count));
+ }
+ return options.defaultValue;
+ }
+ return key;
+ },
+ formatNumber: (num: number) => num.toLocaleString('fr-FR'),
+ formatPercentage: (num: number) => `${(num * 100).toFixed(0)}%`,
+ })
+}));
+
 // Mock the hooks
 vi.mock('../../../hooks/useComplianceScore', () => ({
  useComplianceScore: vi.fn(),

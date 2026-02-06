@@ -11,7 +11,7 @@ import React, { useState, useCallback } from 'react';
 import {
   Check,
   X,
-  GitMerge,
+  GitBranch,
   ChevronDown,
   ChevronUp,
   Server,
@@ -19,12 +19,11 @@ import {
   Database,
   Globe,
   Cloud,
-  AlertCircle,
   Loader2,
 } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
-import { Badge } from '../ui/badge';
+import { Badge } from '../ui/Badge';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { useStore } from '@/store';
 import {
@@ -78,12 +77,6 @@ const getConfidenceColor = (confidence: number) => {
   if (confidence >= 80) return 'text-success bg-success/10';
   if (confidence >= 60) return 'text-warning bg-warning/10';
   return 'text-destructive bg-destructive/10';
-};
-
-const getConfidenceLabel = (confidence: number) => {
-  if (confidence >= 80) return 'Haute';
-  if (confidence >= 60) return 'Moyenne';
-  return 'Faible';
 };
 
 // =============================================================================
@@ -255,7 +248,7 @@ const ValidationItem: React.FC<ValidationItemProps> = ({
                 {processing === 'merge' ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <GitMerge className="h-4 w-4" />
+                  <GitBranch className="h-4 w-4" />
                 )}
               </Button>
             </CustomTooltip>
@@ -309,21 +302,21 @@ export const ValidationQueue: React.FC<ValidationQueueProps> = ({
   const handleApprove = useCallback(async (id: string) => {
     // TODO: Call API to approve
     removePendingValidation(id);
-    addToast({ type: 'success', message: t('cmdb.validation.approved', { defaultValue: 'CI approuvé' }) });
+    addToast(t('cmdb.validation.approved', { defaultValue: 'CI approuvé' }), 'success');
     onValidationProcessed?.();
   }, [removePendingValidation, addToast, t, onValidationProcessed]);
 
   const handleReject = useCallback(async (id: string) => {
     // TODO: Call API to reject
     removePendingValidation(id);
-    addToast({ type: 'info', message: t('cmdb.validation.rejected', { defaultValue: 'CI rejeté' }) });
+    addToast(t('cmdb.validation.rejected', { defaultValue: 'CI rejeté' }), 'info');
     onValidationProcessed?.();
   }, [removePendingValidation, addToast, t, onValidationProcessed]);
 
   const handleMerge = useCallback(async (id: string) => {
     // TODO: Call API to merge
     removePendingValidation(id);
-    addToast({ type: 'success', message: t('cmdb.validation.merged', { defaultValue: 'CI fusionné' }) });
+    addToast(t('cmdb.validation.merged', { defaultValue: 'CI fusionné' }), 'success');
     onValidationProcessed?.();
   }, [removePendingValidation, addToast, t, onValidationProcessed]);
 

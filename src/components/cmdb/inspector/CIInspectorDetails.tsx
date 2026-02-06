@@ -20,13 +20,9 @@ import {
   Box,
   Save,
   RotateCcw,
-  AlertCircle,
   Loader2,
   User,
-  Building,
-  Calendar,
   Cpu,
-  HardDrive,
   Wifi,
 } from '../../ui/Icons';
 import { Button } from '../../ui/button';
@@ -41,7 +37,8 @@ import {
 } from '../../ui/select';
 import { Label } from '../../ui/label';
 import { useStore } from '@/store';
-import { ConfigurationItem, CIClass, isHardwareCI } from '@/types/cmdb';
+import { useTeamData } from '@/hooks/team/useTeamData';
+import { ConfigurationItem, CIClass } from '@/types/cmdb';
 import { createCISchema, CreateCIFormData } from '@/schemas/cmdbSchema';
 import { cn } from '@/lib/utils';
 
@@ -126,7 +123,8 @@ export const CIInspectorDetails: React.FC<CIInspectorDetailsProps> = ({
   onDirtyChange,
   isLoading = false,
 }) => {
-  const { t, user, users } = useStore();
+  const { t, user } = useStore();
+  const { users = [] } = useTeamData();
 
   // Default values for form
   const defaultValues = useMemo<CreateCIFormData>(() => {
@@ -428,7 +426,7 @@ export const CIInspectorDetails: React.FC<CIInspectorDetailsProps> = ({
                     <SelectValue placeholder="Sélectionner un propriétaire" />
                   </SelectTrigger>
                   <SelectContent>
-                    {users.map((u) => (
+                    {(users || []).map((u: { uid: string; displayName?: string; email?: string }) => (
                       <SelectItem key={u.uid} value={u.uid}>
                         {u.displayName || u.email}
                       </SelectItem>

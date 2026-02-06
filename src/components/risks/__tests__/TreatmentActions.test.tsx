@@ -61,6 +61,21 @@ vi.mock('../../../hooks/useLocale', async () => {
  useLocale: () => ({
  locale: 'fr',
  dateFnsLocale: fr,
+ // Return defaultValue when provided
+ t: (key: string, options?: { defaultValue?: string }) => {
+ if (options?.defaultValue) return options.defaultValue;
+ const translations: Record<string, string> = {
+  'risks.treatment.actions_title': 'Actions de traitement',
+  'risks.treatment.no_actions': 'Aucune action de traitement définie.',
+  'risks.treatment.add_action': 'Ajouter une action',
+  'risks.treatment.edit_action': "Modifier l'action",
+  'risks.treatment.delete_action': "Supprimer l'action",
+  'risks.treatment.progress': 'Progression',
+  'risks.treatment.late': 'En retard',
+  'risks.treatment.statusLabel': 'Statut'
+ };
+ return translations[key] || key;
+ },
  zodMessages: {
  required: 'Ce champ est requis',
  invalidType: 'Type de valeur invalide',

@@ -7,19 +7,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TimelineView } from '../TimelineView';
 
-// Mock framer-motion
+// Mock framer-motion - render as regular divs to avoid role="button" interference
 vi.mock('framer-motion', () => ({
  motion: {
  div: ({ children, className, onClick }: React.PropsWithChildren<{ className?: string; onClick?: () => void }>) => (
- <div
- role="button"
- tabIndex={0}
- className={className}
- onClick={onClick}
- onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(); }}
- >
- {children}
- </div>
+ <div className={className} onClick={onClick}>{children}</div>
  )
  },
  AnimatePresence: ({ children }: React.PropsWithChildren<{ mode?: string }>) => <>{children}</>
@@ -34,6 +26,18 @@ vi.mock('react-diff-viewer-continued', () => ({
  </div>
  )
 }));
+
+// Mock useLocale for date formatting
+vi.mock('../../../hooks/useLocale', async () => {
+ const { fr } = await import('date-fns/locale');
+ return {
+ useLocale: () => ({
+ locale: 'fr',
+ dateFnsLocale: fr,
+ t: (key: string, options?: { defaultValue?: string }) => options?.defaultValue || key,
+ })
+ };
+});
 
 // Mock useTimelineData hook
 const mockSystemLogs: Array<{

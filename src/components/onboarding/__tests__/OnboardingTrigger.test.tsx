@@ -22,6 +22,22 @@ vi.mock('react-i18next', () => ({
  })
 }));
 
+// Mock useLocale - component uses this, not useTranslation
+vi.mock('../../../hooks/useLocale', () => ({
+ useLocale: () => ({
+ locale: 'fr',
+ t: (key: string) => {
+ const translations: Record<string, string> = {
+ 'tour.banner.title': 'Découvrir Sentinel',
+ 'tour.banner.desc': 'Une visite guidée de la plateforme',
+ 'tour.banner.start': 'Commencer',
+ 'tour.banner.dismiss': 'Plus tard'
+ };
+ return translations[key] || key;
+ }
+ })
+}));
+
 describe('OnboardingBanner', () => {
  const mockOnStart = vi.fn();
  const mockOnDismiss = vi.fn();

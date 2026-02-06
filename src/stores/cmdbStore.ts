@@ -320,6 +320,7 @@ export const useCMDBActions = () =>
       openImpactAnalysisModal: s.openImpactAnalysisModal,
       closeImpactAnalysisModal: s.closeImpactAnalysisModal,
       clearImpact: s.clearImpact,
+      removePendingValidation: s.removePendingValidation,
     }),
     shallow
   );

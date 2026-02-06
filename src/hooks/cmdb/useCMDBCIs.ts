@@ -15,8 +15,6 @@ import {
   ConfigurationItem,
   CMDBFilters,
   CMDBPagination,
-  PaginatedCIs,
-  DiscoveryStats,
 } from '@/types/cmdb';
 import { CreateCIFormData } from '@/schemas/cmdbSchema';
 
@@ -162,16 +160,13 @@ export function useCMDBMutations() {
   const createCI = useMutation({
     mutationFn: (data: CreateCIFormData) =>
       CMDBService.createCI(organizationId, data, userId),
-    onSuccess: (ciId) => {
+    onSuccess: (_ciId) => {
       queryClient.invalidateQueries({ queryKey: cmdbKeys.cis() });
       queryClient.invalidateQueries({ queryKey: cmdbKeys.stats(organizationId) });
-      addToast({
-        type: 'success',
-        message: 'Configuration Item created successfully',
-      });
+      addToast('Configuration Item created successfully', 'success');
     },
     onError: (error) => {
-      ErrorLogger.handleErrorWithToast(error, 'cmdb.createError', addToast);
+      ErrorLogger.handleErrorWithToast(error, 'cmdb.createError');
     },
   });
 
@@ -206,17 +201,14 @@ export function useCMDBMutations() {
           context.previousCI
         );
       }
-      ErrorLogger.handleErrorWithToast(error, 'cmdb.updateError', addToast);
+      ErrorLogger.handleErrorWithToast(error, 'cmdb.updateError');
     },
     onSettled: (_, __, { ciId }) => {
       queryClient.invalidateQueries({ queryKey: cmdbKeys.ciDetail(organizationId, ciId) });
       queryClient.invalidateQueries({ queryKey: cmdbKeys.cis() });
     },
     onSuccess: () => {
-      addToast({
-        type: 'success',
-        message: 'Configuration Item updated successfully',
-      });
+      addToast('Configuration Item updated successfully', 'success');
     },
   });
 
@@ -226,13 +218,10 @@ export function useCMDBMutations() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cmdbKeys.cis() });
       queryClient.invalidateQueries({ queryKey: cmdbKeys.stats(organizationId) });
-      addToast({
-        type: 'success',
-        message: 'Configuration Item retired successfully',
-      });
+      addToast('Configuration Item retired successfully', 'success');
     },
     onError: (error) => {
-      ErrorLogger.handleErrorWithToast(error, 'cmdb.deleteError', addToast);
+      ErrorLogger.handleErrorWithToast(error, 'cmdb.deleteError');
     },
   });
 

@@ -13,6 +13,17 @@ vi.mock('../../../utils/avatarUtils', () => ({
  getUserAvatarUrl: vi.fn((url, role) => url || `https://avatar.vercel.sh/${role}`)
 }));
 
+// Mock useLocale
+vi.mock('../../../hooks/useLocale', () => ({
+ useLocale: () => ({
+ locale: 'fr',
+ t: (key: string, options?: { defaultValue?: string }) => {
+ if (options?.defaultValue) return options.defaultValue;
+ return key;
+ }
+ })
+}));
+
 describe('SupplierCard', () => {
  const mockSupplier: Supplier = {
  id: 'sup-1',
@@ -119,25 +130,26 @@ describe('SupplierCard', () => {
  it('applies correct style for CRITICAL', () => {
  render(<SupplierCard supplier={{ ...mockSupplier, criticality: Criticality.CRITICAL }} onClick={mockOnClick} />);
 
- expect(screen.getByText(Criticality.CRITICAL)).toHaveClass('bg-red-100');
+ expect(screen.getByText(Criticality.CRITICAL)).toHaveClass('bg-error-bg');
  });
 
  it('applies correct style for HIGH', () => {
  render(<SupplierCard supplier={{ ...mockSupplier, criticality: Criticality.HIGH }} onClick={mockOnClick} />);
 
- expect(screen.getByText(Criticality.HIGH)).toHaveClass('bg-orange-100');
+ expect(screen.getByText(Criticality.HIGH)).toHaveClass('bg-warning-bg');
  });
 
  it('applies correct style for MEDIUM', () => {
  render(<SupplierCard supplier={{ ...mockSupplier, criticality: Criticality.MEDIUM }} onClick={mockOnClick} />);
 
- expect(screen.getByText(Criticality.MEDIUM)).toHaveClass('bg-yellow-100');
+ // Medium uses bg-warning-bg/50
+ expect(screen.getByText(Criticality.MEDIUM)).toHaveClass('text-warning-text');
  });
 
  it('applies correct style for LOW', () => {
  render(<SupplierCard supplier={{ ...mockSupplier, criticality: Criticality.LOW }} onClick={mockOnClick} />);
 
- expect(screen.getByText(Criticality.LOW)).toHaveClass('bg-green-100');
+ expect(screen.getByText(Criticality.LOW)).toHaveClass('bg-success-bg');
  });
  });
 
@@ -175,29 +187,29 @@ describe('SupplierCard', () => {
  };
  render(<SupplierCard supplier={expiredSupplier} onClick={mockOnClick} />);
 
- // The date should be displayed in red
+ // The date should be displayed in red (uses text-destructive)
  const dateElement = screen.getByText(new Date(expiredSupplier.contractEnd).toLocaleDateString());
- expect(dateElement).toHaveClass('text-red-500');
+ expect(dateElement).toHaveClass('text-destructive');
  });
  });
 
  describe('security score colors', () => {
- it('shows emerald color for score >= 80', () => {
+ it('shows success color for score >= 80', () => {
  render(<SupplierCard supplier={{ ...mockSupplier, securityScore: 85 }} onClick={mockOnClick} />);
 
- expect(screen.getByText('85/100')).toHaveClass('text-emerald-500');
+ expect(screen.getByText('85/100')).toHaveClass('text-success');
  });
 
- it('shows amber color for score >= 50', () => {
+ it('shows warning color for score >= 50', () => {
  render(<SupplierCard supplier={{ ...mockSupplier, securityScore: 65 }} onClick={mockOnClick} />);
 
- expect(screen.getByText('65/100')).toHaveClass('text-amber-500');
+ expect(screen.getByText('65/100')).toHaveClass('text-warning');
  });
 
- it('shows red color for score < 50', () => {
+ it('shows destructive color for score < 50', () => {
  render(<SupplierCard supplier={{ ...mockSupplier, securityScore: 30 }} onClick={mockOnClick} />);
 
- expect(screen.getByText('30/100')).toHaveClass('text-red-500');
+ expect(screen.getByText('30/100')).toHaveClass('text-destructive');
  });
  });
 
