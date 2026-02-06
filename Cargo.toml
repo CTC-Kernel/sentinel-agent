@@ -68,7 +68,7 @@ features = [
     "Win32_System_Registry",
     "Win32_System_ProcessStatus",
     "Win32_System_Console",
-    "Win32_Storage",
+    "Win32_Storage_FileSystem",
 ]
 
 [workspace.dependencies.windows-service]
