@@ -256,9 +256,10 @@ cargo fmt --check && cargo clippy -- -D warnings
 | Modification | Avant | Après |
 |--------------|-------|-------|
 | compliance.tsx | 634 lignes | 199 lignes |
+| dashboard.tsx | 388 lignes | 230 lignes |
 | State management | useState local | Zustand store |
 | App Check | Absent | Configuré |
-| Composants | Monolithique | 5 composants extraits |
+| Composants | Monolithique | 7 composants extraits |
 
 **Nouveaux fichiers créés:**
 - `stores/agentStore.ts` - Store Zustand pour l'état agent/compliance
@@ -268,6 +269,8 @@ cargo fmt --check && cargo clippy -- -D warnings
 - `components/compliance/ScoreCard.tsx` - Score de conformité
 - `components/compliance/SummaryStats.tsx` - Statistiques résumé
 - `components/compliance/CheckResultCard.tsx` - Résultat de check
+- `components/dashboard/KpiCard.tsx` - Carte KPI
+- `components/dashboard/DeviceComplianceCard.tsx` - Carte conformité appareil
 
 ---
 
@@ -306,9 +309,11 @@ cargo fmt --check && cargo clippy -- -D warnings
 | `mobile/firebaseConfig.ts` | Ajout App Check |
 | `mobile/package.json` | Ajout Zustand |
 | `mobile/app/compliance.tsx` | Refactoré (634→199 lignes) |
+| `mobile/app/dashboard.tsx` | Refactoré (388→230 lignes) |
 | `mobile/stores/agentStore.ts` | Créé (store Zustand) |
 | `mobile/theme/colors.ts` | Créé (couleurs partagées) |
 | `mobile/components/compliance/*` | Créé (5 composants) |
+| `mobile/components/dashboard/*` | Créé (2 composants) |
 
 ---
 

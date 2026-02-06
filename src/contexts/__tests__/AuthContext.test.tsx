@@ -6,6 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '../AuthContext';
 import { AuthContext } from '../AuthContextDefinition';
 
@@ -123,9 +124,18 @@ const useAuth = () => {
  return context;
 };
 
-const wrapper = ({ children }: { children: React.ReactNode }) => (
+const createWrapper = () => {
+ const queryClient = new QueryClient({
+ defaultOptions: {
+ queries: { retry: false },
+ },
+ });
+ return ({ children }: { children: React.ReactNode }) => (
+ <QueryClientProvider client={queryClient}>
  <AuthProvider>{children}</AuthProvider>
-);
+ </QueryClientProvider>
+ );
+};
 
 describe('AuthContext', () => {
  beforeEach(() => {
@@ -150,7 +160,7 @@ describe('AuthContext', () => {
  });
 
  it('should return initial state when no user', async () => {
- const { result } = renderHook(() => useAuth(), { wrapper });
+ const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
  await waitFor(() => {
  expect(result.current.loading).toBe(false);
@@ -162,7 +172,7 @@ describe('AuthContext', () => {
  });
 
  it('should have logout function available', async () => {
- const { result } = renderHook(() => useAuth(), { wrapper });
+ const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
  await waitFor(() => {
  expect(result.current.loading).toBe(false);
@@ -172,7 +182,7 @@ describe('AuthContext', () => {
  });
 
  it('should have refreshSession function available', async () => {
- const { result } = renderHook(() => useAuth(), { wrapper });
+ const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
  await waitFor(() => {
  expect(result.current.loading).toBe(false);
@@ -182,7 +192,7 @@ describe('AuthContext', () => {
  });
 
  it('should have MFA functions available', async () => {
- const { result } = renderHook(() => useAuth(), { wrapper });
+ const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
  await waitFor(() => {
  expect(result.current.loading).toBe(false);
@@ -194,7 +204,7 @@ describe('AuthContext', () => {
  });
 
  it('should have loginWithSSO function available', async () => {
- const { result } = renderHook(() => useAuth(), { wrapper });
+ const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
  await waitFor(() => {
  expect(result.current.loading).toBe(false);
@@ -206,7 +216,7 @@ describe('AuthContext', () => {
 
  describe('logout', () => {
  it('should call Firebase signOut', async () => {
- const { result } = renderHook(() => useAuth(), { wrapper });
+ const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
  await waitFor(() => {
  expect(result.current.loading).toBe(false);
@@ -220,7 +230,7 @@ describe('AuthContext', () => {
  });
 
  it('should clear user state on logout', async () => {
- const { result } = renderHook(() => useAuth(), { wrapper });
+ const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
  await waitFor(() => {
  expect(result.current.loading).toBe(false);
@@ -236,7 +246,7 @@ describe('AuthContext', () => {
 
  describe('loginWithSSO', () => {
  it('should call signInWithPopup with provider', async () => {
- const { result } = renderHook(() => useAuth(), { wrapper });
+ const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
  await waitFor(() => {
  expect(result.current.loading).toBe(false);
@@ -252,7 +262,7 @@ describe('AuthContext', () => {
 
  describe('isBlocked state', () => {
  it('should have dismissBlockerError function', async () => {
- const { result } = renderHook(() => useAuth(), { wrapper });
+ const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
  await waitFor(() => {
  expect(result.current.loading).toBe(false);
@@ -262,7 +272,7 @@ describe('AuthContext', () => {
  });
 
  it('should initially not be blocked', async () => {
- const { result } = renderHook(() => useAuth(), { wrapper });
+ const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
  await waitFor(() => {
  expect(result.current.loading).toBe(false);
@@ -283,7 +293,7 @@ describe('AuthContext', () => {
  return vi.fn();
  });
 
- const { result } = renderHook(() => useAuth(), { wrapper });
+ const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
  // Loading should be true initially
  capturedLoading = result.current.loading;
@@ -317,7 +327,7 @@ describe('AuthContext', () => {
  return vi.fn();
  });
 
- const { result } = renderHook(() => useAuth(), { wrapper });
+ const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
  await waitFor(() => {
  expect(result.current.loading).toBe(false);
@@ -347,7 +357,7 @@ describe('AuthContext', () => {
  return vi.fn();
  });
 
- const { result } = renderHook(() => useAuth(), { wrapper });
+ const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
  await waitFor(() => {
  expect(result.current.loading).toBe(false);
@@ -360,7 +370,7 @@ describe('AuthContext', () => {
 
  describe('error handling', () => {
  it('should have error state available', async () => {
- const { result } = renderHook(() => useAuth(), { wrapper });
+ const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
  await waitFor(() => {
  expect(result.current.loading).toBe(false);
@@ -370,7 +380,7 @@ describe('AuthContext', () => {
  });
 
  it('should have profileError state available', async () => {
- const { result } = renderHook(() => useAuth(), { wrapper });
+ const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
  await waitFor(() => {
  expect(result.current.loading).toBe(false);
@@ -382,7 +392,7 @@ describe('AuthContext', () => {
 
  describe('claimsSynced state', () => {
  it('should expose claimsSynced', async () => {
- const { result } = renderHook(() => useAuth(), { wrapper });
+ const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
  await waitFor(() => {
  expect(result.current.loading).toBe(false);

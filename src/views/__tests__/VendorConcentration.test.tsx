@@ -15,10 +15,15 @@ vi.mock('react-i18next', () => ({
 }));
 
 vi.mock('../../store', () => ({
- useStore: () => ({
+ useStore: (selector?: (state: Record<string, unknown>) => unknown) => {
+ const state = {
  user: { uid: 'user-123', organizationId: 'org-123' },
- organization: { id: 'org-123' }
- })
+ organization: { id: 'org-123' },
+ language: 'fr' as const,
+ t: (key: string) => key
+ };
+ return selector ? selector(state) : state;
+ }
 }));
 
 vi.mock('../../services/VendorConcentrationService', () => ({
