@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app';
 // @ts-expect-error - ignore verification: getReactNativePersistence is not correctly typed in some versions but works at runtime
 import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider, CustomProvider } from 'firebase/app-check';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 // Hardcoded for now or use EXPO_PUBLIC_ env vars
@@ -19,6 +20,36 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
+// Initialize App Check
+// In development, use debug token; in production, use reCAPTCHA Enterprise
+const isDebug = __DEV__ || process.env.EXPO_PUBLIC_APP_CHECK_DEBUG === 'true';
+
+if (isDebug) {
+    // Debug provider for development - allows testing without reCAPTCHA
+    // Set FIREBASE_APPCHECK_DEBUG_TOKEN in Firebase Console > App Check > Apps > Manage debug tokens
+    const debugToken = process.env.EXPO_PUBLIC_APP_CHECK_DEBUG_TOKEN;
+    if (debugToken) {
+        initializeAppCheck(app, {
+            provider: new CustomProvider({
+                getToken: async () => ({
+                    token: debugToken,
+                    expireTimeMillis: Date.now() + 60 * 60 * 1000 // 1 hour
+                })
+            }),
+            isTokenAutoRefreshEnabled: true
+        });
+    }
+} else {
+    // Production: use reCAPTCHA Enterprise
+    const recaptchaSiteKey = process.env.EXPO_PUBLIC_RECAPTCHA_SITE_KEY;
+    if (recaptchaSiteKey) {
+        initializeAppCheck(app, {
+            provider: new ReCaptchaEnterpriseProvider(recaptchaSiteKey),
+            isTokenAutoRefreshEnabled: true
+        });
+    }
+}
+
 // Initialize Auth with AsyncStorage persistence
 const auth = initializeAuth(app, {
     persistence: getReactNativePersistence(ReactNativeAsyncStorage)
@@ -26,4 +57,4 @@ const auth = initializeAuth(app, {
 
 const db = getFirestore(app);
 
-export { auth, db };
+export { app, auth, db };
