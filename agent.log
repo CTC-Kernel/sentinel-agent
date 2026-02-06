@@ -1,0 +1,980 @@
+warning: unused imports: `Arc` and `Mutex`
+ --> crates/agent-core/src/tracing_layer.rs:8:17
+  |
+8 | use std::sync::{Arc, Mutex};
+  |                 ^^^  ^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `UpdateStatus`
+  --> crates/agent-core/src/lib.rs:34:42
+   |
+34 | ...heckSeverity, UpdateStatus};
+   |                  ^^^^^^^^^^^^
+
+warning: unused imports: `DiscoveryConfig` and `NetworkDiscovery`
+  --> crates/agent-core/src/lib.rs:36:5
+   |
+36 |     DiscoveryConfig, NetworkDiscovery, Netwo...
+   |     ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^
+
+warning: unused import: `RemediationEngine`
+  --> crates/agent-core/src/lib.rs:40:5
+   |
+40 |     RemediationEngine, ScanSummary, ScanType...
+   |     ^^^^^^^^^^^^^^^^^
+
+warning: unused variable: `gui_event_tx`
+  --> crates/agent-core/src/events.rs:32:14
+   |
+32 |         let (gui_event_tx, gui_event_rx) = t...
+   |              ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_gui_event_tx`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `agent-core` (lib) generated 5 warnings (run `cargo fix --lib -p agent-core` to apply 5 suggestions)
+warning: unused variable: `log_level`
+   --> crates/agent-core/src/main.rs:364:59
+    |
+364 | ..._tray: bool, log_level: &str) -> ExitCode {
+    |                 ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_log_level`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `agent-core` (bin "agent-core") generated 1 warning (run `cargo fix --bin "agent-core" -p agent-core` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.77s
+     Running `target/debug/agent-core`
+[2m2026-02-06T04:55:41.515096Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Starting Sentinel GRC Agent in foreground mode
+[2m2026-02-06T04:55:41.515977Z[0m [32m INFO[0m [2magent_common::config[0m[2m:[0m Loading configuration from: /Users/thibaultllopis/Library/Application Support/SentinelGRC/agent.json
+[2m2026-02-06T04:55:41.519133Z[0m [34mDEBUG[0m [2magent_storage::key[0m[2m:[0m Loaded encryption key from: /Users/thibaultllopis/Library/Application Support/SentinelGRC/.sentinel-key
+[2m2026-02-06T04:55:41.546359Z[0m [34mDEBUG[0m [2magent_storage::database[0m[2m:[0m Database encryption verified successfully
+[2m2026-02-06T04:55:41.546410Z[0m [34mDEBUG[0m [2magent_storage::database[0m[2m:[0m WAL mode enabled for concurrent write safety
+[2m2026-02-06T04:55:41.546433Z[0m [34mDEBUG[0m [2magent_storage::migrations[0m[2m:[0m Schema version table ready
+[2m2026-02-06T04:55:41.546503Z[0m [34mDEBUG[0m [2magent_storage::migrations[0m[2m:[0m Current schema version: 5
+[2m2026-02-06T04:55:41.546512Z[0m [34mDEBUG[0m [2magent_storage::migrations[0m[2m:[0m Database schema is up to date (v5)
+[2m2026-02-06T04:55:41.546518Z[0m [34mDEBUG[0m [2magent_storage::database[0m[2m:[0m Opened encrypted database at: /Users/thibaultllopis/Library/Application Support/SentinelGRC/agent.db
+[2m2026-02-06T04:55:41.547432Z[0m [34mDEBUG[0m [2magent_sync::credentials[0m[2m:[0m Loading credentials from database
+[2m2026-02-06T04:55:41.547702Z[0m [34mDEBUG[0m [2magent_sync::credentials[0m[2m:[0m Credentials loaded for agent 8f855408-94d4-421f-a07f-85d1605633a5
+[2m2026-02-06T04:55:41.547726Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Loaded agent credentials from database: agent=8f855408-94d4-421f-a07f-85d1605633a5, org=8c6d5104-c5ae-4d94-b188-bde796ab8774
+[2m2026-02-06T04:55:41.719873Z[0m [32m INFO[0m [2magent_scanner::vulnerability[0m[2m:[0m Homebrew package scanner available
+[2m2026-02-06T04:55:41.720008Z[0m [32m INFO[0m [2magent_network[0m[2m:[0m Initializing NetworkManager
+[2m2026-02-06T04:55:41.720319Z[0m [34mDEBUG[0m [2magent_network::sync::scheduler[0m[2m:[0m NetworkScheduler initialized: static=900s, connections=300s, security=60s, jitter=20%, group=0
+[2m2026-02-06T04:55:41.720475Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: disk_encryption
+[2m2026-02-06T04:55:41.720524Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: firewall_active
+[2m2026-02-06T04:55:41.720533Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: antivirus_active
+[2m2026-02-06T04:55:41.720553Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: mfa_enabled
+[2m2026-02-06T04:55:41.720575Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: password_policy
+[2m2026-02-06T04:55:41.720582Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: patches_current
+[2m2026-02-06T04:55:41.720593Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: screen_lock
+[2m2026-02-06T04:55:41.720600Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: remote_access_secure
+[2m2026-02-06T04:55:41.720620Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: backup_configured
+[2m2026-02-06T04:55:41.720638Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: admin_accounts
+[2m2026-02-06T04:55:41.720645Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: obsolete_protocols
+[2m2026-02-06T04:55:41.720663Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: audit_logging
+[2m2026-02-06T04:55:41.720669Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: auto_login_disabled
+[2m2026-02-06T04:55:41.720675Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: bluetooth_disabled
+[2m2026-02-06T04:55:41.720683Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: browser_security
+[2m2026-02-06T04:55:41.720693Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: guest_account_disabled
+[2m2026-02-06T04:55:41.720700Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: ipv6_hardening
+[2m2026-02-06T04:55:41.720706Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: kernel_hardening
+[2m2026-02-06T04:55:41.720712Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: log_rotation
+[2m2026-02-06T04:55:41.720718Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: time_sync
+[2m2026-02-06T04:55:41.720724Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: usb_storage_disabled
+[2m2026-02-06T04:55:41.720746Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: gpo_password_policy
+[2m2026-02-06T04:55:41.720755Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: gpo_account_lockout
+[2m2026-02-06T04:55:41.720761Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: gpo_audit_policy
+[2m2026-02-06T04:55:41.720767Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: privileged_groups
+[2m2026-02-06T04:55:41.720774Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: ldap_security
+[2m2026-02-06T04:55:41.720781Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: windows_hardening
+[2m2026-02-06T04:55:41.720789Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: secure_boot
+[2m2026-02-06T04:55:41.720795Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: linux_hardening
+[2m2026-02-06T04:55:41.720811Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: update_status
+[2m2026-02-06T04:55:41.720818Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: dns_security
+[2m2026-02-06T04:55:41.720836Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: ssh_hardening
+[2m2026-02-06T04:55:41.720853Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: container_security
+[2m2026-02-06T04:55:41.720860Z[0m [34mDEBUG[0m [2magent_scanner::check[0m[2m:[0m Registering check: certificate_validation
+[2m2026-02-06T04:55:41.720872Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Registered 34 compliance checks
+[2m2026-02-06T04:55:41.720906Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Initialized vulnerability scanner (1 scanners available)
+[2m2026-02-06T04:55:41.720911Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Initialized network manager with smart scheduling
+[2m2026-02-06T04:55:41.720994Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Tray feature not enabled, running in headless mode
+[2m2026-02-06T04:55:41.721280Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Starting Sentinel GRC Agent v2.0.0
+[2m2026-02-06T04:55:41.721295Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Server URL: https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi
+[2m2026-02-06T04:55:41.721316Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Check interval: 3600 seconds
+[2m2026-02-06T04:55:41.721322Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Vulnerability scan interval: 21600 seconds
+[2m2026-02-06T04:55:41.721339Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Security scan interval: 300 seconds
+[2m2026-02-06T04:55:41.721345Z[0m [34mDEBUG[0m [2magent_core::resources[0m[2m:[0m Startup completed in 173ms
+[2m2026-02-06T04:55:41.726639Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Agent enrollment verified
+[2m2026-02-06T04:55:41.726711Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Initialized sync services (config, rules, results, audit, commands)
+[2m2026-02-06T04:55:41.734198Z[0m [32m INFO[0m [2magent_storage::repositories::check_rules[0m[2m:[0m Upserted 34 check rules in batch
+[2m2026-02-06T04:55:41.734268Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Seeded 34 built-in check rules into database
+[2m2026-02-06T04:55:41.734384Z[0m [34mDEBUG[0m [2magent_sync::rules[0m[2m:[0m Cache is still valid, skipping sync
+[2m2026-02-06T04:55:41.734421Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Initial rule sync: 0 rules synced (cache_hit: true)
+[2m2026-02-06T04:55:41.735109Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Initial resource usage: CPU=0.00%, MEM=23MB
+[2m2026-02-06T04:55:41.735131Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Running initial security scan...
+[2m2026-02-06T04:55:41.735148Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Running security scan...
+[2m2026-02-06T04:55:41.735154Z[0m [32m INFO[0m [2magent_scanner::security[0m[2m:[0m Scanning running processes for suspicious activity...
+[2m2026-02-06T04:55:41.787188Z[0m [34mDEBUG[0m [2magent_scanner::security::process_monitor[0m[2m:[0m Scanning 507 processes
+[2m2026-02-06T04:55:41.788397Z[0m [34mDEBUG[0m [2magent_scanner::security[0m[2m:[0m Found 0 suspicious processes out of 507 scanned
+[2m2026-02-06T04:55:41.788421Z[0m [32m INFO[0m [2magent_scanner::security[0m[2m:[0m Performing system security checks...
+[2m2026-02-06T04:55:41.788445Z[0m [34mDEBUG[0m [2magent_scanner::security::system_monitor[0m[2m:[0m Checking firewall status...
+[2m2026-02-06T04:55:41.797584Z[0m [34mDEBUG[0m [2magent_scanner::security::system_monitor[0m[2m:[0m Checking antivirus status...
+[2m2026-02-06T04:55:41.804487Z[0m [34mDEBUG[0m [2magent_scanner::security::system_monitor[0m[2m:[0m Checking SSH configuration...
+[2m2026-02-06T04:55:41.804999Z[0m [34mDEBUG[0m [2magent_scanner::security::system_monitor[0m[2m:[0m Checking administrator accounts...
+[2m2026-02-06T04:55:41.826757Z[0m [32m INFO[0m [2magent_scanner::security::system_monitor[0m[2m:[0m System checks complete: 0 issues found from 4 checks
+[2m2026-02-06T04:55:41.826796Z[0m [34mDEBUG[0m [2magent_scanner::security[0m[2m:[0m Found 0 system issues from 4 checks
+[2m2026-02-06T04:55:41.826811Z[0m [32m INFO[0m [2magent_scanner::security[0m[2m:[0m Security scan complete: 0 incidents detected
+[2m2026-02-06T04:55:41.826819Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Security scan clean: no incidents detected
+[2m2026-02-06T04:55:41.826920Z[0m [34mDEBUG[0m [2magent_network::sync::scheduler[0m[2m:[0m Calculated interval: base=900s, group_offset=0s, jitter=48s, final=948s
+[2m2026-02-06T04:55:41.826934Z[0m [34mDEBUG[0m [2magent_network::sync::scheduler[0m[2m:[0m Calculated interval: base=300s, group_offset=0s, jitter=60s, final=360s
+[2m2026-02-06T04:55:41.826940Z[0m [34mDEBUG[0m [2magent_network::sync::scheduler[0m[2m:[0m Calculated interval: base=60s, group_offset=0s, jitter=3s, final=63s
+[2m2026-02-06T04:55:41.826946Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network collection intervals: static=948s, connections=360s, security=63s
+[2m2026-02-06T04:55:41.826973Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Running initial network collection...
+[2m2026-02-06T04:55:41.827004Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Collecting network information...
+[2m2026-02-06T04:55:41.827011Z[0m [34mDEBUG[0m [2magent_network[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T04:55:41.827017Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T04:55:41.832911Z[0m [34mDEBUG[0m [2magent_network::collector::interfaces[0m[2m:[0m Collected 23 network interfaces on macOS
+[2m2026-02-06T04:55:41.879862Z[0m [34mDEBUG[0m [2magent_network::collector::connections[0m[2m:[0m Collected 85 network connections on macOS
+[2m2026-02-06T04:55:41.887489Z[0m [34mDEBUG[0m [2magent_network::collector::routes[0m[2m:[0m Collected 16 routes on macOS
+[2m2026-02-06T04:55:41.896300Z[0m [34mDEBUG[0m [2magent_network::collector::dns[0m[2m:[0m Collected DNS config on macOS: 2 servers
+[2m2026-02-06T04:55:41.896398Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Network snapshot collected: 23 interfaces, 85 connections, 16 routes
+[2m2026-02-06T04:55:41.896413Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network collection complete: 23 interfaces, 85 connections, 16 routes
+[2m2026-02-06T04:55:41.896936Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network
+[2m2026-02-06T04:55:41.898159Z[0m [34mDEBUG[0m [2mreqwest::connect[0m[2m:[0m starting new connection: https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/
+[2m2026-02-06T04:55:41.901077Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::connect::http[0m[2m:[0m connecting to [2001:4860:4802:36::36]:443
+[2m2026-02-06T04:55:41.911906Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::connect::http[0m[2m:[0m connected to [2001:4860:4802:36::36]:443
+[2m2026-02-06T04:55:42.000115Z[0m [34mDEBUG[0m [2mh2::client[0m[2m:[0m binding client connection
+[2m2026-02-06T04:55:42.000239Z[0m [34mDEBUG[0m [2mh2::client[0m[2m:[0m client connection bound
+[2m2026-02-06T04:55:42.000325Z[0m [34mDEBUG[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mSettings { flags: (0x0), enable_push: 0, initial_window_size: 2097152, max_frame_size: 16384, max_header_list_size: 16384 }
+[2m2026-02-06T04:55:42.000625Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m pooling idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T04:55:42.000733Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mWindowUpdate { stream_id: StreamId(0), size_increment: 5177345 }
+[2m2026-02-06T04:55:42.001056Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(1), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:55:42.001336Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:42.001414Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:55:42.007263Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mSettings { flags: (0x0), max_concurrent_streams: 100, initial_window_size: 1048576, max_header_list_size: 65536 }
+[2m2026-02-06T04:55:42.007362Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mSettings { flags: (0x1: ACK) }
+[2m2026-02-06T04:55:42.007386Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mWindowUpdate { stream_id: StreamId(0), size_increment: 983041 }
+[2m2026-02-06T04:55:42.007872Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mSettings { flags: (0x1: ACK) }
+[2m2026-02-06T04:55:42.007915Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::proto::settings[0m[2m:[0m received settings ACK; applying Settings { flags: (0x0), enable_push: 0, initial_window_size: 2097152, max_frame_size: 16384, max_header_list_size: 16384 }
+[2m2026-02-06T04:55:42.274452Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(1), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:55:42.274567Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(1), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:55:42.274612Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 215] }
+[2m2026-02-06T04:55:42.274631Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 215] }
+[2m2026-02-06T04:55:42.275083Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Uploaded network snapshot
+[2m2026-02-06T04:55:42.275322Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Running network security detection...
+[2m2026-02-06T04:55:42.275396Z[0m [34mDEBUG[0m [2magent_network::detection[0m[2m:[0m Analyzing 85 connections for threats
+[2m2026-02-06T04:55:42.276003Z[0m [32m INFO[0m [2magent_network::detection[0m[2m:[0m Security analysis complete: 1 alerts generated
+[2m2026-02-06T04:55:42.276046Z[0m [33m WARN[0m [2magent_core[0m[2m:[0m Network security detection found 1 alerts
+[2m2026-02-06T04:55:42.276059Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network alert: Potential C2 communication on port 8080 (severity: Critical, confidence: 75%)
+[2m2026-02-06T04:55:42.276135Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts
+[2m2026-02-06T04:55:42.276333Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T04:55:42.276497Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(3), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:55:42.276651Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(3), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:55:42.431387Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(3), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:55:42.431491Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(3), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:55:42.431524Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 217] }
+[2m2026-02-06T04:55:42.431541Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 217] }
+[2m2026-02-06T04:55:42.431952Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Reported network alert 'Potential C2 communication on port 8080' (severity: Critical)
+[2m2026-02-06T04:55:42.434965Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Starting vulnerability scan...
+[2m2026-02-06T04:55:42.434996Z[0m [34mDEBUG[0m [2magent_scanner::vulnerability[0m[2m:[0m Running scanner: brew
+[2m2026-02-06T04:55:44.089620Z[0m [33m WARN[0m [2magent_scanner::vulnerability::brew_scanner[0m[2m:[0m brew list partially failed: Error: Cask 'gcloud-cli' is not installed.
+
+[2m2026-02-06T04:55:44.089888Z[0m [34mDEBUG[0m [2magent_scanner::vulnerability::brew_scanner[0m[2m:[0m Found 147 installed Homebrew packages
+[2m2026-02-06T04:55:46.016083Z[0m [34mDEBUG[0m [2magent_scanner::vulnerability[0m[2m:[0m Scanner brew found 0 vulnerabilities
+[2m2026-02-06T04:55:47.032698Z[0m [33m WARN[0m [2magent_scanner::vulnerability::brew_scanner[0m[2m:[0m brew list partially failed: Error: Cask 'gcloud-cli' is not installed.
+
+[2m2026-02-06T04:55:47.033404Z[0m [34mDEBUG[0m [2magent_scanner::vulnerability[0m[2m:[0m Scanner brew found 147 installed packages
+[2m2026-02-06T04:55:47.033521Z[0m [32m INFO[0m [2magent_scanner::vulnerability[0m[2m:[0m Vulnerability scan completed: 0 findings from 147 packages
+[2m2026-02-06T04:55:47.033553Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Vulnerability scan complete: 0 findings from 147 packages
+[2m2026-02-06T04:55:47.033922Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/software
+[2m2026-02-06T04:55:47.034507Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T04:55:47.034981Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(5), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:55:47.035393Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(5), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:55:51.833023Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(5), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:55:51.833149Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(5), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:55:51.833191Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 219] }
+[2m2026-02-06T04:55:51.833219Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 219] }
+[2m2026-02-06T04:55:51.833835Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Uploaded software inventory: 147 packages
+[2m2026-02-06T04:55:51.833919Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Running compliance checks...
+[2m2026-02-06T04:55:51.833948Z[0m [32m INFO[0m [2magent_core::audit_trail[0m[2m:[0m Local Audit: ScanStarted { scan_type: "[\"all\"]" } by user - None
+[2m2026-02-06T04:55:51.836016Z[0m [32m INFO[0m [2magent_scanner::runner[0m[2m:[0m Starting scan of 29 checks
+[2m2026-02-06T04:55:51.836093Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: mfa_enabled
+[2m2026-02-06T04:55:51.836097Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: browser_security
+[2m2026-02-06T04:55:51.836119Z[0m [34mDEBUG[0m [2magent_scanner::checks::mfa[0m[2m:[0m Checking macOS MFA configuration
+[2m2026-02-06T04:55:51.836140Z[0m [34mDEBUG[0m [2magent_scanner::checks::browser_security[0m[2m:[0m Checking macOS browser security settings
+[2m2026-02-06T04:55:51.836161Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: ssh_hardening
+[2m2026-02-06T04:55:51.836153Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: screen_lock
+[2m2026-02-06T04:55:51.836234Z[0m [34mDEBUG[0m [2magent_scanner::checks::ssh_hardening[0m[2m:[0m Checking macOS SSH hardening
+[2m2026-02-06T04:55:51.836248Z[0m [34mDEBUG[0m [2magent_scanner::checks::session_lock[0m[2m:[0m Checking macOS session lock settings
+[2m2026-02-06T04:55:51.845077Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check ssh_hardening completed: Pass in 8ms
+[2m2026-02-06T04:55:51.845199Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: auto_login_disabled
+[2m2026-02-06T04:55:51.845230Z[0m [34mDEBUG[0m [2magent_scanner::checks::auto_login[0m[2m:[0m Checking macOS auto-login settings
+[2m2026-02-06T04:55:51.847877Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check browser_security completed: Fail in 11ms
+[2m2026-02-06T04:55:51.848062Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: gpo_account_lockout
+[2m2026-02-06T04:55:51.848177Z[0m [34mDEBUG[0m [2magent_scanner::checks::directory_policy[0m[2m:[0m Executing GPO account lockout policy check
+[2m2026-02-06T04:55:51.848218Z[0m [32m INFO[0m [2magent_scanner::directory[0m[2m:[0m Starting local security policy audit
+[2m2026-02-06T04:55:51.848247Z[0m [32m INFO[0m [2magent_scanner::directory::ad_gpo[0m[2m:[0m Retrieving local security policy settings
+[2m2026-02-06T04:55:51.848354Z[0m [32m INFO[0m [2magent_scanner::directory[0m[2m:[0m Local policy audit complete: 12 findings, score: 7.7%
+[2m2026-02-06T04:55:51.848998Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check gpo_account_lockout completed: Fail in 0ms
+[2m2026-02-06T04:55:51.849162Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: backup_configured
+[2m2026-02-06T04:55:51.849329Z[0m [34mDEBUG[0m [2magent_scanner::checks::backup[0m[2m:[0m Checking macOS Time Machine configuration
+[2m2026-02-06T04:55:51.856020Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check auto_login_disabled completed: Pass in 10ms
+[2m2026-02-06T04:55:51.856102Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: audit_logging
+[2m2026-02-06T04:55:51.856120Z[0m [34mDEBUG[0m [2magent_scanner::checks::audit_logging[0m[2m:[0m Checking macOS audit subsystem status
+[2m2026-02-06T04:55:51.860107Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check audit_logging completed: Fail in 3ms
+[2m2026-02-06T04:55:51.860187Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check mfa_enabled completed: Pass in 23ms
+[2m2026-02-06T04:55:51.860588Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: dns_security
+[2m2026-02-06T04:55:51.860611Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: time_sync
+[2m2026-02-06T04:55:51.860636Z[0m [34mDEBUG[0m [2magent_scanner::checks::time_sync[0m[2m:[0m Checking macOS time synchronization
+[2m2026-02-06T04:55:51.860636Z[0m [34mDEBUG[0m [2magent_scanner::checks::dns_security[0m[2m:[0m Checking macOS DNS security settings
+[2m2026-02-06T04:55:51.881039Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check time_sync completed: Pass in 19ms
+[2m2026-02-06T04:55:51.881161Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: guest_account_disabled
+[2m2026-02-06T04:55:51.881183Z[0m [34mDEBUG[0m [2magent_scanner::checks::guest_account[0m[2m:[0m Checking macOS Guest account status
+[2m2026-02-06T04:55:51.884352Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check screen_lock completed: Fail in 48ms
+[2m2026-02-06T04:55:51.884507Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: ipv6_hardening
+[2m2026-02-06T04:55:51.884679Z[0m [34mDEBUG[0m [2magent_scanner::checks::ipv6_config[0m[2m:[0m Checking macOS IPv6 hardening settings
+[2m2026-02-06T04:55:51.887381Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check ipv6_hardening completed: Fail in 2ms
+[2m2026-02-06T04:55:51.887470Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: gpo_password_policy
+[2m2026-02-06T04:55:51.887496Z[0m [34mDEBUG[0m [2magent_scanner::checks::directory_policy[0m[2m:[0m Executing GPO password policy check
+[2m2026-02-06T04:55:51.887506Z[0m [32m INFO[0m [2magent_scanner::directory[0m[2m:[0m Starting local security policy audit
+[2m2026-02-06T04:55:51.887513Z[0m [32m INFO[0m [2magent_scanner::directory::ad_gpo[0m[2m:[0m Retrieving local security policy settings
+[2m2026-02-06T04:55:51.887552Z[0m [32m INFO[0m [2magent_scanner::directory[0m[2m:[0m Local policy audit complete: 12 findings, score: 7.7%
+[2m2026-02-06T04:55:51.887634Z[0m [33m WARN[0m [2magent_scanner::checks::directory_policy[0m[2m:[0m GPO password policy check failed with score 40.0%
+[2m2026-02-06T04:55:51.888011Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check gpo_password_policy completed: Fail in 0ms
+[2m2026-02-06T04:55:51.888107Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: admin_accounts
+[2m2026-02-06T04:55:51.888129Z[0m [34mDEBUG[0m [2magent_scanner::checks::admin_accounts[0m[2m:[0m Checking macOS administrator accounts
+[2m2026-02-06T04:55:51.892907Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check guest_account_disabled completed: Pass in 11ms
+[2m2026-02-06T04:55:51.893019Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: bluetooth_disabled
+[2m2026-02-06T04:55:51.893038Z[0m [34mDEBUG[0m [2magent_scanner::checks::bluetooth[0m[2m:[0m Checking macOS Bluetooth power state
+[2m2026-02-06T04:55:51.902601Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check bluetooth_disabled completed: Fail in 9ms
+[2m2026-02-06T04:55:51.902874Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: log_rotation
+[2m2026-02-06T04:55:51.902951Z[0m [34mDEBUG[0m [2magent_scanner::checks::log_rotation[0m[2m:[0m Checking macOS log rotation configuration
+[2m2026-02-06T04:55:51.905180Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check log_rotation completed: Pass in 1ms
+[2m2026-02-06T04:55:51.905422Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: antivirus_active
+[2m2026-02-06T04:55:51.905453Z[0m [34mDEBUG[0m [2magent_scanner::checks::antivirus[0m[2m:[0m Checking antivirus status on macOS
+[2m2026-02-06T04:55:51.914008Z[0m [34mDEBUG[0m [2magent_scanner::checks::backup[0m[2m:[0m Backup detected but date could not be parsed
+[2m2026-02-06T04:55:51.914191Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check backup_configured completed: Fail in 64ms
+[2m2026-02-06T04:55:51.914262Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: container_security
+[2m2026-02-06T04:55:51.914298Z[0m [34mDEBUG[0m [2magent_scanner::checks::container_security[0m[2m:[0m Checking Docker security configuration
+[2m2026-02-06T04:55:51.929563Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check admin_accounts completed: Fail in 41ms
+[2m2026-02-06T04:55:51.929747Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: kernel_hardening
+[2m2026-02-06T04:55:51.929846Z[0m [34mDEBUG[0m [2magent_scanner::checks::kernel_hardening[0m[2m:[0m Checking macOS kernel hardening settings
+[2m2026-02-06T04:55:51.939621Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check kernel_hardening completed: Pass in 9ms
+[2m2026-02-06T04:55:51.941117Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: update_status
+[2m2026-02-06T04:55:51.941211Z[0m [34mDEBUG[0m [2magent_scanner::checks::update_status[0m[2m:[0m Executing update status check
+[2m2026-02-06T04:55:51.949991Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check dns_security completed: Pass in 88ms
+[2m2026-02-06T04:55:51.950154Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: firewall_active
+[2m2026-02-06T04:55:51.950201Z[0m [34mDEBUG[0m [2magent_scanner::checks::firewall[0m[2m:[0m Checking macOS Application Firewall status
+[2m2026-02-06T04:55:51.971950Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check firewall_active completed: Pass in 21ms
+[2m2026-02-06T04:55:51.972070Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: disk_encryption
+[2m2026-02-06T04:55:51.972112Z[0m [34mDEBUG[0m [2magent_scanner::checks::disk_encryption[0m[2m:[0m Checking FileVault status on macOS
+[2m2026-02-06T04:55:52.039122Z[0m [34mDEBUG[0m [2magent_scanner::checks::container_security[0m[2m:[0m Checking Podman security configuration
+[2m2026-02-06T04:55:52.041912Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check container_security completed: Pass in 127ms
+[2m2026-02-06T04:55:52.042062Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: patches_current
+[2m2026-02-06T04:55:52.042098Z[0m [34mDEBUG[0m [2magent_scanner::checks::system_updates[0m[2m:[0m Checking macOS software updates
+[2m2026-02-06T04:55:52.047551Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check disk_encryption completed: Pass in 75ms
+[2m2026-02-06T04:55:52.047605Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: usb_storage_disabled
+[2m2026-02-06T04:55:52.047622Z[0m [34mDEBUG[0m [2magent_scanner::checks::usb_storage[0m[2m:[0m Checking macOS USB mass storage policy
+[2m2026-02-06T04:55:52.063113Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check usb_storage_disabled completed: Fail in 15ms
+[2m2026-02-06T04:55:52.063227Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: gpo_audit_policy
+[2m2026-02-06T04:55:52.063249Z[0m [34mDEBUG[0m [2magent_scanner::checks::directory_policy[0m[2m:[0m Executing GPO audit policy check
+[2m2026-02-06T04:55:52.063257Z[0m [32m INFO[0m [2magent_scanner::directory[0m[2m:[0m Starting local security policy audit
+[2m2026-02-06T04:55:52.063264Z[0m [32m INFO[0m [2magent_scanner::directory::ad_gpo[0m[2m:[0m Retrieving local security policy settings
+[2m2026-02-06T04:55:52.063302Z[0m [32m INFO[0m [2magent_scanner::directory[0m[2m:[0m Local policy audit complete: 12 findings, score: 7.7%
+[2m2026-02-06T04:55:52.063777Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check gpo_audit_policy completed: Fail in 0ms
+[2m2026-02-06T04:55:52.063883Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: remote_access_secure
+[2m2026-02-06T04:55:52.063905Z[0m [34mDEBUG[0m [2magent_scanner::checks::remote_access[0m[2m:[0m Checking macOS remote access security
+[2m2026-02-06T04:55:52.078279Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check remote_access_secure completed: Pass in 14ms
+[2m2026-02-06T04:55:52.078362Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: certificate_validation
+[2m2026-02-06T04:55:52.078385Z[0m [34mDEBUG[0m [2magent_scanner::checks::certificate_validation[0m[2m:[0m Checking macOS certificate store (Keychain)
+[2m2026-02-06T04:55:52.169616Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check antivirus_active completed: Pass in 247ms
+[2m2026-02-06T04:55:52.169734Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: obsolete_protocols
+[2m2026-02-06T04:55:52.169776Z[0m [34mDEBUG[0m [2magent_scanner::checks::obsolete_protocols[0m[2m:[0m Checking macOS obsolete protocols
+[2m2026-02-06T04:55:52.203268Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check obsolete_protocols completed: Pass in 33ms
+[2m2026-02-06T04:55:52.203353Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Executing check: password_policy
+[2m2026-02-06T04:55:52.203390Z[0m [34mDEBUG[0m [2magent_scanner::checks::password_policy[0m[2m:[0m Checking macOS password policy
+[2m2026-02-06T04:55:52.222238Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check password_policy completed: Fail in 18ms
+[2m2026-02-06T04:55:53.641447Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check certificate_validation completed: Fail in 1562ms
+[2m2026-02-06T04:55:57.745422Z[0m [32m INFO[0m [2magent_scanner::checks::update_status[0m[2m:[0m Update status check passed: 0 pending, last update None
+[2m2026-02-06T04:55:57.745615Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check update_status completed: Pass in 5804ms
+[2m2026-02-06T04:55:57.763378Z[0m [34mDEBUG[0m [2magent_scanner::runner[0m[2m:[0m Check patches_current completed: Pass in 5721ms
+[2m2026-02-06T04:55:57.763445Z[0m [32m INFO[0m [2magent_scanner::runner[0m[2m:[0m Scan completed: 29 checks in 5927ms
+[2m2026-02-06T04:55:57.763464Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Compliance checks complete: 16 passed, 13 failed, 0 errors out of 29 total
+[2m2026-02-06T04:55:57.763742Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Compliance score: 58.7% (passed: 16, failed: 13, errors: 0)
+[2m2026-02-06T04:55:57.763755Z[0m [32m INFO[0m [2magent_core::audit_trail[0m[2m:[0m Local Audit: ScanFinished { scan_type: "compliance", score: 58.666668 } by system - Some("Passed: 16, Failed: 13, Errors: 0")
+[2m2026-02-06T04:55:57.764671Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1873
+[2m2026-02-06T04:55:57.765293Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1874
+[2m2026-02-06T04:55:57.765709Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1875
+[2m2026-02-06T04:55:57.766106Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1876
+[2m2026-02-06T04:55:57.766275Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1877
+[2m2026-02-06T04:55:57.766422Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1878
+[2m2026-02-06T04:55:57.766640Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1879
+[2m2026-02-06T04:55:57.766886Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1880
+[2m2026-02-06T04:55:57.767094Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1881
+[2m2026-02-06T04:55:57.767447Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1882
+[2m2026-02-06T04:55:57.767601Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1883
+[2m2026-02-06T04:55:57.767785Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1884
+[2m2026-02-06T04:55:57.767996Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1885
+[2m2026-02-06T04:55:57.768186Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1886
+[2m2026-02-06T04:55:57.768564Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1887
+[2m2026-02-06T04:55:57.768792Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1888
+[2m2026-02-06T04:55:57.788763Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1889
+[2m2026-02-06T04:55:57.789626Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1890
+[2m2026-02-06T04:55:57.789756Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1891
+[2m2026-02-06T04:55:57.789876Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1892
+[2m2026-02-06T04:55:57.789984Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1893
+[2m2026-02-06T04:55:57.790124Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1894
+[2m2026-02-06T04:55:57.790294Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1895
+[2m2026-02-06T04:55:57.790418Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1896
+[2m2026-02-06T04:55:57.790657Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1897
+[2m2026-02-06T04:55:57.790825Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1898
+[2m2026-02-06T04:55:57.791311Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1899
+[2m2026-02-06T04:55:57.791439Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1900
+[2m2026-02-06T04:55:57.791706Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Inserted check result with ID: 1901
+[2m2026-02-06T04:55:57.791719Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Stored 29 check results in database
+[2m2026-02-06T04:55:57.792104Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Found 29 unsynced check results
+[2m2026-02-06T04:55:57.792119Z[0m [32m INFO[0m [2magent_sync::result_upload[0m[2m:[0m Uploading 29 pending results
+[2m2026-02-06T04:55:57.792133Z[0m [34mDEBUG[0m [2magent_sync::credentials[0m[2m:[0m Loading credentials from database
+[2m2026-02-06T04:55:57.792212Z[0m [34mDEBUG[0m [2magent_sync::credentials[0m[2m:[0m Credentials loaded for agent 8f855408-94d4-421f-a07f-85d1605633a5
+[2m2026-02-06T04:55:57.792326Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1873
+[2m2026-02-06T04:55:57.792408Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1874
+[2m2026-02-06T04:55:57.792476Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1875
+[2m2026-02-06T04:55:57.792595Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1876
+[2m2026-02-06T04:55:57.792649Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1877
+[2m2026-02-06T04:55:57.792717Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1878
+[2m2026-02-06T04:55:57.792780Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1879
+[2m2026-02-06T04:55:57.792835Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1880
+[2m2026-02-06T04:55:57.792909Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1881
+[2m2026-02-06T04:55:57.792997Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1882
+[2m2026-02-06T04:55:57.793052Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1883
+[2m2026-02-06T04:55:57.793106Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1884
+[2m2026-02-06T04:55:57.793215Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1885
+[2m2026-02-06T04:55:57.793274Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1886
+[2m2026-02-06T04:55:57.793324Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1887
+[2m2026-02-06T04:55:57.793402Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1888
+[2m2026-02-06T04:55:57.796844Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1889
+[2m2026-02-06T04:55:57.796926Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1890
+[2m2026-02-06T04:55:57.796987Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1891
+[2m2026-02-06T04:55:57.797053Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1892
+[2m2026-02-06T04:55:57.797109Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1893
+[2m2026-02-06T04:55:57.797166Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1894
+[2m2026-02-06T04:55:57.797225Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1895
+[2m2026-02-06T04:55:57.797281Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1896
+[2m2026-02-06T04:55:57.797403Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1897
+[2m2026-02-06T04:55:57.797462Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1898
+[2m2026-02-06T04:55:57.797720Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1899
+[2m2026-02-06T04:55:57.797781Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1900
+[2m2026-02-06T04:55:57.797888Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No proof found for check result 1901
+[2m2026-02-06T04:55:57.819685Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m Uploading 29 results (27683 bytes, compressed: true)
+[2m2026-02-06T04:55:57.819748Z[0m [34mDEBUG[0m [2magent_sync::credentials[0m[2m:[0m Loading credentials from database
+[2m2026-02-06T04:55:57.819892Z[0m [34mDEBUG[0m [2magent_sync::credentials[0m[2m:[0m Credentials loaded for agent 8f855408-94d4-421f-a07f-85d1605633a5
+[2m2026-02-06T04:55:57.819909Z[0m [34mDEBUG[0m [2magent_sync::authenticated_client[0m[2m:[0m Creating authenticated client for agent 8f855408-94d4-421f-a07f-85d1605633a5
+[2m2026-02-06T04:55:57.819919Z[0m [34mDEBUG[0m [2magent_sync::client[0m[2m:[0m Creating HTTP client with mTLS
+[2m2026-02-06T04:55:57.819991Z[0m [34mDEBUG[0m [2magent_sync::authenticated_client[0m[2m:[0m mTLS not available (Certificate error: Invalid client certificate/key: builder error), using header-based auth
+[2m2026-02-06T04:55:57.820000Z[0m [34mDEBUG[0m [2magent_sync::client[0m[2m:[0m Creating HTTP client with header-based auth (mTLS fallback)
+[2m2026-02-06T04:55:57.820551Z[0m [34mDEBUG[0m [2magent_sync::client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/results
+[2m2026-02-06T04:55:57.828109Z[0m [34mDEBUG[0m [2mreqwest::connect[0m[2m:[0m starting new connection: https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/
+[2m2026-02-06T04:55:57.829751Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::connect::http[0m[2m:[0m connecting to [2001:4860:4802:36::36]:443
+[2m2026-02-06T04:55:57.841265Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::connect::http[0m[2m:[0m connected to [2001:4860:4802:36::36]:443
+[2m2026-02-06T04:55:57.888453Z[0m [34mDEBUG[0m [2mh2::client[0m[2m:[0m binding client connection
+[2m2026-02-06T04:55:57.888549Z[0m [34mDEBUG[0m [2mh2::client[0m[2m:[0m client connection bound
+[2m2026-02-06T04:55:57.888579Z[0m [34mDEBUG[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mSettings { flags: (0x0), enable_push: 0, initial_window_size: 2097152, max_frame_size: 16384, max_header_list_size: 16384 }
+[2m2026-02-06T04:55:57.888681Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m pooling idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T04:55:57.888699Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mWindowUpdate { stream_id: StreamId(0), size_increment: 5177345 }
+[2m2026-02-06T04:55:57.888842Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(1), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:55:57.889108Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:57.889210Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:57.889240Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:57.889265Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:57.898693Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mSettings { flags: (0x0), max_concurrent_streams: 100, initial_window_size: 1048576, max_header_list_size: 65536 }
+[2m2026-02-06T04:55:57.898726Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mSettings { flags: (0x1: ACK) }
+[2m2026-02-06T04:55:57.898748Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mWindowUpdate { stream_id: StreamId(0), size_increment: 983041 }
+[2m2026-02-06T04:55:57.898766Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mSettings { flags: (0x1: ACK) }
+[2m2026-02-06T04:55:57.898787Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::proto::settings[0m[2m:[0m received settings ACK; applying Settings { flags: (0x0), enable_push: 0, initial_window_size: 2097152, max_frame_size: 16384, max_header_list_size: 16384 }
+[2m2026-02-06T04:55:57.898810Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:57.898853Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:57.898886Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:57.898912Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:57.898936Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:57.900972Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:57.909368Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:57.909747Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mWindowUpdate { stream_id: StreamId(1), size_increment: 32768 }
+[2m2026-02-06T04:55:57.909783Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:57.912023Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:57.919834Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:57.922697Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:57.922803Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mWindowUpdate { stream_id: StreamId(1), size_increment: 32767 }
+[2m2026-02-06T04:55:57.922829Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1) }
+[2m2026-02-06T04:55:57.923355Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(1), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:55:58.181438Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(1), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:55:58.181541Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(1), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:55:58.181571Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 3, 45] }
+[2m2026-02-06T04:55:58.181587Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 3, 45] }
+[2m2026-02-06T04:55:58.181872Z[0m [34mDEBUG[0m [2magent_sync::client[0m[2m:[0m Response status: 201 Created
+[2m2026-02-06T04:55:58.182119Z[0m [34mDEBUG[0m [2magent_sync::client[0m[2m:[0m Response body: {"accepted":29,"rejected":0,"rejected_ids":[],"timestamp":"2026-02-06T04:55:58.177Z"}
+[2m2026-02-06T04:55:58.182188Z[0m [32m INFO[0m [2magent_sync::result_upload[0m[2m:[0m Upload complete: 29 accepted, 0 rejected
+[2m2026-02-06T04:55:58.182774Z[0m [32m INFO[0m [2magent_storage::repositories::check_results[0m[2m:[0m Marked 29 check results as synced
+[2m2026-02-06T04:55:58.182891Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Found 0 unsynced check results
+[2m2026-02-06T04:55:58.182913Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Uploaded 29 check results to server
+[2m2026-02-06T04:56:00.192450Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=87.6%, RAM=30MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:56:04.208785Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=30MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:56:07.222218Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.4%, RAM=30MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:56:10.234665Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=30MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:56:14.249686Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=30MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:56:17.267780Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.3%, RAM=30MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:56:20.284485Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=96.8%, RAM=30MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:56:24.301444Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=30MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:56:27.320358Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=70.9%, RAM=30MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:56:30.333808Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=98.1%, RAM=30MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:56:34.351112Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=30MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:56:37.365880Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=98.6%, RAM=30MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:56:40.378855Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=29MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:56:42.386158Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Found 0 unsynced check results
+[2m2026-02-06T04:56:42.403167Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Sending heartbeat to https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/heartbeat
+[2m2026-02-06T04:56:42.403474Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T04:56:42.403625Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(7), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:56:42.403798Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(7), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:56:42.768107Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(7), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:56:42.768183Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(7), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:56:42.768208Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 221] }
+[2m2026-02-06T04:56:42.768222Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 221] }
+[2m2026-02-06T04:56:42.768517Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Heartbeat acknowledged at 2026-02-06T04:56:42.630Z
+[2m2026-02-06T04:56:42.768581Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Heartbeat sent successfully
+[2m2026-02-06T04:56:43.775845Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=29MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:56:45.785668Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Collecting network information...
+[2m2026-02-06T04:56:45.785708Z[0m [34mDEBUG[0m [2magent_network[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T04:56:45.785717Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T04:56:45.790031Z[0m [34mDEBUG[0m [2magent_network::collector::interfaces[0m[2m:[0m Collected 23 network interfaces on macOS
+[2m2026-02-06T04:56:45.829012Z[0m [34mDEBUG[0m [2magent_network::collector::connections[0m[2m:[0m Collected 83 network connections on macOS
+[2m2026-02-06T04:56:45.835038Z[0m [34mDEBUG[0m [2magent_network::collector::routes[0m[2m:[0m Collected 16 routes on macOS
+[2m2026-02-06T04:56:45.839488Z[0m [34mDEBUG[0m [2magent_network::collector::dns[0m[2m:[0m Collected DNS config on macOS: 2 servers
+[2m2026-02-06T04:56:45.839563Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Network snapshot collected: 23 interfaces, 83 connections, 16 routes
+[2m2026-02-06T04:56:45.839575Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network collection complete: 23 interfaces, 83 connections, 16 routes
+[2m2026-02-06T04:56:45.839584Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Running network security detection...
+[2m2026-02-06T04:56:45.839594Z[0m [34mDEBUG[0m [2magent_network::detection[0m[2m:[0m Analyzing 83 connections for threats
+[2m2026-02-06T04:56:45.839943Z[0m [32m INFO[0m [2magent_network::detection[0m[2m:[0m Security analysis complete: 1 alerts generated
+[2m2026-02-06T04:56:45.839953Z[0m [33m WARN[0m [2magent_core[0m[2m:[0m Network security detection found 1 alerts
+[2m2026-02-06T04:56:45.839958Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network alert: Potential C2 communication on port 8080 (severity: Critical, confidence: 75%)
+[2m2026-02-06T04:56:45.839996Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts
+[2m2026-02-06T04:56:45.840159Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T04:56:45.840350Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(9), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:56:45.840524Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(9), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:56:46.045063Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(9), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:56:46.045144Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(9), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:56:46.045177Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 223] }
+[2m2026-02-06T04:56:46.045191Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 223] }
+[2m2026-02-06T04:56:46.045417Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Reported network alert 'Potential C2 communication on port 8080' (severity: Critical)
+[2m2026-02-06T04:56:46.045464Z[0m [34mDEBUG[0m [2magent_network::sync::scheduler[0m[2m:[0m Calculated interval: base=60s, group_offset=0s, jitter=2s, final=62s
+[2m2026-02-06T04:56:48.053251Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=27MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:56:51.067484Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.7%, RAM=27MB, DiskIO=0, NetIO=229105
+[2m2026-02-06T04:56:54.085628Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.2%, RAM=27MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:56:58.102489Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=27MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:01.120814Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=99.5%, RAM=27MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:04.134016Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=99.2%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:08.150405Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:11.170278Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=99.1%, RAM=23MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:14.191379Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=99.0%, RAM=23MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:18.210825Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.2%, RAM=23MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:21.232589Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=98.7%, RAM=23MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:24.253676Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=98.1%, RAM=23MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:27.894333Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mGoAway { error_code: NO_ERROR, last_stream_id: StreamId(0) }
+[2m2026-02-06T04:57:27.894423Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::proto::connection[0m[2m:[0m Connection::poll; connection error [3merror[0m[2m=[0mGoAway(b"", NO_ERROR, Library)
+[2m2026-02-06T04:57:28.279538Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.2%, RAM=24MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:31.299381Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.2%, RAM=24MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:34.317940Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=93.5%, RAM=24MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:38.338378Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=24MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:41.359092Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=95.2%, RAM=24MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:43.375471Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Found 0 unsynced check results
+[2m2026-02-06T04:57:43.395064Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Sending heartbeat to https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/heartbeat
+[2m2026-02-06T04:57:43.395450Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T04:57:43.395649Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(11), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:57:43.395852Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(11), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:57:43.696384Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(11), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:57:43.696556Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(11), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:57:43.696632Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 225] }
+[2m2026-02-06T04:57:43.696668Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 225] }
+[2m2026-02-06T04:57:43.697166Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Heartbeat acknowledged at 2026-02-06T04:57:43.652Z
+[2m2026-02-06T04:57:43.697239Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Heartbeat sent successfully
+[2m2026-02-06T04:57:44.703753Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.2%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:47.725399Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:48.730024Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Collecting network information...
+[2m2026-02-06T04:57:48.730151Z[0m [34mDEBUG[0m [2magent_network[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T04:57:48.730177Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T04:57:48.737775Z[0m [34mDEBUG[0m [2magent_network::collector::interfaces[0m[2m:[0m Collected 23 network interfaces on macOS
+[2m2026-02-06T04:57:48.777035Z[0m [34mDEBUG[0m [2magent_network::collector::connections[0m[2m:[0m Collected 86 network connections on macOS
+[2m2026-02-06T04:57:48.782426Z[0m [34mDEBUG[0m [2magent_network::collector::routes[0m[2m:[0m Collected 16 routes on macOS
+[2m2026-02-06T04:57:48.786549Z[0m [34mDEBUG[0m [2magent_network::collector::dns[0m[2m:[0m Collected DNS config on macOS: 2 servers
+[2m2026-02-06T04:57:48.786647Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Network snapshot collected: 23 interfaces, 86 connections, 16 routes
+[2m2026-02-06T04:57:48.786660Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network collection complete: 23 interfaces, 86 connections, 16 routes
+[2m2026-02-06T04:57:48.786672Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Running network security detection...
+[2m2026-02-06T04:57:48.786683Z[0m [34mDEBUG[0m [2magent_network::detection[0m[2m:[0m Analyzing 86 connections for threats
+[2m2026-02-06T04:57:48.787033Z[0m [32m INFO[0m [2magent_network::detection[0m[2m:[0m Security analysis complete: 1 alerts generated
+[2m2026-02-06T04:57:48.787042Z[0m [33m WARN[0m [2magent_core[0m[2m:[0m Network security detection found 1 alerts
+[2m2026-02-06T04:57:48.787048Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network alert: Potential C2 communication on port 8080 (severity: Critical, confidence: 75%)
+[2m2026-02-06T04:57:48.787089Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts
+[2m2026-02-06T04:57:48.787261Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T04:57:48.787418Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(13), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:57:48.787603Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(13), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:57:48.944067Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(13), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:57:48.944153Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(13), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:57:48.944186Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 227] }
+[2m2026-02-06T04:57:48.944203Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 227] }
+[2m2026-02-06T04:57:48.944536Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Reported network alert 'Potential C2 communication on port 8080' (severity: Critical)
+[2m2026-02-06T04:57:48.944654Z[0m [34mDEBUG[0m [2magent_network::sync::scheduler[0m[2m:[0m Calculated interval: base=60s, group_offset=0s, jitter=-2s, final=58s
+[2m2026-02-06T04:57:51.960151Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=26MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:54.974415Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=105.1%, RAM=26MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:57:57.988643Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=98.7%, RAM=26MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:02.010215Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:05.027390Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=99.4%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:08.039606Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:12.055346Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:15.069405Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=94.3%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:18.080939Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:22.096205Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:25.107261Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=103.5%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:28.120249Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.2%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:32.139748Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:35.152042Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.6%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:38.168385Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=85.0%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:42.185368Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:44.194007Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Found 0 unsynced check results
+[2m2026-02-06T04:58:44.212818Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Sending heartbeat to https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/heartbeat
+[2m2026-02-06T04:58:44.213326Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T04:58:44.213633Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(15), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:58:44.213913Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(15), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:58:44.515364Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(15), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:58:44.515501Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(15), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:58:44.515544Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 229] }
+[2m2026-02-06T04:58:44.515563Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 229] }
+[2m2026-02-06T04:58:44.515841Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Heartbeat acknowledged at 2026-02-06T04:58:44.510Z
+[2m2026-02-06T04:58:44.515870Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Heartbeat sent successfully
+[2m2026-02-06T04:58:45.518476Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=24MB, DiskIO=0, NetIO=42389
+[2m2026-02-06T04:58:47.527716Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Collecting network information...
+[2m2026-02-06T04:58:47.527777Z[0m [34mDEBUG[0m [2magent_network[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T04:58:47.527789Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T04:58:47.534520Z[0m [34mDEBUG[0m [2magent_network::collector::interfaces[0m[2m:[0m Collected 23 network interfaces on macOS
+[2m2026-02-06T04:58:47.578866Z[0m [34mDEBUG[0m [2magent_network::collector::connections[0m[2m:[0m Collected 79 network connections on macOS
+[2m2026-02-06T04:58:47.586665Z[0m [34mDEBUG[0m [2magent_network::collector::routes[0m[2m:[0m Collected 16 routes on macOS
+[2m2026-02-06T04:58:47.592847Z[0m [34mDEBUG[0m [2magent_network::collector::dns[0m[2m:[0m Collected DNS config on macOS: 2 servers
+[2m2026-02-06T04:58:47.592937Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Network snapshot collected: 23 interfaces, 79 connections, 16 routes
+[2m2026-02-06T04:58:47.592952Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network collection complete: 23 interfaces, 79 connections, 16 routes
+[2m2026-02-06T04:58:47.592962Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Running network security detection...
+[2m2026-02-06T04:58:47.592974Z[0m [34mDEBUG[0m [2magent_network::detection[0m[2m:[0m Analyzing 79 connections for threats
+[2m2026-02-06T04:58:47.593325Z[0m [32m INFO[0m [2magent_network::detection[0m[2m:[0m Security analysis complete: 1 alerts generated
+[2m2026-02-06T04:58:47.593338Z[0m [33m WARN[0m [2magent_core[0m[2m:[0m Network security detection found 1 alerts
+[2m2026-02-06T04:58:47.593345Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network alert: Potential C2 communication on port 8080 (severity: Critical, confidence: 75%)
+[2m2026-02-06T04:58:47.593392Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts
+[2m2026-02-06T04:58:47.593604Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T04:58:47.593779Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(17), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:58:47.593959Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(17), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:58:47.739940Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(17), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:58:47.740063Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(17), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:58:47.740113Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 231] }
+[2m2026-02-06T04:58:47.740130Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 231] }
+[2m2026-02-06T04:58:47.740404Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Reported network alert 'Potential C2 communication on port 8080' (severity: Critical)
+[2m2026-02-06T04:58:47.740460Z[0m [34mDEBUG[0m [2magent_network::sync::scheduler[0m[2m:[0m Calculated interval: base=60s, group_offset=0s, jitter=-1s, final=59s
+[2m2026-02-06T04:58:48.743711Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=99.3%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:51.757174Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=81.3%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:52.761943Z[0m [33m WARN[0m [2magent_core::resources[0m[2m:[0m Resource limits exceeded during idle state: DiskIO=16384 (limit: 100)
+[2m2026-02-06T04:58:55.776058Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:58:58.789798Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=88.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:01.801914Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:05.818658Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:08.832813Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=90.2%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:11.845338Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=96.5%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:15.860432Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:18.874034Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=90.0%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:21.889587Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=98.5%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:25.923416Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:28.938345Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.6%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:31.951406Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.2%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:35.967186Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:38.979706Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.7%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:41.994346Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=89.3%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:45.006042Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Found 0 unsynced check results
+[2m2026-02-06T04:59:45.027409Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Sending heartbeat to https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/heartbeat
+[2m2026-02-06T04:59:45.027862Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T04:59:45.028069Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(19), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:59:45.028253Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(19), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:59:45.274991Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(19), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:59:45.275105Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(19), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:59:45.275138Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 233] }
+[2m2026-02-06T04:59:45.275154Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 233] }
+[2m2026-02-06T04:59:45.275442Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Heartbeat acknowledged at 2026-02-06T04:59:45.270Z
+[2m2026-02-06T04:59:45.275500Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Heartbeat sent successfully
+[2m2026-02-06T04:59:45.276364Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=4.5%, RAM=24MB, DiskIO=28672, NetIO=0
+[2m2026-02-06T04:59:47.283967Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Collecting network information...
+[2m2026-02-06T04:59:47.284038Z[0m [34mDEBUG[0m [2magent_network[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T04:59:47.284083Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T04:59:47.291223Z[0m [34mDEBUG[0m [2magent_network::collector::interfaces[0m[2m:[0m Collected 23 network interfaces on macOS
+[2m2026-02-06T04:59:47.342578Z[0m [34mDEBUG[0m [2magent_network::collector::connections[0m[2m:[0m Collected 71 network connections on macOS
+[2m2026-02-06T04:59:47.351244Z[0m [34mDEBUG[0m [2magent_network::collector::routes[0m[2m:[0m Collected 16 routes on macOS
+[2m2026-02-06T04:59:47.358888Z[0m [34mDEBUG[0m [2magent_network::collector::dns[0m[2m:[0m Collected DNS config on macOS: 2 servers
+[2m2026-02-06T04:59:47.358976Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Network snapshot collected: 23 interfaces, 71 connections, 16 routes
+[2m2026-02-06T04:59:47.358990Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network collection complete: 23 interfaces, 71 connections, 16 routes
+[2m2026-02-06T04:59:47.359001Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Running network security detection...
+[2m2026-02-06T04:59:47.359013Z[0m [34mDEBUG[0m [2magent_network::detection[0m[2m:[0m Analyzing 71 connections for threats
+[2m2026-02-06T04:59:47.359371Z[0m [32m INFO[0m [2magent_network::detection[0m[2m:[0m Security analysis complete: 1 alerts generated
+[2m2026-02-06T04:59:47.359383Z[0m [33m WARN[0m [2magent_core[0m[2m:[0m Network security detection found 1 alerts
+[2m2026-02-06T04:59:47.359389Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network alert: Potential C2 communication on port 8080 (severity: Critical, confidence: 75%)
+[2m2026-02-06T04:59:47.359439Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts
+[2m2026-02-06T04:59:47.359615Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T04:59:47.359796Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(21), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:59:47.359966Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(21), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:59:47.502850Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(21), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T04:59:47.502936Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(21), flags: (0x1: END_STREAM) }
+[2m2026-02-06T04:59:47.502966Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 235] }
+[2m2026-02-06T04:59:47.502982Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 235] }
+[2m2026-02-06T04:59:47.503227Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Reported network alert 'Potential C2 communication on port 8080' (severity: Critical)
+[2m2026-02-06T04:59:47.503272Z[0m [34mDEBUG[0m [2magent_network::sync::scheduler[0m[2m:[0m Calculated interval: base=60s, group_offset=0s, jitter=-2s, final=58s
+[2m2026-02-06T04:59:49.509503Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:52.520827Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.4%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:55.532695Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.2%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T04:59:59.544037Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:00:02.555137Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.9%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:00:05.567229Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:00:09.586354Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:00:12.598222Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=101.4%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:00:15.610468Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:00:19.624317Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:00:22.639794Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.7%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:00:25.654620Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=99.0%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:00:29.669935Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:00:32.685397Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=75.6%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:00:35.697565Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.4%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:00:39.714615Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:00:42.726593Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.7%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:00:42.726982Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Running security scan...
+[2m2026-02-06T05:00:42.727012Z[0m [32m INFO[0m [2magent_scanner::security[0m[2m:[0m Scanning running processes for suspicious activity...
+[2m2026-02-06T05:00:42.765239Z[0m [34mDEBUG[0m [2magent_scanner::security::process_monitor[0m[2m:[0m Scanning 487 processes
+[2m2026-02-06T05:00:42.766409Z[0m [34mDEBUG[0m [2magent_scanner::security[0m[2m:[0m Found 0 suspicious processes out of 487 scanned
+[2m2026-02-06T05:00:42.766433Z[0m [32m INFO[0m [2magent_scanner::security[0m[2m:[0m Performing system security checks...
+[2m2026-02-06T05:00:42.766441Z[0m [34mDEBUG[0m [2magent_scanner::security::system_monitor[0m[2m:[0m Checking firewall status...
+[2m2026-02-06T05:00:42.775701Z[0m [34mDEBUG[0m [2magent_scanner::security::system_monitor[0m[2m:[0m Checking antivirus status...
+[2m2026-02-06T05:00:42.782587Z[0m [34mDEBUG[0m [2magent_scanner::security::system_monitor[0m[2m:[0m Checking SSH configuration...
+[2m2026-02-06T05:00:42.783077Z[0m [34mDEBUG[0m [2magent_scanner::security::system_monitor[0m[2m:[0m Checking administrator accounts...
+[2m2026-02-06T05:00:42.801716Z[0m [32m INFO[0m [2magent_scanner::security::system_monitor[0m[2m:[0m System checks complete: 0 issues found from 4 checks
+[2m2026-02-06T05:00:42.801821Z[0m [34mDEBUG[0m [2magent_scanner::security[0m[2m:[0m Found 0 system issues from 4 checks
+[2m2026-02-06T05:00:42.801860Z[0m [32m INFO[0m [2magent_scanner::security[0m[2m:[0m Security scan complete: 0 incidents detected
+[2m2026-02-06T05:00:42.801894Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Security scan clean: no incidents detected
+[2m2026-02-06T05:00:42.802998Z[0m [33m WARN[0m [2magent_core::resources[0m[2m:[0m Resource limits exceeded during active state: DiskIO=81920 (limit: 100)
+[2m2026-02-06T05:00:45.815712Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=99.0%, RAM=23MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:00:45.815914Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Found 0 unsynced check results
+[2m2026-02-06T05:00:45.833555Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Sending heartbeat to https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/heartbeat
+[2m2026-02-06T05:00:45.833917Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:00:45.834131Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(23), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:45.834342Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(23), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:46.288578Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(23), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:46.288671Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(23), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:46.288700Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 237] }
+[2m2026-02-06T05:00:46.288717Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 237] }
+[2m2026-02-06T05:00:46.289013Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Heartbeat acknowledged at 2026-02-06T05:00:46.283Z
+[2m2026-02-06T05:00:46.289049Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Heartbeat sent successfully
+[2m2026-02-06T05:00:46.289173Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Collecting network information...
+[2m2026-02-06T05:00:46.289193Z[0m [34mDEBUG[0m [2magent_network[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T05:00:46.289202Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T05:00:46.293898Z[0m [34mDEBUG[0m [2magent_network::collector::interfaces[0m[2m:[0m Collected 23 network interfaces on macOS
+[2m2026-02-06T05:00:46.341355Z[0m [34mDEBUG[0m [2magent_network::collector::connections[0m[2m:[0m Collected 96 network connections on macOS
+[2m2026-02-06T05:00:46.347059Z[0m [34mDEBUG[0m [2magent_network::collector::routes[0m[2m:[0m Collected 16 routes on macOS
+[2m2026-02-06T05:00:46.351351Z[0m [34mDEBUG[0m [2magent_network::collector::dns[0m[2m:[0m Collected DNS config on macOS: 2 servers
+[2m2026-02-06T05:00:46.351433Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Network snapshot collected: 23 interfaces, 96 connections, 16 routes
+[2m2026-02-06T05:00:46.351445Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network collection complete: 23 interfaces, 96 connections, 16 routes
+[2m2026-02-06T05:00:46.351455Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Running network security detection...
+[2m2026-02-06T05:00:46.351466Z[0m [34mDEBUG[0m [2magent_network::detection[0m[2m:[0m Analyzing 96 connections for threats
+[2m2026-02-06T05:00:46.351903Z[0m [32m INFO[0m [2magent_network::detection[0m[2m:[0m Security analysis complete: 8 alerts generated
+[2m2026-02-06T05:00:46.351916Z[0m [33m WARN[0m [2magent_core[0m[2m:[0m Network security detection found 8 alerts
+[2m2026-02-06T05:00:46.351922Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network alert: Potential C2 communication on port 8080 (severity: Critical, confidence: 75%)
+[2m2026-02-06T05:00:46.351929Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network alert: Potential C2 communication on port 8080 (severity: Critical, confidence: 75%)
+[2m2026-02-06T05:00:46.351935Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network alert: Potential C2 communication on port 8080 (severity: Critical, confidence: 75%)
+[2m2026-02-06T05:00:46.351942Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network alert: Potential C2 communication on port 8080 (severity: Critical, confidence: 75%)
+[2m2026-02-06T05:00:46.351948Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network alert: Potential C2 communication on port 8080 (severity: Critical, confidence: 75%)
+[2m2026-02-06T05:00:46.351954Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network alert: Potential C2 communication on port 8080 (severity: Critical, confidence: 75%)
+[2m2026-02-06T05:00:46.351960Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network alert: Potential C2 communication on port 8080 (severity: Critical, confidence: 75%)
+[2m2026-02-06T05:00:46.351966Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network alert: Potential C2 communication on port 8080 (severity: Critical, confidence: 75%)
+[2m2026-02-06T05:00:46.352011Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts
+[2m2026-02-06T05:00:46.352191Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:00:46.352354Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(25), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:46.352527Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(25), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:46.481948Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(25), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:46.482028Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(25), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:46.482054Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 239] }
+[2m2026-02-06T05:00:46.482069Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 239] }
+[2m2026-02-06T05:00:46.482293Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Reported network alert 'Potential C2 communication on port 8080' (severity: Critical)
+[2m2026-02-06T05:00:46.482355Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts
+[2m2026-02-06T05:00:46.482489Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:00:46.482600Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(27), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:46.482787Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(27), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:46.614505Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(27), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:46.614598Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(27), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:46.614630Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 241] }
+[2m2026-02-06T05:00:46.614646Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 241] }
+[2m2026-02-06T05:00:46.614902Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Reported network alert 'Potential C2 communication on port 8080' (severity: Critical)
+[2m2026-02-06T05:00:46.614960Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts
+[2m2026-02-06T05:00:46.615095Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:00:46.615206Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(29), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:46.615369Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(29), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:46.730623Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(29), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:46.730760Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(29), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:46.730825Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 243] }
+[2m2026-02-06T05:00:46.730846Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 243] }
+[2m2026-02-06T05:00:46.731120Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Reported network alert 'Potential C2 communication on port 8080' (severity: Critical)
+[2m2026-02-06T05:00:46.731182Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts
+[2m2026-02-06T05:00:46.731307Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:00:46.731419Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(31), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:46.731565Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(31), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:46.858382Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(31), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:46.858471Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(31), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:46.858506Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 245] }
+[2m2026-02-06T05:00:46.858527Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 245] }
+[2m2026-02-06T05:00:46.858770Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Reported network alert 'Potential C2 communication on port 8080' (severity: Critical)
+[2m2026-02-06T05:00:46.858838Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts
+[2m2026-02-06T05:00:46.858993Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:00:46.859101Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(33), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:46.859230Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(33), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:46.923303Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(33), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:46.923469Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(33), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:46.923548Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 247] }
+[2m2026-02-06T05:00:46.923583Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 247] }
+[2m2026-02-06T05:00:46.924519Z[0m [33m WARN[0m [2magent_core[0m[2m:[0m Failed to upload network alert: network error: POST /v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts failed: 429 Too Many Requests - {"error":"Agent rate limit exceeded","retryAfter":25}
+[2m2026-02-06T05:00:46.924763Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts
+[2m2026-02-06T05:00:46.925510Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:00:46.925790Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(35), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:46.926027Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(35), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:46.973464Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(35), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:46.973536Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(35), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:46.973621Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 249] }
+[2m2026-02-06T05:00:46.973730Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 249] }
+[2m2026-02-06T05:00:46.975578Z[0m [33m WARN[0m [2magent_core[0m[2m:[0m Failed to upload network alert: network error: POST /v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts failed: 429 Too Many Requests - {"error":"Agent rate limit exceeded","retryAfter":25}
+[2m2026-02-06T05:00:46.976093Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts
+[2m2026-02-06T05:00:46.976493Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:00:46.976640Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(37), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:46.979962Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(37), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:47.044350Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(37), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:47.045193Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(37), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:47.046406Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 251] }
+[2m2026-02-06T05:00:47.046432Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 251] }
+[2m2026-02-06T05:00:47.047122Z[0m [33m WARN[0m [2magent_core[0m[2m:[0m Failed to upload network alert: network error: POST /v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts failed: 429 Too Many Requests - {"error":"Agent rate limit exceeded","retryAfter":25}
+[2m2026-02-06T05:00:47.047206Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts
+[2m2026-02-06T05:00:47.047382Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:00:47.047571Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(39), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:47.047823Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(39), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:47.107934Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(39), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:00:47.108015Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(39), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:00:47.108043Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 253] }
+[2m2026-02-06T05:00:47.108058Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 253] }
+[2m2026-02-06T05:00:47.108379Z[0m [33m WARN[0m [2magent_core[0m[2m:[0m Failed to upload network alert: network error: POST /v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts failed: 429 Too Many Requests - {"error":"Agent rate limit exceeded","retryAfter":25}
+[2m2026-02-06T05:00:47.108439Z[0m [34mDEBUG[0m [2magent_network::sync::scheduler[0m[2m:[0m Calculated interval: base=60s, group_offset=0s, jitter=-1s, final=59s
+[2m2026-02-06T05:00:50.147278Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=99.1%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:00:54.161570Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=185645
+[2m2026-02-06T05:00:57.173544Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=96.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:00.188678Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.3%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:04.202257Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:07.212502Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:10.226408Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:14.242871Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:17.265646Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=101.7%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:20.282790Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:24.299989Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:27.313886Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.3%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:30.327611Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:34.343059Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:37.357659Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=94.6%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:40.373713Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=87.7%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:42.385881Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Collecting network information...
+[2m2026-02-06T05:01:42.386011Z[0m [34mDEBUG[0m [2magent_network[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T05:01:42.386038Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T05:01:42.391605Z[0m [34mDEBUG[0m [2magent_network::collector::interfaces[0m[2m:[0m Collected 23 network interfaces on macOS
+[2m2026-02-06T05:01:42.430518Z[0m [34mDEBUG[0m [2magent_network::collector::connections[0m[2m:[0m Collected 88 network connections on macOS
+[2m2026-02-06T05:01:42.436809Z[0m [34mDEBUG[0m [2magent_network::collector::routes[0m[2m:[0m Collected 16 routes on macOS
+[2m2026-02-06T05:01:42.442217Z[0m [34mDEBUG[0m [2magent_network::collector::dns[0m[2m:[0m Collected DNS config on macOS: 2 servers
+[2m2026-02-06T05:01:42.442306Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Network snapshot collected: 23 interfaces, 88 connections, 16 routes
+[2m2026-02-06T05:01:42.442321Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network collection complete: 23 interfaces, 88 connections, 16 routes
+[2m2026-02-06T05:01:42.442840Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network
+[2m2026-02-06T05:01:42.443798Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:01:42.443987Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(41), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:01:42.444181Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(41) }
+[2m2026-02-06T05:01:42.444271Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(41), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:01:42.668174Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(41), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:01:42.668339Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(41), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:01:42.668410Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 2, 255] }
+[2m2026-02-06T05:01:42.668454Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 2, 255] }
+[2m2026-02-06T05:01:42.668910Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Uploaded network snapshot
+[2m2026-02-06T05:01:42.669273Z[0m [34mDEBUG[0m [2magent_network::sync::scheduler[0m[2m:[0m Calculated interval: base=300s, group_offset=0s, jitter=-15s, final=285s
+[2m2026-02-06T05:01:44.678559Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.2%, RAM=24MB, DiskIO=0, NetIO=85424
+[2m2026-02-06T05:01:46.689152Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Found 0 unsynced check results
+[2m2026-02-06T05:01:46.709225Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Sending heartbeat to https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/heartbeat
+[2m2026-02-06T05:01:46.709618Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:01:46.709819Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(43), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:01:46.709990Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(43), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:01:47.013200Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(43), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:01:47.013284Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(43), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:01:47.013311Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 3, 1] }
+[2m2026-02-06T05:01:47.013327Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 3, 1] }
+[2m2026-02-06T05:01:47.013548Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Heartbeat acknowledged at 2026-02-06T05:01:46.997Z
+[2m2026-02-06T05:01:47.013582Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Heartbeat sent successfully
+[2m2026-02-06T05:01:47.013703Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Collecting network information...
+[2m2026-02-06T05:01:47.013713Z[0m [34mDEBUG[0m [2magent_network[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T05:01:47.013720Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T05:01:47.019056Z[0m [34mDEBUG[0m [2magent_network::collector::interfaces[0m[2m:[0m Collected 23 network interfaces on macOS
+[2m2026-02-06T05:01:47.063534Z[0m [34mDEBUG[0m [2magent_network::collector::connections[0m[2m:[0m Collected 85 network connections on macOS
+[2m2026-02-06T05:01:47.069346Z[0m [34mDEBUG[0m [2magent_network::collector::routes[0m[2m:[0m Collected 16 routes on macOS
+[2m2026-02-06T05:01:47.073537Z[0m [34mDEBUG[0m [2magent_network::collector::dns[0m[2m:[0m Collected DNS config on macOS: 2 servers
+[2m2026-02-06T05:01:47.073620Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Network snapshot collected: 23 interfaces, 85 connections, 16 routes
+[2m2026-02-06T05:01:47.073636Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network collection complete: 23 interfaces, 85 connections, 16 routes
+[2m2026-02-06T05:01:47.073647Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Running network security detection...
+[2m2026-02-06T05:01:47.073659Z[0m [34mDEBUG[0m [2magent_network::detection[0m[2m:[0m Analyzing 85 connections for threats
+[2m2026-02-06T05:01:47.074037Z[0m [32m INFO[0m [2magent_network::detection[0m[2m:[0m Security analysis complete: 1 alerts generated
+[2m2026-02-06T05:01:47.074049Z[0m [33m WARN[0m [2magent_core[0m[2m:[0m Network security detection found 1 alerts
+[2m2026-02-06T05:01:47.074055Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network alert: Potential C2 communication on port 8080 (severity: Critical, confidence: 75%)
+[2m2026-02-06T05:01:47.074093Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts
+[2m2026-02-06T05:01:47.074274Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:01:47.074434Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(45), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:01:47.074607Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(45), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:01:47.206550Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(45), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:01:47.206643Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(45), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:01:47.206683Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 3, 3] }
+[2m2026-02-06T05:01:47.206700Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 3, 3] }
+[2m2026-02-06T05:01:47.206969Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Reported network alert 'Potential C2 communication on port 8080' (severity: Critical)
+[2m2026-02-06T05:01:47.207028Z[0m [34mDEBUG[0m [2magent_network::sync::scheduler[0m[2m:[0m Calculated interval: base=60s, group_offset=0s, jitter=0s, final=60s
+[2m2026-02-06T05:01:47.207808Z[0m [33m WARN[0m [2magent_core::resources[0m[2m:[0m Resource limits exceeded during active state: DiskIO=16384 (limit: 100)
+[2m2026-02-06T05:01:48.210338Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:51.224508Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=99.2%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:54.235388Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=98.5%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:01:58.249637Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:01.263081Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.9%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:04.278137Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=71.3%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:08.293619Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:11.306632Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.6%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:14.317592Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:18.331639Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:21.342900Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.6%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:24.355122Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.2%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:28.402440Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:31.441475Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=103.2%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:34.453178Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.4%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:38.480894Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:41.495556Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.6%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:44.511960Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=97.7%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:47.522280Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Found 0 unsynced check results
+[2m2026-02-06T05:02:47.545141Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Sending heartbeat to https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/heartbeat
+[2m2026-02-06T05:02:47.545532Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:02:47.545706Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(47), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:02:47.545876Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(47), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:02:47.932578Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(47), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:02:47.932674Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(47), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:02:47.932722Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 3, 5] }
+[2m2026-02-06T05:02:47.932743Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 3, 5] }
+[2m2026-02-06T05:02:47.932969Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Heartbeat acknowledged at 2026-02-06T05:02:47.844Z
+[2m2026-02-06T05:02:47.932995Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Heartbeat sent successfully
+[2m2026-02-06T05:02:47.933106Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Collecting network information...
+[2m2026-02-06T05:02:47.933121Z[0m [34mDEBUG[0m [2magent_network[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T05:02:47.933128Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T05:02:47.939133Z[0m [34mDEBUG[0m [2magent_network::collector::interfaces[0m[2m:[0m Collected 23 network interfaces on macOS
+[2m2026-02-06T05:02:47.983875Z[0m [34mDEBUG[0m [2magent_network::collector::connections[0m[2m:[0m Collected 97 network connections on macOS
+[2m2026-02-06T05:02:47.990013Z[0m [34mDEBUG[0m [2magent_network::collector::routes[0m[2m:[0m Collected 16 routes on macOS
+[2m2026-02-06T05:02:47.996241Z[0m [34mDEBUG[0m [2magent_network::collector::dns[0m[2m:[0m Collected DNS config on macOS: 2 servers
+[2m2026-02-06T05:02:47.996323Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Network snapshot collected: 23 interfaces, 97 connections, 16 routes
+[2m2026-02-06T05:02:47.996337Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network collection complete: 23 interfaces, 97 connections, 16 routes
+[2m2026-02-06T05:02:47.996348Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Running network security detection...
+[2m2026-02-06T05:02:47.996359Z[0m [34mDEBUG[0m [2magent_network::detection[0m[2m:[0m Analyzing 97 connections for threats
+[2m2026-02-06T05:02:47.996791Z[0m [32m INFO[0m [2magent_network::detection[0m[2m:[0m Security analysis complete: 1 alerts generated
+[2m2026-02-06T05:02:47.996810Z[0m [33m WARN[0m [2magent_core[0m[2m:[0m Network security detection found 1 alerts
+[2m2026-02-06T05:02:47.996819Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network alert: Potential C2 communication on port 8080 (severity: Critical, confidence: 75%)
+[2m2026-02-06T05:02:47.996897Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts
+[2m2026-02-06T05:02:47.997091Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:02:47.997252Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(49), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:02:47.997446Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(49), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:02:48.140561Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(49), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:02:48.140641Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(49), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:02:48.140673Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 3, 7] }
+[2m2026-02-06T05:02:48.140689Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 3, 7] }
+[2m2026-02-06T05:02:48.140930Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Reported network alert 'Potential C2 communication on port 8080' (severity: Critical)
+[2m2026-02-06T05:02:48.141020Z[0m [34mDEBUG[0m [2magent_network::sync::scheduler[0m[2m:[0m Calculated interval: base=60s, group_offset=0s, jitter=0s, final=60s
+[2m2026-02-06T05:02:48.141713Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=3.1%, RAM=25MB, DiskIO=106496, NetIO=0
+[2m2026-02-06T05:02:48.141738Z[0m [33m WARN[0m [2magent_core::resources[0m[2m:[0m Resource limits exceeded during active state: DiskIO=106496 (limit: 100)
+[2m2026-02-06T05:02:52.168773Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=24MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:55.183386Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=82.0%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:02:58.192338Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.2%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:02.205154Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:05.217725Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.6%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:08.231467Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:12.246858Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:15.258837Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.6%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:18.269355Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:22.284504Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:25.298047Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.7%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:28.313817Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=81.5%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:32.327645Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:35.339308Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.6%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:38.360437Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=77.8%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:42.386293Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.2%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:45.401510Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=101.2%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:48.420079Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.1%, RAM=22MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:48.420611Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Found 0 unsynced check results
+[2m2026-02-06T05:03:48.437702Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Sending heartbeat to https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/heartbeat
+[2m2026-02-06T05:03:48.438069Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:03:48.438237Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(51), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:03:48.438405Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(51), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:03:48.712346Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(51), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:03:48.712524Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(51), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:03:48.712609Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 3, 9] }
+[2m2026-02-06T05:03:48.712658Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 3, 9] }
+[2m2026-02-06T05:03:48.713392Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Heartbeat acknowledged at 2026-02-06T05:03:48.707Z
+[2m2026-02-06T05:03:48.713511Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Heartbeat sent successfully
+[2m2026-02-06T05:03:48.713848Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Collecting network information...
+[2m2026-02-06T05:03:48.713904Z[0m [34mDEBUG[0m [2magent_network[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T05:03:48.713935Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Collecting network snapshot
+[2m2026-02-06T05:03:48.720900Z[0m [34mDEBUG[0m [2magent_network::collector::interfaces[0m[2m:[0m Collected 23 network interfaces on macOS
+[2m2026-02-06T05:03:48.759282Z[0m [34mDEBUG[0m [2magent_network::collector::connections[0m[2m:[0m Collected 69 network connections on macOS
+[2m2026-02-06T05:03:48.764410Z[0m [34mDEBUG[0m [2magent_network::collector::routes[0m[2m:[0m Collected 16 routes on macOS
+[2m2026-02-06T05:03:48.768689Z[0m [34mDEBUG[0m [2magent_network::collector::dns[0m[2m:[0m Collected DNS config on macOS: 2 servers
+[2m2026-02-06T05:03:48.768755Z[0m [34mDEBUG[0m [2magent_network::collector[0m[2m:[0m Network snapshot collected: 23 interfaces, 69 connections, 16 routes
+[2m2026-02-06T05:03:48.768765Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network collection complete: 23 interfaces, 69 connections, 16 routes
+[2m2026-02-06T05:03:48.768775Z[0m [34mDEBUG[0m [2magent_core[0m[2m:[0m Running network security detection...
+[2m2026-02-06T05:03:48.768785Z[0m [34mDEBUG[0m [2magent_network::detection[0m[2m:[0m Analyzing 69 connections for threats
+[2m2026-02-06T05:03:48.769133Z[0m [32m INFO[0m [2magent_network::detection[0m[2m:[0m Security analysis complete: 1 alerts generated
+[2m2026-02-06T05:03:48.769142Z[0m [33m WARN[0m [2magent_core[0m[2m:[0m Network security detection found 1 alerts
+[2m2026-02-06T05:03:48.769149Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Network alert: Potential C2 communication on port 8080 (severity: Critical, confidence: 75%)
+[2m2026-02-06T05:03:48.769196Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m POST https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/network/alerts
+[2m2026-02-06T05:03:48.769370Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:03:48.769514Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(53), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:03:48.769673Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(53), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:03:48.896393Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(53), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:03:48.896467Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(53), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:03:48.896497Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 3, 11] }
+[2m2026-02-06T05:03:48.896514Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 3, 11] }
+[2m2026-02-06T05:03:48.896772Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Reported network alert 'Potential C2 communication on port 8080' (severity: Critical)
+[2m2026-02-06T05:03:48.896823Z[0m [34mDEBUG[0m [2magent_network::sync::scheduler[0m[2m:[0m Calculated interval: base=60s, group_offset=0s, jitter=3s, final=63s
+[2m2026-02-06T05:03:51.915961Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=99.4%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:03:52.922501Z[0m [33m WARN[0m [2magent_core::resources[0m[2m:[0m Resource limits exceeded during idle state: DiskIO=16384 (limit: 100)
+[2m2026-02-06T05:03:55.942755Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.2%, RAM=25MB, DiskIO=0, NetIO=101638
+[2m2026-02-06T05:03:58.967211Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.6%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:04:01.990200Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=68.0%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:04:06.008572Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:04:09.024983Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=99.3%, RAM=25MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:04:12.047958Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=90.7%, RAM=24MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:04:16.070305Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.2%, RAM=21MB, DiskIO=0, NetIO=221526
+[2m2026-02-06T05:04:19.087827Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=105.6%, RAM=20MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:04:22.102441Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=100.0%, RAM=20MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:04:26.124143Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.2%, RAM=20MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:04:29.150403Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=97.0%, RAM=20MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:04:32.172158Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=96.8%, RAM=21MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:04:36.193379Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=0.1%, RAM=21MB, DiskIO=0, NetIO=0
+[2m2026-02-06T05:04:39.216280Z[0m [32m INFO[0m [2magent_core::resources[0m[2m:[0m Resource Usage: CPU=89.0%, RAM=21MB, DiskIO=0, NetIO=0
+Received SIGHUP, initiating graceful shutdown...
+[2m2026-02-06T05:04:40.955494Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Received Ctrl+C, initiating shutdown...
+[2m2026-02-06T05:04:41.223330Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Shutdown signal received, initiating graceful exit sequence...
+[2m2026-02-06T05:04:41.223380Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Performing final cleanup and data flush...
+[2m2026-02-06T05:04:41.223390Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Flushing pending check results to server...
+[2m2026-02-06T05:04:41.223689Z[0m [34mDEBUG[0m [2magent_storage::repositories::check_results[0m[2m:[0m Found 0 unsynced check results
+[2m2026-02-06T05:04:41.223712Z[0m [34mDEBUG[0m [2magent_sync::result_upload[0m[2m:[0m No pending results to upload
+[2m2026-02-06T05:04:41.237298Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Sending heartbeat to https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi/v1/agents/8f855408-94d4-421f-a07f-85d1605633a5/heartbeat
+[2m2026-02-06T05:04:41.237784Z[0m [34mDEBUG[0m [2mhyper_util::client::legacy::pool[0m[2m:[0m reuse idle connection for ("https", europe-west1-sentinel-grc-a8701.cloudfunctions.net)
+[2m2026-02-06T05:04:41.238130Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(55), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:04:41.238385Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mData { stream_id: StreamId(55), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:04:41.512193Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mHeaders { stream_id: StreamId(55), flags: (0x4: END_HEADERS) }
+[2m2026-02-06T05:04:41.512270Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mData { stream_id: StreamId(55), flags: (0x1: END_STREAM) }
+[2m2026-02-06T05:04:41.512298Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_read[0m[2m:[0m received [3mframe[0m[2m=[0mPing { ack: false, payload: [0, 0, 0, 0, 0, 0, 3, 13] }
+[2m2026-02-06T05:04:41.512313Z[0m [34mDEBUG[0m [1mConnection[0m[1m{[0m[3mpeer[0m[2m=[0mClient[1m}[0m[2m:[0m [2mh2::codec::framed_write[0m[2m:[0m send [3mframe[0m[2m=[0mPing { ack: true, payload: [0, 0, 0, 0, 0, 0, 3, 13] }
+[2m2026-02-06T05:04:41.512551Z[0m [34mDEBUG[0m [2magent_core::api_client[0m[2m:[0m Heartbeat acknowledged at 2026-02-06T05:04:41.507Z
+[2m2026-02-06T05:04:41.512573Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Closing database and terminating runtime.
+[2m2026-02-06T05:04:41.512582Z[0m [32m INFO[0m [2magent_core[0m[2m:[0m Agent shutdown complete
