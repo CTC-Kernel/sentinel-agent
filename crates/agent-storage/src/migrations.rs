@@ -11,7 +11,7 @@ use rusqlite::Connection;
 use tracing::{debug, error, info, warn};
 
 /// Current schema version (incremented with each migration).
-pub const CURRENT_SCHEMA_VERSION: i32 = 4;
+pub const CURRENT_SCHEMA_VERSION: i32 = 5;
 
 /// A database migration.
 struct Migration {
@@ -219,6 +219,33 @@ const MIGRATIONS: &[Migration] = &[
             DROP INDEX IF EXISTS idx_audit_trail_action_type;
             DROP INDEX IF EXISTS idx_audit_trail_timestamp;
             DROP TABLE IF EXISTS audit_trail;
+        "#,
+    },
+    Migration {
+        version: 5,
+        name: "audit_trail_sync",
+        up: r#"
+            ALTER TABLE audit_trail ADD COLUMN synced INTEGER NOT NULL DEFAULT 0;
+            CREATE INDEX IF NOT EXISTS idx_audit_trail_synced ON audit_trail(synced);
+        "#,
+        down: r#"
+            DROP INDEX IF EXISTS idx_audit_trail_synced;
+            -- Recreate table to drop column
+            CREATE TABLE audit_trail_backup AS SELECT id, timestamp, action_type, action_data, actor, details FROM audit_trail;
+            DROP TABLE audit_trail;
+            CREATE TABLE audit_trail (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                action_type TEXT NOT NULL,
+                action_data TEXT NOT NULL,
+                actor TEXT NOT NULL,
+                details TEXT
+            );
+            INSERT INTO audit_trail (id, timestamp, action_type, action_data, actor, details) 
+            SELECT id, timestamp, action_type, action_data, actor, details FROM audit_trail_backup;
+            DROP TABLE audit_trail_backup;
+            CREATE INDEX IF NOT EXISTS idx_audit_trail_timestamp ON audit_trail(timestamp);
+            CREATE INDEX IF NOT EXISTS idx_audit_trail_action_type ON audit_trail(action_type);
         "#,
     },
 ];
@@ -555,9 +582,12 @@ mod tests {
 
         // Run migrations
         run_migrations(&mut conn).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 5);
+
+        // Rollback from v5 down to v0
+        rollback_migration(&mut conn, 5).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 4);
 
-        // Rollback from v4 down to v0
         rollback_migration(&mut conn, 4).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 3);
 
@@ -596,7 +626,7 @@ mod tests {
         run_migrations(&mut conn).unwrap();
 
         let migrations = get_applied_migrations(&conn).unwrap();
-        assert_eq!(migrations.len(), 4);
+        assert_eq!(migrations.len(), 5);
         assert_eq!(migrations[0].0, 1);
         assert_eq!(migrations[0].1, "initial_schema");
         assert_eq!(migrations[1].0, 2);
@@ -605,6 +635,8 @@ mod tests {
         assert_eq!(migrations[2].1, "discovered_devices");
         assert_eq!(migrations[3].0, 4);
         assert_eq!(migrations[3].1, "audit_trail");
+        assert_eq!(migrations[4].0, 5);
+        assert_eq!(migrations[4].1, "audit_trail_sync");
     }
 
     #[test]

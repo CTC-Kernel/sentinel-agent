@@ -62,7 +62,12 @@ impl LogRotationCheck {
             .description("Verify log rotation is configured and active")
             .category(CheckCategory::AuditLogging)
             .severity(CheckSeverity::Medium)
-            .framework("ISO27001")
+            .framework("NIS2")
+            .framework("DORA")
+            .framework("CIS_V8")
+            .framework("PCI_DSS")
+            .framework("NIST_CSF")
+            .framework("ISO_27001")
             .platforms(vec![
                 "windows".to_string(),
                 "linux".to_string(),
@@ -400,7 +405,7 @@ mod tests {
     fn test_check_frameworks() {
         let check = LogRotationCheck::new();
         let frameworks = &check.definition().frameworks;
-        assert!(frameworks.contains(&"ISO27001".to_string()));
+        assert!(frameworks.contains(&"ISO_27001".to_string()));
     }
 
     #[test]

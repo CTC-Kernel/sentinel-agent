@@ -76,6 +76,10 @@ impl AdminAccountsCheck {
             .severity(CheckSeverity::Medium)
             .framework("NIS2")
             .framework("DORA")
+            .framework("CIS_V8")
+            .framework("PCI_DSS")
+            .framework("NIST_CSF")
+            .framework("ISO_27001")
             .platforms(vec![
                 "windows".to_string(),
                 "linux".to_string(),
