@@ -71,37 +71,57 @@ impl CompliancePage {
             ui.add_space(theme::SPACE_MD);
         }
 
-        // Summary cards row (AAA Grade)
-        let card_grid = widgets::ResponsiveGrid::new(230.0, theme::SPACE_SM);
-        let items = vec![
-            (
-                "CONTRÔLES ANALYSÉS",
-                state.policy.total_policies.to_string(),
-                theme::text_primary(),
-                icons::SQUARE,
-            ),
-            (
-                "POINTS CONFORMES",
-                state.policy.passing.to_string(),
-                theme::SUCCESS,
-                icons::CIRCLE_CHECK,
-            ),
-            (
-                "NON-CONFORMITÉS",
-                state.policy.failing.to_string(),
-                theme::ERROR,
-                icons::CIRCLE_XMARK,
-            ),
-            (
-                "ERREURS D'AUDIT",
-                state.policy.errors.to_string(),
-                theme::WARNING,
-                icons::WARNING,
-            ),
-        ];
+        // Summary Area (AAA Grade)
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.horizontal(|ui: &mut egui::Ui| {
+                // Left: Large Gauge
+                ui.vertical(|ui| {
+                    ui.set_width(180.0);
+                    widgets::compliance_gauge(ui, state.summary.compliance_score, 70.0);
+                });
 
-        card_grid.show(ui, &items, |ui, width, (label, value, color, icon)| {
-            Self::summary_card(ui, width, label, value, *color, icon);
+                ui.add_space(theme::SPACE_LG);
+
+                // Right: Detailed counters
+                ui.vertical(|ui| {
+                    ui.add_space(theme::SPACE_MD);
+                    ui.label(
+                        egui::RichText::new("ANALYSE SYNTHÉTIQUE DES CONTRÔLES")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .extra_letter_spacing(0.5)
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE_MD);
+
+                    ui.horizontal(|ui| {
+                        Self::mini_stat(ui, "TOTAL", &state.policy.total_policies.to_string(), theme::text_primary(), icons::LIST);
+                        ui.add_space(theme::SPACE_MD);
+                        Self::mini_stat(ui, "CONFORME", &state.policy.passing.to_string(), theme::SUCCESS, icons::CIRCLE_CHECK);
+                        ui.add_space(theme::SPACE_MD);
+                        Self::mini_stat(ui, "DÉFAILLANT", &state.policy.failing.to_string(), theme::ERROR, icons::CIRCLE_XMARK);
+                        ui.add_space(theme::SPACE_MD);
+                        Self::mini_stat(ui, "ERREUR", &state.policy.errors.to_string(), theme::WARNING, icons::WARNING);
+                    });
+
+                    if let Some(ref frameworks) = state.summary.active_frameworks
+                        && !frameworks.is_empty()
+                    {
+                        ui.add_space(theme::SPACE_MD);
+                        ui.horizontal(|ui| {
+                            ui.label(
+                                egui::RichText::new("RÉFÉRENTIELS ACTIFS:")
+                                    .font(theme::font_min())
+                                    .color(theme::text_tertiary())
+                                    .strong(),
+                            );
+                            for fw in frameworks.iter().take(4) {
+                                widgets::status_badge(ui, fw, theme::ACCENT);
+                            }
+                        });
+                    }
+                });
+            });
         });
 
         ui.add_space(theme::SPACE_LG);
@@ -660,37 +680,26 @@ impl CompliancePage {
         color: egui::Color32,
         icon: &str,
     ) {
-        ui.vertical(|ui: &mut egui::Ui| {
-            ui.set_width(width);
-            widgets::card(ui, |ui: &mut egui::Ui| {
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    ui.vertical(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(value)
-                                .font(theme::font_card_value())
-                                .color(color)
-                                .strong(),
-                        );
-                        ui.label(
-                            egui::RichText::new(label)
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .extra_letter_spacing(0.5)
-                                .strong(),
-                        );
-                    });
-                    ui.with_layout(
-                        egui::Layout::right_to_left(egui::Align::Center),
-                        |ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(icon)
-                                    .size(28.0)
-                                    .color(color.linear_multiply(0.25)),
-                            );
-                        },
-                    );
                 });
             });
+        });
+    }
+
+    fn mini_stat(ui: &mut Ui, label: &str, value: &str, color: egui::Color32, icon: &str) {
+        ui.horizontal(|ui| {
+            ui.label(
+                egui::RichText::new(icon)
+                    .color(color.linear_multiply(0.8))
+                    .size(14.0),
+            );
+            ui.add_space(-4.0);
+            ui.label(egui::RichText::new(value).color(color).strong());
+            ui.add_space(-4.0);
+            ui.label(
+                egui::RichText::new(label)
+                    .font(theme::font_min())
+                    .color(theme::text_tertiary()),
+            );
         });
     }
 

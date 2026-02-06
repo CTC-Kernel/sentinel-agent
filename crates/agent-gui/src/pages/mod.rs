@@ -1,6 +1,7 @@
 //! Application pages.
 
 mod about;
+mod audit_trail;
 pub mod cartography;
 mod compliance;
 mod dashboard;
@@ -17,6 +18,7 @@ mod threats;
 mod vulnerabilities;
 
 pub use about::AboutPage;
+pub use audit_trail::AuditTrailPage;
 pub use cartography::CartographyPage;
 pub use compliance::CompliancePage;
 pub use dashboard::DashboardPage;
