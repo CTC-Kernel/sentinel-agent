@@ -1,0 +1,209 @@
+Issue Key,Summary,Description,Issue Type,Priority,Story Points,Epic Link,Sprint,Labels,Acceptance Criteria
+CMDB-001-01,"Définition Types TypeScript CI","En tant que développeur, je veux avoir des types TypeScript stricts pour les CIs afin de garantir la cohérence des données dans toute l'application.",Story,High,3,EPIC-CMDB-001,Sprint 1,"typescript,types,cmdb","- Type ConfigurationItem avec tous les attributs
+- Type CIFingerprint pour l'identification
+- Types CIClass, CIStatus, CIEnvironment, CICriticality
+- Types spécifiques par classe
+- Schémas Zod correspondants
+- Export depuis src/types/cmdb.ts"
+CMDB-001-02,"Collection Firestore cmdb_cis","En tant que développeur, je veux une collection Firestore optimisée pour les CIs afin de stocker et requêter efficacement les Configuration Items.",Story,High,3,EPIC-CMDB-001,Sprint 1,"firestore,database,cmdb","- Collection cmdb_cis créée
+- Index composites configurés
+- Security rules avec isolation organizationId
+- Seed data pour tests"
+CMDB-001-03,"Service CRUD CI","En tant que développeur, je veux un service complet pour les opérations CRUD sur les CIs afin de manipuler les Configuration Items de manière cohérente.",Story,High,5,EPIC-CMDB-001,Sprint 1,"service,crud,cmdb","- CMDBService.createCI() avec validation Zod
+- CMDBService.getCI() avec gestion d'erreur
+- CMDBService.updateCI() avec audit trail
+- CMDBService.deleteCI() (soft delete)
+- CMDBService.listCIs() avec filtering
+- CMDBService.searchCIs()
+- Logging dans audit log"
+CMDB-001-04,"Hook useCMDBCIs","En tant que développeur frontend, je veux un hook React pour interagir avec les CIs afin de gérer l'état et les opérations CI dans les composants.",Story,High,5,EPIC-CMDB-001,Sprint 2,"react,hooks,cmdb","- Hook useCMDBCIs avec React Query
+- Support pagination infinite scroll
+- Mutations avec optimistic updates
+- Gestion d'erreur avec toast
+- Invalidation de cache"
+CMDB-001-05,"Migration Assets vers CIs","En tant qu'administrateur, je veux que les Assets existants soient migrés vers des CIs afin de ne pas perdre les données d'inventaire existantes.",Story,Critical,8,EPIC-CMDB-001,Sprint 2,"migration,data,cmdb","- Script de migration TypeScript
+- Mapping complet Asset → CI
+- Conservation legacyAssetId
+- Mise à jour Asset avec migratedToCIId
+- Rapport de migration
+- Mode dry-run
+- Script de rollback"
+CMDB-001-06,"Zustand Store CMDB","En tant que développeur frontend, je veux un store Zustand pour l'état CMDB afin de partager l'état entre composants sans prop drilling.",Story,Medium,3,EPIC-CMDB-001,Sprint 2,"zustand,state,cmdb","- Store cmdbStore avec état complet
+- Selectors fine-grained
+- Actions pour mutations
+- Persistence optionnelle des filtres"
+CMDB-001-07,"Data Quality Score Calculator","En tant qu'administrateur, je veux que chaque CI ait un score de qualité des données afin d'identifier les CIs nécessitant enrichissement.",Story,Medium,5,EPIC-CMDB-001,Sprint 2,"quality,metrics,cmdb","- Calcul DQS 0-100
+- Complétude champs 40%
+- Freshness 30%
+- Relations 20%
+- Validation 10%
+- Recalcul automatique
+- Badge couleur visuel"
+CMDB-002-01,"Fingerprint Generator","En tant que système, je veux générer un fingerprint normalisé pour chaque donnée agent afin de pouvoir matcher avec les CIs existants.",Story,Critical,3,EPIC-CMDB-002,Sprint 3,"reconciliation,fingerprint,cmdb","- Fonction generateFingerprint()
+- Normalisation MAC
+- Normalisation hostname
+- OS fingerprint
+- Gestion valeurs manquantes
+- Tests exhaustifs"
+CMDB-002-02,"Règles d'Identification Configurables","En tant qu'administrateur, je veux configurer les règles de matching par organisation afin d'adapter la réconciliation à mon contexte.",Story,High,5,EPIC-CMDB-002,Sprint 3,"reconciliation,rules,cmdb","- Collection cmdb_identification_rules
+- Structure priority, matchCriteria, ciClass
+- Règles par défaut à l'onboarding
+- API CRUD des règles"
+CMDB-002-03,"Matcher Engine","En tant que système, je veux matcher un fingerprint contre les CIs existants afin d'identifier si le device est déjà connu.",Story,Critical,8,EPIC-CMDB-002,Sprint 3,"reconciliation,matching,cmdb","- Fonction matchCI()
+- Évaluation par priorité
+- Score de confiance 0-100
+- Support multi-match
+- Performance < 500ms/100k CIs
+- Logging des décisions"
+CMDB-002-04,"Cloud Function onAgentSync","En tant que système, je veux déclencher la réconciliation à chaque sync agent afin de maintenir la CMDB à jour automatiquement.",Story,Critical,8,EPIC-CMDB-002,Sprint 4,"cloud-functions,reconciliation,cmdb","- Trigger Firestore onCreate/onUpdate
+- Workflow fingerprint → match → action
+- Actions: update/create/queue
+- Respect seuils confiance
+- Gestion erreurs + retry
+- Métriques performance"
+CMDB-002-05,"Queue de Validation","En tant qu'administrateur, je veux une queue des CIs en attente de validation afin de valider manuellement les matchs incertains.",Story,High,5,EPIC-CMDB-002,Sprint 4,"validation,queue,cmdb","- Collection cmdb_reconciliation_queue
+- API lister, approuver, rejeter
+- Notification au owner
+- Expiration 30 jours"
+CMDB-002-06,"Configuration Réconciliation par Org","En tant qu'administrateur, je veux configurer le comportement de réconciliation afin de l'adapter à mes besoins.",Story,Medium,3,EPIC-CMDB-002,Sprint 4,"settings,reconciliation,cmdb","- Settings autoCreateCI, autoMatchThreshold
+- UI dans Settings
+- Valeurs par défaut
+- Validation"
+CMDB-003-01,"Page Discovery Dashboard","En tant qu'administrateur, je veux un dashboard de découverte CMDB afin de voir l'état de découverte en temps réel.",Story,High,5,EPIC-CMDB-003,Sprint 5,"ui,dashboard,cmdb","- Route /cmdb/discovery
+- KPI cards: Discovered, Pending, Matched, Missing
+- Refresh automatique 30s
+- Responsive design
+- Skeleton loading"
+CMDB-003-02,"Validation Queue UI","En tant qu'administrateur, je veux voir et traiter la queue de validation afin d'approuver/rejeter les CIs en attente.",Story,Critical,8,EPIC-CMDB-003,Sprint 5,"ui,validation,cmdb","- Table avec CI, Match, Confiance, Actions
+- Actions: Approve, Reject, Merge
+- Preview côte à côte
+- Bulk actions
+- Filtres"
+CMDB-003-03,"CI Inspector (Détail)","En tant qu'utilisateur, je veux voir le détail complet d'un CI afin de comprendre sa configuration et ses relations.",Story,High,8,EPIC-CMDB-003,Sprint 5,"ui,inspector,cmdb","- Panel slide-over
+- Tabs: Details, Relations, History, Impact
+- Édition inline si permission
+- Actions: Edit, Delete, Analyze Impact
+- Badge DQS"
+CMDB-003-04,"Activity Feed","En tant qu'administrateur, je veux voir l'activité récente de découverte afin de suivre les changements en temps réel.",Story,Medium,5,EPIC-CMDB-003,Sprint 6,"ui,activity,cmdb","- Timeline 24h
+- Types: sync, approval, creation, update, missing
+- Filtering par type
+- Auto-refresh
+- Navigation vers CI"
+CMDB-003-05,"Notifications Discovery","En tant qu'administrateur, je veux être notifié des événements importants afin de réagir rapidement aux changements.",Story,Medium,3,EPIC-CMDB-003,Sprint 6,"notifications,cmdb","- Notification in-app
+- Email digest optionnel
+- Configuration préférences
+- Badge count navigation"
+CMDB-004-01,"Types et Collection Relationships","En tant que développeur, je veux un modèle de données pour les relations CMDB afin de stocker les dépendances entre CIs.",Story,High,3,EPIC-CMDB-004,Sprint 9,"types,relationships,cmdb","- Type CMDBRelationship
+- Tous RelationshipType supportés
+- Collection cmdb_relationships
+- Security rules"
+CMDB-004-02,"Service CRUD Relationships","En tant que développeur, je veux un service pour gérer les relations afin de créer et manipuler les dépendances.",Story,High,5,EPIC-CMDB-004,Sprint 9,"service,relationships,cmdb","- CMDBRelationshipService.create() avec validation
+- delete(), getRelationshipsForCI()
+- Création inverse si bidirectional
+- Validation matrice relations"
+CMDB-004-03,"UI Création de Relation","En tant qu'utilisateur, je veux créer des relations entre CIs afin de documenter les dépendances.",Story,High,5,EPIC-CMDB-004,Sprint 9,"ui,relationships,cmdb","- Modal depuis CIInspector
+- Sélecteur CI cible avec recherche
+- Dropdown type relation filtré
+- Sélecteur criticité
+- Preview"
+CMDB-004-04,"Tab Relations dans CIInspector","En tant qu'utilisateur, je veux voir les relations d'un CI afin de comprendre ses dépendances.",Story,High,5,EPIC-CMDB-004,Sprint 10,"ui,relationships,cmdb","- Liste relations entrantes/sortantes
+- Groupement par type
+- Actions: voir CI, supprimer
+- Indicateur confiance
+- Bouton Add Relationship"
+CMDB-004-05,"Inférence Automatique de Relations","En tant que système, je veux détecter automatiquement certaines relations afin de réduire le travail manuel.",Story,Medium,8,EPIC-CMDB-004,Sprint 10,"inference,relationships,cmdb","- Détection runs_on
+- Détection connects_to
+- discoveredBy: Inference
+- Status Pending_Validation
+- Configurable on/off"
+CMDB-004-06,"Validation Cohérence Relations","En tant que système, je veux valider la cohérence des relations afin d'éviter les erreurs de modélisation.",Story,Medium,3,EPIC-CMDB-004,Sprint 10,"validation,relationships,cmdb","- Software ne peut pas contains Hardware
+- Pas de self-reference
+- Pas de duplicate
+- Warning cycles
+- Error messages clairs"
+CMDB-005-01,"Intégration VoxelEngine pour CMDB","En tant qu'utilisateur, je veux visualiser le graphe de dépendances en 3D afin de comprendre visuellement les relations.",Story,Medium,8,EPIC-CMDB-005,Sprint 11,"3d,visualization,cmdb","- Réutilisation VoxelEngine
+- Nodes = CIs, Edges = Relations
+- Couleurs par CI class
+- Épaisseur edge par criticité
+- Navigation zoom/pan/rotate
+- Click → CIInspector"
+CMDB-005-02,"Filtrage Graphe","En tant qu'utilisateur, je veux filtrer le graphe par critères afin de me concentrer sur un sous-ensemble.",Story,Medium,5,EPIC-CMDB-005,Sprint 11,"visualization,filters,cmdb","- Filtre par CI class
+- Filtre par type relation
+- Filtre par criticité
+- Focus mode N hops
+- Highlight path"
+CMDB-005-03,"Export Graphe","En tant qu'utilisateur, je veux exporter le graphe afin de l'inclure dans des rapports.",Story,Low,3,EPIC-CMDB-005,Sprint 11,"export,visualization,cmdb","- Export PNG
+- Export SVG
+- Export JSON
+- Bouton toolbar"
+CMDB-005-04,"Fallback 2D","En tant qu'utilisateur sans WebGL, je veux une vue 2D du graphe afin de visualiser les relations.",Story,Low,2,EPIC-CMDB-005,Sprint 11,"2d,fallback,cmdb","- Détection WebGL
+- Vue 2D D3.js
+- Fonctionnalités basiques
+- Message informatif"
+CMDB-006-01,"Impact Analysis Engine","En tant que système, je veux calculer le blast radius d'un CI afin de fournir l'analyse d'impact.",Story,Critical,8,EPIC-CMDB-006,Sprint 12,"impact,engine,cmdb","- calculateImpact(ciId, scenario, depth)
+- BFS traversal avec limit
+- Impact level par hop et criticité
+- Services métier impactés
+- Performance < 2s"
+CMDB-006-02,"Tab Impact dans CIInspector","En tant qu'utilisateur, je veux voir l'impact potentiel d'un CI afin de comprendre son importance.",Story,High,5,EPIC-CMDB-006,Sprint 12,"ui,impact,cmdb","- Sélecteur scenario
+- Sélecteur profondeur 1-5
+- Bouton Calculate
+- Affichage résultats
+- Loading state"
+CMDB-006-03,"Blast Radius Visualization","En tant qu'utilisateur, je veux visualiser le blast radius graphiquement afin de comprendre l'étendue de l'impact.",Story,Medium,5,EPIC-CMDB-006,Sprint 12,"visualization,impact,cmdb","- Vue graphe centrée
+- Rings concentriques par hop
+- Couleur par impact level
+- Tooltip détails CI
+- Animation expansion"
+CMDB-006-04,"Impact Summary Report","En tant qu'utilisateur, je veux un résumé textuel de l'impact afin de communiquer aux stakeholders.",Story,Medium,5,EPIC-CMDB-006,Sprint 12,"report,impact,cmdb","- Card summary
+- Services métier impactés
+- Recommandations
+- Export PDF"
+CMDB-006-05,"Simulation de Changement","En tant qu'administrateur, je veux simuler un changement avant exécution afin de planifier avec connaissance de l'impact.",Story,Low,3,EPIC-CMDB-006,Sprint 12,"simulation,impact,cmdb","- Action Simulate Change
+- Types: Maintenance, Update, Decommission
+- Rapport d'impact
+- Suggestion fenêtre maintenance"
+CMDB-007-01,"Hardware Inventory Agent (Rust)","En tant que développeur agent, je veux collecter les specs hardware détaillées afin d'enrichir les CIs hardware.",Story,High,13,EPIC-CMDB-007,Sprint 15-16,"rust,agent,hardware,cmdb","- Struct HardwareInventory
+- CPU info: model, cores, frequency
+- Memory info: type, size, slots
+- Storage info: type, size, serial, health
+- BIOS info
+- Support Windows, macOS, Linux"
+CMDB-007-02,"Sync Hardware vers CMDB","En tant que système, je veux synchroniser les données hardware avec les CIs afin de maintenir les specs à jour.",Story,Medium,5,EPIC-CMDB-007,Sprint 16,"sync,hardware,cmdb","- Cloud Function traitement
+- Mapping vers CI attributes
+- Update incrémental
+- Logging changements"
+CMDB-007-03,"UI Specs Hardware dans CIInspector","En tant qu'utilisateur, je veux voir les specs hardware d'un CI afin de connaître sa configuration.",Story,Medium,3,EPIC-CMDB-007,Sprint 16,"ui,hardware,cmdb","- Section Hardware Specifications
+- Affichage CPU, RAM, Storage, BIOS
+- Indicateur santé storage
+- Timestamp collecte"
+CMDB-008-01,"Modèle de Données License","En tant que développeur, je veux un modèle pour les licences logicielles afin de les tracker séparément des CIs.",Story,Low,3,EPIC-CMDB-008,Sprint 17,"types,licenses,cmdb","- Type SoftwareLicense
+- Collection cmdb_licenses
+- Relation License ↔ Software CIs"
+CMDB-008-02,"UI Gestion Licences","En tant qu'administrateur, je veux gérer les licences logicielles afin de suivre la conformité.",Story,Low,8,EPIC-CMDB-008,Sprint 17,"ui,licenses,cmdb","- Page /cmdb/licenses
+- Table: Software, Vendor, Type, Owned, Used, Expiry
+- Indicateurs compliance
+- CRUD operations"
+CMDB-008-03,"Compliance Licensing Report","En tant qu'administrateur, je veux un rapport de conformité licensing afin de préparer les audits.",Story,Low,4,EPIC-CMDB-008,Sprint 17,"report,licenses,cmdb","- Rapport compliance par vendor
+- Détail licences vs installations
+- Recommandations optimisation
+- Export PDF/CSV"
+CMDB-009-01,"API REST CIs","En tant que développeur externe, je veux une API REST pour les CIs afin d'intégrer avec d'autres outils.",Story,Medium,8,EPIC-CMDB-009,Sprint 19,"api,rest,cmdb","- GET/POST/PUT/DELETE /api/v1/cmdb/cis
+- Authentication API key
+- Rate limiting
+- Documentation OpenAPI"
+CMDB-009-02,"API REST Relationships","En tant que développeur externe, je veux une API REST pour les relations afin de gérer les dépendances programmatiquement.",Story,Medium,5,EPIC-CMDB-009,Sprint 19,"api,relationships,cmdb","- GET/POST/DELETE /api/v1/cmdb/relationships
+- Documentation OpenAPI"
+CMDB-009-03,"API Impact Analysis","En tant que développeur externe, je veux une API pour l'analyse d'impact afin de l'intégrer dans mes workflows.",Story,Medium,3,EPIC-CMDB-009,Sprint 19,"api,impact,cmdb","- GET /api/v1/cmdb/cis/:id/impact
+- Réponse JSON structurée
+- Cache TTL 5min
+- Documentation"
+CMDB-009-04,"Documentation API Interactive","En tant que développeur externe, je veux une documentation API interactive afin de tester facilement l'API.",Story,Low,3,EPIC-CMDB-009,Sprint 20,"documentation,api,cmdb","- Swagger UI hosted
+- Tous endpoints documentés
+- Exemples requêtes/réponses
+- Try-it-out fonctionnel"
+CMDB-009-05,"Webhooks CMDB Events","En tant que développeur externe, je veux recevoir des webhooks sur événements CMDB afin de réagir aux changements.",Story,Low,5,EPIC-CMDB-009,Sprint 20,"webhooks,api,cmdb","- Configuration webhooks par org
+- Events: ci.created, ci.updated, ci.deleted
+- Payload JSON
+- Retry mechanism
+- Logs deliveries"
