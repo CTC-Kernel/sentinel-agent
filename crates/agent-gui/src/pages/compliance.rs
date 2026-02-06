@@ -680,6 +680,35 @@ impl CompliancePage {
         color: egui::Color32,
         icon: &str,
     ) {
+        ui.vertical(|ui: &mut egui::Ui| {
+            ui.set_width(width);
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.vertical(|ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new(value)
+                                .font(theme::font_card_value())
+                                .color(color)
+                                .strong(),
+                        );
+                        ui.label(
+                            egui::RichText::new(label)
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .extra_letter_spacing(0.5)
+                                .strong(),
+                        );
+                    });
+                    ui.with_layout(
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new(icon)
+                                    .size(28.0)
+                                    .color(color.linear_multiply(0.25)),
+                            );
+                        },
+                    );
                 });
             });
         });
