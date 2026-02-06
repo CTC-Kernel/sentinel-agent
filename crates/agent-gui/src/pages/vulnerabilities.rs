@@ -17,8 +17,9 @@ impl VulnerabilitiesPage {
         let mut command = None;
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(
+        widgets::page_header_nav(
             ui,
+            &["Pilotage", "Vulnérabilités"],
             "Vulnérabilités",
             Some("ANALYSE DYNAMIQUE DES FAILLES ET EXPOSITION AUX CVE"),
             Some(
@@ -54,15 +55,7 @@ impl VulnerabilitiesPage {
             ui.with_layout(
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
-                    let export_btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    )
-                    .fill(theme::bg_elevated())
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                    if ui.add(export_btn).clicked() {
+                    if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
                         let search_lower = state.vulnerability_search.to_lowercase();
                         let filtered_indices: Vec<usize> = state
                             .vulnerability_findings

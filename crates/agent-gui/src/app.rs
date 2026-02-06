@@ -223,6 +223,9 @@ pub struct AppState {
 
     // Toast notifications
     pub toasts: Vec<crate::widgets::toast::Toast>,
+
+    // Accessibility: reduced motion preference
+    pub reduced_motion: bool,
 }
 
 impl Default for AppState {
@@ -325,6 +328,7 @@ impl Default for AppState {
             audit_trail_search: String::new(),
             audit_trail_filter: None,
             toasts: Vec::new(),
+            reduced_motion: false,
         }
     }
 }
@@ -387,6 +391,9 @@ pub struct SentinelApp {
 
     /// Page transition animation progress (0.0 = just switched, 1.0 = fully visible).
     page_transition: f32,
+
+    /// Theme switch transition (0.0 = switching, 1.0 = complete).
+    theme_transition: f32,
 }
 
 impl SentinelApp {
@@ -440,6 +447,7 @@ impl SentinelApp {
             splash_done: false,
             show_tray_satellite: is_tray_popup,
             page_transition: 1.0,
+            theme_transition: 1.0,
         }
     }
 
@@ -897,11 +905,25 @@ impl eframe::App for SentinelApp {
             egui_extras::install_image_loaders(ctx);
             // Scan macOS native apps once
             self.state.macos_apps = scan_macos_apps();
+            // Detect OS-level reduced motion preference
+            self.state.reduced_motion = theme::detect_reduced_motion();
+            theme::set_reduced_motion(self.state.reduced_motion);
             self.theme_applied = true;
             self.last_dark_mode = self.state.dark_mode;
         } else if self.state.dark_mode != self.last_dark_mode {
             theme::apply_theme(ctx, self.state.dark_mode);
             self.last_dark_mode = self.state.dark_mode;
+            // Start theme transition animation (brief fade-out/fade-in)
+            if !self.state.reduced_motion {
+                self.theme_transition = 0.0;
+            }
+        }
+
+        // Advance theme transition animation
+        if self.theme_transition < 1.0 {
+            let dt = ctx.input(|i| i.stable_dt).min(0.05);
+            self.theme_transition = (self.theme_transition + dt / theme::ANIM_NORMAL).min(1.0);
+            ctx.request_repaint();
         }
 
         // Process incoming events.
@@ -1070,10 +1092,12 @@ impl eframe::App for SentinelApp {
                     }),
             )
             .show(ctx, |ui: &mut egui::Ui| {
-                // Apply page transition fade-in
-                let transition_alpha = self.page_transition;
-                if transition_alpha < 1.0 {
-                    ui.set_opacity(transition_alpha);
+                // Apply page transition and theme transition fade-in
+                let page_alpha = if self.state.reduced_motion { 1.0 } else { self.page_transition };
+                let theme_alpha = self.theme_transition;
+                let combined_alpha = page_alpha * theme_alpha;
+                if combined_alpha < 1.0 {
+                    ui.set_opacity(combined_alpha);
                 }
 
                 egui::ScrollArea::vertical()

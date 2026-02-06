@@ -16,8 +16,9 @@ impl NetworkPage {
         let mut command = None;
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(
+        widgets::page_header_nav(
             ui,
+            &["Sys & Network", "Réseau"],
             "Réseau",
             Some("CARTOGRAPHIE DES INTERFACES ET CONNEXIONS ACTIVES"),
             Some(
@@ -211,15 +212,7 @@ impl NetworkPage {
                 ui.with_layout(
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
-                        let export_btn = egui::Button::new(
-                            egui::RichText::new(format!("{}  EXPORT CSV", icons::DOWNLOAD))
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong(),
-                        )
-                        .fill(theme::bg_elevated())
-                        .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                        if ui.add(export_btn).clicked() && Self::export_interfaces_csv(state) {
+                        if widgets::ghost_button(ui, format!("{}  EXPORT CSV", icons::DOWNLOAD)).clicked() && Self::export_interfaces_csv(state) {
                             state.toasts.push(
                                 crate::widgets::toast::Toast::success(
                                     "Export CSV interfaces terminé",
@@ -359,15 +352,7 @@ impl NetworkPage {
                 ui.with_layout(
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
-                        let export_btn = egui::Button::new(
-                            egui::RichText::new(format!("{}  EXPORT CSV", icons::DOWNLOAD))
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong(),
-                        )
-                        .fill(theme::bg_elevated())
-                        .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                        if ui.add(export_btn).clicked() && Self::export_connections_csv(state) {
+                        if widgets::ghost_button(ui, format!("{}  EXPORT CSV", icons::DOWNLOAD)).clicked() && Self::export_connections_csv(state) {
                             state.toasts.push(
                                 crate::widgets::toast::Toast::success(
                                     "Export CSV connexions terminé",

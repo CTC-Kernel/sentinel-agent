@@ -16,8 +16,9 @@ impl CompliancePage {
         let mut command = None;
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(
+        let _ = widgets::page_header_nav(
             ui,
+            &["Pilotage", "Conformité"],
             "Conformité Réglementaire",
             Some("ANALYSE DES ÉCARTS ET MATRICE DE CONTRÔLES ISO 27001 / 27005"),
             Some(
@@ -202,23 +203,8 @@ impl CompliancePage {
                 (ComplianceGroupBy::Framework, "PAR RÉFÉRENTIEL"),
             ] {
                 let active = state.compliance_group_by == val;
-                let (btn_color, text_color) = if active {
-                    (theme::ACCENT, theme::text_on_accent())
-                } else {
-                    (theme::bg_elevated(), theme::text_secondary())
-                };
 
-                let btn = egui::Button::new(
-                    egui::RichText::new(label)
-                        .font(theme::font_label())
-                        .color(text_color)
-                        .strong(),
-                )
-                .fill(btn_color)
-                .corner_radius(egui::CornerRadius::same(theme::BADGE_ROUNDING))
-                .min_size(egui::vec2(0.0, 22.0));
-
-                if ui.add(btn).clicked() {
+                if widgets::chip_button(ui, label, active, theme::ACCENT).clicked() {
                     state.compliance_group_by = val;
                 }
             }
@@ -226,15 +212,7 @@ impl CompliancePage {
             ui.with_layout(
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
-                    let export_btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    )
-                    .fill(theme::bg_elevated())
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                    if ui.add(export_btn).clicked() {
+                    if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
                         let success = Self::export_csv(state, &filtered);
                         let time = ui.input(|i| i.time);
                         if success {
@@ -527,21 +505,7 @@ impl CompliancePage {
                                     {
                                         ui.add_space(theme::SPACE_MD);
                                         ui.horizontal(|ui: &mut egui::Ui| {
-                                            let preview_btn = egui::Button::new(
-                                                egui::RichText::new(format!(
-                                                    "{}  AUDIT VISUEL",
-                                                    icons::EYE
-                                                ))
-                                                .font(theme::font_label())
-                                                .color(theme::text_on_accent())
-                                                .strong(),
-                                            )
-                                            .fill(theme::INFO.linear_multiply(0.8))
-                                            .corner_radius(egui::CornerRadius::same(
-                                                theme::BADGE_ROUNDING,
-                                            ));
-
-                                            if ui.add(preview_btn).clicked() {
+                                            if widgets::chip_button(ui, &format!("{}  AUDIT VISUEL", icons::EYE), false, theme::INFO).clicked() {
                                                 *command = Some(GuiCommand::RemediatePreview {
                                                     check_id: check.check_id.clone(),
                                                 });
@@ -549,21 +513,7 @@ impl CompliancePage {
 
                                             ui.add_space(theme::SPACE_SM);
 
-                                            let fix_btn = egui::Button::new(
-                                                egui::RichText::new(format!(
-                                                    "{}  RECOURS / REMÉDIATION",
-                                                    icons::WRENCH_FA
-                                                ))
-                                                .font(theme::font_label())
-                                                .color(theme::text_on_accent())
-                                                .strong(),
-                                            )
-                                            .fill(theme::SUCCESS.linear_multiply(0.9))
-                                            .corner_radius(egui::CornerRadius::same(
-                                                theme::BADGE_ROUNDING,
-                                            ));
-
-                                            if ui.add(fix_btn).clicked() {
+                                            if widgets::chip_button(ui, &format!("{}  REMÉDIATION", icons::WRENCH_FA), false, theme::SUCCESS).clicked() {
                                                 *command = Some(GuiCommand::Remediate {
                                                     check_id: check.check_id.clone(),
                                                 });

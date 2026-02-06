@@ -37,8 +37,9 @@ impl ThreatsPage {
         let mut command = None;
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(
+        widgets::page_header_nav(
             ui,
+            &["Pilotage", "Menaces"],
             "Menaces Détectées",
             Some("ANALYSE DES ÉVÉNEMENTS SUSPECTS ET CORRÉLATION IA"),
             Some(
@@ -190,15 +191,7 @@ impl ThreatsPage {
             ui.with_layout(
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
-                    let export_btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    )
-                    .fill(theme::bg_elevated())
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                    if ui.add(export_btn).clicked() {
+                    if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
                         Self::export_threats_csv(&threats);
                     }
                 },

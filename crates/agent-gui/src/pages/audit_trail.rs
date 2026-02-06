@@ -16,8 +16,9 @@ impl AuditTrailPage {
         let command = None;
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(
+        let _ = widgets::page_header_nav(
             ui,
+            &["Pilotage", "Journal d'audit"],
             "Journal d'Audit",
             Some("TRAÇABILITÉ COMPLÈTE DES ÉVÉNEMENTS DE SÉCURITÉ ET DU SYSTÈME"),
             Some("Consultez l'historique détaillé des actions de l'agent, des détections de menaces et des changements de configuration."),

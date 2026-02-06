@@ -35,6 +35,7 @@ impl FontIdExt for FontId {
 
 thread_local! {
     static IS_DARK: Cell<bool> = const { Cell::new(true) };
+    static REDUCED_MOTION: Cell<bool> = const { Cell::new(false) };
 }
 
 /// Set the active theme mode.
@@ -45,6 +46,35 @@ pub fn set_dark_mode(dark: bool) {
 /// Query the active theme mode.
 pub fn is_dark_mode() -> bool {
     IS_DARK.with(|c| c.get())
+}
+
+/// Set reduced-motion preference.
+pub fn set_reduced_motion(reduced: bool) {
+    REDUCED_MOTION.with(|c| c.set(reduced));
+}
+
+/// Query reduced-motion preference.
+pub fn is_reduced_motion() -> bool {
+    REDUCED_MOTION.with(|c| c.get())
+}
+
+/// Detect OS-level reduced-motion preference.
+pub fn detect_reduced_motion() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        // Check macOS "Reduce motion" accessibility setting via defaults
+        std::process::Command::new("defaults")
+            .args(["read", "com.apple.universalaccess", "reduceMotion"])
+            .output()
+            .ok()
+            .and_then(|out| String::from_utf8(out.stdout).ok())
+            .map(|s| s.trim() == "1")
+            .unwrap_or(false)
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        false
+    }
 }
 
 // ============================================================================

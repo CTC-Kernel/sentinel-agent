@@ -43,19 +43,34 @@ pub fn card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) {
         );
     }
 
-    // Subtle hover effect: just slightly brighter border, no glow
+    // Premium hover effect: brighter border + subtle glow
     if ui.rect_contains_pointer(frame_resp.response.rect) {
+        let rect = frame_resp.response.rect;
+        let painter = ui.painter_at(rect);
+
+        // Elevated border on hover
         let hover_stroke = if is_dark {
-            Stroke::new(1.0, theme::border().linear_multiply(1.5))
+            Stroke::new(1.0, theme::border().linear_multiply(2.5))
         } else {
-            Stroke::new(1.0, theme::border().linear_multiply(0.7))
+            Stroke::new(1.0, theme::border().linear_multiply(0.5))
         };
 
-        ui.painter_at(frame_resp.response.rect).rect_stroke(
-            frame_resp.response.rect,
+        painter.rect_stroke(
+            rect,
             CornerRadius::same(theme::CARD_ROUNDING),
             hover_stroke,
             StrokeKind::Inside,
         );
+
+        // Subtle accent glow on hover (only if not reduced-motion)
+        if !theme::is_reduced_motion() {
+            let glow_shadow = egui::epaint::Shadow {
+                offset: [0, 2],
+                blur: 16,
+                spread: 0,
+                color: theme::ACCENT.linear_multiply(if is_dark { 0.08 } else { 0.05 }),
+            };
+            painter.add(glow_shadow.as_shape(rect, CornerRadius::same(theme::CARD_ROUNDING)));
+        }
     }
 }

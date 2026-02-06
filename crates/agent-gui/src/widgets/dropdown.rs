@@ -147,6 +147,32 @@ impl<'a, T> Dropdown<'a, T> {
             let popup_id = self.id.with("popup");
             let above = rect.min.y > ui.ctx().screen_rect().center().y;
 
+            // Keyboard: Escape to close
+            if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+                ui.memory_mut(|mem| mem.data.insert_temp(self.id, false));
+            }
+
+            // Keyboard: Arrow keys to navigate, Enter to select
+            let highlight_id = self.id.with("highlight");
+            let mut highlight_idx: Option<usize> = ui.memory(|mem| mem.data.get_temp(highlight_id));
+
+            if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
+                let next = highlight_idx.map(|h| (h + 1).min(self.options.len().saturating_sub(1))).unwrap_or(0);
+                highlight_idx = Some(next);
+                ui.memory_mut(|mem| mem.data.insert_temp(highlight_id, next));
+            }
+            if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
+                let prev = highlight_idx.map(|h| h.saturating_sub(1)).unwrap_or(0);
+                highlight_idx = Some(prev);
+                ui.memory_mut(|mem| mem.data.insert_temp(highlight_id, prev));
+            }
+            if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+                if let Some(h) = highlight_idx {
+                    new_selection = Some(h);
+                    ui.memory_mut(|mem| mem.data.insert_temp(self.id, false));
+                }
+            }
+
             egui::Area::new(popup_id)
                 .order(egui::Order::Foreground)
                 .fixed_pos(if above {
@@ -211,6 +237,7 @@ impl<'a, T> Dropdown<'a, T> {
                                         }
 
                                         let is_selected = i == self.selected;
+                                        let is_highlighted = highlight_idx == Some(i);
                                         let option_response = ui.allocate_response(
                                             egui::vec2(width - 16.0, 32.0),
                                             Sense::click(),
@@ -221,7 +248,7 @@ impl<'a, T> Dropdown<'a, T> {
 
                                             let bg = if is_selected {
                                                 theme::selected_bg()
-                                            } else if is_hovered {
+                                            } else if is_highlighted || is_hovered {
                                                 theme::hover_bg()
                                             } else {
                                                 Color32::TRANSPARENT

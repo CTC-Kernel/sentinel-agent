@@ -43,8 +43,9 @@ impl TerminalPage {
         let command = None;
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(
+        widgets::page_header_nav(
             ui,
+            &["Sys & Network", "Terminal"],
             "Terminal Analytique",
             Some("FLUX EN TEMPS RÉEL DES ÉVÉNEMENTS ET DE L'ACTIVITÉ DE L'AGENT"),
             Some(
@@ -58,15 +59,7 @@ impl TerminalPage {
             ui.with_layout(
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
-                    let export_btn = egui::Button::new(
-                        egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    )
-                    .fill(theme::bg_elevated())
-                    .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                    if ui.add(export_btn).clicked() {
+                    if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
                         Self::export_logs_csv(state);
                     }
                 },
@@ -189,24 +182,8 @@ impl TerminalPage {
                     let level = LogLevel::from_index(i);
                     let selected = state.terminal_filter_level == level;
                     let color = level_color(name);
-                    let btn_text = egui::RichText::new(*name)
-                        .font(theme::font_label())
-                        .strong()
-                        .color(if selected {
-                            theme::text_on_accent()
-                        } else {
-                            color
-                        });
 
-                    let btn = egui::Button::new(btn_text)
-                        .fill(if selected {
-                            color.linear_multiply(0.8)
-                        } else {
-                            theme::bg_elevated()
-                        })
-                        .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-
-                    if ui.add(btn).clicked() {
+                    if widgets::chip_button(ui, *name, selected, color).clicked() {
                         state.terminal_filter_level = level;
                     }
                     ui.add_space(4.0);

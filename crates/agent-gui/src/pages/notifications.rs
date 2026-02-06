@@ -15,8 +15,9 @@ impl NotificationsPage {
         let command = None;
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(
+        widgets::page_header_nav(
             ui,
+            &["Pilotage", "Notifications"],
             "Notifications",
             Some("Alertes, avertissements et informations de l'agent"),
             Some(
@@ -40,15 +41,7 @@ impl NotificationsPage {
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
                     if unread > 0 {
-                        let btn = egui::Button::new(
-                            egui::RichText::new(format!("{}  Tout marquer comme lu", icons::CHECK))
-                                .font(theme::font_small())
-                                .color(theme::text_on_accent())
-                                .strong(),
-                        )
-                        .fill(theme::ACCENT)
-                        .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                        if ui.add(btn).clicked() {
+                        if widgets::primary_button(ui, format!("{}  Tout marquer comme lu", icons::CHECK), true).clicked() {
                             for n in &mut state.notifications {
                                 n.read = true;
                             }
@@ -57,14 +50,7 @@ impl NotificationsPage {
 
                         ui.add_space(theme::SPACE_SM);
 
-                        let export_btn = egui::Button::new(
-                            egui::RichText::new(format!("{}  CSV", icons::DOWNLOAD))
-                                .font(theme::font_small())
-                                .color(theme::text_secondary()),
-                        )
-                        .fill(theme::bg_elevated())
-                        .corner_radius(egui::CornerRadius::same(theme::BUTTON_ROUNDING));
-                        if ui.add(export_btn).clicked() {
+                        if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
                             Self::export_notifications_csv(state);
                         }
                     }
