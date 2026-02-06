@@ -120,8 +120,8 @@ impl Slider {
             );
 
             // Handle interaction
-            if response.dragged() || response.clicked() {
-                if let Some(pos) = response.interact_pointer_pos() {
+            if (response.dragged() || response.clicked())
+                && let Some(pos) = response.interact_pointer_pos() {
                     let t = ((pos.x - track_rect.min.x) / track_rect.width()).clamp(0.0, 1.0);
                     let mut new_value = self.min + t * (self.max - self.min);
 
@@ -137,7 +137,6 @@ impl Slider {
                         changed = true;
                     }
                 }
-            }
 
             if ui.is_rect_visible(rect) {
                 let painter = ui.painter();
@@ -164,8 +163,8 @@ impl Slider {
                 );
 
                 // Tick marks
-                if self.show_ticks {
-                    if let Some(step) = self.step {
+                if self.show_ticks
+                    && let Some(step) = self.step {
                         let tick_count = ((self.max - self.min) / step) as usize;
                         for i in 0..=tick_count {
                             let tick_t = i as f32 / tick_count as f32;
@@ -183,7 +182,6 @@ impl Slider {
                             );
                         }
                     }
-                }
 
                 // Thumb shadow
                 if matches!(self.style, SliderStyle::Default | SliderStyle::Stepped) {

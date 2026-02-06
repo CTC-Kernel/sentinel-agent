@@ -202,12 +202,11 @@ impl<'a> CommandPalette<'a> {
             if i.key_pressed(Key::ArrowUp) {
                 state.selected_index = state.selected_index.saturating_sub(1);
             }
-            if i.key_pressed(Key::Enter) && !filtered.is_empty() {
-                if let Some(cmd) = filtered.get(state.selected_index) {
+            if i.key_pressed(Key::Enter) && !filtered.is_empty()
+                && let Some(cmd) = filtered.get(state.selected_index) {
                     result = Some(cmd.id.clone());
                     state.close();
                 }
-            }
         });
 
         // Backdrop
@@ -296,8 +295,8 @@ impl<'a> CommandPalette<'a> {
 
                                     for (i, cmd) in filtered.iter().enumerate() {
                                         // Category header
-                                        if let Some(cat) = &cmd.category {
-                                            if current_category != Some(cat.as_str()) {
+                                        if let Some(cat) = &cmd.category
+                                            && current_category != Some(cat.as_str()) {
                                                 current_category = Some(cat.as_str());
                                                 ui.add_space(8.0);
                                                 ui.horizontal(|ui| {
@@ -310,7 +309,6 @@ impl<'a> CommandPalette<'a> {
                                                 });
                                                 ui.add_space(4.0);
                                             }
-                                        }
 
                                         let is_selected = i == state.selected_index;
 

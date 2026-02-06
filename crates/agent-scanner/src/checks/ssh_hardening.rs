@@ -262,7 +262,7 @@ impl SshHardeningCheck {
         });
 
         // Set defaults for unspecified values (OpenSSH defaults)
-        if status.pubkey_auth_enabled == false && !config.to_lowercase().contains("pubkeyauthentication") {
+        if !status.pubkey_auth_enabled && !config.to_lowercase().contains("pubkeyauthentication") {
             status.pubkey_auth_enabled = true; // Default is yes
         }
 

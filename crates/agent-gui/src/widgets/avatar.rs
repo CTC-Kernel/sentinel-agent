@@ -290,7 +290,7 @@ pub fn avatar_group(ui: &mut Ui, names: &[&str], max_shown: usize) -> egui::Resp
             ui.painter().text(
                 avatar_rect.center(),
                 egui::Align2::CENTER_CENTER,
-                &avatar.initials(),
+                avatar.initials(),
                 AvatarSize::Small.font(),
                 Color32::WHITE,
             );
@@ -316,7 +316,7 @@ pub fn avatar_group(ui: &mut Ui, names: &[&str], max_shown: usize) -> egui::Resp
             ui.painter().text(
                 overflow_rect.center(),
                 egui::Align2::CENTER_CENTER,
-                &format!("+{}", overflow_count),
+                format!("+{}", overflow_count),
                 AvatarSize::Small.font(),
                 theme::text_secondary(),
             );
