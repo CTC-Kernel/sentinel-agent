@@ -157,6 +157,8 @@ exports.getAgentMetricsHistory = onCall(
           memoryPercent: data.memoryPercent || 0,
           memoryBytes: data.memoryBytes || 0,
           diskPercent: data.diskPercent || null,
+          networkInBytes: data.networkBytesRecv || 0,
+          networkOutBytes: data.networkBytesSent || 0,
         };
       });
 
