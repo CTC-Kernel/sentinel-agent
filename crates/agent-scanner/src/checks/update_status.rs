@@ -105,6 +105,7 @@ impl UpdateStatusCheck {
             .framework("NIST_CSF")
             .framework("ISO_27001")
             .platforms(vec!["windows".to_string(), "linux".to_string(), "macos".to_string()])
+            .nfr_limit(10_000)
             .build();
 
         Self { definition }

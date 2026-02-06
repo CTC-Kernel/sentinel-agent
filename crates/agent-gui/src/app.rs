@@ -96,6 +96,7 @@ pub enum Page {
     Vulnerabilities,
     FileIntegrity,
     Threats,
+    AuditTrail,
     Network,
     Sync,
     Terminal,
@@ -215,8 +216,9 @@ pub struct AppState {
     // Threats / Security events
     pub suspicious_processes: Vec<crate::dto::GuiSuspiciousProcess>,
     pub usb_events: Vec<crate::dto::GuiUsbEvent>,
-    pub threats_search: String,
     pub threats_filter: Option<String>,
+    pub audit_trail_search: String,
+    pub audit_trail_filter: Option<String>,
 
     // Toast notifications
     pub toasts: Vec<crate::widgets::toast::Toast>,
@@ -319,6 +321,8 @@ impl Default for AppState {
             usb_events: Vec::new(),
             threats_search: String::new(),
             threats_filter: None,
+            audit_trail_search: String::new(),
+            audit_trail_filter: None,
             toasts: Vec::new(),
         }
     }
@@ -1049,9 +1053,9 @@ impl eframe::App for SentinelApp {
                 if let Some(new_page) = widgets::Sidebar::show(
                     ui,
                     &self.page,
-                    scanning,
                     self.state.unread_notification_count,
                     &sync_state,
+                    self.state.summary.organization.as_deref(),
                 ) && new_page != self.page
                 {
                     self.page = new_page;
@@ -1137,6 +1141,13 @@ impl eframe::App for SentinelApp {
                                 }
                                 Page::Threats => {
                                     if let Some(cmd) = pages::ThreatsPage::show(ui, &mut self.state)
+                                    {
+                                        self.send_command(cmd);
+                                    }
+                                }
+                                Page::AuditTrail => {
+                                    if let Some(cmd) =
+                                        pages::AuditTrailPage::show(ui, &mut self.state)
                                     {
                                         self.send_command(cmd);
                                     }

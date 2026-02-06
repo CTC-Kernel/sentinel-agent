@@ -208,15 +208,25 @@ impl MonitoringPage {
                     );
                 });
 
-                // Bottom accent line on hover
+                // Bottom accent line on hover (Neon glow)
                 if response.hovered() {
                     let rect = ui.max_rect();
-                    let line_y = rect.bottom() - 2.0;
+                    let line_y = rect.bottom() - 1.5;
+                    
+                    // Main line
                     ui.painter().hline(
-                        rect.left()..=rect.right(),
+                        rect.left() + 10.0..=rect.right() - 10.0,
                         line_y,
-                        egui::Stroke::new(2.0, color.linear_multiply(0.6)),
+                        egui::Stroke::new(2.5, color),
                     );
+                    
+                    // Outer glow
+                    ui.painter().hline(
+                        rect.left() + 5.0..=rect.right() - 5.0,
+                        line_y,
+                        egui::Stroke::new(4.0, color.linear_multiply(0.15)),
+                    );
+
                     ui.ctx().request_repaint();
                 }
             });
@@ -372,8 +382,19 @@ impl MonitoringPage {
                     .width(1.5),
             );
 
-            // Simple current point
+            // Simple current point with pulse
             if let Some(&latest) = history.last() {
+                let time = ui.ctx().input(|i| i.time);
+                let pulse = ((time * 3.0).sin() * 0.5 + 0.5) as f32;
+
+                // Outer glow
+                plot_ui.points(
+                    egui_plot::Points::new(PlotPoints::new(vec![latest]))
+                        .color(line_color.linear_multiply(0.2 + pulse * 0.2))
+                        .radius(6.0),
+                );
+
+                // Core point
                 plot_ui.points(
                     egui_plot::Points::new(PlotPoints::new(vec![latest]))
                         .color(line_color)

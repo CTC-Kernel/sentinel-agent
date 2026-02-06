@@ -205,7 +205,12 @@ impl ThreatsPage {
             );
         });
 
-        ui.add_space(theme::SPACE_SM);
+        ui.add_space(theme::SPACE_LG);
+
+        // ── Threat Radar (AAA Grade) ────────────────────────────────────
+        Self::render_threat_radar(ui, &threats);
+
+        ui.add_space(theme::SPACE_LG);
 
         // ── Threat feed (AAA Grade) ─────────────────────────────────────
         widgets::card(ui, |ui: &mut egui::Ui| {
@@ -455,12 +460,21 @@ impl ThreatsPage {
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
             widgets::card(ui, |ui: &mut egui::Ui| {
+                ui.set_min_height(72.0);
+                let response = ui.interact(ui.max_rect(), ui.id().with(label), egui::Sense::hover());
+
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.vertical(|ui: &mut egui::Ui| {
+                        let value_color = if response.hovered() {
+                            color
+                        } else {
+                            color.linear_multiply(0.85)
+                        };
+
                         ui.label(
                             egui::RichText::new(value)
                                 .font(theme::font_card_value())
-                                .color(color)
+                                .color(value_color)
                                 .strong(),
                         );
                         ui.label(
@@ -474,15 +488,140 @@ impl ThreatsPage {
                     ui.with_layout(
                         egui::Layout::right_to_left(egui::Align::Center),
                         |ui: &mut egui::Ui| {
+                            let icon_alpha = if response.hovered() { 0.5 } else { 0.25 };
                             ui.label(
                                 egui::RichText::new(icon)
                                     .size(28.0)
-                                    .color(color.linear_multiply(0.25)),
+                                    .color(color.linear_multiply(icon_alpha)),
                             );
                         },
                     );
                 });
+
+                // Bottom accent line on hover (Neon glow)
+                if response.hovered() {
+                    let rect = ui.max_rect();
+                    let line_y = rect.bottom() - 1.5;
+                    
+                    // Main line
+                    ui.painter().hline(
+                        rect.left() + 10.0..=rect.right() - 10.0,
+                        line_y,
+                        egui::Stroke::new(2.5, color),
+                    );
+                    
+                    // Outer glow
+                    ui.painter().hline(
+                        rect.left() + 5.0..=rect.right() - 5.0,
+                        line_y,
+                        egui::Stroke::new(4.0, color.linear_multiply(0.15)),
+                    );
+
+                    ui.ctx().request_repaint();
+                }
             });
+        });
+    }
+
+    fn render_threat_radar(ui: &mut Ui, threats: &[ThreatEvent]) {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("RADAR DE DÉTECTION (TEMPS RÉEL)")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(0.5)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            let available_w = ui.available_width();
+            let (rect, _) = ui.allocate_exact_size(egui::vec2(available_w, 280.0), egui::Sense::hover());
+            let painter = ui.painter_at(rect);
+            let center = rect.center();
+            let radius = 120.0;
+
+            // Draw radar background (concentric circles)
+            let grid_color = theme::border().linear_multiply(0.3);
+            for i in 1..=4 {
+                painter.circle_stroke(
+                    center,
+                    radius * (i as f32 / 4.0),
+                    egui::Stroke::new(0.5, grid_color),
+                );
+            }
+
+            // Crosshair
+            painter.line_segment(
+                [egui::pos2(center.x - radius, center.y), egui::pos2(center.x + radius, center.y)],
+                egui::Stroke::new(0.5, grid_color),
+            );
+            painter.line_segment(
+                [egui::pos2(center.x, center.y - radius), egui::pos2(center.x, center.y + radius)],
+                egui::Stroke::new(0.5, grid_color),
+            );
+
+            // Sweeping line animation
+            let time = ui.input(|i| i.time);
+            let angle = (time * 1.5) as f32 % std::f32::consts::TAU;
+            let sweep_pos = center + egui::vec2(angle.cos(), angle.sin()) * radius;
+            
+            // Sweep trail (subtle arc)
+            painter.line_segment(
+                [center, sweep_pos],
+                egui::Stroke::new(1.5, theme::SUCCESS.linear_multiply(0.6)),
+            );
+
+            // Draw threats as blips
+            for (i, threat) in threats.iter().enumerate() {
+                // Pseudo-random position based on title hash for stability
+                let mut hasher = std::collections::hash_map::DefaultHasher::new();
+                use std::hash::{Hash, Hasher};
+                threat.title.hash(&mut hasher);
+                let seed = hasher.finish();
+
+                let t_angle = (seed % 360) as f32 * (std::f32::consts::PI / 180.0);
+                let t_dist = ((seed >> 8) % 100) as f32 / 100.0 * radius;
+                let blip_pos = center + egui::vec2(t_angle.cos(), t_angle.sin()) * t_dist;
+
+                let color = match threat.severity {
+                    "critical" => theme::ERROR,
+                    "high" => theme::SEVERITY_HIGH,
+                    "medium" => theme::WARNING,
+                    _ => theme::INFO,
+                };
+
+                // Interaction: sweep proximity
+                let diff_angle = (angle - t_angle).abs();
+                let is_near_sweep = diff_angle < 0.2 || diff_angle > (std::f32::consts::TAU - 0.2);
+
+                let pulse = if is_near_sweep {
+                    1.0
+                } else {
+                    ((time * 2.0 + (i as f64 * 0.5)).sin() * 0.5 + 0.5) as f32
+                };
+
+                // Glow
+                painter.circle_filled(
+                    blip_pos,
+                    4.0 + pulse * 4.0,
+                    color.linear_multiply(0.1 + pulse * 0.2),
+                );
+                // Core
+                painter.circle_filled(blip_pos, 3.0, color);
+                
+                // Label if near sweep or hovered
+                if is_near_sweep {
+                    painter.text(
+                        blip_pos + egui::vec2(8.0, -8.0),
+                        egui::Align2::LEFT_BOTTOM,
+                        &threat.title,
+                        theme::font_min(),
+                        theme::text_primary(),
+                    );
+                }
+            }
+            
+            ui.ctx().request_repaint();
         });
     }
 
