@@ -11,7 +11,6 @@ const SelectContext = React.createContext<{
  setOpen?: (open: boolean) => void
  listboxId?: string
  disabled?: boolean
- triggerRefRef?: React.RefObject<HTMLButtonElement>
 } | null>(null)
 
 interface SelectProps {
@@ -27,7 +26,6 @@ interface SelectProps {
 const Select: React.FC<SelectProps> = ({ children, value, onValueChange, defaultValue, open, onOpenChange, disabled }) => {
  const [internalValue, setInternalValue] = React.useState(defaultValue || "")
  const [internalOpen, setInternalOpen] = React.useState(false)
- const triggerRefRef = React.useRef<HTMLButtonElement>(null)
 
  const isControlled = value !== undefined
  const currentValue = isControlled ? value : internalValue
@@ -46,7 +44,7 @@ const Select: React.FC<SelectProps> = ({ children, value, onValueChange, default
  const listboxId = React.useId()
 
  return (
- <SelectContext.Provider value={{ value: currentValue, onValueChange: handleValueChange, open: currentOpen, setOpen: handleOpenChange, listboxId, disabled, triggerRef: triggerRefRef }}>
+ <SelectContext.Provider value={{ value: currentValue, onValueChange: handleValueChange, open: currentOpen, setOpen: handleOpenChange, listboxId, disabled }}>
  <div className="relative inline-block w-full text-left">
  {children}
  </div>
@@ -58,16 +56,17 @@ const SelectTrigger = React.forwardRef<
  HTMLButtonElement,
  React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, children, ...props }, ref) => {
- const { open, setOpen, listboxId, disabled, triggerRef: triggerRefRef } = React.useContext(SelectContext)!
+ const { open, setOpen, listboxId, disabled } = React.useContext(SelectContext)!
+ const localTriggerRef = React.useRef<HTMLButtonElement>(null)
 
  // Merge refs
  const mergedRef = React.useCallback(
  (node: HTMLButtonElement | null) => {
  if (typeof ref === 'function') ref(node)
  else if (ref) ref.current = node
- if (triggerRefRef) (triggerRefRef as React.MutableRefObject<HTMLButtonElement | null>).current = node
+ if (localTriggerRef) localTriggerRef.current = node
  },
- [ref, triggerRefRef]
+ [ref]
  )
 
  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -129,21 +128,22 @@ SelectValue.displayName = "SelectValue"
 const SelectContent = React.forwardRef<
  HTMLDivElement,
  React.HTMLAttributes<HTMLDivElement> & { position?: "popper" | "item-aligned" }
->(({ className, children, position = "popper", ...props }, ref) => {
- const { open, setOpen, listboxId, triggerRef: triggerRefRef } = React.useContext(SelectContext)!
+>(({ className, children, position: _position = "popper", ...props }, ref) => {
+ const { open, setOpen, listboxId } = React.useContext(SelectContext)!
  const [coords, setCoords] = React.useState({ top: 0, left: 0, width: 0 })
+ const triggerRef = React.useRef<HTMLButtonElement>(null)
 
  // Calculate position based on trigger element
  const updatePosition = React.useCallback(() => {
- if (triggerRefRef?.current) {
- const rect = triggerRefRef.current.getBoundingClientRect()
+ if (triggerRef?.current) {
+ const rect = triggerRef.current.getBoundingClientRect()
  setCoords({
  top: rect.bottom + 4,
  left: rect.left,
  width: rect.width
  })
  }
- }, [triggerRefRef])
+ }, [triggerRef])
 
  React.useEffect(() => {
  if (open) {

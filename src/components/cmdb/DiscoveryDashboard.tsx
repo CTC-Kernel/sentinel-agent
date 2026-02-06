@@ -144,7 +144,7 @@ const ClassDistribution: React.FC<ClassDistributionProps> = ({ stats }) => {
         color: CLASS_COLORS[ciClass as CIClass] || 'bg-gray-500',
       }))
       .sort((a, b) => b.count - a.count);
-  }, [stats?.classDistribution]);
+  }, [stats.classDistribution]);
 
   const total = distribution.reduce((sum, d) => sum + d.count, 0) || 1;
 
