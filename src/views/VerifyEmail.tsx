@@ -104,7 +104,7 @@ export const VerifyEmail: React.FC = () => {
   onClick={handleResendEmail}
   disabled={loading || emailSent}
   isLoading={loading}
-  className="w-full py-6 bg-card border border-border text-foreground dark:text-white font-bold rounded-2xl hover:bg-muted/50 transition-all hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-lg"
+  className="w-full py-6 bg-card border border-border text-foreground font-bold rounded-2xl hover:bg-muted/50 transition-all hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-lg"
   >
   {t('auth.resendEmail', { defaultValue: 'Renvoyer l\'email' })}
   </Button>

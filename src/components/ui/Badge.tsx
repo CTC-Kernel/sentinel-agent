@@ -29,8 +29,8 @@ export const Badge: React.FC<BadgeProps> = React.memo(({
  // Size styles - WCAG AAA: increased font sizes from 10px/12px to 11px/13px minimum
  // Also ensured minimum touch target height of 24px
  const sizeStyles = {
- sm: "px-2.5 py-1 text-[11px] min-h-[24px] rounded-full gap-1.5 uppercase tracking-wider",
- md: "px-3 py-1.5 text-[13px] min-h-[28px] rounded-full gap-2 uppercase tracking-wide"
+ sm: "px-2.5 py-1 text-xs min-h-[24px] rounded-full gap-1.5 uppercase tracking-wider",
+ md: "px-3 py-1.5 text-xs min-h-[28px] rounded-full gap-2 uppercase tracking-wide"
  };
 
  // Status & Variant styles

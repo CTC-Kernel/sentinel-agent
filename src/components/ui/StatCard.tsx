@@ -88,7 +88,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
   </div>
 
   {trend && (
-  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ring-1 ring-inset shadow-sm ${getTrendColor()}`}>
+  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ring-1 ring-inset shadow-sm ${getTrendColor()}`}>
   {getTrendIcon()}
   {Math.abs(trend.value)}% {trend.label}
   </span>

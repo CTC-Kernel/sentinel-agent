@@ -53,7 +53,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   {label && (
   <ListboxLabel className={`
   absolute left-4 transition-all duration-200 pointer-events-none z-10
-  -top-2.5 text-[11px] font-bold uppercase tracking-widest bg-card/90 backdrop-blur-sm px-1.5 rounded-md text-muted-foreground peer-focus:text-primary
+  -top-2.5 text-xs font-bold uppercase tracking-widest bg-card/90 backdrop-blur-sm px-1.5 rounded-md text-muted-foreground peer-focus:text-primary
   ${error ? '!text-destructive' : ''}
   `}>
   {label} {required && <span className="text-destructive">*</span>}

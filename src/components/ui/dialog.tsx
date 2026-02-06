@@ -33,13 +33,19 @@ export const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, cl
 
 export const DialogContent: React.FC<DialogContentProps> = ({ children, className = '' }) => {
  return (
- <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-sm" aria-hidden="true">
+ <>
+ <div
+  className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-sm animate-fade-in"
+  aria-hidden="true"
+ />
  <div className="fixed inset-0 flex items-center justify-center p-4">
- <HeadlessDialogPanel className={`bg-[var(--modal-bg)] border border-border/40 shadow-2xl shadow-black/20 dark:shadow-black/50 rounded-3xl p-6 max-w-lg w-full max-h-[90vh] overflow-auto ${className}`}>
- {children}
- </HeadlessDialogPanel>
+  <HeadlessDialogPanel
+  className={`bg-[var(--modal-bg)] border border-border/40 shadow-modal rounded-3xl p-6 max-w-lg w-full max-h-[90vh] overflow-auto will-change-transform animate-scale-in ${className}`}
+  >
+  {children}
+  </HeadlessDialogPanel>
  </div>
- </div>
+ </>
  );
 };
 

@@ -5,8 +5,8 @@ import { Dialog, Transition } from '@headlessui/react';
 import { X, AlertTriangle } from './Icons';
 import { useTranslation } from 'react-i18next';
 
-// Apple-style cubic-bezier for smooth, spring-like animations
-const APPLE_EASING = 'cubic-bezier(0.16, 1, 0.3, 1)';
+// Apple-style easing from design tokens
+const APPLE_EASING = 'var(--ease-apple)';
 
 interface DrawerProps {
  isOpen: boolean;
@@ -100,7 +100,7 @@ export const Drawer: React.FC<DrawerProps> = ({
    leaveTo="translate-x-full"
   >
    <Dialog.Panel
-   className={`pointer-events-auto w-screen ${width}`}
+   className={`pointer-events-auto w-screen will-change-transform ${width}`}
    style={{ transition: `transform 500ms ${APPLE_EASING}` }}
    >
    <div className="flex h-full flex-col bg-[var(--drawer-bg)] border-l border-border/50 shadow-2xl">

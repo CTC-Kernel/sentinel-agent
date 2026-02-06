@@ -233,7 +233,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   <div className="mt-3">
   <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
   <div
-   className="h-full bg-primary dark:bg-primary0 transition-all duration-300 ease-out"
+   className="h-full bg-primary transition-all duration-300 ease-out"
    style={{ width: `${progress}%` }}
   />
   </div>

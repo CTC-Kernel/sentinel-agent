@@ -153,13 +153,13 @@ export function ScoreGauge({
  const gaugeStyle = useMemo(() => ({
  strokeDasharray: circumference,
  strokeDashoffset: strokeDashoffset,
- transition: showAnimation ? 'stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
+ transition: showAnimation ? 'stroke-dashoffset 1.2s var(--ease-apple)' : 'none',
  }), [circumference, strokeDashoffset, showAnimation]);
 
  const isClickable = !!onClick;
 
  // Delta badge size based on gauge size - WCAG AAA: minimum 11px font size
- const deltaBadgeClass = size === 'lg' ? 'text-sm px-2.5 py-1' : size === 'md' ? 'text-xs px-2 py-1' : 'text-[11px] px-1.5 py-0.5';
+ const deltaBadgeClass = size === 'lg' ? 'text-sm px-2.5 py-1' : size === 'md' ? 'text-xs px-2 py-1' : 'text-xs px-1.5 py-0.5';
 
  return (
  <div className={cn('flex flex-col items-center gap-2', className)}>

@@ -73,7 +73,7 @@ export const FloatingLabelTextarea = React.forwardRef<HTMLTextAreaElement, Float
   className={`
   absolute left-4 transition-all duration-200 pointer-events-none
   ${(isFocused || hasValue)
-  ? '-top-2.5 text-[11px] font-bold uppercase tracking-widest bg-card/90 backdrop-blur-sm px-1.5 rounded-md'
+  ? '-top-2.5 text-xs font-bold uppercase tracking-widest bg-card/90 backdrop-blur-sm px-1.5 rounded-md'
   : 'top-3.5 text-sm font-medium'
   }
   ${error

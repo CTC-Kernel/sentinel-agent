@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNotifications } from '../hooks/useNotifications';
 import { useStore } from '../store';
 import { GlassCard } from '../components/ui/GlassCard';
+import { EmptyState } from '../components/ui/EmptyState';
 import { CheckCircle2, AlertTriangle, Info, X, ArrowRight, Bell, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -164,22 +165,15 @@ export const Notifications: React.FC = () => {
   ))}
   </div>
  ) : (
-  <div className="text-center py-20">
-  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-  <Bell className="w-8 h-8 text-muted-foreground" />
-  </div>
-  <h3 className="text-lg font-medium text-foreground">
-  {t('notifications.emptyTitle', { defaultValue: 'Aucune notification' })}
-  </h3>
-  <p className="text-muted-foreground mt-1">
-  {filterStatus === 'unread'
-  ? t('notifications.emptyUnread', { defaultValue: 'Vous êtes à jour !' })
-  : t('notifications.emptyAll', { defaultValue: 'Rien à signaler pour le moment.' })}
-  </p>
-  <p className="text-xs text-muted-foreground mt-3 max-w-sm mx-auto leading-relaxed">
-  {t('notifications.emptyHint', { defaultValue: 'Les notifications sont générées automatiquement lors des actions importantes : échéances, changements de statut, nouvelles affectations et alertes de conformité.' })}
-  </p>
-  </div>
+  <EmptyState
+  icon={Bell}
+  title={t('notifications.emptyTitle', { defaultValue: 'Aucune notification' })}
+  description={filterStatus === 'unread'
+   ? t('notifications.emptyUnread', { defaultValue: 'Vous êtes à jour !' })
+   : t('notifications.emptyAll', { defaultValue: 'Rien à signaler pour le moment.' })}
+  tip={t('notifications.emptyHint', { defaultValue: 'Les notifications sont générées automatiquement lors des actions importantes : échéances, changements de statut, nouvelles affectations et alertes de conformité.' })}
+  semantic="neutral"
+  />
  )}
  </AnimatePresence>
  </motion.div>

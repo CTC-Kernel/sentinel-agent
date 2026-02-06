@@ -152,7 +152,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   className={`
   absolute left-4 transition-all duration-200 pointer-events-none
   ${(isOpen || value)
-  ? '-top-2.5 text-[11px] font-bold uppercase tracking-widest bg-card px-1 rounded text-primary'
+  ? '-top-2.5 text-xs font-bold uppercase tracking-widest bg-card px-1 rounded text-primary'
   : 'top-3.5 text-sm font-medium text-muted-foreground'
   }
   ${error ? '!text-destructive' : ''}

@@ -81,7 +81,7 @@ export const Modal: React.FC<ModalProps> = ({
   leaveFrom="opacity-100 translate-y-0 sm:scale-100"
   leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
   >
-  <Dialog.Panel className={`relative transform overflow-hidden rounded-xl bg-[var(--modal-bg)] text-left shadow-modal transition-all w-full border border-border/30 ${maxWidth}`}>
+  <Dialog.Panel className={`relative transform overflow-hidden rounded-xl bg-[var(--modal-bg)] text-left shadow-modal transition-all will-change-transform w-full border border-border/30 ${maxWidth}`}>
    {title && (
    <div className="flex items-center justify-between p-6 border-b border-border/40 shrink-0 transition-colors">
    <Dialog.Title as="h3" className="text-xl font-bold font-display text-foreground tracking-tight">

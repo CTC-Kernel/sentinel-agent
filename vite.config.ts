@@ -44,13 +44,26 @@ export default defineConfig({
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB limit
-        globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'], // Excluded .html to force fresh index.html
+        globPatterns: ['**/*.{js,css,ico,png,svg,woff2,html}'],
         // Force immediate update - no waiting for all tabs to close
         skipWaiting: true,
         clientsClaim: true,
         // Clean up old caches automatically
         cleanupOutdatedCaches: true,
         runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname === '/index.html' || url.pathname === '/',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'index-cache',
+              expiration: {
+                maxEntries: 1,
+              },
+              cacheableResponse: {
+                statuses: [200]
+              }
+            }
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',

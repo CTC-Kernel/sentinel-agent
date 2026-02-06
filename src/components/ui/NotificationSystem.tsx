@@ -153,7 +153,7 @@ const NotificationContainer: React.FC = () => {
  </span>
  )}
  </div>
- <AnimatePresence>
+ <AnimatePresence mode="popLayout">
  {notifications.map((notification) => (
  <motion.div
  key={notification.id || 'unknown'}

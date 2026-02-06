@@ -68,9 +68,9 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 
  const variantClasses = {
  primary: 'bg-primary hover:bg-primary/90 text-primary-foreground focus-visible:ring-primary shadow-lg shadow-primary/20',
- secondary: 'bg-card border border-border/40 text-foreground dark:text-white hover:bg-muted/50 focus-visible:ring-primary',
- danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-lg shadow-red-500/20',
- success: 'bg-success-600 hover:bg-success-700 text-white focus:ring-success-500 shadow-lg shadow-success-500/20'
+ secondary: 'bg-card border border-border/40 text-foreground hover:bg-muted/50 focus-visible:ring-primary',
+ danger: 'bg-destructive hover:bg-destructive/90 text-destructive-foreground focus-visible:ring-destructive shadow-lg shadow-error/20',
+ success: 'bg-success hover:bg-success/90 text-success-foreground focus-visible:ring-success shadow-lg shadow-success/20'
  };
 
  const sizeClasses = {
@@ -96,7 +96,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
  >
  {loading && (
  <span className="absolute inset-0 flex items-center justify-center">
- <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+ <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></span>
  </span>
  )}
  <span className={loading ? 'opacity-0' : ''}>{children}</span>
@@ -105,7 +105,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
  .ripple {
  position: absolute;
  border-radius: 50%;
- background-color: rgba(255, 255, 255, 0.6);
+ background-color: hsl(var(--primary-foreground) / 0.6);
  transform: scale(0);
  animation: ripple-animation 600ms ease-out;
  pointer-events: none;

@@ -14,24 +14,38 @@ interface EnhancedBreadcrumbsProps {
  items: BreadcrumbItem[];
  className?: string;
  separator?: React.ReactNode;
+ /** On mobile, only show last N items (default: 2). Set to 0 to disable truncation. */
+ mobileTruncate?: number;
 }
 
 export const EnhancedBreadcrumbs: React.FC<EnhancedBreadcrumbsProps> = ({
  items,
  className = '',
- separator = <ChevronRight className="w-4 h-4" />
+ separator = <ChevronRight className="w-4 h-4" />,
+ mobileTruncate = 2,
 }) => {
  const location = useLocation();
+
+ // On mobile (< 640px), show ellipsis for long breadcrumb trails
+ const shouldTruncate = mobileTruncate > 0 && items.length > mobileTruncate + 1;
+ const visibleItems = shouldTruncate ? [items[0], ...items.slice(-mobileTruncate)] : items;
 
  return (
  <nav aria-label="Breadcrumb" className={cn("flex items-center space-x-1 text-sm", className)}>
  <AnimatePresence mode="popLayout">
- {items.map((item, index) => {
- const isLast = index === items.length - 1;
+ {visibleItems.map((item, index) => {
+ const showEllipsis = shouldTruncate && index === 1;
+ const isLast = index === visibleItems.length - 1;
  const isActive = item.path === location.pathname;
 
  return (
  <React.Fragment key={item.label || 'unknown'}>
+ {showEllipsis && (
+  <>
+  <span className="text-muted-foreground px-1 hidden sm:inline" aria-hidden="true">{separator}</span>
+  <span className="text-muted-foreground px-2 text-xs hidden sm:hidden" aria-hidden="true">...</span>
+  </>
+ )}
  <motion.div
  initial={{ opacity: 0, x: -10 }}
  animate={{ opacity: 1, x: 0 }}
@@ -43,26 +57,26 @@ export const EnhancedBreadcrumbs: React.FC<EnhancedBreadcrumbsProps> = ({
   <Link
   to={item.path}
   className={cn(
-  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200",
+  "flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all duration-200",
   isActive
   ? "bg-primary text-primary-foreground font-medium"
   : "text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-muted"
   )}
   >
   {item.icon || (index === 0 && <Home className="w-4 h-4" />)}
-  <span className="truncate max-w-[150px]">{item.label}</span>
+  <span className="truncate max-w-[120px] sm:max-w-[150px]">{item.label}</span>
   </Link>
  ) : (
   <div
   className={cn(
-  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg",
+  "flex items-center gap-1.5 px-3 py-1.5 rounded-xl",
   isLast
   ? "text-foreground font-semibold"
   : "text-muted-foreground"
   )}
   >
   {item.icon || (index === 0 && <Home className="w-4 h-4" />)}
-  <span className="truncate max-w-[150px]">{item.label}</span>
+  <span className="truncate max-w-[120px] sm:max-w-[150px]">{item.label}</span>
   </div>
  )}
  </motion.div>

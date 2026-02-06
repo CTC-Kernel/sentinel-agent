@@ -6,25 +6,31 @@ type FloatingLabelIconComponent = React.ElementType<{ className?: string }>;
 interface FloatingLabelInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
  label: string;
  error?: string;
+ helperText?: string;
  icon?: FloatingLabelIconComponent;
  textarea?: boolean;
  rows?: number;
+ showCharCount?: boolean;
 }
 
 export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAreaElement, FloatingLabelInputProps>(({
  label,
  error,
+ helperText,
  icon: Icon,
  className = '',
  value,
  textarea,
  rows = 3,
+ showCharCount,
  ...props
 }, ref) => {
  const autoId = React.useId();
  const fieldId = props.id || `floating-input-${autoId}`;
  const errorId = `${fieldId}-error`;
- const describedBy = [props['aria-describedby'], error ? errorId : null].filter(Boolean).join(' ') || undefined;
+ const helperId = `${fieldId}-helper`;
+ const describedBy = [props['aria-describedby'], error ? errorId : null, helperText ? helperId : null].filter(Boolean).join(' ') || undefined;
+ const charCount = typeof value === 'string' ? value.length : 0;
 
  return (
  <div className={`relative ${className}`}>
@@ -79,7 +85,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
   htmlFor={fieldId}
   className={`
   absolute left-4 transition-all duration-300 var(--ease-apple) pointer-events-none
-  -top-2.5 text-[11px] font-bold uppercase tracking-widest bg-card/90 backdrop-blur-sm px-1.5 rounded-md
+  -top-2.5 text-xs font-bold uppercase tracking-widest bg-card/90 backdrop-blur-sm px-1.5 rounded-md
   peer-focus:text-primary
   ${error
   ? 'text-destructive'
@@ -96,20 +102,35 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
  </div>
 
 
- <AnimatePresence>
- {error && (
-  <motion.p
-  initial={{ opacity: 0, y: -5, height: 0 }}
-  animate={{ opacity: 1, y: 0, height: 'auto' }}
-  exit={{ opacity: 0, y: -5, height: 0 }}
-  transition={{ duration: 0.2 }}
-  id={errorId}
-  className="text-destructive text-xs mt-1.5 ml-1 font-medium overflow-hidden"
-  >
-  {error}
-  </motion.p>
+ <div className="flex items-start justify-between mt-1.5 ml-1 min-h-[1.25rem]">
+ <div className="flex-1">
+  <AnimatePresence>
+  {error && (
+   <motion.p
+   initial={{ opacity: 0, y: -5, height: 0 }}
+   animate={{ opacity: 1, y: 0, height: 'auto' }}
+   exit={{ opacity: 0, y: -5, height: 0 }}
+   transition={{ duration: 0.2 }}
+   id={errorId}
+   role="alert"
+   className="text-destructive text-xs font-medium overflow-hidden"
+   >
+   {error}
+   </motion.p>
+  )}
+  </AnimatePresence>
+  {!error && helperText && (
+  <p id={helperId} className="text-muted-foreground text-xs">
+   {helperText}
+  </p>
+  )}
+ </div>
+ {showCharCount && props.maxLength && (
+  <span className={`text-xs tabular-nums ml-2 flex-shrink-0 ${charCount >= props.maxLength ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+  {charCount}/{props.maxLength}
+  </span>
  )}
- </AnimatePresence>
+ </div>
  </div>
  );
 });

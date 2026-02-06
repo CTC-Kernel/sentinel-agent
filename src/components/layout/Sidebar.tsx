@@ -178,7 +178,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
  bg-[var(--glass-bg)]
  backdrop-blur-[var(--glass-blur-md)] border-r border-border/40
  shadow-[var(--glass-shadow)] lg:shadow-none
- transform transition-transform duration-500 ease-apple
+ transform transition-transform duration-500 ease-apple will-change-transform
  ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
  flex flex-col pb-8 pt-4 pt-safe pb-safe lg:pb-6 min-h-0 lg:h-screen
  `}

@@ -91,8 +91,8 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
  `}
  >
  {/* Dynamic Glass Reflections */}
- <div className="absolute inset-0 bg-gradient-to-tr from-white/40 via-transparent to-transparent opacity-60" />
- <div className="absolute -inset-[100%] bg-[conic-gradient(from_0deg,transparent_0_340deg,white_360deg)] opacity-30 animate-[spin_8s_linear_infinite]" style={{ animationDuration: '20s' }} />
+ <div className="absolute inset-0 bg-gradient-to-tr from-white/40 dark:from-white/15 via-transparent to-transparent opacity-60" />
+ <div className="absolute -inset-[100%] bg-[conic-gradient(from_0deg,transparent_0_340deg,white_360deg)] opacity-30 dark:opacity-15 animate-[spin_8s_linear_infinite]" style={{ animationDuration: '20s' }} />
 
  {/* Inner Bevel */}
  <div className="absolute inset-[1px] rounded-[inherit] bg-card/20 backdrop-blur-md" />

@@ -4,6 +4,7 @@ import { cn } from '../../lib/utils';
 interface SpinnerProps {
  className?: string;
  size?: 'sm' | 'md' | 'lg' | 'xl';
+ label?: string;
 }
 
 const sizeClasses = {
@@ -13,14 +14,18 @@ const sizeClasses = {
  xl: 'h-12 w-12',
 };
 
-export const Spinner = ({ className, size = 'md' }: SpinnerProps) => {
+export const Spinner = ({ className, size = 'md', label = 'Chargement...' }: SpinnerProps) => {
  return (
+ <span role="status" aria-live="polite" className="inline-flex items-center">
  <Loader2
  className={cn(
- "animate-spin text-current",
- sizeClasses[size],
- className
+  "animate-spin text-current",
+  sizeClasses[size],
+  className
  )}
+ aria-hidden="true"
  />
+ <span className="sr-only">{label}</span>
+ </span>
  );
 };
