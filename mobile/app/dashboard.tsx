@@ -5,7 +5,7 @@
  * Refactored to use Zustand store and extracted components.
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     View,
     Text,
@@ -35,36 +35,27 @@ export default function DashboardScreen() {
     // Get agent state from Zustand store
     const { enrolled, agent, loadData } = useAgentStore();
 
-    // Refresh agent data when screen comes into focus
+    // Refresh all data when screen comes into focus
     useFocusEffect(
         useCallback(() => {
+            // Load agent data
             loadData();
-            // Send heartbeat when app is opened
-            if (enrolled && agent) {
-                sendHeartbeatAndCheck(false).catch(console.error);
-            }
-        }, [loadData, enrolled, agent])
-    );
 
-    useEffect(() => {
-        fetchStats();
-    }, []);
-
-    const fetchStats = async () => {
-        try {
+            // Load stats (mocked for MVP)
             if (auth.currentUser) {
-                // Mocking for immediate visual feedback in MVP
                 setStats({
                     risks: 12,
                     compliance: 78,
                     incidents: 2,
                 });
             }
-        } catch (error) {
-            console.error(error);
-            Alert.alert('Erreur', 'Impossible de charger les données.');
-        }
-    };
+
+            // Send heartbeat when app is opened
+            if (enrolled && agent) {
+                sendHeartbeatAndCheck(false).catch(console.error);
+            }
+        }, [loadData, enrolled, agent])
+    );
 
     const handleLogout = async () => {
         try {

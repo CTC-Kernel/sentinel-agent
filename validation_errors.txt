@@ -1,8 +1,0 @@
-
-> sentinel-grc@2.0.0 type-check
-> tsc --noEmit
-
-src/components/ui/AutoSaveIndicator.tsx(106,33): error TS2694: Namespace 'global.JSX' has no exported member 'Element'.
-src/components/ui/ValidatedInput.tsx(121,11): error TS6133: 'locale' is declared but its value is never read.
-src/hooks/__tests__/useFieldValidation.test.ts(398,33): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
-src/hooks/__tests__/useFieldValidation.test.ts(408,33): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
