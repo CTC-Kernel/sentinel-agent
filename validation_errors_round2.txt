@@ -1,4 +1,0 @@
-
-> sentinel-grc@2.0.0 type-check
-> tsc --noEmit
-
