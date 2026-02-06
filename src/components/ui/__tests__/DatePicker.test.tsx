@@ -270,6 +270,22 @@ vi.mock('../Calendar', () => ({
  )
 }));
 
+// Mock useLocale hook to return French locale
+vi.mock('../../hooks/useLocale', () => ({
+ useLocale: () => ({
+  locale: 'fr' as const,
+  config: {
+    code: 'fr',
+    name: 'Français',
+    dateFormat: 'dd/MM/yyyy',
+    dateTimeFormat: 'dd/MM/yyyy HH:mm',
+    numberFormat: { decimal: ',', thousands: ' ' },
+    currency: 'EUR',
+    intlLocale: 'fr-FR'
+  }
+ })
+}));
+
 describe('DatePicker', () => {
  const mockOnChange = vi.fn();
 

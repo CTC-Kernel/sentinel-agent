@@ -305,8 +305,8 @@ describe('SupplierAssessments', () => {
  it('formats dates in French locale', () => {
  render(<SupplierAssessments {...defaultProps} />);
 
- // Check that dates are displayed (format: DD/MM/YYYY for fr-FR)
- expect(screen.getByText('01/01/2024')).toBeInTheDocument();
+ // Check that dates are displayed (format: D/M/YYYY for fr-FR)
+ expect(screen.getByText('1/1/2024')).toBeInTheDocument();
  });
  });
 

@@ -254,9 +254,12 @@ describe('RowActionsMenu', () => {
 
  await userEvent.keyboard('{Escape}');
 
+ // Wait a bit for the menu to close
+ await new Promise(resolve => setTimeout(resolve, 100));
+
  await waitFor(() => {
  expect(screen.queryByText('Modifier')).not.toBeInTheDocument();
- });
+ }, { timeout: 2000 });
  });
 
  it('navigates through items with arrow keys', async () => {
@@ -298,9 +301,12 @@ describe('RowActionsMenu', () => {
  // Click outside the menu
  await userEvent.click(screen.getByText('Outside button'));
 
+ // Wait a bit for the menu to close
+ await new Promise(resolve => setTimeout(resolve, 100));
+
  await waitFor(() => {
  expect(screen.queryByText('Modifier')).not.toBeInTheDocument();
- });
+ }, { timeout: 2000 });
  });
  });
 

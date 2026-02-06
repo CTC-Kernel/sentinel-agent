@@ -294,7 +294,10 @@ describe('VoxelGuidedTour', () => {
 
  // Progress bar should be visible (check for progress element)
  const progressBar = document.querySelector('[class*="bg-blue-500"]');
+ expect(progressBar).toBeTruthy();
+ if (progressBar) {
  expect(progressBar).toBeInTheDocument();
+ }
  });
  });
 });
