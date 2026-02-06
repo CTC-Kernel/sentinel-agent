@@ -1,0 +1,23 @@
+[package]
+name = "agent-siem"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "SIEM integration for Sentinel GRC Agent - Splunk, Microsoft Sentinel, ELK, Syslog"
+
+[dependencies]
+agent-common = { path = "../agent-common" }
+tokio.workspace = true
+tracing.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+thiserror.workspace = true
+async-trait.workspace = true
+uuid.workspace = true
+hostname.workspace = true
+url.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
