@@ -293,7 +293,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
    <div className="flex flex-col gap-0.5">
    <span className="text-[11px] text-muted-foreground font-medium">Tech: {rec.technician}</span>
    {rec.performedBy && (
-   <span className="text-[9px] text-muted-foreground italic">Performed by: {rec.performedBy.userName}</span>
+   <span className="text-xs text-muted-foreground italic">Performed by: {rec.performedBy.userName}</span>
    )}
    </div>
    {rec.cost && (

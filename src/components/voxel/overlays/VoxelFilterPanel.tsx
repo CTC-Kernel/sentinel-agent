@@ -30,6 +30,10 @@ import {
 } from 'lucide-react';
 import { useVoxelStore, useFilteredNodes, useVoxelNodes } from '@/stores/voxelStore';
 import type { VoxelNodeType, VoxelNodeStatus } from '@/types/voxel';
+import {
+  VOXEL_STATUS_COLORS_CSS,
+  getVoxelPanelStyles,
+} from '../voxelTheme';
 
 // ============================================================================
 // Types
@@ -236,7 +240,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
  badges.push({
  label: 'Anomalies Only',
  onRemove: () => setShowAnomaliesOnly(false),
- color: '#EF4444',
+ color: VOXEL_STATUS_COLORS_CSS.critical,
  });
  }
 
@@ -254,13 +258,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
  {/* Panel Container */}
  <div
  className="rounded-3xl overflow-hidden"
- style={{
- background: 'rgba(15, 23, 42, 0.95)',
- backdropFilter: 'blur(20px)',
- WebkitBackdropFilter: 'blur(20px)',
- border: '1px solid rgba(148, 163, 184, 0.1)',
- boxShadow: '0 4px 24px rgba(0, 0, 0, 0.3)',
- }}
+ style={getVoxelPanelStyles()}
  >
  {/* Header */}
  <div

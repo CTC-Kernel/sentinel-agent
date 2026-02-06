@@ -39,7 +39,7 @@ import { OTVulnerabilityService } from '@/services/OTVulnerabilityService';
 import { useStore } from '@/store';
 import type { OTExposureMetrics } from '@/types/otVulnerability';
 import { SEGMENT_COLORS } from '@/components/voxel/OTNodeMesh';
-import { SEVERITY_COLORS, CHART_STYLES, CHART_AXIS_COLORS } from '@/theme/chartTheme';
+import { SEVERITY_COLORS, CHART_AXIS_COLORS } from '@/theme/chartTheme';
 
 // ============================================================================
 // Types

@@ -217,7 +217,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
    <div className={`h-full rounded-full transition-all duration-700 ease-in-out ${stats.progress === 100 ? 'bg-success-text shadow-glow shadow-success-text/20' : `${fwStyles.progress} shadow-glow`}`} style={{ width: `${stats.progress}%` }}></div>
    </div>
   </div>
-  <div className={`p-2 rounded-3xl transition-all duration-500 shrink-0 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-apple-sm rotate-180 text-foreground ring-1 ring-black/5' : 'text-muted-foreground group-hover:text-muted-foreground group-hover:bg-muted dark:group-hover:bg-muted/50'}`}>
+  <div className={`p-2 rounded-3xl transition-all duration-500 shrink-0 ${isExpanded ? 'bg-card shadow-apple-sm rotate-180 text-foreground ring-1 ring-border/40' : 'text-muted-foreground group-hover:text-muted-foreground group-hover:bg-muted dark:group-hover:bg-muted/50'}`}>
    <ChevronDown className="h-5 w-5" />
   </div>
   </div>
@@ -248,7 +248,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
    tabIndex={0}
    className={`group relative p-4 rounded-3xl border transition-all duration-200 cursor-pointer overflow-hidden hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isActive
     ? 'bg-primary/10 border-primary/30 dark:bg-primary dark:border-primary/90'
-    : 'bg-white dark:bg-white/5 border-border/40 hover:border-primary/30 dark:hover:border-primary'
+    : 'bg-card border-border/40 hover:border-primary/30 dark:hover:border-primary'
     }`}
    >
    <div className="flex items-start justify-between gap-4">
@@ -266,7 +266,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
     <div className={`shrink-0 px-2.5 py-1 rounded-3xl text-[11px] font-bold uppercase tracking-wide border shadow-sm whitespace-nowrap ${control.status === CONTROL_STATUS.IMPLEMENTED ? 'text-success-text bg-success-bg border-success-border/50' :
     control.status === CONTROL_STATUS.PARTIAL ? 'text-warning-text bg-warning-bg border-warning-border/50' :
     control.status === CONTROL_STATUS.NOT_APPLICABLE ? 'text-muted-foreground bg-muted border-border/40 ' :
-    'text-muted-foreground bg-white border-border/40 '
+    'text-muted-foreground bg-card border-border/40 '
     }`}>
     {control.status}
     </div>

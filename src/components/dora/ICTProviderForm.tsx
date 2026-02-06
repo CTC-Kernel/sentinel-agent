@@ -840,7 +840,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
 
  {/* Footer */}
  {!readOnly && (
- <div className="flex justify-end gap-3 px-6 py-4 border-t border-border/40 dark:border-white/5 bg-muted/50 dark:bg-black/20">
+ <div className="flex justify-end gap-3 px-6 py-4 border-t border-border/40 dark:border-white/5 bg-muted/50 dark:bg-muted/20">
   <Button
   type="button"
   onClick={onCancel}

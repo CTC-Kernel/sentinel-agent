@@ -18,7 +18,8 @@ import { useAuthActions } from '../hooks/useAuthActions';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { toast } from '../lib/toast';
 
-// Google SVG optimized
+// Google SVG - Brand colors are mandated by Google OAuth guidelines and must not be changed
+// See: https://developers.google.com/identity/branding-guidelines
 const GoogleIcon = () => (
  <svg className="h-5 w-5" viewBox="0 0 24 24">
  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -220,6 +221,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
   <span className="ml-3 text-[15px] font-bold text-foreground">{t('auth.google')}</span>
   </Button>
 
+  {/* Apple Sign-In button - bg-black text-white is mandated by Apple branding guidelines */}
   <Button
   onClick={handleAppleLogin}
   isLoading={loading}
@@ -375,7 +377,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
 
  {/* Footer - Integrated in main container */}
  <div className="h-16 py-2 text-center space-y-0.5 px-4 border-t border-border/20 bg-background/95 backdrop-blur-lg">
-  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
   {t('auth.footer.developedBy')}{' '}
   <a
   href="https://cyber-threat-consulting.com"
@@ -386,7 +388,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
   cyber-threat-consulting.com
   </a>
   </p>
-  <p className="text-[10px] text-muted-foreground break-words max-w-2xl mx-auto">
+  <p className="text-xs text-muted-foreground break-words max-w-2xl mx-auto">
   {t('auth.footer.recaptcha')}
   <button aria-label={t('auth.footer.privacy')} onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="underline hover:text-foreground ml-1">
   {t('auth.footer.privacy')}

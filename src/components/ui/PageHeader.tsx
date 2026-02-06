@@ -95,7 +95,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
  <div className="absolute -inset-[100%] bg-[conic-gradient(from_0deg,transparent_0_340deg,white_360deg)] opacity-30 animate-[spin_8s_linear_infinite]" style={{ animationDuration: '20s' }} />
 
  {/* Inner Bevel */}
- <div className="absolute inset-[1px] rounded-[inherit] bg-white/20 dark:bg-black/40 backdrop-blur-md" />
+ <div className="absolute inset-[1px] rounded-[inherit] bg-card/20 backdrop-blur-md" />
 
  {/* Icon Content */}
  <div className={`

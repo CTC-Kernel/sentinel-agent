@@ -10,6 +10,7 @@ import { useFrame } from '@react-three/fiber';
 import { useXR, useController, Interactive, XRInteractionEvent } from '@react-three/xr';
 import { Vector3, Group, Mesh } from 'three';
 import type { VoxelNode } from '@/types/voxel';
+import { VOXEL_AR_VR_COLORS, VOXEL_STATUS_COLORS_HEX, hexToString } from './voxelTheme';
 
 // ============================================================================
 // Types
@@ -62,8 +63,8 @@ export interface TeleportTargetProps {
 // Constants
 // ============================================================================
 
-const DEFAULT_RAY_COLOR = '#4ecdc4';
-const DEFAULT_HIGHLIGHT_COLOR = '#fde047';
+const DEFAULT_RAY_COLOR = hexToString(VOXEL_AR_VR_COLORS.controllerBeam);
+const DEFAULT_HIGHLIGHT_COLOR = hexToString(VOXEL_AR_VR_COLORS.selectionHighlight);
 const DEFAULT_MAX_DISTANCE = 50;
 const HAPTIC_INTENSITY = 0.5;
 const HAPTIC_DURATION = 50;
@@ -144,7 +145,7 @@ const TeleportTarget: React.FC<TeleportTargetProps> = ({ position, isValid, visi
  <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]}>
  <ringGeometry args={[0.3, 0.4, 32]} />
  <meshBasicMaterial
- color={isValid ? '#22c55e' : '#ef4444'}
+ color={isValid ? hexToString(VOXEL_AR_VR_COLORS.success) : hexToString(VOXEL_AR_VR_COLORS.error)}
  transparent
  opacity={0.8}
  side={2}
@@ -155,7 +156,7 @@ const TeleportTarget: React.FC<TeleportTargetProps> = ({ position, isValid, visi
  <mesh rotation={[-Math.PI / 2, 0, 0]}>
  <circleGeometry args={[0.1, 16]} />
  <meshBasicMaterial
- color={isValid ? '#4ade80' : '#f87171'}
+ color={isValid ? hexToString(VOXEL_STATUS_COLORS_HEX.normal) : hexToString(VOXEL_STATUS_COLORS_HEX.critical)}
  transparent
  opacity={0.9}
  />
@@ -165,7 +166,7 @@ const TeleportTarget: React.FC<TeleportTargetProps> = ({ position, isValid, visi
  <mesh position={[0, 0.5, 0]}>
  <cylinderGeometry args={[0.005, 0.005, 1, 8]} />
  <meshBasicMaterial
- color={isValid ? '#22c55e' : '#ef4444'}
+ color={isValid ? hexToString(VOXEL_AR_VR_COLORS.success) : hexToString(VOXEL_AR_VR_COLORS.error)}
  transparent
  opacity={0.5}
  />
@@ -174,7 +175,7 @@ const TeleportTarget: React.FC<TeleportTargetProps> = ({ position, isValid, visi
  {/* Arrow head */}
  <mesh position={[0, 1, 0]} rotation={[Math.PI, 0, 0]}>
  <coneGeometry args={[0.05, 0.1, 8]} />
- <meshBasicMaterial color={isValid ? '#22c55e' : '#ef4444'} />
+ <meshBasicMaterial color={isValid ? hexToString(VOXEL_AR_VR_COLORS.success) : hexToString(VOXEL_AR_VR_COLORS.error)} />
  </mesh>
  </group>
  );
@@ -200,7 +201,7 @@ const ControllerModel: React.FC<ControllerModelProps> = ({ hand, isGrabbing }) =
  <mesh>
  <boxGeometry args={[0.05, 0.03, 0.1]} />
  <meshPhysicalMaterial
- color={isGrabbing ? '#fde047' : '#334155'}
+ color={isGrabbing ? hexToString(VOXEL_AR_VR_COLORS.selectionHighlight) : '#334155'}
  metalness={0.8}
  roughness={0.2}
  />
@@ -210,7 +211,7 @@ const ControllerModel: React.FC<ControllerModelProps> = ({ hand, isGrabbing }) =
  <mesh position={[0, -0.02, 0.03]}>
  <cylinderGeometry args={[0.015, 0.015, 0.06, 8]} />
  <meshPhysicalMaterial
- color={isGrabbing ? '#facc15' : '#475569'}
+ color={isGrabbing ? hexToString(VOXEL_STATUS_COLORS_HEX.warning) : hexToString(VOXEL_AR_VR_COLORS.grid)}
  metalness={0.6}
  roughness={0.3}
  />
@@ -474,7 +475,7 @@ export const VRInteractiveNode: React.FC<VRInteractiveNodeProps> = ({
  <mesh>
  <sphereGeometry args={[0.7, 16, 16]} />
  <meshBasicMaterial
- color="#4ecdc4"
+ color={hexToString(VOXEL_AR_VR_COLORS.controllerBeam)}
  transparent
  opacity={0.2}
  depthWrite={false}
@@ -499,7 +500,7 @@ export interface VRHandTrackingProps {
 
 export const VRHandTracking: React.FC<VRHandTrackingProps> = ({
  showHands = true,
- handColor: _handColor = '#ffffff',
+ handColor: _handColor = hexToString(VOXEL_AR_VR_COLORS.ambientLight),
 }) => {
  const { isPresenting } = useXR();
 

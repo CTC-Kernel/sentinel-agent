@@ -20,7 +20,7 @@ export const FilterPill: React.FC<FilterPillProps> = ({
  warning: 'bg-warning-50 text-warning-700 border-warning-100 dark:bg-warning-900/20 dark:text-warning-400 dark:border-warning-800/50',
  success: 'bg-success-50 text-success-700 border-success-100 dark:bg-success-900/20 dark:text-success-400 dark:border-success-800/50',
  error: 'bg-error-50 text-error-700 border-error-100 dark:bg-error-900/20 dark:text-error-400 dark:border-error-800/50',
- slate: 'bg-muted/50 dark:bg-white/5 text-foreground border-border/40'
+ slate: 'bg-muted/50 text-foreground border-border/40'
  };
 
  return (
@@ -35,7 +35,7 @@ export const FilterPill: React.FC<FilterPillProps> = ({
  <span className="whitespace-nowrap">{value}</span>
  <button
  onClick={onRemove}
- className="ml-0.5 p-0.5 hover:bg-black/5 dark:hover:bg-muted rounded-full transition-colors"
+ className="ml-0.5 p-0.5 hover:bg-muted rounded-full transition-colors"
  aria-label={`Supprimer le filtre ${label}`}
  >
  <X className="h-3 w-3" />

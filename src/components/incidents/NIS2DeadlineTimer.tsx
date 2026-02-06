@@ -28,7 +28,7 @@ export const NIS2DeadlineTimer: React.FC<Props> = ({ incident, compact = false }
  const urgent = deadlines.find(d => !d.isCompleted && d.status !== DeadlineStatus.OK) || deadlines.find(d => !d.isCompleted);
 
  if (!urgent) return (
- <div className="flex items-center gap-1.5 text-[10px] font-black text-success uppercase tracking-wider bg-success/10 px-2 py-1 rounded-xl border border-success/20">
+ <div className="flex items-center gap-1.5 text-xs font-black text-success uppercase tracking-wider bg-success/10 px-2 py-1 rounded-xl border border-success/20">
  <CheckCircle className="w-3 h-3" />
  <span>NIS2 OK</span>
  </div>
@@ -39,7 +39,7 @@ export const NIS2DeadlineTimer: React.FC<Props> = ({ incident, compact = false }
  'text-primary bg-primary/10 border-primary/20';
 
  return (
- <div className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-xl border ${colorClass}`} title={urgent.label}>
+ <div className={`flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-2 py-1 rounded-xl border ${colorClass}`} title={urgent.label}>
  <Clock className="w-3 h-3" />
  <span>{urgent.remainingHours > 0 ? `${urgent.remainingHours}h` : t('incidents.nis2.late', { defaultValue: 'Retard' })}</span>
  </div>

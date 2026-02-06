@@ -331,13 +331,13 @@ export const EbiosAnalyses: React.FC = () => {
   <div className="flex-1 min-w-0 pt-1">
   <div className="flex items-center gap-2 mb-1">
   <span className={cn(
-  "px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider",
+  "px-2 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider",
   getStatusColor(analysis.status)
   )}>
   {getStatusLabel(analysis.status)}
   </span>
   {analysis.sector && (
-  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-muted text-muted-foreground">
+  <span className="px-2 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider bg-muted text-muted-foreground">
   {analysis.sector}
   </span>
   )}
@@ -390,7 +390,7 @@ export const EbiosAnalyses: React.FC = () => {
   })}
   </div>
 
-  <div className="mt-3 flex items-center justify-between text-[10px] text-muted-foreground">
+  <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
   <span>{t('ebios.updatedAt', { date: new Date(analysis.updatedAt).toLocaleDateString() })}</span>
   </div>
   </div>

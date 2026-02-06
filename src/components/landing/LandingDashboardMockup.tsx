@@ -22,7 +22,7 @@ export const LandingDashboardMockup: React.FC = () => {
  <div className="w-16 sm:w-20 md:w-64 bg-background/50 backdrop-blur-md flex flex-col border-r border-white/5 flex-shrink-0 relative">
  <div className="p-4 md:p-6 flex items-center gap-3 mb-6">
   <div className="w-8 h-8 rounded-3xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center shadow-lg shadow-primary/30 flex-shrink-0 ring-1 ring-white/20">
-  <Lock className="h-4 w-4 text-white" />
+  <Lock className="h-4 w-4 text-primary-foreground" />
   </div>
   <span className="font-bold text-lg hidden md:block tracking-tight">Sentinel</span>
  </div>
@@ -43,7 +43,7 @@ export const LandingDashboardMockup: React.FC = () => {
   : 'hover:bg-muted/50 hover:text-muted-foreground/60'
   }`}
   >
-  <item.icon className={`h-5 w-5 ${item.active ? 'text-white' : 'text-muted-foreground group-hover:text-muted-foreground'}`} />
+  <item.icon className={`h-5 w-5 ${item.active ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-muted-foreground'}`} />
   <span className="font-medium hidden md:block">{item.label}</span>
   </div>
   ))}
@@ -88,7 +88,7 @@ export const LandingDashboardMockup: React.FC = () => {
   {/* Header */}
   <div className="flex justify-between items-end mb-8">
   <div>
-  <h1 className="text-2xl font-bold text-white mb-1 tracking-tight">Tableau de Bord SSI</h1>
+  <h1 className="text-2xl font-bold text-foreground mb-1 tracking-tight">Tableau de Bord SSI</h1>
   <p className="text-muted-foreground font-normal">Vue synthétique de votre posture de sécurité.</p>
   </div>
   <div className="hidden sm:flex gap-3">
@@ -107,41 +107,41 @@ export const LandingDashboardMockup: React.FC = () => {
   {/* Widget 1 */}
   <div className="bg-white/5 p-5 rounded-2xl border border-border/40 hover:border-white/20 transition-colors group">
   <div className="flex justify-between items-start mb-4">
-  <div className="p-2 bg-green-50 rounded-lg text-green-400 ring-1 ring-green-500/20">
+  <div className="p-2 bg-success/10 rounded-lg text-success ring-1 ring-success/20">
    <Shield className="h-5 w-5" />
   </div>
-  <span className="text-green-400 text-xs font-bold bg-green-50 px-2 py-0.5 rounded-full ring-1 ring-green-500/20">+12%</span>
+  <span className="text-success text-xs font-bold bg-success/10 px-2 py-0.5 rounded-full ring-1 ring-success/20">+12%</span>
   </div>
-  <div className="text-3xl font-bold text-white mb-1 tracking-tight">84%</div>
+  <div className="text-3xl font-bold text-foreground mb-1 tracking-tight">84%</div>
   <div className="text-muted-foreground text-xs font-medium">Score de Conformité</div>
   <div className="mt-4 w-full h-1 bg-white/5 rounded-full overflow-hidden">
-  <div className="h-full bg-green-500 w-[84%] shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+  <div className="h-full bg-success w-[84%] shadow-[0_0_10px_hsl(var(--success)/0.5)]"></div>
   </div>
   </div>
 
   {/* Widget 2 */}
   <div className="bg-white/5 p-5 rounded-2xl border border-border/40 hover:border-white/20 transition-colors group">
   <div className="flex justify-between items-start mb-4">
-  <div className="p-2 bg-yellow-50 rounded-lg text-yellow-400 ring-1 ring-yellow-500/20">
+  <div className="p-2 bg-warning/10 rounded-lg text-warning ring-1 ring-warning/20">
    <AlertTriangle className="h-5 w-5" />
   </div>
-  <span className="text-yellow-400 text-xs font-bold bg-yellow-50 px-2 py-0.5 rounded-full ring-1 ring-yellow-500/20">-2</span>
+  <span className="text-warning text-xs font-bold bg-warning/10 px-2 py-0.5 rounded-full ring-1 ring-warning/20">-2</span>
   </div>
-  <div className="text-3xl font-bold text-white mb-1 tracking-tight">3</div>
+  <div className="text-3xl font-bold text-foreground mb-1 tracking-tight">3</div>
   <div className="text-muted-foreground text-xs font-medium">Risques Critiques</div>
   </div>
 
   {/* Widget 3 */}
   <div className="bg-white/5 p-5 rounded-2xl border border-border/40 hover:border-white/20 transition-colors group">
   <div className="flex justify-between items-start mb-4">
-  <div className="p-2 bg-blue-50 rounded-lg text-blue-400 ring-1 ring-blue-500/20">
+  <div className="p-2 bg-info/10 rounded-lg text-info ring-1 ring-info/20">
    <Layers className="h-5 w-5" />
   </div>
   <span className="text-muted-foreground hover:text-foreground transition-colors">
    <MoreHorizontal className="h-4 w-4" />
   </span>
   </div>
-  <div className="text-3xl font-bold text-white mb-1 tracking-tight">248</div>
+  <div className="text-3xl font-bold text-foreground mb-1 tracking-tight">248</div>
   <div className="text-muted-foreground text-xs font-medium">Actifs Protégés</div>
   </div>
 
@@ -152,7 +152,7 @@ export const LandingDashboardMockup: React.FC = () => {
    <TrendingUp className="h-5 w-5" />
   </div>
   </div>
-  <div className="text-3xl font-bold text-white mb-1 tracking-tight">98.2%</div>
+  <div className="text-3xl font-bold text-foreground mb-1 tracking-tight">98.2%</div>
   <div className="text-muted-foreground text-xs font-medium">SLA Disponibilité</div>
   </div>
   </div>
@@ -161,14 +161,15 @@ export const LandingDashboardMockup: React.FC = () => {
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-fr">
   <div className="lg:col-span-2 bg-white/5 rounded-2xl border border-border/40 p-6 flex flex-col relative overflow-hidden min-h-[250px]">
   {/* Grid lines background */}
-  <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
+  {/* Grid lines use subtle foreground color for theme awareness */}
+  <div className="absolute inset-0 bg-[linear-gradient(hsl(var(--foreground)/0.02)_1px,transparent_1px),linear-gradient(90deg,hsl(var(--foreground)/0.02)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
 
   <div className="flex justify-between items-center mb-6 relative z-decorator">
   {/* Heading hierarchy: h2 for chart title (follows h1) */}
-  <h2 className="font-bold text-white">Évolution de la maturité ISO 27001</h2>
+  <h2 className="font-bold text-foreground">Évolution de la maturité ISO 27001</h2>
   <div className="flex gap-4 text-xs">
    <span className="flex items-center gap-1.5 text-muted-foreground"><div className="w-2 h-2 rounded-full bg-muted"></div>Cible</span>
-   <span className="flex items-center gap-1.5 text-muted-foreground"><div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>Actuel</span>
+   <span className="flex items-center gap-1.5 text-muted-foreground"><div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.5)]"></div>Actuel</span>
   </div>
   </div>
   <div className="flex-1 flex items-end justify-between gap-4 px-2 pb-2 relative z-decorator">
@@ -179,7 +180,7 @@ export const LandingDashboardMockup: React.FC = () => {
    style={{ height: `${h}%` }}
    >
    <div
-   className="absolute bottom-0 w-full bg-gradient-to-t from-primary to-primary/80 rounded-t-sm shadow-[0_-5px_15px_-5px_rgba(99,102,241,0.5)]"
+   className="absolute bottom-0 w-full bg-gradient-to-t from-primary to-primary/80 rounded-t-sm shadow-[0_-5px_15px_-5px_hsl(var(--primary)/0.5)]"
    style={{ height: '4px', opacity: 0.8 }}
    ></div>
    </div>
@@ -191,11 +192,11 @@ export const LandingDashboardMockup: React.FC = () => {
   <div className="lg:col-span-1 bg-white/5 rounded-2xl border border-border/40 p-6 flex flex-col relative overflow-hidden min-h-[250px]">
   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/25 dark:bg-primary/60/15 blur-[50px] rounded-full pointer-events-none"></div>
 
-  <h3 className="font-bold text-white mb-6 relative z-decorator">Répartition</h3>
+  <h3 className="font-bold text-foreground mb-6 relative z-decorator">Répartition</h3>
   <div className="flex-1 flex items-center justify-center relative scale-110">
-  <div className="w-28 h-28 rounded-full border-[12px] border-green-500 border-r-brand-500 border-b-yellow-500 border-l-slate-800 -rotate-45 shadow-[0_0_20px_-5px_rgba(0,0,0,0.5)]"></div>
+  <div className="w-28 h-28 rounded-full border-[12px] border-success border-r-brand-500 border-b-warning border-l-muted -rotate-45 shadow-[0_0_20px_-5px_hsl(var(--foreground)/0.2)]"></div>
   <div className="absolute flex flex-col items-center">
-   <span className="text-2xl font-bold text-white">124</span>
+   <span className="text-2xl font-bold text-foreground">124</span>
    <span className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider">Total</span>
   </div>
   </div>
@@ -205,7 +206,7 @@ export const LandingDashboardMockup: React.FC = () => {
    <span className="font-bold text-muted-foreground/60">45%</span>
   </div>
   <div className="flex justify-between text-xs items-center">
-   <span className="flex items-center gap-2 text-muted-foreground"><div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>Clôturé</span>
+   <span className="flex items-center gap-2 text-muted-foreground"><div className="w-1.5 h-1.5 rounded-full bg-success"></div>Clôturé</span>
    <span className="font-bold text-muted-foreground/60">32%</span>
   </div>
   </div>

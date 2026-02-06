@@ -39,7 +39,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
  }
 
  return (
- <div className="flex flex-wrap gap-1 p-2 border-b border-border/40 bg-muted/50 dark:bg-white/5 rounded-t-xl">
+ <div className="flex flex-wrap gap-1 p-2 border-b border-border/40 bg-muted/50 rounded-t-xl">
  <ToolbarButton
  onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
  isActive={editor.isActive('heading', { level: 1 })}
@@ -55,7 +55,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
  <Heading2 className="h-4 w-4" />
  </ToolbarButton>
 
- <div className="w-px h-5 bg-muted dark:bg-white/10 mx-1 self-center" />
+ <div className="w-px h-5 bg-border mx-1 self-center" />
 
  <ToolbarButton
  onClick={() => editor.chain().focus().toggleBold().run()}
@@ -82,7 +82,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
  <UnderlineIcon className="h-4 w-4" />
  </ToolbarButton>
 
- <div className="w-px h-5 bg-muted dark:bg-white/10 mx-1 self-center" />
+ <div className="w-px h-5 bg-border mx-1 self-center" />
 
  <ToolbarButton
  onClick={() => editor.chain().focus().setTextAlign('left').run()}
@@ -106,7 +106,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
  <AlignRight className="h-4 w-4" />
  </ToolbarButton>
 
- <div className="w-px h-5 bg-muted dark:bg-white/10 mx-1 self-center" />
+ <div className="w-px h-5 bg-border mx-1 self-center" />
 
  <ToolbarButton
  onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -175,7 +175,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
  },
  editorProps: {
  attributes: {
- class: `prose dark:prose-invert max-w-none p-4 min-h-[150px] focus:outline-none text-foreground text-sm ${!isEditable ? 'opacity-70 cursor-not-allowed bg-muted/50 dark:bg-black/10' : ''}`,
+ class: `prose dark:prose-invert max-w-none p-4 min-h-[150px] focus:outline-none text-foreground text-sm ${!isEditable ? 'opacity-70 cursor-not-allowed bg-muted/50' : ''}`,
  },
  },
  });

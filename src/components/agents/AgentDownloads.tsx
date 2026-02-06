@@ -275,11 +275,11 @@ const AgentDownloads: React.FC = () => {
  <a
   key={key}
   href={info.downloadUrl}
-  className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-black/20 border border-border/60 dark:border-white/5 hover:border-primary/30 transition-colors group"
+  className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/60 dark:border-border/40 hover:border-primary/30 transition-colors group"
  >
   <div className="flex items-center gap-3">
   <div className="text-xs font-bold text-foreground">{info.displayName}</div>
-  <div className="text-[10px] text-muted-foreground uppercase tracking-tighter">{info.fileSize || 'Latest'}</div>
+  <div className="text-xs text-muted-foreground uppercase tracking-tighter">{info.fileSize || 'Latest'}</div>
   </div>
   <ExternalLink className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" />
  </a>
@@ -298,7 +298,7 @@ const AgentDownloads: React.FC = () => {
  <a
   key={idx}
   href={link.href}
-  className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-black/20 border border-border/60 dark:border-white/5 hover:border-primary/30 transition-colors group"
+  className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/60 dark:border-border/40 hover:border-primary/30 transition-colors group"
  >
   <div className="flex items-center gap-3">
   <div className="text-xs font-bold text-foreground">{link.label}</div>

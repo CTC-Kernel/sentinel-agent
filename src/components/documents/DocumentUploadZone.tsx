@@ -74,7 +74,7 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
  />
  <div className="flex flex-wrap gap-1.5 mt-2">
  {['PDF', 'DOC', 'DOCX', 'XLS', 'XLSX', 'TXT', 'JPG', 'PNG'].map(ext => (
-  <span key={ext || 'unknown'} className="px-2 py-0.5 bg-muted rounded text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+  <span key={ext || 'unknown'} className="px-2 py-0.5 bg-muted rounded text-xs font-bold text-muted-foreground uppercase tracking-wider">
   .{ext.toLowerCase()}
   </span>
  ))}

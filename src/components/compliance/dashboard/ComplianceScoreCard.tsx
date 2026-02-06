@@ -81,7 +81,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
   </svg>
   <div className="absolute inset-0 flex flex-col items-center justify-center">
   <span className="text-3xl md:text-4xl font-black text-foreground">{percentage.toFixed(0)}%</span>
-  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('compliance.dashboard.conformityLabel')}</span>
+  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('compliance.dashboard.conformityLabel')}</span>
   </div>
   </div>
   {/* Pulsing indicator */}
@@ -119,7 +119,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
  {metrics.verifiedByAgent > 0 && (
   <Tooltip content={t('compliance.dashboard.agentTooltip', { defaultValue: 'Contrôles vérifiés automatiquement par les agents Sentinel' })} position="top">
   <div className="glass-premium p-4 rounded-2xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all duration-300">
-  <p className="text-[10px] font-bold text-primary uppercase tracking-tighter mb-1.5 flex items-center gap-1.5">
+  <p className="text-xs font-bold text-primary uppercase tracking-tighter mb-1.5 flex items-center gap-1.5">
   <Bot className="w-3 h-3" />
   AGENT
   </p>
@@ -133,7 +133,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
   onClick={() => onFilterChange?.(CONTROL_STATUS.IMPLEMENTED)}
   className="glass-premium p-4 rounded-2xl border border-border/40 hover:bg-white/40 dark:hover:bg-muted dark:hover:bg-muted cursor-pointer transition-all duration-300 group/item w-full text-left"
  >
-  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter mb-1.5 group-hover/item:text-primary transition-colors">
+  <p className="text-xs font-bold text-muted-foreground uppercase tracking-tighter mb-1.5 group-hover/item:text-primary transition-colors">
   {t('compliance.dashboard.implemented')}
   </p>
   <div className="flex items-end justify-between">
@@ -147,7 +147,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
   onClick={() => onFilterChange?.(CONTROL_STATUS.PARTIAL)}
   className="glass-premium p-4 rounded-2xl border border-border/40 hover:bg-white/40 dark:hover:bg-muted dark:hover:bg-muted cursor-pointer transition-all duration-300 group/item w-full text-left"
  >
-  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter mb-1.5 group-hover/item:text-warning transition-colors">
+  <p className="text-xs font-bold text-muted-foreground uppercase tracking-tighter mb-1.5 group-hover/item:text-warning transition-colors">
   {t('compliance.dashboard.partial')}
   </p>
   <div className="flex items-end justify-between">
@@ -161,7 +161,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
   onClick={() => onFilterChange?.(CONTROL_STATUS.IN_PROGRESS)}
   className="glass-premium p-4 rounded-2xl border border-border/40 hover:bg-white/40 dark:hover:bg-muted dark:hover:bg-muted cursor-pointer transition-all duration-300 group/item w-full text-left"
  >
-  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter mb-1.5 group-hover/item:text-primary/70 transition-colors">
+  <p className="text-xs font-bold text-muted-foreground uppercase tracking-tighter mb-1.5 group-hover/item:text-primary/70 transition-colors">
   {t('compliance.dashboard.inProgress')}
   </p>
   <div className="flex items-end justify-between">

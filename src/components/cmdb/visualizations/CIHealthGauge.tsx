@@ -208,7 +208,7 @@ export const CIHealthGauge: React.FC<CIHealthGaugeProps> = ({
             >
               {dqsScore}
             </motion.span>
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+            <span className="text-xs uppercase tracking-wider text-muted-foreground font-bold">
               DQS
             </span>
           </div>
@@ -261,7 +261,7 @@ export const CIHealthGauge: React.FC<CIHealthGaugeProps> = ({
               >
                 <statusConfig.icon className={cn('h-4 w-4', statusConfig.color)} />
                 <div>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">
                     Status
                   </p>
                   <p className={cn('text-sm font-semibold', statusConfig.color)}>
@@ -277,7 +277,7 @@ export const CIHealthGauge: React.FC<CIHealthGaugeProps> = ({
                   'bg-background/50'
                 )}
               >
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">
                   Criticité
                 </p>
                 <p className={cn('text-sm font-semibold', critConfig.color)}>

@@ -16,6 +16,7 @@ import {
  AdditiveBlending,
 } from 'three';
 import type { VoxelNode, VoxelNodeType } from '@/types/voxel';
+import { VOXEL_AR_VR_COLORS, VOXEL_STATUS_COLORS_HEX, hexToString } from './voxelTheme';
 
 // ============================================================================
 // Types
@@ -110,7 +111,7 @@ const HighDetailAsset: React.FC<DetailGeometryProps> = ({ color, emissiveColor, 
  {[0, 0.25, 0.5].map((offset, i) => (
  <mesh key={i || 'unknown'} position={[(offset - 0.25) * 0.8, 0.25, 0.28]}>
  <boxGeometry args={[0.06, 0.04, 0.02]} />
- <meshBasicMaterial color="#22c55e" transparent opacity={0.9} />
+ <meshBasicMaterial color={hexToString(VOXEL_STATUS_COLORS_HEX.normal)} transparent opacity={0.9} />
  </mesh>
  ))}
  </group>
@@ -141,8 +142,8 @@ const HighDetailRisk: React.FC<DetailGeometryProps> = ({ color, emissiveColor, o
  >
  <coneGeometry args={[0.1, 0.3, 4]} />
  <meshPhysicalMaterial
- color="#f97316"
- emissive="#fb923c"
+ color={hexToString(VOXEL_STATUS_COLORS_HEX.warning)}
+ emissive={hexToString(VOXEL_STATUS_COLORS_HEX.warning)}
  emissiveIntensity={0.8}
  transparent
  opacity={opacity}
@@ -192,7 +193,7 @@ const HighDetailProject: React.FC<DetailGeometryProps> = ({ color, emissiveColor
  {/* Progress ring */}
  <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.25, 0]}>
  <ringGeometry args={[0.35, 0.48, 32, 1, 0, Math.PI * 1.5]} />
- <meshBasicMaterial color="#fcd34d" transparent opacity={0.8} side={2} />
+ <meshBasicMaterial color={hexToString(VOXEL_AR_VR_COLORS.selectionHighlight)} transparent opacity={0.8} side={2} />
  </mesh>
  </group>
 );
@@ -299,23 +300,27 @@ export const LODNode: React.FC<LODNodeProps> = React.memo(
  const groupRef = useRef<Group>(null);
  const [hovered, setHovered] = useState(false);
 
- // Calculate colors based on state
+ // Calculate colors based on state using theme constants
+ const selectionHighlight = hexToString(VOXEL_AR_VR_COLORS.selectionHighlight);
+ const hoverHighlight = hexToString(VOXEL_AR_VR_COLORS.controllerBeam);
+ const defaultColor = hexToString(VOXEL_AR_VR_COLORS.ambientLight);
+
  const { baseColor, emissiveColor, opacity } = useMemo(() => {
- let base = NODE_COLORS[node.type] || '#ffffff';
+ let base = NODE_COLORS[node.type] || defaultColor;
  let emissive = base;
 
  if (isSelected) {
- base = '#fde047';
- emissive = '#fbbf24';
+ base = selectionHighlight;
+ emissive = selectionHighlight;
  } else if (hovered) {
- base = '#4ecdc4';
- emissive = '#4ecdc4';
+ base = hoverHighlight;
+ emissive = hoverHighlight;
  }
 
  const op = isDimmed ? 0.4 : isHighlighted ? 0.95 : 0.9;
 
  return { baseColor: base, emissiveColor: emissive, opacity: op };
- }, [node.type, isSelected, isHighlighted, isDimmed, hovered]);
+ }, [node.type, isSelected, isHighlighted, isDimmed, hovered, defaultColor, selectionHighlight, hoverHighlight]);
 
  // Get label from node data
  const label = useMemo(() => {

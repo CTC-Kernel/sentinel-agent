@@ -125,9 +125,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
 
  const getActionColor = (action: string) => {
  switch (action) {
- case 'create': return 'bg-green-100 text-green-700 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800 dark:border-green-800';
- case 'update': return 'bg-blue-100 text-blue-700 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800 dark:border-blue-800';
- case 'delete': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800 dark:border-red-800';
+ case 'create': return 'bg-success-bg text-success-text border-success-border/50';
+ case 'update': return 'bg-info-bg text-info-text border-info-border/50';
+ case 'delete': return 'bg-error-bg text-error-text border-error-border/50';
  default: return 'bg-muted text-foreground border-border/40';
  }
  };
@@ -181,7 +181,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
   <div className={`p-4 rounded-3xl border transition-all
   ${selectedLog?.id === log.id
    ? 'bg-primary/10 border-primary/30 dark:border-primary/90 shadow-md ring-1 ring-primary/60'
-   : 'bg-white dark:bg-white/5 border-border/40 hover:border-primary/30 dark:hover:border-primary/90 hover:shadow-sm'}
+   : 'bg-card border-border/40 hover:border-primary/30 dark:hover:border-primary/90 hover:shadow-sm'}
   group-focus:ring-2 group-focus-visible:ring-primary group-focus:ring-offset-2 dark:group-focus:ring-offset-slate-900 rounded-3xl
   `}>
 
@@ -258,14 +258,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
    <div className="h-6 w-6 rounded-full bg-primary/15 dark:bg-primary flex items-center justify-center text-primary text-xs font-bold">
     {selectedLog.userName.charAt(0)}
    </div>
-   <span className="text-sm font-medium dark:text-white">{selectedLog.userName}</span>
+   <span className="text-sm font-medium text-foreground">{selectedLog.userName}</span>
    </div>
    </div>
    <div className="p-3 rounded-lg bg-muted/50">
    <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider block mb-1">Date</span>
    <div className="flex items-center gap-2">
    <Calendar className="h-4 w-4 text-muted-foreground" />
-   <span className="text-sm font-medium dark:text-white">
+   <span className="text-sm font-medium text-foreground">
     {format(selectedLog.timestamp, "d MMM yyyy, HH:mm", { locale: dateFnsLocale })}
    </span>
    </div>
@@ -288,21 +288,21 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
     variables: {
     light: {
     diffViewerBackground: 'transparent',
-    addedBackground: '#dcfce7', // green-100
-    addedColor: '#166534', // green-800
-    removedBackground: '#fee2e2', // red-100
-    removedColor: '#991b1b', // red-800
-    wordAddedBackground: '#bbf7d0',
-    wordRemovedBackground: '#fecaca',
+    addedBackground: 'hsl(var(--success-bg))',
+    addedColor: 'hsl(var(--success-text))',
+    removedBackground: 'hsl(var(--error-bg))',
+    removedColor: 'hsl(var(--error-text))',
+    wordAddedBackground: 'hsl(var(--success) / 0.3)',
+    wordRemovedBackground: 'hsl(var(--error) / 0.3)',
     },
     dark: {
     diffViewerBackground: 'transparent',
-    addedBackground: 'rgba(22, 163, 74, 0.2)',
-    addedColor: '#4ade80',
-    removedBackground: 'rgba(220, 38, 38, 0.2)',
-    removedColor: '#f87171',
-    wordAddedBackground: 'rgba(22, 163, 74, 0.4)',
-    wordRemovedBackground: 'rgba(220, 38, 38, 0.4)',
+    addedBackground: 'hsl(var(--success) / 0.2)',
+    addedColor: 'hsl(var(--success-text))',
+    removedBackground: 'hsl(var(--error) / 0.2)',
+    removedColor: 'hsl(var(--error-text))',
+    wordAddedBackground: 'hsl(var(--success) / 0.4)',
+    wordRemovedBackground: 'hsl(var(--error) / 0.4)',
     }
     }
     }}

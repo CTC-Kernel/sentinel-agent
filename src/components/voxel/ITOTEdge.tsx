@@ -25,6 +25,7 @@ import {
  isCrossSegmentConnection,
  type ConnectionType
 } from './voxelConstants';
+import { VOXEL_AR_VR_COLORS, VOXEL_STATUS_COLORS_HEX, hexToString } from './voxelTheme';
 
 // ============================================================================
 // Types
@@ -404,7 +405,7 @@ export const ITOTEdge: React.FC<ITOTEdgeProps> = React.memo(
  {animated && isCrossSegment && !isDimmed && (
  <FlowIndicator
  points={points}
- color={isHighlighted ? '#ffffff' : '#fbbf24'}
+ color={isHighlighted ? hexToString(VOXEL_AR_VR_COLORS.ambientLight) : hexToString(VOXEL_STATUS_COLORS_HEX.warning)}
  speed={0.3}
  />
  )}

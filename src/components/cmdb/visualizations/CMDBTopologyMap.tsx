@@ -207,7 +207,7 @@ const TopologyNodeComponent: React.FC<TopologyNodeComponentProps> = ({
 
         {/* Connection count badge */}
         {node.connections > 0 && (
-          <div className="absolute -bottom-1 -left-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-background border">
+          <div className="absolute -bottom-1 -left-1 px-1.5 py-0.5 rounded-full text-xs font-bold bg-background border">
             {node.connections}
           </div>
         )}

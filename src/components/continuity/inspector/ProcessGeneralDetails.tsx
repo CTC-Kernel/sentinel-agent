@@ -15,7 +15,7 @@ export const ProcessGeneralDetails: React.FC<ProcessGeneralDetailsProps> = ({ pr
  <div className="space-y-6 sm:space-y-8">
  {/* Metrics Cards */}
  <div className="grid grid-cols-2 gap-4">
- <div className="p-6 bg-white dark:bg-white/5 rounded-4xl border border-border/40 shadow-sm relative overflow-hidden group">
+ <div className="p-6 bg-card dark:bg-card/5 rounded-4xl border border-border/40 shadow-sm relative overflow-hidden group">
   <div className="absolute top-0 right-0 p-4 opacity-30 group-hover:opacity-20 transition-opacity">
   <Clock className="w-16 h-16" />
   </div>
@@ -25,7 +25,7 @@ export const ProcessGeneralDetails: React.FC<ProcessGeneralDetailsProps> = ({ pr
   </div>
   <span className="text-3xl font-black text-foreground">{process.rto}</span>
  </div>
- <div className="p-6 bg-white dark:bg-white/5 rounded-4xl border border-border/40 shadow-sm relative overflow-hidden group">
+ <div className="p-6 bg-card dark:bg-card/5 rounded-4xl border border-border/40 shadow-sm relative overflow-hidden group">
   <div className="absolute top-0 right-0 p-4 opacity-30 group-hover:opacity-20 transition-opacity">
   <Activity className="w-16 h-16" />
   </div>
@@ -48,9 +48,9 @@ export const ProcessGeneralDetails: React.FC<ProcessGeneralDetailsProps> = ({ pr
  <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">{t('continuity.recoveryPlan')}</h3>
  <div className="space-y-3">
   {process.recoveryTasks?.length ? process.recoveryTasks.map((task, i) => (
-  <div key={`dep-${i || 'unknown'}`} className="flex gap-4 p-4 bg-muted/50 dark:bg-black/20 rounded-3xl border border-border/40 dark:border-white/5 group hover:border-primary/30 dark:hover:border-primary/90 transition-colors">
+  <div key={`dep-${i || 'unknown'}`} className="flex gap-4 p-4 bg-muted/50 dark:bg-card/20 rounded-3xl border border-border/40 dark:border-border group hover:border-primary/30 dark:hover:border-primary/90 transition-colors">
   <div className="flex-none">
-  <div className="w-8 h-8 rounded-full bg-white dark:bg-white/10 flex items-center justify-center text-xs font-bold text-muted-foreground border border-border/40 shadow-sm">
+  <div className="w-8 h-8 rounded-full bg-card dark:bg-card/10 flex items-center justify-center text-xs font-bold text-muted-foreground border border-border/40 shadow-sm">
    {i + 1}
   </div>
   </div>

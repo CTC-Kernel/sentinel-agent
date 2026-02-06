@@ -24,6 +24,10 @@ import {
  Clock,
  ArrowRight,
 } from 'lucide-react';
+import {
+  VOXEL_STATUS_COLORS_CSS,
+  VOXEL_NODE_TYPE_COLORS_CSS,
+} from '../voxelTheme';
 
 // ============================================================================
 // Types
@@ -170,9 +174,9 @@ const ICON_MAP = {
 };
 
 const SEVERITY_COLORS = {
- critical: '#EF4444',
- high: '#F59E0B',
- medium: '#3B82F6',
+ critical: VOXEL_STATUS_COLORS_CSS.critical,
+ high: VOXEL_STATUS_COLORS_CSS.warning,
+ medium: VOXEL_NODE_TYPE_COLORS_CSS.asset,
 };
 
 // ============================================================================
@@ -189,25 +193,25 @@ const KPICard: React.FC<KPICardProps> = ({ kpi }) => {
  const TrendIcon = kpi.trend === 'up' ? TrendingUp : kpi.trend === 'down' ? TrendingDown : Minus;
 
  const getTrendColor = () => {
- if (!kpi.trend || kpi.trend === 'stable') return '#6B7280';
+ if (!kpi.trend || kpi.trend === 'stable') return 'hsl(var(--muted-foreground))';
  const isPositive = kpi.trend === 'up' ? kpi.higherIsBetter : !kpi.higherIsBetter;
- return isPositive ? '#10B981' : '#EF4444';
+ return isPositive ? VOXEL_STATUS_COLORS_CSS.normal : VOXEL_STATUS_COLORS_CSS.critical;
  };
 
  return (
  <div
  className="p-4 rounded-3xl"
  style={{
- background: 'rgba(30, 41, 59, 0.6)',
- border: '1px solid rgba(148, 163, 184, 0.1)',
+ background: 'var(--glass-bg-subtle, rgba(30, 41, 59, 0.6))',
+ border: '1px solid var(--glass-border, rgba(148, 163, 184, 0.1))',
  }}
  >
  <div className="flex items-center justify-between mb-2">
  <div
  className="w-10 h-10 rounded-lg flex items-center justify-center"
- style={{ background: 'rgba(59, 130, 246, 0.15)' }}
+ style={{ background: 'color-mix(in srgb, hsl(var(--chart-series-1)) 15%, transparent)' }}
  >
- <IconComponent className="w-5 h-5 text-blue-400" />
+ <IconComponent className="w-5 h-5" style={{ color: VOXEL_NODE_TYPE_COLORS_CSS.asset }} />
  </div>
  {kpi.trend && (
  <div className="flex items-center gap-1" style={{ color: getTrendColor() }}>
@@ -286,7 +290,7 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ label, score, color }) => {
  cy="50"
  r={radius}
  fill="none"
- stroke="rgba(148, 163, 184, 0.2)"
+ stroke="var(--glass-border, rgba(148, 163, 184, 0.2))"
  strokeWidth="8"
  />
  <circle
@@ -328,16 +332,16 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
 }) => {
  // Calculate risk score color
  const riskColor = useMemo(() => {
- if (riskScore <= 30) return '#10B981';
- if (riskScore <= 60) return '#F59E0B';
- return '#EF4444';
+ if (riskScore <= 30) return VOXEL_STATUS_COLORS_CSS.normal;
+ if (riskScore <= 60) return VOXEL_STATUS_COLORS_CSS.warning;
+ return VOXEL_STATUS_COLORS_CSS.critical;
  }, [riskScore]);
 
  // Calculate compliance score color
  const complianceColor = useMemo(() => {
- if (complianceScore >= 80) return '#10B981';
- if (complianceScore >= 60) return '#F59E0B';
- return '#EF4444';
+ if (complianceScore >= 80) return VOXEL_STATUS_COLORS_CSS.normal;
+ if (complianceScore >= 60) return VOXEL_STATUS_COLORS_CSS.warning;
+ return VOXEL_STATUS_COLORS_CSS.critical;
  }, [complianceScore]);
 
  // Format last updated
@@ -360,7 +364,7 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
  <div
  className={`fixed inset-x-0 bottom-0 z-modal ${className}`}
  style={{
- background: 'linear-gradient(to top, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.9) 60%, transparent)',
+ background: 'linear-gradient(to top, var(--glass-bg-intense, rgba(15, 23, 42, 0.98)), var(--glass-bg, rgba(15, 23, 42, 0.9)) 60%, transparent)',
  paddingTop: '60px',
  }}
  >
@@ -368,8 +372,8 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
  {/* Header */}
  <div className="flex items-center justify-between mb-4">
  <div className="flex items-center gap-3">
- <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
- <Activity className="w-5 h-5 text-white" />
+ <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+ <Activity className="w-5 h-5 text-primary-foreground" />
  </div>
  <div>
  <h2 className="text-lg font-semibold text-foreground">Executive Dashboard</h2>
@@ -384,7 +388,7 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
  {onViewDetails && (
  <button
  onClick={onViewDetails}
- className="px-4 py-2 text-sm text-blue-400 hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors flex items-center gap-2"
+ className="px-4 py-2 text-sm text-primary hover:text-primary/80 hover:bg-primary/10 rounded-lg transition-colors flex items-center gap-2"
  aria-label="View detailed dashboard"
  >
  View Details
@@ -399,8 +403,8 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
  <div
  className="col-span-3 p-4 rounded-3xl flex items-center justify-around"
  style={{
- background: 'rgba(30, 41, 59, 0.6)',
- border: '1px solid rgba(148, 163, 184, 0.1)',
+ background: 'var(--glass-bg-subtle, rgba(30, 41, 59, 0.6))',
+ border: '1px solid var(--glass-border, rgba(148, 163, 184, 0.1))',
  }}
  >
  <ScoreGauge label="Risk Score" score={riskScore} color={riskColor} />
@@ -419,16 +423,22 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
  <div
  className="col-span-3 rounded-3xl overflow-hidden"
  style={{
- background: 'rgba(30, 41, 59, 0.6)',
- border: '1px solid rgba(148, 163, 184, 0.1)',
+ background: 'var(--glass-bg-subtle, rgba(30, 41, 59, 0.6))',
+ border: '1px solid var(--glass-border, rgba(148, 163, 184, 0.1))',
  }}
  >
  <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between">
  <div className="flex items-center gap-2">
- <AlertTriangle className="w-4 h-4 text-amber-400" />
+ <AlertTriangle className="w-4 h-4" style={{ color: VOXEL_STATUS_COLORS_CSS.warning }} />
  <span className="text-sm font-medium text-foreground">Attention Required</span>
  </div>
- <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">
+ <span
+   className="text-xs px-2 py-0.5 rounded-full"
+   style={{
+     background: 'color-mix(in srgb, hsl(var(--chart-critical)) 20%, transparent)',
+     color: VOXEL_STATUS_COLORS_CSS.critical,
+   }}
+ >
  {criticalItems.length}
  </span>
  </div>

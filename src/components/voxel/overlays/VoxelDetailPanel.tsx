@@ -39,6 +39,11 @@ import {
 import type { VoxelNode, VoxelNodeType, VoxelNodeStatus } from '@/types/voxel';
 import { RISK_THRESHOLDS } from '@/constants/complianceConfig';
 import { useLocale } from '@/hooks/useLocale';
+import {
+  VOXEL_NODE_TYPE_COLORS_CSS,
+  VOXEL_STATUS_COLORS_CSS,
+  getVoxelPanelStyles,
+} from '../voxelTheme';
 
 // ============================================================================
 // Types
@@ -62,52 +67,52 @@ const TYPE_CONFIG: Record<VoxelNodeType, { icon: React.ReactNode; label: string;
  asset: {
  icon: <Server className="w-4 h-4" />,
  label: 'Actif',
- color: '#3B82F6',
+ color: VOXEL_NODE_TYPE_COLORS_CSS.asset,
  gradient: 'from-blue-500/20 to-blue-600/10',
  },
  risk: {
  icon: <AlertTriangle className="w-4 h-4" />,
  label: 'Risque',
- color: '#EF4444',
+ color: VOXEL_NODE_TYPE_COLORS_CSS.risk,
  gradient: 'from-red-500/20 to-red-600/10',
  },
  control: {
  icon: <Shield className="w-4 h-4" />,
  label: 'Contrôle',
- color: '#8B5CF6',
+ color: VOXEL_NODE_TYPE_COLORS_CSS.control,
  gradient: 'from-purple-500/20 to-purple-600/10',
  },
  audit: {
  icon: <ClipboardCheck className="w-4 h-4" />,
  label: 'Audit',
- color: '#F59E0B',
+ color: VOXEL_NODE_TYPE_COLORS_CSS.audit,
  gradient: 'from-amber-500/20 to-amber-600/10',
  },
  project: {
  icon: <FolderKanban className="w-4 h-4" />,
  label: 'Projet',
- color: '#10B981',
+ color: VOXEL_NODE_TYPE_COLORS_CSS.project,
  gradient: 'from-emerald-500/20 to-emerald-600/10',
  },
  incident: {
  icon: <Flame className="w-4 h-4" />,
  label: 'Incident',
- color: '#F97316',
+ color: VOXEL_NODE_TYPE_COLORS_CSS.incident,
  gradient: 'from-orange-500/20 to-orange-600/10',
  },
  supplier: {
  icon: <Building2 className="w-4 h-4" />,
  label: 'Fournisseur',
- color: '#6366F1',
+ color: VOXEL_NODE_TYPE_COLORS_CSS.supplier,
  gradient: 'from-primary/20 to-primary/10',
  },
 };
 
 const STATUS_CONFIG: Record<VoxelNodeStatus, { label: string; color: string; bgColor: string }> = {
- normal: { label: 'Normal', color: '#22C55E', bgColor: 'bg-emerald-500/10' },
- warning: { label: 'Attention', color: '#F59E0B', bgColor: 'bg-amber-50' },
- critical: { label: 'Critique', color: '#EF4444', bgColor: 'bg-red-50' },
- inactive: { label: 'Inactif', color: '#64748B', bgColor: 'bg-muted/500/10' },
+ normal: { label: 'Normal', color: VOXEL_STATUS_COLORS_CSS.normal, bgColor: 'bg-emerald-500/10' },
+ warning: { label: 'Attention', color: VOXEL_STATUS_COLORS_CSS.warning, bgColor: 'bg-amber-50' },
+ critical: { label: 'Critique', color: VOXEL_STATUS_COLORS_CSS.critical, bgColor: 'bg-red-50' },
+ inactive: { label: 'Inactif', color: VOXEL_STATUS_COLORS_CSS.inactive, bgColor: 'bg-muted/500/10' },
 };
 
 // ============================================================================
@@ -217,7 +222,7 @@ const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, im
  key={i || 'unknown'}
  className="flex-1 h-2 rounded-full transition-all"
  style={{
-  backgroundColor: i <= probability ? '#3B82F6' : '#334155',
+  backgroundColor: i <= probability ? VOXEL_NODE_TYPE_COLORS_CSS.asset : 'hsl(var(--muted))',
  }}
  />
  ))}
@@ -232,7 +237,7 @@ const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, im
  key={i || 'unknown'}
  className="flex-1 h-2 rounded-full transition-all"
  style={{
-  backgroundColor: i <= impact ? '#EF4444' : '#334155',
+  backgroundColor: i <= impact ? VOXEL_NODE_TYPE_COLORS_CSS.risk : 'hsl(var(--muted))',
  }}
  />
  ))}
@@ -698,7 +703,7 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
  {/* Backdrop */}
  <motion.div
  key="backdrop"
- className="absolute inset-0 z-voxel-ui bg-black/40 backdrop-blur-sm"
+ className="absolute inset-0 z-voxel-ui bg-background/80 backdrop-blur-sm"
  variants={backdropVariants}
  initial="hidden"
  animate="visible"
@@ -715,11 +720,8 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
  animate="visible"
  exit="exit"
  style={{
- background: 'rgba(15, 23, 42, 0.85)',
- backdropFilter: 'blur(24px)',
- WebkitBackdropFilter: 'blur(24px)',
- borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
- boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.4), -2px 0 8px rgba(0, 0, 0, 0.2)',
+ ...getVoxelPanelStyles(),
+ borderLeft: '1px solid var(--glass-border, rgba(148, 163, 184, 0.1))',
  }}
  role="dialog"
  aria-modal="true"

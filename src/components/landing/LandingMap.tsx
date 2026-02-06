@@ -59,18 +59,18 @@ export const LandingMap: React.FC<LandingMapProps> = memo(({ className }) => {
   }
   </Geographies>
 
-  {/* Animated "Pulse" Markers */}
+  {/* Animated "Pulse" Markers - SVG circles use Tailwind fill classes for theme awareness */}
   {visualThreats.map((marker, i) => (
   <Marker key={`marker-${i || 'unknown'}`} coordinates={marker.coordinates as [number, number]}>
-  <circle r={2} fill="#94a3b8" className="animate-ping opacity-75" />
-  <circle r={1} fill="#e2e8f0" />
+  <circle r={2} className="fill-muted-foreground/60 animate-ping opacity-75" />
+  <circle r={1} className="fill-muted-foreground/80" />
   </Marker>
   ))}
  </ZoomableGroup>
  </ComposableMap>
 
- {/* vignette overlay to blend edges - Reduced opacity for clarity */}
- <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,rgba(248,250,252,0)_100%)] dark:bg-[radial-gradient(circle_at_center,transparent_20%,rgba(2,6,23,0.8)_100%)] pointer-events-none" />
+ {/* vignette overlay to blend edges - Uses background CSS variable for theme awareness */}
+ <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,hsl(var(--background)/0)_100%)] dark:bg-[radial-gradient(circle_at_center,transparent_20%,hsl(var(--background)/0.8)_100%)] pointer-events-none" />
  </div>
  );
 });

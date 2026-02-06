@@ -357,7 +357,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
  max="730"
  value={customReviewDays}
  onChange={(e) => setCustomReviewDays(parseInt(e.target.value) || 180)}
- className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-muted/50 dark:bg-black/20 text-foreground focus:ring-2 focus-visible:ring-primary focus:border-primary"
+ className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-muted/50 text-foreground focus:ring-2 focus-visible:ring-primary focus:border-primary"
  />
  </div>
  )}
@@ -373,7 +373,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
  value={respondentEmail}
  onChange={(e) => setRespondentEmail(e.target.value)}
  placeholder={t('vendorAssessment.enterEmail', 'vendor@example.com')}
- className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-muted/50 dark:bg-black/20 text-foreground focus:ring-2 focus-visible:ring-primary focus:border-primary"
+ className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-muted/50 text-foreground focus:ring-2 focus-visible:ring-primary focus:border-primary"
  />
  <p className="text-xs text-muted-foreground">
  {t(

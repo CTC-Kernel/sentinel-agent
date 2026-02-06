@@ -29,7 +29,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
  };
 
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
  <div className="relative w-full max-w-5xl max-h-[90vh] bg-card rounded-2xl shadow-2xl overflow-hidden flex flex-col">
  {/* Header */}
  <div className="flex items-center justify-between p-4 border-b border-border/40">

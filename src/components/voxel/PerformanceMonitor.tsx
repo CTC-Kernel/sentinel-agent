@@ -123,9 +123,9 @@ const FPSGraph: React.FC<{ history: number[]; width: number; height: number }> =
 
  const color = useMemo(() => {
  const avg = history.reduce((a, b) => a + b, 0) / history.length || 60;
- if (avg >= 55) return '#22c55e';
- if (avg >= 30) return '#f59e0b';
- return '#ef4444';
+ if (avg >= 55) return 'hsl(var(--chart-low))';
+ if (avg >= 30) return 'hsl(var(--chart-high))';
+ return 'hsl(var(--chart-critical))';
  }, [history]);
 
  return (
@@ -282,10 +282,10 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
  style={{
  backgroundColor:
   fpsData.average >= 55
-  ? '#22c55e'
+  ? 'hsl(var(--chart-low))'
   : fpsData.average >= 30
-  ? '#f59e0b'
-  : '#ef4444',
+  ? 'hsl(var(--chart-high))'
+  : 'hsl(var(--chart-critical))',
  }}
  />
  <span className="text-sm font-medium">Performance</span>
@@ -435,9 +435,9 @@ export const PerformanceBadge: React.FC<PerformanceBadgeProps> = ({ nodeCount = 
  const fpsData = useFPS();
 
  const color = useMemo(() => {
- if (fpsData.average >= 55) return '#22c55e';
- if (fpsData.average >= 30) return '#f59e0b';
- return '#ef4444';
+ if (fpsData.average >= 55) return 'hsl(var(--chart-low))';
+ if (fpsData.average >= 30) return 'hsl(var(--chart-high))';
+ return 'hsl(var(--chart-critical))';
  }, [fpsData.average]);
 
  return (

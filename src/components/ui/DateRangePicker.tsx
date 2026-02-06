@@ -29,19 +29,19 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
  flex items-center gap-2 p-1 rounded-2xl border transition-all duration-200
  ${error
   ? 'border-destructive bg-destructive/5'
-  : 'border-border/40 bg-muted/50 dark:bg-black/20 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/60'
+  : 'border-border/40 bg-muted/50 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/60'
  }
  `}>
  <input aria-label="Date de début" value={startDate}
   type="date"
   onChange={(e) => onStartDateChange(e.target.value)}
-  className="flex-1 px-3 py-2.5 bg-transparent outline-none text-sm font-medium text-foreground rounded-3xl focus:bg-white dark:focus:bg-white/5 transition-colors"
+  className="flex-1 px-3 py-2.5 bg-transparent outline-none text-sm font-medium text-foreground rounded-3xl focus:bg-muted transition-colors"
  />
  <span className="text-muted-foreground font-medium">→</span>
  <input aria-label="Date de fin" value={endDate}
   type="date"
   onChange={(e) => onEndDateChange(e.target.value)}
-  className="flex-1 px-3 py-2.5 bg-transparent outline-none text-sm font-medium text-foreground rounded-3xl focus:bg-white dark:focus:bg-white/5 transition-colors"
+  className="flex-1 px-3 py-2.5 bg-transparent outline-none text-sm font-medium text-foreground rounded-3xl focus:bg-muted transition-colors"
  />
  </div>
  {error && (

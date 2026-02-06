@@ -229,15 +229,16 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
  <meta charset="UTF-8" />
  <title>Certificat - ${courseName}</title>
  <style>
+ :root { --primary: 221.2 83.2% 53.3%; --card: 0 0% 100%; --border: 214.3 31.8% 91.4%; }
  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f8fafc; }
- .cert { width: 800px; padding: 60px; border: 3px solid #1e40af; border-radius: 24px; background: white; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
- .cert h1 { font-size: 32px; color: #1e40af; margin-bottom: 8px; letter-spacing: 2px; text-transform: uppercase; }
+ .cert { width: 800px; padding: 60px; border: 3px solid hsl(var(--primary)); border-radius: 24px; background: hsl(var(--card)); text-align: center; box-shadow: 0 4px 24px hsl(var(--border)); }
+ .cert h1 { font-size: 32px; color: hsl(var(--primary)); margin-bottom: 8px; letter-spacing: 2px; text-transform: uppercase; }
  .cert .subtitle { color: #64748b; font-size: 14px; margin-bottom: 40px; }
  .cert .name { font-size: 28px; font-weight: 700; color: #0f172a; margin: 24px 0 8px; }
  .cert .course { font-size: 20px; color: #334155; margin-bottom: 32px; }
  .cert .date { color: #64748b; font-size: 14px; margin-top: 40px; }
- .cert .divider { width: 120px; height: 2px; background: #1e40af; margin: 24px auto; }
+ .cert .divider { width: 120px; height: 2px; background: hsl(var(--primary)); margin: 24px auto; }
  </style>
  </head>
  <body>

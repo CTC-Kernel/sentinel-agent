@@ -21,6 +21,7 @@ import {
  CRITICALITY_SIZES,
  CRITICALITY_GLOW
 } from './voxelConstants';
+import { VOXEL_STATUS_COLORS_HEX, VOXEL_AR_VR_COLORS, hexToString } from './voxelTheme';
 
 // Re-export for backward compatibility
 export { SEGMENT_COLORS, CRITICALITY_SIZES, CRITICALITY_GLOW } from './voxelConstants';
@@ -211,7 +212,7 @@ const OTCubeGeometry: React.FC<OTCubeGeometryProps> = React.memo(
  {/* Status indicator */}
  <mesh position={[size * 0.35, size * 0.35, size * 0.51]}>
  <boxGeometry args={[size * 0.12, size * 0.12, 0.02]} />
- <meshBasicMaterial color="#22c55e" transparent opacity={0.9} />
+ <meshBasicMaterial color={hexToString(VOXEL_STATUS_COLORS_HEX.normal)} transparent opacity={0.9} />
  </mesh>
  </group>
  );
@@ -327,8 +328,11 @@ export const OTNodeMesh: React.FC<OTNodeMeshProps> = React.memo(
 
  // Calculate colors
  const segmentColor = SEGMENT_COLORS[networkSegment];
- const baseColor = isSelected ? '#fde047' : hovered ? '#4ecdc4' : segmentColor;
- const emissiveColor = isSelected ? '#fbbf24' : hovered ? '#4ecdc4' : segmentColor;
+ const selectionHighlightColor = hexToString(VOXEL_AR_VR_COLORS.selectionHighlight);
+ const hoverColor = hexToString(VOXEL_AR_VR_COLORS.controllerBeam);
+ const baseColor = isSelected ? selectionHighlightColor : hovered ? hoverColor : segmentColor;
+ const selectionEmissive = hexToString(VOXEL_STATUS_COLORS_HEX.warning); // Amber emissive for selection
+ const emissiveColor = isSelected ? selectionEmissive : hovered ? hoverColor : segmentColor;
 
  // Calculate emissive intensity based on criticality
  const baseEmissive = CRITICALITY_GLOW[criticality];
@@ -495,7 +499,7 @@ export const OTNodeMesh: React.FC<OTNodeMeshProps> = React.memo(
  <Text
  position={[0, adjustedSize + 0.6, 0]}
  fontSize={0.28}
- color={isCritical ? '#ef4444' : '#9ca3af'}
+ color={isCritical ? hexToString(VOXEL_STATUS_COLORS_HEX.critical) : '#9ca3af'}
  anchorX="center"
  anchorY="middle"
  outlineWidth={0.04}

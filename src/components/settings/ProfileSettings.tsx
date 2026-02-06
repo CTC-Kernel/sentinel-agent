@@ -216,7 +216,7 @@ export const ProfileSettings: React.FC = () => {
    tabIndex={0}
    aria-label="Modifier la photo de profil"
   >
-   <Camera className="w-8 h-8 text-white drop-shadow-md transform group-hover:scale-110 transition-transform duration-300" />
+   <Camera className="w-8 h-8 text-foreground drop-shadow-md transform group-hover:scale-110 transition-transform duration-300" />
   </div>
   </div>
   <input
@@ -228,7 +228,7 @@ export const ProfileSettings: React.FC = () => {
   aria-label="Sélectionner une photo de profil"
   />
   {uploadingPhoto && (
-  <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+  <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-full">
    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
   </div>
   )}
@@ -487,7 +487,7 @@ export const ProfileSettings: React.FC = () => {
   <Button type="submit" disabled={savingProfile} className="min-w-[140px] h-12 text-base shadow-lg shadow-primary/20">
   {savingProfile ? (
    <div className="flex items-center gap-2">
-   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
    {t('common.saving')}
    </div>
   ) : (

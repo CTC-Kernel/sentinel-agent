@@ -12,7 +12,7 @@ import {
     Tooltip,
     ResponsiveContainer
 } from 'recharts';
-import { SENTINEL_PALETTE, CHART_STYLES, CHART_AXIS_COLORS, DONUT_COLORS } from '../../theme/chartTheme';
+import { SENTINEL_PALETTE, CHART_STYLES } from '../../theme/chartTheme';
 import { Document } from '../../types';
 import { SentinelPieActiveShapeProps } from '../../types/charts';
 import {

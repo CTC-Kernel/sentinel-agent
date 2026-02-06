@@ -4,7 +4,7 @@ export const HolographicShield = () => {
  return (
  <div className="relative w-96 h-96 flex items-center justify-center pointer-events-none select-none perspective-1000">
  {/* Outer Rotating Ring */}
- <div className="absolute inset-0 rounded-full border border-primary/30 border-t-brand-500/60 border-b-brand-500/60 animate-[spin_10s_linear_infinite] shadow-[0_0_30px_rgba(59,130,246,0.2)]"></div>
+ <div className="absolute inset-0 rounded-full border border-primary/30 border-t-brand-500/60 border-b-brand-500/60 animate-[spin_10s_linear_infinite] shadow-[0_0_30px_hsl(var(--primary)/0.2)]"></div>
 
  {/* Inner Counter-Rotating Ring */}
  <div className="absolute inset-8 rounded-full border border-dashed border-violet-400/30 animate-[spin_15s_linear_infinite_reverse]"></div>
@@ -13,21 +13,22 @@ export const HolographicShield = () => {
  <div className="absolute inset-20 rounded-full bg-primary/30 dark:bg-primary/60/20 blur-3xl animate-pulse"></div>
 
  {/* Center Emblem */}
- <div className="relative z-decorator p-8 rounded-full bg-card/50 backdrop-blur-md border border-primary/40 shadow-[0_0_50px_rgba(59,130,246,0.3)] animate-float">
- <Shield className="w-24 h-24 text-primary drop-shadow-[0_0_15px_rgba(59,130,246,0.8)]" />
+ <div className="relative z-decorator p-8 rounded-full bg-card/50 backdrop-blur-md border border-primary/40 shadow-[0_0_50px_hsl(var(--primary)/0.3)] animate-float">
+ <Shield className="w-24 h-24 text-primary drop-shadow-[0_0_15px_hsl(var(--primary)/0.8)]" />
  </div>
 
  {/* Scanning Effect (Horizontal Line) */}
  <div className="absolute inset-0 overflow-hidden rounded-full opacity-30">
- <div className="w-full h-[2px] bg-primary/20 blur-[1px] animate-[scanline_3s_linear_infinite] shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+ <div className="w-full h-[2px] bg-primary/20 blur-[1px] animate-[scanline_3s_linear_infinite] shadow-[0_0_10px_hsl(var(--primary)/0.5)]"></div>
  </div>
 
  {/* Orbital Particles */}
  <div className="absolute w-full h-full animate-[spin_8s_linear_infinite]">
- <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-primary/60 rounded-full shadow-[0_0_10px_rgba(59,130,246,1)]"></div>
+ <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-primary/60 rounded-full shadow-[0_0_10px_hsl(var(--primary))]"></div>
  </div>
  <div className="absolute w-[80%] h-[80%] animate-[spin_12s_linear_infinite_reverse]">
- <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-violet-400 rounded-full shadow-[0_0_10px_rgba(139,92,246,1)]"></div>
+ {/* Secondary accent particle uses violet for visual contrast */}
+<div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-violet-400 rounded-full shadow-[0_0_10px_hsl(var(--chart-5))]"></div>
  </div>
  </div>
  );

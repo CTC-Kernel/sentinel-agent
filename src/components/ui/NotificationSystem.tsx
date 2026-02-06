@@ -174,7 +174,7 @@ const NotificationContainer: React.FC = () => {
  animate={{ opacity: [0, 0.3, 0] }}
  transition={{ duration: 0.8, ease: 'easeOut' }}
  >
- <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12" />
+ <div className="absolute inset-0 bg-gradient-to-r from-transparent via-muted/30 to-transparent -skew-x-12" />
  </motion.div>
  )}
 
@@ -213,7 +213,7 @@ const NotificationContainer: React.FC = () => {
   notification.action?.onClick();
   removeNotification(notification.id);
   }}
-  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/20 dark:bg-black/20 hover:bg-white/30/60 backdrop-blur-sm border border-current/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-muted/20 hover:bg-muted/40 backdrop-blur-sm border border-current/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
  >
   {notification.action.label}
   <span aria-hidden="true">→</span>
@@ -223,7 +223,7 @@ const NotificationContainer: React.FC = () => {
 
  <button
  onClick={() => removeNotification(notification.id)}
- className="flex-shrink-0 p-1 hover:bg-black/5 dark:hover:bg-muted rounded transition-colors"
+ className="flex-shrink-0 p-1 hover:bg-muted rounded transition-colors"
  aria-label={`Fermer la notification: ${notification.title}`}
  >
  <X className="w-4 h-4 opacity-60" aria-hidden="true" />

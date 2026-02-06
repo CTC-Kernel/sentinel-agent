@@ -19,6 +19,10 @@ import {
  Filter,
  Layers,
 } from 'lucide-react';
+import {
+  VOXEL_STATUS_COLORS_CSS,
+  getVoxelPanelStyles,
+} from '../voxelTheme';
 
 // ============================================================================
 // Types
@@ -83,10 +87,10 @@ export interface VoxelFrameworkOverlayProps {
 const DEFAULT_FRAMEWORKS: ComplianceFramework[] = [];
 
 const STATUS_CONFIG = {
- compliant: { icon: CheckCircle, color: '#10B981', label: 'Conforme' },
- partial: { icon: AlertTriangle, color: '#F59E0B', label: 'Partiel' },
- nonCompliant: { icon: XCircle, color: '#EF4444', label: 'Non conforme' },
- notApplicable: { icon: Filter, color: '#6B7280', label: 'N/A' },
+ compliant: { icon: CheckCircle, color: VOXEL_STATUS_COLORS_CSS.normal, label: 'Conforme' },
+ partial: { icon: AlertTriangle, color: VOXEL_STATUS_COLORS_CSS.warning, label: 'Partiel' },
+ nonCompliant: { icon: XCircle, color: VOXEL_STATUS_COLORS_CSS.critical, label: 'Non conforme' },
+ notApplicable: { icon: Filter, color: 'hsl(var(--muted-foreground))', label: 'N/A' },
 };
 
 // ============================================================================
@@ -112,17 +116,17 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
 }) => {
  const scoreColor =
  framework.complianceScore >= 80
- ? '#10B981'
+ ? VOXEL_STATUS_COLORS_CSS.normal
  : framework.complianceScore >= 60
- ? '#F59E0B'
- : '#EF4444';
+ ? VOXEL_STATUS_COLORS_CSS.warning
+ : VOXEL_STATUS_COLORS_CSS.critical;
 
  return (
  <div
  className={`rounded-lg transition-all duration-200 cursor-pointer ${isSelected ? 'ring-2' : 'hover:bg-muted/30'
  }`}
  style={{
- background: isSelected ? `${framework.color}15` : 'rgba(30, 41, 59, 0.5)',
+ background: isSelected ? `${framework.color}15` : 'var(--glass-bg-subtle, rgba(30, 41, 59, 0.5))',
  borderColor: isSelected ? framework.color : 'transparent',
  // Ring color applied via CSS variable for Tailwind ring-2
  ['--tw-ring-color' as string]: framework.color,
@@ -283,6 +287,8 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
  [onFrameworkHover]
  );
 
+ const panelStyles = getVoxelPanelStyles();
+
  if (!visible) return null;
 
  return (
@@ -291,11 +297,7 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
  className="rounded-3xl overflow-hidden transition-all duration-300"
  style={{
  width: isMinimized ? '56px' : '280px',
- background: 'rgba(15, 23, 42, 0.95)',
- backdropFilter: 'blur(20px)',
- WebkitBackdropFilter: 'blur(20px)',
- border: '1px solid rgba(148, 163, 184, 0.1)',
- boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+ ...panelStyles,
  }}
  >
  {/* Header */}
@@ -303,7 +305,7 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
  <div className="flex items-center justify-between">
  {!isMinimized && (
  <div className="flex items-center gap-2">
- <Layers className="w-4 h-4 text-blue-400" />
+ <Layers className="w-4 h-4" style={{ color: VOXEL_STATUS_COLORS_CSS.normal }} />
  <span className="text-sm font-medium text-foreground">Référentiels</span>
  </div>
  )}
@@ -330,10 +332,10 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
  style={{
   color:
   overallStats.avgScore >= 80
-  ? '#10B981'
+  ? VOXEL_STATUS_COLORS_CSS.normal
   : overallStats.avgScore >= 60
-  ? '#F59E0B'
-  : '#EF4444',
+  ? VOXEL_STATUS_COLORS_CSS.warning
+  : VOXEL_STATUS_COLORS_CSS.critical,
  }}
  >
  {overallStats.avgScore}%

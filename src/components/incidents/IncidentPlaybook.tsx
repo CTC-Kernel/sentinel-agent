@@ -262,7 +262,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
    <h4 className={`font-bold text-sm ${isCompleted ? 'text-success' : isNext ? 'text-foreground' : 'text-muted-foreground'}`}>
    {step.title}
    </h4>
-   <span className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground bg-muted/10 px-2 py-1 rounded-lg border border-border/40">
+   <span className="text-xs uppercase font-bold tracking-widest text-muted-foreground bg-muted/10 px-2 py-1 rounded-lg border border-border/40">
    {step.type}
    </span>
    </div>
@@ -271,7 +271,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
    {step.description}
    </p>
 
-   <div className="flex items-center gap-4 mt-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+   <div className="flex items-center gap-4 mt-3 text-xs font-bold uppercase tracking-wider text-muted-foreground/60">
    <span className="flex items-center gap-1.5">
    <Clock className="h-3 w-3" /> {step.estimatedTime}
    </span>

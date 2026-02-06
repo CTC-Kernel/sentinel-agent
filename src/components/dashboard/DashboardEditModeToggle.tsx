@@ -56,7 +56,7 @@ function ResetConfirmDialog({
 
  return (
  <div
- className="fixed inset-0 z-modal flex items-center justify-center bg-black/50"
+ className="fixed inset-0 z-modal flex items-center justify-center bg-background/80 backdrop-blur-sm"
  >
  <button
  className="absolute inset-0 w-full h-full bg-transparent border-0 cursor-pointer"
@@ -110,7 +110,7 @@ function ResetConfirmDialog({
  onClick={onConfirm}
  className={cn(
  'px-4 py-2 rounded-lg text-sm font-medium',
- 'text-white bg-warning hover:bg-warning/80',
+ 'text-warning-foreground bg-warning hover:bg-warning/80',
  'transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2'
  )}
  >
@@ -216,7 +216,7 @@ export function DashboardEditModeToggle({
  'focus:ring-blue-500',
  ]
  : [
- 'border-border bg-white text-foreground shadow-sm',
+ 'border-border bg-card text-foreground shadow-sm',
  'dark:border-white/10 dark:bg-white/5 /60',
  'hover:bg-muted/50 dark:hover:bg-muted hover:border-border dark:hover:border-white/20',
  'focus:ring-slate-500',

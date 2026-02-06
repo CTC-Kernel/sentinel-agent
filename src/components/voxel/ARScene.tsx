@@ -14,8 +14,14 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { XR, ARButton, Interactive } from '@react-three/xr'; // Removed unused imports
 import { Vector3, Quaternion, Group } from 'three'; // Removed Color
 import { Html, Text, Billboard } from '@react-three/drei';
-import type { VoxelNode, VoxelNodeType } from '@/types/voxel';
+import type { VoxelNode, VoxelNodeType, VoxelNodeStatus } from '@/types/voxel';
 import { ARPlacement } from './ARPlacement';
+import {
+ VOXEL_NODE_TYPE_COLORS_HEX,
+ VOXEL_STATUS_COLORS_HEX,
+ VOXEL_AR_VR_COLORS,
+ hexToString
+} from './voxelTheme';
 // import { PlacementControls } from './ARPlacement';
 
 // ============================================================================
@@ -64,21 +70,23 @@ export interface ARNodeProps {
 // Constants
 // ============================================================================
 
+// Use theme-defined colors for node types
 const NODE_COLORS: Record<VoxelNodeType, string> = {
- asset: '#3b82f6',
- risk: '#ef4444',
- control: '#22c55e',
- incident: '#f43f5e',
- supplier: '#8b5cf6',
- project: '#f59e0b',
- audit: '#06b6d4',
+ asset: hexToString(VOXEL_NODE_TYPE_COLORS_HEX.asset),
+ risk: hexToString(VOXEL_NODE_TYPE_COLORS_HEX.risk),
+ control: hexToString(VOXEL_NODE_TYPE_COLORS_HEX.control),
+ incident: hexToString(VOXEL_NODE_TYPE_COLORS_HEX.incident),
+ supplier: hexToString(VOXEL_NODE_TYPE_COLORS_HEX.supplier),
+ project: hexToString(VOXEL_NODE_TYPE_COLORS_HEX.project),
+ audit: hexToString(VOXEL_NODE_TYPE_COLORS_HEX.audit),
 };
 
-const STATUS_COLORS: Record<string, string> = {
- critical: '#ef4444',
- warning: '#f59e0b',
- normal: '#22c55e',
- inactive: '#6b7280',
+// Use theme-defined colors for status
+const STATUS_COLORS: Record<VoxelNodeStatus, string> = {
+ critical: hexToString(VOXEL_STATUS_COLORS_HEX.critical),
+ warning: hexToString(VOXEL_STATUS_COLORS_HEX.warning),
+ normal: hexToString(VOXEL_STATUS_COLORS_HEX.normal),
+ inactive: hexToString(VOXEL_STATUS_COLORS_HEX.inactive),
 };
 
 // ============================================================================
@@ -97,11 +105,11 @@ const ARNode: React.FC<ARNodeProps> = ({
 
  // Calculate colors
  const color = useMemo(() => {
- if (isSelected) return '#fde047';
- return NODE_COLORS[node.type] || '#ffffff';
+ if (isSelected) return hexToString(VOXEL_AR_VR_COLORS.selectionHighlight);
+ return NODE_COLORS[node.type] || hexToString(VOXEL_AR_VR_COLORS.ambientLight);
  }, [node.type, isSelected]);
 
- const statusColor = STATUS_COLORS[node.status] || '#ffffff';
+ const statusColor = STATUS_COLORS[node.status as VoxelNodeStatus] || hexToString(VOXEL_AR_VR_COLORS.ambientLight);
 
  // Get node label
  const label = useMemo(() => {
@@ -327,7 +335,7 @@ const AREdges: React.FC<AREdgesProps> = ({ nodes, scaleFactor }) => {
  args={[linePoints, 3]}
  />
  </bufferGeometry>
- <lineBasicMaterial color="#475569" transparent opacity={0.4} linewidth={1} />
+ <lineBasicMaterial color={hexToString(VOXEL_AR_VR_COLORS.grid)} transparent opacity={0.4} linewidth={1} />
  </lineSegments>
  );
 };

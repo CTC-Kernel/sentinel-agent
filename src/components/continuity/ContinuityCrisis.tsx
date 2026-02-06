@@ -62,7 +62,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
  <div className={`p-8 rounded-4xl border-2 transition-all duration-500 overflow-hidden relative ${crisisActive ? 'bg-red-950/30 border-red-2000 shadow-[0_0_50px_rgba(239,68,68,0.2)]' : 'glass-premium border-border/40'}`}>
  <div className="relative z-decorator flex flex-col md:flex-row items-center justify-between gap-6">
   <div className="flex items-center gap-6">
-  <div className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-lg ${crisisActive ? 'bg-red-600 text-white animate-pulse' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20'}`}>
+  <div className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-lg ${crisisActive ? 'bg-red-600 text-primary-foreground animate-pulse' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20'}`}>
   {crisisActive ? <AlertTriangle className="w-10 h-10" /> : <ShieldAlert className="w-10 h-10" />}
   </div>
   <div>
@@ -95,8 +95,8 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
   <Button
    onClick={handleActivateCrisis}
    className={`h-16 px-8 text-lg font-bold rounded-2xl transition-all ${activationStep === 0 ? 'bg-foreground text-background dark:text-black' :
-   activationStep === 1 ? 'bg-amber-500 hover:bg-amber-600 text-white' :
-   'bg-red-600 hover:bg-red-700 text-white shadow-xl shadow-red-500/30 animate-pulse'
+   activationStep === 1 ? 'bg-amber-500 hover:bg-amber-600 text-primary-foreground' :
+   'bg-red-600 hover:bg-red-700 text-primary-foreground shadow-xl shadow-red-500/30 animate-pulse'
    }`}
   >
    {activationStep === 0 && <span className="flex items-center gap-2"><Megaphone className="w-5 h-5" /> {t('continuity.crisis.reportIncident', { defaultValue: 'Signaler Incident' })}</span>}
@@ -129,7 +129,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
   </h3>
   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
   {crisisTeam.map(member => (
-  <div key={member.uid || 'unknown'} className="flex items-center p-4 bg-muted/50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-white/5">
+  <div key={member.uid || 'unknown'} className="flex items-center p-4 bg-muted/50 dark:bg-card/5 rounded-3xl border border-border/40 dark:border-border">
   <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground mr-3">
    <User className="w-5 h-5" />
   </div>

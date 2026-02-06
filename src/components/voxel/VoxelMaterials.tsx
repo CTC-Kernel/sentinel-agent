@@ -1,10 +1,17 @@
 import React from 'react';
 import { Edges } from '@react-three/drei';
 import { DoubleSide } from 'three';
+import { hexToString, VOXEL_AR_VR_COLORS } from './voxelTheme';
 
 export const EdgesWithColor: React.FC<{ color: string }> = React.memo(({ color }) => (
  <Edges threshold={15} color={color} opacity={0.4} transparent />
 ));
+
+// Theme-based color constants for Three.js materials
+const GLASS_DIMMED_COLOR = '#0f172a';
+const GLASS_HIGHLIGHT_COLOR = hexToString(VOXEL_AR_VR_COLORS.ambientLight); // White
+const GLASS_DIMMED_EMISSIVE = '#000000';
+const GLASS_ATTENUATION_COLOR = hexToString(VOXEL_AR_VR_COLORS.ambientLight); // White
 
 export const GlassMaterial: React.FC<React.ComponentProps<'meshPhysicalMaterial'> & { isDimmed?: boolean; isHighlighted?: boolean }> = React.memo(({ color, emissive, isDimmed, isHighlighted, ...props }) => {
  // Premium "Cyber-Glass" aesthetics
@@ -16,8 +23,8 @@ export const GlassMaterial: React.FC<React.ComponentProps<'meshPhysicalMaterial'
 
  return (
  <meshPhysicalMaterial
- color={isDimmed ? '#0f172a' : isHighlighted ? '#ffffff' : color}
- emissive={isDimmed ? '#000000' : isHighlighted ? color : emissive}
+ color={isDimmed ? GLASS_DIMMED_COLOR : isHighlighted ? GLASS_HIGHLIGHT_COLOR : color}
+ emissive={isDimmed ? GLASS_DIMMED_EMISSIVE : isHighlighted ? color : emissive}
  emissiveIntensity={isDimmed ? 0 : isHighlighted ? 2.5 : 0.8} // Higher emissive for "neon" feel
  roughness={roughness}
  metalness={metalness}
@@ -26,7 +33,7 @@ export const GlassMaterial: React.FC<React.ComponentProps<'meshPhysicalMaterial'
  ior={1.7} // Higher index of refraction for more "crystal" look
  clearcoat={isDimmed ? 0 : 1}
  clearcoatRoughness={0.1}
- attenuationColor={typeof color === 'string' ? color : "#ffffff"} // Tint the glass volume
+ attenuationColor={typeof color === 'string' ? color : GLASS_ATTENUATION_COLOR} // Tint the glass volume
  attenuationDistance={10}
  transparent
  opacity={opacity}

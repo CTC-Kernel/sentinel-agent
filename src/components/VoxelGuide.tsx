@@ -23,14 +23,14 @@ const GUIDE_SECTIONS = [
   <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center mb-2">
   <Network className="w-4 h-4 text-blue-400" />
   </div>
-  <h4 className="text-sm font-medium text-white mb-1">Vue Unifiée</h4>
+  <h4 className="text-sm font-medium text-foreground mb-1">Vue Unifiée</h4>
   <p className="text-xs text-muted-foreground">Tous vos actifs, risques, projets et contrôles dans une seule vue</p>
   </div>
   <div className="p-3 rounded-3xl bg-purple-500/10 border border-purple-500/20">
   <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center mb-2">
   <Activity className="w-4 h-4 text-purple-400" />
   </div>
-  <h4 className="text-sm font-medium text-white mb-1">Temps Réel</h4>
+  <h4 className="text-sm font-medium text-foreground mb-1">Temps Réel</h4>
   <p className="text-xs text-muted-foreground">Visualisez les connexions et dépendances instantanément</p>
   </div>
  </div>
@@ -45,30 +45,30 @@ const GUIDE_SECTIONS = [
  content: (
  <div className="space-y-4">
  <div className="grid gap-3">
-  <div className="flex items-center gap-3 p-3 rounded-3xl bg-white/5 border border-border/40">
+  <div className="flex items-center gap-3 p-3 rounded-3xl bg-muted/50 border border-border/40">
   <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
   <MousePointer className="w-5 h-5 text-muted-foreground" />
   </div>
   <div>
-  <h4 className="text-sm font-medium text-white">Clic gauche + Glisser</h4>
+  <h4 className="text-sm font-medium text-foreground">Clic gauche + Glisser</h4>
   <p className="text-xs text-muted-foreground">Rotation de la vue (orbite)</p>
   </div>
   </div>
-  <div className="flex items-center gap-3 p-3 rounded-3xl bg-white/5 border border-border/40">
+  <div className="flex items-center gap-3 p-3 rounded-3xl bg-muted/50 border border-border/40">
   <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground text-xs font-bold">
   Scroll
   </div>
   <div>
-  <h4 className="text-sm font-medium text-white">Molette de souris</h4>
+  <h4 className="text-sm font-medium text-foreground">Molette de souris</h4>
   <p className="text-xs text-muted-foreground">Zoom avant/arrière</p>
   </div>
   </div>
-  <div className="flex items-center gap-3 p-3 rounded-3xl bg-white/5 border border-border/40">
+  <div className="flex items-center gap-3 p-3 rounded-3xl bg-muted/50 border border-border/40">
   <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground text-xs font-bold">
   Clic
   </div>
   <div>
-  <h4 className="text-sm font-medium text-white">Clic sur un nœud</h4>
+  <h4 className="text-sm font-medium text-foreground">Clic sur un nœud</h4>
   <p className="text-xs text-muted-foreground">Sélectionne et centre la vue sur l'élément</p>
   </div>
   </div>
@@ -94,10 +94,10 @@ const GUIDE_SECTIONS = [
   { label: 'Incidents', color: 'bg-red-500', desc: 'Événements de sécurité' },
   { label: 'Fournisseurs', color: 'bg-amber-500', desc: 'Tiers et partenaires' },
   ].map(item => (
-  <div key={item.label || 'unknown'} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+  <div key={item.label || 'unknown'} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
   <span className={`w-3 h-3 rounded-full ${item.color}`} />
   <div>
-  <span className="text-xs font-medium text-white">{item.label}</span>
+  <span className="text-xs font-medium text-foreground">{item.label}</span>
   <p className="text-[11px] text-muted-foreground">{item.desc}</p>
   </div>
   </div>
@@ -166,9 +166,9 @@ const GUIDE_SECTIONS = [
   { icon: Maximize2, label: 'Plein écran (F)', desc: 'Mode immersif' },
   { icon: Camera, label: 'Capture (S)', desc: 'Télécharger une image' },
   ].map(item => (
-  <div key={item.label || 'unknown'} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+  <div key={item.label || 'unknown'} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
   <item.icon className="w-4 h-4 text-muted-foreground" />
-  <span className="text-xs font-medium text-white w-24">{item.label}</span>
+  <span className="text-xs font-medium text-foreground w-24">{item.label}</span>
   <span className="text-xs text-muted-foreground">{item.desc}</span>
   </div>
   ))}
@@ -186,7 +186,7 @@ const GUIDE_SECTIONS = [
  <div className="p-3 rounded-3xl bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/20">
   <div className="flex items-center gap-2 mb-2">
   <AlertTriangle className="w-5 h-5 text-orange-400" />
-  <h4 className="text-sm font-semibold text-white">Panneau Anomalies</h4>
+  <h4 className="text-sm font-semibold text-foreground">Panneau Anomalies</h4>
   </div>
   <p className="text-xs text-muted-foreground">
   Détecte automatiquement les configurations anormales : actifs sans contrôles, risques non traités, fournisseurs sans évaluation...
@@ -195,7 +195,7 @@ const GUIDE_SECTIONS = [
  <div className="p-3 rounded-3xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
   <div className="flex items-center gap-2 mb-2">
   <Zap className="w-5 h-5 text-purple-400" />
-  <h4 className="text-sm font-semibold text-white">Blast Radius</h4>
+  <h4 className="text-sm font-semibold text-foreground">Blast Radius</h4>
   </div>
   <p className="text-xs text-muted-foreground">
   Simulez l'impact d'une défaillance. Sélectionnez un nœud et visualisez tous les éléments qui seraient affectés par effet de cascade.
@@ -204,7 +204,7 @@ const GUIDE_SECTIONS = [
  <div className="p-3 rounded-3xl bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20">
   <div className="flex items-center gap-2 mb-2">
   <Clock className="w-5 h-5 text-cyan-400" />
-  <h4 className="text-sm font-semibold text-white">Time Machine</h4>
+  <h4 className="text-sm font-semibold text-foreground">Time Machine</h4>
   </div>
   <p className="text-xs text-muted-foreground">
   Voyagez dans le temps pour voir l'évolution de votre posture de sécurité. Comparez les états passés et présents.
@@ -229,9 +229,9 @@ const GUIDE_SECTIONS = [
   { key: 'L', action: 'Ouvrir le menu des calques' },
   { key: 'S', action: 'Capturer l\'écran' },
  ].map(item => (
-  <div key={item.key || 'unknown'} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+  <div key={item.key || 'unknown'} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
   <span className="text-xs text-muted-foreground">{item.action}</span>
-  <kbd className="px-2 py-1 rounded bg-muted text-xs font-mono text-white">{item.key}</kbd>
+  <kbd className="px-2 py-1 rounded bg-muted text-xs font-mono text-foreground">{item.key}</kbd>
   </div>
  ))}
  </div>
@@ -248,7 +248,7 @@ const GUIDE_SECTIONS = [
   <div className="flex items-center gap-3 mb-3">
   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
   <span className="text-sm text-muted-foreground">Rechercher un nœud...</span>
-  <kbd className="ml-auto px-2 py-0.5 rounded bg-white/10 text-[11px] text-muted-foreground">
+  <kbd className="ml-auto px-2 py-0.5 rounded bg-muted text-[11px] text-muted-foreground">
   <Command className="w-3 h-3 inline" />K
   </kbd>
   </div>
@@ -305,9 +305,9 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
   className="relative w-full max-w-lg glass-premium border border-border/40 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl"
   >
   {/* Progress */}
-  <div className="absolute top-0 left-0 right-0 h-1 bg-white/5">
+  <div className="absolute top-0 left-0 right-0 h-1 bg-muted/50">
   <motion.div
-  className="h-full bg-gradient-to-r from-indigo-500 to-purple-500"
+  className="h-full bg-gradient-to-r from-primary to-primary/60"
   initial={{ width: 0 }}
   animate={{ width: `${((currentSection + 1) / GUIDE_SECTIONS.length) * 100}%` }}
   transition={{ duration: 0.3 }}
@@ -318,17 +318,17 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
   <div className="p-5 border-b border-border/40">
   <div className="flex items-center justify-between">
   <div className="flex items-center gap-3">
-   <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-   <Icon className="w-5 h-5 text-white" />
+   <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+   <Icon className="w-5 h-5 text-primary-foreground" />
    </div>
    <div>
-   <h2 className="text-base font-bold text-white">{section.title}</h2>
+   <h2 className="text-base font-bold text-foreground">{section.title}</h2>
    <p className="text-xs text-muted-foreground">{section.subtitle}</p>
    </div>
   </div>
   <button
    onClick={onClose}
-   className="p-2 rounded-lg hover:bg-muted text-white/50 hover:text-foreground transition-colors"
+   className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
   >
    <X className="w-5 h-5" />
   </button>
@@ -358,8 +358,8 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
    key={idx || 'unknown'}
    onClick={() => setCurrentSection(idx)}
    className={`w-2 h-2 rounded-full transition-all ${idx === currentSection
-   ? 'w-6 bg-indigo-500'
-   : 'bg-white/20 hover:bg-white/40'
+   ? 'w-6 bg-primary'
+   : 'bg-muted hover:bg-muted-foreground/40'
    }`}
    />
   ))}
@@ -369,14 +369,14 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
    onClick={() => setCurrentSection(prev => Math.max(prev - 1, 0))}
    disabled={currentSection === 0}
    aria-label="Section précédente"
-   className="min-w-[44px] min-h-[44px] p-2 rounded-lg bg-white/5 hover:bg-muted text-white disabled:bg-muted/50 disabled:text-muted-foreground disabled:cursor-not-allowed transition-all"
+   className="min-w-[44px] min-h-[44px] p-2 rounded-lg bg-muted/50 hover:bg-muted text-foreground disabled:bg-muted/50 disabled:text-muted-foreground disabled:cursor-not-allowed transition-all"
   >
    <ChevronLeft className="w-5 h-5" aria-hidden="true" />
   </button>
   {currentSection === GUIDE_SECTIONS.length - 1 ? (
    <button
    onClick={onClose}
-   className="px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium hover:shadow-lg hover:shadow-indigo-500/30 transition-all"
+   className="px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-primary/60 text-primary-foreground text-sm font-medium hover:shadow-lg hover:shadow-primary/30 transition-all"
    >
    Commencer
    </button>
@@ -384,7 +384,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
    <button
    onClick={() => setCurrentSection(prev => Math.min(prev + 1, GUIDE_SECTIONS.length - 1))}
    aria-label="Section suivante"
-   className="min-w-[44px] min-h-[44px] p-2 rounded-lg bg-white/5 hover:bg-muted text-white transition-all"
+   className="min-w-[44px] min-h-[44px] p-2 rounded-lg bg-muted/50 hover:bg-muted text-foreground transition-all"
    >
    <ChevronRight className="w-5 h-5" aria-hidden="true" />
    </button>

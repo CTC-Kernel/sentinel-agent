@@ -56,7 +56,7 @@ export const SortableWidget = ({ widget, isEditing, children, onRemove }: Sortab
   {...listeners}
   className="glass-premium absolute top-4 left-1/2 -translate-x-1/2 z-20 cursor-grab active:cursor-grabbing p-2 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all border border-border/40"
   >
-  <div className="absolute inset-0 bg-white/50 dark:bg-black/50 rounded-full blur-md -z-10" />
+  <div className="absolute inset-0 bg-card/50 rounded-full blur-md -z-10" />
   <GripVertical className="w-5 h-5 text-muted-foreground" />
   </div>
 
@@ -64,7 +64,7 @@ export const SortableWidget = ({ widget, isEditing, children, onRemove }: Sortab
   <Tooltip content="Supprimer ce widget" position="top">
   <button
   onClick={(e) => { e.stopPropagation(); onRemove(widget.id); }}
-  className="absolute -top-2 -right-2 z-20 p-1.5 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 hover:scale-110 active:scale-90 transition-all border-2 border-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500"
+  className="absolute -top-2 -right-2 z-20 p-1.5 bg-destructive text-destructive-foreground rounded-full shadow-lg hover:bg-destructive/90 hover:scale-110 active:scale-90 transition-all border-2 border-background focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-destructive"
   >
   <X className="w-4 h-4" />
   </button>

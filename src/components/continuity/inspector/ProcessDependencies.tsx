@@ -23,7 +23,7 @@ export const ProcessDependencies: React.FC<ProcessDependenciesProps> = ({ linked
  </h3>
  <div className="flex flex-wrap gap-2">
   {linkedAssets.length > 0 ? linkedAssets.map(a => (
-  <div key={a.id || 'unknown'} className="p-3 bg-white dark:bg-white/5 rounded-3xl border border-border/40 shadow-sm flex items-center gap-2">
+  <div key={a.id || 'unknown'} className="p-3 bg-card dark:bg-card/5 rounded-3xl border border-border/40 shadow-sm flex items-center gap-2">
   <div className="w-2 h-2 rounded-full bg-blue-500"></div>
   <span className="text-sm font-medium text-foreground">{a.name}</span>
   </div>
@@ -38,7 +38,7 @@ export const ProcessDependencies: React.FC<ProcessDependenciesProps> = ({ linked
  </h3>
  <div className="flex flex-wrap gap-2">
   {linkedSuppliers.length > 0 ? linkedSuppliers.map(s => (
-  <div key={s.id || 'unknown'} className="p-3 bg-white dark:bg-white/5 rounded-3xl border border-border/40 shadow-sm flex items-center gap-2">
+  <div key={s.id || 'unknown'} className="p-3 bg-card dark:bg-card/5 rounded-3xl border border-border/40 shadow-sm flex items-center gap-2">
   <div className="w-2 h-2 rounded-full bg-purple-500"></div>
   <span className="text-sm font-medium text-foreground">{s.name}</span>
   </div>
@@ -53,7 +53,7 @@ export const ProcessDependencies: React.FC<ProcessDependenciesProps> = ({ linked
  </h3>
  <div className="grid gap-3">
   {linkedRisks.length > 0 ? linkedRisks.map(r => (
-  <div key={r.id || 'unknown'} className="flex justify-between items-center p-4 bg-white dark:bg-white/5 rounded-3xl border border-border/40 shadow-sm">
+  <div key={r.id || 'unknown'} className="flex justify-between items-center p-4 bg-card dark:bg-card/5 rounded-3xl border border-border/40 shadow-sm">
   <span className="text-sm font-bold text-foreground">{r.threat}</span>
   <Badge status={r.score >= RISK_THRESHOLDS.CRITICAL ? 'error' : r.score >= RISK_THRESHOLDS.HIGH ? 'warning' : 'info'}>
   {t('common.score', { defaultValue: 'Score' })}: {r.score}/25

@@ -208,8 +208,8 @@ export const PartnerManagement: React.FC = () => {
 
   <div className="flex items-start gap-4 mb-4">
    <div className={`w-12 h-12 rounded-3xl flex items-center justify-center flex-shrink-0 ${partner.status === 'ACTIVE'
-   ? 'bg-gradient-to-br from-success-500 to-success-600 text-white shadow-lg shadow-success-500/20'
-   : 'bg-gradient-to-br from-warning-400 to-warning-500 text-white shadow-lg shadow-warning-500/20'
+   ? 'bg-gradient-to-br from-success-500 to-success-600 text-success-foreground shadow-lg shadow-success-500/20'
+   : 'bg-gradient-to-br from-warning-400 to-warning-500 text-warning-foreground shadow-lg shadow-warning-500/20'
    }`}>
    {partner.status === 'ACTIVE' ? <ShieldCheck className="w-6 h-6" /> : <Clock className="w-6 h-6" />}
    </div>
@@ -237,7 +237,7 @@ export const PartnerManagement: React.FC = () => {
    {partner.status === 'ACTIVE' && (
    <div className="p-3 bg-muted/50 rounded-3xl text-xs text-muted-foreground border border-border/40 dark:border-white/5">
    <span className="font-medium text-foreground text-muted-foreground">{t('settings.partners.certifierId', { defaultValue: 'ID Certifieur' })}:</span>
-   <code className="ml-2 px-1 py-0.5 bg-white dark:bg-black/20 rounded border border-border/40 font-mono">
+   <code className="ml-2 px-1 py-0.5 bg-card rounded border border-border/40 font-mono">
    {partner.certifierId?.substring(0, 12)}...
    </code>
    </div>
@@ -263,7 +263,7 @@ export const PartnerManagement: React.FC = () => {
   initial={{ opacity: 0 }}
   animate={{ opacity: 1 }}
   exit={{ opacity: 0 }}
-  className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+  className="absolute inset-0 bg-background/80 backdrop-blur-sm"
   onClick={() => setIsInviteOpen(false)}
   />
   <motion.div

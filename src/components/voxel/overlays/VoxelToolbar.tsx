@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useVoxelStore } from '@/stores/voxelStore';
 import type { VoxelUIState } from '@/types/voxel';
+import { getVoxelPanelStyles } from '../voxelTheme';
 
 // ============================================================================
 // Types
@@ -69,8 +70,8 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
  onClick={onClick}
  disabled={disabled}
  className={`p-2 rounded-lg transition-colors ${active
- ? 'bg-blue-500/20 text-blue-400'
- : 'text-muted-foreground hover:text-muted-foreground/60 hover:bg-muted/50'
+ ? 'bg-primary/20 text-primary'
+ : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
  } ${disabled ? 'opacity-70 cursor-not-allowed' : ''}`}
  title={label}
  aria-label={label}
@@ -124,13 +125,7 @@ export const VoxelToolbar: React.FC<VoxelToolbarProps> = ({
  >
  <div
  className="flex items-center gap-1 p-1.5 rounded-2xl"
- style={{
- background: 'rgba(15, 23, 42, 0.9)',
- backdropFilter: 'blur(24px)',
- WebkitBackdropFilter: 'blur(24px)',
- border: '1px solid rgba(255, 255, 255, 0.1)',
- boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)',
- }}
+ style={getVoxelPanelStyles()}
  >
  {/* Navigation Controls */}
  <ToolbarButton

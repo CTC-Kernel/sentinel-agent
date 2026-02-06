@@ -71,7 +71,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
   <div className={`w-3 h-3 rounded-full ${column.statusColor}`} />
   <h3 className="font-bold text-sm text-foreground uppercase tracking-wider">{column.title}</h3>
   </div>
-  <span className="px-2.5 py-0.5 rounded-full bg-muted/10 text-[10px] font-black text-muted-foreground border border-border/40 transition-all duration-normal ease-apple">
+  <span className="px-2.5 py-0.5 rounded-full bg-muted/10 text-xs font-black text-muted-foreground border border-border/40 transition-all duration-normal ease-apple">
   {loading ? '-' : (groupedIncidents[column.id]?.length || 0)}
   </span>
   </div>
@@ -164,7 +164,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
    >
    {getSeverityLabel(incident.severity)}
    </Badge>
-   <span className="text-[10px] text-muted-foreground font-mono uppercase font-bold">
+   <span className="text-xs text-muted-foreground font-mono uppercase font-bold">
    {new Date(incident.dateReported).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
    </span>
    </div>
@@ -173,7 +173,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
    {incident.title}
    </h4>
 
-   <div className="flex items-center justify-between mt-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+   <div className="flex items-center justify-between mt-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
    <div className="flex items-center gap-1.5">
    {incident.reporter?.includes('Agent') ? (
    <>
@@ -184,7 +184,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
    </>
    ) : (
    <>
-    <div className="w-5 h-5 rounded-full bg-muted/10 flex items-center justify-center text-[10px] border border-border/40">
+    <div className="w-5 h-5 rounded-full bg-muted/10 flex items-center justify-center text-xs border border-border/40">
     {incident.reporter?.charAt(0) || '?'}
     </div>
     <span className="truncate max-w-[80px]">{incident.reporter}</span>

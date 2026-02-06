@@ -27,7 +27,7 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
   <div className="p-2 bg-primary/10 dark:bg-primary rounded-3xl text-primary">
   <Zap className="h-5 w-5" />
   </div>
-  <h3 className="text-lg font-bold text-foreground dark:text-white">{t('continuity.drills.title', { defaultValue: 'Exercices de Crise' })}</h3>
+  <h3 className="text-lg font-bold text-foreground dark:text-foreground">{t('continuity.drills.title', { defaultValue: 'Exercices de Crise' })}</h3>
  </div>
  <button
   onClick={onNewDrill}
@@ -51,7 +51,7 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
  <div className="glass-premium rounded-3xl overflow-hidden shadow-sm border border-border/40">
   <div className="overflow-x-auto">
   <table className="w-full text-sm text-left">
-  <thead className="bg-muted/50/80/50 border-b border-border/40 dark:border-white/5 text-muted-foreground font-bold uppercase text-[11px] tracking-widest backdrop-blur-sm">
+  <thead className="bg-muted/50/80/50 border-b border-border/40 dark:border-border text-muted-foreground font-bold uppercase text-[11px] tracking-widest backdrop-blur-sm">
   <tr>
    <th className="px-8 py-5">{t('continuity.drills.date', { defaultValue: 'Date' })}</th>
    <th className="px-6 py-5">{t('continuity.drills.testedProcess', { defaultValue: 'Processus testé' })}</th>
@@ -60,13 +60,13 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
    <th className="px-6 py-5">{t('continuity.drills.notesEvidence', { defaultValue: 'Notes / Preuves' })}</th>
   </tr>
   </thead>
-  <tbody className="divide-y divide-border dark:divide-white/5">
+  <tbody className="divide-y divide-border dark:divide-border">
   {drills.map(drill => {
    const proc = processes.find(p => p.id === drill.processId);
    return (
-   <tr key={drill.id || 'unknown'} className="hover:bg-white/40 dark:hover:bg-muted transition-colors group">
+   <tr key={drill.id || 'unknown'} className="hover:bg-muted/40 dark:hover:bg-muted transition-colors group">
    <td className="px-4 sm:px-8 py-5 text-foreground font-bold flex items-center">
-   <div className="p-2 bg-card rounded-3xl mr-3 shadow-sm border border-border/40 dark:border-white/5 group-hover:scale-110 transition-transform">
+   <div className="p-2 bg-card rounded-3xl mr-3 shadow-sm border border-border/40 dark:border-border group-hover:scale-110 transition-transform">
     <CalendarDays className="h-4 w-4 text-muted-foreground" />
    </div>
    {new Date(drill.date).toLocaleDateString('fr-FR')}
@@ -75,7 +75,7 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
    {proc ? proc.name : t('continuity.drills.unknown', { defaultValue: 'Inconnu' })}
    </td>
    <td className="px-6 py-5">
-   <span className="px-3 py-1.5 bg-muted text-muted-foreground rounded-lg text-xs font-bold border border-border/40 dark:border-white/5 shadow-sm">
+   <span className="px-3 py-1.5 bg-muted text-muted-foreground rounded-lg text-xs font-bold border border-border/40 dark:border-border shadow-sm">
     {drill.type}
    </span>
    </td>

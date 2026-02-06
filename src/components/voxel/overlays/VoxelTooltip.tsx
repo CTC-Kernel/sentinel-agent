@@ -11,6 +11,10 @@
 import React from 'react';
 import { Html } from '@react-three/drei';
 import type { VoxelNode, VoxelNodeType } from '@/types/voxel';
+import {
+  VOXEL_NODE_TYPE_COLORS_CSS,
+  getVoxelPanelStyles,
+} from '../voxelTheme';
 
 // ============================================================================
 // Types
@@ -39,17 +43,6 @@ const TYPE_LABELS: Record<VoxelNodeType, string> = {
  project: 'Project',
  incident: 'Incident',
  supplier: 'Supplier',
-};
-
-/** Node type colors for badge */
-const TYPE_COLORS: Record<VoxelNodeType, string> = {
- asset: '#3B82F6', // Blue
- risk: '#EF4444', // Red
- control: '#8B5CF6', // Purple
- audit: '#F59E0B', // Amber
- project: '#10B981', // Emerald
- incident: '#F97316', // Orange
- supplier: '#6366F1', // Indigo
 };
 
 // ============================================================================
@@ -109,8 +102,9 @@ export const VoxelTooltip: React.FC<VoxelTooltipProps> = ({
  offsetY = DEFAULT_OFFSET_Y,
 }) => {
  const typeLabel = TYPE_LABELS[node.type];
- const typeColor = TYPE_COLORS[node.type];
+ const typeColor = VOXEL_NODE_TYPE_COLORS_CSS[node.type];
  const metric = getNodeMetric(node);
+ const panelStyles = getVoxelPanelStyles();
 
  return (
  <Html
@@ -125,20 +119,16 @@ export const VoxelTooltip: React.FC<VoxelTooltipProps> = ({
  <div
  className="voxel-tooltip"
  style={{
- background: 'rgba(15, 23, 42, 0.9)',
- backdropFilter: 'blur(8px)',
- WebkitBackdropFilter: 'blur(8px)',
- border: '1px solid rgba(148, 163, 184, 0.2)',
+ ...panelStyles,
  borderRadius: '8px',
  padding: '8px 12px',
- color: '#F8FAFC',
+ color: 'hsl(var(--foreground))',
  fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
  fontSize: '13px',
  lineHeight: '1.4',
  whiteSpace: 'nowrap',
  minWidth: '120px',
  maxWidth: '200px',
- boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
  }}
  >
  {/* Type badge */}
@@ -146,7 +136,7 @@ export const VoxelTooltip: React.FC<VoxelTooltipProps> = ({
  style={{
  display: 'inline-block',
  background: typeColor,
- color: '#FFFFFF',
+ color: 'hsl(var(--foreground))',
  padding: '2px 8px',
  borderRadius: '4px',
  fontSize: '10px',
@@ -174,7 +164,7 @@ export const VoxelTooltip: React.FC<VoxelTooltipProps> = ({
  {metric && (
  <div
  style={{
- color: '#94A3B8',
+ color: 'hsl(var(--muted-foreground))',
  fontSize: '11px',
  marginTop: '2px',
  }}

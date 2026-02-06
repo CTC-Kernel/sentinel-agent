@@ -119,7 +119,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                     >
                         <Search className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                         <span className="text-xs font-medium text-muted-foreground">{t('common.search')}</span>
-                        <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-background/50 border border-border/40 text-[10px] font-bold text-muted-foreground">
+                        <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-background/50 border border-border/40 text-xs font-bold text-muted-foreground">
                             <Command className="h-2.5 w-2.5" />
                             <span>K</span>
                         </div>

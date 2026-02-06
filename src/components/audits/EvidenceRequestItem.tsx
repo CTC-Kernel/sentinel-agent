@@ -49,7 +49,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
  };
 
  return (
- <div key={req.id || 'unknown'} className="bg-card border border-border/40 dark:border-white/5 rounded-3xl overflow-hidden shadow-sm transition-all hover:shadow-md hover:border-primary/30 dark:hover:border-primary group">
+ <div key={req.id || 'unknown'} className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm transition-all hover:shadow-md hover:border-primary/30 group">
  <div
  className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-muted/50 dark:hover:bg-muted/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-3xl"
  onClick={() => onExpand(isExpanded ? null : req.id)}
@@ -84,17 +84,17 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
   </div>
  </div>
  <div className="flex items-center gap-2 pl-4">
-  <div className={`p-1.5 rounded-full transition-transform duration-200 ${isExpanded ? 'bg-muted dark:bg-white/10 rotate-180' : ''}`}>
+  <div className={`p-1.5 rounded-full transition-transform duration-200 ${isExpanded ? 'bg-muted rotate-180' : ''}`}>
   <ChevronDown className="w-4 h-4 text-muted-foreground" />
   </div>
  </div>
  </div>
 
  {isExpanded && (
- <div className="p-6 border-t border-border/40 dark:border-white/5 bg-muted/50 dark:bg-black/20">
+ <div className="p-6 border-t border-border bg-muted/50">
   <div className="mb-6">
   <h5 className="text-xs font-bold uppercase text-muted-foreground tracking-wider mb-2">Description</h5>
-  <p className="text-sm text-muted-foreground bg-card p-4 rounded-3xl border border-border/40 dark:border-white/5">
+  <p className="text-sm text-muted-foreground bg-card p-4 rounded-3xl border border-border">
   {req.description}
   </p>
   </div>

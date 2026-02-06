@@ -105,21 +105,21 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
   const isValidating = validatingDocId === docId;
 
   return (
-  <div key={docId || 'unknown'} className="flex items-center p-3 bg-white dark:bg-white/5 border border-border/40 rounded-3xl hover:shadow-md transition-all">
-  <div className={`p-2 rounded-lg mr-3 ${isValidated ? 'bg-success-bg text-success-text' : isRejected ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'}`}>
+  <div key={docId || 'unknown'} className="flex items-center p-3 bg-card border border-border/40 rounded-3xl hover:shadow-md transition-all">
+  <div className={`p-2 rounded-lg mr-3 ${isValidated ? 'bg-success-bg text-success-text' : isRejected ? 'bg-error-bg text-error-text' : 'bg-info-bg text-info-text'}`}>
    {isValidated ? <ShieldCheck className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
   </div>
   <div className="flex-1 min-w-0">
    <div className="flex items-center gap-2">
    <h4 className="text-sm font-bold text-foreground truncate">{doc.title}</h4>
    {isValidated && (
-   <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-success-bg text-success-text border border-success-border/30">
+   <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-success-bg text-success-text border border-success-border/30">
    <Check className="h-3 w-3 mr-1" />
    {t('compliance.validated', { defaultValue: 'Validé' })}
    </span>
    )}
    {isRejected && (
-   <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-600 border border-red-200">
+   <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-error-bg text-error-text border border-error-border/30">
    <X className="h-3 w-3 mr-1" />
    {t('compliance.rejected', { defaultValue: 'Rejeté' })}
    </span>
@@ -144,7 +144,7 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
    size="sm"
    onClick={() => handleValidate(docId, 'rejeter')}
    disabled={isValidating || updating}
-   className="text-xs font-bold text-red-600 hover:text-red-700 hover:bg-red-50"
+   className="text-xs font-bold text-error-text hover:text-error-text hover:bg-error-bg"
    >
    {isValidating && activeAction === 'rejeter' ? <Loader2 className="h-3 w-3 animate-spin" /> : t('compliance.reject', { defaultValue: 'Rejeter' })}
    </Button>
@@ -154,7 +154,7 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
    <ExternalLink className="h-4 w-4" />
    </a>
    {canEdit && (
-   <Button variant="ghost" size="icon" aria-label={t('compliance.unlinkDocument', { defaultValue: 'Délier le document' })} onClick={() => setUnlinkTarget(docId)} disabled={updating} className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+   <Button variant="ghost" size="icon" aria-label={t('compliance.unlinkDocument', { defaultValue: 'Délier le document' })} onClick={() => setUnlinkTarget(docId)} disabled={updating} className="h-8 w-8 text-muted-foreground hover:text-error-text hover:bg-error-bg rounded-lg transition-colors">
    {updating ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
    </Button>
    )}
@@ -164,7 +164,7 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
   })}
   {(!control.evidenceIds || control.evidenceIds.length === 0) && (
   <div className="flex flex-col items-center justify-center p-12 bg-muted/50 dark:bg-black/10 rounded-4xl border-2 border-dashed border-border/40">
-  <div className="w-16 h-16 bg-white dark:bg-white/5 rounded-full flex items-center justify-center shadow-sm mb-4">
+  <div className="w-16 h-16 bg-card rounded-full flex items-center justify-center shadow-sm mb-4">
   <FileText className="h-8 w-8 text-muted-foreground" />
   </div>
   <h3 className="text-sm font-bold text-foreground mb-1">{t('compliance.noEvidence', { defaultValue: 'Aucune preuve' })}</h3>

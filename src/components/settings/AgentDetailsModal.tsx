@@ -356,10 +356,11 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
     <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={30} />
     <Tooltip
     contentStyle={{
-    backgroundColor: 'rgba(15, 23, 42, 0.9)',
-    border: 'none',
+    backgroundColor: 'hsl(var(--popover))',
+    border: '1px solid hsl(var(--border))',
     borderRadius: '8px',
-    fontSize: '12px'
+    fontSize: '12px',
+    color: 'hsl(var(--popover-foreground))'
     }}
     />
     <Area type="monotone" dataKey="cpu" stroke="hsl(var(--primary))" fill="url(#cpuGradient)" strokeWidth={2} name="CPU %" />

@@ -1109,10 +1109,10 @@ export const AgentManagement: React.FC = () => {
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-border/40">
-                                        <th className="px-4 py-2.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('settings.agents.token', { defaultValue: 'Token' })}</th>
-                                        <th className="px-4 py-2.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('settings.agents.tokenStatus', { defaultValue: 'Statut' })}</th>
-                                        <th className="px-4 py-2.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest hidden sm:table-cell">{t('settings.agents.uses', { defaultValue: 'Utilisations' })}</th>
-                                        <th className="px-4 py-2.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest hidden md:table-cell">{t('settings.agents.expiration', { defaultValue: 'Expiration' })}</th>
+                                        <th className="px-4 py-2.5 text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('settings.agents.token', { defaultValue: 'Token' })}</th>
+                                        <th className="px-4 py-2.5 text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('settings.agents.tokenStatus', { defaultValue: 'Statut' })}</th>
+                                        <th className="px-4 py-2.5 text-xs font-bold text-muted-foreground uppercase tracking-widest hidden sm:table-cell">{t('settings.agents.uses', { defaultValue: 'Utilisations' })}</th>
+                                        <th className="px-4 py-2.5 text-xs font-bold text-muted-foreground uppercase tracking-widest hidden md:table-cell">{t('settings.agents.expiration', { defaultValue: 'Expiration' })}</th>
                                         <th className="px-4 py-2.5 text-right"></th>
                                     </tr>
                                 </thead>
@@ -1166,7 +1166,7 @@ export const AgentManagement: React.FC = () => {
                                                             ) : null}
                                                         </div>
                                                         <div className={cn(
-                                                            "text-[10px] font-mono mt-0.5 transition-all duration-300 flex items-center gap-2",
+                                                            "text-xs font-mono mt-0.5 transition-all duration-300 flex items-center gap-2",
                                                             revealedTokenId === token.id ? "text-primary font-bold" : "text-muted-foreground/60"
                                                         )}>
                                                             {revealedTokenId === token.id ? (token.token || '---') : (token.tokenPreview || '••••••••••••••••')}
@@ -1178,7 +1178,7 @@ export const AgentManagement: React.FC = () => {
                                                     <Badge
                                                         variant="outline"
                                                         className={cn(
-                                                            "text-[10px] h-5 px-2 font-bold",
+                                                            "text-xs h-5 px-2 font-bold",
                                                             token.status === 'active' && 'bg-success-bg text-success-600 border-success-500/20',
                                                             token.status === 'expired' && 'bg-muted/500/10 text-muted-foreground border-border/400/20',
                                                             token.status === 'revoked' && 'bg-red-50 text-red-600 border-red-500/20',

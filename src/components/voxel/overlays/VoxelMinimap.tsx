@@ -14,6 +14,9 @@ import React, { useMemo, useCallback, useState, useRef, useEffect } from 'react'
 import { X, Map, Maximize2, Minimize2 } from 'lucide-react';
 import { useVoxelStore } from '@/stores/voxelStore';
 import type { VoxelNode } from '@/types/voxel';
+import {
+  getVoxelPanelStyles,
+} from '../voxelTheme';
 
 // ============================================================================
 // Types
@@ -52,7 +55,8 @@ interface MinimapNode {
 // Constants
 // ============================================================================
 
-const NODE_TYPE_COLORS: Record<string, string> = {
+// Hex colors for canvas drawing (canvas API requires hex/rgb, not CSS variables)
+const NODE_TYPE_COLORS_CANVAS: Record<string, string> = {
  asset: '#3B82F6',
  risk: '#EF4444',
  control: '#8B5CF6',
@@ -67,6 +71,15 @@ const DEFAULT_HEIGHT = 120;
 const PADDING = 10;
 const DOT_SIZE_BASE = 3;
 const VIEWPORT_COLOR = 'rgba(255, 255, 255, 0.3)';
+
+// Canvas-specific colors (canvas API cannot use CSS variables)
+const CANVAS_COLORS = {
+  background: 'rgba(15, 23, 42, 0.9)',
+  grid: 'rgba(148, 163, 184, 0.1)',
+  border: 'rgba(148, 163, 184, 0.2)',
+  viewportStroke: 'rgba(255, 255, 255, 0.6)',
+  directionStroke: 'rgba(255, 255, 255, 0.8)',
+};
 
 // ============================================================================
 // Helper Functions
@@ -188,7 +201,7 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
  id: node.id,
  x: pos.x,
  y: pos.y,
- color: NODE_TYPE_COLORS[node.type] || '#6B7280',
+ color: NODE_TYPE_COLORS_CANVAS[node.type] || '#6B7280',
  size: node.id === selectedNodeId ? DOT_SIZE_BASE + 2 : DOT_SIZE_BASE,
  type: node.type,
  status: node.status,
@@ -213,12 +226,12 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
  // Clear canvas
  ctx.clearRect(0, 0, width, height);
 
- // Background
- ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+ // Background (canvas requires concrete color values)
+ ctx.fillStyle = CANVAS_COLORS.background;
  ctx.fillRect(0, 0, width, height);
 
  // Draw grid
- ctx.strokeStyle = 'rgba(148, 163, 184, 0.1)';
+ ctx.strokeStyle = CANVAS_COLORS.grid;
  ctx.lineWidth = 1;
  const gridSize = 20;
  for (let x = PADDING; x < width - PADDING; x += gridSize) {
@@ -257,7 +270,7 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
  ctx.arc(viewportPosition.x, viewportPosition.y, 8, 0, Math.PI * 2);
  ctx.fillStyle = VIEWPORT_COLOR;
  ctx.fill();
- ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+ ctx.strokeStyle = CANVAS_COLORS.viewportStroke;
  ctx.lineWidth = 2;
  ctx.stroke();
 
@@ -275,14 +288,14 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
  viewportPosition.x + Math.cos(angle) * length,
  viewportPosition.y + Math.sin(angle) * length
  );
- ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+ ctx.strokeStyle = CANVAS_COLORS.directionStroke;
  ctx.lineWidth = 2;
  ctx.stroke();
  }
  }
 
  // Border
- ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+ ctx.strokeStyle = CANVAS_COLORS.border;
  ctx.lineWidth = 1;
  ctx.strokeRect(0, 0, width, height);
  }, [minimapNodes, viewportPosition, width, height, cameraTarget, bounds]);
@@ -305,14 +318,15 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
  [onNavigate, bounds, width, height]
  );
 
+ const panelStyles = getVoxelPanelStyles();
+
  if (!visible) {
  return (
  <button
  onClick={onToggle}
  className="fixed bottom-4 left-4 z-40 p-2 rounded-lg transition-colors"
  style={{
- background: 'rgba(15, 23, 42, 0.9)',
- border: '1px solid rgba(148, 163, 184, 0.2)',
+ ...panelStyles,
  }}
  aria-label="Show minimap"
  >
@@ -338,11 +352,7 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
  >
  <div
  style={{
- background: 'rgba(15, 23, 42, 0.95)',
- backdropFilter: 'blur(20px)',
- WebkitBackdropFilter: 'blur(20px)',
- border: '1px solid rgba(148, 163, 184, 0.1)',
- boxShadow: '0 4px 24px rgba(0, 0, 0, 0.3)',
+ ...panelStyles,
  }}
  className="rounded-3xl overflow-hidden"
  >
@@ -388,8 +398,8 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
  onKeyDown={onNavigate ? (e) => {
  if (e.key === 'Enter' || e.key === ' ') {
  e.preventDefault();
- // Cannot simulate exact click coordinate via keyboard easily, 
- // maybe just center or default? 
+ // Cannot simulate exact click coordinate via keyboard easily,
+ // maybe just center or default?
  // For now standard practice is to allow keyboard access if possible.
  // Given map nature, might be hard. But linter needs onKeyDown.
  // We'll leave it empty or log/toast that mouse is needed, OR

@@ -20,7 +20,7 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
  {/* Incidents by Category */}
  <PremiumCard glass className="p-6 rounded-xl relative overflow-hidden group hover:shadow-premium hover:-translate-y-1 transition-all duration-normal ease-apple">
- <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-4 px-2">{t('incidents.charts.byCategory', { defaultValue: 'Par Catégorie' })}</h4>
+ <h4 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] mb-4 px-2">{t('incidents.charts.byCategory', { defaultValue: 'Par Catégorie' })}</h4>
  <div className="h-[250px] w-full">
   {categoryData.length === 0 ? (
   <EmptyChartState variant="pie" message={t('incidents.charts.noCategory', { defaultValue: 'Aucune catégorie' })} />
@@ -52,7 +52,7 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
 
  {/* Incidents Timeline (Last 6 Months) */}
  <PremiumCard glass className="p-6 rounded-xl relative overflow-hidden group hover:shadow-premium hover:-translate-y-1 transition-all duration-normal ease-apple">
- <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-4 px-2">{t('incidents.charts.timeline', { defaultValue: 'Historique (6 mois)' })}</h4>
+ <h4 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] mb-4 px-2">{t('incidents.charts.timeline', { defaultValue: 'Historique (6 mois)' })}</h4>
  <div className="h-[250px] w-full">
   {timelineData.length === 0 ? (
   <EmptyChartState variant="bar" message={t('incidents.charts.noHistory', { defaultValue: 'Aucun historique récent' })} />

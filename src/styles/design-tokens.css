@@ -226,20 +226,22 @@
 
   /* ====================================================================
      Z-INDEX CSS VARIABLES - For use in component styles
-     AUDIT FIX: CSS variable aliases for z-index hierarchy
+     AUDIT FIX: Elevated overlay layers for proper stacking (dropdown > all content)
+     Matches tailwind.config.js z-index hierarchy
      ==================================================================== */
   --z-decorator: 10;
   --z-sticky: 20;
   --z-fixed-nav: 30;
   --z-header: 40;
   --z-sidebar: 50;
-  --z-dropdown: 70;
-  --z-popover: 80;
-  --z-modal: 90;
-  --z-tooltip: 100;
   --z-voxel-ui: 150;
   --z-voxel-panel: 200;
+  /* Overlay Layers - ELEVATED for proper stacking */
+  --z-dropdown: 700;
+  --z-popover: 800;
+  --z-modal: 900;
   --z-toast: 950;
+  --z-tooltip: 1000;
   --z-supreme: 9999;
 
   /* ====================================================================

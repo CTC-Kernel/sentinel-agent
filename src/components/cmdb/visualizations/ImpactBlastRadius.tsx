@@ -483,7 +483,7 @@ export const ImpactBlastRadius: React.FC<ImpactBlastRadiusProps> = ({
           <Badge
             key={level}
             variant="glass"
-            className="text-[10px] gap-1"
+            className="text-xs gap-1"
           >
             <span
               className="w-2 h-2 rounded-full"

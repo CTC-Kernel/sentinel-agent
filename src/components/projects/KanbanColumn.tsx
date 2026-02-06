@@ -49,11 +49,11 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
  onDrop={(e) => onDrop(e, status)}
  >
  <h4 className="text-xs font-bold uppercase text-muted-foreground mb-3 flex justify-between tracking-wider">
- {status} <span className="bg-card px-2 py-0.5 rounded-lg text-[11px] shadow-sm border border-black/5 dark:border-white/5">{tasks.length}</span>
+ {status} <span className="bg-card px-2 py-0.5 rounded-lg text-[11px] shadow-sm border border-border">{tasks.length}</span>
  </h4>
  <div className="space-y-2.5 flex-1">
  {tasks.length === 0 ? (
-  <div className="h-full flex flex-col items-center justify-center text-muted-foreground min-h-[150px] border-2 border-dashed border-border/40 dark:border-white/5 rounded-3xl">
+  <div className="h-full flex flex-col items-center justify-center text-muted-foreground min-h-[150px] border-2 border-dashed border-border rounded-3xl">
   <div className="text-xs font-medium">Aucune tâche</div>
   </div>
  ) : (
@@ -62,7 +62,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   key={task.id || 'unknown'}
   draggable={canEdit}
   onDragStart={(e) => onDragStart(e, task.id)}
-  className={`p-4 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-lg transition-all group cursor-grab active:cursor-grabbing relative overflow-hidden ${draggedTaskId === task.id ? 'opacity-60 scale-95' : 'hover:scale-[1.02] hover:bg-white/40 dark:hover:bg-muted/50 dark:hover:bg-muted'}`}
+  className={`p-4 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-lg transition-all group cursor-grab active:cursor-grabbing relative overflow-hidden ${draggedTaskId === task.id ? 'opacity-60 scale-95' : 'hover:scale-[1.02] hover:bg-muted/50'}`}
   role="button"
   tabIndex={0}
   aria-label={`Tâche: ${task.title || 'Sans titre'}`}
@@ -72,7 +72,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   }
   }}
   >
-  <div className="absolute inset-0 bg-gradient-to-br from-white/20 dark:from-white/5 to-transparent pointer-events-none opacity-0 group-hover:opacity-70 transition-opacity" />
+  <div className="absolute inset-0 bg-gradient-to-br from-muted/30 to-transparent pointer-events-none opacity-0 group-hover:opacity-70 transition-opacity" />
   <div className="flex justify-between items-start mb-2">
   <span className="text-sm font-bold text-foreground line-clamp-2">{task.title}</span>
   <div className="flex gap-1 opacity-0 group-hover:opacity-70 transition-opacity">

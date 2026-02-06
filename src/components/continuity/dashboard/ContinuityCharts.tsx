@@ -8,7 +8,7 @@ import { ChartTooltip } from '../../ui/ChartTooltip';
 import { slideUpVariants } from '../../ui/animationVariants';
 import { BusinessProcess, BcpDrill } from '../../../types';
 import { EmptyChartState } from '../../ui/EmptyChartState';
-import { SEVERITY_COLORS, SENTINEL_PALETTE, CHART_STYLES } from '../../../theme/chartTheme';
+import { SEVERITY_COLORS, SENTINEL_PALETTE } from '../../../theme/chartTheme';
 import { AlertTriangle, Target, Activity } from '../../ui/Icons';
 import { SentinelPieActiveShapeProps } from '../../../types/charts';
 

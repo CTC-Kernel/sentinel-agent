@@ -22,6 +22,7 @@ import {
  ANNOTATION_TYPE_LABELS,
  ANNOTATION_STATUS_COLORS,
 } from '../../types/voxelAnnotation';
+import { VOXEL_STATUS_COLORS_HEX, hexToString } from './voxelTheme';
 
 // ============================================================================
 // Types
@@ -189,7 +190,7 @@ const ReplyBadge: React.FC<{
  <Billboard position={position}>
  <mesh>
  <circleGeometry args={[0.25, 16]} />
- <meshBasicMaterial color="#ef4444" />
+ <meshBasicMaterial color={hexToString(VOXEL_STATUS_COLORS_HEX.critical)} />
  </mesh>
  <Text
  position={[0, 0, 0.01]}

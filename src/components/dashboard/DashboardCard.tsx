@@ -104,7 +104,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
  <div className={`h-full ${!isExpanded ? 'bg-transparent' : ''}`}>
   {loading ? (
   <div className="p-6 h-full">
-  <Skeleton className="h-full w-full rounded-3xl bg-black/5 dark:bg-white/5" />
+  <Skeleton className="h-full w-full rounded-3xl bg-muted/50" />
   </div>
   ) : (
   <div className={!isExpanded ? 'p-0 h-full' : ''}>

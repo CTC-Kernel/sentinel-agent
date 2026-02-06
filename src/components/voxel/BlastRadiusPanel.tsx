@@ -51,6 +51,7 @@ import type {
 } from '@/services/blastRadiusService';
 import type { SimulationMode } from '@/hooks/voxel/useBlastRadius';
 import { appleEasing } from '@/utils/microInteractions';
+import { getVoxelPanelStyles } from './voxelTheme';
 
 // ============================================================================
 // Constants
@@ -509,7 +510,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
  animate={{ opacity: 1 }}
  exit={{ opacity: 0 }}
  transition={{ duration: 0.2 }}
- className="absolute inset-0 bg-black/40 backdrop-blur-sm z-voxel-ui"
+ className="absolute inset-0 bg-background/80 backdrop-blur-sm z-voxel-ui"
  onClick={onClose}
  />
  <motion.aside
@@ -518,12 +519,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
  exit={{ x: '100%', opacity: 0 }}
  transition={{ type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }}
  className="absolute inset-y-0 right-0 w-[420px] z-voxel-panel flex flex-col"
- style={{
- background: 'rgba(15, 23, 42, 0.95)',
- backdropFilter: 'blur(24px)',
- borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
- boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.4), -2px 0 8px rgba(0, 0, 0, 0.2)',
- }}
+ style={getVoxelPanelStyles()}
  >
  {/* Header */}
  <div className="p-5 border-b border-border/40 shrink-0">

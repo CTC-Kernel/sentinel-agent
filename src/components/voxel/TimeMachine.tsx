@@ -33,6 +33,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/lib/utils';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '@/firebase';
+import { getVoxelPanelStyles } from './voxelTheme';
 
 // ============================================================================
 // Types
@@ -415,7 +416,7 @@ export function TimeMachine({
  animate={{ opacity: 1 }}
  exit={{ opacity: 0 }}
  transition={{ duration: 0.2 }}
- className="absolute inset-0 bg-black/40 backdrop-blur-sm z-voxel-ui"
+ className="absolute inset-0 bg-background/80 backdrop-blur-sm z-voxel-ui"
  onClick={onClose}
  role="presentation"
  aria-hidden="true"
@@ -426,12 +427,7 @@ export function TimeMachine({
  exit={{ x: '100%', opacity: 0 }}
  transition={{ type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }}
  className="absolute inset-y-0 right-0 w-[400px] z-voxel-panel flex flex-col"
- style={{
- background: 'rgba(15, 23, 42, 0.95)',
- backdropFilter: 'blur(24px)',
- borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
- boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.4), -2px 0 8px rgba(0, 0, 0, 0.2)',
- }}
+ style={getVoxelPanelStyles()}
  >
  {/* Header */}
  <div className="p-5 border-b border-border/40 flex items-center justify-between shrink-0">
@@ -672,23 +668,27 @@ export function TimeMachine({
   <h3 className="text-sm font-medium mb-3">Distribution des risques</h3>
   <div className="flex gap-2">
   <Tooltip content={`Critique: ${snapshot.metrics.risks.critical}`}>
-  <div className="flex-1 h-2 bg-red-500 rounded" style={{
+  <div className="flex-1 h-2 rounded" style={{
   flex: snapshot.metrics.risks.critical || 0.1,
+  backgroundColor: 'hsl(var(--chart-critical))',
   }} />
   </Tooltip>
   <Tooltip content={`Haut: ${snapshot.metrics.risks.high}`}>
-  <div className="flex-1 h-2 bg-orange-500 rounded" style={{
+  <div className="flex-1 h-2 rounded" style={{
   flex: snapshot.metrics.risks.high || 0.1,
+  backgroundColor: 'hsl(var(--chart-high))',
   }} />
   </Tooltip>
   <Tooltip content={`Moyen: ${snapshot.metrics.risks.medium}`}>
-  <div className="flex-1 h-2 bg-yellow-500 rounded" style={{
+  <div className="flex-1 h-2 rounded" style={{
   flex: snapshot.metrics.risks.medium || 0.1,
+  backgroundColor: 'hsl(var(--chart-medium))',
   }} />
   </Tooltip>
   <Tooltip content={`Faible: ${snapshot.metrics.risks.low}`}>
-  <div className="flex-1 h-2 bg-green-500 rounded" style={{
+  <div className="flex-1 h-2 rounded" style={{
   flex: snapshot.metrics.risks.low || 0.1,
+  backgroundColor: 'hsl(var(--chart-low))',
   }} />
   </Tooltip>
   </div>

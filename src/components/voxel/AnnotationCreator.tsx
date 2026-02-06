@@ -41,6 +41,7 @@ import {
 } from '../../types/voxelAnnotation';
 import { AnnotationService } from '../../services/annotationService';
 import { useAuth } from '../../hooks/useAuth';
+import { VOXEL_ANNOTATION_COLORS, hexToString } from './voxelTheme';
 
 // ============================================================================
 // Types
@@ -89,16 +90,8 @@ const VISIBILITY_OPTIONS: { value: AnnotationVisibility; icon: React.ReactNode; 
  { value: 'team', icon: <Users className="w-4 h-4" />, label: ANNOTATION_VISIBILITY_LABELS.team },
 ];
 
-const COLOR_PRESETS = [
- '#3b82f6', // Blue
- '#8b5cf6', // Purple
- '#ef4444', // Red
- '#f59e0b', // Amber
- '#22c55e', // Green
- '#06b6d4', // Cyan
- '#ec4899', // Pink
- '#6b7280', // Gray
-];
+// Use theme-defined annotation colors
+const COLOR_PRESETS = VOXEL_ANNOTATION_COLORS.map(c => hexToString(c.hex));
 
 // ============================================================================
 // Component

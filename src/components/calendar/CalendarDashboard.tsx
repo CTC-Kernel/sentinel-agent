@@ -176,12 +176,12 @@ export const CalendarDashboard: React.FC = () => {
  const eventStyleGetter = (event: CalendarEvent) => {
  let className = 'border-none rounded-md shadow-sm font-semibold text-xs transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus-visible:ring-primary ';
 
- if (event.type === 'audit') className += 'bg-purple-600 text-white';
- else if (event.type === 'drill') className += 'bg-orange-500 text-white';
- else if (event.type === 'project') className += 'bg-blue-600 text-white';
- else if (event.type === 'maintenance') className += 'bg-emerald-600 text-white';
- else if (event.type === 'incident') className += 'bg-red-600 text-white';
- else className += 'bg-muted text-white';
+ if (event.type === 'audit') className += 'bg-purple-600 text-primary-foreground';
+ else if (event.type === 'drill') className += 'bg-orange-500 text-primary-foreground';
+ else if (event.type === 'project') className += 'bg-blue-600 text-primary-foreground';
+ else if (event.type === 'maintenance') className += 'bg-emerald-600 text-primary-foreground';
+ else if (event.type === 'incident') className += 'bg-red-600 text-primary-foreground';
+ else className += 'bg-muted text-foreground';
 
  return {
  className,
@@ -248,7 +248,7 @@ export const CalendarDashboard: React.FC = () => {
  return (
  <div className="flex flex-col xl:flex-row items-center justify-between mb-6 gap-4 animate-fade-in">
  <div className="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
-  <div className="flex bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-border/40 p-1 shadow-sm w-full md:w-auto justify-between md:justify-start">
+  <div className="flex bg-card/80 backdrop-blur-md rounded-2xl border border-border/40 p-1 shadow-sm w-full md:w-auto justify-between md:justify-start">
   <button aria-label="Mois précédent" onClick={goToBack} className="p-2.5 md:p-3 hover:bg-muted dark:hover:bg-muted rounded-3xl transition-colors text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><ChevronLeft className="h-5 w-5" /></button>
   <button aria-label="Aller à aujourd'hui" onClick={goToCurrent} className="px-4 md:px-5 py-2.5 text-xs md:text-sm font-bold text-foreground dark:text-white hover:bg-muted dark:hover:bg-muted rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">Aujourd'hui</button>
   <button aria-label="Mois suivant" onClick={goToNext} className="p-2.5 md:p-3 hover:bg-muted dark:hover:bg-muted rounded-3xl transition-colors text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><ChevronRight className="h-5 w-5" /></button>
@@ -257,7 +257,7 @@ export const CalendarDashboard: React.FC = () => {
  </div>
 
  <div className="flex flex-col md:flex-row items-center gap-3 w-full xl:w-auto">
-  <div className="flex items-center gap-1 bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-2xl p-1 border border-border/40 shadow-sm w-full md:w-auto overflow-x-auto no-scrollbar justify-center">
+  <div className="flex items-center gap-1 bg-card/80 backdrop-blur-md rounded-2xl p-1 border border-border/40 shadow-sm w-full md:w-auto overflow-x-auto no-scrollbar justify-center">
   {[
   { v: Views.MONTH, l: 'Mois' },
   { v: Views.WEEK, l: 'Semaine' },
@@ -279,7 +279,7 @@ export const CalendarDashboard: React.FC = () => {
   <button
   onClick={handleExport}
   disabled={isExporting}
-  className="bg-white/80 dark:bg-white/5 backdrop-blur-md border border-border/40 text-muted-foreground p-3 rounded-2xl hover:bg-muted/50 dark:hover:bg-muted transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border"
+  className="bg-card/80 backdrop-blur-md border border-border/40 text-muted-foreground p-3 rounded-2xl hover:bg-muted/50 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed"
   title="Exporter le calendrier"
   aria-label="Exporter le calendrier"
   >

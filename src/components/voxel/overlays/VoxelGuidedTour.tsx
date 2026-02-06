@@ -26,6 +26,11 @@ import {
 } from 'lucide-react';
 import { useVoxelStore } from '@/stores/voxelStore';
 import type { VoxelNode } from '@/types/voxel';
+import {
+  VOXEL_NODE_TYPE_COLORS_CSS,
+  VOXEL_STATUS_COLORS_CSS,
+  getVoxelPanelStyles,
+} from '../voxelTheme';
 
 // ============================================================================
 // Types
@@ -77,6 +82,24 @@ const ICON_MAP = {
  control: Shield,
  location: MapPin,
  check: CheckCircle,
+};
+
+// Icon background colors using CSS variables with opacity
+const ICON_BG_COLORS = {
+ risk: 'color-mix(in srgb, hsl(var(--chart-critical)) 20%, transparent)',
+ asset: 'color-mix(in srgb, hsl(var(--chart-series-1)) 20%, transparent)',
+ control: 'color-mix(in srgb, hsl(var(--chart-series-3)) 20%, transparent)',
+ location: 'color-mix(in srgb, hsl(var(--chart-series-1)) 20%, transparent)',
+ check: 'color-mix(in srgb, hsl(var(--chart-series-1)) 20%, transparent)',
+};
+
+// Icon colors using CSS variables
+const ICON_COLORS = {
+ risk: VOXEL_STATUS_COLORS_CSS.critical,
+ asset: VOXEL_NODE_TYPE_COLORS_CSS.asset,
+ control: VOXEL_NODE_TYPE_COLORS_CSS.control,
+ location: VOXEL_NODE_TYPE_COLORS_CSS.asset,
+ check: VOXEL_NODE_TYPE_COLORS_CSS.asset,
 };
 
 const DEFAULT_STOP_DURATION = 5000; // 5 seconds
@@ -280,6 +303,8 @@ export const VoxelGuidedTour: React.FC<VoxelGuidedTourProps> = ({
  setIsPlaying((prev) => !prev);
  }, []);
 
+ const panelStyles = getVoxelPanelStyles();
+
  if (!visible || tourStops.length === 0) return null;
 
  const IconComponent = currentStop ? ICON_MAP[currentStop.icon] : MapPin;
@@ -289,18 +314,19 @@ export const VoxelGuidedTour: React.FC<VoxelGuidedTourProps> = ({
  return (
  <div
  className={`fixed inset-0 z-modal flex items-center justify-center ${className}`}
- style={{ background: 'rgba(0, 0, 0, 0.7)' }}
+ style={{ background: 'var(--overlay-heavy, rgba(0, 0, 0, 0.7))' }}
  >
  <div
  className="max-w-md p-6 rounded-2xl text-center"
  style={{
- background: 'rgba(15, 23, 42, 0.95)',
- border: '1px solid rgba(148, 163, 184, 0.2)',
- boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+ ...panelStyles,
  }}
  >
- <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-500/20 flex items-center justify-center">
- <MapPin className="w-8 h-8 text-blue-400" />
+ <div
+   className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
+   style={{ background: 'color-mix(in srgb, hsl(var(--chart-series-1)) 20%, transparent)' }}
+ >
+ <MapPin className="w-8 h-8" style={{ color: VOXEL_NODE_TYPE_COLORS_CSS.asset }} />
  </div>
  <h2 className="text-xl font-semibold text-foreground mb-2">Guided Tour</h2>
  <p className="text-muted-foreground mb-6">
@@ -315,7 +341,7 @@ export const VoxelGuidedTour: React.FC<VoxelGuidedTourProps> = ({
  </button>
  <button
  onClick={startTour}
- className="px-6 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors flex items-center gap-2"
+ className="px-6 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-2"
  >
  <Play className="w-4 h-4" />
  Start Tour
@@ -331,18 +357,17 @@ export const VoxelGuidedTour: React.FC<VoxelGuidedTourProps> = ({
  <div
  className="w-96 rounded-3xl overflow-hidden"
  style={{
- background: 'rgba(15, 23, 42, 0.95)',
- backdropFilter: 'blur(20px)',
- WebkitBackdropFilter: 'blur(20px)',
- border: '1px solid rgba(148, 163, 184, 0.1)',
- boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+ ...panelStyles,
  }}
  >
  {/* Progress bar */}
  <div className="h-1 bg-muted">
  <div
- className="h-full bg-blue-500 transition-all duration-500"
- style={{ width: `${progress}%` }}
+ className="h-full transition-all duration-500"
+ style={{
+   width: `${progress}%`,
+   background: VOXEL_NODE_TYPE_COLORS_CSS.asset,
+ }}
  />
  </div>
 
@@ -352,23 +377,13 @@ export const VoxelGuidedTour: React.FC<VoxelGuidedTourProps> = ({
  <div
  className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
  style={{
- background:
-  currentStop?.icon === 'risk'
-  ? 'rgba(239, 68, 68, 0.2)'
-  : currentStop?.icon === 'control'
-  ? 'rgba(139, 92, 246, 0.2)'
-  : 'rgba(59, 130, 246, 0.2)',
+ background: currentStop ? ICON_BG_COLORS[currentStop.icon] : ICON_BG_COLORS.location,
  }}
  >
  <IconComponent
  className="w-5 h-5"
  style={{
-  color:
-  currentStop?.icon === 'risk'
-  ? '#EF4444'
-  : currentStop?.icon === 'control'
-  ? '#8B5CF6'
-  : '#3B82F6',
+  color: currentStop ? ICON_COLORS[currentStop.icon] : ICON_COLORS.location,
  }}
  />
  </div>

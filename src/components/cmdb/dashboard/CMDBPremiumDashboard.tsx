@@ -42,7 +42,6 @@ import { usePendingValidations } from '@/hooks/cmdb/useCMDBValidation';
 import { useCMDBActions, usePendingValidationCount } from '@/stores/cmdbStore';
 import { DiscoveryStats, CIClass } from '@/types/cmdb';
 import { cn } from '@/lib/utils';
-import { SENTINEL_PALETTE, CHART_STYLES } from '@/theme/chartTheme';
 
 // =============================================================================
 // TYPES
@@ -324,7 +323,7 @@ const CIClassDistribution: React.FC<CIClassDistributionProps> = ({ stats, loadin
           {/* Center total */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-2xl font-bold">{stats?.total || 0}</span>
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            <span className="text-xs uppercase tracking-wider text-muted-foreground">
               Total CIs
             </span>
           </div>
@@ -348,7 +347,7 @@ const CIClassDistribution: React.FC<CIClassDistributionProps> = ({ stats, loadin
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium truncate">{item.class}</p>
-                  <p className="text-[10px] text-muted-foreground">{item.percent}%</p>
+                  <p className="text-xs text-muted-foreground">{item.percent}%</p>
                 </div>
                 <span className="text-xs font-bold">{item.count}</span>
               </motion.div>
@@ -382,13 +381,6 @@ const DataQualityGauge: React.FC<DataQualityGaugeProps> = ({ score, loading, qua
     if (s >= 60) return 'hsl(var(--warning))';
     if (s >= 40) return 'hsl(var(--chart-high))';
     return 'hsl(var(--error))';
-  };
-
-  const getScoreCssVar = (s: number) => {
-    if (s >= 80) return '--success';
-    if (s >= 60) return '--warning';
-    if (s >= 40) return '--chart-high';
-    return '--error';
   };
 
   const scoreColor = getScoreColor(score);
@@ -473,7 +465,7 @@ const DataQualityGauge: React.FC<DataQualityGaugeProps> = ({ score, loading, qua
             >
               {score}
             </motion.span>
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            <span className="text-xs uppercase tracking-wider text-muted-foreground">
               DQS Moyen
             </span>
           </div>
@@ -495,7 +487,7 @@ const DataQualityGauge: React.FC<DataQualityGaugeProps> = ({ score, loading, qua
                 style={{ backgroundColor: item.color }}
               />
               <p className="text-xs font-medium">{item.count}</p>
-              <p className="text-[9px] text-muted-foreground">{item.label}</p>
+              <p className="text-xs text-muted-foreground">{item.label}</p>
             </div>
           ))}
         </div>
@@ -697,12 +689,12 @@ const ValidationQueueMini: React.FC<ValidationQueueMiniProps> = ({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{item.name}</p>
-                <p className="text-[10px] text-muted-foreground">{item.type}</p>
+                <p className="text-xs text-muted-foreground">{item.type}</p>
               </div>
               <Badge
                 variant="soft"
                 className={cn(
-                  'text-[10px]',
+                  'text-xs',
                   item.confidence >= 80 && 'bg-success/10 text-success',
                   item.confidence >= 50 && item.confidence < 80 && 'bg-warning/10 text-warning',
                   item.confidence < 50 && 'bg-destructive/10 text-destructive'

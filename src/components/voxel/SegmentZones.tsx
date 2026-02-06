@@ -15,6 +15,13 @@ import { DoubleSide, AdditiveBlending, Mesh, CanvasTexture, MeshBasicMaterial } 
 import type { NetworkSegment } from '../../types/voxel';
 import { SEGMENT_COLORS } from './voxelConstants';
 import type { SegmentZone } from './segmentZoneUtils';
+import { VOXEL_AR_VR_COLORS, hexToString } from './voxelTheme';
+
+// Theme constants for zone labels
+const ZONE_LABEL_OUTLINE_COLOR = '#000000'; // Black outline for contrast
+const ZONE_DESCRIPTION_ACTIVE_COLOR = hexToString(VOXEL_AR_VR_COLORS.ambientLight); // White when active
+const ZONE_DESCRIPTION_INACTIVE_COLOR = '#9ca3af'; // Gray when inactive
+const ZONE_NODE_COUNT_COLOR = hexToString(VOXEL_AR_VR_COLORS.grid); // Slate gray
 
 // ============================================================================
 // Types
@@ -219,7 +226,7 @@ const ZoneLabel: React.FC<{
  anchorX="center"
  anchorY="middle"
  outlineWidth={0.08}
- outlineColor="#000000"
+ outlineColor={ZONE_LABEL_OUTLINE_COLOR}
  font="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
  >
  {label}
@@ -229,11 +236,11 @@ const ZoneLabel: React.FC<{
  <Text
  position={[0, -1, 0]}
  fontSize={0.5}
- color={isActive ? '#ffffff' : '#9ca3af'}
+ color={isActive ? ZONE_DESCRIPTION_ACTIVE_COLOR : ZONE_DESCRIPTION_INACTIVE_COLOR}
  anchorX="center"
  anchorY="middle"
  outlineWidth={0.04}
- outlineColor="#000000"
+ outlineColor={ZONE_LABEL_OUTLINE_COLOR}
  >
  {description}
  </Text>
@@ -242,11 +249,11 @@ const ZoneLabel: React.FC<{
  <Text
  position={[0, -1.8, 0]}
  fontSize={0.4}
- color="#6b7280"
+ color={ZONE_NODE_COUNT_COLOR}
  anchorX="center"
  anchorY="middle"
  outlineWidth={0.03}
- outlineColor="#000000"
+ outlineColor={ZONE_LABEL_OUTLINE_COLOR}
  >
  {nodeCount} {nodeCount === 1 ? 'asset' : 'assets'}
  </Text>

@@ -513,7 +513,7 @@ export const Incidents: React.FC = () => {
    </Menu.Button>
    <MenuPortal buttonRef={toolsMenuButtonRef} open={open}>
     <div className="p-1.5 bg-[var(--glass-bg)]">
-    <div className="px-3 py-2 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-70">
+    <div className="px-3 py-2 text-xs font-black text-muted-foreground uppercase tracking-[0.2em] opacity-70">
      {t('incidents.tools')}
     </div>
     {canEdit && (

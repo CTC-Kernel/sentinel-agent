@@ -39,6 +39,71 @@ import { v4 as uuidv4 } from 'uuid';
 import { OperationalScenarioForm } from '../workshop4/OperationalScenarioForm';
 import { MitreSearchModal } from '../workshop4/MitreSearchModal';
 
+// Color mapping for dynamic classes (Tailwind cannot purge dynamic class names)
+const LEVEL_COLOR_MAP: Record<string, { bg: string; text: string; active: string; badge: string }> = {
+    green: {
+        bg: 'bg-success-bg',
+        text: 'text-success-text',
+        active: 'bg-success text-primary-foreground shadow-sm scale-110',
+        badge: 'bg-success text-primary-foreground',
+    },
+    yellow: {
+        bg: 'bg-warning-bg',
+        text: 'text-warning-text',
+        active: 'bg-warning text-primary-foreground shadow-sm scale-110',
+        badge: 'bg-warning text-primary-foreground',
+    },
+    orange: {
+        bg: 'bg-warning-bg',
+        text: 'text-warning-text',
+        active: 'bg-warning text-primary-foreground shadow-sm scale-110',
+        badge: 'bg-warning text-primary-foreground',
+    },
+    red: {
+        bg: 'bg-error-bg',
+        text: 'text-error-text',
+        active: 'bg-error text-primary-foreground shadow-sm scale-110',
+        badge: 'bg-error text-primary-foreground',
+    },
+    gray: {
+        bg: 'bg-muted',
+        text: 'text-muted-foreground',
+        active: 'bg-muted text-muted-foreground shadow-sm scale-110',
+        badge: 'bg-muted text-muted-foreground',
+    },
+};
+
+const RISK_LEVEL_COLOR_MAP: Record<string, { container: string; text: string }> = {
+    critical: {
+        container: 'bg-error-bg border-error-border',
+        text: 'text-error-text',
+    },
+    high: {
+        container: 'bg-error-bg border-error-border',
+        text: 'text-error-text',
+    },
+    medium: {
+        container: 'bg-warning-bg border-warning-border',
+        text: 'text-warning-text',
+    },
+    low: {
+        container: 'bg-success-bg border-success-border',
+        text: 'text-success-text',
+    },
+    negligible: {
+        container: 'bg-muted border-border',
+        text: 'text-muted-foreground',
+    },
+};
+
+const getLevelStyles = (color: string | undefined) => {
+    return LEVEL_COLOR_MAP[color || 'gray'] || LEVEL_COLOR_MAP.gray;
+};
+
+const getRiskLevelStyles = (level: string) => {
+    return RISK_LEVEL_COLOR_MAP[level] || RISK_LEVEL_COLOR_MAP.medium;
+};
+
 interface Workshop4ContentProps {
     data: Workshop4Data;
     workshop3Data: Workshop3Data;
@@ -90,10 +155,6 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
     // Risk level calculation
     const getRiskLevel = (gravity: number, likelihood: number) => {
         return RISK_MATRIX_CONFIG.getRiskLevel(gravity, likelihood);
-    };
-
-    const getRiskColor = (level: string) => {
-        return RISK_MATRIX_CONFIG.levels[level as keyof typeof RISK_MATRIX_CONFIG.levels]?.color || 'gray';
     };
 
     // Handlers
@@ -374,6 +435,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                 op => op.strategicScenarioId === strategicScenario.id
                             );
                             const gravityScale = GRAVITY_SCALE.find(g => g.level === strategicScenario.gravity);
+                            const gravityStyles = getLevelStyles(gravityScale?.color);
 
                             return (
                                 <div key={strategicScenario.id || 'unknown'} className={`animate-fade-in-up delay-${(index + 2) * 100}`}>
@@ -383,8 +445,8 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                             <div className="flex items-start gap-4">
                                                 <div className={cn(
                                                     "p-3 rounded-2xl shadow-sm",
-                                                    `bg-${gravityScale?.color || 'gray'}-100 dark:bg-${gravityScale?.color || 'gray'}-900/30`,
-                                                    `text-${gravityScale?.color || 'gray'}-600 dark:text-${gravityScale?.color || 'gray'}-400`
+                                                    gravityStyles.bg,
+                                                    gravityStyles.text
                                                 )}>
                                                     <Cpu className="w-6 h-6" />
                                                 </div>
@@ -395,7 +457,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                     <div className="flex items-center gap-3 text-sm">
                                                         <span className={cn(
                                                             "font-bold",
-                                                            `text-${gravityScale?.color || 'gray'}-600 dark:text-${gravityScale?.color || 'gray'}-400`
+                                                            gravityStyles.text
                                                         )}>
                                                             {t('ebios.gravity', { defaultValue: 'Gravité' })} G{strategicScenario.gravity}
                                                         </span>
@@ -410,7 +472,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                             {!readOnly && (
                                                 <button
                                                     onClick={() => handleAddScenario(strategicScenario.id)}
-                                                    className="flex items-center gap-2 px-4 py-2.5 rounded-3xl bg-primary hover:bg-primary/90 text-white font-medium shadow-lg shadow-primary hover:shadow-primary transition-all transform hover:-translate-y-0.5"
+                                                    className="flex items-center gap-2 px-4 py-2.5 rounded-3xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary hover:shadow-primary transition-all transform hover:-translate-y-0.5"
                                                 >
                                                     <Plus className="w-4 h-4" />
                                                     {t('ebios.workshop4.addOperational')}
@@ -438,8 +500,9 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                 relatedOps.map((opScenario) => {
                                                     const isExpanded = expandedScenario === opScenario.id;
                                                     const riskLevel = getRiskLevel(strategicScenario.gravity, opScenario.likelihood);
-                                                    const riskColor = getRiskColor(riskLevel);
+                                                    const riskLevelStyles = getRiskLevelStyles(riskLevel);
                                                     const likelihoodScale = LIKELIHOOD_SCALE.find(l => l.level === opScenario.likelihood);
+                                                    const likelihoodStyles = getLevelStyles(likelihoodScale?.color);
 
                                                     return (
                                                         <div
@@ -468,9 +531,8 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                                 <div className="flex items-center gap-4">
                                                                     <div className={cn(
                                                                         "flex flex-col items-center justify-center w-12 h-12 rounded-3xl shadow-sm border",
-                                                                        `bg-${riskColor}-50 dark:bg-${riskColor}-900/20`,
-                                                                        `border-${riskColor}-200 dark:border-${riskColor}-800`,
-                                                                        `text-${riskColor}-700 dark:text-${riskColor}-400`
+                                                                        riskLevelStyles.container,
+                                                                        riskLevelStyles.text
                                                                     )}>
                                                                         <span className="text-[11px] font-bold uppercase tracking-wider opacity-70">Risk</span>
                                                                         <span className="text-lg font-bold leading-none">R{opScenario.riskLevel}</span>
@@ -504,7 +566,9 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                                         <span className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider mb-1">{t('ebios.workshop4.likelihood')}</span>
                                                                         <div className="flex items-center bg-muted/50 rounded-lg p-0.5 border border-border/40">
                                                                             {!readOnly ? (
-                                                                                LIKELIHOOD_SCALE.map((level) => (
+                                                                                LIKELIHOOD_SCALE.map((level) => {
+                                                                                    const levelStyles = getLevelStyles(level.color);
+                                                                                    return (
                                                                                     <button
                                                                                         key={level.level || 'unknown'}
                                                                                         onClick={(e) => {
@@ -514,18 +578,19 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                                                         className={cn(
                                                                                             "w-8 h-8 rounded-md text-xs font-bold transition-all relative z-decorator",
                                                                                             opScenario.likelihood === level.level
-                                                                                                ? `bg-${level.color}-500 text-white shadow-sm scale-110`
+                                                                                                ? levelStyles.active
                                                                                                 : "text-muted-foreground hover:text-muted-foreground hover:bg-muted"
                                                                                         )}
                                                                                         title={t(`ebios.likelihood.${level.level}`)}
                                                                                     >
                                                                                         {level.level}
                                                                                     </button>
-                                                                                ))
+                                                                                    );
+                                                                                })
                                                                             ) : (
                                                                                 <div className={cn(
                                                                                     "px-3 py-1.5 rounded-md text-sm font-bold",
-                                                                                    `bg-${likelihoodScale?.color || 'gray'}-500 text-white`
+                                                                                    likelihoodStyles.badge
                                                                                 )}>
                                                                                     V{opScenario.likelihood}
                                                                                 </div>

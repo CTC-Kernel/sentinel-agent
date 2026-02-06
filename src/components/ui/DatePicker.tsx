@@ -108,7 +108,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
  initialFocus
  />
  {value && (
- <div className="p-2 border-t border-border/40 dark:border-white/5 mt-2">
+ <div className="p-2 border-t border-border/40 mt-2">
  <button
   onClick={(e) => { e.stopPropagation(); onChange(undefined); setIsOpen(false); }}
   className="w-full py-2 text-xs font-bold text-destructive hover:bg-destructive/5 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
@@ -138,7 +138,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   ? 'border-destructive bg-destructive/5'
   : isOpen
   ? 'border-primary ring-2 ring-primary/60 bg-card'
-  : 'border-border/40 bg-muted/50 dark:bg-black/20 hover:border-border/40 dark:hover:border-white/20'
+  : 'border-border/40 bg-muted/50 hover:border-border'
   }
  `}
  >

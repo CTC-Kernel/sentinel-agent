@@ -222,7 +222,7 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
   <span className="text-4xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] font-display animate-in fade-in zoom-in duration-500" key={hoveredAxis || 'total'}>
   {hoveredAxis ? radarData.find(d => d.subject === hoveredAxis)?.A : totalScore}
   </span>
-  <span className="text-[10px] font-bold text-primary tracking-[0.2em] uppercase -mt-2 opacity-80 whitespace-nowrap">
+  <span className="text-xs font-bold text-primary tracking-[0.2em] uppercase -mt-2 opacity-80 whitespace-nowrap">
   {hoveredAxis ? hoveredAxis : 'MATURITY'}
   </span>
   </div>
@@ -246,7 +246,7 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
   </div>
   <div className="flex-1">
   <div className="flex items-center justify-between mb-1">
-  <span className="text-[10px] font-black text-primary/80 uppercase tracking-widest flex items-center gap-1">
+  <span className="text-xs font-black text-primary/80 uppercase tracking-widest flex items-center gap-1">
    <Sparkles className="w-3 h-3" /> Recommandation IA
   </span>
   <ChevronRight className="w-4 h-4 text-muted-foreground group-hover/insight:translate-x-1 transition-transform" />
@@ -258,7 +258,7 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
   <div className="h-1 flex-1 bg-muted/40 rounded-full overflow-hidden">
    <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${worstMetric.A}%` }} />
   </div>
-  <span className="text-[10px] font-bold text-muted-foreground whitespace-nowrap">
+  <span className="text-xs font-bold text-muted-foreground whitespace-nowrap">
    Impact: <span className="text-primary">High</span>
   </span>
   </div>
@@ -270,15 +270,15 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
  <div className="mt-4 flex gap-4 opacity-60 group-hover/radar:opacity-100 transition-opacity">
  <div className="flex items-center gap-1.5">
   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981]" />
-  <span className="text-[10px] font-bold text-muted-foreground uppercase">{agents.filter(a => a.status === 'active').length} Ligne</span>
+  <span className="text-xs font-bold text-muted-foreground uppercase">{agents.filter(a => a.status === 'active').length} Ligne</span>
  </div>
  <div className="flex items-center gap-1.5">
   <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_5px_#ef4444]" />
-  <span className="text-[10px] font-bold text-muted-foreground uppercase">{agents.filter(a => a.status === 'error').length} Alerte</span>
+  <span className="text-xs font-bold text-muted-foreground uppercase">{agents.filter(a => a.status === 'error').length} Alerte</span>
  </div>
  <div className="flex items-center gap-1.5">
   <Target className="w-3 h-3 text-primary" />
-  <span className="text-[10px] font-bold text-muted-foreground uppercase">Target 90%</span>
+  <span className="text-xs font-bold text-muted-foreground uppercase">Target 90%</span>
  </div>
  </div>
 

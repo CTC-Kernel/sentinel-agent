@@ -174,7 +174,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
  </button>
 
  {isOpen && (
-  <div className="mt-2 p-3 bg-muted/50 dark:bg-white/5 rounded-3xl border border-dashed border-border/40">
+  <div className="mt-2 p-3 bg-muted/50 rounded-3xl border border-dashed border-border">
   <div className="mb-3 space-y-1">
   {fileIds.length > 0 ? (
   fileIds.map((fid, idx) => (
@@ -208,7 +208,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
  case 'text':
  return (
   <textarea
-  className="w-full px-4 py-3 rounded-3xl border-border/40 bg-white dark:bg-black/20 focus:ring-2 focus-visible:ring-primary outline-none transition-all min-h-[100px]"
+  className="w-full px-4 py-3 rounded-3xl border-border/40 bg-card focus:ring-2 focus-visible:ring-primary outline-none transition-all min-h-[100px]"
   value={value as string || ''}
   onChange={(e) => handleAnswerChange(question.id, e.target.value)}
   placeholder="Votre réponse..."

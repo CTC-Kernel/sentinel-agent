@@ -28,7 +28,6 @@ import {
     DONUT_COLORS,
     SEVERITY_COLORS,
     CHART_AXIS_COLORS,
-    CHART_STYLES,
     SENTINEL_PALETTE
 } from '../../../theme/chartTheme';
 import {

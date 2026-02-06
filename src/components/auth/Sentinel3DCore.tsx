@@ -238,24 +238,25 @@ const CyberneticBrain: React.FC = () => {
  meshRef.current.setMatrixAt(i, dummy.matrix);
 
  // Anatomically-inspired coloring
+ // NOTE: WebGL/Three.js materials require hex color values - CSS variables not supported
  if (particle.type === 'internal') {
- // Neural activity - blues and cyans
+ // Neural activity - blues and cyans (Tailwind sky-400, indigo-400, purple-400)
  const r = random.next();
- if (r > 0.6) color.set('#38bdf8'); // Sky blue
- else if (r > 0.3) color.set('#818cf8'); // Indigo
- else color.set('#c084fc'); // Purple
+ if (r > 0.6) color.set('#38bdf8'); // sky-400
+ else if (r > 0.3) color.set('#818cf8'); // indigo-400
+ else color.set('#c084fc'); // purple-400
  } else if (particle.type === 'sulci') {
- // Deeper tissue - darker pinks/mauves
+ // Deeper tissue - darker pinks/mauves (Tailwind violet-400, violet-300)
  const r = random.next();
- if (r > 0.5) color.set('#a78bfa'); // Violet
- else color.set('#c4b5fd'); // Light violet
+ if (r > 0.5) color.set('#a78bfa'); // violet-400
+ else color.set('#c4b5fd'); // violet-300
  } else {
- // Brain surface - realistic pinkish-gray tones
+ // Brain surface - realistic pinkish-gray tones (Tailwind rose-300, pink-300, fuchsia-300, purple-200)
  const r = random.next();
- if (r > 0.75) color.set('#fda4af'); // Rose
- else if (r > 0.5) color.set('#f9a8d4'); // Pink
- else if (r > 0.25) color.set('#f0abfc'); // Fuchsia light
- else color.set('#e9d5ff'); // Purple light
+ if (r > 0.75) color.set('#fda4af'); // rose-300
+ else if (r > 0.5) color.set('#f9a8d4'); // pink-300
+ else if (r > 0.25) color.set('#f0abfc'); // fuchsia-300
+ else color.set('#e9d5ff'); // purple-200
  }
 
  color.toArray(colors, i * 3);
@@ -283,10 +284,11 @@ const CyberneticBrain: React.FC = () => {
  <Float speed={0.8} rotationIntensity={0.05} floatIntensity={0.1}>
  <instancedMesh ref={meshRef} args={[undefined, undefined, PARTICLE_COUNT]}>
   <boxGeometry args={[1, 1, 1]} />
+  {/* NOTE: WebGL materials require hex values - emissive uses pink-500 */}
   <meshStandardMaterial
   vertexColors
   toneMapped={false}
-  emissive="#ec4899"
+  emissive="#ec4899" // pink-500 - WebGL requires hex
   emissiveIntensity={0.2}
   roughness={0.5}
   metalness={0.1}
@@ -294,11 +296,11 @@ const CyberneticBrain: React.FC = () => {
  </instancedMesh>
  </Float>
 
- {/* Lighting */}
- <pointLight ref={glowRef} position={[0, 0, 0]} color="#f472b6" intensity={1.0} distance={4} decay={2} />
- <pointLight position={[1.5, 1, 1]} color="#fda4af" intensity={0.6} distance={4} decay={2} />
- <pointLight position={[-1.5, 1, 1]} color="#c4b5fd" intensity={0.6} distance={4} decay={2} />
- <pointLight position={[0, -1, -1]} color="#38bdf8" intensity={0.4} distance={3} decay={2} />
+ {/* Lighting - WebGL requires hex color values */}
+ <pointLight ref={glowRef} position={[0, 0, 0]} color="#f472b6" intensity={1.0} distance={4} decay={2} /> {/* pink-400 */}
+ <pointLight position={[1.5, 1, 1]} color="#fda4af" intensity={0.6} distance={4} decay={2} /> {/* rose-300 */}
+ <pointLight position={[-1.5, 1, 1]} color="#c4b5fd" intensity={0.6} distance={4} decay={2} /> {/* violet-300 */}
+ <pointLight position={[0, -1, -1]} color="#38bdf8" intensity={0.4} distance={3} decay={2} /> {/* sky-400 */}
  </group>
  );
 };
@@ -312,9 +314,10 @@ const Sentinel3DCore: React.FC = () => {
  gl={{ alpha: true, antialias: true }}
  style={{ background: 'transparent' }}
  >
+ {/* Scene lighting - WebGL requires hex color values */}
  <ambientLight intensity={0.4} />
- <directionalLight position={[5, 5, 5]} intensity={0.8} color="#ffffff" />
- <directionalLight position={[-3, 2, -3]} intensity={0.4} color="#fce7f3" />
+ <directionalLight position={[5, 5, 5]} intensity={0.8} color="#ffffff" /> {/* white - intentional for neutral lighting */}
+ <directionalLight position={[-3, 2, -3]} intensity={0.4} color="#fce7f3" /> {/* pink-100 - warm accent */}
 
  <CyberneticBrain />
 

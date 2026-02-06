@@ -161,7 +161,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
   initial={{ opacity: 0 }}
   animate={{ opacity: 1 }}
   exit={{ opacity: 0 }}
-  className="fixed inset-0 bg-black/90 backdrop-blur-sm"
+  className="fixed inset-0 bg-background/80 backdrop-blur-sm"
   />
 
   <div className="fixed inset-0 flex items-center justify-center p-4">
@@ -176,7 +176,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
   <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(transparent,transparent_2px,rgba(0,0,0,0.1)_3px)] opacity-60 z-decorator mix-blend-overlay" />
 
   {/* Left Panel: Context & Docs */}
-  <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-border/40 bg-black/20 flex flex-col">
+  <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-border/40 bg-muted/20 flex flex-col">
   <div className="p-6 border-b border-border/40 bg-red-950/20">
    <div className="flex items-center gap-3 text-red-500 mb-2">
    <Lock className="w-5 h-5 animate-pulse" />
@@ -339,7 +339,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
      href={att.url}
      target="_blank"
      rel="noopener noreferrer"
-     className="flex items-center gap-2 p-2 rounded-lg bg-black/20 hover:bg-black/40 transition-colors text-xs"
+     className="flex items-center gap-2 p-2 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors text-xs"
     >
      {getFileIcon(att.type)}
      <span className="truncate flex-1">{att.name}</span>
@@ -356,7 +356,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
   </div>
 
   {/* Input Area */}
-  <div className="p-4 border-t border-border/40 bg-black/20">
+  <div className="p-4 border-t border-border/40 bg-muted/20">
    {/* Pending Attachments Preview */}
    {pendingAttachments.length > 0 && (
    <div className="mb-3 flex flex-wrap gap-2">

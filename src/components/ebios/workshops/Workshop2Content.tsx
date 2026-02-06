@@ -41,6 +41,67 @@ import { CustomTargetedObjectiveForm } from '../workshop2/CustomTargetedObjectiv
 import { SectorRecommendations } from '../workshop2/SectorRecommendations';
 import { v4 as uuidv4 } from 'uuid';
 
+const CATEGORY_DOT_COLORS: Record<string, string> = {
+  state: 'bg-violet-500 ring-violet-500',
+  crime: 'bg-error ring-error',
+  terrorist: 'bg-warning ring-warning',
+  activist: 'bg-warning ring-warning',
+  competitor: 'bg-info ring-info',
+  insider: 'bg-violet-400 ring-violet-400',
+  default: 'bg-muted ring-muted-foreground',
+};
+
+const getCategoryDotColor = (category: string): string => {
+  if (category.includes('state')) return CATEGORY_DOT_COLORS.state;
+  if (category.includes('crime')) return CATEGORY_DOT_COLORS.crime;
+  if (category.includes('terrorist')) return CATEGORY_DOT_COLORS.terrorist;
+  if (category.includes('activist')) return CATEGORY_DOT_COLORS.activist;
+  if (category.includes('competitor')) return CATEGORY_DOT_COLORS.competitor;
+  if (category.includes('insider')) return CATEGORY_DOT_COLORS.insider;
+  return CATEGORY_DOT_COLORS.default;
+};
+
+const IMPACT_COLOR_MAP: Record<string, { dot: string; text: string }> = {
+  blue: { dot: 'bg-info ring-info', text: 'text-info' },
+  green: { dot: 'bg-success ring-success', text: 'text-success' },
+  yellow: { dot: 'bg-warning ring-warning', text: 'text-warning' },
+  orange: { dot: 'bg-warning ring-warning', text: 'text-warning' },
+  red: { dot: 'bg-error ring-error', text: 'text-error' },
+  gray: { dot: 'bg-muted ring-muted-foreground', text: 'text-muted-foreground' },
+};
+
+const getImpactStyles = (color: string | undefined): { dot: string; text: string } => {
+  return IMPACT_COLOR_MAP[color || 'gray'] || IMPACT_COLOR_MAP.gray;
+};
+
+// Gravity/Relevance scale color mapping for buttons and badges
+const GRAVITY_COLOR_MAP: Record<string, { active: string; badge: string }> = {
+  green: {
+    active: 'bg-success text-primary-foreground shadow-sm',
+    badge: 'bg-success-bg text-success-text border-success-border'
+  },
+  yellow: {
+    active: 'bg-warning text-primary-foreground shadow-sm',
+    badge: 'bg-warning-bg text-warning-text border-warning-border'
+  },
+  orange: {
+    active: 'bg-warning text-primary-foreground shadow-sm',
+    badge: 'bg-warning-bg text-warning-text border-warning-border'
+  },
+  red: {
+    active: 'bg-error text-primary-foreground shadow-sm',
+    badge: 'bg-error-bg text-error-text border-error-border'
+  },
+  gray: {
+    active: 'bg-muted text-muted-foreground shadow-sm',
+    badge: 'bg-muted text-muted-foreground border-border'
+  },
+};
+
+const getGravityStyles = (color: string | undefined): { active: string; badge: string } => {
+  return GRAVITY_COLOR_MAP[color || 'gray'] || GRAVITY_COLOR_MAP.gray;
+};
+
 interface Workshop2ContentProps {
  data: Workshop2Data;
  onDataChange: (data: Partial<Workshop2Data>) => void;
@@ -341,13 +402,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
   <h4 className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider">
   <span className={cn(
   "w-2.5 h-2.5 rounded-full ring-4 ring-opacity-20",
-  category.includes('state') ? "bg-violet-500 ring-violet-500" :
-  category.includes('crime') ? "bg-error ring-error" :
-  category.includes('terrorist') ? "bg-warning ring-warning" :
-  category.includes('activist') ? "bg-amber-500 ring-amber-500" :
-  category.includes('competitor') ? "bg-info ring-info" :
-   category.includes('insider') ? "bg-violet-400 ring-violet-400" :
-   "bg-muted/300 ring-slate-500"
+  getCategoryDotColor(category)
   )} />
   {RISK_SOURCE_CATEGORY_LABELS[category as keyof typeof RISK_SOURCE_CATEGORY_LABELS]?.[locale] || category}
   </h4>
@@ -373,7 +428,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
   : "border-border/40 bg-card group-hover:border-error/60"
   )}>
   {isRiskSourceSelected(source.id) && (
-  <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
+  <Check className="w-3.5 h-3.5 text-primary-foreground stroke-[3]" />
   )}
   </div>
   <div className="flex-1 min-w-0">
@@ -456,15 +511,16 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
  <div className="space-y-6">
  {Object.entries(objectivesByImpact).map(([impactType, objectives]) => {
   const impactInfo = IMPACT_TYPE_LABELS[impactType as keyof typeof IMPACT_TYPE_LABELS];
+  const impactStyles = getImpactStyles(impactInfo?.color);
   return (
   <div key={impactType || 'unknown'} className="space-y-3">
   <h4 className={cn(
   "flex items-center gap-2 text-sm font-bold uppercase tracking-wider",
-  `text-${impactInfo?.color || 'gray'}-600 dark:text-${impactInfo?.color || 'gray'}-400`
+  impactStyles.text
   )}>
   <span className={cn(
   "w-2.5 h-2.5 rounded-full ring-4 ring-opacity-20",
-  `bg-${impactInfo?.color || 'gray'}-500 ring-${impactInfo?.color || 'gray'}-500`
+  impactStyles.dot
   )} />
   {impactInfo?.[locale] || impactType}
   </h4>
@@ -490,7 +546,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
    : "border-border/40 bg-card group-hover:border-warning/60"
   )}>
   {isTargetedObjectiveSelected(objective.id) && (
-   <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
+   <Check className="w-3.5 h-3.5 text-primary-foreground stroke-[3]" />
   )}
   </div>
   <div className="flex-1 min-w-0">
@@ -584,7 +640,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
   <div className="flex justify-end mb-6">
   <button
   onClick={generatePairs}
-  className="flex items-center gap-2 px-5 py-2.5 rounded-3xl bg-primary hover:bg-primary/90 text-white font-bold shadow-lg shadow-primary hover:shadow-primary transition-all transform hover:-translate-y-0.5"
+  className="flex items-center gap-2 px-5 py-2.5 rounded-3xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary hover:shadow-primary transition-all transform hover:-translate-y-0.5"
   >
   <Plus className="w-5 h-5" />
   {t('ebios.workshop2.generatePairs')}
@@ -668,27 +724,28 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
    </span>
    {!readOnly ? (
    <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/50">
-   {GRAVITY_SCALE.map((level) => (
+   {GRAVITY_SCALE.map((level) => {
+   const gravityStyles = getGravityStyles(level.color);
+   return (
    <button
    key={level.level || 'unknown'}
    onClick={() => updatePair(pair.id, { relevance: level.level as 1 | 2 | 3 | 4 })}
    className={cn(
    "w-8 h-8 rounded-md text-xs font-bold transition-all duration-200 flex items-center justify-center transform hover:scale-105",
    pair.relevance === level.level
-   ? `bg-${level.color}-500 text-white shadow-sm`
+   ? gravityStyles.active
    : "text-muted-foreground hover:text-muted-foreground hover:bg-card"
    )}
    >
    {level.level}
    </button>
-   ))}
+   );
+   })}
    </div>
    ) : (
    <span className={cn(
    "px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm border",
-   `bg-${relevanceScale?.color || 'gray'}-50 dark:bg-${relevanceScale?.color || 'gray'}-900/20`,
-   `text-${relevanceScale?.color || 'gray'}-700 dark:text-${relevanceScale?.color || 'gray'}-400`,
-   `border-${relevanceScale?.color || 'gray'}-200 dark:border-${relevanceScale?.color || 'gray'}-800`
+   getGravityStyles(relevanceScale?.color).badge
    )}>
    {relevanceScale?.[locale as 'fr' | 'en'] || relevanceScale?.fr} ({pair.relevance})
    </span>

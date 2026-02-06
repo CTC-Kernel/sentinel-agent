@@ -202,8 +202,8 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
  }
 
  return (
- <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-modal">
- <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+ <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 z-modal">
+ <div className="bg-card rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
  {/* Header */}
  <div className="p-6 border-b bg-muted/50">
  <div className="flex items-center justify-between">
@@ -281,7 +281,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   <button
   onClick={handleInitiateResponse}
   disabled={initiating}
-  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-muted disabled:text-muted-foreground"
+  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground"
   aria-label="Initier la réponse à l'incident"
   >
   {initiating ? 'Initialisation...' : 'Initier la Response'}
@@ -317,7 +317,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
  <div className="flex gap-2">
   <button
   onClick={handleEscalate}
-  className="px-3 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm"
+  className="px-3 py-1 bg-warning-bg text-warning-text border border-warning-border rounded hover:bg-warning-bg/80 text-sm"
   aria-label="Escalader l'incident"
   >
   <ArrowRight className="h-3 w-3 inline mr-1" />
@@ -325,7 +325,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   </button>
   <button
   onClick={handleCompleteResponse}
-  className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+  className="px-3 py-1 bg-success-bg text-success-text border border-success-border rounded hover:bg-success-bg/80 text-sm"
   aria-label="Terminer la réponse"
   >
   <CheckCircle2 className="h-3 w-3 inline mr-1" />
@@ -382,7 +382,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   </label>
   <textarea
   id={`evidence-${step.id}`}
-  className="w-full p-2 text-xs border border-border/40 rounded-lg focus:ring-2 focus-visible:ring-primary focus:border-transparent outline-none bg-white"
+  className="w-full p-2 text-xs border border-border/40 rounded-lg focus:ring-2 focus-visible:ring-primary focus:border-transparent outline-none bg-card"
   rows={2}
   placeholder="Décrire l'evidence collectée..."
   value={evidence[step.id] || ''}
@@ -403,7 +403,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   </label>
   <textarea
   id={`notes-${step.id}`}
-  className="w-full p-2 text-xs border border-border/40 rounded-lg focus:ring-2 focus-visible:ring-primary focus:border-transparent outline-none bg-white"
+  className="w-full p-2 text-xs border border-border/40 rounded-lg focus:ring-2 focus-visible:ring-primary focus:border-transparent outline-none bg-card"
   rows={2}
   placeholder="Notes sur cette étape..."
   value={notes}
@@ -433,7 +433,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
  <div className="relative pl-4 border-l-2 border-border/40 space-y-4">
   {response.timeline.map((event) => (
   <div key={event.id || 'unknown'} className="relative pl-4">
-  <div className="absolute -left-[21px] top-1.5 w-3 h-3 bg-white border-2 border-blue-500 rounded-full"></div>
+  <div className="absolute -left-[21px] top-1.5 w-3 h-3 bg-card border-2 border-primary rounded-full"></div>
   <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
   <span className="text-xs font-bold text-foreground">{event.type}</span>
   <span className="text-[11px] text-muted-foreground font-mono">

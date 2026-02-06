@@ -11,6 +11,7 @@ import { Html } from '@react-three/drei';
 import { Vector3, SpotLight as ThreeSpotLight } from 'three';
 import type { VoxelNode } from '@/types/voxel';
 import { ErrorLogger } from '@/services/errorLogger';
+import { VOXEL_AR_VR_COLORS, hexToString } from './voxelTheme';
 
 // ============================================================================
 // Types
@@ -88,7 +89,7 @@ interface SpotlightEffectProps {
 const SpotlightEffect: React.FC<SpotlightEffectProps> = ({
  targetPosition,
  intensity = 3,
- color = '#ffffff',
+ color = hexToString(VOXEL_AR_VR_COLORS.ambientLight),
 }) => {
  const spotlightRef = useRef<ThreeSpotLight>(null);
 

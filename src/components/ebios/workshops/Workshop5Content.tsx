@@ -43,6 +43,95 @@ import { ISO_SEED_CONTROLS } from '../../../data/complianceData';
 import { ControlSelectorModal } from '../workshop5/ControlSelectorModal';
 import { v4 as uuidv4 } from 'uuid';
 
+// Color mapping for dynamic classes (Tailwind cannot purge dynamic class names)
+const STRATEGY_COLOR_MAP: Record<string, {
+  container: string;
+  containerSelected: string;
+  badge: string;
+  badgeCorner: string;
+  icon: string;
+  iconHover: string;
+  title: string;
+  text: string;
+}> = {
+  blue: {
+    container: 'bg-info-bg border-info-border',
+    containerSelected: 'border-info bg-info-bg shadow-md',
+    badge: 'bg-info-bg text-info-text border-info-border',
+    badgeCorner: 'bg-info text-primary-foreground',
+    icon: 'text-info',
+    iconHover: 'text-info',
+    title: 'text-info-text',
+    text: 'text-info',
+  },
+  purple: {
+    container: 'bg-violet-50 dark:bg-violet-900/10 border-violet-100 dark:border-violet-800/30',
+    containerSelected: 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-md',
+    badge: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/30 dark:text-violet-400 dark:border-violet-800',
+    badgeCorner: 'bg-violet-500 text-primary-foreground',
+    icon: 'text-violet-600 dark:text-violet-400',
+    iconHover: 'text-violet-600 dark:text-violet-400',
+    title: 'text-violet-700 dark:text-violet-300',
+    text: 'text-violet-600 dark:text-violet-400',
+  },
+  orange: {
+    container: 'bg-warning-bg border-warning-border',
+    containerSelected: 'border-warning bg-warning-bg shadow-md',
+    badge: 'bg-warning-bg text-warning-text border-warning-border',
+    badgeCorner: 'bg-warning text-primary-foreground',
+    icon: 'text-warning-text',
+    iconHover: 'text-warning-text',
+    title: 'text-warning-text',
+    text: 'text-warning-text',
+  },
+  green: {
+    container: 'bg-success-bg border-success-border',
+    containerSelected: 'border-success bg-success-bg shadow-md',
+    badge: 'bg-success-bg text-success-text border-success-border',
+    badgeCorner: 'bg-success text-primary-foreground',
+    icon: 'text-success-text',
+    iconHover: 'text-success-text',
+    title: 'text-success-text',
+    text: 'text-success-text',
+  },
+  gray: {
+    container: 'bg-muted border-border',
+    containerSelected: 'border-muted-foreground bg-muted shadow-md',
+    badge: 'bg-muted text-muted-foreground border-border',
+    badgeCorner: 'bg-muted-foreground text-primary-foreground',
+    icon: 'text-muted-foreground',
+    iconHover: 'text-muted-foreground',
+    title: 'text-foreground',
+    text: 'text-muted-foreground',
+  },
+};
+
+const STATUS_COLOR_MAP: Record<string, { active: string }> = {
+  gray: { active: 'bg-muted text-muted-foreground border-muted shadow-sm' },
+  blue: { active: 'bg-info text-primary-foreground border-info shadow-sm' },
+  green: { active: 'bg-success text-primary-foreground border-success shadow-sm' },
+};
+
+const RISK_LEVEL_COLOR_MAP: Record<string, { container: string; text: string; ring?: string }> = {
+  critical: { container: 'bg-error-bg', text: 'text-error-text', ring: 'ring-error/20' },
+  high: { container: 'bg-error-bg', text: 'text-error-text', ring: 'ring-error/20' },
+  medium: { container: 'bg-warning-bg', text: 'text-warning-text', ring: 'ring-warning/20' },
+  low: { container: 'bg-success-bg', text: 'text-success-text', ring: 'ring-success/20' },
+  negligible: { container: 'bg-muted', text: 'text-muted-foreground', ring: 'ring-muted-foreground/20' },
+};
+
+const getStrategyStyles = (color: string) => {
+  return STRATEGY_COLOR_MAP[color] || STRATEGY_COLOR_MAP.gray;
+};
+
+const getStatusStyles = (color: string) => {
+  return STATUS_COLOR_MAP[color] || STATUS_COLOR_MAP.gray;
+};
+
+const getRiskStyles = (level: string) => {
+  return RISK_LEVEL_COLOR_MAP[level] || RISK_LEVEL_COLOR_MAP.medium;
+};
+
 interface Workshop5ContentProps {
  data: Workshop5Data;
  workshop4Data: Workshop4Data;
@@ -142,10 +231,6 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
  // Risk level calculation
  const getRiskLevel = (gravity: number, likelihood: number) => {
  return RISK_MATRIX_CONFIG.getRiskLevel(gravity, likelihood);
- };
-
- const getRiskColor = (level: string) => {
- return RISK_MATRIX_CONFIG.levels[level as keyof typeof RISK_MATRIX_CONFIG.levels]?.color || 'gray';
  };
 
  // Get treatment plan for a scenario
@@ -337,17 +422,16 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
  {TREATMENT_STRATEGIES.map((strategy) => {
  const count = data.treatmentPlan.filter(tp => tp.strategy === strategy.value).length;
+const strategyStyles = getStrategyStyles(strategy.color);
  return (
  <div
   key={strategy.value || 'unknown'}
   className={cn(
   "flex flex-col items-center p-3 rounded-3xl border transition-all duration-300 hover:shadow-md",
-  `bg-${strategy.color}-50/50 dark:bg-${strategy.color}-900/10`,
-  `border-${strategy.color}-100 dark:border-${strategy.color}-800/30`,
-  `hover:border-${strategy.color}-200 dark:hover:border-${strategy.color}-700`
+  strategyStyles.container
   )}
  >
-  <span className={cn("text-2xl font-bold mb-1", `text-${strategy.color}-600 dark:text-${strategy.color}-400`)}>
+  <span className={cn("text-2xl font-bold mb-1", strategyStyles.text)}>
   {count}
   </span>
   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{strategy.label[locale]}</span>
@@ -389,7 +473,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
 
  const gravity = strategicScenario?.gravity || 2;
  const initialRiskLevel = getRiskLevel(gravity, opScenario.likelihood);
- const initialRiskColor = getRiskColor(initialRiskLevel);
+ const initialRiskStyles = getRiskStyles(initialRiskLevel);
 
  const residualRiskLevel = residualRisk
  ? getRiskLevel(
@@ -397,7 +481,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
   opScenario.likelihood
  )
  : initialRiskLevel;
- const residualRiskColor = getRiskColor(residualRiskLevel);
+ const residualRiskStyles = getRiskStyles(residualRiskLevel);
 
  return (
  <div key={opScenario.id || 'unknown'} className={`animate-fade-in-up delay-${(index + 3) * 100}`}>
@@ -424,9 +508,9 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
   <div className="flex items-center gap-3">
   <div className={cn(
   "flex flex-col items-center justify-center w-14 h-14 rounded-3xl shadow-sm border transition-all",
-  `bg-${initialRiskColor}-50 dark:bg-${initialRiskColor}-900/20`,
-  `border-${initialRiskColor}-100 dark:border-${initialRiskColor}-800`,
-  `text-${initialRiskColor}-700 dark:text-${initialRiskColor}-400`
+  initialRiskStyles.container,
+  "border-border",
+  initialRiskStyles.text
   )}>
   <span className="text-[11px] font-bold uppercase tracking-wider opacity-70">Initial</span>
   <span className="text-xl font-bold leading-none">R{opScenario.riskLevel}</span>
@@ -439,9 +523,9 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
   </div>
   <div className={cn(
   "flex flex-col items-center justify-center w-14 h-14 rounded-3xl shadow-sm border transition-all",
-  `bg-${residualRiskColor}-50 dark:bg-${residualRiskColor}-900/20`,
-  `border-${residualRiskColor}-100 dark:border-${residualRiskColor}-800`,
-  `text-${residualRiskColor}-700 dark:text-${residualRiskColor}-400`
+  residualRiskStyles.container,
+  "border-border",
+  residualRiskStyles.text
   )}>
   <span className="text-[11px] font-bold uppercase tracking-wider opacity-70">Resid.</span>
   <span className="text-xl font-bold leading-none">R{residualRisk.residualRiskLevel}</span>
@@ -474,13 +558,8 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
   {TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy) && (
   <span className={cn(
   "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border shadow-sm",
-  `bg-${TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color}-50`,
-  `text-${TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color}-700`,
-  `border-${TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color}-200`,
-  `dark:bg-${TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color}-900/30`,
-  `dark:text-${TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color}-400`,
-  `dark:border-${TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color}-800`
-  )}>
+  getStrategyStyles(TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color || 'gray').badge,
+            )}>
   {React.createElement(
    TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.icon || ShieldCheck,
    { className: 'w-3.5 h-3.5' }
@@ -546,6 +625,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
    {TREATMENT_STRATEGIES.map((strategy) => {
    const isSelected = treatment.strategy === strategy.value;
    const StrategyIcon = strategy.icon;
+  const cardStyles = getStrategyStyles(strategy.color);
    return (
    <button
    key={strategy.value || 'unknown'}
@@ -554,25 +634,25 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
    className={cn(
    "relative p-4 rounded-3xl border-2 transition-all text-left overflow-hidden group/card",
    isSelected
-   ? `border-${strategy.color}-500 bg-${strategy.color}-50 dark:bg-${strategy.color}-900/20 shadow-md`
+   ? cardStyles.containerSelected
    : "border-border/40 bg-muted/50/50 hover:bg-muted/30/50"
    )}
    >
    {isSelected && (
-   <div className={cn("absolute top-0 right-0 p-1 rounded-bl-lg text-white", `bg-${strategy.color}-500`)}>
+   <div className={cn("absolute top-0 right-0 p-1 rounded-bl-lg", cardStyles.badgeCorner)}>
    <CheckCircle className="w-3.5 h-3.5" />
    </div>
    )}
    <StrategyIcon className={cn(
    "w-6 h-6 mb-2 transition-transform group-hover/card:scale-110",
    isSelected
-   ? `text-${strategy.color}-600 dark:text-${strategy.color}-400`
+   ? cardStyles.icon
    : "text-muted-foreground group-hover/card:text-muted-foreground dark:group-hover/card:text-muted-foreground"
    )} />
    <p className={cn(
    "font-bold text-sm mb-0.5",
    isSelected
-   ? `text-${strategy.color}-700 dark:text-${strategy.color}-300`
+   ? cardStyles.title
    : "text-foreground"
    )}>
    {strategy.label[locale]}
@@ -726,7 +806,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
    className={cn(
    "px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all border",
    treatment.status === status.value
-    ? `bg-${status.color}-500 text-white border-${status.color}-500 shadow-sm`
+    ? getStatusStyles(status.color).active
     : "bg-card text-muted-foreground border-border/40 hover:bg-muted/30"
    )}
    >
@@ -765,8 +845,8 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
    <span className="caption block mb-1">{t('ebios.workshop5.initialRisk')}</span>
    <span className={cn(
    "inline-block px-3 py-1 rounded-lg text-lg font-bold",
-   `bg-${initialRiskColor}-100 dark:bg-${initialRiskColor}-900/30`,
-   `text-${initialRiskColor}-700 dark:text-${initialRiskColor}-400`
+   initialRiskStyles.container,
+   initialRiskStyles.text
    )}>
    R{opScenario.riskLevel}
    </span>
@@ -782,7 +862,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
    <span className={cn(
    "inline-block px-3 py-1 rounded-lg text-lg font-bold transition-all duration-500",
    residualRisk
-   ? `bg-${residualRiskColor}-100 dark:bg-${residualRiskColor}-900/30 text-${residualRiskColor}-700 dark:text-${residualRiskColor}-400 ring-2 ring-${residualRiskColor}-500/20`
+   ? `${residualRiskStyles.container} ${residualRiskStyles.text} ring-2 ${residualRiskStyles.ring || ''}`
    : "bg-muted text-muted-foreground"
    )}>
    R{residualRisk?.residualRiskLevel || opScenario.riskLevel}

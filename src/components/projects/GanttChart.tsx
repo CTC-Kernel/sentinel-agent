@@ -137,7 +137,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
  <img
  src={getUserAvatarUrl(user?.photoURL, user?.role)}
  alt={assigneeName}
- className="w-6 h-6 rounded-full border border-white shadow-sm object-cover"
+ className="w-6 h-6 rounded-full border border-border shadow-sm object-cover"
  />
  );
  };
@@ -232,14 +232,14 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
 
  const TaskListTable = ({ rowHeight, tasks }: { rowHeight: number; tasks: Task[] }) => {
  return (
- <div className="border-r border-border/40 bg-white/50/30 h-full backdrop-blur-sm">
+ <div className="border-r border-border/40 bg-card/50 h-full backdrop-blur-sm">
  {tasks.map((t: Task) => {
   const originalTask = (t as unknown as { projectTask: ProjectTask }).projectTask;
   return (
   <div
   key={t.id || 'unknown'}
   style={{ height: rowHeight }}
-  className="flex items-center px-4 border-b border-border/40 hover:bg-blue-500 dark:hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:bg-blue-900 transition-all cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
+  className="flex items-center px-4 border-b border-border/40 hover:bg-muted/50 transition-all cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
   onClick={() => handleTaskClick(t)}
   role="button"
   tabIndex={0}
@@ -277,7 +277,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
  {/* Toolbar */}
  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-card/80 backdrop-blur-xl p-2 rounded-2xl border border-border/40 shadow-sm">
  <div className="flex items-center gap-3 px-2">
-  <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl text-white shadow-lg shadow-blue-500/20">
+  <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl text-primary-foreground shadow-lg shadow-blue-500/20">
   <CalendarDays className="w-4 h-4" />
   </div>
   <div>

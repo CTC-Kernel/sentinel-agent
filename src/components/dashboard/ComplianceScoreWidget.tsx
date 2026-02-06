@@ -211,7 +211,7 @@ export function ComplianceScoreWidget({
 
  {/* Breakdown Panel (Modal-like) */}
  {showBreakdown && breakdown && (
- <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50" onClick={() => setShowBreakdown(false)} onKeyDown={(e) => e.key === 'Escape' && setShowBreakdown(false)} role="button" tabIndex={0} aria-label="Fermer le panneau">
+ <div className="fixed inset-0 z-modal flex items-center justify-center bg-background/80 backdrop-blur-sm" onClick={() => setShowBreakdown(false)} onKeyDown={(e) => e.key === 'Escape' && setShowBreakdown(false)} role="button" tabIndex={0} aria-label="Fermer le panneau">
  <div onClick={(e) => e.stopPropagation()} role="presentation">
  <ScoreBreakdownPanel
  breakdown={breakdown}

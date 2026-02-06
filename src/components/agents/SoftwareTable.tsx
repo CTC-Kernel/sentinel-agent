@@ -436,7 +436,7 @@ const AgentSoftwareGroup: React.FC<{
  </div>
  <div className="flex items-center gap-2">
   {agent.status === 'active' && (
-  <Badge status="success" className="text-[10px] h-5">En ligne</Badge>
+  <Badge status="success" className="text-xs h-5">En ligne</Badge>
   )}
   <ChevronDown className={cn(
   "h-5 w-5 text-muted-foreground transition-transform duration-300",

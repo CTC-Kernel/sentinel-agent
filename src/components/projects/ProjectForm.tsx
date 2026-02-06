@@ -231,7 +231,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
  return (
  <form id={formId} ref={formRef} onSubmit={submitHandler} className="space-y-8 animate-fade-in relative">
  {isGenerating && (
- <div className="absolute inset-0 bg-white/50 dark:bg-black/50 z-modal flex items-center justify-center backdrop-blur-sm rounded-3xl">
+ <div className="absolute inset-0 bg-background/80 z-modal flex items-center justify-center backdrop-blur-sm rounded-3xl">
   <Loader2 className="h-8 w-8 animate-spin text-primary" />
  </div>
  )}
@@ -427,7 +427,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
 
  {
  !hideActions && (
-  <div className="flex justify-end space-x-4 pt-6 border-t border-border/40 dark:border-white/5">
+  <div className="flex justify-end space-x-4 pt-6 border-t border-border">
   <Button
   type="button"
   onClick={onCancel}
