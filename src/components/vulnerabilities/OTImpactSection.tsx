@@ -110,7 +110,7 @@ const AssetMatchCard: React.FC<{
  rounded-3xl border transition-colors
  ${compact ? 'p-2' : 'p-3'}
  ${asset.isManual ? 'border-indigo-500/30 bg-indigo-50' : 'border-border/40 bg-white/5'}
- hover:bg-white/10
+ hover:bg-muted
  `}
  >
  <div className="flex items-start gap-3">
@@ -167,7 +167,7 @@ const AssetMatchCard: React.FC<{
  <button
  type="button"
  onClick={onView}
- className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-muted-foreground/60 transition-colors"
+ className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-muted-foreground/60 transition-colors"
  title="View asset"
  >
  <Eye className="h-4 w-4" />
@@ -218,7 +218,7 @@ const ScorePreview: React.FC<{
  <button
  type="button"
  onClick={() => setShowDetails(!showDetails)}
- className={`w-full ${compact ? 'p-3' : 'p-4'} flex items-center justify-between hover:bg-white/5 transition-colors`}
+ className={`w-full ${compact ? 'p-3' : 'p-4'} flex items-center justify-between hover:bg-muted/50 transition-colors`}
  >
  <div className="flex items-center gap-4">
  {/* Base score */}
@@ -494,7 +494,7 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
  <button
  type="button"
  onClick={() => setShowAddAsset(!showAddAsset)}
- className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-muted-foreground dark:text-white/70 text-xs font-medium transition-colors border border-border/40"
+ className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-muted text-muted-foreground dark:text-white/70 text-xs font-medium transition-colors border border-border/40"
  >
  <Plus className="h-3.5 w-3.5" />
  {t('otVulnerability.addAsset', 'Add Asset')}
@@ -531,7 +531,7 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
   key={asset.id || 'unknown'}
   type="button"
   onClick={() => handleLinkAsset(asset.id)}
-  className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted dark:hover:bg-white/10 transition-colors text-left"
+  className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted dark:hover:bg-muted transition-colors text-left"
  >
   <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
   <Cpu className="h-4 w-4 text-orange-400" />

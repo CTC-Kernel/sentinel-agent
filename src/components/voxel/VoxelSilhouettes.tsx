@@ -29,8 +29,8 @@ export const VoxelSilhouettes: Record<LayerType, React.ReactNode> = {
  <svg viewBox="0 0 64 64" className="w-full h-full text-cyan-500 fill-current">
  <rect x="16" y="10" width="32" height="44" rx="4" className="opacity-80" />
  <rect x="22" y="16" width="20" height="4" className="text-white fill-current" />
- <rect x="22" y="24" width="20" height="4" className="text-white/80 fill-current" />
- <rect x="22" y="32" width="12" height="4" className="text-white/60 fill-current" />
+ <rect x="22" y="24" width="20" height="4" className="text-foreground/80 fill-current" />
+ <rect x="22" y="32" width="12" height="4" className="text-foreground/60 fill-current" />
  <path d="M36 36 L44 44" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
  <circle cx="33" cy="38" r="4" className="text-white fill-current" />
  </svg>

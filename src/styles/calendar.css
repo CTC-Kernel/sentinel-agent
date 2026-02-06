@@ -2,7 +2,7 @@
 /* Hide 'Show More' text link that is often hard to click, we will style it as a badge */
 /* WCAG AAA: minimum text size 11px */
 .rbc-show-more {
-    @apply bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/90 text-[11px] font-bold px-2.5 py-1 rounded-full mt-1 inline-block transition-colors hover:bg-slate-200 dark:hover:bg-white/20 min-h-[24px] !important;
+    @apply bg-muted dark:bg-white/10 text-muted-foreground dark:text-white/90 text-[11px] font-bold px-2.5 py-1 rounded-full mt-1 inline-block transition-colors hover:bg-muted/80 dark:hover:bg-white/20 min-h-[24px] !important;
     text-decoration: none !important;
     display: block !important;
     text-align: center;
@@ -13,20 +13,20 @@
 
 /* Ensure the popup (overlay) is glassmorphic and respects dark mode */
 .rbc-overlay {
-    @apply bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border border-slate-200/50 dark:border-white/10 shadow-apple-xl rounded-2xl p-4 !important;
+    @apply bg-white/80 dark:bg-card/80 backdrop-blur-2xl border border-border/50 dark:border-white/10 shadow-apple-xl rounded-2xl p-4 !important;
     z-index: 50 !important;
     animation: scaleIn 0.2s ease-out forwards;
 }
 
 /* Header of the popup (The Date) */
 .rbc-overlay-header {
-    @apply border-b border-slate-100 dark:border-white/5 pb-3 mb-3 text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider font-display !important;
+    @apply border-b border-border/40 dark:border-white/5 pb-3 mb-3 text-sm font-black text-foreground dark:text-white uppercase tracking-wider font-display !important;
     text-align: center;
 }
 
 /* The Day Cell Date Number */
 .rbc-date-cell {
-    @apply text-slate-500 dark:text-slate-400/80 font-bold p-2 text-xs uppercase tracking-wide transition-colors !important;
+    @apply text-muted-foreground dark:text-muted-foreground/80 font-bold p-2 text-xs uppercase tracking-wide transition-colors !important;
 }
 
 .rbc-date-cell.rbc-now {
@@ -44,7 +44,7 @@
 
 /* Hover effect on cells */
 .rbc-day-bg:not(.rbc-today):hover {
-    @apply bg-slate-50/80 dark:bg-white/[0.02] transition-colors duration-200 cursor-pointer !important;
+    @apply bg-muted/50 dark:bg-white/[0.02] transition-colors duration-200 cursor-pointer !important;
 }
 
 /* Grid Lines - Barely visible in dark mode for premium feel */
@@ -52,22 +52,22 @@
 .rbc-time-view,
 .rbc-header,
 .rbc-time-header-content {
-    @apply border-slate-200/60 dark:border-white/5 !important;
+    @apply border-border/60 dark:border-white/5 !important;
 }
 
 .rbc-day-bg+.rbc-day-bg,
 .rbc-month-row+.rbc-month-row,
 .rbc-header+.rbc-header {
-    @apply border-slate-100 dark:border-white/5 !important;
+    @apply border-border/40 dark:border-white/5 !important;
 }
 
 /* Off-range days (previous/next month) */
 .rbc-off-range-bg {
-    @apply bg-slate-50/30 dark:bg-black/20 !important;
+    @apply bg-muted/30 dark:bg-black/20 !important;
 }
 
 .rbc-off-range .rbc-date-cell {
-    @apply text-slate-300 dark:text-slate-700 !important;
+    @apply text-muted-foreground/50 dark:text-muted-foreground/30 !important;
 }
 
 /* Events in the view */
@@ -81,16 +81,16 @@
 
 /* Time Gutter (Day/Week view left side) */
 .rbc-time-gutter .rbc-timeslot-group {
-    @apply border-slate-100 dark:border-white/5 !important;
+    @apply border-border/40 dark:border-white/5 !important;
 }
 
 .rbc-label {
-    @apply text-xs font-medium text-slate-400 dark:text-slate-500 !important;
+    @apply text-xs font-medium text-muted-foreground dark:text-muted-foreground !important;
 }
 
 /* Header of Week/Day View */
 .rbc-header {
-    @apply py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/60 dark:border-white/5 bg-slate-50/30 dark:bg-white/5 !important;
+    @apply py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground dark:text-muted-foreground border-b border-border/60 dark:border-white/5 bg-muted/30 dark:bg-white/5 !important;
 }
 
 /* Current Time Indicator */

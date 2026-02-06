@@ -196,7 +196,7 @@ export const AgentMetricsChart: React.FC<AgentMetricsChartProps> = ({
  </div>
 
  <div className="h-56 min-h-56">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <AreaChart data={chartData}>
   <GradientDefs />
   <XAxis

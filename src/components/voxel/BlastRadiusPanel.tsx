@@ -159,7 +159,7 @@ const StatsCard: React.FC<{
  initial={{ opacity: 0, y: 20, scale: 0.9 }}
  animate={{ opacity: 1, y: 0, scale: 1 }}
  transition={{ delay, duration: 0.4, ease: appleEasing }}
- className="bg-white/5 rounded-3xl p-3 border border-border/40"
+ className="bg-muted/50 rounded-3xl p-3 border border-border/40"
  >
  <div className="flex items-center gap-2 mb-1">
  <motion.div
@@ -169,7 +169,7 @@ const StatsCard: React.FC<{
  >
  <Icon className={`h-4 w-4 ${color}`} />
  </motion.div>
- <span className="text-xs text-white/50">{label}</span>
+ <span className="text-xs text-foreground/50">{label}</span>
  </div>
  <div className="flex items-baseline gap-2">
  <motion.span
@@ -214,28 +214,28 @@ const AffectedNodeItem: React.FC<{
  exit={{ opacity: 0, x: -10 }}
  className={`
  p-3 rounded-3xl border cursor-pointer transition-all
- ${isSelected ? 'ring-2 ring-primary bg-primary/10' : 'bg-white/5 hover:bg-white/10'}
- border-border/40 hover:border-white/20
+ ${isSelected ? 'ring-2 ring-primary bg-primary/10' : 'bg-muted/50 hover:bg-muted'}
+ border-border/40 hover:border-border
  `}
  onClick={onSelect}
  >
  <div className="flex items-start gap-3">
- <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
- <Icon className="h-4 w-4 text-white/70" />
+ <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+ <Icon className="h-4 w-4 text-foreground/70" />
  </div>
 
  <div className="flex-1 min-w-0">
  <div className="flex items-center gap-2">
- <span className="text-sm font-medium text-white truncate">
+ <span className="text-sm font-medium text-foreground truncate">
  {node.node.label || node.nodeId.substring(0, 12)}
  </span>
  <ImpactBadge impact={node.impact} />
  </div>
 
  <div className="flex items-center gap-2 mt-1">
- <span className="text-[11px] text-white/40">{typeLabel}</span>
- <span className="text-[11px] text-white/30">|</span>
- <span className="text-[11px] text-white/40">Profondeur: {node.depth}</span>
+ <span className="text-[11px] text-foreground/40">{typeLabel}</span>
+ <span className="text-[11px] text-foreground/30">|</span>
+ <span className="text-[11px] text-foreground/40">Profondeur: {node.depth}</span>
  </div>
  </div>
 
@@ -244,7 +244,7 @@ const AffectedNodeItem: React.FC<{
  e.stopPropagation();
  onFocus();
  }}
- className="p-1.5 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+ className="p-1.5 rounded-lg hover:bg-muted text-foreground/50 hover:text-foreground transition-colors"
  title="Voir dans la vue 3D"
  >
  <Eye className="h-4 w-4" />
@@ -280,14 +280,14 @@ const WhatIfBuilder: React.FC<{
  };
 
  return (
- <div className="space-y-3 p-3 bg-white/5 rounded-3xl border border-border/40">
- <div className="text-xs text-white/70 font-medium">Scénario What-If</div>
+ <div className="space-y-3 p-3 bg-muted/50 rounded-3xl border border-border/40">
+ <div className="text-xs text-foreground/70 font-medium">Scénario What-If</div>
 
  <div className="space-y-2">
  <select
  value={scenarioType}
  onChange={(e) => setScenarioType(e.target.value as WhatIfScenario['type'])}
- className="w-full bg-white/5 border border-border/40 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary"
+ className="w-full bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
  >
  <option value="remove_node">Supprimer un contrôle</option>
  <option value="add_node">Ajouter un contrôle</option>
@@ -298,7 +298,7 @@ const WhatIfBuilder: React.FC<{
  <select
  value={selectedNodeId}
  onChange={(e) => setSelectedNodeId(e.target.value)}
- className="w-full bg-white/5 border border-border/40 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary"
+ className="w-full bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
  >
  <option value="">Sélectionner un contrôle...</option>
  {controlNodes.map((node) => (
@@ -312,7 +312,7 @@ const WhatIfBuilder: React.FC<{
  <button
  onClick={handleApply}
  disabled={!selectedNodeId}
- className="w-full px-4 py-2 bg-primary hover:bg-primary/90 disabled:bg-white/10 disabled:text-white/30 text-white text-sm font-medium rounded-lg transition-colors"
+ className="w-full px-4 py-2 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-foreground/30 text-foreground text-sm font-medium rounded-lg transition-colors"
  >
  Appliquer le scénario
  </button>
@@ -328,15 +328,15 @@ const ConfigPanel: React.FC<{
  config: ExtendedBlastRadiusConfig;
  onSetConfig: (config: Partial<ExtendedBlastRadiusConfig>) => void;
 }> = ({ config, onSetConfig }) => (
- <div className="space-y-3 p-3 bg-white/5 rounded-3xl border border-border/40">
- <div className="text-xs text-white/70 font-medium flex items-center gap-2">
+ <div className="space-y-3 p-3 bg-muted/50 rounded-3xl border border-border/40">
+ <div className="text-xs text-foreground/70 font-medium flex items-center gap-2">
  <Sliders className="h-4 w-4" />
  Configuration
  </div>
 
  <div className="space-y-2">
  <div>
- <label htmlFor="max-depth" className="text-[11px] text-white/50 block mb-1">Profondeur max</label>
+ <label htmlFor="max-depth" className="text-[11px] text-foreground/50 block mb-1">Profondeur max</label>
  <input
  id="max-depth"
  type="range"
@@ -346,11 +346,11 @@ const ConfigPanel: React.FC<{
  onChange={(e) => onSetConfig({ maxDepth: parseInt(e.target.value, 10) })}
  className="w-full accent-brand-500"
  />
- <div className="text-xs text-white/70 text-right">{config.maxDepth}</div>
+ <div className="text-xs text-foreground/70 text-right">{config.maxDepth}</div>
  </div>
 
  <div>
- <label htmlFor="min-impact" className="text-[11px] text-white/50 block mb-1">Seuil min impact</label>
+ <label htmlFor="min-impact" className="text-[11px] text-foreground/50 block mb-1">Seuil min impact</label>
  <input
  id="min-impact"
  type="range"
@@ -360,11 +360,11 @@ const ConfigPanel: React.FC<{
  onChange={(e) => onSetConfig({ minProbability: parseInt(e.target.value, 10) / 100 })}
  className="w-full accent-brand-500"
  />
- <div className="text-xs text-white/70 text-right">{((config.minProbability || 0.1) * 100).toFixed(0)}%</div>
+ <div className="text-xs text-foreground/70 text-right">{((config.minProbability || 0.1) * 100).toFixed(0)}%</div>
  </div>
 
  <div className="flex items-center justify-between">
- <label htmlFor="bidirectional" className="text-[11px] text-white/50">Bidirectionnel</label>
+ <label htmlFor="bidirectional" className="text-[11px] text-foreground/50">Bidirectionnel</label>
  <input
  id="bidirectional"
  type="checkbox"
@@ -389,34 +389,34 @@ const BlastRadiusHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) 
  className="px-5 py-4 bg-gradient-to-r from-purple-500/10 to-primary/10 border-b border-border/40"
  >
  <div className="flex items-start justify-between mb-3">
- <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+ <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
  <Info className="w-4 h-4 text-purple-400" />
  Guide Blast Radius
  </h3>
- <button onClick={onClose} className="text-white/40 hover:text-white">
+ <button onClick={onClose} className="text-foreground/40 hover:text-foreground">
  <X className="w-4 h-4" />
  </button>
  </div>
- <div className="space-y-3 text-xs text-white/70">
+ <div className="space-y-3 text-xs text-foreground/70">
  <div className="flex gap-2">
  <span className="w-5 h-5 rounded bg-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">1</span>
- <p><strong className="text-white">Simulation d'impact</strong> - Cliquez sur un noeud dans la vue 3D pour voir tous les éléments qui seraient affectés en cas de défaillance.</p>
+ <p><strong className="text-foreground">Simulation d'impact</strong> - Cliquez sur un noeud dans la vue 3D pour voir tous les éléments qui seraient affectés en cas de défaillance.</p>
  </div>
  <div className="flex gap-2">
  <span className="w-5 h-5 rounded bg-primary/15 flex items-center justify-center text-primary/70 shrink-0">2</span>
- <p><strong className="text-white">Statistiques</strong> - Visualisez le nombre de noeuds impactés, la profondeur de propagation et l'impact métier global.</p>
+ <p><strong className="text-foreground">Statistiques</strong> - Visualisez le nombre de noeuds impactés, la profondeur de propagation et l'impact métier global.</p>
  </div>
  <div className="flex gap-2">
  <span className="w-5 h-5 rounded bg-info/20 flex items-center justify-center text-info shrink-0">3</span>
- <p><strong className="text-white">Scénario What-If</strong> - Simulez la suppression d'un contrôle pour évaluer l'impact sur votre posture de sécurité.</p>
+ <p><strong className="text-foreground">Scénario What-If</strong> - Simulez la suppression d'un contrôle pour évaluer l'impact sur votre posture de sécurité.</p>
  </div>
  <div className="flex gap-2">
  <span className="w-5 h-5 rounded bg-muted/500/20 flex items-center justify-center text-muted-foreground shrink-0">4</span>
- <p><strong className="text-white">Configuration</strong> - Ajustez la profondeur max et le seuil minimum d'impact pour affiner vos analyses.</p>
+ <p><strong className="text-foreground">Configuration</strong> - Ajustez la profondeur max et le seuil minimum d'impact pour affiner vos analyses.</p>
  </div>
  <div className="flex gap-2">
  <span className="w-5 h-5 rounded bg-success/20 flex items-center justify-center text-success shrink-0">5</span>
- <p><strong className="text-white">Export</strong> - Générez des rapports PDF ou CSV pour partager vos analyses avec votre équipe.</p>
+ <p><strong className="text-foreground">Export</strong> - Générez des rapports PDF ou CSV pour partager vos analyses avec votre équipe.</p>
  </div>
  </div>
  </motion.div>
@@ -530,18 +530,18 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-3">
   <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-purple-500 to-primary flex items-center justify-center shadow-lg shadow-purple-500/20">
-  <Activity className="h-5 w-5 text-white" />
+  <Activity className="h-5 w-5 text-foreground" />
   </div>
   <div>
-  <h2 className="text-lg font-bold text-white">Blast Radius</h2>
-  <p className="text-xs text-white/50">
+  <h2 className="text-lg font-bold text-foreground">Blast Radius</h2>
+  <p className="text-xs text-foreground/50">
   {mode === 'blast-radius' ? 'Simulation d\'impact' : mode === 'root-cause' ? 'Analyse cause racine' : 'Scénario What-If'}
   </p>
   </div>
  </div>
  <button
   onClick={onClose}
-  className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+  className="p-2 rounded-full hover:bg-muted text-foreground/60 hover:text-foreground transition-colors"
  >
   <X className="h-5 w-5" />
  </button>
@@ -549,13 +549,13 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
 
  {/* Source node info */}
  {sourceNode && (
- <div className="mt-4 p-3 bg-white/5 rounded-3xl border border-border/40">
+ <div className="mt-4 p-3 bg-muted/50 rounded-3xl border border-border/40">
   <div className="flex items-center gap-2">
   <Target className="h-4 w-4 text-purple-400" />
-  <span className="text-xs text-white/50">Noeud source</span>
+  <span className="text-xs text-foreground/50">Noeud source</span>
   </div>
   <div className="mt-1 flex items-center gap-2">
-  <span className="text-sm font-medium text-white">{sourceNode.label || sourceNodeId}</span>
+  <span className="text-sm font-medium text-foreground">{sourceNode.label || sourceNodeId}</span>
   <span className="text-[11px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
   {NODE_TYPE_LABELS[sourceNode.type]}
   </span>
@@ -594,7 +594,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   <div className={`rounded-3xl p-3 border ${businessImpactColors.bg} ${businessImpactColors.border}`}>
   <div className="flex items-center gap-2 mb-1">
   <BarChart3 className={`h-4 w-4 ${businessImpactColors.text}`} />
-  <span className="text-xs text-white/50">Impact métier</span>
+  <span className="text-xs text-foreground/50">Impact métier</span>
   </div>
   <span className={`text-xl font-bold uppercase ${businessImpactColors.text}`}>
   {businessImpact}
@@ -615,7 +615,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   className={`flex-1 px-2 py-1.5 rounded-lg ${color.bg} ${color.border} border text-center`}
   >
   <div className={`text-lg font-bold ${color.text}`}>{count}</div>
-  <div className="text-[11px] text-white/40">{label}</div>
+  <div className="text-[11px] text-foreground/40">{label}</div>
   </div>
   ))}
  </div>
@@ -631,7 +631,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   onClick={() => setFilterType(filterType === type ? 'all' : type as VoxelNodeType)}
   className={`
   flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] transition-colors
-  ${filterType === type ? 'bg-primary/15 text-primary/50' : 'bg-white/5 text-white/60 hover:bg-white/10'}
+  ${filterType === type ? 'bg-primary/15 text-primary/50' : 'bg-muted/50 text-foreground/60 hover:bg-muted'}
   `}
   >
   <Icon className="h-3 w-3" />
@@ -647,13 +647,13 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
  <div className="px-5 py-3 border-b border-border/40 flex items-center gap-2 shrink-0">
  {/* Search */}
  <div className="relative flex-1">
- <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
+ <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/30" />
  <input
   type="text"
   value={searchQuery}
   onChange={(e) => setSearchQuery(e.target.value)}
   placeholder="Rechercher..."
-  className="w-full bg-white/5 border border-border/40 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-primary"
+  className="w-full bg-muted/50 border border-border/40 rounded-lg pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-primary"
  />
  </div>
 
@@ -661,7 +661,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
  <select
  value={sortBy}
  onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
- className="bg-white/5 border border-border/40 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-primary"
+ className="bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-xs text-foreground focus:outline-none focus:border-primary"
  >
  <option value="impact">Impact</option>
  <option value="depth">Profondeur</option>
@@ -671,7 +671,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
  {/* Help toggle */}
  <button
  onClick={() => setShowHelp(!showHelp)}
- className={`p-2 rounded-lg transition-colors ${showHelp ? 'bg-primary/15 text-primary/70' : 'bg-white/5 text-white/60 hover:text-white'}`}
+ className={`p-2 rounded-lg transition-colors ${showHelp ? 'bg-primary/15 text-primary/70' : 'bg-muted/50 text-foreground/60 hover:text-foreground'}`}
  title="Aide"
  >
  <Info className="h-4 w-4" />
@@ -680,7 +680,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
  {/* Config toggle */}
  <button
  onClick={() => setShowConfig(!showConfig)}
- className={`p-2 rounded-lg transition-colors ${showConfig ? 'bg-primary/15 text-primary/70' : 'bg-white/5 text-white/60 hover:text-white'}`}
+ className={`p-2 rounded-lg transition-colors ${showConfig ? 'bg-primary/15 text-primary/70' : 'bg-muted/50 text-foreground/60 hover:text-foreground'}`}
  >
  <Sliders className="h-4 w-4" />
  </button>
@@ -711,7 +711,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
  onClick={() => setShowWhatIf(!showWhatIf)}
  className={`
  w-full flex items-center justify-between px-4 py-2 rounded-lg transition-colors
- ${showWhatIf ? 'bg-primary/15 text-primary/70' : 'bg-white/5 text-white/70 hover:bg-white/10'}
+ ${showWhatIf ? 'bg-primary/15 text-primary/70' : 'bg-muted/50 text-foreground/70 hover:bg-muted'}
  `}
  >
  <span className="flex items-center gap-2 text-sm font-medium">
@@ -733,7 +733,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   {whatIfScenario && (
   <button
   onClick={onClearWhatIf}
-  className="mt-2 w-full px-3 py-2 text-xs text-white/60 hover:text-white bg-white/5 rounded-lg"
+  className="mt-2 w-full px-3 py-2 text-xs text-foreground/60 hover:text-foreground bg-muted/50 rounded-lg"
   >
   Effacer le scénario
   </button>
@@ -752,13 +752,13 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   animate={{ opacity: 1 }}
   className="text-center py-12"
   >
-  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-  <Activity className="h-8 w-8 text-white/30" />
+  <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+  <Activity className="h-8 w-8 text-foreground/30" />
   </div>
-  <p className="text-white/60 text-sm">
+  <p className="text-foreground/60 text-sm">
   {sourceNodeId ? 'Aucun nœud impacté' : 'Sélectionnez un nœud source'}
   </p>
-  <p className="text-white/40 text-xs mt-1">
+  <p className="text-foreground/40 text-xs mt-1">
   {sourceNodeId
   ? 'Ajustez la configuration pour étendre la simulation'
   : 'Cliquez sur un nœud dans la vue 3D'}
@@ -837,7 +837,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   {whatIfResult.impactDelta > 0 ? '+' : ''}
   {(Math.abs(whatIfResult.impactDelta) * 100).toFixed(0)}%
   </motion.div>
-  <div className="text-[11px] text-white/50">
+  <div className="text-[11px] text-foreground/50">
   {whatIfResult.impactDelta < 0 ? 'Réduction d\'impact' : 'Augmentation d\'impact'}
   </div>
   </div>
@@ -849,34 +849,34 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   initial={{ opacity: 0, y: 10 }}
   animate={{ opacity: 1, y: 0 }}
   transition={{ delay: 0.5 }}
-  className="p-2 bg-white/5 rounded-lg"
+  className="p-2 bg-muted/50 rounded-lg"
   >
   <div className={`text-sm font-bold ${whatIfResult.impactDelta > 0 ? 'text-red-400' : 'text-green-400'}`}>
   {whatIfResult.impactDelta > 0 ? '+' : ''}{whatIfResult.impactDelta.toFixed(2)}
   </div>
-  <div className="text-[11px] text-white/40">Impact</div>
+  <div className="text-[11px] text-foreground/40">Impact</div>
   </motion.div>
   <motion.div
   initial={{ opacity: 0, y: 10 }}
   animate={{ opacity: 1, y: 0 }}
   transition={{ delay: 0.6 }}
-  className="p-2 bg-white/5 rounded-lg"
+  className="p-2 bg-muted/50 rounded-lg"
   >
   <div className="text-sm font-bold text-yellow-400">
   {whatIfResult.newlyAffected.length}
   </div>
-  <div className="text-[11px] text-white/40">Nouveaux</div>
+  <div className="text-[11px] text-foreground/40">Nouveaux</div>
   </motion.div>
   <motion.div
   initial={{ opacity: 0, y: 10 }}
   animate={{ opacity: 1, y: 0 }}
   transition={{ delay: 0.7 }}
-  className="p-2 bg-white/5 rounded-lg"
+  className="p-2 bg-muted/50 rounded-lg"
   >
   <div className="text-sm font-bold text-green-400">
   {whatIfResult.noLongerAffected.length}
   </div>
-  <div className="text-[11px] text-white/40">Protégés</div>
+  <div className="text-[11px] text-foreground/40">Protégés</div>
   </motion.div>
   </div>
 
@@ -903,7 +903,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   <button
   onClick={onExportPdf}
   disabled={affectedNodes.length === 0}
-  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 disabled:bg-white/10 disabled:text-white/30 text-white text-sm font-medium rounded-3xl transition-colors"
+  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-foreground/30 text-foreground text-sm font-medium rounded-3xl transition-colors"
   >
   <FileText className="h-4 w-4" />
   Export PDF
@@ -913,7 +913,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   <button
   onClick={onExportCsv}
   disabled={affectedNodes.length === 0}
-  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 disabled:text-white/30 text-white text-sm font-medium rounded-3xl transition-colors border border-border/40"
+  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-muted/50 hover:bg-muted disabled:text-foreground/30 text-foreground text-sm font-medium rounded-3xl transition-colors border border-border/40"
   >
   <Download className="h-4 w-4" />
   Export CSV
@@ -924,7 +924,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
  {/* Clear button */}
  <button
  onClick={onClearResults}
- className="w-full px-4 py-2 text-sm text-white/50 hover:text-white hover:bg-white/5 rounded-3xl transition-colors"
+ className="w-full px-4 py-2 text-sm text-foreground/50 hover:text-foreground hover:bg-muted/50 rounded-3xl transition-colors"
  >
  Effacer les résultats
  </button>

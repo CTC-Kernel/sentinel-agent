@@ -94,7 +94,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
 
  {/* Sticky Tabs Header */}
  {tabs.length > 0 && onTabChange && (
-  <div className="sticky top-0 z-20 bg-card/95 border-b border-border/40 px-6 pt-2 supports-[backdrop-filter]:bg-white/80 supports-[backdrop-filter]:dark:bg-slate-900/80 supports-[backdrop-filter]:backdrop-blur-md">
+  <div className="sticky top-0 z-20 bg-card/95 border-b border-border/40 px-6 pt-2 supports-[backdrop-filter]:bg-card/80 supports-[backdrop-filter]:backdrop-blur-md">
   <ScrollableTabs
   tabs={tabs}
   activeTab={activeTab || tabs[0].id}
@@ -121,7 +121,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
 
  {/* Sticky Footer */}
  {footer && (
-  <div className="p-6 border-t border-border/40 bg-card/95 shrink-0 supports-[backdrop-filter]:bg-white/80 supports-[backdrop-filter]:dark:bg-slate-900/80 supports-[backdrop-filter]:backdrop-blur-md">
+  <div className="p-6 border-t border-border/40 bg-card/95 shrink-0 supports-[backdrop-filter]:bg-card/80 supports-[backdrop-filter]:backdrop-blur-md">
   {footer}
   </div>
  )}

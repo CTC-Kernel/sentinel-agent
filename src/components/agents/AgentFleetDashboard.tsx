@@ -46,7 +46,7 @@ interface StatCardProps {
 
 const StatCard: React.FC<StatCardProps> = ({ label, value, sublabel, icon, trend, variant = 'default' }) => {
  const variantBg = {
- default: 'from-muted/50 to-white dark:from-slate-900/50 dark:to-slate-800/30',
+ default: 'from-muted/50 to-white dark:from-card/50 dark:to-muted/30',
  success: 'from-success/5 to-success/10',
  warning: 'from-warning/5 to-warning/10',
  danger: 'from-destructive/5 to-destructive/10',
@@ -277,7 +277,7 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
   {/* Right: OS Distribution Donut */}
   <div className="flex items-center gap-6">
   <div className="w-32 h-32">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
    <Pie
    data={osChartData}
@@ -392,7 +392,7 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
   </div>
   ) : (
   <div className="h-48 min-h-48">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <AreaChart data={trendData}>
    <defs>
    <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">

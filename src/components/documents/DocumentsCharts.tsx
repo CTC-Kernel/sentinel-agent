@@ -290,7 +290,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
   <FileCheck className="w-4 h-4 text-primary" />
   </div>
   <div className="h-[140px] relative">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <RadialBarChart
   cx="50%"
   cy="50%"
@@ -430,7 +430,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
   </div>
   {statusDistribution.length > 0 ? (
   <div className="h-[200px]">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
    <Pie
    activeIndex={activeStatusIndex}
@@ -479,7 +479,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
   </div>
   {typeDistribution.length > 0 ? (
   <div className="h-[200px]">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
    <Pie
    activeIndex={activeTypeIndex}
@@ -527,7 +527,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
   <TrendingUp className="w-4 h-4 text-primary" />
   </div>
   <div className="h-[200px]">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <AreaChart data={activityTimeline} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
   <XAxis
    dataKey="month"

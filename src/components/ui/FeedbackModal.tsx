@@ -99,8 +99,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
  {/* Header */}
  <div className="p-6 border-b border-border/40 flex items-center justify-between shrink-0 bg-muted/50 rounded-t-2xl">
   <h2 className="text-xl font-bold text-foreground flex items-center gap-3">
-  <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
-  <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+  <MessageSquare className="w-5 h-5 text-primary" />
   </div>
   {t('ui.feedback.title', { defaultValue: 'Votre Avis Compte' })}
   </h2>
@@ -120,7 +120,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
   aria-pressed={formValues.type === feedbackType}
   onClick={() => setValue('type', feedbackType)}
   className={`flex items-center gap-2 p-3 rounded-xl border text-sm font-semibold transition-all ${formValues.type === feedbackType
-   ? 'bg-blue-50 dark:bg-blue-900/40 border-blue-500 text-blue-700 dark:text-blue-300 ring-2 ring-blue-500/30 shadow-sm'
+   ? 'bg-primary/10 border-primary text-primary ring-2 ring-primary/30 shadow-sm'
    : 'bg-muted/50 border-border/40 text-muted-foreground hover:bg-muted hover:border-border'
    }`}
   >

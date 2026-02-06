@@ -42,17 +42,17 @@ import { SupplierConcentrationTab } from '../components/suppliers/SupplierConcen
 
 const getCriticalityColor = (c: Criticality) => {
  switch (c) {
- case Criticality.CRITICAL: return 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800';
- case Criticality.HIGH: return 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400 border-orange-200 dark:border-orange-800';
- case Criticality.MEDIUM: return 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800';
- default: return 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800';
+ case Criticality.CRITICAL: return 'bg-error-bg text-error-text border-error-border';
+ case Criticality.HIGH: return 'bg-warning-bg text-warning-text border-warning-border';
+ case Criticality.MEDIUM: return 'bg-warning-bg/50 text-warning-text border-warning-border/50';
+ default: return 'bg-success-bg text-success-text border-success-border';
  }
 };
 
 const getScoreColor = (score: number) => {
- if (score >= 80) return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400';
- if (score >= 50) return 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400';
- return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400';
+ if (score >= 80) return 'bg-success-bg text-success-text';
+ if (score >= 50) return 'bg-warning-bg text-warning-text';
+ return 'bg-error-bg text-error-text';
 };
 
 
@@ -436,7 +436,7 @@ export const Suppliers: React.FC = () => {
   <button
   aria-label={t('suppliers.backToDashboard')}
   onClick={handleTemplateModeClose}
-  className="text-muted-foreground hover:text-foreground dark:hover:text-white mr-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg px-2"
+  className="text-muted-foreground hover:text-foreground dark:hover:text-foreground mr-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg px-2"
   title={t('suppliers.backToDashboard')}
   >
   {t('suppliers.backLabel')}
@@ -629,7 +629,7 @@ export const Suppliers: React.FC = () => {
    variant="outline"
    size="icon"
    onClick={handleTemplateModeOpen}
-   className="h-10 w-10 rounded-2xl border-border bg-white dark:bg-white/5 hover:bg-muted/50 dark:hover:bg-white/10 shadow-sm"
+   className="h-10 w-10 rounded-2xl border-border bg-white dark:bg-white/5 hover:bg-muted/50 dark:hover:bg-muted shadow-sm"
    aria-label={t('suppliers.tooltips.templates')}
    >
    <ClipboardList className="h-5 w-5 text-muted-foreground" />
@@ -641,7 +641,7 @@ export const Suppliers: React.FC = () => {
    variant="outline"
    size="icon"
    onClick={() => window.open('/#/dora/providers', '_blank')}
-   className="h-10 w-10 rounded-2xl border-border bg-white dark:bg-white/5 hover:bg-muted/50 dark:hover:bg-white/10 shadow-sm"
+   className="h-10 w-10 rounded-2xl border-border bg-white dark:bg-white/5 hover:bg-muted/50 dark:hover:bg-muted shadow-sm"
    aria-label={t('suppliers.tooltips.dora')}
    >
    <ShieldAlert className="h-5 w-5 text-muted-foreground" />

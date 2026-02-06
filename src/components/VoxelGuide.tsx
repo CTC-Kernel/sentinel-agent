@@ -46,7 +46,7 @@ const GUIDE_SECTIONS = [
  <div className="space-y-4">
  <div className="grid gap-3">
   <div className="flex items-center gap-3 p-3 rounded-3xl bg-white/5 border border-border/40">
-  <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center">
+  <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
   <MousePointer className="w-5 h-5 text-muted-foreground" />
   </div>
   <div>
@@ -55,7 +55,7 @@ const GUIDE_SECTIONS = [
   </div>
   </div>
   <div className="flex items-center gap-3 p-3 rounded-3xl bg-white/5 border border-border/40">
-  <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-muted-foreground text-xs font-bold">
+  <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground text-xs font-bold">
   Scroll
   </div>
   <div>
@@ -64,7 +64,7 @@ const GUIDE_SECTIONS = [
   </div>
   </div>
   <div className="flex items-center gap-3 p-3 rounded-3xl bg-white/5 border border-border/40">
-  <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-muted-foreground text-xs font-bold">
+  <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground text-xs font-bold">
   Clic
   </div>
   <div>
@@ -231,7 +231,7 @@ const GUIDE_SECTIONS = [
  ].map(item => (
   <div key={item.key || 'unknown'} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
   <span className="text-xs text-muted-foreground">{item.action}</span>
-  <kbd className="px-2 py-1 rounded bg-slate-800 text-xs font-mono text-white">{item.key}</kbd>
+  <kbd className="px-2 py-1 rounded bg-muted text-xs font-mono text-white">{item.key}</kbd>
   </div>
  ))}
  </div>
@@ -244,7 +244,7 @@ const GUIDE_SECTIONS = [
  icon: Search,
  content: (
  <div className="space-y-4">
- <div className="p-4 rounded-3xl bg-slate-800/50 border border-border/40">
+ <div className="p-4 rounded-3xl bg-muted/50 border border-border/40">
   <div className="flex items-center gap-3 mb-3">
   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
   <span className="text-sm text-muted-foreground">Rechercher un nœud...</span>
@@ -328,7 +328,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
   </div>
   <button
    onClick={onClose}
-   className="p-2 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+   className="p-2 rounded-lg hover:bg-muted text-white/50 hover:text-foreground transition-colors"
   >
    <X className="w-5 h-5" />
   </button>
@@ -369,7 +369,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
    onClick={() => setCurrentSection(prev => Math.max(prev - 1, 0))}
    disabled={currentSection === 0}
    aria-label="Section précédente"
-   className="min-w-[44px] min-h-[44px] p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white disabled:bg-slate-700/50 disabled:text-muted-foreground disabled:cursor-not-allowed transition-all"
+   className="min-w-[44px] min-h-[44px] p-2 rounded-lg bg-white/5 hover:bg-muted text-white disabled:bg-muted/50 disabled:text-muted-foreground disabled:cursor-not-allowed transition-all"
   >
    <ChevronLeft className="w-5 h-5" aria-hidden="true" />
   </button>
@@ -384,7 +384,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
    <button
    onClick={() => setCurrentSection(prev => Math.min(prev + 1, GUIDE_SECTIONS.length - 1))}
    aria-label="Section suivante"
-   className="min-w-[44px] min-h-[44px] p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white transition-all"
+   className="min-w-[44px] min-h-[44px] p-2 rounded-lg bg-white/5 hover:bg-muted text-white transition-all"
    >
    <ChevronRight className="w-5 h-5" aria-hidden="true" />
    </button>

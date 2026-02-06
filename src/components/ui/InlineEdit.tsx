@@ -200,7 +200,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
    'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
    'transition-colors duration-200',
    error
-   ? 'border-error-500 focus-visible:ring-error-500/50'
+   ? 'border-error-border focus-visible:ring-error/50'
    : 'border-border/40',
    multiline && 'min-h-[80px] resize-y',
    inputClassName
@@ -211,7 +211,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
   <motion.p
    initial={{ opacity: 0, y: -5 }}
    animate={{ opacity: 1, y: 0 }}
-   className="text-xs text-error-500 mt-1"
+   className="text-xs text-error-text mt-1"
   >
    {error}
   </motion.p>
@@ -224,7 +224,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
    type="button"
    onClick={saveValue}
    disabled={isSaving}
-   className="p-1.5 text-success-600 hover:bg-success-50 dark:hover:bg-success-900/20 rounded-lg transition-colors disabled:bg-muted disabled:text-muted-foreground"
+   className="p-1.5 text-success-text hover:bg-success-bg rounded-lg transition-colors disabled:bg-muted disabled:text-muted-foreground"
    aria-label={t('common.save', { defaultValue: 'Sauvegarder' })}
   >
    {isSaving ? (

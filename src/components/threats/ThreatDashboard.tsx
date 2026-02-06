@@ -150,7 +150,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
   description="Aucune menace détectée pour le moment."
   />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <BarChart data={typeData} layout="vertical" margin={{ left: 40, right: 20 }}>
    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke={`rgba(255,255,255,${CHART_AXIS_COLORS.gridOpacity})`} />
    <XAxis type="number" hide />
@@ -181,7 +181,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
   description="Aucune activité détectée ces dernières 24h."
   />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <AreaChart data={activityData}>
    <defs>
    <linearGradient id="colorActivity" x1="0" y1="0" x2="0" y2="1">

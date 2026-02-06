@@ -198,34 +198,34 @@ const TimeMachineHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) 
  className="px-5 py-4 bg-gradient-to-r from-slate-500/10 to-slate-600/10 border-b border-border/40"
  >
  <div className="flex items-start justify-between mb-3">
- <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+ <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
  <Info className="w-4 h-4 text-primary/70" />
  Guide Time Machine
  </h3>
- <button onClick={onClose} className="text-white/40 hover:text-white">
+ <button onClick={onClose} className="text-foreground/40 hover:text-foreground">
  <X className="w-4 h-4" />
  </button>
  </div>
- <div className="space-y-3 text-xs text-white/70">
+ <div className="space-y-3 text-xs text-foreground/70">
  <div className="flex gap-2">
  <span className="w-5 h-5 rounded bg-primary/15 flex items-center justify-center text-primary/70 shrink-0">1</span>
- <p><strong className="text-white">Navigation temporelle</strong> - Utilisez le calendrier ou le slider pour naviguer dans l'historique de votre graphe (jusqu'à 90 jours).</p>
+ <p><strong className="text-foreground">Navigation temporelle</strong> - Utilisez le calendrier ou le slider pour naviguer dans l'historique de votre graphe (jusqu'à 90 jours).</p>
  </div>
  <div className="flex gap-2">
  <span className="w-5 h-5 rounded bg-primary/15 flex items-center justify-center text-primary/70 shrink-0">2</span>
- <p><strong className="text-white">Snapshots quotidiens</strong> - Chaque jour, un snapshot capture l'état de vos noeuds, connexions, anomalies et métriques de conformité.</p>
+ <p><strong className="text-foreground">Snapshots quotidiens</strong> - Chaque jour, un snapshot capture l'état de vos noeuds, connexions, anomalies et métriques de conformité.</p>
  </div>
  <div className="flex gap-2">
  <span className="w-5 h-5 rounded bg-primary/15 flex items-center justify-center text-primary/70 shrink-0">3</span>
- <p><strong className="text-white">Mode comparaison</strong> - Cliquez sur "Comparer" pour voir les différences entre deux dates et identifier les tendances.</p>
+ <p><strong className="text-foreground">Mode comparaison</strong> - Cliquez sur "Comparer" pour voir les différences entre deux dates et identifier les tendances.</p>
  </div>
  <div className="flex gap-2">
  <span className="w-5 h-5 rounded bg-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">4</span>
- <p><strong className="text-white">Indicateurs delta</strong> - Les fleches vertes/rouges montrent l'évolution par rapport à la date de comparaison.</p>
+ <p><strong className="text-foreground">Indicateurs delta</strong> - Les fleches vertes/rouges montrent l'évolution par rapport à la date de comparaison.</p>
  </div>
  <div className="flex gap-2">
  <span className="w-5 h-5 rounded bg-success/20 flex items-center justify-center text-success shrink-0">5</span>
- <p><strong className="text-white">Lecture seule</strong> - Les données historiques sont préservées et ne peuvent pas être modifiées.</p>
+ <p><strong className="text-foreground">Lecture seule</strong> - Les données historiques sont préservées et ne peuvent pas être modifiées.</p>
  </div>
  </div>
  </motion.div>
@@ -437,10 +437,10 @@ export function TimeMachine({
  <div className="p-5 border-b border-border/40 flex items-center justify-between shrink-0">
  <div className="flex items-center gap-3">
  <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center shadow-lg shadow-primary/20">
-  <Clock className="h-5 w-5 text-white" />
+  <Clock className="h-5 w-5 text-foreground" />
  </div>
  <div>
-  <h2 className="text-lg font-bold text-white">Time Machine</h2>
+  <h2 className="text-lg font-bold text-foreground">Time Machine</h2>
   <Badge variant="soft" className="text-xs mt-0.5">
   {format(selectedDate, 'dd MMM yyyy', { locale: dateFnsLocale })}
   </Badge>
@@ -449,14 +449,14 @@ export function TimeMachine({
  <div className="flex items-center gap-1">
  <button
   onClick={() => setShowHelp(!showHelp)}
-  className={`p-2 rounded-full transition-colors ${showHelp ? 'bg-primary/15 text-primary/70' : 'hover:bg-white/10 text-white/60 hover:text-white'}`}
+  className={`p-2 rounded-full transition-colors ${showHelp ? 'bg-primary/15 text-primary/70' : 'hover:bg-muted text-foreground/60 hover:text-foreground'}`}
   title="Aide"
  >
   <Info className="h-5 w-5" />
  </button>
  <button
   onClick={onClose}
-  className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+  className="p-2 rounded-full hover:bg-muted text-foreground/60 hover:text-foreground transition-colors"
  >
   <X className="h-5 w-5" />
  </button>
@@ -723,8 +723,8 @@ export function TimeMachine({
 
  {/* Footer with read-only indicator */}
  <div className="p-4 border-t border-border/40 shrink-0" style={{ background: 'rgba(255,255,255,0.03)' }}>
- <div className="flex items-center gap-2 text-xs text-white/50">
- <Badge variant="outline" className="border-white/20 text-white/60">Lecture seule</Badge>
+ <div className="flex items-center gap-2 text-xs text-foreground/50">
+ <Badge variant="outline" className="border-border text-foreground/60">Lecture seule</Badge>
  <span>Données historiques - non modifiables</span>
  </div>
  </div>

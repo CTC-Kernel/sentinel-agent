@@ -26,21 +26,21 @@ const CRITICALITY_CONFIG: Record<CriticalityLevel, {
 }> = {
  high: {
  icon: AlertTriangle,
- color: 'text-red-500',
- bgColor: 'bg-red-50 dark:bg-red-900/20',
- textColor: 'text-red-700 dark:text-red-400',
+ color: 'text-destructive',
+ bgColor: 'bg-error-bg',
+ textColor: 'text-error-text',
  },
  medium: {
  icon: AlertCircle,
- color: 'text-amber-500',
- bgColor: 'bg-amber-50 dark:bg-amber-900/20',
- textColor: 'text-amber-700 dark:text-amber-400',
+ color: 'text-warning',
+ bgColor: 'bg-warning-bg',
+ textColor: 'text-warning-text',
  },
  low: {
  icon: Info,
- color: 'text-blue-500',
- bgColor: 'bg-blue-50 dark:bg-blue-900/20',
- textColor: 'text-blue-700 dark:text-blue-400',
+ color: 'text-info-text',
+ bgColor: 'bg-info-bg',
+ textColor: 'text-info-text',
  },
 };
 
@@ -86,7 +86,7 @@ export const RequirementCard: React.FC<RequirementCardProps> = ({
  'border backdrop-blur-sm',
  isSelected
  ? 'bg-primary/10 dark:bg-primary border-primary/40 dark:border-primary/80 shadow-md'
- : 'bg-white/60 border-border/40 hover:border-border/40 dark:hover:border-white/20 hover:shadow-sm'
+ : 'bg-white/40 dark:bg-white/5 dark:bg-white/5 border-border/40 hover:border-border/40 dark:hover:border-white/20 hover:shadow-sm'
  )}
  onClick={() => onClick?.(requirement)}
  whileHover={{ x: 2 }}
@@ -130,7 +130,7 @@ export const RequirementCard: React.FC<RequirementCardProps> = ({
 
  {/* Mandatory badge */}
  {requirement.isMandatory && (
- <div className="px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 text-xs font-medium">
+ <div className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 text-xs font-medium">
  {t('requirements.mandatory')}
  </div>
  )}

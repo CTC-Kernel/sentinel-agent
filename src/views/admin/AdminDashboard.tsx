@@ -45,7 +45,7 @@ const AdminDashboard: React.FC = () => {
   "px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all whitespace-nowrap",
   activeTab === tab
   ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 border-transparent"
-  : "text-muted-foreground hover:text-foreground/60 hover:bg-muted/50 dark:hover:bg-white/5"
+  : "text-muted-foreground hover:text-foreground/60 hover:bg-muted/50 dark:hover:bg-muted/50"
   )}
   >
   {tab.charAt(0).toUpperCase() + tab.slice(1)}

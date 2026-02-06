@@ -67,7 +67,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
   onClick={checkCVEs}
   disabled={scanning}
   aria-label={t('common.inspector.security.checkCVEsTooltip')}
-  className="flex-1 py-3 bg-muted dark:bg-white/10 text-foreground rounded-3xl text-sm font-bold shadow-sm hover:bg-muted dark:hover:bg-white/20 transition-colors flex items-center justify-center disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="flex-1 py-3 bg-muted dark:bg-white/10 text-foreground rounded-3xl text-sm font-bold shadow-sm hover:bg-muted dark:hover:bg-muted transition-colors flex items-center justify-center disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   {scanning ? <span className="animate-spin mr-2">⏳</span> : <ShieldAlert className="w-4 h-4 mr-2" />}
   {t('common.inspector.security.checkCVEs')}

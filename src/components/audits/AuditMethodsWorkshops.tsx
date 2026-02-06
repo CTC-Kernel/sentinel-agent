@@ -563,7 +563,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
   "w-10 h-10 rounded-3xl flex items-center justify-center text-white font-bold",
   phase.status === 'completed' ? 'bg-green-500' :
   phase.status === 'in_progress' ? 'bg-blue-500' :
-  'bg-slate-400'
+  'bg-muted-foreground'
   )}>
   {phase.status === 'completed' ? (
   <CheckCircle className="w-5 h-5" />

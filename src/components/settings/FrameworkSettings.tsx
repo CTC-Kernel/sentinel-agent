@@ -208,7 +208,7 @@ export const FrameworkSettings: React.FC = () => {
    relative p-4 rounded-3xl border-2 transition-all text-left
    ${isSelected
    ? 'border-primary bg-primary/10 dark:bg-primary'
-   : 'border-border/40 hover:border-border/40 dark:hover:border-slate-600 bg-card/50'
+   : 'border-border/40 hover:border-border/40 dark:hover:border-border bg-card/50'
    }
    ${isDisabled ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}
    `}

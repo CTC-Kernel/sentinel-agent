@@ -167,7 +167,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
 
  <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
  <div
-  className={`flex items-center py-2 px-3 rounded-lg cursor-pointer mb-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${selectedFolderId === null ? 'bg-muted text-foreground font-bold ring-1 ring-slate-200 dark:ring-slate-700' : 'hover:bg-muted/50 dark:hover:bg-white/5 text-foreground'}`}
+  className={`flex items-center py-2 px-3 rounded-lg cursor-pointer mb-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${selectedFolderId === null ? 'bg-muted text-foreground font-bold ring-1 ring-slate-200 dark:ring-slate-700' : 'hover:bg-muted/50 dark:hover:bg-muted/50 text-foreground'}`}
   onClick={handleSelectAll}
   onKeyDown={handleSelectAllKeyDown}
   role="button"
@@ -267,7 +267,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
    aria-label="Nouveau sous-dossier"
    onClick={handleContextMenuCreateSub}
    variant="ghost"
-   className="w-full justify-start text-sm font-normal px-4 py-2 text-foreground hover:bg-muted/50 dark:hover:bg-white/5"
+   className="w-full justify-start text-sm font-normal px-4 py-2 text-foreground hover:bg-muted/50 dark:hover:bg-muted/50"
   >
    <Plus className="h-4 w-4 mr-2" /> {t('documents.folders.newSubfolder', { defaultValue: 'Nouveau sous-dossier' })}
   </Button>
@@ -275,7 +275,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
    aria-label="Renommer le dossier"
    onClick={handleContextMenuRename}
    variant="ghost"
-   className="w-full justify-start text-sm font-normal px-4 py-2 text-foreground hover:bg-muted/50 dark:hover:bg-white/5"
+   className="w-full justify-start text-sm font-normal px-4 py-2 text-foreground hover:bg-muted/50 dark:hover:bg-muted/50"
   >
    <Edit2 className="h-4 w-4 mr-2" /> {t('common.rename', { defaultValue: 'Renommer' })}
   </Button>
@@ -374,7 +374,7 @@ const FolderNode = React.memo(({
  return (
  <div className="select-none">
  <div
- className={`flex items-center py-2 px-3 rounded-lg cursor-pointer transition-colors group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isSelected ? 'bg-muted text-foreground font-bold' : 'hover:bg-muted/50 dark:hover:bg-white/5 text-foreground'}`}
+ className={`flex items-center py-2 px-3 rounded-lg cursor-pointer transition-colors group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isSelected ? 'bg-muted text-foreground font-bold' : 'hover:bg-muted/50 dark:hover:bg-muted/50 text-foreground'}`}
  style={{ paddingLeft: `${depth * 16 + 12}px` }}
  onClick={handleSelectClick}
  onKeyDown={handleKeyDown}

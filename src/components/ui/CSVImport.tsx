@@ -159,7 +159,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
  <div className="bg-card rounded-2xl shadow-2xl w-full max-w-4xl border border-border/50 overflow-hidden animate-scale-in max-h-[90vh] flex flex-col">
  <div className="p-6 border-b border-border/40 bg-primary/10 flex justify-between items-center rounded-t-2xl">
   <h2 className="text-2xl font-bold text-primary dark:text-primary/30 tracking-tight">{title}</h2>
-  <button aria-label="Fermer la fenêtre" onClick={onClose} className="p-2.5 hover:bg-white/50 dark:hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+  <button aria-label="Fermer la fenêtre" onClick={onClose} className="p-2.5 hover:bg-muted/500 dark:hover:bg-muted rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
   <X className="h-5 w-5" />
   </button>
  </div>
@@ -176,7 +176,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
   </div>
 
   <div
-  className="border-2 border-dashed border-border/40 rounded-2xl p-8 text-center hover:border-primary dark:hover:border-primary transition-colors focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 dark:focus-within:ring-offset-slate-900"
+  className="border-2 border-dashed border-border/40 rounded-2xl p-8 text-center hover:border-primary dark:hover:border-primary transition-colors focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-background"
   >
   <input type="file"
    accept=".csv"
@@ -295,12 +295,12 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
 
   {step === 'complete' && (
   <div className="text-center py-12">
-  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-  <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
+  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-success-bg flex items-center justify-center">
+  <CheckCircle2 className="h-10 w-10 text-success" />
   </div>
   <h3 className="text-lg font-bold text-foreground mb-2">Importation réussie !</h3>
-  <p className="text-sm text-muted-foreground dark:test-slate-400">{importedCount} élément{importedCount > 1 ? 's' : ''} importé{importedCount > 1 ? 's' : ''} avec succès</p>
-  <button aria-label="Terminer l'importation" onClick={onClose} className="mt-6 px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+  <p className="text-sm text-muted-foreground">{importedCount} élément{importedCount > 1 ? 's' : ''} importé{importedCount > 1 ? 's' : ''} avec succès</p>
+  <button aria-label="Terminer l'importation" onClick={onClose} className="mt-6 px-6 py-3 bg-success text-success-foreground rounded-xl font-bold hover:bg-success/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
   Terminer
   </button>
   </div>

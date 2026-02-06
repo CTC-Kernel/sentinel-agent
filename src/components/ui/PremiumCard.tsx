@@ -28,7 +28,7 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
 
  const variantClasses = cn(
  glass && "bg-[var(--glass-bg)] backdrop-blur-xl border-[var(--glass-border)] text-foreground",
- gradient && "bg-gradient-to-br from-white to-muted/50 dark:from-slate-900 dark:to-slate-800",
+ gradient && "bg-gradient-to-br from-card to-muted/50 dark:from-background dark:to-card/80",
  hover && [
  "hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 hover:border-primary/20 hover:bg-[var(--glass-medium-bg)]",
  onClick && "cursor-pointer"

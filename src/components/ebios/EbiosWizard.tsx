@@ -108,7 +108,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
  <div className="flex items-center gap-5">
  <button
  onClick={handleExit}
- className="p-2.5 -ml-2 rounded-3xl text-muted-foreground hover:text-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-white/10 transition-colors"
+ className="p-2.5 -ml-2 rounded-3xl text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-muted dark:hover:bg-muted transition-colors"
  title={t('common.exit')}
  >
  <X className="w-5 h-5" />

@@ -195,7 +195,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
   >
   <div className="flex items-center justify-between mb-3">
   <div className="p-2 bg-warning-bg rounded-3xl">
-   <AlertTriangle className="w-4 h-4 text-warning-500" />
+   <AlertTriangle className="w-4 h-4 text-warning" />
   </div>
   <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-70 transition-opacity" />
   </div>
@@ -208,10 +208,10 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
   {stats.criticalRisks > 0 && (
   <div className="mt-2 flex items-center gap-1.5">
    <span className="flex h-2 w-2">
-   <span className="animate-ping absolute h-2 w-2 rounded-full bg-red-400 opacity-75"></span>
-   <span className="relative rounded-full h-2 w-2 bg-red-500"></span>
+   <span className="animate-ping absolute h-2 w-2 rounded-full bg-destructive/75 opacity-75"></span>
+   <span className="relative rounded-full h-2 w-2 bg-destructive"></span>
    </span>
-   <span className="text-[11px] text-red-600 dark:text-red-400 font-bold">
+   <span className="text-[11px] text-destructive font-bold">
    {stats.criticalRisks} critiques
    </span>
   </div>
@@ -221,7 +221,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
    initial={{ width: 0 }}
    animate={{ width: `${Math.min(100, (stats.criticalRisks / Math.max(stats.totalRisks, 1)) * 100)}%` }}
    transition={{ duration: 0.8, ease: "easeOut" }}
-   className="h-full bg-red-500 rounded-full"
+   className="h-full bg-destructive rounded-full"
   />
   </div>
   </motion.div>
@@ -235,18 +235,18 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
   <div className="flex items-center justify-between mb-3">
   <div className={cn(
    "p-2 rounded-3xl",
-   activeIncidentsCount > 0 ? "bg-red-50" : "bg-success-bg"
+   activeIncidentsCount > 0 ? "bg-error-bg" : "bg-success-bg"
   )}>
    <Zap className={cn(
    "w-4 h-4",
-   activeIncidentsCount > 0 ? "text-red-500" : "text-success-500"
+   activeIncidentsCount > 0 ? "text-destructive" : "text-success"
    )} />
   </div>
   <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-70 transition-opacity" />
   </div>
   <div className={cn(
   "text-2xl font-black",
-  activeIncidentsCount > 0 ? "text-red-600 dark:text-red-400" : "text-foreground"
+  activeIncidentsCount > 0 ? "text-destructive" : "text-foreground"
   )}>
   {activeIncidentsCount}
   </div>
@@ -256,18 +256,18 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
   {activeIncidentsCount > 0 && (
   <div className="mt-2 flex items-center gap-1.5">
    <span className="flex h-2 w-2">
-   <span className="animate-ping absolute h-2 w-2 rounded-full bg-red-400 opacity-75"></span>
-   <span className="relative rounded-full h-2 w-2 bg-red-500"></span>
+   <span className="animate-ping absolute h-2 w-2 rounded-full bg-destructive/75 opacity-75"></span>
+   <span className="relative rounded-full h-2 w-2 bg-destructive"></span>
    </span>
-   <span className="text-[11px] text-red-600 dark:text-red-400 font-bold">
+   <span className="text-[11px] text-destructive font-bold">
    Action requise
    </span>
   </div>
   )}
   {activeIncidentsCount === 0 && (
   <div className="mt-2 flex items-center gap-1.5">
-   <span className="rounded-full h-2 w-2 bg-success-500"></span>
-   <span className="text-[11px] text-success-600 dark:text-success-400 font-bold">
+   <span className="rounded-full h-2 w-2 bg-success"></span>
+   <span className="text-[11px] text-success font-bold">
    Aucun incident
    </span>
   </div>
@@ -282,7 +282,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
   >
   <div className="flex items-center justify-between mb-3">
   <div className="p-2 bg-info-bg rounded-3xl">
-   <ShieldCheck className="w-4 h-4 text-info-500" />
+   <ShieldCheck className="w-4 h-4 text-info-text" />
   </div>
   <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-70 transition-opacity" />
   </div>
@@ -292,7 +292,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
   <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5">
   Exposition
   </div>
-  <div className="mt-2 text-[11px] text-info-600 dark:text-info-400 font-medium">
+  <div className="mt-2 text-[11px] text-info-text font-medium">
   Estimation basée sur les risques
   </div>
   <div className="mt-1 h-1 bg-muted rounded-full overflow-hidden">
@@ -300,7 +300,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
    initial={{ width: 0 }}
    animate={{ width: `${Math.min(100, Math.max(5, (stats.financialRisk / (stats.assetValue || 1)) * 100))}%` }}
    transition={{ duration: 0.8, ease: "easeOut" }}
-   className="h-full bg-info-500 rounded-full"
+   className="h-full bg-info-text rounded-full"
   />
   </div>
   </motion.div>

@@ -147,7 +147,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
  </div>
 
  {isEditing && (
- <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 mb-6 bg-white/60 backdrop-blur-xl shadow-lg">
+ <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-border/40 mb-6 bg-white/60 dark:bg-white/5 backdrop-blur-xl shadow-lg">
   <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
   <FloatingLabelInput
   label="Titre du jalon"
@@ -168,7 +168,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
    onChange={(val) => setValue('targetDate', val || '')}
    required
   />
-  {errors.targetDate && <p className="text-xs text-red-500 mt-1">{errors.targetDate.message}</p>}
+  {errors.targetDate && <p className="text-xs text-destructive mt-1">{errors.targetDate.message}</p>}
   </div>
   <CustomSelect
   label="Statut"
@@ -209,8 +209,8 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
   milestones.map((milestone, index) => (
   <div key={milestone.id || 'unknown'} className="flex items-center p-4 glass-premium rounded-3xl border border-border/40 hover:border-primary/40 group hover:shadow-md transition-all">
   <div className="flex-shrink-0 mr-4">
-  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${milestone.status === 'achieved' ? 'bg-green-100 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400' :
-   milestone.status === 'missed' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
+  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${milestone.status === 'achieved' ? 'bg-success-bg text-success-text' :
+   milestone.status === 'missed' ? 'bg-error-bg text-error-text' :
    'bg-muted text-muted-foreground '
    }`}>
    {index + 1}
@@ -242,7 +242,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
   </button>
   <button
    onClick={() => setDeleteMilestoneId(milestone.id)}
-   className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+   className="p-2 text-muted-foreground hover:text-destructive hover:bg-error-bg rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
    aria-label="Supprimer le jalon"
   >
    <Trash2 className="h-4 w-4" />

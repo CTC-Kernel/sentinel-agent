@@ -88,7 +88,7 @@ const DownloadButton: React.FC<DownloadButtonProps & { downloadUrl?: string }> =
  onClick={handleDownload}
  disabled={loading}
  className={cn(
- "flex items-center justify-between p-3 rounded-2xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 transition-all group text-left w-full border border-transparent hover:border-border/40 dark:hover:border-border/40",
+ "flex items-center justify-between p-3 rounded-2xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-muted transition-all group text-left w-full border border-transparent hover:border-border/40 dark:hover:border-border/40",
  !available && !loading && "opacity-60",
  loading && "opacity-60 cursor-wait"
  )}
@@ -127,7 +127,7 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, onToggle })
  onClick={onToggle}
  className="w-full flex items-center justify-between py-3 text-left group"
  >
- <span className="text-sm font-medium text-foreground group-hover:text-foreground dark:group-hover:text-white transition-colors">
+ <span className="text-sm font-medium text-foreground group-hover:text-foreground dark:group-hover:text-foreground transition-colors">
  {question}
  </span>
  {isOpen ? (

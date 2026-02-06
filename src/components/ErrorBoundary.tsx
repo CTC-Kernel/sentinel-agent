@@ -40,8 +40,8 @@ export class ErrorBoundary extends Component<Props, State> {
 
   <div className="glass-premium p-12 md:p-16 rounded-3xl max-w-lg w-full mx-6 text-center shadow-2xl border border-border/40 relative z-10 transition-all duration-500">
   <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner ring-1 ring-white/10 ${isPermissionError
-  ? 'bg-amber-50 text-amber-500'
-  : 'bg-red-50 text-red-500'
+  ? 'bg-warning-bg text-warning'
+  : 'bg-error-bg text-destructive'
   }`}>
   <Shield className="h-10 w-10" />
   </div>

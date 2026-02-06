@@ -337,14 +337,14 @@ export const SMSIProgramView: React.FC = () => {
 
  {/* Upcoming Milestones Alert */}
  {upcomingMilestones.length > 0 && (
- <GlassCard className="p-4 border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/30">
+ <GlassCard className="p-4 border-warning-border bg-warning-bg">
  <div className="flex items-start gap-3">
- <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+ <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
  <div>
- <h4 className="font-medium text-amber-700 dark:text-amber-400">
+ <h4 className="font-medium text-warning-text">
  {upcomingMilestones.length} jalon{upcomingMilestones.length > 1 ? 's' : ''} à venir cette semaine
  </h4>
- <p className="text-sm text-amber-600/80 dark:text-amber-400/80 mt-1">
+ <p className="text-sm text-warning-text/80 mt-1">
  {upcomingMilestones.map(m => m.name).join(', ')}
  </p>
  </div>
@@ -562,8 +562,8 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
   key={milestone.id || 'unknown'}
   className={cn(
   "relative flex items-center gap-4 p-3 rounded-xl border cursor-pointer transition-all hover:scale-[1.02]",
-  isOverdue ? "border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30" :
-  isCompleted ? "border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/30" :
+  isOverdue ? "border-error-border bg-error-bg" :
+  isCompleted ? "border-success-border bg-success-bg" :
   "border-border hover:border-border"
   )}
   onClick={() => onSelect(milestone)}
@@ -572,8 +572,8 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
   {/* Timeline dot */}
   <div className={cn(
   "absolute -left-[30px] w-4 h-4 rounded-full border-2",
-  isCompleted ? "bg-green-500 border-green-500" :
-  isOverdue ? "bg-red-500 border-red-500" :
+  isCompleted ? "bg-success border-success" :
+  isOverdue ? "bg-destructive border-destructive" :
   "bg-card border-border"
   )} />
 
@@ -581,8 +581,8 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
   <div className="flex items-center gap-2">
   <span className={cn(
   "font-medium",
-  isOverdue ? "text-red-700 dark:text-red-400" :
-  isCompleted ? "text-green-700 dark:text-green-400" :
+  isOverdue ? "text-error-text" :
+  isCompleted ? "text-success-text" :
    "text-foreground"
   )}>
   {milestone.name}
@@ -602,7 +602,7 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
   <div className="text-right text-sm">
   <div className={cn(
   "font-medium",
-  isOverdue ? "text-red-600 dark:text-red-400" : "text-muted-foreground"
+  isOverdue ? "text-error-text" : "text-muted-foreground"
   )}>
   {new Date(milestone.dueDate).toLocaleDateString(localeConfig.intlLocale)}
   </div>

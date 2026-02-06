@@ -106,7 +106,7 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
  <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-6">Répartition par Sévérité</h4>
  <div className="h-[200px] w-full relative z-10">
   {findings.length > 0 ? (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
   <Pie
    data={findingsByType}

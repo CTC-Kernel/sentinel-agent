@@ -88,7 +88,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
   onClick={() => setTypeFilter(typeFilter === type ? null : type)}
   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${typeFilter === type
    ? 'bg-primary/10 border-primary/30 text-primary dark:bg-primary dark:border-primary/90 dark:text-primary/50'
-   : 'bg-white border-border/40 text-muted-foreground hover:bg-muted dark:bg-white/5 dark:hover:bg-white/10'
+   : 'bg-white border-border/40 text-muted-foreground hover:bg-muted dark:bg-white/5 dark:hover:bg-muted'
    }`}
   >
   {type}
@@ -134,7 +134,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
    initial="initial"
    animate="visible"
    key={`${finding.auditId || 'unknown'}-${finding.id}`}
-   className="hover:bg-muted/50 dark:hover:bg-white/5 transition-colors group"
+   className="hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors group"
    >
    <td className="py-4 px-6">
    <div className="flex items-center gap-2">

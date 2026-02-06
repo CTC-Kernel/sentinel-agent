@@ -207,7 +207,7 @@ const PresentationControls: React.FC<PresentationControlsProps> = ({
  <div className="flex items-center gap-2">
  <button
  onClick={onExit}
- className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors flex items-center gap-2"
+ className="px-4 py-2 bg-muted hover:bg-muted text-white rounded-lg transition-colors flex items-center gap-2"
  title="Exit (Escape)"
  >
  <span className="text-sm">Exit</span>
@@ -220,7 +220,7 @@ const PresentationControls: React.FC<PresentationControlsProps> = ({
  <button
  onClick={onPrevious}
  disabled={currentSlide === 0}
- className="min-w-[44px] min-h-[44px] p-2 hover:bg-white/10 rounded-full transition-colors disabled:bg-slate-700/50 disabled:text-muted-foreground"
+ className="min-w-[44px] min-h-[44px] p-2 hover:bg-muted rounded-full transition-colors disabled:bg-muted/50 disabled:text-muted-foreground"
  title="Previous (Left Arrow)"
  aria-label="Diapositive précédente"
  >
@@ -236,7 +236,7 @@ const PresentationControls: React.FC<PresentationControlsProps> = ({
  <button
  onClick={onNext}
  disabled={currentSlide === totalSlides - 1}
- className="min-w-[44px] min-h-[44px] p-2 hover:bg-white/10 rounded-full transition-colors disabled:bg-slate-700/50 disabled:text-muted-foreground"
+ className="min-w-[44px] min-h-[44px] p-2 hover:bg-muted rounded-full transition-colors disabled:bg-muted/50 disabled:text-muted-foreground"
  title="Next (Right Arrow)"
  aria-label="Diapositive suivante"
  >
@@ -250,7 +250,7 @@ const PresentationControls: React.FC<PresentationControlsProps> = ({
  <div className="flex items-center gap-2">
  <button
  onClick={onToggleRotate}
- className={`p-2 rounded-lg transition-colors ${isRotating ? 'bg-primary text-primary-foreground' : 'bg-white/10 hover:bg-white/20 text-white'
+ className={`p-2 rounded-lg transition-colors ${isRotating ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted text-white'
  }`}
  title="Toggle Auto-Rotate (R)"
  >
@@ -265,7 +265,7 @@ const PresentationControls: React.FC<PresentationControlsProps> = ({
  </button>
 
  {showTimer && (
- <div className="px-3 py-1.5 bg-white/10 rounded-lg">
+ <div className="px-3 py-1.5 bg-muted rounded-lg">
  <span className="text-white font-mono text-sm">{formatTime(elapsedTime)}</span>
  </div>
  )}
@@ -273,7 +273,7 @@ const PresentationControls: React.FC<PresentationControlsProps> = ({
  </div>
 
  {/* Progress bar */}
- <div className="h-1 bg-white/10">
+ <div className="h-1 bg-muted">
  <div
  className="h-full bg-primary transition-all duration-300"
  style={{ width: `${((currentSlide + 1) / totalSlides) * 100}%` }}

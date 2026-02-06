@@ -109,7 +109,7 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, onToggle })
  onClick={onToggle}
  className="w-full flex items-center justify-between py-3 text-left group"
  >
- <span className="text-sm font-medium text-foreground group-hover:text-foreground dark:group-hover:text-white transition-colors">
+ <span className="text-sm font-medium text-foreground group-hover:text-foreground dark:group-hover:text-foreground transition-colors">
  {question}
  </span>
  {isOpen ? (
@@ -162,7 +162,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
  {loading ? (
  <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
  ) : available ? (
- <Download className="w-4 h-4 text-muted-foreground group-hover:text-foreground dark:group-hover:text-white transition-colors" />
+ <Download className="w-4 h-4 text-muted-foreground group-hover:text-foreground dark:group-hover:text-foreground transition-colors" />
  ) : (
  <Badge variant="outline" className="text-[11px] border-amber-500/30 text-amber-600">
   {t('settings.agents.comingSoon', { defaultValue: 'Bientôt' })}
@@ -172,7 +172,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
  );
 
  const baseClasses = cn(
- "flex items-center justify-between p-4 rounded-2xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 transition-all group text-left w-full",
+ "flex items-center justify-between p-4 rounded-2xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-muted transition-all group text-left w-full",
  !available && !loading && "opacity-60",
  loading && "opacity-60 cursor-wait"
  );
@@ -657,7 +657,7 @@ export const AgentManagement: React.FC = () => {
   <Activity className="w-4 h-4 text-primary" />
   </div>
   <div className="h-[140px] relative">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <RadialBarChart
   cx="50%"
   cy="50%"
@@ -743,7 +743,7 @@ export const AgentManagement: React.FC = () => {
   initial={{ width: 0 }}
   animate={{ width: `${(agentStats.offline / Math.max(agentStats.total, 1)) * 100}%` }}
   transition={{ duration: 0.8, ease: "easeOut" }}
-  className="h-full bg-slate-400 rounded-full"
+  className="h-full bg-muted-foreground rounded-full"
   />
   </div>
  </motion.div>
@@ -797,7 +797,7 @@ export const AgentManagement: React.FC = () => {
   </div>
   {statusDistribution.length > 0 ? (
   <div className="h-[200px]">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
    <Pie
    activeIndex={activeStatusIndex}
@@ -846,7 +846,7 @@ export const AgentManagement: React.FC = () => {
   </div>
   {osDistribution.length > 0 ? (
   <div className="h-[200px]">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
    <Pie
    activeIndex={activeOSIndex}
@@ -894,7 +894,7 @@ export const AgentManagement: React.FC = () => {
   <TrendingUp className="w-4 h-4 text-primary" />
   </div>
   <div className="h-[200px]">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <AreaChart data={activityTimeline} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
   <defs>
    <linearGradient id="colorActifs" x1="0" y1="0" x2="0" y2="1">
@@ -902,8 +902,8 @@ export const AgentManagement: React.FC = () => {
    <stop offset="95%" stopColor={SENTINEL_PALETTE.success} stopOpacity={0} />
    </linearGradient>
    <linearGradient id="colorHorsLigne" x1="0" y1="0" x2="0" y2="1">
-   <stop offset="5%" stopColor="#64748b" stopOpacity={0.5} />
-   <stop offset="95%" stopColor="#64748b" stopOpacity={0} />
+   <stop offset="5%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.5} />
+   <stop offset="95%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0} />
    </linearGradient>
   </defs>
   <XAxis
@@ -937,7 +937,7 @@ export const AgentManagement: React.FC = () => {
   <Area
    type="monotone"
    dataKey="horsLigne"
-   stroke="#64748b"
+   stroke="hsl(var(--muted-foreground))"
    fillOpacity={1}
    fill="url(#colorHorsLigne)"
    strokeWidth={2}
@@ -1027,7 +1027,7 @@ export const AgentManagement: React.FC = () => {
    <tr
     key={agent.id || 'unknown'}
     onClick={() => setSelectedAgentId(agent.id)}
-    className="group hover:bg-muted/50 dark:hover:bg-white/5 transition-colors cursor-pointer"
+    className="group hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors cursor-pointer"
    >
     <td className="px-6 py-5">
     <div className="flex items-center gap-3">
@@ -1111,7 +1111,7 @@ export const AgentManagement: React.FC = () => {
    </tr>
    ) : (
    enrollmentTokens.map((token) => (
-   <tr key={token.id || 'unknown'} className="hover:bg-muted/50 dark:hover:bg-white/5 transition-colors">
+   <tr key={token.id || 'unknown'} className="hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors">
    <td className="px-6 py-4">
     <div>
     <div className="font-medium text-foreground text-sm">
@@ -1341,7 +1341,7 @@ export const AgentManagement: React.FC = () => {
    href={releaseInfo?.mobile?.ios?.appStoreUrl || '#'}
    target="_blank"
    rel="noopener noreferrer"
-   className="flex flex-col items-center p-4 rounded-2xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 transition-all group text-center"
+   className="flex flex-col items-center p-4 rounded-2xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-muted transition-all group text-center"
    >
    <Cpu className="w-6 h-6 text-muted-foreground mb-2" />
    <div className="text-sm font-bold text-foreground">iOS</div>
@@ -1356,7 +1356,7 @@ export const AgentManagement: React.FC = () => {
    href={releaseInfo?.mobile?.android?.playStoreUrl || '#'}
    target="_blank"
    rel="noopener noreferrer"
-   className="flex flex-col items-center p-4 rounded-2xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 transition-all group text-center"
+   className="flex flex-col items-center p-4 rounded-2xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-muted transition-all group text-center"
    >
    <Server className="w-6 h-6 text-success-500 mb-2" />
    <div className="text-sm font-bold text-foreground">Android</div>
@@ -1415,7 +1415,7 @@ export const AgentManagement: React.FC = () => {
    href="https://docs.sentinel-grc.com/agent/quickstart"
    target="_blank"
    rel="noopener noreferrer"
-   className="flex items-center justify-between p-3 rounded-3xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 transition-all group"
+   className="flex items-center justify-between p-3 rounded-3xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-muted transition-all group"
    >
    <div className="flex items-center gap-2.5">
    <Zap className="w-4 h-4 text-amber-500" />
@@ -1430,7 +1430,7 @@ export const AgentManagement: React.FC = () => {
    href="https://docs.sentinel-grc.com/agent/configuration"
    target="_blank"
    rel="noopener noreferrer"
-   className="flex items-center justify-between p-3 rounded-3xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 transition-all group"
+   className="flex items-center justify-between p-3 rounded-3xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-muted transition-all group"
    >
    <div className="flex items-center gap-2.5">
    <Settings className="w-4 h-4 text-muted-foreground" />
@@ -1445,7 +1445,7 @@ export const AgentManagement: React.FC = () => {
    href="https://docs.sentinel-grc.com/agent/security"
    target="_blank"
    rel="noopener noreferrer"
-   className="flex items-center justify-between p-3 rounded-3xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 transition-all group"
+   className="flex items-center justify-between p-3 rounded-3xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-muted transition-all group"
    >
    <div className="flex items-center gap-2.5">
    <Shield className="w-4 h-4 text-success-500" />
@@ -1460,7 +1460,7 @@ export const AgentManagement: React.FC = () => {
    href="https://docs.sentinel-grc.com/agent/troubleshooting"
    target="_blank"
    rel="noopener noreferrer"
-   className="flex items-center justify-between p-3 rounded-3xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 transition-all group"
+   className="flex items-center justify-between p-3 rounded-3xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-muted transition-all group"
    >
    <div className="flex items-center gap-2.5">
    <AlertTriangle className="w-4 h-4 text-amber-500" />
@@ -1475,7 +1475,7 @@ export const AgentManagement: React.FC = () => {
    href="https://docs.sentinel-grc.com/agent/api"
    target="_blank"
    rel="noopener noreferrer"
-   className="flex items-center justify-between p-3 rounded-3xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 transition-all group"
+   className="flex items-center justify-between p-3 rounded-3xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-muted transition-all group"
    >
    <div className="flex items-center gap-2.5">
    <Network className="w-4 h-4 text-primary" />
@@ -1532,13 +1532,13 @@ export const AgentManagement: React.FC = () => {
    href="https://github.com/sentinel/agent/releases"
    target="_blank"
    rel="noopener noreferrer"
-   className="flex items-center justify-between p-3 rounded-3xl bg-slate-900 dark:bg-black/50 hover:bg-slate-800 transition-all group"
+   className="flex items-center justify-between p-3 rounded-3xl bg-foreground dark:bg-card hover:bg-foreground/90 dark:hover:bg-muted transition-all group"
    >
    <div className="flex items-center gap-2.5">
-   <Package className="w-4 h-4 text-white" />
-   <span className="text-sm font-medium text-white">Releases GitHub</span>
+   <Package className="w-4 h-4 text-background dark:text-foreground" />
+   <span className="text-sm font-medium text-background dark:text-foreground">Releases GitHub</span>
    </div>
-   <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-white" />
+   <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground" />
    </a>
    </div>
   </motion.div>
@@ -1626,7 +1626,7 @@ export const AgentManagement: React.FC = () => {
    <div className="grid grid-cols-1 gap-3">
    <a
    href="mailto:support@sentinel-grc.com"
-   className="flex items-center justify-between p-4 rounded-2xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 transition-all group"
+   className="flex items-center justify-between p-4 rounded-2xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-muted transition-all group"
    >
    <div className="flex items-center gap-3">
    <div className="p-2.5 bg-primary/10 rounded-3xl">
@@ -1644,7 +1644,7 @@ export const AgentManagement: React.FC = () => {
    href="https://github.com/sentinel/agent/issues/new"
    target="_blank"
    rel="noopener noreferrer"
-   className="flex items-center justify-between p-4 rounded-2xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 transition-all group"
+   className="flex items-center justify-between p-4 rounded-2xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-muted transition-all group"
    >
    <div className="flex items-center gap-3">
    <div className="p-2.5 bg-red-50 rounded-3xl">
@@ -1662,7 +1662,7 @@ export const AgentManagement: React.FC = () => {
    href="https://community.sentinel-grc.com"
    target="_blank"
    rel="noopener noreferrer"
-   className="flex items-center justify-between p-4 rounded-2xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 transition-all group"
+   className="flex items-center justify-between p-4 rounded-2xl bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-muted transition-all group"
    >
    <div className="flex items-center gap-3">
    <div className="p-2.5 bg-purple-500/10 rounded-3xl">
@@ -1687,7 +1687,7 @@ export const AgentManagement: React.FC = () => {
    Exécutez cette commande pour vérifier l'état de l'agent :
    </p>
    <div className="relative">
-   <pre className="p-3 bg-slate-900 dark:bg-black/50 rounded-3xl text-[11px] text-success-400 overflow-x-auto">
+   <pre className="p-3 bg-card dark:bg-muted rounded-3xl text-[11px] text-success-400 overflow-x-auto border border-border">
     <code>sentinel-agent status --verbose</code>
    </pre>
    <button
@@ -1695,7 +1695,7 @@ export const AgentManagement: React.FC = () => {
     navigator.clipboard.writeText('sentinel-agent status --verbose');
     toast.success(t('agents.commandCopied') || "Commande copiée !");
     }}
-    className="absolute right-2 top-2 p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+    className="absolute right-2 top-2 p-1.5 bg-muted hover:bg-muted/80 rounded-lg transition-colors"
    >
     <Copy className="w-3 h-3 text-muted-foreground" />
    </button>

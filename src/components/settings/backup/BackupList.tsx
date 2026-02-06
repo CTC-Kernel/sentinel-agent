@@ -59,7 +59,7 @@ export const BackupList: React.FC<BackupListProps> = ({
   animate={{ opacity: 1, scale: 1 }}
   key={backup.id || 'unknown'}
   onClick={() => onSelect(backup)}
-  className={`p-4 rounded-3xl border transition-all cursor-pointer group relative ${selectedBackup?.id === backup.id ? 'bg-primary/10 border-primary/30 dark:bg-primary dark:border-primary/40 ring-1 ring-primary/60' : 'bg-white/50 dark:bg-white/5 border-border/40 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-md'}`}
+  className={`p-4 rounded-3xl border transition-all cursor-pointer group relative ${selectedBackup?.id === backup.id ? 'bg-primary/10 border-primary/30 dark:bg-primary dark:border-primary/40 ring-1 ring-primary/60' : 'bg-white/50 dark:bg-white/5 border-border/40 dark:border-white/5 hover:bg-white dark:hover:bg-muted hover:shadow-md'}`}
   >
   <div className="flex justify-between items-start mb-2">
   <div className="flex items-center gap-2">

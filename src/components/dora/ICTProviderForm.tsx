@@ -151,7 +151,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
   onClick={() => setActiveTab(tab.id)}
   className={`flex items-center gap-2 px-4 py-2 rounded-3xl text-sm font-medium transition-all ${activeTab === tab.id
   ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
-  : 'text-muted-foreground hover:bg-muted dark:hover:bg-white/5'
+  : 'text-muted-foreground hover:bg-muted dark:hover:bg-muted/50'
   }`}
   >
   {tab.icon}
@@ -756,7 +756,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
     onClick={() => field.onChange(level)}
     className={`p-4 rounded-2xl border-2 text-left transition-all ${isSelected
      ? `border-${config.color}-500 bg-${config.color}-50 dark:bg-${config.color}-900/20`
-     : 'border-border/40 hover:border-border/40 dark:hover:border-slate-600'
+     : 'border-border/40 hover:border-border/40 dark:hover:border-border'
      }`}
     >
     <div className="flex items-center gap-2 mb-2">

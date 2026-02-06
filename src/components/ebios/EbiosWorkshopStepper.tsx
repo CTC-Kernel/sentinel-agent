@@ -71,8 +71,8 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
  "relative flex items-center justify-center w-10 h-10 rounded-3xl transition-all duration-300",
  "border font-medium text-sm backdrop-blur-md",
  locked && "opacity-40 cursor-not-allowed border-transparent bg-muted text-muted-foreground",
- !locked && "cursor-pointer hover:scale-105 hover:bg-white/10 dark:hover:bg-white/5",
- isActive && "ring-2 ring-offset-2 ring-primary dark:ring-offset-slate-900 border-primary/60 bg-primary/10 text-primary",
+ !locked && "cursor-pointer hover:scale-105 hover:bg-muted dark:hover:bg-muted/50",
+ isActive && "ring-2 ring-offset-2 ring-primary ring-offset-background border-primary/60 bg-primary/10 text-primary",
  (workshop.status === 'validated' || workshop.status === 'completed') && !isActive && "bg-success/10 border-success/50 text-success-text",
  )}
  title={info.name[locale]}
@@ -195,7 +195,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
  !locked && "cursor-pointer active:scale-[0.98]",
  isActive
   ? "border-primary/40 bg-primary/15 dark:bg-primary shadow-lg shadow-primary"
-  : "border-border/40 bg-card/40 hover:bg-white/60"
+  : "border-border/40 bg-card/40 hover:bg-card/60"
  )}
  >
  <div className={cn(

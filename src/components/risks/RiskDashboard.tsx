@@ -135,7 +135,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
   <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('risks.dashboard.kpi.treatmentRate', { defaultValue: 'Taux Traitement' })}</span>
   </div>
   <div className="h-[140px] relative">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <RadialBarChart
   cx="50%"
   cy="50%"
@@ -177,7 +177,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
   <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('risks.dashboard.kpi.reductionRate', { defaultValue: 'Réduction Risque' })}</span>
   </div>
   <div className="h-[140px] relative">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <RadialBarChart
   cx="50%"
   cy="50%"
@@ -268,7 +268,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
   {t('risks.dashboard.charts.distribution', { defaultValue: 'Distribution par Niveau' })}
   </h3>
   <div className="h-[280px]">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
   <defs>
    {distributionData.map((entry, idx) => (

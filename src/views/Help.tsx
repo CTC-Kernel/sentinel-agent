@@ -905,7 +905,7 @@ export const Help: React.FC = () => {
    >
    <div className={`p-2 rounded-xl shrink-0 transition-colors ${selectedArticle === article.id
     ? 'bg-primary text-primary-foreground'
-    : 'bg-muted text-muted-foreground group-hover:bg-primary/15 dark:group-hover:bg-primary group-hover:text-primary dark:group-hover:text-white'
+    : 'bg-muted text-muted-foreground group-hover:bg-primary/15 dark:group-hover:bg-primary group-hover:text-primary dark:group-hover:text-foreground'
     }`}>
     {article.icon ? <article.icon className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
    </div>

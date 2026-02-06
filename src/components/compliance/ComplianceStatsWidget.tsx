@@ -103,7 +103,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
  {/* Gauge Section */}
  <div className="flex-shrink-0 flex items-center gap-4">
   <div className="relative w-32 h-32">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <RadialBarChart
   cx="50%"
   cy="50%"
@@ -154,7 +154,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
   <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 group hover:scale-[1.02] transition-transform">
   <div className="flex items-center justify-between mb-2">
   <div className="p-2 bg-success-bg rounded-3xl">
-  <CheckCircle2 className="w-4 h-4 text-success-500" />
+  <CheckCircle2 className="w-4 h-4 text-success" />
   </div>
   </div>
   <div className="text-2xl font-black text-foreground">
@@ -168,7 +168,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
   initial={{ width: 0 }}
   animate={{ width: `${(stats.implementedControls / Math.max(stats.actionableControls, 1)) * 100}%` }}
   transition={{ duration: 0.8, ease: "easeOut" }}
-  className="h-full bg-success-500 rounded-full"
+  className="h-full bg-success rounded-full"
   />
   </div>
   </div>
@@ -182,19 +182,19 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
   )}>
   <AlertTriangle className={cn(
    "w-4 h-4",
-   stats.todoControls > 0 ? "text-warning-500" : "text-success-500"
+   stats.todoControls > 0 ? "text-warning" : "text-success"
   )} />
   </div>
   {stats.todoControls > 5 && (
   <span className="flex h-2 w-2">
-   <span className="animate-ping absolute h-2 w-2 rounded-full bg-warning-400 opacity-75"></span>
-   <span className="relative rounded-full h-2 w-2 bg-warning-500"></span>
+   <span className="animate-ping absolute h-2 w-2 rounded-full bg-warning/75 opacity-75"></span>
+   <span className="relative rounded-full h-2 w-2 bg-warning"></span>
   </span>
   )}
   </div>
   <div className={cn(
   "text-2xl font-black",
-  stats.todoControls > 0 ? "text-warning-600 dark:text-warning-400" : "text-foreground"
+  stats.todoControls > 0 ? "text-warning" : "text-foreground"
   )}>
   {stats.todoControls}
   </div>
@@ -208,7 +208,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
   transition={{ duration: 0.8, ease: "easeOut" }}
   className={cn(
    "h-full rounded-full",
-   stats.todoControls > 0 ? "bg-warning-500" : "bg-success-500"
+   stats.todoControls > 0 ? "bg-warning" : "bg-success"
   )}
   />
   </div>
@@ -218,7 +218,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
   <div className="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-border/40 group hover:scale-[1.02] transition-transform">
   <div className="flex items-center justify-between mb-2">
   <div className="p-2 bg-info-bg rounded-3xl">
-  <Paperclip className="w-4 h-4 text-info-500" />
+  <Paperclip className="w-4 h-4 text-info-text" />
   </div>
   </div>
   <div className="text-2xl font-black text-foreground">
@@ -232,7 +232,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
   initial={{ width: 0 }}
   animate={{ width: `${Math.min((stats.evidenceCount / Math.max(stats.totalControls * 2, 1)) * 100, 100)}%` }}
   transition={{ duration: 0.8, ease: "easeOut" }}
-  className="h-full bg-info-500 rounded-full"
+  className="h-full bg-info-text rounded-full"
   />
   </div>
   </div>
@@ -270,11 +270,11 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
  </div>
  <div className="flex items-center gap-4">
   <div className="flex items-center gap-1.5 text-[11px]">
-  <div className="w-2 h-2 rounded-full bg-success-500" />
+  <div className="w-2 h-2 rounded-full bg-success" />
   <span className="text-muted-foreground">Implémentés</span>
   </div>
   <div className="flex items-center gap-1.5 text-[11px]">
-  <div className="w-2 h-2 rounded-full bg-warning-500" />
+  <div className="w-2 h-2 rounded-full bg-warning" />
   <span className="text-muted-foreground">À traiter</span>
   </div>
   <div className="flex items-center gap-1.5 text-[11px]">

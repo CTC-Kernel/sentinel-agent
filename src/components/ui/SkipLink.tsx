@@ -21,7 +21,7 @@ export const SkipLink: React.FC = () => {
  ring-4 ring-primary/60
  transition-all duration-200
  hover:bg-primary/90
- focus:outline-none
+ focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white
  "
  tabIndex={0}
  >
@@ -65,7 +65,7 @@ export const SkipLinks: React.FC<SkipLinksProps> = ({ links }) => {
  ring-4 ring-primary/60
  transition-all duration-200
  hover:bg-primary/90
- focus:outline-none
+ focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white
  "
  style={{ left: `${4 + index * 200}px` }}
  tabIndex={0}

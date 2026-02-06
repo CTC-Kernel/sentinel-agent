@@ -76,7 +76,7 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onClose })
   <div className="space-y-2">
   {group.shortcuts.map((shortcut) => (
    <div key={shortcut.description || 'unknown'} className="flex items-center justify-between group">
-   <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground dark:group-hover:text-white transition-colors">
+   <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground dark:group-hover:text-foreground transition-colors">
    {shortcut.description}
    </span>
    <div className="flex items-center gap-1">

@@ -282,7 +282,7 @@ export const IntegrationSettings: React.FC = () => {
   <div className="space-y-4 md:border-l md:border-white/20 md:pl-8 dark:border-white/5">
   <h4 className="font-medium text-foreground">{t('settings.integrationsPage.ssoStatus')}</h4>
   <div className="p-4 rounded-3xl bg-muted/50 dark:bg-white/5 border border-border/40 flex items-center gap-3">
-  <div className="w-2.5 h-2.5 rounded-full bg-slate-400" />
+  <div className="w-2.5 h-2.5 rounded-full bg-muted-foreground" />
   <span className="text-sm text-muted-foreground">{t('settings.integrationsPage.notConfigured')}</span>
   </div>
 

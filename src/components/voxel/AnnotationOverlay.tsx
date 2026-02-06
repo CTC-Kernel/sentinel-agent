@@ -343,14 +343,14 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
  <div className="glass-premium rounded-2xl p-4 space-y-4 border border-border/40">
  {/* Header */}
  <div className="flex items-center justify-between">
- <h3 className="text-sm font-semibold text-white">Annotations</h3>
+ <h3 className="text-sm font-semibold text-foreground">Annotations</h3>
  <div className="flex items-center gap-2">
  <span className="text-xs text-muted-foreground">
  {visibleCount} / {totalCount}
  </span>
  <button
  onClick={onToggleVisibility}
- className={`w-10 h-5 rounded-full transition-colors relative ${annotationsVisible ? 'bg-primary' : 'bg-slate-600'
+ className={`w-10 h-5 rounded-full transition-colors relative ${annotationsVisible ? 'bg-primary' : 'bg-muted'
  }`}
  >
  <span
@@ -373,7 +373,7 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
   onClick={() => onToggleType(type)}
   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activeTypes.includes(type)
   ? 'bg-primary/15 text-primary/70 border border-primary/60'
-  : 'bg-slate-800/50 text-muted-foreground border border-transparent hover:bg-slate-700/50'
+  : 'bg-muted/50 text-muted-foreground border border-transparent hover:bg-muted/80'
   }`}
  >
   {type}
@@ -388,7 +388,7 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
  onClick={onToggleUnreadOnly}
  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${showUnreadOnly
   ? 'bg-amber-500/20 text-amber-400 border border-amber-500/50'
-  : 'bg-slate-800/50 text-muted-foreground border border-transparent hover:bg-slate-700/50'
+  : 'bg-muted/50 text-muted-foreground border border-transparent hover:bg-muted/80'
  }`}
  >
  Non lues
@@ -397,7 +397,7 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
  onClick={onTogglePinnedOnly}
  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${showPinnedOnly
   ? 'bg-purple-500/20 text-purple-400 border border-purple-500/50'
-  : 'bg-slate-800/50 text-muted-foreground border border-transparent hover:bg-slate-700/50'
+  : 'bg-muted/50 text-muted-foreground border border-transparent hover:bg-muted/80'
  }`}
  >
  Epinglees

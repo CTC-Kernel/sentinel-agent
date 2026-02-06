@@ -108,7 +108,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
   <span className="caption">Taux de Complétion</span>
   </div>
   <div className="h-[120px] relative">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" barSize={12} data={completionGaugeData} startAngle={180} endAngle={0}>
    <RadialBar background={{ fill: 'hsl(var(--muted) / 0.3)' }} dataKey="value" cornerRadius={10} style={{ filter: `url(#${auditGlowId})` }} />
   </RadialBarChart>
@@ -134,7 +134,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
   <span className="caption">Taux de Conformité</span>
   </div>
   <div className="h-[120px] relative">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" barSize={12} data={complianceGaugeData} startAngle={180} endAngle={0}>
    <RadialBar background={{ fill: 'hsl(var(--muted) / 0.3)' }} dataKey="value" cornerRadius={10} style={{ filter: `url(#${auditGlowId})` }} />
   </RadialBarChart>
@@ -170,7 +170,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
   {statusData.length === 0 ? (
   <EmptyChartState variant="pie" message="Aucune donnée" />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
    <defs>
    {statusData.map((entry, idx) => (
@@ -231,7 +231,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
   {findingsByType.length === 0 ? (
   <EmptyChartState variant="bar" message="Aucun constat" />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <BarChart data={findingSeverityData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border) / 0.3)" />
    <XAxis

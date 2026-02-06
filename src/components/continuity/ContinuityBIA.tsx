@@ -38,10 +38,10 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
 
  const getPriorityColor = (p: string) => {
  switch (p) {
- case 'Critique': return 'bg-red-50 text-red-700 dark:text-red-400 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30';
- case 'Élevée': return 'bg-orange-50 text-orange-700 dark:text-orange-400 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-900/30';
- case 'Moyenne': return 'bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-900/30';
- default: return 'bg-blue-50 text-blue-700 dark:text-blue-400 border-blue-100/20 dark:text-blue-400 dark:border-blue-900/30';
+ case 'Critique': return 'bg-error-bg text-error-text border-error-border';
+ case 'Élevée': return 'bg-warning-bg text-warning-text border-warning-border';
+ case 'Moyenne': return 'bg-warning-bg/70 text-warning-text border-warning-border/70';
+ default: return 'bg-info-bg text-info-text border-info-border';
  }
  };
 
@@ -87,7 +87,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
    <tr
    key={proc.id || 'unknown'}
    onClick={() => onOpenInspector(proc)}
-   className="hover:bg-white/60/40 transition-colors cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+   className="hover:bg-white/40 dark:hover:bg-muted transition-colors cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
    tabIndex={0}
    role="button"
    onKeyDown={(e) => {
@@ -118,7 +118,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
    </div>
    </td>
    <td className="px-6 py-5">
-   <span className={`font-bold text-xs px-2 py-1 rounded ${isOverdue ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' : 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'}`}>
+   <span className={`font-bold text-xs px-2 py-1 rounded ${isOverdue ? 'bg-error-bg text-error-text' : 'bg-success-bg text-success-text'}`}>
    {proc.lastTestDate ? new Date(proc.lastTestDate).toLocaleDateString() : t('continuity.never', { defaultValue: 'Jamais' })}
    </span>
    </td>
@@ -126,7 +126,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
    <div className="flex items-center justify-end gap-2">
    <button
     onClick={(e) => { e.stopPropagation(); onOpenInspector(proc); }}
-    className="p-2 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:hover:bg-blue-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+    className="p-2 text-muted-foreground hover:text-info-text hover:bg-info-bg rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     title={t('common.edit', { defaultValue: 'Modifier' })}
    >
     <Edit className="h-4 w-4" />
@@ -135,7 +135,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
     <button
     onClick={(e) => { e.stopPropagation(); handleDelete(proc.id); }}
     disabled={deletingIds.has(proc.id)}
-    className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600"
+    className="p-2 text-muted-foreground hover:text-destructive hover:bg-error-bg rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed"
     title={deletingIds.has(proc.id) ? t('common.deleting', { defaultValue: 'Suppression...' }) : t('common.delete', { defaultValue: 'Supprimer' })}
     >
     <Trash2 className="h-4 w-4" />
@@ -176,7 +176,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
   className="glass-premium rounded-3xl p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 relative group flex flex-col cursor-pointer border border-border/40"
   >
   <div className="flex justify-between items-start mb-5">
-  <div className="p-3 bg-rose-50 rounded-2xl text-rose-600 shadow-inner">
+  <div className="p-3 bg-error-bg rounded-2xl text-error-text shadow-inner">
   <HeartPulse className="h-6 w-6" />
   </div>
   <span className={`px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider border shadow-sm ${getPriorityColor(proc.priority)}`}>
@@ -216,7 +216,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
   </div>
   <div className="flex items-center justify-between text-xs">
   <span className="flex items-center font-bold text-muted-foreground uppercase tracking-wide"><ClipboardCheck className="h-3 w-3 mr-1.5" /> {t('continuity.table.lastTest', { defaultValue: 'Dernier Test' })}</span>
-  <span className={`font-bold px-2 py-0.5 rounded ${isOverdue ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' : 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'}`}>
+  <span className={`font-bold px-2 py-0.5 rounded ${isOverdue ? 'bg-error-bg text-error-text' : 'bg-success-bg text-success-text'}`}>
    {proc.lastTestDate ? new Date(proc.lastTestDate).toLocaleDateString() : t('continuity.never', { defaultValue: 'Jamais' })}
   </span>
   </div>

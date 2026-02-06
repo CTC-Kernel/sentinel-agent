@@ -196,7 +196,7 @@ const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, im
  const scoreConfig = getScoreColor(score);
 
  return (
- <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+ <div className="bg-muted/80 rounded-2xl p-4 border border-border/50">
  <div className="flex items-center justify-between mb-4">
  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Score de Risque</span>
  <div
@@ -209,7 +209,7 @@ const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, im
 
  {/* Risk Matrix Mini */}
  <div className="grid grid-cols-2 gap-3">
- <div className="bg-slate-700/30 rounded-3xl p-3">
+ <div className="bg-muted/30 rounded-3xl p-3">
  <div className="text-xs text-muted-foreground mb-2">Probabilité</div>
  <div className="flex items-center gap-1">
  {[1, 2, 3, 4, 5].map((i) => (
@@ -224,7 +224,7 @@ const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, im
  </div>
  <div className="text-right text-xs text-muted-foreground mt-1">{probability}/5</div>
  </div>
- <div className="bg-slate-700/30 rounded-3xl p-3">
+ <div className="bg-muted/30 rounded-3xl p-3">
  <div className="text-xs text-muted-foreground mb-2">Impact</div>
  <div className="flex items-center gap-1">
  {[1, 2, 3, 4, 5].map((i) => (
@@ -256,7 +256,7 @@ const LinkedEntityItem: React.FC<LinkedEntityItemProps> = ({ node, onClick }) =>
  return (
  <motion.button
  onClick={onClick}
- className="w-full flex items-center gap-3 p-3 rounded-3xl hover:bg-white/5 transition-all group"
+ className="w-full flex items-center gap-3 p-3 rounded-3xl hover:bg-muted/50 transition-all group"
  whileHover={{ x: 4 }}
  whileTap={{ scale: 0.98 }}
  >
@@ -267,7 +267,7 @@ const LinkedEntityItem: React.FC<LinkedEntityItemProps> = ({ node, onClick }) =>
  {typeConfig.icon}
  </div>
  <div className="flex-1 min-w-0 text-left">
- <div className="text-sm text-white font-medium truncate">{node.label}</div>
+ <div className="text-sm text-foreground font-medium truncate">{node.label}</div>
  <div className="text-xs text-muted-foreground">{typeConfig.label}</div>
  </div>
  <div
@@ -317,7 +317,7 @@ const AssetDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
  return (
  <div className="space-y-4">
  {/* Main Info Card */}
- <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+ <div className="bg-muted/80 rounded-2xl p-4 border border-border/50">
  <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
  <Server className="w-3.5 h-3.5" />
  Informations
@@ -332,28 +332,28 @@ const AssetDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
 
  {/* CIA Triad */}
  {(confidentiality || integrity || availability) && (
- <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+ <div className="bg-muted/80 rounded-2xl p-4 border border-border/50">
  <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
  <Shield className="w-3.5 h-3.5" />
  Classification CIA
  </h3>
  <div className="grid grid-cols-3 gap-2">
  {confidentiality && (
- <div className="text-center p-3 rounded-3xl bg-slate-700/30">
+ <div className="text-center p-3 rounded-3xl bg-muted/30">
  <Lock className="w-4 h-4 mx-auto mb-1 text-blue-400" />
  <div className="text-[11px] text-muted-foreground uppercase">Conf.</div>
  <div className="text-xs font-medium text-muted-foreground/60 mt-0.5">{confidentiality}</div>
  </div>
  )}
  {integrity && (
- <div className="text-center p-3 rounded-3xl bg-slate-700/30">
+ <div className="text-center p-3 rounded-3xl bg-muted/30">
  <CheckCircle2 className="w-4 h-4 mx-auto mb-1 text-green-400" />
  <div className="text-[11px] text-muted-foreground uppercase">Intég.</div>
  <div className="text-xs font-medium text-muted-foreground/60 mt-0.5">{integrity}</div>
  </div>
  )}
  {availability && (
- <div className="text-center p-3 rounded-3xl bg-slate-700/30">
+ <div className="text-center p-3 rounded-3xl bg-muted/30">
  <Wifi className="w-4 h-4 mx-auto mb-1 text-amber-400" />
  <div className="text-[11px] text-muted-foreground uppercase">Disp.</div>
  <div className="text-xs font-medium text-muted-foreground/60 mt-0.5">{availability}</div>
@@ -381,7 +381,7 @@ const RiskDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
  <RiskScoreIndicator probability={probability} impact={impact} score={score} />
 
  {/* Risk Info */}
- <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+ <div className="bg-muted/80 rounded-2xl p-4 border border-border/50">
  <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
  <AlertTriangle className="w-3.5 h-3.5" />
  Détails du Risque
@@ -415,12 +415,12 @@ const ControlDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
  <div className="space-y-4">
  {/* Effectiveness Gauge */}
  {effectiveness !== null && (
- <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+ <div className="bg-muted/80 rounded-2xl p-4 border border-border/50">
  <div className="flex items-center justify-between mb-3">
  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Efficacité</span>
- <span className="text-lg font-bold text-white">{effectiveness}%</span>
+ <span className="text-lg font-bold text-foreground">{effectiveness}%</span>
  </div>
- <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+ <div className="h-2 bg-muted rounded-full overflow-hidden">
  <motion.div
  className="h-full rounded-full"
  initial={{ width: 0 }}
@@ -435,7 +435,7 @@ const ControlDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
  )}
 
  {/* Control Info */}
- <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+ <div className="bg-muted/80 rounded-2xl p-4 border border-border/50">
  <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
  <Shield className="w-3.5 h-3.5" />
  Informations
@@ -472,12 +472,12 @@ const ProjectDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
  <div className="space-y-4">
  {/* Progress */}
  {progress !== null && (
- <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+ <div className="bg-muted/80 rounded-2xl p-4 border border-border/50">
  <div className="flex items-center justify-between mb-3">
  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Avancement</span>
- <span className="text-lg font-bold text-white">{progress}%</span>
+ <span className="text-lg font-bold text-foreground">{progress}%</span>
  </div>
- <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+ <div className="h-2 bg-muted rounded-full overflow-hidden">
  <motion.div
  className="h-full bg-emerald-500 rounded-full"
  initial={{ width: 0 }}
@@ -489,7 +489,7 @@ const ProjectDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
  )}
 
  {/* Project Info */}
- <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+ <div className="bg-muted/80 rounded-2xl p-4 border border-border/50">
  <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
  <FolderKanban className="w-3.5 h-3.5" />
  Informations
@@ -514,7 +514,7 @@ const AuditDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
 
  return (
  <div className="space-y-4">
- <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+ <div className="bg-muted/80 rounded-2xl p-4 border border-border/50">
  <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
  <ClipboardCheck className="w-3.5 h-3.5" />
  Informations
@@ -568,7 +568,7 @@ const IncidentDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
  )}
 
  {/* Incident Info */}
- <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+ <div className="bg-muted/80 rounded-2xl p-4 border border-border/50">
  <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
  <Flame className="w-3.5 h-3.5" />
  Informations
@@ -592,7 +592,7 @@ const SupplierDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
 
  return (
  <div className="space-y-4">
- <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+ <div className="bg-muted/80 rounded-2xl p-4 border border-border/50">
  <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
  <Building2 className="w-3.5 h-3.5" />
  Informations
@@ -746,12 +746,12 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
   <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-0.5">
   {typeConfig.label}
   </div>
-  <h2 className="text-lg font-semibold text-white truncate">{node.label}</h2>
+  <h2 className="text-lg font-semibold text-foreground truncate">{node.label}</h2>
   </div>
   </div>
   <motion.button
   onClick={onClose}
-  className="p-2 rounded-3xl bg-white/5 hover:bg-white/10 transition-colors text-muted-foreground hover:text-white shrink-0"
+  className="p-2 rounded-3xl bg-muted/50 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground shrink-0"
   whileHover={{ scale: 1.05 }}
   whileTap={{ scale: 0.95 }}
   aria-label="Fermer"
@@ -792,8 +792,8 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
 
  {/* Linked Entities */}
  {linkedEntities.length > 0 && (
- <div className="bg-slate-800/80 rounded-2xl border border-slate-700/50 overflow-hidden">
-  <div className="p-4 border-b border-slate-700/50">
+ <div className="bg-muted/80 rounded-2xl border border-border/50 overflow-hidden">
+  <div className="p-4 border-b border-border/50">
   <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-2">
   <Link2 className="w-3.5 h-3.5" />
   Entités liées ({linkedEntities.length})
@@ -817,7 +817,7 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
  )}
 
  {/* Timeline */}
- <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+ <div className="bg-muted/80 rounded-2xl p-4 border border-border/50">
  <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
   <Calendar className="w-3.5 h-3.5" />
   Historique
@@ -845,7 +845,7 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
 
  {/* Footer with CTA */}
  {onNavigate && (
- <div className="p-5 border-t border-white/5 bg-slate-900/50">
+ <div className="p-5 border-t border-border/20 bg-card/50">
  <motion.button
   onClick={handleNavigate}
   className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-3xl text-sm font-semibold transition-all"

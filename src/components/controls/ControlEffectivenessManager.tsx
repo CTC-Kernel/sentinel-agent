@@ -136,7 +136,7 @@ export const ControlEffectivenessManager: React.FC<ControlEffectivenessManagerPr
   "h-full rounded-full transition-all",
   maturityLevel >= 4 ? 'bg-emerald-500' :
   maturityLevel >= 3 ? 'bg-blue-500' :
-  maturityLevel >= 2 ? 'bg-amber-500' : 'bg-slate-400'
+  maturityLevel >= 2 ? 'bg-amber-500' : 'bg-muted-foreground'
   )}
   style={{ width: `${avgEffectiveness}%` }}
  />

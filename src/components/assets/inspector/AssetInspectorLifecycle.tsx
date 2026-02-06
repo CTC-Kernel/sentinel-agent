@@ -263,7 +263,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
   onClick={handleAddMaintenance}
   disabled={isAddingMaintenance}
   aria-label={t('assets.lifecycle.addMaintenance', 'Ajouter une intervention')}
-  className="w-full py-3 bg-slate-900 dark:bg-white text-white rounded-3xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:bg-muted disabled:text-muted-foreground flex justify-center items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="w-full py-3 bg-card dark:bg-white text-white rounded-3xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:bg-muted disabled:text-muted-foreground flex justify-center items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   {isAddingMaintenance ? <span className="animate-spin mr-2">⏳</span> : null}
   {t('common.save', 'Enregistrer')}

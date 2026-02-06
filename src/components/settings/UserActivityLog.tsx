@@ -116,7 +116,7 @@ export const UserActivityLog: React.FC = () => {
  <div className="space-y-8 animate-fade-in-up">
  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
  <div className="flex flex-col gap-2">
-  <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-muted-foreground/30 bg-clip-text text-transparent animate-slide-in-left">
+  <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 dark:from-foreground dark:to-muted-foreground bg-clip-text text-transparent animate-slide-in-left">
   {isAdmin && viewMode === 'global' ? t('settings.activityPage.globalLog') : t('settings.activityPage.myLog')}
   </h2>
   <p className="text-muted-foreground">
@@ -130,7 +130,7 @@ export const UserActivityLog: React.FC = () => {
   onClick={() => setViewMode('my')}
   className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${viewMode === 'my'
   ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-sm'
-  : 'text-muted-foreground hover:text-foreground dark:hover:text-white'
+  : 'text-muted-foreground hover:text-foreground dark:hover:text-foreground'
   }`}
   >
   <span className="flex items-center gap-2">
@@ -142,7 +142,7 @@ export const UserActivityLog: React.FC = () => {
   onClick={() => setViewMode('global')}
   className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${viewMode === 'global'
   ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-sm'
-  : 'text-muted-foreground hover:text-foreground dark:hover:text-white'
+  : 'text-muted-foreground hover:text-foreground dark:hover:text-foreground'
   }`}
   >
   <span className="flex items-center gap-2">

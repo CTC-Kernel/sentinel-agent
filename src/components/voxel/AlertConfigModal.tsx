@@ -139,8 +139,8 @@ const ThresholdRow: React.FC<ThresholdRowProps> = ({ threshold, onChange }) => {
  className={`
  p-4 rounded-3xl border transition-all
  ${threshold.enabled
- ? 'bg-white/5 border-border/40'
- : 'bg-white/[0.02] border-white/5 opacity-60'}
+ ? 'bg-muted/50 border-border/40'
+ : 'bg-muted/20 border-border/20 opacity-60'}
  `}
  >
  <div className="flex items-start gap-4">
@@ -149,7 +149,7 @@ const ThresholdRow: React.FC<ThresholdRowProps> = ({ threshold, onChange }) => {
  onClick={handleToggle}
  className={`
  mt-0.5 w-10 h-6 rounded-full relative transition-colors
- ${threshold.enabled ? 'bg-primary' : 'bg-white/10'}
+ ${threshold.enabled ? 'bg-primary' : 'bg-muted'}
  `}
  >
  <span
@@ -163,18 +163,18 @@ const ThresholdRow: React.FC<ThresholdRowProps> = ({ threshold, onChange }) => {
  {/* Info */}
  <div className="flex-1 min-w-0">
  <div className="flex items-center gap-2">
- <span className="text-sm font-medium text-white">
+ <span className="text-sm font-medium text-foreground">
  {info?.label || threshold.anomalyType}
  </span>
  </div>
- <p className="text-xs text-white/50 mt-0.5">
+ <p className="text-xs text-foreground/50 mt-0.5">
  {info?.description || 'Aucune description'}
  </p>
 
  {/* Severity Selector */}
  {threshold.enabled && (
  <div className="mt-3">
- <span className="text-[11px] text-white/40 uppercase tracking-wider">
+ <span className="text-[11px] text-foreground/40 uppercase tracking-wider">
  Sévérité minimum
  </span>
  <div className="flex gap-1 mt-1.5">
@@ -190,9 +190,9 @@ const ThresholdRow: React.FC<ThresholdRowProps> = ({ threshold, onChange }) => {
   onClick={() => handleSeverityChange(severity)}
   className={`
   px-2.5 py-1 rounded text-[11px] font-medium uppercase transition-all
-  ${isSelected ? `${SEVERITY_BG[severity]} text-white` : ''}
-  ${isAtOrAbove && !isSelected ? `${SEVERITY_COLORS[severity]} bg-white/5` : ''}
-  ${!isAtOrAbove ? 'text-white/20 bg-white/[0.02]' : ''}
+  ${isSelected ? `${SEVERITY_BG[severity]} text-foreground` : ''}
+  ${isAtOrAbove && !isSelected ? `${SEVERITY_COLORS[severity]} bg-muted/50` : ''}
+  ${!isAtOrAbove ? 'text-foreground/20 bg-muted/20' : ''}
   `}
   >
   {severity}
@@ -326,20 +326,20 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
  initial={{ opacity: 0, scale: 0.95, y: 20 }}
  animate={{ opacity: 1, scale: 1, y: 0 }}
  exit={{ opacity: 0, scale: 0.95, y: 20 }}
- className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[600px] md:max-h-[80vh] bg-slate-900 rounded-2xl border border-border/40 shadow-2xl z-modal flex flex-col overflow-hidden"
+ className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[600px] md:max-h-[80vh] bg-card rounded-2xl border border-border/40 shadow-2xl z-modal flex flex-col overflow-hidden"
  >
  {/* Header */}
  <div className="p-6 border-b border-border/40 shrink-0">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-3">
   <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/20">
-  <Bell className="h-5 w-5 text-white" aria-hidden="true" />
+  <Bell className="h-5 w-5 text-foreground" aria-hidden="true" />
   </div>
   <div>
-  <h2 id="alert-config-title" className="text-lg font-bold text-white">
+  <h2 id="alert-config-title" className="text-lg font-bold text-foreground">
   Configuration des Alertes
   </h2>
-  <p className="text-xs text-white/50">
+  <p className="text-xs text-foreground/50">
   Gérez les notifications d'anomalies
   </p>
   </div>
@@ -347,7 +347,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
  <button
   onClick={onClose}
   aria-label="Fermer la configuration des alertes"
-  className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+  className="p-2 rounded-full hover:bg-muted text-foreground/60 hover:text-foreground transition-colors"
  >
   <X className="h-5 w-5" aria-hidden="true" />
  </button>
@@ -358,8 +358,8 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
  <div className="flex-1 overflow-y-auto p-6 space-y-6">
  {/* Notification Channels */}
  <section>
- <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-  <MessageSquare className="h-4 w-4 text-white/50" />
+ <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+  <MessageSquare className="h-4 w-4 text-foreground/50" />
   Canaux de notification
  </h3>
  <div className="grid grid-cols-2 gap-3">
@@ -370,20 +370,20 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
   p-4 rounded-3xl border transition-all text-left
   ${channels.inApp
   ? 'bg-primary/10 border-primary/40'
-  : 'bg-white/[0.02] border-white/5'}
+  : 'bg-muted/20 border-border/20'}
   `}
   >
   <div className="flex items-center gap-3">
   {channels.inApp ? (
   <Bell className="h-5 w-5 text-primary/70" />
   ) : (
-  <BellOff className="h-5 w-5 text-white/30" />
+  <BellOff className="h-5 w-5 text-foreground/30" />
   )}
   <div>
-  <span className="text-sm font-medium text-white">
+  <span className="text-sm font-medium text-foreground">
   In-App
   </span>
-  <p className="text-[11px] text-white/50">
+  <p className="text-[11px] text-foreground/50">
   Notifications dans l'application
   </p>
   </div>
@@ -397,18 +397,18 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
   p-4 rounded-3xl border transition-all text-left
   ${channels.email
   ? 'bg-primary/10 border-primary/40'
-  : 'bg-white/[0.02] border-white/5'}
+  : 'bg-muted/20 border-border/20'}
   `}
   >
   <div className="flex items-center gap-3">
   <Mail
-  className={`h-5 w-5 ${channels.email ? 'text-primary/70' : 'text-white/30'}`}
+  className={`h-5 w-5 ${channels.email ? 'text-primary/70' : 'text-foreground/30'}`}
   />
   <div>
-  <span className="text-sm font-medium text-white">
+  <span className="text-sm font-medium text-foreground">
   Email
   </span>
-  <p className="text-[11px] text-white/50">
+  <p className="text-[11px] text-foreground/50">
   Alertes par courriel
   </p>
   </div>
@@ -419,13 +419,13 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
 
  {/* Rate Limiting */}
  <section>
- <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-  <Shield className="h-4 w-4 text-white/50" />
+ <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+  <Shield className="h-4 w-4 text-foreground/50" />
   Limitation des alertes
  </h3>
  <div className="grid grid-cols-2 gap-4">
-  <div className="p-4 rounded-3xl bg-white/5 border border-border/40">
-  <label htmlFor="max-alerts" className="flex items-center gap-2 text-xs text-white/60 mb-2">
+  <div className="p-4 rounded-3xl bg-muted/50 border border-border/40">
+  <label htmlFor="max-alerts" className="flex items-center gap-2 text-xs text-foreground/60 mb-2">
   <Clock className="h-3 w-3" />
   Max alertes / heure
   </label>
@@ -439,11 +439,11 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
   setMaxAlertsPerHour(parseInt(e.target.value) || 10);
   markChanged();
   }}
-  className="w-full bg-white/5 border border-border/40 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-primary"
+  className="w-full bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-foreground text-sm focus:outline-none focus:border-primary"
   />
   </div>
-  <div className="p-4 rounded-3xl bg-white/5 border border-border/40">
-  <label htmlFor="cooldown" className="flex items-center gap-2 text-xs text-white/60 mb-2">
+  <div className="p-4 rounded-3xl bg-muted/50 border border-border/40">
+  <label htmlFor="cooldown" className="flex items-center gap-2 text-xs text-foreground/60 mb-2">
   <Clock className="h-3 w-3" />
   Cooldown (minutes)
   </label>
@@ -457,7 +457,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
   setCooldownMinutes(parseInt(e.target.value) || 30);
   markChanged();
   }}
-  className="w-full bg-white/5 border border-border/40 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-primary"
+  className="w-full bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-foreground text-sm focus:outline-none focus:border-primary"
   />
   </div>
  </div>
@@ -466,13 +466,13 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
  {/* Anomaly Type Thresholds */}
  <section>
  <div className="flex items-center justify-between mb-3">
-  <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-  <AlertTriangle className="h-4 w-4 text-white/50" />
+  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+  <AlertTriangle className="h-4 w-4 text-foreground/50" />
   Types d'anomalies
   </h3>
   <button
   onClick={handleReset}
-  className="flex items-center gap-1 text-[11px] text-white/40 hover:text-white/60 transition-colors"
+  className="flex items-center gap-1 text-[11px] text-foreground/40 hover:text-foreground/60 transition-colors"
   >
   <RotateCcw className="h-3 w-3" />
   Réinitialiser
@@ -493,20 +493,20 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
  {/* Footer */}
  <div className="p-6 border-t border-border/40 shrink-0">
  <div className="flex items-center justify-between">
- <p className="text-xs text-white/40">
+ <p className="text-xs text-foreground/40">
   {hasChanges ? 'Modifications non sauvegardées' : 'Aucune modification'}
  </p>
  <div className="flex gap-3">
   <button
   onClick={onClose}
-  className="px-4 py-2 text-sm text-white/60 hover:text-white transition-colors"
+  className="px-4 py-2 text-sm text-foreground/60 hover:text-foreground transition-colors"
   >
   Annuler
   </button>
   <button
   onClick={handleSave}
   disabled={!hasChanges || isSaving || isLoading}
-  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600"
+  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border"
   >
   <Save className="h-4 w-4" />
   {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}

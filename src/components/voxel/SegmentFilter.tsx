@@ -94,7 +94,7 @@ const SegmentToggle: React.FC<SegmentToggleProps> = React.memo(
  'border focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
  isActive
  ? 'bg-opacity-20 border-opacity-60'
- : 'bg-slate-800/50 border-slate-700/50 opacity-60 hover:opacity-75',
+ : 'bg-muted/50 border-border/50 opacity-60 hover:opacity-75',
  compact && 'px-2 py-1.5'
  )}
  style={{
@@ -106,7 +106,7 @@ const SegmentToggle: React.FC<SegmentToggleProps> = React.memo(
  >
  {/* Icon */}
  <span
- className={cn('transition-colors', isActive ? 'text-white' : 'text-muted-foreground')}
+ className={cn('transition-colors', isActive ? 'text-foreground' : 'text-muted-foreground')}
  style={{ color: isActive ? color : undefined }}
  >
  {SEGMENT_ICONS[segment]}
@@ -117,7 +117,7 @@ const SegmentToggle: React.FC<SegmentToggleProps> = React.memo(
  <span
  className={cn(
  'text-sm font-medium transition-colors',
- isActive ? 'text-white' : 'text-muted-foreground'
+ isActive ? 'text-foreground' : 'text-muted-foreground'
  )}
  >
  {SEGMENT_LABELS[segment]}
@@ -129,7 +129,7 @@ const SegmentToggle: React.FC<SegmentToggleProps> = React.memo(
  <span
  className={cn(
  'px-1.5 py-0.5 text-[11px] font-medium rounded-full transition-colors',
- isActive ? 'bg-white/20 text-white' : 'bg-slate-700 text-muted-foreground'
+ isActive ? 'bg-muted/50 text-foreground' : 'bg-muted text-muted-foreground'
  )}
  >
  {nodeCount}
@@ -293,7 +293,7 @@ export const SegmentFilter: React.FC<SegmentFilterProps> = React.memo(
  return (
  <div className={cn('flex items-center gap-2', className)}>
  {/* Segment toggles */}
- <div className="flex items-center gap-1 p-1 rounded-lg bg-slate-900/50 backdrop-blur-sm border border-slate-800">
+ <div className="flex items-center gap-1 p-1 rounded-lg bg-card/50 backdrop-blur-sm border border-border">
  {(['IT', 'OT', 'DMZ'] as NetworkSegment[]).map((segment) => (
  <SegmentToggle
  key={segment || 'unknown'}

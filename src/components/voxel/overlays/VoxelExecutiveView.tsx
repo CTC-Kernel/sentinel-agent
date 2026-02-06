@@ -221,7 +221,7 @@ const KPICard: React.FC<KPICardProps> = ({ kpi }) => {
  </div>
  )}
  </div>
- <div className="text-2xl font-bold text-white mb-1">
+ <div className="text-2xl font-bold text-foreground mb-1">
  {kpi.value.toLocaleString()}
  {kpi.unit && <span className="text-lg text-muted-foreground">{kpi.unit}</span>}
  </div>
@@ -240,7 +240,7 @@ const CriticalItemRow: React.FC<CriticalItemRowProps> = ({ item, onClick }) => {
 
  return (
  <button
- className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-700/30 transition-colors text-left"
+ className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors text-left"
  onClick={onClick}
  aria-label={`View ${item.title}`}
  >
@@ -250,7 +250,7 @@ const CriticalItemRow: React.FC<CriticalItemRowProps> = ({ item, onClick }) => {
  aria-label={`${item.severity} severity`}
  />
  <div className="flex-1 min-w-0">
- <p className="text-sm text-white truncate">{item.title}</p>
+ <p className="text-sm text-foreground truncate">{item.title}</p>
  <div className="flex items-center gap-2 mt-0.5">
  <span className="text-xs text-muted-foreground">{item.ageInDays}d old</span>
  {item.owner && (
@@ -303,7 +303,7 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ label, score, color }) => {
  />
  </svg>
  <div className="absolute inset-0 flex items-center justify-center">
- <span className="text-xl font-bold text-white">{score}</span>
+ <span className="text-xl font-bold text-foreground">{score}</span>
  </div>
  </div>
  <span className="text-xs text-muted-foreground mt-2">{label}</span>
@@ -372,7 +372,7 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
  <Activity className="w-5 h-5 text-white" />
  </div>
  <div>
- <h2 className="text-lg font-semibold text-white">Executive Dashboard</h2>
+ <h2 className="text-lg font-semibold text-foreground">Executive Dashboard</h2>
  {formattedLastUpdated && (
  <div className="flex items-center gap-1 text-xs text-muted-foreground">
   <Clock className="w-3 h-3" />
@@ -404,7 +404,7 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
  }}
  >
  <ScoreGauge label="Risk Score" score={riskScore} color={riskColor} />
- <div className="w-px h-16 bg-slate-700" />
+ <div className="w-px h-16 bg-muted" />
  <ScoreGauge label="Compliance" score={complianceScore} color={complianceColor} />
  </div>
 
@@ -423,10 +423,10 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
  border: '1px solid rgba(148, 163, 184, 0.1)',
  }}
  >
- <div className="px-4 py-3 border-b border-slate-700/50 flex items-center justify-between">
+ <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between">
  <div className="flex items-center gap-2">
  <AlertTriangle className="w-4 h-4 text-amber-400" />
- <span className="text-sm font-medium text-white">Attention Required</span>
+ <span className="text-sm font-medium text-foreground">Attention Required</span>
  </div>
  <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">
  {criticalItems.length}

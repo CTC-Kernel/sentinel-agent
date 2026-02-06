@@ -182,14 +182,14 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
  <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10">
   <div className="relative">
   <div className="h-[140px] w-[140px]">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <RadialBarChart cx="50%" cy="50%" innerRadius="65%" outerRadius="100%" barSize={14} data={scoreGaugeData} startAngle={180} endAngle={0}>
    <RadialBar background={{ fill: 'hsl(var(--muted) / 0.3)' }} dataKey="value" cornerRadius={12} style={{ filter: `url(#${complianceGlowId})` }} />
   </RadialBarChart>
   </ResponsiveContainer>
   </div>
   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/4 text-center">
-  <div className={`text-4xl font-black bg-gradient-to-r ${overallScore >= 75 ? 'from-emerald-600 to-emerald-400' : overallScore >= 50 ? 'from-amber-600 to-amber-400' : 'from-red-600 to-red-400'} bg-clip-text text-transparent`}>
+  <div className={`text-4xl font-black bg-gradient-to-r ${overallScore >= 75 ? 'from-success to-success/70' : overallScore >= 50 ? 'from-warning to-warning/70' : 'from-destructive to-destructive/70'} bg-clip-text text-transparent`}>
   {overallScore}%
   </div>
   </div>
@@ -229,7 +229,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
   {t('compliance.dashboard.distributionTitle')}
   </h4>
   <div className="h-[280px] w-full relative z-10">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
   <defs>
    {statusData.map((entry, index) => (
@@ -286,7 +286,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
   {t('compliance.dashboard.domainConformityTitle')}
   </h4>
   <div className="h-[280px] w-full relative z-10">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <BarChart data={domainChartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
   <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
   <XAxis
@@ -329,13 +329,13 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
 
   <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-3xl" />
   <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
-  <div className="p-2 bg-emerald-500/10 rounded-3xl">
-  <Target className="w-4 h-4 text-emerald-500" />
+  <div className="p-2 bg-success/10 rounded-3xl">
+  <Target className="w-4 h-4 text-success" />
   </div>
   {t('compliance.dashboard.radarTitle')}
   </h4>
   <div className="h-[280px] w-full relative z-10">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
   <PolarGrid stroke={chartTheme.grid} strokeDasharray="3 3" />
   <PolarAngleAxis dataKey="domain" tick={{ fill: chartTheme.text, fontSize: 10, fontWeight: 600 }} />

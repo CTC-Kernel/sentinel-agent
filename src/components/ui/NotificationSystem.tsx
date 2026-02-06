@@ -223,7 +223,7 @@ const NotificationContainer: React.FC = () => {
 
  <button
  onClick={() => removeNotification(notification.id)}
- className="flex-shrink-0 p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded transition-colors"
+ className="flex-shrink-0 p-1 hover:bg-black/5 dark:hover:bg-muted rounded transition-colors"
  aria-label={`Fermer la notification: ${notification.title}`}
  >
  <X className="w-4 h-4 opacity-60" aria-hidden="true" />

@@ -473,7 +473,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
  );
 
  return (
- <div className="relative w-full h-[500px] rounded-2xl border border-border/40 bg-gradient-to-br from-muted/50 to-muted dark:from-slate-900 dark:to-slate-800 overflow-hidden">
+ <div className="relative w-full h-[500px] rounded-2xl border border-border/40 bg-gradient-to-br from-muted/50 to-muted dark:from-card dark:to-muted overflow-hidden">
  {/* Controls */}
  <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
  <button

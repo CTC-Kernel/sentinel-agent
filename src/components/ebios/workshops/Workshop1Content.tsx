@@ -215,7 +215,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
  </div>
  </div>
  {expandedSections.has('missions') ? (
- <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-white transition-all">
+ <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-foreground transition-all">
  <ChevronUp className="w-5 h-5" />
  </div>
  ) : (
@@ -308,7 +308,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
  </div>
  </div>
  {expandedSections.has('essentialAssets') ? (
- <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-violet-500 group-hover:text-white transition-all">
+ <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-violet-500 group-hover:text-foreground transition-all">
  <ChevronUp className="w-5 h-5" />
  </div>
  ) : (
@@ -410,7 +410,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
  </div>
  </div>
  {expandedSections.has('supportingAssets') ? (
- <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-muted/500 group-hover:text-white transition-all">
+ <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-muted/500 group-hover:text-foreground transition-all">
  <ChevronUp className="w-5 h-5" />
  </div>
  ) : (
@@ -475,7 +475,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
  <div className="flex flex-col sm:flex-row gap-3">
   <button
   onClick={handleAddSupportingAsset}
-  className="flex-1 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-slate-400/50 hover:bg-muted/50 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground font-medium group"
+  className="flex-1 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-border/50 hover:bg-muted/50 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground font-medium group"
   >
   <div className="p-1 rounded-full bg-muted group-hover:bg-muted transition-colors">
   <Plus className="w-4 h-4" />
@@ -522,7 +522,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
  </div>
  </div>
  {expandedSections.has('fearedEvents') ? (
- <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-error group-hover:text-white transition-all">
+ <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-error group-hover:text-foreground transition-all">
  <ChevronUp className="w-5 h-5" />
  </div>
  ) : (
@@ -636,7 +636,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
  </div>
  </div>
  {expandedSections.has('securityBaseline') ? (
- <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-success group-hover:text-white transition-all">
+ <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-success group-hover:text-foreground transition-all">
  <ChevronUp className="w-5 h-5" />
  </div>
  ) : (

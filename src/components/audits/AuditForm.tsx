@@ -231,7 +231,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
   {...register('description')}
   rows={3}
   disabled={readOnly}
-  className="w-full px-4 py-3.5 glass-input border border-border/40 rounded-2xl focus-visible:ring-2 focus-visible:ring-primary focus:border-primary/60 outline-none transition-all resize-none text-foreground placeholder-slate-400 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed shadow-sm"
+  className="w-full px-4 py-3.5 glass-input border border-border/40 rounded-2xl focus-visible:ring-2 focus-visible:ring-primary focus:border-primary/60 outline-none transition-all resize-none text-foreground placeholder:text-muted-foreground disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed shadow-sm"
   placeholder={t('audits.form.descriptionPlaceholder')}
   />
   {errors.description && <span className="text-red-500 text-sm">{errors.description.message}</span>}

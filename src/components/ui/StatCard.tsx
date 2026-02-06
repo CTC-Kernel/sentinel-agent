@@ -52,7 +52,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
  if (!trend) return '';
  if (trend.value > 0) return 'text-success-text bg-success-bg ring-success-border/50';
  if (trend.value < 0) return 'text-error-text bg-error-bg ring-error-border/50';
- return 'text-muted-foreground bg-muted/500/10 dark:bg-white/5 ring-slate-500/20 dark:ring-white/10';
+ return 'text-muted-foreground bg-muted/10 ring-border/30';
  };
 
  return (
@@ -75,7 +75,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
  )}
  >
  {/* Gradient overlay - visible at 60%, 100% on hover */}
- <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none opacity-60 group-hover:opacity-70 transition-opacity duration-500" />
+ <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none opacity-60 group-hover:opacity-70 transition-opacity duration-500" />
 
  <div className="flex flex-col h-full justify-between relative z-10">
  {/* Header with icon and trend */}
@@ -98,7 +98,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
  {/* Value and title */}
  <div>
   {loading ? (
-  <div className="h-10 w-24 bg-muted/50 dark:bg-white/5 rounded-3xl animate-pulse mb-2"></div>
+  <div className="h-10 w-24 bg-muted/50 rounded-3xl animate-pulse mb-2"></div>
   ) : (
   <h3 className="text-3xl font-bold tracking-tight text-foreground font-display">
   {value}

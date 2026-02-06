@@ -610,7 +610,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
   <button
   type="button"
   onClick={handleAutoClassify}
-  className="text-xs normal-case font-bold text-primary hover:text-white hover:bg-primary/90 flex items-center bg-card px-3 py-1.5 rounded-lg transition-all border border-primary/30 dark:border-primary/90 shadow-sm hover:shadow-md"
+  className="text-xs normal-case font-bold text-primary hover:text-foreground hover:bg-primary/90 flex items-center bg-card px-3 py-1.5 rounded-lg transition-all border border-primary/30 dark:border-primary/90 shadow-sm hover:shadow-md"
   >
   <Sparkles className="h-3 w-3 mr-1.5" /> {t('assets.form.autoClassify', { defaultValue: 'Auto-Classifier (Règles)' })}
   </button>
@@ -647,7 +647,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
   htmlFor={`scope-${scope}`}
   className={`cursor-pointer px-4 py-2 rounded-3xl border transition-all ${(watch('scope') || []).includes(scope)
    ? 'bg-primary/10/50 dark:bg-primary/20 border-primary/50 text-primary dark:text-primary/50 font-bold shadow-sm'
-   : 'border-border/40 hover:bg-muted/50 dark:hover:bg-white/5 text-foreground'
+   : 'border-border/40 hover:bg-muted/50 dark:hover:bg-muted/50 text-foreground'
    } shadow-sm hover:shadow-md transition-all duration-200 rounded-2xl`}
   >
   <input

@@ -8,11 +8,11 @@ import { getUserAvatarUrl } from '../../utils/avatarUtils';
 
 const getProjectCategoryStyles = (category: string) => {
  const cat = category?.toLowerCase() || '';
- if (cat.includes('audit')) return { icon: ClipboardList, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-100 dark:border-amber-800', progress: 'bg-amber-500' };
- if (cat.includes('conformité') || cat.includes('compliance')) return { icon: ShieldCheck, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-100 dark:border-blue-800', progress: 'bg-blue-500' };
- if (cat.includes('déploiement') || cat.includes('technique')) return { icon: Rocket, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-100 dark:border-emerald-800/50', progress: 'bg-emerald-500' };
- if (cat.includes('gouvernance')) return { icon: Building2, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/20', border: 'border-indigo-100 dark:border-indigo-800/50', progress: 'bg-indigo-500' };
- if (cat.includes('crise')) return { icon: Siren, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-100 dark:border-red-800', progress: 'bg-red-500' };
+ if (cat.includes('audit')) return { icon: ClipboardList, color: 'text-warning-text', bg: 'bg-warning-bg', border: 'border-warning-border', progress: 'bg-warning' };
+ if (cat.includes('conformité') || cat.includes('compliance')) return { icon: ShieldCheck, color: 'text-info-text', bg: 'bg-info-bg', border: 'border-info-border', progress: 'bg-info-text' };
+ if (cat.includes('déploiement') || cat.includes('technique')) return { icon: Rocket, color: 'text-success-text', bg: 'bg-success-bg', border: 'border-success-border', progress: 'bg-success' };
+ if (cat.includes('gouvernance')) return { icon: Building2, color: 'text-primary', bg: 'bg-primary/10 dark:bg-primary/20', border: 'border-primary/20 dark:border-primary/50', progress: 'bg-primary' };
+ if (cat.includes('crise')) return { icon: Siren, color: 'text-error-text', bg: 'bg-error-bg', border: 'border-error-border', progress: 'bg-destructive' };
  return { icon: Target, color: 'text-muted-foreground', bg: 'bg-muted/50 dark:bg-white/5', border: 'border-border/40', progress: 'bg-primary' };
 };
 
@@ -31,7 +31,7 @@ interface ProjectCardProps {
 const ProjectCardTooltip = ({ content, children }: { content: string, children: React.ReactNode }) => (
  <div className="group/tooltip relative">
  {children}
- <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-slate-900 rounded opacity-0 group-hover/tooltip:opacity-70 pointer-events-none transition-opacity whitespace-nowrap z-tooltip">
+ <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-primary-foreground bg-foreground rounded opacity-0 group-hover/tooltip:opacity-70 pointer-events-none transition-opacity whitespace-nowrap z-tooltip">
  {content}
  </div>
  </div>
@@ -93,13 +93,13 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
    </button>
   </ProjectCardTooltip>
   <ProjectCardTooltip content="Modifier">
-   <button onClick={(e) => { e.stopPropagation(); onEdit(project); }} className="p-1.5 bg-card/80 rounded-lg text-muted-foreground hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors border border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+   <button onClick={(e) => { e.stopPropagation(); onEdit(project); }} className="p-1.5 bg-card/80 rounded-lg text-muted-foreground hover:text-primary shadow-sm backdrop-blur-sm transition-colors border border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
    <Edit className="h-3.5 w-3.5" />
    </button>
   </ProjectCardTooltip>
   {canDeleteResource(user, 'Project') && (
    <ProjectCardTooltip content={isDeleting ? "Suppression..." : "Supprimer"}>
-   <button onClick={(e) => { e.stopPropagation(); handleDelete(); }} disabled={isDeleting} className="p-1.5 bg-card/80 rounded-lg text-muted-foreground hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors border border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600" aria-label={`Supprimer le projet ${project.name}`}>
+   <button onClick={(e) => { e.stopPropagation(); handleDelete(); }} disabled={isDeleting} className="p-1.5 bg-card/80 rounded-lg text-muted-foreground hover:text-destructive shadow-sm backdrop-blur-sm transition-colors border border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed disabled:border-muted" aria-label={`Supprimer le projet ${project.name}`}>
    <Trash2 className="h-3.5 w-3.5" />
    </button>
    </ProjectCardTooltip>
@@ -134,13 +134,13 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
    <img
    src={getUserAvatarUrl(m.photoURL, m.role)}
    alt={m.displayName || 'Membre'}
-   className="w-6 h-6 rounded-full border-2 border-white object-cover bg-muted"
+   className="w-6 h-6 rounded-full border-2 border-white dark:border-card object-cover bg-muted"
    />
    </div>
   </ProjectCardTooltip>
   ))}
   {remaining > 0 && (
-  <div className="w-6 h-6 rounded-full bg-muted border-2 border-white flex items-center justify-center text-[11px] font-bold text-muted-foreground">
+  <div className="w-6 h-6 rounded-full bg-muted border-2 border-white dark:border-card flex items-center justify-center text-[11px] font-bold text-muted-foreground">
    +{remaining}
   </div>
   )}

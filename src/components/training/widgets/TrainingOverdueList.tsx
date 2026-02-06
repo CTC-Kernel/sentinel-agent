@@ -135,7 +135,7 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
  variant="ghost"
  size="sm"
  onClick={onViewAll}
- className="text-xs font-medium hover:bg-white/10"
+ className="text-xs font-medium hover:bg-muted"
  >
  {t('common.viewAll')}
  <ChevronRight className="w-4 h-4 ml-1" />

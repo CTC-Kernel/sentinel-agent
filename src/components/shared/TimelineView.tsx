@@ -208,7 +208,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
    <div className="space-y-1 pt-2 border-t border-border/40 dark:border-white/5">
    {log.changes.slice(0, 3).map((change, idx) => (
    <div key={`${idx || 'unknown'}-${change}`} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-   <div className="w-1 h-1 rounded-full bg-slate-400"></div>
+   <div className="w-1 h-1 rounded-full bg-muted-foreground"></div>
    <span className="truncate">{change}</span>
    </div>
    ))}

@@ -128,7 +128,7 @@ const PlatformCard: React.FC<PlatformCardProps> = ({ platform, isSelected, onSel
  relative p-4 rounded-3xl border-2 transition-all duration-200 text-left
  ${isSelected
  ? 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/10'
- : 'border-border/40 bg-white/5 hover:border-white/20 hover:bg-white/10'
+ : 'border-border/40 bg-muted/50 hover:border-border hover:bg-muted'
  }
  `}
  >
@@ -184,7 +184,7 @@ const QualitySelector: React.FC<QualitySelectorProps> = ({ quality, onChange, pl
  p-3 rounded-lg border transition-all text-center
  ${quality === q.value
  ? 'border-blue-500 bg-blue-500/20 text-white'
- : 'border-border/40 bg-white/5 text-muted-foreground hover:border-white/20'
+ : 'border-border/40 bg-muted/50 text-muted-foreground hover:border-border'
  }
  `}
  >
@@ -229,7 +229,7 @@ const OptionsToggle: React.FC<OptionsToggleProps> = ({
  onClick={() => !disabled && onChange(!checked)}
  className={`
  relative w-11 h-6 rounded-full transition-colors
- ${checked ? 'bg-blue-500' : 'bg-slate-600'}
+ ${checked ? 'bg-blue-500' : 'bg-muted'}
  ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}
  `}
  >
@@ -255,7 +255,7 @@ const InstructionsPanel: React.FC<InstructionsPanelProps> = ({ platform }) => {
  const instructions = getVRPlatformInstructions(platform);
 
  return (
- <div className="bg-slate-800/50 rounded-lg p-4">
+ <div className="bg-muted/50 rounded-lg p-4">
  <h4 className="text-sm font-medium text-muted-foreground mb-3">How to use on {VR_PLATFORM_SETTINGS[platform].name}</h4>
  <ol className="space-y-2">
  {instructions.map((instruction, index) => (
@@ -364,16 +364,16 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
 
  return (
  <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
- <div className="bg-slate-900 border border-border/40 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+ <div className="bg-card border border-border/40 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
  {/* Header */}
  <div className="flex items-center justify-between p-4 border-b border-border/40">
  <div>
- <h2 className="text-lg font-semibold text-white">Export for VR</h2>
+ <h2 className="text-lg font-semibold text-foreground">Export for VR</h2>
  <p className="text-sm text-muted-foreground">Download optimized GLTF for VR headsets</p>
  </div>
  <button
  onClick={onClose}
- className="p-2 text-muted-foreground hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+ className="p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors"
  >
  <CloseIcon />
  </button>
@@ -402,7 +402,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
  {/* Export Options */}
  <div>
  <h3 className="text-sm font-medium text-muted-foreground mb-2 block">Include Options</h3>
- <div className="bg-slate-800/50 rounded-lg px-4 divide-y divide-white/5">
+ <div className="bg-muted/50 rounded-lg px-4 divide-y divide-white/5">
  <OptionsToggle
  label="Node Labels"
  description="Include text labels on nodes"
@@ -432,7 +432,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
  type="text"
  value={filename}
  onChange={(e) => setFilename(e.target.value)}
- className="w-full px-4 py-2 bg-slate-800 border border-border/40 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+ className="w-full px-4 py-2 bg-muted border border-border/40 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500"
  placeholder="voxel-vr-export"
  />
  <p className="text-xs text-muted-foreground mt-1">
@@ -456,7 +456,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
  )}
 
  {/* Export Summary */}
- <div className="bg-slate-800/50 rounded-lg p-4">
+ <div className="bg-muted/50 rounded-lg p-4">
  <h4 className="text-sm font-medium text-muted-foreground mb-3">Export Summary</h4>
  <div className="grid grid-cols-2 gap-4 text-xs">
  <div>
@@ -501,7 +501,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
  </div>
 
  {/* Footer */}
- <div className="flex items-center justify-between p-4 border-t border-border/40 bg-slate-900/50">
+ <div className="flex items-center justify-between p-4 border-t border-border/40 bg-card/50">
  <div className="text-xs text-muted-foreground">
  {isExporting && `Exporting... ${exportProgress}%`}
  {!isExporting && !exportResult && 'Ready to export'}
@@ -510,7 +510,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
  <div className="flex gap-3">
  <button
  onClick={onClose}
- className="px-4 py-2 text-sm text-muted-foreground hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+ className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors"
  >
  {exportResult ? 'Done' : 'Cancel'}
  </button>
@@ -521,7 +521,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
  flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium
  transition-all duration-200
  ${isExporting || !scene || !validation.valid
-  ? 'bg-slate-600 text-muted-foreground cursor-not-allowed'
+  ? 'bg-muted text-muted-foreground cursor-not-allowed'
   : 'bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25'
  }
  `}

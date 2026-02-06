@@ -72,7 +72,7 @@ export const ControlMappingCard: React.FC<ControlMappingCardProps> = ({
  'border backdrop-blur-sm',
  isSelected
  ? 'bg-primary/10 dark:bg-primary border-primary/40 dark:border-primary/80 shadow-md'
- : 'bg-white/60 border-border/40 hover:border-border/40 dark:hover:border-white/20 hover:shadow-sm'
+ : 'bg-white/60 dark:bg-white/5 border-border/40 hover:border-border/40 dark:hover:border-white/20 hover:shadow-sm'
  )}
  whileHover={{ x: 2 }}
  whileTap={{ scale: 0.99 }}

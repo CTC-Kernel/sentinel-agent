@@ -41,7 +41,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
   <p className="text-muted-foreground">Recommandations générées par le moteur d'IA souverain (OVH)</p>
   </div>
   </div>
-  <button onClick={onClose} className="p-2.5 hover:bg-muted dark:hover:bg-white/10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+  <button onClick={onClose} className="p-2.5 hover:bg-muted dark:hover:bg-muted rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
   <X className="w-6 h-6 text-muted-foreground" />
   </button>
  </div>

@@ -447,7 +447,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
   className={cn(
   "rounded-2xl border transition-all duration-300 overflow-hidden",
   isExpanded
-   ? "bg-white/60 border-primary/30 dark:border-primary/90 shadow-md ring-1 ring-primary/40"
+   ? "bg-card/60 border-primary/30 dark:border-primary/90 shadow-md ring-1 ring-primary/40"
    : "bg-card/40 border-border/40 hover:border-primary/40 dark:hover:border-primary/80 hover:shadow-md"
   )}
   >
@@ -578,12 +578,12 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
    opScenario.attackSequence.map((step) => (
    <div key={step.id || 'unknown'} className="relative flex items-start group/step">
    {/* Step Number Bubble */}
-   <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-white bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center relative z-10 shadow-sm mt-2.5 mr-4 ring-4 ring-slate-50 dark:ring-slate-800/80">
+   <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-card bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center relative z-10 shadow-sm mt-2.5 mr-4 ring-4 ring-muted dark:ring-muted">
    {step.order}
    </div>
 
    {/* Step Content */}
-   <div className="flex-1 bg-white/50 rounded-2xl border border-border/40 p-4 mb-3 transition-all hover:border-primary/40 dark:hover:border-primary/80 hover:shadow-md">
+   <div className="flex-1 bg-card/50 rounded-2xl border border-border/40 p-4 mb-3 transition-all hover:border-primary/40 dark:hover:border-primary/80 hover:shadow-md">
    <div className="flex items-start gap-4">
    <div className="flex-1">
     {!readOnly ? (
@@ -591,7 +591,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
     value={step.description}
     onChange={(e) => handleUpdateAttackStep(opScenario.id, step.id, { description: e.target.value })}
     placeholder={t('ebios.workshop4.stepDescriptionPlaceholder')}
-    className="w-full px-3 py-2 rounded-lg border border-border/40 bg-muted focus:bg-white dark:focus:bg-slate-900 focus-visible:ring-2 focus-visible:ring-primary focus:border-primary transition-all text-sm resize-none min-h-[60px]"
+    className="w-full px-3 py-2 rounded-lg border border-border/40 bg-muted focus:bg-card focus-visible:ring-2 focus-visible:ring-primary focus:border-primary transition-all text-sm resize-none min-h-[60px]"
     />
     ) : (
     <p className="text-sm text-foreground leading-relaxed">
@@ -674,8 +674,8 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
    onClick={() => handleCreateRiskFromScenario(opScenario)}
    disabled={creatingRiskForScenario === opScenario.id}
    className={cn(
-   "flex items-center gap-2 px-4 py-2 rounded-3xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600",
-   "bg-foreground text-background hover:bg-slate-800 dark:hover:bg-muted"
+   "flex items-center gap-2 px-4 py-2 rounded-3xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed",
+   "bg-foreground text-background hover:bg-foreground/90"
    )}
    >
    {creatingRiskForScenario === opScenario.id ? (

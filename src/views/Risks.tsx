@@ -382,7 +382,7 @@ export const Risks: React.FC = () => {
  title={t('risks.title')}
  subtitle={t('risks.subtitle')}
  icon={
-  <Siren className="text-red-600 dark:text-red-400" />
+  <Siren className="text-destructive" />
  }
  />
 

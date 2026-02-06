@@ -83,7 +83,7 @@ export const SystemEntrance: React.FC = () => {
   <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
   <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground font-bold">Système Sécurisé • Niveau 4</span>
   </div>
-  <h1 className="text-6xl md:text-7xl font-black tracking-tighter mb-2 bg-clip-text text-transparent bg-gradient-to-b from-slate-900 via-slate-700 to-muted/500 dark:from-white dark:via-white dark:to-muted/500 drop-shadow-2xl animate-fade-in">
+  <h1 className="text-6xl md:text-7xl font-black tracking-tighter mb-2 bg-clip-text text-transparent bg-gradient-to-b from-card via-slate-700 to-muted/500 dark:from-white dark:via-white dark:to-muted/500 drop-shadow-2xl animate-fade-in">
   SENTINEL <span className="text-primary dark:text-primary animate-pulse">_</span>
   </h1>
   <p className="text-sm md:text-base text-muted-foreground font-medium tracking-widest uppercase">
@@ -94,7 +94,7 @@ export const SystemEntrance: React.FC = () => {
  {/* Interaction Module */}
  <div className={cn(
   "relative w-full backdrop-blur-xl bg-white/40 dark:bg-white/5 border border-border/40 rounded-3xl p-8 transition-all duration-500 overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-none",
-  isScanning ? "border-primary/60 shadow-[0_0_50px_-12px_rgba(59,130,246,0.3)]" : "hover:border-white/80 dark:hover:border-white/20 hover:bg-white/60 dark:hover:bg-white/10"
+  isScanning ? "border-primary/60 shadow-[0_0_50px_-12px_rgba(59,130,246,0.3)]" : "hover:border-white/80 dark:hover:border-white/20 hover:bg-white/40 dark:hover:bg-muted dark:hover:bg-muted"
  )}>
 
   {/* Loading Overlay */}
@@ -112,12 +112,12 @@ export const SystemEntrance: React.FC = () => {
   {/* Default State Content */}
   <div className={cn("space-y-6 transition-opacity duration-300", isScanning ? "opacity-0" : "opacity-70")}>
   <div className="grid grid-cols-2 gap-4">
-  <div className="p-4 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/5 flex flex-col items-center gap-2 group hover:bg-white/60 dark:hover:bg-white/10 transition-colors cursor-default">
-  <Shield className="h-6 w-6 text-muted-foreground group-hover:text-foreground dark:group-hover:text-white transition-colors" />
+  <div className="p-4 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/5 flex flex-col items-center gap-2 group hover:bg-white/40 dark:hover:bg-muted dark:hover:bg-muted transition-colors cursor-default">
+  <Shield className="h-6 w-6 text-muted-foreground group-hover:text-foreground dark:group-hover:text-foreground transition-colors" />
   <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold">Protéger</span>
   </div>
-  <div className="p-4 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/5 flex flex-col items-center gap-2 group hover:bg-white/60 dark:hover:bg-white/10 transition-colors cursor-default">
-  <Globe className="h-6 w-6 text-muted-foreground group-hover:text-foreground dark:group-hover:text-white transition-colors" />
+  <div className="p-4 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/5 flex flex-col items-center gap-2 group hover:bg-white/40 dark:hover:bg-muted dark:hover:bg-muted transition-colors cursor-default">
+  <Globe className="h-6 w-6 text-muted-foreground group-hover:text-foreground dark:group-hover:text-foreground transition-colors" />
   <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold">Surveiller</span>
   </div>
   </div>

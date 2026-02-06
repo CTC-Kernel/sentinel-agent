@@ -189,7 +189,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
   className="scale-75 origin-top"
   />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
    <Pie
    data={statusData}
@@ -229,7 +229,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
   className="scale-75 origin-top"
   />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <BarChart data={progressData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
    <defs>
    <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
@@ -260,7 +260,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
   className="scale-75 origin-top"
   />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <BarChart data={deadlineData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
    <defs>
    <linearGradient id="deadlineGradient" x1="0" y1="0" x2="0" y2="1">

@@ -65,8 +65,8 @@ export const UserManagement: React.FC = () => {
 
  return (
  <div className="space-y-6 animate-fade-in">
- <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-8 text-center max-w-2xl mx-auto">
- <h3 className="text-xl font-bold text-white mb-2">Recherche Globale d'Utilisateurs</h3>
+ <div className="bg-card/50 border border-border rounded-2xl p-8 text-center max-w-2xl mx-auto">
+ <h3 className="text-xl font-bold text-foreground mb-2">Recherche Globale d'Utilisateurs</h3>
  <p className="text-muted-foreground mb-6">Rechercher un utilisateur par email dans toutes les organisations.</p>
 
  <form onSubmit={handleSearch} className="relative">
@@ -76,12 +76,12 @@ export const UserManagement: React.FC = () => {
   value={searchTerm}
   onChange={(e) => setSearchTerm(e.target.value)}
   placeholder="Saisir l'email de l'utilisateur..."
-  className="w-full pl-12 pr-4 py-3 bg-slate-950/50 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-primary text-white placeholder:text-muted-foreground"
+  className="w-full pl-12 pr-4 py-3 bg-background/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-primary text-foreground placeholder:text-muted-foreground"
   />
   <button
   type="submit"
   disabled={loading || !searchTerm}
-  className="absolute right-2 top-2 bottom-2 px-4 bg-primary hover:bg-primary disabled:bg-muted disabled:text-muted-foreground disabled:hover:bg-primary/90 text-white rounded-lg font-medium transition-colors"
+  className="absolute right-2 top-2 bottom-2 px-4 bg-primary hover:bg-primary disabled:bg-muted disabled:text-muted-foreground disabled:hover:bg-primary/90 text-primary-foreground rounded-lg font-medium transition-colors"
   >
   {loading ? 'Recherche...' : 'Rechercher'}
   </button>
@@ -94,9 +94,9 @@ export const UserManagement: React.FC = () => {
 
   <div className="grid gap-4">
   {users.map(user => (
-  <div key={user.uid || 'unknown'} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 flex items-center justify-between hover:bg-slate-800 transition-colors group">
+  <div key={user.uid || 'unknown'} className="bg-muted/50 border border-border/50 rounded-xl p-4 flex items-center justify-between hover:bg-muted transition-colors group">
   <div className="flex items-center">
-   <div className="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center mr-4 overflow-hidden">
+   <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mr-4 overflow-hidden">
    {user.photoURL ? (
    <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
    ) : (
@@ -104,7 +104,7 @@ export const UserManagement: React.FC = () => {
    )}
    </div>
    <div>
-   <h4 className="text-white font-medium flex items-center">
+   <h4 className="text-foreground font-medium flex items-center">
    {user.displayName}
    {user.role === 'admin' && <Shield className="w-3 h-3 ml-2 text-primary/70" />}
    {user.role === 'super_admin' && <Shield className="w-3 h-3 ml-2 text-red-400" />}
@@ -119,7 +119,7 @@ export const UserManagement: React.FC = () => {
   </div>
   <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-70 transition-opacity">
    <button
-   className="p-2.5 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors"
+   className="p-2.5 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors"
    title="Se connecter en tant que"
    onClick={(e) => {
    e.stopPropagation();
@@ -128,7 +128,7 @@ export const UserManagement: React.FC = () => {
    >
    <LogIn className="w-4 h-4" />
    </button>
-   <button className="p-2.5 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors">
+   <button className="p-2.5 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors">
    <MoreVertical className="w-4 h-4" />
    </button>
   </div>
@@ -136,7 +136,7 @@ export const UserManagement: React.FC = () => {
   ))}
 
   {users.length === 0 && !loading && (
-  <div className="text-center py-12 text-muted-foreground bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
+  <div className="text-center py-12 text-muted-foreground bg-card/30 rounded-2xl border border-dashed border-border">
   Aucun utilisateur trouvé pour "{searchTerm}"
   </div>
   )}

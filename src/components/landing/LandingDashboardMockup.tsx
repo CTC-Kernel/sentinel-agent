@@ -17,9 +17,9 @@ import {
 
 export const LandingDashboardMockup: React.FC = () => {
  return (
- <div className="w-full h-full bg-slate-900/80 backdrop-blur-sm rounded-[1.5rem] overflow-hidden flex text-sans shadow-2xl ring-1 ring-white/10 select-none text-[11px] sm:text-xs md:text-sm font-medium">
+ <div className="w-full h-full bg-card/80 backdrop-blur-sm rounded-[1.5rem] overflow-hidden flex text-sans shadow-2xl ring-1 ring-white/10 select-none text-[11px] sm:text-xs md:text-sm font-medium">
  {/* Sidebar Mockup */}
- <div className="w-16 sm:w-20 md:w-64 bg-slate-950/50 backdrop-blur-md flex flex-col border-r border-white/5 flex-shrink-0 relative">
+ <div className="w-16 sm:w-20 md:w-64 bg-background/50 backdrop-blur-md flex flex-col border-r border-white/5 flex-shrink-0 relative">
  <div className="p-4 md:p-6 flex items-center gap-3 mb-6">
   <div className="w-8 h-8 rounded-3xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center shadow-lg shadow-primary/30 flex-shrink-0 ring-1 ring-white/20">
   <Lock className="h-4 w-4 text-white" />
@@ -40,7 +40,7 @@ export const LandingDashboardMockup: React.FC = () => {
   key={item.label || 'unknown'}
   className={`flex items-center gap-3 px-3 py-2.5 rounded-3xl transition-all ${item.active
   ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
-  : 'hover:bg-white/5 hover:text-muted-foreground/60'
+  : 'hover:bg-muted/50 hover:text-muted-foreground/60'
   }`}
   >
   <item.icon className={`h-5 w-5 ${item.active ? 'text-white' : 'text-muted-foreground group-hover:text-muted-foreground'}`} />
@@ -52,7 +52,7 @@ export const LandingDashboardMockup: React.FC = () => {
  {/* User Profile Snippet */}
  <div className="p-4 border-t border-white/5 mt-auto">
   <div className="flex items-center gap-3 bg-white/5 p-2 rounded-3xl border border-white/5">
-  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-400 to-purple-500 border-2 border-slate-800"></div>
+  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-400 to-purple-500 border-2 border-border"></div>
   <div className="hidden md:block overflow-hidden">
   <div className="font-bold text-muted-foreground/60 truncate">Thibault L.</div>
   <div className="text-xs text-muted-foreground truncate">Admin (RSSI)</div>
@@ -62,23 +62,23 @@ export const LandingDashboardMockup: React.FC = () => {
  </div>
 
  {/* Main Content Mockup */}
- <div className="flex-1 flex flex-col bg-slate-950/30 relative">
+ <div className="flex-1 flex flex-col bg-background/30 relative">
  {/* Top Bar */}
  <div className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-white/5 backdrop-blur-sm">
   <div className="flex items-center gap-4 text-muted-foreground">
-  <span className="hidden sm:inline hover:text-white transition-colors cursor-default">Pilotage</span>
+  <span className="hidden sm:inline hover:text-foreground transition-colors cursor-default">Pilotage</span>
   <span className="hidden sm:inline text-muted-foreground">/</span>
   <span className="font-bold text-muted-foreground/40">Vue d'ensemble</span>
   </div>
   <div className="flex items-center gap-4">
-  <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-border/40 text-muted-foreground hover:bg-white/10 transition-colors">
+  <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-border/40 text-muted-foreground hover:bg-muted transition-colors">
   <Search className="h-3.5 w-3.5" />
   <span className="text-xs">Rechercher...</span>
   <span className="text-[11px] border border-border/40 px-1.5 py-0.5 rounded ml-4 text-muted-foreground">⌘K</span>
   </div>
-  <div className="w-8 h-8 rounded-full bg-white/5 border border-border/40 flex items-center justify-center text-muted-foreground relative hover:text-white transition-colors hover:bg-white/10">
+  <div className="w-8 h-8 rounded-full bg-white/5 border border-border/40 flex items-center justify-center text-muted-foreground relative hover:text-foreground transition-colors hover:bg-muted">
   <Bell className="h-4 w-4" />
-  <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-900 shadow-sm"></span>
+  <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-card shadow-sm"></span>
   </div>
   </div>
  </div>
@@ -92,7 +92,7 @@ export const LandingDashboardMockup: React.FC = () => {
   <p className="text-muted-foreground font-normal">Vue synthétique de votre posture de sécurité.</p>
   </div>
   <div className="hidden sm:flex gap-3">
-  <div className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-border/40 rounded-lg text-xs font-medium text-muted-foreground shadow-sm transition-colors cursor-default">
+  <div className="px-3 py-1.5 bg-white/5 hover:bg-muted border border-border/40 rounded-lg text-xs font-medium text-muted-foreground shadow-sm transition-colors cursor-default">
   30 derniers jours
   </div>
   <div className="px-4 py-1.5 bg-primary hover:bg-primary text-primary-foreground rounded-lg text-xs font-bold shadow-lg shadow-primary/25 transition-all cursor-default flex items-center gap-2">
@@ -137,7 +137,7 @@ export const LandingDashboardMockup: React.FC = () => {
   <div className="p-2 bg-blue-50 rounded-lg text-blue-400 ring-1 ring-blue-500/20">
    <Layers className="h-5 w-5" />
   </div>
-  <span className="text-muted-foreground hover:text-white transition-colors">
+  <span className="text-muted-foreground hover:text-foreground transition-colors">
    <MoreHorizontal className="h-4 w-4" />
   </span>
   </div>
@@ -167,7 +167,7 @@ export const LandingDashboardMockup: React.FC = () => {
   {/* Heading hierarchy: h2 for chart title (follows h1) */}
   <h2 className="font-bold text-white">Évolution de la maturité ISO 27001</h2>
   <div className="flex gap-4 text-xs">
-   <span className="flex items-center gap-1.5 text-muted-foreground"><div className="w-2 h-2 rounded-full bg-slate-600"></div>Cible</span>
+   <span className="flex items-center gap-1.5 text-muted-foreground"><div className="w-2 h-2 rounded-full bg-muted"></div>Cible</span>
    <span className="flex items-center gap-1.5 text-muted-foreground"><div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>Actuel</span>
   </div>
   </div>

@@ -318,7 +318,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
  </div>
  </div>
  {expandedSections.has('riskSources') ? (
- <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-error group-hover:text-white transition-all">
+ <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-error group-hover:text-foreground transition-all">
  <ChevronUp className="w-5 h-5" />
  </div>
  ) : (
@@ -436,7 +436,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
  </div>
  </div>
  {expandedSections.has('targetedObjectives') ? (
- <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-warning group-hover:text-white transition-all">
+ <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-warning group-hover:text-foreground transition-all">
  <ChevronUp className="w-5 h-5" />
  </div>
  ) : (
@@ -554,7 +554,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
  </div>
  </div>
  {expandedSections.has('srOvPairs') ? (
- <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-white transition-all">
+ <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-foreground transition-all">
  <ChevronUp className="w-5 h-5" />
  </div>
  ) : (

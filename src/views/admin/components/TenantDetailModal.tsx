@@ -117,15 +117,15 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
   leaveFrom="opacity-100 scale-100"
   leaveTo="opacity-0 scale-95"
   >
-  <Dialog.Panel className="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+  <Dialog.Panel className="w-full max-w-2xl bg-card border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
   {/* Header */}
-  <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900">
+  <div className="p-6 border-b border-border flex justify-between items-center bg-card">
   <div className="flex items-center space-x-4">
-   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-primary-foreground font-bold text-xl shadow-lg">
    {tenant.name.substring(0, 2).toUpperCase()}
    </div>
    <div>
-   <Dialog.Title className="text-xl font-bold text-white mb-0.5">
+   <Dialog.Title className="text-xl font-bold text-foreground mb-0.5">
    {tenant.name}
    </Dialog.Title>
    <div className="flex items-center space-x-2">
@@ -137,13 +137,13 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
    </div>
    </div>
   </div>
-  <button onClick={onClose} className="p-2.5 hover:bg-white/10 rounded-full text-muted-foreground hover:text-white transition-colors">
+  <button onClick={onClose} className="p-2.5 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-colors">
    <X className="w-5 h-5" />
   </button>
   </div>
 
   <Tab.Group>
-  <div className="border-b border-slate-800 bg-slate-900/50 px-6">
+  <div className="border-b border-border bg-card/50 px-6">
    <Tab.List className="flex space-x-6">
    {['Vue d\'ensemble', 'Abonnement'].map((category) => (
    <Tab
@@ -151,7 +151,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
    className={({ selected }) =>
     `py-4 text-sm font-medium border-b-2 transition-colors focus:outline-none ${selected
     ? 'border-primary text-primary/70'
-    : 'border-transparent text-muted-foreground hover:text-muted-foreground/60 hover:border-slate-700'
+    : 'border-transparent text-muted-foreground hover:text-muted-foreground/60 hover:border-border'
     }`
    }
    >
@@ -165,31 +165,31 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
    {/* Overview Panel */}
    <Tab.Panel className="space-y-8 focus:outline-none">
    <div className="grid grid-cols-3 gap-4">
-   <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+   <div className="bg-muted/50 p-4 rounded-xl border border-border/50">
    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1 flex items-center">
     <Users className="w-3 h-3 mr-1.5" /> Utilisateurs
    </p>
    {loading ? (
-    <div className="h-6 w-12 bg-slate-700 rounded animate-pulse" />
+    <div className="h-6 w-12 bg-muted rounded animate-pulse" />
    ) : (
-    <p className="text-2xl font-bold text-white">{(stats?.userCount as number) || 0}</p>
+    <p className="text-2xl font-bold text-foreground">{(stats?.userCount as number) || 0}</p>
    )}
    </div>
-   <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+   <div className="bg-muted/50 p-4 rounded-xl border border-border/50">
    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1 flex items-center">
     <Shield className="w-3 h-3 mr-1.5" /> Projets
    </p>
    {loading ? (
-    <div className="h-6 w-12 bg-slate-700 rounded animate-pulse" />
+    <div className="h-6 w-12 bg-muted rounded animate-pulse" />
    ) : (
-    <p className="text-2xl font-bold text-white">{(stats?.projectCount as number) || 0}</p>
+    <p className="text-2xl font-bold text-foreground">{(stats?.projectCount as number) || 0}</p>
    )}
    </div>
-   <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+   <div className="bg-muted/50 p-4 rounded-xl border border-border/50">
    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1 flex items-center">
     <Database className="w-3 h-3 mr-1.5" /> Stockage
    </p>
-   <p className="text-2xl font-bold text-white">--</p>
+   <p className="text-2xl font-bold text-foreground">--</p>
    </div>
    </div>
 
@@ -218,8 +218,8 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
 
    {/* Subscription Panel */}
    <Tab.Panel className="space-y-6 focus:outline-none">
-   <div className="bg-slate-800/30 rounded-xl p-6 border border-slate-700/50">
-   <h3 className="text-lg font-medium text-white mb-4 flex items-center">
+   <div className="bg-muted/30 rounded-xl p-6 border border-border/50">
+   <h3 className="text-lg font-medium text-foreground mb-4 flex items-center">
    <CreditCard className="w-5 h-5 mr-2 text-primary/70" />
    Plan & Quotas
    </h3>
@@ -231,7 +231,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
     id="plan-select"
     value={plan}
     onChange={(e) => setPlan(e.target.value as PlanType)}
-    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-primary focus:outline-none"
+    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-primary focus:outline-none"
     >
     <option value="discovery">Discovery (Free)</option>
     <option value="professional">Professional</option>
@@ -250,7 +250,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
     const val = parseInt(e.target.value);
     setMaxUsers(isNaN(val) ? 0 : val);
     }}
-    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-primary focus:outline-none"
+    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-primary focus:outline-none"
     />
     </div>
     <div>
@@ -263,7 +263,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
     const val = parseInt(e.target.value);
     setMaxProjects(isNaN(val) ? 0 : val);
     }}
-    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-primary focus:outline-none"
+    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-primary focus:outline-none"
     />
     </div>
    </div>
@@ -273,7 +273,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
    <button
     onClick={handleSaveSubscription}
     disabled={processing}
-    className="flex items-center px-4 py-2 bg-primary hover:bg-primary text-primary-foreground rounded-lg font-medium transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:border-border disabled:cursor-not-allowed dark:disabled:border-slate-600"
+    className="flex items-center px-4 py-2 bg-primary hover:bg-primary text-primary-foreground rounded-lg font-medium transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:border-border disabled:cursor-not-allowed dark:disabled:border-border"
    >
     <Save className="w-4 h-4 mr-2" />
     Enregistrer

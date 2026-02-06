@@ -93,7 +93,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
  </h3>
  <button
   onClick={() => navigate('/documents')}
-  className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-muted text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
   Voir tout
  </button>
@@ -146,7 +146,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
  <div className="flex flex-col gap-3 min-w-[100px]">
   <div className="flex items-center justify-between">
   <div className="flex items-center gap-2">
-  <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
   <span className="text-xs text-muted-foreground font-bold">Total</span>
   </div>
   <span className="text-xs font-black text-foreground">{stats.totalDocs}</span>
@@ -169,14 +169,14 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
  </div>
 
  <div className="grid grid-cols-2 gap-2 mt-auto relative z-10">
- <div className="bg-white/50 dark:bg-white/5 rounded-3xl p-2.5 flex items-center gap-3 border border-border/40 dark:border-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition-colors">
+ <div className="bg-white/50 dark:bg-white/5 rounded-3xl p-2.5 flex items-center gap-3 border border-border/40 dark:border-white/5 hover:bg-white/80 dark:hover:bg-muted transition-colors">
   <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
   <div className="flex flex-col min-w-0">
   <span className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider truncate">Publiés</span>
   <span className="text-sm font-black text-foreground leading-none mt-0.5">{stats.publishedDocs}</span>
   </div>
  </div>
- <div className="bg-white/50 dark:bg-white/5 rounded-3xl p-2.5 flex items-center gap-3 border border-border/40 dark:border-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition-colors">
+ <div className="bg-white/50 dark:bg-white/5 rounded-3xl p-2.5 flex items-center gap-3 border border-border/40 dark:border-white/5 hover:bg-white/80 dark:hover:bg-muted transition-colors">
   <Edit className="w-4 h-4 text-muted-foreground flex-shrink-0" />
   <div className="flex flex-col min-w-0">
   <span className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider truncate">Brouillons</span>

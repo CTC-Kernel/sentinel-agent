@@ -205,7 +205,7 @@ export const VoxelLegend: React.FC<VoxelLegendProps> = ({
  {/* Header */}
  <button
  onClick={() => setIsExpanded(!isExpanded)}
- className="w-full flex items-center justify-between gap-2 px-4 py-3 hover:bg-slate-700/30 transition-colors"
+ className="w-full flex items-center justify-between gap-2 px-4 py-3 hover:bg-muted/30 transition-colors"
  aria-expanded={isExpanded}
  aria-controls="legend-content"
  >
@@ -327,7 +327,7 @@ export const VoxelLegend: React.FC<VoxelLegendProps> = ({
  )}
 
  {/* Accessibility note */}
- <div className="pt-2 border-t border-slate-700/50">
+ <div className="pt-2 border-t border-border/50">
  <p className="text-xs text-muted-foreground">
  Entities are distinguished by both color and shape for accessibility.
  </p>

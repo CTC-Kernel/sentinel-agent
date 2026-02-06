@@ -362,7 +362,7 @@ export const ProfileSettings: React.FC = () => {
    { key: 'tasks', label: t('common.tasks') },
    { key: 'system', label: t('common.system') }
   ] as const).map((category) => (
-   <div key={category.key || 'unknown'} className="p-5 rounded-3xl bg-primary/10 dark:bg-white/5 border border-border/40 shadow-sm group/notif hover:bg-primary/10 dark:hover:bg-white/10 transition-all">
+   <div key={category.key || 'unknown'} className="p-5 rounded-3xl bg-primary/10 dark:bg-white/5 border border-border/40 shadow-sm group/notif hover:bg-primary/10 dark:hover:bg-muted transition-all">
    <h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-4 group-hover/notif:text-primary transition-colors">{category.label}</h4>
    <div className="flex gap-6 flex-wrap">
    <Controller
@@ -469,7 +469,7 @@ export const ProfileSettings: React.FC = () => {
    {breachCheckLoading ? (
    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
    ) : (
-   <ShieldAlert className="h-4 w-4 text-amber-500" />
+   <ShieldAlert className="h-4 w-4 text-warning" />
    )}
    </Button>
   </div>
@@ -515,7 +515,7 @@ export const ProfileSettings: React.FC = () => {
   <Button
   variant="destructive"
   onClick={() => setShowDeleteConfirm(true)}
-  className="bg-error-bg text-error-text hover:bg-error-text hover:text-white dark:bg-error-bg/20 dark:text-error-text dark:hover:bg-error-text dark:hover:text-white border border-error-border/40 shadow-none hover:shadow-lg hover:shadow-error-text/20 transition-all duration-500 rounded-2xl font-black uppercase tracking-widest"
+  className="bg-error-bg text-error-text hover:bg-error-text hover:text-foreground dark:bg-error-bg/20 dark:text-error-text dark:hover:bg-error-text dark:hover:text-foreground border border-error-border/40 shadow-none hover:shadow-lg hover:shadow-error-text/20 transition-all duration-500 rounded-2xl font-black uppercase tracking-widest"
   >
   <Trash2 className="w-4 h-4 mr-2" />
   {t('settings.deleteAccount')}

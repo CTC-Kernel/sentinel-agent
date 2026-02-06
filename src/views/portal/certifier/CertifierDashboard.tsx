@@ -68,9 +68,9 @@ export const CertifierDashboard: React.FC = () => {
  if (!data) return null;
 
  const stats = [
- { label: t('certifier.dashboard.activeClients'), value: data.clients.length, icon: Building2, color: 'text-blue-600', bg: 'bg-blue-100' },
- { label: t('certifier.dashboard.activeAudits'), value: data.assignments.filter(a => a.status !== 'Validé').length, icon: Clock, color: 'text-orange-600', bg: 'bg-orange-100' },
- { label: t('certifier.dashboard.certifiedAudits'), value: data.assignments.filter(a => a.status === 'Validé').length, icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-100' },
+ { label: t('certifier.dashboard.activeClients'), value: data.clients.length, icon: Building2, color: 'text-info-text', bg: 'bg-info-bg' },
+ { label: t('certifier.dashboard.activeAudits'), value: data.assignments.filter(a => a.status !== 'Validé').length, icon: Clock, color: 'text-warning-text', bg: 'bg-warning-bg' },
+ { label: t('certifier.dashboard.certifiedAudits'), value: data.assignments.filter(a => a.status === 'Validé').length, icon: CheckCircle, color: 'text-success-text', bg: 'bg-success-bg' },
  ];
 
  return (

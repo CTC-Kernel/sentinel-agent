@@ -68,7 +68,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
   onChange={(e) => updateFilter('query', e.target.value)}
   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
   placeholder="Rechercher dans tous les modules..."
-  className="w-full pl-12 pr-4 py-4 bg-card border border-border/40 rounded-2xl text-foreground placeholder-slate-400 focus:outline-none focus:ring-2 focus-visible:ring-primary text-lg"
+  className="w-full pl-12 pr-4 py-4 bg-card border border-border/40 rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus-visible:ring-primary text-lg"
   ref={(input) => {
   if (input) {
    setTimeout(() => input.focus(), 100);
@@ -130,7 +130,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
   type="text"
   onChange={(e) => updateFilter('status', e.target.value)}
   placeholder="Ex: Actif, En cours, Fermé..."
-  className="w-full px-4 py-2.5 bg-card border border-border/40 rounded-3xl text-foreground placeholder-slate-400 focus:outline-none focus:ring-2 focus-visible:ring-primary"
+  className="w-full px-4 py-2.5 bg-card border border-border/40 rounded-3xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus-visible:ring-primary"
   />
   </div>
 
@@ -148,7 +148,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
   type="text"
   onChange={(e) => updateFilter('owner', e.target.value)}
   placeholder="Nom du propriétaire..."
-  className="w-full px-4 py-2.5 bg-card border border-border/40 rounded-3xl text-foreground placeholder-slate-400 focus:outline-none focus:ring-2 focus-visible:ring-primary"
+  className="w-full px-4 py-2.5 bg-card border border-border/40 rounded-3xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus-visible:ring-primary"
   />
   </div>
 
@@ -215,7 +215,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
   aria-label="Réinitialiser les filtres"
   onClick={handleReset}
   variant="ghost"
-  className="text-muted-foreground hover:text-foreground dark:hover:text-white"
+  className="text-muted-foreground hover:text-foreground dark:hover:text-foreground"
   >
   Réinitialiser
   </Button>

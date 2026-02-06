@@ -436,7 +436,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
  disabled={isReadOnly}
  placeholder={t('vendorPortal.enterAnswer', 'Entrez votre réponse...')}
  rows={4}
- className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-card text-foreground resize-none focus:ring-2 focus-visible:ring-primary focus:border-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-700"
+ className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-card text-foreground resize-none focus:ring-2 focus-visible:ring-primary focus:border-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border"
  />
  )}
 
@@ -460,7 +460,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   disabled={isReadOnly}
   placeholder={t('vendorPortal.commentPlaceholder', 'Ajoutez du contexte supplémentaire ou un lien vers une preuve...')}
   rows={2}
-  className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-card text-foreground resize-none focus:ring-2 focus-visible:ring-primary focus:border-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-700"
+  className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-card text-foreground resize-none focus:ring-2 focus-visible:ring-primary focus:border-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border"
  />
  </div>
  )}

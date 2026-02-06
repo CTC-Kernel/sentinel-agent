@@ -297,7 +297,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
  <div
  className={cn(
  'border-2 border-dashed rounded-3xl p-12 text-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
- isDragging ? 'border-blue-500 bg-blue-50' : 'border-border/40 hover:border-slate-400'
+ isDragging ? 'border-blue-500 bg-blue-50' : 'border-border/40 hover:border-border'
  )}
  onDragOver={handleDragOver}
  onDragLeave={handleDragLeave}

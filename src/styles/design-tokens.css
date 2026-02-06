@@ -211,20 +211,20 @@
 
 .dark {
   /* Shadcn UI Dark Mode - Neutral Slate for Eye Comfort */
-  /* Using 12% saturation instead of 84% for comfortable viewing */
-  --background: 220 12% 6%;
-  --foreground: 0 0% 95%;
+  /* Refined Midnight OLED Background for AAA Depth */
+  --background: 220 15% 3%;
+  --foreground: 0 0% 98%;
 
-  --card: 220 12% 9%;
+  --card: 220 12% 6%;
   --card-foreground: 0 0% 95%;
 
   --popover: 220 12% 7%;
   --popover-foreground: 0 0% 95%;
 
-  /* Primary - Refined Blue for Dark (desaturated) */
-  --primary: 221 60% 58%;
-  --primary-foreground: 220 12% 10%;
-  --primary-text: 221 60% 72%; /* WCAG AAA 7:1+ on dark backgrounds */
+  /* Primary - Refined Blue for Dark (vibrant yet deep) */
+  --primary: 221 75% 62%;
+  --primary-foreground: 220 15% 10%;
+  --primary-text: 221 70% 75%; /* WCAG AAA 7:1+ on dark backgrounds */
 
   /* Navigation Icon Colors - Dark Mode (brighter for visibility) */
   --nav-pilotage: 221 72% 62%;
@@ -297,13 +297,13 @@
   --shadow-xl: 0 16px 40px -8px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.25);
   --shadow-2xl: 0 24px 56px -12px rgba(0, 0, 0, 0.6);
 
-  /* Glassmorphism Dark - Neutral Slate for Eye Comfort */
-  --glass-bg: rgba(17, 19, 24, 0.9);
+  /* Glassmorphism Dark - Enhanced Contrast & Depth */
+  --glass-bg: rgba(10, 11, 14, 0.85);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-shadow: var(--shadow-xl);
   --glass-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
-  --glass-medium-bg: rgba(17, 19, 24, 0.93);
-  --glass-heavy-bg: rgba(17, 19, 24, 0.97);
+  --glass-medium-bg: rgba(10, 11, 14, 0.9);
+  --glass-heavy-bg: rgba(10, 11, 14, 0.95);
 
   /* Modal/Drawer Solid Background - Full opacity for readability on overlays */
   --modal-bg: hsl(220 12% 9%);

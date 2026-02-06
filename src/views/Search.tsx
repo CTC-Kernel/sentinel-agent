@@ -38,10 +38,10 @@ export const Search: React.FC = () => {
 
  const getIcon = (type: string) => {
  switch (type) {
- case 'asset': return <ShieldCheck className="h-5 w-5 text-blue-500" />;
- case 'risk': return <AlertTriangle className="h-5 w-5 text-orange-500" />;
- case 'document': return <FileText className="h-5 w-5 text-purple-500" />;
- case 'project': return <FolderKanban className="h-5 w-5 text-emerald-500" />;
+ case 'asset': return <ShieldCheck className="h-5 w-5 text-info-text" />;
+ case 'risk': return <AlertTriangle className="h-5 w-5 text-warning" />;
+ case 'document': return <FileText className="h-5 w-5 text-violet-600 dark:text-violet-400" />;
+ case 'project': return <FolderKanban className="h-5 w-5 text-success" />;
  default: return <SearchIcon className="h-5 w-5 text-muted-foreground" />;
  }
  };
@@ -98,7 +98,7 @@ export const Search: React.FC = () => {
   aria-label={t('search.search', { defaultValue: 'Search' })}
   type="text"
   placeholder={t('search.placeholder', { defaultValue: 'Search for something...' })}
-  className="flex-1 bg-transparent border-none focus:ring-0 text-lg dark:text-white py-3 font-medium placeholder-gray-400"
+  className="flex-1 bg-transparent border-none focus:ring-0 text-lg dark:text-white py-3 font-medium placeholder:text-muted-foreground"
   onChange={e => setQueryText(e.target.value)}
  />
  {loading && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary mr-4"></div>}
@@ -116,17 +116,17 @@ export const Search: React.FC = () => {
  <div className="flex flex-wrap gap-2 items-center">
   <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('search.activeFilters', { defaultValue: 'Active filters' })}:</span>
   {advancedFilters.status && (
-  <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-bold">
+  <span className="px-3 py-1 bg-info-bg text-info-text rounded-lg text-xs font-bold">
   {t('search.status', { defaultValue: 'Status' })}: {advancedFilters.status}
   </span>
   )}
   {advancedFilters.owner && (
-  <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-xs font-bold">
+  <span className="px-3 py-1 bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 rounded-lg text-xs font-bold">
   {t('search.owner', { defaultValue: 'Owner' })}: {advancedFilters.owner}
   </span>
   )}
   {advancedFilters.criticality && (
-  <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-lg text-xs font-bold">
+  <span className="px-3 py-1 bg-warning-bg text-warning-text rounded-lg text-xs font-bold">
   {t('search.criticality', { defaultValue: 'Criticality' })}: {advancedFilters.criticality}
   </span>
   )}
@@ -182,10 +182,10 @@ export const Search: React.FC = () => {
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
   <button
    onClick={() => navigate('/risks')}
-   className="flex items-center gap-3 p-4 rounded-2xl border border-border/40 bg-white/60 hover:bg-muted/50/60 hover:border-primary/30 dark:hover:border-primary transition-all group text-left"
+   className="flex items-center gap-3 p-4 rounded-2xl border border-border/40 glass-premium hover:bg-muted/50/60 hover:border-primary/30 dark:hover:border-primary transition-all group text-left"
   >
    <div className="p-2.5 rounded-xl bg-orange-50 dark:bg-orange-900/20 group-hover:scale-110 transition-transform">
-   <AlertTriangle className="h-5 w-5 text-orange-500" />
+   <AlertTriangle className="h-5 w-5 text-warning" />
    </div>
    <div>
    <span className="text-sm font-bold text-foreground">{t('search.browseRisks', { defaultValue: 'Browse risks' })}</span>
@@ -195,10 +195,10 @@ export const Search: React.FC = () => {
   </button>
   <button
    onClick={() => navigate('/assets')}
-   className="flex items-center gap-3 p-4 rounded-2xl border border-border/40 bg-white/60 hover:bg-muted/50/60 hover:border-primary/30 dark:hover:border-primary transition-all group text-left"
+   className="flex items-center gap-3 p-4 rounded-2xl border border-border/40 glass-premium hover:bg-muted/50/60 hover:border-primary/30 dark:hover:border-primary transition-all group text-left"
   >
    <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20 group-hover:scale-110 transition-transform">
-   <ShieldCheck className="h-5 w-5 text-blue-500" />
+   <ShieldCheck className="h-5 w-5 text-info-text" />
    </div>
    <div>
    <span className="text-sm font-bold text-foreground">{t('search.viewAssets', { defaultValue: 'View assets' })}</span>
@@ -208,10 +208,10 @@ export const Search: React.FC = () => {
   </button>
   <button
    onClick={() => navigate('/compliance')}
-   className="flex items-center gap-3 p-4 rounded-2xl border border-border/40 bg-white/60 hover:bg-muted/50/60 hover:border-primary/30 dark:hover:border-primary transition-all group text-left"
+   className="flex items-center gap-3 p-4 rounded-2xl border border-border/40 glass-premium hover:bg-muted/50/60 hover:border-primary/30 dark:hover:border-primary transition-all group text-left"
   >
    <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 group-hover:scale-110 transition-transform">
-   <FileText className="h-5 w-5 text-emerald-500" />
+   <FileText className="h-5 w-5 text-success" />
    </div>
    <div>
    <span className="text-sm font-bold text-foreground">{t('search.viewControls', { defaultValue: 'View controls' })}</span>
@@ -235,7 +235,7 @@ export const Search: React.FC = () => {
    handleNavigate(result);
   }
   }}
-  className="glass-premium p-4 rounded-2xl hover:bg-muted/50 dark:hover:bg-white/5 cursor-pointer transition-all group border border-border/40 hover:border-primary/30 dark:hover:border-primary shadow-sm"
+  className="glass-premium p-4 rounded-2xl hover:bg-muted/50 dark:hover:bg-muted/50 cursor-pointer transition-all group border border-border/40 hover:border-primary/30 dark:hover:border-primary shadow-sm"
   >
   <div className="flex items-center justify-between">
   <div className="flex items-center gap-4">

@@ -43,7 +43,7 @@ export const SSOPlaceholder: React.FC = () => {
   <span className="text-xs font-medium text-muted-foreground">Azure AD</span>
   </div>
   <div className="p-4 rounded-3xl border border-border/40 bg-white/50 dark:bg-white/5 flex flex-col items-center gap-2">
-  <div className="h-6 w-6 bg-slate-900 rounded-full flex items-center justify-center text-white text-[11px] font-bold">O</div>
+  <div className="h-6 w-6 bg-foreground rounded-full flex items-center justify-center text-background text-[11px] font-bold">O</div>
   <span className="text-xs font-medium text-muted-foreground">Okta</span>
   </div>
   <div className="p-4 rounded-3xl border border-border/40 bg-white/50 dark:bg-white/5 flex flex-col items-center gap-2">

@@ -214,7 +214,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   {!uploading && (
   <div className="flex items-center justify-between p-3 bg-muted/50 dark:bg-white/5 rounded-3xl border border-border/40 mb-4">
   <div className="flex items-center gap-2">
-  <ShieldCheck className={`h-5 w-5 ${isSecure ? 'text-success-500' : 'text-muted-foreground'}`} />
+  <ShieldCheck className={`h-5 w-5 ${isSecure ? 'text-success' : 'text-muted-foreground'}`} />
   <div>
    <p className="text-sm font-bold text-foreground">Document Stratégique</p>
    <p className="text-[11px] text-muted-foreground">Active le filigrane et la vérification d'intégrité</p>
@@ -223,7 +223,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   <Switch
   checked={isSecure}
   onChange={setIsSecure}
-  className={isSecure ? '!bg-success-500' : ''}
+  className={isSecure ? '!bg-success' : ''}
   />
   </div>
   )}
@@ -258,16 +258,16 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
  {/* Error Message */}
  {error && (
- <div className="flex items-center space-x-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 dark:border-red-800 rounded-3xl">
-  <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400 flex-shrink-0" />
-  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+ <div className="flex items-center space-x-2 p-3 bg-error-bg border border-error-border rounded-3xl">
+  <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
+  <p className="text-sm text-destructive">{error}</p>
  </div>
  )}
  {/* Success Message */}
  {progress === 100 && !uploading && (
- <div className="flex items-center space-x-2 p-3 bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-3xl">
-  <CheckCircle2 className="h-4 w-4 text-success-600 dark:text-success-400 flex-shrink-0" />
-  <p className="text-sm text-success-600 dark:text-success-400">{t('common.fileUploader.success', { defaultValue: 'Fichier téléversé avec succès !' })}</p>
+ <div className="flex items-center space-x-2 p-3 bg-success-bg border border-success-border rounded-3xl">
+  <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
+  <p className="text-sm text-success">{t('common.fileUploader.success', { defaultValue: 'Fichier téléversé avec succès !' })}</p>
  </div>
  )}
  </div>

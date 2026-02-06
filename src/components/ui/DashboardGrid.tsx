@@ -1,7 +1,13 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { motion, useDragControls } from 'framer-motion';
 import { GripVertical, Settings, X } from './Icons';
 import { cn } from '../../lib/utils';
+
+// Z-index tokens for consistent layering
+const Z_INDEX = {
+  widget: 1,
+  dragging: 50, // Use tailwind z-modal equivalent
+} as const;
 
 interface Widget {
  id: string;
@@ -147,7 +153,7 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
  top: widget.position.y,
  width: config.width * 128, // 8rem * width
  height: config.height * 128, // 8rem * height
- zIndex: isDragging ? 1000 : 1
+ zIndex: isDragging ? Z_INDEX.dragging : Z_INDEX.widget
  }}
  animate={{
  scale: isDragging ? 1.05 : 1,
@@ -178,7 +184,8 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
  {widget.resizable && (
  <button
  onClick={() => setShowControls(!showControls)}
- className="p-1 hover:bg-muted rounded"
+ className="p-1 hover:bg-muted rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ aria-label="Paramètres du widget"
  >
  <Settings className="w-4 h-4 text-muted-foreground" />
  </button>
@@ -186,9 +193,10 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
  {widget.removable && onRemove && (
  <button
  onClick={() => onRemove(widget.id)}
- className="p-1 hover:bg-red-100 dark:hover:bg-red-900/20 rounded"
+ className="p-1 hover:bg-destructive/10 dark:hover:bg-destructive/20 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
+ aria-label="Supprimer le widget"
  >
- <X className="w-4 h-4 text-red-500" />
+ <X className="w-4 h-4 text-destructive" />
  </button>
  )}
  </motion.div>
@@ -218,7 +226,7 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   "px-2 py-1 text-xs rounded transition-colors",
   widget.size === size
   ? "bg-primary text-primary-foreground"
-  : "bg-muted text-foreground hover:bg-muted dark:hover:bg-slate-600"
+  : "bg-muted text-foreground hover:bg-muted dark:hover:bg-muted"
  )}
  >
  {size === 'small' && 'S'}

@@ -31,7 +31,7 @@ export const RiskStats: React.FC<RiskStatsProps> = ({ stats }) => {
   Vue globale des risques
   </p>
   <div className="flex items-baseline gap-3">
-  <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-muted-foreground/30 tracking-tight">{stats.total}</h2>
+  <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-card to-muted dark:from-white dark:to-muted-foreground/30 tracking-tight">{stats.total}</h2>
   <span className="text-sm font-bold text-foreground text-muted-foreground">Risques identifiés</span>
   </div>
   </div>

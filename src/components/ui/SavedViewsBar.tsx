@@ -34,7 +34,7 @@ export const SavedViewsBar: React.FC<SavedViewsBarProps> = ({
   onClick={() => onViewSelect(view)}
   className={`flex items-center gap-2 px-4 py-2 rounded-3xl text-xs font-bold transition-all duration-300 whitespace-nowrap ${isActive
   ? 'bg-card text-foreground shadow-md ring-1 ring-black/5'
-  : 'text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-white/5'
+  : 'text-muted-foreground hover:text-foreground hover:bg-muted/500 dark:hover:bg-muted/50'
   }`}
   >
   <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-primary' : 'opacity-60'}`} />

@@ -83,7 +83,7 @@ const CategoryAccordion: React.FC<CategoryAccordionProps> = ({
  }, [requirements]);
 
  return (
- <div className="rounded-3xl overflow-hidden border border-border/40 bg-white/60 dark:bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
+ <div className="rounded-3xl overflow-hidden border border-border/40 bg-white/60 dark:bg-white/5 dark:bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
  {/* Header */}
  <button
  onClick={onToggle}
@@ -108,19 +108,19 @@ const CategoryAccordion: React.FC<CategoryAccordionProps> = ({
  {/* Criticality indicators */}
  <div className="flex items-center gap-2">
  {criticalityCounts.high > 0 && (
- <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-900/20 text-xs font-medium text-red-600 dark:text-red-400">
+ <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-error-bg text-xs font-medium text-error-text">
  <AlertTriangle className="w-3 h-3" />
  {criticalityCounts.high}
  </div>
  )}
  {criticalityCounts.medium > 0 && (
- <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/20 text-xs font-medium text-amber-600 dark:text-amber-400">
+ <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-warning-bg text-xs font-medium text-warning-text">
  <AlertCircle className="w-3 h-3" />
  {criticalityCounts.medium}
  </div>
  )}
  {criticalityCounts.low > 0 && (
- <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-xs font-medium text-blue-600 dark:text-blue-400">
+ <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-info-bg text-xs font-medium text-info-text">
  <Info className="w-3 h-3" />
  {criticalityCounts.low}
  </div>
@@ -297,8 +297,8 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
  if (error) {
  return (
  <div className="text-center py-12">
- <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
- <AlertTriangle className="w-8 h-8 text-red-500" />
+ <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-error-bg flex items-center justify-center">
+ <AlertTriangle className="w-8 h-8 text-destructive" />
  </div>
  <h3 className="text-lg font-semibold text-foreground mb-1">
  {t('requirements.errorLoading')}

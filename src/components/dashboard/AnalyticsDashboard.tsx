@@ -294,7 +294,7 @@ export const AnalyticsDashboard: React.FC = () => {
   title={t('dashboard.criticalRisks', { defaultValue: 'Risques Critiques' })}
   value={metrics.criticalRisks}
   icon={AlertTriangle}
-  colorClass="bg-red-500"
+  colorClass="bg-destructive"
   trend={{ value: metrics.trends.riskTrend, label: t('dashboard.vsLastMonth', { defaultValue: 'vs mois dernier' }) }}
   onClick={() => navigate('/risks')}
   sparklineData={trendData.slice(-7).map(d => d.risks)}
@@ -304,7 +304,7 @@ export const AnalyticsDashboard: React.FC = () => {
   title={t('dashboard.openIncidents', { defaultValue: 'Incidents Ouverts' })}
   value={metrics.openIncidents}
   icon={Activity}
-  colorClass="bg-orange-500"
+  colorClass="bg-warning"
   trend={{ value: metrics.trends.incidentTrend, label: t('dashboard.vsLastMonth', { defaultValue: 'vs mois dernier' }) }}
   onClick={() => navigate('/incidents')}
   sparklineData={trendData.slice(-7).map(d => d.incidents)}
@@ -314,7 +314,7 @@ export const AnalyticsDashboard: React.FC = () => {
   title={t('dashboard.compliance', { defaultValue: 'Conformité' })}
   value={`${Math.round(metrics.complianceRate)}%`}
   icon={CheckCircle2}
-  colorClass="bg-green-500"
+  colorClass="bg-success"
   trend={{ value: metrics.trends.complianceTrend, label: t('dashboard.vsLastMonth', { defaultValue: 'vs mois dernier' }) }}
   onClick={() => navigate('/compliance')}
   sparklineData={trendData.slice(-7).map(d => d.compliance)}
@@ -324,7 +324,7 @@ export const AnalyticsDashboard: React.FC = () => {
   title={t('dashboard.activeProjects', { defaultValue: 'Projets Actifs' })}
   value={metrics.activeProjects}
   icon={Clock}
-  colorClass="bg-indigo-500"
+  colorClass="bg-primary"
   trend={{ value: metrics.trends.projectTrend, label: t('dashboard.vsLastMonth', { defaultValue: 'vs mois dernier' }) }}
   onClick={() => navigate('/projects')}
   sparklineData={trendData.slice(-7).map(d => d.assets)}
@@ -349,7 +349,7 @@ export const AnalyticsDashboard: React.FC = () => {
    variant="line"
   />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
    <AreaChart data={trendData}>
    <defs>
    <linearGradient id={riskGradientId} x1="0" y1="0" x2="0" y2="1">
@@ -423,13 +423,13 @@ export const AnalyticsDashboard: React.FC = () => {
   />
   </div>
   <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-  <div className="p-3 rounded-2xl bg-green-500 dark:bg-green-50 dark:bg-green-900 border border-green-100 dark:border-green-900/20">
-  <p className="text-2xl font-bold text-green-600 dark:text-green-400">{controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length}</p>
-  <p className="text-[11px] font-bold uppercase tracking-wider text-green-600/70 dark:text-green-400/70 mt-1">{t('dashboard.implemented', { defaultValue: 'Implémentés' })}</p>
+  <div className="p-3 rounded-2xl bg-success-bg border border-success-border">
+  <p className="text-2xl font-bold text-success">{controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length}</p>
+  <p className="text-[11px] font-bold uppercase tracking-wider text-success/70 mt-1">{t('dashboard.implemented', { defaultValue: 'Implémentés' })}</p>
   </div>
-  <div className="p-3 rounded-2xl bg-orange-50/50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/20">
-  <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length}</p>
-  <p className="text-[11px] font-bold uppercase tracking-wider text-orange-600/70 dark:text-orange-400/70 mt-1">{t('dashboard.partial', { defaultValue: 'Partiels' })}</p>
+  <div className="p-3 rounded-2xl bg-warning-bg border border-warning-border">
+  <p className="text-2xl font-bold text-warning">{controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length}</p>
+  <p className="text-[11px] font-bold uppercase tracking-wider text-warning/70 mt-1">{t('dashboard.partial', { defaultValue: 'Partiels' })}</p>
   </div>
   <div className="p-3 rounded-2xl bg-muted/50 border border-border/40">
   <p className="text-2xl font-bold text-foreground">{controls.filter(c => c.status === CONTROL_STATUS.NOT_STARTED).length}</p>
@@ -457,7 +457,7 @@ export const AnalyticsDashboard: React.FC = () => {
   onAction={() => navigate('/risks')}
   />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
    <Pie
    data={risksByCategory}

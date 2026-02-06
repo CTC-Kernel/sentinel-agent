@@ -89,7 +89,7 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
  if (status === 'success') {
  return (
  <div className="text-center py-12">
- <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
+ <div className="w-16 h-16 bg-success-bg text-success rounded-full flex items-center justify-center mx-auto mb-6">
   <CheckCircle className="w-8 h-8" />
  </div>
  <h3 className="text-2xl font-bold text-foreground mb-2">{t('certificate.certificationRecorded', { defaultValue: 'Certification Enregistrée' })}</h3>
@@ -109,12 +109,12 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
  </p>
 
  <div className="border border-border rounded-xl p-6 bg-muted/50">
- <label className={`flex flex-col items-center justify-center border-2 border-dashed ${file ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-border'} rounded-lg p-8 cursor-pointer hover:bg-muted transition-colors`}>
+ <label className={`flex flex-col items-center justify-center border-2 border-dashed ${file ? 'border-success bg-success-bg' : 'border-border'} rounded-lg p-8 cursor-pointer hover:bg-muted transition-colors`}>
   {file ? (
   <>
-  <FileCheckIcon className="w-8 h-8 text-green-500 mb-2" />
-  <span className="text-sm font-medium text-green-700 dark:text-green-300">{file.name}</span>
-  <span className="text-xs text-green-600 dark:text-green-400 mt-1">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+  <FileCheckIcon className="w-8 h-8 text-success mb-2" />
+  <span className="text-sm font-medium text-success-text">{file.name}</span>
+  <span className="text-xs text-success mt-1">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
   </>
   ) : (
   <>
@@ -139,7 +139,7 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
  </div>
  </div>
 
- <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg flex items-start gap-3 text-orange-800 dark:text-orange-200 text-sm">
+ <div className="bg-warning-bg p-4 rounded-lg flex items-start gap-3 text-warning-text text-sm">
  <AlertTriangle className="w-5 h-5 shrink-0" />
  <p>{t('certificate.irreversibleWarning', { defaultValue: 'Attention : Cette action est irréversible. Une fois validé, l\'audit passera en statut "Validé" et votre accès en écriture sera révoqué.' })}</p>
  </div>

@@ -43,7 +43,7 @@ export const RiskResidualChart: React.FC<RiskResidualChartProps> = ({ risks }) =
 
  return (
  <div className="h-[300px] w-full">
- <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+ <ResponsiveContainer width="100%" height="100%" >
  <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
   <defs>
   <linearGradient id={inherentGradientId} x1="0" y1="0" x2="0" y2="1">

@@ -137,7 +137,7 @@ export const VoxelFallback2D: React.FC<VoxelFallback2DProps> = ({
 
  return (
  <div
- className="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-white"
+ className="w-full h-full flex flex-col items-center justify-center bg-card text-foreground"
  style={{ minHeight: 'calc(100vh - 48px)' }}
  data-testid="voxel-fallback-2d"
  role="region"
@@ -160,7 +160,7 @@ export const VoxelFallback2D: React.FC<VoxelFallback2DProps> = ({
 
  {/* Browser requirements info for WebGL issues */}
  {(reason === 'no-webgl' || reason === 'webgl1-degraded') && (
- <div className="mb-8 p-4 bg-slate-800/50 rounded-lg max-w-md mx-4">
+ <div className="mb-8 p-4 bg-muted/50 rounded-lg max-w-md mx-4">
  <h3 className="text-sm font-medium text-muted-foreground mb-2">
  {t('voxel.fallback.requirementsTitle')}
  </h3>

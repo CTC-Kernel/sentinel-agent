@@ -88,7 +88,7 @@ export const CertifierLogin: React.FC = () => {
    placeholder="nom@organisme-certif.com"
   />
   </div>
-  {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>}
+  {errors.email && <p className="mt-2 text-sm text-destructive">{errors.email.message}</p>}
   </div>
 
   <div>
@@ -105,7 +105,7 @@ export const CertifierLogin: React.FC = () => {
    placeholder="••••••••"
   />
   </div>
-  {errors.password && <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>}
+  {errors.password && <p className="mt-2 text-sm text-destructive">{errors.password.message}</p>}
   </div>
 
   <div>

@@ -194,7 +194,7 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
   <Button
   type="button"
   variant="ghost"
-  className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-muted-foreground hover:bg-muted/50 dark:hover:bg-white/5 transition-colors"
+  className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-muted-foreground hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors"
   onClick={handleClose}
   disabled={isLoading}
   ref={cancelButtonRef}

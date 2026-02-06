@@ -25,7 +25,7 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
   {categoryData.length === 0 ? (
   <EmptyChartState variant="pie" message={t('incidents.charts.noCategory', { defaultValue: 'Aucune catégorie' })} />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
   <Pie
    data={categoryData}
@@ -57,7 +57,7 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
   {timelineData.length === 0 ? (
   <EmptyChartState variant="bar" message={t('incidents.charts.noHistory', { defaultValue: 'Aucun historique récent' })} />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <BarChart
   data={timelineData}
   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}

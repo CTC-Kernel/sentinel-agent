@@ -8,6 +8,7 @@ import {
  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
  RadialBarChart, RadialBar, ComposedChart, Area, Line, Sector
 } from 'recharts';
+import type { PieSectorDataItem } from 'recharts/types/polar/Pie';
 import { SEVERITY_COLORS, SENTINEL_PALETTE } from '../../theme/chartTheme';
 import { useLocale } from '../../hooks/useLocale';
 
@@ -18,23 +19,26 @@ interface AssetDashboardProps {
 }
 
 // Premium activeShape for interactive pie
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const renderActiveShape = (props: any) => {
+const renderActiveShape = (props: PieSectorDataItem) => {
  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent } = props;
+ const cyValue = cy ?? 0;
+ const innerR = innerRadius ?? 0;
+ const outerR = outerRadius ?? 0;
+ const percentValue = percent ?? 0;
 
  return (
  <g>
- <text x={cx} y={cy - 8} textAnchor="middle" className="fill-foreground font-black text-base">
+ <text x={cx} y={cyValue - 8} textAnchor="middle" className="fill-foreground font-black text-base">
  {payload.name}
  </text>
- <text x={cx} y={cy + 12} textAnchor="middle" className="fill-muted-foreground text-sm font-mono">
- {payload.value} ({(percent * 100).toFixed(0)}%)
+ <text x={cx} y={cyValue + 12} textAnchor="middle" className="fill-muted-foreground text-sm font-mono">
+ {payload.value} ({(percentValue * 100).toFixed(0)}%)
  </text>
  <Sector
  cx={cx}
  cy={cy}
- innerRadius={innerRadius - 6}
- outerRadius={outerRadius + 10}
+ innerRadius={innerR - 6}
+ outerRadius={outerR + 10}
  startAngle={startAngle}
  endAngle={endAngle}
  fill={fill}
@@ -45,8 +49,8 @@ const renderActiveShape = (props: any) => {
  cy={cy}
  startAngle={startAngle}
  endAngle={endAngle}
- innerRadius={innerRadius - 4}
- outerRadius={outerRadius}
+ innerRadius={innerR - 4}
+ outerRadius={outerR}
  fill={fill}
  stroke="none"
  />
@@ -241,7 +245,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
 
  <div className="absolute inset-0 overflow-hidden rounded-4xl pointer-events-none">
   <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 dark:bg-primary/60/15 rounded-full blur-3xl -mr-32 -mt-32" />
-  <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -ml-20 -mb-20" />
+  <div className="absolute bottom-0 left-0 w-64 h-64 bg-success-bg rounded-full blur-3xl -ml-20 -mb-20" />
  </div>
 
  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 relative z-10">
@@ -249,7 +253,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
   <div className="flex items-center gap-6">
   <div className="relative">
   <div className="h-[120px] w-[120px]">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
    <RadialBarChart
    cx="50%"
    cy="50%"
@@ -270,7 +274,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
   </ResponsiveContainer>
   </div>
   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/4 text-center">
-  <div className={`text-3xl font-black bg-gradient-to-r ${metrics.healthScore >= 70 ? 'from-emerald-600 to-emerald-400' : metrics.healthScore >= 40 ? 'from-amber-600 to-amber-400' : 'from-red-600 to-red-400'} bg-clip-text text-transparent`}>
+  <div className={`text-3xl font-black bg-gradient-to-r ${metrics.healthScore >= 70 ? 'from-success to-success/70' : metrics.healthScore >= 40 ? 'from-warning to-warning/70' : 'from-destructive to-destructive/70'} bg-clip-text text-transparent`}>
    {metrics.healthScore}%
   </div>
   </div>
@@ -318,20 +322,20 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
   tabIndex={0}
   >
   <div className="flex items-center justify-center gap-2 mb-2">
-  <div className="p-2 bg-red-50 rounded-3xl group-hover/metric:scale-110 transition-transform">
-   <ShieldAlert className="h-4 w-4 text-red-500" />
+  <div className="p-2 bg-error-bg rounded-3xl group-hover/metric:scale-110 transition-transform">
+   <ShieldAlert className="h-4 w-4 text-destructive" />
   </div>
   </div>
-  <div className="text-2xl font-black bg-gradient-to-r from-red-600 to-red-400 bg-clip-text text-transparent">{metrics.critical}</div>
+  <div className="text-2xl font-black bg-gradient-to-r from-destructive to-destructive/70 bg-clip-text text-transparent">{metrics.critical}</div>
   <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{t('assets.dashboard.critical', { defaultValue: 'Critiques' })}</div>
   </div>
   <div className="text-center group/metric">
   <div className="flex items-center justify-center gap-2 mb-2">
-  <div className="p-2 bg-emerald-500/10 rounded-3xl group-hover/metric:scale-110 transition-transform">
-   <Euro className="h-4 w-4 text-emerald-500" />
+  <div className="p-2 bg-success/10 rounded-3xl group-hover/metric:scale-110 transition-transform">
+   <Euro className="h-4 w-4 text-success" />
   </div>
   </div>
-  <div className="text-2xl font-black bg-gradient-to-r from-emerald-600 to-emerald-400 bg-clip-text text-transparent">{(metrics.currentValue / 1000).toFixed(0)}k€</div>
+  <div className="text-2xl font-black bg-gradient-to-r from-success to-success/70 bg-clip-text text-transparent">{(metrics.currentValue / 1000).toFixed(0)}k€</div>
   <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{t('assets.dashboard.value', { defaultValue: 'Valeur' })}</div>
   </div>
   </div>
@@ -340,27 +344,27 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
   <div className="flex flex-col gap-3 min-w-0 sm:min-w-[200px]">
   <motion.div
   whileHover={{ scale: 1.02 }}
-  className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-50 dark:bg-amber-900 rounded-3xl border border-amber-100 dark:border-amber-500/20"
+  className="flex items-center justify-between p-3 bg-warning-bg rounded-3xl border border-warning-border"
   >
   <div className="flex items-center gap-2">
-  <div className="p-1.5 bg-amber-500/20 rounded-lg">
-   <Wrench className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+  <div className="p-1.5 bg-warning/20 rounded-lg">
+   <Wrench className="h-4 w-4 text-warning" />
   </div>
-  <span className="text-[11px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wide">{t('assets.dashboard.maintenance', { defaultValue: 'Maintenance' })}</span>
+  <span className="text-[11px] font-bold text-warning-text uppercase tracking-wide">{t('assets.dashboard.maintenance', { defaultValue: 'Maintenance' })}</span>
   </div>
-  <span className="text-lg font-black text-amber-700 dark:text-amber-400">{metrics.maintenance}</span>
+  <span className="text-lg font-black text-warning-text">{metrics.maintenance}</span>
   </motion.div>
   <motion.div
   whileHover={{ scale: 1.02 }}
-  className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/30 dark:bg-blue-900 rounded-3xl border border-blue-100 dark:border-blue-500/20"
+  className="flex items-center justify-between p-3 bg-info-bg rounded-3xl border border-info-border"
   >
   <div className="flex items-center gap-2">
-  <div className="p-1.5 bg-blue-500/20 rounded-lg">
-   <Box className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+  <div className="p-1.5 bg-info-text/20 rounded-lg">
+   <Box className="h-4 w-4 text-info-text" />
   </div>
-  <span className="text-[11px] font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide">{t('assets.dashboard.new', { defaultValue: 'Nouveaux' })}</span>
+  <span className="text-[11px] font-bold text-info-text uppercase tracking-wide">{t('assets.dashboard.new', { defaultValue: 'Nouveaux' })}</span>
   </div>
-  <span className="text-lg font-black text-blue-700 dark:text-blue-400">{metrics.newAssets}</span>
+  <span className="text-lg font-black text-info-text">{metrics.newAssets}</span>
   </motion.div>
   </div>
  </div>
@@ -377,8 +381,8 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
  >
   <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-4xl" />
   <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-  <div className="p-2 bg-orange-500/10 rounded-3xl">
-  <ShieldAlert className="w-4 h-4 text-orange-500" />
+  <div className="p-2 bg-warning/10 rounded-3xl">
+  <ShieldAlert className="w-4 h-4 text-warning" />
   </div>
   {t('assets.dashboard.distributionByCriticality', { defaultValue: 'Distribution par Criticité' })}
   </h4>
@@ -386,7 +390,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
   {assets.length === 0 ? (
   <EmptyChartState variant="pie" message={t('assets.dashboard.noData', { defaultValue: 'Aucune donnée' })} description={t('assets.dashboard.addAssetsToSeeDistribution', { defaultValue: 'Ajoutez des actifs pour voir la répartition.' })} />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
    <defs>
    {distributionData.map((entry, idx) => (
@@ -446,7 +450,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
   {typeChartData.length === 0 ? (
   <EmptyChartState variant="bar" message={t('assets.dashboard.noType', { defaultValue: 'Aucun type' })} description={t('assets.dashboard.assetTypesWillAppear', { defaultValue: "Les types d'actifs s'afficheront ici." })} />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <BarChart data={typeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.3)" vertical={false} />
    <XAxis
@@ -491,7 +495,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
   {scopeChartData.length === 0 ? (
   <EmptyChartState variant="pie" message={t('assets.dashboard.noScope', { defaultValue: 'Aucun périmètre' })} description={t('assets.dashboard.defineAssetScope', { defaultValue: 'Définissez le périmètre de vos actifs.' })} />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
    <defs>
    {scopeChartData.map((_, idx) => (
@@ -542,8 +546,8 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
  >
   <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-4xl" />
   <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-  <div className="p-2 bg-emerald-500/10 rounded-3xl">
-  <TrendingUp className="w-4 h-4 text-emerald-500" />
+  <div className="p-2 bg-success/10 rounded-3xl">
+  <TrendingUp className="w-4 h-4 text-success" />
   </div>
   {t('assets.dashboard.acquisitions', { defaultValue: 'Acquisitions (12 derniers mois)' })}
   </h4>
@@ -551,7 +555,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
   {acquisitionData.every(d => d.count === 0) ? (
   <EmptyChartState variant="bar" message={t('assets.dashboard.noRecentAcquisitions', { defaultValue: "Pas d'acquisitions récentes" })} description={t('assets.dashboard.purchaseHistoryWillAppear', { defaultValue: "L'historique des achats s'affichera ici." })} />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <ComposedChart data={acquisitionData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.3)" vertical={false} />
    <XAxis

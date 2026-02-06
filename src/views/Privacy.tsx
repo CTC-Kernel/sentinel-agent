@@ -264,7 +264,7 @@ export const Privacy: React.FC = () => {
  onSearchChange={setFilter}
  searchPlaceholder={t('privacy.searchPlaceholder')}
  actions={
-  <button onClick={handleExportCSV} className="p-2.5 bg-muted/50 dark:bg-white/5 rounded-xl text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" title={t('privacy.exportRegistry')}>
+  <button onClick={handleExportCSV} className="p-2.5 bg-muted/50 dark:bg-white/5 rounded-xl text-muted-foreground hover:text-foreground dark:hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" title={t('privacy.exportRegistry')}>
   <FileSpreadsheet className="h-4 w-4" />
   </button>
  }
@@ -315,10 +315,10 @@ export const Privacy: React.FC = () => {
   selectedActivity && (
   <>
   {canEdit && !isEditing && (
-  <button aria-label="Edit Activity" onClick={() => setIsEditing(true)} className="p-2.5 text-muted-foreground hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
+  <button aria-label="Edit Activity" onClick={() => setIsEditing(true)} className="p-2.5 text-muted-foreground hover:bg-white dark:hover:bg-muted rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
   )}
   {canEdit && isEditing && (
-  <button aria-label="Save Activity" onClick={editActivityForm.handleSubmit(handleUpdate, onInvalid)} className="p-2.5 text-primary hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
+  <button aria-label="Save Activity" onClick={editActivityForm.handleSubmit(handleUpdate, onInvalid)} className="p-2.5 text-primary hover:bg-white dark:hover:bg-muted rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
   )}
   {canEdit && (
   <button aria-label="Delete Activity" onClick={() => initiateDelete(selectedActivity.id, selectedActivity.name)} className="p-2.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>

@@ -415,7 +415,7 @@ export const WhatIfComparison: React.FC<WhatIfComparisonProps> = ({
  initial={{ width: 0 }}
  animate={{ width: `${baselineImpact * 100}%` }}
  transition={{ duration: 0.8, ease: appleEasing }}
- className="h-full bg-slate-400 rounded-full"
+ className="h-full bg-muted-foreground rounded-full"
  />
  </div>
  </div>

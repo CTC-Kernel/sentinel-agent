@@ -43,16 +43,16 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
  <aside
  aria-label="Navigation latérale"
  className={`absolute inset-y-0 right-0 ${navCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-80 opacity-70'
- } bg-slate-950/80 border-l border-border/40 backdrop-blur-2xl z-sidebar p-5 overflow-hidden transition-all duration-500 ease-custom-ease flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.3)]`}
+ } bg-background/95 dark:bg-card/95 border-l border-border/40 backdrop-blur-2xl z-sidebar p-5 overflow-hidden transition-all duration-500 ease-custom-ease flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.3)]`}
  >
- <div className="flex items-center justify-between text-white mb-6 shrink-0">
+ <div className="flex items-center justify-between text-foreground mb-6 shrink-0">
  <div className="flex items-center gap-3">
   <div className="w-8 h-8 rounded-3xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center shadow-lg shadow-primary/20">
-  <Network className="h-4 w-4 text-white" />
+  <Network className="h-4 w-4 text-foreground" />
   </div>
   <div>
   <span className="text-sm font-bold tracking-tight block">CTC Engine</span>
-  <span className="text-[11px] text-white/50 font-medium uppercase tracking-wider">
+  <span className="text-[11px] text-foreground/50 font-medium uppercase tracking-wider">
   {orderedNodesLength} Éléments
   </span>
   </div>
@@ -60,14 +60,14 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
  <button
   onClick={() => setNavCollapsed(true)}
   aria-label="Fermer le menu"
-  className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+  className="p-2 rounded-full hover:bg-muted text-foreground/60 hover:text-foreground transition-colors"
  >
   <XCircle className="h-5 w-5" />
  </button>
  </div>
 
  <div className="relative mb-6 shrink-0 group">
- <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-primary/70 transition-colors" />
+ <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/40 group-focus-within:text-primary/70 transition-colors" />
  <input
   value={searchQuery}
   aria-label="Rechercher"
@@ -75,14 +75,14 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
   type="text"
   onChange={(e) => setSearchQuery(e.target.value)}
   placeholder="Rechercher..."
-  className="w-full bg-white/5 border border-border/40 rounded-3xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-primary/60 focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-primary transition-all shadow-sm"
+  className="w-full bg-muted/50 border border-border/40 rounded-3xl py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-primary/60 focus:bg-muted focus-visible:ring-2 focus-visible:ring-primary transition-all shadow-sm"
  />
  </div>
 
  <div className="space-y-6 overflow-y-auto flex-1 pr-1 custom-scrollbar">
  {categorizedNodes.map((category) => (
   <div key={category.id || 'unknown'} className="animate-[fadeIn_0.5s_ease-out]">
-  <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.2em] font-bold text-white/40 mb-3 px-1">
+  <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.2em] font-bold text-foreground/40 mb-3 px-1">
   <span className="flex items-center gap-2">
   <span className={`w-1.5 h-1.5 rounded-full ${category.color} shadow-[0_0_8px_currentColor]`}></span>
   {category.label}
@@ -92,7 +92,7 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
   aria-label={`Basculer l'affichage de la couche ${category.label}`}
   className={`w-8 h-4 rounded-full transition-colors relative ${activeLayers.includes(category.id as LayerType)
    ? 'bg-primary'
-   : 'bg-white/10'
+   : 'bg-muted'
    }`}
   >
   <span
@@ -111,7 +111,7 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
   </div>
 
   {category.items.length === 0 ? (
-  <div className="text-white/20 text-xs italic px-2 py-2 text-center border border-white/5 rounded-lg border-dashed">
+  <div className="text-foreground/20 text-xs italic px-2 py-2 text-center border border-border/20 rounded-lg border-dashed">
    Aucun élément
   </div>
   ) : (
@@ -120,14 +120,14 @@ export const VoxelSidebar: React.FC<VoxelSidebarProps> = ({
    key={item.id || 'unknown'}
    onClick={() => onNodeSelect(item.id, category.id as LayerType)}
    className={`w-full text-left px-3 py-2 rounded-lg transition-all text-xs border group relative overflow-hidden ${selectedNodeId === item.id
-   ? 'bg-primary/15 border-primary/60 text-white shadow-[0_0_15px_rgba(99,102,241,0.2)]'
-   : 'bg-transparent border-transparent hover:bg-white/5 hover:border-border/40 text-white/60 hover:text-white'
+   ? 'bg-primary/15 border-primary/60 text-foreground shadow-[0_0_15px_rgba(99,102,241,0.2)]'
+   : 'bg-transparent border-transparent hover:bg-muted/50 hover:border-border/40 text-foreground/60 hover:text-foreground'
    }`}
    >
    <div className="relative z-10 flex items-center justify-between gap-2">
    <span className="font-medium truncate">{item.label}</span>
    {item.meta && (
-   <span className={`text-[11px] px-1.5 py-0.5 rounded bg-white/5 border border-white/5 ${selectedNodeId === item.id ? 'text-primary/40' : 'text-white/30 group-hover:text-white/50'
+   <span className={`text-[11px] px-1.5 py-0.5 rounded bg-muted/50 border border-border/20 ${selectedNodeId === item.id ? 'text-primary/40' : 'text-foreground/30 group-hover:text-foreground/50'
     }`}>
     {item.meta}
    </span>

@@ -72,7 +72,7 @@ export const OnboardingCard: React.FC<OnboardingCardProps> = ({
  style={{ width: style.width, position: 'absolute' }}
  className="z-supreme pointer-events-auto"
  >
- <div className="relative overflow-hidden rounded-2xl border border-white/50 bg-white/95 shadow-2xl backdrop-blur-2xl/90 ring-1 ring-black/5 dark:ring-white/10">
+ <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-card/95 dark:bg-card/95 shadow-2xl backdrop-blur-2xl ring-1 ring-black/5 dark:ring-white/10">
  {/* Glossy Gradient Overlay - Subtle */}
  <div className="absolute inset-0 bg-gradient-to-br from-white/60 to-transparent pointer-events-none" />
 
@@ -89,7 +89,7 @@ export const OnboardingCard: React.FC<OnboardingCardProps> = ({
   </div>
   <button
   onClick={onSkip}
-  className="text-muted-foreground hover:text-foreground text-muted-foreground dark:hover:text-white transition-colors p-1.5 hover:bg-muted dark:hover:bg-white/10 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+  className="text-muted-foreground hover:text-foreground text-muted-foreground dark:hover:text-foreground transition-colors p-1.5 hover:bg-muted dark:hover:bg-muted rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
   title={t('onboarding.skipTour', { defaultValue: 'Quitter le tour' })}
   >
   <X className="w-5 h-5" />
@@ -106,7 +106,7 @@ export const OnboardingCard: React.FC<OnboardingCardProps> = ({
   {currentStepIndex > 0 ? (
   <button
   onClick={onPrev}
-  className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-muted dark:hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+  className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground dark:hover:text-foreground transition-colors px-3 py-2 rounded-lg hover:bg-muted dark:hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
   >
   <ChevronLeft className="w-4 h-4" />
   {t('onboarding.back', { defaultValue: 'Retour' })}
@@ -117,7 +117,7 @@ export const OnboardingCard: React.FC<OnboardingCardProps> = ({
 
   <button
   onClick={onNext}
-  className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-black text-white dark:bg-white dark:hover:bg-muted rounded-3xl text-sm font-bold shadow-lg shadow-slate-900/20 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+  className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-3xl text-sm font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   {currentStepIndex === totalSteps - 1 ? t('onboarding.finish', { defaultValue: 'Terminer' }) : t('onboarding.next', { defaultValue: 'Suivant' })}
   <ChevronRight className="w-4 h-4" />

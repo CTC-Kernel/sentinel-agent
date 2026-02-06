@@ -41,7 +41,7 @@ export const NotificationCenter: React.FC = () => {
  <Bell className="h-5 w-5" aria-hidden="true" />
  {unreadCount > 0 && (
   <>
-  <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-950" />
+  <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
   <span className="sr-only" aria-live="polite">{t('notifications.unreadCount', { defaultValue: `${unreadCount} notifications non lues`, count: unreadCount })}</span>
   </>
  )}
@@ -54,10 +54,10 @@ export const NotificationCenter: React.FC = () => {
   animate={{ opacity: 1, scale: 1, y: 0 }}
   exit={{ opacity: 0, scale: 0.95, y: 10 }}
   transition={{ duration: 0.1 }}
-  className="absolute right-0 mt-2 w-[90vw] sm:w-96 max-w-[384px] max-h-[80vh] glass-premium bg-background/95 rounded-3xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.4)] border border-white/20 overflow-hidden z-dropdown flex flex-col origin-top-right ring-1 ring-white/20 dark:ring-white/5"
+  className="absolute right-0 mt-2 w-[90vw] sm:w-96 max-w-[384px] max-h-[80vh] glass-premium bg-background/95 rounded-3xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.4)] border border-border/40 overflow-hidden z-dropdown flex flex-col origin-top-right ring-1 ring-border/20"
   >
   {/* Header */}
-  <div className="p-4 border-b border-border/40 flex items-center justify-between bg-gradient-to-br from-muted/50/50 to-white/30 dark:from-slate-800/30 dark:to-slate-900/20 shrink-0">
+  <div className="p-4 border-b border-border/40 flex items-center justify-between bg-gradient-to-br from-muted/30 to-transparent shrink-0">
   <h3 className="font-semibold text-foreground">{t('notifications.title', { defaultValue: 'Notifications' })}</h3>
   <div className="flex gap-2">
   <Tooltip content={filter === 'unread' ? t('notifications.showAll', { defaultValue: 'Afficher tout' }) : t('notifications.filterUnread', { defaultValue: 'Filtrer les non-lus' })}>
@@ -66,8 +66,8 @@ export const NotificationCenter: React.FC = () => {
    className={cn(
    "p-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
    filter === 'unread'
-   ? "bg-muted/50 text-foreground dark:bg-white/10 /60"
-   : "text-muted-foreground hover:bg-muted/50 dark:hover:bg-white/5"
+   ? "bg-muted text-foreground"
+   : "text-muted-foreground hover:bg-muted/50"
    )}
    >
    <Filter className="h-3.5 w-3.5" />
@@ -77,7 +77,7 @@ export const NotificationCenter: React.FC = () => {
   <Tooltip content={t('notifications.markAllAsRead', { defaultValue: 'Tout marquer comme lu' })}>
    <button
    onClick={() => markAllAsRead()}
-   className="p-1.5 text-muted-foreground hover:text-foreground/60 hover:bg-muted/50 dark:hover:bg-white/5 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+   className="p-1.5 text-muted-foreground hover:text-foreground/60 hover:bg-muted/50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
    >
    <CheckCheck className="h-4 w-4" />
    </button>
@@ -117,7 +117,7 @@ export const NotificationCenter: React.FC = () => {
   </div>
 
   {/* Footer */}
-  <div className="p-2 border-t border-border/40 bg-gradient-to-br from-muted/50/30 to-white/20 dark:from-slate-800/20 dark:to-slate-900/10 shrink-0 text-center">
+  <div className="p-2 border-t border-border/40 bg-gradient-to-br from-muted/20 to-transparent shrink-0 text-center">
   <Link to="/settings/notifications" onClick={() => setIsOpen(false)} className="text-xs text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
   {t('notifications.managePreferences', { defaultValue: 'Gérer les préférences' })}
   </Link>

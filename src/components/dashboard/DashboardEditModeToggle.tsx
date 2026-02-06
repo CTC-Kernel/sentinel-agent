@@ -176,7 +176,7 @@ export function DashboardEditModeToggle({
  className={cn(
  'inline-flex items-center rounded-full font-medium transition-all duration-200',
  'text-muted-foreground hover:text-foreground hover:bg-muted',
- ' dark:hover:text-white dark:hover:bg-white/10',
+ ' dark:hover:text-foreground dark:hover:bg-muted',
  'focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2',
  sizeClasses[size]
  )}
@@ -218,7 +218,7 @@ export function DashboardEditModeToggle({
  : [
  'border-border bg-white text-foreground shadow-sm',
  'dark:border-white/10 dark:bg-white/5 /60',
- 'hover:bg-muted/50 dark:hover:bg-white/10 hover:border-border dark:hover:border-white/20',
+ 'hover:bg-muted/50 dark:hover:bg-muted hover:border-border dark:hover:border-white/20',
  'focus:ring-slate-500',
  ],
  'focus:outline-none focus:ring-2 focus:ring-offset-2',

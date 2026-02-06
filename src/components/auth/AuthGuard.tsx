@@ -106,7 +106,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
   </button>
   <button
   onClick={() => logout()}
-  className="w-full py-3 text-muted-foreground hover:text-foreground text-muted-foreground dark:hover:text-white transition-colors text-sm font-bold flex items-center justify-center"
+  className="w-full py-3 text-muted-foreground hover:text-foreground text-muted-foreground dark:hover:text-foreground transition-colors text-sm font-bold flex items-center justify-center"
   >
   <LogOut className="w-4 h-4 mr-2" />
   {t('common.logout')}
@@ -153,7 +153,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
   </button>
   <button
   onClick={() => logout()}
-  className="w-full py-3 text-muted-foreground hover:text-foreground text-muted-foreground dark:hover:text-white transition-colors text-sm font-bold flex items-center justify-center"
+  className="w-full py-3 text-muted-foreground hover:text-foreground text-muted-foreground dark:hover:text-foreground transition-colors text-sm font-bold flex items-center justify-center"
   >
   <LogOut className="w-4 h-4 mr-2" />
   {t('common.logout')}

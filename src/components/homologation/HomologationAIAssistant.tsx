@@ -369,7 +369,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
  </h4>
  <button
  onClick={handleDismiss}
- className="text-muted-foreground hover:text-muted-foreground focus:outline-none"
+ className="text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg p-1 transition-colors"
  aria-label={t('common.close', 'Fermer')}
  >
  <X className="h-4 w-4" />

@@ -32,10 +32,10 @@ const StatCard: React.FC<{
  <div className="flex items-start justify-between">
  <div>
   <p className="text-sm font-medium text-muted-foreground">{title}</p>
-  <h3 className="text-3xl font-bold mt-2 text-white">{value}</h3>
+  <h3 className="text-3xl font-bold mt-2 text-foreground">{value}</h3>
   {trend && <p className="text-xs mt-1 text-emerald-400">{trend}</p>}
  </div>
- <div className={`p-3 rounded-2xl bg-white/5 border border-white/10 shadow-inner`}>
+ <div className={`p-3 rounded-2xl bg-muted/50 border border-border/40 shadow-inner`}>
   <Icon className="w-6 h-6" />
  </div>
  </div>
@@ -82,7 +82,7 @@ export const GlobalMetrics: React.FC = () => {
  fetchStats();
  }, []);
 
- if (loading) return <div className="animate-pulse h-64 bg-white/5 rounded-3xl border border-border/40"></div>;
+ if (loading) return <div className="animate-pulse h-64 bg-muted/50 rounded-3xl border border-border/40"></div>;
 
  return (
  <div className="space-y-6 animate-fade-in">
@@ -115,8 +115,8 @@ export const GlobalMetrics: React.FC = () => {
  />
  </div>
 
- <div className="p-6 rounded-3xl bg-slate-900/50 border border-slate-800 backdrop-blur-sm">
- <h3 className="text-lg font-semibold text-white mb-6">Growth Analytics</h3>
+ <div className="p-6 rounded-3xl bg-card/80 border border-border/40 backdrop-blur-sm">
+ <h3 className="text-lg font-semibold text-foreground mb-6">Growth Analytics</h3>
  <div className="h-[300px] w-full">
   <ResponsiveContainer width="100%" height="100%">
   <AreaChart data={chartData}>

@@ -26,8 +26,8 @@ const ToolbarButton = ({ onClick, isActive, disabled, children, title }: { onCli
  aria-pressed={isActive}
  className={`p-1.5 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isActive
  ? 'bg-primary text-primary-foreground'
- : 'text-muted-foreground hover:bg-muted dark:hover:bg-white/10'
- } disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600`}
+ : 'text-muted-foreground hover:bg-muted dark:hover:bg-muted'
+ } disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border`}
  >
  {children}
  </button>

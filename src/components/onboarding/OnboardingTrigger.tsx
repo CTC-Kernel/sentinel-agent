@@ -26,7 +26,7 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onStart, onD
   </div>
   <button
   onClick={onDismiss}
-  className="p-1 hover:bg-white/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+  className="p-1 hover:bg-muted rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
   >
   <X className="h-5 w-5" />
   </button>

@@ -7,17 +7,17 @@ import { useLocale } from '../../hooks/useLocale';
 
 const getCriticalityColor = (c: Criticality) => {
  switch (c) {
- case Criticality.CRITICAL: return 'bg-red-100 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
- case Criticality.HIGH: return 'bg-orange-100 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800';
- case Criticality.MEDIUM: return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
- default: return 'bg-green-100 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
+ case Criticality.CRITICAL: return 'bg-error-bg text-error-text border-error-border';
+ case Criticality.HIGH: return 'bg-warning-bg text-warning-text border-warning-border';
+ case Criticality.MEDIUM: return 'bg-warning-bg/50 text-warning-text border-warning-border/50';
+ default: return 'bg-success-bg text-success-text border-success-border';
  }
 };
 
 const getScoreColor = (score: number) => {
- if (score >= 80) return 'bg-emerald-500';
- if (score >= 50) return 'bg-amber-500';
- return 'bg-red-500';
+ if (score >= 80) return 'bg-success';
+ if (score >= 50) return 'bg-warning';
+ return 'bg-destructive';
 };
 
 interface SupplierCardProps {
@@ -60,9 +60,9 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
  <h3 className="text-lg font-bold text-foreground mb-1 leading-tight">{supplier.name}</h3>
  <div className="flex flex-wrap gap-2 mb-6">
   <span className="px-2.5 py-0.5 bg-muted rounded-lg text-xs font-medium text-muted-foreground">{supplier.category}</span>
-  <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-green-50 text-green-700 dark:text-green-400 border-green-100 dark:bg-green-900/20' : 'bg-muted text-muted-foreground border-border/40'}`}>{supplier.status}</span>
+  <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-success-bg text-success-text border-success-border' : 'bg-muted text-muted-foreground border-border/40'}`}>{supplier.status}</span>
   {supplier.isICTProvider && (
-  <span className="px-2.5 py-0.5 bg-indigo-100 dark:bg-indigo-900/30/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold border border-indigo-200 dark:border-indigo-800">DORA ICT</span>
+  <span className="px-2.5 py-0.5 bg-primary/10 dark:bg-primary/20 text-primary rounded-lg text-xs font-bold border border-primary/30">DORA ICT</span>
   )}
  </div>
 
@@ -77,7 +77,7 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
   <div className="flex justify-between text-xs">
   <span className="text-muted-foreground">{t('suppliers.card.contract', { defaultValue: 'Contrat' })}</span>
   {supplier.contractEnd ? (
-  <span className={`font-medium ${isExpired ? 'text-red-500' : 'text-foreground'}`}>{new Date(supplier.contractEnd).toLocaleDateString()}</span>
+  <span className={`font-medium ${isExpired ? 'text-destructive' : 'text-foreground'}`}>{new Date(supplier.contractEnd).toLocaleDateString()}</span>
   ) : <span className="text-muted-foreground">-</span>}
   </div>
  </div>

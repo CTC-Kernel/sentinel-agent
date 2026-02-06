@@ -526,7 +526,7 @@ export const Documents: React.FC = () => {
      disabled={isExportingCSV}
      className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-muted'} group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-muted disabled:text-muted-foreground disabled:cursor-wait`}
      >
-     <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'} ${isExportingCSV ? 'animate-pulse' : ''}`} />
+     <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-success'} ${isExportingCSV ? 'animate-pulse' : ''}`} />
      {isExportingCSV ? 'Export...' : t('documents.exportCsv')}
      </button>
      )}
@@ -535,7 +535,7 @@ export const Documents: React.FC = () => {
      <Menu.Item>
      {({ active }) => (
      <button aria-label={t('common.importCsv')} onClick={() => setCsvImportOpen(true)} className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-muted'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-     <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> {t('common.importCsv')}
+     <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-info-text'}`} /> {t('common.importCsv')}
      </button>
      )}
      </Menu.Item>
@@ -580,8 +580,8 @@ export const Documents: React.FC = () => {
    aria-label={isDigitalSafeMode ? t('documents.digitalSafeActive', { defaultValue: 'Coffre-fort numérique activé — cliquez pour désactiver' }) : t('documents.digitalSafeInactive', { defaultValue: 'Coffre-fort numérique désactivé — cliquez pour activer' })}
    aria-pressed={isDigitalSafeMode}
    className={`gap-2 transition-all ${isDigitalSafeMode
-    ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 border-indigo-500'
-    : 'text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400 border-border'
+    ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/30 border-primary'
+    : 'text-muted-foreground hover:text-primary border-border'
     }`}
    >
    <Lock className={`w-4 h-4 ${isDigitalSafeMode ? 'text-white' : 'text-current'}`} />

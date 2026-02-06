@@ -122,7 +122,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
   <button
   onClick={handleManualRefresh}
   disabled={aiLoading || !aiSummary}
-  className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600 group/refresh"
+  className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border group/refresh"
   aria-label={t('dashboard.aiAnalysis.refresh', { defaultValue: 'Actualiser l\'analyse' })}
   >
   <RefreshCw className={`w-4 h-4 ${aiLoading ? 'animate-spin text-primary' : 'group-hover/refresh:rotate-180 transition-transform duration-500'}`} />

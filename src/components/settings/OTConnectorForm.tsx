@@ -344,7 +344,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
  className={cn(
   'p-4 rounded-3xl border-2 text-left transition-all',
   isSelected && 'border-blue-500 bg-blue-50',
-  !isSelected && !isDisabled && 'border-border/40 hover:border-border/40 dark:hover:border-slate-600',
+  !isSelected && !isDisabled && 'border-border/40 hover:border-border/40 dark:hover:border-border',
   isDisabled && 'opacity-70 cursor-not-allowed border-border/40'
  )}
  >
@@ -491,7 +491,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
  'flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-colors',
  formData.schedule.type === type
   ? 'border-blue-500 bg-blue-50'
-  : 'border-border/40 hover:border-border/40 dark:hover:border-slate-600'
+  : 'border-border/40 hover:border-border/40 dark:hover:border-border'
  )}
  >
  <input

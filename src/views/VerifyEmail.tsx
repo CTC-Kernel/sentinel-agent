@@ -75,7 +75,7 @@ export const VerifyEmail: React.FC = () => {
   </p>
 
   {emailSent && (
-  <div className="w-full mb-6 p-4 bg-green-50 dark:bg-green-900/30 border border-green-100 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold text-green-600">
+  <div className="w-full mb-6 p-4 bg-success-bg border border-success-border rounded-2xl flex items-center justify-center gap-2 text-xs font-bold text-success-text">
   <CheckCircle2 className="h-4 w-4" /> Email envoyé ! Vérifiez vos spams.
   </div>
   )}

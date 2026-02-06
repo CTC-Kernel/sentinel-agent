@@ -104,7 +104,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
    key={s || 'unknown'}
    onClick={() => onStatusChangeRequest(s as Risk['status'])}
    disabled={updating}
-   className={`px-4 py-2 rounded-3xl text-xs font-bold border transition-all flex-1 sm:flex-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${risk.status === s ? 'bg-slate-900 text-white dark:bg-white border-transparent shadow-md' : 'bg-transparent border-border/40 text-muted-foreground hover:bg-muted'} ${updating ? 'opacity-60 cursor-wait' : ''}`}
+   className={`px-4 py-2 rounded-3xl text-xs font-bold border transition-all flex-1 sm:flex-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${risk.status === s ? 'bg-card text-white dark:bg-white border-transparent shadow-md' : 'bg-transparent border-border/40 text-muted-foreground hover:bg-muted'} ${updating ? 'opacity-60 cursor-wait' : ''}`}
   >
    {s}
   </button>

@@ -41,6 +41,11 @@ export enum ErrorSeverity {
 /**
  * Options de gestion d'erreur
  */
+/**
+ * Function type for i18n translation
+ */
+export type TranslatorFunction = (key: string, options?: { defaultValue?: string }) => string;
+
 export interface ErrorHandlerOptions {
  /** Afficher un toast à l'utilisateur */
  showToast?: boolean;
@@ -56,7 +61,24 @@ export interface ErrorHandlerOptions {
  rethrow?: boolean;
  /** Métadonnées additionnelles */
  metadata?: Record<string, unknown>;
+ /** Optional translator function for i18n support */
+ translator?: TranslatorFunction;
 }
+
+/**
+ * i18n error message keys mapping
+ */
+const ERROR_MESSAGES = {
+ unknown: { key: 'errors.unknown', defaultValue: 'Une erreur inconnue est survenue' },
+ retryOrContact: { key: 'errors.retryOrContact', defaultValue: 'Veuillez réessayer ou contacter le support si le problème persiste.' },
+ networkConnection: { key: 'errors.networkConnection', defaultValue: 'Erreur de connexion. Vérifiez votre connexion internet.' },
+ permissionDenied: { key: 'errors.permissionDenied', defaultValue: 'Vous n\'avez pas les permissions nécessaires pour cette action.' },
+ notFound: { key: 'errors.notFound', defaultValue: 'La ressource demandée n\'existe pas.' },
+ alreadyExists: { key: 'errors.alreadyExists', defaultValue: 'Cette ressource existe déjà.' },
+ authError: { key: 'errors.authError', defaultValue: 'Erreur d\'authentification. Veuillez vous reconnecter.' },
+ invalidData: { key: 'errors.invalidData', defaultValue: 'Les données fournies sont invalides. Veuillez vérifier votre saisie.' },
+ generic: { key: 'errors.generic', defaultValue: 'Une erreur est survenue. Veuillez réessayer.' },
+} as const;
 
 /**
  * Classe principale de gestion des erreurs
@@ -114,7 +136,7 @@ export class ErrorHandler {
 
  // 3. Notification utilisateur
  if (showToast) {
- this.showUserNotification(enrichedError, userMessage, severity);
+ this.showUserNotification(enrichedError, userMessage, severity, options.translator);
  }
 
  // 4. Relancer si nécessaire
@@ -139,8 +161,7 @@ export class ErrorHandler {
  return new Error(JSON.stringify(error));
  }
 
- // TODO: i18n key: 'errors.unknown'
- return new Error('Une erreur inconnue est survenue');
+ return new Error(ERROR_MESSAGES.unknown.defaultValue);
  }
 
  /**
@@ -200,15 +221,19 @@ export class ErrorHandler {
  private static showUserNotification(
  error: Error,
  customMessage?: string,
- severity?: ErrorSeverity
+ severity?: ErrorSeverity,
+ translator?: TranslatorFunction
  ): void {
- const message = customMessage || this.getUserFriendlyMessage(error);
+ const message = customMessage || this.getUserFriendlyMessage(error, translator);
+
+ const retryMessage = translator
+ ? translator(ERROR_MESSAGES.retryOrContact.key, { defaultValue: ERROR_MESSAGES.retryOrContact.defaultValue })
+ : ERROR_MESSAGES.retryOrContact.defaultValue;
 
  switch (severity) {
  case ErrorSeverity.CRITICAL:
  case ErrorSeverity.HIGH:
- // TODO: i18n key: 'errors.retryOrContact'
- toast.error(message, 'Veuillez réessayer ou contacter le support si le problème persiste.');
+ toast.error(message, retryMessage);
  break;
  case ErrorSeverity.MEDIUM:
  toast.error(message);
@@ -244,46 +269,46 @@ export class ErrorHandler {
  /**
  * Génère un message utilisateur compréhensible
  *
- * TODO: i18n - This utility has no React context, so t() is not available directly.
- * These French strings serve as last-resort fallbacks. To fully internationalize,
- * pass a translator function via ErrorHandlerOptions or call from a component/hook
- * that has access to t(). Translation keys are noted in comments for future mapping.
+ * @param error - The error object
+ * @param translator - Optional i18n translator function
+ * @returns User-friendly error message (translated if translator provided)
  */
- private static getUserFriendlyMessage(error: Error): string {
- const message = error.message.toLowerCase();
+ private static getUserFriendlyMessage(error: Error, translator?: TranslatorFunction): string {
+ const errorMessage = error.message.toLowerCase();
 
- // Erreurs réseau — i18n key: 'errors.networkConnection'
- if (message.includes('network') || message.includes('fetch')) {
- return 'Erreur de connexion. Vérifiez votre connexion internet.';
+ const t = (msg: { key: string; defaultValue: string }) =>
+ translator ? translator(msg.key, { defaultValue: msg.defaultValue }) : msg.defaultValue;
+
+ // Erreurs réseau
+ if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+ return t(ERROR_MESSAGES.networkConnection);
  }
 
- // Erreurs Firebase — i18n key: 'errors.permissionDenied'
- if (message.includes('permission-denied')) {
- return 'Vous n\'avez pas les permissions nécessaires pour cette action.';
+ // Erreurs Firebase
+ if (errorMessage.includes('permission-denied')) {
+ return t(ERROR_MESSAGES.permissionDenied);
  }
 
- // i18n key: 'errors.notFound'
- if (message.includes('not-found')) {
- return 'La ressource demandée n\'existe pas.';
+ if (errorMessage.includes('not-found')) {
+ return t(ERROR_MESSAGES.notFound);
  }
 
- // i18n key: 'errors.alreadyExists'
- if (message.includes('already-exists')) {
- return 'Cette ressource existe déjà.';
+ if (errorMessage.includes('already-exists')) {
+ return t(ERROR_MESSAGES.alreadyExists);
  }
 
- // Erreurs d'authentification — i18n key: 'errors.authError'
- if (message.includes('auth') || message.includes('unauthorized')) {
- return 'Erreur d\'authentification. Veuillez vous reconnecter.';
+ // Erreurs d'authentification
+ if (errorMessage.includes('auth') || errorMessage.includes('unauthorized')) {
+ return t(ERROR_MESSAGES.authError);
  }
 
- // Erreurs de validation — i18n key: 'errors.invalidData'
- if (message.includes('invalid') || message.includes('validation')) {
- return 'Les données fournies sont invalides. Veuillez vérifier votre saisie.';
+ // Erreurs de validation
+ if (errorMessage.includes('invalid') || errorMessage.includes('validation')) {
+ return t(ERROR_MESSAGES.invalidData);
  }
 
- // Message générique — i18n key: 'errors.generic'
- return 'Une erreur est survenue. Veuillez réessayer.';
+ // Message générique
+ return t(ERROR_MESSAGES.generic);
  }
 
  /**

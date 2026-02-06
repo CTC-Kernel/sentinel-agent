@@ -148,7 +148,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
   'flex items-center gap-3 p-3 rounded-3xl border-2 transition-all text-left',
   isSelected
   ? `${style.borderActive} ${style.bgActive}`
-  : 'border-border/40 hover:border-border/40 dark:hover:border-slate-600'
+  : 'border-border/40 hover:border-border/40 dark:hover:border-border'
   )}
   >
   <div

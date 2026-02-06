@@ -16,10 +16,10 @@ export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ contro
  // Let's try to parse the domain from the code (e.g., "5.1" -> Domain 5)
 
  const domains = [
- { id: '5', name: t('compliance.domains.organizational', { defaultValue: 'Organisationnelle' }), color: 'bg-blue-500' },
- { id: '6', name: t('compliance.domains.people', { defaultValue: 'Personnes' }), color: 'bg-purple-500' },
- { id: '7', name: t('compliance.domains.physical', { defaultValue: 'Physique' }), color: 'bg-emerald-500' },
- { id: '8', name: t('compliance.domains.technological', { defaultValue: 'Technologique' }), color: 'bg-orange-500' }
+ { id: '5', name: t('compliance.domains.organizational', { defaultValue: 'Organisationnelle' }), color: 'bg-primary' },
+ { id: '6', name: t('compliance.domains.people', { defaultValue: 'Personnes' }), color: 'bg-info' },
+ { id: '7', name: t('compliance.domains.physical', { defaultValue: 'Physique' }), color: 'bg-success' },
+ { id: '8', name: t('compliance.domains.technological', { defaultValue: 'Technologique' }), color: 'bg-warning' }
  ];
 
  const stats = controls.length > 0 ? domains.map(domain => {
@@ -51,7 +51,7 @@ export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ contro
   {totalScore}%
   </div>
   {trend !== undefined && (
-  <span className={`text-xs font-bold mt-1 ${trend >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+  <span className={`text-xs font-bold mt-1 ${trend >= 0 ? 'text-success' : 'text-destructive'}`}>
   {trend > 0 ? '+' : ''}{trend}%
   </span>
   )}
@@ -84,15 +84,15 @@ export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ contro
 
  <div className="mt-6 pt-6 border-t border-border/60 flex gap-4 overflow-x-auto no-scrollbar">
  <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground whitespace-nowrap">
-  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+  <CheckCircle2 className="h-4 w-4 text-success" />
   {controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length} {t('compliance.status.implemented', { defaultValue: 'Implémentés' })}
  </div>
  <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground whitespace-nowrap">
-  <AlertTriangle className="h-4 w-4 text-amber-500" />
+  <AlertTriangle className="h-4 w-4 text-warning" />
   {controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length} {t('compliance.status.partial', { defaultValue: 'Partiels' })}
  </div>
  <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground whitespace-nowrap">
-  <ShieldAlert className="h-4 w-4 text-red-500" />
+  <ShieldAlert className="h-4 w-4 text-destructive" />
   {controls.filter(c => c.status === CONTROL_STATUS.NOT_STARTED).length} {t('compliance.status.todo', { defaultValue: 'À faire' })}
  </div>
  </div>

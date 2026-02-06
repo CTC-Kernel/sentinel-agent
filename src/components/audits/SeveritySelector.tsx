@@ -38,7 +38,7 @@ export const SeveritySelector: React.FC<SeveritySelectorProps> = ({
   relative flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-200
   ${isSelected
    ? 'bg-card shadow-md ring-2 ring-offset-2 ring-slate-900 dark:ring-white scale-105 z-10 focus:outline-none'
-   : 'bg-muted/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary'
+   : 'bg-muted/50 dark:bg-white/5 hover:bg-white dark:hover:bg-muted hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary'
   }
   `}
   >

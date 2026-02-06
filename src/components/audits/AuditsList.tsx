@@ -27,9 +27,9 @@ interface AuditsListProps {
 // Helper function moved outside component to be stable
 const getStatusColor = (s: string) => {
  switch (s) {
- case 'Planifié': return 'bg-blue-50 text-blue-700 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800 dark:border-blue-800';
- case 'En cours': return 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800 dark:border-amber-800';
- case 'Terminé': return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
+ case 'Planifié': return 'bg-info-bg text-info-text border-info-border';
+ case 'En cours': return 'bg-warning-bg text-warning-text border-warning-border';
+ case 'Terminé': return 'bg-success-bg text-success-text border-success-border';
  case 'Validé': return 'bg-primary/10 text-primary dark:bg-primary dark:text-primary/70 border-primary/30 dark:border-primary/90';
  case 'Annulé': return 'bg-muted text-foreground border-border/40';
  default: return 'bg-muted text-foreground border-border/40';
@@ -41,11 +41,11 @@ const getAuditTypeStyles = (type: string) => {
  case 'Interne':
  return { icon: UserCheck, color: 'text-primary', bg: 'bg-primary/10 dark:bg-primary', border: 'border-primary/20 dark:border-primary/80' };
  case 'Externe':
- return { icon: Globe, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/20', border: 'border-purple-100 dark:border-purple-800/50' };
+ return { icon: Globe, color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-100 dark:bg-violet-500/20', border: 'border-violet-200 dark:border-violet-500/30' };
  case 'Certification':
- return { icon: Award, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-100 dark:border-amber-800' };
+ return { icon: Award, color: 'text-warning-text', bg: 'bg-warning-bg', border: 'border-warning-border' };
  case 'Fournisseur':
- return { icon: Truck, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-100 dark:border-emerald-800/50' };
+ return { icon: Truck, color: 'text-success-text', bg: 'bg-success-bg', border: 'border-success-border' };
  default:
  return { icon: Shield, color: 'text-muted-foreground', bg: 'bg-muted/50 dark:bg-white/5', border: 'border-border/40' };
  }
@@ -160,7 +160,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
  cell: ({ row }) => {
  const count = (row.original.findings || []).filter((f: { status: string }) => f.status === 'Ouvert').length;
  return (
-  <div className={`flex items-center gap-1.5 ${count > 0 ? 'text-rose-600 dark:text-rose-400 font-medium' : 'text-muted-foreground'}`}>
+  <div className={`flex items-center gap-1.5 ${count > 0 ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
   <AlertOctagon className="w-4 h-4" />
   <span>{count}</span>
   </div>

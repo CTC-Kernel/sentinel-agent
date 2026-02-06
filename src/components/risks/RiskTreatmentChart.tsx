@@ -47,7 +47,7 @@ export const RiskTreatmentChart: React.FC<RiskTreatmentChartProps> = ({ risks })
 
  return (
  <div className="h-[300px] w-full relative">
- <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+ <ResponsiveContainer width="100%" height="100%" >
  <PieChart>
   <Pie
   data={data}

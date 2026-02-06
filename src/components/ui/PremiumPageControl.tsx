@@ -60,7 +60,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
  const resolvedPlaceholder = searchPlaceholder ?? t('ui.pageControl.searchPlaceholder', { defaultValue: 'Rechercher...' });
 
  return (
- <div className="relative z-30 flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 rounded-3xl border border-border/40 shadow-xl backdrop-blur-xl">
+ <div className="relative z-30 flex flex-col md:flex-row gap-4 p-1.5 glass-premium rounded-3xl border border-border/40 shadow-xl backdrop-blur-xl">
  {/* Search Bar */}
  <div className="relative flex-1 min-w-0 group">
  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
@@ -68,7 +68,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
   ref={inputRef}
   type="text"
   placeholder={resolvedPlaceholder}
-  className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-3xl focus:ring-0 text-sm font-medium text-foreground placeholder-slate-400 transition-all"
+  className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-3xl focus:ring-0 text-sm font-medium text-foreground placeholder:text-muted-foreground transition-all"
  />
  </div>
 
@@ -97,7 +97,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
   onClick={onToggleAdvancedSearch}
   className={`p-2 rounded-3xl transition-all duration-300 ${showAdvancedSearch
   ? 'bg-primary text-primary-foreground shadow-inner'
-  : 'text-muted-foreground hover:bg-muted dark:hover:bg-white/5'
+  : 'text-muted-foreground hover:bg-muted dark:hover:bg-muted/50'
   }`}
   title={t('ui.pageControl.advancedFilters', { defaultValue: 'Filtres avancés' })}
   >
@@ -116,7 +116,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
    onClick={() => onViewChange(option.id)}
    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-300 ${activeView === option.id
    ? 'bg-white text-foreground shadow-sm dark:text-white font-bold'
-   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-white/10'
+   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted'
    }`}
    title={option.label}
    >
@@ -135,7 +135,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
   onClick={() => onViewModeChange?.('list')}
   className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'list'
    ? 'bg-white text-primary shadow-sm dark:text-primary/70'
-   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-white/10'
+   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted'
    }`}
   title={t('ui.pageControl.viewList', { defaultValue: 'Vue Liste' })}
   >
@@ -145,7 +145,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
   onClick={() => onViewModeChange?.('grid')}
   className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'grid'
    ? 'bg-white text-primary shadow-sm dark:text-primary/70'
-   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-white/10'
+   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted'
    }`}
   title={t('ui.pageControl.viewGrid', { defaultValue: 'Vue Grille' })}
   >
@@ -155,7 +155,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
   onClick={() => onViewModeChange?.('matrix')}
   className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'matrix'
    ? 'bg-white text-primary shadow-sm dark:text-primary/70'
-   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-white/10'
+   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted'
    }`}
   title={t('ui.pageControl.viewMatrix', { defaultValue: 'Vue Matrice' })}
   >
@@ -165,7 +165,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
   onClick={() => onViewModeChange?.('kanban')}
   className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'kanban'
    ? 'bg-white text-primary shadow-sm dark:text-primary/70'
-   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-white/10'
+   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted'
    }`}
   title={t('ui.pageControl.viewKanban', { defaultValue: 'Vue Kanban' })}
   >

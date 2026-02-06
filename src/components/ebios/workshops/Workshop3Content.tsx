@@ -300,7 +300,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
  </div>
  <div className="flex items-center gap-4">
  {expandedSections.has('ecosystem') ? (
-  <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-white transition-all">
+  <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-foreground transition-all">
   <ChevronUp className="w-5 h-5" />
   </div>
  ) : (
@@ -427,7 +427,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
   onClick={handleAddParty}
   className="group relative flex flex-col items-center justify-center p-6 rounded-3xl border-2 border-dashed border-border/40 hover:border-primary/60 hover:bg-primary/15 dark:hover:bg-primary/10 transition-all duration-300 min-h-[160px]"
   >
-  <div className="p-4 rounded-full bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-white transition-all duration-300 mb-3 shadow-sm group-hover:shadow-primary group-hover:scale-110">
+  <div className="p-4 rounded-full bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-foreground transition-all duration-300 mb-3 shadow-sm group-hover:shadow-primary group-hover:scale-110">
   <Plus className="w-6 h-6" />
   </div>
   <span className="font-bold text-muted-foreground group-hover:text-primary dark:group-hover:text-primary/70 transition-colors">
@@ -462,7 +462,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
  </div>
  </div>
  {expandedSections.has('attackPaths') ? (
- <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-orange-500 group-hover:text-white transition-all">
+ <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-orange-500 group-hover:text-foreground transition-all">
  <ChevronUp className="w-5 h-5" />
  </div>
  ) : (
@@ -612,7 +612,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
  </div>
  </div>
  {expandedSections.has('strategicScenarios') ? (
- <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-error group-hover:text-white transition-all">
+ <div className="p-2 rounded-full bg-muted text-muted-foreground group-hover:bg-error group-hover:text-foreground transition-all">
  <ChevronUp className="w-5 h-5" />
  </div>
  ) : (

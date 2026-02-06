@@ -404,7 +404,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
  onKeyDown={(e) => e.key === 'Enter' && executeSearch()}
  placeholder="Rechercher dans les details..."
  aria-label="Mots-clés de recherche"
- className="w-full pl-10 pr-4 py-2 border border-border/40 rounded-lg bg-card text-foreground placeholder-slate-500 dark:placeholder-slate-400"
+ className="w-full pl-10 pr-4 py-2 border border-border/40 rounded-lg bg-card text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground"
  />
  </div>
 

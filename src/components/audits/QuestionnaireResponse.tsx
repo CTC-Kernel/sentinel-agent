@@ -235,7 +235,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
  return (
   <div className="space-y-2">
   {question.options?.map((opt) => (
-  <label key={opt || 'unknown'} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 dark:hover:bg-white/5 cursor-pointer">
+  <label key={opt || 'unknown'} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 dark:hover:bg-muted/50 cursor-pointer">
   <input value={opt} checked={value === opt} onChange={() => handleAnswerChange(question.id, opt)}
    type="radio"
    name={question.id}
@@ -254,7 +254,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
   const currentValues = (value as string[]) || [];
   const isChecked = currentValues.includes(opt);
   return (
-  <label key={opt || 'unknown'} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 dark:hover:bg-white/5 cursor-pointer">
+  <label key={opt || 'unknown'} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 dark:hover:bg-muted/50 cursor-pointer">
    <input checked={isChecked} onChange={(e) => {
    const newValues = e.target.checked
    ? [...currentValues, opt]
@@ -348,7 +348,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
   <button
   aria-label="Fermer la vue questionnaire"
   onClick={onClose}
-  className="px-4 py-2 text-muted-foreground font-bold hover:bg-muted dark:hover:bg-white/5 rounded-3xl transition-colors"
+  className="px-4 py-2 text-muted-foreground font-bold hover:bg-muted dark:hover:bg-muted/50 rounded-3xl transition-colors"
   >
   Fermer
   </button>
@@ -358,7 +358,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
   aria-label="Enregistrer le brouillon"
   onClick={() => handleSave(false)}
   disabled={saving}
-  className="px-4 py-2 text-primary font-bold hover:bg-primary/10 dark:hover:bg-white/5 rounded-3xl transition-colors"
+  className="px-4 py-2 text-primary font-bold hover:bg-primary/10 dark:hover:bg-muted/50 rounded-3xl transition-colors"
   >
   Enregistrer brouillon
   </button>

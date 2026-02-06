@@ -46,8 +46,8 @@ export const IntegrationCard: React.FC<IntegrationCardProps> = ({ provider, onCo
   onClick={() => isConnected ? onDisconnect(provider) : onConnect(provider)}
   disabled={isConnecting}
   className={`flex-1 py-3 px-4 rounded-3xl text-sm font-bold transition-all flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${isConnected
-  ? 'bg-white/50 dark:bg-white/5 border border-border/40 text-muted-foreground hover:bg-muted/50 dark:hover:bg-white/10 hover:text-red-500 dark:hover:text-red-400'
-  : 'bg-foreground text-background hover:bg-primary/90 hover:text-white dark:hover:bg-primary dark:hover:text-white shadow-lg hover:shadow-primary/25'
+  ? 'bg-white/50 dark:bg-white/5 border border-border/40 text-muted-foreground hover:bg-muted/50 dark:hover:bg-muted hover:text-red-500 dark:hover:text-red-400'
+  : 'bg-foreground text-background hover:bg-primary/90 hover:text-foreground dark:hover:bg-primary dark:hover:text-foreground shadow-lg hover:shadow-primary/25'
   }`}
  >
   {isConnecting ? (

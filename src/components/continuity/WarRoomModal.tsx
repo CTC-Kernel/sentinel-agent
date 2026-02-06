@@ -170,7 +170,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
   initial={{ scale: 0.95, opacity: 0, y: 20 }}
   animate={{ scale: 1, opacity: 1, y: 0 }}
   exit={{ scale: 0.95, opacity: 0, y: 20 }}
-  className="bg-slate-900 w-full max-w-[95vw] md:max-w-6xl h-[90vh] md:h-[85vh] rounded-3xl border border-red-500/30 shadow-[0_0_100px_rgba(239,68,68,0.2)] flex overflow-hidden flex-col md:flex-row relative"
+  className="bg-card w-full max-w-[95vw] md:max-w-6xl h-[90vh] md:h-[85vh] rounded-3xl border border-red-500/30 shadow-[0_0_100px_rgba(239,68,68,0.2)] flex overflow-hidden flex-col md:flex-row relative"
   >
   {/* CRT/Scanline Overlay */}
   <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(transparent,transparent_2px,rgba(0,0,0,0.1)_3px)] opacity-60 z-decorator mix-blend-overlay" />
@@ -182,7 +182,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
    <Lock className="w-5 h-5 animate-pulse" />
    <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase">Top Secret // Eyes Only</span>
    </div>
-   <Dialog.Title as="h2" className="text-2xl font-black text-white uppercase tracking-tight">War Room</Dialog.Title>
+   <Dialog.Title as="h2" className="text-2xl font-black text-foreground uppercase tracking-tight">War Room</Dialog.Title>
    <p className="text-red-400 text-sm font-mono mt-1 break-all">REF: {incidentId}</p>
    <p className="text-muted-foreground text-xs mt-2 line-clamp-2">{incidentTitle}</p>
   </div>
@@ -198,21 +198,21 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
    <button
     key={doc.id || 'unknown'}
     onClick={() => openDocument(doc)}
-    className="group w-full flex items-center justify-between p-3 rounded-3xl bg-white/5 border border-white/5 hover:border-red-500/30 hover:bg-white/10 cursor-pointer transition-all text-left"
+    className="group w-full flex items-center justify-between p-3 rounded-3xl bg-muted/50 border border-border/20 hover:border-red-500/30 hover:bg-muted cursor-pointer transition-all text-left"
    >
     <div className="flex items-center gap-3">
-    <div className="p-2 rounded-lg bg-slate-800 text-muted-foreground group-hover:text-white transition-colors">
+    <div className="p-2 rounded-lg bg-muted text-muted-foreground group-hover:text-foreground transition-colors">
     <FileText className="w-4 h-4" />
     </div>
     <div>
-    <span className="text-sm font-medium text-muted-foreground group-hover:text-white block">{doc.title}</span>
+    <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground block">{doc.title}</span>
     {doc.description && (
     <span className="text-xs text-muted-foreground">{doc.description}</span>
     )}
     </div>
     </div>
     <Tooltip content="Ouvrir" position="left">
-    <span className="p-2 text-muted-foreground hover:text-white rounded-lg hover:bg-white/10">
+    <span className="p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted">
     <ExternalLink className="w-4 h-4" />
     </span>
     </Tooltip>
@@ -229,14 +229,14 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
    <div className="space-y-2">
    <button
    onClick={() => navigate(`/incidents/${incidentId}`)}
-   className="w-full flex items-center gap-3 p-3 rounded-3xl bg-red-50 dark:bg-red-900/30 border border-red-500/20 hover:bg-red-500/20 transition-all text-left"
+   className="w-full flex items-center gap-3 p-3 rounded-3xl bg-error-bg border border-error-border hover:bg-error/20 transition-all text-left"
    >
    <AlertTriangle className="w-4 h-4 text-red-500" />
    <span className="text-sm font-medium text-red-400">Voir l'incident</span>
    </button>
    <button
    onClick={() => navigate('/incidents?action=escalate')}
-   className="w-full flex items-center gap-3 p-3 rounded-3xl bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 transition-all text-left"
+   className="w-full flex items-center gap-3 p-3 rounded-3xl bg-warning-bg border border-warning-border hover:bg-warning/20 transition-all text-left"
    >
    <Upload className="w-4 h-4 text-orange-500" />
    <span className="text-sm font-medium text-orange-400">Escalader</span>
@@ -254,7 +254,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
    <p className="text-xs text-muted-foreground">Aucun participant</p>
    ) : (
    presence.map((p) => (
-    <div key={p.id || 'unknown'} className="flex items-center gap-3 p-2 rounded-lg bg-white/5">
+    <div key={p.id || 'unknown'} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
     <div className="relative">
     {p.photoURL ? (
     <img
@@ -263,14 +263,14 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
      className="w-8 h-8 rounded-full object-cover border-2 border-emerald-500"
     />
     ) : (
-    <div className="w-8 h-8 rounded-full bg-slate-700 border-2 border-emerald-500 flex items-center justify-center text-xs text-white">
+    <div className="w-8 h-8 rounded-full bg-muted border-2 border-emerald-500 flex items-center justify-center text-xs text-foreground">
      {p.displayName?.charAt(0) || 'U'}
     </div>
     )}
-    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-slate-900" />
+    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-card" />
     </div>
     <div className="flex-1 min-w-0">
-    <p className="text-sm font-medium text-white truncate">
+    <p className="text-sm font-medium text-foreground truncate">
     {p.displayName}
     {p.id === user?.uid && <span className="text-muted-foreground ml-1">(vous)</span>}
     </p>
@@ -285,14 +285,14 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
   </div>
 
   {/* Right Panel: Chat */}
-  <div className="flex-1 flex flex-col bg-slate-900/50">
+  <div className="flex-1 flex flex-col bg-card/50">
   {/* Chat Header */}
   <div className="p-4 border-b border-border/40 flex items-center justify-between">
    <div className="flex items-center gap-2">
    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
    <span className="text-xs font-mono text-emerald-500 uppercase">Canal Sécurisé actif</span>
    </div>
-   <Button variant="ghost" size="sm" onClick={onClose} className="hover:bg-white/10 text-muted-foreground hover:text-white" aria-label="Fermer le War Room">
+   <Button variant="ghost" size="sm" onClick={onClose} className="hover:bg-muted text-muted-foreground hover:text-foreground" aria-label="Fermer le War Room">
    <X className="w-5 h-5" aria-hidden="true" />
    </Button>
   </div>
@@ -320,7 +320,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
    ) : (
    <div className={`max-w-[80%] p-4 rounded-2xl border ${msg.senderId === user?.uid
     ? 'bg-blue-600/20 border-blue-500/30 text-blue-100 rounded-tr-none'
-    : 'bg-slate-800 border-border/40 text-muted-foreground rounded-tl-none'
+    : 'bg-muted border-border/40 text-muted-foreground rounded-tl-none'
     }`}>
     <div className="flex items-center gap-2 mb-1 opacity-60 text-xs">
     <span className="font-bold">{msg.sender}</span>
@@ -370,7 +370,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
     <button
     type="button"
     onClick={() => removePendingAttachment(idx)}
-    className="text-blue-300 hover:text-white ml-1"
+    className="text-blue-300 hover:text-foreground ml-1"
     >
     <X className="w-3 h-3" />
     </button>
@@ -396,7 +396,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
    type="button"
    variant="ghost"
    onClick={() => fileInputRef.current?.click()}
-   className="text-muted-foreground hover:text-white"
+   className="text-muted-foreground hover:text-foreground"
    aria-label="Joindre un fichier"
    >
    <Paperclip className="w-5 h-5" />
@@ -407,7 +407,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
    {...register('content')}
    aria-label="Message de war room"
    placeholder="Tapez un message chiffré..."
-   className="flex-1 bg-transparent border-none text-white placeholder-slate-500 focus:ring-0 font-mono"
+   className="flex-1 bg-transparent border-none text-foreground placeholder:text-muted-foreground focus:ring-0 font-mono"
    />
 
    <Button

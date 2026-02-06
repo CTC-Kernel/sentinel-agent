@@ -298,7 +298,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
    key={company.siren || 'unknown'}
    type="button"
    onClick={() => selectCompany(company)}
-   className="w-full text-left px-4 py-3 hover:bg-muted/50 dark:hover:bg-white/5 border-b border-border/40 dark:border-white/5 last:border-0 transition-colors flex justify-between items-center"
+   className="w-full text-left px-4 py-3 hover:bg-muted/50 dark:hover:bg-muted/50 border-b border-border/40 dark:border-white/5 last:border-0 transition-colors flex justify-between items-center"
    aria-label={`Sélectionner l'entreprise ${company.name}`}
    >
    <div>

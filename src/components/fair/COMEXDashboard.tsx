@@ -464,7 +464,7 @@ export const COMEXDashboard: React.FC<COMEXDashboardProps> = ({
  </Card>
 
  {/* Executive Summary */}
- <Card className="p-6 bg-gradient-to-r from-muted/50 to-muted dark:from-slate-900 dark:to-slate-800">
+ <Card className="p-6 bg-gradient-to-r from-muted/50 to-muted dark:from-card dark:to-muted">
  <h3 className="font-semibold mb-3">
  {t('comex.executiveSummary', 'Synthèse Exécutive')}
  </h3>

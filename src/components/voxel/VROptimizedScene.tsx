@@ -234,7 +234,7 @@ const VRPerformanceHUD: React.FC<VRPerformanceHUDProps> = ({ visible, targetFPS 
  distanceFactor={10}
  style={{ pointerEvents: 'none' }}
  >
- <div className="bg-slate-900/90 backdrop-blur-sm border border-border/40 rounded-lg p-3 min-w-[200px] text-white font-mono text-xs">
+ <div className="bg-card/90 backdrop-blur-sm border border-border/40 rounded-lg p-3 min-w-[200px] text-white font-mono text-xs">
  {/* FPS Display */}
  <div className="flex items-center justify-between mb-2">
  <span className="text-muted-foreground">FPS</span>
@@ -310,8 +310,8 @@ const VRQualityControl: React.FC<VRQualityControlProps> = ({
 
  return (
  <Html position={[-2, 1, -2]} center distanceFactor={8}>
- <div className="bg-slate-900/90 backdrop-blur-sm border border-border/40 rounded-lg p-3">
- <div className="text-white text-xs font-medium mb-2">Quality</div>
+ <div className="bg-card/90 backdrop-blur-sm border border-border/40 rounded-lg p-3">
+ <div className="text-foreground text-xs font-medium mb-2">Quality</div>
  <div className="flex flex-col gap-1">
  {levels.map((level) => (
  <button
@@ -321,7 +321,7 @@ const VRQualityControl: React.FC<VRQualityControlProps> = ({
  px-3 py-1.5 rounded text-xs font-medium transition-colors
  ${level === qualityLevel
   ? 'bg-blue-500 text-white'
-  : 'bg-white/5 text-muted-foreground hover:bg-white/10'
+  : 'bg-muted/50 text-muted-foreground hover:bg-muted'
  }
  `}
  >
@@ -492,9 +492,9 @@ const VRSceneContent: React.FC<VRSceneContentProps> = ({
 
 const VRLoadingFallback: React.FC = () => (
  <Html center>
- <div className="flex items-center gap-3 bg-slate-900/90 backdrop-blur-md rounded-lg px-4 py-3">
+ <div className="flex items-center gap-3 bg-card/90 backdrop-blur-md rounded-lg px-4 py-3">
  <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
- <span className="text-white text-sm">Optimizing for VR...</span>
+ <span className="text-foreground text-sm">Optimizing for VR...</span>
  </div>
  </Html>
 );
@@ -578,12 +578,12 @@ export const VROptimizedScene: React.FC<VROptimizedSceneProps> = ({
  <VRButton className="absolute bottom-4 right-4 z-10 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-3xl shadow-lg transition-colors" />
 
  {/* Quality indicator (non-VR) */}
- <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-slate-900/80 backdrop-blur-sm border border-border/40 rounded-lg px-3 py-1.5">
+ <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-card/80 backdrop-blur-sm border border-border/40 rounded-lg px-3 py-1.5">
  <span className="text-xs text-muted-foreground">Quality:</span>
  <select
  value={qualityLevel}
  onChange={(e) => setQualityLevel(e.target.value as VRQualityLevel)}
- className="bg-transparent text-white text-xs border-none outline-none cursor-pointer"
+ className="bg-transparent text-foreground text-xs border-none outline-none cursor-pointer"
  >
  <option value="low">Low</option>
  <option value="medium">Medium</option>

@@ -92,7 +92,7 @@ export const CertifierRegister: React.FC = () => {
    placeholder="Bureau Veritas..."
   />
   </div>
-  {errors.orgName && <p className="mt-1 text-sm text-red-600">{errors.orgName.message}</p>}
+  {errors.orgName && <p className="mt-1 text-sm text-destructive">{errors.orgName.message}</p>}
   </div>
 
   <div>
@@ -125,7 +125,7 @@ export const CertifierRegister: React.FC = () => {
    placeholder="contact@organisme.com"
   />
   </div>
-  {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
+  {errors.email && <p className="mt-1 text-sm text-destructive">{errors.email.message}</p>}
   </div>
 
   <div className="grid grid-cols-2 gap-4">
@@ -143,7 +143,7 @@ export const CertifierRegister: React.FC = () => {
    placeholder="Min 8 car."
    />
   </div>
-  {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>}
+  {errors.password && <p className="mt-1 text-xs text-destructive">{errors.password.message}</p>}
   </div>
   <div>
   <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground">{t('certifier.confirmPasswordLabel')}</label>
@@ -158,7 +158,7 @@ export const CertifierRegister: React.FC = () => {
    className="block w-full pl-10 rounded-lg border border-border bg-card/50 py-2.5 text-foreground placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent sm:text-sm"
    />
   </div>
-  {errors.confirmPassword && <p className="mt-1 text-xs text-red-600">{errors.confirmPassword.message}</p>}
+  {errors.confirmPassword && <p className="mt-1 text-xs text-destructive">{errors.confirmPassword.message}</p>}
   </div>
   </div>
 

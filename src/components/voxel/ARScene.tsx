@@ -227,7 +227,7 @@ const ARNodeInfoPanel: React.FC<ARNodeInfoPanelProps> = ({
  distanceFactor={2}
  style={{ pointerEvents: 'auto' }}
  >
- <div className="bg-slate-900/95 backdrop-blur-md border border-white/20 rounded-3xl p-3 min-w-[200px] max-w-[280px] shadow-2xl">
+ <div className="bg-card/95 backdrop-blur-md border border-border rounded-3xl p-3 min-w-[200px] max-w-[280px] shadow-2xl">
  {/* Header */}
  <div className="flex items-center justify-between mb-2">
  <div className="flex items-center gap-2">
@@ -239,7 +239,7 @@ const ARNodeInfoPanel: React.FC<ARNodeInfoPanelProps> = ({
  </div>
  <button
  onClick={onClose}
- className="p-1 text-muted-foreground hover:text-white rounded-full hover:bg-white/10 transition-colors"
+ className="p-1 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition-colors"
  >
  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
  <path d="M18 6L6 18M6 6l12 12" />
@@ -248,7 +248,7 @@ const ARNodeInfoPanel: React.FC<ARNodeInfoPanelProps> = ({
  </div>
 
  {/* Name */}
- <h3 className="text-white font-semibold text-base mb-1 line-clamp-1">{name}</h3>
+ <h3 className="text-foreground font-semibold text-base mb-1 line-clamp-1">{name}</h3>
 
  {/* Description */}
  {description && (
@@ -472,9 +472,9 @@ const ARSceneContent: React.FC<ARSceneContentProps> = ({
 
 const ARLoadingFallback: React.FC = () => (
  <Html center>
- <div className="flex items-center gap-3 bg-slate-900/90 backdrop-blur-md rounded-lg px-4 py-3">
+ <div className="flex items-center gap-3 bg-card/90 backdrop-blur-md rounded-lg px-4 py-3">
  <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
- <span className="text-white text-sm">Initializing AR...</span>
+ <span className="text-foreground text-sm">Initializing AR...</span>
  </div>
  </Html>
 );
@@ -488,8 +488,8 @@ const ARInstructions: React.FC<{ visible: boolean }> = ({ visible }) => {
 
  return (
  <div className="fixed top-4 left-4 right-4 z-modal pointer-events-none">
- <div className="bg-slate-900/90 backdrop-blur-md border border-white/20 rounded-3xl p-4 max-w-md mx-auto">
- <h3 className="text-white font-semibold text-sm mb-2">AR Mode Instructions</h3>
+ <div className="bg-card/90 backdrop-blur-md border border-border rounded-3xl p-4 max-w-md mx-auto">
+ <h3 className="text-foreground font-semibold text-sm mb-2">AR Mode Instructions</h3>
  <ul className="text-muted-foreground text-xs space-y-1.5">
  <li className="flex items-center gap-2">
  <span className="w-5 h-5 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center text-xs">1</span>
@@ -557,7 +557,7 @@ export const ARScene: React.FC<ARSceneProps> = ({
  <ARInstructions visible={showInstructions} />
 
  {/* Info text when not in AR */}
- <div className="absolute top-4 left-4 z-10 bg-slate-900/80 backdrop-blur-sm border border-border/40 rounded-lg px-4 py-2">
+ <div className="absolute top-4 left-4 z-10 bg-card/80 backdrop-blur-sm border border-border/40 rounded-lg px-4 py-2">
  <div className="flex items-center gap-2">
  <svg
  className="w-5 h-5 text-purple-400"
@@ -570,7 +570,7 @@ export const ARScene: React.FC<ARSceneProps> = ({
  <line x1="12" y1="18" x2="12.01" y2="18" />
  <circle cx="12" cy="10" r="3" strokeDasharray="2,2" />
  </svg>
- <span className="text-white text-sm font-medium">AR Preview</span>
+ <span className="text-foreground text-sm font-medium">AR Preview</span>
  </div>
  <p className="text-muted-foreground text-xs mt-1">
  Tap the button below to place in your environment

@@ -66,11 +66,11 @@ export const SecurityBadge: React.FC<SecurityBadgeProps> = ({ feature, className
  const Icon = config.icon;
 
  const colorClasses = {
- emerald: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 ring-emerald-500/20 group-hover:bg-emerald-500/20",
- blue: "bg-blue-50 text-blue-700 dark:text-blue-300 ring-blue-500/20 group-hover:bg-blue-500/20",
- indigo: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 ring-indigo-500/20 group-hover:bg-indigo-500/20",
- purple: "bg-purple-500/10 text-purple-700 dark:text-purple-300 ring-purple-500/20 group-hover:bg-purple-500/20",
- red: "bg-red-50 text-red-700 dark:text-red-300 ring-red-500/20 group-hover:bg-red-500/20"
+ emerald: "bg-success-bg text-success-text ring-success-border group-hover:bg-success/20",
+ blue: "bg-info-bg text-info-text ring-info-border group-hover:bg-info/20",
+ indigo: "bg-primary/10 text-primary dark:text-primary/90 ring-primary/20 group-hover:bg-primary/20",
+ purple: "bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 ring-violet-500/20 group-hover:bg-violet-500/20",
+ red: "bg-error-bg text-error-text ring-error-border group-hover:bg-error/20"
  };
 
  return (

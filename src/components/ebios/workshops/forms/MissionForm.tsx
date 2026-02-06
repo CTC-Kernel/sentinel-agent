@@ -137,7 +137,7 @@ export const MissionForm: React.FC<MissionFormProps> = ({
   "p-3 rounded-3xl border-2 transition-all text-center",
   criticality === level.level
   ? `border-${level.color}-500 bg-${level.color}-50 dark:bg-${level.color}-900/20`
-  : "border-border/40 hover:border-border/40 dark:hover:border-slate-600"
+  : "border-border/40 hover:border-border/40 dark:hover:border-border"
   )}
  >
   <span className={cn(

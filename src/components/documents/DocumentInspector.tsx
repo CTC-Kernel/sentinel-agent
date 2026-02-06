@@ -145,7 +145,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
   {selectedDocument.url && (
   <Button
   onClick={() => onSecureView(selectedDocument)}
-  className="flex items-center gap-2 bg-card text-white hover:bg-slate-800 shadow-sm font-medium"
+  className="flex items-center gap-2 bg-card text-white hover:bg-muted shadow-sm font-medium"
   >
   <Eye className="w-4 h-4" />
   {selectedDocument.isSecure ? t('documents.inspector.secureView', { defaultValue: 'Consultation Sécurisée' }) : t('documents.inspector.view', { defaultValue: 'Visualiser' })}

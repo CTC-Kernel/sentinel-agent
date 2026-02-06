@@ -619,7 +619,6 @@ Progression globale: ${completion.overall}%`;
  author: options.author,
  summary: summaryText,
  includeCover: true,
- includeTableOfContents: true,
  footerText: 'Document Confidentiel - Généré par Sentinel GRC',
  metrics: [
  { label: 'Sources', value: riskSourcesCount, subtext: 'de risque' },
@@ -628,8 +627,7 @@ Progression globale: ${completion.overall}%`;
  { label: 'Progression', value: `${completion.overall}% `, subtext: 'complétude' },
  ],
  ...options,
- // eslint-disable-next-line @typescript-eslint/no-explicit-any
- } as any,
+ },
  (doc, startY) => {
  let currentY = startY;
  const pageHeight = doc.internal.pageSize.height;

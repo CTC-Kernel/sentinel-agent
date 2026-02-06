@@ -217,7 +217,7 @@ const ActionCard: React.FC<{
  onClick={onClick}
  className={cn(
  'w-full flex items-center gap-4 p-4 rounded-3xl border transition-all',
- 'bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10',
+ 'bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-muted',
  'border-border/40 hover:border-primary/40 dark:hover:border-primary/80',
  'group cursor-pointer text-left'
  )}

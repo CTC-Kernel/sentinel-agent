@@ -814,7 +814,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
  <div className={`w-full h-full ${className}`} style={{ touchAction: 'none' }}>
  <Canvas 
  camera={{ position: [22, 12, 22], fov: 58 }} 
- className="bg-slate-950" 
+ className="bg-background" 
  dpr={[1, 2]} 
  gl={{ 
  antialias: true,

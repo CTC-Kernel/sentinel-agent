@@ -420,7 +420,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
  return (
  <div className="min-h-screen relative flex flex-col bg-muted/50/50">
  <div className="absolute inset-0 overflow-hidden pointer-events-none">
- <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-[100px]" />
+ <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px]" />
  <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-400/10 rounded-full blur-[100px]" />
  </div>
 

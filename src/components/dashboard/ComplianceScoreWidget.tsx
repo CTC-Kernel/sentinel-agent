@@ -70,7 +70,7 @@ function WidgetError({ error, onRetry }: { error: Error; onRetry?: () => void })
  {onRetry && (
  <button
  onClick={onRetry}
- className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:text-blue-400 font-medium"
+ className="text-sm text-primary hover:text-primary/80 font-medium"
  >
  Réessayer
  </button>

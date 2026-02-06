@@ -290,7 +290,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
    <div className="relative h-32 bg-gradient-to-br from-primary to-purple-700">
    <button
    onClick={onClose}
-   className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+   className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 hover:bg-muted transition-colors"
    >
    <X className="h-5 w-5 text-white" />
    </button>

@@ -28,7 +28,7 @@ export const UserRow: React.FC<UserRowProps> = ({
 }) => {
  const { config } = useLocale();
  return (
- <tr className="hover:bg-muted/50 dark:hover:bg-white/5 transition-colors">
+ <tr className="hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors">
  <td className="px-6 py-4 whitespace-nowrap">
  <div className="flex items-center gap-3">
   <img
@@ -92,7 +92,7 @@ export const UserRow: React.FC<UserRowProps> = ({
   </button>
   <button
   onClick={onEditCancel}
-  className="p-2 text-muted-foreground hover:bg-muted dark:hover:bg-white/10 rounded-lg transition-colors"
+  className="p-2 text-muted-foreground hover:bg-muted dark:hover:bg-muted rounded-lg transition-colors"
   title="Annuler"
   >
   <X className="h-4 w-4" />
@@ -102,7 +102,7 @@ export const UserRow: React.FC<UserRowProps> = ({
   <button
   onClick={() => onEditStart(user.uid, user.role as Role)}
   disabled={user.uid === currentUser?.uid}
-  className="p-2 text-primary hover:bg-primary/10 dark:hover:bg-primary rounded-lg transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600"
+  className="p-2 text-primary hover:bg-primary/10 dark:hover:bg-primary rounded-lg transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border"
   title="Modifier le rôle"
   >
   <Edit className="h-4 w-4" />

@@ -56,8 +56,8 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
  ${error
   ? 'border-destructive/60 bg-destructive/5'
   : isFocused
-  ? 'border-primary bg-white/80 dark:bg-white/5 shadow-glow ring-2 ring-primary/60'
-  : 'border-border/40 bg-white/50 dark:bg-white/5 hover:border-primary/40 dark:hover:border-white/20'
+  ? 'border-primary bg-card/95 shadow-glow ring-2 ring-primary/60'
+  : 'border-border/40 bg-card/50 hover:border-primary/40'
  }
  `}>
  {Icon && (

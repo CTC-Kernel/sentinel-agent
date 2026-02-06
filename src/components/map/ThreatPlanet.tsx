@@ -9,8 +9,8 @@ import { EarthCountries } from './EarthCountries';
 // Extracted to avoid hardcoded magic strings and align with design system
 const THEME = {
  colors: {
- slate950: '#020617', // bg-slate-950
- slate900: '#0f172a', // bg-slate-900
+ slate950: '#020617', // bg-background
+ slate900: '#0f172a', // bg-card
  slate500: '#64748b', // text-muted-foreground
  blue900: '#1e3a8a', // blue-900 (emissive)
  sky500: '#0ea5e9', // sky-500 (grid)
@@ -90,7 +90,7 @@ const ThreatMarker = React.memo(({ position, name, intensity, country, type, sev
  <Html distanceFactor={10} zIndexRange={[100, 0]}>
   <div
   role="tooltip"
-  className="bg-slate-900/95 text-white min-w-[240px] p-3 rounded-3xl border border-border/40 shadow-2xl backdrop-blur-xl select-none pointer-events-none transform -translate-x-1/2 -translate-y-[120%] mb-2"
+  className="bg-card/95 text-white min-w-[240px] p-3 rounded-3xl border border-border/40 shadow-2xl backdrop-blur-xl select-none pointer-events-none transform -translate-x-1/2 -translate-y-[120%] mb-2"
   >
   {/* Header */}
   <div className="flex justify-between items-start mb-2 pb-2 border-b border-border/40">
@@ -265,7 +265,7 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
 export const ThreatPlanet: React.FC<ThreatPlanetProps> = ({ data }) => {
  return (
  <div
- className="w-full h-full bg-slate-950 rounded-3xl overflow-hidden relative isolate"
+ className="w-full h-full bg-background rounded-3xl overflow-hidden relative isolate"
  role="region"
  aria-label="Interactive 3D Threat Map"
  >

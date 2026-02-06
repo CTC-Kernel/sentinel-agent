@@ -19,7 +19,7 @@ interface UserRowProps {
 
 export const UserRow = memo(({ user, currentUser, currentOrg, updating, onUpdateRole, onTransfer, onRemove, t }: UserRowProps) => {
  return (
- <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/60 dark:hover:bg-white/10 transition-colors backdrop-blur-[2px]">
+ <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/40 dark:hover:bg-muted dark:hover:bg-muted transition-colors backdrop-blur-[2px]">
  <div className="flex items-center gap-4">
  <div className="w-10 h-10 rounded-full bg-muted/50 flex-shrink-0 flex items-center justify-center text-muted-foreground font-bold border border-white/40 shadow-sm overflow-hidden">
   <img
@@ -34,7 +34,7 @@ export const UserRow = memo(({ user, currentUser, currentOrg, updating, onUpdate
   {user.displayName}
   </p>
   {currentOrg?.ownerId === user.uid && (
-  <span className="px-2 py-0.5 text-[11px] font-bold bg-amber-50 text-amber-700 dark:text-amber-400 dark:bg-amber-500/20 dark:text-amber-400 rounded-full flex items-center gap-1 border border-amber-500/20">
+  <span className="px-2 py-0.5 text-[11px] font-bold bg-warning-bg text-warning-text rounded-full flex items-center gap-1 border border-warning-border/20">
   <Star size={10} />
   {t('settings.owner')}
   </span>
@@ -72,7 +72,7 @@ export const UserRow = memo(({ user, currentUser, currentOrg, updating, onUpdate
   {currentOrg?.ownerId === currentUser?.uid && user.uid !== currentUser?.uid && (
   <button
   onClick={() => onTransfer(user.uid)}
-  className="p-2 text-muted-foreground hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/30 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
+  className="p-2 text-muted-foreground hover:text-warning hover:bg-warning-bg rounded-lg transition-colors"
   title={t('settings.transferOwnership')}
   aria-label={t('settings.transferOwnership')}
   type="button"
@@ -86,7 +86,7 @@ export const UserRow = memo(({ user, currentUser, currentOrg, updating, onUpdate
   <button
   onClick={() => onRemove(user.uid)}
   disabled={updating}
-  className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:bg-muted disabled:text-muted-foreground"
+  className="p-2 text-muted-foreground hover:text-destructive hover:bg-error-bg rounded-lg transition-colors disabled:bg-muted disabled:text-muted-foreground"
   title={t('settings.removeMember')}
   aria-label={t('settings.removeMember')}
   type="button"

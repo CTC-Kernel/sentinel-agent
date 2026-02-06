@@ -33,7 +33,7 @@ const PLAN_CONFIG: Record<PlanType | 'unknown', {
  shortName: 'Free',
  icon: Star,
  gradient: 'from-slate-400 to-muted/500',
- bgGradient: 'from-white/80 to-muted/50/80 dark:from-slate-800/60 dark:to-slate-900/60',
+ bgGradient: 'from-white/80 to-muted/50/80 dark:from-muted/60 dark:to-card/60',
  borderColor: 'border-border/40',
  textColor: 'text-foreground',
  glowColor: 'shadow-slate-200/40 dark:shadow-slate-900/40',
@@ -69,7 +69,7 @@ const PLAN_CONFIG: Record<PlanType | 'unknown', {
  shortName: 'Free',
  icon: Star,
  gradient: 'from-slate-400 to-muted/500',
- bgGradient: 'from-white/80 to-muted/50/80 dark:from-slate-800/60 dark:to-slate-900/60',
+ bgGradient: 'from-white/80 to-muted/50/80 dark:from-muted/60 dark:to-card/60',
  borderColor: 'border-border/40',
  textColor: 'text-foreground',
  glowColor: 'shadow-slate-200/40 dark:shadow-slate-900/40',
@@ -264,7 +264,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
 
   {/* Upgrade CTA */}
   {showUpgradeHint && (
-  <div className="flex items-center justify-between p-3 rounded-3xl bg-gradient-to-r from-muted/50 to-muted dark:from-slate-800/50 dark:to-slate-700/50 border border-border/40/30">
+  <div className="flex items-center justify-between p-3 rounded-3xl bg-gradient-to-r from-muted/50 to-muted dark:from-muted/50 dark:to-muted/50 border border-border/40/30">
    <div>
    <span className="text-xs font-bold text-foreground /40">
    Passez à Pro

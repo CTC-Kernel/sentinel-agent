@@ -63,9 +63,9 @@ export const ActivityLogs: React.FC = () => {
   {/* Stats Grid */}
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
   {[
-  { label: t('activity.stats.today'), value: stats?.scansToday || 0, icon: Activity, color: 'text-blue-500' },
-  { label: t('activity.stats.critical'), value: stats?.criticalAlerts || 0, icon: AlertTriangle, color: 'text-red-500' },
-  { label: t('activity.stats.admins'), value: stats?.activeAdmins || 0, icon: Shield, color: 'text-emerald-500' },
+  { label: t('activity.stats.today'), value: stats?.scansToday || 0, icon: Activity, color: 'text-info-text' },
+  { label: t('activity.stats.critical'), value: stats?.criticalAlerts || 0, icon: AlertTriangle, color: 'text-destructive' },
+  { label: t('activity.stats.admins'), value: stats?.activeAdmins || 0, icon: Shield, color: 'text-success' },
   ].map((stat) => (
   <div key={stat.label || 'unknown'} className="glass-premium p-5 rounded-2xl flex items-center gap-4">
   <div className={`p-3 rounded-xl bg-white/50 dark:bg-white/5 ${stat.color}`}>

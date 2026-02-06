@@ -381,7 +381,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
   const missingJustification = isNonApplicable && (!item.justification || item.justification.trim() === '');
 
   return (
-   <tr key={item.id || 'unknown'} className="hover:bg-muted/50 dark:hover:bg-white/5">
+   <tr key={item.id || 'unknown'} className="hover:bg-muted/50 dark:hover:bg-muted/50">
    <td className="px-4 py-3 font-medium">{item.code}</td>
    <td className="px-4 py-3 max-w-sm">
    <div className="font-medium text-foreground">{item.name}</div>
@@ -442,7 +442,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
     type="text"
     className={`bg-transparent text-xs w-full focus:ring-1 focus-visible:ring-primary rounded px-2 py-1 transition-colors ${missingJustification
     ? 'border border-red-500 bg-red-50 dark:bg-red-50 dark:bg-red-900 placeholder-red-400'
-    : 'border-none placeholder-slate-400'
+    : 'border-none placeholder:text-muted-foreground'
     }`}
     placeholder={missingJustification ? "Justification requise !" : "Ajouter une justification..."}
     aria-label={`Justification pour ${item.name}`}

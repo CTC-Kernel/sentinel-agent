@@ -229,7 +229,7 @@ export const ThreatRegistry: React.FC = () => {
   <Button
   aria-label="Importer Standard"
   onClick={handleSeed}
-  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-xl flex items-center transition-all shadow-lg shadow-purple-500/20 text-sm font-bold"
+  className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2.5 rounded-xl flex items-center transition-all shadow-lg shadow-primary/20 text-sm font-bold"
   >
   <Database className="h-4 w-4 mr-2" />
   Importer Standard
@@ -431,14 +431,14 @@ const ThreatRegistryCard = React.memo(({
   size="icon"
   onClick={(e) => { e.stopPropagation(); onDelete(threat.id!); }}
   aria-label="Supprimer la menace"
-  className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100"
+  className="p-2 bg-error-bg text-destructive rounded-lg hover:bg-error-bg/80"
   >
   <Trash2 className="h-4 w-4" />
   </Button>
  </div>
 
  <div className="flex items-start justify-between mb-4">
-  <div className={`p-3 rounded-xl ${threat.source === 'Standard' ? 'bg-blue-50 text-blue-700 dark:text-blue-400 dark:bg-blue-900/30' : 'bg-purple-50 text-purple-700 dark:bg-purple-500/10'}`}>
+  <div className={`p-3 rounded-xl ${threat.source === 'Standard' ? 'bg-info-bg text-info-text' : 'bg-violet-100 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400'}`}>
   <Shield className="h-6 w-6" />
   </div>
   <span className="text-[11px] uppercase font-bold tracking-wider text-muted-foreground border border-border px-2 py-1 rounded-full">
@@ -450,12 +450,12 @@ const ThreatRegistryCard = React.memo(({
  <p className="text-sm text-muted-foreground line-clamp-2 mb-4 h-10">{threat.description}</p>
 
  <div className="space-y-3">
-  <div className="flex items-center text-xs text-muted-foreground bg-white dark:bg-black/20 p-2 rounded-lg">
-  <AlertTriangle className="h-3 w-3 mr-2 text-orange-500" />
+  <div className="flex items-center text-xs text-muted-foreground bg-card p-2 rounded-lg">
+  <AlertTriangle className="h-3 w-3 mr-2 text-warning" />
   <span className="truncate flex-1" title={threat.threat}>{threat.threat}</span>
   </div>
-  <div className="flex items-center text-xs text-muted-foreground bg-white dark:bg-black/20 p-2 rounded-lg">
-  <BookOpen className="h-3 w-3 mr-2 text-indigo-500" />
+  <div className="flex items-center text-xs text-muted-foreground bg-card p-2 rounded-lg">
+  <BookOpen className="h-3 w-3 mr-2 text-primary" />
   <span className="truncate flex-1" title={threat.vulnerability}>{threat.vulnerability}</span>
   </div>
  </div>

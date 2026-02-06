@@ -89,12 +89,12 @@ const CheckboxFilter: React.FC<CheckboxFilterProps> = ({
  color,
  count,
 }) => (
- <label className="flex items-center gap-2 py-1.5 px-2 rounded cursor-pointer hover:bg-slate-700/50 transition-colors">
+ <label className="flex items-center gap-2 py-1.5 px-2 rounded cursor-pointer hover:bg-muted/50 transition-colors">
  <input
  type="checkbox"
  checked={checked}
  onChange={onChange}
- className="w-3.5 h-3.5 rounded border-slate-600 bg-slate-800 text-blue-500 focus-visible:ring-primary focus:ring-offset-0"
+ className="w-3.5 h-3.5 rounded border-border bg-muted text-blue-500 focus-visible:ring-primary focus:ring-offset-0"
  />
  {icon && (
  <span style={{ color: color || '#94A3B8' }}>{icon}</span>
@@ -123,7 +123,7 @@ const FilterBadge: React.FC<FilterBadgeProps> = ({ label, onRemove, color }) => 
  {label}
  <button
  onClick={onRemove}
- className="p-0.5 rounded-full hover:bg-white/20 transition-colors"
+ className="p-0.5 rounded-full hover:bg-muted transition-colors"
  aria-label={`Remove ${label} filter`}
  >
  <X className="w-3 h-3" />
@@ -279,7 +279,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
  )}
  <button
  onClick={handleCollapseToggle}
- className="p-1.5 rounded hover:bg-slate-700/50 transition-colors text-muted-foreground hover:text-muted-foreground/60"
+ className="p-1.5 rounded hover:bg-muted/50 transition-colors text-muted-foreground hover:text-foreground"
  aria-label={collapsed ? 'Expand filters' : 'Collapse filters'}
  >
  {collapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
@@ -304,7 +304,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
  {!collapsed && (
  <div className="p-3 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
  {/* Node Count */}
- <div className="text-xs text-muted-foreground text-center pb-2 border-b border-slate-700/50">
+ <div className="text-xs text-muted-foreground text-center pb-2 border-b border-border/50">
  Showing <span className="text-muted-foreground/60 font-medium">{filteredNodes.length}</span> of{' '}
  <span className="text-muted-foreground/60 font-medium">{allNodes.length}</span> nodes
  </div>
@@ -322,13 +322,13 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
   value={filters.searchQuery}
   onChange={handleSearchChange}
   placeholder="Search nodes..."
-  className="w-full pl-8 pr-8 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-sm text-muted-foreground/60 placeholder:text-muted-foreground focus:outline-none focus:border-blue-500"
+  className="w-full pl-8 pr-8 py-2 rounded-lg bg-muted/50 border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500"
  />
 
  {filters.searchQuery && (
   <button
   onClick={handleClearSearch}
-  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-slate-700/50 text-muted-foreground hover:text-muted-foreground"
+  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground"
   >
   <X className="w-4 h-4" />
   </button>
@@ -411,7 +411,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
  {hasActiveFilters && (
  <button
  onClick={resetFilters}
- className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-muted-foreground/60 hover:bg-slate-700/50 transition-colors"
+ className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
  >
  <RotateCcw className="w-4 h-4" />
  Reset All Filters

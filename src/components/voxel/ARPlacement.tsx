@@ -202,9 +202,9 @@ const ScaleIndicator: React.FC<ScaleIndicatorProps> = ({
 
  return (
  <Html position={[position.x, position.y + 0.5, position.z]} center>
- <div className="bg-slate-900/90 backdrop-blur-sm border border-white/20 rounded-lg px-3 py-2 pointer-events-none">
+ <div className="bg-card/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2 pointer-events-none">
  {/* Scale value */}
- <div className="text-white text-xs font-mono text-center mb-1">
+ <div className="text-foreground text-xs font-mono text-center mb-1">
  {(scale * 100).toFixed(0)}%
  </div>
 
@@ -256,9 +256,9 @@ export const PlacementControls: React.FC<PlacementControlsProps> = ({
  <div className="max-w-md mx-auto flex flex-col gap-3 pointer-events-auto">
  {/* Scale slider (only when placed) */}
  {isPlaced && (
- <div className="bg-slate-900/90 backdrop-blur-md border border-white/20 rounded-3xl p-3">
+ <div className="bg-card/90 backdrop-blur-md border border-border rounded-3xl p-3">
  <div className="flex items-center justify-between mb-2">
- <span className="text-white text-sm font-medium">Scale</span>
+ <span className="text-foreground text-sm font-medium">Scale</span>
  <span className="text-muted-foreground text-xs font-mono">
  {(scale * 100).toFixed(0)}%
  </span>
@@ -292,7 +292,7 @@ export const PlacementControls: React.FC<PlacementControlsProps> = ({
  transition-all duration-200
  ${isValidSurface
   ? 'bg-green-500 text-white shadow-lg shadow-green-500/25 hover:bg-green-600 active:scale-95'
-  : 'bg-slate-600 text-muted-foreground cursor-not-allowed'
+  : 'bg-muted text-muted-foreground cursor-not-allowed'
  }
  `}
  >
@@ -302,8 +302,8 @@ export const PlacementControls: React.FC<PlacementControlsProps> = ({
  <>
  <button
  onClick={onReset}
- className="flex-1 py-4 bg-slate-700 text-white rounded-3xl font-semibold text-lg
-  shadow-lg hover:bg-slate-600 active:scale-95 transition-all"
+ className="flex-1 py-4 bg-muted text-white rounded-3xl font-semibold text-lg
+  shadow-lg hover:bg-muted active:scale-95 transition-all"
  >
  Reset Position
  </button>
@@ -319,7 +319,7 @@ export const PlacementControls: React.FC<PlacementControlsProps> = ({
  </div>
 
  {/* Instructions */}
- <div className="text-center text-white/60 text-xs">
+ <div className="text-center text-foreground/60 text-xs">
  {!isPlaced
  ? 'Point your camera at a flat surface'
  : 'Pinch to scale, drag to move'

@@ -207,7 +207,7 @@ export const ScannerJobs: React.FC = () => {
   <div className="flex justify-end gap-3 pt-4">
   <button
   onClick={() => setIsCreateModalOpen(false)}
-  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded-lg"
+  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground dark:hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded-lg"
   >
   {t('common.cancel', { defaultValue: 'Annuler' })}
   </button>

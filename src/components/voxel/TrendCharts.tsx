@@ -568,7 +568,7 @@ export function TrendCharts({
 
  {/* Main chart */}
  <div className="h-64 min-h-64">
- <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+ <ResponsiveContainer width="100%" height="100%" >
  <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
  <defs>
  <linearGradient id={`${gradientId}-nodes`} x1="0" y1="0" x2="0" y2="1">
@@ -656,7 +656,7 @@ export function TrendCharts({
  {/* Compliance chart (separate for clarity) */}
  <div className="h-48 min-h-48">
  <p className="text-sm font-medium mb-2">Évolution de la conformité</p>
- <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+ <ResponsiveContainer width="100%" height="100%" >
  <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
  <defs>
  <linearGradient id={`${gradientId}-compliance`} x1="0" y1="0" x2="0" y2="1">

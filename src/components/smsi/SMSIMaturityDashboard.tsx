@@ -122,7 +122,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
  {/* Main Score Display */}
  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
  {/* Score Gauge */}
- <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-gradient-to-br from-muted/50 to-muted dark:from-slate-800/50 dark:to-slate-900/50 border border-border/40">
+ <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-gradient-to-br from-muted/50 to-muted dark:from-muted/50 dark:to-card/50 border border-border/40">
  <div className="relative w-32 h-32">
  {/* Background circle */}
  <svg className="w-full h-full transform -rotate-90">

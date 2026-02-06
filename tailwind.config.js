@@ -1,15 +1,36 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/App.tsx",
-    "./src/components/**/*.{js,ts,jsx,tsx}",
-    "./src/views/**/*.{js,ts,jsx,tsx}",
-    "./src/hooks/**/*.{js,ts,jsx,tsx}",
-    "./src/utils/**/*.{js,ts,jsx,tsx}",
-    "./src/services/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: {
+    files: [
+      "./index.html",
+      "./src/**/*.{js,ts,jsx,tsx}",
+    ],
+    // Safelist: Classes dynamiques qui ne doivent JAMAIS etre purgees
+    transform: {
+      tsx: (content) => {
+        // Detecter les classes dynamiques dans les template literals
+        const matches = content.match(/`[^`]*\$\{[^}]*\}[^`]*`/g) || [];
+        return content + ' ' + matches.join(' ');
+      },
+    },
+  },
+  // Mode JIT pour generer uniquement les classes utilisees
+  mode: 'jit',
   darkMode: 'class',
+  // Safelist explicite pour les classes dynamiques critiques
+  safelist: [
+    // Couleurs de statut generees dynamiquement
+    { pattern: /bg-(red|green|blue|amber|yellow|orange|purple|pink|indigo|teal|cyan|emerald|rose|slate|gray|zinc)-(50|100|200|300|400|500|600|700|800|900)/ },
+    { pattern: /text-(red|green|blue|amber|yellow|orange|purple|pink|indigo|teal|cyan|emerald|rose|slate|gray|zinc)-(50|100|200|300|400|500|600|700|800|900)/ },
+    { pattern: /border-(red|green|blue|amber|yellow|orange|purple|pink|indigo|teal|cyan|emerald|rose|slate|gray|zinc)-(50|100|200|300|400|500|600|700|800|900)/ },
+    // Classes de grille dynamiques
+    { pattern: /grid-cols-(1|2|3|4|5|6|7|8|9|10|11|12)/ },
+    { pattern: /col-span-(1|2|3|4|5|6|7|8|9|10|11|12)/ },
+    // Classes de gap dynamiques
+    { pattern: /gap-(0|1|2|3|4|5|6|8|10|12)/ },
+    // Z-index dynamiques
+    { pattern: /z-(0|10|20|30|40|50)/ },
+  ],
   theme: {
     container: {
       center: true,

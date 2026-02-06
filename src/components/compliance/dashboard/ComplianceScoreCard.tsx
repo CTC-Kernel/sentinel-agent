@@ -131,7 +131,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
  <button
   type="button"
   onClick={() => onFilterChange?.(CONTROL_STATUS.IMPLEMENTED)}
-  className="glass-premium p-4 rounded-2xl border border-border/40 hover:bg-white/60 dark:hover:bg-white/10 cursor-pointer transition-all duration-300 group/item w-full text-left"
+  className="glass-premium p-4 rounded-2xl border border-border/40 hover:bg-white/40 dark:hover:bg-muted dark:hover:bg-muted cursor-pointer transition-all duration-300 group/item w-full text-left"
  >
   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter mb-1.5 group-hover/item:text-primary transition-colors">
   {t('compliance.dashboard.implemented')}
@@ -145,7 +145,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
  <button
   type="button"
   onClick={() => onFilterChange?.(CONTROL_STATUS.PARTIAL)}
-  className="glass-premium p-4 rounded-2xl border border-border/40 hover:bg-white/60 dark:hover:bg-white/10 cursor-pointer transition-all duration-300 group/item w-full text-left"
+  className="glass-premium p-4 rounded-2xl border border-border/40 hover:bg-white/40 dark:hover:bg-muted dark:hover:bg-muted cursor-pointer transition-all duration-300 group/item w-full text-left"
  >
   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter mb-1.5 group-hover/item:text-warning transition-colors">
   {t('compliance.dashboard.partial')}
@@ -159,7 +159,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
  <button
   type="button"
   onClick={() => onFilterChange?.(CONTROL_STATUS.IN_PROGRESS)}
-  className="glass-premium p-4 rounded-2xl border border-border/40 hover:bg-white/60 dark:hover:bg-white/10 cursor-pointer transition-all duration-300 group/item w-full text-left"
+  className="glass-premium p-4 rounded-2xl border border-border/40 hover:bg-white/40 dark:hover:bg-muted dark:hover:bg-muted cursor-pointer transition-all duration-300 group/item w-full text-left"
  >
   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter mb-1.5 group-hover/item:text-primary/70 transition-colors">
   {t('compliance.dashboard.inProgress')}

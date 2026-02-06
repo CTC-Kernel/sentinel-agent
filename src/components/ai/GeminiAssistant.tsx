@@ -173,7 +173,7 @@ export const GeminiAssistant: React.FC = () => {
   Assistant IA
   <Lock className="h-4 w-4 text-muted-foreground" />
  </span>
- <span className="absolute right-full mr-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-3xl opacity-0 group-hover:opacity-70 transition-all duration-300 whitespace-nowrap pointer-events-none translate-x-2 group-hover:translate-x-0 shadow-lg hidden md:block">
+ <span className="absolute right-full mr-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-card text-white text-xs font-bold rounded-3xl opacity-0 group-hover:opacity-70 transition-all duration-300 whitespace-nowrap pointer-events-none translate-x-2 group-hover:translate-x-0 shadow-lg hidden md:block">
   {!planAiEnabled
   ? "Disponible à partir du plan Professional"
   : "Désactivé par votre administrateur"}
@@ -195,7 +195,7 @@ export const GeminiAssistant: React.FC = () => {
  <div className="absolute inset-0 -m-1 rounded-full border border-primary/30 dark:border-primary/60 w-18 h-18 animate-ping opacity-20 pointer-events-none"></div>
 
  {/* Core Orb */}
- <div className="relative w-16 h-16 rounded-full bg-slate-950/80 backdrop-blur-md border border-primary/60 flex items-center justify-center shadow-[0_0_20px_-5px_rgba(99,102,241,0.6)] group-hover:shadow-[0_0_30px_-5px_rgba(99,102,241,0.9)] transition-all duration-500 overflow-hidden">
+ <div className="relative w-16 h-16 rounded-full bg-background/80 backdrop-blur-md border border-primary/60 flex items-center justify-center shadow-[0_0_20px_-5px_rgba(99,102,241,0.6)] group-hover:shadow-[0_0_30px_-5px_rgba(99,102,241,0.9)] transition-all duration-500 overflow-hidden">
 
   {/* Inner Energy Flow */}
   <div className="absolute inset-0 bg-gradient-to-tr from-primary/50 via-transparent to-violet-900/50 group-hover:rotate-45 transition-transform duration-1000"></div>
@@ -206,10 +206,10 @@ export const GeminiAssistant: React.FC = () => {
  </div>
 
  {/* High-Tech Status Label */}
- <div className="absolute right-full mr-6 top-1/2 -translate-y-1/2 px-4 py-2 bg-slate-900 backdrop-blur border border-white/20 text-white text-[11px] font-mono tracking-widest uppercase rounded-lg opacity-0 group-hover:opacity-70 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 shadow-2xl flex items-center gap-3">
+ <div className="absolute right-full mr-6 top-1/2 -translate-y-1/2 px-4 py-2 bg-card backdrop-blur border border-white/20 text-white text-[11px] font-mono tracking-widest uppercase rounded-lg opacity-0 group-hover:opacity-70 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 shadow-2xl flex items-center gap-3">
   <span className="relative flex h-2 w-2">
-  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+  <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
   </span>
   <span>AI System Online</span>
  </div>
@@ -223,7 +223,7 @@ export const GeminiAssistant: React.FC = () => {
  // Mobile: Full screen, white background for readability
  "inset-0 w-full h-full rounded-none bg-card",
  // Desktop: Floating glassmorphism card
- "md:inset-auto md:bottom-6 md:right-6 md:rounded-4xl md:bg-white/95 md:dark:bg-slate-900/95 md:backdrop-blur-xl md:border md:border-white/20 md:dark:border-border/40",
+ "md:inset-auto md:bottom-6 md:right-6 md:rounded-4xl md:bg-white/95 md:dark:bg-card/95 md:backdrop-blur-xl md:border md:border-white/20 md:dark:border-border/40",
  // Desktop Sizing based on expansion
  isExpanded ? "md:w-[800px] md:h-[800px]" : "md:w-[420px] md:h-[600px]"
  )}>
@@ -248,7 +248,7 @@ export const GeminiAssistant: React.FC = () => {
   <button
   type="button"
   onClick={() => setIsExpanded(!isExpanded)}
-  className="hidden md:block p-2 hover:bg-muted/50 dark:hover:bg-white/10 rounded-3xl text-muted-foreground transition-colors"
+  className="hidden md:block p-2 hover:bg-muted/50 dark:hover:bg-muted rounded-3xl text-muted-foreground transition-colors"
   title={isExpanded ? "Réduire" : "Agrandir"}
   aria-label={isExpanded ? "Réduire le chat" : "Agrandir le chat"}
   >
@@ -336,7 +336,7 @@ export const GeminiAssistant: React.FC = () => {
   }
   }}
   placeholder="Posez une question..."
-  className="w-full pl-4 pr-10 py-3.5 bg-muted border border-transparent focus:bg-white dark:focus:bg-slate-900 border-border/40 focus:border-primary/60 dark:focus:border-primary/60 rounded-2xl focus:ring-4 focus:ring-primary outline-none text-sm font-medium text-foreground transition-all placeholder:text-muted-foreground"
+  className="w-full pl-4 pr-10 py-3.5 bg-muted border border-transparent focus:bg-white dark:focus:bg-card border-border/40 focus:border-primary/60 dark:focus:border-primary/60 rounded-2xl focus:ring-4 focus:ring-primary outline-none text-sm font-medium text-foreground transition-all placeholder:text-muted-foreground"
   disabled={isLoading}
   />
   <div className="absolute right-3 top-1/2 -translate-y-1/2">

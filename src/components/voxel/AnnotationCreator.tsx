@@ -292,36 +292,36 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
  {/* Header */}
  <div
  role="presentation"
- className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-slate-800/80 to-slate-900/80 cursor-move"
+ className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-muted/80 to-card/80 cursor-move"
  onMouseDown={handleDragStart}
  >
 
  <div className="flex items-center gap-3">
  <GripVertical className="w-4 h-4 text-muted-foreground" />
- <h3 className="text-base font-semibold text-white">
+ <h3 className="text-base font-semibold text-foreground">
  {editingAnnotation ? 'Modifier l\'annotation' : 'Nouvelle annotation'}
  </h3>
  </div>
  <button
  onClick={onClose}
- className="p-2 rounded-3xl hover:bg-slate-700/50 transition-colors"
+ className="p-2 rounded-3xl hover:bg-muted/50 transition-colors"
  >
  <X className="w-4 h-4 text-muted-foreground" />
  </button>
  </div>
 
  {/* Content */}
- <div className="p-5 space-y-5 bg-slate-900/60">
+ <div className="p-5 space-y-5 bg-card/60">
  {/* Position indicator */}
  {position && (
  <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
- <span className="px-2 py-1 bg-slate-800/50 rounded">
+ <span className="px-2 py-1 bg-muted/50 rounded">
   X: {position.x.toFixed(2)}
  </span>
- <span className="px-2 py-1 bg-slate-800/50 rounded">
+ <span className="px-2 py-1 bg-muted/50 rounded">
   Y: {position.y.toFixed(2)}
  </span>
- <span className="px-2 py-1 bg-slate-800/50 rounded">
+ <span className="px-2 py-1 bg-muted/50 rounded">
   Z: {position.z.toFixed(2)}
  </span>
  </div>
@@ -339,7 +339,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
   aria-pressed={type === option.value}
   className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-3xl transition-all ${type === option.value
   ? 'bg-primary/15 border-2 border-primary text-primary/70'
-  : 'bg-slate-800/50 border-2 border-transparent text-muted-foreground hover:bg-slate-700/50'
+  : 'bg-muted/50 border-2 border-transparent text-muted-foreground hover:bg-muted/80'
   }`}
   >
   {option.icon}
@@ -359,7 +359,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
  onChange={(e) => setContent(e.target.value)}
  placeholder="Écrivez votre annotation... (Utilisez @nom pour mentionner quelqu'un)"
  rows={4}
- className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-3xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent resize-none text-sm"
+ className="w-full px-4 py-3 bg-muted/50 border border-border rounded-3xl text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent resize-none text-sm"
  />
 
  <p className="text-xs text-muted-foreground">
@@ -378,7 +378,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
   onClick={() => setColor(presetColor)}
   aria-label={`Sélectionner la couleur ${presetColor}`}
   aria-pressed={color === presetColor}
-  className={`w-8 h-8 rounded-full transition-transform hover:scale-110 ${color === presetColor ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900' : ''
+  className={`w-8 h-8 rounded-full transition-transform hover:scale-110 ${color === presetColor ? 'ring-2 ring-foreground ring-offset-2 ring-offset-card' : ''
   }`}
   style={{ backgroundColor: presetColor }}
   />
@@ -399,7 +399,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
   aria-pressed={visibility === option.value}
   className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-3xl transition-all ${visibility === option.value
   ? 'bg-primary/15 border-2 border-primary text-primary/70'
-  : 'bg-slate-800/50 border-2 border-transparent text-muted-foreground hover:bg-slate-700/50'
+  : 'bg-muted/50 border-2 border-transparent text-muted-foreground hover:bg-muted/80'
   }`}
   >
   {option.icon}
@@ -420,7 +420,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
   value={teamId}
   onChange={(e) => setTeamId(e.target.value)}
   placeholder="ID de l'équipe"
-  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-3xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent text-sm"
+  className="w-full px-4 py-3 bg-muted/50 border border-border rounded-3xl text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent text-sm"
  />
  </div>
  )}
@@ -435,10 +435,10 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
  </div>
 
  {/* Footer */}
- <div className="flex items-center justify-between px-5 py-4 bg-slate-800/50 border-t border-slate-700/50">
+ <div className="flex items-center justify-between px-5 py-4 bg-muted/50 border-t border-border/50">
  <button
  onClick={onClose}
- className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-white transition-colors"
+ className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
  disabled={isSaving}
  >
  Annuler
@@ -447,7 +447,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
  <div className="flex gap-2">
  <button
  disabled
- className="p-2 rounded-3xl bg-slate-700/50 text-muted-foreground cursor-not-allowed"
+ className="p-2 rounded-3xl bg-muted/50 text-muted-foreground cursor-not-allowed"
  title="Ajouter une piece jointe (bientot)"
  >
  <Paperclip className="w-4 h-4" />

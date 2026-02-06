@@ -51,7 +51,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
  return (
  <div key={req.id || 'unknown'} className="bg-card border border-border/40 dark:border-white/5 rounded-3xl overflow-hidden shadow-sm transition-all hover:shadow-md hover:border-primary/30 dark:hover:border-primary group">
  <div
- className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-muted/50 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-3xl"
+ className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-muted/50 dark:hover:bg-muted/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-3xl"
  onClick={() => onExpand(isExpanded ? null : req.id)}
  role="button"
  tabIndex={0}
@@ -147,7 +147,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
    onClick={() => handleAction('accept', () => onStatusChange(req, 'Accepted'))}
    disabled={!!processingAction}
    aria-label="Accepter la demande"
-   className="w-full px-3 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 dark:hover:bg-emerald-700 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600"
+   className="w-full px-3 py-2 bg-emerald-500 dark:bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 dark:hover:bg-emerald-700 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border"
    >
    {processingAction === 'accept' ? <span className="animate-spin mr-2">⌛</span> : <ShieldCheck className="w-4 h-4 mr-2" />}
    Accepter
@@ -159,7 +159,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
    onClick={() => handleAction('reject', () => onStatusChange(req, 'Rejected'))}
    disabled={!!processingAction}
    aria-label="Rejeter la demande"
-   className="w-full px-3 py-2 bg-red-500 dark:bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-600 dark:hover:bg-red-700 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600"
+   className="w-full px-3 py-2 bg-red-500 dark:bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-600 dark:hover:bg-red-700 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border"
    >
    {processingAction === 'reject' ? <span className="animate-spin mr-2">⌛</span> : <X className="w-4 h-4 mr-2" />}
    Rejeter
@@ -170,7 +170,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
    onClick={() => handleAction('delete', () => onDelete(req.id))}
    disabled={!!processingAction}
    aria-label="Supprimer la demande"
-   className="w-full px-3 py-2 bg-muted text-muted-foreground rounded-lg text-xs font-bold hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 transition-colors flex items-center justify-center mt-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600"
+   className="w-full px-3 py-2 bg-muted text-muted-foreground rounded-lg text-xs font-bold hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 transition-colors flex items-center justify-center mt-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border"
   >
    {processingAction === 'delete' ? <span className="animate-spin mr-2">⌛</span> : <Trash2 className="w-4 h-4 mr-2" />}
    Supprimer

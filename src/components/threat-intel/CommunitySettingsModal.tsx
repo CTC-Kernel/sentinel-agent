@@ -245,7 +245,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
     <div key={partner.id || 'unknown'} className="flex items-center justify-between p-4 rounded-3xl border border-border/40 bg-card">
     <div className="flex items-center gap-3">
     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white
-    ${partner.status === 'trusted' ? 'bg-green-500' : partner.status === 'blocked' ? 'bg-red-500' : 'bg-slate-400'}
+    ${partner.status === 'trusted' ? 'bg-green-500' : partner.status === 'blocked' ? 'bg-red-500' : 'bg-muted-foreground'}
     `}>
     {partner.targetOrgName.substring(0, 2).toUpperCase()}
     </div>

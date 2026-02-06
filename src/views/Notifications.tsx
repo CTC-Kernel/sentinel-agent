@@ -21,10 +21,10 @@ export const Notifications: React.FC = () => {
 
  const getIcon = (type: string) => {
  switch (type) {
- case 'success': return <CheckCircle2 className="w-5 h-5 text-emerald-500" />;
- case 'warning': return <AlertTriangle className="w-5 h-5 text-amber-500" />;
- case 'error': return <AlertTriangle className="w-5 h-5 text-rose-500" />;
- default: return <Info className="w-5 h-5 text-blue-500" />;
+ case 'success': return <CheckCircle2 className="w-5 h-5 text-success" />;
+ case 'warning': return <AlertTriangle className="w-5 h-5 text-warning" />;
+ case 'error': return <AlertTriangle className="w-5 h-5 text-destructive" />;
+ default: return <Info className="w-5 h-5 text-info-text" />;
  }
  };
 
@@ -68,7 +68,7 @@ export const Notifications: React.FC = () => {
   onClick={() => setFilterStatus('all')}
   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filterStatus === 'all'
   ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
-  : 'bg-white dark:bg-white/5 text-muted-foreground hover:bg-muted/50 dark:hover:bg-white/10'
+  : 'bg-white dark:bg-white/5 text-muted-foreground hover:bg-muted/50 dark:hover:bg-muted'
   }`}
   >
   {t('common.all', { defaultValue: 'Toutes' })}
@@ -77,7 +77,7 @@ export const Notifications: React.FC = () => {
   onClick={() => setFilterStatus('unread')}
   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filterStatus === 'unread'
   ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
-  : 'bg-white dark:bg-white/5 text-muted-foreground hover:bg-muted/50 dark:hover:bg-white/10'
+  : 'bg-white dark:bg-white/5 text-muted-foreground hover:bg-muted/50 dark:hover:bg-muted'
   }`}
   >
   {t('notifications.unread', { defaultValue: 'Non lues' })}

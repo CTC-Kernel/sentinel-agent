@@ -133,7 +133,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
   "p-3 rounded-3xl border-2 transition-all text-center",
   selectedType === type
   ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
-  : "border-border/40 hover:border-border/40 dark:hover:border-slate-600"
+  : "border-border/40 hover:border-border/40 dark:hover:border-border"
   )}
  >
   <span className={cn(
@@ -221,7 +221,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
   "flex items-center gap-3 p-3 rounded-3xl border cursor-pointer transition-colors",
   linkedMissionIds?.includes(mission.id)
   ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-  : "border-border/40 hover:border-border/40 dark:hover:border-slate-600"
+  : "border-border/40 hover:border-border/40 dark:hover:border-border"
   )}
   >
   <input

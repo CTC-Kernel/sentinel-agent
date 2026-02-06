@@ -18,7 +18,7 @@ export const ComplianceCertificate: React.FC<ComplianceCertificateProps> = ({
  return (
  <div className="max-w-2xl mx-auto my-8 relative">
  {/* Certificate Frame */}
- <div className="bg-white text-foreground border-[10px] border-double border-border/40 p-8 shadow-2xl relative overflow-hidden">
+ <div className="bg-card text-foreground border-[10px] border-double border-border/40 p-8 shadow-2xl relative overflow-hidden">
  {/* Background Pattern */}
  <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
   <MasterpieceBackground />
@@ -45,7 +45,7 @@ export const ComplianceCertificate: React.FC<ComplianceCertificateProps> = ({
   <p className="text-muted-foreground italic mb-4">Ce document certifie que</p>
   <h3 className="text-2xl font-bold text-foreground mb-4">{recipientName}</h3>
   <p className="text-muted-foreground italic mb-2">a atteint un score de conformité de</p>
-  <div className="inline-block px-6 py-2 bg-slate-900 text-white rounded-full font-mono text-xl font-bold">
+  <div className="inline-block px-6 py-2 bg-foreground text-background rounded-full font-mono text-xl font-bold">
   {score}%
   </div>
   <p className="text-muted-foreground italic mt-4">pour le référentiel <span className="font-bold text-foreground not-italic">{type}</span></p>

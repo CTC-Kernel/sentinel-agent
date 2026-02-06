@@ -211,7 +211,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
   </thead>
   <tbody className="divide-y divide-border dark:divide-white/5">
    {RESOURCES.map(resource => (
-   <tr key={resource || 'unknown'} className="hover:bg-muted/50 dark:hover:bg-white/5 transition-colors">
+   <tr key={resource || 'unknown'} className="hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors">
    <td className="px-4 py-3 font-medium text-foreground">{resource}</td>
    {ACTIONS.map(action => (
    <PermissionCheck

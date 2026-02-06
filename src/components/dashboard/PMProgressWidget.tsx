@@ -92,7 +92,7 @@ function TrendArrow({ trend, className }: { trend: TrendType | null; className?:
  if (trend === 'up') {
  return (
  <TrendingUp
- className={cn('w-4 h-4 text-green-500', className)}
+ className={cn('w-4 h-4 text-success', className)}
  aria-hidden="true"
  />
  );
@@ -100,7 +100,7 @@ function TrendArrow({ trend, className }: { trend: TrendType | null; className?:
 
  return (
  <TrendingDown
- className={cn('w-4 h-4 text-red-500', className)}
+ className={cn('w-4 h-4 text-destructive', className)}
  aria-hidden="true"
  />
  );
@@ -287,7 +287,7 @@ function EmptyState({ size }: { size: 'sm' | 'md' | 'lg' }) {
  'text-muted-foreground'
  )}
  >
- <Target className="w-8 h-8 mb-2 text-blue-500" aria-hidden="true" />
+ <Target className="w-8 h-8 mb-2 text-primary" aria-hidden="true" />
  <p className={sizeConfig.itemText}>{t('pm.empty.title', { defaultValue: 'Aucune donnée de progression' })}</p>
  <p className="text-xs mt-1">{t('pm.empty.description', { defaultValue: 'Commencez par ajouter des contrôles et actions' })}</p>
  </div>
@@ -313,7 +313,7 @@ function ErrorState({
  <div
  className={cn(
  'flex flex-col items-center justify-center py-8 text-center',
- 'text-red-600 dark:text-red-400'
+ 'text-destructive'
  )}
  >
  <AlertTriangle className="w-8 h-8 mb-2" aria-hidden="true" />
@@ -323,8 +323,8 @@ function ErrorState({
  onClick={onRetry}
  className={cn(
  'mt-3 inline-flex items-center gap-1 px-3 py-1.5 rounded-md',
- 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
- 'hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors',
+ 'bg-error-bg text-error-text',
+ 'hover:bg-error-bg/80 transition-colors',
  'text-sm font-medium'
  )}
  >

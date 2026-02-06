@@ -87,11 +87,11 @@ export const ExternalAuditPortal: React.FC = () => {
  if (error || !auditData) {
  return (
  <div className="max-w-md mx-auto mt-20 text-center space-y-4">
- <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-6">
+ <div className="w-16 h-16 bg-error-bg text-destructive rounded-full flex items-center justify-center mx-auto mb-6">
   <Lock className="w-8 h-8" />
  </div>
  <h1 className="text-2xl font-bold text-foreground">{t('certifier.portal.accessDenied')}</h1>
- <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-xl text-red-800 dark:text-red-200 text-sm">
+ <div className="bg-error-bg border border-error-border p-4 rounded-xl text-error-text text-sm">
   {error || t('certifier.portal.invalidLink')}
  </div>
  <p className="text-muted-foreground text-sm">
@@ -121,9 +121,9 @@ export const ExternalAuditPortal: React.FC = () => {
   <p className="text-muted-foreground max-w-2xl">{audit.description}</p>
   </div>
   <div className="flex flex-col items-end gap-2">
-  <div className={`px-4 py-1.5 rounded-full text-sm font-bold border ${audit.status === 'Validé' ? 'bg-green-100 text-green-700 dark:text-green-400 border-green-200' :
-  audit.status === 'Planifié' ? 'bg-blue-100 text-blue-700 dark:text-blue-400 border-blue-200' :
-   'bg-orange-100 text-orange-700 dark:text-orange-400 border-orange-200'
+  <div className={`px-4 py-1.5 rounded-full text-sm font-bold border ${audit.status === 'Validé' ? 'bg-success-bg text-success-text border-success-border' :
+  audit.status === 'Planifié' ? 'bg-info-bg text-info-text border-info-border' :
+   'bg-warning-bg text-warning-text border-warning-border'
   }`}>
   {audit.status}
   </div>
@@ -192,7 +192,7 @@ export const ExternalAuditPortal: React.FC = () => {
   <div className="space-y-4">
   <div className="flex justify-between items-center bg-card p-4 rounded-xl border border-border dark:border-white/5">
   <h2 className="font-bold flex items-center gap-2">
-  <AlertOctagon className="w-5 h-5 text-orange-500" />
+  <AlertOctagon className="w-5 h-5 text-warning" />
   {t('certifier.portal.findings.title')}
   </h2>
   {permissions.includes('write_findings') && (
@@ -211,7 +211,7 @@ export const ExternalAuditPortal: React.FC = () => {
   auditData.findings.map((f, i) => (
   <div key={i || 'unknown'} className="bg-card p-4 rounded-xl border border-border dark:border-white/5 shadow-sm">
    <div className="flex justify-between items-start mb-2">
-   <span className={`px-2 py-0.5 text-xs font-bold rounded ${f.type === 'Majeure' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'}`}>{f.type}</span>
+   <span className={`px-2 py-0.5 text-xs font-bold rounded ${f.type === 'Majeure' ? 'bg-error-bg text-error-text' : 'bg-warning-bg text-warning-text'}`}>{f.type}</span>
    <span className="text-xs text-muted-foreground">{new Date(f.createdAt).toLocaleDateString()}</span>
    </div>
    <p className="text-foreground">{f.description}</p>
@@ -241,7 +241,7 @@ export const ExternalAuditPortal: React.FC = () => {
    auditData.documents.map(doc => (
    <div key={doc.id || 'unknown'} className="p-4 border border-border rounded-xl hover:bg-muted/50 transition-colors group">
    <div className="flex items-start justify-between mb-2">
-   <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg">
+   <div className="p-2 bg-info-bg text-info-text rounded-lg">
     <FileText className="w-5 h-5" />
    </div>
    <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">{doc.type}</span>

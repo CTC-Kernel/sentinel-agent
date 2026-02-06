@@ -26,10 +26,10 @@ export const AuditsHeader: React.FC<AuditsHeaderProps> = ({
 
  actions={
  <div className="flex gap-2">
-  <Button variant="ghost" size="icon" onClick={onExportCalendar} className="text-muted-foreground hover:text-foreground dark:hover:text-white" aria-label={t('audits.exportCalendar')}>
+  <Button variant="ghost" size="icon" onClick={onExportCalendar} className="text-muted-foreground hover:text-foreground dark:hover:text-foreground" aria-label={t('audits.exportCalendar')}>
   <Calendar className="w-5 h-5" />
   </Button>
-  <Button variant="ghost" size="icon" onClick={onExportCSV} className="text-muted-foreground hover:text-foreground dark:hover:text-white" aria-label={t('audits.exportCSV')}>
+  <Button variant="ghost" size="icon" onClick={onExportCSV} className="text-muted-foreground hover:text-foreground dark:hover:text-foreground" aria-label={t('audits.exportCSV')}>
   <Download className="w-5 h-5" />
   </Button>
   {canEdit && (
@@ -44,7 +44,7 @@ export const AuditsHeader: React.FC<AuditsHeaderProps> = ({
   </Button>
   <Button
   onClick={onNewAudit}
-  className="flex items-center gap-2 bg-foreground text-background hover:bg-slate-800 dark:hover:bg-muted shadow-sm hover:shadow-md"
+  className="flex items-center gap-2 bg-foreground text-background hover:bg-muted dark:hover:bg-muted shadow-sm hover:shadow-md"
   >
   <Plus className="w-4 h-4" />
   <span>{t('audits.newAudit')}</span>

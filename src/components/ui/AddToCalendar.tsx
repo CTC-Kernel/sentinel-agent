@@ -33,7 +33,7 @@ export const AddToCalendar: React.FC<AddToCalendarProps> = ({ event, className }
  <div className={`relative ${className}`} ref={dropdownRef}>
  <button
  onClick={() => setIsOpen(!isOpen)}
- className="flex items-center px-3 py-2 bg-white dark:bg-white/5 border border-border/40 rounded-3xl text-sm font-medium text-foreground hover:bg-muted/50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="flex items-center px-3 py-2 bg-white dark:bg-white/5 border border-border/40 rounded-3xl text-sm font-medium text-foreground hover:bg-muted/50 dark:hover:bg-muted transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
  <Calendar className="h-4 w-4 mr-2" data-testid="calendar-icon" />
  Ajouter au calendrier

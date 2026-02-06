@@ -144,7 +144,7 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
  return (
  <div className="container mx-auto py-6">
  <Card className="p-6 text-center">
- <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+ <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
  <h2 className="text-xl font-semibold mb-2">{t('common.error', { defaultValue: 'Error' })}</h2>
  <p className="text-muted-foreground">{error.message}</p>
  </Card>

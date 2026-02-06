@@ -9,6 +9,7 @@ import {
  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
  RadialBarChart, RadialBar, Sector
 } from 'recharts';
+import type { PieSectorDataItem } from 'recharts/types/polar/Pie';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
 import { SEVERITY_COLORS, SENTINEL_PALETTE } from '../../theme/chartTheme';
 
@@ -19,22 +20,25 @@ interface SupplierDashboardProps {
 }
 
 // Premium activeShape for interactive pie
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const renderActiveShape = (props: any) => {
+const renderActiveShape = (props: PieSectorDataItem) => {
  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent } = props;
+ const cyValue = cy ?? 0;
+ const innerR = innerRadius ?? 0;
+ const outerR = outerRadius ?? 0;
+ const percentValue = percent ?? 0;
  return (
  <g>
- <text x={cx} y={cy - 8} textAnchor="middle" className="fill-foreground font-black text-base">
+ <text x={cx} y={cyValue - 8} textAnchor="middle" className="fill-foreground font-black text-base">
  {payload.name}
  </text>
- <text x={cx} y={cy + 12} textAnchor="middle" className="fill-muted-foreground text-sm font-mono">
- {payload.value} ({(percent * 100).toFixed(0)}%)
+ <text x={cx} y={cyValue + 12} textAnchor="middle" className="fill-muted-foreground text-sm font-mono">
+ {payload.value} ({(percentValue * 100).toFixed(0)}%)
  </text>
  <Sector
  cx={cx}
  cy={cy}
- innerRadius={innerRadius - 6}
- outerRadius={outerRadius + 10}
+ innerRadius={innerR - 6}
+ outerRadius={outerR + 10}
  startAngle={startAngle}
  endAngle={endAngle}
  fill={fill}
@@ -45,8 +49,8 @@ const renderActiveShape = (props: any) => {
  cy={cy}
  startAngle={startAngle}
  endAngle={endAngle}
- innerRadius={innerRadius - 4}
- outerRadius={outerRadius}
+ innerRadius={innerR - 4}
+ outerRadius={outerR}
  fill={fill}
  stroke="none"
  />
@@ -173,7 +177,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
  <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
  {/* Score Gauge */}
  <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
-  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
+  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-violet-500/5 pointer-events-none" />
   <div className="flex items-center gap-2 mb-4">
   <div className="p-2 bg-primary/10 rounded-3xl">
   <Star className="h-4 w-4 text-primary" />
@@ -181,13 +185,13 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
   <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('suppliers.dashboard.avgScore', { defaultValue: 'Score Moyen' })}</span>
   </div>
   <div className="h-[120px] relative">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" barSize={12} data={scoreGaugeData} startAngle={180} endAngle={0}>
   <RadialBar background={{ fill: 'hsl(var(--muted) / 0.3)' }} dataKey="value" cornerRadius={10} style={{ filter: 'url(#supplierGlow)' }} />
   </RadialBarChart>
   </ResponsiveContainer>
   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/4 text-center">
-  <div className={`text-3xl font-black bg-gradient-to-r ${metrics.avgScore >= 80 ? 'from-emerald-600 to-emerald-400' : metrics.avgScore >= 50 ? 'from-amber-600 to-amber-400' : 'from-red-600 to-red-400'} bg-clip-text text-transparent`}>
+  <div className={`text-3xl font-black bg-gradient-to-r ${metrics.avgScore >= 80 ? 'from-success to-success/70' : metrics.avgScore >= 50 ? 'from-warning to-warning/70' : 'from-destructive to-destructive/70'} bg-clip-text text-transparent`}>
   {metrics.avgScore}
   </div>
   </div>
@@ -198,13 +202,13 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
  <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden group hover:shadow-apple-lg transition-all duration-300">
   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
   <div className="flex items-center gap-2 mb-4">
-  <div className="p-2 bg-emerald-500/10 rounded-3xl">
-  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+  <div className="p-2 bg-success/10 rounded-3xl">
+  <CheckCircle2 className="h-4 w-4 text-success" />
   </div>
   <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('suppliers.dashboard.complianceLabel', { defaultValue: 'Conformité' })}</span>
   </div>
   <div className="h-[120px] relative">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" barSize={12} data={complianceGaugeData} startAngle={180} endAngle={0}>
   <RadialBar background={{ fill: 'hsl(var(--muted) / 0.3)' }} dataKey="value" cornerRadius={10} style={{ filter: 'url(#supplierGlow)' }} />
   </RadialBarChart>
@@ -220,10 +224,10 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
  {/* Key Metrics Grid */}
  <motion.div variants={slideUpVariants} className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-4">
   {[
-  { label: t('suppliers.dashboard.total', { defaultValue: 'Total' }), value: metrics.total, icon: Building, color: 'brand', gradient: 'from-primary to-primary/80' },
-  { label: t('suppliers.dashboard.criticalCount', { defaultValue: 'Critiques' }), value: metrics.critical, icon: ShieldAlert, color: 'orange', gradient: 'from-orange-500 to-orange-400' },
-  { label: t('suppliers.dashboard.expired', { defaultValue: 'Expirés' }), value: metrics.expiredContracts, icon: FileText, color: 'red', gradient: 'from-red-500 to-red-400', onClick: () => onFilterChange?.({ type: 'contract', value: 'expired' }) },
-  { label: t('suppliers.dashboard.compliant', { defaultValue: 'Conformes' }), value: metrics.compliant, icon: CheckCircle2, color: 'emerald', gradient: 'from-emerald-500 to-emerald-400' }
+  { label: t('suppliers.dashboard.total', { defaultValue: 'Total' }), value: metrics.total, icon: Building, bgClass: 'bg-primary/10', iconClass: 'text-primary', gradient: 'from-primary to-primary/80' },
+  { label: t('suppliers.dashboard.criticalCount', { defaultValue: 'Critiques' }), value: metrics.critical, icon: ShieldAlert, bgClass: 'bg-warning-bg', iconClass: 'text-warning', gradient: 'from-warning to-warning/80' },
+  { label: t('suppliers.dashboard.expired', { defaultValue: 'Expirés' }), value: metrics.expiredContracts, icon: FileText, bgClass: 'bg-error-bg', iconClass: 'text-destructive', gradient: 'from-destructive to-destructive/80', onClick: () => onFilterChange?.({ type: 'contract', value: 'expired' }) },
+  { label: t('suppliers.dashboard.compliant', { defaultValue: 'Conformes' }), value: metrics.compliant, icon: CheckCircle2, bgClass: 'bg-success-bg', iconClass: 'text-success', gradient: 'from-success to-success/80' }
   ].map((item, idx) => (
   <button
   key={idx || 'unknown'}
@@ -232,8 +236,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
   className={`glass-premium p-4 rounded-4xl flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 group ${item.onClick ? 'cursor-pointer' : ''}`}
   disabled={!item.onClick}
   >
-  <div className={`p-2.5 bg-${item.color}-500/10 rounded-3xl mb-3 group-hover:scale-110 transition-transform`}>
-  <item.icon className={`h-4 w-4 text-${item.color}-500`} />
+  <div className={`p-2.5 ${item.bgClass} rounded-3xl mb-3 group-hover:scale-110 transition-transform`}>
+  <item.icon className={`h-4 w-4 ${item.iconClass}`} />
   </div>
   <span className={`text-2xl font-black bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent mb-1`}>
   {item.value}
@@ -250,8 +254,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
  <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
   <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-3xl" />
   <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-  <div className="p-2 bg-orange-500/10 rounded-3xl">
-  <AlertTriangle className="w-4 h-4 text-orange-500" />
+  <div className="p-2 bg-warning-bg rounded-3xl">
+  <AlertTriangle className="w-4 h-4 text-warning" />
   </div>
   {t('suppliers.dashboard.criticalityDistribution', { defaultValue: 'Distribution par Criticité' })}
   </h4>
@@ -259,7 +263,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
   {criticalityData.length === 0 ? (
   <EmptyChartState variant="pie" message={t('suppliers.dashboard.noData', { defaultValue: 'Aucune donnée' })} description={t('suppliers.dashboard.noDataCriticality', { defaultValue: 'Ajoutez des fournisseurs pour voir la répartition par criticité.' })} />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
    <defs>
    {criticalityData.map((entry, idx) => (
@@ -314,7 +318,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
   {categoryData.length === 0 ? (
   <EmptyChartState variant="bar" message={t('suppliers.dashboard.noCategory', { defaultValue: 'Aucune catégorie' })} description={t('suppliers.dashboard.noCategoryDescription', { defaultValue: "Les catégories s'afficheront ici." })} />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <BarChart data={categoryData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border) / 0.3)" />
    <XAxis
@@ -345,13 +349,13 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
  <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
   <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-3xl" />
   <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-  <div className="p-2 bg-emerald-500/10 rounded-3xl">
-  <TrendingUp className="w-4 h-4 text-emerald-500" />
+  <div className="p-2 bg-success/10 rounded-3xl">
+  <TrendingUp className="w-4 h-4 text-success" />
   </div>
   {t('suppliers.dashboard.scoreDistribution', { defaultValue: 'Distribution des Scores' })}
   </h4>
   <div className="h-[280px]">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <BarChart data={scoreDistribution} layout="vertical" margin={{ top: 10, right: 30, left: 40, bottom: 10 }}>
   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border) / 0.3)" />
   <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
@@ -371,8 +375,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
  <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-3xl relative overflow-hidden hover:shadow-apple-lg transition-all duration-300">
   <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none rounded-3xl" />
   <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-  <div className="p-2 bg-amber-50 rounded-3xl">
-  <Star className="w-4 h-4 text-amber-500" />
+  <div className="p-2 bg-warning-bg rounded-3xl">
+  <Star className="w-4 h-4 text-warning" />
   </div>
   {t('suppliers.dashboard.top5Suppliers', { defaultValue: 'Top 5 Fournisseurs' })}
   </h4>
@@ -388,11 +392,11 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
    initial={{ opacity: 0, x: -20 }}
    animate={{ opacity: 1, x: 0 }}
    transition={{ delay: index * 0.1 }}
-   className="flex items-center gap-4 p-3 bg-white/50 dark:bg-white/5 rounded-2xl hover:bg-white/80 dark:hover:bg-white/10 transition-all group cursor-pointer"
+   className="flex items-center gap-4 p-3 bg-white/50 dark:bg-white/5 rounded-2xl hover:bg-white/80 dark:hover:bg-muted transition-all group cursor-pointer"
   >
-   <div className={`w-8 h-8 rounded-3xl flex items-center justify-center text-xs font-black text-white ${index === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600' :
-   index === 1 ? 'bg-gradient-to-br from-muted-foreground/30 to-muted/500' :
-   index === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600' :
+   <div className={`w-8 h-8 rounded-3xl flex items-center justify-center text-xs font-black text-white ${index === 0 ? 'bg-gradient-to-br from-warning to-warning/80' :
+   index === 1 ? 'bg-gradient-to-br from-muted-foreground/50 to-muted-foreground/30' :
+   index === 2 ? 'bg-gradient-to-br from-warning/80 to-warning/60' :
    'bg-gradient-to-br from-primary/80 to-primary'
    }`}>
    #{index + 1}
@@ -404,9 +408,9 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
    <div className="text-xs text-muted-foreground truncate">{supplier.category}</div>
    </div>
    <div className="flex items-center gap-2">
-   <div className={`px-2.5 py-1 rounded-lg text-xs font-black ${(supplier.securityScore || 0) >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-   (supplier.securityScore || 0) >= 50 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-   'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+   <div className={`px-2.5 py-1 rounded-lg text-xs font-black ${(supplier.securityScore || 0) >= 80 ? 'bg-success-bg text-success-text' :
+   (supplier.securityScore || 0) >= 50 ? 'bg-warning-bg text-warning-text' :
+   'bg-error-bg text-error-text'
    }`}>
    {supplier.securityScore}
    </div>

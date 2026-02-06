@@ -39,7 +39,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
  return (
  // eslint-disable-next-line jsx-a11y/no-static-element-interactions
  <div
- className="w-full h-full bg-slate-950 rounded-3xl overflow-hidden relative isolate group"
+ className="w-full h-full bg-background rounded-3xl overflow-hidden relative isolate group"
  onMouseLeave={() => setTooltip(null)}
  >
  {/* Cyber Grid Background Effect */}
@@ -139,7 +139,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
     {/* Active Threats List */}
     {topThreats.length > 0 && (
     <div className="space-y-2">
-     <div className="text-[11px] uppercase text-muted-foreground font-bold tracking-wider border-l-2 border-slate-700 pl-2">
+     <div className="text-[11px] uppercase text-muted-foreground font-bold tracking-wider border-l-2 border-border pl-2">
      Latest Intelligence
      </div>
      <div className="space-y-1.5">
@@ -252,7 +252,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
    zIndex: 9999,
    pointerEvents: 'none'
   }}
-  className="bg-slate-900/95 backdrop-blur-xl border border-border/40 p-3 rounded-3xl shadow-2xl min-w-[150px]"
+  className="bg-card/95 backdrop-blur-xl border border-border/40 p-3 rounded-3xl shadow-2xl min-w-[150px]"
   >
   {tooltipContent.content}
   </motion.div>
@@ -264,8 +264,8 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
 
  {/* Legend overlay */}
  <div className="absolute bottom-4 left-8 pointer-events-none">
- <div className="flex items-center gap-4 text-[11px] font-mono text-muted-foreground bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/5 shadow-xl">
-  <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-slate-800"></div> SAFE</div>
+ <div className="flex items-center gap-4 text-[11px] font-mono text-muted-foreground bg-card/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/5 shadow-xl">
+  <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-muted"></div> SAFE</div>
   <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500"></div> LOW</div>
   <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-orange-500"></div> MED</div>
   <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div> CRIT</div>

@@ -363,7 +363,7 @@ export const Reports: React.FC = () => {
    </p>
    <div className="flex gap-2">
    <Button
-   className="flex-1 justify-center group-hover:bg-primary/90 group-hover:text-white dark:group-hover:text-white transition-colors"
+   className="flex-1 justify-center group-hover:bg-primary/90 group-hover:text-foreground dark:group-hover:text-foreground transition-colors"
    variant="outline"
    onClick={() => generatePDF('iso27001', t('reports.templateCards.iso27001.title'))}
    >
@@ -402,7 +402,7 @@ export const Reports: React.FC = () => {
    </p>
    <div className="flex gap-2">
    <Button
-   className="flex-1 justify-center group-hover:bg-primary/90 group-hover:text-white dark:group-hover:text-white transition-colors"
+   className="flex-1 justify-center group-hover:bg-primary/90 group-hover:text-foreground dark:group-hover:text-foreground transition-colors"
    variant="outline"
    onClick={() => generatePDF('gdpr', t('reports.templateCards.gdpr.title'))}
    >
@@ -448,7 +448,7 @@ export const Reports: React.FC = () => {
    </p>
    <div className="flex gap-2">
    <Button
-   className="flex-1 justify-center group-hover:bg-violet-600 group-hover:text-white dark:group-hover:text-white transition-colors"
+   className="flex-1 justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
    variant="outline"
    onClick={() => setShowConfigModal(true)}
    >
@@ -485,7 +485,7 @@ export const Reports: React.FC = () => {
   </div>
   <h3 className="font-bold text-foreground mb-1 truncate" title={doc.title}>{doc.title}</h3>
   <p className="text-xs text-muted-foreground mb-4">v{doc.version} • {new Date(doc.createdAt).toLocaleDateString()}</p>
-  <Button size="sm" variant="ghost" className="w-full justify-between group-hover:bg-muted dark:group-hover:bg-slate-800">
+  <Button size="sm" variant="ghost" className="w-full justify-between group-hover:bg-muted">
    {t('common.download')} <Archive className="h-4 w-4" />
   </Button>
   </div>
@@ -597,7 +597,7 @@ export const Reports: React.FC = () => {
    <Button
    size="sm"
    variant="outline"
-   className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
+   className="text-destructive hover:text-destructive hover:bg-error-bg"
    onClick={() => setDeleteConfirm({ isOpen: true, reportId: report.id })}
    >
    <Trash2 className="h-4 w-4" />

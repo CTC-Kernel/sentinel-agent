@@ -169,7 +169,7 @@ export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onCl
    {generatedLink}
    </p>
   </div>
-  <Button size="sm" onClick={copyLink} className="shrink-0 bg-slate-900 text-white hover:bg-slate-800 dark:bg-white gap-2">
+  <Button size="sm" onClick={copyLink} className="shrink-0 bg-card text-white hover:bg-muted dark:bg-white gap-2">
    {copied ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
    {copied ? t('common.copied', { defaultValue: 'Copié !' }) : t('common.copy', { defaultValue: 'Copier' })}
   </Button>

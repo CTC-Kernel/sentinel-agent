@@ -162,7 +162,7 @@ const RiskDistribution: React.FC<{
 
  const levels: { key: RiskLevel; label: string; color: string }[] = [
  { key: 'critical', label: ti('software.risk.critical', { defaultValue: 'Critique' }), color: 'bg-destructive' },
- { key: 'high', label: ti('software.risk.high', { defaultValue: 'Élevé' }), color: 'bg-orange-500' },
+ { key: 'high', label: ti('software.risk.high', { defaultValue: 'Élevé' }), color: 'bg-warning' },
  { key: 'medium', label: ti('software.risk.medium', { defaultValue: 'Moyen' }), color: 'bg-warning' },
  { key: 'low', label: ti('software.risk.low', { defaultValue: 'Faible' }), color: 'bg-success' },
  { key: 'none', label: ti('software.risk.none', { defaultValue: 'Aucun' }), color: 'bg-muted' },
@@ -843,8 +843,8 @@ export const SoftwareInventory: React.FC = () => {
    </p>
    <p className="text-xs text-muted-foreground">{t('software.vuln.critical', { defaultValue: 'Critique' })}</p>
    </div>
-   <div className="p-3 rounded-lg bg-orange-500/10 text-center">
-   <p className="text-2xl font-bold text-orange-500">
+   <div className="p-3 rounded-lg bg-warning/10 text-center">
+   <p className="text-2xl font-bold text-warning">
    {selectedSoftware.vulnerabilitySummary.high}
    </p>
    <p className="text-xs text-muted-foreground">{t('software.vuln.high', { defaultValue: 'Élevé' })}</p>

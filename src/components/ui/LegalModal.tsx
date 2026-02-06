@@ -39,7 +39,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
   <button
   aria-label="Fermer la fenêtre"
   onClick={onClose}
-  className="p-2.5 text-muted-foreground hover:text-muted-foreground hover:bg-muted dark:hover:bg-white/10 rounded-3xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="p-2.5 text-muted-foreground hover:text-muted-foreground hover:bg-muted dark:hover:bg-muted rounded-3xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   <X className="h-6 w-6" />
   </button>

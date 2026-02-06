@@ -108,14 +108,14 @@ const ReplyItem: React.FC<{
  initial={{ opacity: 0, y: 10 }}
  animate={{ opacity: 1, y: 0 }}
  exit={{ opacity: 0, y: -10 }}
- className="group px-4 py-3 hover:bg-slate-800/30 transition-colors"
+ className="group px-4 py-3 hover:bg-muted/30 transition-colors"
  onMouseEnter={() => setShowActions(true)}
  onMouseLeave={() => setShowActions(false)}
  >
  <div className="flex items-start gap-3">
  {/* Avatar */}
  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/80 to-violet-500 flex items-center justify-center flex-shrink-0">
- <span className="text-xs font-bold text-white">
+ <span className="text-xs font-bold text-foreground">
  {reply.author.displayName.charAt(0).toUpperCase()}
  </span>
  </div>
@@ -123,7 +123,7 @@ const ReplyItem: React.FC<{
  {/* Content */}
  <div className="flex-1 min-w-0">
  <div className="flex items-center gap-2 mb-1">
- <span className="text-sm font-medium text-white">
+ <span className="text-sm font-medium text-foreground">
  {reply.author.displayName}
  </span>
  <span className="text-xs text-muted-foreground">
@@ -158,7 +158,7 @@ const ReplyItem: React.FC<{
  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-70 transition-opacity">
  <button
  onClick={() => onEdit(reply)}
- className="p-1.5 rounded-lg hover:bg-slate-700/50 text-muted-foreground hover:text-white transition-colors"
+ className="p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
  title="Modifier"
  >
  <Edit2 className="w-3.5 h-3.5" />
@@ -222,13 +222,13 @@ const ReplyForm: React.FC<{
  };
 
  return (
- <div className="p-4 border-t border-slate-700/50 bg-slate-800/30">
+ <div className="p-4 border-t border-border/50 bg-muted/30">
  {editingReply && (
  <div className="flex items-center justify-between mb-2 px-2">
  <span className="text-xs text-amber-400">Modification en cours</span>
  <button
  onClick={onCancelEdit}
- className="text-xs text-muted-foreground hover:text-white"
+ className="text-xs text-muted-foreground hover:text-foreground"
  >
  Annuler
  </button>
@@ -242,7 +242,7 @@ const ReplyForm: React.FC<{
  onKeyDown={handleKeyDown}
  placeholder="Écrivez une réponse... (Cmd+Enter pour envoyer)"
  rows={2}
- className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-3xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent resize-none text-sm"
+ className="w-full px-4 py-3 bg-card/50 border border-border rounded-3xl text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent resize-none text-sm"
  />
  </div>
  <button
@@ -250,7 +250,7 @@ const ReplyForm: React.FC<{
  disabled={!content.trim() || isSubmitting}
  className={`p-3 rounded-3xl transition-all ${content.trim() && !isSubmitting
  ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25'
- : 'bg-slate-700/50 text-muted-foreground cursor-not-allowed'
+ : 'bg-muted/50 text-muted-foreground cursor-not-allowed'
  }`}
  >
  {isSubmitting ? (
@@ -409,7 +409,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
  className="fixed right-4 top-20 bottom-4 w-[400px] z-sidebar flex flex-col glass-premium rounded-3xl shadow-apple-xl overflow-hidden border border-border/40"
  >
  {/* Header */}
- <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-slate-800/80 to-slate-900/80 border-b border-slate-700/50">
+ <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-muted/80 to-card/80 border-b border-border/50">
  <div className="flex items-center gap-3">
  <div
  className="p-2 rounded-3xl"
@@ -420,7 +420,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
  </span>
  </div>
  <div>
- <h3 className="text-sm font-semibold text-white">
+ <h3 className="text-sm font-semibold text-foreground">
  {ANNOTATION_TYPE_LABELS[annotation.type]}
  </h3>
  {isIssue && (
@@ -442,16 +442,16 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
  <div className="relative">
  <button
  onClick={() => setShowActions(!showActions)}
- className="p-2 rounded-3xl hover:bg-slate-700/50 text-muted-foreground transition-colors"
+ className="p-2 rounded-3xl hover:bg-muted/50 text-muted-foreground transition-colors"
  >
  <MoreHorizontal className="w-4 h-4" />
  </button>
 
  {showActions && (
- <div className="absolute right-0 top-full mt-2 w-48 py-2 bg-slate-800 rounded-3xl shadow-xl border border-slate-700/50 z-10">
+ <div className="absolute right-0 top-full mt-2 w-48 py-2 bg-muted rounded-3xl shadow-xl border border-border/50 z-10">
   <button
   onClick={handleTogglePin}
-  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-muted-foreground hover:bg-slate-700/50"
+  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-muted-foreground hover:bg-muted/50"
   >
   {annotation.isPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
   {annotation.isPinned ? t('voxel.annotations.unpin', { defaultValue: 'Désépingler' }) : t('voxel.annotations.pin', { defaultValue: 'Épingler' })}
@@ -464,7 +464,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
   setShowActions(false);
   onEditAnnotation?.(annotation);
   }}
-  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-muted-foreground hover:bg-slate-700/50"
+  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-muted-foreground hover:bg-muted/50"
   >
   <Edit2 className="w-4 h-4" />
   {t('common.edit', { defaultValue: 'Modifier' })}
@@ -488,7 +488,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
 
  <button
  onClick={onClose}
- className="p-2 rounded-3xl hover:bg-slate-700/50 text-muted-foreground transition-colors"
+ className="p-2 rounded-3xl hover:bg-muted/50 text-muted-foreground transition-colors"
  >
  <X className="w-4 h-4" />
  </button>
@@ -498,16 +498,16 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
  {/* Main content area */}
  <div className="flex-1 overflow-y-auto">
  {/* Annotation content */}
- <div className="p-5 border-b border-slate-700/50">
+ <div className="p-5 border-b border-border/50">
  {/* Author info */}
  <div className="flex items-center gap-3 mb-4">
  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/80 to-violet-500 flex items-center justify-center">
- <span className="text-sm font-bold text-white">
+ <span className="text-sm font-bold text-foreground">
   {annotation.author.displayName.charAt(0).toUpperCase()}
  </span>
  </div>
  <div>
- <span className="text-sm font-medium text-white">
+ <span className="text-sm font-medium text-foreground">
   {annotation.author.displayName}
  </span>
  <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -596,7 +596,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
  {/* Replies header */}
  <button
  onClick={() => setIsExpanded(!isExpanded)}
- className="w-full flex items-center justify-between px-5 py-3 hover:bg-slate-800/30 transition-colors"
+ className="w-full flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors"
  >
  <div className="flex items-center gap-2 text-sm text-muted-foreground">
  <MessageSquare className="w-4 h-4" />

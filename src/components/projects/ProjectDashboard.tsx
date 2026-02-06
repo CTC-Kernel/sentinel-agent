@@ -161,7 +161,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
   <div className="flex items-center gap-6">
   <div className="relative">
   <div className="h-[120px] w-[120px]">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
    <RadialBarChart cx="50%" cy="50%" innerRadius="65%" outerRadius="100%" barSize={10} data={healthGaugeData} startAngle={180} endAngle={0}>
    <RadialBar background={{ fill: 'hsl(var(--muted) / 0.3)' }} dataKey="value" cornerRadius={10} style={{ filter: 'url(#projectGlow)' }} />
    </RadialBarChart>
@@ -218,7 +218,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
   <div className="flex flex-col gap-3 min-w-[180px]">
   <motion.div
   whileHover={{ scale: 1.02 }}
-  className={`flex items-center gap-3 text-sm px-4 py-3 rounded-3xl border ${projectHealth.onSchedule ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30' : 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30'}`}
+  className={`flex items-center gap-3 text-sm px-4 py-3 rounded-3xl border ${projectHealth.onSchedule ? 'text-success-text bg-success-bg border-success-border' : 'text-warning-text bg-warning-bg border-warning-border'}`}
   >
   {projectHealth.onSchedule ? <TrendingUp className="h-4 w-4 shrink-0" /> : <TrendingDown className="h-4 w-4 shrink-0" />}
   <span className="font-bold">{projectHealth.onSchedule ? 'Planning OK' : 'Retard Planning'}</span>
@@ -227,7 +227,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
   {relatedRisks.filter(r => r.score >= RISK_LEVELS.HIGH.min).length > 0 && (
   <motion.div
   whileHover={{ scale: 1.02 }}
-  className="flex items-center gap-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-4 py-3 rounded-3xl border border-red-100 dark:border-red-800/30"
+  className="flex items-center gap-3 text-sm text-error-text bg-error-bg px-4 py-3 rounded-3xl border border-error-border"
   >
   <AlertTriangle className="h-4 w-4 shrink-0" />
   <span className="font-bold">{relatedRisks.filter(r => r.score >= RISK_LEVELS.HIGH.min).length} Risques Élevés+</span>
@@ -257,7 +257,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
   {(!project.tasks || project.tasks.length === 0) ? (
   <EmptyChartState variant="pie" message="Aucune tâche" description="Ajoutez des tâches au projet pour voir la distribution." />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <PieChart>
    <defs>
    {taskDistribution.map((entry, idx) => (
@@ -317,7 +317,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
   {(!project.tasks || project.tasks.length === 0) ? (
   <EmptyChartState variant="bar" message="Priorités non définies" description="Les priorités s'afficheront une fois les tâches créées." />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <BarChart data={tasksByPriority} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.3)" vertical={false} />
    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11, fontWeight: 600 }} dy={10} />

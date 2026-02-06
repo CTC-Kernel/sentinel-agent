@@ -94,7 +94,7 @@ export const AdminDashboard: React.FC = () => {
  return (
  <div className="flex items-center justify-center h-screen">
  <div className="text-center">
-  <ShieldAlert className="h-16 w-16 text-red-500 mx-auto mb-4" />
+  <ShieldAlert className="h-16 w-16 text-destructive mx-auto mb-4" />
   <h1 className="text-2xl font-bold text-foreground">{t('admin.accessDenied')}</h1>
   <p className="text-muted-foreground mt-2">{t('admin.accessDeniedDesc')}</p>
  </div>
@@ -130,7 +130,7 @@ export const AdminDashboard: React.FC = () => {
  <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
  <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/10">
   <div className="flex items-center gap-4">
-  <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-700 dark:text-blue-400">
+  <div className="p-3 bg-info-bg rounded-xl text-info-text">
   <Building className="h-6 w-6" />
   </div>
   <div>
@@ -141,7 +141,7 @@ export const AdminDashboard: React.FC = () => {
  </div>
  <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/10">
   <div className="flex items-center gap-4">
-  <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-emerald-700 dark:text-emerald-400">
+  <div className="p-3 bg-success-bg rounded-xl text-success-text">
   <Users className="h-6 w-6" />
   </div>
   <div>
@@ -152,7 +152,7 @@ export const AdminDashboard: React.FC = () => {
  </div>
  <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/10">
   <div className="flex items-center gap-4">
-  <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-700 dark:text-purple-400">
+  <div className="p-3 bg-violet-100 dark:bg-violet-500/20 rounded-xl text-violet-600 dark:text-violet-400">
   <Activity className="h-6 w-6" />
   </div>
   <div>
@@ -166,14 +166,14 @@ export const AdminDashboard: React.FC = () => {
  {/* Tenants Table */}
  <motion.div variants={slideUpVariants} className="space-y-6">
  {/* Search Bar - Premium Glass Design */}
- <div className="flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl">
+ <div className="flex flex-col md:flex-row gap-4 p-1.5 glass-premium rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl">
   <div className="relative flex-1 min-w-0 group">
   <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
   <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
   aria-label={t('admin.orgs.searchPlaceholder')}
   type="text"
   placeholder={t('admin.orgs.searchPlaceholder')}
-  className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus:ring-0 text-sm font-medium text-foreground placeholder-slate-400 transition-all"
+  className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus:ring-0 text-sm font-medium text-foreground placeholder:text-muted-foreground transition-all"
   />
   </div>
  </div>
@@ -194,11 +194,11 @@ export const AdminDashboard: React.FC = () => {
   </thead>
   <tbody className="divide-y divide-border dark:divide-white/5">
   {filteredOrgs.map(org => (
-   <tr key={org.id || 'unknown'} className="hover:bg-muted/50/80 dark:hover:bg-white/5 text-foreground transition-colors group">
+   <tr key={org.id || 'unknown'} className="hover:bg-muted/50/80 dark:hover:bg-muted/50 text-foreground transition-colors group">
    <td className="px-6 py-4 text-sm font-bold text-foreground">{org.name}</td>
    <td className="px-6 py-4">
    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border ${org.planId === 'enterprise' ? 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30' :
-   org.planId === 'professional' ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/30' :
+   org.planId === 'professional' ? 'bg-info-bg text-info-text border-info-border' :
     'bg-muted/50 text-muted-foreground border-border'
    } `}>
    {org.planId || 'discovery'}

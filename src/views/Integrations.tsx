@@ -174,7 +174,7 @@ export const Integrations: React.FC = () => {
   onClick={() => setActiveTab('providers')}
   className={`relative z-10 px-8 py-2.5 h-auto text-sm font-bold rounded-xl transition-colors duration-300 hover:bg-transparent ${activeTab === 'providers'
   ? 'text-foreground'
-  : 'text-muted-foreground hover:text-foreground dark:hover:text-white'
+  : 'text-muted-foreground hover:text-foreground dark:hover:text-foreground'
   }`}
   >
   {t('integrations.tabs.providers')}
@@ -185,7 +185,7 @@ export const Integrations: React.FC = () => {
   onClick={() => setActiveTab('jobs')}
   className={`relative z-10 px-8 py-2.5 h-auto text-sm font-bold rounded-xl transition-colors duration-300 hover:bg-transparent ${activeTab === 'jobs'
   ? 'text-foreground'
-  : 'text-muted-foreground hover:text-foreground dark:hover:text-white'
+  : 'text-muted-foreground hover:text-foreground dark:hover:text-foreground'
   }`}
   >
   {t('integrations.tabs.jobs')}
@@ -196,14 +196,14 @@ export const Integrations: React.FC = () => {
  {activeTab === 'providers' ? (
  <>
   {/* Filters & Search - Premium Glass Design */}
-  <div className="flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl mb-8">
+  <div className="flex flex-col md:flex-row gap-4 p-1.5 glass-premium rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl mb-8">
   <div className="relative flex-1 min-w-0 group">
   <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
   <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
   aria-label={t('integrations.searchPlaceholder')}
   type="text"
   placeholder={t('integrations.searchPlaceholder')}
-  className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus:ring-0 text-sm font-medium text-foreground placeholder-slate-500 dark:placeholder-slate-400"
+  className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus:ring-0 text-sm font-medium text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground"
   />
   </div>
   <div className="flex gap-1 overflow-x-auto no-scrollbar items-center pr-1.5 pl-1.5 border-l border-border/50 dark:border-white/5">
@@ -220,7 +220,7 @@ export const Integrations: React.FC = () => {
    onClick={() => setCategoryFilter(cat.id)}
    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 ${categoryFilter === cat.id
    ? 'bg-foreground text-background shadow-lg shadow-slate-900/20 dark:shadow-white/20'
-   : 'text-muted-foreground hover:bg-muted hover:text-foreground dark:hover:text-white'
+   : 'text-muted-foreground hover:bg-muted hover:text-foreground dark:hover:text-foreground'
    }`}
   >
    <cat.icon className="h-3.5 w-3.5 mr-2" />
@@ -299,7 +299,7 @@ export const Integrations: React.FC = () => {
    variant="outline"
    aria-label={t('integrations.apiKeyModal.cancel') || t('common.cancel')}
    onClick={() => setApiKeyModalOpen(false)}
-   className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors"
+   className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground dark:hover:text-foreground transition-colors"
   >
    {t('common.cancel')}
   </Button>
@@ -308,7 +308,7 @@ export const Integrations: React.FC = () => {
    onClick={confirmConnect}
    disabled={isSubmittingKey || !apiKey.trim()}
    isLoading={isSubmittingKey}
-   className="px-4 py-2 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg shadow-lg shadow-primary/25 transition-all disabled:bg-muted disabled:text-muted-foreground disabled:border-border disabled:cursor-not-allowed dark:disabled:border-slate-600 flex items-center gap-2"
+   className="px-4 py-2 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg shadow-lg shadow-primary/25 transition-all disabled:bg-muted disabled:text-muted-foreground disabled:border-border disabled:cursor-not-allowed disabled:border-muted flex items-center gap-2"
   >
    {!isSubmittingKey && t('integrations.apiKeyModal.connectButton')}
    {isSubmittingKey && t('integrations.apiKeyModal.connecting')}

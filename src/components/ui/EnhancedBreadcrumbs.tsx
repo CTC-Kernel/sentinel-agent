@@ -46,7 +46,7 @@ export const EnhancedBreadcrumbs: React.FC<EnhancedBreadcrumbsProps> = ({
   "flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200",
   isActive
   ? "bg-primary text-primary-foreground font-medium"
-  : "text-muted-foreground hover:text-foreground dark:hover:text-white hover:bg-muted"
+  : "text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-muted"
   )}
   >
   {item.icon || (index === 0 && <Home className="w-4 h-4" />)}

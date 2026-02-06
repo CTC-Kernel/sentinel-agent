@@ -58,7 +58,7 @@ export const NotFound: React.FC = () => {
   <Button
   variant="ghost"
   onClick={() => setShowFeedback(true)}
-  className="w-full text-base py-4 rounded-xl font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all"
+  className="w-full text-base py-4 rounded-xl font-medium text-destructive hover:bg-error-bg transition-all"
   >
   {t('notFound.report')}
   </Button>

@@ -180,7 +180,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onCopy, copie
  <div className={cn(
   "p-4 rounded-2xl text-sm leading-relaxed shadow-sm relative group-hover:shadow-md transition-shadow",
   message.role === 'user'
-  ? "bg-slate-900 dark:bg-primary text-primary-foreground rounded-tr-none shadow-primary/25"
+  ? "bg-primary text-primary-foreground rounded-tr-none shadow-primary/25"
   : cn("bg-card border border-border/40/50 text-foreground rounded-tl-none", message.isError && "border-error/30 bg-error/5 text-error dark:bg-error/10 dark:text-error dark:border-error/30")
  )}>
   {message.role === 'assistant' ? (

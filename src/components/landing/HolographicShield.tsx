@@ -13,7 +13,7 @@ export const HolographicShield = () => {
  <div className="absolute inset-20 rounded-full bg-primary/30 dark:bg-primary/60/20 blur-3xl animate-pulse"></div>
 
  {/* Center Emblem */}
- <div className="relative z-10 p-8 rounded-full bg-slate-900/50 backdrop-blur-md border border-primary/40 shadow-[0_0_50px_rgba(59,130,246,0.3)] animate-float">
+ <div className="relative z-10 p-8 rounded-full bg-card/50 backdrop-blur-md border border-primary/40 shadow-[0_0_50px_rgba(59,130,246,0.3)] animate-float">
  <Shield className="w-24 h-24 text-primary drop-shadow-[0_0_15px_rgba(59,130,246,0.8)]" />
  </div>
 

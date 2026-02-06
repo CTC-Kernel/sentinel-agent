@@ -42,7 +42,7 @@ export const KioskPage: React.FC = () => {
   </p>
   <button
   onClick={() => window.location.reload()}
-  className="px-8 py-3 bg-muted dark:bg-white/10 text-foreground rounded-3xl font-bold text-sm hover:bg-muted dark:hover:bg-white/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="px-8 py-3 bg-muted dark:bg-white/10 text-foreground rounded-3xl font-bold text-sm hover:bg-muted dark:hover:bg-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   Enregistrer un autre appareil
   </button>
@@ -62,7 +62,7 @@ export const KioskPage: React.FC = () => {
  {/* Header */}
  <header className="relative z-10 px-6 py-6 flex items-center justify-between">
  <div className="flex items-center gap-3">
-  <div className="w-10 h-10 bg-slate-900 dark:bg-white rounded-3xl flex items-center justify-center shadow-lg">
+  <div className="w-10 h-10 bg-card dark:bg-white rounded-3xl flex items-center justify-center shadow-lg">
   <ShieldCheck className="h-6 w-6 text-white " />
   </div>
   <div>

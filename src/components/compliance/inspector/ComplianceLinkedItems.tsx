@@ -150,7 +150,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
   </div>
   <div className="space-y-2">
   {safeRisks.filter(r => r.mitigationControlIds?.includes(control.id)).map(risk => (
-  <div key={risk.id || 'unknown'} className="p-2 bg-white/60 dark:bg-black/20 rounded-lg text-xs border border-red-100 dark:border-red-900/30">
+  <div key={risk.id || 'unknown'} className="p-2 bg-white/60 dark:bg-white/5 rounded-lg text-xs border border-red-100 dark:border-red-900/30">
   <div className="font-bold truncate">{risk.threat}</div>
   <div className="text-muted-foreground">{t('compliance.grossRisk', { defaultValue: 'Risque brut' })}: {risk.score}</div>
   </div>
@@ -165,7 +165,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
   </div>
   <div className="space-y-2">
   {safeFindings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').map(finding => (
-  <div key={finding.id || 'unknown'} className="p-2 bg-white/60 dark:bg-black/20 rounded-lg text-xs border border-yellow-100 dark:border-yellow-900/30">
+  <div key={finding.id || 'unknown'} className="p-2 bg-white/60 dark:bg-white/5 rounded-lg text-xs border border-yellow-100 dark:border-yellow-900/30">
   <div className="font-bold truncate">{finding.description}</div>
   <div className="text-muted-foreground">{t('compliance.type', { defaultValue: 'Type' })}: {finding.type}</div>
   </div>

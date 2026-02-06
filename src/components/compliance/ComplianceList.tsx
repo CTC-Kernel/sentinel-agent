@@ -196,7 +196,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
   tabIndex={0}
   aria-expanded={!!isExpanded}
   aria-label={t('compliance.toggleDomain', { defaultValue: `${domain.id} - ${domain.title}` })}
-  className={`p-4 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isExpanded ? 'bg-muted/50/80 dark:bg-white/5' : 'hover:bg-muted/50 dark:hover:bg-white/5'}`}
+  className={`p-4 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isExpanded ? 'bg-muted/50/80 dark:bg-white/5' : 'hover:bg-muted/50 dark:hover:bg-muted/50'}`}
   >
   <div className="flex items-center gap-5 flex-1 min-w-0">
   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border shrink-0 shadow-sm shadow-black/5 transition-all group-hover:scale-110 ${fwStyles.bg} ${fwStyles.accent} ${fwStyles.border}`}>
@@ -217,7 +217,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
    <div className={`h-full rounded-full transition-all duration-700 ease-in-out ${stats.progress === 100 ? 'bg-success-text shadow-glow shadow-success-text/20' : `${fwStyles.progress} shadow-glow`}`} style={{ width: `${stats.progress}%` }}></div>
    </div>
   </div>
-  <div className={`p-2 rounded-3xl transition-all duration-500 shrink-0 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-apple-sm rotate-180 text-foreground ring-1 ring-black/5' : 'text-muted-foreground group-hover:text-muted-foreground group-hover:bg-muted dark:group-hover:bg-white/5'}`}>
+  <div className={`p-2 rounded-3xl transition-all duration-500 shrink-0 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-apple-sm rotate-180 text-foreground ring-1 ring-black/5' : 'text-muted-foreground group-hover:text-muted-foreground group-hover:bg-muted dark:group-hover:bg-muted/50'}`}>
    <ChevronDown className="h-5 w-5" />
   </div>
   </div>

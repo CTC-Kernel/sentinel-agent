@@ -114,18 +114,23 @@ export function useDraftMode<
  const { locale } = useLocale();
 
  // Create resolver based on current mode
+ // Note: Type assertion is necessary due to known incompatibility between
+ // @hookform/resolvers/zod generic types and Zod's ZodSchema generic.
+ // The zodResolver expects ZodType<TFieldValues, ZodTypeDef, TFieldValues>
+ // but our generic TFullSchema/TDraftSchema extends ZodSchema which has different variance.
  const resolver = useMemo(() => {
  const errorMap = createLocalizedErrorMap(locale);
  const schema = isDraft ? draftSchema : fullSchema;
- // eslint-disable-next-line @typescript-eslint/no-explicit-any
- return zodResolver(schema as any, { errorMap } as any);
+ return zodResolver(
+  schema as z.ZodType<z.infer<TFullSchema> & FieldValues>,
+  { errorMap }
+ );
  }, [isDraft, draftSchema, fullSchema, locale]);
 
  // Initialize form with current resolver
  const form = useForm<z.infer<TFullSchema> & FieldValues>({
  ...formOptions,
- // eslint-disable-next-line @typescript-eslint/no-explicit-any
- resolver: resolver as any,
+ resolver,
  });
 
  // Get the appropriate draft status value

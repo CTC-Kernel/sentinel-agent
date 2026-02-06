@@ -153,7 +153,7 @@ const VRNodeInfoPanel: React.FC<{ node: VoxelNode; onClose?: () => void }> = ({ 
  position={[node.position.x, node.position.y + 2, node.position.z]}
  style={{ pointerEvents: 'auto' }}
  >
- <div className="bg-slate-900/95 backdrop-blur-md border border-white/20 rounded-3xl p-4 min-w-[250px] max-w-[350px] shadow-2xl">
+ <div className="bg-card/95 backdrop-blur-md border border-border rounded-3xl p-4 min-w-[250px] max-w-[350px] shadow-2xl">
  {/* Header */}
  <div className="flex items-center justify-between mb-3">
  <div className="flex items-center gap-2">
@@ -171,7 +171,7 @@ const VRNodeInfoPanel: React.FC<{ node: VoxelNode; onClose?: () => void }> = ({ 
  {onClose && (
  <button
  onClick={onClose}
- className="text-muted-foreground hover:text-white transition-colors"
+ className="text-muted-foreground hover:text-foreground transition-colors"
  >
  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
  <path d="M18 6L6 18M6 6l12 12" />
@@ -220,9 +220,9 @@ const VRNodeInfoPanel: React.FC<{ node: VoxelNode; onClose?: () => void }> = ({ 
 
 const LoadingFallback: React.FC = () => (
  <Html center>
- <div className="flex items-center gap-3 bg-slate-900/90 backdrop-blur-md border border-border/40 rounded-lg px-4 py-3">
+ <div className="flex items-center gap-3 bg-card/90 backdrop-blur-md border border-border/40 rounded-lg px-4 py-3">
  <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
- <span className="text-white text-sm">Loading VR Scene...</span>
+ <span className="text-foreground text-sm">Loading VR Scene...</span>
  </div>
  </Html>
 );

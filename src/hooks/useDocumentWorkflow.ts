@@ -1,3 +1,13 @@
+/**
+ * useDocumentWorkflow - Basic document workflow hook
+ *
+ * Provides simple workflow operations (submit, approve, reject, publish).
+ * For advanced features like signatures and PDF watermarks, use
+ * `useDocumentWorkflowAdvanced` from './documents/useDocumentWorkflow'.
+ *
+ * @example
+ * const { submitForReview, approveDocument, loading } = useDocumentWorkflow();
+ */
 import { useState } from 'react';
 import { Document } from '../types';
 import { DocumentWorkflowService } from '../services/DocumentWorkflowService';

@@ -43,20 +43,20 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
   {currentDate.toLocaleString(config.intlLocale, { month: 'long', year: 'numeric' })}
   </h2>
   <div className="flex gap-1 bg-muted rounded-lg p-1">
-  <button onClick={prevMonth} aria-label={t('audits.calendarLabels.prevMonth')} className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><ChevronLeft className="w-5 h-5 text-muted-foreground" /></button>
-  <button onClick={today} className="px-3 py-1 text-xs font-bold text-muted-foreground hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('audits.calendarLabels.today')}</button>
-  <button onClick={nextMonth} aria-label={t('audits.calendarLabels.nextMonth')} className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><ChevronRight className="w-5 h-5 text-muted-foreground" /></button>
+  <button onClick={prevMonth} aria-label={t('audits.calendarLabels.prevMonth')} className="p-1 hover:bg-white dark:hover:bg-muted rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><ChevronLeft className="w-5 h-5 text-muted-foreground" /></button>
+  <button onClick={today} className="px-3 py-1 text-xs font-bold text-muted-foreground hover:bg-white dark:hover:bg-muted rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('audits.calendarLabels.today')}</button>
+  <button onClick={nextMonth} aria-label={t('audits.calendarLabels.nextMonth')} className="p-1 hover:bg-white dark:hover:bg-muted rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><ChevronRight className="w-5 h-5 text-muted-foreground" /></button>
   </div>
  </div>
  <div className="flex items-center gap-4 text-sm text-muted-foreground">
   <div className="flex items-center gap-2">
-  <span className="w-3 h-3 rounded-full bg-blue-500"></span> {t('audits.status.planned')}
+  <span className="w-3 h-3 rounded-full bg-info-text"></span> {t('audits.status.planned')}
   </div>
   <div className="flex items-center gap-2">
-  <span className="w-3 h-3 rounded-full bg-amber-500"></span> {t('audits.status.inProgress')}
+  <span className="w-3 h-3 rounded-full bg-warning"></span> {t('audits.status.inProgress')}
   </div>
   <div className="flex items-center gap-2">
-  <span className="w-3 h-3 rounded-full bg-emerald-500"></span> {t('audits.status.completed')}
+  <span className="w-3 h-3 rounded-full bg-success"></span> {t('audits.status.completed')}
   </div>
  </div>
  </div>
@@ -92,8 +92,8 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
   const isToday = new Date().getDate() === day && new Date().getMonth() === currentDate.getMonth() && new Date().getFullYear() === currentDate.getFullYear();
 
   return (
-  <div key={day || 'unknown'} className={`bg-card/30 p-2 min-h-[120px] relative group hover:bg-muted/50 dark:hover:bg-white/5 transition-colors ${isToday ? 'bg-blue-500 dark:bg-blue-900/30 dark:bg-blue-900' : ''}`}>
-  <span className={`absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full text-sm font-medium ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-muted-foreground'}`}>
+  <div key={day || 'unknown'} className={`bg-card/30 p-2 min-h-[120px] relative group hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors ${isToday ? 'bg-info-bg' : ''}`}>
+  <span className={`absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full text-sm font-medium ${isToday ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30' : 'text-muted-foreground'}`}>
   {day}
   </span>
   <div className="mt-8 space-y-1.5">
@@ -101,9 +101,9 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
    <button
    key={audit.id || 'unknown'}
    onClick={() => onAuditClick(audit)}
-   className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold truncate transition-all hover:scale-[1.02] active:scale-95 shadow-sm border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${audit.status === 'Terminé' ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800' :
-   audit.status === 'En cours' ? 'bg-amber-100 text-amber-800 border-amber-200 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800' :
-   'bg-blue-100 text-blue-800 border-blue-200 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
+   className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold truncate transition-all hover:scale-[1.02] active:scale-95 shadow-sm border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${audit.status === 'Terminé' ? 'bg-success-bg text-success-text border-success-border' :
+   audit.status === 'En cours' ? 'bg-warning-bg text-warning-text border-warning-border' :
+   'bg-info-bg text-info-text border-info-border'
    }`}
    >
    {audit.name}

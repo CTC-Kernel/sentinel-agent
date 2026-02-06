@@ -463,7 +463,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
    "px-3 py-1 rounded-md text-xs font-medium transition-colors",
    filterBy === filter
     ? "bg-primary text-primary-foreground"
-    : "bg-card text-muted-foreground hover:bg-muted dark:hover:bg-slate-600"
+    : "bg-card text-muted-foreground hover:bg-muted dark:hover:bg-muted"
    )}
    >
    {filter === 'all' && 'Tous'}

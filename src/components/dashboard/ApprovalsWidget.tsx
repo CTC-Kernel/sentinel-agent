@@ -52,7 +52,7 @@ export const ApprovalsWidget: React.FC<ApprovalsWidgetProps> = ({ documents }) =
  </div>
  <button
   onClick={() => navigate('/documents')}
-  className="p-2.5 hover:bg-white/50 dark:hover:bg-black/10 rounded-3xl transition-colors text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-warning/50"
+  className="p-2.5 hover:bg-muted/500 dark:hover:bg-black/10 rounded-3xl transition-colors text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-warning/50"
  >
   <ArrowRight className="h-5 w-5" />
  </button>

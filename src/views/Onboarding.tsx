@@ -459,7 +459,7 @@ export const Onboarding: React.FC = () => {
   variant="ghost"
   aria-label={t('onboarding.actions.createOrg')}
   onClick={() => setMode('create')}
-  className="group relative p-6 h-auto rounded-3xl border border-border bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 hover:border-primary dark:hover:border-primary/60 hover:shadow-lg transition-all text-left w-full justify-start whitespace-normal"
+  className="group relative p-6 h-auto rounded-3xl border border-border bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-muted hover:border-primary dark:hover:border-primary/60 hover:shadow-lg transition-all text-left w-full justify-start whitespace-normal"
   >
   <div className="flex items-center gap-4 w-full">
    <div className="w-12 h-12 rounded-2xl bg-primary/15 dark:bg-primary text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -477,7 +477,7 @@ export const Onboarding: React.FC = () => {
   variant="ghost"
   aria-label={t('onboarding.actions.joinOrg')}
   onClick={() => setMode('join')}
-  className="group relative p-6 h-auto rounded-3xl border border-border bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 hover:border-primary dark:hover:border-primary/60 hover:shadow-lg transition-all text-left w-full justify-start whitespace-normal"
+  className="group relative p-6 h-auto rounded-3xl border border-border bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-muted hover:border-primary dark:hover:border-primary/60 hover:shadow-lg transition-all text-left w-full justify-start whitespace-normal"
   >
   <div className="flex items-center gap-4 w-full">
    <div className="w-12 h-12 rounded-2xl bg-primary/15/20 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -544,7 +544,7 @@ export const Onboarding: React.FC = () => {
   ) : (
   // ... sent confirmation
   <div className="text-center py-8">
-   <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4 animate-scale-in">
+   <div className="w-16 h-16 bg-success-bg text-success rounded-full flex items-center justify-center mx-auto mb-4 animate-scale-in">
    <Check className="h-8 w-8" strokeWidth={3} />
    </div>
    <h3 className="text-xl font-bold text-foreground mb-2">{t('onboarding.actions.sent')}</h3>
@@ -555,7 +555,7 @@ export const Onboarding: React.FC = () => {
    aria-label={t('onboarding.actions.home')}
    onClick={() => window.location.reload()}
    variant="outline"
-   className="mt-8 px-6 py-3 bg-white/40 dark:bg-white/10 text-muted-foreground dark:text-white rounded-xl font-bold text-sm hover:bg-white/60 dark:hover:bg-white/20 transition-colors h-auto border-white/20"
+   className="mt-8 px-6 py-3 bg-white/40 dark:bg-white/10 text-muted-foreground dark:text-white rounded-xl font-bold text-sm hover:bg-white/40 dark:hover:bg-muted dark:hover:bg-muted transition-colors h-auto border-white/20"
    >
    {t('onboarding.actions.home')}
    </Button>
@@ -566,7 +566,7 @@ export const Onboarding: React.FC = () => {
    variant="ghost"
    aria-label={t('onboarding.actions.back')}
    onClick={() => setMode('select')}
-   className="w-full py-4 text-muted-foreground hover:text-foreground font-bold transition-colors h-auto hover:bg-white/20 dark:hover:bg-white/5 rounded-2xl"
+   className="w-full py-4 text-muted-foreground hover:text-foreground font-bold transition-colors h-auto hover:bg-muted dark:hover:bg-muted/50 rounded-2xl"
   >
    {t('onboarding.actions.back')}
   </Button>
@@ -636,15 +636,15 @@ export const Onboarding: React.FC = () => {
    />
    </div>
    {error && (
-   <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl space-y-3">
+   <div className="p-4 bg-error-bg border border-error-border rounded-2xl space-y-3">
    <div className="flex items-start gap-3">
-   <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+   <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
    <div className="flex-1">
-    <p className="text-sm font-semibold text-red-900 dark:text-red-200">{t('onboarding.toasts.configError')}</p>
-    <p className="text-xs text-red-700 dark:text-red-300 mt-1">{error}</p>
+    <p className="text-sm font-semibold text-error-text">{t('onboarding.toasts.configError')}</p>
+    <p className="text-xs text-error-text mt-1">{error}</p>
    </div>
    </div>
-   <div className="flex gap-2 pt-2 border-t border-red-200 dark:border-red-800">
+   <div className="flex gap-2 pt-2 border-t border-error-border">
    {error.includes('session') || error.includes('Session') || error.includes('authentifi') ? (
     <Button
     type="button"
@@ -655,7 +655,7 @@ export const Onboarding: React.FC = () => {
     await refreshSession();
     addToast(t('auth.sessionRefreshed') || 'Session actualisée', 'success');
     }}
-    className="text-xs text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30"
+    className="text-xs text-error-text hover:bg-error-bg"
     >
     {t('auth.refreshSession') || 'Actualiser la session'}
     </Button>
@@ -665,7 +665,7 @@ export const Onboarding: React.FC = () => {
     variant="ghost"
     size="sm"
     onClick={() => setError('')}
-    className="text-xs text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30"
+    className="text-xs text-error-text hover:bg-error-bg"
     >
     {t('common.close') || 'Fermer'}
     </Button>
@@ -697,7 +697,7 @@ export const Onboarding: React.FC = () => {
    aria-label="Retour à l'étape précédente"
    type="button"
    onClick={() => setMode('select')}
-   className="w-1/3 py-4 text-muted-foreground font-bold rounded-2xl hover:bg-white/20 dark:hover:bg-white/5 transition-colors h-auto border border-transparent hover:border-white/20"
+   className="w-1/3 py-4 text-muted-foreground font-bold rounded-2xl hover:bg-muted dark:hover:bg-muted/50 transition-colors h-auto border border-transparent hover:border-white/20"
    >
    {t('onboarding.actions.back')}
    </Button>
@@ -706,7 +706,7 @@ export const Onboarding: React.FC = () => {
    type="submit"
    disabled={loading || (!user?.organizationId && !form.watch('organizationName')) || !termsAccepted}
    isLoading={loading}
-   className="w-2/3 py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-2xl shadow-lg shadow-primary/20 card-hover transition-all flex items-center justify-center group disabled:bg-muted disabled:text-muted-foreground disabled:border-border disabled:cursor-not-allowed dark:disabled:border-slate-600 h-auto"
+   className="w-2/3 py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-2xl shadow-lg shadow-primary/20 card-hover transition-all flex items-center justify-center group disabled:bg-muted disabled:text-muted-foreground disabled:border-border disabled:cursor-not-allowed disabled:border-muted h-auto"
    >
    {!loading && <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
    </Button>
@@ -785,7 +785,7 @@ export const Onboarding: React.FC = () => {
    aria-label="Retour à l'étape 1"
    onClick={() => setStep(1)}
    variant="ghost"
-   className="w-1/3 py-4 text-muted-foreground font-bold rounded-2xl hover:bg-white/20 dark:hover:bg-white/5 transition-colors h-auto border border-transparent hover:border-white/20"
+   className="w-1/3 py-4 text-muted-foreground font-bold rounded-2xl hover:bg-muted dark:hover:bg-muted/50 transition-colors h-auto border border-transparent hover:border-white/20"
    >
    {t('onboarding.actions.back')}
    </Button>
@@ -794,7 +794,7 @@ export const Onboarding: React.FC = () => {
    onClick={() => setStep(3)}
    disabled={loading}
    isLoading={loading}
-   className="w-2/3 py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:bg-muted disabled:text-muted-foreground disabled:border-border disabled:cursor-not-allowed dark:disabled:border-slate-600 disabled:transform-none h-auto"
+   className="w-2/3 py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:bg-muted disabled:text-muted-foreground disabled:border-border disabled:cursor-not-allowed disabled:border-muted disabled:transform-none h-auto"
    >
    {!loading && <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
    </Button>
@@ -828,7 +828,7 @@ export const Onboarding: React.FC = () => {
     <div className="flex flex-col">
     <span className="font-bold text-foreground dark:text-white">{fw.name}</span>
     {fw.isMandatory && (
-    <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+    <span className="text-[11px] font-bold text-warning uppercase tracking-wider">
     {t('common.mandatory') || 'Obligatoire'}
     </span>
     )}
@@ -911,7 +911,7 @@ export const Onboarding: React.FC = () => {
     <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold">{userInvite.role}</span>
     </div>
     </div>
-    <Button variant="ghost" size="icon" aria-label="Retirer l'invitation" onClick={() => handleRemoveInvite(userInvite.email)} className="text-muted-foreground hover:text-red-500 transition-colors">
+    <Button variant="ghost" size="icon" aria-label="Retirer l'invitation" onClick={() => handleRemoveInvite(userInvite.email)} className="text-muted-foreground hover:text-destructive transition-colors">
     <Trash2 className="h-4 w-4" />
     </Button>
    </div>
@@ -987,7 +987,7 @@ export const Onboarding: React.FC = () => {
     placeholder="Type"
     />
     </div>
-    <Button onClick={handleAddAsset} aria-label="Ajouter l'actif" className="p-3 bg-foreground text-background rounded-2xl font-bold h-[56px] w-[56px] flex items-center justify-center hover:bg-slate-800 dark:hover:bg-muted transition-colors shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 duration-200">
+    <Button onClick={handleAddAsset} aria-label="Ajouter l'actif" className="p-3 bg-foreground text-background rounded-2xl font-bold h-[56px] w-[56px] flex items-center justify-center hover:bg-muted dark:hover:bg-muted transition-colors shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 duration-200">
     <Plus className="h-5 w-5" />
     </Button>
     </div>
@@ -1033,7 +1033,7 @@ export const Onboarding: React.FC = () => {
     <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold">{asset.type}</span>
     </div>
     </div>
-    <Button variant="ghost" size="icon" onClick={() => handleRemoveAsset(i)} aria-label="Supprimer l'actif" className="text-muted-foreground hover:text-red-500 transition-colors">
+    <Button variant="ghost" size="icon" onClick={() => handleRemoveAsset(i)} aria-label="Supprimer l'actif" className="text-muted-foreground hover:text-destructive transition-colors">
     <Trash2 className="h-4 w-4" />
     </Button>
     </div>

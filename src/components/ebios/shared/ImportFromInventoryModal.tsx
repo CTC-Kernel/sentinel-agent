@@ -232,7 +232,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
   'flex items-center gap-3 p-3 rounded-3xl border cursor-pointer transition-all',
   selectedAssetIds.has(asset.id)
   ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-  : 'border-border/40 hover:border-border/40 dark:hover:border-slate-600'
+  : 'border-border/40 hover:border-border/40 dark:hover:border-border'
   )}
   >
   <div

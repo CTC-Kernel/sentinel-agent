@@ -277,7 +277,7 @@ export const ThreatIntelligence: React.FC = () => {
   <Button
   aria-label="Refresh threat feeds"
   onClick={handleRefreshLiveFeed}
-  className="bg-white/5 hover:bg-white/10 text-white border border-white/10 p-2.5 h-auto rounded-xl backdrop-blur-md shadow-sm"
+  className="bg-white/5 hover:bg-muted text-white border border-white/10 p-2.5 h-auto rounded-xl backdrop-blur-md shadow-sm"
   title={t('threats.refreshFeeds', { defaultValue: 'Actualiser les flux' })}
   >
   <RefreshCw className={`h-5 w-5 ${isSeeding ? 'animate-spin text-primary/70' : 'text-muted-foreground/60'}`} />
@@ -298,7 +298,7 @@ export const ThreatIntelligence: React.FC = () => {
   <Button
   aria-label="Community settings"
   onClick={handleSettingsOpen}
-  className="bg-white/5 hover:bg-white/10 text-white p-2.5 h-auto rounded-xl border border-white/10 shadow-sm"
+  className="bg-white/5 hover:bg-muted text-white p-2.5 h-auto rounded-xl border border-white/10 shadow-sm"
   title={t('threats.communitySettings', { defaultValue: 'Paramètres de la communauté' })}
   >
   <Settings className="h-5 w-5 text-muted-foreground/60" />
@@ -359,12 +359,12 @@ export const ThreatIntelligence: React.FC = () => {
  {/* MAP TAB */}
  {
  activeTab === 'map' && (
-  <motion.div key="map" variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="relative h-[70vh] min-h-[500px] w-full bg-slate-900 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
+  <motion.div key="map" variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="relative h-[70vh] min-h-[500px] w-full bg-card rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
   <div className="absolute top-6 right-6 z-10 flex gap-3">
   <Button
   aria-label="Toggle 2D/3D view"
   onClick={handleToggleViewMode}
-  className="bg-slate-900/40 hover:bg-slate-900/60 text-white px-4 py-2 h-auto rounded-full text-sm font-bold backdrop-blur-md border border-white/10 shadow-lg"
+  className="bg-card/40 hover:bg-card/60 text-white px-4 py-2 h-auto rounded-full text-sm font-bold backdrop-blur-md border border-white/10 shadow-lg"
   title="Toggle 2D/3D view"
   >
   {viewMode === '2d' ? <Box className="h-4 w-4 mr-2" /> : <Globe className="h-4 w-4 mr-2" />}
@@ -437,14 +437,14 @@ export const ThreatIntelligence: React.FC = () => {
   </p>
 
   <div className="grid grid-cols-2 gap-4">
-   <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors">
+   <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-muted transition-colors">
    <div className="flex items-center gap-2 mb-2">
    <Users className="h-5 w-5 text-primary/50" />
    <div className="text-xs uppercase tracking-wider opacity-70">Experts</div>
    </div>
    <div className="text-4xl font-black tracking-tight">12.4k</div>
    </div>
-   <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors">
+   <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-muted transition-colors">
    <div className="flex items-center gap-2 mb-2">
    <Shield className="h-5 w-5 text-success-text" />
    <div className="text-xs uppercase tracking-wider opacity-70">Mitigations</div>
@@ -469,7 +469,7 @@ export const ThreatIntelligence: React.FC = () => {
    key={c.name || 'unknown'}
    role="button"
    tabIndex={0}
-   className="flex items-center justify-between group p-3 hover:bg-muted/50 dark:hover:bg-white/5 rounded-2xl transition-all cursor-pointer"
+   className="flex items-center justify-between group p-3 hover:bg-muted/50 dark:hover:bg-muted/50 rounded-2xl transition-all cursor-pointer"
    onClick={() => handleHunterClick({ ...c, rank: i + 1 })}
    onKeyDown={(e) => {
    if (e.key === 'Enter' || e.key === ' ') {

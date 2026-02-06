@@ -62,7 +62,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   key={task.id || 'unknown'}
   draggable={canEdit}
   onDragStart={(e) => onDragStart(e, task.id)}
-  className={`p-4 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-lg transition-all group cursor-grab active:cursor-grabbing relative overflow-hidden ${draggedTaskId === task.id ? 'opacity-60 scale-95' : 'hover:scale-[1.02] hover:bg-white/60 dark:hover:bg-white/10'}`}
+  className={`p-4 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-lg transition-all group cursor-grab active:cursor-grabbing relative overflow-hidden ${draggedTaskId === task.id ? 'opacity-60 scale-95' : 'hover:scale-[1.02] hover:bg-white/40 dark:hover:bg-muted/50 dark:hover:bg-muted'}`}
   role="button"
   tabIndex={0}
   aria-label={`Tâche: ${task.title || 'Sans titre'}`}
@@ -72,17 +72,17 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   }
   }}
   >
-  <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none opacity-0 group-hover:opacity-70 transition-opacity" />
+  <div className="absolute inset-0 bg-gradient-to-br from-white/20 dark:from-white/5 to-transparent pointer-events-none opacity-0 group-hover:opacity-70 transition-opacity" />
   <div className="flex justify-between items-start mb-2">
   <span className="text-sm font-bold text-foreground line-clamp-2">{task.title}</span>
   <div className="flex gap-1 opacity-0 group-hover:opacity-70 transition-opacity">
-   <button onClick={() => onEditTask(task)} className="p-1 hover:bg-muted dark:hover:bg-white/10 rounded text-muted-foreground hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Edit className="h-3.5 w-3.5" /></button>
-   <button onClick={() => handleDelete(task.id)} disabled={deletingIds.has(task.id)} className="p-1 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded text-muted-foreground hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-slate-600"><Trash2 className="h-3.5 w-3.5" /></button>
+   <button onClick={() => onEditTask(task)} className="p-1 hover:bg-muted dark:hover:bg-muted rounded text-muted-foreground hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Edit className="h-3.5 w-3.5" /></button>
+   <button onClick={() => handleDelete(task.id)} disabled={deletingIds.has(task.id)} className="p-1 hover:bg-error-bg rounded text-muted-foreground hover:text-destructive focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed"><Trash2 className="h-3.5 w-3.5" /></button>
   </div>
   </div>
   <div className="flex items-center justify-between mt-2">
   <span className="text-[11px] font-medium px-2 py-0.5 bg-muted rounded text-muted-foreground">{task.assignee || 'Non assigné'}</span>
-  {task.dueDate && <span className={`text-[11px] font-bold flex items-center ${new Date(task.dueDate) < new Date() ? 'text-red-500' : 'text-muted-foreground'}`}><CalendarDays className="h-3 w-3 mr-1" />{new Date(task.dueDate).toLocaleDateString()}</span>}
+  {task.dueDate && <span className={`text-[11px] font-bold flex items-center ${new Date(task.dueDate) < new Date() ? 'text-destructive' : 'text-muted-foreground'}`}><CalendarDays className="h-3 w-3 mr-1" />{new Date(task.dueDate).toLocaleDateString()}</span>}
   </div>
   </div>
   ))

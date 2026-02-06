@@ -37,7 +37,7 @@ export const RiskKPICard: React.FC<RiskKPICardProps> = ({
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay }}
- className="p-6 rounded-2xl bg-white dark:bg-white/5 border border-border/40 shadow-sm hover:shadow-md transition-all"
+ className="p-6 rounded-2xl bg-card border border-border/40 shadow-sm hover:shadow-md transition-all"
  >
  <div className="flex justify-between items-start mb-4">
  <div className={`p-3 rounded-3xl ${colorStyles[color]}`}>

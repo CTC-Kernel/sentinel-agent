@@ -76,21 +76,21 @@ export const AuditLogList: React.FC = () => {
   placeholder="Search logs (Actor, Action, ID)..."
   value={searchTerm}
   onChange={(e) => setSearchTerm(e.target.value)}
-  className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-primary text-sm focus:bg-slate-900 transition-colors text-white"
+  className="w-full pl-10 pr-4 py-2 bg-card/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-primary text-sm focus:bg-card transition-colors text-foreground"
   />
  </div>
  <div className="flex gap-2">
   <button
   onClick={handleExport}
   disabled={logs.length === 0}
-  className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-muted-foreground transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:border-border disabled:cursor-not-allowed dark:disabled:border-slate-600"
+  className="p-2 bg-muted hover:bg-muted/80 rounded-xl text-muted-foreground transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:border-border disabled:cursor-not-allowed dark:disabled:border-border"
   title="Export CSV"
   >
   <Download className="w-4 h-4" />
   </button>
   <button
   onClick={loadLogs}
-  className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-muted-foreground transition-colors"
+  className="p-2 bg-muted hover:bg-muted/80 rounded-xl text-muted-foreground transition-colors"
   title="Refresh"
   >
   <Clock className="w-4 h-4" />
@@ -98,11 +98,11 @@ export const AuditLogList: React.FC = () => {
  </div>
  </div>
 
- <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+ <div className="bg-card/50 border border-border rounded-2xl overflow-hidden shadow-sm">
  <div className="overflow-x-auto">
   <table className="w-full text-left border-collapse">
   <thead>
-  <tr className="border-b border-slate-800 text-xs uppercase text-muted-foreground font-semibold bg-slate-900/80 backdrop-blur-sm sticky top-0">
+  <tr className="border-b border-border text-xs uppercase text-muted-foreground font-semibold bg-card/80 backdrop-blur-sm sticky top-0">
   <th className="px-6 py-4 whitespace-nowrap">Timestamp</th>
   <th className="px-6 py-4 whitespace-nowrap">Actor</th>
   <th className="px-6 py-4 whitespace-nowrap">Action</th>
@@ -115,20 +115,20 @@ export const AuditLogList: React.FC = () => {
   Array.from({ length: 5 }).map((_, i) => (
    <tr key={i || 'unknown'}>
    <td colSpan={5} className="px-6 py-4">
-   <div className="h-6 bg-slate-800/50 rounded animate-pulse" />
+   <div className="h-6 bg-muted/50 rounded animate-pulse" />
    </td>
    </tr>
   ))
   ) : filteredLogs.length > 0 ? (
   filteredLogs.map((log) => (
-   <tr key={log.id || 'unknown'} className="hover:bg-white/5 transition-colors group">
+   <tr key={log.id || 'unknown'} className="hover:bg-muted/50 transition-colors group">
    <td className="px-6 py-4 text-sm text-muted-foreground font-mono">
    {new Date(log.timestamp).toLocaleString()}
    </td>
    <td className="px-6 py-4">
    <div className="flex items-center">
    <User className="w-3 h-3 mr-2 text-muted-foreground" />
-   <span className="text-sm text-white font-medium">{log.actorEmail || log.actorId}</span>
+   <span className="text-sm text-foreground font-medium">{log.actorEmail || log.actorId}</span>
    </div>
    </td>
    <td className="px-6 py-4">
@@ -141,8 +141,8 @@ export const AuditLogList: React.FC = () => {
    </td>
    <td className="px-6 py-4 text-right">
    <div className="group relative inline-block text-left">
-   <Info className="w-4 h-4 text-muted-foreground hover:text-white cursor-pointer" />
-   <div className="absolute right-0 mt-2 w-64 origin-top-right bg-slate-900 border border-slate-700 rounded-lg shadow-xl p-3 z-10 hidden group-hover:block">
+   <Info className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
+   <div className="absolute right-0 mt-2 w-64 origin-top-right bg-card border border-border rounded-lg shadow-xl p-3 z-10 hidden group-hover:block">
     <pre className="text-[11px] text-muted-foreground whitespace-pre-wrap overflow-auto max-h-48">
     {JSON.stringify(log.metadata, null, 2)}
     </pre>

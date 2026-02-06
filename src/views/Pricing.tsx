@@ -218,7 +218,7 @@ const Pricing = () => {
  )}
  >
  {t('pricing.annual', { defaultValue: 'Annuel' })}
- <span className="px-2 py-0.5 rounded-lg bg-gradient-to-r from-success-500 to-emerald-500 text-white text-[11px] uppercase tracking-wider font-black shadow-sm">
+ <span className="px-2 py-0.5 rounded-lg bg-gradient-to-r from-success to-success/70 text-white text-[11px] uppercase tracking-wider font-black shadow-sm">
  -20%
  </span>
  </button>
@@ -319,7 +319,7 @@ const Pricing = () => {
   "w-full rounded-xl font-bold py-6 transition-all duration-300 group",
   isPopular
   ? 'bg-gradient-to-r from-primary to-violet-600 text-white shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02]'
-  : 'bg-foreground text-background hover:bg-slate-800 dark:hover:bg-muted'
+  : 'bg-foreground text-background hover:bg-foreground/90'
   )}
   >
   {isLoading === plan.id ? t('common.loading', { defaultValue: 'Chargement...' }) : (
@@ -368,9 +368,9 @@ const Pricing = () => {
  </div>
  </div>
  <div className="col-span-1 p-2 text-center">
- <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-900/30">
-  <Building2 className="w-4 h-4 text-purple-500" />
-  <span className="font-bold text-purple-700 dark:text-purple-300">Enterprise</span>
+ <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-violet-100 dark:bg-violet-500/20">
+  <Building2 className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+  <span className="font-bold text-violet-600 dark:text-violet-400">Enterprise</span>
  </div>
  </div>
  </div>
@@ -402,7 +402,7 @@ const Pricing = () => {
   {category.features.map((feature, idx) => (
   <div
   key={idx || 'unknown'}
-  className="grid grid-cols-4 p-4 items-center hover:bg-muted/50 dark:hover:bg-white/5 transition-colors"
+  className="grid grid-cols-4 p-4 items-center hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors"
   >
   <div className="col-span-1 flex items-center gap-3 pl-4">
   {feature.icon && (
@@ -459,7 +459,7 @@ const Pricing = () => {
  <div key={i || 'unknown'} className="group">
   <button
   onClick={() => setExpandedCategories(prev => prev.includes(`faq-${i}`) ? prev.filter(c => c !== `faq-${i}`) : [...prev, `faq-${i}`])}
-  className="w-full flex items-center justify-between p-6 lg:p-8 text-left hover:bg-muted/50 dark:hover:bg-white/5 transition-colors"
+  className="w-full flex items-center justify-between p-6 lg:p-8 text-left hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors"
   >
   <span className="font-bold text-foreground /40 text-base pr-4">{faq.q}</span>
   <ChevronDown
@@ -526,13 +526,13 @@ const Pricing = () => {
  {/* Footer Section */}
  <div className="text-center pb-8 border-t border-border/50 dark:border-white/5 pt-8">
  <div className="flex flex-wrap gap-4 justify-center items-center text-xs font-bold text-muted-foreground">
- <button onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-foreground dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-muted">
+ <button onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-foreground dark:hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted">
  {t('pricing.footer.cgv', { defaultValue: 'CGV' })}
  </button>
- <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-foreground dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-muted">
+ <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-foreground dark:hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted">
  {t('pricing.footer.privacy', { defaultValue: 'Confidentialité' })}
  </button>
- <button onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-foreground dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-muted">
+ <button onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-foreground dark:hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted">
  {t('pricing.footer.legalNotice', { defaultValue: 'Mentions Légales' })}
  </button>
  </div>

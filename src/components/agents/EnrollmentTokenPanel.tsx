@@ -89,7 +89,7 @@ export const EnrollmentTokenPanel: React.FC<EnrollmentTokenPanelProps> = ({
  </h4>
 
  <div className="relative group">
-  <pre className="p-4 bg-slate-900 dark:bg-black rounded-3xl text-[11px] text-emerald-400 overflow-x-auto border border-slate-800 shadow-inner custom-scrollbar">
+  <pre className="p-4 bg-foreground dark:bg-black rounded-3xl text-[11px] text-emerald-400 overflow-x-auto border border-border shadow-inner custom-scrollbar">
   <code>sentinel-agent enroll --token {enrollmentToken.substring(0, 8)}...</code>
   </pre>
   <button
@@ -97,10 +97,10 @@ export const EnrollmentTokenPanel: React.FC<EnrollmentTokenPanelProps> = ({
   navigator.clipboard.writeText(`sentinel-agent enroll --token ${enrollmentToken}`);
   toast.success(t('agentSetup.tokenReady.commandCopied', { defaultValue: 'Commande copiee !' }));
   }}
-  className="absolute right-2 top-2 p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors opacity-0 group-hover:opacity-70"
+  className="absolute right-2 top-2 p-1.5 bg-muted/50 hover:bg-muted rounded-lg transition-colors opacity-0 group-hover:opacity-70"
   title={t('agentSetup.tokenReady.copyCommand', { defaultValue: 'Copier la commande' })}
   >
-  <Copy className="w-3.5 h-3.5 text-white" />
+  <Copy className="w-3.5 h-3.5 text-foreground" />
   </button>
  </div>
 

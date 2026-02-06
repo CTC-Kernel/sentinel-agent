@@ -150,7 +150,7 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
   variant="ghost"
   size="icon"
   onClick={onCancel}
-  className="h-8 w-8 text-muted-foreground hover:text-foreground dark:hover:text-white"
+  className="h-8 w-8 text-muted-foreground hover:text-foreground dark:hover:text-foreground"
   aria-label="Annuler l'opération"
   >
   <X className="h-4 w-4" />

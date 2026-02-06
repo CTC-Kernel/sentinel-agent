@@ -82,6 +82,21 @@ export function subscribeToAgentAnomalies(
  q = query(q, where('agentId', '==', filters.agentId));
  }
 
+ // PERFORMANCE: Use server-side filtering where possible (Firestore supports one 'in' clause per query)
+ // Priority: status > severity > type (status is most commonly filtered)
+ let serverFilteredField: 'status' | 'severity' | 'type' | null = null;
+
+ if (filters?.status?.length && filters.status.length <= 10) {
+ q = query(q, where('status', 'in', filters.status));
+ serverFilteredField = 'status';
+ } else if (filters?.severity?.length && filters.severity.length <= 10) {
+ q = query(q, where('severity', 'in', filters.severity));
+ serverFilteredField = 'severity';
+ } else if (filters?.type?.length && filters.type.length <= 10) {
+ q = query(q, where('type', 'in', filters.type));
+ serverFilteredField = 'type';
+ }
+
  if (filters?.limit) {
  q = query(q, limit(filters.limit));
  }
@@ -94,14 +109,14 @@ export function subscribeToAgentAnomalies(
  id: d.id,
  } as DetectedAnomaly));
 
- // Client-side filtering for complex queries
- if (filters?.status?.length) {
+ // Client-side filtering only for remaining filters not handled by server
+ if (filters?.status?.length && serverFilteredField !== 'status') {
  anomalies = anomalies.filter(a => filters.status!.includes(a.status));
  }
- if (filters?.severity?.length) {
+ if (filters?.severity?.length && serverFilteredField !== 'severity') {
  anomalies = anomalies.filter(a => filters.severity!.includes(a.severity));
  }
- if (filters?.type?.length) {
+ if (filters?.type?.length && serverFilteredField !== 'type') {
  anomalies = anomalies.filter(a => filters.type!.includes(a.type));
  }
 

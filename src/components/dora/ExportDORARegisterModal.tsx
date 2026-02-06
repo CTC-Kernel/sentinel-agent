@@ -188,7 +188,7 @@ export const ExportDORARegisterModal: React.FC<ExportDORARegisterModalProps> = (
    'flex flex-col items-center p-4 rounded-3xl border-2 transition-all',
    isSelected
    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-   : 'border-border/40 hover:border-border/40 dark:hover:border-slate-600'
+   : 'border-border/40 hover:border-border/40 dark:hover:border-border'
    )}
    >
    <Icon className={cn(

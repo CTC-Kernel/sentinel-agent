@@ -1,8 +1,26 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Timeline } from 'vis-timeline/standalone';
-import { DataSet } from 'vis-data';
-import 'vis-timeline/styles/vis-timeline-graph2d.css';
+// Lazy import vis-timeline pour reduire le bundle initial (~640KB)
+import type { Timeline as TimelineType } from 'vis-timeline/standalone';
+import type { DataSet as DataSetType } from 'vis-data';
+
+// Dynamic imports pour vis-timeline
+let Timeline: typeof TimelineType | null = null;
+let DataSet: typeof DataSetType | null = null;
+let visTimelineLoaded = false;
+
+const loadVisTimeline = async () => {
+  if (visTimelineLoaded) return;
+  const [timelineModule, dataModule] = await Promise.all([
+    import('vis-timeline/standalone'),
+    import('vis-data')
+  ]);
+  // Import CSS dynamiquement
+  await import('vis-timeline/styles/vis-timeline-graph2d.css');
+  Timeline = timelineModule.Timeline;
+  DataSet = dataModule.DataSet;
+  visTimelineLoaded = true;
+};
 import { where } from 'firebase/firestore';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -201,9 +219,17 @@ export const InteractiveTimeline: React.FC = () => {
  setZoomLevel(level);
  }, []);
 
+ // State for lazy loading
+ const [visLoaded, setVisLoaded] = useState(false);
+
+ // Load vis-timeline dynamically
+ useEffect(() => {
+ loadVisTimeline().then(() => setVisLoaded(true));
+ }, []);
+
  // Initialize timeline
  useEffect(() => {
- if (!timelineRef.current || filteredEvents.length === 0) return;
+ if (!timelineRef.current || filteredEvents.length === 0 || !visLoaded || !Timeline || !DataSet) return;
 
  const items = new DataSet(filteredEvents.map(event => ({
  id: event.id,
@@ -254,7 +280,7 @@ export const InteractiveTimeline: React.FC = () => {
  timelineInstance.current.destroy();
  }
  };
- }, [filteredEvents, handleEventClick, zoomLevel, applyZoom]);
+ }, [filteredEvents, handleEventClick, zoomLevel, applyZoom, visLoaded]);
 
  const handleExportPNG = async () => {
  if (!timelineRef.current) return;

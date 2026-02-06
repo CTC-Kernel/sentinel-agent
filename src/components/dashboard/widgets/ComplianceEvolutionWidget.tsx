@@ -64,7 +64,7 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
  className="lg:col-span-2 min-h-[400px]"
  headerAction={
  <div 
-  className="flex bg-muted rounded-lg p-1 gap-1 cursor-default hover:bg-muted dark:hover:bg-white/10 transition-colors" 
+  className="flex bg-muted rounded-lg p-1 gap-1 cursor-default hover:bg-muted dark:hover:bg-muted transition-colors" 
   role="group" 
   aria-label={t('dashboard.selectPeriod')}
  >

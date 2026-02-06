@@ -260,7 +260,7 @@ export const BackupRestore: React.FC = () => {
  variant="ghost"
  aria-label={t('backup.saveModeLabel', { defaultValue: 'Mode Sauvegarde' })}
  onClick={() => setActiveTab('backup')}
- className={`px-4 py-2 rounded-lg text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${activeTab === 'backup' ? 'bg-card text-indigo-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+ className={`px-4 py-2 rounded-lg text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeTab === 'backup' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
  >
  {t('backup.saveButton', { defaultValue: 'Sauvegarder' })}
  </Button>
@@ -268,7 +268,7 @@ export const BackupRestore: React.FC = () => {
  variant="ghost"
  aria-label={t('backup.restoreModeLabel', { defaultValue: 'Mode Restauration' })}
  onClick={() => setActiveTab('restore')}
- className={`px-4 py-2 rounded-lg text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${activeTab === 'restore' ? 'bg-card text-indigo-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+ className={`px-4 py-2 rounded-lg text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeTab === 'restore' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
  >
  {t('backup.restoreButton', { defaultValue: 'Restaurer' })}
  </Button>
@@ -285,7 +285,7 @@ export const BackupRestore: React.FC = () => {
  {activeTab === 'backup' ? (
  <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/50">
  <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
- <Save className="h-5 w-5 text-indigo-500" /> Nouvelle Sauvegarde
+ <Save className="h-5 w-5 text-primary" /> Nouvelle Sauvegarde
  </h2>
  <form onSubmit={backupForm.handleSubmit(handleBackup)}>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -303,7 +303,7 @@ export const BackupRestore: React.FC = () => {
   ].map((item) => (
   <div key={item.id || 'unknown'} className="flex items-center justify-between p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors group">
   <div className="flex items-center gap-2">
-  <item.icon className="h-4 w-4 text-muted-foreground group-hover:text-indigo-500 transition-colors" />
+  <item.icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
   <span className="font-medium text-foreground">{item.label}</span>
   </div>
   <Controller
@@ -324,9 +324,9 @@ export const BackupRestore: React.FC = () => {
   <div className="flex items-center gap-2" data-tour="backup-schedule">
   <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider mr-2">Planifier :</span>
   <div className="flex bg-muted p-1 rounded-lg">
-  <Button type="button" variant="ghost" size="sm" aria-label={t('backup.scheduleDailyLabel', { defaultValue: 'Programmer une sauvegarde quotidienne' })} onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-foreground dark:hover:text-white hover:bg-card rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('backup.daily', { defaultValue: 'Quotidien' })}</Button>
-  <Button type="button" variant="ghost" size="sm" aria-label={t('backup.scheduleWeeklyLabel', { defaultValue: 'Programmer une sauvegarde hebdomadaire' })} onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-foreground dark:hover:text-white hover:bg-card rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('backup.weekly', { defaultValue: 'Hebdo' })}</Button>
-  <Button type="button" variant="ghost" size="sm" aria-label={t('backup.scheduleMonthlyLabel', { defaultValue: 'Programmer une sauvegarde mensuelle' })} onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-foreground dark:hover:text-white hover:bg-card rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('backup.monthly', { defaultValue: 'Mensuel' })}</Button>
+  <Button type="button" variant="ghost" size="sm" aria-label={t('backup.scheduleDailyLabel', { defaultValue: 'Programmer une sauvegarde quotidienne' })} onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-card rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('backup.daily', { defaultValue: 'Quotidien' })}</Button>
+  <Button type="button" variant="ghost" size="sm" aria-label={t('backup.scheduleWeeklyLabel', { defaultValue: 'Programmer une sauvegarde hebdomadaire' })} onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-card rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('backup.weekly', { defaultValue: 'Hebdo' })}</Button>
+  <Button type="button" variant="ghost" size="sm" aria-label={t('backup.scheduleMonthlyLabel', { defaultValue: 'Programmer une sauvegarde mensuelle' })} onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-card rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('backup.monthly', { defaultValue: 'Mensuel' })}</Button>
   </div>
   </div>
   <Button
@@ -334,7 +334,7 @@ export const BackupRestore: React.FC = () => {
   aria-label={t('backup.startBackupLabel', { defaultValue: 'Lancer la sauvegarde' })}
   disabled={loading}
   isLoading={loading}
-  className="px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-500/20 w-full sm:w-auto justify-center"
+  className="px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg shadow-primary/20 w-full sm:w-auto justify-center"
   >
   {!loading && <Save className="h-5 w-5 mr-2" />}
   {t('backup.startBackup', { defaultValue: 'Lancer la sauvegarde' })}
@@ -345,7 +345,7 @@ export const BackupRestore: React.FC = () => {
  ) : (
  <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/50">
  <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
- <RotateCcw className="h-5 w-5 text-indigo-500" /> Restauration
+ <RotateCcw className="h-5 w-5 text-primary" /> Restauration
  </h2>
  {!selectedBackup ? (
  <div className="text-center py-12 border-2 border-dashed border-border rounded-2xl">
@@ -354,10 +354,10 @@ export const BackupRestore: React.FC = () => {
  </div>
  ) : (
  <form onSubmit={restoreForm.handleSubmit(handleRestore)} className="space-y-6">
-  <div className="p-4 bg-indigo-50/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
+  <div className="p-4 bg-primary/10 rounded-xl border border-primary/20">
   <div className="flex items-center justify-between mb-2">
-  <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Sauvegarde sélectionnée</span>
-  <span className="text-xs font-mono bg-white dark:bg-black/20 px-2 py-1 rounded text-muted-foreground">{selectedBackup.id}</span>
+  <span className="text-xs font-bold uppercase tracking-wider text-primary">Sauvegarde sélectionnée</span>
+  <span className="text-xs font-mono bg-card px-2 py-1 rounded text-muted-foreground">{selectedBackup.id}</span>
   </div>
   <div className="flex items-center gap-2 text-foreground font-bold">
   <Clock className="h-4 w-4" />
@@ -369,7 +369,7 @@ export const BackupRestore: React.FC = () => {
   <h3 className="block text-sm font-bold text-foreground mb-3">Collections à restaurer</h3>
   <div className="grid grid-cols-2 gap-3">
   {selectedBackup.collections.map((col) => (
-  <div key={col || 'unknown'} className={`flex items-center justify-between p-3 rounded-lg border transition-all ${restoreForm.watch('collections').includes(col) ? 'border-indigo-500 bg-indigo-50/20' : 'border-border'}`}>
+  <div key={col || 'unknown'} className={`flex items-center justify-between p-3 rounded-lg border transition-all ${restoreForm.watch('collections').includes(col) ? 'border-primary bg-primary/10' : 'border-border'}`}>
   <span className="text-sm font-medium capitalize text-foreground">{col}</span>
   <Switch
   checked={restoreForm.watch('collections').includes(col)}
@@ -417,7 +417,7 @@ export const BackupRestore: React.FC = () => {
   aria-label={t('backup.startRestoreLabel', { defaultValue: 'Lancer la restauration' })}
   disabled={loading}
   isLoading={loading}
-  className={`px-6 py-3 rounded-xl flex items-center gap-2 font-bold shadow-lg transition-all ${restoreForm.watch('dryRun') ? 'bg-slate-800 text-white hover:bg-slate-900' : 'bg-red-600 text-white hover:bg-red-700 shadow-red-500/20'}`}
+  className={`px-6 py-3 rounded-xl flex items-center gap-2 font-bold shadow-lg transition-all ${restoreForm.watch('dryRun') ? 'bg-muted-foreground text-primary-foreground hover:bg-muted-foreground/90' : 'bg-destructive text-primary-foreground hover:bg-destructive/90 shadow-destructive/20'}`}
   >
   {!loading && <RotateCcw className="h-5 w-5 mr-2" />}
   {restoreForm.watch('dryRun') ? t('backup.startSimulation', { defaultValue: 'Lancer la simulation' }) : t('backup.restoreData', { defaultValue: 'Restaurer les données' })}

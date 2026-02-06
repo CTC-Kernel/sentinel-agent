@@ -167,7 +167,7 @@ export const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ className 
  'px-4 py-2 rounded-lg text-sm font-medium transition-all',
  filterMode === mode
   ? 'bg-card text-foreground shadow-sm'
-  : 'text-muted-foreground hover:text-foreground dark:hover:text-white'
+  : 'text-muted-foreground hover:text-foreground dark:hover:text-foreground'
  )}
  >
  {mode === 'all' && t('frameworks.filterAll', 'Tous')}

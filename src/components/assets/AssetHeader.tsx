@@ -33,7 +33,7 @@ export const AssetHeader: React.FC<AssetHeaderProps> = ({
  actions={(
  <>
   <Menu as="div" className="relative inline-block text-left mr-3">
-  <Menu.Button as={Button} variant="outline" className="text-foreground font-bold shadow-sm hover:bg-muted/50 dark:hover:bg-white/10 transition-all flex items-center">
+  <Menu.Button as={Button} variant="outline" className="text-foreground font-bold shadow-sm hover:bg-muted/50 dark:hover:bg-muted transition-all flex items-center">
   {t('assets.header.actions', { defaultValue: 'Actions' })} <ChevronDown className="ml-2 h-4 w-4" />
   </Menu.Button>
   <Transition

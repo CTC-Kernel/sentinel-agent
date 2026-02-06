@@ -176,7 +176,7 @@ export const CookieConsent: React.FC = () => {
   <div className="flex items-center justify-end gap-3 w-full">
   <button
   onClick={handleRefuse}
-  className="px-5 py-2.5 border border-border text-foreground font-semibold rounded-3xl hover:bg-muted dark:hover:bg-white/10 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+  className="px-5 py-2.5 border border-border text-foreground font-semibold rounded-3xl hover:bg-muted dark:hover:bg-muted transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
   >
   Refuser
   </button>
@@ -194,7 +194,7 @@ export const CookieConsent: React.FC = () => {
   </button>
   <button
   onClick={handleClose}
-  className="p-3 text-muted-foreground hover:bg-muted dark:hover:bg-white/10 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+  className="p-3 text-muted-foreground hover:bg-muted dark:hover:bg-muted rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
   aria-label="Fermer"
   >
   <X className="h-5 w-5" />

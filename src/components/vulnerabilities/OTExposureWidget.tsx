@@ -89,7 +89,7 @@ const StatCard: React.FC<StatCardProps> = ({
 }) => {
  if (loading) {
  return (
- <div className="p-4 rounded-3xl bg-slate-800/50 border border-slate-700/50">
+ <div className="p-4 rounded-3xl bg-muted/50 border border-border/50">
  <Skeleton className="h-4 w-20 mb-2" />
  <Skeleton className="h-8 w-16 mb-1" />
  <Skeleton className="h-3 w-24" />
@@ -102,9 +102,9 @@ const StatCard: React.FC<StatCardProps> = ({
  onClick={onClick}
  disabled={!onClick}
  className={cn(
- 'p-4 rounded-3xl bg-slate-800/50 border border-slate-700/50 text-left w-full',
+ 'p-4 rounded-3xl bg-muted/50 border border-border/50 text-left w-full',
  'transition-all duration-200',
- onClick && 'hover:bg-slate-800 hover:border-slate-600 cursor-pointer'
+ onClick && 'hover:bg-muted hover:border-border cursor-pointer'
  )}
  >
  <div className="flex items-center gap-2 mb-2">
@@ -252,7 +252,7 @@ const SegmentChart: React.FC<SegmentChartProps> = ({ data, loading }) => {
  return (
  <div className="flex items-center gap-4">
  <div className="w-20 h-20">
- <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+ <ResponsiveContainer width="100%" height="100%" >
  <PieChart>
  <Pie
  data={chartData}
@@ -328,7 +328,7 @@ const TopAssetsList: React.FC<TopAssetsListProps> = ({ assets, onAssetClick, loa
  onClick={() => onAssetClick?.(asset.assetId)}
  className={cn(
  'flex items-center justify-between w-full p-2 rounded-lg',
- 'bg-slate-800/30 hover:bg-slate-800/50 transition-colors',
+ 'bg-muted/30 hover:bg-muted/50 transition-colors',
  'text-left'
  )}
  >
@@ -420,7 +420,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
 
  if (error) {
  return (
- <div className={cn('p-6 rounded-2xl bg-slate-900/50 border border-slate-800', className)}>
+ <div className={cn('p-6 rounded-2xl bg-card/50 border border-border', className)}>
  <div className="text-center text-red-400">
  <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
  <p>{error}</p>
@@ -432,7 +432,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
  // Compact version
  if (size === 'compact') {
  return (
- <div className={cn('p-4 rounded-3xl bg-slate-900/50 border border-slate-800', className)}>
+ <div className={cn('p-4 rounded-3xl bg-card/50 border border-border', className)}>
  <div className="flex items-center justify-between mb-3">
  <div className="flex items-center gap-2">
  <Server className="h-5 w-5 text-orange-400" />
@@ -472,7 +472,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
 
  // Full version
  return (
- <div className={cn('p-6 rounded-2xl bg-slate-900/50 border border-slate-800', className)}>
+ <div className={cn('p-6 rounded-2xl bg-card/50 border border-border', className)}>
  {/* Header */}
  <div className="flex items-center justify-between mb-6">
  <div className="flex items-center gap-3">
@@ -566,7 +566,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
 
  {/* Average Score Footer */}
  {!loading && metrics && (
- <div className="mt-4 pt-4 border-t border-slate-800 flex items-center justify-between">
+ <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
  <span className="text-xs text-muted-foreground">
  {t('otVulnerability.widget.avgScore', 'Average OT-Adjusted Score')}
  </span>

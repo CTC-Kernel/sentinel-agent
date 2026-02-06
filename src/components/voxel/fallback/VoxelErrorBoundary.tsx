@@ -90,7 +90,7 @@ const VoxelErrorFallback: React.FC<VoxelErrorFallbackProps> = ({
 
  return (
  <div
- className="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-white"
+ className="w-full h-full flex flex-col items-center justify-center bg-card text-foreground"
  style={{ minHeight: 'calc(100vh - 48px)' }}
  data-testid="voxel-error-fallback"
  role="alert"
@@ -129,7 +129,7 @@ const VoxelErrorFallback: React.FC<VoxelErrorFallbackProps> = ({
  <summary className="text-sm text-muted-foreground cursor-pointer hover:text-muted-foreground">
  Détails de l'erreur
  </summary>
- <pre className="mt-2 p-3 bg-slate-800 rounded text-xs text-red-400 overflow-auto max-h-32">
+ <pre className="mt-2 p-3 bg-muted rounded text-xs text-red-400 overflow-auto max-h-32">
  {error.message}
  </pre>
  </details>
@@ -149,7 +149,7 @@ const VoxelErrorFallback: React.FC<VoxelErrorFallbackProps> = ({
  {isWebGLError && (
  <a
  href="/ctc-engine"
- className="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors"
+ className="px-6 py-3 bg-muted hover:bg-muted rounded-lg font-medium transition-colors"
  >
  Utiliser la vue alternative
  </a>

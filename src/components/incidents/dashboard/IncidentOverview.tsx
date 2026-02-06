@@ -378,7 +378,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
  {/* Main Gauge - RadialBarChart */}
  <div className="flex items-center gap-8 relative z-10">
   <div className="relative w-36 h-36">
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <RadialBarChart
   cx="50%"
   cy="50%"
@@ -424,7 +424,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
   <span className="text-foreground font-black">{stats.resolved}</span>/{stats.total} {t('incidents.processed', { defaultValue: 'incidents traités' })}
   </p>
   {stats.trend !== 0 && (
-  <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${stats.trend > 0 ? 'text-red-600 bg-red-50 dark:bg-red-900/30' : 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30'}`}>
+  <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${stats.trend > 0 ? 'text-destructive bg-error-bg' : 'text-success bg-success-bg'}`}>
   {stats.trend > 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
   <span>{stats.trend > 0 ? '+' : ''}{stats.trend}%</span>
   </div>
@@ -534,7 +534,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
   <EmptyChartState variant="pie" message="Aucune donnée" className="scale-75" />
   ) : (
   <>
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
    <PieChart>
    <defs>
    {severityData.map((entry, index) => (
@@ -668,7 +668,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
   {statusData.length === 0 ? (
   <EmptyChartState variant="bar" message="Aucun statut" />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <BarChart
    data={statusData}
    layout="vertical"
@@ -715,7 +715,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
   {timelineData.every(d => d.nouveaux === 0 && d.resolus === 0) ? (
   <EmptyChartState variant="line" message="Aucune activité récente" />
   ) : (
-  <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+  <ResponsiveContainer width="100%" height="100%" >
   <ComposedChart data={timelineData} margin={{ top: 20, right: 30, left: -10, bottom: 0 }}>
    <defs>
    <linearGradient id={svgIds.gradientNew} x1="0" y1="0" x2="0" y2="1">

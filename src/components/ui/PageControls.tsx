@@ -53,7 +53,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
   <input aria-label={resolvedPlaceholder} value={searchQuery} onChange={e => onSearchChange(e.target.value)}
   type="text"
   placeholder={resolvedPlaceholder}
-  className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-foreground dark:text-white py-2.5 font-medium placeholder-slate-500 dark:placeholder-slate-400"
+  className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-foreground dark:text-white py-2.5 font-medium placeholder:text-muted-foreground dark:placeholder:text-muted-foreground"
   />
 
   {searchQuery && (
@@ -62,7 +62,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
   aria-label={t('ui.pageControls.clearSearch', { defaultValue: 'Effacer la recherche' })}
   type="button"
   onClick={() => onSearchChange('')}
-  className="p-2.5 bg-muted/50 dark:bg-white/5 rounded-3xl text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors hover:bg-muted dark:hover:bg-white/10"
+  className="p-2.5 bg-muted/50 dark:bg-white/5 rounded-3xl text-muted-foreground hover:text-foreground dark:hover:text-foreground transition-colors hover:bg-muted dark:hover:bg-muted"
   >
   <X className="h-4 w-4" />
   </button>
@@ -85,7 +85,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
   flex items-center gap-2 px-4 py-2 rounded-3xl text-xs font-bold transition-all duration-200
   ${activeFiltersCount && activeFiltersCount > 0
    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90'
-   : 'bg-muted dark:bg-white/10 text-muted-foreground hover:bg-muted dark:hover:bg-white/20'}
+   : 'bg-muted dark:bg-white/10 text-muted-foreground hover:bg-muted dark:hover:bg-muted'}
   `}
   >
   <Filter className="h-3.5 w-3.5" />
@@ -119,7 +119,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
   onClick={() => onViewModeChange('grid')}
   className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'grid'
    ? 'bg-card text-primary shadow-sm scale-100'
-   : 'text-muted-foreground hover:text-muted-foreground hover:bg-white/50 dark:hover:bg-white/5'}`}
+   : 'text-muted-foreground hover:text-muted-foreground hover:bg-muted/500 dark:hover:bg-muted/50'}`}
   >
   <LayoutGrid className="h-4 w-4" />
   </button>
@@ -131,7 +131,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
   onClick={() => onViewModeChange('list')}
   className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'list'
    ? 'bg-card text-primary shadow-sm scale-100'
-   : 'text-muted-foreground hover:text-muted-foreground hover:bg-white/50 dark:hover:bg-white/5'}`}
+   : 'text-muted-foreground hover:text-muted-foreground hover:bg-muted/500 dark:hover:bg-muted/50'}`}
   >
   <List className="h-4 w-4" />
   </button>
@@ -143,7 +143,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
   onClick={() => onViewModeChange('matrix')}
   className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'matrix'
    ? 'bg-card text-primary shadow-sm scale-100'
-   : 'text-muted-foreground hover:text-muted-foreground hover:bg-white/50 dark:hover:bg-white/5'}`}
+   : 'text-muted-foreground hover:text-muted-foreground hover:bg-muted/500 dark:hover:bg-muted/50'}`}
   >
   <Grid3X3 className="h-4 w-4" />
   </button>

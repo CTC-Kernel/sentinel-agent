@@ -336,7 +336,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
    Tendance des métriques (6h)
    </h3>
    <div className="h-[180px]">
-   <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+   <ResponsiveContainer width="100%" height="100%" >
     <AreaChart data={metricsHistory.map((m) => ({
     time: new Date(m.timestamp).toLocaleTimeString(config.intlLocale, { hour: '2-digit', minute: '2-digit' }),
     cpu: m.cpuPercent,
@@ -450,7 +450,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
    <div className="p-6 rounded-2xl border border-border/40 flex flex-col items-center justify-center">
    <h3 className="text-sm font-bold mb-4 w-full text-left">Résumé des Contrôles</h3>
    <div className="h-[200px] w-full">
-   <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={224}>
+   <ResponsiveContainer width="100%" height="100%" >
     <PieChart>
     <Pie
     data={[
@@ -630,7 +630,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
    Dernier Self-Check
    </h3>
 
-   <div className="p-4 bg-slate-900 rounded-3xl border border-slate-800 shadow-inner overflow-x-auto">
+   <div className="p-4 bg-card dark:bg-muted rounded-3xl border border-border shadow-inner overflow-x-auto">
    <pre className="text-xs font-mono text-emerald-400">
    {agentDetails.selfCheckResult
    ? JSON.stringify(agentDetails.selfCheckResult, null, 2)

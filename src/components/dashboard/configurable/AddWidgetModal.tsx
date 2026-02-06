@@ -109,7 +109,7 @@ function WidgetCard({
  ? 'bg-muted text-muted-foreground'
  : [
  'bg-card text-primary',
- 'group-hover:bg-primary group-hover:text-white',
+ 'group-hover:bg-primary group-hover:text-foreground',
  'shadow-sm dark:shadow-none',
  ]
  )}
@@ -280,14 +280,14 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
   onReset();
   handleClose();
  }}
- className="px-4 py-2 text-sm font-bold text-muted-foreground hover:text-foreground dark:hover:text-white hover:bg-muted rounded-full transition-colors border border-border/40"
+ className="px-4 py-2 text-sm font-bold text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-muted rounded-full transition-colors border border-border/40"
  >
  {t('common.reset')}
  </button>
  )}
  <button
  onClick={handleClose}
- className="p-2.5 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="p-2.5 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground dark:hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  aria-label={t('common.close')}
  >
  <X className="w-6 h-6" />
@@ -309,7 +309,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
  'w-full pl-10 pr-4 py-2.5 rounded-lg',
  'bg-muted',
  'border border-border/40',
- 'text-foreground placeholder-slate-400',
+ 'text-foreground placeholder:text-muted-foreground',
  'focus:outline-none focus:ring-2 focus-visible:ring-primary focus:border-transparent'
  )}
  />

@@ -239,7 +239,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   key={playbook.id || 'unknown'}
   className={`border rounded-lg p-4 cursor-pointer transition-colors ${selectedPlaybook?.id === playbook.id
   ? 'border-blue-500 bg-blue-50'
-  : 'border-border/40 hover:border-border/40 dark:hover:border-slate-600'
+  : 'border-border/40 hover:border-border/40 dark:hover:border-border'
   }`}
   onClick={() => setSelectedPlaybook(playbook)}
   role="button"

@@ -74,7 +74,7 @@ export const AuditScoreCard: React.FC<AuditScoreCardProps> = ({
   role="button"
   tabIndex={0}
   aria-label="Afficher tous les audits"
-  className="cursor-pointer group/item text-center hover:bg-muted/50 dark:hover:bg-white/5 rounded-3xl transition-colors p-2"
+  className="cursor-pointer group/item text-center hover:bg-muted/50 dark:hover:bg-muted/50 rounded-3xl transition-colors p-2"
  >
   <div className="text-[11px] uppercase font-bold text-muted-foreground mb-2 tracking-widest group-hover/item:text-primary transition-colors">Total Audits</div>
   <div className="text-3xl font-black text-foreground font-mono">{totalAudits}</div>

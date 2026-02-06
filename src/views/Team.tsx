@@ -468,7 +468,7 @@ const Team: React.FC = () => {
   type="email"
   {...inviteForm.register('email')}
   />
-  {inviteForm.formState.errors.email && <p className="text-red-500 text-xs mt-1">{inviteForm.formState.errors.email?.message}</p>}
+  {inviteForm.formState.errors.email && <p className="text-destructive text-xs mt-1">{inviteForm.formState.errors.email?.message}</p>}
   </div>
 
   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

@@ -20,7 +20,7 @@ export const VoxelSkeleton: React.FC<VoxelSkeletonProps> = ({ message }) => {
 
  return (
  <div
- className="w-full h-full flex flex-col items-center justify-center bg-slate-900"
+ className="w-full h-full flex flex-col items-center justify-center bg-card"
  style={{ minHeight: 'calc(100vh - 48px)' }}
  data-testid="voxel-skeleton"
  role="progressbar"

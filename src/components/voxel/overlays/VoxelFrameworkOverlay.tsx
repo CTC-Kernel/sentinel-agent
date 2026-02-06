@@ -119,7 +119,7 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
 
  return (
  <div
- className={`rounded-lg transition-all duration-200 cursor-pointer ${isSelected ? 'ring-2' : 'hover:bg-slate-700/30'
+ className={`rounded-lg transition-all duration-200 cursor-pointer ${isSelected ? 'ring-2' : 'hover:bg-muted/30'
  }`}
  style={{
  background: isSelected ? `${framework.color}15` : 'rgba(30, 41, 59, 0.5)',
@@ -169,7 +169,7 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
  </div>
 
  {/* Progress bar */}
- <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden mb-2">
+ <div className="h-1.5 bg-muted rounded-full overflow-hidden mb-2">
  <div
  className="h-full rounded-full transition-all duration-500"
  style={{
@@ -189,7 +189,7 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
  e.stopPropagation();
  onToggleExpand();
  }}
- className="p-1 hover:bg-slate-600/50 rounded transition-colors"
+ className="p-1 hover:bg-muted/50 rounded transition-colors"
  aria-label={isExpanded ? 'Collapse breakdown' : 'Expand breakdown'}
  >
  {isExpanded ? (
@@ -202,7 +202,7 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
 
  {/* Expanded breakdown */}
  {isExpanded && (
- <div className="mt-3 pt-3 border-t border-slate-600/50 space-y-1.5">
+ <div className="mt-3 pt-3 border-t border-border/50 space-y-1.5">
  {(
  Object.entries(STATUS_CONFIG) as [keyof typeof STATUS_CONFIG, (typeof STATUS_CONFIG)[keyof typeof STATUS_CONFIG]][]
  ).map(([key, config]) => {
@@ -299,17 +299,17 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
  }}
  >
  {/* Header */}
- <div className="p-3 border-b border-slate-700/50">
+ <div className="p-3 border-b border-border/50">
  <div className="flex items-center justify-between">
  {!isMinimized && (
  <div className="flex items-center gap-2">
  <Layers className="w-4 h-4 text-blue-400" />
- <span className="text-sm font-medium text-white">Référentiels</span>
+ <span className="text-sm font-medium text-foreground">Référentiels</span>
  </div>
  )}
  <button
  onClick={() => setIsMinimized(!isMinimized)}
- className="p-1.5 hover:bg-slate-700/50 rounded-lg transition-colors"
+ className="p-1.5 hover:bg-muted/50 rounded-lg transition-colors"
  aria-label={isMinimized ? 'Agrandir le panneau' : 'Réduire le panneau'}
  >
  <Layers className={`w-4 h-4 text-muted-foreground ${isMinimized ? '' : 'hidden'}`} />
@@ -372,7 +372,7 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
  <button
  key={framework.id || 'unknown'}
  onClick={() => handleSelect(framework.id)}
- className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${selectedFrameworkId === framework.id ? 'ring-2' : 'hover:bg-slate-700/50'
+ className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${selectedFrameworkId === framework.id ? 'ring-2' : 'hover:bg-muted/50'
   }`}
  style={{
   background:

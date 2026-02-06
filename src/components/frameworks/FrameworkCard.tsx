@@ -39,7 +39,7 @@ const FRAMEWORK_COLORS: Record<string, string> = {
  DORA: 'from-purple-500 to-violet-600',
  RGPD: 'from-emerald-500 to-teal-600',
  AI_ACT: 'from-amber-500 to-orange-600',
- ISO27001: 'from-muted/500 to-slate-700',
+ ISO27001: 'from-muted/500 to-muted',
  ISO22301: 'from-cyan-500 to-blue-600',
  SOC2: 'from-rose-500 to-pink-600',
  PCI_DSS: 'from-red-500 to-rose-600',
@@ -111,7 +111,7 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
  })
  : null;
 
- const gradientColor = FRAMEWORK_COLORS[framework.code] || 'from-muted/500 to-slate-700';
+ const gradientColor = FRAMEWORK_COLORS[framework.code] || 'from-muted/500 to-muted';
 
  const handleClick = () => {
  if (isLoading) return;
@@ -133,8 +133,8 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
  'group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300',
  'backdrop-blur-xl border',
  isActive
- ? 'bg-card/90 border-emerald-500/50 shadow-lg shadow-emerald-500/10'
- : 'bg-white/60 border-border/40 hover:border-border/40 dark:hover:border-white/20',
+ ? 'bg-card/90 border-success/50 shadow-lg shadow-success/10'
+ : 'bg-white/60 dark:bg-white/5 border-border/40 hover:border-border/40 dark:hover:border-white/20',
  isLoading && 'opacity-60 pointer-events-none'
  )}
  onClick={handleClick}
@@ -175,7 +175,7 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
  <motion.div
  initial={{ scale: 0 }}
  animate={{ scale: 1 }}
- className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
+ className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success-bg text-success-text"
  >
  <Check className="w-3.5 h-3.5" />
  <span className="text-xs font-semibold">{t('frameworks.active', 'Actif')}</span>
@@ -231,8 +231,8 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
  'absolute inset-x-0 bottom-0 py-2 text-center text-xs font-semibold transition-all',
  'opacity-0 group-hover:opacity-70 translate-y-2 group-hover:translate-y-0',
  isActive
- ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
- : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400'
+ ? 'bg-error-bg text-destructive'
+ : 'bg-success-bg text-success'
  )}
  >
  {isActive

@@ -270,8 +270,8 @@ export function ScoreGauge({
  transition={{ delay: 1, ease: appleEasing }}
  className={cn(
  'flex items-center gap-1 text-xs font-medium',
- trend === 'up' && 'text-green-500',
- trend === 'down' && 'text-red-500',
+ trend === 'up' && 'text-success-text',
+ trend === 'down' && 'text-error-text',
  trend === 'stable' && 'text-muted-foreground'
  )}
  >

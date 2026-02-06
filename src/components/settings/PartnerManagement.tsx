@@ -143,7 +143,7 @@ export const PartnerManagement: React.FC = () => {
  {/* Header Section */}
  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 glass-premium rounded-2xl border border-border/40 shadow-sm">
  <div>
-  <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-muted-foreground/30 bg-clip-text text-transparent flex items-center gap-3">
+  <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 dark:from-foreground dark:to-muted-foreground bg-clip-text text-transparent flex items-center gap-3">
   <Handshake className="w-8 h-8 text-primary" />
   {t('certifier.partners.title') || "Partenaires Certifiés"}
   </h2>
