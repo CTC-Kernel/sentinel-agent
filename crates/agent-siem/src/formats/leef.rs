@@ -76,7 +76,7 @@ impl SiemFormatter for LeefFormatter {
 
         // Standard LEEF attributes
         attrs.push(format!("devTime={}", event.timestamp.format("%b %d %Y %H:%M:%S %Z")));
-        attrs.push(format!("devTimeFormat=MMM dd yyyy HH:mm:ss z"));
+        attrs.push("devTimeFormat=MMM dd yyyy HH:mm:ss z".to_string());
         attrs.push(format!("cat={}", Self::escape_value(&event.category.to_string())));
         attrs.push(format!("sev={}", Self::map_severity(event.severity)));
         attrs.push(format!("src={}", Self::escape_value(&event.source_host)));
@@ -119,7 +119,7 @@ impl SiemFormatter for LeefFormatter {
                 attrs.push(format!(
                     "{}={}",
                     Self::escape_value(key),
-                    Self::escape_value(&value.to_string().trim_matches('"').to_string())
+                    Self::escape_value(value.to_string().trim_matches('"'))
                 ));
             }
         }

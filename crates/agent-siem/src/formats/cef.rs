@@ -122,7 +122,7 @@ impl SiemFormatter for CefFormatter {
                         cs_num,
                         Self::escape_extension(key),
                         cs_num,
-                        Self::escape_extension(&value.to_string().trim_matches('"').to_string())
+                        Self::escape_extension(value.to_string().trim_matches('"'))
                     ));
                 }
             }

@@ -106,11 +106,10 @@ impl<'a> TabBar<'a> {
                     0.0 // Auto-size
                 };
 
-                if let Some(idx) = self.render_underline_tab(ui, tab, is_selected, tab_width) {
-                    if idx == i {
+                if let Some(idx) = self.render_underline_tab(ui, tab, is_selected, tab_width)
+                    && idx == i {
                         new_selection = Some(i);
                     }
-                }
             }
         });
 

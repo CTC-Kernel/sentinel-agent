@@ -204,7 +204,7 @@ impl ResourceMonitor {
                 cpu_percent: process.cpu_usage() as f64,
                 memory_bytes: process.memory(),
                 user: process.user_id().map(|u| u.to_string()).unwrap_or_else(|| "unknown".to_string()),
-                command_line: process.cmd().get(0).map(|c| c.to_string_lossy().to_string()),
+                command_line: process.cmd().first().map(|c| c.to_string_lossy().to_string()),
             })
             .collect();
 
@@ -1259,7 +1259,6 @@ fn get_system_memory() -> (u64, u64) {
 #[cfg(windows)]
 fn get_disk_usage() -> (u64, u64) {
     use windows::Win32::Storage::FileSystem::GetDiskFreeSpaceExW;
-    use windows::core::PCWSTR;
 
     unsafe {
         let mut free_bytes_available = 0;
@@ -1297,13 +1296,6 @@ fn get_system_cpu() -> f64 {
     // Basic implementation using sysinfo is preferred if possible, 
     // but here we align with the system-specific pattern.
     0.0 // sysinfo handles this well enough in ResourceMonitor
-}
-
-#[cfg(windows)]
-fn get_disk_iops() -> u32 {
-    // Windows implementation would use GetProcessIoCounters
-    // Not implemented yet - returns 0
-    0
 }
 
 #[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
