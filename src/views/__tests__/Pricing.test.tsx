@@ -8,6 +8,31 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Pricing from '../Pricing';
 
+// Hoisted mock for translations
+const { mockT } = vi.hoisted(() => {
+ const translations: Record<string, string> = {
+ 'common.pricingTitle': 'Tarification transparente',
+ 'common.pricingSubtitle': 'Des solutions flexibles',
+ 'pricing.faq': 'FAQ',
+ 'pricing.faqDesc': 'Questions fréquentes',
+ 'pricing.detailed_comparison': 'Comparaison Détaillée',
+ 'pricing.contact_us': 'Contactez-nous',
+ 'common.pilotage': 'Pilotage',
+ 'common.operations': 'Opérations',
+ 'pricing.faq1_q': 'Question 1',
+ 'pricing.faq2_q': 'Question 2',
+ 'pricing.faq3_q': 'Question 3',
+ };
+ return {
+ mockT: (key: string, options?: string | Record<string, unknown>) => {
+ if (translations[key]) return translations[key];
+ if (typeof options === 'string') return options;
+ if (options && typeof options === 'object' && 'defaultValue' in options) return options.defaultValue as string;
+ return key;
+ }
+ };
+});
+
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
  motion: {
@@ -23,26 +48,17 @@ vi.mock('framer-motion', () => ({
 
 // Mock i18n
 vi.mock('react-i18next', () => ({
- useTranslation: () => ({
- t: (key: string, options?: string | Record<string, unknown>) => {
- const translations: Record<string, string> = {
- 'common.pricingTitle': 'Tarification transparente',
- 'common.pricingSubtitle': 'Des solutions flexibles',
- 'pricing.faq': 'FAQ',
- 'pricing.faqDesc': 'Questions fréquentes',
- 'pricing.detailed_comparison': 'Comparaison Détaillée',
- 'pricing.contact_us': 'Contactez-nous',
- 'common.pilotage': 'Pilotage',
- 'common.operations': 'Opérations',
- 'pricing.faq1_q': 'Question 1',
- 'pricing.faq2_q': 'Question 2',
- 'pricing.faq3_q': 'Question 3',
- };
- if (translations[key]) return translations[key];
- if (typeof options === 'string') return options;
- if (options && typeof options === 'object' && 'defaultValue' in options) return options.defaultValue as string;
- return key;
- }
+ useTranslation: () => ({ t: mockT })
+}));
+
+// Mock useLocale
+vi.mock('../../hooks/useLocale', () => ({
+ useLocale: () => ({
+ locale: 'fr',
+ t: mockT,
+ formatDate: (date: Date) => date.toLocaleDateString('fr-FR'),
+ formatNumber: (num: number) => num.toLocaleString('fr-FR'),
+ formatCurrency: (num: number) => num.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }),
  })
 }));
 

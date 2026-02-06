@@ -14,19 +14,29 @@ vi.mock('../../../store', () => ({
  useStore: () => mockUseStore()
 }));
 
-// Mock react-i18next
-const mockT = (key: string) => {
+// Mock translations
+const mockT = (key: string, options?: { defaultValue?: string }) => {
  const translations: Record<string, string> = {
  'auth.accessDeniedOtherOrg': 'Vous n\'avez pas accès aux ressources d\'une autre organisation.',
  'auth.insufficientPermissions': 'Vous n\'avez pas les droits pour accéder à cette page.',
+ 'auth.accessDenied': 'Accès refusé',
+ 'common.backToDashboard': 'Retour au tableau de bord',
  };
- return translations[key] || key;
+ return translations[key] || options?.defaultValue || key;
 };
 
 vi.mock('react-i18next', () => ({
  useTranslation: () => ({
  t: mockT,
  i18n: { language: 'fr' }
+ })
+}));
+
+// Mock useLocale to use the same translations
+vi.mock('../../../hooks/useLocale', () => ({
+ useLocale: () => ({
+ locale: 'fr',
+ t: mockT,
  })
 }));
 

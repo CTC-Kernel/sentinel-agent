@@ -18,13 +18,12 @@ vi.mock('../../store', () => ({
  }),
 }));
 
-// Mock useLocale to provide the required locale data
-vi.mock('../../hooks/useLocale', async () => {
- const { fr } = await import('date-fns/locale');
- return {
+// Mock useLocale to provide the required locale data including t function
+vi.mock('../../hooks/useLocale', () => ({
  useLocale: () => ({
  locale: 'fr',
- dateFnsLocale: fr,
+ dateFnsLocale: {},
+ t: (key: string) => key,
  zodMessages: {
  required: 'Ce champ est requis',
  invalidType: 'Type de valeur invalide',
@@ -51,8 +50,7 @@ vi.mock('../../hooks/useLocale', async () => {
  formatDate: (date: Date) => date.toLocaleDateString('fr-FR'),
  formatNumber: (num: number) => num.toLocaleString('fr-FR'),
  }),
- };
-});
+}));
 
 vi.mock('../../hooks/usePersistedState', () => ({
  usePersistedState: vi.fn((_key, defaultVal) => [defaultVal, vi.fn()])

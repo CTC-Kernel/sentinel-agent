@@ -360,9 +360,9 @@ describe('getFrameworkColor', () => {
  expect(result.text).toContain('red');
  });
 
- it('returns slate for unknown frameworks', () => {
+ it('returns muted foreground for unknown frameworks', () => {
  const result = getFrameworkColor('Unknown');
- expect(result.text).toContain('slate');
+ expect(result.text).toContain('muted-foreground');
  });
 });
 

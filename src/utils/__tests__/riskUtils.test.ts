@@ -177,11 +177,11 @@ describe('getSLAStatus', () => {
  expect(result!.label).toBe('14j');
  });
 
- it('should have slate color styling', () => {
+ it('should have muted color styling for ok status', () => {
  const risk = createRisk({ treatmentDeadline: '2026-01-25' });
  const result = getSLAStatus(risk);
 
- expect(result!.color).toContain('text-slate');
+ expect(result!.color).toContain('text-muted-foreground');
  });
  });
 });

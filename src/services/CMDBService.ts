@@ -1,0 +1,567 @@
+/**
+ * CMDB Service
+ *
+ * Service for Configuration Item CRUD operations.
+ * Handles all CI lifecycle management with audit logging.
+ *
+ * @module services/CMDBService
+ */
+
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  addDoc,
+  updateDoc,
+  query,
+  where,
+  orderBy,
+  limit,
+  startAfter,
+  serverTimestamp,
+  Timestamp,
+  DocumentSnapshot,
+  QueryConstraint,
+} from 'firebase/firestore';
+import { db } from '@/firebaseConfig';
+import { logAction } from '@/services/auditLogService';
+import { ErrorLogger } from '@/services/errorLogger';
+import {
+  ConfigurationItem,
+  CMDBFilters,
+  CMDBPagination,
+  PaginatedCIs,
+  DiscoveryStats,
+  CIClass,
+  CIStatus,
+} from '@/types/cmdb';
+import { createCISchema, updateCISchema, CreateCIFormData } from '@/schemas/cmdbSchema';
+
+const COLLECTION_NAME = 'cmdb_cis';
+
+/**
+ * CMDB Service - Static methods for CI operations
+ */
+export class CMDBService {
+  // ===========================================================================
+  // CREATE
+  // ===========================================================================
+
+  /**
+   * Create a new Configuration Item
+   */
+  static async createCI(
+    organizationId: string,
+    data: CreateCIFormData,
+    userId: string
+  ): Promise<string> {
+    // Validate input
+    const validated = createCISchema.safeParse(data);
+    if (!validated.success) {
+      throw new Error(`Validation error: ${validated.error.message}`);
+    }
+
+    const ciData = {
+      ...validated.data,
+      organizationId,
+      dataQualityScore: this.calculateDataQualityScore(validated.data),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      createdBy: userId,
+      updatedBy: userId,
+    };
+
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), ciData);
+
+    // Audit log
+    await logAction({
+      action: 'create',
+      entityType: 'configuration_item',
+      entityId: docRef.id,
+      userId,
+      organizationId,
+      after: { id: docRef.id, ...ciData },
+      metadata: { ciClass: validated.data.ciClass, ciType: validated.data.ciType },
+    });
+
+    return docRef.id;
+  }
+
+  // ===========================================================================
+  // READ
+  // ===========================================================================
+
+  /**
+   * Get a single CI by ID
+   */
+  static async getCI(
+    organizationId: string,
+    ciId: string
+  ): Promise<ConfigurationItem | null> {
+    const docRef = doc(db, COLLECTION_NAME, ciId);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      return null;
+    }
+
+    const data = docSnap.data();
+
+    // Security: Verify organization access
+    if (data.organizationId !== organizationId) {
+      throw new Error('Access denied: CI belongs to different organization');
+    }
+
+    return { id: docSnap.id, ...data } as ConfigurationItem;
+  }
+
+  /**
+   * List CIs with filters and pagination
+   */
+  static async listCIs(
+    organizationId: string,
+    filters: CMDBFilters = {},
+    pagination: CMDBPagination = { limit: 50 }
+  ): Promise<PaginatedCIs> {
+    const constraints: QueryConstraint[] = [
+      where('organizationId', '==', organizationId),
+    ];
+
+    // Apply filters
+    if (filters.ciClass) {
+      constraints.push(where('ciClass', '==', filters.ciClass));
+    }
+    if (filters.status) {
+      constraints.push(where('status', '==', filters.status));
+    }
+    if (filters.environment) {
+      constraints.push(where('environment', '==', filters.environment));
+    }
+    if (filters.criticality) {
+      constraints.push(where('criticality', '==', filters.criticality));
+    }
+    if (filters.ownerId) {
+      constraints.push(where('ownerId', '==', filters.ownerId));
+    }
+    if (filters.discoverySource) {
+      constraints.push(where('discoverySource', '==', filters.discoverySource));
+    }
+    if (filters.lowQuality) {
+      constraints.push(where('dataQualityScore', '<', 50));
+    }
+    if (filters.stale) {
+      const thirtyDaysAgo = Timestamp.fromDate(
+        new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      );
+      constraints.push(where('lastDiscoveredAt', '<', thirtyDaysAgo));
+    }
+
+    // Sorting
+    const sortField = pagination.sortBy || 'name';
+    const sortDir = pagination.sortDirection || 'asc';
+    constraints.push(orderBy(sortField, sortDir));
+
+    // Pagination
+    constraints.push(limit(pagination.limit + 1)); // +1 to check for more
+
+    if (pagination.cursor) {
+      const cursorDoc = await getDoc(doc(db, COLLECTION_NAME, pagination.cursor));
+      if (cursorDoc.exists()) {
+        constraints.push(startAfter(cursorDoc));
+      }
+    }
+
+    const q = query(collection(db, COLLECTION_NAME), ...constraints);
+    const snapshot = await getDocs(q);
+
+    const items: ConfigurationItem[] = [];
+    snapshot.forEach((docSnap) => {
+      if (items.length < pagination.limit) {
+        items.push({ id: docSnap.id, ...docSnap.data() } as ConfigurationItem);
+      }
+    });
+
+    // Client-side search filter (Firestore doesn't support full-text search)
+    let filteredItems = items;
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filteredItems = items.filter(
+        (ci) =>
+          ci.name.toLowerCase().includes(searchLower) ||
+          ci.description?.toLowerCase().includes(searchLower) ||
+          ci.fingerprint.hostname?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    const hasMore = snapshot.size > pagination.limit;
+    const nextCursor = hasMore && items.length > 0 ? items[items.length - 1].id : undefined;
+
+    return {
+      items: filteredItems,
+      total: filteredItems.length, // Note: For accurate total, use a count query
+      hasMore,
+      nextCursor,
+    };
+  }
+
+  /**
+   * Search CIs by text query
+   */
+  static async searchCIs(
+    organizationId: string,
+    searchQuery: string,
+    maxResults: number = 20
+  ): Promise<ConfigurationItem[]> {
+    // For basic search, we fetch and filter client-side
+    // For production, consider using Algolia or Elasticsearch
+    const result = await this.listCIs(
+      organizationId,
+      { search: searchQuery },
+      { limit: maxResults }
+    );
+    return result.items;
+  }
+
+  /**
+   * Get CI by fingerprint (for reconciliation)
+   */
+  static async getCIByFingerprint(
+    organizationId: string,
+    field: string,
+    value: string
+  ): Promise<ConfigurationItem | null> {
+    const q = query(
+      collection(db, COLLECTION_NAME),
+      where('organizationId', '==', organizationId),
+      where(field, '==', value),
+      limit(1)
+    );
+
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      return null;
+    }
+
+    const docSnap = snapshot.docs[0];
+    return { id: docSnap.id, ...docSnap.data() } as ConfigurationItem;
+  }
+
+  // ===========================================================================
+  // UPDATE
+  // ===========================================================================
+
+  /**
+   * Update a CI
+   */
+  static async updateCI(
+    organizationId: string,
+    ciId: string,
+    updates: Partial<CreateCIFormData>,
+    userId: string
+  ): Promise<void> {
+    // Get current CI for audit
+    const currentCI = await this.getCI(organizationId, ciId);
+    if (!currentCI) {
+      throw new Error('CI not found');
+    }
+
+    // Validate updates
+    const validated = updateCISchema.safeParse(updates);
+    if (!validated.success) {
+      throw new Error(`Validation error: ${validated.error.message}`);
+    }
+
+    const updateData = {
+      ...validated.data,
+      dataQualityScore: this.calculateDataQualityScore({
+        ...currentCI,
+        ...validated.data,
+      }),
+      updatedAt: serverTimestamp(),
+      updatedBy: userId,
+    };
+
+    const docRef = doc(db, COLLECTION_NAME, ciId);
+    await updateDoc(docRef, updateData);
+
+    // Audit log
+    await logAction({
+      action: 'update',
+      entityType: 'configuration_item',
+      entityId: ciId,
+      userId,
+      organizationId,
+      before: currentCI,
+      after: { ...currentCI, ...updateData },
+      changedFields: Object.keys(updates),
+    });
+  }
+
+  /**
+   * Update CI discovery timestamp (called by agent sync)
+   */
+  static async updateDiscoveryTimestamp(
+    organizationId: string,
+    ciId: string,
+    agentId: string
+  ): Promise<void> {
+    const docRef = doc(db, COLLECTION_NAME, ciId);
+    await updateDoc(docRef, {
+      lastDiscoveredAt: serverTimestamp(),
+      sourceAgentId: agentId,
+      updatedAt: serverTimestamp(),
+    });
+  }
+
+  /**
+   * Mark CI as missing (not discovered recently)
+   */
+  static async markCIAsMissing(
+    organizationId: string,
+    ciId: string,
+    userId: string
+  ): Promise<void> {
+    await this.updateCI(
+      organizationId,
+      ciId,
+      { status: 'Missing' as CIStatus },
+      userId
+    );
+  }
+
+  // ===========================================================================
+  // DELETE
+  // ===========================================================================
+
+  /**
+   * Delete (retire) a CI - soft delete by setting status to Retired
+   */
+  static async deleteCI(
+    organizationId: string,
+    ciId: string,
+    userId: string
+  ): Promise<void> {
+    const currentCI = await this.getCI(organizationId, ciId);
+    if (!currentCI) {
+      throw new Error('CI not found');
+    }
+
+    // Soft delete - set status to Retired
+    const docRef = doc(db, COLLECTION_NAME, ciId);
+    await updateDoc(docRef, {
+      status: 'Retired',
+      updatedAt: serverTimestamp(),
+      updatedBy: userId,
+    });
+
+    // Audit log
+    await logAction({
+      action: 'delete',
+      entityType: 'configuration_item',
+      entityId: ciId,
+      userId,
+      organizationId,
+      before: currentCI,
+      metadata: { softDelete: true },
+    });
+  }
+
+  // ===========================================================================
+  // STATISTICS
+  // ===========================================================================
+
+  /**
+   * Get discovery statistics for dashboard
+   */
+  static async getDiscoveryStats(organizationId: string): Promise<DiscoveryStats> {
+    const baseQuery = query(
+      collection(db, COLLECTION_NAME),
+      where('organizationId', '==', organizationId)
+    );
+
+    const snapshot = await getDocs(baseQuery);
+
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    let total = 0;
+    let missing = 0;
+    let createdToday = 0;
+    let updatedToday = 0;
+    let totalDQS = 0;
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      total++;
+      totalDQS += data.dataQualityScore || 0;
+
+      if (data.status === 'Missing') {
+        missing++;
+      } else if (data.lastDiscoveredAt) {
+        const lastDiscovered = data.lastDiscoveredAt.toDate();
+        if (lastDiscovered < thirtyDaysAgo) {
+          missing++;
+        }
+      }
+
+      if (data.createdAt) {
+        const created = data.createdAt.toDate();
+        if (created >= todayStart) {
+          createdToday++;
+        }
+      }
+
+      if (data.updatedAt) {
+        const updated = data.updatedAt.toDate();
+        if (updated >= todayStart) {
+          updatedToday++;
+        }
+      }
+    });
+
+    // Get pending validation count from queue
+    const pendingQuery = query(
+      collection(db, 'cmdb_reconciliation_queue'),
+      where('organizationId', '==', organizationId),
+      where('status', '==', 'Pending')
+    );
+    const pendingSnapshot = await getDocs(pendingQuery);
+    const pending = pendingSnapshot.size;
+
+    return {
+      total,
+      pending,
+      matched: total - pending,
+      missing,
+      createdToday,
+      updatedToday,
+      avgDataQualityScore: total > 0 ? Math.round(totalDQS / total) : 0,
+    };
+  }
+
+  // ===========================================================================
+  // DATA QUALITY
+  // ===========================================================================
+
+  /**
+   * Calculate Data Quality Score for a CI
+   * Score is 0-100 based on completeness, freshness, and relations
+   */
+  static calculateDataQualityScore(ci: Partial<ConfigurationItem>): number {
+    let score = 0;
+
+    // Completeness (40 points max)
+    const requiredFields = ['name', 'ciClass', 'ciType', 'status', 'ownerId'];
+    const completedRequired = requiredFields.filter(
+      (f) => ci[f as keyof typeof ci] !== undefined && ci[f as keyof typeof ci] !== ''
+    ).length;
+    score += (completedRequired / requiredFields.length) * 20;
+
+    // Optional fields bonus
+    const optionalFields = ['description', 'supportGroupId', 'environment', 'criticality'];
+    const completedOptional = optionalFields.filter(
+      (f) => ci[f as keyof typeof ci] !== undefined && ci[f as keyof typeof ci] !== ''
+    ).length;
+    score += (completedOptional / optionalFields.length) * 10;
+
+    // Fingerprint completeness
+    const fingerprint = ci.fingerprint || {};
+    const fingerprintFields = ['serialNumber', 'primaryMacAddress', 'hostname'];
+    const completedFingerprint = fingerprintFields.filter(
+      (f) => fingerprint[f as keyof typeof fingerprint]
+    ).length;
+    score += (completedFingerprint / fingerprintFields.length) * 10;
+
+    // Freshness (30 points max)
+    if (ci.lastDiscoveredAt) {
+      const lastDiscovered =
+        ci.lastDiscoveredAt instanceof Timestamp
+          ? ci.lastDiscoveredAt.toDate()
+          : ci.lastDiscoveredAt;
+      const daysSinceDiscovery =
+        (Date.now() - new Date(lastDiscovered).getTime()) / (1000 * 60 * 60 * 24);
+
+      if (daysSinceDiscovery <= 1) {
+        score += 30;
+      } else if (daysSinceDiscovery <= 7) {
+        score += 25;
+      } else if (daysSinceDiscovery <= 30) {
+        score += 15;
+      } else {
+        score += 5;
+      }
+    } else if (ci.discoverySource === 'Manual') {
+      // Manual CIs don't need discovery freshness
+      score += 20;
+    }
+
+    // Discovery source bonus (10 points)
+    if (ci.discoverySource === 'Agent') {
+      score += 10;
+    } else if (ci.discoverySource === 'Manual' || ci.discoverySource === 'Import') {
+      score += 5;
+    }
+
+    // Status penalty
+    if (ci.status === 'Missing') {
+      score -= 20;
+    }
+
+    return Math.max(0, Math.min(100, Math.round(score)));
+  }
+
+  // ===========================================================================
+  // BULK OPERATIONS
+  // ===========================================================================
+
+  /**
+   * Get CIs by IDs
+   */
+  static async getCIsByIds(
+    organizationId: string,
+    ciIds: string[]
+  ): Promise<ConfigurationItem[]> {
+    if (ciIds.length === 0) return [];
+
+    // Firestore 'in' query limited to 30 items
+    const chunks: string[][] = [];
+    for (let i = 0; i < ciIds.length; i += 30) {
+      chunks.push(ciIds.slice(i, i + 30));
+    }
+
+    const results: ConfigurationItem[] = [];
+
+    for (const chunk of chunks) {
+      const q = query(
+        collection(db, COLLECTION_NAME),
+        where('organizationId', '==', organizationId),
+        where('__name__', 'in', chunk)
+      );
+
+      const snapshot = await getDocs(q);
+      snapshot.forEach((docSnap) => {
+        results.push({ id: docSnap.id, ...docSnap.data() } as ConfigurationItem);
+      });
+    }
+
+    return results;
+  }
+
+  /**
+   * Get CIs by class
+   */
+  static async getCIsByClass(
+    organizationId: string,
+    ciClass: CIClass
+  ): Promise<ConfigurationItem[]> {
+    const result = await this.listCIs(
+      organizationId,
+      { ciClass },
+      { limit: 1000 }
+    );
+    return result.items;
+  }
+}

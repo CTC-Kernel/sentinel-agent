@@ -381,10 +381,10 @@ describe('ContractExpirationService', () => {
  });
 
  describe('getUrgencyColor', () => {
- it('should return red colors for expired', () => {
- // expired uses slate colors now
+ it('should return muted colors for expired', () => {
+ // expired uses muted colors now
  const colors = ContractExpirationService.getUrgencyColor('expired');
- expect(colors.bg).toContain('slate');
+ expect(colors.bg).toContain('muted');
  });
 
  it('should return red colors for critical', () => {

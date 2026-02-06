@@ -4,10 +4,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Continuity } from '../Continuity';
 import { MemoryRouter } from 'react-router-dom';
 
-// Mock react-i18next
-vi.mock('react-i18next', () => ({
- useTranslation: () => ({
- t: (key: string) => {
+// Use vi.hoisted to define translations before mocks are evaluated
+const { mockT } = vi.hoisted(() => {
  const translations: Record<string, string> = {
  'continuity.title': 'Continuité d\'Activité',
  'continuity.subtitle': 'Gestion de la continuité d\'activité et de la résilience',
@@ -16,26 +14,29 @@ vi.mock('react-i18next', () => ({
  'continuity.deleteDrillMessage': 'Êtes-vous sûr de vouloir supprimer cet exercice de continuité ?',
  'continuity.editProcess': 'Modifier Processus',
  'continuity.newProcess': 'Nouveau Processus',
+ 'continuity.createProcess': 'Créer un processus',
  'continuity.tabs.overview': 'Vue d\'ensemble',
  'continuity.tabs.bia': 'BIA',
  'continuity.tabs.strategies': 'Stratégies',
  'continuity.tabs.pra': 'PRA',
  'continuity.tabs.drills': 'Exercices',
  'continuity.tabs.tlpt': 'Tests de Résilience (TLPT)',
- 'continuity.tabs.crisis': 'Gestion de Crise'
+ 'continuity.tabs.crisis': 'Gestion de Crise',
  };
- return translations[key] || key;
- }
- })
+ return { mockT: (key: string) => translations[key] || key };
+});
+
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+ useTranslation: () => ({ t: mockT })
 }));
 
-// Mock useLocale to provide the required locale data
-vi.mock('../../hooks/useLocale', async () => {
- const { fr } = await import('date-fns/locale');
- return {
+// Mock useLocale to provide the required locale data including t function
+vi.mock('../../hooks/useLocale', () => ({
  useLocale: () => ({
  locale: 'fr',
- dateFnsLocale: fr,
+ dateFnsLocale: {},
+ t: mockT,
  zodMessages: {
  required: 'Ce champ est requis',
  invalidType: 'Type de valeur invalide',
@@ -62,8 +63,7 @@ vi.mock('../../hooks/useLocale', async () => {
  formatDate: (date: Date) => date.toLocaleDateString('fr-FR'),
  formatNumber: (num: number) => num.toLocaleString('fr-FR'),
  }),
- };
-});
+}));
 
 // Mock Firebase Firestore
 vi.mock('firebase/firestore', () => ({

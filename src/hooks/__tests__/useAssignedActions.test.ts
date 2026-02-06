@@ -200,6 +200,6 @@ describe('DUE_STATUS_COLOR_CLASSES', () => {
  // These classes include both light and dark mode variants
  expect(DUE_STATUS_COLOR_CLASSES.danger.text).toMatch(/red/);
  expect(DUE_STATUS_COLOR_CLASSES.warning.text).toMatch(/orange/);
- expect(DUE_STATUS_COLOR_CLASSES.neutral.text).toMatch(/slate/);
+ expect(DUE_STATUS_COLOR_CLASSES.neutral.text).toMatch(/muted/);
  });
 });

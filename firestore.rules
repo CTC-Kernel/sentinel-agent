@@ -1544,6 +1544,134 @@ service cloud.firestore {
       allow write: if false; // Only writable by Cloud Functions (Admin SDK)
     }
 
+    // ===========================================================================
+    // CMDB - Configuration Management Database (Epic CMDB)
+    // ===========================================================================
+
+    // CMDB Validation Helpers
+    function isValidCIClass(val) {
+      return val in ['Hardware', 'Software', 'Service', 'Document', 'Network', 'Cloud', 'Container'];
+    }
+
+    function isValidCIStatus(val) {
+      return val in ['In_Stock', 'In_Use', 'In_Maintenance', 'Retired', 'Missing'];
+    }
+
+    function isValidCIEnvironment(val) {
+      return val in ['Production', 'Staging', 'Development', 'Test', 'DR'];
+    }
+
+    function isValidCMDBCriticality(val) {
+      return val in ['Critical', 'High', 'Medium', 'Low'];
+    }
+
+    function isValidDiscoverySource(val) {
+      return val in ['Agent', 'Manual', 'Import', 'Cloud', 'Network_Scan'];
+    }
+
+    function isValidRelationshipType(val) {
+      return val in ['depends_on', 'uses', 'runs_on', 'hosted_on', 'installed_on',
+                     'connects_to', 'interfaces_with', 'contains', 'member_of',
+                     'instance_of', 'provides', 'consumes', 'owned_by', 'supported_by'];
+    }
+
+    function isValidRelationshipStatus(val) {
+      return val in ['Active', 'Inactive', 'Pending_Validation'];
+    }
+
+    // Configuration Items (CIs)
+    match /cmdb_cis/{ciId} {
+      // Read: Org members can read CIs
+      allow read: if canRead(resource.data.organizationId);
+
+      // Create: Admin/RSSI can create CIs
+      allow create: if isAuthenticated() &&
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId) &&
+        isValidString(request.resource.data.name, 1, 255) &&
+        isValidCIClass(request.resource.data.ciClass) &&
+        isValidCIStatus(request.resource.data.status) &&
+        isValidCIEnvironment(request.resource.data.environment) &&
+        isValidCMDBCriticality(request.resource.data.criticality) &&
+        isValidDiscoverySource(request.resource.data.discoverySource);
+
+      // Update: Admin/RSSI can update, cannot change organizationId or ciClass
+      allow update: if canWrite(resource.data.organizationId) &&
+        request.resource.data.organizationId == resource.data.organizationId &&
+        request.resource.data.ciClass == resource.data.ciClass &&
+        (!('name' in request.resource.data) || isValidString(request.resource.data.name, 1, 255)) &&
+        (!('status' in request.resource.data) || isValidCIStatus(request.resource.data.status)) &&
+        (!('environment' in request.resource.data) || isValidCIEnvironment(request.resource.data.environment)) &&
+        (!('criticality' in request.resource.data) || isValidCMDBCriticality(request.resource.data.criticality));
+
+      // Delete: Blocked (use soft delete via status=Retired)
+      allow delete: if false;
+    }
+
+    // CMDB Relationships
+    match /cmdb_relationships/{relId} {
+      // Read: Org members can read relationships
+      allow read: if canRead(resource.data.organizationId);
+
+      // Create: Admin/RSSI can create relationships
+      allow create: if isAuthenticated() &&
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId) &&
+        request.resource.data.sourceId != request.resource.data.targetId &&
+        isValidRelationshipType(request.resource.data.relationshipType) &&
+        isValidRelationshipStatus(request.resource.data.status) &&
+        isValidCMDBCriticality(request.resource.data.criticality);
+
+      // Update: Admin/RSSI can update, cannot change source/target
+      allow update: if canWrite(resource.data.organizationId) &&
+        request.resource.data.organizationId == resource.data.organizationId &&
+        request.resource.data.sourceId == resource.data.sourceId &&
+        request.resource.data.targetId == resource.data.targetId &&
+        (!('relationshipType' in request.resource.data) || isValidRelationshipType(request.resource.data.relationshipType)) &&
+        (!('status' in request.resource.data) || isValidRelationshipStatus(request.resource.data.status)) &&
+        (!('criticality' in request.resource.data) || isValidCMDBCriticality(request.resource.data.criticality));
+
+      // Delete: Admin/RSSI can delete relationships
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+
+    // CMDB Validation Queue
+    // Items pending human review for reconciliation
+    match /cmdb_validation_queue/{itemId} {
+      // Read: Org members can read validation queue
+      allow read: if canRead(resource.data.organizationId);
+
+      // Create: Only Cloud Functions (agent sync) - blocked for clients
+      allow create: if false;
+
+      // Update: Admin/RSSI can process validation items
+      allow update: if canWrite(resource.data.organizationId) &&
+        request.resource.data.organizationId == resource.data.organizationId &&
+        request.resource.data.status in ['Pending', 'Approved', 'Rejected', 'Merged', 'Expired'];
+
+      // Delete: Admin/RSSI can remove processed items
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+
+    // CMDB Reconciliation Config
+    // Per-organization reconciliation settings
+    match /cmdb_reconciliation_config/{orgId} {
+      allow read: if belongsToOrganization(orgId);
+      allow write: if belongsToOrganization(orgId) && (isAdmin() || isRSSI());
+    }
+
+    // CMDB Identification Rules
+    // Custom matching rules per organization
+    match /cmdb_identification_rules/{ruleId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() &&
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId) &&
+        request.resource.data.organizationId == resource.data.organizationId;
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+
     // Default deny all
     match /{document=**} {
       allow read, write: if false;

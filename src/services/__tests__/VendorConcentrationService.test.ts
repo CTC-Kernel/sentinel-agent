@@ -302,9 +302,9 @@ describe('VendorConcentrationService - Trend Indicators', () => {
  expect(result.icon).toBe('down');
  });
 
- it('should return slate/right for stable trends', () => {
+ it('should return muted/right for stable trends', () => {
  const result = getTrendIndicator('stable');
- expect(result.color).toContain('slate');
+ expect(result.color).toContain('muted');
  expect(result.icon).toBe('right');
  });
  });

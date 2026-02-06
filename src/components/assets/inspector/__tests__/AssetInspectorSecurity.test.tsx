@@ -23,11 +23,8 @@ vi.mock('../../../ui/Tooltip', () => ({
  Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
-// Mock react-i18next
-vi.mock('react-i18next', () => ({
- useTranslation: () => ({
- t: (key: string) => {
- const translations: Record<string, string> = {
+// Translation helper
+const translations: Record<string, string> = {
  'common.inspector.security.scanShodan': 'Scan Shodan',
  'common.inspector.security.checkCVEs': 'Check CVEs (NVD)',
  'common.inspector.security.scanShodanTooltip': 'Lancer un scan Shodan',
@@ -37,14 +34,29 @@ vi.mock('react-i18next', () => ({
  'common.inspector.security.linkedIncidents': 'Incidents',
  'common.inspector.security.newRisk': 'Créer un nouveau risque',
  'common.inspector.security.newIncident': 'Signaler un incident',
+ 'common.inspector.security.reportIncident': 'Signaler un incident',
  'common.inspector.security.criticalRisk': 'Risque Critique',
  'common.inspector.security.noRisks': 'Aucun risque associé.',
  'common.inspector.security.noIncidents': 'Aucun incident signalé.',
  'common.inspector.security.shodanResult': 'Résultat Shodan',
  'common.inspector.security.createRiskFor': 'Créer un risque pour',
- };
- return translations[key] || key;
- }
+ 'common.inspector.security.risks': 'Risques',
+ 'common.inspector.security.incidents': 'Incidents',
+};
+const mockT = (key: string) => translations[key] || key;
+
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+ useTranslation: () => ({ t: mockT })
+}));
+
+// Mock useLocale hook (component uses this instead of useTranslation)
+vi.mock('../../../../hooks/useLocale', () => ({
+ useLocale: () => ({
+ locale: 'fr',
+ t: mockT,
+ formatDate: (date: Date) => date.toLocaleDateString('fr-FR'),
+ formatNumber: (val: number) => val.toLocaleString('fr-FR'),
  })
 }));
 

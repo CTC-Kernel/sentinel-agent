@@ -60,6 +60,9 @@ const releases = require('./releases');
 // Training Module (Certificates - NIS2 Article 21.2g)
 const training = require('./training');
 
+// CMDB Module (Configuration Management Database)
+const cmdb = require('./cmdb');
+
 // =============================================================================
 // EXISTING MODULES (already modularized)
 // =============================================================================
@@ -227,4 +230,9 @@ module.exports = {
 
   // --- Framework Seeding ---
   seedNIS2Framework,
+
+  // --- CMDB Module ---
+  cmdbOnAgentSync: cmdb.onAgentSync,
+  cmdbProcessValidationItem: cmdb.processValidationItem,
+  cmdbGetDiscoveryStats: cmdb.getDiscoveryStats,
 };

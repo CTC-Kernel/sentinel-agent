@@ -232,6 +232,50 @@ vi.mock('./i18n', () => ({
  default: i18n,
 }));
 
+
+// Mock useLocale hook globally to delegate to react-i18next's useTranslation
+// This ensures components using useLocale get translations from test mocks of react-i18next
+vi.mock('./hooks/useLocale', () => {
+ return {
+ useLocale: () => {
+ // Import useTranslation dynamically to get the mocked version
+ // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+ const { useTranslation } = require('react-i18next');
+ const { t: i18nT } = useTranslation();
+ return {
+  locale: 'fr' as const,
+  config: {
+  code: 'fr',
+  name: 'Français',
+  dateFormat: 'dd/MM/yyyy',
+  dateTimeFormat: 'dd/MM/yyyy HH:mm',
+  numberFormat: { decimal: ',', thousands: ' ' },
+  currency: 'EUR',
+  },
+  dateFnsLocale: {},
+  formatDate: (date: Date) => date.toLocaleDateString('fr-FR'),
+  formatLocalizedDate: (date: Date | string | null) => date ? new Date(date).toLocaleDateString('fr-FR') : '',
+  parseDate: (str: string) => new Date(str),
+  formatNumber: (val: number) => val.toLocaleString('fr-FR'),
+  formatCurrency: (val: number) => val.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }),
+  formatPercentage: (val: number) => `${(val * 100).toFixed(0)}%`,
+  zodMessages: {
+  required: 'Ce champ est requis',
+  invalidType: 'Type invalide',
+  tooSmall: 'Valeur trop petite',
+  tooBig: 'Valeur trop grande',
+  invalidDate: 'Date invalide',
+  invalidEmail: 'Email invalide',
+  invalidUrl: 'URL invalide',
+  },
+  createDateSchema: () => ({}),
+  createNumberSchema: () => ({}),
+  t: i18nT,
+ };
+ },
+ };
+});
+
 // Global cleanup
 afterEach(() => {
  cleanup();

@@ -7,10 +7,25 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import FinancialRisk from '../FinancialRisk';
 
+// Hoisted mock for translations
+const { mockT } = vi.hoisted(() => ({
+ mockT: (key: string) => key
+}));
+
 vi.mock('react-i18next', () => ({
  useTranslation: () => ({
- t: (key: string) => key,
+ t: mockT,
  i18n: { language: 'fr' }
+ })
+}));
+
+vi.mock('../../hooks/useLocale', () => ({
+ useLocale: () => ({
+ locale: 'fr',
+ t: mockT,
+ formatDate: (date: Date) => date.toLocaleDateString('fr-FR'),
+ formatNumber: (num: number) => num.toLocaleString('fr-FR'),
+ formatCurrency: (num: number) => num.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }),
  })
 }));
 

@@ -18,6 +18,19 @@ vi.mock('../../hooks/useAuth', () => ({
  useAuth: vi.fn(),
 }));
 
+vi.mock('react-i18next', () => ({
+ useTranslation: () => ({ t: (key: string) => key })
+}));
+
+vi.mock('../../hooks/useLocale', () => ({
+ useLocale: () => ({
+ locale: 'fr',
+ t: (key: string) => key,
+ formatDate: (date: Date) => date.toLocaleDateString('fr-FR'),
+ formatNumber: (num: number) => num.toLocaleString('fr-FR'),
+ })
+}));
+
 // Mock child components
 vi.mock('../admin/components/GlobalMetrics', () => ({
  GlobalMetrics: () => <div data-testid="global-metrics">Global Metrics</div>

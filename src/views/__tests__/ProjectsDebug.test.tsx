@@ -31,7 +31,7 @@ describe('ProjectsDebug', () => {
  expect(container.querySelector('.p-8')).toBeInTheDocument();
 
  // Check for styled content box
- expect(container.querySelector('.bg-white')).toBeInTheDocument();
+ expect(container.querySelector('.bg-card')).toBeInTheDocument();
  expect(container.querySelector('.rounded-lg')).toBeInTheDocument();
  });
 });
