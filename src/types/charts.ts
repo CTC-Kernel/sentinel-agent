@@ -13,7 +13,7 @@ export interface SentinelPieActiveShapeProps extends PieSectorDataItem {
     payload: {
         name: string;
         value: number;
-        [key: string]: any;
+        [key: string]: unknown;
     };
     percent?: number;
 }

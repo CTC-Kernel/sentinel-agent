@@ -430,7 +430,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                                 <PieChart>
                                     <Pie
                                         activeIndex={activeStatusIndex}
-                                        activeShape={renderActiveShape as any}
+                                        activeShape={renderActiveShape as Pie['props']['activeShape']}
                                         data={statusDistribution}
                                         cx="50%"
                                         cy="50%"
@@ -480,7 +480,7 @@ export const DocumentsCharts: React.FC<DocumentsChartsProps> = ({ documents, loa
                                 <PieChart>
                                     <Pie
                                         activeIndex={activeTypeIndex}
-                                        activeShape={renderActiveShape as any}
+                                        activeShape={renderActiveShape as Pie['props']['activeShape']}
                                         data={typeDistribution}
                                         cx="50%"
                                         cy="50%"

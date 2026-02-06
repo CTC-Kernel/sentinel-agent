@@ -218,6 +218,9 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
     }, [agent]);
 
     // Real-time metrics from heartbeat changes
+    const networkRecv = agent.networkBytesRecv ?? 0;
+    const networkSent = agent.networkBytesSent ?? 0;
+
     useEffect(() => {
         const now = new Date();
         const newMetric: AgentRealtimeMetrics = {
@@ -225,8 +228,8 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
             memoryPercent: agent.memoryPercent ?? 0,
             memoryBytes: agent.memoryBytes ?? 0,
             diskPercent: agent.diskPercent ?? 0,
-            networkInBytes: (agent as any).networkBytesRecv ?? 0,
-            networkOutBytes: (agent as any).networkBytesSent ?? 0,
+            networkInBytes: networkRecv,
+            networkOutBytes: networkSent,
             timestamp: now.toISOString(),
         };
 
@@ -240,7 +243,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
             metrics: newMetric,
             lastUpdate: agent.lastHeartbeat || now.toISOString(),
         } : null);
-    }, [agent.cpuPercent, agent.memoryPercent, agent.diskPercent, agent.memoryBytes, agent.lastHeartbeat, (agent as any).networkBytesSent, (agent as any).networkBytesRecv]);
+    }, [agent.cpuPercent, agent.memoryPercent, agent.diskPercent, agent.memoryBytes, agent.lastHeartbeat, networkSent, networkRecv]);
 
     // Real-time processes and connections from live_data subcollection
     useEffect(() => {

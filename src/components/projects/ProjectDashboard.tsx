@@ -298,7 +298,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                                         innerRadius={60}
                                         outerRadius={80}
                                         activeIndex={activeTaskIndex !== null ? activeTaskIndex : undefined}
-                                        activeShape={renderActiveShape as any}
+                                        activeShape={renderActiveShape as Pie['props']['activeShape']}
                                         onMouseEnter={(_, index) => setActiveTaskIndex(index)}
                                         onMouseLeave={() => setActiveTaskIndex(null)}
                                     >  {taskDistribution.map((_, index) => (

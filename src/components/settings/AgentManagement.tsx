@@ -238,7 +238,7 @@ export const AgentManagement: React.FC = () => {
         const outerR = outerRadius ?? 0;
         const midA = midAngle ?? 0;
         const totalValue = value ?? payload.value ?? 0;
-        const percentValue = percent ?? payload.percent ?? 0;
+        const percentValue = percent ?? (payload.percent as number) ?? 0;
 
         const RADIAN = Math.PI / 180;
         const sin = Math.sin(-RADIAN * midA);
@@ -821,7 +821,7 @@ export const AgentManagement: React.FC = () => {
                                         stroke="none"
                                         cornerRadius={6}
                                         activeIndex={activeStatusIndex !== null ? activeStatusIndex : undefined}
-                                        activeShape={renderActiveShape as any}
+                                        activeShape={renderActiveShape as Pie['props']['activeShape']}
                                         onMouseEnter={(_, index) => setActiveStatusIndex(index)}
                                         onMouseLeave={() => setActiveStatusIndex(null)}
                                     >
@@ -873,7 +873,7 @@ export const AgentManagement: React.FC = () => {
                                         stroke="none"
                                         cornerRadius={6}
                                         activeIndex={activeOSIndex !== null ? activeOSIndex : undefined}
-                                        activeShape={renderActiveShape as any}
+                                        activeShape={renderActiveShape as Pie['props']['activeShape']}
                                         onMouseEnter={(_, index) => setActiveOSIndex(index)}
                                         onMouseLeave={() => setActiveOSIndex(null)}
                                     >
@@ -1132,6 +1132,8 @@ export const AgentManagement: React.FC = () => {
                                             <tr key={token.id || 'unknown'} className="hover:bg-muted/30 dark:hover:bg-white/5 transition-colors group/row">
                                                 <td className="px-4 py-3">
                                                     <div
+                                                        role="button"
+                                                        tabIndex={0}
                                                         className="cursor-pointer group/token"
                                                         onClick={() => {
                                                             if (token.token) {
@@ -1142,6 +1144,20 @@ export const AgentManagement: React.FC = () => {
                                                                 }
                                                             } else {
                                                                 toast.error(t('settings.agents.tokenNotAvailable', { defaultValue: 'Token non disponible' }));
+                                                            }
+                                                        }}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                                e.preventDefault();
+                                                                if (token.token) {
+                                                                    if (revealedTokenId === token.id) {
+                                                                        handleCopyToken(token.id, token.token);
+                                                                    } else {
+                                                                        setRevealedTokenId(token.id);
+                                                                    }
+                                                                } else {
+                                                                    toast.error(t('settings.agents.tokenNotAvailable', { defaultValue: 'Token non disponible' }));
+                                                                }
                                                             }
                                                         }}
                                                     >

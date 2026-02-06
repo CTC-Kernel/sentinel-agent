@@ -544,7 +544,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                         </defs>
                                         <Pie
                                             activeIndex={activeIndex !== null ? activeIndex : undefined}
-                                            activeShape={renderActiveShape as any}
+                                            activeShape={renderActiveShape as Pie['props']['activeShape']}
                                             data={severityData}
                                             cx="50%"
                                             cy="50%"

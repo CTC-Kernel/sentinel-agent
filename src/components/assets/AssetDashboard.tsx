@@ -414,7 +414,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                         stroke="none"
                                         cornerRadius={6}
                                         activeIndex={activeCriticalityIndex !== null ? activeCriticalityIndex : undefined}
-                                        activeShape={renderActiveShape as any}
+                                        activeShape={renderActiveShape as Pie['props']['activeShape']}
                                         onMouseEnter={(_, index) => setActiveCriticalityIndex(index)}
                                         onMouseLeave={() => setActiveCriticalityIndex(null)}
                                     >
@@ -519,7 +519,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                         stroke="none"
                                         cornerRadius={6}
                                         activeIndex={activeScopeIndex !== null ? activeScopeIndex : undefined}
-                                        activeShape={renderActiveShape as any}
+                                        activeShape={renderActiveShape as Pie['props']['activeShape']}
                                         onMouseEnter={(_, index) => setActiveScopeIndex(index)}
                                         onMouseLeave={() => setActiveScopeIndex(null)}
                                     >

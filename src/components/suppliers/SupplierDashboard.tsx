@@ -318,7 +318,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                                         stroke="none"
                                         cornerRadius={6}
                                         activeIndex={activePieIndex !== null ? activePieIndex : undefined}
-                                        activeShape={renderActiveShape as any}
+                                        activeShape={renderActiveShape as Pie['props']['activeShape']}
                                         onMouseEnter={(_, index) => setActivePieIndex(index)}
                                         onMouseLeave={() => setActivePieIndex(null)}
                                     >

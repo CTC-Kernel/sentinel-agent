@@ -221,10 +221,10 @@ export const AgentMetricsChart: React.FC<AgentMetricsChartProps> = ({
                             <Tooltip
                                 content={
                                     <ChartTooltip
-                                        formatter={((v: any, name: any) => {
-                                            if (name === 'Net') return formatBytes(v as number) + '/s';
-                                            return `${(v as number).toFixed(1)}%`;
-                                        }) as any}
+                                        formatter={((v: number, name?: string) => {
+                                            if (name === 'Net') return formatBytes(v) + '/s';
+                                            return `${v.toFixed(1)}%`;
+                                        })}
                                     />
                                 }
                             />

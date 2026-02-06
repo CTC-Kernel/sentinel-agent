@@ -271,7 +271,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                                     stroke="none"
                                     cornerRadius={6}
                                     activeIndex={activeStatusIndex !== null ? activeStatusIndex : undefined}
-                                    activeShape={renderActiveShape as any}
+                                    activeShape={renderActiveShape as Pie['props']['activeShape']}
                                     onMouseEnter={(_, index) => setActiveStatusIndex(index)}
                                     onMouseLeave={() => setActiveStatusIndex(null)}
                                 >

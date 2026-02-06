@@ -260,7 +260,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                                         stroke="none"
                                         cornerRadius={6}
                                         activeIndex={activeCriticalityIndex !== null ? activeCriticalityIndex : undefined}
-                                        activeShape={renderActiveShape as any}
+                                        activeShape={renderActiveShape as Pie['props']['activeShape']}
                                         onMouseEnter={(_, index) => setActiveCriticalityIndex(index)}
                                         onMouseLeave={() => setActiveCriticalityIndex(null)}
                                     >
