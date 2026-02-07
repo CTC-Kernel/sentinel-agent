@@ -79,8 +79,9 @@ windows-service = { workspace = true }
 libc = { workspace = true }
 
 [package.metadata.generate-rpm]
+name = "sentinel-agent"
 assets = [
-    { source = "target/release/agent-core", dest = "/usr/bin/sentinel-agent", mode = "755" }
+    { source = "../../target/release/agent-core", dest = "/usr/bin/sentinel-agent", mode = "755" }
 ]
 
 [package.metadata.deb]
@@ -96,7 +97,7 @@ depends = "libssl3, libgtk-3-0, libayatana-appindicator3-1"
 section = "admin"
 priority = "optional"
 assets = [
-    ["target/release/agent-core", "usr/bin/sentinel-agent", "755"],
+    ["../../target/release/agent-core", "usr/bin/sentinel-agent", "755"],
     ["../../README.md", "usr/share/doc/sentinel-agent/README.md", "644"],
     ["../../LICENSE", "usr/share/doc/sentinel-agent/LICENSE", "644"]
 ]
