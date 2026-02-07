@@ -37,7 +37,7 @@ const CATEGORY_ICONS: Record<WidgetCategory, React.ReactNode> = {
  * Category colors for styling
  */
 const CATEGORY_COLORS: Record<WidgetCategory, string> = {
- scoreKpi: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
+ scoreKpi: 'bg-info-bg text-info-text',
  risks: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
  actions: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
  audits: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',

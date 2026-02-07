@@ -66,7 +66,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
  <div className="glass-premium rounded-3xl overflow-hidden shadow-sm border border-border/40 animate-in fade-in duration-500">
  <div className="overflow-x-auto">
   <table className="w-full text-sm text-left">
-  <thead className="bg-muted/50/80/50 border-b border-border/40 dark:border-white/5 text-muted-foreground font-bold uppercase text-xs tracking-widest backdrop-blur-sm">
+  <thead className="bg-muted/50 border-b border-border/40 dark:border-white/5 text-muted-foreground font-bold uppercase text-xs tracking-widest backdrop-blur-sm">
   <tr>
   <th className="px-8 py-5">{t('continuity.table.process', { defaultValue: 'Processus' })}</th>
   <th className="px-6 py-5">{t('common.priority', { defaultValue: 'Priorité' })}</th>

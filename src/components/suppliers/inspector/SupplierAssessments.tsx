@@ -22,7 +22,7 @@ const getStatusColorClasses = (status: string): string => {
  case 'Submitted':
  return 'bg-green-100 text-green-700 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400';
  case 'Reviewed':
- return 'bg-blue-100 text-blue-700 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-400';
+ return 'bg-info-bg text-info-text dark:text-blue-400';
  case 'Archived':
  return 'bg-muted text-foreground ';
  case 'Expired':
@@ -259,7 +259,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
   <div
   className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
   assessment.status === 'Reviewed'
-  ? 'bg-blue-100 text-blue-600 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-400'
+  ? 'bg-info-bg text-info-text dark:text-blue-400'
   : assessment.status === 'Submitted'
   ? 'bg-green-100 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400'
   : assessment.status === 'Expired'

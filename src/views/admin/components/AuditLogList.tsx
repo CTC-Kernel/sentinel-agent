@@ -33,9 +33,9 @@ export const AuditLogList: React.FC = () => {
  );
 
  const getActionColor = (action: string) => {
- if (action.includes('SUSPEND') || action.includes('DELETE')) return 'text-red-400 bg-red-50 dark:bg-red-900/30 border-red-500/20';
+ if (action.includes('SUSPEND') || action.includes('DELETE')) return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 dark:bg-red-900/30 border-red-500/20';
  if (action.includes('ACTIVATE') || action.includes('CREATE')) return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
- if (action.includes('UPDATE') || action.includes('EDIT')) return 'text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-blue-500/20';
+ if (action.includes('UPDATE') || action.includes('EDIT')) return 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 dark:bg-blue-900/30 border-blue-500/20';
  return 'text-muted-foreground bg-muted/500/10 border-border/400/20';
  };
 

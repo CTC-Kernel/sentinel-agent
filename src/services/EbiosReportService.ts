@@ -27,7 +27,7 @@ import type {
 import { GRAVITY_SCALE } from '../data/ebiosLibrary';
 import { ISO_SEED_CONTROLS } from '../data/complianceData';
 import { RISK_THRESHOLDS } from '../constants/complianceConfig';
-import { ErrorLogger } from './errorLogger';
+
 
 interface Workshop1ReportOptions extends Partial<ReportOptions> {
  organizationName?: string;
@@ -56,9 +56,6 @@ interface FullEbiosReportOptions extends Partial<ReportOptions> {
 }
 
 // Scoring constants for getAnalysisCompletion
-const W1_SECTION_SCORE = 20;
-const W2_SECTION_SCORE = 50;
-const W3_SECTION_SCORE = 50;
 const W4_SECTION_SCORE = 50;
 const W5_SECTION_SCORE = 50;
 const TOTAL_WORKSHOPS = 5;
@@ -75,68 +72,6 @@ export class EbiosReportService {
  // Colors
  private static readonly BRAND_PRIMARY = '#0F172A';
  private static readonly TEXT_SECONDARY = '#64748B';
-
- /**
-  * Sanitize user-provided text for PDF output
-  */
- private static sanitizeText(text: string, maxLength = 200): string {
-  if (!text) return '';
-  return text.replace(/[\x00-\x1F\x7F]/g, '').substring(0, maxLength);
- }
-
- /**
-  * Truncate text respecting word boundaries
-  */
- private static truncateText(text: string, maxLen: number): string {
-  if (!text || text.length <= maxLen) return text || '-';
-  const truncated = text.substring(0, maxLen);
-  const lastSpace = truncated.lastIndexOf(' ');
-  return (lastSpace > maxLen * 0.5 ? truncated.substring(0, lastSpace) : truncated) + '...';
- }
-
- /**
-  * Get default autoTable configuration
-  */
- private static getDefaultTableConfig(overrides: Record<string, unknown> = {}): Record<string, unknown> {
-  return {
-   theme: 'striped',
-   styles: { fontSize: 8, cellPadding: 2 },
-   headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255] },
-   margin: { left: this.MARGIN_LEFT, right: this.MARGIN_RIGHT },
-   ...overrides,
-  };
- }
-
- /**
-  * Safely format a date string, with fallback
-  */
- private static safeFormatDate(dateStr: string | Date, formatStr: string, fallback = '-'): string {
-  try {
-   return format(new Date(dateStr), formatStr, { locale: getDateFnsLocale() });
-  } catch {
-   return fallback;
-  }
- }
-
- /**
-  * Add a silent truncation notice when arrays are sliced
-  */
- private static addTruncationNotice(
-  doc: jsPDF,
-  totalCount: number,
-  shownCount: number,
-  currentY: number
- ): number {
-  if (totalCount > shownCount) {
-   currentY += 5;
-   doc.setFontSize(7);
-   doc.setTextColor(150);
-   doc.text(`... et ${totalCount - shownCount} element(s) supplementaire(s)`, this.MARGIN_LEFT, currentY);
-   doc.setTextColor(0);
-  }
-  return currentY;
- }
-
 
  /**
  * Get gravity label in French
@@ -243,7 +178,7 @@ Le score de maturité du socle de sécurité est de ${maturityScore}%.`;
  title: 'Note de Cadrage EBIOS RM',
  subtitle: `${analysis.name} - Atelier 1`,
  orientation: 'portrait',
- filename: `note-cadrage-${analysis.name.toLowerCase().replace(/\s+/g, '-')}-${format(now, 'yyyy-MM-dd')}.pdf`,
+ filename: `note-cadrage-${analysis.name.toLowerCase().replace(/\s+/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.pdf`,
  organizationName: options.organizationName || 'Sentinel GRC',
  author: options.author,
  summary: summaryText,
@@ -685,7 +620,7 @@ Progression globale: ${completion.overall}%`;
  title: 'Synthèse EBIOS Risk Manager',
  subtitle: analysis.name,
  orientation: 'portrait',
- filename: `synthese-ebios-${analysis.name.toLowerCase().replace(/\s+/g, '-')}-${format(now, 'yyyy-MM-dd')}.pdf`,
+ filename: `synthese-ebios-${analysis.name.toLowerCase().replace(/\s+/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.pdf`,
  organizationName: options.organizationName || 'Sentinel GRC',
  author: options.author,
  summary: summaryText,
@@ -1029,7 +964,7 @@ Progression globale: ${completion.overall}%`;
  doc.setFontSize(10);
  doc.setTextColor(this.TEXT_SECONDARY);
  doc.text(
- `Efficacité moyenne des contrôles: ${avgEffectiveness}% | Risques acceptés: ${acceptedCount}/${risks.length}`,
+ `Efficacité moyenne des contrôles: ${avgEffectiveness}% | Risques acceptés: ${acceptedCount}/${data.residualRisks.length}`,
  this.MARGIN_LEFT,
  currentY
  );

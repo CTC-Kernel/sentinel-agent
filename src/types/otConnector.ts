@@ -407,5 +407,5 @@ export const CONNECTOR_STATUS_COLORS: Record<ConnectorStatus, string> = {
  active: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
  paused: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
  error: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
- configuring: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+ configuring: 'bg-info-bg text-info-text'
 };

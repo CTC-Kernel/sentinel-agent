@@ -106,7 +106,7 @@ export const ControlEffectivenessManager: React.FC<ControlEffectivenessManagerPr
  <div className={cn(
   "w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold",
   maturityLevel >= 4 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
-  maturityLevel >= 3 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' :
+  maturityLevel >= 3 ? 'bg-info-bg text-info-text' :
   maturityLevel >= 2 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' :
   'bg-muted text-muted-foreground'
  )}>

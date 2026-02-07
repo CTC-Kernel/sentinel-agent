@@ -1807,7 +1807,7 @@ export const AgentManagement: React.FC = () => {
                                             </div>
                                             <div className="flex justify-between items-center">
                                                 <span className="text-muted-foreground">Normal (P3)</span>
-                                                <Badge className="bg-blue-50 text-blue-600 dark:text-blue-400 border-blue-500/20">{"<"} 24h</Badge>
+                                                <Badge className="bg-info-bg text-info-text border-info-border">{"<"} 24h</Badge>
                                             </div>
                                             <div className="flex justify-between items-center">
                                                 <span className="text-muted-foreground">Demande (P4)</span>

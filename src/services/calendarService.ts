@@ -82,7 +82,7 @@ export const CalendarService = {
   end: dueDate,
   allDay: true,
   type: 'project',
-  color: 'bg-blue-100 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800',
+  color: 'bg-info-bg text-info-text border-info-border',
   description: `Statut: ${data.status}\nResponsable: ${data.manager}`,
   location: 'Gestion de projet',
   status: data.status

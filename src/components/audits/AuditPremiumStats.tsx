@@ -217,7 +217,7 @@ export const AuditPremiumStats: React.FC<AuditPremiumStatsProps> = ({ audits, fi
                             )}>
                                 <AlertOctagon className={cn(
                                     "w-4 h-4",
-                                    findingsCount > 0 ? "text-red-500" : "text-success-500"
+                                    findingsCount > 0 ? "text-red-600 dark:text-red-400" : "text-success-500"
                                 )} />
                             </div>
                             {findingsCount > 0 && (

@@ -89,7 +89,7 @@ const getFrameworkStyles = (framework: Framework) => {
  default:
  return {
  accent: 'text-primary',
- bg: 'bg-primary/10 dark:bg-primary',
+ bg: 'bg-primary/10 dark:bg-primary/15',
  border: 'border-primary/20 dark:border-primary/80',
  progress: 'bg-primary shadow-primary/20'
  };
@@ -196,7 +196,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
   tabIndex={0}
   aria-expanded={!!isExpanded}
   aria-label={t('compliance.toggleDomain', { defaultValue: `${domain.id} - ${domain.title}` })}
-  className={`p-4 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-decorator focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isExpanded ? 'bg-muted/50/80 dark:bg-white/5' : 'hover:bg-muted/50 dark:hover:bg-muted/50'}`}
+  className={`p-4 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-decorator focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isExpanded ? 'bg-muted/50 dark:bg-white/5' : 'hover:bg-muted/50 dark:hover:bg-muted/50'}`}
   >
   <div className="flex items-center gap-5 flex-1 min-w-0">
   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border shrink-0 shadow-sm shadow-black/5 transition-all group-hover:scale-110 ${fwStyles.bg} ${fwStyles.accent} ${fwStyles.border}`}>
@@ -247,7 +247,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
    role="button"
    tabIndex={0}
    className={`group relative p-4 rounded-3xl border transition-all duration-200 cursor-pointer overflow-hidden hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isActive
-    ? 'bg-primary/10 border-primary/30 dark:bg-primary dark:border-primary/90'
+    ? 'bg-primary/10 border-primary/30 dark:bg-primary/15 dark:border-primary/90'
     : 'bg-card border-border/40 hover:border-primary/30 dark:hover:border-primary'
     }`}
    >
@@ -257,7 +257,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
     {control.code.split('.').slice(1).join('.') || control.code}
     </div>
     <div className="min-w-0 pt-0.5">
-    <h4 className={`text-sm font-bold truncate pr-2 leading-tight ${isActive ? 'text-primary dark:text-primary/30' : 'text-foreground'}`}>
+    <h4 className={`text-sm font-bold truncate pr-2 leading-tight ${isActive ? 'text-primary dark:text-primary' : 'text-foreground'}`}>
     {control.name}
     </h4>
     <p className="text-xs text-muted-foreground font-mono mt-0.5 uppercase tracking-wider">{control.code}</p>

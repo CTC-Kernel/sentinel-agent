@@ -441,7 +441,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
   'text-xs',
   analysis.status === 'completed'
   ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-  : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
+  : 'bg-info-bg text-info-text'
   )}
   >
   {analysis.status}

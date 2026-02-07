@@ -359,6 +359,8 @@
    --muted: 220 12% 15%;
    --muted-foreground: 220 10% 65%;
    /* WCAG AAA: 7.5:1 on dark backgrounds */
+   --text-description: 220 10% 60%;
+   /* WCAG AA compliant secondary text for dark mode */
 
    --accent: 220 12% 15%;
    --accent-foreground: 0 0% 95%;

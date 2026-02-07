@@ -10,6 +10,7 @@ import { useStore } from './store';
 import { useAuth } from './hooks/useAuth';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { useHotkeys } from './hooks/useHotkeys';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 // Services & Utils
 import './i18n'; // Ensure i18n is initialized before app renders
@@ -93,6 +94,9 @@ const AppLayout: React.FC = () => {
  const location = useLocation();
  const [mobileOpen, setMobileOpen] = useState(false);
  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+ // Register global keyboard shortcuts (Cmd+K, Cmd+/, Escape)
+ useKeyboardShortcuts();
 
 
  // Effect for Online Status

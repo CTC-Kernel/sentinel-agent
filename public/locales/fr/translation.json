@@ -2013,7 +2013,11 @@
     "training": "Formation",
     "certificates": "Certificats",
     "accessReview": "Revue des Accès",
-    "cmdb": "CMDB"
+    "cmdb": "CMDB",
+    "governance": "Gouvernance",
+    "regulatoryChanges": "Veille Réglementaire",
+    "complianceCalendar": "Calendrier Conformité",
+    "certifications": "Certifications"
   },
   "cmdb": {
     "title": "CMDB",

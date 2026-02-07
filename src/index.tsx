@@ -8,6 +8,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { initSentry } from './utils/sentryInit';
+import { reportWebVitals } from './utils/webVitals';
 
 // Suppress expected non-passive wheel listener warning from OrbitControls (three.js)
 // OrbitControls requires non-passive wheel events to preventDefault during zoom
@@ -128,3 +129,4 @@ root.render(
 
 cleanupLegacyServiceWorkers();
 initializeApp();
+reportWebVitals();

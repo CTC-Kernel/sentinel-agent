@@ -37,7 +37,7 @@ const SEVERITY_STYLES: Record<string, string> = {
   critical: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20',
   high: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
   medium: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20',
-  low: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+  low: 'bg-info-bg text-info-text border-info-border',
   informational: 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20',
 };
 
@@ -65,7 +65,7 @@ const SeverityBadge: React.FC<{ severity: string }> = ({ severity }) => (
 // ---------------------------------------------------------------------------
 const STATUS_STYLES: Record<string, string> = {
   'identified': 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20',
-  'analyzing': 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+  'analyzing': 'bg-info-bg text-info-text border-info-border',
   'action-required': 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
   'implementing': 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
   'compliant': 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20',
@@ -108,7 +108,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 // ---------------------------------------------------------------------------
 const ACTION_STATUS_STYLES: Record<string, string> = {
   pending: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20',
-  'in-progress': 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+  'in-progress': 'bg-info-bg text-info-text border-info-border',
   completed: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20',
   overdue: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20',
   cancelled: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
@@ -129,7 +129,7 @@ const PRIORITY_STYLES: Record<string, string> = {
   critical: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20',
   high: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
   medium: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20',
-  low: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+  low: 'bg-info-bg text-info-text border-info-border',
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
@@ -649,7 +649,7 @@ const TimelineView: React.FC<{ changes: RegulatoryChange[] }> = ({ changes }) =>
       {/* Timeline line */}
       <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-border/40" />
 
-      {sorted.map((change, idx) => (
+      {sorted.map((change) => (
         <motion.div
           key={change.id}
           variants={slideUpVariants}

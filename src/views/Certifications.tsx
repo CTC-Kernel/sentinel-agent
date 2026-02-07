@@ -732,8 +732,8 @@ const CertificationForm: React.FC<{
 // ============================================================================
 
 export const Certifications: React.FC = () => {
-  const { user } = useAuth();
-  const { t } = useStore();
+  const _auth = useAuth();
+  const _store = useStore();
 
   const {
     certifications,
@@ -745,8 +745,6 @@ export const Certifications: React.FC = () => {
     createCertification,
     updateCertification,
     deleteCertification,
-    expiringCertifications,
-    upcomingAudits,
     submitting,
   } = useCertifications();
 

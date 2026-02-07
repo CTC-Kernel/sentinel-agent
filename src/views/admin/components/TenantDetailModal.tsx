@@ -231,7 +231,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
     id="plan-select"
     value={plan}
     onChange={(e) => setPlan(e.target.value as PlanType)}
-    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-primary focus:outline-none"
+    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground focus:ring-2 focus-visible:ring-primary focus:outline-none"
     >
     <option value="discovery">Discovery (Free)</option>
     <option value="professional">Professional</option>
@@ -250,7 +250,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
     const val = parseInt(e.target.value);
     setMaxUsers(isNaN(val) ? 0 : val);
     }}
-    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-primary focus:outline-none"
+    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground focus:ring-2 focus-visible:ring-primary focus:outline-none"
     />
     </div>
     <div>
@@ -263,7 +263,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
     const val = parseInt(e.target.value);
     setMaxProjects(isNaN(val) ? 0 : val);
     }}
-    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-primary focus:outline-none"
+    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground focus:ring-2 focus-visible:ring-primary focus:outline-none"
     />
     </div>
    </div>

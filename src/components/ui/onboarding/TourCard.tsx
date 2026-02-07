@@ -80,7 +80,7 @@ export const OnboardingCard: React.FC<OnboardingCardProps> = ({
   {/* Header */}
   <div className="flex justify-between items-start mb-4">
   <div className="space-y-1">
-  <span className="inline-block px-2.5 py-1 rounded-full bg-muted/80 text-foreground dark:bg-white/10 dark:text-white text-xs font-bold uppercase tracking-widest border border-border/40 shadow-sm backdrop-blur-md">
+  <span className="inline-block px-2.5 py-1 rounded-full bg-muted/80 text-foreground dark:bg-muted dark:text-foreground text-xs font-bold uppercase tracking-widest border border-border/40 shadow-sm backdrop-blur-md">
   {t('onboarding.step', { defaultValue: 'Étape' })} {currentStepIndex + 1}/{totalSteps}
   </span>
   <h3 className="text-xl font-bold text-foreground mt-2 leading-tight tracking-tight">

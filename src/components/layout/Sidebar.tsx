@@ -111,10 +111,10 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                 { key: 'audits', name: t('sidebar.audits'), to: '/audits', icon: Activity, resource: 'Audit' },
                 { key: 'training', name: t('sidebar.training'), to: '/training', icon: GraduationCap, resource: 'User' }, // NIS2 Art. 21.2(g)
                 { key: 'access-review', name: t('sidebar.accessReview'), to: '/access-review', icon: UserCheck, resource: 'User', action: 'manage' }, // NIS2 Art. 21.2(i)
-                { key: 'governance', name: t('sidebar.governance', { defaultValue: 'Gouvernance' }), to: '/governance', icon: Landmark, resource: 'Risk' }, // Board governance
-                { key: 'regulatory-changes', name: t('sidebar.regulatoryChanges', { defaultValue: 'Veille Reglementaire' }), to: '/regulatory-changes', icon: BookOpen, resource: 'Audit' },
-                { key: 'compliance-calendar', name: t('sidebar.complianceCalendar', { defaultValue: 'Calendrier Conformite' }), to: '/compliance-calendar', icon: CalendarCheck, resource: 'Audit' },
-                { key: 'certifications', name: t('sidebar.certifications', { defaultValue: 'Certifications' }), to: '/certifications', icon: Award, resource: 'Audit' },
+                { key: 'governance', name: t('sidebar.governance'), to: '/governance', icon: Landmark, resource: 'Risk' }, // Board governance
+                { key: 'regulatory-changes', name: t('sidebar.regulatoryChanges'), to: '/regulatory-changes', icon: BookOpen, resource: 'Audit' },
+                { key: 'compliance-calendar', name: t('sidebar.complianceCalendar'), to: '/compliance-calendar', icon: CalendarCheck, resource: 'Audit' },
+                { key: 'certifications', name: t('sidebar.certifications'), to: '/certifications', icon: Award, resource: 'Audit' },
                 { key: 'continuity', name: t('sidebar.continuity'), to: '/continuity', icon: HeartPulse, resource: 'Risk' }, // BCP
                 { key: 'privacy', name: t('common.privacyGdpr'), to: '/privacy', icon: Fingerprint, resource: 'Document' }, // Privacy
             ]
@@ -123,7 +123,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             title: t('common.repository'),
             items: [
                 { key: 'assets', name: t('sidebar.assets'), to: '/assets', icon: Server, resource: 'Asset' },
-                { key: 'cmdb', name: t('sidebar.cmdb', { defaultValue: 'CMDB' }), to: '/cmdb', icon: Database, resource: 'Asset' },
+                { key: 'cmdb', name: t('sidebar.cmdb'), to: '/cmdb', icon: Database, resource: 'Asset' },
                 { key: 'suppliers', name: t('sidebar.suppliers'), to: '/suppliers', icon: Building, resource: 'Supplier' },
                 { key: 'documents', name: t('sidebar.documents'), to: '/documents', icon: Briefcase, resource: 'Document' },
             ]
@@ -177,7 +177,10 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                 />
             )}
 
-            <aside className={`
+            <aside
+                role="complementary"
+                aria-label={t('a11y.sidebarNavigation', { defaultValue: 'Navigation principale' })}
+                className={`
  fixed inset-y-0 left-0 lg:inset-y-auto lg:sticky lg:top-0 z-sidebar w-[82vw] max-w-[320px] lg:w-[260px]
  bg-[var(--glass-bg)]
  backdrop-blur-[var(--glass-blur-md)] border-r border-border/40
@@ -197,7 +200,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                         className="flex items-center gap-3 group cursor-pointer select-none shine-effect"
                     >
                         <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 ring-1 ring-white/10">
-                            <Lock className="h-5 w-5" strokeWidth={2.5} />
+                            <Lock className="h-5 w-5" strokeWidth={2.5} aria-hidden="true" />
                         </div>
                         <div className="flex flex-col justify-center">
                             <h1 className="text-lg font-extrabold font-display tracking-tight text-foreground leading-none">Sentinel</h1>
@@ -210,12 +213,18 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                         onClick={() => setMobileOpen(false)}
                         className="lg:hidden p-2 -mr-2 text-muted-foreground hover:text-foreground transition-colors rounded-xl hover:bg-muted"
                     >
-                        <X className="h-5 w-5" />
+                        <X className="h-5 w-5" aria-hidden="true" />
                     </button>
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 px-4 space-y-2 overflow-y-auto scrollbar-hide py-4" data-tour="sidebar-nav">
+                <nav
+                    id="navigation"
+                    role="navigation"
+                    aria-label={t('a11y.mainNavigation', { defaultValue: 'Navigation du menu principal' })}
+                    className="flex-1 px-4 space-y-2 overflow-y-auto scrollbar-hide py-4"
+                    data-tour="sidebar-nav"
+                >
                     {navGroups.map((group, groupIndex) => {
                         const visibleItems = group.items.filter(filterItem);
                         if (visibleItems.length === 0) return null;
@@ -322,7 +331,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                                         transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                                     />
                                 ) : (
-                                    <ChevronRight className="h-3.5 w-3.5 transition-opacity duration-200 opacity-0 text-muted-foreground group-hover:opacity-70" />
+                                    <ChevronRight className="h-3.5 w-3.5 transition-opacity duration-200 opacity-0 text-muted-foreground group-hover:opacity-70" aria-hidden="true" />
                                 )}
                             </>
                         )}

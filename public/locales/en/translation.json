@@ -490,7 +490,11 @@
     "training": "Training",
     "certificates": "Certificates",
     "accessReview": "Access Review",
-    "cmdb": "CMDB"
+    "cmdb": "CMDB",
+    "governance": "Governance",
+    "regulatoryChanges": "Regulatory Watch",
+    "complianceCalendar": "Compliance Calendar",
+    "certifications": "Certifications"
   },
   "cmdb": {
     "title": "CMDB",

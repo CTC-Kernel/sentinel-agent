@@ -262,7 +262,7 @@ const VRPerformanceHUD: React.FC<VRPerformanceHUDProps> = ({ visible, targetFPS 
  className={`
  px-2 py-0.5 rounded text-xs uppercase
  ${qualityLevel === 'ultra' ? 'bg-purple-500/20 text-purple-400' : ''}
- ${qualityLevel === 'high' ? 'bg-blue-500/20 text-blue-400' : ''}
+ ${qualityLevel === 'high' ? 'bg-info-bg text-info-text' : ''}
  ${qualityLevel === 'medium' ? 'bg-amber-500/20 text-amber-400' : ''}
  ${qualityLevel === 'low' ? 'bg-red-500/20 text-red-400' : ''}
  `}

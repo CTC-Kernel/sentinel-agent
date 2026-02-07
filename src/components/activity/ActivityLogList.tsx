@@ -64,7 +64,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
  } else if (['delete', 'remove', 'destroy'].some(k => action.toLowerCase().includes(k))) {
   colorClass = "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
  } else if (['update', 'edit', 'modify'].some(k => action.toLowerCase().includes(k))) {
-  colorClass = "bg-blue-100 text-blue-700 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-400";
+  colorClass = "bg-info-bg text-info-text dark:text-blue-400";
  }
 
  return (

@@ -361,7 +361,7 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
  <span>•</span>
  <span>{filteredData.cells.length} {t('vendorConcentration.matrix.dependencies')}</span>
  <span>•</span>
- <span className="text-red-500">
+ <span className="text-red-600 dark:text-red-400">
  {filteredData.cells.filter(c => c.isCritical).length} {t('vendorConcentration.matrix.critical')}
  </span>
  </div>

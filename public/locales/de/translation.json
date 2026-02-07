@@ -394,7 +394,12 @@
     "certificates": "Zertifikate",
     "accessReview": "Zugangsprüfung",
     "agentPolicies": "Agenten-Richtlinien",
-    "softwareInventory": "Software-Inventar"
+    "softwareInventory": "Software-Inventar",
+    "cmdb": "CMDB",
+    "governance": "Governance",
+    "regulatoryChanges": "Regulatorische Überwachung",
+    "complianceCalendar": "Compliance-Kalender",
+    "certifications": "Zertifizierungen"
   },
   "frameworks": {
     "ISO27001": "ISO 27001 (Informationssicherheit)",

@@ -160,7 +160,7 @@ const RelationshipCard: React.FC<RelationshipCardProps> = ({
       {/* Direction indicator */}
       <div className={cn(
         'p-2 rounded-xl',
-        isSource ? 'bg-blue-500/10 text-blue-600' : 'bg-green-500/10 text-green-600'
+        isSource ? 'bg-info-bg text-info-text' : 'bg-green-500/10 text-green-600'
       )}>
         {isSource ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
       </div>

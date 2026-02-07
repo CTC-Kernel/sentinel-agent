@@ -320,7 +320,7 @@ export const CalendarDashboard: React.FC = () => {
               px-4 py-2 rounded-3xl text-xs font-bold uppercase tracking-wider transition-all duration-300 border flex items-center gap-2 shadow-sm shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary
               ${filters[key as keyof typeof filters]
                 ? key === 'audit' ? 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20 shadow-purple-500/10'
-                  : key === 'project' ? 'bg-blue-100 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-500/20 shadow-blue-500/10'
+                  : key === 'project' ? 'bg-info-bg text-info-text border-info-border shadow-info/10'
                     : key === 'maintenance' ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20 shadow-emerald-500/10'
                       : key === 'incident' ? 'bg-red-100 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 dark:bg-red-50 dark:text-red-300 dark:border-red-500/20 shadow-red-500/10'
                         : key === 'drill' ? 'bg-orange-100 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/20 shadow-orange-500/10'
@@ -394,7 +394,7 @@ export const CalendarDashboard: React.FC = () => {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <span className={`text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider border shadow-sm ${selectedEvent.type === 'audit' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20' :
-                  selectedEvent.type === 'project' ? 'bg-blue-50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-500/20' :
+                  selectedEvent.type === 'project' ? 'bg-info-bg text-info-text border-info-border dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-info-border' :
                     selectedEvent.type === 'maintenance' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20' :
                       selectedEvent.type === 'incident' ? 'bg-red-50 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 dark:bg-red-50 dark:text-red-300 dark:border-red-500/20' :
                         'bg-muted text-foreground border-border/40 '

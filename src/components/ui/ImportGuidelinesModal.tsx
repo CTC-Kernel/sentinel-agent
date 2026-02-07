@@ -96,7 +96,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
   <Info className="w-5 h-5" />
   </div>
   <div className="space-y-3 flex-1">
-  <h4 className="font-semibold text-primary dark:text-primary/30">
+  <h4 className="font-semibold text-primary dark:text-primary">
   {t('common.import.guidelinesTitle')}
   </h4>
   <p className="text-sm text-primary dark:text-primary/50 leading-relaxed">

@@ -427,7 +427,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
    {item.isHistorical ? (
    <span className={cn(
     "text-xs",
-    missingJustification ? "text-red-500" : "text-muted-foreground"
+    missingJustification ? "text-red-600 dark:text-red-400" : "text-muted-foreground"
    )}>
     {item.justification || (missingJustification ? "Justification requise" : "-")}
    </span>

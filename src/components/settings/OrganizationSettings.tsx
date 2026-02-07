@@ -282,7 +282,7 @@ export const OrganizationSettings: React.FC = () => {
    currentOrg?.subscription?.planId === 'enterprise' ? t('settings.plans.enterprise') :
    t('settings.plans.discovery')}
    </h2>
-   <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide border ${currentOrg?.subscription?.status === 'active' ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-white/10 text-white/70 border-white/20'}`}>
+   <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide border ${currentOrg?.subscription?.status === 'active' ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-muted text-muted-foreground border-border/40'}`}>
    {currentOrg?.subscription?.status === 'active' ? t('settings.active') : t('settings.free')}
    </span>
   </div>
@@ -350,7 +350,7 @@ export const OrganizationSettings: React.FC = () => {
   {/* DORA Compliance Section */}
   <div className="pt-6 border-t border-border/40">
   <h4 className="text-md font-semibold text-foreground mb-4 flex items-center gap-2">
-   <span className="text-blue-500">🏛️</span> {t('settings.doraCompliance', { defaultValue: 'Conformité DORA' })}
+   <span className="text-blue-600 dark:text-blue-400">🏛️</span> {t('settings.doraCompliance', { defaultValue: 'Conformité DORA' })}
   </h4>
   <p className="text-xs text-muted-foreground mb-4">
    {t('settings.doraComplianceDesc', { defaultValue: 'Informations requises pour la conformité au règlement DORA (Digital Operational Resilience Act) - Article 3.' })}

@@ -158,7 +158,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
  <div className="fixed inset-0 z-modal flex items-center justify-center bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] p-4 animate-fade-in">
  <div className="bg-card rounded-2xl shadow-2xl w-full max-w-4xl border border-border/50 overflow-hidden animate-scale-in max-h-[90vh] flex flex-col">
  <div className="p-6 border-b border-border/40 bg-primary/10 flex justify-between items-center rounded-t-2xl">
-  <h2 className="text-2xl font-bold text-primary dark:text-primary/30 tracking-tight">{title}</h2>
+  <h2 className="text-2xl font-bold text-primary dark:text-primary tracking-tight">{title}</h2>
   <button aria-label="Fermer la fenêtre" onClick={onClose} className="p-2.5 hover:bg-muted/500 dark:hover:bg-muted rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
   <X className="h-5 w-5" />
   </button>

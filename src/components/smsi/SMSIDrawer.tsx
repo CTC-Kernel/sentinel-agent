@@ -161,7 +161,7 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
    <div className="flex-1">
    <h4 className={cn(
    "text-sm font-medium mb-0.5",
-   selectedTemplate === template.id ? "text-primary dark:text-primary/30" : "text-foreground"
+   selectedTemplate === template.id ? "text-primary dark:text-primary" : "text-foreground"
    )}>
    {t(template.nameKey, { defaultValue: template.nameDefault })}
    </h4>

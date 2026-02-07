@@ -267,7 +267,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
  )}
  <div className={cn(
  'flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
- isActive && 'bg-blue-100 text-blue-700',
+ isActive && 'bg-info-bg text-info-text',
  isPast && 'bg-green-100 text-green-700',
  !isActive && !isPast && 'bg-muted text-muted-foreground'
  )}>

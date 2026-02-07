@@ -210,7 +210,7 @@ export function DashboardEditModeToggle({
  'group inline-flex items-center gap-2 rounded-full font-semibold transition-all duration-200 border',
  isEditing
  ? [
- 'border-blue-500/20 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
+ 'border-blue-500/20 bg-info-bg text-info-text',
  'dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-400',
  'hover:bg-blue-500/20 dark:hover:bg-blue-400/20',
  'focus:ring-blue-500',

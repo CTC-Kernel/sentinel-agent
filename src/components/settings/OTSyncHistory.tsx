@@ -215,7 +215,7 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
  },
  running: {
  label: t('otConnector.status.running', 'Running'),
- className: 'bg-blue-100 text-blue-700'
+ className: 'bg-info-bg text-info-text'
  }
  };
 

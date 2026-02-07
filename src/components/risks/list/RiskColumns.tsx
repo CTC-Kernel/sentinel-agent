@@ -61,7 +61,7 @@ const getStrategyStyles = (strategy: string) => {
  color: 'text-blue-700 dark:text-blue-400',
  bg: 'bg-blue-50 dark:bg-blue-900/20',
  border: 'border-blue-100 dark:border-blue-800',
- badge: 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-800'
+ badge: 'bg-info-bg text-info-text border-info-border'
  };
  case 'Transférer':
  return {

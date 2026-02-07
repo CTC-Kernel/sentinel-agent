@@ -82,7 +82,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
   </Button>
   )}
   <div className="flex items-center gap-3 mb-4">
-  <div className="p-3 rounded-3xl bg-blue-50 dark:bg-blue-900/20 text-blue-600">
+  <div className="p-3 rounded-3xl bg-info-bg text-info-text">
   <Shield className="w-6 h-6" />
   </div>
   <div>

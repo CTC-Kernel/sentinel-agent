@@ -353,7 +353,7 @@ const Pricing = () => {
  <TechCorner position="bottom-right" className="dark:text-white/40" />
 
  {/* Table Header - Sticky */}
- <div className="grid grid-cols-4 p-6 border-b border-border/50 dark:border-white/5 bg-muted/50/80/80 backdrop-blur sticky top-0 z-20">
+ <div className="grid grid-cols-4 p-6 border-b border-border/50 dark:border-white/5 bg-muted/50 backdrop-blur sticky top-0 z-20">
  <div className="col-span-1 p-2 font-black text-muted-foreground uppercase text-xs tracking-wider">{t('pricing.features_header')}</div>
  <div className="col-span-1 p-2 text-center">
  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted">
@@ -381,7 +381,7 @@ const Pricing = () => {
  <div key={category.id || 'unknown'}>
   <button
   onClick={() => toggleCategory(category.id)}
-  className="w-full flex items-center justify-between p-6 bg-muted/50/80/40 font-bold text-left hover:bg-muted/60 transition-colors"
+  className="w-full flex items-center justify-between p-6 bg-muted/50 font-bold text-left hover:bg-muted/60 transition-colors"
   >
   <span className="text-lg font-black text-foreground">{category.title}</span>
   <ChevronDown className={cn(

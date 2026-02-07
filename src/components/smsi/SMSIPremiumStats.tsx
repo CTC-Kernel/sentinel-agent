@@ -36,7 +36,7 @@ const PHASE_ICONS = {
 };
 
 const PHASE_COLORS = {
-    plan: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-500', border: 'border-blue-500/30' },
+    plan: { bg: 'bg-info-bg', text: 'text-info-text', border: 'border-info-border' },
     do: { bg: 'bg-emerald-500/10 dark:bg-emerald-900/30', text: 'text-emerald-500', border: 'border-emerald-500/30' },
     check: { bg: 'bg-amber-50 dark:bg-amber-900/30', text: 'text-amber-500', border: 'border-amber-500/30' },
     act: { bg: 'bg-purple-500/10 dark:bg-purple-900/30', text: 'text-purple-500', border: 'border-purple-500/30' }
@@ -261,7 +261,7 @@ export const SMSIPremiumStats: React.FC<SMSIPremiumStatsProps> = ({ program, ove
                             )}>
                                 <Calendar className={cn(
                                     "w-4 h-4",
-                                    certOverdue ? "text-red-500" : "text-indigo-500"
+                                    certOverdue ? "text-red-600 dark:text-red-400" : "text-indigo-500"
                                 )} />
                             </div>
                             {targetDate && (

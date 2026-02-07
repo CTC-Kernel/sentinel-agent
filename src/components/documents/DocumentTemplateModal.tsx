@@ -188,7 +188,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
      <div className={cn(
      "w-10 h-10 rounded-lg flex items-center justify-center",
      template.type === 'Politique'
-     ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+     ? "bg-info-bg text-info-text"
      : "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"
      )}>
      <Icon className="h-5 w-5" />

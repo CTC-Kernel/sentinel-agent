@@ -42,12 +42,12 @@ import type { OTCriticality, NetworkSegment } from '@/types/assets';
 const CRITICALITY_COLORS: Record<OTCriticality, { bg: string; text: string; border: string }> = {
  safety: { bg: 'bg-red-50', text: 'text-red-400', border: 'border-red-500/30' },
  production: { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/30' },
- operations: { bg: 'bg-blue-50', text: 'text-blue-400', border: 'border-blue-500/30' },
+ operations: { bg: 'bg-info-bg', text: 'text-info-text', border: 'border-info-border' },
  monitoring: { bg: 'bg-muted/500/10', text: 'text-muted-foreground', border: 'border-border/400/30' },
 };
 
 const SEGMENT_COLORS: Record<NetworkSegment, { bg: string; text: string }> = {
- IT: { bg: 'bg-blue-50', text: 'text-blue-400' },
+ IT: { bg: 'bg-info-bg', text: 'text-info-text' },
  OT: { bg: 'bg-orange-500/10', text: 'text-orange-400' },
  DMZ: { bg: 'bg-yellow-50', text: 'text-yellow-400' },
 };

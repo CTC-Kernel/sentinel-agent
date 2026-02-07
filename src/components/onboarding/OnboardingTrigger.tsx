@@ -42,7 +42,7 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onStart, onD
   </button>
   <button
   onClick={onDismiss}
-  className="px-4 py-2 bg-white/20 text-white rounded-3xl text-sm font-bold hover:bg-white/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+  className="px-4 py-2 bg-primary/20 text-primary-foreground rounded-3xl text-sm font-bold hover:bg-white/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
   >
   {t('tour.banner.dismiss')}
   </button>

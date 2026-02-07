@@ -172,7 +172,7 @@ export const IntegrationSettings: React.FC = () => {
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
  <div className="relative z-decorator p-6 border-b border-white/20 dark:border-white/5">
   <div className="flex items-center gap-3">
-  <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-3xl text-blue-600 dark:text-blue-400 backdrop-blur-md">
+  <div className="p-2.5 bg-info-bg rounded-3xl text-info-text backdrop-blur-md">
   <Calendar className="w-5 h-5" />
   </div>
   <h3 className="text-lg font-bold text-foreground">
@@ -210,7 +210,7 @@ export const IntegrationSettings: React.FC = () => {
   <button
   type="button"
   onClick={() => loginToGoogle()}
-  className="w-full py-4 bg-white/50 dark:bg-white/5 border-2 border-white/40 rounded-3xl text-sm font-bold text-foreground dark:text-white hover:border-blue-500 hover:bg-blue-500 dark:hover:bg-blue-900/20 transition-all flex items-center justify-center shadow-sm group backdrop-blur-sm"
+  className="w-full py-4 bg-white/50 dark:bg-muted border-2 border-border/40 rounded-3xl text-sm font-bold text-foreground dark:text-foreground hover:border-blue-500 hover:bg-blue-500 dark:hover:bg-blue-900/20 transition-all flex items-center justify-center shadow-sm group backdrop-blur-sm"
   >
   <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
   {t('settings.connectGoogle')}

@@ -26,7 +26,7 @@ export const AssetInspectorProjects: React.FC<AssetInspectorProjectsProps> = ({
   <div key={proj.id || 'unknown'} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
   <div className="flex justify-between items-start mb-2">
   <span className="text-sm font-bold text-foreground">{proj.name}</span>
-  <span className={`text-xs uppercase font-bold px-2.5 py-1 rounded-3xl ${proj.status === 'En cours' ? 'bg-blue-100 text-blue-700 dark:text-blue-400 ring-1 ring-blue-500/20' : 'bg-muted/500/10 text-muted-foreground ring-1 ring-slate-500/20'}`}>
+  <span className={`text-xs uppercase font-bold px-2.5 py-1 rounded-3xl ${proj.status === 'En cours' ? 'bg-info-bg text-info-text ring-1 ring-info-border' : 'bg-muted/500/10 text-muted-foreground ring-1 ring-slate-500/20'}`}>
    {proj.status}
   </span>
   </div>

@@ -260,7 +260,7 @@ const InstructionsPanel: React.FC<InstructionsPanelProps> = ({ platform }) => {
  <ol className="space-y-2">
  {instructions.map((instruction, index) => (
  <li key={index || 'unknown'} className="flex gap-3 text-xs text-muted-foreground">
- <span className="flex-shrink-0 w-5 h-5 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center text-xs font-medium">
+ <span className="flex-shrink-0 w-5 h-5 bg-info-bg text-info-text rounded-full flex items-center justify-center text-xs font-medium">
  {index + 1}
  </span>
  <span className="pt-0.5">{instruction}</span>

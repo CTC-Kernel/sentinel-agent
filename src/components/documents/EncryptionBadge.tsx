@@ -124,7 +124,7 @@ export function EncryptionBadge({
  </>
  )}
  {state === 'error' && (
- <div className="text-red-500">
+ <div className="text-red-600 dark:text-red-400">
  {(encryption as unknown as { error?: string })?.error || t('encryption.error', 'Erreur de chiffrement')}
  </div>
  )}

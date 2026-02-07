@@ -46,7 +46,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
    onClick={() => onTabChange(tab.id)}
    className={cn(
    "relative flex items-center whitespace-nowrap px-4 py-2 rounded-2xl font-medium text-sm transition-all flex-shrink-0 select-none snap-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-   isActive ? "text-white" : "text-muted-foreground hover:text-foreground/60"
+   isActive ? "text-white" : "text-muted-foreground hover:text-foreground"
    )}
    >
    {isActive && (
@@ -79,7 +79,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
    "group flex items-center w-full px-4 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all text-left relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset",
    isActive
    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 border border-border/40"
-   : "text-muted-foreground hover:bg-muted/50/80 dark:hover:bg-muted/50 hover:text-foreground/60"
+   : "text-muted-foreground hover:bg-muted/50 dark:hover:bg-muted/50 hover:text-foreground"
    )}
    >
    <tab.icon className={cn(

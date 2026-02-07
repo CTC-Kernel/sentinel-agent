@@ -15,7 +15,6 @@ import type { SMSIProgram, Milestone, PDCAPhase } from '../types/ebios';
 // Type augmentation for jspdf-autotable
 declare module 'jspdf' {
   interface jsPDF {
-    autoTable: (options: Record<string, unknown>) => void;
     lastAutoTable: { finalY: number };
   }
 }

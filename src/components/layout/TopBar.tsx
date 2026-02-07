@@ -92,7 +92,11 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
     }, [toggleTheme, user, theme, updateUser]);
 
     return (
-        <header className="h-16 pt-safe z-header sticky top-0 bg-[var(--glass-bg)] backdrop-blur-[var(--glass-blur-md)] border-b border-[var(--glass-border)] transition-all duration-300 px-4 md:px-8 shadow-sm dark:shadow-none">
+        <header
+            role="banner"
+            aria-label={t('a11y.topBar', { defaultValue: 'Barre de navigation supérieure' })}
+            className="h-16 pt-safe z-header sticky top-0 bg-[var(--glass-bg)] backdrop-blur-[var(--glass-blur-md)] border-b border-[var(--glass-border)] transition-all duration-300 px-4 md:px-8 shadow-sm dark:shadow-none"
+        >
             <div className="h-full max-w-[1600px] mx-auto flex items-center justify-between">
                 {/* Left: Mobile Menu & Search Trigger */}
                 <div className="flex items-center flex-1 gap-4">
@@ -101,7 +105,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                         onClick={() => setMobileOpen(!mobileOpen)}
                         className="p-2.5 -ml-2 text-muted-foreground hover:text-foreground transition-all lg:hidden rounded-xl hover:bg-muted"
                     >
-                        <div className="relative h-5 w-5">
+                        <div className="relative h-5 w-5" aria-hidden="true">
                             <Menu className={`h-5 w-5 absolute inset-0 transition-all duration-300 ${mobileOpen ? 'opacity-0 rotate-90 scale-75' : 'opacity-70 rotate-0 scale-100'}`} />
                             <X className={`h-5 w-5 absolute inset-0 transition-all duration-300 ${mobileOpen ? 'opacity-70 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-75'}`} />
                         </div>
@@ -131,7 +135,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                         onClick={openCommandPalette}
                         className="md:hidden p-2.5 text-muted-foreground hover:text-foreground transition-colors rounded-xl hover:bg-muted"
                     >
-                        <Search className="h-5 w-5" />
+                        <Search className="h-5 w-5" aria-hidden="true" />
                     </button>
                 </div>
 
@@ -173,6 +177,8 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                     <div className="relative" ref={userMenuRef}>
                         <button
                             aria-label={t('layout.topbar.userMenuAriaLabel', { defaultValue: 'Menu utilisateur' })}
+                            aria-haspopup="menu"
+                            aria-expanded={showUserMenu}
                             data-tour="header-profile"
                             className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-[var(--glass-bg)] transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                             onClick={() => setShowUserMenu(!showUserMenu)}
@@ -192,7 +198,11 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
 
                         {/* Dropdown Menu */}
                         {showUserMenu && (
-                            <div className="absolute right-0 mt-3 w-64 bg-popover border border-[var(--glass-border)] rounded-xl overflow-hidden z-dropdown animate-scale-in origin-top-right shadow-premium ring-1 ring-white/5">
+                            <div
+                                role="menu"
+                                aria-label={t('layout.topbar.userMenuAriaLabel', { defaultValue: 'Menu utilisateur' })}
+                                className="absolute right-0 mt-3 w-64 bg-popover border border-[var(--glass-border)] rounded-xl overflow-hidden z-dropdown animate-scale-in origin-top-right shadow-premium ring-1 ring-white/5"
+                            >
                                 <div className="p-4 bg-muted/30 border-b border-border/40">
                                     <p className="text-sm font-bold text-foreground truncate">{user?.displayName}</p>
                                     <p className="text-xs text-muted-foreground truncate mt-0.5">{user?.email}</p>

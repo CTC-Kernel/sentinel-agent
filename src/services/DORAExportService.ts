@@ -233,7 +233,7 @@ export class DORAExportService {
  static async generateExcel(
  providers: ICTProvider[],
  // Parameter kept for API consistency with generateJSON and generatePDF signatures
- organizationInfo: { name: string; lei?: string; country: string },
+ _organizationInfo: { name: string; lei?: string; country: string },
  options: DORAExportOptions
  ): Promise<{ workbook: Workbook; blob: Blob; filename: string }> {
  const filteredProviders = this.filterProviders(providers, options);
@@ -707,8 +707,7 @@ export class DORAExportService {
  return lang === 'fr' ? 'Faible' : 'Low';
  }
 
- // Fix 8 - Proper return type referencing static TRANSLATIONS property
- private static getTranslations(lang: 'fr' | 'en'): typeof DORAExportService.TRANSLATIONS.fr {
- return this.TRANSLATIONS[lang] || this.TRANSLATIONS.fr;
+ private static getTranslations(lang: 'fr' | 'en') {
+ return this.TRANSLATIONS[lang] ?? this.TRANSLATIONS.fr;
  }
 }

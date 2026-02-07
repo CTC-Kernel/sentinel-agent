@@ -163,48 +163,52 @@ export default defineConfig({
 
           // NODE_MODULES - Splitter agressivement
 
-          // === REACT CORE (critique - charger en premier) ===
-          if (id.includes('react-dom')) return 'vendor-react-dom';
-          if (id.includes('react-router')) return 'vendor-react-router';
+          // === REACT CORE (critical - load first, single chunk) ===
+          if (id.includes('/react-dom/') || id.includes('/react-dom@')) return 'vendor-react';
+          if (id.includes('react-router')) return 'vendor-react';
           if (id.includes('/react/') || id.includes('react/jsx')) return 'vendor-react';
 
-          // === FIREBASE (très lourd - splitter par service) ===
+          // === RADIX UI ===
+          if (id.includes('@radix-ui')) return 'vendor-radix';
+
+          // === FIREBASE (split by service) ===
           if (id.includes('@firebase/firestore') || id.includes('firebase/firestore')) return 'firebase-firestore';
           if (id.includes('@firebase/auth') || id.includes('firebase/auth')) return 'firebase-auth';
-          if (id.includes('@firebase/storage') || id.includes('firebase/storage')) return 'firebase-storage';
-          if (id.includes('@firebase/functions') || id.includes('firebase/functions')) return 'firebase-functions';
+          if (id.includes('@firebase/storage') || id.includes('firebase/storage')) return 'firebase-misc';
+          if (id.includes('@firebase/functions') || id.includes('firebase/functions')) return 'firebase-misc';
           if (id.includes('@firebase/analytics') || id.includes('firebase/analytics')) return 'firebase-analytics';
           if (id.includes('firebase/app') || id.includes('@firebase/app')) return 'firebase-core';
-          if (id.includes('firebase') || id.includes('@firebase')) return 'firebase-misc';
+          if (id.includes('firebase') || id.includes('@firebase')) return 'firebase-core';
 
-          // === 3D ENGINE (TRES LOURD - lazy load obligatoire) ===
-          if (id.includes('three/examples') || id.includes('OrbitControls') || id.includes('drei')) return '3d-controls';
-          if (id.includes('@react-three/fiber')) return '3d-fiber';
-          if (id.includes('three')) return '3d-three-core';
+          // === 3D ENGINE (very heavy - single chunk, lazy load) ===
+          if (id.includes('@react-three/')) return 'three';
+          if (id.includes('@react-spring/three')) return 'three';
+          if (id.includes('three')) return 'three';
 
-          // === PDF GENERATION (lourd - lazy load) ===
-          if (id.includes('jspdf')) return 'pdf-jspdf';
-          if (id.includes('pdf-lib')) return 'pdf-lib';
-          if (id.includes('html2canvas')) return 'pdf-html2canvas';
+          // === PDF GENERATION (heavy - single chunk, lazy load) ===
+          if (id.includes('jspdf')) return 'pdf';
+          if (id.includes('pdf-lib')) return 'pdf';
+          if (id.includes('html2canvas')) return 'pdf';
 
-          // === EXCEL (lourd - lazy load) ===
+          // === EXCEL (heavy - lazy load) ===
           if (id.includes('exceljs')) return 'excel';
 
-          // === CHARTS (modérément lourd) ===
-          if (id.includes('recharts')) return 'charts-recharts';
-          if (id.includes('d3-')) return 'charts-d3';
+          // === CHARTS (single chunk) ===
+          if (id.includes('recharts')) return 'charts';
+          if (id.includes('d3-')) return 'charts';
 
-          // === TIMELINE (lourd) ===
+          // === FRAMER MOTION (own chunk) ===
+          if (id.includes('framer-motion')) return 'framer-motion';
+
+          // === TIMELINE ===
           if (id.includes('vis-timeline') || id.includes('vis-data')) return 'timeline';
           if (id.includes('react-big-calendar')) return 'calendar';
 
-          // === RICH TEXT EDITOR (modéré) ===
+          // === RICH TEXT EDITOR ===
           if (id.includes('@tiptap') || id.includes('tiptap') || id.includes('prosemirror')) return 'editor';
 
           // === UI LIBRARIES ===
-          if (id.includes('framer-motion')) return 'ui-framer';
           if (id.includes('@headlessui')) return 'ui-headless';
-          if (id.includes('@radix-ui')) return 'ui-radix';
           if (id.includes('lucide-react')) return 'ui-icons';
 
           // === STATE & DATA ===
@@ -213,17 +217,18 @@ export default defineConfig({
           if (id.includes('@tanstack/react-table')) return 'ui-table';
 
           // === FORMS ===
-          if (id.includes('react-hook-form')) return 'forms-rhf';
-          if (id.includes('zod')) return 'forms-zod';
+          if (id.includes('react-hook-form') || id.includes('@hookform')) return 'forms';
+          if (id.includes('zod')) return 'forms';
 
           // === UTILS ===
           if (id.includes('date-fns')) return 'utils-date';
           if (id.includes('lodash')) return 'utils-lodash';
-          if (id.includes('clsx') || id.includes('tailwind-merge')) return 'utils-css';
+          if (id.includes('clsx') || id.includes('tailwind-merge') || id.includes('class-variance-authority')) return 'utils-css';
 
           // === SECURITY ===
-          if (id.includes('dompurify')) return 'security-sanitize';
-          if (id.includes('jszip')) return 'utils-zip';
+          if (id.includes('dompurify')) return 'security';
+          if (id.includes('jszip')) return 'security';
+          if (id.includes('crypto-js')) return 'security';
 
           // === GOOGLE AI ===
           if (id.includes('@google/generative-ai')) return 'ai-gemini';
@@ -249,31 +254,23 @@ export default defineConfig({
           if (id.includes('react-simple-maps') || id.includes('d3-geo') || id.includes('topojson')) return 'maps';
           if (id.includes('gantt-task-react')) return 'gantt';
           if (id.includes('react-signature')) return 'signature';
+          if (id.includes('react-day-picker')) return 'ui-datepicker';
           if (id.includes('driver.js')) return 'onboarding';
 
           // === MISC VENDORS ===
           if (id.includes('canvas-confetti')) return 'effects';
           if (id.includes('qrcode')) return 'utils-qr';
-          if (id.includes('crypto-js')) return 'crypto';
           if (id.includes('uuid')) return 'utils-uuid';
           if (id.includes('sonner')) return 'ui-toast';
-          if (id.includes('class-variance-authority')) return 'utils-css';
           if (id.includes('nprogress')) return 'ui-progress';
           if (id.includes('file-saver')) return 'utils-filesaver';
 
-          // Tout le reste des node_modules
+          // Catch-all for remaining node_modules
           return 'vendor-misc';
         },
 
         // Nommage optimisé des chunks
-        chunkFileNames: (chunkInfo) => {
-          const name = chunkInfo.name || 'chunk';
-          // Chunks critiques sans hash pour meilleur caching CDN
-          if (['vendor-react', 'vendor-react-dom'].includes(name)) {
-            return `assets/js/${name}-[hash:8].js`;
-          }
-          return `assets/js/${name}-[hash:8].js`;
-        },
+        chunkFileNames: 'assets/js/[name]-[hash:8].js',
         entryFileNames: 'assets/js/[name]-[hash:8].js',
         assetFileNames: (assetInfo) => {
           const ext = assetInfo.name?.split('.').pop() || 'asset';

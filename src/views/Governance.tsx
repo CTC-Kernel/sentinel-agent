@@ -100,14 +100,6 @@ const FREQUENCY_LABELS: Record<Committee['meetingFrequency'], string> = {
 };
 
 // --- Skeleton Components ---
-const StatsSkeleton: React.FC = () => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-    {[1, 2, 3, 4].map((i) => (
-      <div key={i} className="h-24 rounded-3xl bg-muted/20 animate-pulse border border-border/40" />
-    ))}
-  </div>
-);
-
 const TableSkeleton: React.FC = () => (
   <div className="glass-premium rounded-2xl border border-border/40 overflow-hidden">
     <div className="p-4 space-y-3">
@@ -120,7 +112,7 @@ const TableSkeleton: React.FC = () => (
 
 // --- Main Component ---
 export const Governance: React.FC = () => {
-  const { t } = useStore();
+  const _store = useStore();
   const {
     committees, meetings, decisions, stats, loading
   } = useGovernance();

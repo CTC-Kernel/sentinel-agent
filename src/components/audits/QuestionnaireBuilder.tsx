@@ -126,7 +126,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
   <button
   aria-label="Ajouter une question"
   onClick={addQuestion}
-  className="flex items-center px-4 py-2 bg-muted dark:bg-white/10 text-foreground dark:text-white rounded-3xl text-sm font-bold hover:bg-muted dark:hover:bg-muted transition-colors"
+  className="flex items-center px-4 py-2 bg-muted dark:bg-muted text-foreground rounded-3xl text-sm font-bold hover:bg-muted dark:hover:bg-muted transition-colors"
   >
   <Plus className="w-4 h-4 mr-2" />
   Ajouter une question

@@ -61,7 +61,7 @@ export const Badge: React.FC<BadgeProps> = React.memo(({
  return "bg-gradient-info text-primary-foreground shadow-sm shadow-info/25";
 
  case 'brand':
- if (variant === 'outline') return "border border-primary text-primary dark:text-primary/70 dark:border-primary/60";
+ if (variant === 'outline') return "border border-primary text-primary dark:text-primary dark:border-primary/60";
  if (variant === 'glass') return "bg-primary/20 backdrop-blur-md text-primary dark:text-primary-foreground border border-primary/40 shadow-sm";
  if (variant === 'soft') return "bg-primary/10 text-primary dark:text-primary-foreground border border-primary/20 dark:border-primary/60";
  return "bg-gradient-primary text-primary-foreground shadow-sm shadow-primary/25";

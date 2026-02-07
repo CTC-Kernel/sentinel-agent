@@ -402,7 +402,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
     <div className={`p-2 rounded-lg ${
      activity.type === 'threat' ? 'bg-red-100 text-red-600 dark:text-red-400 dark:bg-red-900/20' :
      activity.type === 'verification' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20' :
-     'bg-blue-100 text-blue-600 dark:text-blue-400 dark:bg-blue-900/20'
+     'bg-info-bg text-info-text'
     }`}>
      <Activity className="h-4 w-4" />
     </div>

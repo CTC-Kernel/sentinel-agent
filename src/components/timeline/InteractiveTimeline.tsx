@@ -353,7 +353,7 @@ export const InteractiveTimeline: React.FC = () => {
   aria-label={filters.audits ? "Masquer les audits" : "Afficher les audits"}
   onClick={() => toggleFilter('audits')}
   className={`flex items-center gap-2 px-4 py-2 rounded-3xl text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${filters.audits
-  ? 'bg-blue-100 text-blue-700 dark:text-blue-400/20 dark:text-blue-400'
+  ? 'bg-info-bg text-info-text'
   : 'bg-muted text-muted-foreground'
   }`}
  >

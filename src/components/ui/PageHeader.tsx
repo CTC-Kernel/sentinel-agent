@@ -51,7 +51,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                     <nav aria-label={t('ui.pageHeader.breadcrumbNav', { defaultValue: "Fil d'Ariane" })} className="flex items-center gap-1 text-sm text-muted-foreground">
                         {breadcrumbs.map((crumb, index) => (
                             <React.Fragment key={crumb.label}>
-                                {index > 0 && <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />}
+                                {index > 0 && <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
                                 {crumb.path ? (
                                     <Link
                                         to={crumb.path}

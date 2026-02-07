@@ -69,7 +69,7 @@ const getComplexityBadge = (level: FAIRModelConfig['complexityLevel']) => {
  case 'simple':
  return { label: 'Simple', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' };
  case 'standard':
- return { label: 'Standard', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' };
+ return { label: 'Standard', color: 'bg-info-bg text-info-text' };
  case 'advanced':
  return { label: 'Avancé', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' };
  default:

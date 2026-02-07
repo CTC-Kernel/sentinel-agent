@@ -97,7 +97,7 @@ export const TlptFindings: React.FC<TlptFindingsProps> = ({ campaign }) => {
   <div className="flex flex-col items-end gap-2">
    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${vuln.status === 'Resolved' || vuln.status === 'Patch Applied'
    ? 'bg-green-100 text-green-700 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400'
-   : 'bg-blue-100 text-blue-700 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-400'
+   : 'bg-info-bg text-info-text dark:text-blue-400'
    }`}>
    {vuln.status}
    </span>

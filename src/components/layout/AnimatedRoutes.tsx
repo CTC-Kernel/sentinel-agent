@@ -5,6 +5,7 @@ import { AnimatedPage } from './AnimatedPage';
 import { RoleGuard } from '../auth/RoleGuard';
 import { TestRoleGuard } from '../auth/TestGuards';
 import { Role } from '../../utils/permissions';
+import { RouteErrorBoundary } from '../ui/RouteErrorBoundary';
 
 // Lazy Imports (Copied from App.tsx)
 const DashboardWithQuickActions = React.lazy(() => import('../../views/Dashboard').then(module => ({ default: module.DashboardWithQuickActions })));
@@ -99,82 +100,82 @@ export const AnimatedRoutes: React.FC = () => {
  return (
  <AnimatePresence mode="popLayout">
  <Routes location={location} key={location.pathname || 'unknown'}>
- <Route path="/" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><DashboardWithQuickActions /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/analytics" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><AnalyticsDashboard /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/timeline" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><InteractiveTimeline /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/audit-trail" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><ActivityLogs /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/incidents" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Incidents /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/projects" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Projects /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/assets" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Assets /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/risks" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Risks /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/vulnerabilities" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Vulnerabilities /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/agents" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Agents /></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><DashboardWithQuickActions /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/analytics" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><AnalyticsDashboard /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/timeline" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><InteractiveTimeline /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/audit-trail" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><ActivityLogs /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/incidents" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Incidents /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/projects" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Projects /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/assets" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Assets /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/risks" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Risks /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/vulnerabilities" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Vulnerabilities /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/agents" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Agents /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
  <Route path="/agent-policies" element={<Navigate to="/agents" replace />} />
 
- <Route path="/threat-library" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><ThreatRegistry /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/threat-intelligence" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><ThreatIntelligence /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/reports" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Reports /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/compliance" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Compliance /></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/threat-library" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><ThreatRegistry /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/threat-intelligence" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><ThreatIntelligence /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/reports" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Reports /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/compliance" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Compliance /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
  <Route path="/ebios" element={<Navigate to="/risks?tab=ebios" replace />} />
- <Route path="/ebios/:id" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><EbiosAnalysisDetail /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/smsi" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><SMSIProgram /></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/ebios/:id" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><EbiosAnalysisDetail /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/smsi" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><SMSIProgram /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
  <Route path="/risk-context" element={<Navigate to="/risks?tab=context" replace />} />
  <Route path="/control-effectiveness" element={<Navigate to="/compliance?tab=efficiency" replace />} />
  <Route path="/documents" element={
   <RoleGuardComponent allowedRoles={['admin', 'rssi', 'auditor', 'project_manager', 'direction', 'user']}>
-  <AnimatedPage><Documents /></AnimatedPage>
+  <AnimatedPage><RouteErrorBoundary><Documents /></RouteErrorBoundary></AnimatedPage>
   </RoleGuardComponent>
  } />
- <Route path="/audits" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Audits /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/training" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Training /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/access-review" element={<RoleGuardComponent allowedRoles={['admin', 'rssi']}><AnimatedPage><AccessReview /></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/audits" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Audits /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/training" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Training /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/access-review" element={<RoleGuardComponent allowedRoles={['admin', 'rssi']}><AnimatedPage><RouteErrorBoundary><AccessReview /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
  <Route path="/team" element={
   <RoleGuardComponent allowedRoles={['admin', 'rssi']}>
-  <AnimatedPage><Team /></AnimatedPage>
+  <AnimatedPage><RouteErrorBoundary><Team /></RouteErrorBoundary></AnimatedPage>
   </RoleGuardComponent>
  } />
  <Route path="/settings" element={
   <RoleGuardComponent allowedRoles={['admin', 'rssi', 'user', 'project_manager', 'direction', 'auditor']}>
-  <AnimatedPage><Settings /></AnimatedPage>
+  <AnimatedPage><RouteErrorBoundary><Settings /></RouteErrorBoundary></AnimatedPage>
   </RoleGuardComponent>
  } />
- <Route path="/suppliers" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Suppliers /></AnimatedPage></RoleGuardComponent>} />
-        <Route path="/cmdb" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><CMDB /></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/suppliers" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Suppliers /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+        <Route path="/cmdb" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><CMDB /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
  <Route path="/vendor-concentration" element={<Navigate to="/suppliers?tab=concentration" replace />} />
  <Route path="/dora/providers" element={<Navigate to="/suppliers?tab=dora" replace />} />
  <Route path="/financial-risk" element={<Navigate to="/risks?tab=financial" replace />} />
  <Route path="/homologation" element={<Navigate to="/compliance?tab=homologation" replace />} />
- <Route path="/homologation/:dossierId" element={<RoleGuardComponent allowedRoles={['admin', 'rssi']}><AnimatedPage><HomologationDossierDetail /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/governance" element={<RoleGuardComponent allowedRoles={['admin', 'rssi', 'direction']}><AnimatedPage><Governance /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/regulatory-changes" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RegulatoryChanges /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/compliance-calendar" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><ComplianceCalendarView /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/certifications" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Certifications /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/privacy" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Privacy /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/continuity" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Continuity /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/ctc-engine" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage className="!p-0 !pb-0 !min-h-0 !h-full !max-w-none"><VoxelView /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/voxel" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><VoxelPage /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/notifications" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Notifications /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/search" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Search /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/help" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Help /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/intake" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><KioskPage /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/calendar" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><CalendarView /></AnimatedPage></RoleGuardComponent>} />
- <Route path="/pricing" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Pricing /></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/homologation/:dossierId" element={<RoleGuardComponent allowedRoles={['admin', 'rssi']}><AnimatedPage><RouteErrorBoundary><HomologationDossierDetail /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/governance" element={<RoleGuardComponent allowedRoles={['admin', 'rssi', 'direction']}><AnimatedPage><RouteErrorBoundary><Governance /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/regulatory-changes" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><RegulatoryChanges /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/compliance-calendar" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><ComplianceCalendarView /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/certifications" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Certifications /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/privacy" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Privacy /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/continuity" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Continuity /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/ctc-engine" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage className="!p-0 !pb-0 !min-h-0 !h-full !max-w-none"><RouteErrorBoundary><VoxelView /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/voxel" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><VoxelPage /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/notifications" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Notifications /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/search" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Search /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/help" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Help /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/intake" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><KioskPage /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/calendar" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><CalendarView /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
+ <Route path="/pricing" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><RouteErrorBoundary><Pricing /></RouteErrorBoundary></AnimatedPage></RoleGuardComponent>} />
  <Route path="/system-health" element={
   <RoleGuardComponent allowedRoles={['admin']}>
-  <AnimatedPage><SystemHealth /></AnimatedPage>
+  <AnimatedPage><RouteErrorBoundary><SystemHealth /></RouteErrorBoundary></AnimatedPage>
   </RoleGuardComponent>
  } />
 
  {/* Restricted Routes */}
  <Route path="/backup" element={
   <RoleGuardComponent allowedRoles={['admin', 'rssi']}>
-  <AnimatedPage><BackupRestore /></AnimatedPage>
+  <AnimatedPage><RouteErrorBoundary><BackupRestore /></RouteErrorBoundary></AnimatedPage>
   </RoleGuardComponent>
  } />
  {/* /admin_management route is defined in App.tsx with StrictSuperAdminGuard */}
  <Route path="/integrations" element={
   <RoleGuardComponent allowedRoles={['admin', 'rssi']}>
-  <AnimatedPage><Integrations /></AnimatedPage>
+  <AnimatedPage><RouteErrorBoundary><Integrations /></RouteErrorBoundary></AnimatedPage>
   </RoleGuardComponent>
  } />
 

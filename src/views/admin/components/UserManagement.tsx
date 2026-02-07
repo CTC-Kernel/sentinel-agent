@@ -107,7 +107,7 @@ export const UserManagement: React.FC = () => {
    <h4 className="text-foreground font-medium flex items-center">
    {user.displayName}
    {user.role === 'admin' && <Shield className="w-3 h-3 ml-2 text-primary/70" />}
-   {user.role === 'super_admin' && <Shield className="w-3 h-3 ml-2 text-red-400" />}
+   {user.role === 'super_admin' && <Shield className="w-3 h-3 ml-2 text-red-600 dark:text-red-400" />}
    </h4>
    <div className="flex items-center text-sm text-muted-foreground mt-1 space-x-4">
    <span className="flex items-center"><Mail className="w-3 h-3 mr-1.5" />{user.email}</span>

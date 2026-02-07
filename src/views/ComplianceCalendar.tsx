@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, Clock, AlertTriangle, CheckCircle2, Filter, Plus, ChevronLeft, ChevronRight, BarChart3 } from 'lucide-react';
+import { Calendar, Clock, AlertTriangle, CheckCircle2, Filter, BarChart3 } from 'lucide-react';
 import { useComplianceCalendar } from '../hooks/useComplianceCalendar';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
@@ -13,7 +13,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  upcoming: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  upcoming: 'bg-info-bg text-info-text',
   'in-progress': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
   completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   overdue: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
@@ -91,7 +91,7 @@ export function ComplianceCalendar() {
       <PageHeader
         title="Calendrier de Conformite"
         description="Suivi des echeances reglementaires, audits et evenements de conformite"
-        icon={Calendar}
+        icon={<Calendar className="h-6 w-6" />}
       />
 
       {/* Stats Cards */}
@@ -106,7 +106,7 @@ export function ComplianceCalendar() {
       <ScrollableTabs
         tabs={tabs}
         activeTab={activeTab}
-        onChange={setActiveTab}
+        onTabChange={setActiveTab}
       />
 
       {activeTab === 'overview' && (
@@ -250,7 +250,6 @@ function StatCard({ label, value, icon: Icon, variant = 'default' }: {
 
 function EventCard({ event, showDetails = false }: { event: ComplianceEvent; showDetails?: boolean }) {
   const date = new Date(event.date);
-  const formattedDate = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 
   return (
     <div className="flex items-start gap-3 p-3 rounded-xl bg-white/50 dark:bg-gray-800/50 hover:bg-white/80 dark:hover:bg-gray-800/80 transition-colors">
@@ -289,7 +288,7 @@ function DeadlineCard({ deadline, showDetails = false }: { deadline: ComplianceD
   const isUrgent = daysUntil >= 0 && daysUntil <= 30 && deadline.status === 'pending';
 
   const deadlineStatusColors: Record<string, string> = {
-    pending: isOverdue ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : isUrgent ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    pending: isOverdue ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : isUrgent ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-info-bg text-info-text',
     met: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     missed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
     extended: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',

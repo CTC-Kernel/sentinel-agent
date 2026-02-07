@@ -138,38 +138,107 @@ export default defineConfig({
           "    // no-op\n" +
           "  }\n" +
           "})();",
-        manualChunks: {
-          // Core React
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          // Firebase - split by service
-          firebase: ['firebase/app'],
-          firebase_auth: ['firebase/auth'],
-          firebase_firestore: ['firebase/firestore'],
-          firebase_storage: ['firebase/storage'],
-          firebase_functions: ['firebase/functions'],
-          firebase_analytics: ['firebase/analytics'],
-          // State management
-          state: ['zustand', '@tanstack/react-query'],
-          // UI utilities
-          ui: ['clsx', 'tailwind-merge', 'framer-motion'],
-          // Charts & visualization
-          charts: ['recharts', 'd3-scale', 'd3-shape', 'd3-color', 'd3-interpolate', 'd3-path'],
-          // Date & validation
-          utils: ['date-fns', 'zod'],
-          // PDF generation (heavy)
-          pdf: ['jspdf', 'jspdf-autotable', 'pdf-lib', 'html2canvas'],
-          // Rich text editor
-          editor: ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/extension-link', '@tiptap/extension-text-align', '@tiptap/extension-underline'],
-          // Timeline visualization
-          timeline: ['vis-data', 'vis-timeline'],
-          // 3D engine (very heavy)
-          three: ['three', '@react-three/fiber', '@react-three/drei'],
-          // Excel export
-          excel: ['exceljs'],
-          // Sanitization & security
-          security: ['dompurify', 'jszip'],
-          // Icons
-          icons: ['lucide-react']
+        manualChunks: (id) => {
+          if (!id.includes('node_modules')) return undefined;
+
+          // === REACT CORE ===
+          if (id.includes('/react-dom/') || id.includes('/react-dom@')) return 'vendor-react';
+          if (id.includes('/react-router-dom/') || id.includes('/react-router/')) return 'vendor-react';
+          if (id.includes('/react/') || id.includes('react/jsx')) return 'vendor-react';
+
+          // === RADIX UI ===
+          if (id.includes('@radix-ui')) return 'vendor-radix';
+
+          // === FIREBASE - split by service ===
+          if (id.includes('@firebase/auth') || id.includes('firebase/auth')) return 'firebase-auth';
+          if (id.includes('@firebase/firestore') || id.includes('firebase/firestore')) return 'firebase-firestore';
+          if (id.includes('@firebase/storage') || id.includes('firebase/storage')) return 'firebase-misc';
+          if (id.includes('@firebase/functions') || id.includes('firebase/functions')) return 'firebase-misc';
+          if (id.includes('@firebase/analytics') || id.includes('firebase/analytics')) return 'firebase-analytics';
+          if (id.includes('firebase/app') || id.includes('@firebase/app')) return 'firebase-core';
+          if (id.includes('firebase') || id.includes('@firebase')) return 'firebase-core';
+
+          // === 3D ENGINE (very heavy - lazy load only) ===
+          if (id.includes('@react-three/')) return 'three';
+          if (id.includes('@react-spring/three')) return 'three';
+          if (id.includes('three')) return 'three';
+
+          // === PDF GENERATION (heavy - lazy load) ===
+          if (id.includes('jspdf')) return 'pdf';
+          if (id.includes('pdf-lib')) return 'pdf';
+          if (id.includes('html2canvas')) return 'pdf';
+
+          // === EXCEL (heavy - lazy load) ===
+          if (id.includes('exceljs')) return 'excel';
+
+          // === CHARTS ===
+          if (id.includes('recharts')) return 'charts';
+          if (id.includes('d3-')) return 'charts';
+
+          // === FRAMER MOTION ===
+          if (id.includes('framer-motion')) return 'framer-motion';
+
+          // === TIMELINE ===
+          if (id.includes('vis-timeline') || id.includes('vis-data')) return 'timeline';
+          if (id.includes('react-big-calendar')) return 'calendar';
+
+          // === RICH TEXT EDITOR ===
+          if (id.includes('@tiptap') || id.includes('tiptap') || id.includes('prosemirror')) return 'editor';
+
+          // === STATE & DATA ===
+          if (id.includes('zustand')) return 'state';
+          if (id.includes('@tanstack/react-query')) return 'state';
+          if (id.includes('@tanstack/react-table')) return 'ui-table';
+
+          // === UI LIBRARIES ===
+          if (id.includes('@headlessui')) return 'ui-headless';
+          if (id.includes('lucide-react')) return 'icons';
+          if (id.includes('@dnd-kit')) return 'ui-dnd';
+
+          // === FORMS ===
+          if (id.includes('react-hook-form') || id.includes('@hookform')) return 'forms';
+          if (id.includes('zod')) return 'forms';
+
+          // === GOOGLE AI ===
+          if (id.includes('@google/generative-ai')) return 'ai-gemini';
+
+          // === I18N ===
+          if (id.includes('i18next')) return 'i18n';
+
+          // === SENTRY ===
+          if (id.includes('@sentry')) return 'monitoring';
+
+          // === UTILS ===
+          if (id.includes('date-fns')) return 'utils';
+          if (id.includes('lodash')) return 'utils';
+          if (id.includes('clsx') || id.includes('tailwind-merge') || id.includes('class-variance-authority')) return 'utils-css';
+          if (id.includes('dompurify')) return 'security';
+          if (id.includes('jszip')) return 'security';
+          if (id.includes('crypto-js')) return 'security';
+
+          // === REACT ADDONS ===
+          if (id.includes('react-markdown') || id.includes('remark')) return 'markdown';
+          if (id.includes('react-syntax-highlighter') || id.includes('prismjs') || id.includes('refractor')) return 'syntax-highlight';
+          if (id.includes('react-simple-maps') || id.includes('d3-geo') || id.includes('topojson')) return 'maps';
+          if (id.includes('react-spring') || id.includes('@react-spring')) return 'animations-spring';
+          if (id.includes('gantt-task-react')) return 'gantt';
+          if (id.includes('react-diff-viewer')) return 'diff-viewer';
+          if (id.includes('react-dropzone')) return 'ui-dropzone';
+          if (id.includes('react-tooltip')) return 'ui-tooltip';
+          if (id.includes('react-helmet')) return 'seo';
+          if (id.includes('react-hotkeys') || id.includes('hotkeys')) return 'ui-hotkeys';
+          if (id.includes('react-signature')) return 'signature';
+          if (id.includes('react-day-picker')) return 'ui-datepicker';
+          if (id.includes('driver.js')) return 'onboarding';
+          if (id.includes('sonner')) return 'ui-toast';
+          if (id.includes('nprogress')) return 'ui-progress';
+          if (id.includes('canvas-confetti')) return 'effects';
+          if (id.includes('qrcode')) return 'utils-qr';
+          if (id.includes('uuid')) return 'utils-uuid';
+          if (id.includes('file-saver')) return 'utils-filesaver';
+
+          // Catch-all for remaining node_modules
+          return 'vendor-misc';
         }
       }
     }

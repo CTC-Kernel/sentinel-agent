@@ -298,7 +298,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
    <RadialGauge
    value={agentDetails.cpuPercent || 0}
    label="CPU"
-   color="text-blue-500"
+   color="text-blue-600 dark:text-blue-400"
    bgColor="bg-blue-50"
    icon={Cpu}
    subtitle="Utilisation"
@@ -314,7 +314,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
    <RadialGauge
    value={agentDetails.diskPercent || 0}
    label="Disque"
-   color="text-amber-500"
+   color="text-amber-600 dark:text-amber-400"
    bgColor="bg-amber-50"
    icon={Server}
    subtitle={agentDetails.diskUsedBytes ? formatBytes(agentDetails.diskUsedBytes) : undefined}

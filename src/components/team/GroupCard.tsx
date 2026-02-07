@@ -36,7 +36,7 @@ export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, o
   </button>
  </div>
  <div className="flex items-center gap-3 mb-4">
-  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-3xl text-blue-600 dark:text-blue-400">
+  <div className="p-3 bg-info-bg rounded-3xl text-info-text">
   <Users className="h-6 w-6" />
   </div>
   <div>

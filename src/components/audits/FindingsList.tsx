@@ -50,7 +50,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
  switch (type) {
  case 'Majeure': return 'bg-red-100 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800';
  case 'Mineure': return 'bg-orange-100 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800';
- case 'Observation': return 'bg-blue-100 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
+ case 'Observation': return 'bg-info-bg text-info-text border-info-border';
  case 'Opportunité': return 'bg-green-100 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
  default: return 'bg-muted text-foreground border-border/40 ';
  }

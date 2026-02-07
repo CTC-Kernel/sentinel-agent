@@ -178,7 +178,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
   </div>
   <div className={`px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide ${task.progress === 100
   ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400'
-  : 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
+  : 'bg-info-bg text-info-text'
   }`}>
   {task.progress}%
   </div>
@@ -218,7 +218,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
  return (
  <div
  style={{ height: headerHeight }}
- className="flex items-center px-4 border-b border-border/40 bg-muted/50/80/80 backdrop-blur-md sticky top-0 z-decorator"
+ className="flex items-center px-4 border-b border-border/40 bg-muted/50 backdrop-blur-md sticky top-0 z-decorator"
  >
  <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex-1">
   Tâche

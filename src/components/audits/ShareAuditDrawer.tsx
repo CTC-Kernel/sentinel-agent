@@ -101,7 +101,7 @@ export const ShareAuditDrawer: React.FC<ShareAuditDrawerProps> = ({ isOpen, onCl
   <ShieldCheck className="w-5 h-5" />
   </div>
   <div>
-  <h4 className="text-sm font-semibold text-primary dark:text-primary/30 mb-1">{t('audits.share.externalAccess', { defaultValue: 'Accès Auditeur Externe' })}</h4>
+  <h4 className="text-sm font-semibold text-primary dark:text-primary mb-1">{t('audits.share.externalAccess', { defaultValue: 'Accès Auditeur Externe' })}</h4>
   <p className="text-sm text-primary dark:text-primary/70 leading-relaxed">
    {t('audits.share.externalAccessDesc', { defaultValue: 'Invitez un auditeur externe ou un organisme de certification à accéder à cet audit via un portail sécurisé.' })}
   </p>

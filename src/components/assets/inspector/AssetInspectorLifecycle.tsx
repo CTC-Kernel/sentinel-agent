@@ -111,7 +111,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
   <h3 className="text-xs font-bold uppercase tracking-widest text-blue-700 dark:text-blue-300 flex items-center">
   <Archive className="h-4 w-4 mr-2" /> {t('assets.lifecycle.status', 'État de l\'Actif')}
   </h3>
-  <div className="px-3 py-1 rounded-full bg-blue-50/20 text-blue-600 dark:text-blue-400 text-xs font-bold">
+  <div className="px-3 py-1 rounded-full bg-info-bg text-info-text text-xs font-bold">
   {selectedAsset?.lifecycleStatus || 'Neuf'}
   </div>
  </div>

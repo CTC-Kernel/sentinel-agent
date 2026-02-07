@@ -76,7 +76,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
    <p className="text-sm text-muted-foreground">
    <span className={`font-bold uppercase text-xs mr-2 px-1.5 py-0.5 rounded ${log.action === 'CREATE' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
    log.action === 'DELETE' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' :
-   'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+   'bg-info-bg text-info-text'
    }`}>{log.action}</span>
    {log.details}
    </p>
@@ -89,7 +89,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
     <span className="text-muted-foreground">{change.field}:</span>
     <span className="text-red-400 line-through">{String(change.oldValue)}</span>
     <span className="text-muted-foreground">→</span>
-    <span className="text-green-500">{String(change.newValue)}</span>
+    <span className="text-green-600 dark:text-green-400">{String(change.newValue)}</span>
    </div>
    ))}
    </div>

@@ -84,11 +84,11 @@
 
   0%,
   100% {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
   }
 
   50% {
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.6);
+    box-shadow: 0 0 40px hsl(var(--primary) / 0.6);
   }
 }
 
@@ -283,11 +283,11 @@
 
   0%,
   100% {
-    text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    text-shadow: 0 0 10px hsl(var(--primary) / 0.5);
   }
 
   50% {
-    text-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+    text-shadow: 0 0 20px hsl(var(--primary) / 0.8);
   }
 }
 
@@ -298,15 +298,15 @@
 /* Border Pulse */
 @keyframes border-pulse {
   0% {
-    border-color: rgba(59, 130, 246, 0.5);
+    border-color: hsl(var(--primary) / 0.5);
   }
 
   50% {
-    border-color: rgba(59, 130, 246, 1);
+    border-color: hsl(var(--primary));
   }
 
   100% {
-    border-color: rgba(59, 130, 246, 0.5);
+    border-color: hsl(var(--primary) / 0.5);
   }
 }
 

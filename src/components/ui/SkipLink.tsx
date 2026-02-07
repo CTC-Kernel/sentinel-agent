@@ -13,15 +13,13 @@ export const SkipLink: React.FC = () => {
  href="#main-content"
  className="
  sr-only focus:not-sr-only
- fixed top-4 left-4 z-max
- px-6 py-3
- bg-primary text-primary-foreground
+ focus:absolute focus:z-[9999] focus:top-4 focus:left-4
+ focus:bg-white focus:text-blue-600
+ focus:px-4 focus:py-2
+ focus:rounded-xl focus:shadow-lg
  font-bold text-sm
- rounded-3xl shadow-2xl
- ring-4 ring-primary/60
  transition-all duration-200
- hover:bg-primary/90
- focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white
+ focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-400
  "
  tabIndex={0}
  >

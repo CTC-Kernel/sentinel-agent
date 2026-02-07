@@ -482,7 +482,7 @@ export function calculateTemplateQuestionCount(sections: QuestionnaireSection[])
 export function getFrameworkColor(framework: string): { bg: string; text: string; border: string } {
  switch (framework) {
  case 'DORA':
- return { bg: 'bg-blue-50', text: 'text-blue-500', border: 'border-blue-500/30' };
+ return { bg: 'bg-info-bg', text: 'text-info-text', border: 'border-info-border' };
  case 'ISO 27001:2022':
  return { bg: 'bg-green-50', text: 'text-green-500', border: 'border-green-500/30' };
  case 'NIS2':

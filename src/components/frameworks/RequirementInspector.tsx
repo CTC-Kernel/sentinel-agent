@@ -304,7 +304,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
  </div>
 
  {/* Footer */}
- <div className="flex-shrink-0 px-6 py-4 border-t border-border/40 bg-muted/50/80">
+ <div className="flex-shrink-0 px-6 py-4 border-t border-border/40 bg-muted/50">
  <div className="flex items-center justify-between text-xs text-muted-foreground">
  <div className="flex items-center gap-1">
   <Calendar className="w-3.5 h-3.5" />
