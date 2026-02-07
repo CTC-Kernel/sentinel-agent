@@ -830,6 +830,7 @@ impl Check for LdapSecurityCheck {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::directory::DirectorySeverity;
 
     #[test]
     fn test_gpo_password_policy_check_creation() {

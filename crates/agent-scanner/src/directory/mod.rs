@@ -183,9 +183,8 @@ mod tests {
 
     #[test]
     fn test_directory_auditor_creation() {
-        let auditor = DirectoryAuditor::new();
+        let _auditor = DirectoryAuditor::new();
         // Should create without panicking
-        assert!(true);
     }
 
     #[tokio::test]
