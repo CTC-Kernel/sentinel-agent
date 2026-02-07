@@ -144,7 +144,7 @@ export const SupplierContractCompliance: React.FC<Props> = ({ supplier, canEdit,
   }
   `}
   >
-  <div className="flex items-start gap-4">
+  <div className="flex items-start gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
   <div className={`
    flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors
    ${isChecked

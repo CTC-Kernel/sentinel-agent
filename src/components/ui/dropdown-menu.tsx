@@ -117,7 +117,7 @@ const DropdownMenuContent = React.forwardRef<
  ref={ref}
  className={cn(
   portal ? "fixed" : "absolute",
-  "z-dropdown mt-2 min-w-[8rem] overflow-hidden rounded-xl border bg-popover p-1 text-popover-foreground shadow-apple-md focus:outline-none",
+  "z-dropdown mt-2 min-w-[8rem] overflow-hidden rounded-xl border bg-popover p-1 text-popover-foreground shadow-apple-md focus-visible:outline-none",
   !portal && align === "start" && "left-0",
   !portal && align === "end" && "right-0",
   !portal && align === "center" && "left-1/2 -translate-x-1/2",

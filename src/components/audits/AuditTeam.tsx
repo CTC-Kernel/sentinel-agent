@@ -114,7 +114,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
   <Shield className="h-3.5 w-3.5 mr-2" /> {t('audits.team.internalTeam', { defaultValue: 'Équipe Interne' })}
   </h3>
   {canEdit && !isAddingInternal && (
-  <button onClick={() => setIsAddingInternal(true)} aria-label={t('audits.team.addInternalMember', { defaultValue: 'Ajouter un membre interne' })} className="text-xs font-bold text-primary hover:text-primary flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
+  <button onClick={() => setIsAddingInternal(true)} aria-label={t('audits.team.addInternalMember', { defaultValue: 'Ajouter un membre interne' })} className="text-xs font-bold text-primary hover:text-primary flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
   <Plus className="h-3 w-3 mr-1" /> {t('audits.team.add', { defaultValue: 'Ajouter' })}
   </button>
   )}
@@ -130,8 +130,8 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
   placeholder={t('audits.team.selectMember', { defaultValue: 'Sélectionner un membre...' })}
   />
   </div>
-  <button onClick={handleAddInternal} aria-label={t('audits.team.confirmAdd', { defaultValue: "Confirmer l'ajout" })} className="px-3 bg-primary text-primary-foreground rounded-3xl font-bold text-xs hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('common.ok', { defaultValue: 'OK' })}</button>
-  <button onClick={() => setIsAddingInternal(false)} aria-label={t('common.cancel', { defaultValue: 'Annuler' })} className="px-3 bg-muted text-muted-foreground rounded-3xl font-bold text-xs hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">X</button>
+  <button onClick={handleAddInternal} aria-label={t('audits.team.confirmAdd', { defaultValue: "Confirmer l'ajout" })} className="px-3 bg-primary text-primary-foreground rounded-3xl font-bold text-xs hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('common.ok', { defaultValue: 'OK' })}</button>
+  <button onClick={() => setIsAddingInternal(false)} aria-label={t('common.cancel', { defaultValue: 'Annuler' })} className="px-3 bg-muted text-muted-foreground rounded-3xl font-bold text-xs hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">X</button>
   </div>
  )}
 
@@ -151,7 +151,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
    </div>
    </div>
    {canEdit && (
-   <button onClick={() => handleRemoveInternal(userId)} aria-label={`Retirer ${userObj?.displayName || 'l\'utilisateur'}`} className="p-1.5 text-muted-foreground hover:text-red-500 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg">
+   <button onClick={() => handleRemoveInternal(userId)} aria-label={`Retirer ${userObj?.displayName || 'l\'utilisateur'}`} className="p-1.5 text-muted-foreground hover:text-red-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg">
    <Trash2 className="h-4 w-4" />
    </button>
    )}
@@ -171,7 +171,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
   <ExternalLink className="h-3.5 w-3.5 mr-2" /> {t('audits.team.externalAuditors', { defaultValue: 'Auditeurs Externes' })}
   </h3>
   {canEdit && !isAddingExternal && (
-  <button onClick={() => setIsAddingExternal(true)} aria-label={t('audits.team.inviteExternalAuditor', { defaultValue: 'Inviter un auditeur externe' })} className="text-xs font-bold text-primary hover:text-primary flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
+  <button onClick={() => setIsAddingExternal(true)} aria-label={t('audits.team.inviteExternalAuditor', { defaultValue: 'Inviter un auditeur externe' })} className="text-xs font-bold text-primary hover:text-primary flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
   <Plus className="h-3 w-3 mr-1" /> {t('audits.team.invite', { defaultValue: 'Inviter' })}
   </button>
   )}
@@ -187,8 +187,8 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
   type="email"
   />
   </div>
-  <button onClick={handleAddExternal} aria-label={t('audits.team.sendInvitation', { defaultValue: "Envoyer l'invitation" })} className="px-3 bg-primary text-primary-foreground rounded-3xl font-bold text-xs hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('audits.team.invite', { defaultValue: 'Inviter' })}</button>
-  <button onClick={() => setIsAddingExternal(false)} aria-label={t('common.cancel', { defaultValue: 'Annuler' })} className="px-3 bg-muted text-muted-foreground rounded-3xl font-bold text-xs hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">X</button>
+  <button onClick={handleAddExternal} aria-label={t('audits.team.sendInvitation', { defaultValue: "Envoyer l'invitation" })} className="px-3 bg-primary text-primary-foreground rounded-3xl font-bold text-xs hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('audits.team.invite', { defaultValue: 'Inviter' })}</button>
+  <button onClick={() => setIsAddingExternal(false)} aria-label={t('common.cancel', { defaultValue: 'Annuler' })} className="px-3 bg-muted text-muted-foreground rounded-3xl font-bold text-xs hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">X</button>
   </div>
  )}
 
@@ -206,7 +206,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
    </div>
   </div>
   {canEdit && (
-   <button onClick={() => handleRemoveExternal(email)} aria-label={`Retirer l'auditeur ${email}`} className="p-1.5 text-muted-foreground hover:text-red-500 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg">
+   <button onClick={() => handleRemoveExternal(email)} aria-label={`Retirer l'auditeur ${email}`} className="p-1.5 text-muted-foreground hover:text-red-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg">
    <Trash2 className="h-4 w-4" />
    </button>
   )}

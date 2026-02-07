@@ -215,15 +215,16 @@ export const PortalAuth: React.FC<PortalAuthProps> = ({
  <div className="flex justify-center gap-2 mb-6" onPaste={handlePaste}>
  {code.map((digit, index) => (
  <input
-  key={index}
+  key={`code-digit-${index}`}
   ref={(el) => { inputRefs.current[index] = el; }}
   type="text"
+  aria-label={`Chiffre ${index + 1} du code`}
   inputMode="numeric"
   maxLength={1}
   value={digit}
   onChange={(e) => handleCodeChange(index, e.target.value)}
   onKeyDown={(e) => handleKeyDown(index, e)}
-  className="w-12 h-14 text-center text-2xl font-bold rounded-3xl border-2 border-border/40 bg-card text-foreground focus:border-primary focus:ring-2 focus-visible:ring-primary outline-none transition-all"
+  className="w-12 h-14 text-center text-2xl font-bold rounded-3xl border-2 border-border/40 bg-card text-foreground focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
  />
  ))}
  </div>

@@ -31,6 +31,14 @@ import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig
 import i18n from '../../i18n';
 
 // ============================================================================
+// Constants
+// ============================================================================
+const ALE_LOW_THRESHOLD = 100000;
+const ALE_MEDIUM_THRESHOLD = 500000;
+const ALE_HIGH_THRESHOLD = 2000000;
+const COMPACT_NOTATION_THRESHOLD = 1000000;
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -69,14 +77,14 @@ const formatCurrency = (
  style: 'currency',
  currency,
  maximumFractionDigits: 0,
- notation: compact && value >= 1000000 ? 'compact' : 'standard'
+ notation: compact && value >= COMPACT_NOTATION_THRESHOLD ? 'compact' : 'standard'
  }).format(value);
 };
 
 const getRiskLevel = (ale: number): { level: string; color: string; bgColor: string } => {
- if (ale < 100000) return { level: 'Low', color: 'text-green-600', bgColor: 'bg-green-100' };
- if (ale < 500000) return { level: 'Medium', color: 'text-amber-600', bgColor: 'bg-amber-100' };
- if (ale < 2000000) return { level: 'High', color: 'text-orange-600', bgColor: 'bg-orange-100' };
+ if (ale < ALE_LOW_THRESHOLD) return { level: 'Low', color: 'text-green-600', bgColor: 'bg-green-100' };
+ if (ale < ALE_MEDIUM_THRESHOLD) return { level: 'Medium', color: 'text-amber-600', bgColor: 'bg-amber-100' };
+ if (ale < ALE_HIGH_THRESHOLD) return { level: 'High', color: 'text-orange-600', bgColor: 'bg-orange-100' };
  return { level: 'Critical', color: 'text-red-600', bgColor: 'bg-red-100' };
 };
 

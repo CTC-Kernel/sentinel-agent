@@ -260,7 +260,7 @@ export class SupplierDoraSyncService {
  await setDoc(doc(db, this.SYNC_COLLECTION, supplierId), sanitizeData({
  [this.SYNC_FIELD]: serverTimestamp(),
  updatedAt: serverTimestamp()
- }), { merge: true });
+ }), { merge: true }); // SAFE: sanitizeData() strips undefined values
  } catch {
  ErrorLogger.warn(`Failed to update sync timestamp for supplier ${supplierId}`, 'SupplierDoraSyncService.updateSyncTimestamp');
  }

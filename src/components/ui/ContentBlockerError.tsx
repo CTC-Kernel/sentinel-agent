@@ -39,7 +39,7 @@ export const ContentBlockerError: React.FC = () => {
   <div className="space-y-3">
   <button
   onClick={() => window.location.reload()}
-  className="w-full py-3 px-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-3xl font-medium transition-colors flex items-center justify-center gap-2 shadow-lg shadow-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 "
+  className="w-full py-3 px-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-3xl font-medium transition-colors flex items-center justify-center gap-2 shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 "
   >
   <RefreshCw className="w-4 h-4" />
   {t('ui.contentBlocker.reload', { defaultValue: 'Recharger la page' })}
@@ -47,7 +47,7 @@ export const ContentBlockerError: React.FC = () => {
 
   <button
   onClick={dismissBlockerError}
-  className="w-full py-3 px-4 bg-transparent hover:bg-muted text-muted-foreground rounded-3xl font-medium transition-colors flex items-center justify-center gap-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+  className="w-full py-3 px-4 bg-transparent hover:bg-muted text-muted-foreground rounded-3xl font-medium transition-colors flex items-center justify-center gap-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
   >
   <AlertTriangle className="w-4 h-4" />
   {t('ui.contentBlocker.ignoreAndContinue', { defaultValue: 'Ignorer et continuer (Risqué)' })}

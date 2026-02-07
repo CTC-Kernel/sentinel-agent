@@ -35,7 +35,7 @@ export const FilterPill: React.FC<FilterPillProps> = ({
  <span className="whitespace-nowrap">{value}</span>
  <button
  onClick={onRemove}
- className="ml-0.5 p-0.5 hover:bg-muted rounded-full transition-colors"
+ className="ml-0.5 p-0.5 hover:bg-muted rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  aria-label={`Supprimer le filtre ${label}`}
  >
  <X className="h-3 w-3" />

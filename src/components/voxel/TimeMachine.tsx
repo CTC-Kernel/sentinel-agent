@@ -203,7 +203,7 @@ const TimeMachineHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) 
  <Info className="w-4 h-4 text-primary/70" />
  Guide Time Machine
  </h3>
- <button onClick={onClose} className="text-foreground/40 hover:text-foreground">
+ <button onClick={onClose} className="text-foreground/40 hover:text-foreground" aria-label="Fermer">
  <X className="w-4 h-4" />
  </button>
  </div>
@@ -314,7 +314,7 @@ export function TimeMachine({
  id: `compare-${data.snapshot2.date}`,
  organizationId: '',
  date: data.snapshot2.date,
- createdAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
  metrics: data.snapshot2.metrics,
  });
 
@@ -324,7 +324,7 @@ export function TimeMachine({
  id: `compare-${data.snapshot2.date}`,
  organizationId: '',
  date: data.snapshot2.date,
- createdAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
  metrics: data.snapshot2.metrics,
  },
  data.delta
@@ -453,6 +453,7 @@ export function TimeMachine({
  <button
   onClick={onClose}
   className="p-2 rounded-full hover:bg-muted text-foreground/60 hover:text-foreground transition-colors"
+ aria-label="Fermer"
  >
   <X className="h-5 w-5" />
  </button>
@@ -525,7 +526,7 @@ export function TimeMachine({
   <span>90 jours</span>
   <span>Aujourd'hui</span>
  </div>
- <input
+ <input aria-label="Sélectionner la période (jours)"
   type="range"
   value={sliderValue[0]}
   max={90}
@@ -533,7 +534,6 @@ export function TimeMachine({
   step={1}
   onChange={(e) => handleSliderChange([parseInt(e.target.value, 10)])}
   className="w-full cursor-pointer accent-primary h-2 bg-secondary rounded-lg appearance-none"
-  aria-label="Sélectionner la période (jours)"
  />
  </div>
 
@@ -722,7 +722,7 @@ export function TimeMachine({
  </div>
 
  {/* Footer with read-only indicator */}
- <div className="p-4 border-t border-border/40 shrink-0" style={{ background: 'rgba(255,255,255,0.03)' }}>
+ <div className="p-4 border-t border-border/40 shrink-0" style={{ background: 'hsl(var(--background) / 0.03)' }}>
  <div className="flex items-center gap-2 text-xs text-foreground/50">
  <Badge variant="outline" className="border-border text-foreground/60">Lecture seule</Badge>
  <span>Données historiques - non modifiables</span>

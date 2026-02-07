@@ -34,8 +34,8 @@ export function createDocument(options: DocumentFactoryOptions = {}): Document {
  ownerId: options.ownerId || 'user-1',
  url: `https://storage.example.com/docs/${id}.pdf`,
  relatedRiskIds: [],
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  };
 }
 

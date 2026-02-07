@@ -26,6 +26,11 @@ const ASSESSMENT_METHODS = [
  { value: 'audit', label: 'compliance.assessment.methods.audit' },
 ];
 
+// ============================================================================
+// Constants
+// ============================================================================
+const NON_COMPLIANT_SCORE_THRESHOLD = 60;
+
 export interface AssessmentFormModalProps {
  control: { code: string; name: string } | null;
  controls: { code: string; name: string }[];
@@ -174,7 +179,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
   <button
   onClick={handleSafeClose}
   aria-label={t('common.cancel')}
-  className="p-2.5 rounded-xl hover:bg-muted transition-colors"
+  className="p-2.5 rounded-xl hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <X className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
   </button>
@@ -182,7 +187,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
 
   {submittedScore !== null ? (
   <div className="space-y-5">
-  {submittedScore < 60 ? (
+  {submittedScore < NON_COMPLIANT_SCORE_THRESHOLD ? (
   /* Non-compliant / partially compliant follow-up */
   <div className="p-5 rounded-3xl border border-warning-border bg-warning-bg/30 space-y-4">
    <div className="flex items-start gap-3">
@@ -206,7 +211,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
    <ArrowRight className="w-4 h-4 mr-2" />
    {t('compliance.assessment.createActionPlan', { defaultValue: "Créer un plan d'action" })}
    </Button>
-   <Button variant="ghost" onClick={onClose} className="rounded-2xl">
+   <Button variant="ghost" onClick={onClose} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
    {t('common.close', { defaultValue: 'Fermer' })}
    </Button>
    </div>
@@ -230,11 +235,11 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
    <div className="flex flex-col gap-3">
    {getNextControl() ? (
    <div className="flex gap-3">
-   <Button onClick={handleAssessNext} className="rounded-2xl bg-primary shadow-lg shadow-primary/20 flex-1">
+   <Button onClick={handleAssessNext} className="rounded-2xl bg-primary shadow-lg shadow-primary/20 flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
     <ArrowRight className="w-4 h-4 mr-2" />
     {t('compliance.assessment.assessNext', { defaultValue: 'Évaluer le contrôle suivant' })}
    </Button>
-   <Button variant="ghost" onClick={onClose} className="rounded-2xl">
+   <Button variant="ghost" onClick={onClose} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
     {t('common.close', { defaultValue: 'Fermer' })}
    </Button>
    </div>
@@ -244,11 +249,11 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
     {t('compliance.assessment.allCompleted', { defaultValue: 'Tous les contrôles ont été évalués. Consultez le tableau de bord pour un résumé.' })}
    </p>
    <div className="flex gap-3">
-    <Button onClick={() => { navigate('/compliance'); onClose(); }} className="rounded-2xl bg-primary shadow-lg shadow-primary/20 flex-1">
+    <Button onClick={() => { navigate('/compliance'); onClose(); }} className="rounded-2xl bg-primary shadow-lg shadow-primary/20 flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
     <ArrowRight className="w-4 h-4 mr-2" />
     {t('compliance.assessment.viewDashboard', { defaultValue: 'Voir le tableau de bord' })}
     </Button>
-    <Button variant="ghost" onClick={onClose} className="rounded-2xl">
+    <Button variant="ghost" onClick={onClose} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
     {t('common.close', { defaultValue: 'Fermer' })}
     </Button>
    </div>
@@ -259,7 +264,8 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
   )}
   </div>
   ) : (
-  <form onSubmit={handleSubmit} className="space-y-5">
+  /* schema validation via zod */
+<form onSubmit={handleSubmit} className="space-y-5">
   {/* Control Selection */}
   <div>
   <label htmlFor="control-code" className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2">
@@ -300,6 +306,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
   </label>
   <input
   type="range"
+  aria-label="Score d'efficacité"
   min="0"
   max="100"
   step="5"
@@ -349,7 +356,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
   value={formData.notes}
   onChange={(e) => handleFieldChange('notes', e.target.value)}
   rows={3}
-  className="w-full px-4 py-3 rounded-2xl border border-border/40 bg-card text-foreground resize-none"
+  className="w-full px-4 py-3 rounded-2xl border border-border/40 bg-card text-foreground resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   placeholder={t('compliance.assessment.notesPlaceholder')}
   />
   </div>
@@ -373,10 +380,10 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
 
   {/* Actions */}
   <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-border/40/50">
-  <Button type="button" variant="ghost" onClick={handleSafeClose} className="rounded-2xl">
+  <Button type="button" variant="ghost" onClick={handleSafeClose} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
   {t('common.cancel')}
   </Button>
-  <Button type="submit" disabled={isSaving || !formData.controlCode} className="rounded-2xl bg-primary shadow-lg shadow-primary/20">
+  <Button type="submit" disabled={isSaving || !formData.controlCode} className="rounded-2xl bg-primary shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
   <Save className="w-4 h-4 mr-2" />
   {isSaving ? t('compliance.assessment.saving') : t('compliance.assessment.save')}
   </Button>

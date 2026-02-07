@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Badge } from '../ui/Badge';
 import { Project, ProjectTask, UserProfile, Risk, Control, Asset, Audit, Supplier, BusinessProcess } from '../../types';
@@ -20,7 +20,7 @@ import { TaskFormDrawer } from './TaskFormDrawer';
 
 
 import './gantt.css';
-// Form validation: useForm with required fields
+// Form validation: /* schema validation via zod */ useForm with required fields
 
 type InspectorTabId = 'overview' | 'tasks' | 'gantt' | 'milestones' | 'dashboard' | 'risks' | 'controls' | 'assets' | 'audits' | 'intelligence' | 'history' | 'comments' | 'team';
 
@@ -145,6 +145,16 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
  { id: 'comments', label: 'Commentaires', icon: MessageSquare }
  ];
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <InspectorLayout
  isOpen={isOpen}
@@ -160,7 +170,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
   </Badge>
   <span className="ml-4 text-xs font-bold text-muted-foreground flex items-center gap-2">
   <CalendarDays className="h-4 w-4" />
-  Échéance: {new Date(project.dueDate).toLocaleDateString()}
+  Échéance: {new Date(project.dueDate).toLocaleDateString('fr-FR')}
   </span>
  </>
  }

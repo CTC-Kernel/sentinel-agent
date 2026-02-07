@@ -25,6 +25,7 @@ export class AccountService {
  // The Cloud Function handles everything including Auth deletion
  // No additional client-side cleanup needed
  } catch (error) {
+ ErrorLogger.error(error, 'accountService.deleteAccount');
  const err = error as { code?: string; message?: string };
 
  // Handle specific errors

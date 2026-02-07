@@ -91,7 +91,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
  <PremiumCard glass className="mb-6 bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-indigo-900/20 dark:to-purple-900/20 border-indigo-200 dark:border-indigo-800">
  <button
  onClick={() => setIsExpanded(!isExpanded)}
- className="w-full flex items-center justify-between"
+ className="w-full flex items-center justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <div className="flex items-center gap-3">
  <div className="p-2 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-500">
@@ -131,7 +131,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
  {!readOnly && pendingSourceRecommendations.length > 1 && (
   <button
   onClick={handleSelectAllSources}
-  className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+  className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   {t('ebios.workshop2.addAll', 'Ajouter toutes')}
   </button>
@@ -150,7 +150,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
   <div className="flex items-center gap-1 ml-2">
   <button
   onClick={() => onSelectSource(source.code)}
-  className="p-1 rounded hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400"
+  className="p-1 rounded hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   title={t('ebios.workshop2.addRecommendation', 'Ajouter')}
   >
   <Check className="w-3.5 h-3.5" />
@@ -158,7 +158,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
   {onDismissSource && (
   <button
   onClick={() => onDismissSource(source.code)}
-  className="p-1 rounded hover:bg-muted text-muted-foreground"
+  className="p-1 rounded hover:bg-muted text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   title={t('ebios.workshop2.dismissRecommendation', 'Ignorer')}
   >
   <X className="w-3.5 h-3.5" />
@@ -184,7 +184,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
  {!readOnly && pendingObjectiveRecommendations.length > 1 && (
   <button
   onClick={handleSelectAllObjectives}
-  className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+  className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   {t('ebios.workshop2.addAll', 'Ajouter toutes')}
   </button>
@@ -203,7 +203,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
   <div className="flex items-center gap-1 ml-2">
   <button
   onClick={() => onSelectObjective(obj.code)}
-  className="p-1 rounded hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400"
+  className="p-1 rounded hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   title={t('ebios.workshop2.addRecommendation', 'Ajouter')}
   >
   <Check className="w-3.5 h-3.5" />
@@ -211,7 +211,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
   {onDismissObjective && (
   <button
   onClick={() => onDismissObjective(obj.code)}
-  className="p-1 rounded hover:bg-muted text-muted-foreground"
+  className="p-1 rounded hover:bg-muted text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   title={t('ebios.workshop2.dismissRecommendation', 'Ignorer')}
   >
   <X className="w-3.5 h-3.5" />

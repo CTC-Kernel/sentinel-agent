@@ -56,7 +56,7 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
   text-muted-foreground hover:text-primary
   transition-colors cursor-help
   rounded-full hover:bg-muted/50
-  focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
+  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
   ${touchTargetClasses[size]}
   ${className}
  `}

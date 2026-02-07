@@ -612,7 +612,7 @@ export function createProjectFromTemplate(
  dueDate: new Date(startDate.getTime() + template.estimatedDuration * 24 * 60 * 60 * 1000).toISOString(),
  progress: 0,
  organizationId,
- createdAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
  tasks: template.defaultTasks.map((task, index) => ({
  ...task,
  id: `task-${Date.now()}-${index}`,
@@ -635,7 +635,7 @@ export function createProjectFromTemplate(
  id: `milestone-${Date.now()}-${index}`,
  projectId: '', // Will be set after project creation
  targetDate: milestoneDate.toISOString(),
- createdAt: new Date().toISOString()
+ createdAt: new Date(Date.now()).toISOString()
  };
  });
 

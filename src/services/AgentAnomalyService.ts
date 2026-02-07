@@ -19,6 +19,7 @@ import {
  Unsubscribe,
  limit,
  writeBatch,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
@@ -101,7 +102,7 @@ export function subscribeToAgentAnomalies(
  q = query(q, limit(filters.limit));
  }
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  let anomalies = snapshot.docs.map(d => ({
@@ -131,6 +132,7 @@ export function subscribeToAgentAnomalies(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 /**
@@ -157,7 +159,7 @@ export function subscribeToAnomalyStats(
  onStats: (stats: AnomalyStats | null) => void,
  onError?: (error: Error) => void
 ): Unsubscribe {
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  getAnomalyStatsDoc(organizationId),
  (snapshot) => {
  if (snapshot.exists()) {
@@ -175,6 +177,7 @@ export function subscribeToAnomalyStats(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 // ============================================================================
@@ -199,7 +202,7 @@ export function subscribeToBaselines(
  q = query(q, where('agentId', '==', agentId));
  }
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const baselines = snapshot.docs.map(d => ({
@@ -217,6 +220,7 @@ export function subscribeToBaselines(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 /**
@@ -266,7 +270,7 @@ export function subscribeToThresholds(
  orderBy('createdAt', 'desc')
  );
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const thresholds = snapshot.docs.map(d => ({
@@ -284,6 +288,7 @@ export function subscribeToThresholds(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 /**
@@ -376,7 +381,7 @@ export async function updateThresholdConfig(
  const docRef = doc(getThresholdsCollection(organizationId), configId);
  await updateDoc(docRef, sanitizeData({
  ...updates,
- updatedAt: new Date().toISOString(),
+ updatedAt: serverTimestamp(),
  }));
  } catch (error) {
  ErrorLogger.error(error, 'AgentAnomalyService.updateThresholdConfig', {

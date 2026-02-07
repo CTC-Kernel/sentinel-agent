@@ -75,8 +75,8 @@ const createMockControl = (overrides: Partial<Control> = {}): Control => ({
  category: 'Organisationnel',
  evidenceIds: [],
  organizationId: 'org-123',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides
 } as Control);
 
@@ -88,7 +88,7 @@ const createMockDocument = (overrides: Partial<Document> = {}): Document => ({
  status: 'Publié',
  organizationId: 'org-123',
  createdAt: new Date('2024-01-15').toISOString(),
- updatedAt: new Date().toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides
 } as Document);
 

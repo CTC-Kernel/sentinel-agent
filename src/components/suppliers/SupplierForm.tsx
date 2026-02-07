@@ -321,7 +321,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
    id="company-search"
    type="text"
    placeholder={t('suppliers.form.searchCompanyPlaceholder', { defaultValue: 'Rechercher une entreprise (Sirene/Pappers)...' })}
-   className="w-full px-4 py-2 bg-transparent border-b border-border/40 text-sm focus:border-indigo-500 outline-none transition-colors"
+   className="w-full px-4 py-2 bg-transparent border-b border-border/40 text-sm focus-visible:border-indigo-500 outline-none transition-colors"
    onChange={(e) => handleCompanySearch(e.target.value)}
    aria-label={t('suppliers.form.searchCompanyLabel', { defaultValue: 'Rechercher une entreprise' })}
    />

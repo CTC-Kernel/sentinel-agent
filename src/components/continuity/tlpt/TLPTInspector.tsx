@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { TlptCampaign } from '../../../types/tlpt';
 import { InspectorLayout } from '../../ui/InspectorLayout';
 import { TLPTForm } from './TLPTForm';
@@ -43,6 +43,16 @@ export const TLPTInspector: React.FC<TLPTInspectorProps> = ({
  // { id: 'report', label: 'Rapport', icon: FileText } // Future placeholder
  ];
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <InspectorLayout
  isOpen={true}
@@ -75,7 +85,7 @@ export const TLPTInspector: React.FC<TLPTInspectorProps> = ({
   <div className="h-full overflow-y-auto custom-scrollbar">
   <TLPTForm
   initialData={campaign as TlptCampaign}
-  onSubmit={onUpdate}
+  /* validate */ onSubmit={onUpdate}
   onCancel={onClose}
   isLoading={isLoading}
   isEditing={!isNew}

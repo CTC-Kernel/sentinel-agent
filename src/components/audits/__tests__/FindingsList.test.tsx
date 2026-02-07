@@ -78,7 +78,7 @@ describe('FindingsList', () => {
  type: 'Majeure',
  severity: 'Moyenne',
  status: 'Ouvert',
- createdAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
  ...overrides
  });
 
@@ -91,8 +91,8 @@ describe('FindingsList', () => {
  organizationId: 'org-1',
  dateScheduled: new Date().toISOString(),
  findings: [createFinding()],
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  findingsCount: 1,
  ...overrides
  });

@@ -227,7 +227,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
    )}
 
    {!hasRisks && (
-    <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] dark:bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:8px_8px] opacity-[0.15]" />
+    <div className="absolute inset-0 bg-[radial-gradient(var(--chart-color, #cbd5e1)_1px,transparent_1px)] dark:bg-[radial-gradient(var(--chart-color, #334155)_1px,transparent_1px)] [background-size:8px_8px] opacity-[0.15]" />
    )}
    </motion.div>
    </CustomTooltip>

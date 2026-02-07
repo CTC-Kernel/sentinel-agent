@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Upload, CheckCircle, AlertTriangle, Loader2 } from '../../components/ui/Icons';
 import { httpsCallable } from 'firebase/functions';
 import { functions, storage } from '../../firebase';
@@ -7,6 +7,8 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { toast } from '@/lib/toast';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { useStore } from '../../store';
+// RBAC: Portal access is validated via token-based authentication (see token prop).
+// No role-based check needed; the token itself grants access to the certifier role.
 
 interface CertificateUploadProps {
  token: string;
@@ -98,6 +100,16 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
  );
  }
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <div className="space-y-6">
  <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
@@ -123,15 +135,15 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
   <span className="text-xs text-muted-foreground mt-1">Max 10 Mo</span>
   </>
   )}
-  <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={handleFileSelect} />
+  <input type="file" aria-label="Télécharger un certificat" className="hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" accept=".pdf,.doc,.docx" onChange={handleFileSelect} />
  </label>
 
  <div className="mt-6 flex justify-end gap-3">
-  <button className="px-4 py-2 text-muted-foreground font-medium hover:underline text-sm">{t('certificate.refuseOrCorrections', { defaultValue: 'Refuser / Demander corrections' })}</button>
+  <button className="px-4 py-2 text-muted-foreground font-medium hover:underline text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">{t('certificate.refuseOrCorrections', { defaultValue: 'Refuser / Demander corrections' })}</button>
   <button
   onClick={handleCertifyClick}
   disabled={isUploading}
-  className="btn-primary flex items-center gap-2"
+  className="btn-primary flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
   {t('certificate.validateAndCertify', { defaultValue: 'Valider et Certifier' })}

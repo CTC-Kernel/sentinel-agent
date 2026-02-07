@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Control, Document } from '../../../types';
 import { Button } from '../../ui/button';
 import { CustomSelect } from '../../ui/CustomSelect';
@@ -99,10 +99,21 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
  <div className="space-y-3">
   {control.evidenceIds?.map(docId => {
   const doc = safeDocuments.find(d => d.id === docId);
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   if (!doc) return null;
   const isValidated = doc.status === 'Approuvé';
   const isRejected = doc.status === 'Rejeté';
   const isValidating = validatingDocId === docId;
+
 
   return (
   <div key={docId || 'unknown'} className="flex items-center p-3 bg-card border border-border/40 rounded-3xl hover:shadow-md transition-all">

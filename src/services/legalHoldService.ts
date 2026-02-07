@@ -75,7 +75,9 @@ export async function createLegalHold(
 
  // Update all affected documents to mark them as under legal hold
  if (documentIds.length > 0) {
- const batch = writeBatch(db);
+ const BATCH_LIMIT = 450;
+ let batch = writeBatch(db);
+ let batchCount = 0;
 
  for (const docId of documentIds) {
  const docRef = doc(db, DOCUMENTS_COLLECTION, docId);
@@ -84,9 +86,18 @@ export async function createLegalHold(
  isUnderHold: true,
  updatedAt: now,
  }));
+ batchCount++;
+
+ if (batchCount >= BATCH_LIMIT) {
+  await batch.commit();
+  batch = writeBatch(db);
+  batchCount = 0;
+ }
  }
 
- await batch.commit();
+ if (batchCount > 0) {
+  await batch.commit();
+ }
  }
 
  return {
@@ -135,7 +146,9 @@ export async function releaseLegalHold(
 
  // Remove hold from affected documents
  if (holdData.documentIds && holdData.documentIds.length > 0) {
- const batch = writeBatch(db);
+ const BATCH_LIMIT = 450;
+ let batch = writeBatch(db);
+ let batchCount = 0;
 
  for (const docId of holdData.documentIds) {
  const docRef = doc(db, DOCUMENTS_COLLECTION, docId);
@@ -152,10 +165,19 @@ export async function releaseLegalHold(
  isUnderHold: remainingHolds.length > 0,
  updatedAt: now,
  }));
+ batchCount++;
+
+ if (batchCount >= BATCH_LIMIT) {
+  await batch.commit();
+  batch = writeBatch(db);
+  batchCount = 0;
+ }
  }
  }
 
- await batch.commit();
+ if (batchCount > 0) {
+  await batch.commit();
+ }
  }
  } catch (error) {
  ErrorLogger.error(error, 'LegalHoldService.releaseLegalHold');

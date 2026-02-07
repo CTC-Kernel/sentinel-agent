@@ -144,7 +144,7 @@ export function subscribeToSessions(
  orderBy('createdAt', 'desc')
  );
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const sessions = snapshot.docs.map(doc =>
@@ -161,6 +161,7 @@ export function subscribeToSessions(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 /**
@@ -178,7 +179,7 @@ export function subscribeToSessionSuggestions(
  orderBy('confidenceScore', 'desc')
  );
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const suggestions = snapshot.docs.map(doc =>
@@ -196,6 +197,7 @@ export function subscribeToSessionSuggestions(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 /**
@@ -320,7 +322,7 @@ export async function createPopulationSession(
  averageConfidence: 0,
  agentCount: 0,
  createdBy: userId,
- createdAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
  initialScore,
  };
 
@@ -371,8 +373,10 @@ async function generateSuggestionsForSession(
  m => m.frameworkCode === session.frameworkCode
  );
 
- // Create suggestions
- const batch = writeBatch(db);
+ // Create suggestions - use batch chunking to respect 500 op limit
+ const BATCH_LIMIT = 450;
+ let batch = writeBatch(db);
+ let batchCount = 0;
  const suggestions: PopulationSuggestion[] = [];
  let totalConfidence = 0;
  const agentIds = new Set<string>();
@@ -430,7 +434,7 @@ async function generateSuggestionsForSession(
  agentCount: reqAgentIds.length,
  lastVerified,
  status: isExpired ? 'expired' : 'pending',
- createdAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
  };
 
  const suggestionRef = doc(getSuggestionsCollection(organizationId));
@@ -438,6 +442,13 @@ async function generateSuggestionsForSession(
  ...suggestion,
  createdAt: serverTimestamp(),
  }));
+ batchCount++;
+
+ if (batchCount >= BATCH_LIMIT) {
+   await batch.commit();
+   batch = writeBatch(db);
+   batchCount = 0;
+ }
 
  suggestions.push({ ...suggestion, id: suggestionRef.id });
  totalConfidence += avgConfidence;

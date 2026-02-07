@@ -178,7 +178,7 @@ const AssetMatchCard: React.FC<{
  type="button"
  onClick={onRemove}
  className="p-1.5 rounded-lg hover:bg-red-500/20 text-muted-foreground hover:text-red-400 transition-colors"
- title="Remove"
+ title="Remove" aria-label="Supprimer"
  >
  <X className="h-4 w-4" />
  </button>
@@ -510,10 +510,11 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
  <input
  type="text"
+ aria-label="Rechercher des actifs OT"
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
  placeholder={t('otVulnerability.searchAssets', 'Search OT assets...')}
- className="w-full pl-9 pr-3 py-2 bg-muted border border-border/40 rounded-lg text-sm text-foreground placeholder:text-muted-foreground dark:placeholder:text-white/30 focus:outline-none focus:border-indigo-500"
+ className="w-full pl-9 pr-3 py-2 bg-muted border border-border/40 rounded-lg text-sm text-foreground placeholder:text-muted-foreground dark:placeholder:text-white/30 focus-visible:outline-none focus-visible:border-indigo-500"
  />
  </div>
 

@@ -179,6 +179,7 @@ export function useWebAuthn(): UseWebAuthnReturn {
 
  return result;
  } catch (err) {
+ ErrorLogger.error(err, 'useWebAuthn.register');
  const errorMessage = err instanceof Error ? err.message : t('auth.webauthn.unknownError', { defaultValue: 'Unknown error' });
 
  // Handle specific WebAuthn errors
@@ -261,6 +262,7 @@ export function useWebAuthn(): UseWebAuthnReturn {
 
  return result;
  } catch (err) {
+ ErrorLogger.error(err, 'useWebAuthn.authenticate');
  const errorMessage = err instanceof Error ? err.message : t('auth.webauthn.unknownError', { defaultValue: 'Unknown error' });
 
  // Handle specific WebAuthn errors

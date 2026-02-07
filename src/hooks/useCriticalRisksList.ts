@@ -59,47 +59,8 @@ export interface CriticalRisksListResult {
  */
 const ACTIVE_RISK_STATUSES = ['Ouvert', 'En cours', 'En attente de validation'];
 
-/**
- * Get criticality color scheme based on criticality score
- */
-export function getCriticalityColorScheme(
- criticality: number
-): 'danger' | 'warning' | 'caution' | 'success' {
- if (criticality >= RISK_THRESHOLDS.CRITICAL) return 'danger';
- if (criticality >= RISK_THRESHOLDS.HIGH) return 'warning';
- if (criticality >= RISK_THRESHOLDS.MEDIUM) return 'caution';
- return 'success';
-}
-
-/**
- * Get Tailwind classes for criticality color
- */
-export const CRITICALITY_COLOR_CLASSES = {
- danger: {
- bg: 'bg-red-100 dark:bg-red-900/30',
- text: 'text-red-800 dark:text-red-200',
- border: 'border-red-200 dark:border-red-800',
- badge: 'bg-red-500 text-white',
- },
- warning: {
- bg: 'bg-orange-100 dark:bg-orange-900/30',
- text: 'text-orange-800 dark:text-orange-200',
- border: 'border-orange-200 dark:border-orange-800',
- badge: 'bg-orange-500 text-white',
- },
- caution: {
- bg: 'bg-yellow-100 dark:bg-yellow-900/30',
- text: 'text-yellow-800 dark:text-yellow-200',
- border: 'border-yellow-200 dark:border-yellow-800',
- badge: 'bg-warning text-warning-foreground',
- },
- success: {
- bg: 'bg-green-100 dark:bg-green-900/30',
- text: 'text-green-800 dark:text-green-200',
- border: 'border-green-200 dark:border-green-800',
- badge: 'bg-green-500 text-white',
- },
-} as const;
+// Re-export color scheme utilities (moved to utils/colorSchemes.ts to satisfy hooks naming convention)
+export { getCriticalityColorScheme, CRITICALITY_COLOR_CLASSES } from '../utils/colorSchemes';
 
 /**
  * Hook to fetch and monitor critical risks list

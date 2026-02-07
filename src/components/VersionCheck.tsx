@@ -83,6 +83,8 @@ export const VersionCheck = () => {
 
  document.addEventListener('visibilitychange', handleVisibilityChange);
 
+ /* empty state: Aucun élément à afficher si la liste est vide */
+
  return () => {
  clearInterval(interval);
  document.removeEventListener('visibilitychange', handleVisibilityChange);

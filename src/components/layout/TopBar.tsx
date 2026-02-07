@@ -188,8 +188,7 @@ export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => 
                                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide mt-0.5">{user?.role || t('common.defaultRole', { defaultValue: 'Utilisateur' })}</span>
                             </div>
                             <div className="relative">
-                                <img
-                                    alt={user?.displayName || t('layout.topbar.userAvatarAlt', { defaultValue: 'Avatar utilisateur' })}
+                                <img alt={user?.displayName || t('layout.topbar.userAvatarAlt', { defaultValue: 'Avatar utilisateur' })}
                                     src={getDefaultAvatarUrl(user?.role)}
                                     className="h-9 w-9 rounded-full object-cover ring-2 ring-background shadow-md group-hover:scale-105 transition-transform"
                                 />

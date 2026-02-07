@@ -36,8 +36,9 @@ export function useFormPersistence<T extends FieldValues>(
  } catch (e) {
  ErrorLogger.error(e, `useFormPersistence.loadDraft(${key})`);
  }
- // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [key, enabled, reset]);
+ // Justification: options.onRestore is intentionally excluded -- it is an optional callback
+ // that may change identity on each render. key, enabled, and reset are the only meaningful triggers.
+ }, [key, enabled, reset]); // eslint-disable-line react-hooks/exhaustive-deps
 
  // Save draft on change
  useEffect(() => {

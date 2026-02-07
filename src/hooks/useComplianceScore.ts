@@ -121,7 +121,7 @@ export function useComplianceScore(
  setIsRefetching(false);
  }
  })
- .catch((fetchError) => {
+ .catch((fetchError) => { console.error(fetchError);
  if (isMounted) {
  setError(fetchError);
  setFetchedOrganizationId(organizationId);
@@ -184,6 +184,7 @@ export function useRecalculateScore() {
  setIsRecalculating(false);
  return result.data;
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'useComplianceScore');
  const error = err instanceof Error ? err : new Error('Failed to recalculate score');
  setRecalculateError(error);
  setIsRecalculating(false);

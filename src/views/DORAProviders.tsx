@@ -4,7 +4,7 @@
  * Main view for ICT Provider Management
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLocale } from '../hooks/useLocale';
 import { toast } from '@/lib/toast';
@@ -111,6 +111,91 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
  setIsExportOpen(true);
  }, []);
 
+
+  // Extracted callbacks (useCallback)
+  const handleClose = useCallback(() => {
+    setIsDrawerOpen(false)
+  }, []);
+
+  const handleClose2 = useCallback(() => {
+    setIsInspectorOpen(false)
+  }, []);
+
+  const handleEdit = useCallback(() => {
+    handleEdit(inspectedProvider)
+  }, []);
+
+  const handleClose3 = useCallback(() => {
+    setIsImportOpen(false)
+  }, []);
+
+  const handleClose4 = useCallback(() => {
+    setIsExportOpen(false)
+  }, []);
+
+  const handleClose5 = useCallback(() => {
+    setIsHistoryOpen(false)
+  }, []);
+
+  const handleClose6 = useCallback(() => {
+    setIsHistoryOpen(false)
+  }, []);
+
+  const handleClose7 = useCallback(() => {
+    setDeleteProviderId(null)
+  }, []);
+
+  const handleConfirm = useCallback(() => {
+    deleteProviderId && handleDelete(deleteProviderId)
+  }, []);
+
+  const handleClick = useCallback(() => {
+    navigate('/suppliers')
+  }, []);
+
+  const handleClick2 = useCallback(() => {
+    setIsImportOpen(true)
+  }, []);
+
+  const handleClick3 = useCallback(() => {
+    setIsImportOpen(true)
+  }, []);
+
+  const handleClick4 = useCallback(() => {
+    { setCategoryFilter(''); setComplianceFilter(''); setSearchTerm(''); }
+  }, []);
+
+  const handleClick5 = useCallback(() => {
+    { setCategoryFilter('critical'); setComplianceFilter(''); setSearchTerm(''); }
+  }, []);
+
+  const handleClick6 = useCallback(() => {
+    { setCategoryFilter(''); setComplianceFilter(false); setSearchTerm(''); }
+  }, []);
+
+  const handleClick7 = useCallback(() => {
+    { setCategoryFilter(''); setComplianceFilter(''); setSearchTerm(''); }
+  }, []);
+
+  const handleChange = useCallback((v) => {
+    setCategoryFilter(v as ICTCriticality | '')
+  }, []);
+
+  const handleChange2 = useCallback((v) => {
+    setComplianceFilter(v === '' ? '' : v === 'true')
+  }, []);
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
+
  return (
  <div className={hideHeader ? "" : "min-h-screen bg-muted"}>
  {!hideHeader && (
@@ -121,7 +206,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
   <div className="flex items-center gap-3">
   <Button
    variant="outline"
-   onClick={() => navigate('/suppliers')}
+   onClick={handleClick}
    className="flex items-center"
   >
    <ArrowLeft className="w-4 h-4 mr-2" />
@@ -139,7 +224,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
   <div className="flex items-center gap-3">
   <Button
    variant="outline"
-   onClick={() => setIsImportOpen(true)}
+   onClick={handleClick2}
   >
    <Upload className="w-4 h-4 mr-2" />
    {t('dora.providers.importCsv')}
@@ -167,7 +252,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
   <div className="flex items-center justify-end gap-3 mb-6">
   <Button
   variant="outline"
-  onClick={() => setIsImportOpen(true)}
+  onClick={handleClick3}
   >
   <Upload className="w-4 h-4 mr-2" />
   {t('dora.providers.importCsv')}
@@ -190,7 +275,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
   <button
   type="button"
-  onClick={() => { setCategoryFilter(''); setComplianceFilter(''); setSearchTerm(''); }}
+  onClick={handleClick4}
   className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:ring-2 hover:ring-primary/30 text-left w-full"
   >
   <div className="flex items-center gap-3">
@@ -206,7 +291,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
 
   <button
   type="button"
-  onClick={() => { setCategoryFilter('critical'); setComplianceFilter(''); setSearchTerm(''); }}
+  onClick={handleClick5}
   className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:ring-2 hover:ring-primary/30 text-left w-full"
   >
   <div className="flex items-center gap-3">
@@ -222,7 +307,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
 
   <button
   type="button"
-  onClick={() => { setCategoryFilter(''); setComplianceFilter(false); setSearchTerm(''); }}
+  onClick={handleClick6}
   className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:ring-2 hover:ring-primary/30 text-left w-full"
   >
   <div className="flex items-center gap-3">
@@ -238,7 +323,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
 
   <button
   type="button"
-  onClick={() => { setCategoryFilter(''); setComplianceFilter(''); setSearchTerm(''); }}
+  onClick={handleClick7}
   className="glass-premium p-5 rounded-4xl border border-border/40 shadow-apple-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer hover:ring-2 hover:ring-primary/30 text-left w-full"
   >
   <div className="flex items-center gap-3">
@@ -274,7 +359,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
    { value: 'standard', label: t('dora.category.standard') }
   ]}
   value={categoryFilter}
-  onChange={(v) => setCategoryFilter(v as ICTCriticality | '')}
+  onChange={handleChange}
   placeholder={t('dora.filters.allCategories')}
   />
   </div>
@@ -286,7 +371,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
    { value: 'false', label: t('dora.filters.nonCompliant') }
   ]}
   value={complianceFilter === '' ? '' : String(complianceFilter)}
-  onChange={(v) => setComplianceFilter(v === '' ? '' : v === 'true')}
+  onChange={handleChange2}
   placeholder={t('dora.filters.allStatuses')}
   />
   </div>
@@ -309,7 +394,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
  {/* Create/Edit Drawer */}
  <ICTProviderDrawer
  isOpen={isDrawerOpen}
- onClose={() => setIsDrawerOpen(false)}
+ onClose={handleClose}
  provider={selectedProvider}
  onSuccess={refresh}
  />
@@ -317,13 +402,13 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
  {/* Inspector Drawer */}
  <Drawer
  isOpen={isInspectorOpen}
- onClose={() => setIsInspectorOpen(false)}
+ onClose={handleClose2}
  width="max-w-xl"
  >
  {inspectedProvider && (
   <ICTProviderInspector
   provider={inspectedProvider}
-  onEdit={() => handleEdit(inspectedProvider)}
+  onEdit={handleEdit}
   />
  )}
  </Drawer>
@@ -331,30 +416,30 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
  {/* Import Modal */}
  <ImportICTProvidersModal
  isOpen={isImportOpen}
- onClose={() => setIsImportOpen(false)}
+ onClose={handleClose3}
  onSuccess={refresh}
  />
 
  {/* Export Modal */}
  <ExportDORARegisterModal
  isOpen={isExportOpen}
- onClose={() => setIsExportOpen(false)}
+ onClose={handleClose4}
  providers={providers}
  />
 
  {/* Export History Drawer */}
  <Drawer
  isOpen={isHistoryOpen}
- onClose={() => setIsHistoryOpen(false)}
+ onClose={handleClose5}
  width="max-w-md"
  >
- <ExportHistoryPanel onClose={() => setIsHistoryOpen(false)} />
+ <ExportHistoryPanel onClose={handleClose6} />
  </Drawer>
 
  <ConfirmModal
  isOpen={deleteProviderId !== null}
- onClose={() => setDeleteProviderId(null)}
- onConfirm={() => deleteProviderId && handleDelete(deleteProviderId)}
+ onClose={handleClose7}
+ onConfirm={handleConfirm}
  title={t('dora.providers.deleteTitle', 'Supprimer le fournisseur')}
  message={t('dora.providers.confirmDelete', 'Êtes-vous sûr de vouloir supprimer ce fournisseur ICT ?')}
  type="danger"

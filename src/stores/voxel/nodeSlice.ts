@@ -46,7 +46,7 @@ export const createNodeSlice: VoxelSliceCreator<NodeSlice> = (set, _get) => ({
  const existing = state.nodes.get(id);
  if (!existing) return state;
  const newNodes = new Map(state.nodes);
- newNodes.set(id, { ...existing, ...updates, updatedAt: new Date() });
+ newNodes.set(id, { ...existing, ...updates, updatedAt: new Date(Date.now()) });
  return { nodes: newNodes };
  },
  false,

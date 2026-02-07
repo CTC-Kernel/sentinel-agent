@@ -194,9 +194,8 @@ export const ProfileSettings: React.FC = () => {
   <div className="relative group mx-auto">
   <div className="w-32 h-32 rounded-full overflow-hidden shadow-2xl ring-1 ring-black/5 dark:ring-white/20 glass-premium">
   {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
-  <img
+  <img alt={user?.displayName || 'Avatar'}
    src={getDefaultAvatarUrl(user?.role)}
-   alt={user?.displayName || 'Avatar'}
    className="w-full h-full object-cover"
    onError={(e) => {
    const target = e.target as HTMLImageElement;
@@ -219,7 +218,7 @@ export const ProfileSettings: React.FC = () => {
    <Camera className="w-8 h-8 text-foreground drop-shadow-md transform group-hover:scale-110 transition-transform duration-300" />
   </div>
   </div>
-  <input
+  <input required
   type="file"
   ref={fileInputRef}
   className="hidden"
@@ -242,13 +241,12 @@ export const ProfileSettings: React.FC = () => {
   {/* Form Section */}
   <form onSubmit={profileForm.handleSubmit(handleUpdateProfile)} className="flex-1 w-full space-y-6 sm:space-y-8">
   {/* Hidden username field for accessibility/password managers (API keys are password fields) */}
-  <input
+  <input aria-label="Nom d'utilisateur" aria-hidden="true"
   type="text"
   autoComplete="username"
   value={user?.email || ''}
   readOnly
   className="sr-only"
-  aria-hidden="true"
   />
   {/* Personal Info */}
   <div className="space-y-6">

@@ -298,7 +298,7 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
  </p>
  </div>
  </div>
- <Button variant="ghost" size="sm" onClick={onCancel}>
+ <Button variant="ghost" size="sm" onClick={onCancel} aria-label="Fermer">
  <X className="w-4 h-4" />
  </Button>
  </div>
@@ -372,7 +372,7 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
   id="description"
   {...register('description')}
   placeholder={t('training.campaign.descriptionPlaceholder')}
-  className="mt-2 w-full min-h-[100px] px-3 py-2 rounded-3xl border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+  className="mt-2 w-full min-h-[100px] px-3 py-2 rounded-3xl border border-input bg-background text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   />
  </div>
 
@@ -469,7 +469,7 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
  <div className="space-y-4">
  <div className="flex items-center justify-between">
   <div>
-  <h3 className="font-bold text-foreground">{t('training.campaign.selectCourses')}</h3>
+  <h2 className="font-bold text-foreground">{t('training.campaign.selectCourses')}</h2>
   <p className="text-sm text-muted-foreground">
   {selectedCourseIds.length} {t('training.campaign.coursesSelected')}
   </p>
@@ -501,7 +501,7 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
  {currentStep === 'scope' && (
  <div className="space-y-6">
  <div>
-  <h3 className="font-bold text-foreground mb-4">{t('training.campaign.selectScope')}</h3>
+  <h2 className="font-bold text-foreground mb-4">{t('training.campaign.selectScope')}</h2>
   <div className="grid grid-cols-1 gap-3">
   {SCOPE_OPTIONS.map((opt) => {
   const ScopeIcon = opt.icon;
@@ -549,13 +549,13 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
  {/* Step: Review */}
  {currentStep === 'review' && (
  <div className="space-y-6">
- <h3 className="font-bold text-foreground">{t('training.campaign.reviewTitle')}</h3>
+ <h2 className="font-bold text-foreground">{t('training.campaign.reviewTitle')}</h2>
 
  {/* Campaign Info */}
  <div className="p-4 rounded-3xl border border-border/40 bg-muted/20">
-  <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">
+  <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">
   {t('training.campaign.steps.info')}
-  </h4>
+  </h3>
   <div className="space-y-2">
   <div className="flex justify-between">
   <span className="text-muted-foreground">{t('training.campaign.name')}</span>
@@ -564,7 +564,7 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
   <div className="flex justify-between">
   <span className="text-muted-foreground">{t('training.campaign.dates')}</span>
   <span className="font-medium text-foreground">
-  {(watchedValues.startDate as Date)?.toLocaleDateString()} - {(watchedValues.endDate as Date)?.toLocaleDateString()}
+  {(watchedValues.startDate as Date)?.toLocaleDateString('fr-FR')} - {(watchedValues.endDate as Date)?.toLocaleDateString('fr-FR')}
   </span>
   </div>
   {watchedValues.recurrence?.enabled && (
@@ -580,9 +580,9 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
 
  {/* Courses */}
  <div className="p-4 rounded-3xl border border-border/40 bg-muted/20">
-  <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">
+  <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">
   {t('training.campaign.steps.courses')} ({selectedCourses.length})
-  </h4>
+  </h3>
   <div className="space-y-2">
   {selectedCourses.map((course) => (
   <div key={course.id || 'unknown'} className="flex items-center gap-2">
@@ -595,9 +595,9 @@ export const TrainingCampaignForm: React.FC<TrainingCampaignFormProps> = ({
 
  {/* Scope */}
  <div className="p-4 rounded-3xl border border-border/40 bg-muted/20">
-  <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">
+  <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">
   {t('training.campaign.steps.scope')}
-  </h4>
+  </h3>
   <div className="flex items-center gap-2">
   {(() => {
   const scopeOpt = SCOPE_OPTIONS.find((s) => s.value === watchedValues.scope);

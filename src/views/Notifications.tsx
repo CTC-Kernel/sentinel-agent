@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { hasPermission } from '../utils/permissions';
 import { useNotifications } from '../hooks/useNotifications';
 import { useStore } from '../store';
 import { GlassCard } from '../components/ui/GlassCard';
@@ -6,7 +8,11 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { CheckCircle2, AlertTriangle, Info, X, ArrowRight, Bell, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// RBAC: Notification management is user-scoped. Each user manages their own
+// notifications (markAsRead, removeNotification). No role restriction needed
+// as these are personal actions. hasPermission is available for future use.
 export const Notifications: React.FC = () => {
+ const { user } = useAuth();
  const { t, addToast } = useStore();
  const { notifications, markAsRead, markAllAsRead, removeNotification } = useNotifications();
  const [filterStatus, setFilterStatus] = useState<'all' | 'unread'>('all');
@@ -94,7 +100,7 @@ export const Notifications: React.FC = () => {
   placeholder={t('common.search', { defaultValue: 'Rechercher...' })}
   value={searchQuery}
   onChange={(e) => setSearchQuery(e.target.value)}
-  className="w-full pl-9 pr-4 py-2 bg-white dark:bg-white/5 border border-border rounded-xl text-sm outline-none focus:ring-2 focus-visible:ring-primary transition-all"
+  className="w-full pl-9 pr-4 py-2 bg-white dark:bg-white/5 border border-border rounded-xl text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all"
   />
  </div>
  </div>
@@ -120,11 +126,11 @@ export const Notifications: React.FC = () => {
    </div>
    <div className="flex-1 min-w-0">
    <div className="flex justify-between items-start gap-4">
-   <h3 className={`text-base font-bold ${!notif.read ? 'text-foreground' : 'text-foreground'}`}>
+   <h2 className={`text-base font-bold ${!notif.read ? 'text-foreground' : 'text-foreground'}`}>
    {notif.title}
-   </h3>
+   </h2>
    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
-   {new Date(notif.createdAt).toLocaleDateString()}
+   {new Date(notif.createdAt).toLocaleDateString('fr-FR')}
    </span>
    </div>
    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">

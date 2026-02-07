@@ -1,7 +1,7 @@
 import { driver, DriveStep } from 'driver.js';
 import 'driver.js/dist/driver.css';
 
-import { doc, updateDoc, collection, query, where, getDocs, addDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, getDocs, addDoc, writeBatch, serverTimestamp, limit } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
 import { sanitizeData } from '../utils/dataSanitizer';
@@ -71,7 +71,8 @@ export class OnboardingService {
  const q1 = query(
  collection(db, 'organizations'),
  where('name', '>=', searchQuery),
- where('name', '<=', searchQuery + '\uf8ff')
+ where('name', '<=', searchQuery + '\uf8ff'),
+ limit(50)
  );
 
  const promises = [getDocs(q1)];
@@ -80,7 +81,8 @@ export class OnboardingService {
   getDocs(query(
   collection(db, 'organizations'),
   where('name', '>=', capitalizedQuery),
-  where('name', '<=', capitalizedQuery + '\uf8ff')
+  where('name', '<=', capitalizedQuery + '\uf8ff'),
+  limit(50)
   ))
  );
  }

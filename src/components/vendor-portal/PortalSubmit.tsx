@@ -84,7 +84,8 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
  </div>
  <button
  onClick={onClose}
- className="p-2 rounded-lg hover:bg-muted transition-colors"
+ className="p-2 rounded-lg hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+ aria-label="Fermer"
  >
  <X className="w-5 h-5 text-muted-foreground" />
  </button>

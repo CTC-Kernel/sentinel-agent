@@ -43,9 +43,8 @@ export const SystemHealth: React.FC = () => {
  title={t('systemHealth.title')}
  subtitle={t('systemHealth.subtitle')}
  icon={
-  <img
+  <img alt="ADMINISTRATION"
   src="/images/administration.png"
-  alt="ADMINISTRATION"
   className="w-full h-full object-contain"
   />
  }

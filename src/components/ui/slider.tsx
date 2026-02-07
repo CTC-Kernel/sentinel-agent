@@ -24,6 +24,7 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
     return (
       <input
         type="range"
+        aria-label={props['aria-label']}
         ref={ref}
         value={value[0]}
         onChange={handleChange}
@@ -31,7 +32,7 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
         max={max}
         step={step}
         className={cn(
-          'w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer',
+          'w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
           'accent-primary',
           '[&::-webkit-slider-thumb]:appearance-none',
           '[&::-webkit-slider-thumb]:w-4',

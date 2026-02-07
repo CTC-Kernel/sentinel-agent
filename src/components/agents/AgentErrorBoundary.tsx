@@ -51,14 +51,14 @@ export class AgentErrorBoundary extends Component<Props, State> {
   <div className="flex items-center gap-3 mt-3">
   <button
   onClick={() => this.setState({ hasError: false, error: null })}
-  className="text-xs font-medium text-red-500 hover:text-red-700 dark:hover:text-red-300 underline transition-colors"
+  className="text-xs font-medium text-red-500 hover:text-red-700 dark:hover:text-red-300 underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   {i18n.t('agent.retry', { defaultValue: 'Réessayer' })}
   </button>
   <span className="text-red-300 dark:text-red-700">•</span>
   <button
   onClick={() => window.location.reload()}
-  className="text-xs font-medium text-red-500 hover:text-red-700 dark:hover:text-red-300 underline transition-colors"
+  className="text-xs font-medium text-red-500 hover:text-red-700 dark:hover:text-red-300 underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   {i18n.t('agent.reloadPage', { defaultValue: 'Recharger la page' })}
   </button>

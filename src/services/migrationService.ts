@@ -42,7 +42,7 @@ export class MigrationService {
  try {
  const logs: string[] = [];
  const log = (msg: string) => {
- logs.push(`[${new Date().toLocaleTimeString()}] ${msg}`);
+ logs.push(`[${new Date().toLocaleTimeString('fr-FR')}] ${msg}`);
  onProgress({ currentStep: msg, progress: 0, logs: [...logs] });
  };
 

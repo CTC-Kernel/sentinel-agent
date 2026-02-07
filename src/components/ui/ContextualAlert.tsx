@@ -93,7 +93,7 @@ export const ContextualAlert: React.FC<ContextualAlertProps> = ({
                             )}
                             <button
                                 onClick={onClose}
-                                className="p-2.5 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 text-muted-foreground/60 transition-colors"
+                                className="p-2.5 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 text-muted-foreground/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                                 aria-label="Fermer"
                             >
                                 <X className="w-4 h-4" />

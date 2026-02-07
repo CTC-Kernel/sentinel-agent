@@ -2,7 +2,7 @@
  * IncidentOverview - Premium advanced dashboard for incident management
  * Features: Animated gauges, glowing charts, RadialBarChart, ComposedChart, interactive elements
  */
-import React, { useId, useMemo, useState } from 'react';
+import React, { useId, useMemo, useState, useCallback} from 'react';
 import {
     ResponsiveContainer,
     PieChart,
@@ -127,8 +127,8 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
         const mttrHours = resolvedWithTimes > 0 ? Math.round(totalResolutionHours / resolvedWithTimes) : null;
 
         // Agent stats
-        const agentErrors = agents.filter(a => a.status === 'error').length;
-        const agentOffline = agents.filter(a => a.status === 'offline').length;
+        const agentErrors = useMemo(() => agents.filter(a => a.status === 'error').length, [agents]);
+        const agentOffline = useMemo(() => agents.filter(a => a.status === 'offline').length, [agents]);
         const agentAlerts = agentErrors + agentOffline;
 
         // Trend (compare last 7 days vs previous 7 days)
@@ -333,6 +333,49 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
             </div>
         );
     }
+
+
+  // Extracted callbacks (useCallback)
+  const handleMouseLeave = useCallback(() => {
+    setActiveIndex(null)
+  }, []);
+
+  const handleMouseEnter = useCallback(() => {
+    setActiveIndex(i)
+  }, []);
+
+  const handleMouseLeave2 = useCallback(() => {
+    setActiveIndex(null)
+  }, []);
+
+  const handleFocus = useCallback(() => {
+    setActiveIndex(i)
+  }, []);
+
+  const handleMouseEnter2 = useCallback(() => {
+    setHoveredCategory(cat.name)
+  }, []);
+
+  const handleMouseLeave3 = useCallback(() => {
+    setHoveredCategory(null)
+  }, []);
+
+  const handleFocus2 = useCallback(() => {
+    setHoveredCategory(cat.name)
+  }, []);
+
+  const handleMouseEnter3 = useCallback((_, index) => {
+    setActiveIndex(index)
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setActiveIndex(null)
+  }, []);
+
+  const handleBlur2 = useCallback(() => {
+    setHoveredCategory(null)
+  }, []);
+
 
     return (
         <div className="space-y-6 animate-fade-in pb-10">
@@ -553,8 +596,8 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                             paddingAngle={2}
                                             dataKey="value"
                                             cornerRadius={8}
-                                            onMouseEnter={(_, index) => setActiveIndex(index)}
-                                            onMouseLeave={() => setActiveIndex(null)}
+                                            onMouseEnter={handleMouseEnter3}
+                                            onMouseLeave={handleMouseLeave}
                                         >
                                             {severityData.map((_, index) => (
                                                 <Cell
@@ -589,15 +632,15 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                             <div
                                 key={`sev-leg-${i || 'unknown'}`}
                                 className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg cursor-pointer transition-all duration-normal ease-apple ${activeIndex === i ? 'bg-muted/20 scale-105' : 'hover:bg-muted/10'}`}
-                                onMouseEnter={() => setActiveIndex(i)}
-                                onMouseLeave={() => setActiveIndex(null)}
-                                onFocus={() => setActiveIndex(i)}
-                                onBlur={() => setActiveIndex(null)}
+                                onMouseEnter={handleMouseEnter}
+                                onMouseLeave={handleMouseLeave2}
+                                onFocus={handleFocus}
+                                onBlur={handleBlur}
                                 role="button"
                                 tabIndex={0}
                                 aria-label={`Sévérité: ${item.name} (${item.value})`}
                             >
-                                <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
+                                <div className="w-3 h-3 rounded-full shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" style={{ backgroundColor: item.color }} />
                                 <span className="text-xs font-black uppercase tracking-wider text-muted-foreground">{item.name} ({item.value})</span>
                             </div>
                         ))}
@@ -623,15 +666,15 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                     <div
                                         key={cat.name || 'unknown'}
                                         className={`relative transition-all duration-300 ${isHovered ? 'scale-[1.02]' : ''}`}
-                                        onMouseEnter={() => setHoveredCategory(cat.name)}
-                                        onMouseLeave={() => setHoveredCategory(null)}
-                                        onFocus={() => setHoveredCategory(cat.name)}
-                                        onBlur={() => setHoveredCategory(null)}
+                                        onMouseEnter={handleMouseEnter2}
+                                        onMouseLeave={handleMouseLeave3}
+                                        onFocus={handleFocus2}
+                                        onBlur={handleBlur2}
                                         role="button"
                                         tabIndex={0}
                                         aria-label={`Catégorie: ${cat.name} (${cat.value})`}
                                     >
-                                        <div className="flex items-center justify-between mb-1">
+                                        <div className="flex items-center justify-between mb-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-sm">{cat.icon}</span>
                                                 <span className="text-xs font-black uppercase tracking-wider text-foreground">{cat.name}</span>
@@ -689,7 +732,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                             <Cell
                                                 key={`status-${index || 'unknown'}`}
                                                 fill={`url(#statusGradient-${uid}-${index})`}
-                                                style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
+                                                style={{ filter: 'drop-shadow(0 2px 4px hsl(var(--foreground) / 0.1))' }}
                                             />
                                         ))}
                                     </Bar>

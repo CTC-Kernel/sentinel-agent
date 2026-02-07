@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Questionnaire, UserProfile } from '../../types';
 import { useStore } from '../../store';
 import { Plus, FileText, Trash2, Edit, Send } from '../ui/Icons';
@@ -22,6 +22,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
  const [selectedQuestionnaire, setSelectedQuestionnaire] = useState<Questionnaire | null>(null);
  const [mode, setMode] = useState<'view' | 'edit' | 'respond' | null>(null);
  const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; id: string | null }>({ isOpen: false, id: null });
+ const [isDeleting, setIsDeleting] = useState(false);
 
  // Filter questionnaires for this audit
  const questionnaires = useMemo(() => {
@@ -33,7 +34,8 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
  };
 
  const handleConfirmDelete = async () => {
- if (!confirmDelete.id) return;
+ if (isDeleting || !confirmDelete.id) return;
+ setIsDeleting(true);
  try {
  await removeQuestionnaire(confirmDelete.id);
  addToast(t('audits.questionnaire.deleted', { defaultValue: "Questionnaire supprimé" }), "info");
@@ -41,6 +43,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
  ErrorLogger.handleErrorWithToast(error, 'QuestionnaireList.handleDelete', 'DELETE_FAILED');
  } finally {
  setConfirmDelete({ isOpen: false, id: null });
+  setIsDeleting(false);
  }
  };
 
@@ -76,6 +79,16 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
  );
  }
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <div className="space-y-6">
  <div className="flex flex-wrap justify-between items-center gap-3 min-w-0">
@@ -83,7 +96,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
  {canEdit && (
   <button
   onClick={() => setMode('edit')}
-  className="flex items-center px-3 py-2 bg-foreground text-background rounded-3xl text-sm font-bold hover:scale-105 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="flex items-center px-3 py-2 bg-foreground text-background rounded-3xl text-sm font-bold hover:scale-105 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   <Plus className="w-4 h-4 mr-2" />
   {t('audits.questionnaire.new', { defaultValue: 'Nouveau Questionnaire' })}
@@ -122,7 +135,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
   <div className="flex gap-2">
   <button
    onClick={() => { setSelectedQuestionnaire(q); setMode('respond'); }}
-   className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+   className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
    title={t('audits.questionnaire.respondView', { defaultValue: 'Répondre / Voir' })}
   >
    <Send className="w-4 h-4" />
@@ -131,14 +144,15 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
    <>
    <button
    onClick={() => { setSelectedQuestionnaire(q); setMode('edit'); }}
-   className="p-2 text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+   className="p-2 text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
    title={t('common.edit', { defaultValue: 'Modifier' })}
    >
    <Edit className="w-4 h-4" />
    </button>
    <button
+   disabled={isDeleting}
    onClick={() => handleDeleteClick(q.id)}
-   className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+   className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50 disabled:pointer-events-none"
    title={t('common.delete', { defaultValue: 'Supprimer' })}
    >
    <Trash2 className="w-4 h-4" />

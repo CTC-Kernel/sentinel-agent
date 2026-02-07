@@ -78,7 +78,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
  title={info.name[locale]}
  >
  {(workshop.status === 'validated' || workshop.status === 'completed') && !isActive ? (
- <CheckCircle className="w-5 h-5" />
+ <CheckCircle className="w-5 h-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" />
  ) : locked ? (
  <Lock className="w-4 h-4" />
  ) : (
@@ -139,7 +139,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
  )}
  >
  {isDone ? (
-  <CheckCircle className="w-6 h-6" />
+  <CheckCircle className="w-6 h-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" />
  ) : locked ? (
   <Lock className="w-5 h-5" />
  ) : (

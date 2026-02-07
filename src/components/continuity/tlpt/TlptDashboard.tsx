@@ -110,7 +110,7 @@ export const TlptDashboard: React.FC<Props> = ({ campaigns, loading, onAdd, onUp
   <div className="flex items-center gap-2">
    <Calendar className="w-4 h-4 text-muted-foreground" />
    <span>
-   {campaign.startDate ? new Date(((campaign.startDate as unknown) as { seconds: number }).seconds ? ((campaign.startDate as unknown) as { seconds: number }).seconds * 1000 : campaign.startDate as Date | string | number).toLocaleDateString() : 'N/A'}
+   {campaign.startDate ? new Date(((campaign.startDate as unknown) as { seconds: number }).seconds ? ((campaign.startDate as unknown) as { seconds: number }).seconds * 1000 : campaign.startDate as Date | string | number).toLocaleDateString('fr-FR') : 'N/A'}
    </span>
   </div>
   </div>

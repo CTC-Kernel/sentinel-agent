@@ -108,6 +108,16 @@ export function ScoreBreakdownPanel({
  ? t('score.auditsDetails', { defaultValue: '{{compliant}}/{{total}} constats conformes', compliant: calculationDetails.compliantFindings, total: calculationDetails.totalFindings })
  : undefined;
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <div
  className={cn(
@@ -123,7 +133,7 @@ export function ScoreBreakdownPanel({
  {onClose && (
  <button
  onClick={onClose}
- className="p-1 hover:bg-muted rounded-full transition-colors"
+ className="p-1 hover:bg-muted rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  aria-label={t('common.close', { defaultValue: 'Fermer' })}
  >
  <svg

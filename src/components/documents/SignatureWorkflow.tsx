@@ -9,7 +9,7 @@
  * - Download signed document with certificate
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo} from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import {
  PenTool,
@@ -127,6 +127,97 @@ function SortableSigner({
  transition,
  };
 
+
+  // Extracted callbacks (useCallback)
+  const handleValueChange = useCallback((v) => {
+    setActiveTab(v as 'requests' | 'create')
+  }, []);
+
+  const handleRemove = useCallback(() => {
+    removeSigner(index)
+  }, []);
+
+  const handleUpdate = useCallback((updates) => {
+    updateSigner(index, updates)
+  }, []);
+
+  const handleValueChange2 = useCallback((v) => {
+    setSignatureType(v as SignatureType)
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setCancelRequestTarget(null)
+  }, []);
+
+  const handleConfirm = useCallback(() => {
+    cancelRequestTarget && handleCancelRequest(cancelRequestTarget)
+  }, []);
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    onUpdate({ name: e.target.value })
+  }, []);
+
+  const handleChange2 = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    onUpdate({ email: e.target.value })
+  }, []);
+
+  const handleChange3 = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    onUpdate({ role: e.target.value })
+  }, []);
+
+  const handleClick = useCallback(() => {
+    setActiveTab('create')
+  }, []);
+
+  const handleClick2 = useCallback(() => {
+    setCancelRequestTarget(request)
+  }, []);
+
+  const handleClick3 = useCallback(() => {
+    openSignModal(request, signer)
+  }, []);
+
+  const handleClick4 = useCallback(() => {
+    openRejectModal(request, signer)
+  }, []);
+
+  const handleChange4 = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormTitle(e.target.value)
+  }, []);
+
+  const handleChange5 = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setFormMessage(e.target.value)
+  }, []);
+
+  const handleChange6 = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormDeadline(e.target.value)
+  }, []);
+
+  const handleChange7 = useCallback((v: boolean) => {
+    setFormSequential(v)
+  }, []);
+
+  const handleChange8 = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setTypedName(e.target.value)
+  }, []);
+
+  const handleClick5 = useCallback(() => {
+    signaturePadRef.current?.clear()
+  }, []);
+
+  const handleClick6 = useCallback(() => {
+    setSignModalOpen(false)
+  }, []);
+
+  const handleChange9 = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setRejectionReason(e.target.value)
+  }, []);
+
+  const handleClick7 = useCallback(() => {
+    setRejectModalOpen(false)
+  }, []);
+
+
  return (
  <div
  ref={setNodeRef}
@@ -152,14 +243,14 @@ function SortableSigner({
  <Input
  placeholder="Nom"
  value={signer.name}
- onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdate({ name: e.target.value })}
+ onChange={handleChange}
  className="h-9"
  />
  <Input
  type="email"
  placeholder="Email"
  value={signer.email}
- onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdate({ email: e.target.value })}
+ onChange={handleChange2}
  className="h-9"
  />
  </div>
@@ -167,7 +258,7 @@ function SortableSigner({
  <Input
  placeholder="Rôle (optionnel)"
  value={signer.role || ''}
- onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdate({ role: e.target.value })}
+ onChange={handleChange3}
  className="h-9 w-32"
  />
 
@@ -310,7 +401,7 @@ export function SignatureWorkflow({
  // Remove a signer from form
  const removeSigner = useCallback((index: number) => {
  setFormSigners((prev) => {
- const updated = prev.filter((_, i) => i !== index);
+ const updated = useMemo(() => prev.filter((_, i) => i !== index), [prev]);
  return updated.map((s, i) => ({ ...s, order: i + 1 }));
  });
  }, []);
@@ -345,7 +436,7 @@ export function SignatureWorkflow({
  return;
  }
 
- const validSigners = formSigners.filter((s) => s.name.trim() && s.email.trim());
+ const validSigners = useMemo(() => formSigners.filter((s) => s.name.trim() && s.email.trim()), [formSigners]);
  if (validSigners.length === 0) {
  toast.error(t('signatures.signerRequired') || 'Veuillez ajouter au moins un signataire');
  return;
@@ -547,14 +638,24 @@ export function SignatureWorkflow({
 
  // Get progress percentage
  const getProgress = (request: SignatureRequest): number => {
- const signed = request.signers.filter((s: SignerInfo) => s.status === 'signed').length;
+ const signed = useMemo(() => request.signers.filter((s: SignerInfo) => s.status === 'signed').length, [request]);
  return Math.round((signed / request.signers.length) * 100);
  };
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
 
  return (
  <div className={cn('space-y-4', className)}>
  {/* Tabs */}
- <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'requests' | 'create')}>
+ <Tabs value={activeTab} onValueChange={handleValueChange}>
  <TabsList className="grid w-full grid-cols-2">
  <TabsTrigger value="requests" className="gap-2">
  <History className="h-4 w-4" />
@@ -582,7 +683,7 @@ export function SignatureWorkflow({
  <Button
   variant="outline"
   className="mt-4"
-  onClick={() => setActiveTab('create')}
+  onClick={handleClick}
  >
   <Plus className="h-4 w-4 mr-2" />
   {t('signatures.createRequest', { defaultValue: 'Créer une demande' })}
@@ -612,7 +713,7 @@ export function SignatureWorkflow({
   <Button
   variant="ghost"
   size="sm"
-  onClick={() => setCancelRequestTarget(request)}
+  onClick={handleClick2}
   className="text-red-500 hover:text-red-600"
   >
   <XCircle className="h-4 w-4" />
@@ -704,7 +805,7 @@ export function SignatureWorkflow({
   <div className="flex items-center gap-1">
   <Button
    size="sm"
-   onClick={() => openSignModal(request, signer)}
+   onClick={handleClick3}
    className="gap-1"
   >
    <PenTool className="h-3 w-3" />
@@ -713,7 +814,7 @@ export function SignatureWorkflow({
   <Button
    size="sm"
    variant="outline"
-   onClick={() => openRejectModal(request, signer)}
+   onClick={handleClick4}
    className="text-red-500 hover:text-red-600"
   >
    <X className="h-3 w-3" />
@@ -768,7 +869,7 @@ export function SignatureWorkflow({
   id="title"
   placeholder="Ex: Contrat de prestation - Signature"
   value={formTitle}
-  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormTitle(e.target.value)}
+  onChange={handleChange4}
  />
  </div>
 
@@ -779,7 +880,7 @@ export function SignatureWorkflow({
   id="message"
   placeholder="Message optionnel pour les signataires..."
   value={formMessage}
-  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormMessage(e.target.value)}
+  onChange={handleChange5}
   rows={3}
  />
  </div>
@@ -792,7 +893,7 @@ export function SignatureWorkflow({
   id="deadline"
   type="datetime-local"
   value={formDeadline}
-  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormDeadline(e.target.value)}
+  onChange={handleChange6}
   />
  </div>
 
@@ -800,7 +901,7 @@ export function SignatureWorkflow({
   <div className="flex items-center gap-3 pt-7">
   <Switch
   checked={formSequential}
-  onChange={(v: boolean) => setFormSequential(v)}
+  onChange={handleChange7}
   />
   <Label htmlFor="sequential" className="cursor-pointer">
   {t('signatures.sequential', { defaultValue: 'Signature séquentielle' })}
@@ -844,8 +945,8 @@ export function SignatureWorkflow({
   key={`signer-${index || 'unknown'}`}
   signer={signer}
   index={index}
-  onRemove={() => removeSigner(index)}
-  onUpdate={(updates) => updateSigner(index, updates)}
+  onRemove={handleRemove}
+  onUpdate={handleUpdate}
   />
   ))}
   </div>
@@ -902,7 +1003,7 @@ export function SignatureWorkflow({
  <Label>{t('signatures.signatureType', { defaultValue: 'Type de signature' })}</Label>
  <Select
  value={signatureType}
- onValueChange={(v) => setSignatureType(v as SignatureType)}
+ onValueChange={handleValueChange2}
  >
  <SelectTrigger>
   <SelectValue />
@@ -922,7 +1023,7 @@ export function SignatureWorkflow({
   id="typedName"
   placeholder="Prénom Nom"
   value={typedName}
-  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTypedName(e.target.value)}
+  onChange={handleChange8}
   className="text-lg"
  />
  <p className="text-sm text-muted-foreground">
@@ -950,7 +1051,7 @@ export function SignatureWorkflow({
   <Button
   variant="ghost"
   size="sm"
-  onClick={() => signaturePadRef.current?.clear()}
+  onClick={handleClick5}
   >
   {t('common.clear', { defaultValue: 'Effacer' })}
   </Button>
@@ -968,7 +1069,7 @@ export function SignatureWorkflow({
  </div>
 
  <DialogFooter>
- <Button variant="outline" onClick={() => setSignModalOpen(false)}>
+ <Button variant="outline" onClick={handleClick6}>
  {t('common.cancel', { defaultValue: 'Annuler' })}
  </Button>
  <Button onClick={handleSign} disabled={signing} className="gap-2">
@@ -1005,14 +1106,14 @@ export function SignatureWorkflow({
  id="rejectionReason"
  placeholder="Expliquez pourquoi vous refusez de signer..."
  value={rejectionReason}
- onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setRejectionReason(e.target.value)}
+ onChange={handleChange9}
  rows={4}
  />
  </div>
  </div>
 
  <DialogFooter>
- <Button variant="outline" onClick={() => setRejectModalOpen(false)}>
+ <Button variant="outline" onClick={handleClick7}>
  {t('common.cancel', { defaultValue: 'Annuler' })}
  </Button>
  <Button
@@ -1040,8 +1141,8 @@ export function SignatureWorkflow({
  {/* Cancel Request Confirmation */}
  <ConfirmModal
  isOpen={cancelRequestTarget !== null}
- onClose={() => setCancelRequestTarget(null)}
- onConfirm={() => cancelRequestTarget && handleCancelRequest(cancelRequestTarget)}
+ onClose={handleClose}
+ onConfirm={handleConfirm}
  title={t('signatures.cancelRequestTitle', { defaultValue: 'Annuler la demande de signature' })}
  message={t('signatures.cancelRequestMessage', { defaultValue: 'Êtes-vous sûr de vouloir annuler cette demande de signature ?' })}
  type="warning"

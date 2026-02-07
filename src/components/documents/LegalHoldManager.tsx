@@ -501,7 +501,7 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
   {/* Documents List */}
   {holdDocs.length > 0 && (
   <div>
-  <h4 className="text-sm font-medium mb-2">Documents proteges:</h4>
+  <h3 className="text-sm font-medium mb-2">Documents proteges:</h3>
   <div className="space-y-2">
   {holdDocs.map((doc) => (
   <div

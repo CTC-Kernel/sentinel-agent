@@ -256,7 +256,7 @@ export const CIInspectorDetails: React.FC<CIInspectorDetailsProps> = ({
                     <SelectValue placeholder="Sélectionner un type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableTypes.map((type) => (
+                    {availableTypes.length > 0 && availableTypes.map((type) => (
                       <SelectItem key={type} value={type}>
                         {type.replace(/_/g, ' ')}
                       </SelectItem>
@@ -537,7 +537,7 @@ export const CIInspectorDetails: React.FC<CIInspectorDetailsProps> = ({
                   Dernière Découverte
                 </span>
                 <p className="text-sm font-medium">
-                  {ci.lastDiscoveredAt.toDate().toLocaleString()}
+                  {ci.lastDiscoveredAt.toDate().toLocaleString('fr-FR')}
                 </p>
               </div>
             )}

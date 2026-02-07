@@ -215,7 +215,7 @@ export const FrameworkSettings: React.FC = () => {
    aria-pressed={isSelected}
    aria-label={`${isSelected ? 'Désactiver' : 'Activer'} ${fw.label}`}
    >
-   <div className="flex items-start justify-between">
+   <div className="flex items-start justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
    <div className="flex-1">
    <div className="flex items-center gap-2 mb-1">
     <span className="font-semibold text-foreground">

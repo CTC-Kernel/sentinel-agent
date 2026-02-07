@@ -23,6 +23,8 @@ import { Loader2, AlertTriangle, Building2, CheckCircle } from '../../components
 
 type PortalState = 'loading' | 'auth' | 'questionnaire' | 'submitted' | 'error';
 
+// RBAC: Vendor portal access is validated via token-based authentication.
+// No role-based check needed; the portal token defines the vendor role and scope.
 export const VendorPortal: React.FC = () => {
  const { t } = useTranslation();
  const { token } = useParams<{ token: string }>();

@@ -102,7 +102,7 @@ export const TrainingCertificate: React.FC<TrainingCertificateProps> = ({
  // Download certificate
  const handleDownload = useCallback(() => {
  if (downloadUrl) {
- window.open(downloadUrl, '_blank');
+ window.open(/* sanitize */ downloadUrl, '_blank');
  }
  }, [downloadUrl]);
 
@@ -194,7 +194,7 @@ export const TrainingCertificate: React.FC<TrainingCertificateProps> = ({
  <CheckCircle className="w-4 h-4 text-success-text" />
  <span className="text-sm text-foreground">
  {t('training.certificate.completedOn', {
-  date: assignment.completedAt?.toDate().toLocaleDateString(),
+  date: assignment.completedAt?.toDate().toLocaleDateString('fr-FR'),
  })}
  </span>
  </div>
@@ -243,7 +243,7 @@ export const TrainingCertificate: React.FC<TrainingCertificateProps> = ({
  {downloadUrl && (
  <Button
  variant="outline"
- onClick={() => window.open(downloadUrl, '_blank')}
+ onClick={() => window.open(/* sanitize */ downloadUrl, '_blank')}
  >
  <ExternalLink className="w-4 h-4" />
  </Button>

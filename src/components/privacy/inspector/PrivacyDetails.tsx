@@ -107,7 +107,7 @@ export const PrivacyDetails: React.FC<PrivacyDetailsProps> = ({
   <div>
   <p className="text-xs text-muted-foreground">{t('privacy.details.createdAt', { defaultValue: 'Créé le' })}</p>
   <p className="font-medium text-foreground">
-   {activity.createdAt ? new Date(activity.createdAt as string).toLocaleDateString() : '-'}
+   {activity.createdAt ? new Date(activity.createdAt as string).toLocaleDateString('fr-FR') : '-'}
   </p>
   </div>
   </div>

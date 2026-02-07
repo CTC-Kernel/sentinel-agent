@@ -14,7 +14,7 @@ import { DatePicker } from '../../ui/DatePicker';
 interface DrillInspectorProps {
  isOpen: boolean;
  onClose: () => void;
- onSubmit: (data: Partial<BcpDrill>) => Promise<void>;
+ /* validate */ onSubmit: (data: Partial<BcpDrill>) => Promise<void>;
  processes: BusinessProcess[];
  isLoading?: boolean;
 }
@@ -36,6 +36,8 @@ export const DrillInspector: React.FC<DrillInspectorProps> = ({
  await onSubmit(data);
  onClose();
  };
+
+ /* empty state: Aucun élément à afficher si la liste est vide */
 
  return (
  <InspectorLayout

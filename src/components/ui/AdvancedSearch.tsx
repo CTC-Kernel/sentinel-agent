@@ -39,8 +39,18 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
  setFilters((prev) => ({ ...prev, [key]: value }));
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
- <div className="fixed inset-0 z-modal flex items-start justify-center pt-20 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] animate-fade-in">
+ <div className="fixed inset-0 z-modal flex items-start justify-center pt-20 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] animate-fade-in" role="dialog" aria-modal="true">
  <div className="w-full max-w-3xl mx-4 glass-premium rounded-3xl shadow-2xl border border-border/40 overflow-hidden animate-slide-up">
  {/* Header */}
  <div className="p-6 border-b border-border/40 bg-gradient-to-r from-primary/10 to-purple-500/10">
@@ -68,7 +78,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
   onChange={(e) => updateFilter('query', e.target.value)}
   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
   placeholder="Rechercher dans tous les modules..."
-  className="w-full pl-12 pr-4 py-4 bg-card border border-border/40 rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus-visible:ring-primary text-lg"
+  className="w-full pl-12 pr-4 py-4 bg-card border border-border/40 rounded-2xl text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-lg"
   ref={(input) => {
   if (input) {
    setTimeout(() => input.focus(), 100);
@@ -105,7 +115,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
   aria-label="Filtrer par type de ressource"
   value={filters.type}
   onChange={(e) => updateFilter('type', e.target.value as SearchFilters['type'])}
-  className="w-full px-4 py-2.5 bg-card border border-border/40 rounded-3xl text-foreground focus:outline-none focus:ring-2 focus-visible:ring-primary"
+  className="w-full px-4 py-2.5 bg-card border border-border/40 rounded-3xl text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   <option value="all">Tous les types</option>
   <option value="asset">Actifs</option>
@@ -130,7 +140,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
   type="text"
   onChange={(e) => updateFilter('status', e.target.value)}
   placeholder="Ex: Actif, En cours, Fermé..."
-  className="w-full px-4 py-2.5 bg-card border border-border/40 rounded-3xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus-visible:ring-primary"
+  className="w-full px-4 py-2.5 bg-card border border-border/40 rounded-3xl text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   />
   </div>
 
@@ -148,7 +158,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
   type="text"
   onChange={(e) => updateFilter('owner', e.target.value)}
   placeholder="Nom du propriétaire..."
-  className="w-full px-4 py-2.5 bg-card border border-border/40 rounded-3xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus-visible:ring-primary"
+  className="w-full px-4 py-2.5 bg-card border border-border/40 rounded-3xl text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   />
   </div>
 
@@ -166,7 +176,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
    aria-label="Date de début"
    type="date"
    onChange={(e) => updateFilter('dateFrom', e.target.value)}
-   className="w-full px-4 py-2.5 bg-card border border-border/40 rounded-3xl text-foreground focus:outline-none focus:ring-2 focus-visible:ring-primary"
+   className="w-full px-4 py-2.5 bg-card border border-border/40 rounded-3xl text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   />
   </div>
 
@@ -180,7 +190,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
    aria-label="Date de fin"
    type="date"
    onChange={(e) => updateFilter('dateTo', e.target.value)}
-   className="w-full px-4 py-2.5 bg-card border border-border/40 rounded-3xl text-foreground focus:outline-none focus:ring-2 focus-visible:ring-primary"
+   className="w-full px-4 py-2.5 bg-card border border-border/40 rounded-3xl text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   />
   </div>
 
@@ -196,7 +206,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
   aria-label="Filtrer par criticité"
   value={filters.criticality || ''}
   onChange={(e) => updateFilter('criticality', e.target.value as SearchFilters['criticality'])}
-  className="w-full px-4 py-2.5 bg-card border border-border/40 rounded-3xl text-foreground focus:outline-none focus:ring-2 focus-visible:ring-primary"
+  className="w-full px-4 py-2.5 bg-card border border-border/40 rounded-3xl text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   <option value="">Toutes les criticités</option>
   <option value="Faible">Faible</option>

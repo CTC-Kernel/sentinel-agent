@@ -63,8 +63,8 @@ const createMockNode = (type: VoxelNode['type'], id: string): VoxelNode => ({
  size: 1,
  data: {},
  connections: [],
- createdAt: new Date(),
- updatedAt: new Date(),
+ createdAt: new Date(Date.now()),
+ updatedAt: new Date(Date.now()),
 });
 
 const mockNodes: VoxelNode[] = [

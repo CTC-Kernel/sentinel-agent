@@ -70,7 +70,7 @@ function WidgetError({ error, onRetry }: { error: Error; onRetry?: () => void })
  {onRetry && (
  <button
  onClick={onRetry}
- className="text-sm text-primary hover:text-primary/80 font-medium"
+ className="text-sm text-primary hover:text-primary/80 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  Réessayer
  </button>
@@ -211,7 +211,7 @@ export function ComplianceScoreWidget({
 
  {/* Breakdown Panel (Modal-like) */}
  {showBreakdown && breakdown && (
- <div className="fixed inset-0 z-modal flex items-center justify-center bg-background/80 backdrop-blur-sm" onClick={() => setShowBreakdown(false)} onKeyDown={(e) => e.key === 'Escape' && setShowBreakdown(false)} role="button" tabIndex={0} aria-label="Fermer le panneau">
+ <div className="fixed inset-0 z-modal flex items-center justify-center bg-background/80 backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" onClick={() => setShowBreakdown(false)} onKeyDown={(e) => e.key === 'Escape' && setShowBreakdown(false)} role="button" tabIndex={0} aria-label="Fermer le panneau">
  <div onClick={(e) => e.stopPropagation()} role="presentation">
  <ScoreBreakdownPanel
  breakdown={breakdown}

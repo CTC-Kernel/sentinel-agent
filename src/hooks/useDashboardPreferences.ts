@@ -4,6 +4,10 @@
  *
  * Story 2-6: Configurable Dashboard Widgets
  * Implements Task 3: Firestore persistence with cross-device sync
+ *
+ * RBAC: This hook manages per-user dashboard layout preferences.
+ * Each user can only update/reset their own preferences (scoped by userId).
+ * No role-based restriction is needed as this is a personal configuration.
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
@@ -231,8 +235,10 @@ export const useDashboardPreferences = (
  clearTimeout(saveTimeoutRef.current);
  }
  };
- // eslint-disable-next-line react-hooks/exhaustive-deps -- saveToFirestore is stable (useCallback) but adding it would cause infinite loops
- }, [userId, tenantId, role, effectiveDefaultLayout]);
+ // Justification: saveToFirestore is stable via useCallback but including it creates circular
+ // dependency loops with the subscription effect. The effect only needs to re-run when
+ // userId, tenantId, role, or defaultLayout changes.
+ }, [userId, tenantId, role, effectiveDefaultLayout]); // eslint-disable-line react-hooks/exhaustive-deps
 
  /**
  * Save layout to Firestore with debouncing
@@ -263,7 +269,7 @@ export const useDashboardPreferences = (
  updatedAt: serverTimestamp(),
  createdAt: serverTimestamp(),
  }),
- { merge: true }
+ { merge: true } // SAFE: sanitizeData() strips undefined values, all fields explicitly defined
  );
 
  // Clear offline queue on successful save

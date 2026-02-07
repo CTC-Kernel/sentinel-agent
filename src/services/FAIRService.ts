@@ -17,6 +17,7 @@ import {
  query,
  where,
  orderBy,
+ limit,
  serverTimestamp,
  Timestamp
 } from 'firebase/firestore';
@@ -40,6 +41,7 @@ import {
  CONTROL_EFFECTIVENESS_SCORES,
  FAIR_PRESETS
 } from '../types/fair';
+import { ErrorLogger } from './errorLogger';
 
 // ============================================================================
 // Collection Reference
@@ -60,17 +62,24 @@ export class FAIRService {
  * Get all FAIR configurations for an organization
  */
  static async getConfigurations(organizationId: string): Promise<FAIRModelConfig[]> {
- const q = query(
- getConfigCollection(organizationId),
- orderBy('updatedAt', 'desc')
- );
+    try {
+   const q = query(
+   getConfigCollection(organizationId),
+   orderBy('updatedAt', 'desc'),
+   limit(500)
+   );
 
- const snapshot = await getDocs(q);
- return snapshot.docs.map((doc) => ({
- id: doc.id,
- ...doc.data()
- })) as FAIRModelConfig[];
- }
+   const snapshot = await getDocs(q);
+   return snapshot.docs.map((doc) => ({
+   id: doc.id,
+   ...doc.data()
+   })) as FAIRModelConfig[];
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la recuperation des configurations FAIR');
+      throw error;
+    }
+  }
 
  /**
  * Get a specific FAIR configuration
@@ -79,16 +88,22 @@ export class FAIRService {
  organizationId: string,
  configId: string
  ): Promise<FAIRModelConfig | null> {
- const docRef = doc(getConfigCollection(organizationId), configId);
- const docSnap = await getDoc(docRef);
+    try {
+   const docRef = doc(getConfigCollection(organizationId), configId);
+   const docSnap = await getDoc(docRef);
 
- if (!docSnap.exists()) return null;
+   if (!docSnap.exists()) return null;
 
- return {
- id: docSnap.id,
- ...docSnap.data()
- } as FAIRModelConfig;
- }
+   return {
+   id: docSnap.id,
+   ...docSnap.data()
+   } as FAIRModelConfig;
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la recuperation de la configuration FAIR');
+      throw error;
+    }
+  }
 
  /**
  * Get FAIR configurations linked to a specific risk
@@ -97,18 +112,25 @@ export class FAIRService {
  organizationId: string,
  riskId: string
  ): Promise<FAIRModelConfig[]> {
- const q = query(
- getConfigCollection(organizationId),
- where('riskId', '==', riskId),
- orderBy('updatedAt', 'desc')
- );
+    try {
+   const q = query(
+   getConfigCollection(organizationId),
+   where('riskId', '==', riskId),
+   orderBy('updatedAt', 'desc'),
+   limit(100)
+   );
 
- const snapshot = await getDocs(q);
- return snapshot.docs.map((doc) => ({
- id: doc.id,
- ...doc.data()
- })) as FAIRModelConfig[];
- }
+   const snapshot = await getDocs(q);
+   return snapshot.docs.map((doc) => ({
+   id: doc.id,
+   ...doc.data()
+   })) as FAIRModelConfig[];
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la recuperation des configs par risque');
+      throw error;
+    }
+  }
 
  /**
  * Create a new FAIR configuration from simple form values
@@ -119,15 +141,21 @@ export class FAIRService {
  values: FAIRSimpleFormValues,
  riskId?: string
  ): Promise<string> {
- const config = this.convertSimpleToConfig(values, organizationId, userId, riskId);
- const docRef = await addDoc(getConfigCollection(organizationId), sanitizeData({
- ...config,
- createdAt: serverTimestamp(),
- updatedAt: serverTimestamp()
- }));
+    try {
+   const config = this.convertSimpleToConfig(values, organizationId, userId, riskId);
+   const docRef = await addDoc(getConfigCollection(organizationId), sanitizeData({
+   ...config,
+   createdAt: serverTimestamp(),
+   updatedAt: serverTimestamp()
+   }));
 
- return docRef.id;
- }
+   return docRef.id;
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la creation de la config FAIR simple');
+      throw error;
+    }
+  }
 
  /**
  * Create a new FAIR configuration from standard form values
@@ -138,15 +166,21 @@ export class FAIRService {
  values: FAIRStandardFormValues,
  riskId?: string
  ): Promise<string> {
- const config = this.convertStandardToConfig(values, organizationId, userId, riskId);
- const docRef = await addDoc(getConfigCollection(organizationId), sanitizeData({
- ...config,
- createdAt: serverTimestamp(),
- updatedAt: serverTimestamp()
- }));
+    try {
+   const config = this.convertStandardToConfig(values, organizationId, userId, riskId);
+   const docRef = await addDoc(getConfigCollection(organizationId), sanitizeData({
+   ...config,
+   createdAt: serverTimestamp(),
+   updatedAt: serverTimestamp()
+   }));
 
- return docRef.id;
- }
+   return docRef.id;
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la creation de la config FAIR standard');
+      throw error;
+    }
+  }
 
  /**
  * Create a new FAIR configuration from advanced form values
@@ -157,15 +191,21 @@ export class FAIRService {
  values: FAIRAdvancedFormValues,
  riskId?: string
  ): Promise<string> {
- const config = this.convertAdvancedToConfig(values, organizationId, userId, riskId);
- const docRef = await addDoc(getConfigCollection(organizationId), sanitizeData({
- ...config,
- createdAt: serverTimestamp(),
- updatedAt: serverTimestamp()
- }));
+    try {
+   const config = this.convertAdvancedToConfig(values, organizationId, userId, riskId);
+   const docRef = await addDoc(getConfigCollection(organizationId), sanitizeData({
+   ...config,
+   createdAt: serverTimestamp(),
+   updatedAt: serverTimestamp()
+   }));
 
- return docRef.id;
- }
+   return docRef.id;
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la creation de la config FAIR avancee');
+      throw error;
+    }
+  }
 
  /**
  * Update an existing FAIR configuration
@@ -176,13 +216,19 @@ export class FAIRService {
  userId: string,
  updates: Partial<FAIRModelConfig>
  ): Promise<void> {
- const docRef = doc(getConfigCollection(organizationId), configId);
- await updateDoc(docRef, sanitizeData({
- ...updates,
- updatedAt: serverTimestamp(),
- updatedBy: userId
- }));
- }
+    try {
+   const docRef = doc(getConfigCollection(organizationId), configId);
+   await updateDoc(docRef, sanitizeData({
+   ...updates,
+   updatedAt: serverTimestamp(),
+   updatedBy: userId
+   }));
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la mise a jour de la config FAIR');
+      throw error;
+    }
+  }
 
  /**
  * Delete a FAIR configuration
@@ -191,9 +237,15 @@ export class FAIRService {
  organizationId: string,
  configId: string
  ): Promise<void> {
- const docRef = doc(getConfigCollection(organizationId), configId);
- await deleteDoc(docRef);
- }
+    try {
+   const docRef = doc(getConfigCollection(organizationId), configId);
+   await deleteDoc(docRef);
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la suppression de la config FAIR');
+      throw error;
+    }
+  }
 
  /**
  * Duplicate a FAIR configuration
@@ -203,21 +255,27 @@ export class FAIRService {
  configId: string,
  userId: string
  ): Promise<string> {
- const existing = await this.getConfiguration(organizationId, configId);
- if (!existing) throw new Error('Configuration not found');
+    try {
+   const existing = await this.getConfiguration(organizationId, configId);
+   if (!existing) throw new Error('Configuration not found');
 
- const { id: _id, lastSimulation: _sim, createdAt: _created, ...rest } = existing;
- const docRef = await addDoc(getConfigCollection(organizationId), sanitizeData({
- ...rest,
- name: `${rest.name} (Copy)`,
- createdAt: serverTimestamp(),
- updatedAt: serverTimestamp(),
- createdBy: userId,
- updatedBy: userId
- }));
+   const { id: _id, lastSimulation: _sim, createdAt: _created, ...rest } = existing;
+   const docRef = await addDoc(getConfigCollection(organizationId), sanitizeData({
+   ...rest,
+   name: `${rest.name} (Copy)`,
+   createdAt: serverTimestamp(),
+   updatedAt: serverTimestamp(),
+   createdBy: userId,
+   updatedBy: userId
+   }));
 
- return docRef.id;
- }
+   return docRef.id;
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la duplication de la config FAIR');
+      throw error;
+    }
+  }
 
  // ============================================================================
  // Preset Management
@@ -248,26 +306,32 @@ export class FAIRService {
  name: string,
  riskId?: string
  ): Promise<string> {
- const preset = this.getPreset(presetId);
- if (!preset) throw new Error('Preset not found');
+    try {
+   const preset = this.getPreset(presetId);
+   if (!preset) throw new Error('Preset not found');
 
- const baseConfig = this.getDefaultConfig(organizationId, userId, preset.complexityLevel);
- const config: Omit<FAIRModelConfig, 'id' | 'createdAt' | 'updatedAt'> = {
- ...baseConfig,
- name,
- presetId,
- riskId,
- ...preset.defaultValues
- };
+   const baseConfig = this.getDefaultConfig(organizationId, userId, preset.complexityLevel);
+   const config: Omit<FAIRModelConfig, 'id' | 'createdAt' | 'updatedAt'> = {
+   ...baseConfig,
+   name,
+   presetId,
+   riskId,
+   ...preset.defaultValues
+   };
 
- const docRef = await addDoc(getConfigCollection(organizationId), sanitizeData({
- ...config,
- createdAt: serverTimestamp(),
- updatedAt: serverTimestamp()
- }));
+   const docRef = await addDoc(getConfigCollection(organizationId), sanitizeData({
+   ...config,
+   createdAt: serverTimestamp(),
+   updatedAt: serverTimestamp()
+   }));
 
- return docRef.id;
- }
+   return docRef.id;
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la creation depuis un preset FAIR');
+      throw error;
+    }
+  }
 
  // ============================================================================
  // Simulation Results
@@ -281,23 +345,29 @@ export class FAIRService {
  configId: string,
  results: Omit<SimulationResults, 'id' | 'runAt'>
  ): Promise<string> {
- const docRef = await addDoc(getResultsCollection(organizationId, configId), sanitizeData({
- ...results,
- runAt: serverTimestamp()
- }));
+    try {
+   const docRef = await addDoc(getResultsCollection(organizationId, configId), sanitizeData({
+   ...results,
+   runAt: serverTimestamp()
+   }));
 
- // Update the config with latest simulation
- await updateDoc(doc(getConfigCollection(organizationId), configId), sanitizeData({
- lastSimulation: {
- ...results,
- id: docRef.id,
- runAt: Timestamp.now()
- },
- updatedAt: serverTimestamp()
- }));
+   // Update the config with latest simulation
+   await updateDoc(doc(getConfigCollection(organizationId), configId), sanitizeData({
+   lastSimulation: {
+   ...results,
+   id: docRef.id,
+   runAt: Timestamp.now()
+   },
+   updatedAt: serverTimestamp()
+   }));
 
- return docRef.id;
- }
+   return docRef.id;
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la sauvegarde des resultats de simulation');
+      throw error;
+    }
+  }
 
  /**
  * Get simulation history for a configuration
@@ -306,17 +376,24 @@ export class FAIRService {
  organizationId: string,
  configId: string
  ): Promise<SimulationResults[]> {
- const q = query(
- getResultsCollection(organizationId, configId),
- orderBy('runAt', 'desc')
- );
+    try {
+   const q = query(
+   getResultsCollection(organizationId, configId),
+   orderBy('runAt', 'desc'),
+   limit(100)
+   );
 
- const snapshot = await getDocs(q);
- return snapshot.docs.map((doc) => ({
- id: doc.id,
- ...doc.data()
- })) as SimulationResults[];
- }
+   const snapshot = await getDocs(q);
+   return snapshot.docs.map((doc) => ({
+   id: doc.id,
+   ...doc.data()
+   })) as SimulationResults[];
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la recuperation de l historique');
+      throw error;
+    }
+  }
 
  // ============================================================================
  // Conversion Helpers

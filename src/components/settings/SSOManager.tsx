@@ -33,7 +33,7 @@ export const SSOManager: React.FC = () => {
  allowedProviders: settings.allowedProviders || [],
  defaultProvider: settings.defaultProvider || 'saml',
  enforcementMode: settings.enforcementMode || 'monitor',
- updatedAt: new Date().toISOString()
+ updatedAt: new Date(Date.now()).toISOString()
  };
 
  await OrganizationService.updateOrganization(organization.id, {
@@ -138,7 +138,7 @@ export const SSOManager: React.FC = () => {
   aria-label={`Toggle ${provider} SSO`}
   aria-pressed={settings.allowedProviders?.includes(provider)}
   >
-  <span className="capitalize font-medium text-sm">{provider}</span>
+  <span className="capitalize font-medium text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">{provider}</span>
   {settings.allowedProviders?.includes(provider) && (
    <div className="w-2 h-2 rounded-full bg-purple-500" />
   )}
@@ -161,7 +161,7 @@ export const SSOManager: React.FC = () => {
   <Button
   onClick={handleSave}
   isLoading={isLoading}
-  className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
+  className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <Save className="w-4 h-4 mr-2" />
   {t('settings.sso.saveConfig', { defaultValue: 'Enregistrer la configuration' })}

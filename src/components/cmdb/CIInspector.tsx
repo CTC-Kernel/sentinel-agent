@@ -299,7 +299,7 @@ export const CIInspector: React.FC<CIInspectorProps> = ({
         {activeTab === 'details' && (
           <CIInspectorDetails
             ci={selectedCI}
-            onSubmit={async (data) => {
+            /* validate */ onSubmit={async (data) => {
               if (selectedCI) {
                 await handleHookUpdate(data);
               } else {

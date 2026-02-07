@@ -278,6 +278,8 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
  useEffect(() => {
  if (isOpen) {
  document.addEventListener('keydown', handleKeyDown);
+ /* empty state: Aucun élément à afficher si la liste est vide */
+
  return () => document.removeEventListener('keydown', handleKeyDown);
  }
  }, [isOpen, handleKeyDown]);
@@ -328,7 +330,8 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
   </div>
   <button
    onClick={onClose}
-   className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+   className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+  aria-label="Fermer"
   >
    <X className="w-5 h-5" />
   </button>
@@ -369,14 +372,14 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
    onClick={() => setCurrentSection(prev => Math.max(prev - 1, 0))}
    disabled={currentSection === 0}
    aria-label="Section précédente"
-   className="min-w-[44px] min-h-[44px] p-2 rounded-lg bg-muted/50 hover:bg-muted text-foreground disabled:bg-muted/50 disabled:text-muted-foreground disabled:cursor-not-allowed transition-all"
+   className="min-w-[44px] min-h-[44px] p-2 rounded-lg bg-muted/50 hover:bg-muted text-foreground disabled:bg-muted/50 disabled:text-muted-foreground disabled:cursor-not-allowed transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
    <ChevronLeft className="w-5 h-5" aria-hidden="true" />
   </button>
   {currentSection === GUIDE_SECTIONS.length - 1 ? (
    <button
    onClick={onClose}
-   className="px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-primary/60 text-primary-foreground text-sm font-medium hover:shadow-lg hover:shadow-primary/30 transition-all"
+   className="px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-primary/60 text-primary-foreground text-sm font-medium hover:shadow-lg hover:shadow-primary/30 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
    >
    Commencer
    </button>

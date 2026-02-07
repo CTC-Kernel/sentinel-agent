@@ -369,7 +369,7 @@ export class IncidentPlaybookService {
  userId: userId || 'unknown',
  userName: userName || 'Unknown User',
  content: note,
- createdAt: new Date().toISOString(),
+ createdAt: serverTimestamp(),
  category: 'action'
  };
  atomicUpdates.notes = arrayUnion(noteEntry);

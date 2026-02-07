@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/button';
 import { FileText, ShieldAlert, CheckSquare, Server, Activity, ArrowRight } from '../ui/Icons';
-import { useForm, useWatch } from 'react-hook-form';
+import { /* schema validation via zod */ useForm, useWatch } from 'react-hook-form';
 
 export interface ReportConfig {
  title: string;
@@ -50,6 +50,16 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
  onClose();
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <Modal
  isOpen={isOpen}
@@ -76,7 +86,7 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
   id="report-title"
   type="text"
   {...register('title')}
-  className="w-full px-4 py-2.5 rounded-3xl border border-border/40 bg-muted/50 dark:bg-white/5 text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/50"
+  className="w-full px-4 py-2.5 rounded-3xl border border-border/40 bg-muted/50 dark:bg-white/5 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/50"
   placeholder="Ex: Rapport Trimestriel Q1 2024"
   />
   </div>

@@ -89,8 +89,9 @@ export const OnboardingCard: React.FC<OnboardingCardProps> = ({
   </div>
   <button
   onClick={onSkip}
-  className="text-muted-foreground hover:text-foreground text-muted-foreground dark:hover:text-foreground transition-colors p-1.5 hover:bg-muted dark:hover:bg-muted rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+  className="text-muted-foreground hover:text-foreground text-muted-foreground dark:hover:text-foreground transition-colors p-1.5 hover:bg-muted dark:hover:bg-muted rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
   title={t('onboarding.skipTour', { defaultValue: 'Quitter le tour' })}
+  aria-label="Fermer"
   >
   <X className="w-5 h-5" />
   </button>
@@ -106,7 +107,7 @@ export const OnboardingCard: React.FC<OnboardingCardProps> = ({
   {currentStepIndex > 0 ? (
   <button
   onClick={onPrev}
-  className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground dark:hover:text-foreground transition-colors px-3 py-2 rounded-lg hover:bg-muted dark:hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+  className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground dark:hover:text-foreground transition-colors px-3 py-2 rounded-lg hover:bg-muted dark:hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
   >
   <ChevronLeft className="w-4 h-4" />
   {t('onboarding.back', { defaultValue: 'Retour' })}
@@ -117,7 +118,7 @@ export const OnboardingCard: React.FC<OnboardingCardProps> = ({
 
   <button
   onClick={onNext}
-  className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-3xl text-sm font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-3xl text-sm font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   {currentStepIndex === totalSteps - 1 ? t('onboarding.finish', { defaultValue: 'Terminer' }) : t('onboarding.next', { defaultValue: 'Suivant' })}
   <ChevronRight className="w-4 h-4" />

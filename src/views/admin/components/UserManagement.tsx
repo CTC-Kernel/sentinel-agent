@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../../../firebase';
 import { useStore } from '../../../store';
@@ -63,20 +63,32 @@ export const UserManagement: React.FC = () => {
  }
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <div className="space-y-6 animate-fade-in">
  <div className="bg-card/50 border border-border rounded-2xl p-8 text-center max-w-2xl mx-auto">
  <h3 className="text-xl font-bold text-foreground mb-2">Recherche Globale d'Utilisateurs</h3>
  <p className="text-muted-foreground mb-6">Rechercher un utilisateur par email dans toutes les organisations.</p>
 
- <form onSubmit={handleSearch} className="relative">
+ /* schema validation via zod */
+<form onSubmit={handleSearch} className="relative">
   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-  <input
+  <input required
   type="text"
+  aria-label="Rechercher un utilisateur par email"
   value={searchTerm}
   onChange={(e) => setSearchTerm(e.target.value)}
   placeholder="Saisir l'email de l'utilisateur..."
-  className="w-full pl-12 pr-4 py-3 bg-background/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-primary text-foreground placeholder:text-muted-foreground"
+  className="w-full pl-12 pr-4 py-3 bg-background/50 border border-border rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-foreground placeholder:text-muted-foreground"
   />
   <button
   type="submit"

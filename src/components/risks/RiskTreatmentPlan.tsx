@@ -199,7 +199,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
  const newAction: TreatmentAction = {
  ...actionData,
  id: crypto.randomUUID(),
- createdAt: new Date().toISOString()
+ createdAt: new Date(Date.now()).toISOString()
  };
  const currentActions = risk.treatmentActions || [];
  onRiskUpdate({ treatmentActions: [...currentActions, newAction] });
@@ -257,7 +257,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
    }
    handleChange('strategy', value);
   }}
-  className="w-full appearance-none rounded-3xl border-border/40 bg-card text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-primary outline-none"
+  className="w-full appearance-none rounded-3xl border-border/40 bg-card text-sm p-3 font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary outline-none"
   >
   <option value={RiskStrategy.MITIGATE}>{t(RISK_STRATEGY_LABELS[RiskStrategy.MITIGATE])}</option>
   <option value={RiskStrategy.TRANSFER}>{t(RISK_STRATEGY_LABELS[RiskStrategy.TRANSFER])}</option>
@@ -305,7 +305,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
   id="risk-status"
   value={treatment.status}
   onChange={(e) => handleChange('status', e.target.value)}
-  className="w-full appearance-none rounded-3xl border-border/40 bg-card text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-primary outline-none"
+  className="w-full appearance-none rounded-3xl border-border/40 bg-card text-sm p-3 font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary outline-none"
   >
   <option value="Planifié">Planifié</option>
   <option value="En cours">En cours</option>
@@ -326,7 +326,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
   id="risk-owner"
   value={treatment.ownerId || ''}
   onChange={(e) => handleChange('ownerId', e.target.value)}
-  className="w-full pl-10 pr-4 rounded-3xl border-border/40 bg-card text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-primary outline-none appearance-none"
+  className="w-full pl-10 pr-4 rounded-3xl border-border/40 bg-card text-sm p-3 font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary outline-none appearance-none"
   >
   <option value="">Sélectionner un responsable</option>
   {users.map(u => (
@@ -347,7 +347,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
   value={treatment.dueDate || ''}
   onChange={(e) => handleChange('dueDate', e.target.value)}
   type="date"
-  className={`w-full pl-10 pr-4 rounded-3xl border-border/40 bg-card text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-primary outline-none ${treatment.slaStatus === SlaStatus.BREACHED ? 'border-red-500 text-red-600' : ''
+  className={`w-full pl-10 pr-4 rounded-3xl border-border/40 bg-card text-sm p-3 font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary outline-none ${treatment.slaStatus === SlaStatus.BREACHED ? 'border-red-500 text-red-600' : ''
    }`}
   />
   </div>
@@ -369,7 +369,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
   value={treatment.estimatedCost || ''}
   onChange={(e) => handleChange('estimatedCost', parseFloat(e.target.value))}
   type="number"
-  className="w-full pl-8 pr-4 rounded-3xl border-border/40 bg-card text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-primary outline-none placeholder:text-muted-foreground"
+  className="w-full pl-8 pr-4 rounded-3xl border-border/40 bg-card text-sm p-3 font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary outline-none placeholder:text-muted-foreground"
   placeholder="0.00"
   min="0"
   step="0.01"
@@ -387,7 +387,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
   value={treatment.description}
   onChange={(e) => handleChange('description', e.target.value)}
   rows={4}
-  className="w-full rounded-3xl border-border/40 bg-card text-sm p-4 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-primary outline-none placeholder:text-muted-foreground resize-none"
+  className="w-full rounded-3xl border-border/40 bg-card text-sm p-4 font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary outline-none placeholder:text-muted-foreground resize-none"
   placeholder="Détaillez les actions à entreprendre pour traiter ce risque..."
   />
  </div>
@@ -502,7 +502,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
    placeholder="Rechercher un contrôle..."
    value={controlSearch}
    onChange={(e) => setControlSearch(e.target.value)}
-   className="w-full pl-9 pr-3 py-2 rounded-3xl border border-border/40 bg-card text-sm font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-primary outline-none placeholder:text-muted-foreground"
+   className="w-full pl-9 pr-3 py-2 rounded-3xl border border-border/40 bg-card text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary outline-none placeholder:text-muted-foreground"
   />
   </div>
 
@@ -512,7 +512,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
    <select
    value={frameworkFilter}
    onChange={(e) => setFrameworkFilter(e.target.value)}
-   className="pl-9 pr-8 py-2 rounded-3xl border border-border/40 bg-card text-sm font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-primary outline-none appearance-none cursor-pointer"
+   className="pl-9 pr-8 py-2 rounded-3xl border border-border/40 bg-card text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary outline-none appearance-none cursor-pointer"
    aria-label="Filtrer par framework"
    >
    <option value="">Tous</option>

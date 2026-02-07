@@ -19,25 +19,11 @@ import type {
 } from '../types/framework';
 
 // ============================================================================
-// Query Keys
+// Query Keys (re-exported from constants/queryKeys.ts)
 // ============================================================================
 
-export const frameworkQueryKeys = {
- all: ['frameworks'] as const,
- list: () => [...frameworkQueryKeys.all, 'list'] as const,
- detail: (id: string) => [...frameworkQueryKeys.all, 'detail', id] as const,
- requirements: (frameworkId: string) => [...frameworkQueryKeys.all, 'requirements', frameworkId] as const,
- requirementsByCategory: (frameworkId: string, locale: string) =>
- [...frameworkQueryKeys.all, 'requirements', frameworkId, 'byCategory', locale] as const,
- mappings: (organizationId: string, controlId: string) =>
- [...frameworkQueryKeys.all, 'mappings', organizationId, controlId] as const,
- mappingsByFramework: (organizationId: string, frameworkId: string) =>
- [...frameworkQueryKeys.all, 'mappings', organizationId, 'framework', frameworkId] as const,
- activeFrameworks: (organizationId: string) =>
- [...frameworkQueryKeys.all, 'active', organizationId] as const,
- controlWithMappings: (organizationId: string, controlId: string) =>
- [...frameworkQueryKeys.all, 'controlMappings', organizationId, controlId] as const,
-};
+// Re-export query keys (moved to constants/queryKeys.ts to satisfy hooks naming convention)
+export { frameworkQueryKeys } from '../constants/queryKeys';
 
 // ============================================================================
 // Options Types

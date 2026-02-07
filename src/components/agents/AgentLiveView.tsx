@@ -33,6 +33,21 @@ import { cn } from '../../lib/utils';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useLocale } from '@/hooks/useLocale';
 
+// ============================================================================
+// Constants
+// ============================================================================
+const SECONDS_PER_DAY = 86400;
+const SECONDS_PER_HOUR = 3600;
+const SECONDS_PER_MINUTE = 60;
+const CPU_CRITICAL_THRESHOLD = 80;
+const CPU_WARNING_THRESHOLD = 60;
+const MEMORY_CRITICAL_THRESHOLD = 85;
+const MEMORY_WARNING_THRESHOLD = 70;
+const DISK_CRITICAL_THRESHOLD = 90;
+const DISK_WARNING_THRESHOLD = 80;
+const SCORE_GOOD_THRESHOLD = 80;
+const SCORE_WARNING_THRESHOLD = 60;
+
 interface AgentLiveViewProps {
     agent: SentinelAgent;
     onClose?: () => void;
@@ -76,9 +91,9 @@ const formatBytes = (bytes: number | undefined): string => {
 // Format uptime
 const formatUptime = (seconds: number | undefined): string => {
     if (seconds === undefined || seconds === null) return '-';
-    const days = Math.floor(seconds / 86400);
-    const hours = Math.floor((seconds % 86400) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
+    const days = Math.floor(seconds / SECONDS_PER_DAY);
+    const hours = Math.floor((seconds % SECONDS_PER_DAY) / SECONDS_PER_HOUR);
+    const minutes = Math.floor((seconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
     if (days > 0) return `${days}j ${hours}h`;
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
@@ -87,16 +102,16 @@ const formatUptime = (seconds: number | undefined): string => {
 // Score color based on value
 const getScoreColor = (score: number | null | undefined): string => {
     if (score === null || score === undefined) return 'text-muted-foreground';
-    if (score >= 80) return 'text-success';
-    if (score >= 60) return 'text-warning';
+    if (score >= SCORE_GOOD_THRESHOLD) return 'text-success';
+    if (score >= SCORE_WARNING_THRESHOLD) return 'text-warning';
     return 'text-destructive';
 };
 
 // Score background based on value
 const getScoreBg = (score: number | null | undefined): string => {
     if (score === null || score === undefined) return 'bg-muted/30';
-    if (score >= 80) return 'bg-success/10';
-    if (score >= 60) return 'bg-warning/10';
+    if (score >= SCORE_GOOD_THRESHOLD) return 'bg-success/10';
+    if (score >= SCORE_WARNING_THRESHOLD) return 'bg-warning/10';
     return 'bg-destructive/10';
 };
 
@@ -348,6 +363,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                         onClick={handleRefresh}
                         className="h-8 w-8 p-0"
                         title="Rafraîchir"
+                        aria-label="Rafraîchir"
                     >
                         <RefreshCw className="h-4 w-4" />
                     </Button>
@@ -357,6 +373,7 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                             size="sm"
                             onClick={onClose}
                             className="h-8 w-8 p-0"
+                            aria-label="Fermer"
                         >
                             <X className="h-4 w-4" />
                         </Button>
@@ -377,8 +394,8 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                         </div>
                         <span className={cn(
                             'text-xl font-bold block',
-                            agent.cpuPercent !== undefined && agent.cpuPercent > 80 ? 'text-destructive' :
-                                agent.cpuPercent !== undefined && agent.cpuPercent > 60 ? 'text-warning' : 'text-foreground'
+                            agent.cpuPercent !== undefined && agent.cpuPercent > CPU_CRITICAL_THRESHOLD ? 'text-destructive' :
+                                agent.cpuPercent !== undefined && agent.cpuPercent > CPU_WARNING_THRESHOLD ? 'text-warning' : 'text-foreground'
                         )}>
                             {agent.cpuPercent !== undefined ? `${agent.cpuPercent.toFixed(1)}%` : '-'}
                         </span>
@@ -392,8 +409,8 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                         </div>
                         <span className={cn(
                             'text-xl font-bold block',
-                            agent.memoryPercent !== undefined && agent.memoryPercent > 85 ? 'text-destructive' :
-                                agent.memoryPercent !== undefined && agent.memoryPercent > 70 ? 'text-warning' : 'text-foreground'
+                            agent.memoryPercent !== undefined && agent.memoryPercent > MEMORY_CRITICAL_THRESHOLD ? 'text-destructive' :
+                                agent.memoryPercent !== undefined && agent.memoryPercent > MEMORY_WARNING_THRESHOLD ? 'text-warning' : 'text-foreground'
                         )}>
                             {agent.memoryPercent !== undefined ? `${agent.memoryPercent.toFixed(1)}%` : formatBytes(agent.memoryBytes) || '-'}
                         </span>
@@ -412,8 +429,8 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
                         </div>
                         <span className={cn(
                             'text-xl font-bold block',
-                            agent.diskPercent !== undefined && agent.diskPercent > 90 ? 'text-destructive' :
-                                agent.diskPercent !== undefined && agent.diskPercent > 80 ? 'text-warning' : 'text-foreground'
+                            agent.diskPercent !== undefined && agent.diskPercent > DISK_CRITICAL_THRESHOLD ? 'text-destructive' :
+                                agent.diskPercent !== undefined && agent.diskPercent > DISK_WARNING_THRESHOLD ? 'text-warning' : 'text-foreground'
                         )}>
                             {agent.diskPercent !== undefined ? `${agent.diskPercent.toFixed(1)}%` : '-'}
                         </span>

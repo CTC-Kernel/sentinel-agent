@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Monitor, Smartphone, Globe, Trash2, ShieldCheck, Clock } from '../ui/Icons';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
@@ -69,6 +69,16 @@ export const ActiveSessions: React.FC = () => {
  addToast(t('settings.allSessionsRevoked') || "Toutes les autres sessions ont été fermées", "success");
  setShowRevokeAllConfirm(false);
  };
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
 
  return (
  <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden flex flex-col h-full col-span-1 md:col-span-2">

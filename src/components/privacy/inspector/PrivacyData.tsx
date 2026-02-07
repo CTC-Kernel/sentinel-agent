@@ -147,7 +147,7 @@ export const PrivacyData: React.FC<PrivacyDataProps> = ({
   {activity.hasDPIA && (
   <button
   onClick={onStartDPIA}
-  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm shadow-purple-200 dark:shadow-none"
+  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm shadow-purple-200 dark:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <Eye className="h-4 w-4" />
   {t('privacy.data.manageDpia', { defaultValue: 'Gérer DPIA' })}

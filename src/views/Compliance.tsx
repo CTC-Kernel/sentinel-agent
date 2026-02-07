@@ -64,6 +64,54 @@ export const Compliance: React.FC = () => {
  const timer = setTimeout(() => {
  OnboardingService.startComplianceTour();
  }, 1000);
+
+  // Extracted callbacks (useCallback)
+  const handleTabChange = useCallback((id) => {
+    setActiveFramework(id as Framework)
+  }, []);
+
+  const handleSeedData = useCallback(() => {
+    seedControls(currentFrameworkId)
+  }, []);
+
+  const handleSeed = useCallback(() => {
+    seedControls(currentFrameworkId)
+  }, []);
+
+  const handleAssessClick = useCallback(() => {
+    handleOpenAssessment(undefined)
+  }, []);
+
+  const handleUploadEvidence = useCallback(() => {
+    setUploadWizardOpen(true)
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setUploadWizardOpen(false)
+  }, []);
+
+  const handleClick = useCallback(() => {
+    toast.info(t('compliance.exportComingSoon', { defaultValue: 'Export des contrôles - Fonctionnalité bientôt disponible' }))
+  }, []);
+
+  const handleClick2 = useCallback(() => {
+    handleCreateClick('risk')
+  }, []);
+
+  const handleChange = useCallback((val) => {
+    setStatusFilter(val === 'all' ? null : val as string)
+  }, []);
+
+  const handleClick3 = useCallback(() => {
+    setShowMissingEvidence(!showMissingEvidence)
+  }, []);
+  const handleClose2 = useCallback(() => {
+    setShowAssessmentForm(false);
+  setSelectedEffControl(null);
+  }, []);
+
+
+
  return () => clearTimeout(timer);
  }, []);
 
@@ -355,6 +403,16 @@ export const Compliance: React.FC = () => {
  }
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <motion.div
  variants={staggerContainerVariants}
@@ -370,9 +428,8 @@ export const Compliance: React.FC = () => {
   title={t('compliance.title')}
   subtitle={t('compliance.subtitle')}
   icon={
-  <img
+  <img alt="CONFORMITÉ"
   src="/images/pilotage.png"
-  alt="CONFORMITÉ"
   className="w-full h-full object-contain"
   />
   }
@@ -391,7 +448,7 @@ export const Compliance: React.FC = () => {
   label: t(`frameworks.${f.id}`),
   }))}
   activeTab={currentFrameworkId}
-  onTabChange={(id) => setActiveFramework(id as Framework)}
+  onTabChange={handleTabChange}
   isChanging={loading}
  />
 
@@ -419,7 +476,7 @@ export const Compliance: React.FC = () => {
   <ComplianceDashboard
   controls={filteredControls}
   currentFramework={currentFrameworkId}
-  onSeedData={() => seedControls(currentFrameworkId)}
+  onSeedData={handleSeedData}
   loading={loading}
   />
   </div>
@@ -444,14 +501,14 @@ export const Compliance: React.FC = () => {
    </Button>
    <Button
    variant="secondary"
-   onClick={() => toast.info(t('compliance.exportComingSoon', { defaultValue: 'Export des contrôles - Fonctionnalité bientôt disponible' }))}
+   onClick={handleClick}
    title={t('compliance.exportComingSoon', { defaultValue: 'Bientôt disponible' })}
    >
    <Download className="h-4 w-4 mr-2" /> {t('compliance.export')}
    </Button>
    <Button
    className="shadow-lg shadow-primary/10"
-   onClick={() => handleCreateClick('risk')}
+   onClick={handleClick2}
    >
    <ShieldCheck className="h-4 w-4 mr-2" />
    {t('compliance.newRisk')}
@@ -465,7 +522,7 @@ export const Compliance: React.FC = () => {
    <CustomSelect
    label=""
    value={statusFilter || 'all'}
-   onChange={(val) => setStatusFilter(val === 'all' ? null : val as string)}
+   onChange={handleChange}
    options={[
    { value: 'all', label: t('common.statuses.all') },
    { value: CONTROL_STATUS.NOT_STARTED, label: t('common.statuses.notStarted') },
@@ -485,7 +542,7 @@ export const Compliance: React.FC = () => {
    variant="outline"
    size="sm"
    aria-pressed={showMissingEvidence}
-   onClick={() => setShowMissingEvidence(!showMissingEvidence)}
+   onClick={handleClick3}
    className={`transition-all ${showMissingEvidence
    ? 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400'
    : ''
@@ -537,7 +594,7 @@ export const Compliance: React.FC = () => {
   risks={risks}
   framework={currentFrameworkId}
   handlers={complianceActions}
-  onSeed={() => seedControls(currentFrameworkId)}
+  onSeed={handleSeed}
   />
   </div>
  )}
@@ -545,7 +602,7 @@ export const Compliance: React.FC = () => {
  {activeTab === 'efficiency' && (
   <div className="animate-fade-in space-y-6 sm:space-y-8">
   <ControlEffectivenessDashboard
-  onAssessClick={() => handleOpenAssessment(undefined)}
+  onAssessClick={handleAssessClick}
   />
   <ControlEffectivenessManager
   assessments={assessments}
@@ -590,14 +647,14 @@ export const Compliance: React.FC = () => {
   return await documentActions.handleWorkflowAction(did, action);
   }
  }}
- onUploadEvidence={() => setUploadWizardOpen(true)}
+ onUploadEvidence={handleUploadEvidence}
  enabledFrameworks={organization?.enabledFrameworks}
  />
 
  <DocumentUploadWizard
  isOpen={uploadWizardOpen}
- onClose={() => setUploadWizardOpen(false)}
- onSubmit={async (data) => {
+ onClose={handleClose}
+ /* validate */ onSubmit={async (data) => {
   try {
   // 1. Create the document
   const docId = await documentActions.handleCreate({
@@ -633,10 +690,7 @@ export const Compliance: React.FC = () => {
   <AssessmentFormModal
   control={selectedEffControl}
   controls={filteredControlsList}
-  onClose={() => {
-  setShowAssessmentForm(false);
-  setSelectedEffControl(null);
-  }}
+  onClose={handleClose2}
   onSubmit={handleAssessmentSubmit}
   />
  )

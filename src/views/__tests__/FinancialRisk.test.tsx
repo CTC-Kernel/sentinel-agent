@@ -48,8 +48,8 @@ vi.mock('../../hooks/useFAIR', () => ({
  controlStrength: { overall: 70 },
  vulnerabilityScore: 30
  },
- createdAt: new Date(),
- updatedAt: new Date()
+ createdAt: new Date(Date.now()),
+ updatedAt: new Date(Date.now())
  }
  ],
  selectedConfig: null,

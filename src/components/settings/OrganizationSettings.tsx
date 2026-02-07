@@ -241,7 +241,7 @@ export const OrganizationSettings: React.FC = () => {
  const ms = (typeof ts === 'object' && 'seconds' in ts && ts.seconds)
  ? ts.seconds * SECONDS_TO_MS
  : Number(ts);
- return new Date(ms).toLocaleDateString();
+ return new Date(ms).toLocaleDateString('fr-FR');
  };
 
  return (
@@ -369,7 +369,7 @@ export const OrganizationSettings: React.FC = () => {
    <select
    id="country-select"
    {...orgForm.register('country')}
-   className="w-full px-4 py-3 bg-white/50 dark:bg-white/5 border border-border/40 rounded-3xl text-sm outline-none focus:ring-2 focus-visible:ring-primary transition-all"
+   className="w-full px-4 py-3 bg-white/50 dark:bg-white/5 border border-border/40 rounded-3xl text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all"
    >
    <option value="">{t('settings.selectCountry', { defaultValue: 'Sélectionner un pays' })}</option>
    <option value="AT">Autriche</option>
@@ -491,13 +491,13 @@ export const OrganizationSettings: React.FC = () => {
   <div className="relative">
   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
   <label htmlFor="member-search" className="sr-only">{t('settings.searchMembers')}</label>
-  <input
+  <input required
   id="member-search"
   type="text"
   placeholder={t('settings.searchMembers')}
   value={searchTerm}
   onChange={(e) => setSearchTerm(e.target.value)}
-  className="pl-9 pr-4 py-2 bg-primary/10 dark:bg-white/5 border border-primary/30 rounded-3xl text-sm outline-none focus:ring-2 focus-visible:ring-primary w-48 transition-all focus:w-64 placeholder:text-muted-foreground"
+  className="pl-9 pr-4 py-2 bg-primary/10 dark:bg-white/5 border border-primary/30 rounded-3xl text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary w-48 transition-all focus:w-64 placeholder:text-muted-foreground"
   />
   </div>
   </div>

@@ -121,7 +121,7 @@ if (typeof window !== 'undefined' && import.meta.env.MODE !== 'test' && import.m
  if (appCheck) {
  getToken(appCheck, /* forceRefresh */ true)
  .then(() => { isAppCheckFailed = false; appCheckRecoveryCallbacks.forEach(cb => cb()); appCheckRecoveryCallbacks = []; })
- .catch(() => { /* remain failed */ });
+ .catch((retryErr) => { ErrorLogger.error(retryErr, 'firebase.appCheckRetry'); });
  }
  }, 30000);
  }
@@ -225,7 +225,7 @@ export const initializeAnalytics = async (): Promise<Analytics | null> => {
  if (hasAnalyticsConsent()) {
  await initializeAnalytics();
  }
-})().catch(err => console.warn('Analytics init failed:', err));
+.catch((err) => ErrorLogger.handleErrorWithToast(err, 'firebase'))
 
 // Initialisation de la messagerie (Sécurisée avec détection de fonctionnalités)
 let messaging: Messaging | null = null;

@@ -294,7 +294,7 @@ export function useOfflineMode(
  setRetryCount(0);
  setSyncStatus('connected');
  })
- .catch(() => handleReconnectFailureRef.current());
+ .catch((err) => { ErrorLogger.error(err, 'useOfflineMode.reconnect'); handleReconnectFailureRef.current(); });
  }, delay);
  }
  }, [retryCount, mergedConfig.maxRetryAttempts, setSyncStatus, startPollingFallback]);

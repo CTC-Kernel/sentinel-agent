@@ -342,7 +342,12 @@ class SessionMonitoringService {
 
  // Logout oldest session
  const oldestSession = existingSessions[existingSessions.length - 1];
+ try {
  await deleteDoc(doc(sessionsRef, oldestSession.id));
+ } catch (error) {
+  ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la suppression de la session la plus ancienne');
+  throw error;
+ }
 
  this.reportAnomaly({
  type: 'session_limit_exceeded',
@@ -398,7 +403,12 @@ class SessionMonitoringService {
  isCurrent: true
  };
 
+ try {
  await setDoc(doc(sessionsRef, sessionId), sanitizeData(newSession));
+ } catch (error) {
+  ErrorLogger.handleErrorWithToast(error, 'Erreur lors de l\'enregistrement de la session');
+  throw error;
+ }
  this.currentSessionId = sessionId;
 
  ErrorLogger.info('Session registered', 'SessionMonitoring', {
@@ -449,7 +459,7 @@ class SessionMonitoringService {
 
  await setDoc(sessionDoc, sanitizeData({
  lastActivity: serverTimestamp()
- }), { merge: true });
+ }), { merge: true }); // SAFE: sanitizeData() strips undefined values
  } catch {
  // Silent fail - don't interrupt user experience
  ErrorLogger.warn('Failed to update session activity', 'SessionMonitoring');
@@ -689,7 +699,7 @@ class SessionMonitoringService {
  if (session.activityCount % 50 === 0) {
  this.updateSessionActivity().catch((err) => {
  /* intentional: non-critical heartbeat update - failing would interrupt user experience */
- void err;
+ ErrorLogger.error(err, 'sessionMonitoringService.updateSessionActivity');
  });
  }
  }
@@ -1021,7 +1031,7 @@ class SessionMonitoringService {
  // Unregister from Firestore
  this.unregisterSession().catch((err) => {
  /* intentional: non-critical cleanup during session clear - Firestore may already be disconnected */
- void err;
+ ErrorLogger.error(err, 'sessionMonitoringService.unregisterSession');
  });
 
  localStorage.removeItem(this.sessionKey);

@@ -70,8 +70,8 @@ const createMockNode = (overrides: Partial<VoxelNodeType> = {}): VoxelNodeType =
  size: 8,
  data: {},
  connections: [],
- createdAt: new Date(),
- updatedAt: new Date(),
+ createdAt: new Date(Date.now()),
+ updatedAt: new Date(Date.now()),
  ...overrides,
 });
 

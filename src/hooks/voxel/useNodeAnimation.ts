@@ -235,7 +235,7 @@ export function useNodesAnimation(
 /**
  * Animation presets for different scenarios
  */
-export const ANIMATION_PRESETS = {
+const ANIMATION_PRESETS = {
  /** Fast, snappy animations for real-time updates */
  realtime: {
  enterDuration: 200,

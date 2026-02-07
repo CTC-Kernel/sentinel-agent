@@ -25,7 +25,7 @@ export const RelationshipGraph = React.memo<RelationshipGraphProps>(({ rootId, r
  </defs>
 
  {/* Links */}
- {links.map((link) => {
+ {links.length > 0 && links.map((link) => {
   const source = nodeMap.get(link.source);
   const target = nodeMap.get(link.target);
   if (!source || !target) return null;

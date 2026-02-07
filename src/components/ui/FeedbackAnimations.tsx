@@ -64,7 +64,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
  };
  }, []);
 
- const baseClasses = 'font-bold rounded-3xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
+ const baseClasses = 'font-bold rounded-3xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
 
  const variantClasses = {
  primary: 'bg-primary hover:bg-primary/90 text-primary-foreground focus-visible:ring-primary shadow-lg shadow-primary/20',

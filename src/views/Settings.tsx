@@ -102,9 +102,8 @@ const Settings: React.FC = () => {
  title={t('settings.title')}
  subtitle={t('settings.subtitle')}
  icon={
-  <img
+  <img alt="ADMINISTRATION"
   src="/images/administration.png"
-  alt="ADMINISTRATION"
   className="w-full h-full object-contain"
   />
  }

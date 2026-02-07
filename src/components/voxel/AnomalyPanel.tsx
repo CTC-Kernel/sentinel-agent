@@ -273,10 +273,11 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
  >
  <input
  type="text"
+ aria-label="Raison de l'exclusion"
  value={dismissReason}
  onChange={(e) => setDismissReason(e.target.value)}
  placeholder="Raison de l'exclusion..."
- className="w-full bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-primary"
+ className="w-full bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-foreground/30 focus-visible:outline-none focus-visible:border-primary"
  onClick={(e) => e.stopPropagation()}
  />
  <div className="flex justify-end gap-2 mt-2">
@@ -325,7 +326,7 @@ const AnomalyHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) => (
  <Info className="w-4 h-4 text-primary/70" />
  Comment utiliser ce panneau
  </h3>
- <button onClick={onClose} className="text-foreground/40 hover:text-foreground">
+ <button onClick={onClose} className="text-foreground/40 hover:text-foreground" aria-label="Fermer">
  <X className="w-4 h-4" />
  </button>
  </div>
@@ -485,6 +486,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
  <button
   onClick={onClose}
   className="p-2 rounded-full hover:bg-muted text-foreground/60 hover:text-foreground transition-colors"
+ aria-label="Fermer"
  >
   <X className="h-5 w-5" />
  </button>

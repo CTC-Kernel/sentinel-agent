@@ -14,9 +14,11 @@ import {
  query,
  where,
  orderBy,
- getDocs
+ getDocs,
+ serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { ErrorLogger } from './errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import {
  ScheduledReport,
@@ -30,6 +32,7 @@ const COLLECTION_NAME = 'scheduledReports';
  * Get all scheduled reports for an organization
  */
 export async function getScheduledReports(organizationId: string): Promise<ScheduledReport[]> {
+ try {
  const q = query(
  collection(db, COLLECTION_NAME),
  where('organizationId', '==', organizationId),
@@ -41,6 +44,10 @@ export async function getScheduledReports(organizationId: string): Promise<Sched
  id: doc.id,
  ...doc.data()
  } as ScheduledReport));
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la recuperation des rapports planifies');
+ throw error;
+ }
 }
 
 /**
@@ -52,37 +59,42 @@ export async function createScheduledReport(
  userName: string,
  data: ScheduledReportFormData
 ): Promise<ScheduledReport> {
- const now = new Date().toISOString();
- const nextRunAt = calculateNextRunDate(
- data.frequency,
- data.dayOfWeek,
- data.dayOfMonth
- );
+    try {
+      const now = new Date().toISOString();
+      const nextRunAt = calculateNextRunDate(
+        data.frequency,
+        data.dayOfWeek,
+        data.dayOfMonth
+      );
 
- const reportData: Omit<ScheduledReport, 'id'> = {
- organizationId,
- name: data.name,
- templateId: data.templateId,
- frequency: data.frequency,
- dayOfWeek: data.dayOfWeek,
- dayOfMonth: data.dayOfMonth,
- recipients: data.recipients,
- config: data.config,
- createdBy: userId,
- createdByName: userName,
- createdAt: now,
- updatedAt: now,
- nextRunAt: nextRunAt.toISOString(),
- status: 'active'
- };
+      const reportData: Omit<ScheduledReport, 'id'> = {
+        organizationId,
+        name: data.name,
+        templateId: data.templateId,
+        frequency: data.frequency,
+        dayOfWeek: data.dayOfWeek,
+        dayOfMonth: data.dayOfMonth,
+        recipients: data.recipients,
+        config: data.config,
+        createdBy: userId,
+        createdByName: userName,
+        createdAt: now,
+        updatedAt: now,
+        nextRunAt: nextRunAt.toISOString(),
+        status: 'active'
+      };
 
- const docRef = await addDoc(collection(db, COLLECTION_NAME), sanitizeData(reportData));
+      const docRef = await addDoc(collection(db, COLLECTION_NAME), sanitizeData({ ...reportData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }));
 
- return {
- id: docRef.id,
- ...reportData
- };
-}
+      return {
+        id: docRef.id,
+        ...reportData
+      };
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la creation du rapport planifie');
+      throw error;
+    }
+  }
 
 /**
  * Update an existing scheduled report
@@ -92,31 +104,36 @@ export async function updateScheduledReport(
  organizationId: string,
  data: Partial<ScheduledReportFormData>
 ): Promise<void> {
- const docRef = doc(db, COLLECTION_NAME, reportId);
+    try {
+      const docRef = doc(db, COLLECTION_NAME, reportId);
 
- // Verify ownership before update
- const docSnap = await getDoc(docRef);
- if (!docSnap.exists() || docSnap.data()?.organizationId !== organizationId) {
- throw new Error('Not authorized');
- }
+      // Verify ownership before update
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists() || docSnap.data()?.organizationId !== organizationId) {
+        throw new Error('Not authorized');
+      }
 
- const updateData: Record<string, unknown> = {
- ...data,
- updatedAt: new Date().toISOString()
- };
+      const updateData: Record<string, unknown> = {
+        ...data,
+        updatedAt: serverTimestamp()
+      };
 
- // Recalculate next run if frequency or day changed
- if (data.frequency || data.dayOfWeek !== undefined || data.dayOfMonth !== undefined) {
- const nextRunAt = calculateNextRunDate(
- data.frequency!,
- data.dayOfWeek,
- data.dayOfMonth
- );
- updateData.nextRunAt = nextRunAt.toISOString();
- }
+      // Recalculate next run if frequency or day changed
+      if (data.frequency || data.dayOfWeek !== undefined || data.dayOfMonth !== undefined) {
+        const nextRunAt = calculateNextRunDate(
+          data.frequency!,
+          data.dayOfWeek,
+          data.dayOfMonth
+        );
+        updateData.nextRunAt = nextRunAt.toISOString();
+      }
 
- await updateDoc(docRef, sanitizeData(updateData));
-}
+      await updateDoc(docRef, sanitizeData(updateData));
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la mise a jour du rapport planifie');
+      throw error;
+    }
+  }
 
 /**
  * Toggle the status of a scheduled report (active/paused)
@@ -125,12 +142,13 @@ export async function toggleScheduledReportStatus(
  reportId: string,
  currentStatus: 'active' | 'paused'
 ): Promise<void> {
+ try {
  const docRef = doc(db, COLLECTION_NAME, reportId);
  const newStatus = currentStatus === 'active' ? 'paused' : 'active';
 
  const updateData: Record<string, unknown> = {
  status: newStatus,
- updatedAt: new Date().toISOString()
+ updatedAt: serverTimestamp()
  };
 
  // If reactivating, recalculate next run date
@@ -140,12 +158,17 @@ export async function toggleScheduledReportStatus(
  }
 
  await updateDoc(docRef, sanitizeData(updateData));
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'Erreur lors du changement de statut du rapport');
+ throw error;
+ }
 }
 
 /**
  * Delete a scheduled report
  */
 export async function deleteScheduledReport(reportId: string, organizationId: string): Promise<void> {
+ try {
  const docRef = doc(db, COLLECTION_NAME, reportId);
 
  // Verify ownership before delete
@@ -155,6 +178,10 @@ export async function deleteScheduledReport(reportId: string, organizationId: st
  }
 
  await deleteDoc(docRef);
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la suppression du rapport planifie');
+ throw error;
+ }
 }
 
 /**
@@ -163,21 +190,26 @@ export async function deleteScheduledReport(reportId: string, organizationId: st
 export async function markReportAsRun(
  report: ScheduledReport
 ): Promise<void> {
- const docRef = doc(db, COLLECTION_NAME, report.id);
- const now = new Date();
- const nextRunAt = calculateNextRunDate(
- report.frequency,
- report.dayOfWeek,
- report.dayOfMonth,
- now
- );
+    try {
+      const docRef = doc(db, COLLECTION_NAME, report.id);
+      const now = new Date();
+      const nextRunAt = calculateNextRunDate(
+        report.frequency,
+        report.dayOfWeek,
+        report.dayOfMonth,
+        now
+      );
 
- await updateDoc(docRef, sanitizeData({
- lastRunAt: now.toISOString(),
- nextRunAt: nextRunAt.toISOString(),
- updatedAt: now.toISOString()
- }));
-}
+      await updateDoc(docRef, sanitizeData({
+        lastRunAt: now.toISOString(),
+        nextRunAt: nextRunAt.toISOString(),
+        updatedAt: now.toISOString()
+      }));
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors du marquage du rapport comme execute');
+      throw error;
+    }
+  }
 
 export const ScheduledReportsService = {
  getScheduledReports,

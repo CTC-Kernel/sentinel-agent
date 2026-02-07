@@ -1,5 +1,8 @@
 
-import { Control, Document, Risk } from '../types';
+import { collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { db } from '../firebase';
+import { Control, Document, Risk, SoAVersion, SoAControlSnapshot, Framework } from '../types';
+import { ErrorLogger } from './errorLogger';
 
 export interface EvidenceSuggestion {
  controlId: string;
@@ -85,5 +88,61 @@ export class ComplianceService {
  if (n.includes('access') || n.includes('accès')) return 'Applicable : Mesure technique de contrôle d\'accès.';
 
  return 'Applicable : Bonnes pratiques de sécurité (Hygiène informatique).';
+ }
+
+ // ============================================================================
+ // SoA Version Management
+ // ============================================================================
+
+ /**
+  * Load SoA version history for an organization
+  */
+ static async loadSoAVersions(organizationId: string): Promise<SoAVersion[]> {
+  try {
+   const versionsRef = collection(db, 'organizations', organizationId, 'soaVersions');
+   const q = query(versionsRef, orderBy('generatedAt', 'desc'), limit(20));
+   const snapshot = await getDocs(q);
+   return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+    generatedAt: doc.data().generatedAt instanceof Timestamp
+     ? doc.data().generatedAt.toDate().toISOString()
+     : doc.data().generatedAt
+   })) as SoAVersion[];
+  } catch (error) {
+   ErrorLogger.error(error, 'ComplianceService.loadSoAVersions');
+   throw error;
+  }
+ }
+
+ /**
+  * Save a new SoA version snapshot
+  */
+ static async saveSoAVersion(
+  organizationId: string,
+  framework: Framework,
+  versionNumber: number,
+  userId: string,
+  userName: string,
+  controlsSnapshot: SoAControlSnapshot[],
+  stats: { totalControls: number; applicableControls: number; implementedControls: number; partialControls: number }
+ ): Promise<void> {
+  try {
+   const newVersion = {
+    organizationId,
+    framework,
+    version: versionNumber,
+    generatedAt: serverTimestamp(),
+    generatedBy: userId,
+    generatedByName: userName,
+    controlsSnapshot,
+    stats,
+   };
+   const versionsRef = collection(db, 'organizations', organizationId, 'soaVersions');
+   await addDoc(versionsRef, newVersion);
+  } catch (error) {
+   ErrorLogger.error(error, 'ComplianceService.saveSoAVersion');
+   throw error;
+  }
  }
 }

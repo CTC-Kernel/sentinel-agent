@@ -826,7 +826,7 @@ export const VoxelView: React.FC = () => {
  <select
  value={activeFramework || ''}
  onChange={(e) => setActiveFramework(e.target.value || null)}
- className="bg-transparent text-xs font-medium text-foreground outline-none cursor-pointer border-none focus:ring-0 px-1"
+ className="bg-transparent text-xs font-medium text-foreground outline-none cursor-pointer border-none focus-visible:ring-0 px-1"
  aria-label={t('voxel.selectFramework', { defaultValue: 'Sélectionner un référentiel' })}
  >
  <option value="" className="bg-card">{t('voxel.allFrameworks', { defaultValue: 'Tous les référentiels' })}</option>
@@ -1091,6 +1091,7 @@ export const VoxelView: React.FC = () => {
   <Search className="w-5 h-5 text-muted-foreground" />
   <input
   type="text"
+  aria-label="Rechercher un noeud"
   value={commandSearch}
   onChange={e => setCommandSearch(e.target.value)}
   placeholder={t('voxel.searchNode', { defaultValue: 'Rechercher un noeud...' })}

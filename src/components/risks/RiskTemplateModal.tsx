@@ -94,7 +94,8 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
    </div>
    <button
    onClick={onClose}
-   className="p-2 hover:bg-muted rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+   className="p-2 hover:bg-muted rounded-3xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+   aria-label="Fermer"
    >
    <X className="h-5 w-5" />
    </button>
@@ -109,7 +110,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
     <button
     key={template.id || 'unknown'}
     onClick={() => setSelectedTemplate(template)}
-    className="text-left p-6 rounded-3xl border-2 border-border/40 hover:border-primary dark:hover:border-primary transition-all hover:shadow-lg group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 w-full"
+    className="text-left p-6 rounded-3xl border-2 border-border/40 hover:border-primary dark:hover:border-primary transition-all hover:shadow-lg group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 w-full"
     >
     <div className="flex items-start gap-4">
     <div className={`text-5xl p-3 rounded-3xl bg-gradient-to-br ${getCategoryColor(template.category)} bg-opacity-30`}>
@@ -213,14 +214,14 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
     onClick={() => setSelectedTemplate(null)}
     variant="secondary"
     disabled={isLoading}
-    className="flex-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+    className="flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
    >
     Retour
    </Button>
    <Button
     type="submit"
     isLoading={isLoading}
-    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 "
+    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 "
    >
     <Zap className="h-4 w-4 inline mr-2" />
     Importer {selectedTemplate.risks.length} Risques

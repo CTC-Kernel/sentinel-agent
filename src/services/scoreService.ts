@@ -135,7 +135,7 @@ export class ScoreService {
  ): Unsubscribe {
  const scoreRef = doc(db, 'organizations', organizationId, 'complianceScores', 'current');
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  scoreRef,
  (snapshot) => {
  if (!snapshot.exists()) {
@@ -175,6 +175,7 @@ export class ScoreService {
  callback(null, error);
  }
  );
+ return unsubscribe;
  }
 
  /**

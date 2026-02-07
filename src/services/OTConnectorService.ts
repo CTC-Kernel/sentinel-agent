@@ -641,6 +641,7 @@ export async function testConnection(
  message: `${data.type} connector testing not yet implemented`
  };
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'OTConnectorService');
  return {
  success: false,
  message: error instanceof Error ? error.message : 'Unknown error'
@@ -726,7 +727,7 @@ export function getRelativeTime(timestamp: string): string {
  if (diffMins < 60) return `${diffMins}m ago`;
  if (diffHours < 24) return `${diffHours}h ago`;
  if (diffDays < 7) return `${diffDays}d ago`;
- return date.toLocaleDateString();
+ return date.toLocaleDateString('fr-FR');
 }
 
 // ============================================================================

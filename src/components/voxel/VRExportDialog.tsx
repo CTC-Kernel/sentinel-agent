@@ -121,6 +121,16 @@ const PlatformCard: React.FC<PlatformCardProps> = ({ platform, isSelected, onSel
  }
  }, [platform]);
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <button
  onClick={onSelect}
@@ -363,7 +373,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
  if (!isOpen) return null;
 
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" role="dialog" aria-modal="true">
  <div className="bg-card border border-border/40 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
  {/* Header */}
  <div className="flex items-center justify-between p-4 border-b border-border/40">
@@ -432,7 +442,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
  type="text"
  value={filename}
  onChange={(e) => setFilename(e.target.value)}
- className="w-full px-4 py-2 bg-muted border border-border/40 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500"
+ className="w-full px-4 py-2 bg-muted border border-border/40 rounded-lg text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-blue-500"
  placeholder="voxel-vr-export"
  />
  <p className="text-xs text-muted-foreground mt-1">

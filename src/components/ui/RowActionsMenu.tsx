@@ -136,7 +136,7 @@ export function RowActionsMenu({
  className={cn(
  'p-2 rounded-3xl transition-all duration-150',
  'hover:bg-muted',
- 'focus:outline-none focus:ring-2 focus-visible:ring-primary focus:ring-offset-0',
+ 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0',
  open && 'bg-muted'
  )}
  aria-label={ariaLabel || 'Actions'}
@@ -164,7 +164,7 @@ export function RowActionsMenu({
    'rounded-3xl overflow-hidden',
    'bg-card',
    'shadow-lg ring-1 ring-black/5 dark:ring-white/10',
-   'focus:outline-none z-dropdown',
+   'focus-visible:outline-none z-dropdown',
    'divide-y divide-border'
   )}
   style={{

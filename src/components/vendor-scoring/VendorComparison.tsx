@@ -67,7 +67,7 @@ const RiskMatrixCell: React.FC<{
  <button
  key={vendor.supplierId || 'unknown'}
  onClick={() => onClick?.(vendor.supplierId)}
- className="px-2 py-1 bg-card rounded text-xs font-medium text-foreground hover:ring-2 hover:ring-primary transition-all truncate max-w-full"
+ className="px-2 py-1 bg-card rounded text-xs font-medium text-foreground hover:ring-2 hover:ring-primary transition-all truncate max-w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  title={vendor.supplierName}
  >
  {vendor.supplierName.length > 12
@@ -177,7 +177,7 @@ const VendorListItem: React.FC<{
  return (
  <button
  onClick={onClick}
- className="w-full flex items-center gap-4 p-4 rounded-3xl border border-border/40 hover:bg-muted/50 transition-colors text-left"
+ className="w-full flex items-center gap-4 p-4 rounded-3xl border border-border/40 hover:bg-muted/50 transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  {/* Score */}
  <div

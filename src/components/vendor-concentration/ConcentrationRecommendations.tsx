@@ -226,7 +226,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
  >
  <button
  onClick={() => setExpanded(!expanded)}
- className="w-full p-4 hover:bg-muted/50 transition-colors text-left"
+ className="w-full p-4 hover:bg-muted/50 transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <div className="flex items-start justify-between">
  <div className="flex-1">

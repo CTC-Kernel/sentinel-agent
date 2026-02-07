@@ -121,11 +121,21 @@ export const useContinuity = () => {
  );
  const drillsSnap = await getDocs(drillsQuery);
  if (!drillsSnap.empty) {
- const batch = writeBatch(db);
- drillsSnap.docs.forEach(drillDoc => {
+ const BATCH_LIMIT = 450;
+ let batch = writeBatch(db);
+ let batchCount = 0;
+ for (const drillDoc of drillsSnap.docs) {
   batch.delete(drillDoc.ref);
- });
- await batch.commit();
+  batchCount++;
+  if (batchCount >= BATCH_LIMIT) {
+   await batch.commit();
+   batch = writeBatch(db);
+   batchCount = 0;
+  }
+ }
+ if (batchCount > 0) {
+  await batch.commit();
+ }
  }
 
  await deleteDoc(doc(db, 'business_processes', id));
@@ -520,11 +530,21 @@ export const useContinuity = () => {
  );
  const processesSnap = await getDocs(processesQuery);
  if (!processesSnap.empty) {
- const batch = writeBatch(db);
- processesSnap.docs.forEach(processDoc => {
+ const BATCH_LIMIT = 450;
+ let batch = writeBatch(db);
+ let batchCount = 0;
+ for (const processDoc of processesSnap.docs) {
   batch.update(processDoc.ref, { drpDocumentId: null, updatedAt: serverTimestamp() });
- });
- await batch.commit();
+  batchCount++;
+  if (batchCount >= BATCH_LIMIT) {
+   await batch.commit();
+   batch = writeBatch(db);
+   batchCount = 0;
+  }
+ }
+ if (batchCount > 0) {
+  await batch.commit();
+ }
  }
 
  await deleteDoc(doc(db, 'recovery_plans', id));

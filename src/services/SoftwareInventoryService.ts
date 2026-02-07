@@ -136,7 +136,7 @@ export function subscribeToSoftwareInventory(
  q = query(q, where('hasVulnerabilities', '==', filters.hasVulnerabilities));
  }
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  let software = snapshot.docs.map(d => docToSoftware(d.id, d.data()));
@@ -176,6 +176,7 @@ export function subscribeToSoftwareInventory(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 /**
@@ -196,7 +197,7 @@ export function subscribeToCISBaselines(
  q = query(q, where('agentId', '==', agentIds[0]));
  }
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  let baselines = snapshot.docs.map(d => docToCISBaseline(d.id, d.data()));
@@ -217,6 +218,7 @@ export function subscribeToCISBaselines(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 /**
@@ -504,13 +506,13 @@ export async function upsertSoftwareFromAgent(
   vulnerabilitySummary: { critical: 0, high: 0, medium: 0, low: 0 },
   firstDiscovered: new Date().toISOString(),
   lastSeen: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  updatedAt: serverTimestamp(),
  };
 
  batches.push({
   action: 'set',
   ref: newSoftwareRef,
-  data: { ...newEntry, updatedAt: serverTimestamp() },
+  data: newEntry,
  });
  added++;
  } else {
@@ -866,7 +868,12 @@ export async function updateCISBaseline(
  scoreHistory,
  };
 
+ try {
  await setDoc(baselineRef, sanitizeData(baseline));
+ } catch (error) {
+  ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la mise à jour du baseline CIS');
+  throw error;
+ }
  } catch (error) {
  ErrorLogger.error(error as Error, 'SoftwareInventoryService.updateCISBaseline', {
  component: 'SoftwareInventoryService',

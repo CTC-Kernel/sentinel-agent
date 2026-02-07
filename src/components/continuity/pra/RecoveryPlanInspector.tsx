@@ -296,7 +296,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
     aria-label={`Titre de l'étape ${index + 1}`}
     {...register(`steps.${index}.title` as const)}
     placeholder="Titre de l'action (ex: Redémarrer le service)"
-    className="w-full bg-transparent border-none p-0 text-sm font-medium placeholder:text-muted-foreground focus:ring-0 text-foreground"
+    className="w-full bg-transparent border-none p-0 text-sm font-medium placeholder:text-muted-foreground focus-visible:ring-0 text-foreground"
     />
    </div>
    <div className="md:col-span-4 flex items-center gap-2">
@@ -306,7 +306,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
     aria-label={`Durée estimée de l'étape ${index + 1} en minutes`}
     {...register(`steps.${index}.estimatedDuration` as const, { valueAsNumber: true })}
     placeholder="Min"
-    className="w-full bg-transparent border-none p-0 text-sm text-right placeholder:text-muted-foreground focus:ring-0 text-muted-foreground"
+    className="w-full bg-transparent border-none p-0 text-sm text-right placeholder:text-muted-foreground focus-visible:ring-0 text-muted-foreground"
     />
     <span className="text-xs text-muted-foreground">min</span>
    </div>
@@ -317,7 +317,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
     aria-label={`Rôle responsable de l'étape ${index + 1}`}
     {...register(`steps.${index}.assignedRole` as const)}
     placeholder="Rôle responsable"
-    className="w-full bg-muted/50 dark:bg-white/5 rounded px-2 py-1 text-xs border border-transparent focus:border-primary focus:ring-0 transition-colors"
+    className="w-full bg-muted/50 dark:bg-white/5 rounded px-2 py-1 text-xs border border-transparent focus-visible:border-primary focus-visible:ring-0 transition-colors"
    />
    <label className="flex items-center gap-2 cursor-pointer">
     <input

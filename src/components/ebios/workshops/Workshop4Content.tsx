@@ -656,7 +656,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                                                                             value={step.description}
                                                                                                             onChange={(e) => handleUpdateAttackStep(opScenario.id, step.id, { description: e.target.value })}
                                                                                                             placeholder={t('ebios.workshop4.stepDescriptionPlaceholder')}
-                                                                                                            className="w-full px-3 py-2 rounded-lg border border-border/40 bg-muted focus:bg-card focus-visible:ring-2 focus-visible:ring-primary focus:border-primary transition-all text-sm resize-none min-h-[60px]"
+                                                                                                            className="w-full px-3 py-2 rounded-lg border border-border/40 bg-muted focus:bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary transition-all text-sm resize-none min-h-[60px]"
                                                                                                         />
                                                                                                     ) : (
                                                                                                         <p className="text-sm text-foreground leading-relaxed">

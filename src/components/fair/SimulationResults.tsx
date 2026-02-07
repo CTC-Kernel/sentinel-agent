@@ -30,6 +30,13 @@ import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig
 import i18n from '../../i18n';
 
 // ============================================================================
+// Constants
+// ============================================================================
+const ALE_LOW_THRESHOLD = 50000;
+const ALE_MEDIUM_THRESHOLD = 200000;
+const ALE_HIGH_THRESHOLD = 1000000;
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -66,13 +73,13 @@ const formatNumber = (value: number, decimals: number = 2): string => {
 };
 
 const getRiskLevel = (ale: number): { level: string; color: string; bgColor: string } => {
- if (ale < 50000) {
+ if (ale < ALE_LOW_THRESHOLD) {
  return { level: 'low', color: 'text-green-600', bgColor: 'bg-green-100' };
  }
- if (ale < 200000) {
+ if (ale < ALE_MEDIUM_THRESHOLD) {
  return { level: 'medium', color: 'text-amber-600', bgColor: 'bg-amber-100' };
  }
- if (ale < 1000000) {
+ if (ale < ALE_HIGH_THRESHOLD) {
  return { level: 'high', color: 'text-orange-600', bgColor: 'bg-orange-100' };
  }
  return { level: 'critical', color: 'text-red-600', bgColor: 'bg-red-100' };

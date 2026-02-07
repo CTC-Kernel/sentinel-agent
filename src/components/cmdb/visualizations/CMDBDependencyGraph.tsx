@@ -621,7 +621,7 @@ export const CMDBDependencyGraph: React.FC<CMDBDependencyGraphProps> = ({
       >
         {/* Render edges first (below nodes) */}
         <g className="edges">
-          {edges.map((edge) => {
+          {edges.length > 0 && edges.map((edge) => {
             const sourceNode = nodes.find((n) => n.id === edge.source);
             const targetNode = nodes.find((n) => n.id === edge.target);
             if (!sourceNode || !targetNode) return null;

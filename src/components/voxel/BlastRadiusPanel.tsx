@@ -288,7 +288,7 @@ const WhatIfBuilder: React.FC<{
  <select
  value={scenarioType}
  onChange={(e) => setScenarioType(e.target.value as WhatIfScenario['type'])}
- className="w-full bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
+ className="w-full bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:border-primary"
  >
  <option value="remove_node">Supprimer un contrôle</option>
  <option value="add_node">Ajouter un contrôle</option>
@@ -299,7 +299,7 @@ const WhatIfBuilder: React.FC<{
  <select
  value={selectedNodeId}
  onChange={(e) => setSelectedNodeId(e.target.value)}
- className="w-full bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
+ className="w-full bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:border-primary"
  >
  <option value="">Sélectionner un contrôle...</option>
  {controlNodes.map((node) => (
@@ -394,7 +394,7 @@ const BlastRadiusHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) 
  <Info className="w-4 h-4 text-purple-400" />
  Guide Blast Radius
  </h3>
- <button onClick={onClose} className="text-foreground/40 hover:text-foreground">
+ <button onClick={onClose} className="text-foreground/40 hover:text-foreground" aria-label="Fermer">
  <X className="w-4 h-4" />
  </button>
  </div>
@@ -538,6 +538,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
  <button
   onClick={onClose}
   className="p-2 rounded-full hover:bg-muted text-foreground/60 hover:text-foreground transition-colors"
+ aria-label="Fermer"
  >
   <X className="h-5 w-5" />
  </button>
@@ -646,10 +647,11 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/30" />
  <input
   type="text"
+  aria-label="Rechercher"
   value={searchQuery}
   onChange={(e) => setSearchQuery(e.target.value)}
   placeholder="Rechercher..."
-  className="w-full bg-muted/50 border border-border/40 rounded-lg pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-primary"
+  className="w-full bg-muted/50 border border-border/40 rounded-lg pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-foreground/30 focus-visible:outline-none focus-visible:border-primary"
  />
  </div>
 
@@ -657,7 +659,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
  <select
  value={sortBy}
  onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
- className="bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-xs text-foreground focus:outline-none focus:border-primary"
+ className="bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-xs text-foreground focus-visible:outline-none focus-visible:border-primary"
  >
  <option value="impact">Impact</option>
  <option value="depth">Profondeur</option>

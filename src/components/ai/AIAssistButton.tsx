@@ -52,7 +52,7 @@ export const AIAssistButton: React.FC<AIAssistButtonProps> = ({ context, fieldNa
  type="button"
  onClick={handleSuggest}
  disabled={loading}
- className={`p-2 rounded-lg transition-all duration-300 group relative ${loading ? 'cursor-wait' : 'cursor-pointer'} ${className || 'text-primary hover:bg-primary/10 dark:hover:bg-primary'} focus:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
+ className={`p-2 rounded-lg transition-all duration-300 group relative ${loading ? 'cursor-wait' : 'cursor-pointer'} ${className || 'text-primary hover:bg-primary/10 dark:hover:bg-primary'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
  title={tooltip}
  >
  {loading ? (

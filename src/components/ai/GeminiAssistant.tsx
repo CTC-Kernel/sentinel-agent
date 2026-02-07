@@ -336,7 +336,7 @@ export const GeminiAssistant: React.FC = () => {
                                 }
                             }}
                             placeholder="Posez une question..."
-                            className="w-full pl-4 pr-10 py-3.5 bg-muted border border-transparent focus:bg-white dark:focus:bg-card border-border/40 focus:border-primary/60 dark:focus:border-primary/60 rounded-2xl focus:ring-4 focus:ring-primary outline-none text-sm font-medium text-foreground transition-all placeholder:text-muted-foreground"
+                            className="w-full pl-4 pr-10 py-3.5 bg-muted border border-transparent focus:bg-white dark:focus:bg-card border-border/40 focus-visible:border-primary/60 dark:focus-visible:border-primary/60 rounded-2xl focus-visible:ring-4 focus-visible:ring-primary outline-none text-sm font-medium text-foreground transition-all placeholder:text-muted-foreground"
                             disabled={isLoading}
                         />
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">

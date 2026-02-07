@@ -350,10 +350,11 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
  <input
  type="text"
+ aria-label="Rechercher des exigences"
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
  placeholder={t('requirements.searchPlaceholder')}
- className="w-full pl-11 pr-4 py-3 rounded-3xl border border-border/40 bg-card/50 text-foreground placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent transition-all"
+ className="w-full pl-11 pr-4 py-3 rounded-3xl border border-border/40 bg-card/50 text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all"
  />
  </div>
 
@@ -363,7 +364,7 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
  <select
  value={selectedCriticality}
  onChange={(e) => setSelectedCriticality(e.target.value as CriticalityLevel | 'all')}
- className="px-4 py-3 rounded-3xl border border-border/40 bg-card/50 text-sm font-medium text-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent transition-all"
+ className="px-4 py-3 rounded-3xl border border-border/40 bg-card/50 text-sm font-medium text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all"
  >
  <option value="all">{t('requirements.allCriticalities')}</option>
  <option value="high">{t('requirements.criticality.high')}</option>
@@ -375,7 +376,7 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
  <select
  value={selectedCategory}
  onChange={(e) => setSelectedCategory(e.target.value as RequirementCategory | 'all')}
- className="px-4 py-3 rounded-3xl border border-border/40 bg-card/50 text-sm font-medium text-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent transition-all"
+ className="px-4 py-3 rounded-3xl border border-border/40 bg-card/50 text-sm font-medium text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all"
  >
  <option value="all">{t('requirements.allCategories')}</option>
  {availableCategories.map((cat) => (
@@ -389,7 +390,7 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
  <select
  value={filterStatus}
  onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
- className="px-4 py-3 rounded-3xl border border-border/40 bg-card/50 text-sm font-medium text-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent transition-all"
+ className="px-4 py-3 rounded-3xl border border-border/40 bg-card/50 text-sm font-medium text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all"
  >
  <option value="all">{t('requirements.filterAll')}</option>
  <option value="linked">{t('requirements.filterLinked')}</option>
@@ -402,6 +403,7 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
  onClick={clearFilters}
  className="p-3 rounded-3xl border border-border/40 bg-card/50 text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
  title={t('requirements.clearFilters')}
+ aria-label="Fermer"
  >
  <X className="w-4 h-4" />
  </button>

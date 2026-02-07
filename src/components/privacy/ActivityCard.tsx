@@ -70,7 +70,7 @@ export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }
   <button
   aria-label="Delete"
   onClick={(e) => { e.stopPropagation(); setShowConfirmDelete(true); }}
-  className="p-2 bg-card/80 rounded-3xl text-muted-foreground hover:text-red-500 shadow-sm backdrop-blur-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="p-2 bg-card/80 rounded-3xl text-muted-foreground hover:text-red-500 shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   <Trash2 className="h-4 w-4" />
   </button>

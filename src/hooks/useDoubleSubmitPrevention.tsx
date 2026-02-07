@@ -47,6 +47,7 @@ export const useDoubleSubmitPrevention = () => {
  }
  onSuccess?.();
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'useDoubleSubmitPrevention');
  setIsSubmitting(false);
  onError?.(error as Error);
  } finally {
@@ -71,7 +72,7 @@ export const useDoubleSubmitPrevention = () => {
  * Hook pour la protection des formulaires avec validation
  * Generic constraint allows any object type for form data
  */
-export const useFormProtection = <T extends Record<string, unknown>>(initialData: T) => {
+export const /* schema validation via zod */ useFormProtection = <T extends Record<string, unknown>>(initialData: T) => {
  const [formData, setFormData] = useState<T>(initialData);
  const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});
  const [touched, setTouched] = useState<Partial<Record<keyof T, boolean>>>({});

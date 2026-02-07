@@ -28,14 +28,8 @@ import { CMDBService } from '@/services/CMDBService';
 import { CMDBRelationshipService } from '@/services/CMDBRelationshipService';
 import { Timestamp } from 'firebase/firestore';
 
-// Query keys
-export const impactKeys = {
-  all: ['cmdb-impact'] as const,
-  analysis: (orgId: string, ciId: string, scenario: ImpactScenario, depth: number) =>
-    [...impactKeys.all, 'analysis', orgId, ciId, scenario, depth] as const,
-  blastRadius: (orgId: string, ciId: string) =>
-    [...impactKeys.all, 'blast-radius', orgId, ciId] as const,
-};
+// Re-export query keys (moved to constants/queryKeys.ts to satisfy hooks naming convention)
+export { impactKeys } from '@/constants/queryKeys';
 
 /**
  * Calculate impact level based on CI criticality and hop distance
@@ -345,26 +339,31 @@ export function useSaveImpactReport() {
         createdBy: user?.uid || 'system',
       };
 
-      const docRef = await addDoc(
-        collection(db, 'cmdb_impact_reports'),
-        reportData
-      );
+      try {
+        const docRef = await addDoc(
+          collection(db, 'cmdb_impact_reports'),
+          reportData
+        );
 
-      // Log activity
-      await CMDBService.logActivity(organizationId, {
-        type: 'create',
-        message: `Rapport d'impact créé pour "${assessment.sourceCI.name}"`,
-        ciId: assessment.sourceCI.id,
-        ciName: assessment.sourceCI.name,
-        userId: user?.uid || 'system',
-        metadata: {
-          reportId: docRef.id,
-          scenario: assessment.scenario,
-          totalAffectedCIs: assessment.summary.totalAffectedCIs,
-        },
-      });
+        // Log activity
+        await CMDBService.logActivity(organizationId, {
+          type: 'create',
+          message: `Rapport d'impact créé pour "${assessment.sourceCI.name}"`,
+          ciId: assessment.sourceCI.id,
+          ciName: assessment.sourceCI.name,
+          userId: user?.uid || 'system',
+          metadata: {
+            reportId: docRef.id,
+            scenario: assessment.scenario,
+            totalAffectedCIs: assessment.summary.totalAffectedCIs,
+          },
+        });
 
-      return { ...assessment, reportId: docRef.id };
+        return { ...assessment, reportId: docRef.id };
+      } catch (error) {
+        ErrorLogger.handleErrorWithToast(error, "Erreur lors de la sauvegarde du rapport d'impact");
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: impactKeys.all });

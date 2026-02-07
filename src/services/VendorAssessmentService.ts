@@ -747,7 +747,7 @@ export class VendorAssessmentService {
  type,
  message,
  daysRemaining,
- createdAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
  readAt: undefined,
  dismissedAt: undefined,
  };

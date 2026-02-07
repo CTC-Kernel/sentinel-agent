@@ -208,7 +208,7 @@ const PresentationControls: React.FC<PresentationControlsProps> = ({
  <div className="flex items-center gap-2">
  <button
  onClick={onExit}
- className="px-4 py-2 bg-muted hover:bg-muted text-white rounded-lg transition-colors flex items-center gap-2"
+ className="px-4 py-2 bg-muted hover:bg-muted text-white rounded-lg transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  title="Exit (Escape)"
  >
  <span className="text-sm">Exit</span>
@@ -221,7 +221,7 @@ const PresentationControls: React.FC<PresentationControlsProps> = ({
  <button
  onClick={onPrevious}
  disabled={currentSlide === 0}
- className="min-w-[44px] min-h-[44px] p-2 hover:bg-muted rounded-full transition-colors disabled:bg-muted/50 disabled:text-muted-foreground"
+ className="min-w-[44px] min-h-[44px] p-2 hover:bg-muted rounded-full transition-colors disabled:bg-muted/50 disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  title="Previous (Left Arrow)"
  aria-label="Diapositive précédente"
  >
@@ -237,7 +237,7 @@ const PresentationControls: React.FC<PresentationControlsProps> = ({
  <button
  onClick={onNext}
  disabled={currentSlide === totalSlides - 1}
- className="min-w-[44px] min-h-[44px] p-2 hover:bg-muted rounded-full transition-colors disabled:bg-muted/50 disabled:text-muted-foreground"
+ className="min-w-[44px] min-h-[44px] p-2 hover:bg-muted rounded-full transition-colors disabled:bg-muted/50 disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  title="Next (Right Arrow)"
  aria-label="Diapositive suivante"
  >
@@ -362,7 +362,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
  return () => {
  document.removeEventListener('fullscreenchange', handleFullscreenChange);
  if (document.fullscreenElement) {
- document.exitFullscreen().catch(() => { });
+ document.exitFullscreen().catch((err) => { ErrorLogger.error(err, 'PresentationMode.exitFullscreen'); });
  }
  };
  }, [enabled, onExit]);
@@ -457,7 +457,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
 
  const handleExit = useCallback(() => {
  if (document.fullscreenElement) {
- document.exitFullscreen().catch(() => { });
+ document.exitFullscreen().catch((err) => { ErrorLogger.error(err, 'PresentationMode.exitFullscreen'); });
  }
  onExit?.();
  }, [onExit]);

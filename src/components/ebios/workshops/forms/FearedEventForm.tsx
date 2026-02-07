@@ -3,7 +3,7 @@
  * Form for creating/editing feared events in Workshop 1
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Trash2 } from '../../../ui/Icons';
 import { useForm, useWatch } from 'react-hook-form';
@@ -90,8 +90,18 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
  }
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" role="dialog" aria-modal="true">
  <PremiumCard glass className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
  {/* Header */}
  <div className="flex items-center justify-between mb-6">
@@ -174,7 +184,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
  {...register('description')}
  id="description"
  rows={3}
- className="w-full px-4 py-2.5 rounded-3xl border border-border/40 bg-card text-foreground resize-none"
+ className="w-full px-4 py-2.5 rounded-3xl border border-border/40 bg-card text-foreground resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  placeholder={t('ebios.workshop1.eventDescriptionPlaceholder')}
  />
  </div>

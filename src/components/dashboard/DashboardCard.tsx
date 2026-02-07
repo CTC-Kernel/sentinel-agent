@@ -89,7 +89,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
    onToggleExpand();
   }
   }}
-  className="p-2.5 hover:bg-muted/50 rounded-lg text-muted-foreground hover:text-foreground transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+  className="p-2.5 hover:bg-muted/50 rounded-lg text-muted-foreground hover:text-foreground transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
   aria-label={isExpanded ? "Réduire la carte" : "Agrandir la carte"}
   aria-expanded={isExpanded}
   >

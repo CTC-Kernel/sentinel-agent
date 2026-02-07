@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { randomBytes } from 'crypto';
 import { logger } from '../utils/logger';
+import { ErrorLogger } from '../services/errorLogger';
 
 // Configuration du rate limiting pour l'API
 export const apiLimiter = rateLimit({
@@ -79,6 +80,7 @@ const cspNonceMiddleware = (_req: Request, res: Response, next: NextFunction) =>
  res.locals.cspNonce = randomBytes(16).toString('base64');
  next();
  } catch (error) {
+   ErrorLogger.error(error, 'security');
  logger.error({ err: error }, 'Erreur lors de la génération du nonce CSP');
  next(error);
  }

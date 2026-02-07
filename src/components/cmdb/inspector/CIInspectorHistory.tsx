@@ -128,8 +128,8 @@ const TimelineEvent: React.FC<TimelineEventProps> = ({ event, isLast }) => {
             <p className="font-medium text-sm">{event.description}</p>
           </div>
           <div className="text-right text-xs text-muted-foreground shrink-0">
-            <p>{event.timestamp.toLocaleDateString()}</p>
-            <p>{event.timestamp.toLocaleTimeString()}</p>
+            <p>{event.timestamp.toLocaleDateString('fr-FR')}</p>
+            <p>{event.timestamp.toLocaleTimeString('fr-FR')}</p>
           </div>
         </div>
 
@@ -284,7 +284,7 @@ export const CIInspectorHistory: React.FC<CIInspectorHistoryProps> = ({ ci }) =>
             </span>
             <p className="text-lg font-bold">
               {ci.lastDiscoveredAt
-                ? ci.lastDiscoveredAt.toDate().toLocaleDateString()
+                ? ci.lastDiscoveredAt.toDate().toLocaleDateString('fr-FR')
                 : '-'}
             </p>
           </div>

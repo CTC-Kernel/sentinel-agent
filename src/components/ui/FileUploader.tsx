@@ -77,6 +77,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   const hash = await EncryptionService.sha256Buffer(binary as ArrayBuffer);
   resolve(hash);
   } catch (err) {
+    ErrorLogger.handleErrorWithToast(err, 'FileUploader');
   reject(err);
   }
  } else {
@@ -149,7 +150,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   onChange={handleFileSelect}
   multiple={multiple}
   accept={allowedTypes.join(',')}
-  className="hidden"
+  className="hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   id="file-upload"
 
   disabled={disabled}

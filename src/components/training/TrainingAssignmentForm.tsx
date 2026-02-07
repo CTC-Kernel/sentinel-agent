@@ -394,7 +394,7 @@ export const TrainingAssignmentForm: React.FC<TrainingAssignmentFormProps> = ({
   <Calendar className="w-6 h-6 mx-auto" />
   </div>
   <div className="text-xs text-muted-foreground uppercase tracking-wider mt-1">
-  {preview.dueDate.toLocaleDateString()}
+  {preview.dueDate.toLocaleDateString('fr-FR')}
   </div>
  </div>
  <div className="p-4 rounded-2xl bg-background/50 text-center">

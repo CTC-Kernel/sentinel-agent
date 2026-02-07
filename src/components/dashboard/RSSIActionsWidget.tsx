@@ -121,7 +121,7 @@ function ActionItem({
  onClick={onClick}
  className={cn(
  'w-full flex items-center justify-between rounded-2xl border transition-all',
- 'hover:shadow-sm hover:scale-[1.01] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/50',
+ 'hover:shadow-sm hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/50',
  colors.bg,
  colors.border,
  sizeConfig.itemPadding
@@ -354,7 +354,7 @@ export function RSSIActionsWidget({
  'mt-4 w-full text-center py-2 rounded-md',
  'text-sm font-medium text-primary',
  'hover:bg-primary/10 transition-colors transition-colors',
- 'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2'
+ 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2'
  )}
  >
  Voir toutes les actions

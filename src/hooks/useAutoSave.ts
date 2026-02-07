@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { ErrorLogger } from '../services/errorLogger';
 
 /**
  * Auto-save status states
@@ -132,6 +133,7 @@ export function useAutoSave<T>({
  setLastSavedAt(new Date());
  setError(null);
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'useAutoSave');
  setStatus('error');
  setError(err instanceof Error ? err : new Error(String(err)));
  } finally {

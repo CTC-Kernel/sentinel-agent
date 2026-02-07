@@ -281,6 +281,16 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
  const TypeIcon = ConnectorTypeIcon[connector.type];
  const isSyncing = syncing[connector.id];
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <Card key={connector.id || 'unknown'} className="p-4">
  <div className="flex items-start gap-4">

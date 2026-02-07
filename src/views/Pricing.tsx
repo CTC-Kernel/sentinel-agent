@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect,  useState } from 'react';
 import { useLocale } from '../hooks/useLocale';
 import { ErrorLogger } from '../services/errorLogger';
 import { useNavigate } from 'react-router-dom';
@@ -35,6 +35,9 @@ const PLAN_GRADIENTS: Record<string, { from: string; to: string; glow: string }>
 
 
 
+// RBAC: Public page - accessible to all users (authenticated and unauthenticated)
+// No role-based restriction needed: pricing information is publicly visible
+// Subscription actions are gated by authentication check in handleSelectPlan
 const Pricing = () => {
  const { t } = useLocale();
  const navigate = useNavigate();
@@ -233,6 +236,16 @@ const Pricing = () => {
  const PlanIcon = PLAN_ICONS[plan.id] || Star;
  const gradient = PLAN_GRADIENTS[plan.id] || PLAN_GRADIENTS.discovery;
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <motion.div
  key={plan.id || 'unknown'}
@@ -381,7 +394,7 @@ const Pricing = () => {
  <div key={category.id || 'unknown'}>
   <button
   onClick={() => toggleCategory(category.id)}
-  className="w-full flex items-center justify-between p-6 bg-muted/50 font-bold text-left hover:bg-muted/60 transition-colors"
+  className="w-full flex items-center justify-between p-6 bg-muted/50 font-bold text-left hover:bg-muted/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <span className="text-lg font-black text-foreground">{category.title}</span>
   <ChevronDown className={cn(
@@ -459,7 +472,7 @@ const Pricing = () => {
  <div key={i || 'unknown'} className="group">
   <button
   onClick={() => setExpandedCategories(prev => prev.includes(`faq-${i}`) ? prev.filter(c => c !== `faq-${i}`) : [...prev, `faq-${i}`])}
-  className="w-full flex items-center justify-between p-6 lg:p-8 text-left hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors"
+  className="w-full flex items-center justify-between p-6 lg:p-8 text-left hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <span className="font-bold text-foreground /40 text-base pr-4">{faq.q}</span>
   <ChevronDown
@@ -526,13 +539,13 @@ const Pricing = () => {
  {/* Footer Section */}
  <div className="text-center pb-8 border-t border-border/50 dark:border-white/5 pt-8">
  <div className="flex flex-wrap gap-4 justify-center items-center text-xs font-bold text-muted-foreground">
- <button onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-foreground dark:hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted">
+ <button onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-foreground dark:hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
  {t('pricing.footer.cgv', { defaultValue: 'CGV' })}
  </button>
- <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-foreground dark:hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted">
+ <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-foreground dark:hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
  {t('pricing.footer.privacy', { defaultValue: 'Confidentialité' })}
  </button>
- <button onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-foreground dark:hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted">
+ <button onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-foreground dark:hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
  {t('pricing.footer.legalNotice', { defaultValue: 'Mentions Légales' })}
  </button>
  </div>

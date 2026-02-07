@@ -108,7 +108,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
  >
  <button
  onClick={() => setExpanded(!expanded)}
- className="w-full p-4 hover:bg-muted/50 transition-colors text-left"
+ className="w-full p-4 hover:bg-muted/50 transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <div className="flex items-start justify-between">
  <div className="flex items-start gap-3">
@@ -201,7 +201,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
  {/* Action Button */}
  <button
  onClick={onClick}
- className="flex items-center gap-2 px-4 py-2 rounded-3xl text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
+ className="flex items-center gap-2 px-4 py-2 rounded-3xl text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <Shield className="h-4 w-4" />
  {t('vendorConcentration.spof.viewRecommendations')}
@@ -278,7 +278,7 @@ export const SPOFAlerts: React.FC<SPOFAlertsProps> = ({
  {onViewDetails && summary.totalSPOFs > 3 && (
  <button
  onClick={onViewDetails}
- className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-3xl text-sm font-medium border border-border/40 hover:bg-muted transition-colors"
+ className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-3xl text-sm font-medium border border-border/40 hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  {t('vendorConcentration.spof.viewAll')}
  <ExternalLink className="h-4 w-4" />

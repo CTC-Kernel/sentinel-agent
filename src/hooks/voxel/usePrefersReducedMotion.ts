@@ -81,7 +81,7 @@ export function usePrefersReducedMotion(): boolean {
  * @param prefersReducedMotion - Whether reduced motion is preferred
  * @returns 0 if reduced motion preferred, duration otherwise
  */
-export function getAnimationDuration(
+function getAnimationDuration(
  duration: number,
  prefersReducedMotion: boolean
 ): number {
@@ -98,7 +98,7 @@ export function getAnimationDuration(
  * @param prefersReducedMotion - Whether reduced motion is preferred
  * @returns 'none' if reduced motion preferred, transition otherwise
  */
-export function getTransitionStyle(
+function getTransitionStyle(
  transition: string,
  prefersReducedMotion: boolean
 ): string {

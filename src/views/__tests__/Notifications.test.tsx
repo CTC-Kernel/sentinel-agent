@@ -134,7 +134,7 @@ describe('Notification Types', () => {
  message: 'Unusual login detected',
  read: false,
  link: '/incidents/123',
- createdAt: new Date(),
+ createdAt: new Date(Date.now()),
  expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
  };
 

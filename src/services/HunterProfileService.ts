@@ -275,14 +275,14 @@ export class HunterProfileService {
  icon: '🏆',
  title: 'Club des Cent',
  description: '100+ contributions à la communauté',
- date: user.createdAt || new Date().toISOString()
+ date: user.createdAt || new Date(Date.now()).toISOString()
  });
  } else if (stats.totalContributions >= 50) {
  achievements.push({
  icon: '🥇',
  title: 'Chasseur Dévoué',
  description: '50+ contributions à la communauté',
- date: user.createdAt || new Date().toISOString()
+ date: user.createdAt || new Date(Date.now()).toISOString()
  });
  }
 

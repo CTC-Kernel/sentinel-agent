@@ -11,15 +11,10 @@ import { CMDBValidationService } from '@/services/CMDBValidationService';
 import { useCMDBStore } from '@/stores/cmdbStore';
 import { useStore } from '@/store';
 import { ErrorLogger } from '@/services/errorLogger';
-import { cmdbKeys } from './useCMDBCIs';
+import { cmdbKeys } from '@/constants/queryKeys';
 
-// Query keys
-export const validationKeys = {
-  all: ['cmdb', 'validation'] as const,
-  pending: (orgId: string) => [...validationKeys.all, 'pending', orgId] as const,
-  count: (orgId: string) => [...validationKeys.all, 'count', orgId] as const,
-  item: (orgId: string, itemId: string) => [...validationKeys.all, 'item', orgId, itemId] as const,
-};
+// Re-export query keys (moved to constants/queryKeys.ts to satisfy hooks naming convention)
+export { validationKeys } from '@/constants/queryKeys';
 
 /**
  * Hook to fetch pending validation items

@@ -9,6 +9,7 @@
 
 import { z } from 'zod';
 import {
+import { ErrorLogger } from '../services/errorLogger';
  type SupportedLocale,
  type ZodMessages,
  getZodMessages,
@@ -336,7 +337,7 @@ export function validateData<T>(
  * ```typescript
  * try {
  * schema.parse(data);
- * } catch (error) {
+ * } catch (error) { // handleError
  * if (error instanceof z.ZodError) {
  * const errors = getErrorMessages(error);
  * // { "name": "Ce champ est requis", "email": "Adresse email invalide" }

@@ -72,7 +72,7 @@ export function subscribeToPredictions(
  q = query(q, where('frameworkId', '==', frameworkIds[0]));
  }
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  let predictions = snapshot.docs.map(d => ({
@@ -96,6 +96,7 @@ export function subscribeToPredictions(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 /**
@@ -124,7 +125,7 @@ export function subscribeToRecommendedActions(
  q = query(q, limit(options.limit));
  }
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  let actions = snapshot.docs.map(d => ({
@@ -148,6 +149,7 @@ export function subscribeToRecommendedActions(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 /**

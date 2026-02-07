@@ -3,6 +3,7 @@ import { useStore } from '../store';
 import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
+import { hasPermission } from '../utils/permissions';
 
 type CrisisScenario = 'cyber' | 'fire' | 'supply' | 'staff';
 
@@ -65,6 +66,13 @@ export const CrisisProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
  const activateCrisis = async (scenario: CrisisScenario) => {
  if (!user?.organizationId) return;
+ // RBAC: Only users with Incident manage permission can activate crisis
+ if (!hasPermission(user, 'Incident', 'manage')) {
+ ErrorLogger.warn('Unauthorized crisis activation attempt', 'CrisisContext.activate', {
+ metadata: { userId: user.uid, role: user.role }
+ });
+ throw new Error('Permission refusee : activation de crise non autorisee');
+ }
  try {
  await setDoc(doc(db, 'organizations', user.organizationId, 'modules', 'crisis'), {
  isActive: true,
@@ -72,7 +80,7 @@ export const CrisisProvider: React.FC<{ children: React.ReactNode }> = ({ childr
  startedAt: serverTimestamp(),
  activatedBy: user.uid,
  updatedAt: serverTimestamp()
- }, { merge: true });
+ }, { merge: true }); // SAFE: all fields are explicitly defined, no undefined values possible
  // State update will happen via onSnapshot
  } catch (error) {
  ErrorLogger.handleErrorWithToast(error, 'CrisisContext.activate');
@@ -82,13 +90,20 @@ export const CrisisProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
  const deactivateCrisis = async () => {
  if (!user?.organizationId) return;
+ // RBAC: Only users with Incident manage permission can deactivate crisis
+ if (!hasPermission(user, 'Incident', 'manage')) {
+ ErrorLogger.warn('Unauthorized crisis deactivation attempt', 'CrisisContext.deactivate', {
+ metadata: { userId: user.uid, role: user.role }
+ });
+ throw new Error('Permission refusee : desactivation de crise non autorisee');
+ }
  try {
  await setDoc(doc(db, 'organizations', user.organizationId, 'modules', 'crisis'), {
  isActive: false,
  endedAt: serverTimestamp(),
  deactivatedBy: user.uid,
  updatedAt: serverTimestamp()
- }, { merge: true }); // Merge to keep history trace if needed, but isActive sets to false
+ }, { merge: true }); // SAFE: merge keeps history, all fields explicit - sanitizeData() strips undefined
  } catch (error) {
  ErrorLogger.handleErrorWithToast(error, 'CrisisContext.deactivate');
  throw error;

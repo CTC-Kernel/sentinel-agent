@@ -73,8 +73,8 @@ export class E2EAuthService {
  siret: '00000000000000',
  subscriptionPlan: 'enterprise',
  members: [],
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  slug: 'sentinel-demo',
  ownerId: user.uid,
  subscription: {

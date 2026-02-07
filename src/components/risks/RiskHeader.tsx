@@ -55,9 +55,8 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
  title={risksTitle}
  subtitle={risksSubtitle}
  icon={
- <img
+ <img alt="PILOTAGE"
   src="/images/pilotage.png"
-  alt="PILOTAGE"
   className="w-full h-full object-contain"
  />
  }
@@ -84,7 +83,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
    disabled={isGeneratingReport}
    className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-muted disabled:text-muted-foreground`}
    >
-   {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-primary'}`} />}
+   {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-primary'}`} />}
    RTP (PDF)
    </button>
    )}
@@ -97,7 +96,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
    disabled={isGeneratingReport}
    className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-muted disabled:text-muted-foreground`}
    >
-   {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-violet-500'}`} />}
+   {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-violet-500'}`} />}
    Rapport Exécutif
    </button>
    )}
@@ -134,7 +133,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
    disabled={isExportingCSV}
    className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
    >
-   {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-muted-foreground'}`} />}
+   {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-muted-foreground'}`} />}
    Export CSV
    </button>
    )}
@@ -154,7 +153,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
     disabled={importing}
     className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
     >
-    {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-success-text'}`} />}
+    {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-success-text'}`} />}
     Import CSV
     </button>
    )}
@@ -186,7 +185,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
    aria-label="Lancer l'analyse IA"
    onClick={onAIAnalysis}
    disabled={isAnalyzing}
-   className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-violet-600 to-violet-500 text-white rounded-3xl hover:from-violet-700 hover:to-violet-600 shadow-lg shadow-violet-500/20 font-bold text-sm"
+   className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-violet-600 to-violet-500 text-white rounded-3xl hover:from-violet-700 hover:to-violet-600 shadow-lg shadow-violet-500/20 font-bold text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
    {isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BrainCircuit className="h-4 w-4 mr-2" />}
    <span className="hidden md:inline">{isAnalyzing ? 'Analyse...' : 'Analyse IA'}</span>
@@ -196,7 +195,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
   <Button
    aria-label="Créer un nouveau risque"
    onClick={onNewRisk}
-   className="flex items-center gap-2 bg-primary text-primary-foreground text-sm font-bold rounded-3xl hover:bg-primary/90 shadow-lg shadow-primary/20"
+   className="flex items-center gap-2 bg-primary text-primary-foreground text-sm font-bold rounded-3xl hover:bg-primary/90 shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
    <Plus className="h-4 w-4" />
    <span className="hidden sm:inline">Nouveau Risque</span>

@@ -43,9 +43,9 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
   {currentDate.toLocaleString(config.intlLocale, { month: 'long', year: 'numeric' })}
   </h2>
   <div className="flex gap-1 bg-muted rounded-lg p-1">
-  <button onClick={prevMonth} aria-label={t('audits.calendarLabels.prevMonth')} className="p-1 hover:bg-white dark:hover:bg-muted rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><ChevronLeft className="w-5 h-5 text-muted-foreground" /></button>
-  <button onClick={today} className="px-3 py-1 text-xs font-bold text-muted-foreground hover:bg-white dark:hover:bg-muted rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('audits.calendarLabels.today')}</button>
-  <button onClick={nextMonth} aria-label={t('audits.calendarLabels.nextMonth')} className="p-1 hover:bg-white dark:hover:bg-muted rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><ChevronRight className="w-5 h-5 text-muted-foreground" /></button>
+  <button onClick={prevMonth} aria-label={t('audits.calendarLabels.prevMonth')} className="p-1 hover:bg-white dark:hover:bg-muted rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><ChevronLeft className="w-5 h-5 text-muted-foreground" /></button>
+  <button onClick={today} className="px-3 py-1 text-xs font-bold text-muted-foreground hover:bg-white dark:hover:bg-muted rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('audits.calendarLabels.today')}</button>
+  <button onClick={nextMonth} aria-label={t('audits.calendarLabels.nextMonth')} className="p-1 hover:bg-white dark:hover:bg-muted rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><ChevronRight className="w-5 h-5 text-muted-foreground" /></button>
   </div>
  </div>
  <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -101,7 +101,7 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
    <button
    key={audit.id || 'unknown'}
    onClick={() => onAuditClick(audit)}
-   className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold truncate transition-all hover:scale-[1.02] active:scale-95 shadow-sm border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${audit.status === 'Terminé' ? 'bg-success-bg text-success-text border-success-border' :
+   className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-semibold truncate transition-all hover:scale-[1.02] active:scale-95 shadow-sm border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${audit.status === 'Terminé' ? 'bg-success-bg text-success-text border-success-border' :
    audit.status === 'En cours' ? 'bg-warning-bg text-warning-text border-warning-border' :
    'bg-info-bg text-info-text border-info-border'
    }`}

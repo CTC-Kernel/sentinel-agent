@@ -146,8 +146,9 @@ export function ScoreGauge({
  animationRef.current();
  }
  };
- // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [normalizedScore, showAnimation]);
+ // Justification: animation refs and internal animation callbacks are intentionally excluded
+ // to avoid restarting animation on ref identity changes.
+ }, [normalizedScore, showAnimation]); // eslint-disable-line react-hooks/exhaustive-deps
 
  // Memoize the gauge path for performance
  const gaugeStyle = useMemo(() => ({
@@ -190,7 +191,7 @@ export function ScoreGauge({
  width={diameter}
  height={diameter}
  viewBox={`0 0 ${diameter} ${diameter}`}
- className="transform -rotate-90"
+ className="transform -rotate-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  {/* Gradient definition */}
  <defs>

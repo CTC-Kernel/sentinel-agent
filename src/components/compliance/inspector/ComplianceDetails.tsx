@@ -221,7 +221,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
  {canEdit ? (
   <>
   <textarea
-  className="w-full min-h-[120px] bg-muted/50 dark:bg-black/20 border border-border/40 rounded-3xl p-4 text-sm focus:ring-2 focus-visible:ring-primary outline-none transition-all resize-y disabled:bg-muted disabled:text-muted-foreground"
+  className="w-full min-h-[120px] bg-muted/50 dark:bg-black/20 border border-border/40 rounded-3xl p-4 text-sm focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all resize-y disabled:bg-muted disabled:text-muted-foreground"
   placeholder={t('compliance.justificationPlaceholder', { defaultValue: 'Décrivez comment ce contrôle est implémenté...' })}
   value={justification}
   onChange={(e) => setJustification(e.target.value)}

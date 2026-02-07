@@ -1,4 +1,4 @@
-import React, { useId, useState, useMemo } from 'react';
+import React, { useId, useState, useMemo, useCallback} from 'react';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { EmptyChartState } from '../ui/EmptyChartState';
 import { Asset, Criticality } from '../../types';
@@ -25,6 +25,63 @@ const renderActiveShape = (props: SentinelPieActiveShapeProps) => {
     const innerR = innerRadius ?? 0;
     const outerR = outerRadius ?? 0;
     const percentValue = percent ?? 0;
+
+
+  // Extracted callbacks (useCallback)
+  const handleMouseLeave = useCallback(() => {
+    setActiveCriticalityIndex(null)
+  }, []);
+
+  const handleFormatter = useCallback((value) => {
+    <span className="text-xs font-bold text-muted-foreground ml-1 uppercase">{value}</span>
+  }, []);
+
+  const handleTickFormatter = useCallback((value) => {
+    value.length > 8 ? `${value.substring(0, 8)}...` : value
+  }, []);
+
+  const handleMouseLeave2 = useCallback(() => {
+    setActiveScopeIndex(null)
+  }, []);
+
+  const handleFormatter2 = useCallback((value) => {
+    <span className="text-xs font-bold text-muted-foreground ml-1 uppercase">{value}</span>
+  }, []);
+
+  const handleFormatter3 = useCallback((value) => {
+    <span className="text-xs font-bold text-muted-foreground ml-1">{value}</span>
+  }, []);
+
+  const handleClick = useCallback(() => {
+    onFilterChange?.(null)
+  }, []);
+
+  const handleClick2 = useCallback(() => {
+    onFilterChange?.({ type: 'criticality', value: 'Critique' })
+  }, []);
+
+  const handleMouseEnter = useCallback((_, index) => {
+    setActiveCriticalityIndex(index)
+  }, []);
+
+  const handleMouseEnter2 = useCallback((_, index) => {
+    setActiveScopeIndex(index)
+  }, []);
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    onFilterChange?.(null);
+                                }
+  }, []);
+
+  const handleKeyDown2 = useCallback((e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    onFilterChange?.({ type: 'criticality', value: 'Critique' });
+                                }
+  }, []);
+
+
 
     return (
         <g>
@@ -76,14 +133,14 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
 
         const nextMonth = new Date();
         nextMonth.setDate(nextMonth.getDate() + 30);
-        const maintenance = assets.filter(a => a.nextMaintenance && new Date(a.nextMaintenance) < nextMonth).length;
+        const maintenance = useMemo(() => assets.filter(a => a.nextMaintenance && new Date(a.nextMaintenance) < nextMonth).length, [assets]);
 
-        const tValue = assets.reduce((acc, a) => acc + (a.purchasePrice || 0), 0);
-        const cValue = assets.reduce((acc, a) => acc + (a.currentValue || 0), 0);
+        const tValue = useMemo(() => assets.reduce((acc, a) => acc + (a.purchasePrice || 0), 0), [assets]);
+        const cValue = useMemo(() => assets.reduce((acc, a) => acc + (a.currentValue || 0), 0), [assets]);
         const dep = tValue > 0 ? ((tValue - cValue) / tValue * 100) : 0;
         const healthScore = Math.round(100 - dep);
 
-        const newAssets = assets.filter(a => a.purchaseDate && (new Date().getTime() - new Date(a.purchaseDate).getTime()) < 2592000000).length;
+        const newAssets = useMemo(() => assets.filter(a => a.purchaseDate && (new Date().getTime() - new Date(a.purchaseDate).getTime()) < 2592000000).length, [assets]);
 
         return { total, critical, maintenance, totalValue: tValue, currentValue: cValue, depreciation: dep, healthScore, newAssets };
     }, [assets]);
@@ -294,17 +351,12 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-border/50 px-6 mx-2">
                         <div
                             className="text-center cursor-pointer hover:opacity-80 transition-opacity group/metric"
-                            onClick={() => onFilterChange?.(null)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    onFilterChange?.(null);
-                                }
-                            }}
+                            onClick={handleClick}
+                            onKeyDown={handleKeyDown}
                             role="button"
                             tabIndex={0}
                         >
-                            <div className="flex items-center justify-center gap-2 mb-2">
+                            <div className="flex items-center justify-center gap-2 mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
                                 <div className="p-2 bg-primary/10 rounded-3xl group-hover/metric:scale-110 transition-transform">
                                     <Server className="h-4 w-4 text-primary" />
                                 </div>
@@ -314,17 +366,12 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                         </div>
                         <div
                             className="text-center cursor-pointer hover:opacity-80 transition-opacity group/metric"
-                            onClick={() => onFilterChange?.({ type: 'criticality', value: 'Critique' })}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    onFilterChange?.({ type: 'criticality', value: 'Critique' });
-                                }
-                            }}
+                            onClick={handleClick2}
+                            onKeyDown={handleKeyDown2}
                             role="button"
                             tabIndex={0}
                         >
-                            <div className="flex items-center justify-center gap-2 mb-2">
+                            <div className="flex items-center justify-center gap-2 mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
                                 <div className="p-2 bg-error-bg rounded-3xl group-hover/metric:scale-110 transition-transform">
                                     <ShieldAlert className="h-4 w-4 text-destructive" />
                                 </div>
@@ -415,8 +462,8 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                         cornerRadius={6}
                                         activeIndex={activeCriticalityIndex !== null ? activeCriticalityIndex : undefined}
                                         activeShape={renderActiveShape as Pie['props']['activeShape']}
-                                        onMouseEnter={(_, index) => setActiveCriticalityIndex(index)}
-                                        onMouseLeave={() => setActiveCriticalityIndex(null)}
+                                        onMouseEnter={handleMouseEnter}
+                                        onMouseLeave={handleMouseLeave}
                                     >
                                         {distributionData.map((_, index) => (
                                             <Cell key={`cell-${index || 'unknown'}`} fill={`url(#assetCritGrad${index})`} className="cursor-pointer" />
@@ -427,7 +474,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                         verticalAlign="bottom"
                                         iconType="circle"
                                         iconSize={10}
-                                        formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase">{value}</span>}
+                                        formatter={handleFormatter}
                                     />
                                 </PieChart>
                             </ResponsiveContainer>
@@ -462,7 +509,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                         tickLine={false}
                                         tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 600 }}
                                         dy={10}
-                                        tickFormatter={(value) => value.length > 8 ? `${value.substring(0, 8)}...` : value}
+                                        tickFormatter={handleTickFormatter}
                                     />
                                     <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
                                     <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.1)' }} />
@@ -472,7 +519,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                         radius={[8, 8, 0, 0]}
                                         barSize={28}
                                         animationDuration={1200}
-                                        style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
+                                        style={{ filter: 'drop-shadow(0 2px 4px hsl(var(--foreground) / 0.1))' }}
                                     />
                                 </BarChart>
                             </ResponsiveContainer>
@@ -520,8 +567,8 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                         cornerRadius={6}
                                         activeIndex={activeScopeIndex !== null ? activeScopeIndex : undefined}
                                         activeShape={renderActiveShape as Pie['props']['activeShape']}
-                                        onMouseEnter={(_, index) => setActiveScopeIndex(index)}
-                                        onMouseLeave={() => setActiveScopeIndex(null)}
+                                        onMouseEnter={handleMouseEnter2}
+                                        onMouseLeave={handleMouseLeave2}
                                     >
                                         {scopeChartData.map((_, index) => (
                                             <Cell key={`cell-${index || 'unknown'}`} fill={`url(#assetScopeGrad${index})`} className="cursor-pointer" />
@@ -532,7 +579,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                         verticalAlign="bottom"
                                         iconType="circle"
                                         iconSize={10}
-                                        formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase">{value}</span>}
+                                        formatter={handleFormatter2}
                                     />
                                 </PieChart>
                             </ResponsiveContainer>
@@ -574,7 +621,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                     <Legend
                                         iconType="circle"
                                         iconSize={10}
-                                        formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1">{value}</span>}
+                                        formatter={handleFormatter3}
                                     />
                                     <Area
                                         yAxisId="right"

@@ -108,10 +108,11 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
   <input
   type="text"
+  aria-label="Rechercher des contrôles"
   placeholder={t('common.searchPlaceholder') || "Rechercher..."}
   value={searchTerm}
   onChange={(e) => setSearchTerm(e.target.value)}
-  className="w-full pl-9 pr-4 py-2 bg-background border border-border/40 rounded-xl text-sm focus:ring-2 focus-visible:ring-primary outline-none transition-all duration-normal ease-apple"
+  className="w-full pl-9 pr-4 py-2 bg-background border border-border/40 rounded-xl text-sm focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all duration-normal ease-apple"
   />
  </div>
 

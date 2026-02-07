@@ -100,7 +100,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({ type, payload, reasoning
   onClick={handleCancel}
   disabled={status === 'loading'}
   aria-label={`Refuser l'action: ${actionDef.label}`}
-  className="flex-1 py-1.5 px-3 rounded-lg text-xs font-medium bg-muted text-muted-foreground hover:bg-muted transition-colors"
+  className="flex-1 py-1.5 px-3 rounded-lg text-xs font-medium bg-muted text-muted-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   Refuser
   </button>
@@ -108,7 +108,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({ type, payload, reasoning
   onClick={handleConfirm}
   disabled={status === 'loading'}
   aria-label={`Confirmer l'action: ${actionDef.label}`}
-  className="flex-1 py-1.5 px-3 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm flex items-center justify-center gap-1.5"
+  className="flex-1 py-1.5 px-3 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   {status === 'loading' && <Loader2 className="h-3 w-3 animate-spin" />}
   {status === 'loading' ? 'Exécution...' : 'Confirmer'}

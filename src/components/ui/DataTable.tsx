@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
  useReactTable,
@@ -172,7 +172,7 @@ export function DataTable<TData extends { id: string }, TValue>({
   onChange={(e) => setGlobalFilter(e.target.value)}
   type="text"
   placeholder={t('common.searchPlaceholder', { defaultValue: 'Rechercher...' })}
-  className="w-full pl-10 pr-4 py-2 bg-background/50 border border-border rounded-2xl text-sm focus:ring-2 focus-visible:ring-primary focus:border-primary outline-none backdrop-blur-sm transition-all"
+  className="w-full pl-10 pr-4 py-2 bg-background/50 border border-border rounded-2xl text-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary outline-none backdrop-blur-sm transition-all"
   />
   </div>
  )}
@@ -346,6 +346,16 @@ export function DataTable<TData extends { id: string }, TValue>({
   } else {
    pageNum = currentPage - 2 + i;
   }
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
 
   return (
    <Button

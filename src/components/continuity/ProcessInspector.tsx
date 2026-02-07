@@ -71,9 +71,8 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
  <div className="flex items-center gap-2">
   <span className="text-muted-foreground">{t('common.managedBy')}</span>
   <div className="flex items-center gap-2">
-  <img
+  <img alt={`Avatar de ${process.owner}`}
   src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
-  alt={`Avatar de ${process.owner}`}
   className="w-5 h-5 rounded-full object-cover bg-muted border border-border/40"
   />
   <span className="font-medium text-foreground text-muted-foreground">

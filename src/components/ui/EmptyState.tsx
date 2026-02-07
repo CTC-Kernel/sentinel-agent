@@ -157,7 +157,7 @@ export const EmptyState: React.FC<EmptyStateProps> = React.memo(({ icon: Icon, t
   <motion.button
   onClick={onAction}
   aria-label={actionLabel}
-  className="px-8 py-3.5 bg-primary text-primary-foreground rounded-xl font-bold text-sm shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 transition-all duration-normal ease-apple focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-background inline-flex items-center gap-2"
+  className="px-8 py-3.5 bg-primary text-primary-foreground rounded-xl font-bold text-sm shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 transition-all duration-normal ease-apple focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-background inline-flex items-center gap-2"
   whileHover={{ scale: 1.02, y: -2 }}
   whileTap={{ scale: 0.98 }}
   >

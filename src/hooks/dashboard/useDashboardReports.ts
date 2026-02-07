@@ -86,7 +86,7 @@ export const useDashboardReports = () => {
  PdfService.generateExecutiveReport(
  {
   title: t('dashboard.reportTitle') || 'Rapport Exécutif',
-  subtitle: (t('dashboard.generatedOn') || 'Généré le {date}').replace('{date}', new Date().toLocaleDateString()),
+  subtitle: (t('dashboard.generatedOn') || 'Généré le {date}').replace('{date}', new Date().toLocaleDateString('fr-FR')),
   filename: `Rapport_Executif_${organizationName || 'Sentinel'}_${new Date().toISOString().split('T')[0]}.pdf`,
   organizationName: organizationName || 'Sentinel GRC',
   organizationLogo,

@@ -134,9 +134,8 @@ export const useRiskColumns = ({
   <div className="w-10 h-10 rounded-3xl bg-muted border border-border/40 flex items-center justify-center mr-4 text-muted-foreground overflow-hidden shrink-0">
   {ownerUser ? (
   <div className="relative">
-   <img
+   <img alt={getOwnerName(row.original.owner)}
    src={getUserAvatarUrl(ownerUser.photoURL, ownerUser.role)}
-   alt={getOwnerName(row.original.owner)}
    className="w-full h-full object-cover"
    />
   </div>

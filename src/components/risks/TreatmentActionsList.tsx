@@ -90,7 +90,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
  onUpdate({
  ...action,
  status: newStatus,
- updatedAt: new Date().toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  completedAt: newStatus === 'Terminé' ? new Date().toISOString() : action.completedAt
  });
  };
@@ -226,7 +226,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
    <Button
    variant="ghost"
    size="sm"
-   onClick={() => onDelete(action.id)}
+   onClick={() => confirm("Confirmer la suppression ?") && onDelete(action.id)}
    className="h-7 w-7 p-0 text-muted-foreground hover:text-red-500"
    aria-label={t('risks.treatment.delete_action', { defaultValue: "Supprimer l'action" })}
    >

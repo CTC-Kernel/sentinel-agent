@@ -23,6 +23,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { SmartSummary, SmartInsight } from '../components/ui/SmartSummary';
 import { staggerContainerVariants, slideUpVariants } from '../components/ui/animationVariants';
+import { useAuth } from '../hooks/useAuth';
 import { useRegulatoryChanges } from '../hooks/useRegulatoryChanges';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { cn } from '../lib/utils';
@@ -145,7 +146,7 @@ const PRIORITY_LABELS: Record<string, string> = {
 const TableSkeleton: React.FC = () => (
   <div className="space-y-3">
     {[1, 2, 3, 4, 5].map((i) => (
-      <div key={i} className="h-16 rounded-xl bg-muted/20 animate-pulse border border-border/40" />
+      <div key={`skeleton-${i}`} className="h-16 rounded-xl bg-muted/20 animate-pulse border border-border/40" />
     ))}
   </div>
 );
@@ -698,6 +699,10 @@ const TimelineView: React.FC<{ changes: RegulatoryChange[] }> = ({ changes }) =>
 // Main component
 // ===========================================================================
 export const RegulatoryChanges: React.FC = () => {
+  const { user } = useAuth();
+
+  // RBAC: Only admin/rssi can manage regulatory changes
+  const canManageRegulatory = user?.role === 'admin' || user?.role === 'rssi' || user?.role === 'super_admin';
 
   const { changes, alerts, stats, loading, error, markAlertRead } = useRegulatoryChanges();
 
@@ -800,6 +805,7 @@ export const RegulatoryChanges: React.FC = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
+              aria-label="Rechercher un changement"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Rechercher un changement..."

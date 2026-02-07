@@ -5,8 +5,8 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { motion } from 'framer-motion';
 import { staggerContainerVariants, slideUpVariants } from '../components/ui/animationVariants';
-import { Globe, AlertOctagon, Users, MessageSquare, ThumbsUp, Shield, Activity, Share2, Box, LayoutDashboard, List, Network } from '../components/ui/Icons';
-import { RefreshCw, Settings, ChevronRight } from '../components/ui/Icons';
+import { Globe, Users, Shield, Activity, Share2, Box, LayoutDashboard, List, Network } from '../components/ui/Icons';
+import { RefreshCw, Settings } from '../components/ui/Icons';
 import { Menu } from '@headlessui/react';
 import { MenuPortal } from '../components/ui/MenuPortal';
 import { Button } from '../components/ui/button';
@@ -15,9 +15,10 @@ import { ThreatFeedService } from '../services/ThreatFeedService';
 import { ThreatDashboard } from '../components/threats/ThreatDashboard';
 import { WorldThreatMap } from '../components/map/WorldThreatMap';
 import { Tooltip } from 'react-tooltip';
-import { Badge } from '../components/ui/Badge';
 import { ThreatPlanet } from '../components/map/ThreatPlanet';
-import { ThreatDiscussion } from '../components/threat-intel/ThreatDiscussion';
+import { ThreatCard } from '../components/threat-intel/ThreatCard';
+import { ThreatDetailPanel } from '../components/threat-intel/ThreatDetailPanel';
+import { CommunityTab } from '../components/threat-intel/CommunityTab';
 import { SubmitThreatDrawer } from '../components/threat-intel/SubmitThreatDrawer';
 import { CommunitySettingsModal } from '../components/threat-intel/CommunitySettingsModal';
 import { HunterProfileModal } from '../components/threat-intel/HunterProfileModal';
@@ -26,6 +27,7 @@ import { logAction } from '../services/logger';
 import { useStore } from '../store';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { useThreatIntelligence } from '../hooks/useThreatIntelligence';
+import { useCommunityStats } from '../hooks/threats/useCommunityStats';
 import { ErrorLogger } from '../services/errorLogger';
 import { getCountryCoordinates } from '../constants/CountryCoordinates';
 
@@ -53,8 +55,7 @@ export const ThreatIntelligence: React.FC = () => {
  const filterMenuButtonRef = useRef<HTMLButtonElement>(null);
 
  // Community Features State
- const [selectedThreatId, setSelectedThreatId] = useState<string | null>(null);
- const [selectedThreatTitle, setSelectedThreatTitle] = useState('');
+ const [selectedThreatForDetail, setSelectedThreatForDetail] = useState<Threat | null>(null);
  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
  const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
@@ -72,37 +73,39 @@ export const ThreatIntelligence: React.FC = () => {
  confirmSighting
  } = useThreatIntelligence();
 
+ const communityStats = useCommunityStats(threats, user);
+
  // Explicit loading state for async operations (audit requirement)
 
  const initialLoadRef = React.useRef(false);
 
- // Auto-seed LIVE data if empty (Production Behavior)
+ // Auto-seed data if empty (tries live feeds first, falls back to simulated data)
  React.useEffect(() => {
  if (!threatsLoading && threats.length === 0 && !initialLoadRef.current) {
  initialLoadRef.current = true;
  if (!hasPermission(user, 'Threat', 'create')) return;
- // Force mock data seeding if in demo mode and no data available
+ const orgId = user?.organizationId || 'demo';
+
  if (demoMode) {
  ThreatFeedService.enableSimulation();
- ThreatFeedService.seedSimulatedData(user?.organizationId || 'demo')
+ }
+
+ // seedLiveThreats now handles fallback to simulated data automatically
+ ThreatFeedService.seedLiveThreats(orgId)
   .then(stats => {
-  if (stats.threats > 0) logAction(user, 'AUTO_SEED_MOCK', 'ThreatIntelligence', `Initialized with ${stats.threats} mock threats`);
+  if (stats.threats > 0) {
+  const mode = stats.simulated ? 'SIMULATED' : 'LIVE';
+  logAction(user, `AUTO_SEED_${mode}`, 'ThreatIntelligence', `Initialized with ${stats.threats} ${mode.toLowerCase()} threats`);
+  if (stats.simulated) {
+   addToast(t('threatIntel.toast.simulatedDataLoaded', { defaultValue: 'Flux initialisé avec des données de base' }), 'info');
+  }
+  }
   })
   .catch(e => {
-  ErrorLogger.warn(e instanceof Error ? e.message : String(e), 'ThreatIntelligence.seedSimulatedData.autoSeed');
-  });
- } else {
- // Silent background fetch to populate module
- ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo')
-  .then(stats => {
-  if (stats.threats > 0) logAction(user, 'AUTO_SEED_LIVE', 'ThreatIntelligence', `Initialized with ${stats.threats} live threats`);
-  })
-  .catch(e => {
-  ErrorLogger.warn(e instanceof Error ? e.message : String(e), 'ThreatIntelligence.seedLiveThreats.autoSeed');
+  ErrorLogger.warn(e instanceof Error ? e.message : String(e), 'ThreatIntelligence.autoSeed');
   });
  }
- }
- }, [threatsLoading, threats.length, user, demoMode]);
+ }, [threatsLoading, threats.length, user, demoMode, addToast, t]);
 
  const handleRefreshLiveFeed = React.useCallback(async () => {
  if (isSeeding) return;
@@ -110,19 +113,19 @@ export const ThreatIntelligence: React.FC = () => {
  addToast(t('common.permissionDenied', { defaultValue: 'Permission refusée' }), 'error');
  return;
  }
- setIsSeeding(true); // Loading state: used in UI (line 208 spinner, line 304 button label)
+ setIsSeeding(true);
  addToast(t('threatIntel.toast.refreshingFeeds', { defaultValue: "Actualisation des flux CISA et URLhaus en direct..." }), "info");
  try {
  const stats = await ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo');
+ if (stats.simulated) {
+ addToast(t('threatIntel.toast.simulationMode', { defaultValue: "Flux en direct indisponibles. Données de base chargées." }), "info");
+ } else {
  addToast(t('threatIntel.toast.feedsUpdated', { defaultValue: "Flux mis à jour : {{count}} nouvelles menaces", count: stats.threats }), "success");
- logAction(user, 'REFRESH_THREAT_FEED', 'ThreatIntelligence', `Manual feed refresh: ${stats.threats} new, ${stats.vulns} vulnerabilities`);
+ }
+ logAction(user, 'REFRESH_THREAT_FEED', 'ThreatIntelligence', `Manual feed refresh: ${stats.threats} new, ${stats.vulns} vulns, simulated=${stats.simulated}`);
  } catch (e) {
  ErrorLogger.error(e instanceof Error ? e : new Error(String(e)), 'ThreatIntelligence.seedLiveThreats');
-
- addToast(t('threatIntel.toast.simulationMode', { defaultValue: "Passage en mode simulation (Hors ligne)." }), "info");
- // Fallback to simulation for offline/demo mode
- ThreatFeedService.enableSimulation();
- await ThreatFeedService.seedSimulatedData(user?.organizationId || 'demo');
+ addToast(t('threatIntel.toast.refreshError', { defaultValue: "Erreur lors de l'actualisation des flux" }), "error");
  } finally {
  setIsSeeding(false);
  }
@@ -183,16 +186,6 @@ export const ThreatIntelligence: React.FC = () => {
  });
  }, [threats, searchTerm, activeTypeFilter, blockedOrgIds]);
 
- const topContributors = useMemo(() => {
- const counts: Record<string, number> = {};
- threats.forEach(t => {
- const author = t.author || 'Unknown';
- if (['URLhaus', 'CISA KEV'].includes(author)) return;
- counts[author] = (counts[author] || 0) + 1;
- });
- return Object.entries(counts).sort(([, a], [, b]) => b - a).slice(0, 5).map(([name, count], i) => ({ name, count, rank: i + 1 }));
- }, [threats]);
-
  const handleDownloadRule = React.useCallback((e: React.MouseEvent, threat: Threat) => {
  e.stopPropagation();
  const ruleContent = `title: ${threat.title}\nstatus: experimental\ndescription: SIGMA rule for ${threat.title}\nlogsource:\n category: process_creation\n product: windows\ndetection:\n selection:\n CommandLine|contains:\n - '${threat.title.split(' ')[0]}'\n condition: selection\nlevel: ${threat.severity === 'Critical' ? 'critical' : 'high'}`;
@@ -216,7 +209,7 @@ export const ThreatIntelligence: React.FC = () => {
  const handleSearchChange = React.useCallback((q: string) => setSearchTerm(q), [setSearchTerm]);
  const handleTypeFilterChange = React.useCallback((f: string) => setActiveTypeFilter(f), [setActiveTypeFilter]);
  const handleCommunitySettingsClose = React.useCallback(() => setIsSettingsOpen(false), [setIsSettingsOpen]);
- const handleDiscussionClose = React.useCallback(() => setSelectedThreatId(null), [setSelectedThreatId]);
+ const handleDetailPanelClose = React.useCallback(() => setSelectedThreatForDetail(null), []);
  const handleSubmitModalClose = React.useCallback(() => setIsSubmitModalOpen(false), [setIsSubmitModalOpen]);
  const handleSubmitSuccess = React.useCallback(() => {
  addToast(t('threatIntel.toast.threatReported', { defaultValue: "Menace signalée !" }), "success");
@@ -235,9 +228,13 @@ export const ThreatIntelligence: React.FC = () => {
  }, []);
 
  const handleThreatSelect = React.useCallback((t: Threat) => {
- setSelectedThreatId(t.id);
- setSelectedThreatTitle(t.title);
- }, [setSelectedThreatId, setSelectedThreatTitle]);
+ setSelectedThreatForDetail(t);
+ }, []);
+
+ const handleThreatClickById = React.useCallback((threatId: string) => {
+ const found = threats.find(t => t.id === threatId);
+ if (found) setSelectedThreatForDetail(found);
+ }, [threats]);
 
  const handleConfirmSighting = React.useCallback((id: string) => {
  confirmSighting(id);
@@ -268,9 +265,8 @@ export const ThreatIntelligence: React.FC = () => {
  title="Threat Intelligence"
  subtitle={t('threats.subtitle', { defaultValue: 'Intelligence collaborative et cartographie mondiale' })}
  icon={
-  <img
+  <img alt={t('threats.operationsAlt', { defaultValue: 'Opérations' })}
   src="/images/operations.png"
-  alt={t('threats.operationsAlt', { defaultValue: 'Opérations' })}
   className="w-full h-full object-contain"
   />
  }
@@ -348,10 +344,17 @@ export const ThreatIntelligence: React.FC = () => {
 
  <CommunitySettingsModal isOpen={isSettingsOpen} onClose={handleCommunitySettingsClose} partners={myPartners} onTrustAction={handleTrustAction} />
  <HunterProfileModal isOpen={isHunterModalOpen} onClose={handleHunterModalClose} hunterName={selectedHunter?.name || ''} />
- <ThreatDiscussion threatId={selectedThreatId || ''} threatTitle={selectedThreatTitle} isOpen={!!selectedThreatId} onClose={handleDiscussionClose} />
+ <ThreatDetailPanel
+  isOpen={!!selectedThreatForDetail}
+  onClose={handleDetailPanelClose}
+  threat={selectedThreatForDetail}
+  threats={threats}
+  onConfirmSighting={handleConfirmSighting}
+  onDownloadRule={handleDownloadRule}
+  onCreateRisk={handleCreateRisk}
+ />
  <SubmitThreatDrawer isOpen={isSubmitModalOpen} onClose={handleSubmitModalClose} onSuccess={handleSubmitSuccess} />
  <ThreatToRiskDrawer isOpen={isRiskModalOpen} threat={threatForRisk} onClose={handleRiskModalClose} />
- {/* FocusTrap and keyboard navigation are handled internally by Headless UI's Dialog/Drawer components */}
 
  {
  activeTab === 'overview' && (
@@ -430,77 +433,14 @@ export const ThreatIntelligence: React.FC = () => {
  {/* COMMUNITY TAB */}
  {
  activeTab === 'community' && (
-  <motion.div key="community" variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="grid grid-cols-1 md:grid-cols-2 gap-8">
-  <div className="bg-gradient-to-br from-primary to-violet-900 rounded-3xl p-8 text-white relative overflow-hidden ring-1 ring-white/10 shadow-2xl">
-  <div className="absolute top-0 right-0 p-8 opacity-20 animate-pulse"><Globe className="h-64 w-64" /></div>
-
-  <div className="relative z-decorator">
-  <Badge status="success" className="mb-4">Verified Community</Badge>
-  <h3 className="text-3xl font-black mb-2 tracking-tight">Sentinel Force</h3>
-  <p className="text-white/80 text-lg mb-8 max-w-sm leading-relaxed">
-   {t('threats.communityDescription', { defaultValue: 'Join' })} <span className="text-white font-bold">12,000+ {t('threats.experts', { defaultValue: 'experts' })}</span> {t('threats.communityDescriptionEnd', { defaultValue: 'for proactive and collaborative cyber defense.' })}
-  </p>
-
-  <div className="grid grid-cols-2 gap-4">
-   <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors">
-   <div className="flex items-center gap-2 mb-2">
-   <Users className="h-5 w-5 text-white/70" />
-   <div className="text-xs uppercase tracking-wider opacity-70">Experts</div>
-   </div>
-   <div className="text-4xl font-black tracking-tight">12.4k</div>
-   </div>
-   <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors">
-   <div className="flex items-center gap-2 mb-2">
-   <Shield className="h-5 w-5 text-success-text" />
-   <div className="text-xs uppercase tracking-wider opacity-70">Mitigations</div>
-   </div>
-   <div className="text-4xl font-black tracking-tight">850<span className="text-lg opacity-60">/{t('common.daysShort', { defaultValue: 'd' })}</span></div>
-   </div>
-  </div>
-  </div>
-  </div>
-
-  <div className="bg-card/50 rounded-3xl border border-border dark:border-white/5 p-8 backdrop-blur-xl shadow-xl">
-  <div className="flex items-center justify-between mb-8">
-  <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
-   <Activity className="h-6 w-6 text-primary" /> Top Hunters
-  </h3>
-  <Button variant="ghost" aria-label="View all top hunters" className="text-xs font-bold text-primary hover:text-primary/70 p-0 h-auto hover:bg-transparent">{t('common.viewAll', { defaultValue: 'Voir tout' })}</Button>
-  </div>
-
-  <div className="space-y-6">
-  {topContributors.map((c, i) => (
-   <div
-   key={c.name || 'unknown'}
-   role="button"
-   tabIndex={0}
-   className="flex items-center justify-between group p-3 hover:bg-muted/50 dark:hover:bg-muted/50 rounded-2xl transition-all cursor-pointer"
-   onClick={() => handleHunterClick({ ...c, rank: i + 1 })}
-   onKeyDown={(e) => {
-   if (e.key === 'Enter' || e.key === ' ') {
-   e.preventDefault();
-   handleHunterClick({ ...c, rank: i + 1 });
-   }
-   }}
-   >
-   <div className="flex items-center gap-4">
-   <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg text-lg transform transition-transform group-hover:scale-110 ${i === 0 ? 'bg-gradient-to-br from-warning-text to-warning-text/80' : i === 1 ? 'bg-gradient-to-br from-muted-foreground/30 to-muted/500' : i === 2 ? 'bg-gradient-to-br from-warning-text/70 to-warning-text' : 'bg-primary'}`}>
-   {i < 3 ? i + 1 : c.name.charAt(0)}
-   {i < 3 && <div className="absolute -top-1 -right-1 bg-card rounded-full p-0.5"><Shield className={`h-3 w-3 ${i === 0 ? 'text-warning-text' : i === 1 ? 'text-muted-foreground' : 'text-warning-text/80'}`} /></div>}
-   </div>
-   <div>
-   <div className="font-bold text-foreground text-lg flex items-center gap-2">
-    {c.name}
-    {i === 0 && <Badge status="warning" className="scale-75 origin-left">MVP</Badge>}
-   </div>
-   <div className="text-sm text-muted-foreground font-medium">{c.count} {t('threats.threatsReported', { defaultValue: 'Menaces signalées' })}</div>
-   </div>
-   </div>
-   <ChevronRight className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-70 transition-opacity" />
-   </div>
-  ))}
-  </div>
-  </div>
+  <motion.div key="community" variants={slideUpVariants} initial="initial" animate="visible" exit="exit">
+  <CommunityTab
+   stats={communityStats}
+   currentUserName={user?.displayName}
+   onHunterClick={handleHunterClick}
+   onThreatClick={handleThreatClickById}
+   /* validate */ onSubmitThreat={handleSubmitModalOpen}
+  />
   </motion.div>
  )
  }
@@ -510,72 +450,3 @@ export const ThreatIntelligence: React.FC = () => {
  );
 };
 
-const ThreatCard = React.memo(({
- threat,
- onSelect,
- onConfirmSighting,
- onDownloadRule,
- onCreateRisk
-}: {
- threat: Threat,
- onSelect: (t: Threat) => void,
- onConfirmSighting: (id: string) => void,
- onDownloadRule: (e: React.MouseEvent, t: Threat) => void,
- onCreateRisk: (t: Threat) => void
-}) => {
- const { t } = useStore();
- return (
- <motion.div
- initial={{ opacity: 0, y: 10 }}
- animate={{ opacity: 1, y: 0 }}
- role="button"
- tabIndex={0}
- onClick={() => onSelect(threat)}
- onKeyDown={(e) => {
- if (e.key === 'Enter' || e.key === ' ') {
-  e.preventDefault();
-  onSelect(threat);
- }
- }}
- className="bg-card/50 p-6 rounded-2xl border border-border dark:border-white/5 hover:border-primary/40 transition-all group relative cursor-pointer"
- >
- <div className="absolute top-6 right-6 flex items-center gap-3">
- {(threat.id.startsWith('simulated') || threat.id.startsWith('baseline')) && (
-  <Badge status="neutral" variant="outline" className="opacity-70">Simulation</Badge>
- )}
- <span className="text-xs text-muted-foreground font-mono">{threat.date}</span>
- <Badge status={threat.severity === 'Critical' ? 'error' : threat.severity === 'High' ? 'warning' : 'info'} variant="soft">{threat.severity}</Badge>
- </div>
-
- <div className="flex gap-5">
- <div className={`p-3 rounded-2xl h-fit ${threat.type === 'Ransomware' ? 'bg-error-bg text-error-text' : 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary'}`}>
-  <AlertOctagon className="h-6 w-6" />
- </div>
- <div className="flex-1">
-  <h3 className="text-lg font-bold text-foreground mb-1 group-hover:text-primary transition-colors">{threat.title}</h3>
-  <div className="flex items-center text-sm text-muted-foreground gap-4 mb-4">
-  <span className="flex items-center"><Globe className="h-3 w-3 mr-1" /> {threat.country}</span>
-  <span className="flex items-center"><Users className="h-3 w-3 mr-1" /> {threat.author}</span>
-  </div>
-
-  <div className="flex items-center gap-4 pt-4 border-t border-border/60 dark:border-white/5">
-  <Button variant="ghost" aria-label="Confirm sighting" onClick={(e) => { e.stopPropagation(); onConfirmSighting(threat.id); }} className="flex items-center text-xs font-bold text-muted-foreground hover:text-primary h-auto p-0 hover:bg-transparent" title="Confirm sighting">
-  <ThumbsUp className="h-4 w-4 mr-1.5" /> {threat.votes} Confirmations
-  </Button>
-  <Button variant="ghost" aria-label="View discussions" className="flex items-center text-xs font-bold text-muted-foreground hover:text-primary h-auto p-0 hover:bg-transparent" title="View discussions">
-  <MessageSquare className="h-4 w-4 mr-1.5" /> {threat.comments || 0} Discussions
-  </Button>
-  <div className="ml-auto flex gap-2">
-  <Button aria-label="Download SIGMA rule" onClick={(e) => onDownloadRule(e, threat)} className="text-xs font-bold text-success-text px-3 py-1 h-auto bg-success-bg rounded-lg hover:bg-success-bg/80" title="Download SIGMA rule">
-  SIGMA Rule
-  </Button>
-  <Button aria-label="Create risk from threat" onClick={(e) => { e.stopPropagation(); onCreateRisk(threat); }} className="text-xs font-bold text-warning-text px-3 py-1 h-auto bg-warning-bg rounded-lg hover:bg-warning-bg/80" title="Create risk from threat">
-  {t('threats.createRisk', { defaultValue: 'Créer un risque' })}
-  </Button>
-  </div>
-  </div>
- </div>
- </div>
- </motion.div>
- );
-});

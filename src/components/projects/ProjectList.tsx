@@ -100,9 +100,8 @@ export const ProjectList: React.FC<ProjectListProps> = ({
  return (
   <div className="flex items-center gap-2">
   <div className="relative">
-  <img
+  <img alt={row.original.manager}
   src={getUserAvatarUrl(managerUser?.photoURL, managerUser?.role)}
-  alt={row.original.manager}
   className="w-6 h-6 rounded-full border border-primary/30 dark:border-primary/90 object-cover"
   />
   </div>
@@ -126,9 +125,8 @@ export const ProjectList: React.FC<ProjectListProps> = ({
   {displayMembers.map(m => (
   <CustomTooltip key={m.uid || 'unknown'} content={m.displayName || m.email}>
   <div className="relative">
-   <img
+   <img alt={m.displayName || 'Membre'}
    src={getUserAvatarUrl(m.photoURL, m.role)}
-   alt={m.displayName || 'Membre'}
    className="w-6 h-6 rounded-full border-2 border-white object-cover bg-muted"
    />
   </div>
@@ -186,7 +184,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
  meta: { className: 'hidden lg:table-cell' },
  cell: ({ row }) => (
  <span className="text-muted-foreground font-medium text-xs">
-  {new Date(row.original.dueDate).toLocaleDateString()}
+  {new Date(row.original.dueDate).toLocaleDateString('fr-FR')}
  </span>
  )
  },

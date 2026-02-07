@@ -273,6 +273,9 @@ export interface Threat {
  source?: string; // 'Community' | 'CISA' | 'URLhaus' | etc.
  description?: string;
  url?: string;
+ iocs?: string;
+ relatedRiskId?: string;
+ status?: 'Active' | 'Processed' | 'Dismissed';
 }
 
 // AISuggestedLink moved to voxel.ts

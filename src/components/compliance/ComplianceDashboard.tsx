@@ -51,6 +51,8 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
  }, [user?.organizationId, t]);
 
  if (loading) {
+ /* empty state: Aucun élément à afficher si la liste est vide */
+
  return (
  <div className="space-y-6 w-full min-w-0">
  {/* Summary Card Skeleton */}

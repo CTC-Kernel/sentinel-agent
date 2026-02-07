@@ -124,6 +124,7 @@ export const useAuthActions = () => {
  }
  return true;
  } catch (_error: unknown) {
+ ErrorLogger.error(_error, 'useAuthActions.handleEmailAuth');
  const err = _error as { code?: string; message?: string };
  if (err.code === 'auth/multi-factor-auth-required') {
  const resolver = getMultiFactorResolver(auth, _error as MultiFactorError);

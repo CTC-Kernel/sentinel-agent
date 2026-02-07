@@ -114,7 +114,7 @@ export const ICTProviderDrawer: React.FC<ICTProviderDrawerProps> = ({
  hasUnsavedChanges={isDirty}
  >
  <ICTProviderForm
- onSubmit={handleSubmit}
+ /* validate */ onSubmit={handleSubmit}
  onCancel={onClose}
  initialData={initialData}
  isEditing={isEditing}

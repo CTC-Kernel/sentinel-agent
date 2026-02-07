@@ -12,6 +12,14 @@ import { Button } from './button';
 import { cn } from '../../lib/utils';
 import { appleEasing } from '../../utils/microInteractions';
 
+// ============================================================================
+// Constants
+// ============================================================================
+const SECONDS_PER_MINUTE = 60;
+const SECONDS_PER_HOUR = 3600;
+const MAX_ETA_SECONDS = 86400; // 24 hours
+const ETA_UPDATE_INTERVAL_MS = 1000;
+
 export interface OperationStep {
  id: string;
  label: string;
@@ -56,16 +64,16 @@ interface OperationProgressProps {
  * Format remaining time for display
  */
 const formatETA = (seconds: number): string => {
- if (seconds < 60) {
+ if (seconds < SECONDS_PER_MINUTE) {
  return `${Math.ceil(seconds)}s`;
  }
- if (seconds < 3600) {
- const minutes = Math.floor(seconds / 60);
- const secs = Math.ceil(seconds % 60);
+ if (seconds < SECONDS_PER_HOUR) {
+ const minutes = Math.floor(seconds / SECONDS_PER_MINUTE);
+ const secs = Math.ceil(seconds % SECONDS_PER_MINUTE);
  return `${minutes}m ${secs}s`;
  }
- const hours = Math.floor(seconds / 3600);
- const minutes = Math.ceil((seconds % 3600) / 60);
+ const hours = Math.floor(seconds / SECONDS_PER_HOUR);
+ const minutes = Math.ceil((seconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
  return `${hours}h ${minutes}m`;
 };
 
@@ -101,7 +109,7 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
  const estimatedTotal = elapsed / (progress / 100);
  const remaining = estimatedTotal - elapsed;
 
- if (remaining > 0 && remaining < 86400) { // Max 24h
+ if (remaining > 0 && remaining < MAX_ETA_SECONDS) {
  setEta(formatETA(remaining));
  } else {
  setEta(null);
@@ -109,7 +117,7 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
  };
 
  // Update every second for real-time ETA (interval callback is allowed)
- const interval = setInterval(calculateEta, 1000);
+ const interval = setInterval(calculateEta, ETA_UPDATE_INTERVAL_MS);
  return () => {
  clearInterval(interval);
  setEta(null); // Reset on cleanup

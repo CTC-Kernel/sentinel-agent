@@ -203,7 +203,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
   className={`${active ? 'bg-primary/10 text-primary' : 'text-foreground'
   } flex items-center gap-2 w-full px-3 py-2 text-sm rounded-3xl transition-colors`}
   >
-  <Play className="w-4 h-4" />
+  <Play className="w-4 h-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" />
   {t('training.assignment.assign')}
   </button>
   )}
@@ -220,7 +220,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
   className={`${active ? 'bg-primary/10 text-primary' : 'text-foreground'
   } flex items-center gap-2 w-full px-3 py-2 text-sm rounded-3xl transition-colors`}
   >
-  <Edit className="w-4 h-4" />
+  <Edit className="w-4 h-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" />
   {t('common.edit')}
   </button>
   )}
@@ -237,7 +237,7 @@ export const TrainingCourseCard: React.FC<TrainingCourseCardProps> = React.memo(
   className={`${active ? 'bg-error-bg text-error-text' : 'text-error-text'
   } flex items-center gap-2 w-full px-3 py-2 text-sm rounded-3xl transition-colors`}
   >
-  <Archive className="w-4 h-4" />
+  <Archive className="w-4 h-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" />
   {t('training.course.archive')}
   </button>
   )}

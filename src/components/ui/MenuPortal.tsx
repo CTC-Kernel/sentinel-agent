@@ -93,7 +93,7 @@ export const MenuPortal: React.FC<MenuPortalProps> = ({
           "fixed origin-top-right divide-y divide-border/20",
           "rounded-xl bg-background/95 backdrop-blur-xl",
           "text-popover-foreground shadow-xl",
-          "ring-1 ring-border/40 focus:outline-none",
+          "ring-1 ring-border/40 focus-visible:outline-none",
           "z-dropdown",
           className
         )}

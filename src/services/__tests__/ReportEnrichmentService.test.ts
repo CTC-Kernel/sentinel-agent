@@ -31,8 +31,8 @@ const createMockRisk = (overrides: Partial<Risk> = {}): Risk => ({
  status: 'Planifié'
  },
  organizationId: 'org-123',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides
 });
 
@@ -48,8 +48,8 @@ const createMockProject = (overrides: Partial<Project> = {}): Project => ({
  dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
  tasks: [],
  organizationId: 'org-123',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides
 } as Project);
 
@@ -62,8 +62,8 @@ const createMockControl = (overrides: Partial<Control> = {}): Control => ({
  status: 'Implémenté',
  category: 'Organisationnel',
  organizationId: 'org-123',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides
 } as Control);
 

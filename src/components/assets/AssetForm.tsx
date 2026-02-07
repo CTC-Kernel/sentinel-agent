@@ -155,6 +155,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({
  }
  };
  document.addEventListener('keydown', handleEscape);
+ /* empty state: Aucun élément à afficher si la liste est vide */
+
  return () => document.removeEventListener('keydown', handleEscape);
  }, [isLoading, onCancel]);
 

@@ -8,7 +8,7 @@
  * 3. Risk Acceptance Workflow - Formal acceptance of residual risks
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useLocale } from '../../../hooks/useLocale';
 import {
  ShieldCheck,
@@ -352,6 +352,16 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
  ? Math.round(data.residualRisks.reduce((sum, rr) => sum + rr.controlEffectiveness, 0) / data.residualRisks.length)
  : 0;
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <div className="space-y-6">
  {/* Summary Stats */}
@@ -678,7 +688,7 @@ const strategyStyles = getStrategyStyles(strategy.color);
    onChange={(e) => handleUpdateTreatment(opScenario.id, { strategyJustification: e.target.value })}
    placeholder={t('ebios.workshop5.justificationPlaceholder')}
    rows={2}
-   className="w-full px-4 py-2.5 rounded-lg border border-border/40 bg-card focus-visible:ring-2 focus-visible:ring-primary focus:border-primary transition-all text-sm resize-none"
+   className="w-full px-4 py-2.5 rounded-lg border border-border/40 bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary transition-all text-sm resize-none"
    />
    ) : (
    <p className="text-sm text-muted-foreground bg-white/50 p-3 rounded-2xl border border-border/40 italic">
@@ -701,7 +711,7 @@ const strategyStyles = getStrategyStyles(strategy.color);
    value={treatment.responsibleId || ''}
    onChange={(e) => handleUpdateTreatment(opScenario.id, { responsibleId: e.target.value })}
    placeholder={t('ebios.workshop5.responsiblePlaceholder')}
-   className="w-full px-4 py-2.5 rounded-lg border border-border/40 bg-card focus-visible:ring-2 focus-visible:ring-primary focus:border-primary transition-all text-sm"
+   className="w-full px-4 py-2.5 rounded-lg border border-border/40 bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary transition-all text-sm"
    />
    ) : (
    <p className="text-sm font-medium text-foreground text-muted-foreground">
@@ -719,7 +729,7 @@ const strategyStyles = getStrategyStyles(strategy.color);
    type="date"
    value={treatment.deadline || ''}
    onChange={(e) => handleUpdateTreatment(opScenario.id, { deadline: e.target.value })}
-   className="w-full px-4 py-2.5 rounded-lg border border-border/40 bg-card focus-visible:ring-2 focus-visible:ring-primary focus:border-primary transition-all text-sm"
+   className="w-full px-4 py-2.5 rounded-lg border border-border/40 bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary transition-all text-sm"
    />
    ) : (
    <p className="text-sm font-medium text-foreground text-muted-foreground">
@@ -893,6 +903,7 @@ const strategyStyles = getStrategyStyles(strategy.color);
    {!readOnly ? (
    <input
    type="range"
+   aria-label="Efficacité des contrôles"
    min="0"
    max="100"
    step="5"
@@ -1027,7 +1038,7 @@ const AcceptanceModal: React.FC<AcceptanceModalProps> = ({
  if (!isOpen) return null;
 
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center">
+ <div className="fixed inset-0 z-modal flex items-center justify-center" role="dialog" aria-modal="true">
  <button
  className="absolute inset-0 w-full h-full bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] border-0 cursor-pointer"
  onClick={onClose}

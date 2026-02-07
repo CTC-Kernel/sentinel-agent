@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
 import { Project, UserProfile } from '../types';
@@ -28,8 +28,8 @@ export class IntakeService {
  static async fetchOptions(orgId: string): Promise<IntakeOptions> {
  try {
  const [projSnap, userSnap] = await Promise.all([
- getDocs(query(collection(db, 'projects'), where('organizationId', '==', orgId))),
- getDocs(query(collection(db, 'users'), where('organizationId', '==', orgId)))
+ getDocs(query(collection(db, 'projects'), where('organizationId', '==', orgId), limit(500))),
+ getDocs(query(collection(db, 'users'), where('organizationId', '==', orgId), limit(500)))
  ]);
 
  return {

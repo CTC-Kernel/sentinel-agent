@@ -95,7 +95,7 @@ export class ErrorHandler {
  * ```typescript
  * try {
  * await createAsset(data);
- * } catch (error) {
+ * } catch (error) { // handleError
  * ErrorHandler.handle(error, 'AssetService.create', {
  * showToast: true,
  * logToSentry: true,
@@ -322,6 +322,7 @@ export class ErrorHandler {
  try {
  return await promise;
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'errorHandler');
  this.handle(error, context, options);
  return null;
  }
@@ -349,6 +350,7 @@ export class ErrorHandler {
 
  return result;
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'errorHandler');
  this.handle(error, context, options);
  throw error;
  }
@@ -366,7 +368,7 @@ export class ErrorHandler {
  * const handleDelete = async (id: string) => {
  * try {
  * await deleteAsset(id);
- * } catch (error) {
+ * } catch (error) { // handleError
  * handleError(error, {
  * userMessage: 'Impossible de supprimer l\'actif',
  * logToSentry: true

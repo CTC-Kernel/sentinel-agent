@@ -140,6 +140,8 @@ export function ConfigurableDashboard({
  );
  }
 
+  
+
  return (
  <div className={cn('space-y-6', className)}>
  {/* Header with edit controls */}
@@ -156,7 +158,7 @@ export function ConfigurableDashboard({
  'group inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold shadow-sm transition-all duration-200',
  'text-white bg-card hover:bg-muted hover:scale-[1.02] active:scale-95',
  'dark:bg-card dark:hover:bg-muted',
- 'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
+ 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
  )}
  >
  <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" strokeWidth={2.5} />

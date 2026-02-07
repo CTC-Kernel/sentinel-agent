@@ -61,54 +61,8 @@ export interface ActiveIncidentsResult {
  */
 const ACTIVE_INCIDENT_STATUSES = ['Nouveau', 'Analyse', 'Contenu'];
 
-/**
- * Get severity color scheme
- */
-export function getSeverityColorScheme(
- severity: Criticality
-): 'danger' | 'warning' | 'caution' | 'success' {
- switch (severity) {
- case 'Critique':
- return 'danger';
- case 'Élevée':
- return 'warning';
- case 'Moyenne':
- return 'caution';
- case 'Faible':
- default:
- return 'success';
- }
-}
-
-/**
- * Get Tailwind classes for severity color
- */
-export const SEVERITY_COLOR_CLASSES = {
- danger: {
- bg: 'bg-red-100 dark:bg-red-900/30',
- text: 'text-red-800 dark:text-red-200',
- border: 'border-red-200 dark:border-red-800',
- badge: 'bg-red-500 text-white',
- },
- warning: {
- bg: 'bg-orange-100 dark:bg-orange-900/30',
- text: 'text-orange-800 dark:text-orange-200',
- border: 'border-orange-200 dark:border-orange-800',
- badge: 'bg-orange-500 text-white',
- },
- caution: {
- bg: 'bg-yellow-100 dark:bg-yellow-900/30',
- text: 'text-yellow-800 dark:text-yellow-200',
- border: 'border-yellow-200 dark:border-yellow-800',
- badge: 'bg-warning text-warning-foreground',
- },
- success: {
- bg: 'bg-green-100 dark:bg-green-900/30',
- text: 'text-green-800 dark:text-green-200',
- border: 'border-green-200 dark:border-green-800',
- badge: 'bg-green-500 text-white',
- },
-} as const;
+// Re-export color scheme utilities (moved to utils/colorSchemes.ts to satisfy hooks naming convention)
+export { getSeverityColorScheme, SEVERITY_COLOR_CLASSES } from '../utils/colorSchemes';
 
 /**
  * Hook to fetch and monitor active incidents

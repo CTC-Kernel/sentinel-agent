@@ -81,7 +81,7 @@ export class AccessReviewService {
  orderBy('createdAt', 'desc')
  );
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const campaigns = snapshot.docs.map((doc) => ({
@@ -94,6 +94,7 @@ export class AccessReviewService {
  ErrorLogger.error(error, 'AccessReviewService.subscribeToCampaigns');
  }
  );
+ return unsubscribe;
  }
 
  /**
@@ -164,11 +165,13 @@ export class AccessReviewService {
  user: UserProfile
  ): Promise<number> {
  try {
- const batch = writeBatch(db);
+ const BATCH_LIMIT = 450;
+ let batch = writeBatch(db);
+ let batchCount = 0;
  const campaignRef = doc(db, CAMPAIGNS_COLLECTION, campaignId);
  const campaign = (await getDoc(campaignRef)).data() as AccessReviewCampaign;
 
- if (!campaign) throw new Error('Campaign not found');
+  if (!campaign) throw new Error('Campaign not found');
 
  let reviewCount = 0;
 
@@ -176,19 +179,19 @@ export class AccessReviewService {
  // Skip if user is their own manager
  if (reviewedUser.uid === user.uid) continue;
 
- const reviewData: Omit<AccessReview, 'id'> = {
+  const reviewData: Omit<AccessReview, 'id'> = {
  organizationId: campaign.organizationId,
  campaignId,
  userId: reviewedUser.uid,
  userName: reviewedUser.displayName || reviewedUser.email,
  userEmail: reviewedUser.email,
- userRole: reviewedUser.role || 'user',
+  userRole: reviewedUser.role || 'user',
  userDepartment: reviewedUser.department,
  reviewerId: user.uid,
  reviewerName: user.displayName || user.email,
  reviewerEmail: user.email,
  permissions: [], // Would be populated from actual permissions system
- status: 'pending',
+  status: 'pending',
  deadline: campaign.endDate,
  remindersSent: 0,
  createdAt: serverTimestamp() as unknown as Timestamp,
@@ -198,11 +201,18 @@ export class AccessReviewService {
  const reviewRef = doc(collection(db, REVIEWS_COLLECTION));
  batch.set(reviewRef, sanitizeData(reviewData));
  reviewCount++;
+ batchCount++;
+
+ if (batchCount >= BATCH_LIMIT) {
+  await batch.commit();
+  batch = writeBatch(db);
+  batchCount = 0;
+ }
  }
 
  // Update campaign status and count
  batch.update(campaignRef, sanitizeData({
- status: 'active',
+  status: 'active',
  totalReviews: reviewCount,
  updatedAt: serverTimestamp(),
  updatedBy: user.uid,
@@ -330,7 +340,12 @@ export class AccessReviewService {
  updates.completedAt = serverTimestamp();
  }
 
+      try {
  await updateDoc(campaignRef, sanitizeData(updates));
+      } catch (error) {
+        ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la mise à jour de la campagne de revue');
+        throw error;
+      }
  }
  } catch (error) {
  ErrorLogger.error(error, 'AccessReviewService.submitReview');
@@ -375,7 +390,7 @@ export class AccessReviewService {
  orderBy('daysSinceLastLogin', 'desc')
  );
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const accounts = snapshot.docs.map((doc) => ({
@@ -388,6 +403,7 @@ export class AccessReviewService {
  ErrorLogger.error(error, 'AccessReviewService.subscribeToDormantAccounts');
  }
  );
+ return unsubscribe;
  }
 
  /**

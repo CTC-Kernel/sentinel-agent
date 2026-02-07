@@ -40,7 +40,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
    role="button"
    tabIndex={0}
    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/assets?id=${asset.id}`); } }}
-   className="flex items-center justify-between p-3 bg-muted/10 rounded-xl border border-border/40 cursor-pointer hover:shadow-md hover:ring-2 hover:ring-primary/30 transition-all"
+   className="flex items-center justify-between p-3 bg-muted/10 rounded-xl border border-border/40 cursor-pointer hover:shadow-md hover:ring-2 hover:ring-primary/30 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
    >
    <span className="font-medium text-foreground">{asset.name}</span>
    <Badge status="neutral" size="sm" variant="soft">{asset.type}</Badge>
@@ -71,7 +71,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
    role="button"
    tabIndex={0}
    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/continuity?id=${proc.id}`); } }}
-   className="flex items-center justify-between p-3 bg-muted/10 rounded-xl border border-border/40 cursor-pointer hover:shadow-md hover:ring-2 hover:ring-primary/30 transition-all"
+   className="flex items-center justify-between p-3 bg-muted/10 rounded-xl border border-border/40 cursor-pointer hover:shadow-md hover:ring-2 hover:ring-primary/30 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
    >
    <span className="font-medium text-foreground">{proc.name}</span>
    </div>
@@ -101,7 +101,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
    role="button"
    tabIndex={0}
    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/risks?id=${risk.id}`); } }}
-   className="flex items-center justify-between p-3 bg-muted/10 rounded-xl border border-border/40 cursor-pointer hover:shadow-md hover:ring-2 hover:ring-primary/30 transition-all"
+   className="flex items-center justify-between p-3 bg-muted/10 rounded-xl border border-border/40 cursor-pointer hover:shadow-md hover:ring-2 hover:ring-primary/30 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
    >
    <div className="flex flex-col">
    <span className="font-medium text-foreground">{risk.threat}</span>

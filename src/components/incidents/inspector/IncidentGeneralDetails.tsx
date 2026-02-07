@@ -118,7 +118,7 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
   <div>
   <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('incidents.inspector.reportedOn', { defaultValue: 'Déclaré le' })}</div>
   <p className="font-medium text-foreground mt-1">
-  {new Date(incident.dateReported).toLocaleString()}
+  {new Date(incident.dateReported).toLocaleString('fr-FR')}
   </p>
   </div>
   <div className="mt-4">

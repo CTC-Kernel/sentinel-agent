@@ -319,7 +319,7 @@ const RecentActivity: React.FC = () => {
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-start gap-3">
+              <div key={`discovery-skeleton-${i}`} className="flex items-start gap-3">
                 <Skeleton className="h-8 w-8 rounded-lg" />
                 <div className="flex-1">
                   <Skeleton className="h-4 w-3/4 mb-2" />

@@ -324,7 +324,7 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
  return (
  <button
  onClick={onToggle}
- className="fixed bottom-4 left-4 z-40 p-2 rounded-lg transition-colors"
+ className="fixed bottom-4 left-4 z-40 p-2 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  style={{
  ...panelStyles,
  }}
@@ -365,7 +365,7 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
  <div className="flex items-center gap-1">
  <button
  onClick={() => setIsExpanded(!isExpanded)}
- className="p-1 hover:bg-muted/50 rounded transition-colors"
+ className="p-1 hover:bg-muted/50 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  aria-label={isExpanded ? 'Minimize minimap' : 'Expand minimap'}
  >
  {isExpanded ? (
@@ -377,7 +377,7 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
  {onToggle && (
  <button
  onClick={onToggle}
- className="p-1 hover:bg-muted/50 rounded transition-colors"
+ className="p-1 hover:bg-muted/50 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  aria-label="Hide minimap"
  >
  <X className="w-3.5 h-3.5 text-muted-foreground" />

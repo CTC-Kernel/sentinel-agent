@@ -121,10 +121,21 @@ const GroupFormModal: React.FC<{
  setCriteria(criteria.filter((_, i) => i !== index));
  };
 
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
  if (!isOpen) return null;
 
+
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
+ <div className="fixed inset-0 z-modal flex items-center justify-center bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" role="dialog" aria-modal="true">
  <motion.div
  initial={{ opacity: 0, scale: 0.95 }}
  animate={{ opacity: 1, scale: 1 }}
@@ -136,7 +147,7 @@ const GroupFormModal: React.FC<{
   <h2 className="text-xl font-semibold">
   {group ? 'Modifier le groupe' : 'Nouveau groupe'}
   </h2>
-  <Button variant="ghost" size="icon" onClick={onClose}>
+  <Button variant="ghost" size="icon" onClick={onClose} aria-label="Fermer">
   <X className="h-5 w-5" />
   </Button>
   </div>

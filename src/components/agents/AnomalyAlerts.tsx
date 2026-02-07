@@ -106,6 +106,117 @@ const StatsSummaryCard: React.FC<{
     const trendColor = stats.trend === 'increasing' ? 'text-destructive' :
         stats.trend === 'decreasing' ? 'text-success' : 'text-muted-foreground';
 
+
+  // Extracted callbacks (useCallback)
+  const handleToggle = useCallback(() => {
+    setExpandedId(expandedId === anomaly.id ? null : anomaly.id)
+  }, []);
+
+  const handleAcknowledge = useCallback(() => {
+    handleAcknowledge(anomaly.id)
+  }, []);
+
+  const handleInvestigate = useCallback(() => {
+    handleInvestigate(anomaly.id)
+  }, []);
+
+  const handleResolve = useCallback(() => {
+    handleResolve(anomaly.id)
+  }, []);
+
+  const handleClick = useCallback((e) => {
+    e.stopPropagation()
+  }, []);
+
+  const handleChange = useCallback((e) => {
+    setSearchTerm(e.target.value)
+  }, []);
+
+  const handleClick2 = useCallback(() => {
+    setShowResolved(!showResolved)
+  }, []);
+
+  const handleClick3 = useCallback(() => {
+    setShowFilters(!showFilters)
+  }, []);
+
+  const handleFalsePositive = useCallback(() => {
+    handleFalsePositive(anomaly.id)
+  }, []);
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onToggle();
+                        }
+  }, []);
+
+  const handleChange2 = useCallback((e) => {
+    e.stopPropagation();
+                            onSelect(e.target.checked);
+  }, []);
+
+  const handleClick4 = useCallback((e) => {
+    e.stopPropagation();
+                                                        onAcknowledge();
+  }, []);
+
+  const handleClick5 = useCallback((e) => {
+    e.stopPropagation();
+                                                        onInvestigate();
+  }, []);
+
+  const handleClick6 = useCallback((e) => {
+    e.stopPropagation();
+                                                    onResolve();
+  }, []);
+
+  const handleClick7 = useCallback((e) => {
+    e.stopPropagation();
+                                                onFalsePositive();
+  }, []);
+
+  const handleClick8 = useCallback(() => {
+    if (statusFilter.includes(status)) {
+                                                setStatusFilter(statusFilter.filter(s => s !== status));
+                                            } else {
+                                                setStatusFilter([...statusFilter, status]);
+                                            }
+  }, []);
+
+  const handleClick9 = useCallback(() => {
+    if (severityFilter.includes(severity)) {
+                                                setSeverityFilter(severityFilter.filter(s => s !== severity));
+                                            } else {
+                                                setSeverityFilter([...severityFilter, severity]);
+                                            }
+  }, []);
+
+  const handleClick10 = useCallback(() => {
+    if (typeFilter.includes(type)) {
+                                                setTypeFilter(typeFilter.filter(t => t !== type));
+                                            } else {
+                                                setTypeFilter([...typeFilter, type]);
+                                            }
+  }, []);
+
+  const handleClick11 = useCallback(() => {
+    setStatusFilter(DEFAULT_STATUSES);
+                                setSeverityFilter([]);
+                                setTypeFilter([]);
+  }, []);
+
+  const handleSelect = useCallback((selected) => {
+    const newSet = new Set(selectedIds);
+                                if (selected) {
+                                    newSet.add(anomaly.id);
+                                } else {
+                                    newSet.delete(anomaly.id);
+                                }
+                                setSelectedIds(newSet);
+  }, []);
+
+
+
     return (
         <motion.div
             variants={slideUpVariants}
@@ -247,12 +358,7 @@ const AnomalyCard: React.FC<{
                 <div
                     className="flex items-center gap-3 p-4 cursor-pointer hover:bg-accent/50 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                     onClick={onToggle}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            onToggle();
-                        }
-                    }}
+                    onKeyDown={handleKeyDown}
                     role="button"
                     tabIndex={0}
                     aria-expanded={expanded}
@@ -262,12 +368,9 @@ const AnomalyCard: React.FC<{
                         type="checkbox"
                         checked={selected}
                         aria-label={`Sélectionner l'anomalie: ${anomaly.title}`}
-                        onChange={(e) => {
-                            e.stopPropagation();
-                            onSelect(e.target.checked);
-                        }}
+                        onChange={handleChange2}
                         className="h-4 w-4 rounded border-border"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={handleClick}
                     />
 
                     {/* Severity Icon */}
@@ -403,10 +506,7 @@ const AnomalyCard: React.FC<{
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onAcknowledge();
-                                                    }}
+                                                    onClick={handleClick4}
                                                 >
                                                     <Check className="h-4 w-4 mr-1" />
                                                     Prendre en compte
@@ -414,10 +514,7 @@ const AnomalyCard: React.FC<{
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onInvestigate();
-                                                    }}
+                                                    onClick={handleClick5}
                                                 >
                                                     <Eye className="h-4 w-4 mr-1" />
                                                     Investiguer
@@ -428,10 +525,7 @@ const AnomalyCard: React.FC<{
                                             <Button
                                                 variant="default"
                                                 size="sm"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onResolve();
-                                                }}
+                                                onClick={handleClick6}
                                             >
                                                 <CheckCircle className="h-4 w-4 mr-1" />
                                                 Résoudre
@@ -440,10 +534,7 @@ const AnomalyCard: React.FC<{
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onFalsePositive();
-                                            }}
+                                            onClick={handleClick7}
                                         >
                                             <BellOff className="h-4 w-4 mr-1" />
                                             Faux positif
@@ -726,7 +817,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                     <Input
                         placeholder="Rechercher..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={handleChange}
                         className="pl-9"
                     />
                 </div>
@@ -735,7 +826,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                 <Button
                     variant={showResolved ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setShowResolved(!showResolved)}
+                    onClick={handleClick2}
                 >
                     {showResolved ? (
                         <>
@@ -753,7 +844,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                 {/* Filter Toggle */}
                 <Button
                     variant="outline"
-                    onClick={() => setShowFilters(!showFilters)}
+                    onClick={handleClick3}
                     className={cn(showFilters && 'bg-accent')}
                 >
                     <Filter className="h-4 w-4 mr-2" />
@@ -798,13 +889,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                                         key={status || 'unknown'}
                                         variant={statusFilter.includes(status) ? 'default' : 'outline'}
                                         className="cursor-pointer"
-                                        onClick={() => {
-                                            if (statusFilter.includes(status)) {
-                                                setStatusFilter(statusFilter.filter(s => s !== status));
-                                            } else {
-                                                setStatusFilter([...statusFilter, status]);
-                                            }
-                                        }}
+                                        onClick={handleClick8}
                                     >
                                         {status === 'new' && 'Nouveau'}
                                         {status === 'acknowledged' && 'Pris en compte'}
@@ -828,13 +913,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                                             'cursor-pointer',
                                             severityFilter.includes(severity) && getSeverityBgColor(severity)
                                         )}
-                                        onClick={() => {
-                                            if (severityFilter.includes(severity)) {
-                                                setSeverityFilter(severityFilter.filter(s => s !== severity));
-                                            } else {
-                                                setSeverityFilter([...severityFilter, severity]);
-                                            }
-                                        }}
+                                        onClick={handleClick9}
                                     >
                                         {severity === 'critical' && 'Critique'}
                                         {severity === 'high' && 'Haute'}
@@ -855,13 +934,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                                         key={type || 'unknown'}
                                         variant={typeFilter.includes(type) ? 'default' : 'outline'}
                                         className="cursor-pointer"
-                                        onClick={() => {
-                                            if (typeFilter.includes(type)) {
-                                                setTypeFilter(typeFilter.filter(t => t !== type));
-                                            } else {
-                                                setTypeFilter([...typeFilter, type]);
-                                            }
-                                        }}
+                                        onClick={handleClick10}
                                     >
                                         {getAnomalyTypeLabel(type)}
                                     </Badge>
@@ -873,11 +946,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => {
-                                setStatusFilter(DEFAULT_STATUSES);
-                                setSeverityFilter([]);
-                                setTypeFilter([]);
-                            }}
+                            onClick={handleClick11}
                         >
                             <X className="h-4 w-4 mr-1" />
                             Réinitialiser
@@ -891,6 +960,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                 <div className="flex items-center gap-2 text-sm">
                     <input
                         type="checkbox"
+                        aria-label="Tout sélectionner"
                         checked={selectedIds.size === filteredAnomalies.length && filteredAnomalies.length > 0}
                         onChange={toggleSelectAll}
                         className="h-4 w-4 rounded border-border"
@@ -927,21 +997,13 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
                             key={anomaly.id || 'unknown'}
                             anomaly={anomaly}
                             expanded={expandedId === anomaly.id}
-                            onToggle={() => setExpandedId(expandedId === anomaly.id ? null : anomaly.id)}
-                            onAcknowledge={() => handleAcknowledge(anomaly.id)}
-                            onInvestigate={() => handleInvestigate(anomaly.id)}
-                            onResolve={() => handleResolve(anomaly.id)}
-                            onFalsePositive={() => handleFalsePositive(anomaly.id)}
+                            onToggle={handleToggle}
+                            onAcknowledge={handleAcknowledge}
+                            onInvestigate={handleInvestigate}
+                            onResolve={handleResolve}
+                            onFalsePositive={handleFalsePositive}
                             selected={selectedIds.has(anomaly.id)}
-                            onSelect={(selected) => {
-                                const newSet = new Set(selectedIds);
-                                if (selected) {
-                                    newSet.add(anomaly.id);
-                                } else {
-                                    newSet.delete(anomaly.id);
-                                }
-                                setSelectedIds(newSet);
-                            }}
+                            onSelect={handleSelect}
                         />
                     ))
                 )}

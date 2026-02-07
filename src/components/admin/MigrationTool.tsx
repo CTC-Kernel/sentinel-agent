@@ -28,7 +28,7 @@ export const MigrationTool: React.FC = () => {
  } catch (error) {
  ErrorLogger.error(error, 'MigrationTool.runMigration');
  const msg = error instanceof Error ? error.message : 'Unknown error';
- setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ❌ Erreur: ${msg}`]);
+ setLogs(prev => [...prev, `[${new Date().toLocaleTimeString('fr-FR')}] ❌ Erreur: ${msg}`]);
  addToast(t('admin.toast.migrationError', { defaultValue: "Erreur lors de la migration" }), "error");
  } finally {
  setLoading(false);
@@ -69,7 +69,7 @@ export const MigrationTool: React.FC = () => {
  <button
  onClick={runMigration}
  disabled={loading}
- className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-3xl transition-colors flex items-center justify-center gap-2 disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+ className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-3xl transition-colors flex items-center justify-center gap-2 disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
  >
  {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Zap className="h-5 w-5" />}
  {loading ? 'Migration en cours...' : 'Lancer la Migration'}

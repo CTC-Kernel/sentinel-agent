@@ -37,7 +37,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
  aria-label="Voir le radar de maturité détaillé"
  >
  {/* Radar Sweep Effect - Premium Animated */}
- <div className="absolute inset-0 rounded-full animate-spin pointer-events-none" style={{ animationDuration: '4s' }}>
+ <div className="absolute inset-0 rounded-full animate-spin pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" style={{ animationDuration: '4s' }}>
   <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,transparent_0deg,transparent_270deg,hsl(var(--primary)/0.6)_360deg)]" />
   <div className="absolute right-1/2 top-0 h-1/2 w-1 bg-gradient-to-b from-primary/80 to-transparent origin-bottom" />
  </div>
@@ -114,7 +114,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
 
  <div className="h-3 w-full bg-secondary/50 rounded-full overflow-hidden backdrop-blur-sm border border-border/50 shadow-inner relative">
   {/* Background Grid Pattern */}
-  <div className="absolute inset-0 opacity-30 bg-[linear-gradient(90deg,transparent_90%,#000_90%)] bg-[length:10px_100%] dark:bg-[linear-gradient(90deg,transparent_90%,#fff_90%)]"></div>
+  <div className="absolute inset-0 opacity-30 bg-[linear-gradient(90deg,transparent_90%,currentColor_90%)] bg-[length:10px_100%]"></div>
 
   {/* Progress Bar with Gradient and Glow */}
   <div

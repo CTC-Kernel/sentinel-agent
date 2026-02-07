@@ -121,7 +121,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
   <div className="flex items-center gap-2 text-muted-foreground">
   <Shield className="h-4 w-4" />
   {linkPath ? (
-  <Link to={linkPath} className="hover:text-primary hover:underline transition-colors font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm">
+  <Link to={linkPath} className="hover:text-primary hover:underline transition-colors font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm">
   {resource}
   </Link>
   ) : (
@@ -141,7 +141,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
   {details && <div className="text-muted-foreground truncate max-w-xs" title={details}>{details}</div>}
   {changes && changes.length > 0 && (
   <details className="mt-1 group">
-  <summary className="cursor-pointer text-xs text-primary hover:text-primary hover:underline flex items-center gap-1 font-medium select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm px-1 -ml-1">
+  <summary className="cursor-pointer text-xs text-primary hover:text-primary hover:underline flex items-center gap-1 font-medium select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm px-1 -ml-1">
    Voir {changes.length} modifications
   </summary>
   <div className="mt-2 text-xs bg-muted/50 dark:bg-white/5 p-2 rounded-lg border border-border/40 dark:border-white/5 space-y-1 max-w-sm overflow-x-auto">
@@ -187,7 +187,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
   <button
   onClick={onLoadMore}
   disabled={loading}
-  className="px-6 py-2 bg-card border border-border/40 rounded-3xl text-muted-foreground font-medium hover:bg-muted/50 transition-colors disabled:bg-muted disabled:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="px-6 py-2 bg-card border border-border/40 rounded-3xl text-muted-foreground font-medium hover:bg-muted/50 transition-colors disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   {loading ? t('common.loading', { defaultValue: 'Chargement...' }) : t('activity.loadMore', { defaultValue: "Charger plus d'activités" })}
   </button>

@@ -160,7 +160,7 @@ export const scheduleEmail = async (
  metadata: payload.metadata || {}
  });
 
- await logAction(user, 'EMAIL_SCHEDULED', 'System', `Email '${payload.type}' programmé pour ${scheduledFor.toLocaleString()}`);
+ await logAction(user, 'EMAIL_SCHEDULED', 'System', `Email '${payload.type}' programmé pour ${scheduledFor.toLocaleString('fr-FR')}`);
  return true;
  } catch (error) {
  ErrorLogger.error(error, 'emailService.scheduleEmail', { metadata: { to: payload.to, type: payload.type, scheduledFor } });

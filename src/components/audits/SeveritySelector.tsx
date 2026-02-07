@@ -25,7 +25,7 @@ export const SeveritySelector: React.FC<SeveritySelectorProps> = ({
  {label}
  </label>
  <div className="grid grid-cols-4 gap-3">
- {options.map((opt) => {
+ {options.length > 0 && options.map((opt) => {
   const Icon = opt.icon;
   const isSelected = value === opt.value;
 
@@ -37,8 +37,8 @@ export const SeveritySelector: React.FC<SeveritySelectorProps> = ({
   className={`
   relative flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-200
   ${isSelected
-   ? 'bg-card shadow-md ring-2 ring-offset-2 ring-slate-900 dark:ring-white scale-105 z-decorator focus:outline-none'
-   : 'bg-muted/50 dark:bg-white/5 hover:bg-white dark:hover:bg-muted hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary'
+   ? 'bg-card shadow-md ring-2 ring-offset-2 ring-slate-900 dark:ring-white scale-105 z-decorator focus-visible:outline-none'
+   : 'bg-muted/50 dark:bg-white/5 hover:bg-white dark:hover:bg-muted hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
   }
   `}
   >

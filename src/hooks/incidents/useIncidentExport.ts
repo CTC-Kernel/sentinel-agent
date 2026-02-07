@@ -11,7 +11,7 @@ export const useIncidentExport = () => {
  'Status': inc.status,
  'Severity': inc.severity,
  'Category': inc.category || '',
- 'Date': inc.dateReported ? new Date(inc.dateReported).toLocaleDateString() : '',
+ 'Date': inc.dateReported ? new Date(inc.dateReported).toLocaleDateString('fr-FR') : '',
  'Reporter': inc.reporter || ''
  }));
  CsvParser.downloadCSV(csvHeaders, data, `incidents_export_${new Date().toISOString().split('T')[0]}.csv`);

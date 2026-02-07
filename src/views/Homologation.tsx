@@ -5,7 +5,7 @@
  * Epic 38 - Story 38-1: Homologation Level Selector
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useLocale } from '../hooks/useLocale';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Star, FileText, Shield, ShieldAlert, AlertTriangle, CheckCircle, type LucideIcon } from 'lucide-react';
@@ -42,6 +42,9 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
  const { t } = useLocale();
  const navigate = useNavigate();
  const { user } = useAuth();
+
+ // RBAC: Only admin/rssi can perform sensitive homologation actions
+ const canManageHomologation = user?.role === 'admin' || user?.role === 'rssi' || user?.role === 'super_admin';
 
  const {
  dossiers,
@@ -160,9 +163,8 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
  title={t('homologation.title', { defaultValue: 'ANSSI Homologation' })}
  subtitle={t('homologation.subtitle', { defaultValue: 'Manage your RGS homologation dossiers' })}
  icon={
- <img
+ <img alt="OPÉRATIONS"
  src="/images/operations.png"
- alt="OPÉRATIONS"
  className="w-full h-full object-contain"
  />
  }
@@ -238,6 +240,16 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
  const Icon = LEVEL_ICONS[level];
  const count = stats.byLevel[level];
  const percentage = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
 
  return (
  <div key={level || 'unknown'} className="flex items-center gap-3">

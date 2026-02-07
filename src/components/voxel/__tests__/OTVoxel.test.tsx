@@ -33,8 +33,8 @@ const createMockNode = (
  size: 1,
  data: {},
  connections: [],
- createdAt: new Date(),
- updatedAt: new Date(),
+ createdAt: new Date(Date.now()),
+ updatedAt: new Date(Date.now()),
  ...overrides,
 });
 

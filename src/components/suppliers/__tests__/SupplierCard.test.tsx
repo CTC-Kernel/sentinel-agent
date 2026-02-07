@@ -37,8 +37,8 @@ describe('SupplierCard', () => {
  contractEnd: new Date(Date.now() + 86400000 * 365).toISOString(), // 1 year from now
  isICTProvider: true,
  organizationId: 'org-1',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  riskAssessment: {
  overallScore: 85
  },
@@ -188,7 +188,7 @@ describe('SupplierCard', () => {
  render(<SupplierCard supplier={expiredSupplier} onClick={mockOnClick} />);
 
  // The date should be displayed in red (uses text-destructive)
- const dateElement = screen.getByText(new Date(expiredSupplier.contractEnd).toLocaleDateString());
+ const dateElement = screen.getByText(new Date(expiredSupplier.contractEnd).toLocaleDateString('fr-FR'));
  expect(dateElement).toHaveClass('text-destructive');
  });
  });

@@ -10,6 +10,7 @@ import {
   orderBy,
   onSnapshot,
   Unsubscribe,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
@@ -30,7 +31,7 @@ export const ComplianceCalendarService = {
       where('organizationId', '==', organizationId),
       orderBy('date', 'asc')
     );
-    return onSnapshot(
+    const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
         const events: ComplianceEvent[] = snapshot.docs.map((d) => ({
@@ -44,6 +45,7 @@ export const ComplianceCalendarService = {
         onError?.(error);
       }
     );
+    return unsubscribe;
   },
 
   async getEvents(organizationId: string): Promise<ComplianceEvent[]> {
@@ -71,8 +73,8 @@ export const ComplianceCalendarService = {
         ...data,
         organizationId,
         createdBy: userId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
       const docRef = await addDoc(collection(db, EVENTS_COLLECTION), eventData);
       return docRef.id;
@@ -84,7 +86,7 @@ export const ComplianceCalendarService = {
 
   async updateEvent(eventId: string, data: Partial<ComplianceEvent>): Promise<void> {
     try {
-      const updateData = sanitizeData({ ...data, updatedAt: new Date().toISOString() });
+      const updateData = sanitizeData({ ...data, updatedAt: serverTimestamp() });
       const docRef = doc(db, EVENTS_COLLECTION, eventId);
       await updateDoc(docRef, updateData);
     } catch (error) {
@@ -108,7 +110,7 @@ export const ComplianceCalendarService = {
       await updateDoc(docRef, sanitizeData({
         status: 'completed',
         completedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        updatedAt: serverTimestamp(),
       }));
     } catch (error) {
       ErrorLogger.error(error, 'ComplianceCalendarService.completeEvent');
@@ -126,7 +128,7 @@ export const ComplianceCalendarService = {
       where('organizationId', '==', organizationId),
       orderBy('deadline', 'asc')
     );
-    return onSnapshot(
+    const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
         const deadlines: ComplianceDeadline[] = snapshot.docs.map((d) => ({
@@ -140,6 +142,7 @@ export const ComplianceCalendarService = {
         onError?.(error);
       }
     );
+    return unsubscribe;
   },
 
   async createDeadline(
@@ -150,8 +153,8 @@ export const ComplianceCalendarService = {
       const deadlineData = sanitizeData({
         ...data,
         organizationId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
       const docRef = await addDoc(collection(db, DEADLINES_COLLECTION), deadlineData);
       return docRef.id;
@@ -163,7 +166,7 @@ export const ComplianceCalendarService = {
 
   async updateDeadline(deadlineId: string, data: Partial<ComplianceDeadline>): Promise<void> {
     try {
-      const updateData = sanitizeData({ ...data, updatedAt: new Date().toISOString() });
+      const updateData = sanitizeData({ ...data, updatedAt: serverTimestamp() });
       const docRef = doc(db, DEADLINES_COLLECTION, deadlineId);
       await updateDoc(docRef, updateData);
     } catch (error) {

@@ -275,10 +275,11 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
  <input
  type="text"
+ aria-label="Rechercher"
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
  placeholder={t('mapping.searchPlaceholder')}
- className="w-full pl-11 pr-4 py-3 rounded-3xl border border-border/40 bg-card/50 text-foreground placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent transition-all"
+ className="w-full pl-11 pr-4 py-3 rounded-3xl border border-border/40 bg-card/50 text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all"
  />
  </div>
 
@@ -286,7 +287,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
  <select
  value={filterCoverage}
  onChange={(e) => setFilterCoverage(e.target.value as FilterCoverage)}
- className="px-4 py-3 rounded-3xl border border-border/40 bg-card/50 text-sm font-medium text-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent transition-all"
+ className="px-4 py-3 rounded-3xl border border-border/40 bg-card/50 text-sm font-medium text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all"
  >
  <option value="all">{t('mapping.filterAll')}</option>
  <option value="full">{t('mapping.filterFull')}</option>

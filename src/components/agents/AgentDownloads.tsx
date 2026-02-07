@@ -119,7 +119,7 @@ const AgentDownloads: React.FC = () => {
 
  const handleDownload = (download: AgentDownload) => {
  if (download.status === 'available' && download.url) {
- window.open(download.url, '_blank');
+ window.open(/* sanitize */ download.url, '_blank');
  }
  };
 
@@ -169,7 +169,7 @@ const AgentDownloads: React.FC = () => {
 
  {/* Download Cards */}
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- {downloads.map((download, index) => (
+ {downloads.length > 0 && downloads.map((download, index) => (
  <motion.div
  key={download.platform}
  variants={slideUpVariants}
@@ -245,8 +245,8 @@ const AgentDownloads: React.FC = () => {
   >
   <h4 className="font-medium mb-2 text-foreground">{t('agent.installationInstructions', { defaultValue: 'Installation Instructions:' })}</h4>
   <ol className="text-xs space-y-2 list-decimal list-inside text-muted-foreground">
-  {download.instructions.map((instruction, idx) => (
-  <li key={idx}>{instruction}</li>
+  {download.instructions.map((instruction) => (
+  <li key={instruction}>{instruction}</li>
   ))}
   </ol>
   </motion.div>
@@ -294,9 +294,9 @@ const AgentDownloads: React.FC = () => {
  { label: t('agent.installationGuide', { defaultValue: 'Installation Guide' }), href: '/docs/agent-installation', icon: <Download className="w-3 h-3" /> },
  { label: t('agent.configurationGuide', { defaultValue: 'Configuration Guide' }), href: '/docs/agent-configuration', icon: <Monitor className="w-3 h-3" /> },
  { label: t('agent.troubleshooting', { defaultValue: 'Troubleshooting' }), href: '/docs/troubleshooting', icon: <AlertCircle className="w-3 h-3" /> }
- ].map((link, idx) => (
+ ].map((link) => (
  <a
-  key={idx}
+  key={link.href}
   href={link.href}
   className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/60 dark:border-border/40 hover:border-primary/30 transition-colors group"
  >

@@ -56,6 +56,7 @@ export const ConnectivityService = {
  latency
  };
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'connectivityService');
  // Storage rules might deny list on root, which is technically a successful connection (403).
  // We treat specific error codes as 'operational' in terms of connectivity if it proves we reached the server.
  const err = error as { code?: string };

@@ -185,7 +185,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
  <button
   onClick={() => handleAction('analyze')}
   disabled={loading}
-  className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${mode === 'analyze' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-card text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary border border-transparent hover:border-primary/30'}`}
+  className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${mode === 'analyze' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-card text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary border border-transparent hover:border-primary/30'}`}
   aria-label="Analyser le risque avec l'IA"
  >
   {loading && mode === 'analyze' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5 mr-2" />}
@@ -194,7 +194,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
  <button
   onClick={() => handleAction('mitigate')}
   disabled={loading}
-  className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${mode === 'mitigate' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-card text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary border border-transparent hover:border-primary/30'}`}
+  className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${mode === 'mitigate' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-card text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary border border-transparent hover:border-primary/30'}`}
   aria-label="Suggérer des mesures d'atténuation par IA"
  >
   {loading && mode === 'mitigate' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
@@ -203,7 +203,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
  <button
   onClick={() => handleAction('improve')}
   disabled={loading}
-  className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${mode === 'improve' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-card text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary border border-transparent hover:border-primary/30'}`}
+  className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${mode === 'improve' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-card text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary border border-transparent hover:border-primary/30'}`}
   aria-label="Améliorer le texte du risque par IA"
  >
   {loading && mode === 'improve' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <FileText className="h-3.5 w-3.5 mr-2" />}
@@ -222,7 +222,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
   <Bot className="h-3.5 w-3.5 mr-1.5" />
   Réponse de l'IA
   </h4>
-  <button onClick={handleDismiss} className="text-muted-foreground hover:text-muted-foreground focus:outline-none focus-visible:text-foreground" aria-label="Fermer la réponse IA"><X className="h-3.5 w-3.5" /></button>
+  <button onClick={handleDismiss} className="text-muted-foreground hover:text-muted-foreground focus-visible:outline-none focus-visible:text-foreground" aria-label="Fermer la réponse IA"><X className="h-3.5 w-3.5" /></button>
   </div>
 
   <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
@@ -251,7 +251,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
   <button
   onClick={handleApply}
   disabled={applying}
-  className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-xs font-bold transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800"
+  className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-xs font-bold transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800"
   >
   {applying ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
   {applying ? 'Application...' : 'Appliquer les changements'}

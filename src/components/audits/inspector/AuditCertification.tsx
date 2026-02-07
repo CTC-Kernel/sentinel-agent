@@ -30,7 +30,7 @@ export const AuditCertification: React.FC<AuditCertificationProps> = ({
  {canEdit && (
   <button
   onClick={onOpenShareModal}
-  className="px-5 py-2.5 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary hover:to-indigo-700 text-white font-semibold rounded-3xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 flex items-center gap-2 transition-all hover:-translate-y-0.5"
+  className="px-5 py-2.5 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary hover:to-indigo-700 text-white font-semibold rounded-3xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 flex items-center gap-2 transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <LinkIcon className="w-4 h-4" />
   {t('audits.certification.generateLink', { defaultValue: 'Générer un lien d\'accès' })}
@@ -43,7 +43,7 @@ export const AuditCertification: React.FC<AuditCertificationProps> = ({
   {canEdit && (
   <button
   onClick={onOpenAssignModal}
-  className="text-sm font-medium text-primary hover:text-primary dark:text-primary/70 dark:hover:text-primary/50 flex items-center gap-1 transition-colors"
+  className="text-sm font-medium text-primary hover:text-primary dark:text-primary/70 dark:hover:text-primary/50 flex items-center gap-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <Plus className="w-4 h-4" />
   {t('audits.actions.assignPartner') || "Assigner un partenaire"}

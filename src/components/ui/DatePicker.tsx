@@ -110,7 +110,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
  <div className="p-2 border-t border-border/40 mt-2">
  <button
   onClick={(e) => { e.stopPropagation(); onChange(undefined); setIsOpen(false); }}
-  className="w-full py-2 text-xs font-bold text-destructive hover:bg-destructive/5 rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
+  className="w-full py-2 text-xs font-bold text-destructive hover:bg-destructive/5 rounded-3xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
  >
   Effacer la date
  </button>
@@ -132,7 +132,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
  role="button"
  tabIndex={disabled ? -1 : 0}
  className={`
-  relative flex items-center w-full rounded-2xl border transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary
+  relative flex items-center w-full rounded-2xl border transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary
   ${error
   ? 'border-destructive bg-destructive/5'
   : isOpen

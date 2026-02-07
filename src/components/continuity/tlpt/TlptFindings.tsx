@@ -117,7 +117,7 @@ export const TlptFindings: React.FC<TlptFindingsProps> = ({ campaign }) => {
  >
  <VulnerabilityForm
   initialData={editingVuln}
-  onSubmit={editingVuln ? handleUpdateFinding : handleAddFinding}
+  /* validate */ onSubmit={editingVuln ? handleUpdateFinding : handleAddFinding}
   onCancel={() => setIsFormOpen(false)}
   assets={continuityAssets || []}
   isLoading={false}

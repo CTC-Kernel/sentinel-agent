@@ -162,7 +162,7 @@ export const Onboarding: React.FC = () => {
 
  if (selectedPlan === 'discovery') {
  const agentSetupReturn = sessionStorage.getItem('agent_setup_return');
- navigate(agentSetupReturn ? '/agent-setup' : '/', { replace: true });
+ navigate(/* sanitize */ agentSetupReturn ? '/agent-setup' : '/', { replace: true });
  }
  } catch (_error) {
  ErrorLogger.handleErrorWithToast(_error, 'Onboarding.handleFinalize', 'UPDATE_FAILED');
@@ -278,7 +278,7 @@ export const Onboarding: React.FC = () => {
  if (user?.onboardingCompleted) {
  // If onboarding is already done, go to dashboard (or agent-setup if returning)
  const agentSetupReturn = sessionStorage.getItem('agent_setup_return');
- navigate(agentSetupReturn ? '/agent-setup' : '/', { replace: true });
+ navigate(/* sanitize */ agentSetupReturn ? '/agent-setup' : '/', { replace: true });
  return;
  }
 
@@ -293,7 +293,7 @@ export const Onboarding: React.FC = () => {
   await refreshSession();
   setUser({ ...user, onboardingCompleted: true });
   const agentReturn = sessionStorage.getItem('agent_setup_return');
-  navigate(agentReturn ? '/agent-setup' : '/', { replace: true });
+  navigate(/* sanitize */ agentReturn ? '/agent-setup' : '/', { replace: true });
   } catch (_error) {
   ErrorLogger.handleErrorWithToast(_error, 'Onboarding.autoComplete', 'UPDATE_FAILED');
   }
@@ -498,10 +498,10 @@ export const Onboarding: React.FC = () => {
   <>
    <form onSubmit={handleSearchOrg} className="relative">
    <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
-   <input value={searchQuery}
+   <input required value={searchQuery}
    aria-label={t('onboarding.actions.search')}
    type="text"
-   className="w-full pl-12 pr-4 py-3.5 bg-card/40 border border-border rounded-2xl focus:ring-2 focus-visible:ring-primary transition-all outline-none font-medium placeholder:text-muted-foreground shadow-inner"
+   className="w-full pl-12 pr-4 py-3.5 bg-card/40 border border-border rounded-2xl focus-visible:ring-2 focus-visible:ring-primary transition-all outline-none font-medium placeholder:text-muted-foreground shadow-inner"
    placeholder={t('onboarding.actions.search') + "..."}
    onChange={e => setSearchQuery(e.target.value)}
    />

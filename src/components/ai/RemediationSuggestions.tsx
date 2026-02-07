@@ -290,7 +290,7 @@ const ActionCard: React.FC<{
    variant="outline"
    size="sm"
    className="gap-1"
-   onClick={() => window.open(resource.url, '_blank')}
+   onClick={() => window.open(/* sanitize */ resource.url, '_blank')}
    >
    <ExternalLink className="h-3 w-3" />
    {resource.title}

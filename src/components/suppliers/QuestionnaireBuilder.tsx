@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import React, { useEffect, useState } from 'react';
+import { /* schema validation via zod */ useForm, useFieldArray } from 'react-hook-form';
 import { QuestionnaireTemplate } from '../../types/business';
 import { Plus, Save } from '../ui/Icons';
 import { useStore } from '../../store';
@@ -87,6 +87,16 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
  }
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
  <div className="glass-premium p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
@@ -98,7 +108,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
   <input
   id="questionnaire-title"
   {...register('title', { required: true })}
-  className="w-full px-4 py-2 rounded-3xl border border-border/40 bg-transparent focus:border-primary focus:ring-1 focus-visible:ring-primary transition-shadow outline-none dark:text-white"
+  className="w-full px-4 py-2 rounded-3xl border border-border/40 bg-transparent focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary transition-shadow outline-none dark:text-white"
   placeholder="Ex: Évaluation ISO 27001 - Fournisseurs SaaS"
   />
   </div>
@@ -107,7 +117,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
   <textarea
   id="questionnaire-desc"
   {...register('description')}
-  className="w-full px-4 py-2 rounded-3xl border border-border/40 bg-transparent focus:border-primary focus:ring-1 focus-visible:ring-primary transition-shadow outline-none min-h-[80px] dark:text-white"
+  className="w-full px-4 py-2 rounded-3xl border border-border/40 bg-transparent focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary transition-shadow outline-none min-h-[80px] dark:text-white"
   placeholder="Description de l'usage de ce modèle..."
   />
   </div>

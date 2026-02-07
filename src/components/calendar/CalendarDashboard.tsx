@@ -74,7 +74,7 @@ const EventComponent = React.memo(({ event }: EventProps<CalendarEvent>) => {
 EventComponent.displayName = 'EventComponent';
 
 const eventStyleGetter = (event: CalendarEvent) => {
-  let className = 'border-none rounded-md shadow-sm font-semibold text-xs transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus-visible:ring-primary ';
+  let className = 'border-none rounded-md shadow-sm font-semibold text-xs transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary ';
 
   if (event.type === 'audit') className += 'bg-purple-600 text-primary-foreground';
   else if (event.type === 'drill') className += 'bg-orange-500 text-primary-foreground';
@@ -121,9 +121,9 @@ const CustomToolbar = (toolbar: ToolbarProps<CalendarEvent>, { view, setView, se
     <div className="flex flex-col xl:flex-row items-center justify-between mb-6 gap-4 animate-fade-in">
       <div className="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
         <div className="flex bg-card/80 backdrop-blur-md rounded-2xl border border-border/40 p-1 shadow-sm w-full md:w-auto justify-between md:justify-start">
-          <button aria-label="Mois précédent" onClick={goToBack} className="p-2.5 md:p-3 hover:bg-muted dark:hover:bg-muted rounded-3xl transition-colors text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><ChevronLeft className="h-5 w-5" /></button>
-          <button aria-label="Aller à aujourd'hui" onClick={goToCurrent} className="px-4 md:px-5 py-2.5 text-xs md:text-sm font-bold text-foreground dark:text-white hover:bg-muted dark:hover:bg-muted rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">Aujourd'hui</button>
-          <button aria-label="Mois suivant" onClick={goToNext} className="p-2.5 md:p-3 hover:bg-muted dark:hover:bg-muted rounded-3xl transition-colors text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><ChevronRight className="h-5 w-5" /></button>
+          <button aria-label="Mois précédent" onClick={goToBack} className="p-2.5 md:p-3 hover:bg-muted dark:hover:bg-muted rounded-3xl transition-colors text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><ChevronLeft className="h-5 w-5" /></button>
+          <button aria-label="Aller à aujourd'hui" onClick={goToCurrent} className="px-4 md:px-5 py-2.5 text-xs md:text-sm font-bold text-foreground dark:text-white hover:bg-muted dark:hover:bg-muted rounded-3xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">Aujourd'hui</button>
+          <button aria-label="Mois suivant" onClick={goToNext} className="p-2.5 md:p-3 hover:bg-muted dark:hover:bg-muted rounded-3xl transition-colors text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><ChevronRight className="h-5 w-5" /></button>
         </div>
         {label()}
       </div>
@@ -140,7 +140,7 @@ const CustomToolbar = (toolbar: ToolbarProps<CalendarEvent>, { view, setView, se
               aria-label={`Vue ${opt.l}`}
               aria-pressed={view === opt.v}
               onClick={() => { setView(opt.v); toolbar.onView(opt.v as View); }}
-              className={`px-4 md:px-5 py-2 rounded-3xl text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${view === opt.v ? 'bg-foreground text-background shadow-lg' : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-muted/50'}`}
+              className={`px-4 md:px-5 py-2 rounded-3xl text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${view === opt.v ? 'bg-foreground text-background shadow-lg' : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-muted/50'}`}
             >
               {opt.l}
             </button>
@@ -151,7 +151,7 @@ const CustomToolbar = (toolbar: ToolbarProps<CalendarEvent>, { view, setView, se
           <button
             onClick={handleExport}
             disabled={isExporting}
-            className="bg-card/80 backdrop-blur-md border border-border/40 text-muted-foreground p-3 rounded-2xl hover:bg-muted/50 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed"
+            className="bg-card/80 backdrop-blur-md border border-border/40 text-muted-foreground p-3 rounded-2xl hover:bg-muted/50 transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed"
             title="Exporter le calendrier"
             aria-label="Exporter le calendrier"
           >
@@ -166,7 +166,7 @@ const CustomToolbar = (toolbar: ToolbarProps<CalendarEvent>, { view, setView, se
               setSelectedDate(new Date());
               setIsCreateModalOpen(true);
             }}
-            className="w-full md:w-auto flex-1 flex items-center justify-center px-6 py-3 bg-primary hover:bg-primary text-primary-foreground rounded-2xl text-sm font-bold shadow-lg shadow-primary/25 transition-all hover:scale-105 active:scale-95 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="w-full md:w-auto flex-1 flex items-center justify-center px-6 py-3 bg-primary hover:bg-primary text-primary-foreground rounded-2xl text-sm font-bold shadow-lg shadow-primary/25 transition-all hover:scale-105 active:scale-95 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <Plus className="h-5 w-5 mr-2" />
             <span className="md:hidden">Ajouter</span>
@@ -317,7 +317,7 @@ export const CalendarDashboard: React.FC = () => {
             aria-pressed={filters[key as keyof typeof filters]}
             onClick={() => setFilters(prev => ({ ...prev, [key]: !prev[key as keyof typeof filters] }))}
             className={`
-              px-4 py-2 rounded-3xl text-xs font-bold uppercase tracking-wider transition-all duration-300 border flex items-center gap-2 shadow-sm shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary
+              px-4 py-2 rounded-3xl text-xs font-bold uppercase tracking-wider transition-all duration-300 border flex items-center gap-2 shadow-sm shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary
               ${filters[key as keyof typeof filters]
                 ? key === 'audit' ? 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20 shadow-purple-500/10'
                   : key === 'project' ? 'bg-info-bg text-info-text border-info-border shadow-info/10'

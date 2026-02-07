@@ -31,8 +31,8 @@ export const refreshUserToken = async (): Promise<boolean> => {
  // Force token refresh on client side
  await user.getIdToken(true);
  return true;
- } catch {
- ErrorLogger.debug('Token refresh failed', 'tokenRefresh');
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'Erreur lors du rafraichissement du token');
  return false;
  }
 };
@@ -47,8 +47,8 @@ export const hasCustomClaims = async (): Promise<boolean> => {
 
  const tokenResult = await user.getIdTokenResult();
  return !!(tokenResult.claims.organizationId);
- } catch {
- ErrorLogger.debug('Token refresh failed', 'tokenRefresh');
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la verification des claims');
  return false;
  }
 };
@@ -72,7 +72,7 @@ export const autoRefreshTokenIfNeeded = async (): Promise<void> => {
  window.location.reload();
  }
  }
- } catch {
- ErrorLogger.debug('Token refresh failed', 'tokenRefresh');
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'Erreur lors du rafraichissement automatique du token');
  }
 };

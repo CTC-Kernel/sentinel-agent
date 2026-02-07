@@ -199,7 +199,7 @@ function generateClusterLabel(nodes: VoxelNode[], dominantType: VoxelNode['type'
  * Cluster nodes using spatial proximity algorithm
  * Uses a simple grid-based clustering approach for performance
  */
-export function clusterNodes(nodes: VoxelNode[], config: ClusterConfig = {}): ClusteringResult {
+function clusterNodes(nodes: VoxelNode[], config: ClusterConfig = {}): ClusteringResult {
  const mergedConfig = { ...DEFAULT_CONFIG, ...config };
  const {
  clusterDistance,

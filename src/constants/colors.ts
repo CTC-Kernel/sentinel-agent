@@ -44,9 +44,9 @@ export const RISK_COLORS = {
 
 // ===== SCORE COLORS (For gauges & progress) =====
 export const SCORE_COLORS = {
- bad: '#d64545', // hsl(4 68% 50%) - Red (< 50%)
- warning: '#c87f1a', // hsl(38 72% 48%) - Amber (50-80%)
- good: '#2d9d6a', // hsl(152 62% 38%) - Teal (> 80%)
+ bad: '#d64545', // hsl(4 68% 50%) - Red (< SCORE_BAD_THRESHOLD%)
+ warning: '#c87f1a', // hsl(38 72% 48%) - Amber (SCORE_BAD_THRESHOLD-SCORE_WARNING_THRESHOLD%)
+ good: '#2d9d6a', // hsl(152 62% 38%) - Teal (> SCORE_WARNING_THRESHOLD%)
 } as const;
 
 // ===== CHART PALETTE (Harmonized data visualization) =====
@@ -109,10 +109,14 @@ export function getRiskColorByScore(score: number): string {
  return RISK_COLORS.low;
 }
 
+// Score percentage thresholds
+const SCORE_BAD_THRESHOLD = 50;
+const SCORE_WARNING_THRESHOLD = 80;
+
 // Utility function to get score color by percentage
 export function getScoreColorByPercentage(percentage: number): string {
- if (percentage < 50) return SCORE_COLORS.bad;
- if (percentage < 80) return SCORE_COLORS.warning;
+ if (percentage < SCORE_BAD_THRESHOLD) return SCORE_COLORS.bad;
+ if (percentage < SCORE_WARNING_THRESHOLD) return SCORE_COLORS.warning;
  return SCORE_COLORS.good;
 }
 

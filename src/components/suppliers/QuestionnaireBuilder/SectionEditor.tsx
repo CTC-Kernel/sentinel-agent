@@ -39,7 +39,7 @@ export const SectionEditor = memo(({ control, register, sIndex, onRemove }: Sect
   id={`section-title-${sIndex}`}
   aria-label="Titre de la section"
   {...register(`sections.${sIndex}.title`, { required: true })}
-  className="w-full text-lg font-bold bg-transparent border-0 border-b border-dashed border-border/40 focus:border-primary focus:ring-0 px-0"
+  className="w-full text-lg font-bold bg-transparent border-0 border-b border-dashed border-border/40 focus-visible:border-primary focus-visible:ring-0 px-0"
   placeholder="Titre de la section"
   />
   </div>

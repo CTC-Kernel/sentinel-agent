@@ -18,7 +18,7 @@ vi.mock('firebase/firestore', () => ({
  id: 'backup-1',
  data: () => ({
   name: 'Backup 1',
-  createdAt: { toDate: () => new Date() },
+  createdAt: { toDate: () => new Date(Date.now()) },
   size: 1024,
   status: 'completed'
  })
@@ -60,7 +60,7 @@ describe('BackupService', () => {
  it('should create a backup with required fields', async () => {
  const backup = {
  name: 'Daily Backup',
- createdAt: new Date(),
+ createdAt: new Date(Date.now()),
  organizationId: 'org-123',
  status: 'pending' as const,
  includeData: ['assets', 'risks', 'controls']

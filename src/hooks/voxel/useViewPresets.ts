@@ -231,7 +231,7 @@ export function useViewPresets(): UseViewPresetsReturn {
  await updateDoc(docRef, sanitizeData(updateData));
 
  setCustomViews(prev => prev.map(v =>
- v.id === id ? { ...v, ...updates, updatedAt: new Date() } : v
+ v.id === id ? { ...v, ...updates, updatedAt: new Date(Date.now()) } : v
  ));
  return true;
  } catch (error) {

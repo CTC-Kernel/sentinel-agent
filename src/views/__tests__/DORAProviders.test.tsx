@@ -32,8 +32,8 @@ vi.mock('../../hooks/useICTProviders', () => ({
  name: 'Test Provider',
  category: 'critical',
  doraCompliant: true,
- createdAt: new Date(),
- updatedAt: new Date()
+ createdAt: new Date(Date.now()),
+ updatedAt: new Date(Date.now())
  }
  ],
  loading: false,

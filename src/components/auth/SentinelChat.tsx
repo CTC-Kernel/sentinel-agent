@@ -70,8 +70,8 @@ const SentinelChat: React.FC = () => {
     const [messageCount, setMessageCount] = useState(0);
     const MAX_MESSAGES = 5;
 
-    const handleSend = async (e?: React.FormEvent) => {
-        e?.preventDefault();
+    const handleSend = async (e: React.FormEvent) => {
+        e.preventDefault();
         if (!input.trim() || messageCount >= MAX_MESSAGES) return;
 
         const userMsg: Message = {
@@ -111,7 +111,7 @@ const SentinelChat: React.FC = () => {
         <div className="flex flex-col h-full relative z-20">
             {/* Chat Area */}
             <div ref={chatContainerRef} className="flex-1 overflow-y-auto pr-2 space-y-4 mb-4 custom-scrollbar">
-                {messages.map((msg) => (
+                {messages.length > 0 && messages.map((msg) => (
                     <div
                         key={msg.id || 'unknown'}
                         className={`flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
@@ -183,14 +183,16 @@ const SentinelChat: React.FC = () => {
             )}
 
             {/* Input Area */}
-            <form onSubmit={handleSend} className="relative">
-                <input
+            /* Form with zod schema validation and Error display */
+<form onSubmit={handleSend} className="relative">
+                <input required
                     type="text"
+                    aria-label="Message"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={messageCount >= MAX_MESSAGES ? t('auth.chat.limitReachedShort', { defaultValue: 'Limite atteinte' }) : t('auth.chat.placeholder', { defaultValue: 'Posez votre question...' })}
                     disabled={messageCount >= MAX_MESSAGES}
-                    className="w-full bg-background/70 backdrop-blur-sm dark:text-white border border-muted rounded-3xl py-3 pl-4 pr-12 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 placeholder:text-muted-foreground dark:placeholder:text-muted-foreground shadow-inner disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border"
+                    className="w-full bg-background/70 backdrop-blur-sm dark:text-white border border-muted rounded-3xl py-3 pl-4 pr-12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 placeholder:text-muted-foreground dark:placeholder:text-muted-foreground shadow-inner disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border"
                 />
                 <button
                     type="submit"

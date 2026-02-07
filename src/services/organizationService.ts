@@ -17,7 +17,7 @@ export class OrganizationService {
  throw new Error('Insufficient permissions');
  }
  const orgRef = doc(db, 'organizations', orgId);
- await setDoc(orgRef, sanitizeData({ ...data, updatedAt: serverTimestamp() }), { merge: true });
+ await setDoc(orgRef, sanitizeData({ ...data, updatedAt: serverTimestamp() }), { merge: true }); // SAFE: sanitizeData() strips undefined values
  } catch (error) {
  ErrorLogger.error(error, 'OrganizationService.updateOrganization');
  throw error;

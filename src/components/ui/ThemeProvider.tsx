@@ -75,7 +75,7 @@ export const ThemeSelector: React.FC = () => {
 
  <div>
  <div className="mb-2">
- <span className="block text-sm font-medium text-foreground">
+ <span className="block text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
  Palette de couleurs
  </span>
  </div>

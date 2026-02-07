@@ -61,7 +61,8 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onClose })
   </div>
   <button
   onClick={onClose}
-  className="p-2 text-muted-foreground hover:text-muted-foreground/60 hover:bg-muted rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="p-2 text-muted-foreground hover:text-muted-foreground/60 hover:bg-muted rounded-3xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  aria-label="Fermer"
   >
   <X className="h-5 w-5" />
   </button>

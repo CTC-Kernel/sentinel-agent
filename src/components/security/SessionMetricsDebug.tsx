@@ -36,7 +36,7 @@ export const SessionMetricsDebug: React.FC = () => {
  <div className="flex justify-between">
   <dt>Dernière activité:</dt>
   <dd className="font-mono">
-  {new Date(metrics.lastActivity).toLocaleTimeString()}
+  {new Date(metrics.lastActivity).toLocaleTimeString('fr-FR')}
   </dd>
  </div>
  </dl>

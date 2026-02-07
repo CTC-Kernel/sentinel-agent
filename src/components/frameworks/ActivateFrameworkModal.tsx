@@ -6,7 +6,7 @@
  * @see Story EU-1.3: Créer le composant FrameworkSelector
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -53,7 +53,18 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
  onClose();
  };
 
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
  if (!framework) return null;
+
 
  return (
  <Transition.Root show={isOpen} as={React.Fragment}>
@@ -143,7 +154,7 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
   id="targetDate"
   value={targetDate}
   onChange={(e) => setTargetDate(e.target.value)}
-  className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-muted/50 text-foreground focus-visible:ring-2 focus-visible:ring-emerald-500 focus:border-transparent transition-all"
+  className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-muted/50 text-foreground focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-transparent transition-all"
   />
   </div>
 
@@ -168,7 +179,7 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
   'frameworks.notesPlaceholder',
   'Ajoutez des notes sur cette activation...'
   )}
-  className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-muted/50 text-foreground focus-visible:ring-2 focus-visible:ring-emerald-500 focus:border-transparent transition-all resize-none"
+  className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-muted/50 text-foreground focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-transparent transition-all resize-none"
   />
   </div>
   </motion.div>

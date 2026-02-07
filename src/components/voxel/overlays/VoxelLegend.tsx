@@ -205,7 +205,7 @@ export const VoxelLegend: React.FC<VoxelLegendProps> = ({
         {/* Header */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full flex items-center justify-between gap-2 px-4 py-3 hover:bg-muted/30 transition-colors"
+          className="w-full flex items-center justify-between gap-2 px-4 py-3 hover:bg-muted/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
           aria-expanded={isExpanded}
           aria-controls="legend-content"
         >

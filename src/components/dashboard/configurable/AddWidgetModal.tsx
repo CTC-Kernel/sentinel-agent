@@ -83,7 +83,7 @@ function WidgetCard({
  onKeyDown={handleKeyDown}
  className={cn(
  'p-4 rounded-3xl border transition-all text-left w-full',
- 'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+ 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
  isDisabled
  ? [
  'opacity-70 cursor-not-allowed',
@@ -287,7 +287,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
  )}
  <button
  onClick={handleClose}
- className="p-2.5 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground dark:hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="p-2.5 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground dark:hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  aria-label={t('common.close')}
  >
  <X className="w-6 h-6" />
@@ -302,6 +302,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
  <input
  type="text"
+ aria-label="Rechercher"
  placeholder={t('common.search')}
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
@@ -310,7 +311,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
  'bg-muted',
  'border border-border/40',
  'text-foreground placeholder:text-muted-foreground',
- 'focus:outline-none focus:ring-2 focus-visible:ring-primary focus:border-transparent'
+ 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent'
  )}
  />
  </div>

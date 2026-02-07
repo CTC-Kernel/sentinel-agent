@@ -74,7 +74,12 @@ export const useComplianceActions = (user: UserProfile | null) => {
  lastUpdatedBy: user?.uid
  });
 
+ try {
  await updateDoc(ref, sanitizedUpdates);
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la mise à jour du contrôle');
+ throw error;
+ }
 
  if (user) {
  const changes = oldData ? getDiff(updates as unknown as Record<string, unknown>, oldData as unknown as Record<string, unknown>) : [];
@@ -101,6 +106,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
   toast.error(t('errors.validationError', { defaultValue: 'Validation error' }));
  }
  } else {
+ ErrorLogger.error(_error, 'useComplianceActions.updateControl');
  toast.error(t('errors.updateFailed', { defaultValue: 'Error during update' }));
  ErrorLogger.error(_error, 'useComplianceActions.updateControl', {
   metadata: { controlId, updates }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AlertTriangle, Phone, ShieldAlert, CheckCircle2, User, Megaphone, Lock } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { ConfirmModal } from '../ui/ConfirmModal';
@@ -55,6 +55,16 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
  setActivationStep(0);
  addToast(t('continuity.toast.crisisDeactivated', { defaultValue: "Mode crise désactivé. Retour à la normale." }), "success");
  };
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
 
  return (
  <div className="space-y-6 sm:space-y-8">
@@ -164,7 +174,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
   <h3 className="font-bold mb-4">{t('continuity.crisis.eventLog', { defaultValue: 'Journal des Événements (Main Courante)' })}</h3>
   <div className="space-y-4">
   <div className="flex gap-4 items-start">
-  <span className="text-xs font-mono text-muted-foreground mt-1">{new Date().toLocaleTimeString()}</span>
+  <span className="text-xs font-mono text-muted-foreground mt-1">{new Date().toLocaleTimeString('fr-FR')}</span>
   <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 rounded-lg text-sm flex-1">
   <strong>{t('continuity.crisis.system', { defaultValue: 'SYSTÈME' })} :</strong> {t('continuity.crisis.activationBy', { defaultValue: `Activation de la cellule de crise par ${useStore.getState().user?.role}.`, role: useStore.getState().user?.role })}
   </div>

@@ -108,8 +108,9 @@ export const useFirestoreCollection = <T = DocumentData>(
  // as long as the stable key hasn't changed.
  const stableConstraints = useMemo(() => {
  return constraints;
- // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [constraintsKey]);
+ // Justification: constraints array is intentionally excluded. constraintsKey is a stable
+ // string representation of constraints, used to avoid infinite re-renders from reference changes.
+ }, [constraintsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
  const { realtime, logError, enabled } = options;
  const isEnabled = enabled !== false;

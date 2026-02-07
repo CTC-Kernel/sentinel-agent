@@ -28,7 +28,7 @@ export function createUser(options: UserFactoryOptions = {}): UserProfile {
  role: options.role || 'user',
  photoURL: undefined,
 
- createdAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
  };
 }
 

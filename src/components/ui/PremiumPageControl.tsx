@@ -68,7 +68,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
   ref={inputRef}
   type="text"
   placeholder={resolvedPlaceholder}
-  className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-3xl focus:ring-0 text-sm font-medium text-foreground placeholder:text-muted-foreground transition-all"
+  className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-3xl focus-visible:ring-0 text-sm font-medium text-foreground placeholder:text-muted-foreground transition-all"
  />
  </div>
 

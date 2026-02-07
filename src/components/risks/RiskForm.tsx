@@ -321,9 +321,17 @@ export const RiskForm: React.FC<RiskFormProps> = ({
  }
  }, [assetId, assets, getValues, isEditing, setValue]);
 
- useEffect(() => { if (!isEditing && hasPersistedDraft && savedDraft && !existingRisk) setShowDraftRecoveryBanner(true); }, [isEditing, hasPersistedDraft, savedDraft, existingRisk]);
+ useEffect(() => {
+ if (!isEditing && hasPersistedDraft && savedDraft && !existingRisk) {
+ setShowDraftRecoveryBanner(true);
+ }
+ }, [isEditing, hasPersistedDraft, savedDraft, existingRisk]);
 
- useEffect(() => { if (!isEditing && isDirty && watchedFormValues) persistDraft(watchedFormValues as Partial<RiskFormData>); }, [isEditing, isDirty, watchedFormValues, persistDraft]);
+ useEffect(() => {
+ if (!isEditing && isDirty && watchedFormValues) {
+ persistDraft(watchedFormValues as Partial<RiskFormData>);
+ }
+ }, [isEditing, isDirty, watchedFormValues, persistDraft]);
 
  const filteredLibraryThreats = (libraryThreats || []).filter(t => t.name.toLowerCase().includes(searchTerm.toLowerCase()) || t.threat.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -420,7 +428,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
   <div className="relative mb-4"><FloatingLabelInput label={t('risks.searchThreat', { defaultValue: 'Rechercher une menace...' })} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} icon={Search} /></div>
   <div className="max-h-[60vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4">
   {filteredLibraryThreats.map((threat) => (
-  <div key={threat.id || 'unknown'} onClick={() => handleSelectThreatFromLibrary(threat)} onKeyDown={(e) => e.key === 'Enter' && handleSelectThreatFromLibrary(threat)} role="button" tabIndex={0} aria-label={t('risks.selectThreat', { defaultValue: 'Sélectionner la menace', name: threat.name }) + ` ${threat.name}`} className="border border-border/40 p-4 rounded-xl hover:border-primary/50 cursor-pointer bg-background transition-all duration-normal ease-apple hover:shadow-md group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+  <div key={threat.id || 'unknown'} onClick={() => handleSelectThreatFromLibrary(threat)} onKeyDown={(e) => e.key === 'Enter' && handleSelectThreatFromLibrary(threat)} role="button" tabIndex={0} aria-label={t('risks.selectThreat', { defaultValue: 'Sélectionner la menace', name: threat.name }) + ` ${threat.name}`} className="border border-border/40 p-4 rounded-xl hover:border-primary/50 cursor-pointer bg-background transition-all duration-normal ease-apple hover:shadow-md group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
   <div className="flex justify-between items-start mb-2">
    <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-primary" /><span className="font-bold text-foreground line-clamp-1">{threat.name}</span></div>
    <span className="text-xs uppercase font-bold text-muted-foreground border px-1.5 py-0.5 rounded-lg">{threat.framework}</span>

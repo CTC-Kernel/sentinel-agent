@@ -8,7 +8,7 @@
  * 3. Strategic Scenarios (Scénarios Stratégiques)
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useLocale } from '../../../hooks/useLocale';
 import {
  Globe,
@@ -110,6 +110,8 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
  };
 
  // Ecosystem Party handlers
+ const deleteGuardRef = useRef(false);
+
  const handleAddParty = useCallback(() => {
  const newParty: EcosystemParty = {
  id: uuidv4(),
@@ -152,6 +154,9 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
  }, [data.ecosystem, workshop1Data.scope.essentialAssets]);
 
  const handleDeletePath = useCallback((id: string) => {
+ if (deleteGuardRef.current) return;
+ deleteGuardRef.current = true;
+ setTimeout(() => { deleteGuardRef.current = false; }, 500);
  const attackPaths = data.attackPaths.filter(p => p.id !== id);
  // Also remove from strategic scenarios
  const strategicScenarios = data.strategicScenarios.map(s => ({
@@ -178,6 +183,9 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
  }, [retainedPairs]);
 
  const handleDeleteScenario = useCallback((id: string) => {
+ if (deleteGuardRef.current) return;
+ deleteGuardRef.current = true;
+ setTimeout(() => { deleteGuardRef.current = false; }, 500);
  const strategicScenarios = data.strategicScenarios.filter(s => s.id !== id);
  onDataChange({ strategicScenarios });
  }, [data.strategicScenarios, onDataChange]);
@@ -235,16 +243,26 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
  return 'green';
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <div className="space-y-6">
  {/* Ecosystem Map Visualization (Story 17.5) */}
  {showEcosystemMap && (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] animate-fade-in">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] animate-fade-in" role="dialog" aria-modal="true">
  <div className="relative w-full max-w-6xl h-[85vh] glass-premium rounded-3xl shadow-2xl border border-border/40 overflow-hidden animate-scale-in">
  <div className="absolute top-6 right-6 z-decorator">
  <button
  onClick={() => setShowEcosystemMap(false)}
- className="p-3 rounded-full bg-card border border-border/40 shadow-lg hover:scale-110 transition-transform hover:bg-muted/50"
+ className="p-3 rounded-full bg-card border border-border/40 shadow-lg hover:scale-110 transition-transform hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <X className="w-5 h-5 text-muted-foreground" />
  </button>
@@ -283,7 +301,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
  <div className="flex items-center justify-between">
  <button
  onClick={() => toggleSection('ecosystem')}
- className="flex-1 flex items-center justify-between group"
+ className="flex-1 flex items-center justify-between group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <div className="flex items-center gap-4">
  <div className="p-3 rounded-2xl bg-primary/10 text-primary group-hover:scale-110 transition-transform duration-300">
@@ -316,7 +334,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
  <div className="ml-4 pl-4 border-l border-border/40 hidden sm:block">
  <button
   onClick={() => setShowEcosystemMap(true)}
-  className="flex items-center gap-2 px-4 py-2.5 rounded-3xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all transform hover:-translate-y-0.5 hover:shadow-md font-medium"
+  className="flex items-center gap-2 px-4 py-2.5 rounded-3xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all transform hover:-translate-y-0.5 hover:shadow-md font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   title={t('ebios.ecosystem.legend')}
  >
   <Network className="w-4 h-4" />
@@ -383,7 +401,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
   setEditingParty(party);
   setShowPartyForm(true);
   }}
-  className="p-2 rounded-lg hover:bg-card text-muted-foreground hover:text-primary transition-colors shadow-sm"
+  className="p-2 rounded-lg hover:bg-card text-muted-foreground hover:text-primary transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <Pencil className="w-4 h-4" />
   </button>
@@ -392,7 +410,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
   e.stopPropagation();
   handleDeleteParty(party.id);
   }}
-  className="p-2 rounded-lg hover:bg-card text-muted-foreground hover:text-red-500 transition-colors shadow-sm"
+  className="p-2 rounded-lg hover:bg-card text-muted-foreground hover:text-red-500 transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <Trash2 className="w-4 h-4" />
   </button>
@@ -425,7 +443,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
  {!readOnly && (
   <button
   onClick={handleAddParty}
-  className="group relative flex flex-col items-center justify-center p-6 rounded-3xl border-2 border-dashed border-border/40 hover:border-primary/60 hover:bg-primary/15 dark:hover:bg-primary/10 transition-all duration-300 min-h-[160px]"
+  className="group relative flex flex-col items-center justify-center p-6 rounded-3xl border-2 border-dashed border-border/40 hover:border-primary/60 hover:bg-primary/15 dark:hover:bg-primary/10 transition-all duration-300 min-h-[160px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <div className="p-4 rounded-full bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-foreground transition-all duration-300 mb-3 shadow-sm group-hover:shadow-primary group-hover:scale-110">
   <Plus className="w-6 h-6" />
@@ -446,7 +464,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
  <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/5 border-border/40 rounded-3xl">
  <button
  onClick={() => toggleSection('attackPaths')}
- className="w-full flex items-center justify-between group"
+ className="w-full flex items-center justify-between group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <div className="flex items-center gap-4">
  <div className="p-3 rounded-2xl bg-orange-500/10 text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform duration-300">
@@ -555,13 +573,13 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
    setEditingPath(path);
    setShowPathForm(true);
    }}
-   className="p-2 rounded-3xl bg-muted text-muted-foreground hover:text-primary dark:hover:text-primary/70 hover:bg-primary/15 dark:hover:bg-primary transition-all"
+   className="p-2 rounded-3xl bg-muted text-muted-foreground hover:text-primary dark:hover:text-primary/70 hover:bg-primary/15 dark:hover:bg-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
    <Pencil className="w-4 h-4" />
   </button>
   <button
-   onClick={() => handleDeletePath(path.id)}
-   className="p-2 rounded-3xl bg-muted text-muted-foreground hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all"
+   onClick={() => confirm("Confirmer la suppression ?") && handleDeletePath(path.id)}
+   className="p-2 rounded-3xl bg-muted text-muted-foreground hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
    <Trash2 className="w-4 h-4" />
   </button>
@@ -576,7 +594,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
   {!readOnly && (
   <button
   onClick={handleAddPath}
-  className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-orange-500/50 hover:bg-orange-50/50 dark:hover:bg-orange-900/10 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-orange-600 font-medium group"
+  className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-orange-500/50 hover:bg-orange-50/50 dark:hover:bg-orange-900/10 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-orange-600 font-medium group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <div className="p-1 rounded-full bg-muted group-hover:bg-orange-200 dark:group-hover:bg-orange-800 transition-colors">
   <Plus className="w-4 h-4" />
@@ -596,7 +614,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
  <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-error/5 border-border/40 rounded-3xl">
  <button
  onClick={() => toggleSection('strategicScenarios')}
- className="w-full flex items-center justify-between group"
+ className="w-full flex items-center justify-between group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <div className="flex items-center gap-4">
  <div className="p-3 rounded-2xl bg-error-bg text-error-text group-hover:scale-110 transition-transform duration-300">
@@ -691,13 +709,13 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
    setEditingScenario(scenario);
    setShowScenarioForm(true);
    }}
-   className="p-2 rounded-3xl bg-muted text-muted-foreground hover:text-primary dark:hover:text-primary/70 hover:bg-primary/15 dark:hover:bg-primary transition-all"
+   className="p-2 rounded-3xl bg-muted text-muted-foreground hover:text-primary dark:hover:text-primary/70 hover:bg-primary/15 dark:hover:bg-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
    <Pencil className="w-4 h-4" />
   </button>
   <button
-   onClick={() => handleDeleteScenario(scenario.id)}
-   className="p-2 rounded-3xl bg-muted text-muted-foreground hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all"
+   onClick={() => confirm("Confirmer la suppression ?") && handleDeleteScenario(scenario.id)}
+   className="p-2 rounded-3xl bg-muted text-muted-foreground hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
    <Trash2 className="w-4 h-4" />
   </button>
@@ -712,7 +730,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
   {!readOnly && (
   <button
   onClick={handleAddScenario}
-  className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-error-text font-medium group"
+  className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-error-text font-medium group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <div className="p-1 rounded-full bg-muted group-hover:bg-error-bg transition-colors">
   <Plus className="w-4 h-4" />

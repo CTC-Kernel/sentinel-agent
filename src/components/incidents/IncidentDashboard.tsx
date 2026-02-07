@@ -178,7 +178,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
  meta: { className: 'hidden lg:table-cell' },
  cell: ({ row }) => (
  <span className="text-muted-foreground font-medium">
-  {new Date(row.original.dateReported).toLocaleDateString()}
+  {new Date(row.original.dateReported).toLocaleDateString('fr-FR')}
  </span>
  )
  },
@@ -192,9 +192,8 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
  return (
   <div className="flex items-center gap-2">
   <div className="relative">
-  <img
+  <img alt={reporterName}
   src={getUserAvatarUrl(reporterUser?.photoURL, reporterUser?.role)}
-  alt={reporterName}
   className="w-6 h-6 rounded-full border border-border/40 object-cover bg-muted/20"
   />
   </div>
@@ -226,7 +225,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
    e.stopPropagation();
    onDelete(row.original.id);
   }}
-  className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all duration-normal ease-apple opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
+  className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all duration-normal ease-apple opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
   >
   <Trash2 className="h-4 w-4" />
   </button>
@@ -301,7 +300,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
   role="button"
   tabIndex={0}
   hover={true}
-  className="p-7 flex flex-col relative group border border-border/40 focus:outline-none focus:ring-2 focus-visible:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background rounded-xl transition-all duration-normal ease-apple"
+  className="p-7 flex flex-col relative group border border-border/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-background rounded-xl transition-all duration-normal ease-apple"
   >
   {inc.severity === Criticality.CRITICAL && (
    <div className="absolute top-6 right-6 z-decorator">
@@ -339,7 +338,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
     e.stopPropagation();
     onDelete(inc.id);
    }}
-   className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-error-bg rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
+   className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-error-bg rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
    >
    <Trash2 className="h-4 w-4" />
    </button>
@@ -355,13 +354,12 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
   <div className="flex items-center justify-between pt-5 border-t border-dashed border-border/40 mt-auto">
    <div className="flex items-center text-xs font-medium text-muted-foreground">
    <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
-   <span>{new Date(inc.dateReported).toLocaleDateString()}</span>
+   <span>{new Date(inc.dateReported).toLocaleDateString('fr-FR')}</span>
    <span className="mx-2">•</span>
    <div className="flex items-center gap-1.5">
    <div className="relative">
-   <img
+   <img alt={inc.reporter}
     src={getUserAvatarUrl(users?.find(u => u.displayName === inc.reporter || u.email === inc.reporter)?.photoURL, users?.find(u => u.displayName === inc.reporter || u.email === inc.reporter)?.role)}
-    alt={inc.reporter}
     className="w-4 h-4 rounded-full object-cover bg-muted/20"
    />
    </div>
@@ -375,7 +373,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
     e.stopPropagation();
     onSelect(inc);
    }}
-   className="text-xs px-2 py-1 bg-primary text-white rounded-lg hover:bg-primary/90 hover:scale-[1.05] transition-all duration-normal ease-apple font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+   className="text-xs px-2 py-1 bg-primary text-white rounded-lg hover:bg-primary/90 hover:scale-[1.05] transition-all duration-normal ease-apple font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
    >
    {t('incidents.playbook')}
    </button>

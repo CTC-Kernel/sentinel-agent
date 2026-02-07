@@ -257,7 +257,7 @@ export class ContractExpirationService {
  ...DEFAULT_ALERT_CONFIG,
  ...config,
  updatedAt: serverTimestamp()
- }), { merge: true });
+ }), { merge: true }); // SAFE: sanitizeData() strips undefined values
  } catch (error) {
  ErrorLogger.error(error, 'ContractExpirationService.saveAlertConfig');
  throw error;

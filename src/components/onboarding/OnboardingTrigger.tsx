@@ -26,7 +26,8 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onStart, onD
   </div>
   <button
   onClick={onDismiss}
-  className="p-1 hover:bg-muted rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+  className="p-1 hover:bg-muted rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+  aria-label="Fermer"
   >
   <X className="h-5 w-5" />
   </button>
@@ -35,14 +36,14 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onStart, onD
  <div className="flex gap-3">
   <button
   onClick={onStart}
-  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white text-primary rounded-3xl text-sm font-bold hover:scale-105 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-600"
+  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white text-primary rounded-3xl text-sm font-bold hover:scale-105 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-600"
   >
   <Zap className="h-4 w-4" />
   {t('tour.banner.start')}
   </button>
   <button
   onClick={onDismiss}
-  className="px-4 py-2 bg-primary/20 text-primary-foreground rounded-3xl text-sm font-bold hover:bg-white/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+  className="px-4 py-2 bg-primary/20 text-primary-foreground rounded-3xl text-sm font-bold hover:bg-white/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
   >
   {t('tour.banner.dismiss')}
   </button>

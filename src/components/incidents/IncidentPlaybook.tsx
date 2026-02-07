@@ -136,7 +136,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
   id="playbook-select"
   value={selectedPlaybookId}
   onChange={(e) => setSelectedPlaybookId(e.target.value)}
-  className="w-full rounded-xl border-border/40 bg-background text-foreground p-3 focus:outline-none focus:ring-2 focus-visible:ring-primary transition-all duration-normal ease-apple"
+  className="w-full rounded-xl border-border/40 bg-background text-foreground p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all duration-normal ease-apple"
   >
   {availablePlaybooks.map(pb => (
    <option key={pb.id || 'unknown'} value={pb.id}>{pb.title} ({pb.severity})</option>
@@ -171,7 +171,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
   <p className="text-muted-foreground">{t('incidents.playbook.noPlaybook', { defaultValue: `Aucun playbook disponible pour la catégorie "${incident.category}".`, category: incident.category })}</p>
   <button
   onClick={handleInitializePlaybooks}
-  className="mt-3 text-primary hover:underline text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-2"
+  className="mt-3 text-primary hover:underline text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-2"
   >
   {t('incidents.playbook.generateDefaults', { defaultValue: 'Générer les playbooks par défaut' })}
   </button>
@@ -209,7 +209,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
  <div className="flex gap-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
   <div className="flex items-center gap-1.5">
   <Clock className="h-3.5 w-3.5" />
-  <span>{t('incidents.playbook.startedOn', { defaultValue: 'Débuté le' })}: {new Date(response.startedAt).toLocaleDateString()}</span>
+  <span>{t('incidents.playbook.startedOn', { defaultValue: 'Débuté le' })}: {new Date(response.startedAt).toLocaleDateString('fr-FR')}</span>
   </div>
   <div className="flex items-center gap-1.5">
   <Shield className="h-3.5 w-3.5" />
@@ -240,7 +240,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
   }}
   role="button"
   tabIndex={isNext && !readOnly ? 0 : -1}
-  className={`relative flex items-start p-4 rounded-xl border transition-all duration-normal ease-apple focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isCompleted
+  className={`relative flex items-start p-4 rounded-xl border transition-all duration-normal ease-apple focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isCompleted
    ? 'bg-success/5 border-success/20'
    : isNext
    ? 'bg-background border-primary/30 ring-1 ring-primary/10 cursor-pointer hover:shadow-md hover:border-primary/50'

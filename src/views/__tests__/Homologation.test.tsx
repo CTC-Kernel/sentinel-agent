@@ -36,8 +36,8 @@ vi.mock('../../hooks/useHomologation', () => ({
  systemName: 'Test System',
  level: 'standard',
  status: 'draft',
- createdAt: new Date(),
- updatedAt: new Date()
+ createdAt: new Date(Date.now()),
+ updatedAt: new Date(Date.now())
  }
  ],
  loading: false,

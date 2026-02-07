@@ -84,20 +84,20 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
   />
   </div>
   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-  <select {...findingForm.register('type')} className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border border-border/40 rounded-3xl text-foreground focus:ring-2 focus:ring-primary focus:border-primary/60 transition-all outline-none">
+  <select {...findingForm.register('type')} className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border border-border/40 rounded-3xl text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary/60 transition-all outline-none">
   <option value="Mineure">{t('audits.findingsSection.form.type.minor')}</option>
   <option value="Majeure">{t('audits.findingsSection.form.type.major')}</option>
   <option value="Observation">{t('audits.findingsSection.form.type.observation')}</option>
   <option value="Opportunité">{t('audits.findingsSection.form.type.opportunity')}</option>
   </select>
-  <select {...findingForm.register('severity')} className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border border-border/40 rounded-3xl text-foreground focus:ring-2 focus:ring-primary focus:border-primary/60 transition-all outline-none">
+  <select {...findingForm.register('severity')} className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border border-border/40 rounded-3xl text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary/60 transition-all outline-none">
   <option value="Critique">{t('audits.findingsSection.form.severity.critical')}</option>
   <option value="Haute">{t('audits.findingsSection.form.severity.high')}</option>
   <option value="Moyenne">{t('audits.findingsSection.form.severity.medium')}</option>
   <option value="Faible">{t('audits.findingsSection.form.severity.low')}</option>
   <option value="Info">{t('audits.findingsSection.form.severity.info')}</option>
   </select>
-  <select {...findingForm.register('relatedControlId')} className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border border-border/40 rounded-3xl text-foreground focus:ring-2 focus:ring-primary focus:border-primary/60 transition-all outline-none">
+  <select {...findingForm.register('relatedControlId')} className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border border-border/40 rounded-3xl text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary/60 transition-all outline-none">
   <option value="">{t('audits.findingsSection.form.linkControl')}</option>
   {controls.map(c => <option key={c.id || 'unknown'} value={c.id}>{c.code} - {c.name.substring(0, 30)}...</option>)}
   </select>
@@ -138,7 +138,7 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
    {f.severity}
    </span>
    )}
-   <span className="text-xs text-muted-foreground">{new Date(f.createdAt || '').toLocaleDateString()}</span>
+   <span className="text-xs text-muted-foreground">{new Date(f.createdAt || '').toLocaleDateString('fr-FR')}</span>
   </div>
   <p className="text-foreground whitespace-pre-wrap">{f.description}</p>
   </div>

@@ -60,7 +60,7 @@ function ErrorState({
 			<button
 				type="button"
 				onClick={onRetry}
-				className="px-4 py-2 text-sm font-medium text-white bg-destructive hover:bg-destructive/80 rounded-md transition-colors"
+				className="px-4 py-2 text-sm font-medium text-white bg-destructive hover:bg-destructive/80 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
 			>
 				{t('common.retry', { defaultValue: 'Réessayer' })}
 			</button>

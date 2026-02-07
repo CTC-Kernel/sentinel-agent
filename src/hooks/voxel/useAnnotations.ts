@@ -25,6 +25,7 @@ import type {
 } from '../../types/voxelAnnotation';
 import { AnnotationService } from '../../services/annotationService';
 import { useAuth } from '../useAuth';
+import { ErrorLogger } from '../../services/errorLogger';
 
 // ============================================================================
 // Types
@@ -276,6 +277,7 @@ export function useAnnotations(options: UseAnnotationsOptions): UseAnnotationsRe
  cancelAnnotationMode();
  return annotation;
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'useAnnotations');
  setError(err instanceof Error ? err.message : 'Failed to create annotation');
  return null;
  } finally {
@@ -298,6 +300,7 @@ export function useAnnotations(options: UseAnnotationsOptions): UseAnnotationsRe
  cancelAnnotationMode();
  return annotation;
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'useAnnotations');
  setError(err instanceof Error ? err.message : 'Failed to update annotation');
  return null;
  } finally {
@@ -319,6 +322,7 @@ export function useAnnotations(options: UseAnnotationsOptions): UseAnnotationsRe
  }
  return success;
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'useAnnotations');
  setError(err instanceof Error ? err.message : 'Failed to delete annotation');
  return false;
  } finally {
@@ -360,6 +364,7 @@ export function useAnnotations(options: UseAnnotationsOptions): UseAnnotationsRe
  try {
  return await AnnotationService.createReply({ ...currentAuthor, organizationId }, { annotationId, content });
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'useAnnotations');
  setError(err instanceof Error ? err.message : 'Failed to create reply');
  return null;
  } finally {
@@ -376,6 +381,7 @@ export function useAnnotations(options: UseAnnotationsOptions): UseAnnotationsRe
  try {
  return await AnnotationService.updateReply(annotationId, replyId, { content });
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'useAnnotations');
  setError(err instanceof Error ? err.message : 'Failed to update reply');
  return null;
  } finally {
@@ -391,6 +397,7 @@ export function useAnnotations(options: UseAnnotationsOptions): UseAnnotationsRe
  try {
  return await AnnotationService.deleteReply(annotationId, replyId, organizationId);
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'useAnnotations');
  setError(err instanceof Error ? err.message : 'Failed to delete reply');
  return false;
  } finally {

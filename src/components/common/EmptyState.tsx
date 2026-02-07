@@ -44,9 +44,8 @@ export const EmptyState = ({
   className="mb-6 relative"
  >
   <div className="absolute inset-0 bg-primary/20 blur-[50px] rounded-full transform scale-75" />
-  <img
+  <img alt={title}
   src={image}
-  alt={title}
   className="w-48 h-48 object-contain relative z-decorator drop-shadow-2xl"
   />
  </motion.div>

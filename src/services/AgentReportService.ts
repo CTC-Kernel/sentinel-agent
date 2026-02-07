@@ -124,7 +124,7 @@ export function subscribeToReports(
  q = query(q, firestoreLimit(options.limit));
  }
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const reports = snapshot.docs.map(d => docToReport(d));
@@ -139,6 +139,7 @@ export function subscribeToReports(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 /**
@@ -154,7 +155,7 @@ export function subscribeToSchedules(
  orderBy('nextRunAt', 'asc')
  );
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const schedules = snapshot.docs.map(d => docToSchedule(d));
@@ -169,6 +170,7 @@ export function subscribeToSchedules(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 // ============================================================================

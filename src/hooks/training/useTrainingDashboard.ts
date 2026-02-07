@@ -154,7 +154,7 @@ const generateCSV = (
  overdueAssignments.forEach((a) => {
  const dueDate = a.dueDate.toDate();
  const daysOverdue = Math.ceil((Date.now() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
- lines.push(`${a.userName || a.userId},${a.courseName || a.courseId},${dueDate.toLocaleDateString()},${daysOverdue}`);
+ lines.push(`${a.userName || a.userId},${a.courseName || a.courseId},${dueDate.toLocaleDateString('fr-FR')},${daysOverdue}`);
  });
 
  return lines.join('\n');

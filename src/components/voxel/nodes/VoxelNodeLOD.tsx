@@ -5,9 +5,9 @@
  * node representations based on camera distance.
  *
  * Distance thresholds:
- * - < 50 units: High detail (32 segments, labels, glow)
- * - 50-200 units: Medium detail (16 segments, no labels)
- * - > 200 units: Low detail (8 segments, flat color)
+ * - < LOD_HIGH_DETAIL_DISTANCE units: High detail (32 segments, labels, glow)
+ * - LOD_HIGH_DETAIL_DISTANCE-LOD_MEDIUM_DETAIL_DISTANCE units: Medium detail (16 segments, no labels)
+ * - > LOD_MEDIUM_DETAIL_DISTANCE units: Low detail (8 segments, flat color)
  *
  * @see Story VOX-2.6: Node LOD System
  * @see Architecture: architecture-voxel-module-2026-01-22.md#LOD
@@ -48,7 +48,9 @@ export interface VoxelNodeLODProps {
 // LOD Distance Constants
 // ============================================================================
 
-const DEFAULT_LOD_DISTANCES: [number, number] = [50, 200];
+const LOD_HIGH_DETAIL_DISTANCE = 50;
+const LOD_MEDIUM_DETAIL_DISTANCE = 200;
+const DEFAULT_LOD_DISTANCES: [number, number] = [LOD_HIGH_DETAIL_DISTANCE, LOD_MEDIUM_DETAIL_DISTANCE];
 
 // ============================================================================
 // Component
@@ -143,7 +145,7 @@ export const VoxelNodeLOD: React.FC<VoxelNodeLODProps> = ({
  userData={{ nodeId: data.id, nodeType: data.type }}
  >
  <Detailed distances={distances}>
- {/* High detail: < 50 units */}
+ {/* High detail: < LOD_HIGH_DETAIL_DISTANCE units */}
  <NodeHighDetail
  data={data}
  isSelected={isSelected}
@@ -151,7 +153,7 @@ export const VoxelNodeLOD: React.FC<VoxelNodeLODProps> = ({
  showLabel={showLabels}
  cameraDistance={cameraDistance}
  />
- {/* Medium detail: 50-200 units */}
+ {/* Medium detail: LOD_HIGH_DETAIL_DISTANCE-LOD_MEDIUM_DETAIL_DISTANCE units */}
  <NodeMediumDetail
  data={data}
  isSelected={isSelected}
@@ -159,7 +161,7 @@ export const VoxelNodeLOD: React.FC<VoxelNodeLODProps> = ({
  showLabel={false} // No labels at medium distance by default
  cameraDistance={cameraDistance}
  />
- {/* Low detail: > 200 units */}
+ {/* Low detail: > LOD_MEDIUM_DETAIL_DISTANCE units */}
  <NodeLowDetail
  data={data}
  isSelected={isSelected}

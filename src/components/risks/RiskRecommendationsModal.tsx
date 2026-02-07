@@ -41,7 +41,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
   <p className="text-muted-foreground">Recommandations générées par le moteur d'IA souverain (OVH)</p>
   </div>
   </div>
-  <button onClick={onClose} className="p-2.5 hover:bg-muted dark:hover:bg-muted rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+  <button onClick={onClose} className="p-2.5 hover:bg-muted dark:hover:bg-muted rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Fermer">
   <X className="w-6 h-6 text-muted-foreground" />
   </button>
  </div>
@@ -118,7 +118,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
  <div className="p-6 border-t border-border/40 dark:border-white/5 bg-muted/50 flex justify-end">
   <button
   onClick={onClose}
-  className="px-6 py-3 bg-card border border-border/40 rounded-3xl font-bold text-foreground dark:text-white hover:bg-muted/50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="px-6 py-3 bg-card border border-border/40 rounded-3xl font-bold text-foreground dark:text-white hover:bg-muted/50 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   Fermer
   </button>

@@ -25,7 +25,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
   <h3 className="text-lg font-bold text-foreground">{t('dashboard.priorityRisks', { defaultValue: 'Risques Prioritaires' })}</h3>
   <p className="text-sm text-muted-foreground">{t('dashboard.actionPriority', { defaultValue: "Priorité d'action" })}</p>
  </div>
- <button className="p-2 bg-destructive/10 text-destructive rounded-3xl hover:bg-destructive/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50">
+ <button className="p-2 bg-destructive/10 text-destructive rounded-3xl hover:bg-destructive/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50">
   <ShieldAlert className="h-5 w-5" />
  </button>
  </div>
@@ -56,7 +56,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
   </span>
   <button
    onClick={(e) => { e.stopPropagation(); onMitigate(risk); }}
-   className="opacity-0 group-hover:opacity-70 transition-opacity flex items-center text-xs font-bold text-primary hover:text-primary/80 focus:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded px-1"
+   className="opacity-0 group-hover:opacity-70 transition-opacity flex items-center text-xs font-bold text-primary hover:text-primary/80 focus:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded px-1"
   >
    {t('dashboard.treat', { defaultValue: 'Traiter' })} <ArrowRight className="h-3 w-3 ml-1" />
   </button>

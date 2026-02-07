@@ -190,7 +190,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
     updateQuestion(q.id, { options: newOptions });
     }}
     type="text"
-    className="flex-1 px-3 py-2 bg-card border border-border/40 rounded-lg text-sm transition-colors focus:border-primary focus:ring-1 focus-visible:ring-primary outline-none"
+    className="flex-1 px-3 py-2 bg-card border border-border/40 rounded-lg text-sm transition-colors focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary outline-none"
     placeholder={`Option ${optIndex + 1}`}
     />
     <button

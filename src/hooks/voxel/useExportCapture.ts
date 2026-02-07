@@ -96,7 +96,7 @@ function applyWatermark(
  if (customText) lines.push(customText);
  if (organization) lines.push(organization);
  if (user) lines.push(`By: ${user}`);
- if (includeDate) lines.push(new Date().toLocaleDateString());
+ if (includeDate) lines.push(new Date().toLocaleDateString('fr-FR'));
 
  if (lines.length === 0) return;
 

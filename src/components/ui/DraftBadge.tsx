@@ -8,7 +8,7 @@
 
 import { Badge } from './Badge';
 import { useLocale } from '../../hooks/useLocale';
-import { getDraftLabel } from '../../hooks/useDraftMode';
+import { getDraftLabel } from '../../utils/draftLabels';
 import { Edit } from '../ui/Icons';
 import { isDraftStatus } from '../../utils/draftUtils';
 

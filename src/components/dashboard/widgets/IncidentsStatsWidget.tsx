@@ -109,7 +109,7 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
   onClick={() => {
   if (navigate) navigate('/incidents');
   }}
-  className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-muted text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-muted text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
   Voir tout
  </button>
@@ -135,7 +135,7 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
   }
   }
   }}
-  className="rounded-3xl bg-gradient-to-br from-success-bg to-success-bg/50 dark:from-success/5 dark:to-success/10 border border-success-border/50 dark:border-success/20 p-3 flex flex-col justify-between hover:scale-[1.02] transition-transform cursor-pointer group/card focus:outline-none focus-visible:ring-2 focus-visible:ring-success"
+  className="rounded-3xl bg-gradient-to-br from-success-bg to-success-bg/50 dark:from-success/5 dark:to-success/10 border border-success-border/50 dark:border-success/20 p-3 flex flex-col justify-between hover:scale-[1.02] transition-transform cursor-pointer group/card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success"
   onClick={() => {
   if (navigate) navigate('/incidents');
   }}
@@ -163,7 +163,7 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
   }
   }
   }}
-  className="rounded-3xl bg-gradient-to-br from-warning-bg to-warning-bg/50 dark:from-warning/5 dark:to-warning/10 border border-warning-border/50 dark:border-warning/20 p-3 flex flex-col justify-between hover:scale-[1.02] transition-transform cursor-pointer group/card focus:outline-none focus-visible:ring-2 focus-visible:ring-warning"
+  className="rounded-3xl bg-gradient-to-br from-warning-bg to-warning-bg/50 dark:from-warning/5 dark:to-warning/10 border border-warning-border/50 dark:border-warning/20 p-3 flex flex-col justify-between hover:scale-[1.02] transition-transform cursor-pointer group/card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning"
   onClick={() => {
   if (navigate) navigate('/incidents');
   }}

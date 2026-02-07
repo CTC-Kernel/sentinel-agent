@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { CheckCircle, AlertTriangle, XCircle, Server, Database, Cloud, Activity, RefreshCw } from '../../../components/ui/Icons';
 import { ConnectivityService, ServiceHealth } from '../../../services/connectivityService';
 import { ErrorLogger } from '../../../services/errorLogger';
+import { useAuth } from '../../../hooks/useAuth';
 import { BUILD_VERSION } from '../../../config/version';
 
 const ServiceStatus: React.FC<{
@@ -58,6 +59,11 @@ interface ServiceHealthUI extends ServiceHealth {
 }
 
 export const SystemHealth: React.FC = () => {
+ const { user } = useAuth();
+
+ // RBAC: Only admin/super_admin can access system health
+ const canViewSystemHealth = user?.role === 'admin' || user?.role === 'super_admin';
+
  const [services, setServices] = useState<ServiceHealthUI[]>([]);
  const [loading, setLoading] = useState(true);
  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
@@ -121,9 +127,9 @@ export const SystemHealth: React.FC = () => {
 
  <div className="mt-6 pt-4 border-t border-border">
   <div className="flex items-center justify-between text-xs text-muted-foreground">
-  <span>Last updated: {lastUpdate.toLocaleTimeString()}</span>
+  <span>Last updated: {lastUpdate.toLocaleTimeString('fr-FR')}</span>
   <div className="flex items-center space-x-2">
-  <button onClick={checkHealth} className="hover:text-foreground transition-colors">
+  <button onClick={checkHealth} className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
   Check Now
   </button>
   <span className="font-mono text-muted-foreground/50">|</span>

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, CheckCircle2, AlertTriangle, X } from './Icons';
 import { useStore } from '../../store';
 
@@ -154,12 +154,22 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
  URL.revokeObjectURL(url);
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] p-4 animate-fade-in">
+ <div className="fixed inset-0 z-modal flex items-center justify-center bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] p-4 animate-fade-in" role="dialog" aria-modal="true">
  <div className="bg-card rounded-2xl shadow-2xl w-full max-w-4xl border border-border/50 overflow-hidden animate-scale-in max-h-[90vh] flex flex-col">
  <div className="p-6 border-b border-border/40 bg-primary/10 flex justify-between items-center rounded-t-2xl">
   <h2 className="text-2xl font-bold text-primary dark:text-primary tracking-tight">{title}</h2>
-  <button aria-label="Fermer la fenêtre" onClick={onClose} className="p-2.5 hover:bg-muted/500 dark:hover:bg-muted rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+  <button aria-label="Fermer la fenêtre" onClick={onClose} className="p-2.5 hover:bg-muted/500 dark:hover:bg-muted rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
   <X className="h-5 w-5" />
   </button>
  </div>
@@ -199,7 +209,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
 
   <div className="flex justify-between items-center p-4 bg-muted/50 rounded-xl">
   <p className="text-sm text-muted-foreground">Besoin d'un modèle ?</p>
-  <button aria-label="Télécharger le modèle CSV" onClick={downloadTemplate} className="text-sm font-bold text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1">
+  <button aria-label="Télécharger le modèle CSV" onClick={downloadTemplate} className="text-sm font-bold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1">
    Télécharger le modèle CSV
   </button>
   </div>
@@ -218,14 +228,14 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
    )}
   </div>
   <div className="flex gap-2">
-   <button aria-label="Annuler l'importation" onClick={() => setStep('upload')} className="px-4 py-2 text-sm font-bold text-muted-foreground hover:bg-muted rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+   <button aria-label="Annuler l'importation" onClick={() => setStep('upload')} className="px-4 py-2 text-sm font-bold text-muted-foreground hover:bg-muted rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
    Annuler
    </button>
    <button
    aria-label={`Importer ${parsedData.length} éléments`}
    onClick={handleImport}
    disabled={errors.length > 0}
-   className="px-4 py-2 text-sm font-bold bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+   className="px-4 py-2 text-sm font-bold bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
    >
    Importer {parsedData.length} élément{parsedData.length > 1 ? 's' : ''}
    </button>
@@ -300,7 +310,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
   </div>
   <h3 className="text-lg font-bold text-foreground mb-2">Importation réussie !</h3>
   <p className="text-sm text-muted-foreground">{importedCount} élément{importedCount > 1 ? 's' : ''} importé{importedCount > 1 ? 's' : ''} avec succès</p>
-  <button aria-label="Terminer l'importation" onClick={onClose} className="mt-6 px-6 py-3 bg-success text-success-foreground rounded-xl font-bold hover:bg-success/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+  <button aria-label="Terminer l'importation" onClick={onClose} className="mt-6 px-6 py-3 bg-success text-success-foreground rounded-xl font-bold hover:bg-success/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
   Terminer
   </button>
   </div>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useStore } from '../../store';
 import { Activity, Trash2, AlertTriangle, Download, Shield } from '../ui/Icons';
 import { Button } from '../ui/button';
@@ -160,6 +160,16 @@ export const SystemSettings: React.FC = () => {
  setIsDeleting(false);
  }
  };
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
 
  return (
  <div className="space-y-8 animate-fade-in-up">

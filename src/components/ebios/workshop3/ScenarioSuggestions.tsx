@@ -73,7 +73,7 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
  <PremiumCard glass className="mb-6 bg-gradient-to-r from-amber-50/50 to-orange-50/50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800 dark:border-amber-800">
  <button
  onClick={() => setIsExpanded(!isExpanded)}
- className="w-full flex items-center justify-between"
+ className="w-full flex items-center justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <div className="flex items-center gap-3">
  <div className="p-2 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-500">
@@ -154,7 +154,7 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
   <div className="flex items-center gap-1 flex-shrink-0">
   <button
   onClick={() => onUseTemplate(template)}
-  className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 hover:bg-amber-200 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-400 transition-colors"
+  className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 hover:bg-amber-200 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   title={t('ebios.workshop3.useTemplate', 'Utiliser ce modèle')}
   >
   <Check className="w-4 h-4" />
@@ -162,7 +162,7 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
   {onDismissTemplate && (
   <button
   onClick={() => onDismissTemplate(template.id)}
-  className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-colors"
+  className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   title={t('ebios.workshop3.dismissTemplate', 'Ignorer')}
   >
   <X className="w-4 h-4" />

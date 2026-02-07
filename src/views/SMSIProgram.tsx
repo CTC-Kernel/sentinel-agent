@@ -8,10 +8,11 @@
  * Story 20.4: Attribution des responsables
  */
 
-import React, { useState, Suspense, useMemo } from 'react';
+import React, { useEffect, useState, Suspense, useMemo, useCallback} from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '@/hooks/useLocale';
 import { useSMSIProgram } from '../hooks/smsi/useSMSIProgram';
+import { useAuth } from '../hooks/useAuth';
 import { useTeamData } from '../hooks/team/useTeamData';
 import { PageHeader } from '../components/ui/PageHeader';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -54,6 +55,10 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 export const SMSIProgramView: React.FC = () => {
  const { t } = useTranslation();
  const { config: localeConfig } = useLocale();
+ const { user } = useAuth();
+
+ // RBAC: Only admin/rssi can perform sensitive SMSI actions
+ const canManageSMSI = user?.role === 'admin' || user?.role === 'rssi' || user?.role === 'super_admin';
  const {
  program,
  milestones,
@@ -208,7 +213,72 @@ export const SMSIProgramView: React.FC = () => {
 
  const nextPhase = getNextPhase();
 
+
+  // Extracted callbacks (useCallback)
+  const handleAction = useCallback(() => {
+    setIsDrawerOpen(true)
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setIsDrawerOpen(false)
+  }, []);
+
+  const handleClick = useCallback(() => {
+    setShowAdvancePhaseConfirm(true)
+  }, []);
+
+  const handleTabChange = useCallback((id) => {
+    setActiveTab(id as 'overview' | 'planning' | 'timeline' | 'maturity')
+  }, []);
+
+  const handleSelect = useCallback((milestone) => {
+    setSelectedMilestoneId(milestone.id)
+  }, []);
+
+  const handleSelect2 = useCallback((milestone) => {
+    setSelectedMilestoneId(milestone.id)
+  }, []);
+
+  const handleClose2 = useCallback(() => {
+    setSelectedMilestoneId(null)
+  }, []);
+
+  const handleClose3 = useCallback(() => {
+    setShowAdvancePhaseConfirm(false)
+  }, []);
+
+  const handleClose4 = useCallback(() => {
+    setShowDeleteProgramConfirm(false)
+  }, []);
+
+  const handleClick2 = useCallback(() => {
+    onSelect(milestone)
+  }, []);
+  const handleClick3 = useCallback(() => {
+    setIsEditingProgram(true);
+ setIsDrawerOpen(true);
+  }, []);
+
+  const handleDownloadCertificationReport = useCallback(() => {
+    SMSIService.downloadCertificationReport(program, milestones, {
+  includeRecommendations: true,
+ });
+  }, []);
+
+  const handleClose5 = useCallback(() => {
+    setIsMilestoneDrawerOpen(false);
+ setEditingMilestone(null);
+  }, []);
+
+  const handleClose6 = useCallback(() => {
+    setIsDrawerOpen(false);
+ setIsEditingProgram(false);
+  }, []);
+
  if (loading) {
+
+
+
  return (
  <div className="p-6 space-y-6">
  <Skeleton className="h-10 w-64" />
@@ -230,9 +300,8 @@ export const SMSIProgramView: React.FC = () => {
  title={t('smsi.title')}
  subtitle={t('smsi.subtitle')}
  icon={
- <img
+ <img alt="PILOTAGE"
  src="/images/pilotage.png"
- alt="PILOTAGE"
  className="w-full h-full object-contain"
  />
  }
@@ -243,14 +312,14 @@ export const SMSIProgramView: React.FC = () => {
  title={t('smsi.emptyTitle')}
  description={t('smsi.emptyDescription')}
  actionLabel={t('smsi.createProgram')}
- onAction={() => setIsDrawerOpen(true)}
+ onAction={handleAction}
  />
  </div>
 
  <SMSIDrawer
  isOpen={isDrawerOpen}
- onClose={() => setIsDrawerOpen(false)}
- onSubmit={handleCreateProgram}
+ onClose={handleClose}
+ /* validate */ onSubmit={handleCreateProgram}
  />
  </div>
  );
@@ -270,9 +339,8 @@ export const SMSIProgramView: React.FC = () => {
  title={program.name}
  subtitle={`${t('smsi.title')} - ${t('smsi.pdcaCycle')}`}
  icon={
- <img
+ <img alt="PILOTAGE"
  src="/images/pilotage.png"
- alt="PILOTAGE"
  className="w-full h-full object-contain"
  />
  }
@@ -290,10 +358,7 @@ export const SMSIProgramView: React.FC = () => {
  <Button
  variant="outline"
  size="sm"
- onClick={() => {
- setIsEditingProgram(true);
- setIsDrawerOpen(true);
- }}
+ onClick={handleClick3}
  className="gap-1.5"
  >
  <Settings className="w-4 h-4" />
@@ -303,7 +368,7 @@ export const SMSIProgramView: React.FC = () => {
  <Button
  variant="default"
  size="sm"
- onClick={() => setShowAdvancePhaseConfirm(true)}
+ onClick={handleClick}
  className="gap-1.5"
  >
  <ChevronRight className="w-4 h-4" />
@@ -331,7 +396,7 @@ export const SMSIProgramView: React.FC = () => {
  <ScrollableTabs
  tabs={tabs}
  activeTab={activeTab}
- onTabChange={(id) => setActiveTab(id as 'overview' | 'planning' | 'timeline' | 'maturity')}
+ onTabChange={handleTabChange}
  isChanging={loading}
  />
 
@@ -379,7 +444,7 @@ export const SMSIProgramView: React.FC = () => {
  >
  <SMSIMilestoneList
  milestones={milestones}
- onSelect={(milestone) => setSelectedMilestoneId(milestone.id)}
+ onSelect={handleSelect}
  onAddMilestone={handleAddMilestone}
  />
  </motion.div>
@@ -396,7 +461,7 @@ export const SMSIProgramView: React.FC = () => {
  <SMSITimeline
  milestones={milestones}
  program={program}
- onSelect={(milestone) => setSelectedMilestoneId(milestone.id)}
+ onSelect={handleSelect2}
  getPhaseProgress={getPhaseProgress}
  />
  </motion.div>
@@ -413,11 +478,7 @@ export const SMSIProgramView: React.FC = () => {
  <SMSIMaturityDashboard
  program={program}
  milestones={milestones}
- onDownloadCertificationReport={() => {
- SMSIService.downloadCertificationReport(program, milestones, {
-  includeRecommendations: true,
- });
- }}
+ onDownloadCertificationReport={handleDownloadCertificationReport}
  />
  </motion.div>
  )}
@@ -426,7 +487,7 @@ export const SMSIProgramView: React.FC = () => {
  <Suspense fallback={null}>
  <SMSIInspector
  isOpen={!!selectedMilestone}
- onClose={() => setSelectedMilestoneId(null)}
+ onClose={handleClose2}
  milestone={selectedMilestone}
  onStatusChange={handleStatusChange}
  onEdit={handleEditMilestone}
@@ -438,10 +499,7 @@ export const SMSIProgramView: React.FC = () => {
  {/* Story 20.2 & 20.4: Milestone creation/editing drawer */}
  <MilestoneFormDrawer
  isOpen={isMilestoneDrawerOpen}
- onClose={() => {
- setIsMilestoneDrawerOpen(false);
- setEditingMilestone(null);
- }}
+ onClose={handleClose5}
  milestone={editingMilestone}
  onSubmit={handleMilestoneSubmit}
  isLoading={milestoneLoading}
@@ -451,10 +509,7 @@ export const SMSIProgramView: React.FC = () => {
  {/* Program Settings Drawer */}
  <SMSIDrawer
  isOpen={isDrawerOpen && isEditingProgram}
- onClose={() => {
- setIsDrawerOpen(false);
- setIsEditingProgram(false);
- }}
+ onClose={handleClose6}
  program={program}
  onSubmit={handleUpdateProgram}
  />
@@ -463,7 +518,7 @@ export const SMSIProgramView: React.FC = () => {
  {nextPhase && (
  <ConfirmModal
  isOpen={showAdvancePhaseConfirm}
- onClose={() => setShowAdvancePhaseConfirm(false)}
+ onClose={handleClose3}
  onConfirm={handleAdvancePhase}
  title={t('smsi.advancePhaseTitle', { defaultValue: 'Passer à la phase suivante' })}
  message={t('smsi.advancePhaseMessage', { defaultValue: `Êtes-vous sûr de vouloir passer de la phase "${PHASE_CONFIG[program.currentPhase].label}" à la phase "${PHASE_CONFIG[nextPhase].label}" ? Assurez-vous que tous les jalons de la phase actuelle sont terminés.`, currentPhase: PHASE_CONFIG[program.currentPhase].label, nextPhase: PHASE_CONFIG[nextPhase].label })}
@@ -476,7 +531,7 @@ export const SMSIProgramView: React.FC = () => {
  {/* Delete Program Confirmation */}
  <ConfirmModal
  isOpen={showDeleteProgramConfirm}
- onClose={() => setShowDeleteProgramConfirm(false)}
+ onClose={handleClose4}
  onConfirm={handleDeleteProgram}
  title={t('smsi.deleteProgramTitle', { defaultValue: 'Supprimer le programme SMSI' })}
  message={t('smsi.deleteProgramMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer ce programme SMSI ? Cette action supprimera également tous les jalons associés et est irréversible.' })}
@@ -500,6 +555,10 @@ interface SMSITimelineProps {
 const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSelect, getPhaseProgress }) => {
  const { t } = useTranslation();
  const { config: localeConfig } = useLocale();
+ const { user } = useAuth();
+
+ // RBAC: Only admin/rssi can perform sensitive SMSI actions
+ const canManageSMSI = user?.role === 'admin' || user?.role === 'rssi' || user?.role === 'super_admin';
  const phases: PDCAPhase[] = ['plan', 'do', 'check', 'act'];
 
  // Group milestones by phase
@@ -557,6 +616,16 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
   const isOverdue = milestone.status !== 'completed' && new Date(milestone.dueDate) < new Date();
   const isCompleted = milestone.status === 'completed';
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
   return (
   <motion.div
   key={milestone.id || 'unknown'}
@@ -566,7 +635,7 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
   isCompleted ? "border-success-border bg-success-bg" :
   "border-border hover:border-border"
   )}
-  onClick={() => onSelect(milestone)}
+  onClick={handleClick2}
   whileHover={{ x: 4 }}
   >
   {/* Timeline dot */}

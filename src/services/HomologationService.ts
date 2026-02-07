@@ -16,6 +16,7 @@ import {
  query,
  where,
  orderBy,
+ limit,
  Timestamp,
  serverTimestamp
 } from 'firebase/firestore';
@@ -47,6 +48,7 @@ import {
  getHigherLevel,
  isLevelHigherOrEqual
 } from '../data/homologationQuestions';
+import { ErrorLogger } from './errorLogger';
 
 // ============================================================================
 // Level Calculation
@@ -286,66 +288,78 @@ export async function createDossier(
  userId: string,
  input: CreateHomologationDossierInput
 ): Promise<HomologationDossier> {
- const collectionRef = getHomologationCollection(organizationId);
- const docRef = doc(collectionRef);
+    try {
+   const collectionRef = getHomologationCollection(organizationId);
+   const docRef = doc(collectionRef);
 
- const now = new Date().toISOString();
- const validityYears = input.validityYears ?? DEFAULT_VALIDITY_YEARS[input.level];
+   const now = new Date().toISOString();
+   const validityYears = input.validityYears ?? DEFAULT_VALIDITY_YEARS[input.level];
 
- const dossier: HomologationDossier = {
- id: docRef.id,
- organizationId,
- name: input.name,
- description: input.description,
- systemScope: input.systemScope,
- level: input.level,
- levelJustification: input.levelJustification,
- levelOverridden: input.levelOverridden,
- originalRecommendation: input.originalRecommendation,
- determinationAnswers: input.determinationAnswers,
- recommendationScore: input.recommendationScore,
- status: 'draft',
- validityYears,
- linkedEbiosAnalysisId: input.linkedEbiosAnalysisId,
- linkedSystemId: input.linkedSystemId,
- responsibleId: input.responsibleId,
- documents: initializeDocuments(input.level),
- renewalAlertDays: [90, 60, 30],
- createdAt: now,
- createdBy: userId,
- updatedAt: now,
- updatedBy: userId
- };
+   const dossier: HomologationDossier = {
+   id: docRef.id,
+   organizationId,
+   name: input.name,
+   description: input.description,
+   systemScope: input.systemScope,
+   level: input.level,
+   levelJustification: input.levelJustification,
+   levelOverridden: input.levelOverridden,
+   originalRecommendation: input.originalRecommendation,
+   determinationAnswers: input.determinationAnswers,
+   recommendationScore: input.recommendationScore,
+   status: 'draft',
+   validityYears,
+   linkedEbiosAnalysisId: input.linkedEbiosAnalysisId,
+   linkedSystemId: input.linkedSystemId,
+   responsibleId: input.responsibleId,
+   documents: initializeDocuments(input.level),
+   renewalAlertDays: [90, 60, 30],
+   createdAt: now,
+   createdBy: userId,
+   updatedAt: now,
+   updatedBy: userId
+   };
 
- await setDoc(docRef, sanitizeData({
- ...dossier,
- createdAt: serverTimestamp(),
- updatedAt: serverTimestamp()
- }));
+   await setDoc(docRef, sanitizeData({
+   ...dossier,
+   createdAt: serverTimestamp(),
+   updatedAt: serverTimestamp()
+   }));
 
- return dossier;
-}
+   return dossier;
+
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la creation du dossier d homologation');
+      throw error;
+    }
+  }
 
 /**
  * Get all dossiers for an organization
  */
 export async function getDossiers(organizationId: string): Promise<HomologationDossier[]> {
- const collectionRef = getHomologationCollection(organizationId);
- const q = query(collectionRef, orderBy('createdAt', 'desc'));
- const snapshot = await getDocs(q);
+    try {
+   const collectionRef = getHomologationCollection(organizationId);
+   const q = query(collectionRef, orderBy('createdAt', 'desc'), limit(500));
+   const snapshot = await getDocs(q);
 
- return snapshot.docs.map((doc) => {
- const data = doc.data();
- return {
- ...data,
- id: doc.id,
- createdAt:
- data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
- updatedAt:
- data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : data.updatedAt
- } as HomologationDossier;
- });
-}
+   return snapshot.docs.map((doc) => {
+   const data = doc.data();
+   return {
+   ...data,
+   id: doc.id,
+   createdAt:
+   data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
+   updatedAt:
+   data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : data.updatedAt
+   } as HomologationDossier;
+   });
+
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la recuperation des dossiers');
+      throw error;
+    }
+  }
 
 /**
  * Get a single dossier
@@ -354,21 +368,27 @@ export async function getDossier(
  organizationId: string,
  dossierId: string
 ): Promise<HomologationDossier | null> {
- const docRef = getHomologationDoc(organizationId, dossierId);
- const snapshot = await getDoc(docRef);
+    try {
+   const docRef = getHomologationDoc(organizationId, dossierId);
+   const snapshot = await getDoc(docRef);
 
- if (!snapshot.exists()) return null;
+   if (!snapshot.exists()) return null;
 
- const data = snapshot.data();
- return {
- ...data,
- id: snapshot.id,
- createdAt:
- data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
- updatedAt:
- data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : data.updatedAt
- } as HomologationDossier;
-}
+   const data = snapshot.data();
+   return {
+   ...data,
+   id: snapshot.id,
+   createdAt:
+   data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
+   updatedAt:
+   data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : data.updatedAt
+   } as HomologationDossier;
+
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la recuperation du dossier');
+      throw error;
+    }
+  }
 
 /**
  * Get dossiers by status
@@ -377,22 +397,28 @@ export async function getDossiersByStatus(
  organizationId: string,
  status: HomologationStatus
 ): Promise<HomologationDossier[]> {
- const collectionRef = getHomologationCollection(organizationId);
- const q = query(collectionRef, where('status', '==', status), orderBy('createdAt', 'desc'));
- const snapshot = await getDocs(q);
+    try {
+   const collectionRef = getHomologationCollection(organizationId);
+   const q = query(collectionRef, where('status', '==', status), orderBy('createdAt', 'desc'), limit(500));
+   const snapshot = await getDocs(q);
 
- return snapshot.docs.map((doc) => {
- const data = doc.data();
- return {
- ...data,
- id: doc.id,
- createdAt:
- data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
- updatedAt:
- data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : data.updatedAt
- } as HomologationDossier;
- });
-}
+   return snapshot.docs.map((doc) => {
+   const data = doc.data();
+   return {
+   ...data,
+   id: doc.id,
+   createdAt:
+   data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
+   updatedAt:
+   data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : data.updatedAt
+   } as HomologationDossier;
+   });
+
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la recuperation des dossiers par statut');
+      throw error;
+    }
+  }
 
 /**
  * Update a dossier
@@ -403,14 +429,20 @@ export async function updateDossier(
  userId: string,
  input: UpdateHomologationDossierInput
 ): Promise<void> {
- const docRef = getHomologationDoc(organizationId, dossierId);
+    try {
+   const docRef = getHomologationDoc(organizationId, dossierId);
 
- await updateDoc(docRef, sanitizeData({
- ...input,
- updatedAt: serverTimestamp(),
- updatedBy: userId
- }));
-}
+   await updateDoc(docRef, sanitizeData({
+   ...input,
+   updatedAt: serverTimestamp(),
+   updatedBy: userId
+   }));
+
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la mise a jour du dossier');
+      throw error;
+    }
+  }
 
 /**
  * Update dossier status
@@ -421,30 +453,36 @@ export async function updateDossierStatus(
  userId: string,
  status: HomologationStatus
 ): Promise<void> {
- const docRef = getHomologationDoc(organizationId, dossierId);
+    try {
+   const docRef = getHomologationDoc(organizationId, dossierId);
 
- const updates: Record<string, unknown> = {
- status,
- updatedAt: serverTimestamp(),
- updatedBy: userId
- };
+   const updates: Record<string, unknown> = {
+   status,
+   updatedAt: serverTimestamp(),
+   updatedBy: userId
+   };
 
- // Set validity dates when homologated
- if (status === 'homologated') {
- const dossier = await getDossier(organizationId, dossierId);
- if (dossier) {
- const startDate = new Date();
- const endDate = new Date();
- endDate.setFullYear(endDate.getFullYear() + dossier.validityYears);
+   // Set validity dates when homologated
+   if (status === 'homologated') {
+   const dossier = await getDossier(organizationId, dossierId);
+   if (dossier) {
+   const startDate = new Date();
+   const endDate = new Date();
+   endDate.setFullYear(endDate.getFullYear() + dossier.validityYears);
 
- updates.validityStartDate = startDate.toISOString();
- updates.validityEndDate = endDate.toISOString();
- updates.decisionDate = startDate.toISOString();
- }
- }
+   updates.validityStartDate = startDate.toISOString();
+   updates.validityEndDate = endDate.toISOString();
+   updates.decisionDate = startDate.toISOString();
+   }
+   }
 
- await updateDoc(docRef, sanitizeData(updates));
-}
+   await updateDoc(docRef, sanitizeData(updates));
+
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la mise a jour du statut du dossier');
+      throw error;
+    }
+  }
 
 /**
  * Update document status within a dossier
@@ -457,35 +495,47 @@ export async function updateDocumentStatus(
  status: 'not_started' | 'in_progress' | 'completed' | 'validated',
  documentId?: string
 ): Promise<void> {
- const dossier = await getDossier(organizationId, dossierId);
- if (!dossier) throw new Error('Dossier not found');
+    try {
+   const dossier = await getDossier(organizationId, dossierId);
+   if (!dossier) throw new Error('Dossier not found');
 
- const updatedDocuments = dossier.documents.map((doc) => {
- if (doc.type === documentType) {
- return {
- ...doc,
- status,
- documentId: documentId ?? doc.documentId,
- ...(status === 'validated' ? { validatedAt: new Date().toISOString(), validatedBy: userId } : {})
- };
- }
- return doc;
- });
+   const updatedDocuments = dossier.documents.map((doc) => {
+   if (doc.type === documentType) {
+   return {
+   ...doc,
+   status,
+   documentId: documentId ?? doc.documentId,
+   ...(status === 'validated' ? { validatedAt: new Date().toISOString(), validatedBy: userId } : {})
+   };
+   }
+   return doc;
+   });
 
- await updateDoc(getHomologationDoc(organizationId, dossierId), sanitizeData({
- documents: updatedDocuments,
- updatedAt: serverTimestamp(),
- updatedBy: userId
- }));
-}
+   await updateDoc(getHomologationDoc(organizationId, dossierId), sanitizeData({
+   documents: updatedDocuments,
+   updatedAt: serverTimestamp(),
+   updatedBy: userId
+   }));
+
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la mise a jour du statut du document');
+      throw error;
+    }
+  }
 
 /**
  * Delete a dossier
  */
 export async function deleteDossier(organizationId: string, dossierId: string): Promise<void> {
- const docRef = getHomologationDoc(organizationId, dossierId);
- await deleteDoc(docRef);
-}
+    try {
+   const docRef = getHomologationDoc(organizationId, dossierId);
+   await deleteDoc(docRef);
+
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la suppression du dossier');
+      throw error;
+    }
+  }
 
 // ============================================================================
 // Validation
@@ -1049,15 +1099,20 @@ export async function unlinkEbiosAnalysis(
  const currentHistory = dossier.ebiosLinkHistory ?? [];
  const docRef = getHomologationDoc(organizationId, dossierId);
 
- await updateDoc(docRef, sanitizeData({
- linkedEbiosAnalysisId: null,
- ebiosSnapshot: null,
- ebiosLastSyncedAt: null,
- ebiosReviewRequired: false,
- ebiosLinkHistory: [...currentHistory, historyEntry],
- updatedAt: serverTimestamp(),
- updatedBy: userId
- }));
+ try {
+   await updateDoc(docRef, sanitizeData({
+   linkedEbiosAnalysisId: null,
+   ebiosSnapshot: null,
+   ebiosLastSyncedAt: null,
+   ebiosReviewRequired: false,
+   ebiosLinkHistory: [...currentHistory, historyEntry],
+   updatedAt: serverTimestamp(),
+   updatedBy: userId
+   }));
+ } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, "Erreur lors de la dissociation de l'analyse EBIOS");
+   throw error;
+ }
 }
 
 /**

@@ -22,9 +22,8 @@ export const UserRow = memo(({ user, currentUser, currentOrg, updating, onUpdate
  <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/40 dark:hover:bg-muted dark:hover:bg-muted transition-colors backdrop-blur-[2px]">
  <div className="flex items-center gap-4">
  <div className="w-10 h-10 rounded-full bg-muted/50 flex-shrink-0 flex items-center justify-center text-muted-foreground font-bold border border-white/40 shadow-sm overflow-hidden">
-  <img
+  <img alt={user.displayName || 'Avatar'}
   src={getUserAvatarUrl(user.photoURL, user.role)}
-  alt={user.displayName || 'Avatar'}
   className="w-full h-full rounded-full object-cover"
   />
  </div>

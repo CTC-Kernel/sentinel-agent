@@ -128,8 +128,9 @@ export const CertifierDashboard: React.FC = () => {
   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
   <input
    type="text"
+   aria-label="Rechercher un audit"
    placeholder={t('certifier.dashboard.searchPlaceholder')}
-   className="w-full pl-9 pr-4 py-2 bg-card border border-border rounded-lg text-sm focus:ring-2 focus-visible:ring-primary outline-none"
+   className="w-full pl-9 pr-4 py-2 bg-card border border-border rounded-lg text-sm focus-visible:ring-2 focus-visible:ring-primary outline-none"
   />
   </div>
   </div>

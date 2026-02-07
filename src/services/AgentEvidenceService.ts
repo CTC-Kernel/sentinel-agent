@@ -103,7 +103,7 @@ export function subscribeToControlEvidence(
  limit(50)
  );
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const evidence = snapshot.docs.map(doc =>
@@ -121,6 +121,7 @@ export function subscribeToControlEvidence(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 /**
@@ -139,7 +140,7 @@ export function subscribeToAgentEvidence(
  limit(100)
  );
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const evidence = snapshot.docs.map(doc =>
@@ -157,6 +158,7 @@ export function subscribeToAgentEvidence(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 /**
@@ -175,7 +177,7 @@ export function subscribeToFrameworkEvidence(
  limit(200)
  );
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const evidence = snapshot.docs.map(doc =>
@@ -193,6 +195,7 @@ export function subscribeToFrameworkEvidence(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 /**

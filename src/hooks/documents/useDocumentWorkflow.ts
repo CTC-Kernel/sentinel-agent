@@ -134,7 +134,7 @@ export const useDocumentWorkflow = (usersList: UserProfile[]) => {
  const pdfDoc = await PDFDocument.load(arrayBuffer);
  const pages = pdfDoc.getPages();
  const { height } = pages[0].getSize();
- const watermarkText = `CONFIDENTIEL - ${user?.displayName} - ${new Date().toLocaleDateString()}`;
+ const watermarkText = `CONFIDENTIEL - ${user?.displayName} - ${new Date().toLocaleDateString('fr-FR')}`;
 
  // Add Watermark
  if (docItem.watermarkEnabled) {
@@ -165,7 +165,7 @@ export const useDocumentWorkflow = (usersList: UserProfile[]) => {
   const signUser = usersList.find(u => u.uid === sig.userId);
   page.drawText(`Signataire : ${signUser?.displayName || sig.userId}`, { x: 50, y: yOffset, size: 14, font: font });
   yOffset -= 20;
-  page.drawText(`Date : ${new Date(sig.date).toLocaleString()}`, { x: 50, y: yOffset, size: 12, font: fontRegular });
+  page.drawText(`Date : ${new Date(sig.date).toLocaleString('fr-FR')}`, { x: 50, y: yOffset, size: 12, font: fontRegular });
   yOffset -= 20;
   page.drawText(`Rôle : ${sig.role}`, { x: 50, y: yOffset, size: 12, font: fontRegular });
   yOffset -= 20;

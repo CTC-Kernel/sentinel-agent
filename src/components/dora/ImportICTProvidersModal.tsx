@@ -151,7 +151,8 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
   <div className="absolute right-4 top-4">
    <button
    onClick={handleClose}
-   className="text-muted-foreground hover:text-muted-foreground"
+   className="text-muted-foreground hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+   aria-label="Fermer"
    >
    <X className="w-5 h-5" />
    </button>

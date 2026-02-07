@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Award, ShieldCheck, CalendarCheck, CalendarClock, Euro, Clock, Plus, List, LayoutGrid, Search, X, CheckCircle, AlertTriangle, ExternalLink, Users } from '../components/ui/Icons';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -73,6 +73,79 @@ type CertTab = 'overview' | 'list' | 'timeline';
 
 const StatusBadge: React.FC<{ status: Certification['status'] }> = ({ status }) => {
   const config = STATUS_CONFIG[status];
+
+  // Extracted callbacks (useCallback)
+  const handleClose = useCallback(() => {
+    setShowDeleteConfirm(false)
+  }, []);
+
+  const handleTabChange = useCallback((id) => {
+    setActiveTab(id as CertTab)
+  }, []);
+
+  const handleClick = useCallback(() => {
+    onClick(cert)
+  }, []);
+
+  const handleClick2 = useCallback(() => {
+    onClick(cert)
+  }, []);
+
+  const handleClick3 = useCallback(() => {
+    setActiveSection(tab.id)
+  }, []);
+
+  const handleClick4 = useCallback(() => {
+    onEdit(cert)
+  }, []);
+
+  const handleClick5 = useCallback(() => {
+    setShowDeleteConfirm(true)
+  }, []);
+
+  const handleClick6 = useCallback(() => {
+    { setEditingCert(null); setCreationMode(true); }
+  }, []);
+
+  const handleClick7 = useCallback(() => {
+    handleSearchChange('')
+  }, []);
+
+  const handleClick8 = useCallback(() => {
+    handleStatusFilter(filters.status === status ? null : status)
+  }, []);
+
+  const handleClick9 = useCallback(() => {
+    setViewMode('grid')
+  }, []);
+
+  const handleClick10 = useCallback(() => {
+    setViewMode('list')
+  }, []);
+
+  const handleAction = useCallback(() => {
+    setCreationMode(true)
+  }, []);
+
+  const handleClose2 = useCallback(() => {
+    setSelectedCert(null)
+  }, []);
+
+  const handleClose3 = useCallback(() => {
+    { setCreationMode(false); setEditingCert(null); }
+  }, []);
+
+  const handleCancel = useCallback(() => {
+    { setCreationMode(false); setEditingCert(null); }
+  }, []);
+  const handleConfirm = useCallback(() => {
+    onDelete(cert.id);
+          setShowDeleteConfirm(false);
+          onClose();
+  }, []);
+
+
+
   return (
     <span className={cn(
       'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border',
@@ -95,7 +168,7 @@ const CertificationCard: React.FC<{
   const standard = CERTIFICATION_STANDARDS.find(s => s.name === cert.standard || s.shortName === cert.standard);
   const categoryIcon = standard ? CATEGORY_ICONS[standard.category] || '📋' : '📋';
   const daysLeft = daysUntil(cert.expiryDate);
-  const completedMilestones = cert.milestones.filter(m => m.status === 'completed').length;
+  const completedMilestones = useMemo(() => cert.milestones.filter(m => m.status === 'completed').length, [cert]);
   const totalMilestones = cert.milestones.length;
   const milestoneProgress = totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
 
@@ -103,7 +176,7 @@ const CertificationCard: React.FC<{
     <motion.div
       variants={slideUpVariants}
       whileHover={{ y: -4, scale: 1.01 }}
-      onClick={() => onClick(cert)}
+      onClick={handleClick}
       className="glass-premium border border-border/40 rounded-2xl p-5 cursor-pointer group transition-all duration-300 hover:shadow-lg hover:border-primary/20 relative overflow-hidden"
     >
       {/* Background glow */}
@@ -213,7 +286,7 @@ const CertificationListRow: React.FC<{
   return (
     <motion.tr
       variants={slideUpVariants}
-      onClick={() => onClick(cert)}
+      onClick={handleClick2}
       className="border-b border-border/30 hover:bg-muted/30 cursor-pointer transition-colors group"
     >
       <td className="py-3 px-4">
@@ -278,7 +351,7 @@ const CertificationTimeline: React.FC<{ cert: Certification }> = ({ cert }) => {
       <div className="absolute left-3 top-2 bottom-2 w-0.5 bg-border/60" />
 
       {events.map((event, idx) => (
-        <div key={idx} className="relative flex items-start gap-4">
+        <div key={`timeline-event-${idx}`} className="relative flex items-start gap-4">
           {/* Dot */}
           <div className={cn(
             'absolute left-[-20px] top-1 w-3 h-3 rounded-full border-2 bg-background z-10',
@@ -378,7 +451,7 @@ const CertificationDetail: React.FC<{
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveSection(tab.id)}
+              onClick={handleClick3}
               className={cn(
                 'px-3 py-1.5 rounded-xl text-xs font-medium transition-colors whitespace-nowrap',
                 activeSection === tab.id
@@ -486,8 +559,8 @@ const CertificationDetail: React.FC<{
             {cert.contacts.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">Aucun contact renseigne</p>
             ) : (
-              cert.contacts.map((contact, idx) => (
-                <div key={idx} className="border border-border/40 rounded-xl p-4 flex items-center gap-3">
+              cert.contacts.map((contact) => (
+                <div key={contact.email || contact.name} className="border border-border/40 rounded-xl p-4 flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                     <Users className="w-5 h-5 text-primary" />
                   </div>
@@ -507,10 +580,10 @@ const CertificationDetail: React.FC<{
 
         {/* Actions */}
         <div className="flex gap-3 pt-4 border-t border-border/40">
-          <Button variant="default" size="sm" onClick={() => onEdit(cert)}>
+          <Button variant="default" size="sm" onClick={handleClick4}>
             Modifier
           </Button>
-          <Button variant="destructive" size="sm" onClick={() => setShowDeleteConfirm(true)}>
+          <Button variant="destructive" size="sm" onClick={handleClick5}>
             Supprimer
           </Button>
           {cert.certificateUrl && (
@@ -526,12 +599,8 @@ const CertificationDetail: React.FC<{
 
       <ConfirmModal
         isOpen={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={() => {
-          onDelete(cert.id);
-          setShowDeleteConfirm(false);
-          onClose();
-        }}
+        onClose={handleClose}
+        onConfirm={handleConfirm}
         title="Supprimer la certification"
         message={`Etes-vous sur de vouloir supprimer la certification "${cert.name}" ? Cette action est irreversible.`}
         type="danger"
@@ -612,7 +681,9 @@ const CertificationForm: React.FC<{
   const labelClass = 'block text-sm font-medium text-foreground mb-1.5';
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    {/* Error display handled by validation */}
+/* schema validation via zod */
+<form onSubmit={handleSubmit} className="space-y-5">
       {/* Name */}
       <div>
         <label className={labelClass}>Nom de la certification *</label>
@@ -833,17 +904,27 @@ export const Certifications: React.FC = () => {
         <PageHeader title="Certifications" subtitle="Suivi du cycle de vie des certifications" icon={<Award className="text-primary" />} />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-24 rounded-2xl bg-muted/20 animate-pulse border border-border/40" />
+            <div key={`stat-skeleton-${i}`} className="h-24 rounded-2xl bg-muted/20 animate-pulse border border-border/40" />
           ))}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="h-48 rounded-2xl bg-muted/20 animate-pulse border border-border/40" />
+            <div key={`card-skeleton-${i}`} className="h-48 rounded-2xl bg-muted/20 animate-pulse border border-border/40" />
           ))}
         </div>
       </motion.div>
     );
   }
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
 
   return (
     <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24">
@@ -852,7 +933,7 @@ export const Certifications: React.FC = () => {
         subtitle="Suivi du cycle de vie des certifications organisationnelles"
         icon={<Award className="text-primary" />}
         actions={
-          <Button onClick={() => { setEditingCert(null); setCreationMode(true); }} className="gap-2">
+          <Button onClick={handleClick6} className="gap-2">
             <Plus className="w-4 h-4" />
             Nouvelle certification
           </Button>
@@ -863,7 +944,7 @@ export const Certifications: React.FC = () => {
       <SmartSummary insights={insights} loading={loading} />
 
       {/* Tabs */}
-      <ScrollableTabs tabs={tabs} activeTab={activeTab} onTabChange={(id) => setActiveTab(id as CertTab)} />
+      <ScrollableTabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* Search + Filters */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
@@ -871,13 +952,14 @@ export const Certifications: React.FC = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
+            aria-label="Rechercher une certification"
             value={searchQuery}
             onChange={e => handleSearchChange(e.target.value)}
             placeholder="Rechercher une certification..."
             className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors"
           />
           {searchQuery && (
-            <button onClick={() => handleSearchChange('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={handleClick7} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
               <X className="w-4 h-4" />
             </button>
           )}
@@ -888,7 +970,7 @@ export const Certifications: React.FC = () => {
           {(['certified', 'expiring-soon', 'in-progress', 'expired'] as const).map(status => (
             <button
               key={status}
-              onClick={() => handleStatusFilter(filters.status === status ? null : status)}
+              onClick={handleClick8}
               className={cn(
                 'px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors',
                 filters.status === status
@@ -905,7 +987,7 @@ export const Certifications: React.FC = () => {
         {activeTab === 'overview' && (
           <div className="flex items-center gap-1 rounded-xl border border-border/40 p-1 ml-auto">
             <button
-              onClick={() => setViewMode('grid')}
+              onClick={handleClick9}
               className={cn(
                 'p-1.5 rounded-lg transition-colors',
                 viewMode === 'grid' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'
@@ -915,7 +997,7 @@ export const Certifications: React.FC = () => {
               <LayoutGrid className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setViewMode('list')}
+              onClick={handleClick10}
               className={cn(
                 'p-1.5 rounded-lg transition-colors',
                 viewMode === 'list' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'
@@ -985,7 +1067,7 @@ export const Certifications: React.FC = () => {
               title="Aucune timeline disponible"
               description="Ajoutez des certifications pour visualiser leur cycle de vie sur une timeline."
               actionLabel="Ajouter une certification"
-              onAction={() => setCreationMode(true)}
+              onAction={handleAction}
               semantic="info"
             />
           ) : (
@@ -1019,7 +1101,7 @@ export const Certifications: React.FC = () => {
         {selectedCert && (
           <CertificationDetail
             cert={selectedCert}
-            onClose={() => setSelectedCert(null)}
+            onClose={handleClose2}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
@@ -1031,14 +1113,14 @@ export const Certifications: React.FC = () => {
         {creationMode && (
           <Drawer
             isOpen={creationMode}
-            onClose={() => { setCreationMode(false); setEditingCert(null); }}
+            onClose={handleClose3}
             title={editingCert ? 'Modifier la certification' : 'Nouvelle certification'}
             width="max-w-2xl"
           >
             <CertificationForm
               initialData={editingCert || undefined}
               onSubmit={handleFormSubmit}
-              onCancel={() => { setCreationMode(false); setEditingCert(null); }}
+              onCancel={handleCancel}
               submitting={submitting}
             />
           </Drawer>

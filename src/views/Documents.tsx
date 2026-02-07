@@ -407,9 +407,8 @@ export const Documents: React.FC = () => {
  title={t('documents.title')}
  subtitle={t('documents.subtitle')}
  icon={
-  <img
+  <img alt="RÉFÉRENTIEL"
   src="/images/referentiel.png"
-  alt="RÉFÉRENTIEL"
   className="w-full h-full object-contain"
   />
  }
@@ -595,7 +594,7 @@ export const Documents: React.FC = () => {
    <select
    value={categoryFilter}
    onChange={handleCategoryChange}
-   className="bg-muted border-none rounded-lg text-sm px-3 py-1.5 focus:ring-2 focus-visible:ring-primary"
+   className="bg-muted border-none rounded-lg text-sm px-3 py-1.5 focus-visible:ring-2 focus-visible:ring-primary"
    aria-label={t('documents.category.filter')}
    >
    <option value="all">{t('documents.allCategories')}</option>
@@ -683,8 +682,8 @@ export const Documents: React.FC = () => {
   version: '1.0',
   status: 'Brouillon',
   owner: user?.displayName || '',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
+  createdAt: new Date(Date.now()).toISOString(),
+  updatedAt: new Date(Date.now()).toISOString()
   } as Document : undefined}
   onCancel={handleCloseDrawer}
   onSubmit={handleFormSubmit}
@@ -744,9 +743,8 @@ const MemoizedDocumentCard = React.memo(({ doc, viewMode, onSelect, users }: { d
   <span className="text-xs font-bold text-muted-foreground">v{doc.version}</span>
   <span className="text-muted-foreground">•</span>
   <div className="flex items-center gap-2 min-w-0">
-  <img
+  <img alt={`Avatar de ${doc.owner}`}
   src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
-  alt={`Avatar de ${doc.owner}`}
   className="w-5 h-5 rounded-full object-cover bg-muted flex-shrink-0 ring-1 ring-border/50"
   />
   <span className="text-xs font-bold text-muted-foreground truncate">{doc.owner}</span>

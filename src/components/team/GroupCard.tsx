@@ -22,14 +22,14 @@ export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, o
  <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-70 transition-opacity">
   <button
   onClick={() => onEdit(group)}
-  className="p-2 text-muted-foreground hover:text-primary bg-muted rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="p-2 text-muted-foreground hover:text-primary bg-muted rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   aria-label={t('team.groups.editAriaLabel', { defaultValue: `Modifier le groupe ${group.name}` })}
   >
   <Edit className="h-4 w-4" />
   </button>
   <button
   onClick={() => setShowConfirmDelete(true)}
-  className="p-2 text-muted-foreground hover:text-red-500 bg-muted rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+  className="p-2 text-muted-foreground hover:text-red-500 bg-muted rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
   aria-label={t('team.groups.deleteAriaLabel', { defaultValue: `Supprimer le groupe ${group.name}` })}
   >
   <Trash2 className="h-4 w-4" />
@@ -54,9 +54,8 @@ export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, o
   return (
   <div key={memberId || 'unknown'} className="relative inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-slate-800 bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground overflow-hidden" title={member.displayName}>
   {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
-  <img
+  <img alt={member.displayName}
    src={getDefaultAvatarUrl(member?.role)}
-   alt={member.displayName}
    className="h-full w-full object-cover"
    onError={(e) => {
    const target = e.target as HTMLImageElement;

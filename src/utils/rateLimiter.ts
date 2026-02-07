@@ -242,6 +242,7 @@ export class DebouncedRateLimiter {
   const value = await fn();
   resolve(value);
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'rateLimiter');
   reject(error);
  }
  }, this.debounceMs);

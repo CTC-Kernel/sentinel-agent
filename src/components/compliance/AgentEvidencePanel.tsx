@@ -171,7 +171,7 @@ const EvidenceRow: React.FC<EvidenceRowProps> = ({ evidence, onClick }) => {
  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
   <button
   onClick={(e) => { e.stopPropagation(); navigate('/agents'); }}
-  className="flex items-center gap-1 text-xs text-primary hover:underline"
+  className="flex items-center gap-1 text-xs text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <Server className="h-3 w-3" />
   Agent {evidence.agentId.slice(0, 8)} &rarr;
@@ -430,7 +430,7 @@ export const AgentEvidencePanel: React.FC<AgentEvidencePanelProps> = ({
   {evidence.length > 10 && (
   <div className="text-center pt-2">
   <Button variant="ghost" size="sm" className="gap-2">
-  <Eye className="h-4 w-4" />
+  <Eye className="h-4 w-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" />
   Voir les {evidence.length - 10} autres preuves
   </Button>
   </div>

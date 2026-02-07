@@ -190,7 +190,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
   onClick={() => handleAction('analyze')}
   disabled={loading}
   aria-label={t('assets.aiAssistant.analyzeAriaLabel', { defaultValue: "Lancer l'analyse de criticité" })}
-  className={`flex items-center justify-center px-4 py-2.5 rounded-2xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${mode === 'analyze' ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' : 'bg-card/80 text-muted-foreground hover:bg-card border border-border/40 hover:border-primary/30'}`}
+  className={`flex items-center justify-center px-4 py-2.5 rounded-2xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${mode === 'analyze' ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' : 'bg-card/80 text-muted-foreground hover:bg-card border border-border/40 hover:border-primary/30'}`}
   >
   {loading && mode === 'analyze' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5 mr-2" />}
   {t('assets.aiAssistant.analyzeISO', { defaultValue: 'Analyse ISO' })}
@@ -199,7 +199,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
   onClick={() => handleAction('maintenance')}
   disabled={loading}
   aria-label={t('assets.aiAssistant.maintenanceAriaLabel', { defaultValue: 'Générer un plan de maintenance' })}
-  className={`flex items-center justify-center px-4 py-2.5 rounded-2xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${mode === 'maintenance' ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' : 'bg-card/80 text-muted-foreground hover:bg-card border border-border/40 hover:border-primary/30'}`}
+  className={`flex items-center justify-center px-4 py-2.5 rounded-2xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${mode === 'maintenance' ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' : 'bg-card/80 text-muted-foreground hover:bg-card border border-border/40 hover:border-primary/30'}`}
   >
   {loading && mode === 'maintenance' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <Wrench className="h-3.5 w-3.5 mr-2" />}
   {t('assets.aiAssistant.maintenance', { defaultValue: 'Maintenance' })}
@@ -208,7 +208,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
   onClick={() => handleAction('optimize')}
   disabled={loading}
   aria-label={t('assets.aiAssistant.optimizeAriaLabel', { defaultValue: "Obtenir des suggestions d'optimisation" })}
-  className={`flex items-center justify-center px-4 py-2.5 rounded-2xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${mode === 'optimize' ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' : 'bg-card/80 text-muted-foreground hover:bg-card border border-border/40 hover:border-primary/30'}`}
+  className={`flex items-center justify-center px-4 py-2.5 rounded-2xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${mode === 'optimize' ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' : 'bg-card/80 text-muted-foreground hover:bg-card border border-border/40 hover:border-primary/30'}`}
   >
   {loading && mode === 'optimize' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
   {t('assets.aiAssistant.optimization', { defaultValue: 'Optimisation' })}
@@ -226,7 +226,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
   <Bot className="h-3.5 w-3.5 mr-1.5" />
   {t('assets.aiAssistant.aiResponse', { defaultValue: "Réponse de l'IA" })}
   </h4>
-  <button onClick={handleDismiss} aria-label={t('assets.aiAssistant.closeAriaLabel', { defaultValue: 'Fermer la réponse IA' })} className="text-muted-foreground hover:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"><X className="h-3.5 w-3.5" /></button>
+  <button onClick={handleDismiss} aria-label={t('assets.aiAssistant.closeAriaLabel', { defaultValue: 'Fermer la réponse IA' })} className="text-muted-foreground hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"><X className="h-3.5 w-3.5" /></button>
   </div>
 
   <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
@@ -242,7 +242,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
   <div>
    <p className="mb-1"><strong>{t('assets.aiAssistant.suggestedFrequency', { defaultValue: 'Fréquence suggérée' })} :</strong> {String(response.frequency)}</p>
    <ul className="list-disc pl-4 space-y-1">
-   {response.tasks.map((t: unknown, i: number) => <li key={`task-${i || 'unknown'}`}>{String(t)}</li>)}
+   {response.tasks.length > 0 && response.tasks.map((t: unknown, i: number) => <li key={`task-${i || 'unknown'}`}>{String(t)}</li>)}
    </ul>
   </div>
   )}
@@ -259,7 +259,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
   onClick={handleApply}
   disabled={applying}
   aria-label={t('assets.aiAssistant.applyAriaLabel', { defaultValue: 'Appliquer les recommandations de criticité' })}
-  className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-3xl text-xs font-bold transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+  className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-3xl text-xs font-bold transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   {applying ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
   {applying ? t('assets.aiAssistant.applying', { defaultValue: 'Application...' }) : t('assets.aiAssistant.applyChanges', { defaultValue: 'Appliquer les changements' })}

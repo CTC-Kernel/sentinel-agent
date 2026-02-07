@@ -158,9 +158,8 @@ export const AssetList = React.memo<AssetListProps>(({
  const ownerUser = users?.find(u => u.displayName === ownerName || u.email === ownerName);
  return (
   <div className="flex items-center gap-2">
-  <img
+  <img alt={`${ownerName} avatar`}
   src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
-  alt={`${ownerName} avatar`}
   className="w-6 h-6 rounded-full border border-muted object-cover bg-muted/30"
   onError={(e) => {
   const target = e.target as HTMLImageElement;
@@ -285,8 +284,8 @@ export const AssetList = React.memo<AssetListProps>(({
   integrity: 'Moyen',
   availability: 'Moyen',
   location: '',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
+  createdAt: new Date(Date.now()).toISOString(),
+  updatedAt: new Date(Date.now()).toISOString()
   } as unknown as Asset)}
   />
  </div>
@@ -350,9 +349,8 @@ export const AssetList = React.memo<AssetListProps>(({
    <span className={`text-xs font-bold px-2 py-0.5 rounded-3xl border shadow-sm ${getTypeStyles(asset.type).badge}`}>{asset.type}</span>
    <span className="text-muted-foreground/50">•</span>
    <div className="flex items-center gap-1.5">
-   <img
+   <img alt={`${asset.owner} avatar`}
    src={getUserAvatarUrl(users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.photoURL, users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.role)}
-   alt={`${asset.owner} avatar`}
    className="w-4 h-4 rounded-full object-cover border border-border/40 bg-muted"
    onError={(e) => {
    const target = e.target as HTMLImageElement;

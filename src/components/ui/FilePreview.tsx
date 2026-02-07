@@ -28,8 +28,18 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
  return <File className="h-12 w-12 text-muted-foreground" />;
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm" role="dialog" aria-modal="true">
  <div className="relative w-full max-w-5xl max-h-[90vh] bg-card rounded-2xl shadow-2xl overflow-hidden flex flex-col">
  {/* Header */}
  <div className="flex items-center justify-between p-4 border-b border-border/40">
@@ -48,7 +58,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
   {onDownload && (
   <button
   onClick={onDownload}
-  className="p-2.5 hover:bg-muted rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="p-2.5 hover:bg-muted rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   title="Télécharger"
   >
   <Download className="h-5 w-5 text-muted-foreground" />
@@ -58,14 +68,14 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
   href={url}
   target="_blank"
   rel="noopener noreferrer"
-  className="p-2.5 hover:bg-muted rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="p-2.5 hover:bg-muted rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   title="Ouvrir dans un nouvel onglet"
   >
   <ExternalLink className="h-5 w-5 text-muted-foreground" />
   </a>
   <button
   onClick={onClose}
-  className="p-2.5 hover:bg-muted rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="p-2.5 hover:bg-muted rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   aria-label="Fermer la prévisualisation"
   title="Fermer"
   >

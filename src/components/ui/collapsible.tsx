@@ -43,7 +43,7 @@ const CollapsibleTrigger = React.forwardRef<
  onOpenChange?.(newState)
  onClick?.(e)
  }}
- className={cn("flex items-center", className)}
+ className={cn("flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50", className)}
  {...props}
  />
 ))

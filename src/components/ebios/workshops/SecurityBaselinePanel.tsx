@@ -176,6 +176,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
  <input
  type="text"
+ aria-label="Rechercher des mesures"
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
  placeholder={t('ebios.workshop1.searchMeasures')}
@@ -207,7 +208,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
  >
  <button
  onClick={() => toggleCategory(category)}
- className="w-full flex items-center justify-between p-4 bg-muted/50 hover:bg-muted transition-colors"
+ className="w-full flex items-center justify-between p-4 bg-muted/50 hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <div className="flex items-center gap-3">
  <span className="font-medium text-foreground">

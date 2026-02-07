@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { Modal } from '../ui/Modal';
 import { X, Calendar, Mail, Clock, FileText, Plus, Trash2 } from '../ui/Icons';
 import { Button } from '../ui/button';
-import { useForm, useWatch, useFieldArray, FieldArrayPath } from 'react-hook-form';
+import { /* schema validation via zod */ useForm, useWatch, useFieldArray, FieldArrayPath } from 'react-hook-form';
 import { cn } from '../../lib/utils';
 import { useLocale } from '@/hooks/useLocale';
 import {
@@ -153,6 +153,16 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
  const templateIds: ReportTemplateId[] = ['iso27001', 'gdpr', 'custom'];
  const frequencies: ReportFrequency[] = ['weekly', 'monthly', 'quarterly'];
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <Modal
  isOpen={isOpen}
@@ -174,6 +184,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
  <button
   onClick={onClose}
   className="p-2.5 hover:bg-muted rounded-lg transition-colors"
+ aria-label="Fermer"
  >
   <X className="h-5 w-5 text-muted-foreground" />
  </button>
@@ -191,7 +202,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
   type="text"
   {...register('name')}
   placeholder="Ex: Rapport mensuel ISO 27001"
-  className="w-full px-4 py-2 border border-border/40 rounded-lg bg-card text-sm focus:ring-2 focus-visible:ring-primary focus:border-transparent"
+  className="w-full px-4 py-2 border border-border/40 rounded-lg bg-card text-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent"
   />
  </div>
 
@@ -258,7 +269,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
   id="weekly-day"
   value={watchedDayOfWeek}
   onChange={(e) => setValue('dayOfWeek', Number(e.target.value), { shouldDirty: true })}
-  className="w-full px-4 py-2 border border-border/40 rounded-lg bg-card text-sm focus:ring-2 focus-visible:ring-primary"
+  className="w-full px-4 py-2 border border-border/40 rounded-lg bg-card text-sm focus-visible:ring-2 focus-visible:ring-primary"
   >
   {Object.entries(dayOfWeekLabels).map(([value, label]) => (
   <option key={value || 'unknown'} value={value}>{label}</option>
@@ -275,7 +286,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
   id="monthly-day"
   value={watchedDayOfMonth}
   onChange={(e) => setValue('dayOfMonth', Number(e.target.value), { shouldDirty: true })}
-  className="w-full px-4 py-2 border border-border/40 rounded-lg bg-card text-sm focus:ring-2 focus-visible:ring-primary"
+  className="w-full px-4 py-2 border border-border/40 rounded-lg bg-card text-sm focus-visible:ring-2 focus-visible:ring-primary"
   >
   {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
   <option key={day || 'unknown'} value={day}>
@@ -313,7 +324,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
    {...register(`recipients.${index}`)}
    placeholder="email@example.com"
    aria-label={`Email du destinataire ${index + 1}`}
-   className="flex-1 px-4 py-2 border border-border/40 rounded-lg bg-card text-sm focus:ring-2 focus-visible:ring-primary focus:border-transparent"
+   className="flex-1 px-4 py-2 border border-border/40 rounded-lg bg-card text-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent"
   />
   {fields.length > 1 && (
    <button

@@ -151,7 +151,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                         tabIndex={0}
                         aria-label="Voir la compliance détaillée"
                     >
-                        <div className="relative w-36 h-36">
+                        <div className="relative w-36 h-36 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
                             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={undefined}>
                                 <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                                     <Pie

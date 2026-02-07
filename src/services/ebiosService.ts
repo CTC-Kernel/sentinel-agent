@@ -11,6 +11,7 @@ import {
  setDoc,
  updateDoc,
  deleteDoc,
+ addDoc,
  collection,
  query,
  where,
@@ -24,6 +25,8 @@ import {
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
+import { RISK_ACCEPTANCE_THRESHOLD } from '../constants/RiskConstants';
+import type { CreateRiskFromEbiosData } from '../components/ebios/workshops/Workshop4Content';
 import type {
  EbiosAnalysis,
  EbiosWorkshopNumber,
@@ -188,7 +191,7 @@ export class EbiosService {
 
  await updateDoc(analysisRef, sanitizeData({
  ...data,
- updatedAt: new Date().toISOString(),
+ updatedAt: serverTimestamp(),
  updatedBy: userId,
  }));
  } catch (error) {
@@ -256,7 +259,7 @@ export class EbiosService {
  ): Unsubscribe {
  const analysisRef = doc(db, 'organizations', organizationId, 'ebiosAnalyses', analysisId);
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  analysisRef,
  (snapshot) => {
  if (!snapshot.exists()) {
@@ -274,6 +277,7 @@ export class EbiosService {
  callback(null, error);
  }
  );
+ return unsubscribe;
  }
 
  // ============================================================================
@@ -313,7 +317,7 @@ export class EbiosService {
  ? new Date().toISOString()
  : analysis.workshops[workshopNumber].startedAt,
  status: analysis.status === 'draft' ? 'in_progress' : analysis.status,
- updatedAt: new Date().toISOString(),
+ updatedAt: serverTimestamp(),
  updatedBy: userId,
  }));
  } catch (error) {
@@ -441,7 +445,7 @@ export class EbiosService {
 
  await updateDoc(analysisRef, sanitizeData({
  currentWorkshop: targetWorkshop,
- updatedAt: new Date().toISOString(),
+ updatedAt: serverTimestamp(),
  updatedBy: userId,
  }));
  } catch (error) {
@@ -727,7 +731,7 @@ export class EbiosService {
 
  const updates: Partial<Milestone> = {
  status,
- updatedAt: new Date().toISOString(),
+ updatedAt: serverTimestamp(),
  };
 
  if (status === 'completed') {
@@ -767,7 +771,7 @@ export class EbiosService {
 
  const updates = {
  ...data,
- updatedAt: new Date().toISOString(),
+ updatedAt: serverTimestamp(),
  };
 
  await updateDoc(milestoneRef, sanitizeData(updates));
@@ -798,7 +802,7 @@ export class EbiosService {
 
  const updates: Record<string, unknown> = {
  currentPhase: phase,
- updatedAt: new Date().toISOString(),
+ updatedAt: serverTimestamp(),
  };
 
  if (phaseData) {
@@ -829,7 +833,7 @@ export class EbiosService {
 
  await updateDoc(programRef, sanitizeData({
  ...data,
- updatedAt: new Date().toISOString(),
+ updatedAt: serverTimestamp(),
  }));
 
  const updatedSnap = await getDoc(programRef);
@@ -1061,5 +1065,61 @@ export class EbiosService {
  });
  throw error;
  }
+ }
+
+ // ============================================================================
+ // Risk Creation from EBIOS Scenario
+ // ============================================================================
+
+ /**
+  * Create a risk from an EBIOS operational scenario (Story 18.5)
+  */
+ static async createRiskFromScenario(
+  organizationId: string,
+  scenarioId: string,
+  riskData: CreateRiskFromEbiosData,
+  user: { uid: string; displayName?: string | null; email?: string | null }
+ ): Promise<string> {
+  try {
+   const score = riskData.probability * riskData.impact;
+
+   const newRisk = sanitizeData({
+    organizationId,
+    threat: riskData.threat,
+    scenario: riskData.scenario,
+    vulnerability: 'Identifie via l\'analyse EBIOS RM',
+    probability: riskData.probability,
+    impact: riskData.impact,
+    score,
+    strategy: score >= RISK_ACCEPTANCE_THRESHOLD ? 'Attenuer' : 'Accepter',
+    status: 'Ouvert',
+    source: 'ebios_rm',
+    mitreTechniques: riskData.mitreTechniques,
+    ebiosReference: riskData.ebiosReference,
+    owner: user.uid,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    history: [{
+     date: new Date().toISOString(),
+     user: user.displayName || user.email,
+     action: 'Cree depuis EBIOS RM',
+     changes: `Cree depuis le scenario operationnel ${riskData.ebiosReference.scenarioCode || scenarioId}`,
+     previousScore: 0,
+     newScore: score,
+     changedBy: user.uid
+    }]
+   });
+
+   const docRef = await addDoc(collection(db, 'risks'), newRisk);
+   return docRef.id;
+  } catch (error) {
+   ErrorLogger.error(error, 'EbiosService.createRiskFromScenario', {
+    component: 'EbiosService',
+    action: 'createRiskFromEbios',
+    organizationId,
+    metadata: { scenarioId }
+   });
+   throw error;
+  }
  }
 }

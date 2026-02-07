@@ -97,7 +97,7 @@ export const EnrollmentTokenPanel: React.FC<EnrollmentTokenPanelProps> = ({
   navigator.clipboard.writeText(`sentinel-agent enroll --token ${enrollmentToken}`);
   toast.success(t('agentSetup.tokenReady.commandCopied', { defaultValue: 'Commande copiee !' }));
   }}
-  className="absolute right-2 top-2 p-1.5 bg-muted/50 hover:bg-muted rounded-lg transition-colors opacity-0 group-hover:opacity-70"
+  className="absolute right-2 top-2 p-1.5 bg-muted/50 hover:bg-muted rounded-lg transition-colors opacity-0 group-hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   title={t('agentSetup.tokenReady.copyCommand', { defaultValue: 'Copier la commande' })}
   >
   <Copy className="w-3.5 h-3.5 text-foreground" />

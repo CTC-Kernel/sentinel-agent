@@ -327,7 +327,7 @@ export const HomologationDossierDetail: React.FC = () => {
  <div className="space-y-6">
  {/* Level card */}
  <Card className="p-4">
- <h3 className="font-medium mb-3">{t('homologation.level', 'Niveau')}</h3>
+ <h2 className="font-medium mb-3">{t('homologation.level', 'Niveau')}</h2>
  <div className="flex items-center gap-3">
  <div
  className="p-3 rounded-3xl"
@@ -353,7 +353,7 @@ export const HomologationDossierDetail: React.FC = () => {
 
  {/* Validity card */}
  <Card className="p-4">
- <h3 className="font-medium mb-3">{t('homologation.validityLabel', 'Validité')}</h3>
+ <h2 className="font-medium mb-3">{t('homologation.validityLabel', 'Validité')}</h2>
  <div className="space-y-2">
  <div className="flex items-center gap-2 text-sm">
  <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -408,7 +408,7 @@ export const HomologationDossierDetail: React.FC = () => {
 
  {/* Details card */}
  <Card className="p-4">
- <h3 className="font-medium mb-3">{t('common.details', 'Détails')}</h3>
+ <h2 className="font-medium mb-3">{t('common.details', 'Détails')}</h2>
  <div className="space-y-3 text-sm">
  {dossier.authorityName && (
  <div className="flex items-start gap-2">
@@ -467,7 +467,7 @@ export const HomologationDossierDetail: React.FC = () => {
 
  {/* Actions card */}
  <Card className="p-4">
- <h3 className="font-medium mb-3">{t('common.actions', 'Actions')}</h3>
+ <h2 className="font-medium mb-3">{t('common.actions', 'Actions')}</h2>
  <div className="space-y-2">
  {dossier.status === 'draft' && (
  <Button
@@ -548,16 +548,16 @@ export const HomologationDossierDetail: React.FC = () => {
  {/* Description */}
  {dossier.description && (
  <Card className="p-4">
- <h3 className="font-medium mb-2">{t('common.description', 'Description')}</h3>
+ <h2 className="font-medium mb-2">{t('common.description', 'Description')}</h2>
  <p className="text-sm text-muted-foreground">{dossier.description}</p>
  </Card>
  )}
 
  {/* Justification */}
  <Card className="p-4">
- <h3 className="font-medium mb-2">
+ <h2 className="font-medium mb-2">
  {t('homologation.levelJustification', 'Justification du niveau')}
- </h3>
+ </h2>
  <p className="text-sm text-muted-foreground">{dossier.levelJustification}</p>
  </Card>
  </div>

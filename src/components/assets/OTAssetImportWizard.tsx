@@ -376,7 +376,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
  <select
  value={getMappedColumn(fieldName)}
  onChange={(e) => updateMapping(fieldName, e.target.value)}
- className="flex-1 px-3 py-2 border rounded-3xl text-sm focus:outline-none focus:ring-2 focus-visible:ring-primary bg-background"
+ className="flex-1 px-3 py-2 border rounded-3xl text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-background"
  >
  <option value="">{t('otImport.mapping.selectColumn', '-- Sélectionner --')}</option>
  {csvData.headers.map(header => (

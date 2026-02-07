@@ -321,7 +321,7 @@ class WebAuthnServiceClass {
 
  return { success: true, credentialId: storedCredential.credentialId };
  } catch (error) {
- ErrorLogger.error(error, 'WebAuthnService.verifyRegistration');
+ ErrorLogger.handleErrorWithToast(error, 'WebAuthnService.verifyRegistration');
  return { success: false, error: 'Registration verification failed' };
  }
  }
@@ -445,7 +445,7 @@ class WebAuthnServiceClass {
 
  return { success: true };
  } catch (error) {
- ErrorLogger.error(error, 'WebAuthnService.verifyAuthentication');
+ ErrorLogger.handleErrorWithToast(error, 'WebAuthnService.verifyAuthentication');
  return { success: false, error: 'Authentication verification failed' };
  }
  }
@@ -468,7 +468,7 @@ class WebAuthnServiceClass {
  credentialId: doc.id
  })) as StoredCredential[];
  } catch (error) {
- ErrorLogger.error(error, 'WebAuthnService.getUserCredentials');
+ ErrorLogger.handleErrorWithToast(error, 'WebAuthnService.getUserCredentials');
  return [];
  }
  }
@@ -504,7 +504,7 @@ class WebAuthnServiceClass {
 
  return true;
  } catch (error) {
- ErrorLogger.error(error, 'WebAuthnService.deleteCredential');
+ ErrorLogger.handleErrorWithToast(error, 'WebAuthnService.deleteCredential');
  return false;
  }
  }
@@ -525,13 +525,14 @@ class WebAuthnServiceClass {
  }
 
  const credentialsRef = collection(db, 'webauthn_credentials');
+ // merge: true is safe - sanitizeData() strips undefined, only explicit deviceName field
  await setDoc(doc(credentialsRef, credentialId), sanitizeData({
  deviceName: newName
  }), { merge: true });
 
  return true;
  } catch (error) {
- ErrorLogger.error(error, 'WebAuthnService.renameCredential');
+ ErrorLogger.handleErrorWithToast(error, 'WebAuthnService.renameCredential');
  return false;
  }
  }
@@ -577,24 +578,30 @@ class WebAuthnServiceClass {
  userId: string,
  type: 'registration' | 'authentication'
  ): Promise<StoredChallenge | null> {
- const challengesRef = collection(db, 'webauthn_challenges');
- const challengeDoc = doc(challengesRef, `${userId}_${type}`);
+    try {
+   const challengesRef = collection(db, 'webauthn_challenges');
+   const challengeDoc = doc(challengesRef, `${userId}_${type}`);
 
- const snapshot = await getDoc(challengeDoc);
- if (!snapshot.exists()) {
- return null;
- }
+   const snapshot = await getDoc(challengeDoc);
+   if (!snapshot.exists()) {
+   return null;
+   }
 
- const data = snapshot.data() as StoredChallenge;
+   const data = snapshot.data() as StoredChallenge;
 
- // Check expiration
- if (data.expiresAt.toMillis() < Date.now()) {
- await deleteDoc(challengeDoc);
- return null;
- }
+   // Check expiration
+   if (data.expiresAt.toMillis() < Date.now()) {
+   await deleteDoc(challengeDoc);
+   return null;
+   }
 
- return data;
- }
+   return data;
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la recuperation du challenge WebAuthn');
+      throw error;
+    }
+  }
 
  /**
  * Delete challenge after use
@@ -603,10 +610,16 @@ class WebAuthnServiceClass {
  userId: string,
  type: 'registration' | 'authentication'
  ): Promise<void> {
- const challengesRef = collection(db, 'webauthn_challenges');
- const challengeDoc = doc(challengesRef, `${userId}_${type}`);
- await deleteDoc(challengeDoc);
- }
+    try {
+   const challengesRef = collection(db, 'webauthn_challenges');
+   const challengeDoc = doc(challengesRef, `${userId}_${type}`);
+   await deleteDoc(challengeDoc);
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la suppression du challenge WebAuthn');
+      throw error;
+    }
+  }
 
  /**
  * Store credential
@@ -614,41 +627,60 @@ class WebAuthnServiceClass {
  private async storeCredential(
  credential: Omit<StoredCredential, 'createdAt'>
  ): Promise<void> {
- const credentialsRef = collection(db, 'webauthn_credentials');
- await setDoc(doc(credentialsRef, credential.credentialId), sanitizeData({
- ...credential,
- createdAt: serverTimestamp()
- }));
- }
+    try {
+   const credentialsRef = collection(db, 'webauthn_credentials');
+   await setDoc(doc(credentialsRef, credential.credentialId), sanitizeData({
+   ...credential,
+   createdAt: serverTimestamp()
+   }));
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors du stockage du credential WebAuthn');
+      throw error;
+    }
+  }
 
  /**
  * Get credential by ID
  */
  private async getCredentialById(credentialId: string): Promise<StoredCredential | null> {
- const credentialsRef = collection(db, 'webauthn_credentials');
- const credentialDoc = doc(credentialsRef, credentialId);
+    try {
+   const credentialsRef = collection(db, 'webauthn_credentials');
+   const credentialDoc = doc(credentialsRef, credentialId);
 
- const snapshot = await getDoc(credentialDoc);
- if (!snapshot.exists()) {
- return null;
- }
+   const snapshot = await getDoc(credentialDoc);
+   if (!snapshot.exists()) {
+   return null;
+   }
 
- return {
- ...snapshot.data(),
- credentialId: snapshot.id
- } as StoredCredential;
- }
+   return {
+   ...snapshot.data(),
+   credentialId: snapshot.id
+   } as StoredCredential;
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la recuperation du credential WebAuthn');
+      throw error;
+    }
+  }
 
  /**
  * Update credential usage
  */
  private async updateCredentialUsage(credentialId: string, counter: number): Promise<void> {
- const credentialsRef = collection(db, 'webauthn_credentials');
- await setDoc(doc(credentialsRef, credentialId), sanitizeData({
- counter,
- lastUsedAt: serverTimestamp()
- }), { merge: true });
- }
+    try {
+   const credentialsRef = collection(db, 'webauthn_credentials');
+   // merge: true is safe - sanitizeData() strips undefined, only counter and timestamp fields
+   await setDoc(doc(credentialsRef, credentialId), sanitizeData({
+   counter,
+   lastUsedAt: serverTimestamp()
+   }), { merge: true }); // SAFE: see comment above
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la MAJ du credential');
+      throw error;
+    }
+  }
 
  // ============================================================================
  // Encoding Utilities

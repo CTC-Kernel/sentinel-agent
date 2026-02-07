@@ -35,6 +35,15 @@ export const useFirestoreService = () => {
  const { demoMode, user } = useStore();
 
  /**
+  * Check if the client is online before performing write operations
+  */
+ const assertOnline = useCallback(() => {
+ if (typeof navigator !== 'undefined' && !navigator.onLine) {
+  throw new Error('Operation impossible : vous êtes hors ligne. Vérifiez votre connexion internet.');
+ }
+ }, []);
+
+ /**
  * Internal helper to verify organization context
  * (Basic check, actual enforcement should be in rules/backend)
  */
@@ -127,7 +136,7 @@ export const useFirestoreService = () => {
  ErrorLogger.error(error, `FirestoreService.deleteDocument.${collectionName}.${id}`);
  throw error;
  }
- }, [demoMode, user?.organizationId]);
+ }, [demoMode, user?.organizationId, assertOnline]);
 
  return {
  addDocument,

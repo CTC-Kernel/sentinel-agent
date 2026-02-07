@@ -27,8 +27,8 @@ const createRisk = (overrides: Partial<Risk> = {}): Risk => ({
  status: 'Ouvert',
  strategy: 'Atténuer',
  owner: 'owner-1',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides
 });
 

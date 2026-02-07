@@ -118,8 +118,8 @@ const createMockRisk = (overrides: Partial<Risk> = {}): Risk => ({
  description: 'Treatment plan'
  },
  organizationId: 'org-123',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  owner: 'John Doe',
  ...overrides
 } as Risk);
@@ -135,8 +135,8 @@ const createMockControl = (overrides: Partial<Control> = {}): Control => ({
  maturity: 4,
  type: 'Préventif', // Changed from category to type
  organizationId: 'org-123',
- createdAt: new Date().toISOString(),
- lastUpdated: new Date().toISOString(), // Changed from updatedAt
+ createdAt: new Date(Date.now()).toISOString(),
+ lastUpdated: new Date(Date.now()).toISOString(), // Changed from updatedAt
  ...overrides
 } as Control);
 
@@ -148,8 +148,8 @@ const createMockDocument = (overrides: Partial<GRCDocument> = {}): GRCDocument =
  status: 'Publié',
  version: '1.0',
  organizationId: 'org-123',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides
 } as GRCDocument);
 
@@ -161,8 +161,8 @@ const createMockAudit = (overrides: Partial<Audit> = {}): Audit => ({
  status: 'Completed',
  score: 85,
  organizationId: 'org-123',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides
 } as Audit);
 
@@ -176,8 +176,8 @@ const createMockIncident = (overrides: Partial<Incident> = {}): Incident => ({
  impact: 'Majeur',
  organizationId: 'org-123',
  reporter: 'Jane Doe',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides
 } as Incident);
 
@@ -188,8 +188,8 @@ const createMockAsset = (overrides: Partial<Asset> = {}): Asset => ({
  confidentiality: 'Confidentiel', // Assuming 'Confidentiel' matches confidentiality type or string
  owner: 'IT Department',
  organizationId: 'org-123',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides
 } as Asset);
 

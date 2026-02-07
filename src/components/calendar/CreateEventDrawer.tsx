@@ -143,6 +143,8 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
  }
  };
 
+ /* empty state: Aucun élément à afficher si la liste est vide */
+
  return (
  <InspectorLayout
  isOpen={isOpen}

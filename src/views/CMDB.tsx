@@ -23,6 +23,7 @@ import {
   Database,
 } from '@/components/ui/Icons';
 import { useLocale } from '@/hooks/useLocale';
+import { useAuth } from '@/hooks/useAuth';
 import { useStore } from '@/store';
 import { useCMDBMutations } from '@/hooks/cmdb/useCMDBCIs';
 import { useInspectorOpen, useCMDBActions } from '@/stores/cmdbStore';
@@ -58,7 +59,7 @@ const TabSkeleton: React.FC = () => (
   <div className="space-y-6">
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {[...Array(4)].map((_, i) => (
-        <Skeleton key={i} className="h-32 rounded-2xl" />
+        <Skeleton key={`skeleton-${i}`} className="h-32 rounded-2xl" />
       ))}
     </div>
     <Skeleton className="h-96 rounded-2xl" />
@@ -67,8 +68,12 @@ const TabSkeleton: React.FC = () => (
 
 export const CMDB: React.FC = () => {
   const { t } = useLocale();
+  const { user } = useAuth();
   const { addToast } = useStore();
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  // RBAC: Only admin/rssi can perform sensitive CMDB actions
+  const canManageCIs = user?.role === 'admin' || user?.role === 'rssi' || user?.role === 'super_admin';
 
   // Inspector state
   const inspectorOpen = useInspectorOpen();
@@ -77,6 +82,7 @@ export const CMDB: React.FC = () => {
 
   // Handle CI creation
   const handleCreate = useCallback(async (data: CreateCIFormData): Promise<boolean | string> => {
+    if (!canManageCIs) return false;
     try {
       const ciId = await createCI.mutateAsync(data);
       closeInspector();
@@ -88,6 +94,7 @@ export const CMDB: React.FC = () => {
 
   // Handle CI update
   const handleUpdate = useCallback(async (ciId: string, data: CreateCIFormData): Promise<boolean | string> => {
+    if (!canManageCIs) return false;
     try {
       await updateCI.mutateAsync({ ciId, data });
       closeInspector();
@@ -99,6 +106,7 @@ export const CMDB: React.FC = () => {
 
   // Handle CI deletion
   const handleDelete = useCallback(async (ciId: string, ciName: string) => {
+    if (!canManageCIs) return;
     if (window.confirm(`Êtes-vous sûr de vouloir retirer "${ciName}" ?`)) {
       await deleteCI.mutateAsync(ciId);
       closeInspector();
@@ -215,16 +223,18 @@ export const CMDB: React.FC = () => {
         </AnimatePresence>
       </motion.div>
 
-      {/* CI Inspector Slide Panel */}
-      <Suspense fallback={null}>
-        <CIInspector
+      {/* CI Inspector Slide Panel - RBAC gated */}
+      {canManageCIs && (
+        <Suspense fallback={null}>
+          <CIInspector
           isOpen={inspectorOpen}
           onClose={closeInspector}
           onCreate={handleCreate}
           onUpdate={handleUpdate}
-          onDelete={handleDelete}
-        />
-      </Suspense>
+            onDelete={handleDelete}
+          />
+        </Suspense>
+      )}
     </>
   );
 };

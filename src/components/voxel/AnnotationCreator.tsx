@@ -42,6 +42,7 @@ import {
 import { AnnotationService } from '../../services/annotationService';
 import { useAuth } from '../../hooks/useAuth';
 import { VOXEL_ANNOTATION_COLORS, hexToString } from './voxelTheme';
+import { ErrorLogger } from '../../services/errorLogger';
 
 // ============================================================================
 // Types
@@ -222,6 +223,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
  setError('Erreur lors de la sauvegarde');
  }
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'AnnotationCreator');
  setError(err instanceof Error ? err.message : 'Erreur inconnue');
  } finally {
  setIsSaving(false);
@@ -298,6 +300,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
  <button
  onClick={onClose}
  className="p-2 rounded-3xl hover:bg-muted/50 transition-colors"
+ aria-label="Fermer"
  >
  <X className="w-4 h-4 text-muted-foreground" />
  </button>
@@ -352,7 +355,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
  onChange={(e) => setContent(e.target.value)}
  placeholder="Écrivez votre annotation... (Utilisez @nom pour mentionner quelqu'un)"
  rows={4}
- className="w-full px-4 py-3 bg-muted/50 border border-border rounded-3xl text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent resize-none text-sm"
+ className="w-full px-4 py-3 bg-muted/50 border border-border rounded-3xl text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent resize-none text-sm"
  />
 
  <p className="text-xs text-muted-foreground">
@@ -413,7 +416,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
   value={teamId}
   onChange={(e) => setTeamId(e.target.value)}
   placeholder="ID de l'équipe"
-  className="w-full px-4 py-3 bg-muted/50 border border-border rounded-3xl text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent text-sm"
+  className="w-full px-4 py-3 bg-muted/50 border border-border rounded-3xl text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent text-sm"
  />
  </div>
  )}

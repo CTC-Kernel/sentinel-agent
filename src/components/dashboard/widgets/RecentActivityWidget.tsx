@@ -133,7 +133,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = React.m
    setIsExpanded(true);
    }
   }}
-  className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-2 py-1"
+  className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-2 py-1"
   >
   +{allFilteredActivity.length - 5} {t('common.more').toLowerCase()}
   </button>

@@ -145,7 +145,7 @@ export function subscribeToAgents(
         orderBy('lastHeartbeat', 'desc')
     );
 
-    return onSnapshot(
+    const unsubscribe = onSnapshot(
         q,
         (snapshot) => {
             const agents = snapshot.docs.map(doc =>
@@ -162,6 +162,7 @@ export function subscribeToAgents(
             if (onError) onError(error);
         }
     );
+    return unsubscribe;
 }
 
 /**
@@ -176,7 +177,7 @@ export function subscribeToAgentLiveData<T>(
 ): Unsubscribe {
     const docRef = doc(db, 'organizations', organizationId, 'agents', agentId, 'live_data', dataType);
 
-    return onSnapshot(
+    const unsubscribe = onSnapshot(
         docRef,
         (snapshot: DocumentSnapshot) => {
             if (snapshot.exists()) {
@@ -193,6 +194,7 @@ export function subscribeToAgentLiveData<T>(
             if (onError) onError(error);
         }
     );
+    return unsubscribe;
 }
 
 /**
@@ -208,7 +210,7 @@ export function subscribeToTokens(
         orderBy('createdAt', 'desc')
     );
 
-    return onSnapshot(
+    const unsubscribe = onSnapshot(
         q,
         (snapshot) => {
             const now = new Date();
@@ -261,6 +263,7 @@ export function subscribeToTokens(
             if (onError) onError(error);
         }
     );
+    return unsubscribe;
 }
 
 /**
@@ -343,7 +346,7 @@ export async function generateEnrollmentToken(
             name: result.data.name,
             expiresAt: result.data.expiresAt,
             maxUses: result.data.maxUses,
-            createdAt: new Date().toISOString(),
+            createdAt: new Date(Date.now()).toISOString(),
             revoked: false,
             lastUsedAt: null,
             usedCount: 0,

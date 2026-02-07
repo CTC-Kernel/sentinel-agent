@@ -140,7 +140,7 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
  </h3>
  <button
   onClick={() => navigate && navigate('/risks')}
-  className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-3xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-muted text-muted-foreground hover:text-foreground transition-all border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary group/btn"
+  className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-3xl bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-muted text-muted-foreground hover:text-foreground transition-all border border-white/50 dark:border-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary group/btn"
  >
   Voir tout
   <ArrowRight className="w-3 h-3 opacity-0 -translate-x-1 group-hover/btn:opacity-70 group-hover/btn:translate-x-0 transition-all" />

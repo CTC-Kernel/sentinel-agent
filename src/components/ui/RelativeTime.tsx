@@ -10,6 +10,19 @@ import { fr } from 'date-fns/locale';
 import { Tooltip } from './Tooltip';
 import { cn } from '../../lib/utils';
 
+// ============================================================================
+// Constants
+// ============================================================================
+const SECONDS_PER_MINUTE = 60;
+const MINUTES_PER_HOUR = 60;
+const HOURS_PER_DAY = 24;
+const DAYS_PER_WEEK = 7;
+const WEEKS_PER_MONTH = 4;
+const MONTHS_PER_YEAR = 12;
+const DAYS_PER_MONTH_APPROX = 30;
+const DAYS_PER_YEAR_APPROX = 365;
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
 interface RelativeTimeProps {
  /** Date to display - can be Date, timestamp, or ISO string */
  date: Date | number | string | null | undefined;
@@ -70,17 +83,17 @@ const formatShort = (date: Date): string => {
  const diffSec = Math.floor(diffMs / 1000);
  const diffMin = Math.floor(diffSec / 60);
  const diffHour = Math.floor(diffMin / 60);
- const diffDay = Math.floor(diffHour / 24);
- const diffWeek = Math.floor(diffDay / 7);
- const diffMonth = Math.floor(diffDay / 30);
- const diffYear = Math.floor(diffDay / 365);
+ const diffDay = Math.floor(diffHour / HOURS_PER_DAY);
+ const diffWeek = Math.floor(diffDay / DAYS_PER_WEEK);
+ const diffMonth = Math.floor(diffDay / DAYS_PER_MONTH_APPROX);
+ const diffYear = Math.floor(diffDay / DAYS_PER_YEAR_APPROX);
 
- if (diffSec < 60) return 'maintenant';
- if (diffMin < 60) return `${diffMin}m`;
- if (diffHour < 24) return `${diffHour}h`;
- if (diffDay < 7) return `${diffDay}j`;
- if (diffWeek < 4) return `${diffWeek}sem`;
- if (diffMonth < 12) return `${diffMonth}mois`;
+ if (diffSec < SECONDS_PER_MINUTE) return 'maintenant';
+ if (diffMin < MINUTES_PER_HOUR) return `${diffMin}m`;
+ if (diffHour < HOURS_PER_DAY) return `${diffHour}h`;
+ if (diffDay < DAYS_PER_WEEK) return `${diffDay}j`;
+ if (diffWeek < WEEKS_PER_MONTH) return `${diffWeek}sem`;
+ if (diffMonth < MONTHS_PER_YEAR) return `${diffMonth}mois`;
  return `${diffYear}an${diffYear > 1 ? 's' : ''}`;
 };
 
@@ -188,7 +201,7 @@ export const SmartDate: React.FC<SmartDateProps> = ({
  }
 
  const now = new Date();
- const diffDays = Math.floor((now.getTime() - parsedDate.getTime()) / (1000 * 60 * 60 * 24));
+ const diffDays = Math.floor((now.getTime() - parsedDate.getTime()) / MS_PER_DAY);
 
  // Show relative time for recent dates
  if (diffDays < thresholdDays) {

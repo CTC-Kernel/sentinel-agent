@@ -519,6 +519,16 @@ export const AccessReview: React.FC = () => {
  {dormantAccounts.map((account) => {
   const statusInfo = dormantStatusConfig[account.status];
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
   return (
   <div
   key={account.id || 'unknown'}

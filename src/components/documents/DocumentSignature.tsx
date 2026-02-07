@@ -32,13 +32,13 @@ export const DocumentSignature: React.FC<DocumentSignatureProps> = ({ isOpen, on
  <div className="flex justify-end gap-3 mt-4">
   <button
   onClick={() => signaturePadRef.current?.clear()}
-  className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground dark:hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded-lg"
+  className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground dark:hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded-lg"
   >
   {t('common.clear', { defaultValue: 'Effacer' })}
   </button>
   <button
   onClick={onSign}
-  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 "
+  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 "
   >
   <CheckCircle2 className="h-4 w-4" />
   {t('documents.signature.validateAndSign', { defaultValue: 'Valider et Signer' })}

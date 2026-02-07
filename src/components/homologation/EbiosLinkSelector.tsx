@@ -388,10 +388,11 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
  <input
  type="text"
+ aria-label="Rechercher une analyse"
  placeholder={t('homologation.ebios.searchPlaceholder', 'Rechercher une analyse...')}
  value={searchTerm}
  onChange={(e) => setSearchTerm(e.target.value)}
- className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus-visible:ring-primary"
+ className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  />
  </div>
 
@@ -469,7 +470,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
  value={linkNote}
  onChange={(e) => setLinkNote(e.target.value)}
  placeholder={t('homologation.ebios.linkNotePlaceholder', 'Raison de la liaison...')}
- className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus-visible:ring-primary"
+ className="w-full px-3 py-2 border rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  />
  </div>
  )}

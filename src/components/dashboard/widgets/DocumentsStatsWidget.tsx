@@ -93,7 +93,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
  </h3>
  <button
   onClick={() => navigate('/documents')}
-  className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-muted text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-muted text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
   Voir tout
  </button>
@@ -102,7 +102,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
  <div className="flex items-center gap-6 flex-1 justify-center relative z-decorator py-2">
  {/* Score Circle */}
  <div
-  className="relative group/chart cursor-pointer transform hover:scale-105 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
+  className="relative group/chart cursor-pointer transform hover:scale-105 transition-transform duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
   onClick={() => navigate('/documents')}
   role="button"
   tabIndex={0}

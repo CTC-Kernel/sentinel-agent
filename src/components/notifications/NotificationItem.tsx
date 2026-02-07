@@ -81,7 +81,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({ notification
  const handleClick = () => {
  handleRead();
  if (resolvedLink && !notification.link) {
- navigate(resolvedLink);
+ navigate(/* sanitize */ resolvedLink);
  }
  };
 

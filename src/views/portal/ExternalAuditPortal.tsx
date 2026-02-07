@@ -58,6 +58,7 @@ export const ExternalAuditPortal: React.FC = () => {
  const result = await getAuditFn({ token });
  setAuditData(result.data as SharedAuditData);
  } catch (_err: unknown) {
+ ErrorLogger.error(_err, 'ExternalAuditPortal.loadAuditData');
  let errorMessage = t('certifier.portal.defaultError');
  const err = _err as { code?: string; message?: string };
 
@@ -115,7 +116,7 @@ export const ExternalAuditPortal: React.FC = () => {
   <div className="flex items-center gap-2 text-primary font-medium text-sm mb-2">
   <span className="bg-primary/10 px-2 py-1 rounded text-xs uppercase tracking-wider">{audit.type}</span>
   <ChevronRight className="w-3 h-3 text-muted-foreground" />
-  <span className="text-muted-foreground">{new Date(audit.date).toLocaleDateString()}</span>
+  <span className="text-muted-foreground">{new Date(audit.date).toLocaleDateString('fr-FR')}</span>
   </div>
   <h1 className="text-3xl font-bold text-foreground mb-2">{audit.name}</h1>
   <p className="text-muted-foreground max-w-2xl">{audit.description}</p>
@@ -196,7 +197,7 @@ export const ExternalAuditPortal: React.FC = () => {
   {t('certifier.portal.findings.title')}
   </h2>
   {permissions.includes('write_findings') && (
-  <button className="btn-primary text-xs px-3 py-1.5">
+  <button className="btn-primary text-xs px-3 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
    {t('certifier.portal.findings.new')}
   </button>
   )}
@@ -212,7 +213,7 @@ export const ExternalAuditPortal: React.FC = () => {
   <div key={i || 'unknown'} className="bg-card p-4 rounded-xl border border-border dark:border-white/5 shadow-sm">
    <div className="flex justify-between items-start mb-2">
    <span className={`px-2 py-0.5 text-xs font-bold rounded ${f.type === 'Majeure' ? 'bg-error-bg text-error-text' : 'bg-warning-bg text-warning-text'}`}>{f.type}</span>
-   <span className="text-xs text-muted-foreground">{new Date(f.createdAt).toLocaleDateString()}</span>
+   <span className="text-xs text-muted-foreground">{new Date(f.createdAt).toLocaleDateString('fr-FR')}</span>
    </div>
    <p className="text-foreground">{f.description}</p>
   </div>
@@ -246,7 +247,7 @@ export const ExternalAuditPortal: React.FC = () => {
    </div>
    <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">{doc.type}</span>
    </div>
-   <h4 className="font-medium text-sm text-foreground mb-1 truncate" title={doc.name}>{doc.name}</h4>
+   <h3 className="font-medium text-sm text-foreground mb-1 truncate" title={doc.name}>{doc.name}</h3>
    <p className="text-xs text-muted-foreground mb-3">{doc.category || t('certifier.portal.evidence.defaultCategory')}</p>
 
    <a

@@ -57,8 +57,8 @@ describe('ActivityCard', () => {
  hasDPIA: true,
  organizationId: 'org-1',
  manager: 'John Doe',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString()
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString()
  };
 
  const mockOnClick = vi.fn();

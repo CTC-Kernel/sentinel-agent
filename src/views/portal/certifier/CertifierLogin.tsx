@@ -40,7 +40,7 @@ export const CertifierLogin: React.FC = () => {
  // Simple redirect after login/register
  toast.success(t('certifier.loginSuccess') || 'Connexion réussie', t('certifier.loginWelcome') || 'Bienvenue sur le portail certificateur');
  navigate('/portal/dashboard');
- } catch (error) {
+ } catch (error) { console.error(error);
  const newAttempts = attempts + 1;
  setAttempts(newAttempts);
  if (newAttempts >= 5) {
@@ -84,7 +84,7 @@ export const CertifierLogin: React.FC = () => {
    {...register('email')}
    id="email"
    type="email"
-   className="block w-full pl-10 rounded-lg border border-border bg-card/50 py-2.5 text-foreground placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent sm:text-sm"
+   className="block w-full pl-10 rounded-lg border border-border bg-card/50 py-2.5 text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent sm:text-sm"
    placeholder="nom@organisme-certif.com"
   />
   </div>
@@ -101,7 +101,7 @@ export const CertifierLogin: React.FC = () => {
    {...register('password')}
    id="password"
    type="password"
-   className="block w-full pl-10 rounded-lg border border-border bg-card/50 py-2.5 text-foreground placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent sm:text-sm"
+   className="block w-full pl-10 rounded-lg border border-border bg-card/50 py-2.5 text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent sm:text-sm"
    placeholder="••••••••"
   />
   </div>

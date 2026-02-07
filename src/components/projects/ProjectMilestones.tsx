@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Project, ProjectMilestone } from '../../types';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -137,11 +137,21 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
  reset();
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <div className="space-y-6 h-full flex flex-col">
  <div className="flex justify-between items-center">
  <h3 className="text-lg font-bold text-foreground">Jalons du projet</h3>
- <Button onClick={() => { reset(); setIsEditing(true); }} className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ">
+ <Button onClick={() => { reset(); setIsEditing(true); }} className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ">
   <Plus className="h-4 w-4" /> Nouveau Jalon
  </Button>
  </div>
@@ -189,8 +199,8 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
   multiple
   />
   <div className="flex justify-end gap-3 pt-2">
-  <Button type="button" variant="ghost" onClick={handleCancel} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">{t('common.cancel', { defaultValue: 'Annuler' })}</Button>
-  <Button type="submit" isLoading={isSubmitting} disabled={isSubmitting} className="bg-primary text-primary-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ">
+  <Button type="button" variant="ghost" onClick={handleCancel} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">{t('common.cancel', { defaultValue: 'Annuler' })}</Button>
+  <Button type="submit" isLoading={isSubmitting} disabled={isSubmitting} className="bg-primary text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ">
   {isSubmitting ? t('common.saving', { defaultValue: 'Enregistrement...' }) : t('common.save', { defaultValue: 'Enregistrer' })}
   </Button>
   </div>
@@ -229,20 +239,20 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
   </div>
   <p className="text-sm text-muted-foreground line-clamp-1">{milestone.description}</p>
   <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-   <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(milestone.targetDate).toLocaleDateString()}</span>
+   <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(milestone.targetDate).toLocaleDateString('fr-FR')}</span>
   </div>
   </div>
   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-70 transition-opacity">
   <button
    onClick={() => handleEdit(milestone)}
-   className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+   className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
    aria-label="Modifier le jalon"
   >
    <Edit className="h-4 w-4" />
   </button>
   <button
    onClick={() => setDeleteMilestoneId(milestone.id)}
-   className="p-2 text-muted-foreground hover:text-destructive hover:bg-error-bg rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
+   className="p-2 text-muted-foreground hover:text-destructive hover:bg-error-bg rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
    aria-label="Supprimer le jalon"
   >
    <Trash2 className="h-4 w-4" />

@@ -405,7 +405,7 @@ describe('NotificationService', () => {
   title: 'Test',
   message: 'Test message',
   read: false,
-  createdAt: { toDate: () => new Date() }
+  createdAt: { toDate: () => new Date(Date.now()) }
   })
   },
   {
@@ -476,7 +476,7 @@ describe('NotificationService', () => {
   title: 'Test 1',
   message: 'Message 1',
   read: true,
-  createdAt: { toDate: () => new Date() }
+  createdAt: { toDate: () => new Date(Date.now()) }
   })
   },
   {
@@ -486,7 +486,7 @@ describe('NotificationService', () => {
   title: 'Test 2',
   message: 'Message 2',
   read: false,
-  createdAt: { toDate: () => new Date() }
+  createdAt: { toDate: () => new Date(Date.now()) }
   })
   }
  ]
@@ -650,7 +650,7 @@ describe('NotificationService', () => {
   type: 'info',
   title: 'Real-time notification',
   message: 'Test',
-  createdAt: { toDate: () => new Date() }
+  createdAt: { toDate: () => new Date(Date.now()) }
   })
   }
   ]

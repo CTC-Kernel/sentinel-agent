@@ -123,7 +123,7 @@ describe('ComplianceCertificate', () => {
  render(<ComplianceCertificate {...defaultProps} issueDate={date} />);
 
  // Date should be formatted according to locale
- const dateString = date.toLocaleDateString();
+ const dateString = date.toLocaleDateString('fr-FR');
  expect(screen.getByText(dateString)).toBeInTheDocument();
  });
  });

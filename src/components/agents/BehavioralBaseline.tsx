@@ -23,6 +23,11 @@ import {
  subscribeToBaselines,
  recalculateBaseline,
 } from '../../services/AgentAnomalyService';
+
+// ============================================================================
+// Constants
+// ============================================================================
+const HOUR_AXIS_LABELS = ['00h', '06h', '12h', '18h', '23h'];
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import {
@@ -248,11 +253,9 @@ const HourlyPatternChart: React.FC<{
 
  {/* Hour Labels */}
  <div className="flex justify-between text-xs text-muted-foreground mt-1">
- <span>00h</span>
- <span>06h</span>
- <span>12h</span>
- <span>18h</span>
- <span>23h</span>
+ {HOUR_AXIS_LABELS.map(label => (
+ <span key={label}>{label}</span>
+ ))}
  </div>
 
  {/* Legend */}

@@ -2,9 +2,15 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { AdminService, AuditLog } from '../../../services/adminService';
 import { Search, User, Clock, Info, Download } from '../../../components/ui/Icons';
 import { ErrorLogger } from '../../../services/errorLogger';
+import { useAuth } from '../../../hooks/useAuth';
 import { useStore } from '../../../store';
 
 export const AuditLogList: React.FC = () => {
+ const { user: authUser } = useAuth();
+
+ // RBAC: Only admin/super_admin can access audit logs
+ const canViewAuditLogs = authUser?.role === 'admin' || authUser?.role === 'super_admin';
+
  const [logs, setLogs] = useState<AuditLog[]>([]);
  const [loading, setLoading] = useState(true);
  const [searchTerm, setSearchTerm] = useState('');
@@ -73,10 +79,11 @@ export const AuditLogList: React.FC = () => {
   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
   <input
   type="text"
+  aria-label="Rechercher dans les journaux"
   placeholder="Search logs (Actor, Action, ID)..."
   value={searchTerm}
   onChange={(e) => setSearchTerm(e.target.value)}
-  className="w-full pl-10 pr-4 py-2 bg-card/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-primary text-sm focus:bg-card transition-colors text-foreground"
+  className="w-full pl-10 pr-4 py-2 bg-card/50 border border-border rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-sm focus:bg-card transition-colors text-foreground"
   />
  </div>
  <div className="flex gap-2">
@@ -123,7 +130,7 @@ export const AuditLogList: React.FC = () => {
   filteredLogs.map((log) => (
    <tr key={log.id || 'unknown'} className="hover:bg-muted/50 transition-colors group">
    <td className="px-6 py-4 text-sm text-muted-foreground font-mono">
-   {new Date(log.timestamp).toLocaleString()}
+   {new Date(log.timestamp).toLocaleString('fr-FR')}
    </td>
    <td className="px-6 py-4">
    <div className="flex items-center">

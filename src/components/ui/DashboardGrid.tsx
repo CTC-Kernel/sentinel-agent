@@ -184,7 +184,7 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
           {widget.resizable && (
             <button
               onClick={() => setShowControls(!showControls)}
-              className="p-1 hover:bg-muted rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="p-1 hover:bg-muted rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               aria-label="Paramètres du widget"
             >
               <Settings className="w-4 h-4 text-muted-foreground" />
@@ -193,7 +193,7 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
           {widget.removable && onRemove && (
             <button
               onClick={() => onRemove(widget.id)}
-              className="p-1 hover:bg-destructive/10 dark:hover:bg-destructive/20 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
+              className="p-1 hover:bg-destructive/10 dark:hover:bg-destructive/20 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
               aria-label="Supprimer le widget"
             >
               <X className="w-4 h-4 text-destructive" />

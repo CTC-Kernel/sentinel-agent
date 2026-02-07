@@ -188,8 +188,8 @@ describe('AssetClassificationService', () => {
  owner: 'Test Owner',
  location: 'Test Location',
  organizationId: 'org-1',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides
  });
 
@@ -205,8 +205,8 @@ describe('AssetClassificationService', () => {
  strategy: 'Atténuer',
  owner: 'Owner',
  organizationId: 'org-1',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides
  });
 

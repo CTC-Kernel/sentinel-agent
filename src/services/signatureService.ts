@@ -374,6 +374,7 @@ export const SignatureService = {
  const allSigned = updatedSigners.every(s => s.status === 'signed');
  const newStatus: SignatureStatus = allSigned ? 'completed' : 'in_progress';
 
+ try {
  // Update the request
  const docRef = doc(db, SIGNATURE_REQUESTS_COLLECTION, input.requestId);
  await updateDoc(docRef, sanitizeData({
@@ -387,6 +388,10 @@ export const SignatureService = {
  // If completed, update document with signature info
  if (allSigned) {
  await this.updateDocumentWithSignatures(request.documentId, input.requestId, updatedSigners);
+ }
+ } catch (updateError) {
+  ErrorLogger.handleErrorWithToast(updateError, 'Erreur lors de la mise à jour de la demande de signature');
+  throw updateError;
  }
 
  return {
@@ -519,7 +524,7 @@ export const SignatureService = {
  callback: (request: SignatureRequest | null) => void
  ): Unsubscribe {
  const docRef = doc(db, SIGNATURE_REQUESTS_COLLECTION, requestId);
- return onSnapshot(docRef, (docSnap) => {
+ const unsubscribe = onSnapshot(docRef, (docSnap) => {
  if (!docSnap.exists()) {
  callback(null);
  return;
@@ -529,6 +534,7 @@ export const SignatureService = {
  ...docSnap.data(),
  } as SignatureRequest);
  });
+ return unsubscribe;
  },
 
  /**

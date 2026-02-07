@@ -46,7 +46,7 @@ export const getIncidentAlertTemplate = (title: string, severity: string, report
  </tr>
  <tr>
  <td>Date</td>
- <td>${new Date().toLocaleString()}</td>
+ <td>${new Date().toLocaleString('fr-FR')}</td>
  </tr>
  </table>
  <p>Une action immédiate ou une analyse peut être requise selon le niveau de criticité.</p>
@@ -64,7 +64,7 @@ export const getDocumentReviewTemplate = (docTitle: string, ownerName: string, d
  <p>Le document <strong>"${escapeHtml(docTitle)}"</strong> arrive à échéance de révision.</p>
  <div class="highlight-box" style="text-align: center;">
  <span style="font-size: 12px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 1px;">Date d'échéance</span>
- <div style="font-size: 18px; font-weight: 600; color: #0f172a; margin-top: 4px;">${new Date(dueDate).toLocaleDateString()}</div>
+ <div style="font-size: 18px; font-weight: 600; color: #0f172a; margin-top: 4px;">${new Date(dueDate).toLocaleDateString('fr-FR')}</div>
  </div>
  <p>Conformément à la norme ISO 27001, les politiques et procédures doivent être revues périodiquement pour assurer leur pertinence.</p>
  `,
@@ -95,7 +95,7 @@ export const getAuditReminderTemplate = (auditName: string, auditorName: string,
  <p>Un audit est planifié dans les prochains jours et nécessite votre attention.</p>
  <div class="alert-box alert-info">
  <h3 style="margin: 0 0 8px 0; font-size: 16px;">${escapeHtml(auditName)}</h3>
- <p style="margin: 0; font-size: 14px;">Date prévue : <strong>${new Date(scheduledDate).toLocaleDateString()}</strong></p>
+ <p style="margin: 0; font-size: 14px;">Date prévue : <strong>${new Date(scheduledDate).toLocaleDateString('fr-FR')}</strong></p>
  </div>
  <p>Assurez-vous d'avoir préparé tous les documents et preuves nécessaires pour cet audit.</p>
  `,
@@ -112,7 +112,7 @@ export const getRiskTreatmentDueTemplate = (riskTitle: string, dueDate: string, 
  <p>Le plan de traitement du risque suivant arrive à échéance :</p>
  <div class="alert-box alert-warning">
  <h3 style="margin: 0; font-size: 16px;">${escapeHtml(riskTitle)}</h3>
- <p style="margin: 8px 0 0 0;">Date limite : <strong>${new Date(dueDate).toLocaleDateString()}</strong></p>
+ <p style="margin: 8px 0 0 0;">Date limite : <strong>${new Date(dueDate).toLocaleDateString('fr-FR')}</strong></p>
  </div>
  <p>Veuillez mettre à jour le statut du traitement ou demander une extension si nécessaire.</p>
  `,
@@ -232,7 +232,7 @@ export const getSupplierReviewTemplate = (supplierName: string, criticality: str
  <div class="alert-box ${alertClass}">
  <h3 style="margin: 0 0 8px 0; font-size: 18px;">${escapeHtml(supplierName)}</h3>
  <p style="margin: 0; font-size: 14px;">Criticité : <strong>${escapeHtml(criticality)}</strong></p>
- <p style="margin: 8px 0 0 0; font-size: 14px;">Dernière révision : ${new Date(lastReviewDate).toLocaleDateString()}</p>
+ <p style="margin: 8px 0 0 0; font-size: 14px;">Dernière révision : ${new Date(lastReviewDate).toLocaleDateString('fr-FR')}</p>
  </div>
  <p>Conformément à la politique de gestion des tiers, une révision annuelle est requise pour tous les fournisseurs critiques.</p>
  `,
@@ -303,7 +303,7 @@ export const getMaintenanceTemplate = (assetName: string, maintenanceDate: strin
  <p>Une maintenance est prévue prochainement pour l'actif <strong>${escapeHtml(assetName)}</strong>.</p>
  <div class="highlight-box" style="text-align: center;">
  <span style="font-size: 12px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 1px;">Date de maintenance</span>
- <div style="font-size: 18px; font-weight: 600; color: #0f172a; margin-top: 4px;">${new Date(maintenanceDate).toLocaleDateString()}</div>
+ <div style="font-size: 18px; font-weight: 600; color: #0f172a; margin-top: 4px;">${new Date(maintenanceDate).toLocaleDateString('fr-FR')}</div>
  </div>
  <p>Veuillez vous assurer que tout est prêt pour cette intervention.</p>
  `,

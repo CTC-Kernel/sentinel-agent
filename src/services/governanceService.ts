@@ -30,11 +30,12 @@ export class GovernanceService {
       where('organizationId', '==', organizationId),
       orderBy('name', 'asc')
     );
-    return onSnapshot(q, (snapshot) => {
+    const unsubscribe = onSnapshot(q, (snapshot) => {
       callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Committee)));
     }, (error) => {
       ErrorLogger.error(error, 'GovernanceService.subscribeToCommittees');
     });
+    return unsubscribe;
   }
 
   static async createCommittee(data: Omit<Committee, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
@@ -100,11 +101,12 @@ export class GovernanceService {
       constraints.splice(1, 0, where('committeeId', '==', committeeId));
     }
     const q = query(collection(db, MEETINGS_COLLECTION), ...constraints);
-    return onSnapshot(q, (snapshot) => {
+    const unsubscribe = onSnapshot(q, (snapshot) => {
       callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Meeting)));
     }, (error) => {
       ErrorLogger.error(error, 'GovernanceService.subscribeToMeetings');
     });
+    return unsubscribe;
   }
 
   static async createMeeting(data: Omit<Meeting, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
@@ -158,11 +160,12 @@ export class GovernanceService {
       where('organizationId', '==', organizationId),
       orderBy('createdAt', 'desc')
     );
-    return onSnapshot(q, (snapshot) => {
+    const unsubscribe = onSnapshot(q, (snapshot) => {
       callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Decision)));
     }, (error) => {
       ErrorLogger.error(error, 'GovernanceService.subscribeToDecisions');
     });
+    return unsubscribe;
   }
 
   static async createDecision(data: Omit<Decision, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {

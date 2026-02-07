@@ -91,7 +91,7 @@ const SegmentToggle: React.FC<SegmentToggleProps> = React.memo(
  onClick={onClick}
  className={cn(
  'relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200',
- 'border focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+ 'border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
  isActive
  ? 'bg-opacity-20 border-opacity-60'
  : 'bg-muted/50 border-border/50 opacity-60 hover:opacity-75',

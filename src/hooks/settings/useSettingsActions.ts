@@ -15,7 +15,7 @@ export const useSettingsActions = () => {
  await setDoc(settingsRef, sanitizeData({
  ...settings,
  updatedAt: serverTimestamp()
- }), { merge: true });
+ }), { merge: true }); // SAFE: sanitizeData() strips undefined values
  } catch (error) {
  ErrorLogger.error(error, 'useSettingsActions.saveCommunitySettings');
  throw error;

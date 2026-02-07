@@ -48,8 +48,8 @@ vi.mock('../../services/ebiosService', () => ({
  description: 'Test description',
  status: 'in_progress',
  currentWorkshop: 1,
- createdAt: new Date(),
- updatedAt: new Date(),
+ createdAt: new Date(Date.now()),
+ updatedAt: new Date(Date.now()),
  createdBy: 'user-1',
  updatedBy: 'user-1',
  workshops: {

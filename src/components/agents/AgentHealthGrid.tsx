@@ -5,7 +5,7 @@
  * Displays agents as cards with live status indicators and key metrics.
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
 import { SentinelAgent, AgentCheckResult } from '../../types/agent';
@@ -29,6 +29,26 @@ import { hasPermission } from '../../utils/permissions';
 import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig';
 import i18n from '../../i18n';
 import { useTranslation } from 'react-i18next';
+
+// ============================================================================
+// Constants
+// ============================================================================
+const MS_PER_SECOND = 1000;
+const MS_PER_MINUTE = 60000;
+const MS_PER_HOUR = 3600000;
+const MS_PER_DAY = 86400000;
+const BYTES_PER_MB = 1024 * 1024;
+const BYTES_PER_GB = 1024 * 1024 * 1024;
+const SECONDS_PER_MINUTE = 60;
+const MINUTES_PER_HOUR = 60;
+const HOURS_PER_DAY = 24;
+const DAYS_PER_WEEK = 7;
+const CPU_CRITICAL_THRESHOLD = 80;
+const CPU_WARNING_THRESHOLD = 60;
+const MEMORY_CRITICAL_THRESHOLD = 85;
+const MEMORY_WARNING_THRESHOLD = 70;
+const SCORE_GOOD_THRESHOLD = 80;
+const SCORE_WARNING_THRESHOLD = 60;
 
 interface AgentHealthGridProps {
     agents: SentinelAgent[];
@@ -55,9 +75,9 @@ const OSIcon: React.FC<{ os: SentinelAgent['os']; className?: string }> = ({ os,
 const formatBytes = (bytes: number | undefined): string => {
     if (bytes === undefined || bytes === null) return '-';
     if (bytes === 0) return '0 B';
-    const gb = bytes / (1024 * 1024 * 1024);
+    const gb = bytes / BYTES_PER_GB;
     if (gb >= 1) return `${gb.toFixed(1)} GB`;
-    const mb = bytes / (1024 * 1024);
+    const mb = bytes / BYTES_PER_MB;
     return `${mb.toFixed(0)} MB`;
 };
 
@@ -66,15 +86,15 @@ const formatLastSeen = (dateStr: string, t: (key: string, options?: { defaultVal
     const date = new Date(dateStr);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
-    const seconds = Math.floor(diff / 1000);
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
+    const seconds = Math.floor(diff / MS_PER_SECOND);
+    const minutes = Math.floor(diff / MS_PER_MINUTE);
+    const hours = Math.floor(diff / MS_PER_HOUR);
+    const days = Math.floor(diff / MS_PER_DAY);
 
-    if (seconds < 60) return t('agent.justNow', { defaultValue: "À l'instant" });
-    if (minutes < 60) return `${minutes}m`;
-    if (hours < 24) return `${hours}h`;
-    if (days < 7) return `${days}j`;
+    if (seconds < SECONDS_PER_MINUTE) return t('agent.justNow', { defaultValue: "À l'instant" });
+    if (minutes < MINUTES_PER_HOUR) return `${minutes}m`;
+    if (hours < HOURS_PER_DAY) return `${hours}h`;
+    if (days < DAYS_PER_WEEK) return `${days}j`;
     return date.toLocaleDateString(getLocaleConfig(i18n.language as SupportedLocale).intlLocale, { day: '2-digit', month: 'short' });
 };
 
@@ -82,19 +102,19 @@ const formatLastSeen = (dateStr: string, t: (key: string, options?: { defaultVal
 const formatRelativeTime = (isoDate: string | undefined, t: (key: string, options?: { defaultValue: string }) => string) => {
     if (!isoDate) return t('agent.unknown', { defaultValue: 'Inconnu' });
     const diff = Date.now() - new Date(isoDate).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 60) return t('agent.agoMinutes', { defaultValue: `il y a ${mins} min` });
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return t('agent.agoHours', { defaultValue: `il y a ${hours}h` });
-    const days = Math.floor(hours / 24);
+    const mins = Math.floor(diff / MS_PER_MINUTE);
+    if (mins < MINUTES_PER_HOUR) return t('agent.agoMinutes', { defaultValue: `il y a ${mins} min` });
+    const hours = Math.floor(mins / MINUTES_PER_HOUR);
+    if (hours < HOURS_PER_DAY) return t('agent.agoHours', { defaultValue: `il y a ${hours}h` });
+    const days = Math.floor(hours / HOURS_PER_DAY);
     return t('agent.agoDays', { defaultValue: `il y a ${days}j` });
 };
 
 // Score color based on value
 const getScoreColor = (score: number | null | undefined): string => {
     if (score === null || score === undefined) return 'text-muted-foreground';
-    if (score >= 80) return 'text-success';
-    if (score >= 60) return 'text-warning';
+    if (score >= SCORE_GOOD_THRESHOLD) return 'text-success';
+    if (score >= SCORE_WARNING_THRESHOLD) return 'text-warning';
     return 'text-destructive';
 };
 
@@ -188,8 +208,8 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                             <div className="flex items-center gap-1 text-muted-foreground">
                                 <Cpu className="h-3 w-3" />
                                 <span className={cn(
-                                    agent.cpuPercent > 80 ? 'text-destructive font-medium' :
-                                        agent.cpuPercent > 60 ? 'text-warning' : ''
+                                    agent.cpuPercent > CPU_CRITICAL_THRESHOLD ? 'text-destructive font-medium' :
+                                        agent.cpuPercent > CPU_WARNING_THRESHOLD ? 'text-warning' : ''
                                 )}>
                                     {agent.cpuPercent.toFixed(0)}%
                                 </span>
@@ -199,8 +219,8 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                             <div className="flex items-center gap-1 text-muted-foreground">
                                 <HardDrive className="h-3 w-3" />
                                 <span className={cn(
-                                    agent.memoryPercent !== undefined && agent.memoryPercent > 85 ? 'text-destructive font-medium' :
-                                        agent.memoryPercent !== undefined && agent.memoryPercent > 70 ? 'text-warning' : ''
+                                    agent.memoryPercent !== undefined && agent.memoryPercent > MEMORY_CRITICAL_THRESHOLD ? 'text-destructive font-medium' :
+                                        agent.memoryPercent !== undefined && agent.memoryPercent > MEMORY_WARNING_THRESHOLD ? 'text-warning' : ''
                                 )}>
                                     {agent.memoryPercent !== undefined
                                         ? `${agent.memoryPercent.toFixed(0)}%`
@@ -336,7 +356,12 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                                 <>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem
-                                        onClick={() => onAction?.('delete')}
+                                        onClick={() => {
+                                            if (deleteGuardRef.current) return;
+                                            deleteGuardRef.current = true;
+                                            onAction?.('delete');
+                                            setTimeout(() => { deleteGuardRef.current = false; }, 2000);
+                                        }}
                                         className="text-destructive focus:text-destructive"
                                     >
                                         <Trash2 className="h-4 w-4 mr-2" />
@@ -359,8 +384,8 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                         </div>
                         <span className={cn(
                             'text-sm font-bold',
-                            agent.cpuPercent !== undefined && agent.cpuPercent > 80 ? 'text-destructive' :
-                                agent.cpuPercent !== undefined && agent.cpuPercent > 60 ? 'text-warning' : 'text-foreground'
+                            agent.cpuPercent !== undefined && agent.cpuPercent > CPU_CRITICAL_THRESHOLD ? 'text-destructive' :
+                                agent.cpuPercent !== undefined && agent.cpuPercent > CPU_WARNING_THRESHOLD ? 'text-warning' : 'text-foreground'
                         )}>
                             {agent.cpuPercent !== undefined ? `${agent.cpuPercent.toFixed(0)}%` : '-'}
                         </span>
@@ -374,8 +399,8 @@ const AgentHealthCard: React.FC<AgentHealthCardProps> = ({
                         </div>
                         <span className={cn(
                             'text-sm font-bold',
-                            agent.memoryPercent !== undefined && agent.memoryPercent > 85 ? 'text-destructive' :
-                                agent.memoryPercent !== undefined && agent.memoryPercent > 70 ? 'text-warning' : 'text-foreground'
+                            agent.memoryPercent !== undefined && agent.memoryPercent > MEMORY_CRITICAL_THRESHOLD ? 'text-destructive' :
+                                agent.memoryPercent !== undefined && agent.memoryPercent > MEMORY_WARNING_THRESHOLD ? 'text-warning' : 'text-foreground'
                         )}>
                             {agent.memoryPercent !== undefined
                                 ? `${agent.memoryPercent.toFixed(0)}%`

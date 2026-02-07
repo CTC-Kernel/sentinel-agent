@@ -165,8 +165,18 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
  }
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" role="dialog" aria-modal="true">
  <PremiumCard glass className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
  {/* Header */}
  <div className="flex items-center justify-between pb-4 border-b border-border/40/50">
@@ -188,6 +198,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
  <button
  onClick={onClose}
  className="p-2 rounded-3xl hover:bg-muted transition-colors"
+ aria-label="Fermer"
  >
  <X className="w-5 h-5 text-muted-foreground" />
  </button>

@@ -479,7 +479,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
  return (
  <button
  onClick={handler}
- className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
  <CheckSquare className="h-3.5 w-3.5 mr-2" />
  {label}
@@ -499,7 +499,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
  </h4>
  <button
  onClick={handleDismiss}
- className="text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg p-1 transition-colors"
+ className="text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg p-1 transition-colors"
  aria-label={t('common.close', { defaultValue: 'Fermer' })}
  >
  <X className="h-4 w-4" />
@@ -666,7 +666,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
  key={action || 'unknown'}
  onClick={() => handleAction(action)}
  disabled={loading}
- className={`flex items-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeAction === action
+ className={`flex items-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeAction === action
  ? 'bg-primary text-primary-foreground shadow-md'
  : 'bg-card text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary border border-transparent hover:border-primary/30'
  }`}

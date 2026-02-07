@@ -258,6 +258,16 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
  const recentActivity = hunterProfile?.stats?.recentActivity || [];
  const achievements = hunterProfile?.achievements || [];
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <Transition appear show={isOpen} as={React.Fragment}>
  <Dialog as="div" className="relative z-modal" onClose={onClose}>
@@ -290,7 +300,8 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
    <div className="relative h-32 bg-gradient-to-br from-primary to-purple-700">
    <button
    onClick={onClose}
-   className="absolute top-4 right-4 z-decorator p-2 rounded-full bg-white/10 hover:bg-muted transition-colors"
+   className="absolute top-4 right-4 z-decorator p-2 rounded-full bg-white/10 hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+   aria-label="Fermer"
    >
    <X className="h-5 w-5 text-white" />
    </button>

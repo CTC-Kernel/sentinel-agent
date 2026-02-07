@@ -771,7 +771,7 @@ export function createRiskSource(options: RiskSourceFactoryOptions = {}): RiskSo
  resources: options.resources || 'Medium resources',
  isANSSIStandard: options.isANSSIStandard ?? true,
  organizationId: options.organizationId ?? null,
- createdAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
  };
 }
 
@@ -799,7 +799,7 @@ export function createTargetedObjective(options: TargetedObjectiveFactoryOptions
  impactType: options.impactType || 'confidentiality',
  isANSSIStandard: options.isANSSIStandard ?? true,
  organizationId: options.organizationId ?? null,
- createdAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
  };
 }
 

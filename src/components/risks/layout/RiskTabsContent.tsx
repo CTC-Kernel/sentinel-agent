@@ -1,5 +1,5 @@
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useCallback, useMemo} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants } from '../../ui/animationVariants';
 import { RiskDashboardSkeleton, RiskListSkeleton, RiskMatrixSkeleton, RiskContextSkeleton } from '../RiskSkeletons';
@@ -86,6 +86,36 @@ export const RiskTabsContent: React.FC<RiskTabsContentProps> = ({
  const renderContent = () => {
  switch (activeTab) {
  case 'overview':
+
+  // Extracted callbacks (useCallback)
+  const handleSearchChange = useCallback((q) => {
+    setActiveFilters((prev: RiskActiveFilters) => ({ ...prev, query: q }))
+  }, []);
+
+  const handleHandleCreateRisk = useCallback(() => {
+    setCreationMode(true)
+  }, []);
+
+  const handleClearAll = useCallback(() => {
+    setActiveFilters({ query: '', status: null, category: null, criticality: null })
+  }, []);
+
+  const handleStatusFilterChange = useCallback((status) => {
+    setActiveFilters((prev: RiskActiveFilters) => ({ ...prev, status: status.length > 0 ? status : null }))
+  }, []);
+
+  const handleCategoryFilterChange = useCallback((category) => {
+    setActiveFilters((prev: RiskActiveFilters) => ({ ...prev, category: category.length > 0 ? category : null }))
+  }, []);
+
+  const handleCriticalityFilterChange = useCallback((criticality) => {
+    setActiveFilters((prev: RiskActiveFilters) => ({ ...prev, criticality: criticality.length > 0 ? criticality : null }))
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setShowAdvancedSearch(false)
+  }, []);
+
  return (
   <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="overview-tab" role="tabpanel">
   {loading ? <RiskDashboardSkeleton /> : <RiskDashboard risks={filteredRisks} />}
@@ -136,7 +166,7 @@ export const RiskTabsContent: React.FC<RiskTabsContentProps> = ({
  <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="filter-bar">
  <RisksToolbar
   searchQuery={activeFilters.query}
-  onSearchChange={(q) => setActiveFilters((prev: RiskActiveFilters) => ({ ...prev, query: q }))}
+  onSearchChange={handleSearchChange}
   viewMode={viewMode}
   onViewModeChange={setViewMode}
   activeTab={activeTab as RiskTabType}
@@ -151,7 +181,7 @@ export const RiskTabsContent: React.FC<RiskTabsContentProps> = ({
   setImportModalOpen={setImportModalOpen}
   setIsTemplateModalOpen={setIsTemplateModalOpen}
   handleStartAiAnalysis={handleStartAiAnalysis}
-  handleCreateRisk={() => setCreationMode(true)}
+  handleCreateRisk={handleHandleCreateRisk}
   canEdit={canEdit}
   isAnalyzing={isAnalyzing}
   activeFilters={{
@@ -164,7 +194,7 @@ export const RiskTabsContent: React.FC<RiskTabsContentProps> = ({
   ...prev,
   [key]: (prev[key as keyof RiskActiveFilters] as string[] | null)?.filter(v => v !== value) || null
   }))}
-  onClearAll={() => setActiveFilters({ query: '', status: null, category: null, criticality: null })}
+  onClearAll={handleClearAll}
  />
  </motion.div>
 
@@ -173,20 +203,20 @@ export const RiskTabsContent: React.FC<RiskTabsContentProps> = ({
   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
   <RiskAdvancedFilters
   statusFilter={activeFilters.status || []}
-  onStatusFilterChange={(status) => setActiveFilters((prev: RiskActiveFilters) => ({ ...prev, status: status.length > 0 ? status : null }))}
+  onStatusFilterChange={handleStatusFilterChange}
   categoryFilter={activeFilters.category || []}
-  onCategoryFilterChange={(category) => setActiveFilters((prev: RiskActiveFilters) => ({ ...prev, category: category.length > 0 ? category : null }))}
+  onCategoryFilterChange={handleCategoryFilterChange}
   criticalityFilter={activeFilters.criticality || []}
-  onCriticalityFilterChange={(criticality) => setActiveFilters((prev: RiskActiveFilters) => ({ ...prev, criticality: criticality.length > 0 ? criticality : null }))}
+  onCriticalityFilterChange={handleCriticalityFilterChange}
   availableCategories={availableCategories.filter((c): c is string => !!c)}
-  onClose={() => setShowAdvancedSearch(false)}
+  onClose={handleClose}
   />
   </motion.div>
  )}
  </AnimatePresence>
 
  {activeTab === 'list' && (
- <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="mt-8 focus:outline-none" role="tabpanel">
+ <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="mt-8 focus-visible:outline-none" role="tabpanel">
   {loading ? (
   <RiskListSkeleton />
   ) : viewMode === 'list' ? (
@@ -198,7 +228,7 @@ export const RiskTabsContent: React.FC<RiskTabsContentProps> = ({
  )}
 
  {activeTab === 'matrix' && (
- <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="p-1 focus:outline-none" role="tabpanel">
+ <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="p-1 focus-visible:outline-none" role="tabpanel">
   <Suspense fallback={<RiskMatrixSkeleton />}>
   <RiskMatrix
   risks={filteredRisks}

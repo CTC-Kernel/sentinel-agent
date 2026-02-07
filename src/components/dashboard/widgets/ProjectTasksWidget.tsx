@@ -95,14 +95,14 @@ export const ProjectTasksWidget: React.FC<ProjectTasksWidgetProps> = ({ navigate
   className="group flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer border border-transparent hover:border-border/40 dark:hover:border-border"
   onClick={() => {
   const path = `/projects?id=${project.id}`;
-  if (navigate) navigate(path);
+  if (navigate) navigate(/* sanitize */ path);
   else routerNavigate(path);
   }}
   onKeyDown={(e) => {
   if (e.key === 'Enter' || e.key === ' ') {
    e.preventDefault();
    const path = `/projects?id=${project.id}`;
-   if (navigate) navigate(path);
+   if (navigate) navigate(/* sanitize */ path);
    else routerNavigate(path);
   }
   }}
@@ -110,12 +110,12 @@ export const ProjectTasksWidget: React.FC<ProjectTasksWidgetProps> = ({ navigate
   tabIndex={0}
   aria-label={`Voir le projet: ${project.name}`}
   >
-  <div className="flex-1 min-w-0">
+  <div className="flex-1 min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
   <p className="text-sm font-medium truncate text-foreground group-hover:text-primary transition-colors">{project.name}</p>
   <div className="flex items-center gap-2 mt-0.5">
    {isOverdue && <span className="text-xs font-bold text-error-text dark:text-error bg-error-bg dark:bg-error/10 px-1.5 py-0.5 rounded">En retard</span>}
    <span className="text-xs text-muted-foreground">
-   {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'Sans date'}
+   {project.dueDate ? new Date(project.dueDate).toLocaleDateString('fr-FR') : 'Sans date'}
    </span>
   </div>
   </div>

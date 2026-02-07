@@ -3,7 +3,7 @@
  * Form for creating/editing supporting assets in Workshop 1
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Trash2 } from '../../../ui/Icons';
 import { useForm, useWatch } from 'react-hook-form';
@@ -84,8 +84,18 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
  }
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" role="dialog" aria-modal="true">
  <PremiumCard glass className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
  {/* Header */}
  <div className="flex items-center justify-between mb-6">
@@ -198,7 +208,7 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
   id={`essential-asset-${essentialAsset.id}`}
   checked={linkedEssentialAssetIds?.includes(essentialAsset.id) || false}
   onChange={() => toggleEssentialAsset(essentialAsset.id)}
-  className="w-4 h-4 rounded border-border/40 text-cyan-500 focus:ring-cyan-500"
+  className="w-4 h-4 rounded border-border/40 text-cyan-500 focus-visible:ring-cyan-500"
   />
   <div className="flex-1 min-w-0">
   <span className="text-sm text-foreground block truncate">

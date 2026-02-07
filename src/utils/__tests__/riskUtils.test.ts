@@ -90,8 +90,8 @@ describe('getSLAStatus', () => {
  status: 'Ouvert' as const,
  strategy: 'Atténuer' as const,
  owner: 'owner-1',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides
  });
 

@@ -57,15 +57,19 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
     onDelete
 }) => {
     const { user, t } = useStore();
+    const deletingRef = React.useRef(false);
+
     const canDelete = React.useMemo(() => {
         if (!user) return false;
         return canDeleteResource(user, 'Asset');
     }, [user]);
 
     const handleDelete = () => {
-        if (selectedAsset && onDelete) {
-            onDelete(selectedAsset.id, selectedAsset.name);
-        }
+        if (deletingRef.current || !selectedAsset || !onDelete) return;
+        deletingRef.current = true;
+        onDelete(selectedAsset.id, selectedAsset.name);
+        // Reset after a short delay to allow the operation to complete
+        setTimeout(() => { deletingRef.current = false; }, 2000);
     };
 
     const navigate = useNavigate();
@@ -189,6 +193,16 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
 
     // Tabs defined above for both hook and render
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
 
     return (
         <InspectorLayout
@@ -201,9 +215,8 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                         <span>{selectedAsset.type}</span>
                         <span className="text-muted-foreground">•</span>
                         <div className="flex items-center gap-1.5">
-                            <img
+                            <img alt={`${ownerInfo.name} avatar`}
                                 src={ownerInfo.avatar}
-                                alt={`${ownerInfo.name} avatar`}
                                 className="w-4 h-4 rounded-full object-cover bg-muted/30"
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
@@ -227,7 +240,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+                                onClick={(e) => { e.stopPropagation(); if (confirm("Confirmer la suppression ?")) handleDelete(); }}
                                 className="h-7 w-7 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 transition-colors"
                             >
                                 <Trash2 className="h-4 w-4" />
@@ -252,7 +265,8 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
             <div className="space-y-8 max-w-7xl mx-auto">
                 {activeTab === 'details' && (
                     <div className="space-y-6 sm:space-y-8">
-                        <AssetForm
+                        <!-- required field validation -->
+<AssetForm
                             initialData={selectedAsset || undefined}
                             onSubmit={async (data) => {
                                 if (selectedAsset) {

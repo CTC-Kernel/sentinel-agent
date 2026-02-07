@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useStore } from '../store';
 import { usePlanLimits } from './usePlanLimits';
+import { ErrorLogger } from '../services/errorLogger';
 
 export interface ExportLimitCheck {
  canExport: boolean;
@@ -71,6 +72,7 @@ export const useExportLimits = () => {
  }
  return true;
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'useExportLimits');
  onError?.(error);
  return false;
  }

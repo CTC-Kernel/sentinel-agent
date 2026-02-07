@@ -99,7 +99,7 @@ const CheckboxFilter: React.FC<CheckboxFilterProps> = ({
  type="checkbox"
  checked={checked}
  onChange={onChange}
- className="w-3.5 h-3.5 rounded border-border bg-muted text-primary focus-visible:ring-primary focus:ring-offset-0"
+ className="w-3.5 h-3.5 rounded border-border bg-muted text-primary focus-visible:ring-primary focus-visible:ring-offset-0"
  />
  {icon && (
  <span style={{ color: color || 'hsl(var(--muted-foreground))' }}>{icon}</span>
@@ -263,7 +263,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
  {/* Header */}
  <div
  className="flex items-center justify-between p-3 border-b"
- style={{ borderColor: 'rgba(148, 163, 184, 0.1)' }}
+ style={{ borderColor: 'hsl(var(--muted-foreground) / 0.1)' }}
  >
  {!collapsed && (
  <div className="flex items-center gap-2">
@@ -321,13 +321,14 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
   value={filters.searchQuery}
   onChange={handleSearchChange}
   placeholder="Search nodes..."
-  className="w-full pl-8 pr-8 py-2 rounded-lg bg-muted/50 border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500"
+  className="w-full pl-8 pr-8 py-2 rounded-lg bg-muted/50 border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-blue-500"
  />
 
  {filters.searchQuery && (
   <button
   onClick={handleClearSearch}
   className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground"
+  aria-label="Fermer"
   >
   <X className="w-4 h-4" />
   </button>

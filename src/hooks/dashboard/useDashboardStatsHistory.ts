@@ -52,5 +52,7 @@ export const useDashboardStatsHistory = ({
  };
  saveStats();
  }
+ // Justification: currentRadarData is intentionally excluded -- radarKey is a stable string
+ // representation. Including the object directly causes infinite re-renders.
  }, [loading, historyStats, user?.organizationId, allRisksCount, complianceScore, activeIncidentsCount, radarKey]); // eslint-disable-line react-hooks/exhaustive-deps
 };

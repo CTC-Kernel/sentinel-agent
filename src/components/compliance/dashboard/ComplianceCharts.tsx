@@ -253,7 +253,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                         <ResponsiveContainer width="100%" height="100%" >
                             <PieChart>
                                 <defs>
-                                    {statusData.map((entry, index) => (
+                                    {statusData.length > 0 && statusData.map((entry, index) => (
                                         <linearGradient key={`grad-${index || 'unknown'}`} id={`pieStatusGradient-${index}`} x1="0" y1="0" x2="1" y2="1">
                                             <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
                                             <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
@@ -332,7 +332,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
                                         <Cell
                                             key={`cell-${index || 'unknown'}`}
                                             fill={entry.rate >= 75 ? `url(#${barGradientSuccessId})` : entry.rate >= 50 ? chartTheme.colors.partial : `url(#${barGradientPrimaryId})`}
-                                            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' }}
+                                            style={{ filter: 'drop-shadow(0 2px 4px hsl(var(--foreground) / 0.15))' }}
                                         />
                                     ))}
                                 </Bar>

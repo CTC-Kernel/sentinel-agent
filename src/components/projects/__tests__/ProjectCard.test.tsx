@@ -32,8 +32,8 @@ describe('ProjectCard', () => {
  organizationId: 'org-1',
  manager: 'Test Manager',
  dueDate: '2024-12-31',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString()
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString()
  };
 
  const mockUser: UserProfile = {

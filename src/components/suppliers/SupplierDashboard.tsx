@@ -13,6 +13,18 @@ import { slideUpVariants, staggerContainerVariants } from '../ui/animationVarian
 import { SEVERITY_COLORS, SENTINEL_PALETTE } from '../../theme/chartTheme';
 import { SentinelPieActiveShapeProps } from '../../types/charts';
 
+// ============================================================================
+// Constants
+// ============================================================================
+const SCORE_EXCELLENT_THRESHOLD = 90;
+const SCORE_GOOD_THRESHOLD = 70;
+const SCORE_MEDIUM_THRESHOLD = 50;
+const COMPLIANCE_THRESHOLD = 80;
+const MAX_CATEGORY_ITEMS = 6;
+const MAX_TOP_SUPPLIERS = 5;
+const CHART_LABEL_MAX_LENGTH = 10;
+const CHART_ANIMATION_DURATION_MS = 1200;
+
 interface SupplierDashboardProps {
     suppliers: Supplier[];
     onFilterChange?: (filter: { type: string; value: string } | null) => void;
@@ -69,7 +81,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
         const scoredSuppliers = suppliers.filter(s => (s.securityScore || 0) > 0);
         const avgScore = scoredSuppliers.length > 0 ? Math.round(scoredSuppliers.reduce((acc, s) => acc + (s.securityScore || 0), 0) / scoredSuppliers.length) : 0;
         const expiredContracts = suppliers.filter(s => s.contractEnd && new Date(s.contractEnd) < new Date()).length;
-        const compliant = suppliers.filter(s => (s.securityScore || 0) >= 80).length;
+        const compliant = suppliers.filter(s => (s.securityScore || 0) >= COMPLIANCE_THRESHOLD).length;
         const complianceRate = total > 0 ? Math.round((compliant / total) * 100) : 0;
 
         return { total, critical, avgScore, expiredContracts, compliant, complianceRate };
@@ -89,15 +101,15 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 acc[s.category] = (acc[s.category] || 0) + 1;
                 return acc;
             }, {} as Record<string, number>)
-        ).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 6);
+        ).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, MAX_CATEGORY_ITEMS);
     }, [suppliers]);
 
     // Score distribution
     const scoreDistribution = useMemo(() => [
-        { name: '90-100', value: suppliers.filter(s => (s.securityScore || 0) >= 90).length, color: SENTINEL_PALETTE.success },
-        { name: '70-89', value: suppliers.filter(s => (s.securityScore || 0) >= 70 && (s.securityScore || 0) < 90).length, color: SENTINEL_PALETTE.secondary },
-        { name: '50-69', value: suppliers.filter(s => (s.securityScore || 0) >= 50 && (s.securityScore || 0) < 70).length, color: SENTINEL_PALETTE.warning },
-        { name: '<50', value: suppliers.filter(s => (s.securityScore || 0) < 50 && (s.securityScore || 0) > 0).length, color: SEVERITY_COLORS.critical },
+        { name: '90-100', value: suppliers.filter(s => (s.securityScore || 0) >= SCORE_EXCELLENT_THRESHOLD).length, color: SENTINEL_PALETTE.success },
+        { name: '70-89', value: suppliers.filter(s => (s.securityScore || 0) >= SCORE_GOOD_THRESHOLD && (s.securityScore || 0) < SCORE_EXCELLENT_THRESHOLD).length, color: SENTINEL_PALETTE.secondary },
+        { name: '50-69', value: suppliers.filter(s => (s.securityScore || 0) >= SCORE_MEDIUM_THRESHOLD && (s.securityScore || 0) < SCORE_GOOD_THRESHOLD).length, color: SENTINEL_PALETTE.warning },
+        { name: '<50', value: suppliers.filter(s => (s.securityScore || 0) < SCORE_MEDIUM_THRESHOLD && (s.securityScore || 0) > 0).length, color: SEVERITY_COLORS.critical },
         { name: 'N/A', value: suppliers.filter(s => !s.securityScore || s.securityScore === 0).length, color: 'hsl(var(--muted-foreground) / 0.4)' },
     ].filter(d => d.value > 0), [suppliers]);
 
@@ -110,7 +122,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
         return suppliers
             .filter(s => s.securityScore && s.securityScore > 0)
             .sort((a, b) => (b.securityScore || 0) - (a.securityScore || 0))
-            .slice(0, 5);
+            .slice(0, MAX_TOP_SUPPLIERS);
     }, [suppliers]);
 
     if (loading) {
@@ -276,7 +288,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                             <span className={`text-2xl font-black bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent mb-1`}>
                                 {item.value}
                             </span>
-                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{item.label}</span>
+                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">{item.label}</span>
                         </button>
                     ))}
                 </motion.div>
@@ -361,7 +373,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                                         tickLine={false}
                                         tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 600 }}
                                         dy={10}
-                                        tickFormatter={(value) => value.length > 10 ? `${value.substring(0, 10)}...` : value}
+                                        tickFormatter={(value) => value.length > CHART_LABEL_MAX_LENGTH ? `${value.substring(0, CHART_LABEL_MAX_LENGTH)}...` : value}
                                     />
                                     <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
                                     <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.1)' }} />
@@ -370,8 +382,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                                         fill="url(#supplierBarGradient)"
                                         radius={[8, 8, 0, 0]}
                                         barSize={28}
-                                        animationDuration={1200}
-                                        style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
+                                        animationDuration={CHART_ANIMATION_DURATION_MS}
+                                        style={{ filter: 'drop-shadow(0 2px 4px hsl(var(--foreground) / 0.1))' }}
                                     />
                                 </BarChart>
                             </ResponsiveContainer>
@@ -395,9 +407,9 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                                 <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
                                 <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11, fontWeight: 600 }} width={50} />
                                 <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.1)' }} />
-                                <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={20} animationDuration={1200}>
+                                <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={20} animationDuration={CHART_ANIMATION_DURATION_MS}>
                                     {scoreDistribution.map((entry, index) => (
-                                        <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.15))' }} />
+                                        <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} style={{ filter: 'drop-shadow(0 1px 3px hsl(var(--foreground) / 0.15))' }} />
                                     ))}
                                 </Bar>
                             </BarChart>

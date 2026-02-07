@@ -3,10 +3,16 @@ import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '../../../firebase';
 import { Organization } from '../../../types';
 import { ErrorLogger } from '../../../services/errorLogger';
+import { useAuth } from '../../../hooks/useAuth';
 import { Search, Filter, MoreVertical, ExternalLink, Shield } from '../../../components/ui/Icons';
 import { TenantDetailModal } from './TenantDetailModal';
 
 export const TenantList: React.FC = () => {
+ const { user } = useAuth();
+
+ // RBAC: Only super_admin/admin can access tenant list
+ const canViewTenants = user?.role === 'super_admin' || user?.role === 'admin';
+
  const [tenants, setTenants] = useState<Organization[]>([]);
  const [loading, setLoading] = useState(true);
  const [searchTerm, setSearchTerm] = useState('');
@@ -48,6 +54,16 @@ export const TenantList: React.FC = () => {
  </div>
  );
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <div className="space-y-6 animate-fade-in">
  {/* Controls */}
@@ -56,10 +72,11 @@ export const TenantList: React.FC = () => {
   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
   <input
   type="text"
+  aria-label="Rechercher des tenants"
   placeholder="Search tenants..."
   value={searchTerm}
   onChange={(e) => setSearchTerm(e.target.value)}
-  className="w-full pl-10 pr-4 py-2 bg-card/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-primary text-sm focus:bg-card transition-colors text-foreground"
+  className="w-full pl-10 pr-4 py-2 bg-card/50 border border-border rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-sm focus:bg-card transition-colors text-foreground"
   />
  </div>
  <div className="flex gap-2">
@@ -118,7 +135,7 @@ export const TenantList: React.FC = () => {
    </span>
   </td>
   <td className="px-6 py-4 text-sm text-muted-foreground">
-   {tenant.createdAt ? new Date(tenant.createdAt).toLocaleDateString() : 'N/A'}
+   {tenant.createdAt ? new Date(tenant.createdAt).toLocaleDateString('fr-FR') : 'N/A'}
   </td>
   <td className="px-6 py-4 text-right">
    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-70 transition-opacity">

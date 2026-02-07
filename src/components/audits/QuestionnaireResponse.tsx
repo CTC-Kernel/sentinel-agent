@@ -162,6 +162,16 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
  const fileIds = evidence[questionId] || [];
  const isOpen = openEvidenceQuestionId === questionId;
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <div className="mt-3">
  <button
@@ -208,7 +218,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
  case 'text':
  return (
   <textarea
-  className="w-full px-4 py-3 rounded-3xl border-border/40 bg-card focus:ring-2 focus-visible:ring-primary outline-none transition-all min-h-[100px]"
+  className="w-full px-4 py-3 rounded-3xl border-border/40 bg-card focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all min-h-[100px]"
   value={value as string || ''}
   onChange={(e) => handleAnswerChange(question.id, e.target.value)}
   placeholder="Votre réponse..."
@@ -296,7 +306,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
  };
 
  return (
- <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] z-modal flex items-center justify-center p-4">
+ <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] z-modal flex items-center justify-center p-4" role="dialog" aria-modal="true">
  <div className="bg-card w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
  {/* Header */}
  <div className="p-6 border-b border-border/40 flex justify-between items-center bg-muted/50">

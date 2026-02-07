@@ -306,7 +306,7 @@ export const TrainingProgressCard: React.FC<TrainingProgressCardProps> = ({
  {countdown.text}
  </div>
  <div className="text-xs text-muted-foreground">
- {t('training.assignment.dueDate')}: {dueDate.toLocaleDateString()}
+ {t('training.assignment.dueDate')}: {dueDate.toLocaleDateString('fr-FR')}
  </div>
  </div>
  </div>
@@ -321,7 +321,7 @@ export const TrainingProgressCard: React.FC<TrainingProgressCardProps> = ({
  {t('training.status.completed')}
  </div>
  <div className="text-xs text-muted-foreground">
- {assignment.completedAt.toDate().toLocaleDateString()}
+ {assignment.completedAt.toDate().toLocaleDateString('fr-FR')}
  {assignment.score !== undefined && ` • Score: ${assignment.score}%`}
  </div>
  </div>

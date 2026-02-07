@@ -26,7 +26,7 @@ import { useStore } from '@/store';
 import { useVoxelStore } from '@/stores/voxelStore';
 import { ErrorLogger } from '@/services/errorLogger';
 import { buildGraph, type GraphBuilderInput, type VoxelGraph } from '@/services/voxel';
-import { filterNodesByPermission } from './useRbacNodeFilter';
+import { filterNodesByPermission } from '@/utils/rbacNodeUtils';
 import type { Asset } from '@/types/assets';
 import type { Risk } from '@/types/risks';
 import type { Control } from '@/types/controls';

@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { UserProfile, Risk } from '../types';
 import { db } from '../firebase';
 import { sendEmail } from './emailService';
@@ -266,10 +266,10 @@ export const sendWeeklyDigest = async (organizationId: string) => {
 
  // Récupérer les stats de la semaine
  const [risksSnap, incidentsSnap, auditsSnap, usersSnap] = await Promise.all([
- getDocs(query(collection(db, 'risks'), where('organizationId', '==', organizationId))),
- getDocs(query(collection(db, 'incidents'), where('organizationId', '==', organizationId))),
- getDocs(query(collection(db, 'audits'), where('organizationId', '==', organizationId))),
- getDocs(query(collection(db, 'users'), where('organizationId', '==', organizationId)))
+ getDocs(query(collection(db, 'risks'), where('organizationId', '==', organizationId), limit(1000))),
+ getDocs(query(collection(db, 'incidents'), where('organizationId', '==', organizationId), limit(1000))),
+ getDocs(query(collection(db, 'audits'), where('organizationId', '==', organizationId), limit(1000))),
+ getDocs(query(collection(db, 'users'), where('organizationId', '==', organizationId), limit(500)))
  ]);
 
  const risks = risksSnap.docs.map(d => d.data());

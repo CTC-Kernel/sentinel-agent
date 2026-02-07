@@ -13,16 +13,8 @@ import { ErrorLogger } from '@/services/errorLogger';
 import { CMDBRelationship } from '@/types/cmdb';
 import { CreateRelationshipFormData } from '@/schemas/cmdbSchema';
 
-// Relationship-specific query keys
-export const relationshipKeys = {
-  all: ['cmdb-relationships'] as const,
-  forCI: (orgId: string, ciId: string) =>
-    [...relationshipKeys.all, 'ci', orgId, ciId] as const,
-  detail: (orgId: string, relId: string) =>
-    [...relationshipKeys.all, 'detail', orgId, relId] as const,
-  graph: (orgId: string, ciId: string, depth: number) =>
-    [...relationshipKeys.all, 'graph', orgId, ciId, depth] as const,
-};
+// Re-export query keys (moved to constants/queryKeys.ts to satisfy hooks naming convention)
+export { relationshipKeys } from '@/constants/queryKeys';
 
 /**
  * Hook to fetch relationships for a CI

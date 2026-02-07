@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useCallback} from 'react';
 // React Router imports removed as handled by hooks
 import { SEO } from '../components/SEO';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
@@ -42,6 +42,49 @@ export const Audits: React.FC = () => {
  const timer = setTimeout(() => {
  OnboardingService.startAuditsTour();
  }, 1000);
+
+  // Extracted callbacks (useCallback)
+  const handleTabChange = useCallback((id) => {
+    setActiveTab(id as 'overview' | 'list' | 'calendar' | 'findings' | 'methods' | 'audit-trail')
+  }, []);
+
+  const handleTabChange2 = useCallback((id) => {
+    setActiveTab(id as 'overview' | 'list' | 'calendar' | 'findings' | 'methods' | 'audit-trail')
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setSelectedAudit(null)
+  }, []);
+
+  const handleClose2 = useCallback(() => {
+    setConfirmData({ ...confirmData, isOpen: false })
+  }, []);
+
+  const handleClose3 = useCallback(() => {
+    setImportModalOpen(false)
+  }, []);
+
+  const handleDelete = useCallback((id, name) => {
+    handleDelete({ id, name } as Audit)
+  }, []);
+  const handleFilterChange = useCallback((f) => {
+    if (f?.type === 'status') {
+   setFilter(f.value);
+   setActiveTab('list');
+   }
+  }, []);
+
+  const handleStartWorkshop = useCallback((_templateId) => {
+    // TODO: Implement workshop start functionality
+  }, []);
+
+  const handleClose4 = useCallback(() => {
+    setCreationMode(false);
+  setEditingAudit(null);
+  }, []);
+
+
+
  return () => clearTimeout(timer);
  }, []);
 
@@ -214,9 +257,8 @@ export const Audits: React.FC = () => {
  title={t('audits.title')}
  subtitle={t('audits.subtitle')}
  icon={
-  <img
+  <img alt="PILOTAGE"
   src="/images/pilotage.png"
-  alt="PILOTAGE"
   className="w-full h-full object-contain"
   />
  }
@@ -226,7 +268,7 @@ export const Audits: React.FC = () => {
  <ScrollableTabs
   tabs={tabs}
   activeTab={activeTab}
-  onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'calendar' | 'findings' | 'methods' | 'audit-trail')}
+  onTabChange={handleTabChange}
  />
  </div>
 
@@ -243,7 +285,7 @@ export const Audits: React.FC = () => {
  typeFilter={typeFilter}
  setTypeFilter={setTypeFilter}
  activeTab={activeTab}
- onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'calendar' | 'findings' | 'methods' | 'audit-trail')}
+ onTabChange={handleTabChange2}
  selectedAudits={selectedAudits}
  handleBulkDelete={handleBulkDelete}
  handleExportCalendar={handleExportCalendar}
@@ -267,12 +309,7 @@ export const Audits: React.FC = () => {
   audits={filteredAudits}
   findings={filteredAudits.flatMap(a => a.findings || [])}
   loading={loading}
-  onFilterChange={(f) => {
-   if (f?.type === 'status') {
-   setFilter(f.value);
-   setActiveTab('list');
-   }
-  }}
+  onFilterChange={handleFilterChange}
   />
   </div>
   </motion.div>
@@ -326,9 +363,7 @@ export const Audits: React.FC = () => {
  activeTab === 'methods' && (
   <motion.div variants={slideUpVariants} initial="initial" animate="visible">
   <AuditMethodsWorkshops
-  onStartWorkshop={(_templateId) => {
-  // TODO: Implement workshop start functionality
-  }}
+  onStartWorkshop={handleStartWorkshop}
   />
   </motion.div>
  )
@@ -353,10 +388,7 @@ export const Audits: React.FC = () => {
  <AuditsDrawer
  creationMode={creationMode}
  editingAudit={editingAudit}
- onClose={() => {
-  setCreationMode(false);
-  setEditingAudit(null);
- }}
+ onClose={handleClose4}
  onFormSubmit={onFormSubmit}
  isLoading={loading}
  assets={assets}
@@ -370,7 +402,7 @@ export const Audits: React.FC = () => {
  {selectedAudit && (
  <AuditInspector
   audit={selectedAudit}
-  onClose={() => setSelectedAudit(null)}
+  onClose={handleClose}
   controls={controls}
   documents={documents}
   assets={assets}
@@ -379,13 +411,13 @@ export const Audits: React.FC = () => {
   usersList={usersList}
   refreshAudits={refreshAudits}
   canEdit={canEdit}
-  onDelete={(id, name) => handleDelete({ id, name } as Audit)}
+  onDelete={handleDelete}
  />
  )}
 
  <ConfirmModal
  isOpen={confirmData.isOpen}
- onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
+ onClose={handleClose2}
  onConfirm={confirmData.onConfirm}
  title={confirmData.title}
  message={confirmData.message}
@@ -393,7 +425,7 @@ export const Audits: React.FC = () => {
 
  <ImportGuidelinesModal
  isOpen={importModalOpen}
- onClose={() => setImportModalOpen(false)}
+ onClose={handleClose3}
  entityName={t('audits.title')}
  guidelines={auditGuidelines}
  onImport={handleImportFile}

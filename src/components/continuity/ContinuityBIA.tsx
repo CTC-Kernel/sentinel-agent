@@ -87,7 +87,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
    <tr
    key={proc.id || 'unknown'}
    onClick={() => onOpenInspector(proc)}
-   className="hover:bg-white/40 dark:hover:bg-muted transition-colors cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+   className="hover:bg-white/40 dark:hover:bg-muted transition-colors cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
    tabIndex={0}
    role="button"
    onKeyDown={(e) => {
@@ -109,9 +109,8 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
    <td className="px-6 py-5 font-mono text-muted-foreground font-bold">{proc.rpo}</td>
    <td className="px-6 py-5 text-muted-foreground">
    <div className="flex items-center gap-2">
-   <img
+   <img alt={`Avatar de ${proc.owner}`}
     src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
-    alt={`Avatar de ${proc.owner}`}
     className="w-5 h-5 rounded-full object-cover bg-muted"
    />
    <span>{proc.owner}</span>
@@ -119,14 +118,14 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
    </td>
    <td className="px-6 py-5">
    <span className={`font-bold text-xs px-2 py-1 rounded ${isOverdue ? 'bg-error-bg text-error-text' : 'bg-success-bg text-success-text'}`}>
-   {proc.lastTestDate ? new Date(proc.lastTestDate).toLocaleDateString() : t('continuity.never', { defaultValue: 'Jamais' })}
+   {proc.lastTestDate ? new Date(proc.lastTestDate).toLocaleDateString('fr-FR') : t('continuity.never', { defaultValue: 'Jamais' })}
    </span>
    </td>
    <td className="px-6 py-5 text-right">
    <div className="flex items-center justify-end gap-2">
    <button
     onClick={(e) => { e.stopPropagation(); onOpenInspector(proc); }}
-    className="p-2 text-muted-foreground hover:text-info-text hover:bg-info-bg rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+    className="p-2 text-muted-foreground hover:text-info-text hover:bg-info-bg rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     title={t('common.edit', { defaultValue: 'Modifier' })}
    >
     <Edit className="h-4 w-4" />
@@ -135,7 +134,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
     <button
     onClick={(e) => { e.stopPropagation(); handleDelete(proc.id); }}
     disabled={deletingIds.has(proc.id)}
-    className="p-2 text-muted-foreground hover:text-destructive hover:bg-error-bg rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed"
+    className="p-2 text-muted-foreground hover:text-destructive hover:bg-error-bg rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed"
     title={deletingIds.has(proc.id) ? t('common.deleting', { defaultValue: 'Suppression...' }) : t('common.delete', { defaultValue: 'Supprimer' })}
     >
     <Trash2 className="h-4 w-4" />
@@ -202,9 +201,8 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
   <div className="flex items-center justify-between text-xs">
   <span className="flex items-center font-bold text-muted-foreground uppercase tracking-wide"><LayoutDashboard className="h-3 w-3 mr-1.5" /> {t('common.owner', { defaultValue: 'Responsable' })}</span>
   <span className="font-bold text-foreground truncate max-w-[150px] flex items-center gap-2">
-   <img
+   <img alt={`Avatar de ${proc.owner}`}
    src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
-   alt={`Avatar de ${proc.owner}`}
    className="w-4 h-4 rounded-full object-cover bg-muted"
    />
    {proc.owner}
@@ -217,7 +215,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
   <div className="flex items-center justify-between text-xs">
   <span className="flex items-center font-bold text-muted-foreground uppercase tracking-wide"><ClipboardCheck className="h-3 w-3 mr-1.5" /> {t('continuity.table.lastTest', { defaultValue: 'Dernier Test' })}</span>
   <span className={`font-bold px-2 py-0.5 rounded ${isOverdue ? 'bg-error-bg text-error-text' : 'bg-success-bg text-success-text'}`}>
-   {proc.lastTestDate ? new Date(proc.lastTestDate).toLocaleDateString() : t('continuity.never', { defaultValue: 'Jamais' })}
+   {proc.lastTestDate ? new Date(proc.lastTestDate).toLocaleDateString('fr-FR') : t('continuity.never', { defaultValue: 'Jamais' })}
   </span>
   </div>
   </div>

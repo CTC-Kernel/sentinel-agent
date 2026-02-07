@@ -66,9 +66,8 @@ export const LazyImage: React.FC<LazyImageProps> = ({
  {/* Placeholder - decorative image during loading */}
  {!isLoaded && !isError && (
  <div className="absolute inset-0 bg-muted animate-pulse">
- <img
+ <img alt=""
  src={placeholder}
- alt=""
  role="presentation"
  aria-hidden="true"
  className="w-full h-full object-cover opacity-60"
@@ -97,9 +96,8 @@ export const LazyImage: React.FC<LazyImageProps> = ({
  {/* Error State */}
  {isError && (
  <div className="absolute inset-0 bg-muted flex items-center justify-center">
- <img
+ <img alt={alt}
  src={fallback}
- alt={alt}
  className="w-full h-full object-cover opacity-60"
  />
  </div>

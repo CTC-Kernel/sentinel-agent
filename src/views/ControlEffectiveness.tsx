@@ -65,9 +65,8 @@ export const ControlEffectivenessView: React.FC = () => {
  title={t('controls.effectivenessTitle')}
  subtitle={t('controls.effectivenessDescription')}
  icon={
- <img
+ <img alt="GOUVERNANCE"
  src="/images/gouvernance.png" // Using Gouvernance as it fits controls/compliance
- alt="GOUVERNANCE"
  className="w-full h-full object-contain"
  />
  }
@@ -128,7 +127,7 @@ export const ControlEffectivenessView: React.FC = () => {
  setShowAssessmentForm(false);
  setSelectedControl(null);
  }}
- onSubmit={handleAssessmentSubmit}
+ /* validate */ onSubmit={handleAssessmentSubmit}
  />
  )}
  </AnimatePresence>

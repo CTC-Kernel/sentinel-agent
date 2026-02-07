@@ -6,6 +6,7 @@ import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import { db } from '../../firebase';
 import { sanitizeData } from '../../utils/dataSanitizer';
+import { hasPermission } from '../../utils/permissions';
 
 export interface WarRoomMessage {
  id: string;
@@ -105,6 +106,7 @@ export const useWarRoom = (incidentId: string) => {
 
  // Update last active every 30 seconds
  const heartbeatInterval = setInterval(() => {
+ // merge: true is safe here - sanitizeData() strips undefined, only explicit serverTimestamp() field
  setDoc(presenceRef, sanitizeData({ lastActive: serverTimestamp() }), { merge: true }).catch((err) => ErrorLogger.debug(err, 'useWarRoom'));
  }, 30000);
 
@@ -187,6 +189,8 @@ export const useWarRoom = (incidentId: string) => {
 
  const sendMessage = useCallback(async (content: string, attachments?: { name: string; url: string; type: string }[]) => {
  if (!user || !incidentId) return;
+ // RBAC: Verify user has permission to update incidents (send war room messages)
+ if (!hasPermission(user, 'Incident', 'update')) return;
 
  const newMessage: Omit<WarRoomMessage, 'id'> = {
  content,
@@ -225,6 +229,8 @@ export const useWarRoom = (incidentId: string) => {
 
  const sendSystemMessage = useCallback(async (content: string) => {
  if (!incidentId) return;
+ // RBAC: System messages require incident manage permission
+ if (user && !hasPermission(user, 'Incident', 'manage')) return;
 
  const systemMessage: Omit<WarRoomMessage, 'id'> = {
  content,

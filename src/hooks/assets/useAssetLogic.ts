@@ -93,7 +93,7 @@ export const useAssetLogic = (enabled = true) => {
  integrity: 'Moyen',
  availability: 'Moyen',
  location: 'Unknown',
- createdAt: agent.enrolledAt || new Date().toISOString(),
+ createdAt: agent.enrolledAt || new Date(Date.now()).toISOString(),
  updatedAt: agent.lastHeartbeat,
  lifecycleStatus: 'En service',
  ipAddress: agent.ipAddress,
@@ -148,6 +148,7 @@ export const useAssetLogic = (enabled = true) => {
  refreshAssets();
  return { success: true, id: assetId };
  } catch (e) {
+   ErrorLogger.handleErrorWithToast(e, 'useAssetLogic');
  return { success: false, error: e };
  } finally {
  setIsSubmitting(false);
@@ -168,6 +169,7 @@ export const useAssetLogic = (enabled = true) => {
  refreshAssets();
  return { success: true };
  } catch (e) {
+   ErrorLogger.handleErrorWithToast(e, 'useAssetLogic');
  return { success: false, error: e };
  } finally {
  setIsSubmitting(false);
@@ -187,6 +189,7 @@ export const useAssetLogic = (enabled = true) => {
  refreshAssets();
  return { success: true };
  } catch (e) {
+   ErrorLogger.handleErrorWithToast(e, 'useAssetLogic');
  return { success: false, error: e };
  }
  };
@@ -204,6 +207,7 @@ export const useAssetLogic = (enabled = true) => {
  refreshAssets();
  return { success: true, count: ids.length };
  } catch (e) {
+   ErrorLogger.handleErrorWithToast(e, 'useAssetLogic');
  return { success: false, count: 0, error: e };
  }
  };

@@ -166,13 +166,13 @@ describe('Node Data Display', () => {
  describe('Date Display', () => {
  it('should format created date', () => {
  const node = createMockNode();
- const formatted = new Date(node.createdAt).toLocaleDateString();
+ const formatted = new Date(node.createdAt).toLocaleDateString('fr-FR');
  expect(formatted).toBeDefined();
  });
 
  it('should format updated date', () => {
  const node = createMockNode();
- const formatted = new Date(node.updatedAt).toLocaleDateString();
+ const formatted = new Date(node.updatedAt).toLocaleDateString('fr-FR');
  expect(formatted).toBeDefined();
  });
  });

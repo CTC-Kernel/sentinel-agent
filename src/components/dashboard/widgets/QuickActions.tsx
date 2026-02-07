@@ -164,7 +164,7 @@ const DockItem: React.FC<DockItemProps> = ({ icon: Icon, label, onClick, color, 
   onClick();
  }
  }}
- className="group relative flex flex-col items-center gap-2 p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="group relative flex flex-col items-center gap-2 p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  aria-label={label}
  >
  <div className={`p-3 rounded-xl transition-all duration-normal ease-apple bg-transparent ${colorStyles[color]} shadow-sm group-hover:shadow-lg`}>

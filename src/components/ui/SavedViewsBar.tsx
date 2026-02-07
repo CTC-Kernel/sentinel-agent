@@ -56,7 +56,7 @@ export const SavedViewsBar: React.FC<SavedViewsBarProps> = ({
  </motion.button>
  )}
 
- <button className="p-2 text-muted-foreground hover:text-muted-foreground transition-colors">
+ <button className="p-2 text-muted-foreground hover:text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
  <MoreHorizontal className="h-4 w-4" />
  </button>
  </div>

@@ -220,7 +220,7 @@ export const CommandPalette: React.FC = () => {
   <input value={queryStr} onChange={e => { setQueryStr(e.target.value); setSelectedIndex(0); }}
   type="text"
   placeholder={t('commandPalette.placeholder')}
-  className="flex-1 bg-transparent border-none focus:ring-0 text-lg text-foreground placeholder-muted-foreground outline-none font-medium h-auto py-0"
+  className="flex-1 bg-transparent border-none focus-visible:ring-0 text-lg text-foreground placeholder-muted-foreground outline-none font-medium h-auto py-0"
   aria-label={t('layout.commandPalette.searchAriaLabel', { defaultValue: 'Rechercher une commande' })}
   />
   <div className="hidden sm:flex items-center gap-2">

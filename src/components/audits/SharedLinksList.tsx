@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
-import { db, functions } from '../../firebase';
 import { Loader2, Trash2, ExternalLink, ShieldAlert, Clock } from '../ui/Icons';
 import { toast } from '@/lib/toast';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
+import { AuditService } from '../../services/auditService';
 import { formatDistanceToNow } from 'date-fns';
 import { useLocale } from '@/hooks/useLocale';
 import { ConfirmModal } from '../ui/ConfirmModal';
@@ -38,19 +36,8 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
  const fetchLinks = async () => {
  if (!user?.organizationId) return;
  try {
- const q = query(
-  collection(db, 'audit_shares'),
-  where('auditId', '==', auditId),
-  where('organizationId', '==', user.organizationId),
-  // orderBy('createdAt', 'desc') // Requires composite index, doing client sort for MVP safety
- );
- const snapshot = await getDocs(q);
- const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SharedLink));
-
- // Client-side sort by date desc
- items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
- setLinks(items);
+ const items = await AuditService.getAuditShares(auditId, user.organizationId);
+ setLinks(items as SharedLink[]);
  } catch (error) {
  ErrorLogger.error(error, 'SharedLinksList.fetch');
  } finally {
@@ -65,8 +52,7 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
  setRevokingId(token);
  setConfirmRevokeId(null);
  try {
- const revokeFn = httpsCallable(functions, 'revokeAuditShare');
- await revokeFn({ token });
+ await AuditService.revokeAuditShare(token);
  toast.success(t('audits.toast.accessRevoked', { defaultValue: 'Accès révoqué avec succès' }));
  // Optimistic update
  setLinks(prev => prev.map(l => l.id === token ? { ...l, revoked: true } : l));
@@ -79,6 +65,16 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
 
  if (loading) return <div className="flex justify-center p-4"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
 
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
  if (links.length === 0) return null; // Handled by parent EmptyState normally, but here we render nothing inside the container if empty to avoid double empty states
 
  return (
@@ -86,6 +82,7 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
  {links.map(link => {
  const isExpired = new Date(link.expiresAt) < new Date();
  const isActive = !link.revoked && !isExpired;
+
 
  return (
   <div key={link.id || 'unknown'} className={`flex items-center justify-between p-3 rounded-lg border ${isActive ? 'bg-card border-border/40' : 'bg-muted border-border/40 dark:border-white/5 opacity-75'}`}>
@@ -112,7 +109,7 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
   <button
   onClick={() => setConfirmRevokeId(link.id)}
   disabled={!!revokingId}
-  className="p-2 text-muted-foreground hover:text-red-600 transition-colors"
+  className="p-2 text-muted-foreground hover:text-red-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   title={t('audits.sharedLinks.revokeAccess', { defaultValue: "Révoquer l'accès" })}
   >
   {revokingId === link.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}

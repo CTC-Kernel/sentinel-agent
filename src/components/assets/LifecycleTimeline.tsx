@@ -19,7 +19,7 @@ export const LifecycleTimeline: React.FC<LifecycleTimelineProps> = ({
  const steps = [
  { id: 'Neuf', label: t('assets.lifecycle.steps.purchase', { defaultValue: 'Achat' }), icon: ShoppingCart, date: purchaseDate },
  { id: 'En service', label: t('assets.lifecycle.steps.inService', { defaultValue: 'En Service' }), icon: CheckCircle2, date: null },
- { id: 'Maintenance', label: t('assets.lifecycle.steps.maintenance', { defaultValue: 'Maintenance' }), icon: Wrench, date: nextMaintenance ? `${t('assets.lifecycle.steps.next', { defaultValue: 'Prochaine' })}: ${new Date(nextMaintenance).toLocaleDateString()}` : null },
+ { id: 'Maintenance', label: t('assets.lifecycle.steps.maintenance', { defaultValue: 'Maintenance' }), icon: Wrench, date: nextMaintenance ? `${t('assets.lifecycle.steps.next', { defaultValue: 'Prochaine' })}: ${new Date(nextMaintenance).toLocaleDateString('fr-FR')}` : null },
  { id: 'Garantie', label: t('assets.lifecycle.steps.warrantyEnd', { defaultValue: 'Fin Garantie' }), icon: ShieldCheck, date: warrantyEnd },
  { id: 'Fin de vie', label: t('assets.lifecycle.steps.endOfLife', { defaultValue: 'Fin de Vie' }), icon: Archive, date: null },
  { id: 'Rebut', label: t('assets.lifecycle.steps.disposal', { defaultValue: 'Rebut' }), icon: Trash2, date: null }
@@ -47,7 +47,7 @@ export const LifecycleTimeline: React.FC<LifecycleTimelineProps> = ({
  />
 
  <div className="relative flex justify-between">
- {steps.map((step, index) => {
+ {steps.length > 0 && steps.map((step, index) => {
   const Icon = step.icon;
   const isCompleted = index <= currentStep;
   const isCurrent = index === currentStep;
@@ -70,7 +70,7 @@ export const LifecycleTimeline: React.FC<LifecycleTimelineProps> = ({
   </p>
   {step.date && (
    <p className="text-xs font-medium text-muted-foreground mt-0.5">
-   {step.date.includes('Prochaine') ? step.date : new Date(step.date).toLocaleDateString()}
+   {step.date.includes('Prochaine') ? step.date : new Date(step.date).toLocaleDateString('fr-FR')}
    </p>
   )}
   </div>

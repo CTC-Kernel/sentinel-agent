@@ -1,4 +1,5 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, Transition } from '@headlessui/react';
 import { motion } from 'framer-motion';
 import { Download, ShieldCheck, X } from '../ui/Icons';
@@ -19,6 +20,7 @@ export const AgentDownloadModal: React.FC<AgentDownloadModalProps> = ({
  assetName
 }) => {
  const { t } = useLocale();
+ const navigate = useNavigate();
  // Override onDownload to force internal simulation if parent doesn't handle it
  const handleDownload = () => {
  if (onDownload) {
@@ -26,11 +28,21 @@ export const AgentDownloadModal: React.FC<AgentDownloadModalProps> = ({
  return;
  }
 
- window.location.href = '/settings?tab=agents';
+ navigate('/settings?tab=agents');
  onClose();
  };
 
  const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
 
  return (
  <Transition.Root show={isOpen} as={React.Fragment}>
@@ -66,7 +78,8 @@ export const AgentDownloadModal: React.FC<AgentDownloadModalProps> = ({
   <div className="relative p-6 px-8 pt-10 text-center">
    <button
    onClick={onClose}
-   className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+   className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+   aria-label="Fermer"
    >
    <X className="h-5 w-5" />
    </button>

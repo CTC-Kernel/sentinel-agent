@@ -63,8 +63,18 @@ export const MissionForm: React.FC<MissionFormProps> = ({
  }
  }, [mission, onDelete, onClose]);
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" role="dialog" aria-modal="true">
  <PremiumCard glass className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
  {/* Header */}
  <div className="flex items-center justify-between mb-6">
@@ -94,7 +104,7 @@ export const MissionForm: React.FC<MissionFormProps> = ({
  "w-full px-4 py-2.5 rounded-3xl border transition-colors",
  "bg-card text-foreground",
  errors.name
-  ? "border-red-300 dark:border-red-700 focus:ring-red-500"
+  ? "border-red-300 dark:border-red-700 focus-visible:ring-red-500"
   : "border-border/40 focus-visible:ring-primary"
  )}
  placeholder={t('ebios.workshop1.missionNamePlaceholder')}

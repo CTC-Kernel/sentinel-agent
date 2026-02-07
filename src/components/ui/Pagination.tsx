@@ -85,7 +85,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   id="items-per-page"
   value={itemsPerPage}
   onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-  className="appearance-none bg-muted/50 border border-border/40 rounded-3xl px-4 py-2.5 pr-10 min-h-[44px] text-sm font-medium text-foreground focus:ring-2 focus-visible:ring-primary outline-none cursor-pointer"
+  className="appearance-none bg-muted/50 border border-border/40 rounded-3xl px-4 py-2.5 pr-10 min-h-[44px] text-sm font-medium text-foreground focus-visible:ring-2 focus-visible:ring-primary outline-none cursor-pointer"
   aria-label="Nombre d'éléments par page"
   >
   {itemsPerPageOptions.map(option => (

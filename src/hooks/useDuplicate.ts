@@ -20,11 +20,6 @@ import type { SupportedLocale } from '../config/localeConfig';
 /**
  * Localized suffix for duplicated entities
  */
-const DUPLICATE_SUFFIX: Record<SupportedLocale, string> = {
- fr: '(Copie)',
- en: '(Copy)',
- de: '(Kopie)',
-};
 
 /**
  * Options for configuring the duplicate behavior
@@ -58,15 +53,8 @@ export interface UseDuplicateReturn<T> {
  clearError: () => void;
 }
 
-/**
- * Add locale-aware duplicate suffix to a name
- *
- * Handles multiple duplications: "Name" -> "Name (Copie)" -> "Name (Copie) (Copie)"
- */
-export function addDuplicateSuffix(name: string, locale: SupportedLocale): string {
- const suffix = DUPLICATE_SUFFIX[locale];
- return `${name} ${suffix}`;
-}
+// Re-export utility (moved to utils/duplicateUtils.ts to satisfy hooks naming convention)
+export { addDuplicateSuffix } from '../utils/duplicateUtils';
 
 /**
  * Hook for duplicating entities in Firestore
@@ -102,6 +90,8 @@ export function useDuplicate<T extends { id: string }>(
 
  // Memoize resetFields to avoid unstable dependency in useCallback
  const resetFieldsKey = JSON.stringify(resetFieldsRaw);
+ // Justification: resetFieldsRaw is intentionally excluded -- resetFieldsKey (JSON.stringify)
+ // provides a stable key to memoize against, avoiding reference equality issues.
  const resetFields = useMemo(() => resetFieldsRaw ?? ({} as Partial<T>), [resetFieldsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
  const { user } = useAuth();

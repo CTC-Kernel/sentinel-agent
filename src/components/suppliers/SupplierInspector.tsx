@@ -86,9 +86,8 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
   <span className="text-muted-foreground">{t('suppliers.inspector.mainContact', { defaultValue: 'Contact principal' })}:</span>
   <div className="flex items-center gap-2">
   {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
-  <img
+  <img alt={contactUser?.displayName || supplier.contactName || t('suppliers.inspector.unknown', { defaultValue: 'Inconnu' })}
   src={getUserAvatarUrl(contactUser?.photoURL ?? null, contactUser?.role ?? 'user')}
-  alt={contactUser?.displayName || supplier.contactName || t('suppliers.inspector.unknown', { defaultValue: 'Inconnu' })}
   className="w-5 h-5 rounded-full object-cover bg-muted border border-border/40"
   onError={(e) => {
   const target = e.target as HTMLImageElement;
@@ -109,7 +108,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
   <button
   aria-label={t('suppliers.inspector.startAssessment', { defaultValue: 'Démarrer une évaluation' })}
   onClick={onStartAssessment}
-  className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   <ClipboardList className="h-5 w-5" />
   </button>
@@ -118,7 +117,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
   <button
   aria-label={t('suppliers.inspector.discussion', { defaultValue: 'Discussion' })}
   onClick={() => setInspectorTab('comments')}
-  className={`p-2 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${inspectorTab === 'comments' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}
+  className={`p-2 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${inspectorTab === 'comments' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}
   >
   <MessageSquare className="h-5 w-5" />
   </button>

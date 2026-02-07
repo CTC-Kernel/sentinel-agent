@@ -28,7 +28,7 @@ export const MemberSelector: React.FC<MemberSelectorProps> = React.memo(({ users
   onToggle(u.uid);
   }
   }}
-  className={`flex items-center gap-3 p-3 rounded-3xl border cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isSelected
+  className={`flex items-center gap-3 p-3 rounded-3xl border cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isSelected
   ? 'bg-primary/10 dark:bg-primary border-primary/30 dark:border-primary/90'
   : 'bg-card border-border/40 dark:border-white/5 hover:border-primary/40'
   }`}

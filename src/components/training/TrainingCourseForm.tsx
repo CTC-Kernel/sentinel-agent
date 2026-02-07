@@ -234,7 +234,7 @@ export const TrainingCourseForm: React.FC<TrainingCourseFormProps> = ({
   type="checkbox"
   checked={field.value || false}
   onChange={(e) => field.onChange(e.target.checked)}
-  className="w-5 h-5 rounded-lg border-muted text-primary focus:ring-primary/20"
+  className="w-5 h-5 rounded-lg border-muted text-primary focus-visible:ring-primary/20"
   aria-label={t('training.course.isRequired')}
  />
  <div>
@@ -425,6 +425,7 @@ export const TrainingCourseForm: React.FC<TrainingCourseFormProps> = ({
  </Button>
  <Button
  type="submit"
+ disabled={isLoading}
  isLoading={isLoading}
  className="px-8 shadow-sm shadow-primary"
  >

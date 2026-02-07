@@ -21,10 +21,8 @@ const warningMessages = {
  de: 'Sie haben nicht gespeicherte Änderungen. Sind Sie sicher, dass Sie die Seite verlassen möchten?',
 } as const;
 
-/**
- * Get localized warning message
- */
-export function getUnsavedChangesWarning(locale: SupportedLocale): string {
+// getUnsavedChangesWarning moved inline -- non-hook utility functions should not be exported from /hooks/
+function getUnsavedChangesWarning(locale: SupportedLocale): string {
  return warningMessages[locale];
 }
 

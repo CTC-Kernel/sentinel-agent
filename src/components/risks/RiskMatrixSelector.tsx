@@ -185,7 +185,7 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
    aria-pressed={isCurrent}
    className={`
    w-full h-full rounded-lg transition-all duration-300 relative
-   focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400 dark:focus-visible:ring-slate-500
+   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400 dark:focus-visible:ring-slate-500
    ${getCellColor(p, i)}
    ${isCurrent
    ? 'ring-4 ring-offset-2 ring-slate-900/10 dark:ring-white/20 scale-110 z-decorator shadow-xl'

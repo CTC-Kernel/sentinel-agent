@@ -53,7 +53,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
   <input aria-label={resolvedPlaceholder} value={searchQuery} onChange={e => onSearchChange(e.target.value)}
   type="text"
   placeholder={resolvedPlaceholder}
-  className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-foreground dark:text-white py-2.5 font-medium placeholder:text-muted-foreground dark:placeholder:text-muted-foreground"
+  className="flex-1 bg-transparent border-none focus-visible:ring-0 text-sm text-foreground dark:text-white py-2.5 font-medium placeholder:text-muted-foreground dark:placeholder:text-muted-foreground"
   />
 
   {searchQuery && (

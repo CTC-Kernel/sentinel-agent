@@ -379,7 +379,7 @@ export class ImportService {
  "Criticité": s.criticality,
  "Score Sécurité": s.securityScore?.toString() || '0',
  "Contact": s.contactEmail,
- "Fin Contrat": s.contractEnd ? new Date(s.contractEnd as string).toLocaleDateString() : '',
+ "Fin Contrat": s.contractEnd ? new Date(s.contractEnd as string).toLocaleDateString('fr-FR') : '',
  "Statut": s.status
  }));
  this.downloadCSV(objectRows, `suppliers_export_${new Date().toISOString().split('T')[0]}.csv`);
@@ -396,7 +396,7 @@ export class ImportService {
  "Fonction Critique": s.supportsCriticalFunction ? 'OUI' : 'NON',
  "Criticité DORA": s.doraCriticality || 'Aucun',
  "Localisation Données": (s as Supplier & { dataLocation?: string }).dataLocation || 'N/A',
- "Date Contrat": s.contractEnd ? new Date(s.contractEnd as string).toLocaleDateString() : ''
+ "Date Contrat": s.contractEnd ? new Date(s.contractEnd as string).toLocaleDateString('fr-FR') : ''
  }));
  this.downloadCSV(objectRows, `dora_register_of_information_${new Date().toISOString().split('T')[0]}.csv`);
  }
@@ -485,8 +485,8 @@ export class ImportService {
  "Nom": user.displayName || '',
  "Rôle": user.role || 'user',
  "Organisation": user.organizationId || '',
- "Date de création": user.createdAt ? new Date(user.createdAt as string).toLocaleDateString() : '',
- "Dernière connexion": user.lastLogin ? new Date(user.lastLogin as string).toLocaleDateString() : ''
+ "Date de création": user.createdAt ? new Date(user.createdAt as string).toLocaleDateString('fr-FR') : '',
+ "Dernière connexion": user.lastLogin ? new Date(user.lastLogin as string).toLocaleDateString('fr-FR') : ''
  }));
 
  ImportService.downloadCSV(objectRows, `utilisateurs_export_${new Date().toISOString().split('T')[0]}.csv`);

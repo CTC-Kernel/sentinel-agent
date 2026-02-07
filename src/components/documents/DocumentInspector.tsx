@@ -127,9 +127,8 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
   </div>
   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
   <span className="mr-1">{t('documents.inspector.owner', { defaultValue: 'Propriétaire:' })}</span>
-  <img
+  <img alt={selectedDocument.owner}
   src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
-  alt={selectedDocument.owner}
   className="w-4 h-4 rounded-full object-cover bg-muted"
   onError={(e) => {
    const target = e.target as HTMLImageElement;

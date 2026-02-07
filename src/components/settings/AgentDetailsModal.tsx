@@ -147,7 +147,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
  try {
  const [details, metricsData] = await Promise.all([
  AgentService.getAgentDetails(user.organizationId, agentId),
- AgentService.getAgentMetricsHistory(user.organizationId, agentId, 6).catch(() => ({ metrics: [] }))
+ AgentService.getAgentMetricsHistory(user.organizationId, agentId, 6).catch(() => ({ metrics: [] })) // silent
  ]);
  setAgentDetails(details);
  setMetricsHistory(metricsData.metrics || []);
@@ -221,6 +221,16 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
  return <Badge className="bg-red-50 text-red-600 dark:text-red-400 border-red-500/20"><XCircle className="w-3 h-3 mr-1" /> Erreur</Badge>;
  }
  };
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
 
  return (
  <Modal
@@ -424,11 +434,11 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
    </div>
    <div className="flex justify-between py-2 border-b border-border/40 dark:border-white/5">
     <span className="text-muted-foreground">Dernier Heartbeat</span>
-    <span className="font-medium">{new Date(agentDetails.lastHeartbeat).toLocaleString()}</span>
+    <span className="font-medium">{new Date(agentDetails.lastHeartbeat).toLocaleString('fr-FR')}</span>
    </div>
    <div className="flex justify-between py-2 border-b border-border/40 dark:border-white/5">
     <span className="text-muted-foreground">Enrôlé le</span>
-    <span className="font-medium">{agentDetails.enrolledAt ? new Date(agentDetails.enrolledAt).toLocaleDateString() : 'N/A'}</span>
+    <span className="font-medium">{agentDetails.enrolledAt ? new Date(agentDetails.enrolledAt).toLocaleDateString('fr-FR') : 'N/A'}</span>
    </div>
    <div className="flex justify-between py-2 border-b border-border/40 dark:border-white/5">
     <span className="text-muted-foreground">Version Config</span>
@@ -573,7 +583,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
    <input
    id="check-interval"
    type="number"
-   className="w-full px-4 py-2 rounded-3xl border border-border/40 bg-white dark:bg-white/5 focus:ring-2 focus:ring-primary outline-none transition-all"
+   className="w-full px-4 py-2 rounded-3xl border border-border/40 bg-white dark:bg-white/5 focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
    value={configForm.check_interval_secs || 900}
    onChange={e => setConfigForm({ ...configForm, check_interval_secs: parseInt(e.target.value) })}
    />
@@ -584,7 +594,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
    <label htmlFor="log-level" className="text-sm font-medium text-foreground">Niveau de Log</label>
    <select
    id="log-level"
-   className="w-full px-4 py-2 rounded-3xl border border-border/40 bg-white dark:bg-white/5 focus:ring-2 focus:ring-primary outline-none transition-all"
+   className="w-full px-4 py-2 rounded-3xl border border-border/40 bg-white dark:bg-white/5 focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
    value={configForm.log_level || 'info'}
    onChange={e => setConfigForm({ ...configForm, log_level: e.target.value })}
    >
@@ -600,7 +610,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
    <input
    id="heartbeat-interval"
    type="number"
-   className="w-full px-4 py-2 rounded-3xl border border-border/40 bg-white dark:bg-white/5 focus:ring-2 focus:ring-primary outline-none transition-all"
+   className="w-full px-4 py-2 rounded-3xl border border-border/40 bg-white dark:bg-white/5 focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
    value={configForm.heartbeat_interval_secs || 60}
    onChange={e => setConfigForm({ ...configForm, heartbeat_interval_secs: parseInt(e.target.value) })}
    />

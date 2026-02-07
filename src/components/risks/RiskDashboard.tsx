@@ -395,7 +395,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.4 + index * 0.05 }}
-                                    className="flex flex-col p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-error-border/30 hover:bg-error-bg/50 hover:border-error-border transition-all cursor-pointer group focus-visible:ring-2 focus-visible:ring-error-text focus:outline-none"
+                                    className="flex flex-col p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-error-border/30 hover:bg-error-bg/50 hover:border-error-border transition-all cursor-pointer group focus-visible:ring-2 focus-visible:ring-error-text focus-visible:outline-none"
                                     role="listitem"
                                     tabIndex={0}
                                     aria-label={`Risque critique: ${risk.threat}, Score ${risk.score}`}
@@ -408,12 +408,12 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                                             </span>
                                         </div>
                                         <span className="text-xs text-muted-foreground">
-                                            {risk.treatmentDeadline ? new Date(risk.treatmentDeadline).toLocaleDateString() : t('risks.treatment.noDeadline', { defaultValue: 'Pas d\'échéance' })}
+                                            {risk.treatmentDeadline ? new Date(risk.treatmentDeadline).toLocaleDateString('fr-FR') : t('risks.treatment.noDeadline', { defaultValue: 'Pas d\'échéance' })}
                                         </span>
                                     </div>
-                                    <h5 className="font-bold text-sm text-foreground mb-1 line-clamp-2 group-hover:text-error-text transition-colors">
+                                    <h4 className="font-bold text-sm text-foreground mb-1 line-clamp-2 group-hover:text-error-text transition-colors">
                                         {risk.threat}
-                                    </h5>
+                                    </h4>
                                     <p className="text-xs text-muted-foreground mb-3 line-clamp-1">{risk.category || 'Général'}</p>
 
                                     <div className="mt-auto pt-3 border-t border-border/50 flex justify-between items-center">

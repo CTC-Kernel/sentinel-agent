@@ -16,8 +16,12 @@ interface UserCardProps {
 export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCardProps) => {
  const { t } = useLocale();
  const handleEdit = React.useCallback(() => onEdit(user), [onEdit, user]);
+ const deleteGuardRef = React.useRef(false);
  const handleDelete = React.useCallback(() => {
- onDelete(user);
+  if (deleteGuardRef.current) return;
+  deleteGuardRef.current = true;
+  onDelete(user);
+  setTimeout(() => { deleteGuardRef.current = false; }, 2000);
  }, [onDelete, user]);
 
  return (
@@ -29,7 +33,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
   <button
   type="button"
   onClick={handleEdit}
-  className="p-2.5 bg-card rounded-2xl text-muted-foreground hover:text-primary dark:hover:text-primary/70 shadow-apple-sm hover:scale-110 transition-all border border-border/50"
+  className="p-2.5 bg-card rounded-2xl text-muted-foreground hover:text-primary dark:hover:text-primary/70 shadow-apple-sm hover:scale-110 transition-all border border-border/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   aria-label={t('team.actions.edit')}
   >
   <Edit className="h-4 w-4" />
@@ -39,8 +43,8 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
   <CustomTooltip content={user.isPending ? t('team.delete.titleInvite').replace('?', '') : t('team.actions.delete')}>
   <button
   type="button"
-  onClick={handleDelete}
-  className="p-2.5 bg-card rounded-2xl text-muted-foreground hover:text-error-text shadow-apple-sm hover:scale-110 transition-all border border-border/50"
+  onClick={() => confirm("Confirmer la suppression ?") && handleDelete()}
+  className="p-2.5 bg-card rounded-2xl text-muted-foreground hover:text-error-text shadow-apple-sm hover:scale-110 transition-all border border-border/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   aria-label={t('team.actions.delete')}
   >
   <Trash2 className="h-4 w-4" />
@@ -51,9 +55,8 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
 
  <div className="relative mb-4 mt-2">
  {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
- <img
+ <img alt={user.displayName}
   src={getDefaultAvatarUrl(user.role)}
-  alt={user.displayName}
   loading="lazy"
   className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${user.isPending ? 'opacity-60 grayscale' : ''}`}
   onError={(e) => {
@@ -90,7 +93,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
   {user.lastLogin && (
   <div className="flex items-center text-muted-foreground font-medium" title={t('team.columns.lastLogin')}>
   <Clock className="h-3.5 w-3.5 mr-1.5" />
-  {new Date(user.lastLogin).toLocaleDateString()}
+  {new Date(user.lastLogin).toLocaleDateString('fr-FR')}
   </div>
   )}
  </div>

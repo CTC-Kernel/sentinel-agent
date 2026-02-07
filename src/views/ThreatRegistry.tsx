@@ -264,7 +264,7 @@ export const ThreatRegistry: React.FC = () => {
   aria-label="Rechercher une menace"
   type="text"
   placeholder={t('threatRegistry.searchPlaceholder')}
-  className="w-full bg-muted/50 pl-12 pr-4 py-3 rounded-xl border border-border focus:ring-2 focus-visible:ring-primary outline-none transition-all placeholder:text-muted-foreground"
+  className="w-full bg-muted/50 pl-12 pr-4 py-3 rounded-xl border border-border focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all placeholder:text-muted-foreground"
   onChange={handleSearchChange}
   />
  </div>

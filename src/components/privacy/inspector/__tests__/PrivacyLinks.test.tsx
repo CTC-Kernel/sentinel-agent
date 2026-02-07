@@ -42,7 +42,7 @@ describe('PrivacyLinks', () => {
  integrity: Criticality.HIGH,
  availability: Criticality.HIGH,
  location: 'Data Center',
- createdAt: new Date().toISOString()
+ createdAt: new Date(Date.now()).toISOString()
  },
  {
  id: 'asset-2',
@@ -54,7 +54,7 @@ describe('PrivacyLinks', () => {
  integrity: Criticality.CRITICAL,
  availability: Criticality.HIGH,
  location: 'Data Center',
- createdAt: new Date().toISOString()
+ createdAt: new Date(Date.now()).toISOString()
  },
  {
  id: 'asset-3',
@@ -66,7 +66,7 @@ describe('PrivacyLinks', () => {
  integrity: Criticality.MEDIUM,
  availability: Criticality.HIGH,
  location: 'Data Center',
- createdAt: new Date().toISOString()
+ createdAt: new Date(Date.now()).toISOString()
  }
  ];
 

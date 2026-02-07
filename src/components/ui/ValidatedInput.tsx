@@ -54,12 +54,12 @@ export interface ValidatedInputProps
  */
 function getBorderClass(state: FieldValidationState, hasError: boolean): string {
  if (hasError || state === 'invalid') {
- return 'border-destructive focus:border-destructive focus:ring-destructive';
+ return 'border-destructive focus-visible:border-destructive focus-visible:ring-destructive';
  }
  if (state === 'valid') {
- return 'border-success-border focus:border-success-border focus:ring-success-border';
+ return 'border-success-border focus-visible:border-success-border focus-visible:ring-success-border';
  }
- return 'border-input focus:border-primary focus:ring-primary';
+ return 'border-input focus-visible:border-primary focus-visible:ring-primary';
 }
 
 /**
@@ -164,7 +164,7 @@ export const ValidatedInput = forwardRef<HTMLInputElement, ValidatedInputProps>(
  'text-foreground',
  'placeholder-muted-foreground',
  getBorderClass(effectiveState, hasError),
- 'focus:outline-none focus:ring-2 focus:ring-offset-0',
+ 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0',
  'disabled:bg-secondary disabled:text-muted-foreground disabled:cursor-not-allowed',
  'transition-colors duration-150',
  hideIcon ? '' : 'pr-10', // Space for icon

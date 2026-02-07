@@ -207,8 +207,9 @@ export const SupplierConcentrationTab: React.FC = () => {
 
  useEffect(() => {
  loadData();
- // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [organizationId]);
+ // Justification: loadData is defined in the component body and depends on organizationId.
+ // Including it would require useCallback wrapping but organizationId is the only trigger.
+ }, [organizationId]); // eslint-disable-line react-hooks/exhaustive-deps
 
  // Memoized values
  const trendIndicator = useMemo(() => {
@@ -246,7 +247,7 @@ export const SupplierConcentrationTab: React.FC = () => {
  <button
   onClick={() => loadData(true)}
   disabled={isRefreshing}
-  className="flex items-center gap-2 px-4 py-2 rounded-3xl text-sm font-medium bg-muted text-muted-foreground hover:bg-muted transition-all disabled:bg-muted disabled:text-muted-foreground"
+  className="flex items-center gap-2 px-4 py-2 rounded-3xl text-sm font-medium bg-muted text-muted-foreground hover:bg-muted transition-all disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
   <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
   {t('common.refresh')}

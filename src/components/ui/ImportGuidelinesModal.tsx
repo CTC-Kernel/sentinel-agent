@@ -140,7 +140,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
   {/* Template Download */}
   <button
   onClick={onDownloadTemplate}
-  className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-border/40 rounded-2xl hover:border-primary hover:bg-primary/10 dark:hover:bg-primary/10 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-border/40 rounded-2xl hover:border-primary hover:bg-primary/10 dark:hover:bg-primary/10 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   <div className="w-12 h-12 bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400 rounded-3xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-sm">
   <FileSpreadsheet className="w-6 h-6" />
@@ -177,6 +177,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
   <input
   ref={fileInputRef}
   type="file"
+  aria-label="Importer un fichier CSV"
   hidden
   accept=".csv"
   onChange={handleFileSelect}

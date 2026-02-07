@@ -222,7 +222,7 @@ export const CIHealthGauge: React.FC<CIHealthGaugeProps> = ({
             >
               <div
                 className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-destructive"
-                style={{ filter: 'drop-shadow(0 0 4px rgb(239 68 68))' }}
+                style={{ filter: 'drop-shadow(0 0 4px hsl(var(--destructive)))' }}
               />
             </motion.div>
           )}
@@ -293,7 +293,7 @@ export const CIHealthGauge: React.FC<CIHealthGaugeProps> = ({
                 <span>
                   Dernière réconciliation:{' '}
                   <span className="font-medium text-foreground">
-                    {lastReconciliation.toLocaleDateString()}
+                    {lastReconciliation.toLocaleDateString('fr-FR')}
                   </span>
                 </span>
               </div>

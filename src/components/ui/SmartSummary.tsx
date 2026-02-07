@@ -39,7 +39,7 @@ export const SmartSummary: React.FC<SmartSummaryProps> = ({
         return (
             <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8", className)}>
                 {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="h-24 rounded-3xl bg-muted/20 animate-pulse border border-border/40" />
+                    <div key={`skeleton-${i}`} className="h-24 rounded-3xl bg-muted/20 animate-pulse border border-border/40" />
                 ))}
             </div>
         );
@@ -50,9 +50,9 @@ export const SmartSummary: React.FC<SmartSummaryProps> = ({
             variants={slideUpVariants}
             className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8", className)}
         >
-            {insights.map((insight, idx) => (
+            {insights.map((insight) => (
                 <motion.div
-                    key={idx}
+                    key={insight.label}
                     whileHover={{ y: -4, scale: 1.02 }}
                     className={cn(
                         "glass-premium border rounded-3xl p-5 relative overflow-hidden group transition-all duration-300",

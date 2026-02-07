@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Handshake, Loader2, Search, Building2 } from '../ui/Icons';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
-import { db, functions } from '../../firebase';
 import { useStore } from '../../store';
+import { AuditService } from '../../services/auditService';
 import { toast } from '@/lib/toast';
 import { Drawer } from '../ui/Drawer';
 import { Button } from '../ui/button';
@@ -36,13 +34,8 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
  const loadPartners = async () => {
  setLoading(true);
  try {
- const q = query(
-  collection(db, 'partnerships'),
-  where('tenantId', '==', user.organizationId),
-  where('status', '==', 'ACTIVE')
- );
- const snap = await getDocs(q);
- setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() } as Partner)));
+ const data = await AuditService.getActivePartners(user.organizationId);
+ setPartners(data as Partner[]);
  } catch {
  toast.error(t('audits.toast.partnersLoadError', { defaultValue: 'Erreur chargement partenaires' }));
  } finally {
@@ -61,12 +54,11 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
 
  setAssigning(partner.id);
  try {
- const assignFn = httpsCallable(functions, 'assignAuditToPartner');
- await assignFn({
+ await AuditService.assignAuditToPartner(
  auditId,
- partnerId: partner.certifierId,
- partnerName: partner.tenantName || partner.contactEmail
- });
+ partner.certifierId,
+ partner.tenantName || partner.contactEmail
+ );
 
  toast.success(t('audits.toast.auditAssigned', { defaultValue: `Audit assigné à ${partner.contactEmail}`, email: partner.contactEmail }));
  onAssigned();
@@ -96,10 +88,11 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
   <input
   type="text"
+  aria-label="Rechercher un partenaire"
   placeholder={t('assignPartner.searchPlaceholder', { defaultValue: 'Rechercher un partenaire...' })}
   value={searchTerm}
   onChange={(e) => setSearchTerm(e.target.value)}
-  className="w-full pl-9 pr-4 py-2 bg-muted/50 border border-border/40 rounded-3xl text-sm focus:ring-2 focus-visible:ring-primary outline-none transition-all"
+  className="w-full pl-9 pr-4 py-2 bg-muted/50 border border-border/40 rounded-3xl text-sm focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
   />
  </div>
 

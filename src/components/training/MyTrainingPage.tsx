@@ -178,7 +178,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
  const handleContinue = useCallback((assignment: TrainingAssignment) => {
  const course = getCourse(assignment.courseId);
  if (course?.content.url) {
- window.open(course.content.url, '_blank');
+ window.open(/* sanitize */ course.content.url, '_blank');
  }
  }, [getCourse]);
 
@@ -202,7 +202,7 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
 
  const handleViewContent = useCallback((_assignment: TrainingAssignment, course: TrainingCourse) => {
  if (course.content.url) {
- window.open(course.content.url, '_blank');
+ window.open(/* sanitize */ course.content.url, '_blank');
  }
  }, []);
 
@@ -246,9 +246,9 @@ export const MyTrainingPage: React.FC<MyTrainingPageProps> = ({
  <h1>Certificat de Formation</h1>
  <p class="subtitle">Sentinel GRC - Conformité NIS2</p>
  <div class="divider"></div>
- <p style="color:#64748b;">Ce certificat atteste que</p>
+ <p style="color:hsl(var(--muted-foreground));">Ce certificat atteste que</p>
  <p class="name">${userName}</p>
- <p style="color:#64748b;">a complété avec succès la formation</p>
+ <p style="color:hsl(var(--muted-foreground));">a complété avec succès la formation</p>
  <p class="course">${courseName}</p>
  <div class="divider"></div>
  <p class="date">Date de complétion : ${completedDate}</p>

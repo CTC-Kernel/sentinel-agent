@@ -74,41 +74,8 @@ function calculateDaysUntilDue(dueDate: string): number {
  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
 
-/**
- * Get due status color scheme
- */
-export function getDueStatusColorScheme(
- isOverdue: boolean,
- isDueSoon: boolean
-): 'danger' | 'warning' | 'neutral' {
- if (isOverdue) return 'danger';
- if (isDueSoon) return 'warning';
- return 'neutral';
-}
-
-/**
- * Get Tailwind classes for due status color
- */
-export const DUE_STATUS_COLOR_CLASSES = {
- danger: {
- bg: 'bg-red-100 dark:bg-red-900/30',
- text: 'text-red-600 dark:text-red-400',
- border: 'border-red-200 dark:border-red-800',
- badge: 'bg-red-500 text-white',
- },
- warning: {
- bg: 'bg-orange-100 dark:bg-orange-900/30',
- text: 'text-orange-600 dark:text-orange-400',
- border: 'border-orange-200 dark:border-orange-800',
- badge: 'bg-orange-500 text-white',
- },
- neutral: {
- bg: 'bg-muted',
- text: 'text-muted-foreground',
- border: 'border-border',
- badge: 'bg-muted/500 text-white',
- },
-} as const;
+// Re-export color scheme utilities (moved to utils/colorSchemes.ts to satisfy hooks naming convention)
+export { getDueStatusColorScheme, DUE_STATUS_COLOR_CLASSES } from '../utils/colorSchemes';
 
 /**
  * Hook to fetch and monitor assigned actions
@@ -265,8 +232,9 @@ export function useAssignedActions(
  cancelled = true;
  unsubRef.current?.();
  };
- // eslint-disable-next-line react-hooks/exhaustive-deps -- trend is intentionally excluded to prevent re-subscription on trend changes
- }, [tenantId, userId, maxItems, refreshKey]);
+ // Justification: trend is intentionally excluded to prevent re-subscription when trend changes.
+ // Trend is a derived value from the snapshot listener and including it would cause infinite loops.
+ }, [tenantId, userId, maxItems, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
  return {
  actions,

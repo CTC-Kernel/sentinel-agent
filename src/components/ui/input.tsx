@@ -14,6 +14,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
  return (
  <input
  type={type}
+ aria-label={props['aria-label']}
  className={cn(
   "flex h-11 w-full rounded-xl border border-border/40 bg-background/50 px-4 py-2 text-sm backdrop-blur-sm transition-all duration-normal ease-apple ring-offset-background",
   "file:border-0 file:bg-transparent file:text-sm file:font-medium",

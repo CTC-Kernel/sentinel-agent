@@ -39,41 +39,46 @@ export const AssetService = {
  relatedProjectIds: preSelectedProjectId ? [preSelectedProjectId] : []
  };
 
- // Create Asset
- const docRef = await addDoc(collection(db, 'assets'), newDoc);
-
- // Track storage usage if valid estimated size
- const estSize = (cleanData as unknown as Record<string, number>).estimatedSizeMB || 0;
- if (estSize > 0) {
- const orgRef = doc(db, 'organizations', user.organizationId);
- await updateDoc(orgRef, {
- storageUsed: increment(estSize * 1024 * 1024)
- }).catch((error) => {
- ErrorLogger.warn('Failed to increment storage usage', 'AssetService.create', { metadata: { error } });
- });
+ try {
+  // Create Asset
+   const docRef = await addDoc(collection(db, 'assets'), newDoc);
+  
+   // Track storage usage if valid estimated size
+   const estSize = (cleanData as unknown as Record<string, number>).estimatedSizeMB || 0;
+   if (estSize > 0) {
+   const orgRef = doc(db, 'organizations', user.organizationId);
+   await updateDoc(orgRef, {
+   storageUsed: increment(estSize * 1024 * 1024)
+   }).catch((error) => {
+   ErrorLogger.warn('Failed to increment storage usage', 'AssetService.create', { metadata: { error } });
+   });
+   }
+  
+   // Link Project if selected
+   if (preSelectedProjectId) {
+   const projectRef = doc(db, 'projects', preSelectedProjectId);
+   await updateDoc(projectRef, {
+   relatedAssetIds: arrayUnion(docRef.id)
+   });
+   }
+  
+   // Audit Log
+   if (user.organizationId) {
+   await AuditLogService.logCreate(
+   user.organizationId,
+   { id: user.uid, name: user.displayName || user.email, email: user.email },
+   'asset',
+   docRef.id,
+   cleanData,
+   cleanData.name
+   );
+   }
+  
+   return docRef.id;
+ } catch (error) {
+  ErrorLogger.handleErrorWithToast(error, "Erreur lors de la creation de l'actif");
+  throw error;
  }
-
- // Link Project if selected
- if (preSelectedProjectId) {
- const projectRef = doc(db, 'projects', preSelectedProjectId);
- await updateDoc(projectRef, {
- relatedAssetIds: arrayUnion(docRef.id)
- });
- }
-
- // Audit Log
- if (user.organizationId) {
- await AuditLogService.logCreate(
- user.organizationId,
- { id: user.uid, name: user.displayName || user.email, email: user.email },
- 'asset',
- docRef.id,
- cleanData,
- cleanData.name
- );
- }
-
- return docRef.id;
  },
 
  /**
@@ -86,6 +91,7 @@ export const AssetService = {
  const validatedData = assetSchema.partial().parse(data);
  const cleanData = sanitizeData(validatedData);
 
+ try {
  await updateDoc(doc(db, 'assets', id), {
  ...cleanData,
  updatedAt: serverTimestamp()
@@ -93,14 +99,18 @@ export const AssetService = {
 
  if (user.organizationId && oldData) {
  await AuditLogService.logUpdate(
- user.organizationId,
- { id: user.uid, name: user.displayName || user.email, email: user.email },
- 'asset',
- id,
- oldData,
- cleanData,
- (cleanData.name as string) || (oldData.name as string) || 'Actif'
+  user.organizationId,
+  { id: user.uid, name: user.displayName || user.email, email: user.email },
+  'asset',
+  id,
+  oldData,
+  cleanData,
+  (cleanData.name as string) || (oldData.name as string) || 'Actif'
  );
+ }
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'AssetService.update');
+ throw error;
  }
  },
 
@@ -111,17 +121,22 @@ export const AssetService = {
  if (!user.organizationId) throw new Error("User organization ID is missing");
  if (!canDeleteResource(user, 'Asset')) throw new Error("Permission denied");
 
+ try {
  await FunctionsService.deleteResource('assets', id);
 
  if (user.organizationId) {
  await AuditLogService.logDelete(
- user.organizationId,
- { id: user.uid, name: user.displayName || user.email, email: user.email },
- 'asset',
- id,
- { name },
- name
+  user.organizationId,
+  { id: user.uid, name: user.displayName || user.email, email: user.email },
+  'asset',
+  id,
+  { name },
+  name
  );
+ }
+ } catch (error) {
+ ErrorLogger.handleErrorWithToast(error, 'AssetService.delete');
+ throw error;
  }
  },
 
@@ -186,10 +201,15 @@ export const AssetService = {
  limit(50)
  );
 
- const snap = await getDocs(primaryQ);
- const logs = snap.docs.map(d => ({ id: d.id, ...d.data() } as SystemLog));
-
- return { logs };
+ try {
+  const snap = await getDocs(primaryQ);
+   const logs = snap.docs.map(d => ({ id: d.id, ...d.data() } as SystemLog));
+  
+   return { logs };
+ } catch (error) {
+  ErrorLogger.handleErrorWithToast(error, "Erreur lors de la recuperation de l'historique de l'actif");
+  throw error;
+ }
  },
 
  /**

@@ -254,8 +254,9 @@ export const VendorConcentration: React.FC = () => {
 
  useEffect(() => {
  loadData();
- // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [organizationId, filters]);
+ // Justification: loadData is defined in the component body and depends on organizationId
+ // and filters. Including it would require useCallback wrapping but these are the only triggers.
+ }, [organizationId, filters]); // eslint-disable-line react-hooks/exhaustive-deps
 
  // Memoized values
  const trendIndicator = useMemo(() => {
@@ -279,9 +280,8 @@ export const VendorConcentration: React.FC = () => {
  title={t('vendorConcentration.title')}
  subtitle={t('vendorConcentration.subtitle')}
  icon={
- <img
+ <img alt="Concentration"
  src="/images/operations.png"
- alt="Concentration"
  className="w-full h-full object-contain"
  />
  }

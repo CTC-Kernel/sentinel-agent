@@ -5,7 +5,7 @@
  * Modal for importing assets from the global inventory into EBIOS analysis
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Search, Link2, Package, Check, AlertCircle } from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
@@ -111,8 +111,18 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
 
  const assetTypes: Asset['type'][] = ['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'];
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" role="dialog" aria-modal="true">
  <PremiumCard glass className="max-w-2xl w-full max-h-[85vh] flex flex-col">
  {/* Header */}
  <div className="flex items-center justify-between pb-4 border-b border-border/40/50">
@@ -131,7 +141,8 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
  </div>
  <button
  onClick={onClose}
- className="p-2 rounded-3xl hover:bg-muted transition-colors"
+ className="p-2 rounded-3xl hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+ aria-label="Fermer"
  >
  <X className="w-5 h-5 text-muted-foreground" />
  </button>
@@ -144,6 +155,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
  <input
  type="text"
+ aria-label="Rechercher des actifs"
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
  placeholder={t('ebios.workshop1.searchAssets', 'Rechercher des actifs...')}
@@ -188,14 +200,14 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
  <div className="flex gap-2">
  <button
  onClick={selectAll}
- className="text-blue-500 hover:text-blue-600 font-medium"
+ className="text-blue-500 hover:text-blue-600 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  {t('common.selectAll', 'Tout sélectionner')}
  </button>
  <span className="text-muted-foreground">|</span>
  <button
  onClick={deselectAll}
- className="text-muted-foreground hover:text-muted-foreground font-medium"
+ className="text-muted-foreground hover:text-muted-foreground font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  {t('common.deselectAll', 'Tout désélectionner')}
  </button>
@@ -249,6 +261,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
   </div>
   <input
   type="checkbox"
+  aria-label={asset.name}
   checked={selectedAssetIds.has(asset.id)}
   onChange={() => toggleAssetSelection(asset.id)}
   className="sr-only"
@@ -284,7 +297,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
  <div className="flex items-center gap-3">
  <button
  onClick={onClose}
- className="px-4 py-2 rounded-3xl font-medium text-foreground hover:bg-muted"
+ className="px-4 py-2 rounded-3xl font-medium text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  {t('common.cancel', 'Annuler')}
  </button>

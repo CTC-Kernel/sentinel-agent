@@ -43,6 +43,9 @@ export const EbiosAnalyses: React.FC = () => {
  const { t } = useStore();
  const { user } = useAuth();
  const organizationId = user?.organizationId;
+
+ // RBAC: Only admin/rssi can perform sensitive EBIOS actions
+ const canManageEbios = user?.role === 'admin' || user?.role === 'rssi' || user?.role === 'super_admin';
  const navigate = useNavigate();
 
  // State
@@ -181,9 +184,8 @@ export const EbiosAnalyses: React.FC = () => {
  title={t('ebios.title')}
  subtitle={t('ebios.description')}
  icon={
- <img
+ <img alt="RÉFÉRENTIEL"
  src="/images/referentiel.png"
- alt="RÉFÉRENTIEL"
  className="w-full h-full object-contain"
  />
  }
@@ -209,6 +211,7 @@ export const EbiosAnalyses: React.FC = () => {
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
  <input
  type="text"
+ aria-label="Rechercher une analyse EBIOS"
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
  placeholder={t('ebios.searchPlaceholder')}
@@ -286,7 +289,7 @@ export const EbiosAnalyses: React.FC = () => {
   handleDuplicateAnalysis(analysis);
   setActionMenuOpen(null);
   }}
-  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted"
+  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <Copy className="w-4 h-4" />
   {t('common.duplicate')}
@@ -298,7 +301,7 @@ export const EbiosAnalyses: React.FC = () => {
   handleArchiveAnalysis(analysis);
   setActionMenuOpen(null);
   }}
-  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted"
+  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <Archive className="w-4 h-4" />
   {t('common.archive')}
@@ -311,7 +314,7 @@ export const EbiosAnalyses: React.FC = () => {
   setShowDeleteConfirm(true);
   setActionMenuOpen(null);
   }}
-  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-error-text hover:bg-error-bg"
+  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-error-text hover:bg-error-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <Trash2 className="w-4 h-4" />
   {t('common.delete')}
@@ -375,6 +378,16 @@ export const EbiosAnalyses: React.FC = () => {
   const isCompleted = workshop.status === 'completed' || workshop.status === 'validated';
   const isActive = workshop.status === 'in_progress';
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
   return (
   <Tooltip key={num || 'unknown'} content={`${label} - ${t(`ebios.status.${workshop.status}`)}`}>
   <div
@@ -391,7 +404,7 @@ export const EbiosAnalyses: React.FC = () => {
   </div>
 
   <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-  <span>{t('ebios.updatedAt', { date: new Date(analysis.updatedAt).toLocaleDateString() })}</span>
+  <span>{t('ebios.updatedAt', { date: new Date(analysis.updatedAt).toLocaleDateString('fr-FR') })}</span>
   </div>
   </div>
   </GlassCard>

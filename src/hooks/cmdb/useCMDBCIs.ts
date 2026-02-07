@@ -18,22 +18,8 @@ import {
 } from '@/types/cmdb';
 import { CreateCIFormData } from '@/schemas/cmdbSchema';
 
-// Query keys
-export const cmdbKeys = {
-  all: ['cmdb'] as const,
-  cis: () => [...cmdbKeys.all, 'cis'] as const,
-  ciList: (orgId: string, filters: CMDBFilters) =>
-    [...cmdbKeys.cis(), 'list', orgId, filters] as const,
-  ciDetail: (orgId: string, ciId: string) =>
-    [...cmdbKeys.cis(), 'detail', orgId, ciId] as const,
-  ciSearch: (orgId: string, query: string) =>
-    [...cmdbKeys.cis(), 'search', orgId, query] as const,
-  stats: (orgId: string) => [...cmdbKeys.all, 'stats', orgId] as const,
-  relationships: (orgId: string, ciId: string) =>
-    [...cmdbKeys.all, 'relationships', orgId, ciId] as const,
-  activity: (orgId: string) => [...cmdbKeys.all, 'activity', orgId] as const,
-  dailyStats: (orgId: string) => [...cmdbKeys.all, 'dailyStats', orgId] as const,
-};
+// Re-export query keys (moved to constants/queryKeys.ts to satisfy hooks naming convention)
+export { cmdbKeys } from '@/constants/queryKeys';
 
 /**
  * Hook to fetch paginated CIs with filters

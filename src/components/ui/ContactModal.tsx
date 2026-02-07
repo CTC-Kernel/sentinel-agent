@@ -128,7 +128,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
    id="contact-name"
    {...register('name')}
    type="text"
-   className={`w-full pl-10 pr-4 py-2.5 bg-muted border rounded-3xl focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent outline-none transition-all text-foreground text-sm ${errors.name ? 'border-error-500' : 'border-border/40'}`}
+   className={`w-full pl-10 pr-4 py-2.5 bg-muted border rounded-3xl focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent outline-none transition-all text-foreground text-sm ${errors.name ? 'border-error-500' : 'border-border/40'}`}
    placeholder="Votre nom"
    />
    </div>
@@ -145,7 +145,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
    id="contact-email"
    {...register('email')}
    type="email"
-   className={`w-full pl-10 pr-4 py-2.5 bg-muted border rounded-3xl focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent outline-none transition-all text-foreground text-sm ${errors.email ? 'border-error-500' : 'border-border/40'}`}
+   className={`w-full pl-10 pr-4 py-2.5 bg-muted border rounded-3xl focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent outline-none transition-all text-foreground text-sm ${errors.email ? 'border-error-500' : 'border-border/40'}`}
    placeholder="votre@email.com"
    />
    </div>
@@ -162,7 +162,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
    id="contact-subject"
    {...register('subject')}
    type="text"
-   className={`w-full pl-10 pr-4 py-2.5 bg-muted border rounded-3xl focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent outline-none transition-all text-foreground text-sm ${errors.subject ? 'border-error-500' : 'border-border/40'}`}
+   className={`w-full pl-10 pr-4 py-2.5 bg-muted border rounded-3xl focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent outline-none transition-all text-foreground text-sm ${errors.subject ? 'border-error-500' : 'border-border/40'}`}
    placeholder="Sujet de votre message"
    />
    </div>
@@ -177,7 +177,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
    id="contact-message"
    {...register('message')}
    rows={4}
-   className={`w-full p-4 bg-muted border rounded-3xl focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent outline-none transition-all text-foreground text-sm resize-none ${errors.message ? 'border-error-500' : 'border-border/40'}`}
+   className={`w-full p-4 bg-muted border rounded-3xl focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent outline-none transition-all text-foreground text-sm resize-none ${errors.message ? 'border-error-500' : 'border-border/40'}`}
    placeholder="Comment pouvons-nous vous aider ?"
    />
    <FormError message={errors.message?.message} />
@@ -186,6 +186,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
    <div className="pt-2">
    <Button
    type="submit"
+   disabled={isSubmitting}
    isLoading={isSubmitting}
    className="w-full"
    aria-label="Envoyer le message"

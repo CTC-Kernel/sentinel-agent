@@ -165,6 +165,16 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
  highLabel: string,
  value: number
  ) => {
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
  return (
  <div>
  <div className="flex items-center justify-between mb-2">
@@ -178,6 +188,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
  <p className="text-xs text-muted-foreground mb-2">{description}</p>
  <input
  type="range"
+ aria-label={label}
  min={1}
  max={5}
  step={1}
@@ -194,7 +205,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
  };
 
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" role="dialog" aria-modal="true">
  <PremiumCard glass className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
  {/* Header */}
  <div className="flex items-center justify-between pb-4 border-b border-border/40/50">
@@ -216,6 +227,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
  <button
  onClick={onClose}
  className="p-2 rounded-3xl hover:bg-muted transition-colors"
+ aria-label="Fermer"
  >
  <X className="w-5 h-5 text-muted-foreground" />
  </button>

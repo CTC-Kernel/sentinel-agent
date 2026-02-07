@@ -364,7 +364,7 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
  {annotationsVisible && (
  <>
  {/* Type filters */}
- <div className="space-y-2">
+ <div className="space-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
  <span className="text-xs text-muted-foreground uppercase tracking-wide">Types</span>
  <div className="flex flex-wrap gap-2">
  {allTypes.map((type) => (
@@ -383,7 +383,7 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
  </div>
 
  {/* Quick filters */}
- <div className="flex gap-2">
+ <div className="flex gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
  <button
  onClick={onToggleUnreadOnly}
  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${showUnreadOnly

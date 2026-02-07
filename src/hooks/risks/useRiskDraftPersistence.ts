@@ -50,7 +50,7 @@ export interface UseRiskDraftPersistenceReturn {
 /**
  * Generates a storage key for risk draft data.
  */
-export function getRiskDraftStorageKey(organizationId: string, riskId?: string): string {
+function getRiskDraftStorageKey(organizationId: string, riskId?: string): string {
  const id = riskId || 'new';
  return `${STORAGE_KEY_PREFIX}_${organizationId}_${id}`;
 }
@@ -220,7 +220,7 @@ export function useRiskDraftPersistence({
  * Utility function to clear all risk drafts for an organization.
  * Useful for cleanup when user logs out.
  */
-export function clearAllRiskDrafts(organizationId: string): void {
+function clearAllRiskDrafts(organizationId: string): void {
  try {
  const prefix = `${STORAGE_KEY_PREFIX}_${organizationId}_`;
  const keysToRemove: string[] = [];

@@ -259,32 +259,5 @@ export function useDraftState(
  };
 }
 
-/**
- * Gets the localized label for draft status.
- *
- * @param locale - Current locale
- * @returns Localized draft label
- */
-export function getDraftLabel(locale: SupportedLocale): string {
- return locale === 'fr' ? 'Brouillon' : 'Draft';
-}
-
-/**
- * Gets the localized label for publish action.
- *
- * @param locale - Current locale
- * @returns Localized publish label
- */
-export function getPublishLabel(locale: SupportedLocale): string {
- return locale === 'fr' ? 'Publier' : 'Publish';
-}
-
-/**
- * Gets the localized label for save as draft action.
- *
- * @param locale - Current locale
- * @returns Localized save as draft label
- */
-export function getSaveAsDraftLabel(locale: SupportedLocale): string {
- return locale === 'fr' ? 'Enregistrer en brouillon' : 'Save as Draft';
-}
+// Re-export label utilities (moved to utils/draftLabels.ts to satisfy hooks naming convention)
+export { getDraftLabel, getPublishLabel, getSaveAsDraftLabel } from '../utils/draftLabels';

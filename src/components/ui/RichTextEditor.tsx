@@ -175,7 +175,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
  },
  editorProps: {
  attributes: {
- class: `prose dark:prose-invert max-w-none p-4 min-h-[150px] focus:outline-none text-foreground text-sm ${!isEditable ? 'opacity-70 cursor-not-allowed bg-muted/50' : ''}`,
+ class: `prose dark:prose-invert max-w-none p-4 min-h-[150px] focus-visible:outline-none text-foreground text-sm ${!isEditable ? 'opacity-70 cursor-not-allowed bg-muted/50' : ''}`,
  },
  },
  });

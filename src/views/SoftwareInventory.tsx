@@ -524,9 +524,8 @@ export const SoftwareInventory: React.FC = () => {
   title={t('software.title', { defaultValue: 'Inventaire logiciel' })}
   subtitle={t('software.subtitle', { defaultValue: 'Cartographie logicielle et conformité CIS Benchmarks' })}
   icon={
-  <img
+  <img alt="IA"
   src="/images/IA.png"
-  alt="IA"
   className="w-full h-full object-contain"
   />
   }

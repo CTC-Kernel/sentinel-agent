@@ -1,5 +1,6 @@
 import { collection, query, where, getDocs, getDoc, deleteDoc, doc, writeBatch, arrayRemove, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { httpsCallable } from 'firebase/functions';
+import { db, functions } from '../firebase';
 import { Finding, AuditChecklist, Audit } from '../types';
 import { ErrorLogger } from './errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
@@ -355,5 +356,78 @@ export class AuditService {
  ErrorLogger.error(error, 'AuditService.importAuditsFromCSV');
  throw error;
  }
+ }
+
+ // ============================================================================
+ // Partner Assignment
+ // ============================================================================
+
+ /**
+  * Get active partners for an organization
+  */
+ static async getActivePartners(organizationId: string): Promise<Array<{ id: string; contactEmail: string; certifierId?: string; tenantName?: string }>> {
+  try {
+   const q = query(
+    collection(db, 'partnerships'),
+    where('tenantId', '==', organizationId),
+    where('status', '==', 'ACTIVE')
+   );
+   const snap = await getDocs(q);
+   return snap.docs.map(d => ({ id: d.id, ...d.data() } as { id: string; contactEmail: string; certifierId?: string; tenantName?: string }));
+  } catch (error) {
+   ErrorLogger.error(error, 'AuditService.getActivePartners');
+   throw error;
+  }
+ }
+
+ /**
+  * Assign an audit to a partner via Cloud Function
+  */
+ static async assignAuditToPartner(auditId: string, partnerId: string, partnerName: string): Promise<void> {
+  try {
+   const assignFn = httpsCallable(functions, 'assignAuditToPartner');
+   await assignFn({ auditId, partnerId, partnerName });
+  } catch (error) {
+   ErrorLogger.error(error, 'AuditService.assignAuditToPartner');
+   throw error;
+  }
+ }
+
+ // ============================================================================
+ // Shared Links
+ // ============================================================================
+
+ /**
+  * Get shared links for an audit
+  */
+ static async getAuditShares(auditId: string, organizationId: string): Promise<Array<{ id: string; auditorEmail: string; organizationId: string; createdAt: string; expiresAt: string; revoked: boolean; permissions: string[] }>> {
+  try {
+   const q = query(
+    collection(db, 'audit_shares'),
+    where('auditId', '==', auditId),
+    where('organizationId', '==', organizationId)
+   );
+   const snapshot = await getDocs(q);
+   const items = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as { id: string; auditorEmail: string; organizationId: string; createdAt: string; expiresAt: string; revoked: boolean; permissions: string[] }));
+   // Client-side sort by date desc
+   items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+   return items;
+  } catch (error) {
+   ErrorLogger.error(error, 'AuditService.getAuditShares');
+   throw error;
+  }
+ }
+
+ /**
+  * Revoke an audit share via Cloud Function
+  */
+ static async revokeAuditShare(token: string): Promise<void> {
+  try {
+   const revokeFn = httpsCallable(functions, 'revokeAuditShare');
+   await revokeFn({ token });
+  } catch (error) {
+   ErrorLogger.error(error, 'AuditService.revokeAuditShare');
+   throw error;
+  }
  }
 }

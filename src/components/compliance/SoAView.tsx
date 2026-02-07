@@ -1,6 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp, Timestamp } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { Control, Risk, SoAVersion, SoAControlSnapshot, Framework } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/button';
@@ -10,6 +8,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { cn } from '../../lib/utils';
 import { ErrorLogger } from '../../services/errorLogger';
+import { ComplianceService } from '../../services/ComplianceService';
 import { useLocale } from '@/hooks/useLocale';
 import { CONTROL_STATUS } from '../../constants/complianceConfig';
 
@@ -48,16 +47,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
  if (!user?.organizationId) return;
  setLoadingVersions(true);
  try {
- const versionsRef = collection(db, 'organizations', user.organizationId, 'soaVersions');
- const q = query(versionsRef, orderBy('generatedAt', 'desc'), limit(20));
- const snapshot = await getDocs(q);
- const loadedVersions = snapshot.docs.map(doc => ({
- id: doc.id,
- ...doc.data(),
- generatedAt: doc.data().generatedAt instanceof Timestamp
-  ? doc.data().generatedAt.toDate().toISOString()
-  : doc.data().generatedAt
- })) as SoAVersion[];
+ const loadedVersions = await ComplianceService.loadSoAVersions(user.organizationId);
  setVersions(loadedVersions);
  } catch (error) {
  ErrorLogger.error(error, 'SoAView.loadVersions');
@@ -89,19 +79,15 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
  evidenceCount: c.evidenceIds?.length || 0,
  }));
 
- const newVersion = {
- organizationId: user.organizationId,
+ await ComplianceService.saveSoAVersion(
+ user.organizationId,
  framework,
- version: (versions?.length || 0) + 1,
- generatedAt: serverTimestamp(),
- generatedBy: user.uid,
- generatedByName: user.displayName || user.email || 'Unknown',
- controlsSnapshot: snapshot,
- stats: currentStats,
- };
-
- const versionsRef = collection(db, 'organizations', user.organizationId, 'soaVersions');
- await addDoc(versionsRef, newVersion);
+ (versions?.length || 0) + 1,
+ user.uid,
+ user.displayName || user.email || 'Unknown',
+ snapshot,
+ currentStats
+ );
 
  addToast(t('soa.versionSaved', { defaultValue: 'Version sauvegardée. Consultez l\'historique pour comparer les versions.' }), 'success');
  await loadVersions(); // Refresh the list
@@ -403,7 +389,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
     type="checkbox"
     className="sr-only peer"
     />
-    <div className="w-9 h-5 bg-muted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border/40 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+    <div className="w-9 h-5 bg-muted peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-blue-300 dark:peer-focus-visible:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border/40 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
    </label>
    )}
    </td>
@@ -433,6 +419,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
    </span>
    ) : (
    <input
+    aria-label="Justification"
     defaultValue={item.justification || ''}
     onBlur={(e) => {
     if ('control' in item && item.control && e.target.value !== item.justification) {
@@ -440,7 +427,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
     }
     }}
     type="text"
-    className={`bg-transparent text-xs w-full focus:ring-1 focus-visible:ring-primary rounded px-2 py-1 transition-colors ${missingJustification
+    className={`bg-transparent text-xs w-full focus-visible:ring-1 focus-visible:ring-primary rounded px-2 py-1 transition-colors ${missingJustification
     ? 'border border-red-500 bg-red-50 dark:bg-red-50 dark:bg-red-900 placeholder-red-400'
     : 'border-none placeholder:text-muted-foreground'
     }`}

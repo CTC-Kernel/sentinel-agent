@@ -165,6 +165,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
  setResults(searchResults);
  onSearchExecuted?.(searchResults);
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'EDiscoverySearch');
  setError(err instanceof Error ? err.message : 'Erreur lors de la recherche');
  } finally {
  setLoading(false);
@@ -204,6 +205,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
  setResults(searchResults);
  onSearchExecuted?.(searchResults);
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'EDiscoverySearch');
  setError(err instanceof Error ? err.message : 'Erreur lors de la recherche');
  } finally {
  setLoading(false);
@@ -236,6 +238,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
  setSearchDescription('');
  setSearchIsPublic(false);
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'EDiscoverySearch');
  setError(err instanceof Error ? err.message : 'Erreur lors de la sauvegarde');
  } finally {
  setSavingSearch(false);
@@ -261,6 +264,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
  const exportResult = await EDiscoveryService.exportSearchResults(results, format);
  EDiscoveryService.downloadExport(exportResult, `ediscovery-${Date.now()}.${format}`);
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'EDiscoverySearch');
  setError(err instanceof Error ? err.message : 'Erreur lors de l\'export');
  } finally {
  setExporting(false);
@@ -293,6 +297,16 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
 
  // All available actions for filter
  const allActions = VaultAuditService.getAllActions();
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShow(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [setShow]);
+
 
  return (
  <div className={`bg-card rounded-3xl border border-border/40 ${className}`}>
@@ -686,7 +700,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
 
  {/* Save Search Dialog */}
  {saveDialogOpen && (
- <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-modal">
+ <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-modal" role="dialog" aria-modal="true">
  <div className="bg-card rounded-3xl shadow-xl w-full max-w-md p-6">
  <h3 className="text-lg font-semibold text-foreground mb-4">
  Sauvegarder la recherche

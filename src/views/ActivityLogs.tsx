@@ -24,9 +24,8 @@ export const ActivityLogs: React.FC = () => {
   title={t('activity.title')}
   subtitle={t('activity.subtitle')}
   icon={
-  <img
+  <img alt="ADMINISTRATION"
   src="/images/administration.png"
-  alt="ADMINISTRATION"
   className="w-full h-full object-contain"
   />
   }
@@ -36,7 +35,7 @@ export const ActivityLogs: React.FC = () => {
   variant="outline"
   aria-label={t('activity.exportCsv')}
   onClick={exportLogs}
-  className="flex items-center gap-2 px-3 py-2 bg-card text-foreground rounded-lg hover:bg-muted/50 border border-border transition-colors text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="flex items-center gap-2 px-3 py-2 bg-card text-foreground rounded-lg hover:bg-muted/50 border border-border transition-colors text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   <Download className="h-4 w-4" />
   <span>{t('activity.exportCsv')}</span>
@@ -45,7 +44,7 @@ export const ActivityLogs: React.FC = () => {
   variant="ghost"
   size="icon"
   onClick={refresh}
-  className="p-2.5 hover:bg-muted rounded-lg transition-colors text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="p-2.5 hover:bg-muted rounded-lg transition-colors text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   title={t('activity.refresh')}
   >
   <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />

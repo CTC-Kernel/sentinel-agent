@@ -27,7 +27,7 @@ export const ProcessDrills: React.FC<ProcessDrillsProps> = ({ drills }) => {
   </div>
   <div>
    <p className="text-sm font-bold text-foreground capitalize">{d.type}</p>
-   <p className="text-xs text-muted-foreground">{new Date(d.date).toLocaleDateString()}</p>
+   <p className="text-xs text-muted-foreground">{new Date(d.date).toLocaleDateString('fr-FR')}</p>
   </div>
   </div>
   <Badge status={d.result === 'Succès' ? 'success' : 'error'}>

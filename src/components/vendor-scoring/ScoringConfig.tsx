@@ -142,7 +142,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
 
  <div className="flex items-center gap-2">
  <Button variant="ghost" size="sm" onClick={handleReset}>
- <RotateCcw className="w-4 h-4 mr-1" />
+ <RotateCcw className="w-4 h-4 mr-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" />
  {t('common.reset', 'Reset')}
  </Button>
  <Button variant="ghost" size="sm" onClick={handleNormalize}>
@@ -153,7 +153,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
 
  {/* Weight validation */}
  {!isValidWeight && (
- <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-300">
+ <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
  <AlertTriangle className="w-4 h-4 shrink-0" />
  {t('vendorScoring.weightWarning', 'Section weights should total 100%. Current: {{total}}%', {
  total: Math.round(totalWeight),
@@ -184,20 +184,22 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
  <div className="flex items-center gap-3">
  <input
  type="range"
+ aria-label="Pondération de la section"
  min="0"
  max="100"
  value={section.weight}
  onChange={(e) => handleWeightChange(section.sectionId, parseInt(e.target.value))}
- className="w-32 accent-brand-500"
+ className="w-32 accent-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  />
  <div className="w-16 flex items-center">
  <input
   type="number"
+  aria-label="Pondération en pourcentage"
   min="0"
   max="100"
   value={section.weight}
   onChange={(e) => handleWeightChange(section.sectionId, parseInt(e.target.value) || 0)}
-  className="w-12 px-2 py-1 text-center text-sm border border-border/40 rounded bg-card"
+  className="w-12 px-2 py-1 text-center text-sm border border-border/40 rounded bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  />
  <span className="text-sm text-muted-foreground ml-1">%</span>
  </div>
@@ -245,7 +247,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
  {t('common.cancel', 'Cancel')}
  </Button>
  <Button onClick={handleSave} disabled={!isValidWeight}>
- <Save className="w-4 h-4 mr-2" />
+ <Save className="w-4 h-4 mr-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" />
  {t('vendorScoring.saveConfig', 'Save Configuration')}
  </Button>
  </div>

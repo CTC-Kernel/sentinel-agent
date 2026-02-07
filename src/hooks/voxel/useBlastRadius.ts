@@ -21,6 +21,7 @@ import {
  PotentialCause,
 } from '@/services/blastRadiusService';
 import type { VoxelNodeType } from '@/types/voxel';
+import { ErrorLogger } from '@/services/errorLogger';
 
 // ============================================================================
 // Types
@@ -286,6 +287,7 @@ export function useBlastRadius(): UseBlastRadiusReturn {
  };
  });
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'useBlastRadius');
  setState((prev) => ({
  ...prev,
  isSimulating: false,
@@ -348,6 +350,7 @@ export function useBlastRadius(): UseBlastRadiusReturn {
  };
  });
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'useBlastRadius');
  setState((prev) => ({
  ...prev,
  isSimulating: false,
@@ -421,6 +424,7 @@ export function useBlastRadius(): UseBlastRadiusReturn {
  };
  });
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'useBlastRadius');
  setState((prev) => ({
  ...prev,
  isSimulating: false,

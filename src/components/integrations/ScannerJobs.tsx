@@ -95,7 +95,7 @@ export const ScannerJobs: React.FC = () => {
  </div>
  <button
   onClick={() => setIsCreateModalOpen(true)}
-  className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-3xl shadow-lg shadow-primary/20 transition-all font-medium text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+  className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-3xl shadow-lg shadow-primary/20 transition-all font-medium text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
  >
   <Plus className="h-4 w-4" />
   Nouveau Scan
@@ -146,7 +146,7 @@ export const ScannerJobs: React.FC = () => {
    {job.nextRun && (
    <span className="flex items-center gap-1 text-primary">
    <Play className="h-3 w-3" />
-   Prochain: {new Date(job.nextRun).toLocaleDateString()}
+   Prochain: {new Date(job.nextRun).toLocaleDateString('fr-FR')}
    </span>
    )}
    </div>
@@ -156,7 +156,7 @@ export const ScannerJobs: React.FC = () => {
   <div className="flex items-center gap-2 w-full md:w-auto justify-end">
   <button
    onClick={() => setDeleteJobId(job.id)}
-   className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+   className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
    title="Supprimer"
   >
    <Trash2 className="h-4 w-4" />
@@ -207,14 +207,14 @@ export const ScannerJobs: React.FC = () => {
   <div className="flex justify-end gap-3 pt-4">
   <button
   onClick={() => setIsCreateModalOpen(false)}
-  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground dark:hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded-lg"
+  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground dark:hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded-lg"
   >
   {t('common.cancel', { defaultValue: 'Annuler' })}
   </button>
   <button
   onClick={handleCreateJob}
   disabled={isSubmitting || !newJob.target}
-  className="px-4 py-2 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg shadow-lg shadow-primary/25 transition-all disabled:bg-muted disabled:text-muted-foreground flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+  className="px-4 py-2 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg shadow-lg shadow-primary/25 transition-all disabled:bg-muted disabled:text-muted-foreground flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
   >
   {isSubmitting ? t('scanner.creating', { defaultValue: 'Création...' }) : t('scanner.schedule', { defaultValue: 'Planifier' })}
   </button>

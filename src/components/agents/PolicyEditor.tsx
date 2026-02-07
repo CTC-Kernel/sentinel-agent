@@ -7,7 +7,7 @@
  * Sprint 9 - Groups & Policies
  */
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
  AgentPolicy,
@@ -114,10 +114,150 @@ const RuleEditorRow: React.FC<{
  const renderValueInput = () => {
  switch (rule.valueType) {
  case 'boolean':
+
+  // Extracted callbacks (useCallback)
+  const handleEdit = useCallback(() => {
+    setEditingPolicy(policy)
+  }, []);
+
+  const handleToggle = useCallback(() => {
+    handleTogglePolicy(policy.id)
+  }, []);
+
+  const handleDeploy = useCallback(() => {
+    handleDeployPolicy(policy.id)
+  }, []);
+
+  const handleDelete = useCallback(() => {
+    handleDeletePolicy(policy.id)
+  }, []);
+
+  const handleChange = useCallback((checked: boolean) => {
+    onChange({ value: checked })
+  }, []);
+
+  const handleChange2 = useCallback((e) => {
+    onChange({ value: parseInt(e.target.value) || 0 })
+  }, []);
+
+  const handleChange3 = useCallback((e) => {
+    onChange({ value: e.target.value })
+  }, []);
+
+  const handleChange4 = useCallback((e) => {
+    onChange({ value: e.target.value })
+  }, []);
+
+  const handleChange5 = useCallback((e) => {
+    onChange({ value: e.target.value })
+  }, []);
+
+  const handleClick = useCallback(() => {
+    setExpanded(!expanded)
+  }, []);
+
+  const handleChange6 = useCallback((updates) => {
+    onChange(rule.id, updates)
+  }, []);
+
+  const handleChange7 = useCallback((e) => {
+    { setName(e.target.value); setErrors(prev => prev.filter(e => e !== 'Le nom est requis')); }
+  }, []);
+
+  const handleChange8 = useCallback((e) => {
+    setDescription(e.target.value)
+  }, []);
+
+  const handleChange9 = useCallback((e) => {
+    setScope(e.target.value as PolicyScope)
+  }, []);
+
+  const handleChange10 = useCallback((e) => {
+    setPriority(e.target.value as PolicyPriority)
+  }, []);
+
+  const handleChange11 = useCallback((e) => {
+    setEnforcement(e.target.value as EnforcementMode)
+  }, []);
+
+  const handleClick2 = useCallback((e) => {
+    e.stopPropagation()
+  }, []);
+
+  const handleClick3 = useCallback(() => {
+    setScopeFilter('all')
+  }, []);
+
+  const handleClick4 = useCallback(() => {
+    setScopeFilter(scope)
+  }, []);
+
+  const handleClick5 = useCallback(() => {
+    setIsCreating(true)
+  }, []);
+
+  const handleClick6 = useCallback(() => {
+    setScopeFilter('all')
+  }, []);
+
+  const handleClick7 = useCallback(() => {
+    setIsCreating(true)
+  }, []);
+
+  const handleClick8 = useCallback(() => {
+    setDeleteConfirm(null)
+  }, []);
+
+  const handleClick9 = useCallback(() => {
+    { handleDeployPolicy(selectedPolicy.id); setSaveSuccess(null); }
+  }, []);
+
+  const handleClick10 = useCallback(() => {
+    setSaveSuccess(null)
+  }, []);
+
+  const handleClick11 = useCallback(() => {
+    handleRollbackPolicy(selectedPolicy.id)
+  }, []);
+
+  const handleClick12 = useCallback(() => {
+    handleDeployPolicy(selectedPolicy.id)
+  }, []);
+
+  const handleClick13 = useCallback(() => {
+    setEditingPolicy(selectedPolicy)
+  }, []);
+
+
+  const handleClick14 = useCallback(() => {
+    if (targetGroupIds.includes(group.id)) {
+   setTargetGroupIds(targetGroupIds.filter(id => id !== group.id));
+   } else {
+   setTargetGroupIds([...targetGroupIds, group.id]);
+   }
+  }, []);
+
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+  e.preventDefault();
+  onSelect();
+ }
+  }, []);
+
+  const handleClick15 = useCallback(() => {
+    setEditingPolicy(null);
+  setIsCreating(false);
+  }, []);
+
+  const handleCancel = useCallback(() => {
+    setEditingPolicy(null);
+  setIsCreating(false);
+  }, []);
+
  return (
   <Switch
   checked={rule.value as boolean}
-  onChange={(checked: boolean) => onChange({ value: checked })}
+  onChange={handleChange}
   disabled={disabled}
   />
  );
@@ -130,7 +270,7 @@ const RuleEditorRow: React.FC<{
   value={rule.value as number}
   min={rule.minValue}
   max={rule.maxValue}
-  onChange={(e) => onChange({ value: parseInt(e.target.value) || 0 })}
+  onChange={handleChange2}
   disabled={disabled}
   className="w-24"
   />
@@ -145,7 +285,7 @@ const RuleEditorRow: React.FC<{
   return (
   <select
   value={rule.value as string}
-  onChange={(e) => onChange({ value: e.target.value })}
+  onChange={handleChange3}
   disabled={disabled}
   className="bg-background border border-input rounded-md px-3 py-2"
   >
@@ -160,7 +300,7 @@ const RuleEditorRow: React.FC<{
  return (
   <Input
   value={rule.value as string}
-  onChange={(e) => onChange({ value: e.target.value })}
+  onChange={handleChange4}
   disabled={disabled}
   className="w-48"
   />
@@ -183,7 +323,7 @@ const RuleEditorRow: React.FC<{
  return (
   <Input
   value={String(rule.value)}
-  onChange={(e) => onChange({ value: e.target.value })}
+  onChange={handleChange5}
   disabled={disabled}
   />
  );
@@ -233,7 +373,7 @@ const RulesCategorySection: React.FC<{
  return (
  <div className="mb-4">
  <button
- onClick={() => setExpanded(!expanded)}
+ onClick={handleClick}
  aria-expanded={expanded}
  className="flex items-center gap-2 w-full p-2 hover:bg-accent/50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
  >
@@ -261,7 +401,7 @@ const RulesCategorySection: React.FC<{
   <RuleEditorRow
   key={rule.id || 'unknown'}
   rule={rule}
-  onChange={(updates) => onChange(rule.id, updates)}
+  onChange={handleChange6}
   disabled={disabled}
   />
   ))}
@@ -394,7 +534,7 @@ const PolicyForm: React.FC<{
   <Input
   id="policyName"
   value={name}
-  onChange={(e) => { setName(e.target.value); setErrors(prev => prev.filter(e => e !== 'Le nom est requis')); }}
+  onChange={handleChange7}
   placeholder="Nom de la politique"
   className={cn(errors.includes('Le nom est requis') && 'border-destructive ring-destructive/20')}
   />
@@ -407,7 +547,7 @@ const PolicyForm: React.FC<{
   <Input
   id="policyDescription"
   value={description}
-  onChange={(e) => setDescription(e.target.value)}
+  onChange={handleChange8}
   placeholder="Description optionnelle"
   />
   </div>
@@ -419,7 +559,7 @@ const PolicyForm: React.FC<{
   <select
   id="policyScope"
   value={scope}
-  onChange={(e) => setScope(e.target.value as PolicyScope)}
+  onChange={handleChange9}
   className="w-full bg-background border border-input rounded-md px-3 py-2"
   disabled={!!policy}
   >
@@ -433,7 +573,7 @@ const PolicyForm: React.FC<{
   <select
   id="policyPriority"
   value={priority}
-  onChange={(e) => setPriority(e.target.value as PolicyPriority)}
+  onChange={handleChange10}
   className="w-full bg-background border border-input rounded-md px-3 py-2"
   >
   {POLICY_PRIORITIES.map(p => (
@@ -450,7 +590,7 @@ const PolicyForm: React.FC<{
   <select
   id="policyEnforcement"
   value={enforcement}
-  onChange={(e) => setEnforcement(e.target.value as EnforcementMode)}
+  onChange={handleChange11}
   className="w-full bg-background border border-input rounded-md px-3 py-2"
   >
   {ENFORCEMENT_MODES.map(m => (
@@ -470,13 +610,7 @@ const PolicyForm: React.FC<{
    key={group.id || 'unknown'}
    variant={targetGroupIds.includes(group.id) ? 'default' : 'outline'}
    className="cursor-pointer"
-   onClick={() => {
-   if (targetGroupIds.includes(group.id)) {
-   setTargetGroupIds(targetGroupIds.filter(id => id !== group.id));
-   } else {
-   setTargetGroupIds([...targetGroupIds, group.id]);
-   }
-   }}
+   onClick={handleClick14}
   >
    {group.name}
   </Badge>
@@ -538,12 +672,7 @@ const PolicyCard: React.FC<{
  isSelected && 'ring-2 ring-primary'
  )}
  onClick={onSelect}
- onKeyDown={(e) => {
- if (e.key === 'Enter' || e.key === ' ') {
-  e.preventDefault();
-  onSelect();
- }
- }}
+ onKeyDown={handleKeyDown}
  role="button"
  tabIndex={0}
  aria-pressed={isSelected}
@@ -579,7 +708,7 @@ const PolicyCard: React.FC<{
   variant="ghost"
   size="icon"
   className="h-8 w-8"
-  onClick={(e) => e.stopPropagation()}
+  onClick={handleClick2}
   >
   <MoreHorizontal className="h-4 w-4" />
   </Button>
@@ -877,10 +1006,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
   <Button
   variant="ghost"
   size="sm"
-  onClick={() => {
-  setEditingPolicy(null);
-  setIsCreating(false);
-  }}
+  onClick={handleClick15}
   >
   <ArrowLeft className="h-4 w-4 mr-1" />
   Retour
@@ -894,10 +1020,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
   policy={editingPolicy}
   groups={groups}
   onSave={handleSavePolicy}
-  onCancel={() => {
-  setEditingPolicy(null);
-  setIsCreating(false);
-  }}
+  onCancel={handleCancel}
  />
  </div>
  );
@@ -935,7 +1058,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
   <Button
   variant={scopeFilter === 'all' ? 'default' : 'ghost'}
   size="sm"
-  onClick={() => setScopeFilter('all')}
+  onClick={handleClick3}
   >
   Toutes
   </Button>
@@ -944,7 +1067,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
   key={scope || 'unknown'}
   variant={scopeFilter === scope ? 'default' : 'ghost'}
   size="sm"
-  onClick={() => setScopeFilter(scope)}
+  onClick={handleClick4}
   >
   {getScopeLabel(scope)}
   </Button>
@@ -952,7 +1075,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
   </div>
 
   {canCreate && (
-  <Button onClick={() => setIsCreating(true)}>
+  <Button onClick={handleClick5}>
   <Plus className="h-4 w-4 mr-1" />
   Politique
   </Button>
@@ -973,7 +1096,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
   <p className="text-sm text-muted-foreground mb-4">
   {t('policies.noFilterResultsDesc', { defaultValue: 'Aucune politique ne correspond à la portée sélectionnée.' })}
   </p>
-  <Button variant="outline" onClick={() => setScopeFilter('all')}>
+  <Button variant="outline" onClick={handleClick6}>
   {t('policies.clearFilter', { defaultValue: 'Afficher toutes les politiques' })}
   </Button>
   </>
@@ -984,7 +1107,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
   {t('policies.noPoliciesDesc', { defaultValue: 'Créez une politique pour configurer vos agents.' })}
   </p>
   {canCreate && (
-  <Button onClick={() => setIsCreating(true)}>
+  <Button onClick={handleClick7}>
    <Plus className="h-4 w-4 mr-1" />
    {t('policies.createPolicy', { defaultValue: 'Créer une politique' })}
   </Button>
@@ -1002,10 +1125,10 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
   onSelect={() => onSelectPolicy?.(
   selectedPolicyId === policy.id ? null : policy.id
   )}
-  onEdit={() => setEditingPolicy(policy)}
-  onToggle={() => handleTogglePolicy(policy.id)}
-  onDeploy={() => handleDeployPolicy(policy.id)}
-  onDelete={() => handleDeletePolicy(policy.id)}
+  onEdit={handleEdit}
+  onToggle={handleToggle}
+  onDeploy={handleDeploy}
+  onDelete={handleDelete}
   canUpdate={canUpdatePolicy}
   canDelete={canDeletePolicy}
   />
@@ -1028,7 +1151,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
   Cette action est irreversible.
   </p>
   <div className="flex justify-end gap-3">
-  <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
+  <Button variant="outline" onClick={handleClick8}>
    Annuler
   </Button>
   <Button variant="destructive" onClick={handleConfirmDelete}>
@@ -1057,11 +1180,11 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
   </div>
   <div className="flex gap-2">
   {saveSuccess.isNew && selectedPolicy && (
-   <Button size="sm" onClick={() => { handleDeployPolicy(selectedPolicy.id); setSaveSuccess(null); }}>
+   <Button size="sm" onClick={handleClick9}>
    <Play className="h-3 w-3 mr-1" /> Déployer
    </Button>
   )}
-  <Button size="sm" variant="ghost" onClick={() => setSaveSuccess(null)}>
+  <Button size="sm" variant="ghost" onClick={handleClick10}>
    <X className="h-3 w-3" />
   </Button>
   </div>
@@ -1096,7 +1219,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
   <Button
    variant="outline"
    size="sm"
-   onClick={() => handleRollbackPolicy(selectedPolicy.id)}
+   onClick={handleClick11}
    disabled={deployStatus === 'deploying' || rollingBack}
   >
    {rollingBack ? (
@@ -1112,7 +1235,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
   {canUpdatePolicy && (
   <Button
    size="sm"
-   onClick={() => handleDeployPolicy(selectedPolicy.id)}
+   onClick={handleClick12}
    disabled={deployStatus === 'deploying' || rollingBack}
   >
    {deployStatus === 'deploying' ? (
@@ -1128,7 +1251,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
   <Button
    variant="outline"
    size="sm"
-   onClick={() => setEditingPolicy(selectedPolicy)}
+   onClick={handleClick13}
   >
    <Edit className="h-4 w-4 mr-1" />
    Modifier
@@ -1141,7 +1264,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
   {/* Rules Summary by Category */}
   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
   {RULE_CATEGORIES.map(category => {
-  const count = selectedPolicy.rules.filter(r => r.category === category).length;
+  const count = useMemo(() => selectedPolicy.rules.filter(r => r.category === category).length, [selectedPolicy]);
   if (count === 0) return null;
   const Icon = CategoryIcons[category];
   return (

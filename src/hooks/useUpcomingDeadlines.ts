@@ -25,7 +25,7 @@ import i18n from '../i18n';
 /**
  * Timeline item types
  */
-export type TimelineItemType = 'action' | 'milestone' | 'audit' | 'document';
+// TimelineItemType is now re-exported from utils/colorSchemes
 
 /**
  * Timeline item for display
@@ -81,62 +81,9 @@ function calculateDaysUntilDue(dueDate: string): number {
  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
 
-/**
- * Get urgency color scheme based on days until due
- */
-export function getUrgencyColorScheme(
- daysUntilDue: number,
- isOverdue: boolean
-): 'danger' | 'warning' | 'normal' {
- if (isOverdue) return 'danger';
- if (daysUntilDue <= 7) return 'warning';
- return 'normal';
-}
-
-/**
- * Get Tailwind classes for urgency color
- */
-export const URGENCY_COLOR_CLASSES = {
- danger: {
- bg: 'bg-red-100 dark:bg-red-900/30',
- text: 'text-red-600 dark:text-red-400',
- border: 'border-red-200 dark:border-red-800',
- badge: 'bg-red-500 text-white',
- dot: 'bg-red-500',
- },
- warning: {
- bg: 'bg-orange-100 dark:bg-orange-900/30',
- text: 'text-orange-600 dark:text-orange-400',
- border: 'border-orange-200 dark:border-orange-800',
- badge: 'bg-orange-500 text-white',
- dot: 'bg-orange-500',
- },
- normal: {
- bg: 'bg-blue-50 dark:bg-blue-900/20',
- text: 'text-blue-600 dark:text-blue-400',
- border: 'border-blue-200 dark:border-blue-800',
- badge: 'bg-blue-500 text-white',
- dot: 'bg-blue-500',
- },
-} as const;
-
-/**
- * Get icon for timeline item type
- */
-export function getTimelineItemTypeLabel(type: TimelineItemType): string {
- switch (type) {
- case 'action':
- return i18n.t('deadlines.itemType.action', { defaultValue: 'Action' });
- case 'milestone':
- return i18n.t('deadlines.itemType.milestone', { defaultValue: 'Milestone' });
- case 'audit':
- return i18n.t('deadlines.itemType.audit', { defaultValue: 'Audit' });
- case 'document':
- return i18n.t('deadlines.itemType.document', { defaultValue: 'Document' });
- default:
- return i18n.t('deadlines.itemType.item', { defaultValue: 'Item' });
- }
-}
+// Re-export color scheme utilities (moved to utils/colorSchemes.ts to satisfy hooks naming convention)
+export { getUrgencyColorScheme, URGENCY_COLOR_CLASSES, getTimelineItemTypeLabel } from '../utils/colorSchemes';
+export type { TimelineItemType } from '../utils/colorSchemes';
 
 /**
  * Hook to fetch and monitor upcoming deadlines

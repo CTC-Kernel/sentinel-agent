@@ -87,7 +87,7 @@ export const CyberNewsWidget: React.FC = () => {
   e.stopPropagation();
   fetchNews(true);
   }}
-  className={`p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-primary ${loading ? 'animate-spin' : ''} focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50`}
+  className={`p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-primary ${loading ? 'animate-spin' : ''} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50`}
   title={t('dashboard.refresh')}
   aria-label="Rafraîchir"
  >
@@ -110,7 +110,7 @@ export const CyberNewsWidget: React.FC = () => {
   href={item.link}
   target="_blank"
   rel="noopener noreferrer"
-  className="block p-4 rounded-2xl bg-accent/40 hover:bg-accent border border-transparent hover:border-primary/30 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+  className="block p-4 rounded-2xl bg-accent/40 hover:bg-accent border border-transparent hover:border-primary/30 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <div className="flex justify-between items-start">
    <h4 className="font-bold text-sm text-foreground group-hover:text-primary line-clamp-2 mb-2">
@@ -137,7 +137,7 @@ export const CyberNewsWidget: React.FC = () => {
  {!isExpanded && news.length > 5 && (
   <div className="mt-3 text-center">
   <button
-  className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded px-2 py-1"
+  className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded px-2 py-1"
   onClick={() => setIsExpanded(true)}
   >
   +{news.length - 5} {t('common.more').toLowerCase()}

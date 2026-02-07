@@ -171,7 +171,7 @@ const VRNodeInfoPanel: React.FC<{ node: VoxelNode; onClose?: () => void }> = ({ 
  {onClose && (
  <button
  onClick={onClose}
- className="text-muted-foreground hover:text-foreground transition-colors"
+ className="text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
  <path d="M18 6L6 18M6 6l12 12" />

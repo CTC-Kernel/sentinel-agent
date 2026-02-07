@@ -83,8 +83,8 @@ function docToGroup(d: QueryDocumentSnapshot): AgentGroup {
  policyIds: data.policyIds || [],
  membershipCriteria: data.membershipCriteria || [],
  agentCount: data.agentCount || 0,
- createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
- updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+ createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date(Date.now()).toISOString(),
+ updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date(Date.now()).toISOString(),
  } as AgentGroup;
 }
 
@@ -108,8 +108,8 @@ function docToPolicy(d: QueryDocumentSnapshot): AgentPolicy {
  pendingAgentCount: data.pendingAgentCount || 0,
  appliedAgentCount: data.appliedAgentCount || 0,
  createdBy: data.createdBy || '',
- createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
- updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+ createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date(Date.now()).toISOString(),
+ updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date(Date.now()).toISOString(),
  } as AgentPolicy;
 }
 
@@ -130,7 +130,7 @@ export function subscribeToGroups(
  orderBy('sortOrder', 'asc')
  );
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const groups = snapshot.docs.map(d => docToGroup(d));
@@ -145,6 +145,7 @@ export function subscribeToGroups(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 /**
@@ -168,8 +169,8 @@ export async function getGroup(
  policyIds: data.policyIds || [],
  membershipCriteria: data.membershipCriteria || [],
  agentCount: data.agentCount || 0,
- createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
- updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+ createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date(Date.now()).toISOString(),
+ updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date(Date.now()).toISOString(),
  } as AgentGroup;
  } catch (error) {
  ErrorLogger.error(error, 'AgentPolicyService.getGroup', {
@@ -413,7 +414,7 @@ export function subscribeToPolicies(
  q = query(q, where('scope', '==', scope));
  }
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const policies = snapshot.docs.map(d => docToPolicy(d));
@@ -428,6 +429,7 @@ export function subscribeToPolicies(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 /**
@@ -462,8 +464,8 @@ export async function getPolicy(
  pendingAgentCount: data.pendingAgentCount || 0,
  appliedAgentCount: data.appliedAgentCount || 0,
  createdBy: data.createdBy || '',
- createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
- updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+ createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date(Date.now()).toISOString(),
+ updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date(Date.now()).toISOString(),
  } as AgentPolicy;
  } catch (error) {
  ErrorLogger.error(error, 'AgentPolicyService.getPolicy', {
@@ -913,7 +915,7 @@ export function subscribeToPolicyStats(
  onStats: (stats: PolicyStats | null) => void,
  onError?: (error: Error) => void
 ): Unsubscribe {
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  getPolicyStatsDoc(organizationId),
  (snapshot) => {
  if (snapshot.exists()) {
@@ -931,6 +933,7 @@ export function subscribeToPolicyStats(
  if (onError) onError(error);
  }
  );
+ return unsubscribe;
 }
 
 /**

@@ -25,8 +25,8 @@ const mockNodes = new Map<string, VoxelNode>([
  size: 1,
  data: {},
  connections: ['risk-1', 'control-1'],
- createdAt: new Date(),
- updatedAt: new Date(),
+ createdAt: new Date(Date.now()),
+ updatedAt: new Date(Date.now()),
  },
  ],
  [
@@ -40,8 +40,8 @@ const mockNodes = new Map<string, VoxelNode>([
  size: 1,
  data: {},
  connections: ['asset-1'],
- createdAt: new Date(),
- updatedAt: new Date(),
+ createdAt: new Date(Date.now()),
+ updatedAt: new Date(Date.now()),
  },
  ],
  [
@@ -55,8 +55,8 @@ const mockNodes = new Map<string, VoxelNode>([
  size: 1,
  data: {},
  connections: ['asset-1'],
- createdAt: new Date(),
- updatedAt: new Date(),
+ createdAt: new Date(Date.now()),
+ updatedAt: new Date(Date.now()),
  },
  ],
 ]);

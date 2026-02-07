@@ -24,14 +24,14 @@ describe('LifecycleTimeline', () => {
  const purchaseDate = '2024-01-15';
  render(<LifecycleTimeline status="En service" purchaseDate={purchaseDate} />);
 
- expect(screen.getByText(new Date(purchaseDate).toLocaleDateString())).toBeInTheDocument();
+ expect(screen.getByText(new Date(purchaseDate).toLocaleDateString('fr-FR'))).toBeInTheDocument();
  });
 
  it('renders warranty end date when provided', () => {
  const warrantyEnd = '2025-01-15';
  render(<LifecycleTimeline status="En service" warrantyEnd={warrantyEnd} />);
 
- expect(screen.getByText(new Date(warrantyEnd).toLocaleDateString())).toBeInTheDocument();
+ expect(screen.getByText(new Date(warrantyEnd).toLocaleDateString('fr-FR'))).toBeInTheDocument();
  });
 
  it('renders next maintenance date with prefix', () => {
@@ -130,7 +130,7 @@ describe('LifecycleTimeline', () => {
  const purchaseDate = '2024-03-15';
  render(<LifecycleTimeline status="En service" purchaseDate={purchaseDate} />);
 
- const formattedDate = new Date(purchaseDate).toLocaleDateString();
+ const formattedDate = new Date(purchaseDate).toLocaleDateString('fr-FR');
  expect(screen.getByText(formattedDate)).toBeInTheDocument();
  });
 
@@ -138,7 +138,7 @@ describe('LifecycleTimeline', () => {
  const warrantyEnd = '2026-03-15';
  render(<LifecycleTimeline status="En service" warrantyEnd={warrantyEnd} />);
 
- const formattedDate = new Date(warrantyEnd).toLocaleDateString();
+ const formattedDate = new Date(warrantyEnd).toLocaleDateString('fr-FR');
  expect(screen.getByText(formattedDate)).toBeInTheDocument();
  });
  });

@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, updateDoc, doc, writeBatch, setDoc, getDoc, deleteDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, query, where, updateDoc, doc, writeBatch, setDoc, getDoc, deleteDoc, serverTimestamp, Timestamp, limit } from 'firebase/firestore';
 import { ref, getDownloadURL, deleteObject, uploadBytes } from 'firebase/storage';
 import { db, storage } from '../firebase';
 import { logAction } from './logger';
@@ -75,7 +75,7 @@ export class BackupService {
 
  for (const collectionName of metadata.collections) {
  try {
- const snapshot = await getDocs(query(collection(db, collectionName), where('organizationId', '==', user.organizationId)));
+ const snapshot = await getDocs(query(collection(db, collectionName), where('organizationId', '==', user.organizationId), limit(5000)));
  const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
  backupData[collectionName] = data;
  totalSize += JSON.stringify(data).length;

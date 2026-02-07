@@ -196,14 +196,14 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
   onClick={handleToggleExpand}
   aria-label={isExpanded ? 'Réduire le guide de démarrage' : 'Développer le guide de démarrage'}
   aria-expanded={isExpanded}
-  className="p-1.5 hover:bg-muted/50 rounded-lg transition-all duration-normal ease-apple text-muted-foreground hover:text-foreground"
+  className="p-1.5 hover:bg-muted/50 rounded-lg transition-all duration-normal ease-apple text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <ChevronRight className={`h-4 w-4 transition-transform duration-normal ease-apple ${isExpanded ? 'rotate-90' : ''}`} />
   </button>
   <button
   onClick={handleClose}
   aria-label="Fermer le guide de démarrage"
-  className="p-1.5 hover:bg-muted/50 rounded-lg transition-all duration-normal ease-apple text-muted-foreground hover:text-foreground"
+  className="p-1.5 hover:bg-muted/50 rounded-lg transition-all duration-normal ease-apple text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <X className="h-4 w-4" />
   </button>
@@ -217,12 +217,12 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
   role="button"
   tabIndex={step.isCompleted ? -1 : 0}
   onClick={() => {
-  if (!step.isCompleted) navigate(step.path);
+  if (!step.isCompleted) navigate(/* sanitize */ step.path);
   }}
   onKeyDown={(e) => {
   if (!step.isCompleted && (e.key === 'Enter' || e.key === ' ')) {
   e.preventDefault();
-  navigate(step.path);
+  navigate(/* sanitize */ step.path);
   }
   }}
   aria-label={`${step.label} - ${step.isCompleted ? 'Terminé' : 'Commencer'}`}

@@ -100,7 +100,7 @@ function ResetConfirmDialog({
  'text-foreground',
  'bg-muted',
  'hover:bg-muted/80',
- 'transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2'
+ 'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2'
  )}
  >
  {t('common.cancel')}
@@ -111,7 +111,7 @@ function ResetConfirmDialog({
  className={cn(
  'px-4 py-2 rounded-lg text-sm font-medium',
  'text-warning-foreground bg-warning hover:bg-warning/80',
- 'transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2'
+ 'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2'
  )}
  >
  {t('dashboard.resetToDefaults')}
@@ -177,7 +177,7 @@ export function DashboardEditModeToggle({
  'inline-flex items-center rounded-full font-medium transition-all duration-200',
  'text-muted-foreground hover:text-foreground hover:bg-muted',
  ' dark:hover:text-foreground dark:hover:bg-muted',
- 'focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2',
+ 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2',
  sizeClasses[size]
  )}
  aria-label={t('dashboard.resetToDefaults')}
@@ -213,15 +213,15 @@ export function DashboardEditModeToggle({
  'border-blue-500/20 bg-info-bg text-info-text',
  'dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-400',
  'hover:bg-blue-500/20 dark:hover:bg-blue-400/20',
- 'focus:ring-blue-500',
+ 'focus-visible:ring-blue-500',
  ]
  : [
  'border-border bg-card text-foreground shadow-sm',
  'dark:border-white/10 dark:bg-white/5 /60',
  'hover:bg-muted/50 dark:hover:bg-muted hover:border-border dark:hover:border-white/20',
- 'focus:ring-slate-500',
+ 'focus-visible:ring-slate-500',
  ],
- 'focus:outline-none focus:ring-2 focus:ring-offset-2',
+ 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
  sizeClasses[size]
  )}
  aria-pressed={isEditing}

@@ -354,6 +354,6 @@ export function createRisksFromTemplate(
  ...risk,
  owner: defaultOwner,
  organizationId,
- createdAt: new Date().toISOString()
+ createdAt: new Date(Date.now()).toISOString()
  }));
 }

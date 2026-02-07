@@ -42,7 +42,7 @@ export const RiskFormIdentificationTab: React.FC<RiskFormIdentificationTabProps>
   <button
   type="button"
   onClick={() => setShowLibraryModal(true)}
-  className="p-1 px-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl text-xs font-bold transition-all duration-normal ease-apple flex items-center border border-primary/20"
+  className="p-1 px-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl text-xs font-bold transition-all duration-normal ease-apple flex items-center border border-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <BookOpen className="h-3 w-3 mr-1" /> {t('common.library') || "Biblio"}
   </button>

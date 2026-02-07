@@ -11,14 +11,8 @@ import type { ControlEffectivenessAssessment, DomainMaturityScore } from '../../
 import { ISO_DOMAINS } from '../../data/complianceData';
 import { useFirestoreCollection } from '../useFirestore';
 
-// ISO 27002 Domain maturity level thresholds
-export const MATURITY_THRESHOLDS = {
- 1: { min: 0, max: 20, label: 'Initial', description: 'Pratiques ad-hoc, non formalisées' },
- 2: { min: 20, max: 40, label: 'Géré', description: 'Processus documentés mais non systématiques' },
- 3: { min: 40, max: 60, label: 'Défini', description: 'Processus standardisés et systématiques' },
- 4: { min: 60, max: 80, label: 'Mesuré', description: 'Mesure et amélioration continue' },
- 5: { min: 80, max: 100, label: 'Optimisé', description: 'Amélioration continue et excellence' },
-} as const;
+// Re-export MATURITY_THRESHOLDS (moved to constants/maturityThresholds.ts to satisfy hooks naming convention)
+export { MATURITY_THRESHOLDS } from '../../constants/maturityThresholds';
 
 export interface ControlAssessmentInput {
  controlId: string;

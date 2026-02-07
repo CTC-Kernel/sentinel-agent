@@ -43,7 +43,7 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
  onClick={() => onClick(supplier)}
  onKeyDown={handleKeyDown}
  aria-label={`${supplier.name} - ${supplier.category} - ${supplier.criticality}`}
- className="glass-premium p-4 sm:p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-border/40 relative overflow-hidden h-full transition-colors w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+ className="glass-premium p-4 sm:p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-border/40 relative overflow-hidden h-full transition-colors w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
  >
  <div className="absolute inset-0 bg-gradient-to-br from-white/30 dark:from-white/5 to-transparent pointer-events-none" />
  <div className="relative z-decorator flex flex-col h-full">
@@ -77,7 +77,7 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
   <div className="flex justify-between text-xs">
   <span className="text-muted-foreground">{t('suppliers.card.contract', { defaultValue: 'Contrat' })}</span>
   {supplier.contractEnd ? (
-  <span className={`font-medium ${isExpired ? 'text-destructive' : 'text-foreground'}`}>{new Date(supplier.contractEnd).toLocaleDateString()}</span>
+  <span className={`font-medium ${isExpired ? 'text-destructive' : 'text-foreground'}`}>{new Date(supplier.contractEnd).toLocaleDateString('fr-FR')}</span>
   ) : <span className="text-muted-foreground">-</span>}
   </div>
  </div>
@@ -87,7 +87,7 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
   {supplier.contactName && (
   <div className="flex items-center gap-2">
   {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
-  <img
+  <img alt={`Avatar de ${supplier.contactName}`}
    src={(() => {
    const contactUser = users?.find(u =>
    (supplier.contactName && u.displayName === supplier.contactName) ||
@@ -95,7 +95,6 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
    );
    return getUserAvatarUrl(contactUser?.photoURL, contactUser?.role || 'user');
    })()}
-   alt={`Avatar de ${supplier.contactName}`}
    className="w-5 h-5 rounded-full object-cover bg-muted"
    onError={(e) => {
    const target = e.target as HTMLImageElement;

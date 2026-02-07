@@ -169,8 +169,8 @@ describe('useVoxelRealtime', () => {
  data: () => ({
   name: 'Test Asset',
   status: 'active',
-  createdAt: { toDate: () => new Date() },
-  updatedAt: { toDate: () => new Date() },
+  createdAt: { toDate: () => new Date(Date.now()) },
+  updatedAt: { toDate: () => new Date(Date.now()) },
  }),
  },
  },
@@ -210,8 +210,8 @@ describe('useVoxelRealtime', () => {
  data: () => ({
   name: 'Updated Asset',
   status: 'inactive',
-  createdAt: { toDate: () => new Date() },
-  updatedAt: { toDate: () => new Date() },
+  createdAt: { toDate: () => new Date(Date.now()) },
+  updatedAt: { toDate: () => new Date(Date.now()) },
  }),
  },
  },

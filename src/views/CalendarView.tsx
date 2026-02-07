@@ -28,9 +28,8 @@ export const CalendarView: React.FC = () => {
  title={t('calendar.title')}
  subtitle={t('calendar.subtitle')}
  icon={
-  <img
+  <img alt="PILOTAGE"
   src="/images/pilotage.png"
-  alt="PILOTAGE"
   className="w-full h-full object-contain"
   />
  }

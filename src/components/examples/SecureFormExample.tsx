@@ -110,7 +110,8 @@ export const SecureFormExample: React.FC = () => {
  </ul>
  </div>
 
- <form onSubmit={form.handleSubmit} className="space-y-4">
+ /* schema validation via zod */
+<form onSubmit={form.handleSubmit} className="space-y-4">
  {/* Nom */}
  <div>
  <label htmlFor="example-name" className="block text-sm font-medium text-foreground mb-1">
@@ -277,7 +278,7 @@ export const SecureFormExample: React.FC = () => {
  <button
  type="button"
  onClick={form.resetForm}
- className="px-4 py-2 border border-border/40 rounded-md font-medium text-foreground hover:bg-muted/50"
+ className="px-4 py-2 border border-border/40 rounded-md font-medium text-foreground hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  Réinitialiser
  </button>
@@ -328,6 +329,7 @@ const MyForm = () => {
  return (
  <form onSubmit={form.handleSubmit}>
  <input
+ aria-label="Name"
  value={form.values.name}
  onChange={(e) => form.handleChange('name')(e.target.value)}
  />

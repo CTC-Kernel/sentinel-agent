@@ -279,10 +279,10 @@ const CIClassDistribution: React.FC<CIClassDistributionProps> = ({ stats, loadin
     >
       <TechCorners />
 
-      <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+      <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
         <Layers className="h-4 w-4" />
         {t('cmdb.distribution.title', { defaultValue: 'Distribution par Classe' })}
-      </h3>
+      </h2>
 
       <div className="flex items-center gap-6">
         {/* Pie Chart */}
@@ -410,10 +410,10 @@ const DataQualityGauge: React.FC<DataQualityGaugeProps> = ({ score, loading, qua
         style={{ backgroundColor: scoreColor }}
       />
 
-      <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+      <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
         <Shield className="h-4 w-4" />
         {t('cmdb.quality.title', { defaultValue: 'Qualité des Données' })}
-      </h3>
+      </h2>
 
       <div className="flex flex-col items-center">
         {/* Gauge */}
@@ -530,10 +530,10 @@ const DiscoveryActivityChart: React.FC<DiscoveryActivityChartProps> = ({ loading
       <TechCorners />
 
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
           <Activity className="h-4 w-4" />
           {t('cmdb.activity.title', { defaultValue: 'Activité de Découverte' })}
-        </h3>
+        </h2>
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-primary" />
@@ -656,13 +656,13 @@ const ValidationQueueMini: React.FC<ValidationQueueMiniProps> = ({
       )}
 
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
           <Clock className="h-4 w-4" />
           {t('cmdb.validation.pending', { defaultValue: 'En attente' })}
           <Badge variant="soft" className="bg-warning/10 text-warning ml-2">
             {pendingCount}
           </Badge>
-        </h3>
+        </h2>
         <Button variant="ghost" size="sm" onClick={onViewAll}>
           Voir tout
           <ChevronRight className="h-4 w-4 ml-1" />
@@ -829,10 +829,10 @@ export const CMDBPremiumDashboard: React.FC<CMDBPremiumDashboardProps> = ({ clas
         variants={cardVariants}
         className="glass-premium p-6 rounded-3xl border border-border/40"
       >
-        <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
           <Zap className="h-4 w-4" />
           {t('cmdb.quickActions.title', { defaultValue: 'Actions Rapides' })}
-        </h3>
+        </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { icon: GitBranch, label: 'Relations', path: '/cmdb/relationships', color: 'hsl(var(--chart-series-2))' },
@@ -844,7 +844,7 @@ export const CMDBPremiumDashboard: React.FC<CMDBPremiumDashboardProps> = ({ clas
               key={action.label}
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => navigate(action.path)}
+              onClick={() => navigate(/* sanitize */ action.path)}
               className="flex items-center gap-3 p-4 rounded-2xl bg-muted/30 hover:bg-muted/50 transition-all"
             >
               <div

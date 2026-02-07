@@ -20,8 +20,8 @@ describe('ContinuitySummaryCard', () => {
  priority: 'Élevée',
  supportingAssetIds: [],
  organizationId: 'org-1',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides
  });
 
@@ -32,7 +32,7 @@ describe('ContinuitySummaryCard', () => {
  type: 'Tabletop',
  result: 'Succès',
  organizationId: 'org-1',
- createdAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
  ...overrides
  });
 

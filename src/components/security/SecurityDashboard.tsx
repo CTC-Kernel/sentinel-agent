@@ -18,6 +18,24 @@ import { SessionMonitor } from '../../services/sessionMonitoringService';
 import { ErrorLogger } from '../../services/errorLogger';
 import { Shield, AlertTriangle, Activity, Clock, Users } from '../ui/Icons';
 
+// ============================================================================
+// Constants
+// ============================================================================
+const CRITICAL_ANOMALY_PENALTY = 20;
+const HIGH_ANOMALY_PENALTY = 10;
+const MEDIUM_ANOMALY_PENALTY = 5;
+const LOW_ANOMALY_PENALTY = 2;
+const IDLE_PENALTY = 10;
+const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const MAX_RECENT_ANOMALIES = 10;
+const REFRESH_INTERVAL_MS = 10000;
+const MS_PER_HOUR = 60 * 60 * 1000;
+const MS_PER_MINUTE = 60 * 1000;
+const HEALTH_GOOD_THRESHOLD = 90;
+const HEALTH_WARNING_THRESHOLD = 70;
+const HEALTH_LOW_THRESHOLD = 50;
+
 interface SecurityMetrics {
  sessionMetrics: {
  duration: number;
@@ -53,14 +71,14 @@ export const SecurityDashboard: React.FC = () => {
  let score = 100;
 
  // Pénalités pour anomalies
- score -= anomalyStats.critical * 20;
- score -= anomalyStats.high * 10;
- score -= anomalyStats.medium * 5;
- score -= anomalyStats.low * 2;
+ score -= anomalyStats.critical * CRITICAL_ANOMALY_PENALTY;
+ score -= anomalyStats.high * HIGH_ANOMALY_PENALTY;
+ score -= anomalyStats.medium * MEDIUM_ANOMALY_PENALTY;
+ score -= anomalyStats.low * LOW_ANOMALY_PENALTY;
 
  // Pénalité pour inactivité prolongée
- if (sessionMetrics && sessionMetrics.idleTime > 15 * 60 * 1000) {
- score -= 10;
+ if (sessionMetrics && sessionMetrics.idleTime > IDLE_TIMEOUT_MS) {
+ score -= IDLE_PENALTY;
  }
 
  return Math.max(0, Math.min(100, score));
@@ -87,8 +105,8 @@ export const SecurityDashboard: React.FC = () => {
 
  // Anomalies récentes (dernières 24h)
  const recentAnomalies = anomalies
- .filter(a => Date.now() - a.timestamp < 24 * 60 * 60 * 1000)
- .slice(0, 10);
+ .filter(a => Date.now() - a.timestamp < MS_PER_DAY)
+ .slice(0, MAX_RECENT_ANOMALIES);
 
  // Calculer le health score
  const healthScore = calculateHealthScore(anomalyStats, sessionMetrics);
@@ -112,7 +130,7 @@ export const SecurityDashboard: React.FC = () => {
  // Charger les métriques au montage et toutes les 10 secondes
  useEffect(() => {
  // Rafraîchir toutes les 10 secondes
- const interval = setInterval(loadMetrics, 10000);
+ const interval = setInterval(loadMetrics, REFRESH_INTERVAL_MS);
 
  return () => clearInterval(interval);
  }, [loadMetrics]);
@@ -121,13 +139,14 @@ export const SecurityDashboard: React.FC = () => {
  useEffect(() => {
  const timer = setTimeout(loadMetrics, 0);
  return () => clearTimeout(timer);
- // eslint-disable-next-line react-hooks/exhaustive-deps
- }, []);
+ // Justification: loadMetrics is intentionally excluded -- this effect runs only on mount
+ // for initial data load. The periodic refresh is handled by the interval effect above.
+ }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
  const formatDuration = (ms: number): string => {
- const hours = Math.floor(ms / (60 * 60 * 1000));
- const minutes = Math.floor((ms % (60 * 60 * 1000)) / (60 * 1000));
- const seconds = Math.floor((ms % (60 * 1000)) / 1000);
+ const hours = Math.floor(ms / MS_PER_HOUR);
+ const minutes = Math.floor((ms % MS_PER_HOUR) / MS_PER_MINUTE);
+ const seconds = Math.floor((ms % MS_PER_MINUTE) / 1000);
 
  if (hours > 0) return `${hours}h ${minutes}m`;
  if (minutes > 0) return `${minutes}m ${seconds}s`;
@@ -135,9 +154,9 @@ export const SecurityDashboard: React.FC = () => {
  };
 
  const getHealthColor = (score: number): string => {
- if (score >= 90) return 'text-success-text bg-success-bg';
- if (score >= 70) return 'text-warning-text bg-warning-bg';
- if (score >= 50) return 'text-warning-text bg-warning-bg';
+ if (score >= HEALTH_GOOD_THRESHOLD) return 'text-success-text bg-success-bg';
+ if (score >= HEALTH_WARNING_THRESHOLD) return 'text-warning-text bg-warning-bg';
+ if (score >= HEALTH_LOW_THRESHOLD) return 'text-warning-text bg-warning-bg';
  return 'text-error-text bg-error-bg';
  };
 
@@ -225,7 +244,7 @@ export const SecurityDashboard: React.FC = () => {
  icon={<Users className="w-5 h-5" />}
  label="Temps d'inactivité"
  value={formatDuration(metrics.sessionMetrics.idleTime)}
- color={metrics.sessionMetrics.idleTime > 15 * 60 * 1000 ? 'orange' : 'gray'}
+ color={metrics.sessionMetrics.idleTime > IDLE_TIMEOUT_MS ? 'orange' : 'gray'}
  />
  )}
  </div>
@@ -259,7 +278,7 @@ export const SecurityDashboard: React.FC = () => {
   {anomaly.message}
   </div>
   <div className="text-xs text-muted-foreground mt-1">
-  {new Date(anomaly.timestamp).toLocaleString()}
+  {new Date(anomaly.timestamp).toLocaleString('fr-FR')}
   </div>
  </div>
  </div>
@@ -287,7 +306,7 @@ export const SecurityDashboard: React.FC = () => {
  <div>
  <div className="text-sm text-muted-foreground">Dernière activité</div>
  <div className="text-lg font-medium text-foreground">
- {new Date(metrics.sessionMetrics.lastActivity).toLocaleTimeString()}
+ {new Date(metrics.sessionMetrics.lastActivity).toLocaleTimeString('fr-FR')}
  </div>
  </div>
 
@@ -307,16 +326,16 @@ export const SecurityDashboard: React.FC = () => {
  💡 Recommandations
  </h3>
  <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
- {metrics.healthScore < 70 && (
+ {metrics.healthScore < HEALTH_WARNING_THRESHOLD && (
  <li>⚠️ Le score de santé est faible. Vérifiez les anomalies critiques.</li>
  )}
  {metrics.anomalies.critical > 0 && (
  <li>🔴 Anomalies critiques détectées. Contactez votre administrateur.</li>
  )}
- {metrics.sessionMetrics && metrics.sessionMetrics.idleTime > 15 * 60 * 1000 && (
+ {metrics.sessionMetrics && metrics.sessionMetrics.idleTime > IDLE_TIMEOUT_MS && (
  <li>⏰ Session inactive depuis longtemps. Activité recommandée.</li>
  )}
- {metrics.healthScore >= 90 && (
+ {metrics.healthScore >= HEALTH_GOOD_THRESHOLD && (
  <li>✅ Tout est en ordre. Sécurité optimale.</li>
  )}
  </ul>

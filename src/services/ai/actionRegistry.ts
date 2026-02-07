@@ -8,6 +8,7 @@ import { db } from '../../firebase';
 import { logAction } from '../logger';
 import { canEditResource, canDeleteResource, hasPermission } from '../../utils/permissions';
 import { sanitizeData } from '../../utils/dataSanitizer';
+import { ErrorLogger } from '../errorLogger';
 
 /** Risk update fields for Firestore */
 interface RiskUpdateFields {
@@ -111,10 +112,15 @@ export const ActionRegistry: Record<AIActionType, AIActionDefinition> = {
  if (data.impact) updates.impact = data.impact;
  if (data.description) updates.description = data.description;
 
- await updateDoc(riskRef, sanitizeData(updates as Record<string, unknown>));
- await logAction(user, 'UPDATE', 'Risk', `Mise à jour Risque via IA: ${data.id}`);
-
- return `Le risque a été mis à jour (Statut: ${data.status || 'Inchangé'}).`;
+ try {
+  await updateDoc(riskRef, sanitizeData(updates as Record<string, unknown>));
+   await logAction(user, 'UPDATE', 'Risk', `Mise à jour Risque via IA: ${data.id}`);
+  
+   return `Le risque a été mis à jour (Statut: ${data.status || 'Inchangé'}).`;
+      } catch (error) {
+        ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la mise a jour du risque via IA');
+        throw error;
+      }
  }
  },
  [AIActionType.BULK_DELETE_ASSETS]: {

@@ -137,7 +137,7 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
  tabIndex={0}
  aria-label={t('agents.widget.viewDetails')}
  >
- <div className="absolute inset-0 rounded-full border border-primary/10 animate-pulse" />
+ <div className="absolute inset-0 rounded-full border border-primary/10 animate-pulse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" />
  <div className="absolute inset-4 rounded-full border border-primary/5 animate-ping opacity-20" style={{ animationDuration: '4s' }} />
 
  <div className="absolute inset-0 rounded-full bg-card/30 backdrop-blur-xl border border-white/10 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] overflow-hidden">
@@ -152,7 +152,7 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
   {blips.map(blip => (
   <div
   key={blip.id || 'unknown'}
-  className="absolute w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-ping"
+  className="absolute w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_hsl(var(--success))] animate-ping"
   style={{
   left: `${blip.x}%`,
   top: `${blip.y}%`,
@@ -240,7 +240,7 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
   }}
   role="button"
   tabIndex={0}>
-  <div className="flex items-start gap-3">
+  <div className="flex items-start gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
   <div className="p-2 rounded-xl bg-primary/20 text-primary animate-pulse">
   <BrainCircuit className="w-5 h-5" />
   </div>
@@ -269,11 +269,11 @@ export const AgentMaturityRadarWidget: React.FC<AgentMaturityRadarWidgetProps> =
 
  <div className="mt-4 flex gap-4 opacity-60 group-hover/radar:opacity-100 transition-opacity">
  <div className="flex items-center gap-1.5">
-  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981]" />
+  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_hsl(var(--success))]" />
   <span className="text-xs font-bold text-muted-foreground uppercase">{agents.filter(a => a.status === 'active').length} Ligne</span>
  </div>
  <div className="flex items-center gap-1.5">
-  <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_5px_#ef4444]" />
+  <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_5px_hsl(var(--destructive))]" />
   <span className="text-xs font-bold text-muted-foreground uppercase">{agents.filter(a => a.status === 'error').length} Alerte</span>
  </div>
  <div className="flex items-center gap-1.5">

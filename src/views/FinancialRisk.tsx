@@ -7,8 +7,9 @@
  * Main view for FAIR risk quantification and simulation.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useLocale } from '@/hooks/useLocale';
+import { useAuth } from '@/hooks/useAuth';
 import {
  Calculator,
  Plus,
@@ -165,6 +166,11 @@ interface FinancialRiskProps {
 
 export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false }) => {
  const { t } = useLocale();
+ const { user } = useAuth();
+
+ // RBAC: Only admin/rssi can perform sensitive financial risk actions
+ const canManageRisk = user?.role === 'admin' || user?.role === 'rssi' || user?.role === 'super_admin';
+
  const {
  configurations,
  selectedConfig,
@@ -315,6 +321,16 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
  );
  }
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <div className={hideHeader ? "" : "container mx-auto py-6 px-4"}>
  {!hideHeader && (
@@ -392,7 +408,7 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
  </DialogDescription>
  </DialogHeader>
  <FAIRSimpleForm
- onSubmit={handleCreateSubmit}
+ /* validate */ onSubmit={handleCreateSubmit}
  onCancel={() => setCreateDialogOpen(false)}
  loading={loading}
  />

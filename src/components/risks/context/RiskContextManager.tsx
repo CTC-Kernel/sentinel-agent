@@ -4,7 +4,7 @@
  * business context, regulatory context, risk appetite, and evaluation criteria.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRiskContext } from '../../../hooks/risks/useRiskContext';
 import { useStore } from '../../../store';
@@ -74,7 +74,163 @@ export const RiskContextManager: React.FC = () => {
  icon: t.icon
  })), []);
 
+  // Extracted callbacks (useCallback)
+  const handleSave = useCallback((data) => {
+    handleSave(() => updateBusinessContext(data))
+  }, []);
+
+  const handleSave2 = useCallback((data) => {
+    handleSave(() => updateRegulatoryContext(data))
+  }, []);
+
+  const handleAddRegulation = useCallback((reg) => {
+    handleSave(() => addRegulation(reg))
+  }, []);
+
+  const handleRemoveRegulation = useCallback((id) => {
+    handleSave(() => removeRegulation(id))
+  }, []);
+
+  const handleSave3 = useCallback((data) => {
+    handleSave(() => updateRiskAppetite(data))
+  }, []);
+
+  const handleSave4 = useCallback((data) => {
+    handleSave(() => updateEvaluationCriteria(data))
+  }, []);
+
+  const handleKeyPress = useCallback((e) => {
+    e.key === 'Enter' && addItem('activities', newActivity, setNewActivity)
+  }, []);
+
+  const handleKeyPress2 = useCallback((e) => {
+    e.key === 'Enter' && addItem('objectives', newObjective, setNewObjective)
+  }, []);
+
+  const handleKeyPress3 = useCallback((e) => {
+    e.key === 'Enter' && addItem('criticalProcesses', newProcess, setNewProcess)
+  }, []);
+
+  const handleClick = useCallback(() => {
+    onSave(formData)
+  }, []);
+
+  const handleChange = useCallback((e) => {
+    setFormData(prev => ({ ...prev, description: e.target.value }))
+  }, []);
+
+  const handleChange2 = useCallback((e) => {
+    setNewActivity(e.target.value)
+  }, []);
+
+  const handleClick2 = useCallback(() => {
+    addItem('activities', newActivity, setNewActivity)
+  }, []);
+
+  const handleClick3 = useCallback(() => {
+    removeItem('activities', index)
+  }, []);
+
+  const handleChange3 = useCallback((e) => {
+    setNewObjective(e.target.value)
+  }, []);
+
+  const handleClick4 = useCallback(() => {
+    addItem('objectives', newObjective, setNewObjective)
+  }, []);
+
+  const handleClick5 = useCallback(() => {
+    removeItem('objectives', index)
+  }, []);
+
+  const handleChange4 = useCallback((e) => {
+    setNewProcess(e.target.value)
+  }, []);
+
+  const handleClick6 = useCallback(() => {
+    addItem('criticalProcesses', newProcess, setNewProcess)
+  }, []);
+
+  const handleClick7 = useCallback(() => {
+    removeItem('criticalProcesses', index)
+  }, []);
+
+  const handleClick8 = useCallback(() => {
+    setShowAddForm(true)
+  }, []);
+
+  const handleClick9 = useCallback(() => {
+    onSave({ ...data, description })
+  }, []);
+
+  const handleChange5 = useCallback((e) => {
+    setDescription(e.target.value)
+  }, []);
+
+  const handleChange6 = useCallback((e) => {
+    setNewRegulation(prev => ({ ...prev, name: e.target.value }))
+  }, []);
+
+  const handleChange7 = useCallback((e) => {
+    setNewRegulation(prev => ({ ...prev, framework: e.target.value }))
+  }, []);
+
+  const handleChange8 = useCallback((e) => {
+    setNewRegulation(prev => ({ ...prev, obligations: e.target.value }))
+  }, []);
+
+  const handleChange9 = useCallback((e) => {
+    setNewRegulation(prev => ({ ...prev, deadline: e.target.value }))
+  }, []);
+
+  const handleClick10 = useCallback(() => {
+    setShowAddForm(false)
+  }, []);
+
+  const handleClick11 = useCallback(() => {
+    onRemoveRegulation(reg.id)
+  }, []);
+
+  const handleClick12 = useCallback(() => {
+    onSave(formData)
+  }, []);
+
+  const handleChange10 = useCallback((e) => {
+    setFormData(prev => ({ ...prev, description: e.target.value }))
+  }, []);
+
+  const handleChange11 = useCallback((e) => {
+    updateLevel(level, parseInt(e.target.value) || 1)
+  }, []);
+
+  const handleChange12 = useCallback((e) => {
+    updateThreshold('automatic', parseInt(e.target.value) || 1)
+  }, []);
+
+  const handleChange13 = useCallback((e) => {
+    updateThreshold('management', parseInt(e.target.value) || 1)
+  }, []);
+
+  const handleChange14 = useCallback((e) => {
+    updateThreshold('board', parseInt(e.target.value) || 1)
+  }, []);
+
+  const handleChange15 = useCallback((e) => {
+    onUpdate(type, index, 'name', e.target.value)
+  }, []);
+
+  const handleChange16 = useCallback((e) => {
+    onUpdate(type, index, 'description', e.target.value)
+  }, []);
+
+  const handleClick13 = useCallback(() => {
+    onSave(formData)
+  }, []);
+
  if (loading) {
+
+
+
  return (
  <div className="space-y-6">
  <Skeleton className="h-12 w-64" />
@@ -133,30 +289,30 @@ export const RiskContextManager: React.FC = () => {
  {activeTab === 'business' && (
  <BusinessContextTab
  data={riskContext.businessContext}
- onSave={(data) => handleSave(() => updateBusinessContext(data))}
+ onSave={handleSave}
  isSaving={isSaving}
  />
  )}
  {activeTab === 'regulatory' && (
  <RegulatoryContextTab
  data={riskContext.regulatoryContext}
- onSave={(data) => handleSave(() => updateRegulatoryContext(data))}
- onAddRegulation={(reg) => handleSave(() => addRegulation(reg))}
- onRemoveRegulation={(id) => handleSave(() => removeRegulation(id))}
+ onSave={handleSave2}
+ onAddRegulation={handleAddRegulation}
+ onRemoveRegulation={handleRemoveRegulation}
  isSaving={isSaving}
  />
  )}
  {activeTab === 'appetite' && (
  <RiskAppetiteTab
  data={riskContext.riskAppetite}
- onSave={(data) => handleSave(() => updateRiskAppetite(data))}
+ onSave={handleSave3}
  isSaving={isSaving}
  />
  )}
  {activeTab === 'criteria' && (
  <EvaluationCriteriaTab
  data={riskContext.evaluationCriteria}
- onSave={(data) => handleSave(() => updateEvaluationCriteria(data))}
+ onSave={handleSave4}
  isSaving={isSaving}
  />
  )}
@@ -210,7 +366,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
  <p className="text-sm text-muted-foreground">Définissez les activités, objectifs et processus critiques de votre organisation</p>
  </div>
  </div>
- <Button onClick={() => onSave(formData)} disabled={isSaving}>
+ <Button onClick={handleClick} disabled={isSaving}>
  <Save className="w-4 h-4 mr-2" />
  {isSaving ? 'Sauvegarde...' : 'Enregistrer'}
  </Button>
@@ -225,7 +381,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
  <textarea
  id="business-description"
  value={formData.description || ''}
- onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+ onChange={handleChange}
  rows={3}
  className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-card text-foreground resize-none"
  placeholder="Décrivez le contexte business de votre organisation..."
@@ -242,12 +398,12 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
  id="new-activity"
  type="text"
  value={newActivity}
- onChange={(e) => setNewActivity(e.target.value)}
- onKeyPress={(e) => e.key === 'Enter' && addItem('activities', newActivity, setNewActivity)}
+ onChange={handleChange2}
+ onKeyPress={handleKeyPress}
  className="flex-1 px-4 py-2 rounded-3xl border border-border/40 bg-card text-foreground"
  placeholder="Ajouter une activité..."
  />
- <Button variant="outline" onClick={() => addItem('activities', newActivity, setNewActivity)} aria-label="Ajouter l'activité">
+ <Button variant="outline" onClick={handleClick2} aria-label="Ajouter l'activité">
  <Plus className="w-4 h-4" />
  </Button>
  </div>
@@ -256,7 +412,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
  <Badge key={index || 'unknown'} variant="soft" className="gap-1.5 py-1.5">
  {activity}
  <button
-  onClick={() => removeItem('activities', index)}
+  onClick={handleClick3}
   className="ml-1 hover:text-red-500"
   aria-label={`Supprimer l'activité ${activity}`}
  >
@@ -277,12 +433,12 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
  id="new-objective"
  type="text"
  value={newObjective}
- onChange={(e) => setNewObjective(e.target.value)}
- onKeyPress={(e) => e.key === 'Enter' && addItem('objectives', newObjective, setNewObjective)}
+ onChange={handleChange3}
+ onKeyPress={handleKeyPress2}
  className="flex-1 px-4 py-2 rounded-3xl border border-border/40 bg-card text-foreground"
  placeholder="Ajouter un objectif..."
  />
- <Button variant="outline" onClick={() => addItem('objectives', newObjective, setNewObjective)} aria-label="Ajouter l'objectif">
+ <Button variant="outline" onClick={handleClick4} aria-label="Ajouter l'objectif">
  <Plus className="w-4 h-4" />
  </Button>
  </div>
@@ -291,7 +447,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
  <Badge key={index || 'unknown'} variant="soft" className="gap-1.5 py-1.5">
  {objective}
  <button
-  onClick={() => removeItem('objectives', index)}
+  onClick={handleClick5}
   className="ml-1 hover:text-red-500"
   aria-label={`Supprimer l'objectif ${objective}`}
  >
@@ -312,12 +468,12 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
  id="new-process"
  type="text"
  value={newProcess}
- onChange={(e) => setNewProcess(e.target.value)}
- onKeyPress={(e) => e.key === 'Enter' && addItem('criticalProcesses', newProcess, setNewProcess)}
+ onChange={handleChange4}
+ onKeyPress={handleKeyPress3}
  className="flex-1 px-4 py-2 rounded-3xl border border-border/40 bg-card text-foreground"
  placeholder="Ajouter un processus critique..."
  />
- <Button variant="outline" onClick={() => addItem('criticalProcesses', newProcess, setNewProcess)} aria-label="Ajouter le processus critique">
+ <Button variant="outline" onClick={handleClick6} aria-label="Ajouter le processus critique">
  <Plus className="w-4 h-4" />
  </Button>
  </div>
@@ -327,7 +483,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
  <AlertTriangle className="w-3 h-3" />
  {process}
  <button
-  onClick={() => removeItem('criticalProcesses', index)}
+  onClick={handleClick7}
   className="ml-1 hover:text-red-500"
   aria-label={`Supprimer le processus ${process}`}
  >
@@ -393,11 +549,11 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
  </div>
  </div>
  <div className="flex gap-2">
- <Button variant="outline" onClick={() => setShowAddForm(true)}>
+ <Button variant="outline" onClick={handleClick8}>
  <Plus className="w-4 h-4 mr-2" />
  Ajouter
  </Button>
- <Button onClick={() => onSave({ ...data, description })} disabled={isSaving}>
+ <Button onClick={handleClick9} disabled={isSaving}>
  <Save className="w-4 h-4 mr-2" />
  {isSaving ? 'Sauvegarde...' : 'Enregistrer'}
  </Button>
@@ -413,7 +569,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
  <textarea
  id="reg-description"
  value={description}
- onChange={(e) => setDescription(e.target.value)}
+ onChange={handleChange5}
  rows={2}
  className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-card text-foreground resize-none"
  placeholder="Décrivez le contexte réglementaire..."
@@ -436,7 +592,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
   id="reg-name"
   type="text"
   value={newRegulation.name}
-  onChange={(e) => setNewRegulation(prev => ({ ...prev, name: e.target.value }))}
+  onChange={handleChange6}
   className="w-full px-3 py-2 rounded-lg border border-border/40 bg-card text-foreground"
   placeholder="ex: Directive NIS2"
  />
@@ -446,7 +602,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
  <select
   id="reg-framework"
   value={newRegulation.framework}
-  onChange={(e) => setNewRegulation(prev => ({ ...prev, framework: e.target.value }))}
+  onChange={handleChange7}
   className="w-full px-3 py-2 rounded-lg border border-border/40 bg-card text-foreground"
  >
   <option value="">Sélectionner...</option>
@@ -461,7 +617,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
   id="reg-obligations"
   type="text"
   value={newRegulation.obligations}
-  onChange={(e) => setNewRegulation(prev => ({ ...prev, obligations: e.target.value }))}
+  onChange={handleChange8}
   className="w-full px-3 py-2 rounded-lg border border-border/40 bg-card text-foreground"
   placeholder="ex: Notification incidents 24h"
  />
@@ -472,13 +628,13 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
   id="reg-deadline"
   type="date"
   value={newRegulation.deadline}
-  onChange={(e) => setNewRegulation(prev => ({ ...prev, deadline: e.target.value }))}
+  onChange={handleChange9}
   className="w-full px-3 py-2 rounded-lg border border-border/40 bg-card text-foreground"
  />
  </div>
  </div>
  <div className="flex justify-end gap-2">
- <Button variant="ghost" onClick={() => setShowAddForm(false)}>{t('common.cancel', { defaultValue: 'Annuler' })}</Button>
+ <Button variant="ghost" onClick={handleClick10}>{t('common.cancel', { defaultValue: 'Annuler' })}</Button>
  <Button onClick={handleAddRegulation}>{t('common.add', { defaultValue: 'Ajouter' })}</Button>
  </div>
  </motion.div>
@@ -518,7 +674,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
   </div>
  )}
  <button
-  onClick={() => onRemoveRegulation(reg.id)}
+  onClick={handleClick11}
   className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 text-muted-foreground hover:text-red-500 transition-colors"
   aria-label={`Supprimer la réglementation ${reg.name}`}
  >
@@ -619,7 +775,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
  <p className="text-sm text-muted-foreground">Définissez les niveaux de risque acceptables pour votre organisation</p>
  </div>
  </div>
- <Button onClick={() => onSave(formData)} disabled={isSaving}>
+ <Button onClick={handleClick12} disabled={isSaving}>
  <Save className="w-4 h-4 mr-2" />
  {isSaving ? 'Sauvegarde...' : 'Enregistrer'}
  </Button>
@@ -634,7 +790,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
  <textarea
  id="appetite-description"
  value={formData.description || ''}
- onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+ onChange={handleChange10}
  rows={2}
  className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-card text-foreground resize-none"
  placeholder="Décrivez la politique d'appétit au risque de votre organisation..."
@@ -662,7 +818,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
   min="1"
   max="25"
   value={formData.acceptableRiskLevels[level]}
-  onChange={(e) => updateLevel(level, parseInt(e.target.value) || 1)}
+  onChange={handleChange11}
   className="w-full px-3 py-2 rounded-lg border border-border/40 bg-card text-foreground text-center text-lg font-bold"
   />
   <p className="text-xs text-muted-foreground mt-2">{config.description}</p>
@@ -691,7 +847,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
  min="1"
  max="25"
  value={formData.escalationThresholds.automatic}
- onChange={(e) => updateThreshold('automatic', parseInt(e.target.value) || 1)}
+ onChange={handleChange12}
  className="w-full px-3 py-2 rounded-lg border border-border/40 bg-card text-foreground text-center text-lg font-bold"
  />
  <p className="text-xs text-muted-foreground mt-2">Notification automatique au responsable</p>
@@ -710,7 +866,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
  min="1"
  max="25"
  value={formData.escalationThresholds.management}
- onChange={(e) => updateThreshold('management', parseInt(e.target.value) || 1)}
+ onChange={handleChange13}
  className="w-full px-3 py-2 rounded-lg border border-border/40 bg-card text-foreground text-center text-lg font-bold"
  />
  <p className="text-xs text-muted-foreground mt-2">Escalade à la direction générale</p>
@@ -730,7 +886,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
  min="1"
  max="25"
  value={formData.escalationThresholds.board}
- onChange={(e) => updateThreshold('board', parseInt(e.target.value) || 1)}
+ onChange={handleChange14}
  className="w-full px-3 py-2 rounded-lg border border-border/40 bg-card text-foreground text-center text-lg font-bold"
  />
  <p className="text-xs text-muted-foreground mt-2">Notification au conseil d'administration</p>
@@ -783,7 +939,7 @@ const ScaleEditor: React.FC<ScaleEditorProps> = ({ type, title, items, onUpdate 
  id={`${type}-name-${index}`}
  type="text"
  value={item.name}
- onChange={(e) => onUpdate(type, index, 'name', e.target.value)}
+ onChange={handleChange15}
  className="flex-1 px-3 py-2 rounded-lg border border-border/40 bg-card text-foreground font-medium"
  placeholder="Nom du niveau"
  />
@@ -792,7 +948,7 @@ const ScaleEditor: React.FC<ScaleEditorProps> = ({ type, title, items, onUpdate 
  <textarea
  id={`${type}-desc-${index}`}
  value={item.description}
- onChange={(e) => onUpdate(type, index, 'description', e.target.value)}
+ onChange={handleChange16}
  rows={2}
  className="w-full px-3 py-2 rounded-lg border border-border/40 bg-card text-foreground text-sm resize-none"
  placeholder="Description du niveau..."
@@ -840,7 +996,7 @@ const EvaluationCriteriaTab: React.FC<EvaluationCriteriaTabProps> = ({ data, onS
  <p className="text-sm text-muted-foreground">Personnalisez les échelles d'impact et de probabilité</p>
  </div>
  </div>
- <Button onClick={() => onSave(formData)} disabled={isSaving}>
+ <Button onClick={handleClick13} disabled={isSaving}>
  <Save className="w-4 h-4 mr-2" />
  {isSaving ? 'Sauvegarde...' : 'Enregistrer'}
  </Button>

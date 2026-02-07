@@ -110,7 +110,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
  <button
   onClick={loadMore}
   disabled={loading}
-  className="w-full py-2 text-sm text-primary hover:text-primary font-medium text-center border-t border-border/40 dark:border-white/5 pt-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="w-full py-2 text-sm text-primary hover:text-primary font-medium text-center border-t border-border/40 dark:border-white/5 pt-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
   {loading ? t('common.loading', { defaultValue: 'Chargement...' }) : t('history.viewMore', { defaultValue: 'Voir plus d\'historique' })}
  </button>

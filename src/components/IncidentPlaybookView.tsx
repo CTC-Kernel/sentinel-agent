@@ -186,7 +186,18 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
  }
  };
 
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
  if (loading) {
+
  return (
  <div className="p-8">
  <div className="animate-pulse">
@@ -202,7 +213,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
  }
 
  return (
- <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 z-modal">
+ <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 z-modal" role="dialog" aria-modal="true">
  <div className="bg-card rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
  {/* Header */}
  <div className="p-6 border-b bg-muted/50">
@@ -382,7 +393,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   </label>
   <textarea
   id={`evidence-${step.id}`}
-  className="w-full p-2 text-xs border border-border/40 rounded-lg focus:ring-2 focus-visible:ring-primary focus:border-transparent outline-none bg-card"
+  className="w-full p-2 text-xs border border-border/40 rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent outline-none bg-card"
   rows={2}
   placeholder="Décrire l'evidence collectée..."
   value={evidence[step.id] || ''}
@@ -403,7 +414,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   </label>
   <textarea
   id={`notes-${step.id}`}
-  className="w-full p-2 text-xs border border-border/40 rounded-lg focus:ring-2 focus-visible:ring-primary focus:border-transparent outline-none bg-card"
+  className="w-full p-2 text-xs border border-border/40 rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent outline-none bg-card"
   rows={2}
   placeholder="Notes sur cette étape..."
   value={notes}
@@ -437,7 +448,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
   <span className="text-xs font-bold text-foreground">{event.type}</span>
   <span className="text-xs text-muted-foreground font-mono">
-  {new Date(event.timestamp).toLocaleString()}
+  {new Date(event.timestamp).toLocaleString('fr-FR')}
   </span>
   </div>
   <p className="text-xs text-muted-foreground mt-0.5">{event.description}</p>

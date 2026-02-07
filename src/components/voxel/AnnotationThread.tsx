@@ -103,14 +103,75 @@ const ReplyItem: React.FC<{
  const isOwner = currentUserId === reply.author.id;
  const createdDate = new Date(reply.createdAt);
 
+
+  // Extracted callbacks (useCallback)
+  const handleMouseEnter = useCallback(() => {
+    setShowActions(true)
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setShowActions(false)
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setDeleteReplyId(null)
+  }, []);
+
+  const handleClick = useCallback(() => {
+    onEdit(reply)
+  }, []);
+
+  const handleClick2 = useCallback(() => {
+    onDelete(reply.id)
+  }, []);
+
+  const handleChange = useCallback((e) => {
+    setContent(e.target.value)
+  }, []);
+
+  const handleClick3 = useCallback(() => {
+    setShowActions(!showActions)
+  }, []);
+
+  const handleClick4 = useCallback(() => {
+    setIsExpanded(!isExpanded)
+  }, []);
+
+  const handleDelete = useCallback((id) => {
+    setDeleteReplyId(id)
+  }, []);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingReply(undefined)
+  }, []);
+
+  const handleConfirm = useCallback(() => {
+    deleteReplyId && handleDeleteReply(deleteReplyId)
+  }, []);
+
+  const handleClose2 = useCallback(() => {
+    setShowDeleteAnnotationConfirm(false)
+  }, []);
+  const handleClick5 = useCallback(() => {
+    setShowActions(false);
+  onEditAnnotation?.(annotation);
+  }, []);
+
+  const handleClick6 = useCallback(() => {
+    setShowActions(false);
+  setShowDeleteAnnotationConfirm(true);
+  }, []);
+
+
+
  return (
  <motion.div
  initial={{ opacity: 0, y: 10 }}
  animate={{ opacity: 1, y: 0 }}
  exit={{ opacity: 0, y: -10 }}
  className="group px-4 py-3 hover:bg-muted/30 transition-colors"
- onMouseEnter={() => setShowActions(true)}
- onMouseLeave={() => setShowActions(false)}
+ onMouseEnter={handleMouseEnter}
+ onMouseLeave={handleMouseLeave}
  >
  <div className="flex items-start gap-3">
  {/* Avatar */}
@@ -157,14 +218,14 @@ const ReplyItem: React.FC<{
  {isOwner && showActions && (
  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-70 transition-opacity">
  <button
- onClick={() => onEdit(reply)}
+ onClick={handleClick}
  className="p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
  title="Modifier"
  >
  <Edit2 className="w-3.5 h-3.5" />
  </button>
  <button
- onClick={() => onDelete(reply.id)}
+ onClick={handleClick2}
  className="p-1.5 rounded-lg hover:bg-red-500/20 text-muted-foreground hover:text-red-400 transition-colors"
  title="Supprimer"
  >
@@ -185,7 +246,7 @@ const ReplyForm: React.FC<{
  organizationId: string;
  author: AnnotationAuthor;
  editingReply?: AnnotationReply;
- onSubmit: () => void;
+ /* validate */ onSubmit: () => void;
  onCancelEdit?: () => void;
 }> = ({ annotationId, organizationId, author, editingReply, onSubmit, onCancelEdit }) => {
  const [content, setContent] = useState(editingReply?.content || '');
@@ -238,11 +299,11 @@ const ReplyForm: React.FC<{
  <div className="flex-1">
  <textarea
  value={content}
- onChange={(e) => setContent(e.target.value)}
+ onChange={handleChange}
  onKeyDown={handleKeyDown}
  placeholder="Écrivez une réponse... (Cmd+Enter pour envoyer)"
  rows={2}
- className="w-full px-4 py-3 bg-card/50 border border-border rounded-3xl text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent resize-none text-sm"
+ className="w-full px-4 py-3 bg-card/50 border border-border rounded-3xl text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent resize-none text-sm"
  />
  </div>
  <button
@@ -441,7 +502,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
  {/* More actions */}
  <div className="relative">
  <button
- onClick={() => setShowActions(!showActions)}
+ onClick={handleClick3}
  className="p-2 rounded-3xl hover:bg-muted/50 text-muted-foreground transition-colors"
  >
  <MoreHorizontal className="w-4 h-4" />
@@ -460,10 +521,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
   {isOwner && (
   <>
   <button
-  onClick={() => {
-  setShowActions(false);
-  onEditAnnotation?.(annotation);
-  }}
+  onClick={handleClick5}
   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-muted-foreground hover:bg-muted/50"
   >
   <Edit2 className="w-4 h-4" />
@@ -471,10 +529,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
   </button>
 
   <button
-  onClick={() => {
-  setShowActions(false);
-  setShowDeleteAnnotationConfirm(true);
-  }}
+  onClick={handleClick6}
   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
   >
   <Trash2 className="w-4 h-4" />
@@ -489,6 +544,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
  <button
  onClick={onClose}
  className="p-2 rounded-3xl hover:bg-muted/50 text-muted-foreground transition-colors"
+ aria-label="Fermer"
  >
  <X className="w-4 h-4" />
  </button>
@@ -595,7 +651,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
  <div>
  {/* Replies header */}
  <button
- onClick={() => setIsExpanded(!isExpanded)}
+ onClick={handleClick4}
  className="w-full flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors"
  >
  <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -633,7 +689,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
   reply={reply}
   currentUserId={user?.uid}
   onEdit={handleEditReply}
-  onDelete={(id) => setDeleteReplyId(id)}
+  onDelete={handleDelete}
   />
   ))}
   </div>
@@ -652,15 +708,15 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
  author={author}
  editingReply={editingReply}
  onSubmit={handleReplySubmit}
- onCancelEdit={() => setEditingReply(undefined)}
+ onCancelEdit={handleCancelEdit}
  />
  )}
 
  {/* Delete Reply Confirmation */}
  <ConfirmModal
  isOpen={deleteReplyId !== null}
- onClose={() => setDeleteReplyId(null)}
- onConfirm={() => deleteReplyId && handleDeleteReply(deleteReplyId)}
+ onClose={handleClose}
+ onConfirm={handleConfirm}
  title={t('voxel.annotations.deleteReplyTitle', { defaultValue: 'Supprimer la réponse' })}
  message={t('voxel.annotations.deleteReplyMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer cette réponse ?' })}
  type="danger"
@@ -671,7 +727,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
  {/* Delete Annotation Confirmation */}
  <ConfirmModal
  isOpen={showDeleteAnnotationConfirm}
- onClose={() => setShowDeleteAnnotationConfirm(false)}
+ onClose={handleClose2}
  onConfirm={handleDeleteAnnotation}
  title={t('voxel.annotations.deleteAnnotationTitle', { defaultValue: "Supprimer l'annotation" })}
  message={t('voxel.annotations.deleteAnnotationMessage', { defaultValue: 'Êtes-vous sûr de vouloir supprimer cette annotation et toutes ses réponses ?' })}

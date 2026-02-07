@@ -48,6 +48,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
  const [isFormDirty, setIsFormDirty] = useState(false);
  const [isStatusUpdating, setIsStatusUpdating] = useState(false);
  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+ const [isDeleting, setIsDeleting] = useState(false);
 
  const handleStatusChange = useCallback(async (newStatus: string) => {
  if (!incident || isStatusUpdating) return;
@@ -104,6 +105,16 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
  return `${hours}${t('common.hoursAbbreviation') || 'h'}`;
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (<>
  <InspectorLayout
  isOpen={isOpen}
@@ -121,6 +132,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
   <>
   {onDelete && (
   <Button
+   disabled={isDeleting}
    onClick={() => setShowDeleteConfirm(true)}
    variant="ghost"
    size="icon"
@@ -143,7 +155,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
  {isEditing ? (
  <div className="p-1">
   <IncidentForm
-  onSubmit={handleUpdate}
+  /* validate */ onSubmit={handleUpdate}
   onCancel={() => setIsEditing(false)}
   initialData={incident}
   users={users}
@@ -196,7 +208,11 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
  <ConfirmModal
  isOpen={showDeleteConfirm}
  onClose={() => setShowDeleteConfirm(false)}
- onConfirm={() => onDelete(incident.id)}
+ onConfirm={async () => {
+  if (isDeleting) return;
+  setIsDeleting(true);
+  try { await onDelete(incident.id); } finally { setIsDeleting(false); setShowDeleteConfirm(false); }
+ }}
  title={t('incidents.deleteConfirmTitle', { defaultValue: 'Supprimer cet incident' })}
  message={t('incidents.deleteConfirmMessage', { defaultValue: 'Cette action est irréversible. L\'incident et toutes ses données associées seront supprimés.' })}
  type="danger"

@@ -38,8 +38,8 @@ describe('riskExportUtils', () => {
  score,
  status: status as Risk['status'],
  strategy: 'Atténuer',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  });
 
  beforeEach(() => {

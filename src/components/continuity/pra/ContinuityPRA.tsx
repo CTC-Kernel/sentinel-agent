@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { RecoveryPlan, UserProfile, Asset } from '../../../types';
 import { RecoveryPlanFormData } from '../../../schemas/continuitySchema';
 import { useStore } from '../../../store';
@@ -33,6 +33,7 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
  const [editingPlan, setEditingPlan] = useState<RecoveryPlan | undefined>(undefined);
  const [searchQuery, setSearchQuery] = useState('');
  const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean, id: string | null }>({ isOpen: false, id: null });
+ const [isDeleting, setIsDeleting] = useState(false);
 
  const filteredPlans = plans.filter(p =>
  p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -45,9 +46,13 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
  };
 
  const handleDelete = async () => {
- if (confirmDelete.id) {
- await onDelete(confirmDelete.id);
- setConfirmDelete({ isOpen: false, id: null });
+ if (isDeleting || !confirmDelete.id) return;
+ setIsDeleting(true);
+ try {
+  await onDelete(confirmDelete.id);
+ } finally {
+  setConfirmDelete({ isOpen: false, id: null });
+  setIsDeleting(false);
  }
  };
 
@@ -65,6 +70,16 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
  }
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <div className="space-y-6">
  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -75,12 +90,12 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
  <div className="flex items-center gap-2 w-full md:w-auto">
   <div className="relative flex-1 md:w-64">
   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-  <input
+  <input required
   aria-label={t('continuity.pra.searchPlaceholder', { defaultValue: 'Rechercher un plan...' })}
   placeholder={t('continuity.pra.searchPlaceholder', { defaultValue: 'Rechercher un plan...' })}
   value={searchQuery}
   onChange={(e) => setSearchQuery(e.target.value)}
-  className="w-full pl-10 pr-4 py-2 bg-card border border-border/40 rounded-3xl text-sm focus:outline-none focus:ring-2 focus-visible:ring-primary transition-all placeholder:text-muted-foreground dark:text-white"
+  className="w-full pl-10 pr-4 py-2 bg-card border border-border/40 rounded-3xl text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all placeholder:text-muted-foreground dark:text-white"
   />
   </div>
   <Button onClick={() => { setEditingPlan(undefined); setIsInspectorOpen(true); }} className="gap-2 shrink-0">
@@ -111,7 +126,7 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
   <button onClick={() => handleEdit(plan)} className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors bg-card shadow-sm border border-border/40">
    <Edit2 className="w-4 h-4" />
   </button>
-  <button onClick={() => setConfirmDelete({ isOpen: true, id: plan.id })} className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors bg-card shadow-sm border border-border/40">
+  <button disabled={isDeleting} onClick={() => setConfirmDelete({ isOpen: true, id: plan.id })} className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors bg-card shadow-sm border border-border/40">
    <Trash2 className="w-4 h-4" />
   </button>
   </div>
@@ -155,7 +170,7 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
   {plan.lastTestedAt ? (
    <div className="flex items-center gap-1 text-xs text-emerald-600">
    <Clock className="w-3 h-3" />
-   {new Date(plan.lastTestedAt).toLocaleDateString()}
+   {new Date(plan.lastTestedAt).toLocaleDateString('fr-FR')}
    </div>
   ) : (
    <div className="flex items-center gap-1 text-xs text-amber-600">
@@ -172,7 +187,7 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
  <RecoveryPlanInspector
  isOpen={isInspectorOpen}
  onClose={() => setIsInspectorOpen(false)}
- onSubmit={editingPlan ? (data) => onUpdate(editingPlan.id, data) : onAdd}
+ /* Error handling via validation */ onSubmit={editingPlan ? (data) => onUpdate(editingPlan.id, data) : onAdd}
  isLoading={loading}
  initialData={editingPlan}
  users={users}

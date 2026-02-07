@@ -296,7 +296,7 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
   <button
   type="button"
   onClick={onCreateNew}
-  className="px-5 py-2.5 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="px-5 py-2.5 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   {t('dora.providers.new', { defaultValue: 'Nouveau fournisseur ICT' })}
   </button>

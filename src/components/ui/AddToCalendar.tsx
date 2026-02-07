@@ -80,7 +80,7 @@ export const AddToCalendar: React.FC<AddToCalendarProps> = ({ event, className }
   href={CalendarService.google(event)}
   target="_blank"
   rel="noopener noreferrer"
-  className="flex items-center px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="flex items-center px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   onClick={() => setIsOpen(false)}
  >
   <ExternalLink className="h-4 w-4 mr-2 text-primary" />
@@ -90,7 +90,7 @@ export const AddToCalendar: React.FC<AddToCalendarProps> = ({ event, className }
   href={CalendarService.outlook(event)}
   target="_blank"
   rel="noopener noreferrer"
-  className="flex items-center px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="flex items-center px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   onClick={() => setIsOpen(false)}
  >
   <ExternalLink className="h-4 w-4 mr-2 text-info-400" />
@@ -101,7 +101,7 @@ export const AddToCalendar: React.FC<AddToCalendarProps> = ({ event, className }
   CalendarService.downloadIcs(event);
   setIsOpen(false);
   }}
-  className="w-full flex items-center px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg transition-colors text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="w-full flex items-center px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
   <Download className="h-4 w-4 mr-2 text-success-500" />
   Fichier ICS
@@ -115,7 +115,7 @@ export const AddToCalendar: React.FC<AddToCalendarProps> = ({ event, className }
  <button
  ref={buttonRef}
  onClick={() => setIsOpen(!isOpen)}
- className="flex items-center px-3 py-2 bg-white dark:bg-white/5 border border-border/40 rounded-3xl text-sm font-medium text-foreground hover:bg-muted/50 dark:hover:bg-muted transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="flex items-center px-3 py-2 bg-white dark:bg-white/5 border border-border/40 rounded-3xl text-sm font-medium text-foreground hover:bg-muted/50 dark:hover:bg-muted transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
  <Calendar className="h-4 w-4 mr-2" data-testid="calendar-icon" />
  Ajouter au calendrier

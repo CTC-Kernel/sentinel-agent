@@ -105,7 +105,7 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
    <button
    aria-label={t('continuity.bia.generateReport', { defaultValue: 'Générer le rapport' })}
    onClick={onGenerateReport}
-   className="p-2 bg-card border border-border/40 text-foreground dark:text-foreground rounded-3xl hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+   className="p-2 bg-card border border-border/40 text-foreground dark:text-foreground rounded-3xl hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
    >
    <Download className="h-5 w-5" />
    </button>
@@ -113,7 +113,7 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
    <button
    aria-label={t('continuity.newProcess')}
    onClick={onOpenProcessModal}
-   className="flex items-center px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-3xl font-bold transition-all shadow-lg shadow-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+   className="flex items-center px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-3xl font-bold transition-all shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
    >
    <Plus className="h-5 w-5 mr-2" />
    {t('continuity.newProcess')}
@@ -124,7 +124,7 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
    <button
    aria-label={t('common.importCsv')}
    onClick={onImportCsv}
-   className="p-2 bg-card border border-border/40 text-foreground dark:text-foreground rounded-3xl hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+   className="p-2 bg-card border border-border/40 text-foreground dark:text-foreground rounded-3xl hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
    >
    <Upload className="h-5 w-5" />
    </button>

@@ -95,9 +95,8 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
  {/* Premium AI Background Image */}
  <div className="absolute right-0 top-0 h-full w-1/2 pointer-events-none z-0 overflow-hidden">
 
-  <img
+  <img alt="AI Analysis background"
   src="/images/IA.png"
-  alt="AI Analysis background"
   className="w-full h-full object-cover object-right opacity-20 dark:opacity-30 mix-blend-multiply dark:mix-blend-color-dodge transition-all duration-700"
   />
  </div>
@@ -192,7 +191,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
 
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 h-full">
   {/* 1. Risk Metric */}
-  <Link to="/risks" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-left outline-none" aria-label="Voir les risques">
+  <Link to="/risks" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-left outline-none" aria-label="Voir les risques">
   <div className="flex items-center justify-between mb-2">
   <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Risques</span>
   <AlertTriangle className="w-4 h-4 text-warning group-hover/item:text-warning/80 transition-colors" />
@@ -210,7 +209,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
   </Link>
 
   {/* 2. Compliance Metric */}
-  <Link to="/compliance" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-left outline-none" aria-label="Voir la conformité">
+  <Link to="/compliance" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-left outline-none" aria-label="Voir la conformité">
   <div className="flex items-center justify-between mb-2">
   <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Conformité</span>
   <ShieldCheck className={`w-4 h-4 transition-colors ${effectiveComplianceScore >= 75 ? 'text-success group-hover/item:text-success/80' :
@@ -252,7 +251,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
   </Link>
 
   {/* 3. Financial Metric */}
-  <Link to="/risks" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus:outline-none focus-visible:ring-2 focus-visible:ring-primary text-left outline-none" aria-label="Voir l'exposition financière">
+  <Link to="/risks" className="flex flex-col justify-between p-4 rounded-2xl bg-secondary/20 border border-border/40 hover:bg-secondary/40 transition-all duration-300 cursor-pointer group/item focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-left outline-none" aria-label="Voir l'exposition financière">
   <div className="flex items-center justify-between mb-2">
   <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Financier</span>
   <Activity className="w-4 h-4 text-info group-hover/item:text-info/80 transition-colors" />

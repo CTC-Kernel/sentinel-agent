@@ -1,4 +1,4 @@
-import React, { useId, useState, useEffect, useMemo } from 'react';
+import React, { useId, useState, useEffect, useMemo, useCallback} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
@@ -191,13 +191,117 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
         );
     }
 
+
+  // Extracted callbacks (useCallback)
+  const handleMouseLeave = useCallback(() => {
+    setActiveStatusIndex(null)
+  }, []);
+
+  const handleMouseLeave2 = useCallback(() => {
+    setActiveOSIndex(null)
+  }, []);
+
+  const handleToggle = useCallback(() => {
+    setOpenFAQ(openFAQ === index ? null : index)
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setSelectedAgentId(null)
+  }, []);
+
+  const handleMouseEnter = useCallback((_, index) => {
+    setActiveStatusIndex(index)
+  }, []);
+
+  const handleMouseEnter2 = useCallback((_, index) => {
+    setActiveOSIndex(index)
+  }, []);
+
+  const handleClick = useCallback(() => {
+    setSelectedAgentId(agent.id)
+  }, []);
+
+  const handleClick2 = useCallback(() => {
+    handleRevokeToken(token.id)
+  }, []);
+
+  const handleClick3 = useCallback(() => {
+    setActiveTab(tab.id)
+  }, []);
+
+  const handleClick4 = useCallback(() => {
+    setActiveTab('docs')
+  }, []);
+
+  const handleClick5 = useCallback(() => {
+    setActiveTab('support')
+  }, []);
+  const handleClick6 = useCallback(() => {
+    if (!available) toast.info(t('agents.versionComingSoon') || "Cette version sera disponible prochainement");
+  }, []);
+
+  const handleClick7 = useCallback((e) => {
+    e.stopPropagation();
+                                                                handleDelete(agent.id);
+  }, []);
+
+  const handleClick8 = useCallback(() => {
+    if (token.token) {
+                                                                if (revealedTokenId === token.id) {
+                                                                    handleCopyToken(token.id, token.token);
+                                                                } else {
+                                                                    setRevealedTokenId(token.id);
+                                                                }
+                                                            } else {
+                                                                toast.error(t('settings.agents.tokenNotAvailable', { defaultValue: 'Token non disponible' }));
+                                                            }
+  }, []);
+
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+                                                                e.preventDefault();
+                                                                if (token.token) {
+                                                                    if (revealedTokenId === token.id) {
+                                                                        handleCopyToken(token.id, token.token);
+                                                                    } else {
+                                                                        setRevealedTokenId(token.id);
+                                                                    }
+                                                                } else {
+                                                                    toast.error(t('settings.agents.tokenNotAvailable', { defaultValue: 'Token non disponible' }));
+                                                                }
+                                                            }
+  }, []);
+
+  const handleClick9 = useCallback(() => {
+    navigator.clipboard.writeText('sentinel-agent status --verbose');
+                                                        toast.success(t('agents.commandCopied') || "Commande copiée !");
+  }, []);
+
+  const handleClick10 = useCallback(() => {
+    toast.info(t('agents.verificationInProgress') || "Vérification des agents en cours...");
+  }, []);
+
+  const handleClose2 = useCallback(() => {
+    setShowEnrollment(false);
+                    if (enrollmentToken) {
+                        toast.info(t('agents.viewFleet') || 'Voir la flotte d\'agents', t('agents.viewFleetDesc') || 'Consultez vos agents enrôlés dans la vue dédiée.', {
+                            label: 'Voir la flotte',
+                            onClick: () => navigate('/agents'),
+                        });
+                    }
+  }, []);
+
+  const handleAgentUpdated = useCallback(() => {
+    // Refresh via subscription
+  }, []);
+
+
+
     return (
         <button
             disabled={true} // Always disabled if not available or loading (we don't want click events)
             className={baseClasses}
-            onClick={() => {
-                if (!available) toast.info(t('agents.versionComingSoon') || "Cette version sera disponible prochainement");
-            }}
+            onClick={handleClick6}
         >
             {content}
         </button>
@@ -362,9 +466,9 @@ export const AgentManagement: React.FC = () => {
 
     // Compute agent statistics
     const agentStats = useMemo(() => {
-        const active = agents.filter(a => a.status === 'active').length;
-        const offline = agents.filter(a => a.status === 'offline').length;
-        const error = agents.filter(a => a.status === 'error').length;
+        const active = useMemo(() => agents.filter(a => a.status === 'active').length, [agents]);
+        const offline = useMemo(() => agents.filter(a => a.status === 'offline').length, [agents]);
+        const error = useMemo(() => agents.filter(a => a.status === 'error').length, [agents]);
         const total = agents.length;
         const healthRate = total > 0 ? Math.round((active / total) * 100) : 0;
         const activityRate = total > 0 ? Math.round(((active + offline) / total) * 100) : 0;
@@ -839,8 +943,8 @@ export const AgentManagement: React.FC = () => {
                                         cornerRadius={6}
                                         activeIndex={activeStatusIndex !== null ? activeStatusIndex : undefined}
                                         activeShape={renderActiveShape as Pie['props']['activeShape']}
-                                        onMouseEnter={(_, index) => setActiveStatusIndex(index)}
-                                        onMouseLeave={() => setActiveStatusIndex(null)}
+                                        onMouseEnter={handleMouseEnter}
+                                        onMouseLeave={handleMouseLeave}
                                     >
                                         {statusDistribution.map((entry, index) => (
                                             <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} />
@@ -891,8 +995,8 @@ export const AgentManagement: React.FC = () => {
                                         cornerRadius={6}
                                         activeIndex={activeOSIndex !== null ? activeOSIndex : undefined}
                                         activeShape={renderActiveShape as Pie['props']['activeShape']}
-                                        onMouseEnter={(_, index) => setActiveOSIndex(index)}
-                                        onMouseLeave={() => setActiveOSIndex(null)}
+                                        onMouseEnter={handleMouseEnter2}
+                                        onMouseLeave={handleMouseLeave2}
                                     >
                                         {osDistribution.map((entry, index) => (
                                             <Cell key={`cell-${index || 'unknown'}`} fill={entry.color} />
@@ -1056,7 +1160,7 @@ export const AgentManagement: React.FC = () => {
                                             return (
                                                 <tr
                                                     key={agent.id || 'unknown'}
-                                                    onClick={() => setSelectedAgentId(agent.id)}
+                                                    onClick={handleClick}
                                                     className="group hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors cursor-pointer"
                                                 >
                                                     <td className="px-6 py-5">
@@ -1085,14 +1189,11 @@ export const AgentManagement: React.FC = () => {
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-5 text-xs text-muted-foreground font-medium">
-                                                        {new Date(agent.lastHeartbeat).toLocaleString()}
+                                                        {new Date(agent.lastHeartbeat).toLocaleString('fr-FR')}
                                                     </td>
                                                     <td className="px-6 py-5 text-right">
                                                         <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleDelete(agent.id);
-                                                            }}
+                                                            onClick={handleClick7}
                                                             aria-label={t('common.delete', { defaultValue: 'Supprimer' })}
                                                             className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 rounded-3xl transition-all opacity-0 group-hover:opacity-70"
                                                         >
@@ -1148,31 +1249,8 @@ export const AgentManagement: React.FC = () => {
                                                         role="button"
                                                         tabIndex={0}
                                                         className="cursor-pointer group/token"
-                                                        onClick={() => {
-                                                            if (token.token) {
-                                                                if (revealedTokenId === token.id) {
-                                                                    handleCopyToken(token.id, token.token);
-                                                                } else {
-                                                                    setRevealedTokenId(token.id);
-                                                                }
-                                                            } else {
-                                                                toast.error(t('settings.agents.tokenNotAvailable', { defaultValue: 'Token non disponible' }));
-                                                            }
-                                                        }}
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                                e.preventDefault();
-                                                                if (token.token) {
-                                                                    if (revealedTokenId === token.id) {
-                                                                        handleCopyToken(token.id, token.token);
-                                                                    } else {
-                                                                        setRevealedTokenId(token.id);
-                                                                    }
-                                                                } else {
-                                                                    toast.error(t('settings.agents.tokenNotAvailable', { defaultValue: 'Token non disponible' }));
-                                                                }
-                                                            }
-                                                        }}
+                                                        onClick={handleClick8}
+                                                        onKeyDown={handleKeyDown}
                                                     >
                                                         <div className="font-bold text-foreground text-xs flex items-center gap-1.5">
                                                             {token.name || 'Token'}
@@ -1224,7 +1302,7 @@ export const AgentManagement: React.FC = () => {
                                                     {token.status === 'active' && (
                                                         <button
                                                             className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-all opacity-0 group-hover/row:opacity-100"
-                                                            onClick={() => handleRevokeToken(token.id)}
+                                                            onClick={handleClick2}
                                                             disabled={revokingTokenId === token.id}
                                                             title={t('settings.agents.revoke', { defaultValue: 'Révoquer' })}
                                                         >
@@ -1314,7 +1392,7 @@ export const AgentManagement: React.FC = () => {
                             ].map((tab) => (
                                 <button
                                     key={tab.id || 'unknown'}
-                                    onClick={() => setActiveTab(tab.id)}
+                                    onClick={handleClick3}
                                     className={cn(
                                         "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-3xl text-xs font-medium transition-all whitespace-nowrap flex-shrink-0",
                                         activeTab === tab.id
@@ -1642,7 +1720,7 @@ export const AgentManagement: React.FC = () => {
                                                 question={item.question}
                                                 answer={item.answer}
                                                 isOpen={openFAQ === index}
-                                                onToggle={() => setOpenFAQ(openFAQ === index ? null : index)}
+                                                onToggle={handleToggle}
                                             />
                                         ))}
                                     </div>
@@ -1663,7 +1741,7 @@ export const AgentManagement: React.FC = () => {
                                                             size="sm"
                                                             variant="outline"
                                                             className="text-xs rounded-lg"
-                                                            onClick={() => setActiveTab('docs')}
+                                                            onClick={handleClick4}
                                                         >
                                                             <BookOpen className="w-3 h-3 mr-1" />
                                                             Documentation
@@ -1672,7 +1750,7 @@ export const AgentManagement: React.FC = () => {
                                                             size="sm"
                                                             variant="outline"
                                                             className="text-xs rounded-lg"
-                                                            onClick={() => setActiveTab('support')}
+                                                            onClick={handleClick5}
                                                         >
                                                             <Headset className="w-3 h-3 mr-1" />
                                                             Support
@@ -1768,10 +1846,7 @@ export const AgentManagement: React.FC = () => {
                                                     <code>sentinel-agent status --verbose</code>
                                                 </pre>
                                                 <button
-                                                    onClick={() => {
-                                                        navigator.clipboard.writeText('sentinel-agent status --verbose');
-                                                        toast.success(t('agents.commandCopied') || "Commande copiée !");
-                                                    }}
+                                                    onClick={handleClick9}
                                                     className="absolute right-2 top-2 p-1.5 bg-muted hover:bg-muted/80 rounded-lg transition-colors"
                                                 >
                                                     <Copy className="w-3 h-3 text-muted-foreground" />
@@ -1781,9 +1856,7 @@ export const AgentManagement: React.FC = () => {
                                                 variant="outline"
                                                 size="sm"
                                                 className="w-full rounded-3xl text-xs"
-                                                onClick={() => {
-                                                    toast.info(t('agents.verificationInProgress') || "Vérification des agents en cours...");
-                                                }}
+                                                onClick={handleClick10}
                                             >
                                                 <RefreshCw className="w-3 h-3 mr-1.5" />
                                                 Rafraîchir le statut des agents
@@ -1839,15 +1912,7 @@ export const AgentManagement: React.FC = () => {
 
             <EnrollAgentModal
                 isOpen={showEnrollment}
-                onClose={() => {
-                    setShowEnrollment(false);
-                    if (enrollmentToken) {
-                        toast.info(t('agents.viewFleet') || 'Voir la flotte d\'agents', t('agents.viewFleetDesc') || 'Consultez vos agents enrôlés dans la vue dédiée.', {
-                            label: 'Voir la flotte',
-                            onClick: () => navigate('/agents'),
-                        });
-                    }
-                }}
+                onClose={handleClose2}
                 enrollmentToken={enrollmentToken}
                 releaseInfo={releaseInfo}
                 loadingReleases={loadingReleases}
@@ -1855,12 +1920,10 @@ export const AgentManagement: React.FC = () => {
 
             <AgentDetailsModal
                 isOpen={!!selectedAgentId}
-                onClose={() => setSelectedAgentId(null)}
+                onClose={handleClose}
                 agentId={selectedAgentId}
                 initialAgent={agents.find(a => a.id === selectedAgentId)}
-                onAgentUpdated={() => {
-                    // Refresh via subscription
-                }}
+                onAgentUpdated={handleAgentUpdated}
             />
         </div>
 

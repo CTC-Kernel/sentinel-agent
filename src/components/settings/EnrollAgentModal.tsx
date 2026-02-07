@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
@@ -185,6 +185,16 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
  macos: { os: "macOS 11 Big Sur+", ram: "50 Mo", disk: "80 Mo" },
  linux: { os: "Ubuntu 20.04+, Debian 11+", ram: "40 Mo", disk: "60 Mo" }
  };
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
 
  return (
  <Modal

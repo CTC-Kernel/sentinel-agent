@@ -26,9 +26,8 @@ export const RiskContextView: React.FC = () => {
  title={t('riskContext.title')}
  subtitle={t('riskContext.subtitle')}
  icon={
- <img
+ <img alt="Context"
  src="/images/gouvernance.png"
- alt="Context"
  className="w-full h-full object-contain"
  />
  }

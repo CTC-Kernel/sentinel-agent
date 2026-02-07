@@ -5,7 +5,7 @@
  * Modal for exporting ICT provider register in various formats
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useLocale } from '../../hooks/useLocale';
 import { toast } from '@/lib/toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
@@ -179,6 +179,16 @@ export const ExportDORARegisterModal: React.FC<ExportDORARegisterModalProps> = (
   {formatOptions.map((option) => {
   const Icon = option.icon;
   const isSelected = selectedFormat === option.value;
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   return (
    <button
    key={option.value || 'unknown'}

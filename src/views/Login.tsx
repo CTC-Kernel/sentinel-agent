@@ -29,6 +29,7 @@ const GoogleIcon = () => (
  </svg>
 );
 
+// RBAC: Login view is pre-authentication; no role or hasPermission checks needed (public page)
 export const Login: React.FC<{ skipBoot?: boolean }> = () => {
  const location = useLocation();
  const [isLogin, setIsLogin] = useState(!location.pathname.includes('/register'));
@@ -87,6 +88,8 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
  sessionStorage.removeItem('session_expired');
  toast.info(t('auth.sessionExpired', { defaultValue: 'Votre session a expiré. Veuillez vous reconnecter.' }));
  }
+ // Justification: t is intentionally excluded -- this mount-only effect checks sessionStorage
+ // for expired session flag. Re-running on locale changes is unnecessary.
  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
  // Clear errors when switching modes (this is safe - clearErrors is from react-hook-form)
@@ -113,6 +116,20 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
  document.body.style.overflow = '';
  };
  }, []);
+
+  // Keyboard support: Escape to close modals
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showMfaModal) setShowMfaModal(false);
+        else if (showResetModal) setShowResetModal(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showMfaModal, showResetModal, setShowMfaModal]);
+
+
 
  return (
  <AuroraBackground className="fixed inset-0 h-screen w-full overflow-hidden bg-background text-foreground font-sans selection:bg-primary/30 selection:text-primary">
@@ -301,7 +318,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
    >
    <label className="flex items-start gap-3 cursor-pointer group">
    <div className="relative mt-0.5">
-    <input
+    <input required
     type="checkbox"
     checked={privacyAccepted}
     onChange={(e) => setPrivacyAccepted(e.target.checked)}

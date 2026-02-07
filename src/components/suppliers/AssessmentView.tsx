@@ -226,7 +226,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
    {question.type === 'text' ? (
    <textarea
     id={`assessment-question-${question.id}`}
-    className="w-full p-3 rounded-3xl border border-border/40 bg-muted focus:ring-2 focus-visible:ring-primary focus:border-transparent outline-none transition-all min-h-[120px]"
+    className="w-full p-3 rounded-3xl border border-border/40 bg-muted focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent outline-none transition-all min-h-[120px]"
     placeholder="Votre réponse..."
     value={(localAnswers[question.id]?.value as string) || ''}
     onChange={(e) => handleAnswerChange(question.id, e.target.value)}
@@ -258,7 +258,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
    <input
     id={`assessment-question-${question.id}`}
     type={question.type === 'rating' ? 'number' : 'text'}
-    className="w-full p-3 rounded-3xl border border-border/40 bg-muted focus:ring-2 focus-visible:ring-primary focus:border-transparent outline-none transition-all"
+    className="w-full p-3 rounded-3xl border border-border/40 bg-muted focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent outline-none transition-all"
     placeholder="Votre réponse..."
     value={(localAnswers[question.id]?.value as string) || ''}
     onChange={(e) => handleAnswerChange(question.id, e.target.value)}

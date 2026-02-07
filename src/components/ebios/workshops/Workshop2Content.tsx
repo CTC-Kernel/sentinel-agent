@@ -147,7 +147,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
  const anssiSources = ANSSI_RISK_SOURCES.map((src, idx) => ({
  ...src,
  id: `anssi-rs-${idx}`,
- createdAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
  organizationId: null,
  }));
  return [...anssiSources, ...riskSources];
@@ -157,7 +157,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
  const anssiObjectives = ANSSI_TARGETED_OBJECTIVES.map((obj, idx) => ({
  ...obj,
  id: `anssi-to-${idx}`,
- createdAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
  organizationId: null,
  }));
  return [...anssiObjectives, ...targetedObjectives];
@@ -363,7 +363,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
  <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-error/5 border-border/40 rounded-3xl">
  <button
  onClick={() => toggleSection('riskSources')}
- className="w-full flex items-center justify-between group"
+ className="w-full flex items-center justify-between group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <div className="flex items-center gap-4">
  <div className="p-3 rounded-2xl bg-error-bg text-error-text group-hover:scale-110 transition-transform duration-300">
@@ -456,7 +456,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
   setEditingRiskSource(null);
   setShowRiskSourceForm(true);
   }}
-  className="w-full mt-6 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-error-text font-medium group"
+  className="w-full mt-6 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-error-text font-medium group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <div className="p-1 rounded-full bg-muted group-hover:bg-error-bg transition-colors">
   <Plus className="w-4 h-4" />
@@ -475,7 +475,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
  <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-warning/5 hover:border-warning/20">
  <button
  onClick={() => toggleSection('targetedObjectives')}
- className="w-full flex items-center justify-between group"
+ className="w-full flex items-center justify-between group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <div className="flex items-center gap-4">
  <div className="p-3 rounded-2xl bg-warning-bg text-warning-text group-hover:scale-110 transition-transform duration-300">
@@ -575,7 +575,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
   setEditingObjective(null);
   setShowObjectiveForm(true);
   }}
-  className="w-full mt-6 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-warning/50 hover:bg-warning-bg/50 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-warning-text font-medium group"
+  className="w-full mt-6 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-warning/50 hover:bg-warning-bg/50 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-warning-text font-medium group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <div className="p-1 rounded-full bg-muted group-hover:bg-warning-bg transition-colors">
   <Plus className="w-4 h-4" />
@@ -594,7 +594,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
  <PremiumCard glass className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/30">
  <button
  onClick={() => toggleSection('srOvPairs')}
- className="w-full flex items-center justify-between group"
+ className="w-full flex items-center justify-between group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <div className="flex items-center gap-4">
  <div className="p-3 rounded-2xl bg-primary/10 text-primary group-hover:scale-110 transition-transform duration-300">
@@ -640,7 +640,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
   <div className="flex justify-end mb-6">
   <button
   onClick={generatePairs}
-  className="flex items-center gap-2 px-5 py-2.5 rounded-3xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary hover:shadow-primary transition-all transform hover:-translate-y-0.5"
+  className="flex items-center gap-2 px-5 py-2.5 rounded-3xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary hover:shadow-primary transition-all transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <Plus className="w-5 h-5" />
   {t('ebios.workshop2.generatePairs')}

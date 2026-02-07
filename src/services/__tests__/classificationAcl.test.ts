@@ -371,8 +371,8 @@ describe('ACL Service', () => {
  status: 'Brouillon',
  owner: 'owner@test.com',
  ownerId: 'owner123',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides,
  });
 
@@ -508,8 +508,8 @@ describe('ACL Service', () => {
  status: 'Brouillon',
  owner: 'owner@test.com',
  ownerId: 'owner123',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides,
  });
 
@@ -538,8 +538,8 @@ describe('ACL Service', () => {
  status: 'Brouillon',
  owner: 'owner@test.com',
  ownerId: 'owner123',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides,
  });
 
@@ -616,8 +616,8 @@ describe('ACL Service', () => {
  status: 'Brouillon',
  owner: 'owner@test.com',
  ownerId: 'owner123',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides,
  });
 
@@ -695,8 +695,8 @@ describe('Edge Cases and Security', () => {
  status: 'Brouillon',
  owner: 'owner@test.com',
  ownerId: 'owner123',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides,
  });
 
@@ -750,8 +750,8 @@ describe('Edge Cases and Security', () => {
  status: 'Brouillon',
  owner: 'owner@test.com',
  ownerId: 'owner123',
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  ...overrides,
  });
 

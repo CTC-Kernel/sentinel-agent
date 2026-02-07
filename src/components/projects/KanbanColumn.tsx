@@ -76,13 +76,13 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   <div className="flex justify-between items-start mb-2">
   <span className="text-sm font-bold text-foreground line-clamp-2">{task.title}</span>
   <div className="flex gap-1 opacity-0 group-hover:opacity-70 transition-opacity">
-   <button onClick={() => onEditTask(task)} className="p-1 hover:bg-muted dark:hover:bg-muted rounded text-muted-foreground hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Edit className="h-3.5 w-3.5" /></button>
-   <button onClick={() => handleDelete(task.id)} disabled={deletingIds.has(task.id)} className="p-1 hover:bg-error-bg rounded text-muted-foreground hover:text-destructive focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed"><Trash2 className="h-3.5 w-3.5" /></button>
+   <button onClick={() => onEditTask(task)} className="p-1 hover:bg-muted dark:hover:bg-muted rounded text-muted-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Edit className="h-3.5 w-3.5" /></button>
+   <button onClick={() => handleDelete(task.id)} disabled={deletingIds.has(task.id)} className="p-1 hover:bg-error-bg rounded text-muted-foreground hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed"><Trash2 className="h-3.5 w-3.5" /></button>
   </div>
   </div>
   <div className="flex items-center justify-between mt-2">
   <span className="text-xs font-medium px-2 py-0.5 bg-muted rounded text-muted-foreground">{task.assignee || 'Non assigné'}</span>
-  {task.dueDate && <span className={`text-xs font-bold flex items-center ${new Date(task.dueDate) < new Date() ? 'text-destructive' : 'text-muted-foreground'}`}><CalendarDays className="h-3 w-3 mr-1" />{new Date(task.dueDate).toLocaleDateString()}</span>}
+  {task.dueDate && <span className={`text-xs font-bold flex items-center ${new Date(task.dueDate) < new Date() ? 'text-destructive' : 'text-muted-foreground'}`}><CalendarDays className="h-3 w-3 mr-1" />{new Date(task.dueDate).toLocaleDateString('fr-FR')}</span>}
   </div>
   </div>
   ))

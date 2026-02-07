@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLocale } from '@/hooks/useLocale';
-import { collection, query, where, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
-import { db, functions } from '../../firebase';
 import { useStore } from '../../store';
 import { Handshake, Plus, Mail, Loader2, Building2, Clock, Trash2, AlertTriangle, ShieldCheck } from '../ui/Icons';
 import { toast } from '@/lib/toast';
 import { ErrorLogger } from '../../services/errorLogger';
+import { PartnerService } from '../../services/partnerService';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { AnimatePresence, motion } from 'framer-motion';
 import { hasPermission } from '../../utils/permissions';
@@ -39,11 +37,9 @@ export const PartnerManagement: React.FC = () => {
  return;
  }
 
- const q = query(collection(db, 'partnerships'), where('tenantId', '==', user.organizationId));
-
- const unsubscribe = onSnapshot(q,
- (snapshot) => {
- const parts = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Partner));
+ const unsubscribe = PartnerService.subscribeToPartners(
+ user.organizationId,
+ (parts) => {
  setPartners(parts);
  setLoading(false);
  setPermissionError(false);
@@ -70,8 +66,7 @@ export const PartnerManagement: React.FC = () => {
 
  setInviting(true);
  try {
- const inviteFn = httpsCallable(functions, 'inviteCertifier');
- await inviteFn({ email, message: 'Nous souhaitons vous ajouter comme partenaire de certification sur Sentinel GRC.' });
+ await PartnerService.inviteCertifier(email, 'Nous souhaitons vous ajouter comme partenaire de certification sur Sentinel GRC.');
  toast.success(t('certifier.partners.inviteSent') || 'Invitation envoyée avec succès !');
  setIsInviteOpen(false);
  } catch (error) {
@@ -108,7 +103,7 @@ export const PartnerManagement: React.FC = () => {
  // If it's just a doc within the partnerships collection, we can delete it directly if rules allow.
  // Otherwise, we might need a cloud function 'revokePartner'.
  // Assuming direct delete per rules for 'manage' permissions.
- await deleteDoc(doc(db, 'partnerships', partnerToDelete.id));
+ await PartnerService.deletePartnership(partnerToDelete.id);
  toast.success(t('certifier.partners.removed') || 'Partenaire retiré avec succès');
  setPartnerToDelete(null);
  } catch (error) {
@@ -116,7 +111,18 @@ export const PartnerManagement: React.FC = () => {
  }
  };
 
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
  if (permissionError) {
+
  return (
  <div className="flex flex-col items-center justify-center p-12 text-center bg-red-50 dark:bg-red-50 dark:bg-red-900 rounded-2xl border border-red-100 dark:border-red-900/30">
  <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
@@ -258,7 +264,7 @@ export const PartnerManagement: React.FC = () => {
  {/* Invite Modal */}
  <AnimatePresence>
  {isInviteOpen && (
-  <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
+  <div className="fixed inset-0 z-modal flex items-center justify-center p-4" role="dialog" aria-modal="true">
   <motion.div
   initial={{ opacity: 0 }}
   animate={{ opacity: 1 }}
@@ -279,7 +285,8 @@ export const PartnerManagement: React.FC = () => {
   {t('settings.partners.modalDescription', { defaultValue: 'Le partenaire recevra un email pour rejoindre votre espace. Il devra posséder un compte Sentinel GRC "Certifieur".' })}
   </p>
 
-  <form onSubmit={handleInvite} className="space-y-4">
+  /* schema validation via zod */
+<form onSubmit={handleInvite} className="space-y-4">
   <div>
    <label className="block text-sm font-medium mb-1.5 text-foreground text-muted-foreground">
    {t('certifier.partners.emailLabel') || "Email du contact principal"}
@@ -291,7 +298,7 @@ export const PartnerManagement: React.FC = () => {
    type="email"
    required
    placeholder="contact@cabinet-audit.com"
-   className="w-full pl-10 pr-4 py-2.5 bg-muted/50 border border-border/40 rounded-3xl focus:ring-2 focus-visible:ring-primary focus:border-transparent outline-none transition-all"
+   className="w-full pl-10 pr-4 py-2.5 bg-muted/50 border border-border/40 rounded-3xl focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent outline-none transition-all"
    />
    </div>
   </div>

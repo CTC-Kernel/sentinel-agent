@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Pencil, Loader2 } from './Icons';
 import { cn } from '../../lib/utils';
 import { useTranslation } from 'react-i18next';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface InlineEditProps {
  /** Current value */
@@ -138,6 +139,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
  navigator.vibrate(30);
  }
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'InlineEdit');
  setError(err instanceof Error ? err.message : t('common.saveError', { defaultValue: 'Erreur lors de la sauvegarde' }));
  } finally {
  setIsSaving(false);
@@ -197,7 +199,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
   disabled={isSaving}
   className={cn(
    'w-full px-2 py-1 text-sm bg-card border rounded-lg',
-   'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
    'transition-colors duration-200',
    error
    ? 'border-error-border focus-visible:ring-error/50'

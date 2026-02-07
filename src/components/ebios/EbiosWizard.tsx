@@ -9,7 +9,7 @@
  * - Responsive design with Apple aesthetics
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useLocale } from '../../hooks/useLocale';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, X } from '../ui/Icons';
@@ -97,6 +97,16 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
  navigate(-1);
  }, [hasUnsavedChanges, navigate, onSave]);
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShow(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [setShow]);
+
+
  return (
  <div className="min-h-screen relative flex flex-col bg-muted/50">
  <MasterpieceBackground />
@@ -108,8 +118,9 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
  <div className="flex items-center gap-5">
  <button
  onClick={handleExit}
- className="p-2.5 -ml-2 rounded-3xl text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-muted dark:hover:bg-muted transition-colors"
+ className="p-2.5 -ml-2 rounded-3xl text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-muted dark:hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  title={t('common.exit')}
+ aria-label="Fermer"
  >
  <X className="w-5 h-5" />
  </button>
@@ -320,7 +331,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
 
  {/* Exit Confirmation Modal */}
  {showExitConfirm && (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] animate-fade-in">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] animate-fade-in" role="dialog" aria-modal="true">
  <PremiumCard glass className="max-w-md w-full p-6 shadow-2xl border-border/40 rounded-3xl">
  <div className="flex items-center gap-3 mb-4 text-amber-500">
  <div className="p-2 bg-amber-50 rounded-lg">
@@ -338,19 +349,19 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
  <div className="flex justify-end gap-3">
  <button
  onClick={() => setShowExitConfirm(false)}
- className="px-5 py-2.5 rounded-3xl font-medium text-muted-foreground hover:bg-muted transition-colors"
+ className="px-5 py-2.5 rounded-3xl font-medium text-muted-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  {t('common.cancel')}
  </button>
  <button
  onClick={() => navigate(-1)}
- className="px-5 py-2.5 rounded-3xl font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 transition-colors"
+ className="px-5 py-2.5 rounded-3xl font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  {t('common.discardChanges')}
  </button>
  <button
  onClick={confirmExit}
- className="px-6 py-2.5 rounded-3xl font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5"
+ className="px-6 py-2.5 rounded-3xl font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  {t('common.saveAndExit')}
  </button>

@@ -214,7 +214,7 @@ export const DashboardWithQuickActions: React.FC = () => {
   <p className="text-sm text-muted-foreground mb-6">{t('dashboard.loadErrorDesc', { defaultValue: 'Impossible de charger les données du tableau de bord. Vérifiez votre connexion et réessayez.' })}</p>
   <button
   onClick={() => { setError(null); window.location.reload(); }}
-  className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-medium text-sm hover:opacity-90 transition-opacity"
+  className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-medium text-sm hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   {t('common.retry', { defaultValue: 'Réessayer' })}
   </button>

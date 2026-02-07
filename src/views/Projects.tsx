@@ -288,9 +288,8 @@ export const Projects: React.FC = () => {
  title={t('projects.title')}
  subtitle={t('projects.subtitle')}
  icon={
-  <img
+  <img alt="PILOTAGE"
   src="/images/pilotage.png"
-  alt="PILOTAGE"
   className="w-full h-full object-contain"
   />
  }
@@ -331,7 +330,7 @@ export const Projects: React.FC = () => {
   <Button
    aria-label={t('projects.newProject')}
    onClick={handleNewProjectClick}
-   className="shadow-lg shadow-primary/20"
+   className="shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
    <Plus className="h-4 w-4 mr-2" />
    <span className="hidden sm:inline">{t('projects.newProject')}</span>

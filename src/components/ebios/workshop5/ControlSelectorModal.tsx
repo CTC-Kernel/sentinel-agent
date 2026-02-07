@@ -5,7 +5,7 @@
  * Story 19.2: Sélection des Mesures ISO 27002
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
  X,
@@ -135,12 +135,23 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
  onClose();
  };
 
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
  if (!isOpen) return null;
 
  const suggestedCount = allControls.filter((c) => c.isSuggested).length;
 
+
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" role="dialog" aria-modal="true">
  <PremiumCard glass className="w-full max-w-4xl max-h-[90vh] flex flex-col">
  {/* Header */}
  <div className="flex items-center justify-between pb-4 border-b border-border/40/50">
@@ -160,6 +171,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
  <button
  onClick={onClose}
  className="p-2 rounded-lg hover:bg-muted transition-colors"
+ aria-label="Fermer"
  >
  <X className="w-5 h-5 text-muted-foreground" />
  </button>
@@ -171,10 +183,11 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
  <input
  type="text"
+ aria-label="Rechercher des contrôles"
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
  placeholder={t('ebios.workshop5.searchControls')}
- className="w-full pl-10 pr-4 py-2.5 rounded-3xl border border-border/40 bg-card text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="w-full pl-10 pr-4 py-2.5 rounded-3xl border border-border/40 bg-card text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  />
  </div>
 

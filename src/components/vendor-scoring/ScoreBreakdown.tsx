@@ -149,7 +149,7 @@ const SectionScoreBar: React.FC<{
  {/* Header */}
  <button
  onClick={onToggle}
- className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+ className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <div className="flex items-center gap-3">
  <div
@@ -373,7 +373,7 @@ export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
  {score.answeredQuestions}/{score.totalQuestions}{' '}
  {t('vendorScoring.questionsAnswered', 'questions answered')} •{' '}
  {t('vendorScoring.calculatedAt', 'Calculated')}{' '}
- {new Date(score.calculatedAt).toLocaleDateString()}
+ {new Date(score.calculatedAt).toLocaleDateString('fr-FR')}
  </div>
  </div>
  </div>

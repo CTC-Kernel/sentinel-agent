@@ -122,7 +122,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
   {t('assets.lifecycle.purchaseDate', 'Date d\'achat')}
   </div>
   <div className="text-sm font-medium text-foreground">
-  {selectedAsset?.purchaseDate ? new Date(selectedAsset.purchaseDate).toLocaleDateString() : '-'}
+  {selectedAsset?.purchaseDate ? new Date(selectedAsset.purchaseDate).toLocaleDateString('fr-FR') : '-'}
   </div>
   </div>
   <div>
@@ -130,7 +130,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
   {t('assets.lifecycle.warranty.status', 'Fin de garantie')}
   </div>
   <div className="text-sm font-medium text-foreground">
-  {selectedAsset?.warrantyEnd ? new Date(selectedAsset.warrantyEnd).toLocaleDateString() : '-'}
+  {selectedAsset?.warrantyEnd ? new Date(selectedAsset.warrantyEnd).toLocaleDateString('fr-FR') : '-'}
   </div>
   </div>
   <div>
@@ -282,7 +282,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
   <div className="flex-1">
    <div className="flex items-center justify-between mb-1">
    <span className="text-xs font-bold text-foreground">
-   {new Date(rec.date).toLocaleDateString()}
+   {new Date(rec.date).toLocaleDateString('fr-FR')}
    </span>
    <span className="text-xs uppercase tracking-wider bg-muted dark:bg-white/10 px-2 py-0.5 rounded-3xl text-muted-foreground font-bold">
    {t(`assets.lifecycle.types.${rec.type === 'Préventive' ? 'preventive' : rec.type === 'Corrective' ? 'corrective' : rec.type === 'Mise à jour' ? 'update' : 'inspection'}`, rec.type)}

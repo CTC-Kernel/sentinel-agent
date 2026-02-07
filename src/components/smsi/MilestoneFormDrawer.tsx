@@ -202,7 +202,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
  <select
  id="responsible-select"
  {...register('responsibleId')}
- className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-card text-foreground focus-visible:ring-2 focus-visible:ring-primary focus:border-blue-500"
+ className="w-full px-4 py-3 rounded-3xl border border-border/40 bg-card text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-blue-500"
  >
  <option value="">{t('milestones.fields.unassigned', { defaultValue: 'Non assigné' })}</option>
  {teamMembers.map((member) => (

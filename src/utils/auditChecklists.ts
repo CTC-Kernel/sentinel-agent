@@ -270,8 +270,8 @@ export function generateAuditChecklist(
  domain,
  items,
  completionRate: 0,
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  };
 }
 

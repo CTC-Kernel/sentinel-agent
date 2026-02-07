@@ -92,28 +92,28 @@ export const ContinuitySummaryCard: React.FC<ContinuitySummaryCardProps> = ({ pr
 
  {/* Quick Stats Grid inside the main card */}
  <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4 border-l border-r border-border/50 px-6 mx-2 relative z-decorator">
- <button type="button" onClick={() => navigate('/continuity?tab=drills')} className="text-center group/metric cursor-pointer hover:shadow-md transition-all rounded-2xl p-2">
+ <button type="button" onClick={() => navigate('/continuity?tab=drills')} className="text-center group/metric cursor-pointer hover:shadow-md transition-all rounded-2xl p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
   <div className="flex items-center justify-center gap-2 mb-2">
   <History className="h-4 w-4 text-muted-foreground group-hover/metric:text-amber-500 transition-colors" />
   <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest font-mono">Expirés</div>
   </div>
   <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.overdueTests}</div>
  </button>
- <button type="button" onClick={() => navigate('/continuity?tab=bia')} className="text-center group/metric cursor-pointer hover:shadow-md transition-all rounded-2xl p-2">
+ <button type="button" onClick={() => navigate('/continuity?tab=bia')} className="text-center group/metric cursor-pointer hover:shadow-md transition-all rounded-2xl p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
   <div className="flex items-center justify-center gap-2 mb-2">
   <Activity className="h-4 w-4 text-muted-foreground group-hover/metric:text-primary transition-colors" />
   <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest font-mono">Processus</div>
   </div>
   <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.total}</div>
  </button>
- <button type="button" onClick={() => navigate('/continuity?tab=bia')} className="text-center group/metric cursor-pointer hover:shadow-md transition-all rounded-2xl p-2">
+ <button type="button" onClick={() => navigate('/continuity?tab=bia')} className="text-center group/metric cursor-pointer hover:shadow-md transition-all rounded-2xl p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
   <div className="flex items-center justify-center gap-2 mb-2">
   <ShieldCheck className="h-4 w-4 text-muted-foreground group-hover/metric:text-rose-500 transition-colors" />
   <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest font-mono">Critiques</div>
   </div>
   <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.critical}</div>
  </button>
- <button type="button" onClick={() => navigate('/continuity?tab=drills')} className="text-center group/metric cursor-pointer hover:shadow-md transition-all rounded-2xl p-2">
+ <button type="button" onClick={() => navigate('/continuity?tab=drills')} className="text-center group/metric cursor-pointer hover:shadow-md transition-all rounded-2xl p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
   <div className="flex items-center justify-center gap-2 mb-2">
   <Zap className="h-4 w-4 text-muted-foreground group-hover/metric:text-blue-500 transition-colors" />
   <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest font-mono">Exercices</div>

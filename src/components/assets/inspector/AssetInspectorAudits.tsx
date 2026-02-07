@@ -32,7 +32,7 @@ export const AssetInspectorAudits: React.FC<AssetInspectorAuditsProps> = ({
   <div className="flex items-center gap-4 mt-2">
   <div className="text-xs text-muted-foreground flex items-center gap-1">
    <CalendarClock className="h-3 w-3" />
-   {new Date(audit.dateScheduled).toLocaleDateString()}
+   {new Date(audit.dateScheduled).toLocaleDateString('fr-FR')}
   </div>
   <div className="text-xs text-muted-foreground flex items-center gap-1">
    <AlertTriangle className="h-3 w-3" />

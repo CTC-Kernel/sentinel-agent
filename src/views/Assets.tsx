@@ -42,8 +42,6 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { AnimatePresence } from 'framer-motion';
 import { EnrollAgentModal, ReleaseInfo } from '../components/settings/EnrollAgentModal';
 import { AgentService } from '../services/AgentService';
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../firebase';
 import { Server } from 'lucide-react';
 import { ErrorLogger } from '../services/errorLogger';
 
@@ -429,9 +427,8 @@ const Assets: React.FC = () => {
         if (!releaseInfo) {
             setLoadingReleases(true);
             try {
-                const getReleaseInfo = httpsCallable<{ product: string }, ReleaseInfo>(functions, 'getReleaseInfo');
-                const result = await getReleaseInfo({ product: 'agent' });
-                setReleaseInfo(result.data);
+                const data = await AgentService.getReleaseInfo('agent');
+                setReleaseInfo(data);
             } catch {
                 ErrorLogger.warn('Failed to fetch releases', 'Assets.handleOpenEnrollment');
                 // Fallback handled by modal or empty state, but let's set a default or just stop loading
@@ -473,9 +470,8 @@ const Assets: React.FC = () => {
                         title={t('assets.title')}
                         subtitle={t('assets.description')}
                         icon={
-                            <img
+                            <img alt="RÉFÉRENTIEL"
                                 src="/images/referentiel.png"
-                                alt="RÉFÉRENTIEL"
                                 className="w-full h-full object-contain"
                             />
                         }

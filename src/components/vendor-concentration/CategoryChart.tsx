@@ -172,7 +172,7 @@ const LegendItem: React.FC<LegendItemProps> = ({ category, color, onClick }) => 
  return (
  <button
  onClick={onClick}
- className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors text-left"
+ className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <div
  className="w-3 h-3 rounded-full flex-shrink-0"
@@ -219,7 +219,7 @@ const VendorList: React.FC<VendorListProps> = ({ category, onBack }) => {
  <div className="space-y-4">
  <button
  onClick={onBack}
- className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700"
+ className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <ChevronRight className="h-4 w-4 rotate-180" />
  {t('common.back')}

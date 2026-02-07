@@ -148,7 +148,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
   <input {...register('isSignificant')}
   id="is-significant"
   type="checkbox"
-  className="h-5 w-5 rounded-lg text-error focus:ring-error border-border/40"
+  className="h-5 w-5 rounded-lg text-error focus-visible:ring-error border-border/40"
   />
   <label htmlFor="is-significant" className="text-sm font-bold text-foreground flex items-center">
   <ShieldAlert className="h-4 w-4 mr-2 text-error" />

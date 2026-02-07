@@ -185,10 +185,11 @@ export const TrainingCatalog: React.FC<TrainingCatalogProps> = ({
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
  <input
  type="text"
+ aria-label="Rechercher une formation"
  placeholder={t('training.searchPlaceholder') || 'Rechercher une formation...'}
  value={filters.searchQuery}
  onChange={handleSearchChange}
- className="w-full pl-10 pr-4 py-2.5 rounded-3xl bg-muted/50 border border-muted focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm text-foreground placeholder:text-muted-foreground transition-all"
+ className="w-full pl-10 pr-4 py-2.5 rounded-3xl bg-muted/50 border border-muted focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 text-sm text-foreground placeholder:text-muted-foreground transition-all"
  />
  {filters.searchQuery && (
  <button
@@ -302,7 +303,7 @@ export const TrainingCatalog: React.FC<TrainingCatalogProps> = ({
   <select
   value={filters.source}
   onChange={(e) => handleSourceChange(e.target.value)}
-  className="px-3 py-2 rounded-3xl bg-muted/50 border border-muted text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+  className="px-3 py-2 rounded-3xl bg-muted/50 border border-muted text-sm text-foreground focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
   >
   {sourceOptions.map((option) => (
   <option key={option.value || 'unknown'} value={option.value}>
@@ -319,7 +320,7 @@ export const TrainingCatalog: React.FC<TrainingCatalogProps> = ({
   id="required-only"
   checked={filters.showRequiredOnly}
   onChange={handleRequiredOnlyToggle}
-  className="w-4 h-4 rounded-md border-muted text-primary focus:ring-primary/20"
+  className="w-4 h-4 rounded-md border-muted text-primary focus-visible:ring-primary/20"
   />
   <label htmlFor="required-only" className="text-sm text-foreground cursor-pointer">
   {t('training.course.isRequired')}

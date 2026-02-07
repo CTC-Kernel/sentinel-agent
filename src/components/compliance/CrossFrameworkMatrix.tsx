@@ -37,6 +37,7 @@ import { AGENT_CHECK_DEFINITIONS, AgentCheckId } from '../../types/agentEvidence
 import { getLocaleConfig, type SupportedLocale } from '../../config/localeConfig';
 import i18n from '../../i18n';
 import { useLocale } from '../../hooks/useLocale';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface CrossFrameworkMatrixProps {
  className?: string;
@@ -388,6 +389,7 @@ export const CrossFrameworkMatrix: React.FC<CrossFrameworkMatrixProps> = ({
  const data = await AutoPopulationService.getCrossFrameworkMatrix(organizationId);
  setEntries(data);
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'CrossFrameworkMatrix');
  setError((err as Error).message);
  } finally {
  setLoading(false);

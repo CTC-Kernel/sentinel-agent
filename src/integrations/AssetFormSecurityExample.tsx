@@ -127,7 +127,7 @@ export const AssetFormSecure_Approach1: React.FC<AssetFormProps> = ({
  <button
   type="submit"
   disabled={form.isSubmitting || !form.isValid || readOnly}
-  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-muted disabled:text-muted-foreground"
+  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
   {form.isSubmitting ? 'Enregistrement...' : isEditing ? 'Mettre à jour' : 'Créer'}
  </button>
@@ -135,7 +135,7 @@ export const AssetFormSecure_Approach1: React.FC<AssetFormProps> = ({
   type="button"
   onClick={onCancel}
   disabled={form.isSubmitting}
-  className="px-4 py-2 border rounded-md"
+  className="px-4 py-2 border rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
   Annuler
  </button>
@@ -294,7 +294,7 @@ export const AssetFormSecure_Approach2: React.FC<AssetFormProps> = ({
  <button
   type="submit"
   disabled={isSubmitting || isLoading || readOnly}
-  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-muted disabled:text-muted-foreground"
+  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
   {isSubmitting ? 'Enregistrement...' : isEditing ? 'Mettre à jour' : 'Créer'}
  </button>
@@ -302,7 +302,7 @@ export const AssetFormSecure_Approach2: React.FC<AssetFormProps> = ({
   type="button"
   onClick={onCancel}
   disabled={isSubmitting || isLoading}
-  className="px-4 py-2 border rounded-md"
+  className="px-4 py-2 border rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
   Annuler
  </button>

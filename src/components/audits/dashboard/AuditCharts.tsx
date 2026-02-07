@@ -284,7 +284,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                                     <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.1)' }} />
                                     <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={40} animationDuration={1200}>
                                         {findingSeverityData.map((entry, index) => (
-                                            <Cell key={`cell - ${index || 'unknown'} `} fill={entry.color} style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' }} />
+                                            <Cell key={`cell - ${index || 'unknown'} `} fill={entry.color} style={{ filter: 'drop-shadow(0 2px 4px hsl(var(--foreground) / 0.15))' }} />
                                         ))}
                                     </Bar>
                                 </BarChart>

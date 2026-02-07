@@ -79,7 +79,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
   <button
   onClick={() => handleSourceSelect('splunk')}
   disabled={loading}
-  className="flex flex-col items-center justify-center p-6 border-2 border-border/40 rounded-3xl hover:border-primary hover:bg-primary/10 dark:hover:bg-primary/10 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="flex flex-col items-center justify-center p-6 border-2 border-border/40 rounded-3xl hover:border-primary hover:bg-primary/10 dark:hover:bg-primary/10 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
   <span className="text-white font-bold text-xs">&gt;_</span>
@@ -91,7 +91,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
   <button
   onClick={() => handleSourceSelect('microsoft')}
   disabled={loading}
-  className="flex flex-col items-center justify-center p-6 border-2 border-border/40 rounded-3xl hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:bg-blue-900 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+  className="flex flex-col items-center justify-center p-6 border-2 border-border/40 rounded-3xl hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:bg-blue-900 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
   >
   <div className="w-12 h-12 bg-sky-500 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
   <Disc className="text-white h-6 w-6" />
@@ -103,7 +103,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
   <button
   onClick={() => handleSourceSelect('crowdstrike')}
   disabled={loading}
-  className="flex flex-col items-center justify-center p-6 border-2 border-border/40 rounded-3xl hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-900 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+  className="flex flex-col items-center justify-center p-6 border-2 border-border/40 rounded-3xl hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-900 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
   >
   <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
   <Activity className="text-white h-6 w-6" />
@@ -115,7 +115,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
   <button
   onClick={() => handleSourceSelect('sentinelone')}
   disabled={loading}
-  className="flex flex-col items-center justify-center p-6 border-2 border-border/40 rounded-3xl hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/10 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+  className="flex flex-col items-center justify-center p-6 border-2 border-border/40 rounded-3xl hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/10 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
   >
   <div className="w-12 h-12 bg-purple-700 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
   <Shield className="text-white h-6 w-6" />
@@ -151,7 +151,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
    role="checkbox"
    aria-checked={selectedEvents.has(event.id)}
    tabIndex={0}
-   className={`p-4 rounded-3xl border cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${selectedEvents.has(event.id)
+   className={`p-4 rounded-3xl border cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${selectedEvents.has(event.id)
    ? 'border-primary bg-primary/10 dark:bg-primary'
    : 'border-border/40 hover:bg-muted/50'
    }`}
@@ -171,7 +171,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
    </div>
    <p className="text-sm text-muted-foreground ml-7">{event.description}</p>
    <div className="flex items-center gap-4 mt-2 ml-7 text-xs text-muted-foreground">
-   <span>{new Date(event.timestamp).toLocaleString()}</span>
+   <span>{new Date(event.timestamp).toLocaleString('fr-FR')}</span>
    <span>•</span>
    <span className="font-mono">{event.id}</span>
    </div>

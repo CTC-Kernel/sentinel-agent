@@ -4,7 +4,7 @@
  * Allows users to create documents from pre-defined templates
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { DOCUMENT_TEMPLATES, getTemplatesByCategory, DocumentTemplate } from '../../data/documentTemplates';
 import { X, FileText, Shield, Lock, AlertTriangle, Database, FileCheck, UserCheck, ChevronRight, Search } from '../ui/Icons';
@@ -111,6 +111,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
    <button
    onClick={onClose}
    className="p-2 hover:bg-muted rounded-lg transition-colors"
+   aria-label="Fermer"
    >
    <X className="h-5 w-5 text-muted-foreground" />
    </button>
@@ -155,10 +156,11 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
    <input
     type="text"
+    aria-label="Rechercher un modèle"
     value={searchQuery}
     onChange={(e) => setSearchQuery(e.target.value)}
     placeholder={t('documents.templates.searchPlaceholder', { defaultValue: 'Rechercher un modèle...' })}
-    className="w-full pl-10 pr-4 py-2 border border-border/40 rounded-lg bg-card text-sm focus:ring-2 focus-visible:ring-primary focus:border-transparent"
+    className="w-full pl-10 pr-4 py-2 border border-border/40 rounded-lg bg-card text-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent"
    />
    </div>
    </div>
@@ -173,6 +175,16 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
    <div className="grid grid-cols-2 gap-4">
     {filteredTemplates.map(template => {
     const Icon = getIcon(template.icon);
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
     return (
     <button
     key={template.id || 'unknown'}

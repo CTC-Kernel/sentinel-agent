@@ -439,7 +439,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
   setMaxAlertsPerHour(parseInt(e.target.value) || 10);
   markChanged();
   }}
-  className="w-full bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-foreground text-sm focus:outline-none focus:border-primary"
+  className="w-full bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-foreground text-sm focus-visible:outline-none focus-visible:border-primary"
   />
   </div>
   <div className="p-4 rounded-3xl bg-muted/50 border border-border/40">
@@ -457,7 +457,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
   setCooldownMinutes(parseInt(e.target.value) || 30);
   markChanged();
   }}
-  className="w-full bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-foreground text-sm focus:outline-none focus:border-primary"
+  className="w-full bg-muted/50 border border-border/40 rounded-lg px-3 py-2 text-foreground text-sm focus-visible:outline-none focus-visible:border-primary"
   />
   </div>
  </div>

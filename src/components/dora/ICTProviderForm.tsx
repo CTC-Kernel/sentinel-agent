@@ -679,7 +679,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
     </div>
 
     {/* Slider Input */}
-    <input
+    <input aria-label={t('dora.risk.concentration')}
     type="range"
     min="0"
     max="100"
@@ -687,7 +687,6 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
     value={value}
     onChange={(e) => field.onChange(Number(e.target.value))}
     className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-indigo-600"
-    aria-label={t('dora.risk.concentration')}
     />
 
     {/* Value Display */}
@@ -806,7 +805,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
     className={`w-full px-4 py-3 rounded-3xl border ${isHighRisk && !field.value
     ? 'border-red-300 dark:border-red-700'
     : 'border-border/40'
-    } bg-card focus-visible:ring-2 focus-visible:ring-primary focus:border-transparent transition-all`}
+    } bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all`}
     />
     </div>
    );
@@ -820,8 +819,8 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
    <span>{t('dora.risk.lastAssessment')}:</span>
    <span className="font-medium">
    {typeof initialData.riskAssessment.lastAssessment === 'string'
-    ? new Date(initialData.riskAssessment.lastAssessment).toLocaleDateString()
-    : (initialData.riskAssessment.lastAssessment as { toDate: () => Date }).toDate().toLocaleDateString()}
+    ? new Date(initialData.riskAssessment.lastAssessment).toLocaleDateString('fr-FR')
+    : (initialData.riskAssessment.lastAssessment as { toDate: () => Date }).toDate().toLocaleDateString('fr-FR')}
    </span>
    {initialData.riskAssessment.assessedBy && (
    <>

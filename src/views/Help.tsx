@@ -757,9 +757,8 @@ export const Help: React.FC = () => {
  title="Centre d'Aide"
  subtitle="Documentation, guides et support pour Sentinel GRC"
  icon={
-  <img
+  <img alt="SUPPORT"
   src="/images/support.png"
-  alt="SUPPORT"
   className="w-full h-full object-contain"
   />
  }
@@ -796,7 +795,7 @@ export const Help: React.FC = () => {
   aria-label="Rechercher dans l'aide"
   type="text"
   placeholder="Rechercher..."
-  className="w-full pl-9 pr-4 py-2.5 bg-card border border-border rounded-xl text-sm focus:ring-2 focus-visible:ring-primary outline-none transition-all placeholder:text-muted-foreground"
+  className="w-full pl-9 pr-4 py-2.5 bg-card border border-border rounded-xl text-sm focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all placeholder:text-muted-foreground"
   />
   </div>
 

@@ -401,6 +401,16 @@ export function CustomViewManager({
  );
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <>
  <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>

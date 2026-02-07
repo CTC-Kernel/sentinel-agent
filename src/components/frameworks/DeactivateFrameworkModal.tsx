@@ -6,7 +6,7 @@
  * @see Story EU-1.3: Créer le composant FrameworkSelector
  */
 
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -41,7 +41,18 @@ export const DeactivateFrameworkModal: React.FC<DeactivateFrameworkModalProps> =
  const { t } = useTranslation();
  const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
  if (!framework) return null;
+
 
  return (
  <Transition.Root show={isOpen} as={React.Fragment}>

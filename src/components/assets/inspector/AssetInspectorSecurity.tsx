@@ -176,7 +176,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
    <span className="text-sm font-bold text-foreground">{inc.title}</span>
    <span className={`text-xs uppercase font-bold px-2 py-1 rounded-3xl ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span>
   </div>
-  <p className="text-xs text-muted-foreground mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p>
+  <p className="text-xs text-muted-foreground mb-2">{new Date(inc.dateReported).toLocaleDateString('fr-FR')}</p>
   </div>
   ))}
   </div>

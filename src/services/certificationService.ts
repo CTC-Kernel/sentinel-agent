@@ -20,6 +20,7 @@ import {
   where,
   orderBy,
   onSnapshot,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
@@ -106,7 +107,7 @@ export class CertificationService {
       orderBy('updatedAt', 'desc')
     );
 
-    return onSnapshot(
+    const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
         const certifications = snapshot.docs.map((d) => ({
@@ -119,6 +120,7 @@ export class CertificationService {
         ErrorLogger.error(error, 'CertificationService.subscribeToCertifications');
       }
     );
+    return unsubscribe;
   }
 
   /**
@@ -204,7 +206,7 @@ export class CertificationService {
       const updateData = sanitizeData({
         ...data,
         status,
-        updatedAt: new Date().toISOString(),
+        updatedAt: serverTimestamp(),
       });
 
       // Remove id and organizationId from update payload

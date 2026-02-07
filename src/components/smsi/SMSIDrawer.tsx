@@ -156,7 +156,7 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
    "p-2 rounded-lg",
    selectedTemplate === template.id ? "bg-primary/15 text-primary dark:bg-primary dark:text-primary/70" : "bg-muted text-muted-foreground "
    )}>
-   <template.icon className="w-5 h-5" />
+   <template.icon className="w-5 h-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" />
    </div>
    <div className="flex-1">
    <h4 className={cn(

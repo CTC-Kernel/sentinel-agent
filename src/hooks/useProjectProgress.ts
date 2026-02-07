@@ -87,47 +87,8 @@ function calculatePercentage(completed: number, total: number): number {
  return Math.round((completed / total) * 100);
 }
 
-/**
- * Get progress color scheme based on percentage
- */
-export function getProgressColorScheme(
- percentage: number
-): 'excellent' | 'good' | 'warning' | 'critical' {
- if (percentage >= 80) return 'excellent';
- if (percentage >= 60) return 'good';
- if (percentage >= 40) return 'warning';
- return 'critical';
-}
-
-/**
- * Get Tailwind classes for progress color
- */
-export const PROGRESS_COLOR_CLASSES = {
- excellent: {
- bg: 'bg-green-500',
- bgLight: 'bg-green-100 dark:bg-green-900/30',
- text: 'text-green-600 dark:text-green-400',
- border: 'border-green-200 dark:border-green-800',
- },
- good: {
- bg: 'bg-blue-500',
- bgLight: 'bg-blue-100 dark:bg-blue-900/30',
- text: 'text-blue-600 dark:text-blue-400',
- border: 'border-blue-200 dark:border-blue-800',
- },
- warning: {
- bg: 'bg-orange-500',
- bgLight: 'bg-orange-100 dark:bg-orange-900/30',
- text: 'text-orange-600 dark:text-orange-400',
- border: 'border-orange-200 dark:border-orange-800',
- },
- critical: {
- bg: 'bg-red-500',
- bgLight: 'bg-red-100 dark:bg-red-900/30',
- text: 'text-red-600 dark:text-red-400',
- border: 'border-red-200 dark:border-red-800',
- },
-} as const;
+// Re-export color scheme utilities (moved to utils/colorSchemes.ts to satisfy hooks naming convention)
+export { getProgressColorScheme, PROGRESS_COLOR_CLASSES } from '../utils/colorSchemes';
 
 /**
  * Hook to fetch and monitor project progress metrics

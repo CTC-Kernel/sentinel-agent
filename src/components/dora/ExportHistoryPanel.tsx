@@ -139,6 +139,16 @@ export const ExportHistoryPanel: React.FC<ExportHistoryPanelProps> = ({
   const formatBadge = getFormatBadge(exportRecord.format);
   const isDeleting = deletingId === exportRecord.id;
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
   return (
   <div
   key={exportRecord.id || 'unknown'}

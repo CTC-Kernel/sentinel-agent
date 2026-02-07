@@ -264,7 +264,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
  `}
  title={isVRActive ? 'Exit VR' : 'Enter VR'}
  >
- <VRHeadsetIcon className="w-5 h-5" />
+ <VRHeadsetIcon className="w-5 h-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" />
  </button>
  )}
  {status.arSupported && (
@@ -281,7 +281,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
  `}
  title={isARActive ? 'Exit AR' : 'Enter AR'}
  >
- <ARPhoneIcon className="w-5 h-5" />
+ <ARPhoneIcon className="w-5 h-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" />
  </button>
  )}
  </div>
@@ -349,7 +349,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
  >
  {isVRActive ? (
  <>
- <ExitIcon className="w-4 h-4" />
+ <ExitIcon className="w-4 h-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" />
  <span>Exit VR</span>
  </>
  ) : (
@@ -378,7 +378,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
  >
  {isARActive ? (
  <>
- <ExitIcon className="w-4 h-4" />
+ <ExitIcon className="w-4 h-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" />
  <span>Exit AR</span>
  </>
  ) : (

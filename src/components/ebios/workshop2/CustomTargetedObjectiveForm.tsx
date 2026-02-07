@@ -97,8 +97,8 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
  description: data.description,
  isANSSIStandard: false,
  organizationId: objective?.organizationId || null,
- createdAt: objective?.createdAt || new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: objective?.createdAt || new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  };
 
  onSave(targetedObjective);
@@ -111,8 +111,18 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
  }
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" role="dialog" aria-modal="true">
  <PremiumCard glass className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
  {/* Header */}
  <div className="flex items-center justify-between pb-4 border-b border-border/40/50">
@@ -134,6 +144,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
  <button
  onClick={onClose}
  className="p-2 rounded-3xl hover:bg-muted transition-colors"
+ aria-label="Fermer"
  >
  <X className="w-5 h-5 text-muted-foreground" />
  </button>
@@ -202,6 +213,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
   <input
   {...register('impactType')}
   type="radio"
+  aria-label={info[locale]}
   value={type}
   className="sr-only"
   />

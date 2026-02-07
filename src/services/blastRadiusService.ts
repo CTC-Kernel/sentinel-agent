@@ -582,8 +582,8 @@ export class BlastRadiusService {
  size: scenario.node.size ?? 1,
  data: scenario.node.data || {},
  connections: [],
- createdAt: new Date(),
- updatedAt: new Date(),
+ createdAt: new Date(Date.now()),
+ updatedAt: new Date(Date.now()),
  });
  // Add edges
  scenario.edges.forEach((edge, index) => {

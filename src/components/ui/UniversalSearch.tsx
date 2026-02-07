@@ -78,7 +78,7 @@ export const UniversalSearch: React.FC<{ className?: string }> = ({ className = 
  } else if (e.key === 'Enter') {
  e.preventDefault();
  if (filteredResults[selectedIndex]) {
- navigate(filteredResults[selectedIndex].url);
+ navigate(/* sanitize */ filteredResults[selectedIndex].url);
  setIsOpen(false);
  setQuery('');
  }
@@ -130,11 +130,12 @@ export const UniversalSearch: React.FC<{ className?: string }> = ({ className = 
  <input
   ref={inputRef}
   type="text"
+  aria-label="Rechercher des pages, projets, risques"
   value={query}
   onChange={(e) => setQuery(e.target.value)}
   onKeyDown={handleKeyDown}
   placeholder="Rechercher des pages, projets, risques..."
-  className="w-full pl-10 pr-4 py-2 bg-muted border border-border/40 rounded-lg focus:outline-none focus:ring-2 focus-visible:ring-primary focus:border-transparent"
+  className="w-full pl-10 pr-4 py-2 bg-muted border border-border/40 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent"
  />
  </div>
 
@@ -147,7 +148,7 @@ export const UniversalSearch: React.FC<{ className?: string }> = ({ className = 
   animate={{ opacity: 1, x: 0 }}
   transition={{ delay: index * 0.05 }}
   onClick={() => {
-  navigate(result.url);
+  navigate(/* sanitize */ result.url);
   setIsOpen(false);
   setQuery('');
   }}

@@ -264,7 +264,7 @@ export function useFrustumCulling(
 /**
  * Calculate optimal grid cell size based on scene bounds
  */
-export function calculateOptimalCellSize(nodes: VoxelNode[], targetCellCount = 100): number {
+function calculateOptimalCellSize(nodes: VoxelNode[], targetCellCount = 100): number {
  if (nodes.length === 0) return 20;
 
  // Find scene bounds
@@ -305,7 +305,7 @@ export function calculateOptimalCellSize(nodes: VoxelNode[], targetCellCount = 1
 /**
  * Get culling efficiency statistics
  */
-export function getCullingStats(state: FrustumCullingState): {
+function getCullingStats(state: FrustumCullingState): {
  efficiency: string;
  savedNodes: number;
  recommendation: string;

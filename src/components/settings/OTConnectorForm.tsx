@@ -48,6 +48,7 @@ import type {
  ScheduleType
 } from '../../types/otConnector';
 import {
+import { ErrorLogger } from '@/services/errorLogger';
  CONNECTOR_TYPE_LABELS,
  CONNECTOR_TYPE_DESCRIPTIONS,
  SYNC_INTERVALS
@@ -165,6 +166,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
  const result = await OTConnectorService.testConnection(organization.id, formData);
  setTestResult(result);
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'OTConnectorForm');
  setTestResult({
  success: false,
  message: error instanceof Error ? error.message : 'Test failed'
@@ -206,6 +208,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
  onSuccess();
  onClose();
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'OTConnectorForm');
  toast({
  variant: 'destructive',
  title: t('otConnector.errors.saveFailed', 'Save failed'),
@@ -300,7 +303,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
  value={formData.name}
  onChange={e => updateField('name', e.target.value)}
  placeholder={t('otConnector.placeholders.name', 'e.g., Production SCADA Sync')}
- className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="w-full px-4 py-2 border rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  />
  </div>
 
@@ -314,7 +317,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
  onChange={e => updateField('description', e.target.value)}
  placeholder={t('otConnector.placeholders.description', 'Optional description...')}
  rows={2}
- className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="w-full px-4 py-2 border rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  />
  </div>
 
@@ -401,7 +404,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
  value={config.filePattern || ''}
  onChange={e => updateConfig('filePattern', e.target.value)}
  placeholder=".*\.csv$"
- className="w-full px-4 py-2 border rounded-lg font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="w-full px-4 py-2 border rounded-lg font-mono text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  />
  <p className="text-xs text-muted-foreground mt-1">
  {t('otConnector.csv.filePatternHelp', 'Regular expression to match CSV files')}
@@ -416,7 +419,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
  <select
  value={config.encoding || 'utf-8'}
  onChange={e => updateConfig('encoding', e.target.value)}
- className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="w-full px-4 py-2 border rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
  <option value="utf-8">UTF-8</option>
  <option value="iso-8859-1">ISO-8859-1 (Latin-1)</option>
@@ -446,7 +449,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
  <select
  value={config.defaultNetworkSegment || 'OT'}
  onChange={e => updateConfig('defaultNetworkSegment', e.target.value)}
- className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="w-full px-4 py-2 border rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
  <option value="IT">IT</option>
  <option value="OT">OT</option>
@@ -462,7 +465,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
  <select
  value={config.defaultOTCriticality || 'monitoring'}
  onChange={e => updateConfig('defaultOTCriticality', e.target.value)}
- className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="w-full px-4 py-2 border rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
  <option value="safety">{t('otCriticality.safety', 'Safety')}</option>
  <option value="production">{t('otCriticality.production', 'Production')}</option>
@@ -534,7 +537,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
  <select
  value={formData.schedule.interval || 1440}
  onChange={e => updateSchedule('interval', parseInt(e.target.value))}
- className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="w-full px-4 py-2 border rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
  {SYNC_INTERVALS.map(opt => (
  <option key={opt.value || 'unknown'} value={opt.value}>
@@ -556,7 +559,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
  value={formData.schedule.cronExpression || ''}
  onChange={e => updateSchedule('cronExpression', e.target.value)}
  placeholder="0 2 * * *"
- className="w-full px-4 py-2 border rounded-lg font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="w-full px-4 py-2 border rounded-lg font-mono text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  />
  <p className="text-xs text-muted-foreground mt-1">
  {t('otConnector.schedule.cronHelp', 'Format: minute hour day month weekday (e.g., "0 2 * * *" for 2 AM daily)')}

@@ -35,7 +35,7 @@ export const NotificationCenter: React.FC = () => {
  <div className="relative" ref={containerRef}>
  <button
  onClick={toggle}
- className="relative p-2 text-muted-foreground hover:text-foreground/60 transition-colors rounded-full hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="relative p-2 text-muted-foreground hover:text-foreground/60 transition-colors rounded-full hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  aria-label={unreadCount > 0 ? t('notifications.unreadAriaLabel', { defaultValue: `Notifications - ${unreadCount} non lues`, count: unreadCount }) : t('notifications.title', { defaultValue: 'Notifications' })}
  >
  <Bell className="h-5 w-5" aria-hidden="true" />
@@ -64,7 +64,7 @@ export const NotificationCenter: React.FC = () => {
    <button
    onClick={() => setFilter(f => f === 'all' ? 'unread' : 'all')}
    className={cn(
-   "p-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+   "p-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
    filter === 'unread'
    ? "bg-muted text-foreground"
    : "text-muted-foreground hover:bg-muted/50"
@@ -77,7 +77,7 @@ export const NotificationCenter: React.FC = () => {
   <Tooltip content={t('notifications.markAllAsRead', { defaultValue: 'Tout marquer comme lu' })}>
    <button
    onClick={() => markAllAsRead()}
-   className="p-1.5 text-muted-foreground hover:text-foreground/60 hover:bg-muted/50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+   className="p-1.5 text-muted-foreground hover:text-foreground/60 hover:bg-muted/50 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
    >
    <CheckCheck className="h-4 w-4" />
    </button>
@@ -118,7 +118,7 @@ export const NotificationCenter: React.FC = () => {
 
   {/* Footer */}
   <div className="p-2 border-t border-border/40 bg-gradient-to-br from-muted/20 to-transparent shrink-0 text-center">
-  <Link to="/settings/notifications" onClick={() => setIsOpen(false)} className="text-xs text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
+  <Link to="/settings/notifications" onClick={() => setIsOpen(false)} className="text-xs text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
   {t('notifications.managePreferences', { defaultValue: 'Gérer les préférences' })}
   </Link>
   </div>

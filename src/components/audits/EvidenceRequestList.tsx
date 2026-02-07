@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { EvidenceRequest, UserProfile, Document, Control } from '../../types';
 import { where, arrayUnion, serverTimestamp } from 'firebase/firestore';
@@ -208,6 +208,16 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
  });
  }, [auditId, requests, users, controls, documents, addToast, hasFeature, planId, t]);
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <div>
  <div className="flex items-center justify-between mb-6">
@@ -284,7 +294,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
   type="submit"
   disabled={isSubmitting}
   aria-label={t('audits.evidence.submitRequest', { defaultValue: 'Soumettre la demande' })}
-  className="px-6 py-2 bg-primary text-primary-foreground rounded-3xl font-bold hover:bg-primary/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border"
+  className="px-6 py-2 bg-primary text-primary-foreground rounded-3xl font-bold hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed dark:disabled:border-border"
   >
   {isSubmitting ? t('audits.evidence.creating', { defaultValue: 'Création...' }) : t('audits.evidence.createRequest', { defaultValue: 'Créer la demande' })}
   </button>

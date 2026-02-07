@@ -568,6 +568,7 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
  } as WorkerResponse);
  }
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'layoutWorker');
  self.postMessage({
  type: 'error',
  payload: { message: (error as Error).message },

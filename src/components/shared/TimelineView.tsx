@@ -165,7 +165,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
   <button
   key={log.id || 'unknown'}
   type="button"
-  className={`relative pl-6 group transition-all focus:outline-none w-full text-left`}
+  className={`relative pl-6 group transition-all focus-visible:outline-none w-full text-left`}
   onClick={() => setSelectedLog(log)}
   aria-label={`Détails de l'événement ${log.action} par ${log.userName}`}
   >
@@ -182,7 +182,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
   ${selectedLog?.id === log.id
    ? 'bg-primary/10 border-primary/30 dark:border-primary/90 shadow-md ring-1 ring-primary/60'
    : 'bg-card border-border/40 hover:border-primary/30 dark:hover:border-primary/90 hover:shadow-sm'}
-  group-focus:ring-2 group-focus-visible:ring-primary group-focus:ring-offset-2 dark:group-focus:ring-offset-slate-900 rounded-3xl
+  group-focus-visible:ring-2 group-focus-visible:ring-primary group-focus-visible:ring-offset-2 dark:group-focus-visible:ring-offset-slate-900 rounded-3xl
   `}>
 
   <div className="flex items-center justify-between mb-2">
@@ -244,7 +244,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
    </h3>
    <button
    onClick={() => setSelectedLog(null)}
-   className="text-muted-foreground hover:text-muted-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg p-1"
+   className="text-muted-foreground hover:text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg p-1"
    >
    Fermer
    </button>

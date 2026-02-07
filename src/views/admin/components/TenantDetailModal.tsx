@@ -6,6 +6,7 @@ import { AdminService } from '../../../services/adminService';
 import { toast } from '../../../lib/toast';
 import { useStore } from '../../../store';
 import { ErrorLogger } from '../../../services/errorLogger';
+import { useAuth } from '../../../hooks/useAuth';
 import { ConfirmModal } from '../../../components/ui/ConfirmModal';
 
 interface TenantDetailModalProps {
@@ -16,6 +17,11 @@ interface TenantDetailModalProps {
 }
 
 export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, onClose, tenant, onUpdate }) => {
+ const { user } = useAuth();
+
+ // RBAC: Only super_admin can manage tenants
+ const canManageTenants = user?.role === 'super_admin' || user?.role === 'admin';
+
  const { t } = useStore();
  const [stats, setStats] = useState<Record<string, unknown> | null>(null);
  const [loading, setLoading] = useState(false);
@@ -89,8 +95,19 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
  }
  };
 
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
  if (!tenant) return null;
  const isTenantActive = tenant.isActive !== false;
+
 
  return (
  <Transition show={isOpen} as={React.Fragment}>
@@ -137,7 +154,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
    </div>
    </div>
   </div>
-  <button onClick={onClose} className="p-2.5 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-colors">
+  <button onClick={onClose} className="p-2.5 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-colors" aria-label="Fermer">
    <X className="w-5 h-5" />
   </button>
   </div>
@@ -149,7 +166,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
    <Tab
    key={category || 'unknown'}
    className={({ selected }) =>
-    `py-4 text-sm font-medium border-b-2 transition-colors focus:outline-none ${selected
+    `py-4 text-sm font-medium border-b-2 transition-colors focus-visible:outline-none ${selected
     ? 'border-primary text-primary/70'
     : 'border-transparent text-muted-foreground hover:text-muted-foreground/60 hover:border-border'
     }`
@@ -163,7 +180,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
 
   <Tab.Panels className="p-6 overflow-y-auto custom-scrollbar">
    {/* Overview Panel */}
-   <Tab.Panel className="space-y-8 focus:outline-none">
+   <Tab.Panel className="space-y-8 focus-visible:outline-none">
    <div className="grid grid-cols-3 gap-4">
    <div className="bg-muted/50 p-4 rounded-xl border border-border/50">
    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1 flex items-center">
@@ -217,7 +234,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
    </Tab.Panel>
 
    {/* Subscription Panel */}
-   <Tab.Panel className="space-y-6 focus:outline-none">
+   <Tab.Panel className="space-y-6 focus-visible:outline-none">
    <div className="bg-muted/30 rounded-xl p-6 border border-border/50">
    <h3 className="text-lg font-medium text-foreground mb-4 flex items-center">
    <CreditCard className="w-5 h-5 mr-2 text-primary/70" />
@@ -231,7 +248,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
     id="plan-select"
     value={plan}
     onChange={(e) => setPlan(e.target.value as PlanType)}
-    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground focus:ring-2 focus-visible:ring-primary focus:outline-none"
+    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
     >
     <option value="discovery">Discovery (Free)</option>
     <option value="professional">Professional</option>
@@ -250,7 +267,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
     const val = parseInt(e.target.value);
     setMaxUsers(isNaN(val) ? 0 : val);
     }}
-    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground focus:ring-2 focus-visible:ring-primary focus:outline-none"
+    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
     />
     </div>
     <div>
@@ -263,7 +280,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
     const val = parseInt(e.target.value);
     setMaxProjects(isNaN(val) ? 0 : val);
     }}
-    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground focus:ring-2 focus-visible:ring-primary focus:outline-none"
+    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
     />
     </div>
    </div>

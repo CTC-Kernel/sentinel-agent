@@ -23,6 +23,7 @@ import {
  Unsubscribe,
  writeBatch,
  DocumentData,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
@@ -161,7 +162,7 @@ export class FrameworkService {
  orderBy('displayOrder', 'asc')
  );
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const frameworks = snapshot.docs.map((doc) =>
@@ -176,6 +177,7 @@ export class FrameworkService {
  });
  }
  );
+ return unsubscribe;
  }
 
  // ============================================================================
@@ -291,7 +293,7 @@ export class FrameworkService {
  orderBy('order', 'asc')
  );
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const requirements = snapshot.docs.map((doc) =>
@@ -307,6 +309,7 @@ export class FrameworkService {
  });
  }
  );
+ return unsubscribe;
  }
 
  // ============================================================================
@@ -445,7 +448,7 @@ export class FrameworkService {
 
  await updateDoc(docRef, sanitizeData({
  ...updates,
- updatedAt: new Date().toISOString(),
+ updatedAt: serverTimestamp(),
  }));
  } catch (error) {
  ErrorLogger.error(error, 'FrameworkService.updateMapping', {
@@ -495,7 +498,7 @@ export class FrameworkService {
  where('controlId', '==', controlId)
  );
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const mappings = snapshot.docs.map((doc) =>
@@ -511,6 +514,7 @@ export class FrameworkService {
  });
  }
  );
+ return unsubscribe;
  }
 
  // ============================================================================
@@ -614,7 +618,7 @@ export class FrameworkService {
  orderBy('activatedAt', 'desc')
  );
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const activeFrameworks = snapshot.docs.map((doc) => ({
@@ -631,6 +635,7 @@ export class FrameworkService {
  });
  }
  );
+ return unsubscribe;
  }
 
  // ============================================================================

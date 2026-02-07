@@ -253,7 +253,7 @@ export function useZoomSemantic(
  *
  * Useful for calculating values outside of React components.
  */
-export function getZoomSemanticValues(
+function getZoomSemanticValues(
  distance: number,
  config: ZoomSemanticConfig = {}
 ): Omit<ZoomSemanticState, 'isTransitioning'> {

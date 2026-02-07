@@ -33,7 +33,7 @@ describe('RBAC Permissions System', () => {
  organizationId: orgId,
  organizationName: 'Test Org',
  department: 'IT',
- createdAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
  lastLogin: new Date().toISOString(),
  photoURL: null,
  onboardingCompleted: true,

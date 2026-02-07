@@ -86,7 +86,7 @@ export const aiService = {
  }],
  createdAt: serverTimestamp(),
  updatedAt: serverTimestamp()
- }), { merge: true });
+ }), { merge: true }); // SAFE: sanitizeData() strips undefined values
  } catch (_error) {
  ErrorLogger.error(_error, 'aiService.initConversation');
  throw _error;
@@ -102,7 +102,7 @@ export const aiService = {
   timestamp: m.timestamp instanceof Date ? Timestamp.fromDate(m.timestamp) : m.timestamp
  })),
  updatedAt: serverTimestamp()
- }), { merge: true });
+ }), { merge: true }); // SAFE: sanitizeData() strips undefined values
  } catch (_error) {
  ErrorLogger.error(_error, 'aiService.saveMessages');
  throw _error;

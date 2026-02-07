@@ -333,7 +333,7 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
  a.name,
  a.type,
  a.auditor,
- a.dateScheduled ? new Date(a.dateScheduled).toLocaleDateString() : 'TBD',
+ a.dateScheduled ? new Date(a.dateScheduled).toLocaleDateString('fr-FR') : 'TBD',
  a.status,
  String(a.findingsCount || 0)
  ]);

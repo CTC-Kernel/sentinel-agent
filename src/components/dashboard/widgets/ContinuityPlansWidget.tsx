@@ -44,7 +44,7 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
  // Format relative date or strict date
  let lastDrillStr = 'Aucun';
  if (lastDrill) {
- lastDrillStr = new Date(lastDrill.date).toLocaleDateString();
+ lastDrillStr = new Date(lastDrill.date).toLocaleDateString('fr-FR');
  }
 
  return { coverage, lastDrillStr, lastDrillResult: lastDrill?.result };
@@ -109,7 +109,7 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
  </h3>
  <button
   onClick={() => navigate && navigate('/continuity')}
-  className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-muted text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-muted text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
   Voir tout
  </button>

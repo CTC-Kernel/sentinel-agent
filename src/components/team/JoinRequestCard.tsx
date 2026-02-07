@@ -34,7 +34,7 @@ export const JoinRequestCard = React.memo(({ req, onApprove, onReject }: JoinReq
   type="button"
   aria-label={t('team.actions.reject')}
   onClick={handleReject}
-  className="flex-1 py-2 bg-card/50 border border-border/40 text-muted-foreground rounded-3xl text-xs font-bold hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all flex items-center justify-center gap-1"
+  className="flex-1 py-2 bg-card/50 border border-border/40 text-muted-foreground rounded-3xl text-xs font-bold hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all flex items-center justify-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <XCircle className="h-3.5 w-3.5" /> {t('team.actions.reject')}
   </button>
@@ -44,7 +44,7 @@ export const JoinRequestCard = React.memo(({ req, onApprove, onReject }: JoinReq
   type="button"
   aria-label={t('team.actions.approve')}
   onClick={handleApprove}
-  className="flex-1 py-2 bg-primary hover:bg-primary/90 text-primary-foreground border border-primary rounded-3xl text-xs font-bold hover:bg-primary hover:shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-1"
+  className="flex-1 py-2 bg-primary hover:bg-primary/90 text-primary-foreground border border-primary rounded-3xl text-xs font-bold hover:bg-primary hover:shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <Check className="h-3.5 w-3.5" /> {t('team.actions.approve')}
   </button>

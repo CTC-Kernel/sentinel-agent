@@ -121,6 +121,49 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
  ? VOXEL_STATUS_COLORS_CSS.warning
  : VOXEL_STATUS_COLORS_CSS.critical;
 
+
+  // Extracted callbacks (useCallback)
+  const handleMouseEnter = useCallback(() => {
+    onHover(true)
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    onHover(false)
+  }, []);
+
+  const handleSelect = useCallback(() => {
+    handleSelect(framework.id)
+  }, []);
+
+  const handleToggleExpand = useCallback(() => {
+    handleToggleExpand(framework.id)
+  }, []);
+
+  const handleHover = useCallback((hovering) => {
+    handleHover(framework.id, hovering)
+  }, []);
+
+  const handleClick = useCallback(() => {
+    setIsMinimized(!isMinimized)
+  }, []);
+
+  const handleClick2 = useCallback(() => {
+    handleSelect(framework.id)
+  }, []);
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+ e.preventDefault();
+ onSelect();
+ }
+  }, []);
+
+  const handleClick3 = useCallback((e) => {
+    e.stopPropagation();
+ onToggleExpand();
+  }, []);
+
+
+
  return (
  <div
  className={`rounded-lg transition-all duration-200 cursor-pointer ${isSelected ? 'ring-2' : 'hover:bg-muted/30'
@@ -132,16 +175,11 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
  ['--tw-ring-color' as string]: framework.color,
  }}
  onClick={onSelect}
- onMouseEnter={() => onHover(true)}
- onMouseLeave={() => onHover(false)}
+ onMouseEnter={handleMouseEnter}
+ onMouseLeave={handleMouseLeave}
  role="button"
  tabIndex={0}
- onKeyDown={(e) => {
- if (e.key === 'Enter' || e.key === ' ') {
- e.preventDefault();
- onSelect();
- }
- }}
+ onKeyDown={handleKeyDown}
  aria-pressed={isSelected}
  aria-label={`${framework.name} framework`}
  >
@@ -189,11 +227,8 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
  {framework.mappedControls}/{framework.totalControls} contrôles
  </span>
  <button
- onClick={(e) => {
- e.stopPropagation();
- onToggleExpand();
- }}
- className="p-1 hover:bg-muted/50 rounded transition-colors"
+ onClick={handleClick3}
+ className="p-1 hover:bg-muted/50 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  aria-label={isExpanded ? 'Collapse breakdown' : 'Expand breakdown'}
  >
  {isExpanded ? (
@@ -257,8 +292,8 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
  if (frameworks.length === 0) {
  return { avgScore: 0, totalMapped: 0, totalControls: 0 };
  }
- const totalControls = frameworks.reduce((sum, f) => sum + f.totalControls, 0);
- const totalMapped = frameworks.reduce((sum, f) => sum + f.mappedControls, 0);
+ const totalControls = useMemo(() => frameworks.reduce((sum, f) => sum + f.totalControls, 0), [frameworks]);
+ const totalMapped = useMemo(() => frameworks.reduce((sum, f) => sum + f.mappedControls, 0), [frameworks]);
  const avgScore = Math.round(
  frameworks.reduce((sum, f) => sum + f.complianceScore, 0) / frameworks.length
  );
@@ -310,8 +345,8 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
  </div>
  )}
  <button
- onClick={() => setIsMinimized(!isMinimized)}
- className="p-1.5 hover:bg-muted/50 rounded-lg transition-colors"
+ onClick={handleClick}
+ className="p-1.5 hover:bg-muted/50 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  aria-label={isMinimized ? 'Agrandir le panneau' : 'Réduire le panneau'}
  >
  <Layers className={`w-4 h-4 text-muted-foreground ${isMinimized ? '' : 'hidden'}`} />
@@ -353,9 +388,9 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
  framework={framework}
  isSelected={selectedFrameworkId === framework.id}
  isExpanded={showBreakdown && expandedId === framework.id}
- onSelect={() => handleSelect(framework.id)}
- onToggleExpand={() => handleToggleExpand(framework.id)}
- onHover={(hovering) => handleHover(framework.id, hovering)}
+ onSelect={handleSelect}
+ onToggleExpand={handleToggleExpand}
+ onHover={handleHover}
  />
  ))}
 
@@ -373,7 +408,7 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
  {frameworks.slice(0, 4).map((framework) => (
  <button
  key={framework.id || 'unknown'}
- onClick={() => handleSelect(framework.id)}
+ onClick={handleClick2}
  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${selectedFrameworkId === framework.id ? 'ring-2' : 'hover:bg-muted/50'
   }`}
  style={{

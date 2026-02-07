@@ -283,7 +283,7 @@ export function useViewTransition(initialConfig?: ViewTransitionConfig): UseView
 /**
  * Animation presets for different transition scenarios
  */
-export const VIEW_TRANSITION_PRESETS = {
+const VIEW_TRANSITION_PRESETS = {
  /** Smooth, elegant transition for preset switching */
  smooth: {
  duration: 800,

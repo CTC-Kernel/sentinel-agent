@@ -24,7 +24,7 @@ export const QuestionItem = memo(({ sIndex, qIndex, register, onRemove }: Questi
   id={`question-text-${sIndex}-${qIndex}`}
   aria-label="Question"
   {...register(`sections.${sIndex}.questions.${qIndex}.text`, { required: true })}
-  className="w-full px-3 py-1.5 text-sm bg-transparent border border-border/40 rounded-lg focus:border-primary focus:ring-1 focus-visible:ring-primary transition-shadow"
+  className="w-full px-3 py-1.5 text-sm bg-transparent border border-border/40 rounded-lg focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary transition-shadow"
   placeholder="Question..."
  />
  <div className="flex gap-3">
@@ -34,7 +34,7 @@ export const QuestionItem = memo(({ sIndex, qIndex, register, onRemove }: Questi
   id={`question-type-${sIndex}-${qIndex}`}
   aria-label="Type de question"
   {...register(`sections.${sIndex}.questions.${qIndex}.type`)}
-  className="w-full px-3 py-1.5 text-sm bg-transparent border border-border/40 rounded-lg text-muted-foreground focus:border-primary focus:ring-1 focus-visible:ring-primary transition-shadow"
+  className="w-full px-3 py-1.5 text-sm bg-transparent border border-border/40 rounded-lg text-muted-foreground focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary transition-shadow"
   >
   <option value="yes_no">Oui / Non</option>
   <option value="text">Texte Libre</option>
@@ -49,7 +49,7 @@ export const QuestionItem = memo(({ sIndex, qIndex, register, onRemove }: Questi
   aria-label="Poids de la question"
   type="number"
   {...register(`sections.${sIndex}.questions.${qIndex}.weight`)}
-  className="w-16 px-2 py-1.5 text-sm bg-transparent border border-border/40 rounded-lg focus:border-primary focus:ring-1 focus-visible:ring-primary transition-shadow"
+  className="w-16 px-2 py-1.5 text-sm bg-transparent border border-border/40 rounded-lg focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary transition-shadow"
   defaultValue={1}
   />
   </div>

@@ -193,8 +193,8 @@ function transformToVoxelNode(
  };
 
  // Parse dates
- const createdAt = data.createdAt?.toDate?.() || new Date();
- const updatedAt = data.updatedAt?.toDate?.() || new Date();
+ const createdAt = data.createdAt?.toDate?.() || new Date(Date.now());
+ const updatedAt = data.updatedAt?.toDate?.() || new Date(Date.now());
 
  return {
  id,

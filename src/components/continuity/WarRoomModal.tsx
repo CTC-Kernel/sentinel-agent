@@ -62,8 +62,10 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
  // Send a system message indicating the war room was activated
  sendSystemMessage?.(`${user?.displayName || 'Utilisateur'} a rejoint le War Room.`);
  }
- // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [isOpen, incidentId]);
+ // Justification: sendSystemMessage and user are intentionally excluded -- sendSystemMessage
+ // is a callback prop that changes identity each render; user is only for displayName.
+ // Re-running on those changes would send duplicate join messages.
+ }, [isOpen, incidentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
  const { register, handleSubmit, reset } = useZodForm({
  schema: warRoomMessageSchema,
@@ -152,6 +154,16 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
  if (type.includes('pdf')) return <FileText className="w-4 h-4" />;
  return <File className="w-4 h-4" />;
  };
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
 
  return (
  <AnimatePresence>
@@ -257,9 +269,8 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
     <div key={p.id || 'unknown'} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
     <div className="relative">
     {p.photoURL ? (
-    <img
+    <img alt={p.displayName}
      src={p.photoURL}
-     alt={p.displayName}
      className="w-8 h-8 rounded-full object-cover border-2 border-emerald-500"
     />
     ) : (
@@ -327,7 +338,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
     <span>•</span>
     <span>{msg.role}</span>
     <span>•</span>
-    <span>{msg.timestamp?.toLocaleTimeString ? msg.timestamp.toLocaleTimeString() : ''}</span>
+    <span>{msg.timestamp?.toLocaleTimeString ? msg.timestamp.toLocaleTimeString('fr-FR') : ''}</span>
     </div>
     {msg.content && <p className="whitespace-pre-wrap">{msg.content}</p>}
     {/* Attachments */}
@@ -381,14 +392,13 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
 
    <form onSubmit={handleSubmit(onSubmit)} className="flex gap-4">
    {/* Hidden file input */}
-   <input
+   <input required aria-label="Joindre un fichier"
    ref={fileInputRef}
    type="file"
    multiple
    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv"
    onChange={handleFileSelect}
    className="hidden"
-   aria-label="Joindre un fichier"
    />
 
    <Tooltip content="Joindre un fichier (max 10MB)" position="top">
@@ -407,7 +417,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
    {...register('content')}
    aria-label="Message de war room"
    placeholder="Tapez un message chiffré..."
-   className="flex-1 bg-transparent border-none text-foreground placeholder:text-muted-foreground focus:ring-0 font-mono"
+   className="flex-1 bg-transparent border-none text-foreground placeholder:text-muted-foreground focus-visible:ring-0 font-mono"
    />
 
    <Button

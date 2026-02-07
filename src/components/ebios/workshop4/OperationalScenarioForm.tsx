@@ -104,10 +104,21 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
  onClose();
  };
 
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
  if (!isOpen) return null;
 
+
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" role="dialog" aria-modal="true">
  <PremiumCard glass className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
  {/* Header */}
  <div className="flex items-center justify-between pb-4 border-b border-border/40/50">
@@ -127,7 +138,8 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
  </div>
  <button
  onClick={onClose}
- className="p-2 rounded-lg hover:bg-muted transition-colors"
+ className="p-2 rounded-lg hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+ aria-label="Fermer"
  >
  <X className="w-5 h-5 text-muted-foreground" />
  </button>
@@ -249,9 +261,9 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
 
  {/* Info about next steps */}
  <div className="p-4 rounded-3xl bg-muted/50 border border-border/40">
- <h4 className="text-sm font-medium text-foreground mb-2">
+ <h3 className="text-sm font-medium text-foreground mb-2">
  {t('ebios.workshop4.nextSteps')}
- </h4>
+ </h3>
  <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
  <li>{t('ebios.workshop4.nextStep1')}</li>
  <li>{t('ebios.workshop4.nextStep2')}</li>
@@ -264,14 +276,14 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
  <button
  type="button"
  onClick={onClose}
- className="px-4 py-2 rounded-3xl text-foreground hover:bg-muted transition-colors"
+ className="px-4 py-2 rounded-3xl text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  {t('common.cancel')}
  </button>
  <button
  type="submit"
  disabled={isSubmitting}
- className="px-6 py-2 rounded-3xl bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors disabled:bg-muted disabled:text-muted-foreground"
+ className="px-6 py-2 rounded-3xl bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  {isSubmitting ? t('common.saving') : isEdit ? t('common.save') : t('common.create')}
  </button>

@@ -62,8 +62,8 @@ describe('ComplianceService', () => {
  // relatedControlIds: [],
  // relatedRiskIds: [],
  // tags: [],
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  },
  {
  id: 'doc-2',
@@ -83,8 +83,8 @@ describe('ComplianceService', () => {
  // relatedControlIds: [],
  // relatedRiskIds: [],
  // tags: [],
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  },
  ];
 
@@ -126,8 +126,8 @@ describe('ComplianceService', () => {
   // relatedControlIds: [],
   // relatedRiskIds: [],
   // tags: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: new Date(Date.now()).toISOString(),
+  updatedAt: new Date(Date.now()).toISOString(),
  },
  ];
 
@@ -172,8 +172,8 @@ describe('ComplianceService', () => {
   mitigationControlIds: ['ctrl-1'],
   affectedProcessIds: [],
   relatedSupplierIds: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: new Date(Date.now()).toISOString(),
+  updatedAt: new Date(Date.now()).toISOString(),
  },
  ];
 

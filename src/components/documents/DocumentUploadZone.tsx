@@ -34,14 +34,14 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
   </div>
   <div className="min-w-0">
   <p className="text-sm font-medium text-foreground truncate">{fileName || 'Document'}</p>
-  <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">{t('documents.upload.viewFile', { defaultValue: 'Voir le fichier' })}</a>
+  <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">{t('documents.upload.viewFile', { defaultValue: 'Voir le fichier' })}</a>
   </div>
   </div>
   <button
   type="button"
   onClick={onClear}
   aria-label={t('documents.upload.deleteFile', { defaultValue: 'Supprimer' })}
-  className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+  className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
   >
   {t('documents.upload.deleteFile', { defaultValue: 'Supprimer' })}
   </button>

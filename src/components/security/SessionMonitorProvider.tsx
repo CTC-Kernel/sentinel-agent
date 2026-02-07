@@ -136,13 +136,13 @@ const SecurityAnomalyBanner: React.FC<SecurityAnomalyBannerProps> = ({ count, on
  <div className="flex items-center gap-2">
  <button
  onClick={() => setShowDetails(!showDetails)}
- className="px-3 py-1 bg-red-700 hover:bg-red-800 rounded text-sm font-medium"
+ className="px-3 py-1 bg-red-700 hover:bg-red-800 rounded text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  {showDetails ? 'Masquer' : 'Détails'}
  </button>
  <button
  onClick={onDismiss}
- className="p-1 hover:bg-red-700 rounded"
+ className="p-1 hover:bg-red-700 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  aria-label="Fermer"
  >
  <X size={20} />
@@ -162,7 +162,7 @@ const SecurityAnomalyBanner: React.FC<SecurityAnomalyBannerProps> = ({ count, on
   <p className="opacity-90">{anomaly.message}</p>
   </div>
   <span className="text-xs opacity-75">
-  {new Date(anomaly.timestamp).toLocaleTimeString()}
+  {new Date(anomaly.timestamp).toLocaleTimeString('fr-FR')}
   </span>
   </div>
  </li>

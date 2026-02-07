@@ -161,7 +161,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
  {/* Close button */}
  <button
   onClick={onClose}
-  className="p-2 rounded-lg hover:bg-muted transition-colors"
+  className="p-2 rounded-lg hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   aria-label={t('common.close')}
  >
   <X className="w-5 h-5 text-muted-foreground" />

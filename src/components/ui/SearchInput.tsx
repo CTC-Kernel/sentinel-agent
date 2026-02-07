@@ -85,6 +85,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
  value={localValue}
  onChange={handleChange}
  placeholder={placeholder}
+ aria-label="Rechercher"
  aria-busy={showLoading}
  className={cn(
   'block w-full pl-10 pr-10 py-2.5',
@@ -93,7 +94,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
   'rounded-xl',
   'text-sm text-foreground',
   'placeholder:text-muted-foreground',
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary',
   'transition-all duration-200'
  )}
  />

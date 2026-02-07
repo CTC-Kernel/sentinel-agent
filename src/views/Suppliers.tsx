@@ -67,6 +67,42 @@ export const Suppliers: React.FC = () => {
  const timer = setTimeout(() => {
  OnboardingService.startSuppliersTour();
  }, 1000);
+
+  // Extracted callbacks (useCallback)
+  const handleUpdate = useCallback((data) => {
+    handleUpdate(selectedSupplier.id, data)
+  }, []);
+
+  const handleStartAssessment = useCallback(() => {
+    handleStartAssessmentClick(selectedSupplier.id)
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setImportModalOpen(false)
+  }, []);
+
+  const handleClose2 = useCallback(() => {
+    setAssessmentModalOpen(false)
+  }, []);
+
+  const handleClick = useCallback(() => {
+    setImportModalOpen(true)
+  }, []);
+
+  const handleClick2 = useCallback(() => {
+    window.open('/#/dora/providers', '_blank')
+  }, []);
+  const handleViewAssessment = useCallback((id) => {
+    setAssessmentMode(id);
+  }, []);
+
+  const handleAssessmentCreated = useCallback((id) => {
+    setAssessmentMode(id);
+  setAssessmentModalOpen(false);
+  }, []);
+
+
+
  return () => clearTimeout(timer);
  }, []);
 
@@ -438,7 +474,7 @@ export const Suppliers: React.FC = () => {
   <button
   aria-label={t('suppliers.backToDashboard')}
   onClick={handleTemplateModeClose}
-  className="text-muted-foreground hover:text-foreground dark:hover:text-foreground mr-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg px-2"
+  className="text-muted-foreground hover:text-foreground dark:hover:text-foreground mr-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg px-2"
   title={t('suppliers.backToDashboard')}
   >
   {t('suppliers.backLabel')}
@@ -478,9 +514,8 @@ export const Suppliers: React.FC = () => {
   title={suppliersTitle}
   subtitle={suppliersSubtitle}
   icon={
-  <img
+  <img alt="OPÉRATIONS"
   src="/images/operations.png"
-  alt="OPÉRATIONS"
   className="w-full h-full object-contain"
   />
   }
@@ -559,7 +594,7 @@ export const Suppliers: React.FC = () => {
    <Menu as="div" className="relative inline-block text-left">
    {({ open }) => (
    <>
-   <Menu.Button ref={toolsMenuButtonRef} aria-label={t('common.more')} className="p-2.5 bg-background border border-border text-foreground rounded-xl hover:bg-muted/50 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+   <Menu.Button ref={toolsMenuButtonRef} aria-label={t('common.more')} className="p-2.5 bg-background border border-border text-foreground rounded-xl hover:bg-muted/50 transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
    <MoreVertical className="h-5 w-5" />
    </Menu.Button>
    <MenuPortal buttonRef={toolsMenuButtonRef} open={open}>
@@ -570,9 +605,9 @@ export const Suppliers: React.FC = () => {
     <Menu.Item>
     {({ active }) => (
     <button
-    onClick={() => setImportModalOpen(true)}
+    onClick={handleClick}
     className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-muted'
-     } group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
+     } group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
     aria-label="Import Suppliers CSV"
     >
     <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-muted-foreground'}`} />
@@ -592,7 +627,7 @@ export const Suppliers: React.FC = () => {
     onClick={handleExportCSV}
     disabled={isExportingCSV}
     className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground'
-     } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
+     } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
     >
     {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-muted-foreground'}`} />}
     {t('suppliers.exportCsv')}
@@ -606,7 +641,7 @@ export const Suppliers: React.FC = () => {
     onClick={handleExportDORARegister}
     disabled={isExportingDORA}
     className={`${active ? 'bg-accent text-accent-foreground' : 'text-foreground'
-     } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
+     } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
     >
     {isExportingDORA ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldAlert className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-muted-foreground'}`} />}
     {t('suppliers.exportDora', { defaultValue: 'Export DORA' })}
@@ -636,7 +671,7 @@ export const Suppliers: React.FC = () => {
    <Button
    variant="outline"
    size="icon"
-   onClick={() => window.open('/#/dora/providers', '_blank')}
+   onClick={handleClick2}
    className="h-10 w-10 rounded-2xl border-border bg-white dark:bg-white/5 hover:bg-muted/50 dark:hover:bg-muted shadow-sm"
    aria-label={t('suppliers.tooltips.dora')}
    >
@@ -732,24 +767,22 @@ export const Suppliers: React.FC = () => {
   supplier={selectedSupplier}
   onClose={handleInspectorClose}
   canEdit={canEdit}
-  onUpdate={(data) => handleUpdate(selectedSupplier.id, data)}
+  onUpdate={handleUpdate}
   isLoading={isSubmitting}
   users={effectiveUsers}
   processes={processesRaw}
   assets={assetsRaw}
   risks={risksRaw}
   documents={documentsRaw}
-  onStartAssessment={() => handleStartAssessmentClick(selectedSupplier.id)}
+  onStartAssessment={handleStartAssessment}
   assessments={assessmentsRaw?.filter(a => a.supplierId === selectedSupplier.id) || []}
-  onViewAssessment={(id) => {
-  setAssessmentMode(id);
-  }}
+  onViewAssessment={handleViewAssessment}
  />
  )}
 
  <ImportGuidelinesModal
  isOpen={importModalOpen}
- onClose={() => setImportModalOpen(false)}
+ onClose={handleClose}
  entityName={t('suppliers.title')}
  guidelines={supplierGuidelines}
  onImport={handleImportFile}
@@ -759,12 +792,9 @@ export const Suppliers: React.FC = () => {
  {assessmentSupplier && (
  <SupplierAssessmentDrawer
   isOpen={assessmentModalOpen}
-  onClose={() => setAssessmentModalOpen(false)}
+  onClose={handleClose2}
   supplier={assessmentSupplier}
-  onAssessmentCreated={(id) => {
-  setAssessmentMode(id);
-  setAssessmentModalOpen(false);
-  }}
+  onAssessmentCreated={handleAssessmentCreated}
  />
  )}
  </motion.div>

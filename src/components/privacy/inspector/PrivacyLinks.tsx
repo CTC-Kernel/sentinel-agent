@@ -83,7 +83,7 @@ export const PrivacyLinks: React.FC<PrivacyLinksProps> = ({
   <div className="relative">
   <select
   onChange={handleAssetChange}
-  className="pl-3 pr-8 py-2 bg-card border border-border/40 rounded-lg text-sm focus:ring-2 focus-visible:ring-primary appearance-none cursor-pointer"
+  className="pl-3 pr-8 py-2 bg-card border border-border/40 rounded-lg text-sm focus-visible:ring-2 focus-visible:ring-primary appearance-none cursor-pointer"
   defaultValue=""
   >
   <option value="" disabled>{t('privacy.links.linkAssetPlaceholder', { defaultValue: 'Lier un actif...' })}</option>
@@ -141,7 +141,7 @@ export const PrivacyLinks: React.FC<PrivacyLinksProps> = ({
   <div className="relative">
   <select
   onChange={handleRiskChange}
-  className="pl-3 pr-8 py-2 bg-card border border-border/40 rounded-lg text-sm focus:ring-2 focus-visible:ring-primary appearance-none cursor-pointer"
+  className="pl-3 pr-8 py-2 bg-card border border-border/40 rounded-lg text-sm focus-visible:ring-2 focus-visible:ring-primary appearance-none cursor-pointer"
   defaultValue=""
   >
   <option value="" disabled>{t('privacy.links.linkRiskPlaceholder', { defaultValue: 'Lier un risque...' })}</option>

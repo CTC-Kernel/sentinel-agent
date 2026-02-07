@@ -142,7 +142,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                 </h3>
                 <button
                     onClick={() => navigate && navigate('/compliance')}
-                    className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-background/50 hover:bg-background/80 text-muted-foreground hover:text-foreground transition-all border border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary group/btn"
+                    className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-background/50 hover:bg-background/80 text-muted-foreground hover:text-foreground transition-all border border-border/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary group/btn"
                 >
                     Voir tout
                     <ArrowRight className="w-3 h-3 opacity-0 -translate-x-1 group-hover/btn:opacity-70 group-hover/btn:translate-x-0 transition-all" />

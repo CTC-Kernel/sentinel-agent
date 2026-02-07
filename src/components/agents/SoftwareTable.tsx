@@ -68,7 +68,7 @@ const SoftwareCard: React.FC<{
  className={cn(
  'glass-premium rounded-2xl p-4 text-left w-full border border-border/40',
  'hover:shadow-apple-md transition-all duration-300',
- 'focus:outline-none focus:ring-2 focus:ring-primary/50'
+ 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50'
  )}
  >
  <div className="flex items-start justify-between gap-3">

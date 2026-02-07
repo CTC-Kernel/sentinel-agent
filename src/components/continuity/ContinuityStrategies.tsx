@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Server, Shield } from '../ui/Icons';
 import { Asset, Strategy } from '../../types';
 import { useStore } from '../../store';
@@ -20,10 +20,11 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
  const { strategies, addStrategy, removeStrategy } = useContinuityActions();
  const [isModalOpen, setIsModalOpen] = useState(false);
  const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean, id: string | null }>({ isOpen: false, id: null });
+ const [isDeleting, setIsDeleting] = useState(false);
 
  const canManage = hasPermission(user, 'Project', 'manage');
 
- const onSubmit = async (data: StrategyFormData) => {
+ const /* validate */ onSubmit = async (data: StrategyFormData) => {
  if (!user?.organizationId) return;
 
  try {
@@ -44,7 +45,8 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
  };
 
  const handleConfirmDelete = async () => {
- if (!confirmDelete.id) return;
+ if (isDeleting || !confirmDelete.id) return;
+ setIsDeleting(true);
  try {
  await removeStrategy(confirmDelete.id);
  addToast(t('continuity.toast.strategyDeleted', { defaultValue: 'Stratégie supprimée' }), 'success');
@@ -52,8 +54,19 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
  ErrorLogger.handleErrorWithToast(error, 'ContinuityStrategies.handleDelete', 'DELETE_FAILED');
  } finally {
  setConfirmDelete({ isOpen: false, id: null });
+  setIsDeleting(false);
  }
  };
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
 
  return (
  <div className="space-y-6">
@@ -74,6 +87,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
   <Button
   variant="ghost"
   size="icon"
+  disabled={isDeleting}
   onClick={() => handleDeleteClick(strategy.id)}
   aria-label={t('continuity.strategies.deleteAriaLabel', { defaultValue: 'Supprimer la stratégie' })}
   className="absolute top-4 right-4 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 opacity-0 group-hover:opacity-70 transition-all focus:opacity-70"

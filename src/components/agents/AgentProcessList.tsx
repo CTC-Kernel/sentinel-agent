@@ -16,6 +16,13 @@ import { Input } from '../ui/input';
 import { Badge } from '../ui/Badge';
 import { cn } from '../../lib/utils';
 
+// ============================================================================
+// Constants
+// ============================================================================
+const USAGE_CRITICAL_THRESHOLD = 80;
+const USAGE_WARNING_THRESHOLD = 60;
+const DEFAULT_MAX_PROCESS_ITEMS = 50;
+
 interface AgentProcessListProps {
  processes: AgentProcess[];
  loading?: boolean;
@@ -49,8 +56,8 @@ const getStatusColor = (status: AgentProcess['status']): 'success' | 'warning' |
 // Progress bar component for usage
 const UsageBar: React.FC<{ value: number; variant?: 'cpu' | 'memory' }> = ({ value, variant = 'cpu' }) => {
  const getColor = () => {
- if (value > 80) return 'bg-destructive';
- if (value > 60) return 'bg-warning';
+ if (value > USAGE_CRITICAL_THRESHOLD) return 'bg-destructive';
+ if (value > USAGE_WARNING_THRESHOLD) return 'bg-warning';
  return variant === 'cpu' ? 'bg-primary' : 'bg-success';
  };
 
@@ -64,8 +71,8 @@ const UsageBar: React.FC<{ value: number; variant?: 'cpu' | 'memory' }> = ({ val
  </div>
  <span className={cn(
  'text-xs font-mono tabular-nums',
- value > 80 ? 'text-destructive font-semibold' :
-  value > 60 ? 'text-warning' : 'text-muted-foreground'
+ value > USAGE_CRITICAL_THRESHOLD ? 'text-destructive font-semibold' :
+  value > USAGE_WARNING_THRESHOLD ? 'text-warning' : 'text-muted-foreground'
  )}>
  {value.toFixed(1)}%
  </span>
@@ -101,7 +108,7 @@ const ColumnHeader: React.FC<ColumnHeaderProps> = ({
  currentSort === field ? 'opacity-70' : 'opacity-30'
  )} />
  {currentSort === field && (
- <span className="text-xs">{direction === 'asc' ? '↑' : '↓'}</span>
+ <span className="text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">{direction === 'asc' ? '↑' : '↓'}</span>
  )}
  </button>
 );
@@ -110,7 +117,7 @@ export const AgentProcessList: React.FC<AgentProcessListProps> = ({
  processes,
  loading,
  className,
- maxItems = 50
+ maxItems = DEFAULT_MAX_PROCESS_ITEMS
 }) => {
  const [search, setSearch] = useState('');
  const [sortField, setSortField] = useState<SortField>('cpuPercent');
@@ -180,7 +187,7 @@ export const AgentProcessList: React.FC<AgentProcessListProps> = ({
  const validProcesses = normalizedProcesses.filter((p: AgentProcess) => p.cpuPercent >= 0);
  const totalCpu = validProcesses.reduce((sum: number, p: AgentProcess) => sum + p.cpuPercent, 0);
  const totalMemory = normalizedProcesses.reduce((sum: number, p: AgentProcess) => sum + p.memoryBytes, 0);
- const highCpuCount = normalizedProcesses.filter((p: AgentProcess) => p.cpuPercent > 80).length;
+ const highCpuCount = normalizedProcesses.filter((p: AgentProcess) => p.cpuPercent > USAGE_CRITICAL_THRESHOLD).length;
  return { totalCpu, totalMemory, highCpuCount, total: normalizedProcesses.length };
  }, [normalizedProcesses]);
 
@@ -211,7 +218,7 @@ export const AgentProcessList: React.FC<AgentProcessListProps> = ({
   placeholder="Rechercher un processus..."
   value={search}
   onChange={(e) => setSearch(e.target.value)}
-  className="pl-9 w-64"
+  className="pl-9 w-64 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   />
   </div>
   <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -305,7 +312,7 @@ export const AgentProcessList: React.FC<AgentProcessListProps> = ({
    className={cn(
    'grid grid-cols-12 gap-4 px-4 py-3 items-center',
    'hover:bg-muted/30 transition-colors border-b border-border/30 last:border-0',
-   process.cpuPercent > 80 && 'bg-destructive/5'
+   process.cpuPercent > USAGE_CRITICAL_THRESHOLD && 'bg-destructive/5'
    )}
   >
    {/* Process name */}

@@ -436,7 +436,7 @@ export const useRiskActions = (onRefresh: () => void) => {
   r.probability.toString(),
   r.impact.toString(),
   r.owner || '',
-  r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '-'
+  r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : '-'
   ]);
 
   const csvContent = [
@@ -500,6 +500,7 @@ export const useRiskActions = (onRefresh: () => void) => {
   successCount++;
   deletedIds.push(id);
  } catch (error: unknown) {
+  ErrorLogger.error(error, 'useRiskActions.bulkDelete');
   blockedCount++;
   const errWithMsg = error as { message?: string } | null;
   if (errWithMsg?.message) errors.push(errWithMsg.message);

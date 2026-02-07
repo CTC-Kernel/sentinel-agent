@@ -118,9 +118,8 @@ export const AdminDashboard: React.FC = () => {
                 title={t('admin.dashboard')}
                 subtitle={t('admin.subtitle')}
                 icon={
-                    <img
+                    <img alt="ADMINISTRATION"
                         src="/images/administration.png"
-                        alt="ADMINISTRATION"
                         className="w-full h-full object-contain"
                     />
                 }
@@ -173,7 +172,7 @@ export const AdminDashboard: React.FC = () => {
                             aria-label={t('admin.orgs.searchPlaceholder')}
                             type="text"
                             placeholder={t('admin.orgs.searchPlaceholder')}
-                            className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus:ring-0 text-sm font-medium text-foreground placeholder:text-muted-foreground transition-all"
+                            className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus-visible:ring-0 text-sm font-medium text-foreground placeholder:text-muted-foreground transition-all"
                         />
                     </div>
                 </div>
@@ -205,7 +204,7 @@ export const AdminDashboard: React.FC = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-muted-foreground font-medium">
-                                            {org.createdAt ? new Date(org.createdAt).toLocaleDateString() : '-'}
+                                            {org.createdAt ? new Date(org.createdAt).toLocaleDateString('fr-FR') : '-'}
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <Button

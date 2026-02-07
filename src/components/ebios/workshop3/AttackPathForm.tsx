@@ -143,8 +143,18 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
  const likelihoodScale = LIKELIHOOD_SCALE.find(l => l.level === watchedLikelihood);
  const complexityLabel = COMPLEXITY_LABELS[watchedComplexity];
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" role="dialog" aria-modal="true">
  <PremiumCard glass className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
  {/* Header */}
  <div className="flex items-center justify-between pb-4 border-b border-border/40/50">
@@ -166,6 +176,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
  <button
  onClick={onClose}
  className="p-2 rounded-3xl hover:bg-muted transition-colors"
+ aria-label="Fermer"
  >
  <X className="w-5 h-5 text-muted-foreground" />
  </button>
@@ -333,6 +344,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
  </div>
  <input
  type="range"
+ aria-label="Probabilité"
  min={1}
  max={4}
  step={1}
@@ -361,6 +373,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
  </div>
  <input
  type="range"
+ aria-label="Complexité"
  min={1}
  max={4}
  step={1}

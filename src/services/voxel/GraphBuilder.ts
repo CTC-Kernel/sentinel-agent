@@ -191,8 +191,8 @@ function buildRiskNode(risk: Risk, index: number): VoxelNode {
  assetId: risk.assetId,
  },
  connections: [risk.assetId, ...(risk.mitigationControlIds || [])],
- createdAt: risk.createdAt ? new Date(risk.createdAt) : new Date(),
- updatedAt: risk.createdAt ? new Date(risk.createdAt) : new Date(),
+ createdAt: risk.createdAt ? new Date(risk.createdAt) : new Date(Date.now()),
+ updatedAt: risk.createdAt ? new Date(risk.createdAt) : new Date(Date.now()),
  };
 }
 
@@ -217,8 +217,8 @@ function buildControlNode(control: Control, index: number): VoxelNode {
  ...(control.relatedAssetIds || []),
  ...(control.relatedRiskIds || []),
  ],
- createdAt: control.lastUpdated ? new Date(control.lastUpdated) : new Date(),
- updatedAt: control.lastUpdated ? new Date(control.lastUpdated) : new Date(),
+ createdAt: control.lastUpdated ? new Date(control.lastUpdated) : new Date(Date.now()),
+ updatedAt: control.lastUpdated ? new Date(control.lastUpdated) : new Date(Date.now()),
  };
 }
 
@@ -243,8 +243,8 @@ function buildProjectNode(project: Project, index: number): VoxelNode {
  ...(project.relatedControlIds || []),
  ...(project.relatedAssetIds || []),
  ],
- createdAt: project.createdAt ? new Date(project.createdAt) : new Date(),
- updatedAt: project.updatedAt ? new Date(project.updatedAt) : new Date(),
+ createdAt: project.createdAt ? new Date(project.createdAt) : new Date(Date.now()),
+ updatedAt: project.updatedAt ? new Date(project.updatedAt) : new Date(Date.now()),
  };
 }
 
@@ -266,8 +266,8 @@ function buildAuditNode(audit: Audit, index: number): VoxelNode {
  auditor: audit.auditor,
  },
  connections: [],
- createdAt: audit.dateScheduled ? new Date(audit.dateScheduled) : new Date(),
- updatedAt: audit.dateScheduled ? new Date(audit.dateScheduled) : new Date(),
+ createdAt: audit.dateScheduled ? new Date(audit.dateScheduled) : new Date(Date.now()),
+ updatedAt: audit.dateScheduled ? new Date(audit.dateScheduled) : new Date(Date.now()),
  };
 }
 
@@ -288,7 +288,7 @@ function buildIncidentNode(incident: Incident, index: number): VoxelNode {
  reporter: incident.reporter,
  },
  connections: incident.affectedAssetId ? [incident.affectedAssetId] : [],
- createdAt: incident.dateReported ? new Date(incident.dateReported) : new Date(),
+ createdAt: incident.dateReported ? new Date(incident.dateReported) : new Date(Date.now()),
  updatedAt: incident.dateResolved ? new Date(incident.dateResolved) : new Date(incident.dateReported || Date.now()),
  };
 }
@@ -313,8 +313,8 @@ function buildSupplierNode(supplier: Supplier, index: number): VoxelNode {
  ...(supplier.relatedAssetIds || []),
  ...(supplier.relatedRiskIds || []),
  ],
- createdAt: supplier.createdAt ? new Date(supplier.createdAt) : new Date(),
- updatedAt: supplier.updatedAt ? new Date(supplier.updatedAt) : new Date(),
+ createdAt: supplier.createdAt ? new Date(supplier.createdAt) : new Date(Date.now()),
+ updatedAt: supplier.updatedAt ? new Date(supplier.updatedAt) : new Date(Date.now()),
  };
 }
 

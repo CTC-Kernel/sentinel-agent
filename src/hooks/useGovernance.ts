@@ -25,7 +25,10 @@ export function useGovernance() {
 
     GovernanceService.getGovernanceStats(orgId)
       .then(setStats)
-      .catch(err => setError(err))
+      .catch((err) => {
+        ErrorLogger.handleErrorWithToast(err, 'useGovernance');
+        setError(err);
+      })
       .finally(() => setLoading(false));
 
     return () => {

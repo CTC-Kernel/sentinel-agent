@@ -248,9 +248,8 @@ export const BackupRestore: React.FC = () => {
  title={t('backup.title')}
  subtitle={t('backup.subtitle')}
  icon={
- <img
+ <img alt="ADMINISTRATION"
  src="/images/administration.png"
- alt="ADMINISTRATION"
  className="w-full h-full object-contain"
  />
  }
@@ -260,7 +259,7 @@ export const BackupRestore: React.FC = () => {
  variant="ghost"
  aria-label={t('backup.saveModeLabel', { defaultValue: 'Mode Sauvegarde' })}
  onClick={() => setActiveTab('backup')}
- className={`px-4 py-2 rounded-lg text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeTab === 'backup' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+ className={`px-4 py-2 rounded-lg text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeTab === 'backup' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
  >
  {t('backup.saveButton', { defaultValue: 'Sauvegarder' })}
  </Button>
@@ -268,7 +267,7 @@ export const BackupRestore: React.FC = () => {
  variant="ghost"
  aria-label={t('backup.restoreModeLabel', { defaultValue: 'Mode Restauration' })}
  onClick={() => setActiveTab('restore')}
- className={`px-4 py-2 rounded-lg text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeTab === 'restore' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+ className={`px-4 py-2 rounded-lg text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeTab === 'restore' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
  >
  {t('backup.restoreButton', { defaultValue: 'Restaurer' })}
  </Button>
@@ -287,7 +286,7 @@ export const BackupRestore: React.FC = () => {
  <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
  <Save className="h-5 w-5 text-primary" /> Nouvelle Sauvegarde
  </h2>
- <form onSubmit={backupForm.handleSubmit(handleBackup)}>
+ <form /* validate */ onSubmit={backupForm.handleSubmit(handleBackup)}>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
   {[
   { id: 'includeDocuments', label: 'Documents', icon: FileText },
@@ -324,9 +323,9 @@ export const BackupRestore: React.FC = () => {
   <div className="flex items-center gap-2" data-tour="backup-schedule">
   <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider mr-2">Planifier :</span>
   <div className="flex bg-muted p-1 rounded-lg">
-  <Button type="button" variant="ghost" size="sm" aria-label={t('backup.scheduleDailyLabel', { defaultValue: 'Programmer une sauvegarde quotidienne' })} onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-card rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('backup.daily', { defaultValue: 'Quotidien' })}</Button>
-  <Button type="button" variant="ghost" size="sm" aria-label={t('backup.scheduleWeeklyLabel', { defaultValue: 'Programmer une sauvegarde hebdomadaire' })} onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-card rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('backup.weekly', { defaultValue: 'Hebdo' })}</Button>
-  <Button type="button" variant="ghost" size="sm" aria-label={t('backup.scheduleMonthlyLabel', { defaultValue: 'Programmer une sauvegarde mensuelle' })} onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-card rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('backup.monthly', { defaultValue: 'Mensuel' })}</Button>
+  <Button type="button" variant="ghost" size="sm" aria-label={t('backup.scheduleDailyLabel', { defaultValue: 'Programmer une sauvegarde quotidienne' })} onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-card rounded-md transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('backup.daily', { defaultValue: 'Quotidien' })}</Button>
+  <Button type="button" variant="ghost" size="sm" aria-label={t('backup.scheduleWeeklyLabel', { defaultValue: 'Programmer une sauvegarde hebdomadaire' })} onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-card rounded-md transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('backup.weekly', { defaultValue: 'Hebdo' })}</Button>
+  <Button type="button" variant="ghost" size="sm" aria-label={t('backup.scheduleMonthlyLabel', { defaultValue: 'Programmer une sauvegarde mensuelle' })} onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-card rounded-md transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{t('backup.monthly', { defaultValue: 'Mensuel' })}</Button>
   </div>
   </div>
   <Button

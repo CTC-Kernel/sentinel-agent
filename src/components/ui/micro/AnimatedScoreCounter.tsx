@@ -184,10 +184,9 @@ export const AnimatedScoreCounter: React.FC<AnimatedScoreCounterProps> = ({
  animationRef.current();
  }
  };
- // displayValue is updated by the animation itself, so we don't want it in dependencies to avoid loops
- // We only want to restart animation when 'value' (target) changes.
- // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [value, duration]);
+ // Justification: displayValue is updated by the animation itself. Including it would cause
+ // infinite loops. We only restart the animation when the target value or duration changes.
+ }, [value, duration]); // eslint-disable-line react-hooks/exhaustive-deps
 
  const formattedValue = displayValue.toFixed(decimals);
 

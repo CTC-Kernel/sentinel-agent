@@ -10,6 +10,7 @@ import {
   deleteDoc,
   Unsubscribe,
   DocumentData,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
@@ -46,7 +47,7 @@ export class RegulatoryChangeService {
         orderBy('createdAt', 'desc')
       );
 
-      return onSnapshot(
+      const unsubscribe = onSnapshot(
         q,
         (snapshot) => {
           const changes = snapshot.docs.map((d) => ({
@@ -60,6 +61,7 @@ export class RegulatoryChangeService {
           onError?.(error);
         }
       );
+      return unsubscribe;
     } catch (error) {
       ErrorLogger.error(error, 'RegulatoryChangeService.subscribeToChanges.setup');
       return () => {};
@@ -81,7 +83,7 @@ export class RegulatoryChangeService {
         orderBy('createdAt', 'desc')
       );
 
-      return onSnapshot(
+      const unsubscribe = onSnapshot(
         q,
         (snapshot) => {
           const alerts = snapshot.docs.map((d) => ({
@@ -95,6 +97,7 @@ export class RegulatoryChangeService {
           onError?.(error);
         }
       );
+      return unsubscribe;
     } catch (error) {
       ErrorLogger.error(error, 'RegulatoryChangeService.subscribeToAlerts.setup');
       return () => {};
@@ -137,7 +140,7 @@ export class RegulatoryChangeService {
     try {
       const updateData = sanitizeData({
         ...data,
-        updatedAt: new Date().toISOString(),
+        updatedAt: serverTimestamp(),
       });
 
       const docRef = doc(db, this.COLLECTION, changeId);
@@ -186,7 +189,7 @@ export class RegulatoryChangeService {
         ...data,
         organizationId,
         read: false,
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
       });
 
       const docRef = await addDoc(collection(db, this.ALERTS_COLLECTION), alertData);

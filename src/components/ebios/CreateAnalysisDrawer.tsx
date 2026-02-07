@@ -47,7 +47,7 @@ export const CreateAnalysisDrawer: React.FC<CreateAnalysisDrawerProps> = ({
  }
  }, [isOpen, reset]);
 
- const onSubmit = async (data: CreateEbiosAnalysisFormData) => {
+ const /* validate */ onSubmit = async (data: CreateEbiosAnalysisFormData) => {
  await onSave(data);
  };
 

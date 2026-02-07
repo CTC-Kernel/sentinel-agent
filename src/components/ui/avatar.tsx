@@ -28,9 +28,8 @@ interface AvatarImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement
 
 const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
  ({ className, alt, ...props }, ref) => (
- <img
+ <img alt={alt}
  ref={ref}
- alt={alt}
  className={cn("aspect-square h-full w-full object-cover", className)}
  {...props}
  />

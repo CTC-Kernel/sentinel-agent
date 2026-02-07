@@ -83,7 +83,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
 type ToolbarDividerProps = Record<string, never>;
 
 const ToolbarDivider: React.FC<ToolbarDividerProps> = () => (
- <div className="w-px h-6 bg-muted/50" />
+ <div className="w-px h-6 bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" />
 );
 
 // ============================================================================

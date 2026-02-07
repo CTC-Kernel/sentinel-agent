@@ -71,40 +71,8 @@ function calculateDaysOverdue(dueDate: string): number {
  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 }
 
-/**
- * Get overdue severity color scheme
- */
-export function getOverdueSeverityColorScheme(
- daysOverdue: number
-): 'critical' | 'high' | 'medium' {
- if (daysOverdue >= 14) return 'critical';
- if (daysOverdue >= 7) return 'high';
- return 'medium';
-}
-
-/**
- * Get Tailwind classes for overdue severity
- */
-export const OVERDUE_SEVERITY_COLOR_CLASSES = {
- critical: {
- bg: 'bg-red-100 dark:bg-red-900/30',
- text: 'text-red-700 dark:text-red-300',
- border: 'border-red-300 dark:border-red-700',
- badge: 'bg-red-600 text-white',
- },
- high: {
- bg: 'bg-red-50 dark:bg-red-900/20',
- text: 'text-red-600 dark:text-red-400',
- border: 'border-red-200 dark:border-red-800',
- badge: 'bg-red-500 text-white',
- },
- medium: {
- bg: 'bg-orange-50 dark:bg-orange-900/20',
- text: 'text-orange-600 dark:text-orange-400',
- border: 'border-orange-200 dark:border-orange-800',
- badge: 'bg-orange-500 text-white',
- },
-} as const;
+// Re-export color scheme utilities (moved to utils/colorSchemes.ts to satisfy hooks naming convention)
+export { getOverdueSeverityColorScheme, OVERDUE_SEVERITY_COLOR_CLASSES } from '../utils/colorSchemes';
 
 /**
  * Hook to fetch and monitor overdue actions
@@ -250,8 +218,9 @@ export function useOverdueActions(
  cancelled = true;
  unsubRef.current?.();
  };
- // eslint-disable-next-line react-hooks/exhaustive-deps -- trend is intentionally excluded to prevent re-subscription on trend changes
- }, [tenantId, maxItems, refreshKey]);
+ // Justification: trend is intentionally excluded to prevent re-subscription when trend changes.
+ // Trend is a derived value from the snapshot listener and including it would cause infinite loops.
+ }, [tenantId, maxItems, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
  return {
  actions,

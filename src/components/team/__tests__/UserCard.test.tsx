@@ -116,7 +116,7 @@ describe('UserCard', () => {
  it('renders last login date', () => {
  render(<UserCard user={mockUser} canAdmin={true} onEdit={mockOnEdit} onDelete={mockOnDelete} />);
 
- expect(screen.getByText(new Date(mockUser.lastLogin!).toLocaleDateString())).toBeInTheDocument();
+ expect(screen.getByText(new Date(mockUser.lastLogin!).toLocaleDateString('fr-FR'))).toBeInTheDocument();
  });
 
  it('renders avatar image', () => {
@@ -199,7 +199,7 @@ describe('UserCard', () => {
  render(<UserCard user={{ ...mockUser, lastLogin: undefined }} canAdmin={true} onEdit={mockOnEdit} onDelete={mockOnDelete} />);
 
  // The date should not be present if lastLogin is undefined
- expect(screen.queryByText(new Date().toLocaleDateString())).not.toBeInTheDocument();
+ expect(screen.queryByText(new Date().toLocaleDateString('fr-FR'))).not.toBeInTheDocument();
  });
  });
 });

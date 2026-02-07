@@ -45,6 +45,7 @@ import {
  ConfidenceLevel,
 } from '../../types/autoPopulation';
 import { AGENT_CHECK_DEFINITIONS } from '../../types/agentEvidence';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface AutoPopulationWizardProps {
  onComplete: (session: PopulationSession) => void;
@@ -556,6 +557,7 @@ export const AutoPopulationWizard: React.FC<AutoPopulationWizardProps> = ({
  setSession(newSession);
  setCurrentStep('review_suggestions');
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'AutoPopulationWizard');
  setError((err as Error).message);
  } finally {
  setIsProcessing(false);
@@ -575,6 +577,7 @@ export const AutoPopulationWizard: React.FC<AutoPopulationWizardProps> = ({
  user.uid
  );
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'AutoPopulationWizard');
  setError((err as Error).message);
  } finally {
  setIsProcessing(false);
@@ -593,6 +596,7 @@ export const AutoPopulationWizard: React.FC<AutoPopulationWizardProps> = ({
  user.uid
  );
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'AutoPopulationWizard');
  setError((err as Error).message);
  } finally {
  setIsProcessing(false);
@@ -616,6 +620,7 @@ export const AutoPopulationWizard: React.FC<AutoPopulationWizardProps> = ({
  { modifiedAnswer, reviewNotes }
  );
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'AutoPopulationWizard');
  setError((err as Error).message);
  } finally {
  setIsProcessing(false);
@@ -639,6 +644,7 @@ export const AutoPopulationWizard: React.FC<AutoPopulationWizardProps> = ({
  );
  }
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'AutoPopulationWizard');
  setError((err as Error).message);
  } finally {
  setIsProcessing(false);
@@ -665,6 +671,7 @@ export const AutoPopulationWizard: React.FC<AutoPopulationWizardProps> = ({
 
  setCurrentStep('complete');
  } catch (err) {
+   ErrorLogger.handleErrorWithToast(err, 'AutoPopulationWizard');
  setError((err as Error).message);
  } finally {
  setIsProcessing(false);

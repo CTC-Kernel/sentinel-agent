@@ -16,6 +16,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ErrorHandler, ErrorSeverity, ErrorCategory } from '../utils/errorHandler';
+import { ErrorLogger } from '../services/errorLogger';
 
 /**
  * Configuration d'un onglet
@@ -271,6 +272,7 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
  );
  }
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'useInspector');
  ErrorHandler.handle(error, `${moduleName}.handleUpdate`, {
  severity: ErrorSeverity.HIGH,
  category: ErrorCategory.DATABASE,
@@ -328,6 +330,7 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
  );
  }
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'useInspector');
  ErrorHandler.handle(error, `${moduleName}.handleCreate`, {
  severity: ErrorSeverity.HIGH,
  category: ErrorCategory.DATABASE,
@@ -371,6 +374,7 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
 
  onSuccess?.();
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'useInspector');
  ErrorHandler.handle(error, `${moduleName}.handleDelete`, {
  severity: ErrorSeverity.HIGH,
  category: ErrorCategory.DATABASE,

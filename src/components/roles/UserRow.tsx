@@ -31,8 +31,7 @@ export const UserRow: React.FC<UserRowProps> = ({
  <tr className="hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors">
  <td className="px-6 py-4 whitespace-nowrap">
  <div className="flex items-center gap-3">
-  <img
-  alt={user.displayName || 'User'}
+  <img alt={user.displayName || 'User'}
   src={getUserAvatarUrl(user.photoURL, user.role)}
   className="h-10 w-10 rounded-full object-cover ring-2 ring-white dark:ring-slate-800"
   />
@@ -56,7 +55,7 @@ export const UserRow: React.FC<UserRowProps> = ({
   <select
   value={selectedRole}
   onChange={(e) => onRoleChange(e.target.value as Role)}
-  className="px-3 py-1.5 bg-card border border-border/40 rounded-lg text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus-visible:ring-primary"
+  className="px-3 py-1.5 bg-card border border-border/40 rounded-lg text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   <option value="admin">Administrateur</option>
   <option value="rssi">RSSI</option>
@@ -94,6 +93,7 @@ export const UserRow: React.FC<UserRowProps> = ({
   onClick={onEditCancel}
   className="p-2 text-muted-foreground hover:bg-muted dark:hover:bg-muted rounded-lg transition-colors"
   title="Annuler"
+  aria-label="Fermer"
   >
   <X className="h-4 w-4" />
   </button>

@@ -24,7 +24,7 @@ export const AssetInspectorHistory: React.FC<AssetInspectorHistoryProps> = ({
   {selectedAsset.history.slice().reverse().map((h, i) => (
   <div key={`rec-${i || 'unknown'}`} className="p-4 bg-muted/50 dark:bg-white/5 rounded-2xl border border-border/40">
   <div className="flex justify-between items-center mb-2">
-   <span className="text-xs font-bold text-muted-foreground">{new Date(h.date).toLocaleString()}</span>
+   <span className="text-xs font-bold text-muted-foreground">{new Date(h.date).toLocaleString('fr-FR')}</span>
    <span className="text-xs font-medium text-muted-foreground">{t('common.inspector.history.by')} {h.userName}</span>
   </div>
   <div className="grid grid-cols-3 gap-2 text-xs">

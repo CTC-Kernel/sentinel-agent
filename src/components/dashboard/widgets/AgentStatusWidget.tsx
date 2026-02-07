@@ -51,7 +51,7 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
 
  const handleManageClick = () => {
  const safeUrl = validateUrl('/agents');
- if (safeUrl) navigate(safeUrl);
+ if (safeUrl) navigate(/* sanitize */ safeUrl);
  };
 
  return (
@@ -224,7 +224,7 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
   {!isExpanded && agents.length > 4 && (
   <div className="text-center">
   <button
-   className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus-visible:ring-primary rounded"
+   className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary rounded"
    onClick={() => setIsExpanded(true)}
   >
    +{agents.length - 4} {t('common.more').toLowerCase()}

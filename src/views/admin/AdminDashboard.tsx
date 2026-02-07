@@ -53,7 +53,7 @@ const AdminDashboard: React.FC = () => {
  ))}
  </div>
 
- <div className="min-h-[400px]">
+ <div className="min-h-[400px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
  {activeTab === 'overview' && <GlobalMetrics />}
  {activeTab === 'tenants' && <TenantList />}
  {activeTab === 'users' && <UserManagement />}

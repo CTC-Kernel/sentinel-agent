@@ -371,8 +371,13 @@ export class AnnotationService {
  }
  }
 
+ try {
  const updatedDoc = await getDoc(docRef);
  return docToAnnotation({ id: updatedDoc.id, data: () => updatedDoc.data() as Record<string, unknown> });
+ } catch (error) {
+  ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la récupération de l\'annotation mise à jour');
+  return null;
+ }
  } catch (error) {
  ErrorLogger.error(error, 'AnnotationService.updateAnnotation');
  return null;
@@ -450,7 +455,7 @@ export class AnnotationService {
  annotationId: dto.annotationId,
  content: dto.content,
  author,
- createdAt: new Date().toISOString(),
+ createdAt: serverTimestamp(),
  mentions,
  isEdited: false,
  attachments: dto.attachments as AnnotationReply['attachments'],
@@ -616,7 +621,7 @@ export class AnnotationService {
 
  const q = query(collection(db, COLLECTION_NAME), ...constraints);
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const annotations = snapshot.docs.map((docSnap) =>
@@ -628,6 +633,7 @@ export class AnnotationService {
  ErrorLogger.error(error, 'AnnotationService.subscribeToAnnotations');
  }
  );
+ return unsubscribe;
  } catch (error) {
  ErrorLogger.error(error, 'AnnotationService.subscribeToAnnotations');
  return () => {};
@@ -645,7 +651,7 @@ export class AnnotationService {
  const repliesRef = collection(db, COLLECTION_NAME, annotationId, REPLIES_SUBCOLLECTION);
  const q = query(repliesRef, orderBy('createdAt', 'asc'));
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const replies = snapshot.docs.map((docSnap) =>
@@ -657,6 +663,7 @@ export class AnnotationService {
  ErrorLogger.error(error, 'AnnotationService.subscribeToReplies');
  }
  );
+ return unsubscribe;
  } catch (error) {
  ErrorLogger.error(error, 'AnnotationService.subscribeToReplies');
  return () => {};

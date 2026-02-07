@@ -239,7 +239,7 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
   </p>
   </div>
   <span className="text-xs font-medium text-muted-foreground/70" title={t('agent.lastDataUpdate', { defaultValue: 'Dernière mise à jour des données' })}>
-  {t('agent.updatedAt', { defaultValue: 'Mis à jour :' })} {new Date().toLocaleTimeString(config.intlLocale, { hour: '2-digit', minute: '2-digit' })}
+  {t('agent.updatedAt', { defaultValue: 'Mis à jour :' })} {new Date(Date.now()).toLocaleTimeString(config.intlLocale, { hour: '2-digit', minute: '2-digit' })}
   </span>
   </div>
   <div className="flex items-baseline gap-4">

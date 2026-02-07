@@ -81,7 +81,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
   {loading ? (
   // Loading Skeletons
   Array.from({ length: 3 }).map((_, i) => (
-  <div key={i} className="bg-background/40 p-4 rounded-xl border border-border/40 shadow-sm space-y-3">
+  <div key={`skeleton-kanban-${i}`} className="bg-background/40 p-4 rounded-xl border border-border/40 shadow-sm space-y-3">
    <div className="flex justify-between">
    <Skeleton className="h-4 w-16 rounded-full" />
    <Skeleton className="h-3 w-12 rounded" />
@@ -129,7 +129,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
     e.stopPropagation();
     onEdit(incident);
     }}
-    className="p-1.5 bg-background/90 text-muted-foreground hover:text-primary rounded-lg shadow-sm border border-border/40 transition-colors"
+    className="p-1.5 bg-background/90 text-muted-foreground hover:text-primary rounded-lg shadow-sm border border-border/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
    >
     <Edit className="h-3.5 w-3.5" />
    </button>
@@ -143,7 +143,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
     e.stopPropagation();
     onDelete(incident.id);
     }}
-    className="p-1.5 bg-background/90 text-muted-foreground hover:text-destructive rounded-lg shadow-sm border border-border/40 transition-colors"
+    className="p-1.5 bg-background/90 text-muted-foreground hover:text-destructive rounded-lg shadow-sm border border-border/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
    >
     <Trash2 className="h-3.5 w-3.5" />
    </button>

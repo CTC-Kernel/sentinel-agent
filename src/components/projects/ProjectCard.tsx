@@ -69,7 +69,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
  }}
  role="button"
  tabIndex={0}
- className={`glass-premium rounded-3xl ${compact ? 'p-4 rounded-2xl' : 'p-6'} card-hover flex flex-col cursor-pointer group border border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
+ className={`glass-premium rounded-3xl ${compact ? 'p-4 rounded-2xl' : 'p-6'} card-hover flex flex-col cursor-pointer group border border-border/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
  >
  <div className="flex justify-between items-start mb-4">
  <div className="flex items-center gap-3">
@@ -88,18 +88,18 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   {canEdit && (
   <>
   <ProjectCardTooltip content="Dupliquer">
-   <button onClick={(e) => { e.stopPropagation(); onDuplicate(project); }} className="p-1.5 bg-card/80 rounded-lg text-muted-foreground hover:text-primary shadow-sm backdrop-blur-sm transition-colors border border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`Dupliquer le projet ${project.name}`}>
+   <button onClick={(e) => { e.stopPropagation(); onDuplicate(project); }} className="p-1.5 bg-card/80 rounded-lg text-muted-foreground hover:text-primary shadow-sm backdrop-blur-sm transition-colors border border-border/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`Dupliquer le projet ${project.name}`}>
    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
    </button>
   </ProjectCardTooltip>
   <ProjectCardTooltip content="Modifier">
-   <button onClick={(e) => { e.stopPropagation(); onEdit(project); }} className="p-1.5 bg-card/80 rounded-lg text-muted-foreground hover:text-primary shadow-sm backdrop-blur-sm transition-colors border border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+   <button onClick={(e) => { e.stopPropagation(); onEdit(project); }} className="p-1.5 bg-card/80 rounded-lg text-muted-foreground hover:text-primary shadow-sm backdrop-blur-sm transition-colors border border-border/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
    <Edit className="h-3.5 w-3.5" />
    </button>
   </ProjectCardTooltip>
   {canDeleteResource(user, 'Project') && (
    <ProjectCardTooltip content={isDeleting ? "Suppression..." : "Supprimer"}>
-   <button onClick={(e) => { e.stopPropagation(); handleDelete(); }} disabled={isDeleting} className="p-1.5 bg-card/80 rounded-lg text-muted-foreground hover:text-destructive shadow-sm backdrop-blur-sm transition-colors border border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed disabled:border-muted" aria-label={`Supprimer le projet ${project.name}`}>
+   <button onClick={(e) => { e.stopPropagation(); handleDelete(); }} disabled={isDeleting} className="p-1.5 bg-card/80 rounded-lg text-muted-foreground hover:text-destructive shadow-sm backdrop-blur-sm transition-colors border border-border/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:bg-muted disabled:text-muted-foreground disabled:border-border/40 disabled:cursor-not-allowed disabled:border-muted" aria-label={`Supprimer le projet ${project.name}`}>
    <Trash2 className="h-3.5 w-3.5" />
    </button>
    </ProjectCardTooltip>
@@ -131,9 +131,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   {displayMembers.map(m => (
   <ProjectCardTooltip key={m.uid || 'unknown'} content={m.displayName || m.email}>
    <div className="relative">
-   <img
+   <img alt={m.displayName || 'Membre'}
    src={getUserAvatarUrl(m.photoURL, m.role)}
-   alt={m.displayName || 'Membre'}
    className="w-6 h-6 rounded-full border-2 border-white dark:border-card object-cover bg-muted"
    />
    </div>

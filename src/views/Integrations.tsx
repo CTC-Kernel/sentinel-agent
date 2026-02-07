@@ -203,7 +203,7 @@ export const Integrations: React.FC = () => {
   aria-label={t('integrations.searchPlaceholder')}
   type="text"
   placeholder={t('integrations.searchPlaceholder')}
-  className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus:ring-0 text-sm font-medium text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground"
+  className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus-visible:ring-0 text-sm font-medium text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground"
   />
   </div>
   <div className="flex gap-1 overflow-x-auto no-scrollbar items-center pr-1.5 pl-1.5 border-l border-border/50 dark:border-white/5">

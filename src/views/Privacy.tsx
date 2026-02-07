@@ -149,6 +149,16 @@ export const Privacy: React.FC = () => {
  setShowCreateModal(true);
  }, [setShowCreateModal]);
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <motion.div
  variants={staggerContainerVariants}
@@ -174,27 +184,26 @@ export const Privacy: React.FC = () => {
  title={t('privacy.title')}
  subtitle={t('privacy.subtitle')}
  icon={
-  <img
+  <img alt="GOUVERNANCE"
   src="/images/gouvernance.png"
-  alt="GOUVERNANCE"
   className="w-full h-full object-contain"
   />
  }
  actions={canEdit && (
   <>
   <div className="flex gap-2 mb-2">
-  <input aria-label="Import activities from CSV" type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} hidden />
+  <input required aria-label="Import activities from CSV" type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} hidden />
   <button
   aria-label="Importer"
   onClick={() => fileInputRef.current?.click()}
-  className="flex items-center px-5 py-2.5 bg-background border border-muted rounded-xl text-sm font-bold hover:bg-muted/40 transition-all shadow-sm text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="flex items-center px-5 py-2.5 bg-background border border-muted rounded-xl text-sm font-bold hover:bg-muted/40 transition-all shadow-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   <Upload className="h-4 w-4 mr-2" /> {t('common.importCsv')}
   </button>
   <button
   aria-label="Nouveau Traitement"
   onClick={handleAddActivity}
-  className="flex items-center px-5 py-2.5 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="flex items-center px-5 py-2.5 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   <Plus className="h-4 w-4 mr-2" /> {t('privacy.newActivity')}
   </button>
@@ -264,7 +273,7 @@ export const Privacy: React.FC = () => {
  onSearchChange={setFilter}
  searchPlaceholder={t('privacy.searchPlaceholder')}
  actions={
-  <button onClick={handleExportCSV} className="p-2.5 bg-muted/50 dark:bg-white/5 rounded-xl text-muted-foreground hover:text-foreground dark:hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" title={t('privacy.exportRegistry')}>
+  <button onClick={handleExportCSV} className="p-2.5 bg-muted/50 dark:bg-white/5 rounded-xl text-muted-foreground hover:text-foreground dark:hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" title={t('privacy.exportRegistry')}>
   <FileSpreadsheet className="h-4 w-4" />
   </button>
  }

@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom';
  * Custom event name dispatched when Escape is pressed globally.
  * Modal and Drawer components can listen for this event to close themselves.
  */
-export const CLOSE_OVERLAY_EVENT = 'sentinel:close-overlay';
+// Re-exported from keyboard constants
+export { CLOSE_OVERLAY_EVENT } from '../constants/keyboardConstants';
 
 /**
  * Global keyboard shortcuts hook for the Sentinel GRC application.

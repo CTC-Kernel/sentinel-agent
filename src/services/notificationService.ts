@@ -151,7 +151,7 @@ export class NotificationService {
  } else if (createdAt && typeof createdAt === 'object' && 'seconds' in createdAt) {
   createdAt = new Date(createdAt.seconds * 1000).toISOString();
  }
- return { id: doc.id, ...data, createdAt: createdAt || new Date().toISOString() } as Notification;
+ return { id: doc.id, ...data, createdAt: createdAt || new Date(Date.now()).toISOString() } as Notification;
  });
  } catch (error) {
  ErrorLogger.error(error, 'NotificationService.getUnread');
@@ -181,7 +181,7 @@ export class NotificationService {
  } else if (createdAt && typeof createdAt === 'object' && 'seconds' in createdAt) {
   createdAt = new Date(createdAt.seconds * 1000).toISOString();
  }
- return { id: doc.id, ...data, createdAt: createdAt || new Date().toISOString() } as Notification;
+ return { id: doc.id, ...data, createdAt: createdAt || new Date(Date.now()).toISOString() } as Notification;
  });
  } catch (error) {
  ErrorLogger.error(error, 'NotificationService.getAll');
@@ -226,11 +226,21 @@ export class NotificationService {
  const snapshot = await getDocs(q);
  if (snapshot.empty) return;
 
- const batch = writeBatch(db);
- snapshot.docs.forEach(docSnap => {
- batch.update(docSnap.ref, { read: true });
- });
- await batch.commit();
+ const BATCH_LIMIT = 450;
+ let batch = writeBatch(db);
+ let batchCount = 0;
+ for (const docSnap of snapshot.docs) {
+  batch.update(docSnap.ref, { read: true });
+  batchCount++;
+  if (batchCount >= BATCH_LIMIT) {
+   await batch.commit();
+   batch = writeBatch(db);
+   batchCount = 0;
+  }
+ }
+ if (batchCount > 0) {
+  await batch.commit();
+ }
  } catch (error) {
  ErrorLogger.error(error, 'NotificationService.markAllAsRead');
  }
@@ -249,7 +259,7 @@ export class NotificationService {
  limit(100)
  );
 
- return onSnapshot(q, (snapshot) => {
+ const unsubscribe = onSnapshot(q, (snapshot) => {
  const notifications = snapshot.docs.map((doc) => {
   const data = doc.data();
   let createdAt = data.createdAt;
@@ -263,13 +273,14 @@ export class NotificationService {
   return {
   id: doc.id,
   ...data,
-  createdAt: createdAt || new Date().toISOString()
+  createdAt: createdAt || new Date(Date.now()).toISOString()
   } as Notification;
  });
  callback(notifications);
  }, (error) => {
  ErrorLogger.error(error, 'NotificationService.subscribeToNotifications.onSnapshot');
  });
+ return unsubscribe;
  } catch (error) {
  ErrorLogger.error(error, 'NotificationService.subscribeToNotifications');
  return () => { };
@@ -317,7 +328,8 @@ export class NotificationService {
   where('organizationId', '==', organizationId),
   where('userId', '==', auditorId),
   where('link', '==', '/audits'),
-  where('createdAt', '>=', yesterday)
+  where('createdAt', '>=', yesterday),
+  limit(50)
   ));
 
   const alreadyNotified = existingNotifs.docs.some(d => d.data().message.includes(audit.name));
@@ -328,7 +340,7 @@ export class NotificationService {
   userId: auditorId,
   type: daysUntil <= 3 ? 'danger' : 'warning',
   title: `Audit à venir : ${audit.name}`,
-  message: `L'audit est prévu dans ${daysUntil} jour(s) - ${new Date(audit.dateScheduled).toLocaleDateString()}`,
+  message: `L'audit est prévu dans ${daysUntil} jour(s) - ${new Date(audit.dateScheduled).toLocaleDateString('fr-FR')}`,
   link: '/audits',
   read: false,
   createdAt: serverTimestamp(),
@@ -393,7 +405,8 @@ export class NotificationService {
   where('organizationId', '==', organizationId),
   where('userId', '==', ownerId),
   where('link', '==', '/documents'),
-  where('createdAt', '>=', yesterday)
+  where('createdAt', '>=', yesterday),
+  limit(50)
   ));
 
   const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(doc.title));
@@ -404,7 +417,7 @@ export class NotificationService {
   userId: ownerId,
   type: 'warning',
   title: `Document à réviser : ${doc.title}`,
-  message: `La date de révision est dépassée depuis le ${new Date(doc.nextReviewDate).toLocaleDateString()}`,
+  message: `La date de révision est dépassée depuis le ${new Date(doc.nextReviewDate).toLocaleDateString('fr-FR')}`,
   link: '/documents',
   read: false,
   createdAt: serverTimestamp(),
@@ -475,7 +488,8 @@ export class NotificationService {
   where('organizationId', '==', organizationId),
   where('userId', '==', ownerId),
   where('link', '==', '/assets'),
-  where('createdAt', '>=', yesterday)
+  where('createdAt', '>=', yesterday),
+  limit(50)
   ));
 
   const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(asset.name));
@@ -552,7 +566,8 @@ export class NotificationService {
   where('organizationId', '==', organizationId),
   where('userId', '==', adminDoc.id),
   where('link', '==', '/risks'),
-  where('createdAt', '>=', yesterday)
+  where('createdAt', '>=', yesterday),
+  limit(50)
   ));
 
   const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes('risque(s) critique(s)'));
@@ -757,7 +772,8 @@ export class NotificationService {
   where('organizationId', '==', organizationId),
   where('userId', '==', ownerId),
   where('link', '==', notifLink),
-  where('createdAt', '>=', yesterday)
+  where('createdAt', '>=', yesterday),
+  limit(50)
   ));
 
   const msgTag = diffDays < 0 ? 'Retard traitement' : 'Échéance traitement';
@@ -844,7 +860,8 @@ export class NotificationService {
   where('organizationId', '==', organizationId),
   where('userId', '==', notifyUserId),
   where('link', '==', '/smsi'),
-  where('createdAt', '>=', yesterday)
+  where('createdAt', '>=', yesterday),
+  limit(50)
  ));
 
  const alreadyNotified = existingNotifs.docs.some(d =>
@@ -853,6 +870,7 @@ export class NotificationService {
 
  if (alreadyNotified) continue;
 
+  try {
  if (isOverdue) {
   const daysOverdue = Math.ceil((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
   await addDoc(collection(db, 'notifications'), sanitizeData({
@@ -878,6 +896,9 @@ export class NotificationService {
   createdAt: serverTimestamp(),
   }));
  }
+  } catch (notifError) {
+   ErrorLogger.handleErrorWithToast(notifError, 'Erreur lors de l\'envoi de la notification de jalon SMSI');
+  }
  }
  } catch (error) {
  ErrorLogger.error(error, 'NotificationService.checkSMSIMilestones');
@@ -921,7 +942,8 @@ export class NotificationService {
   where('organizationId', '==', organizationId),
   where('userId', '==', adminDoc.id),
   where('link', '==', '/agents'),
-  where('createdAt', '>=', yesterday)
+  where('createdAt', '>=', yesterday),
+  limit(50)
   ));
 
   const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes('hors ligne'));
@@ -978,7 +1000,8 @@ export class NotificationService {
   where('organizationId', '==', organizationId),
   where('userId', '==', adminDoc.id),
   where('link', '==', '/agents'),
-  where('createdAt', '>=', yesterday)
+  where('createdAt', '>=', yesterday),
+  limit(50)
   ));
 
   const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes('conformite critique'));
@@ -1068,7 +1091,8 @@ export class NotificationService {
   where('organizationId', '==', organizationId),
   where('userId', '==', supplier.ownerId),
   where('link', '==', '/suppliers'),
-  where('createdAt', '>=', yesterday)
+  where('createdAt', '>=', yesterday),
+  limit(50)
   ));
 
   const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(supplier.name));

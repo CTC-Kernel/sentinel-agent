@@ -75,7 +75,7 @@ export const SMSIStatsWidget: React.FC<SMSIStatsWidgetProps> = ({ program, overd
  {
  label: "Certification",
  value: targetDate ? `J-${daysUntilCertification}` : "Non définie",
- subtext: targetDate ? targetDate.toLocaleDateString() : undefined,
+ subtext: targetDate ? targetDate.toLocaleDateString('fr-FR') : undefined,
  icon: Calendar,
  className: "text-indigo-500 bg-indigo-500/10"
  }

@@ -141,7 +141,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
   </button>
   )}
  </div>
- {risk.lastReviewDate && (<p className="text-xs text-muted-foreground mt-3 text-right">Dernière revue le : {new Date(risk.lastReviewDate).toLocaleDateString()}</p>)}
+ {risk.lastReviewDate && (<p className="text-xs text-muted-foreground mt-3 text-right">Dernière revue le : {new Date(risk.lastReviewDate).toLocaleDateString('fr-FR')}</p>)}
  </div>
  </div>
  );

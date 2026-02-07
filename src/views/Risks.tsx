@@ -336,7 +336,7 @@ export const Risks: React.FC = () => {
         try {
             await PdfService.generateRiskExecutiveReport(filteredRisks, {
                 title: t('risks.executiveReport'),
-                subtitle: t('risks.generatedBy', { defaultValue: 'Généré par {{name}} le {{date}}', name: user?.displayName || t('common.user', { defaultValue: 'Utilisateur' }), date: new Date().toLocaleDateString() }),
+                subtitle: t('risks.generatedBy', { defaultValue: 'Généré par {{name}} le {{date}}', name: user?.displayName || t('common.user', { defaultValue: 'Utilisateur' }), date: new Date().toLocaleDateString('fr-FR') }),
                 filename: `risques_exec_${new Date().toISOString().split('T')[0]}.pdf`,
                 organizationName: user?.organizationName || 'Sentinel GRC',
                 author: user?.displayName || 'Sentinel User'
@@ -445,6 +445,61 @@ export const Risks: React.FC = () => {
         }
     }, [setActiveFilters, setActiveTab]);
 
+
+  // Extracted callbacks (useCallback)
+  const handleClose = useCallback(() => {
+    setShowUnprotectedAlert(false)
+  }, []);
+
+  const handleAction = useCallback(() => {
+    handleFilterChange({ type: 'criticality', value: ['Élevé', 'Critique'] })
+  }, []);
+
+  const handleTabChange = useCallback((id) => {
+    setActiveTab(id as RiskTab)
+  }, []);
+
+  const handleClose2 = useCallback(() => {
+    setSelectedRisk(null)
+  }, []);
+
+  const handleClose3 = useCallback(() => {
+    { setCreationMode(false); setEditingRisk(null); setIsFormDirty(false); }
+  }, []);
+
+  const handleCancel = useCallback(() => {
+    { setCreationMode(false); setEditingRisk(null); setIsFormDirty(false); }
+  }, []);
+
+  const handleClose4 = useCallback(() => {
+    setIsTemplateModalOpen(false)
+  }, []);
+
+  const handleClose5 = useCallback(() => {
+    setImportModalOpen(false)
+  }, []);
+
+  const handleClose6 = useCallback(() => {
+    setConfirmData(prev => ({ ...prev, isOpen: false }))
+  }, []);
+
+  const handleClose7 = useCallback(() => {
+    { setShowSaveViewModal(false); setViewName(''); }
+  }, []);
+
+  const handleChange = useCallback((e) => {
+    setViewName(e.target.value)
+  }, []);
+
+  const handleKeyDown = useCallback((e) => {
+    { if (e.key === 'Enter') handleConfirmSaveView(); }
+  }, []);
+
+  const handleClick = useCallback(() => {
+    { setShowSaveViewModal(false); setViewName(''); }
+  }, []);
+
+
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24">
             <PageHeader
@@ -458,7 +513,7 @@ export const Risks: React.FC = () => {
             {/* Contextual Intelligence Overlay */}
             <ContextualAlert
                 isOpen={showUnprotectedAlert && unprotectedRisks.length > 0}
-                onClose={() => setShowUnprotectedAlert(false)}
+                onClose={handleClose}
                 variant="destructive"
                 title={t('risks.intel.unprotectedTitle', { defaultValue: 'Failles de Sécurité Identifiées' })}
                 description={t('risks.intel.unprotectedDesc', {
@@ -466,7 +521,7 @@ export const Risks: React.FC = () => {
                     count: unprotectedRisks.length
                 })}
                 actionLabel={t('risks.intel.viewUnprotected', { defaultValue: 'Voir les risques' })}
-                onAction={() => handleFilterChange({ type: 'criticality', value: ['Élevé', 'Critique'] })}
+                onAction={handleAction}
                 icon={<Siren className="w-5 h-5 text-destructive" />}
             />
 
@@ -476,7 +531,7 @@ export const Risks: React.FC = () => {
 
             <SmartSummary insights={riskInsights} loading={loading} />
 
-            <ScrollableTabs tabs={tabs} activeTab={activeTab} onTabChange={(id) => setActiveTab(id as RiskTab)} isChanging={loading} />
+            <ScrollableTabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} isChanging={loading} />
 
             <RiskTabsContent
                 activeTab={activeTab}
@@ -525,7 +580,7 @@ export const Risks: React.FC = () => {
                 {selectedRisk && (
                     <RiskInspector
                         isOpen={!!selectedRisk}
-                        onClose={() => setSelectedRisk(null)}
+                        onClose={handleClose2}
                         risk={selectedRisk}
                         assets={assets}
                         controls={controls}
@@ -547,14 +602,14 @@ export const Risks: React.FC = () => {
                 {creationMode && (
                     <Drawer
                         isOpen={creationMode}
-                        onClose={() => { setCreationMode(false); setEditingRisk(null); setIsFormDirty(false); }}
+                        onClose={handleClose3}
                         title={editingRisk ? t('risks.editRisk') : t('risks.newRisk')}
                         hasUnsavedChanges={isFormDirty}
                     >
                         <React.Suspense fallback={<Spinner />}>
                             <RiskForm
                                 onSubmit={handleFormSubmit}
-                                onCancel={() => { setCreationMode(false); setEditingRisk(null); setIsFormDirty(false); }}
+                                onCancel={handleCancel}
                                 onDirtyChange={setIsFormDirty}
                                 initialData={editingRisk || initialFormData || undefined}
                                 isLoading={submitting}
@@ -571,20 +626,20 @@ export const Risks: React.FC = () => {
 
             <RiskTemplateModal
                 isOpen={isTemplateModalOpen}
-                onClose={() => setIsTemplateModalOpen(false)}
+                onClose={handleClose4}
                 onSelectTemplate={handleTemplateSelect}
                 users={usersList}
             />
             <RiskImportModal
                 isOpen={importModalOpen}
-                onClose={() => setImportModalOpen(false)}
+                onClose={handleClose5}
                 importRisks={importRisks}
             />
-            <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData(prev => ({ ...prev, isOpen: false }))} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
+            <ConfirmModal isOpen={confirmData.isOpen} onClose={handleClose6} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
 
             {/* Save View Modal */}
             <Transition show={showSaveViewModal} as={React.Fragment}>
-                <Dialog onClose={() => { setShowSaveViewModal(false); setViewName(''); }} className="relative z-modal">
+                <Dialog onClose={handleClose7} className="relative z-modal">
                     <Transition.Child as={React.Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
                         <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" />
                     </Transition.Child>
@@ -592,16 +647,17 @@ export const Risks: React.FC = () => {
                         <Transition.Child as={React.Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
                             <Dialog.Panel className="bg-card rounded-2xl p-6 max-w-md w-full shadow-apple-xl border border-border/50">
                                 <Dialog.Title className="text-lg font-semibold mb-4">{t('risks.saveViewTitle', { defaultValue: 'Sauvegarder la vue' })}</Dialog.Title>
-                                <input
+                                <input required
                                     type="text"
+                                    aria-label="Nom de la vue"
                                     value={viewName}
-                                    onChange={(e) => setViewName(e.target.value)}
+                                    onChange={handleChange}
                                     placeholder={t('risks.viewNamePlaceholder', { defaultValue: 'Nom de la vue...' })}
-                                    className="w-full px-4 py-2 rounded-xl border border-border bg-background text-foreground mb-4 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                                    onKeyDown={(e) => { if (e.key === 'Enter') handleConfirmSaveView(); }}
+                                    className="w-full px-4 py-2 rounded-xl border border-border bg-background text-foreground mb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                                    onKeyDown={handleKeyDown}
                                 />
                                 <div className="flex gap-3 justify-end">
-                                    <button onClick={() => { setShowSaveViewModal(false); setViewName(''); }} className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
+                                    <button onClick={handleClick} className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
                                         {t('common.cancel', { defaultValue: 'Annuler' })}
                                     </button>
                                     <button onClick={handleConfirmSaveView} disabled={!viewName.trim()} className="px-4 py-2 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground transition-colors">

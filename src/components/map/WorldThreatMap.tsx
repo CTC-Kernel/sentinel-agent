@@ -36,11 +36,54 @@ const colorScale = scaleLinear<string>()
 export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
  const [tooltipContent, setTooltip] = useState<{ x: number, y: number, content: React.ReactNode } | null>(null);
 
+
+  // Extracted callbacks (useCallback)
+  const handleMouseLeave = useCallback(() => {
+    setTooltip(null)
+  }, []);
+
+  const handleMouseLeave2 = useCallback(() => {
+    setTooltip(null)
+  }, []);
+  const handleMouseMove = useCallback((e) => {
+    setTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
+  }, []);
+
+  const handleMouseLeave3 = useCallback(() => {
+    setTooltip(null);
+  }, []);
+
+  const handleMouseEnter = useCallback(() => {
+    // Use native event to position
+   // But markers in react-simple-maps don't pass MouseEvent easily in some versions?
+   // Actually they do.
+   // We need to approximate position or use a fixed one?
+   // Let's rely on standard bubbling or specific logic
+   // For simplicity, we might struggle to get exact screen coords from SVG marker event without a ref.
+   // Actually checking docs/types... 
+   // We will try to just show it "near cursor" via mouseMove on container? 
+   // No, let's keep it simple: Markers get tooltips too.
+  }, []);
+
+  const handleMouseEnter2 = useCallback((e) => {
+    setTooltip({
+   x: e.clientX,
+   y: e.clientY,
+   content: (
+   <div className="max-w-[200px]">
+    <div className="font-bold text-red-500 text-xs mb-0.5">THREAT DETECTED</div>
+    <div className="text-white text-xs leading-tight">{marker.name}</div>
+   </div>
+   )
+   });
+  }, []);
+
+
  return (
  // eslint-disable-next-line jsx-a11y/no-static-element-interactions
  <div
  className="w-full h-full bg-background rounded-3xl overflow-hidden relative isolate group"
- onMouseLeave={() => setTooltip(null)}
+ onMouseLeave={handleMouseLeave}
  >
  {/* Cyber Grid Background Effect */}
  <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.9)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.9)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)] z-0 pointer-events-none opacity-20" />
@@ -180,12 +223,8 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
     )
    });
    }}
-   onMouseMove={(e) => {
-   setTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
-   }}
-   onMouseLeave={() => {
-   setTooltip(null);
-   }}
+   onMouseMove={handleMouseMove}
+   onMouseLeave={handleMouseLeave3}
    />
    );
   })
@@ -197,34 +236,13 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
   <Marker
   key={`${marker.name || 'unknown'}-${i}`}
   coordinates={marker.coordinates}
-  onMouseEnter={() => {
-   // Use native event to position
-   // But markers in react-simple-maps don't pass MouseEvent easily in some versions?
-   // Actually they do.
-   // We need to approximate position or use a fixed one?
-   // Let's rely on standard bubbling or specific logic
-   // For simplicity, we might struggle to get exact screen coords from SVG marker event without a ref.
-   // Actually checking docs/types... 
-   // We will try to just show it "near cursor" via mouseMove on container? 
-   // No, let's keep it simple: Markers get tooltips too.
-  }}
+  onMouseEnter={handleMouseEnter}
   // Adding a "group" with onMouseEnter works
   >
   <g
    className="cursor-pointer group"
-   onMouseEnter={(e) => {
-   setTooltip({
-   x: e.clientX,
-   y: e.clientY,
-   content: (
-   <div className="max-w-[200px]">
-    <div className="font-bold text-red-500 text-xs mb-0.5">THREAT DETECTED</div>
-    <div className="text-white text-xs leading-tight">{marker.name}</div>
-   </div>
-   )
-   });
-   }}
-   onMouseLeave={() => setTooltip(null)}
+   onMouseEnter={handleMouseEnter2}
+   onMouseLeave={handleMouseLeave2}
   >
    {/* Radar Ping Effect */}
    <circle r={8} fill="none" stroke="hsl(var(--destructive))" strokeWidth={0.5} className="animate-[ping_3s_linear_infinite] opacity-60" />

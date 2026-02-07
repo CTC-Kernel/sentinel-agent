@@ -61,6 +61,7 @@ export const Reports: React.FC = () => {
  isOpen: false,
  reportId: null
  });
+ const [isDeleting, setIsDeleting] = useState(false);
 
  const TABS = [
  { id: 'templates', label: t('reports.templates'), icon: FileText },
@@ -135,7 +136,8 @@ export const Reports: React.FC = () => {
  };
 
  const handleDeleteReport = async () => {
- if (!deleteConfirm.reportId) return;
+ if (isDeleting || !deleteConfirm.reportId) return;
+ setIsDeleting(true);
 
  try {
  if (!user?.organizationId) throw new Error('Organization not found');
@@ -146,6 +148,8 @@ export const Reports: React.FC = () => {
  } catch (error) {
  ErrorLogger.error('Failed to delete scheduled report', 'Reports.handleDeleteReport', { metadata: { error } });
  addToast(t('reports.toast.deleteError'), 'error');
+ } finally {
+  setIsDeleting(false);
  }
  };
 
@@ -295,7 +299,18 @@ export const Reports: React.FC = () => {
 
  const loading = loadingData || loadingAction;
 
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
  if (loading && !loadingAction) return <LoadingScreen />;
+
 
  return (
  <motion.div
@@ -316,9 +331,8 @@ export const Reports: React.FC = () => {
   title={t('reports.title')}
   subtitle={t('reports.subtitle')}
   icon={
-  <img
+  <img alt="PILOTAGE"
   src="/images/pilotage.png"
-  alt="PILOTAGE"
   className="w-full h-full object-contain"
   />
   }
@@ -484,7 +498,7 @@ export const Reports: React.FC = () => {
    </span>
   </div>
   <h3 className="font-bold text-foreground mb-1 truncate" title={doc.title}>{doc.title}</h3>
-  <p className="text-xs text-muted-foreground mb-4">v{doc.version} • {new Date(doc.createdAt).toLocaleDateString()}</p>
+  <p className="text-xs text-muted-foreground mb-4">v{doc.version} • {new Date(doc.createdAt).toLocaleDateString('fr-FR')}</p>
   <Button size="sm" variant="ghost" className="w-full justify-between group-hover:bg-muted">
    {t('common.download')} <Archive className="h-4 w-4" />
   </Button>
@@ -597,6 +611,7 @@ export const Reports: React.FC = () => {
    <Button
    size="sm"
    variant="outline"
+   disabled={isDeleting}
    className="text-destructive hover:text-destructive hover:bg-error-bg"
    onClick={() => setDeleteConfirm({ isOpen: true, reportId: report.id })}
    >

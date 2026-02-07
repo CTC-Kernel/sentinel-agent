@@ -6,7 +6,7 @@
  * List view for FAIR configurations with actions.
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import type { Locale } from 'date-fns';
@@ -36,6 +36,13 @@ import {
  DropdownMenuTrigger
 } from '../ui/dropdown-menu';
 import type { FAIRModelConfig } from '../../types/fair';
+
+// ============================================================================
+// Constants
+// ============================================================================
+const ALE_LOW_THRESHOLD = 50000;
+const ALE_MEDIUM_THRESHOLD = 200000;
+const ALE_HIGH_THRESHOLD = 1000000;
 
 // ============================================================================
 // Types
@@ -78,9 +85,9 @@ const getComplexityBadge = (level: FAIRModelConfig['complexityLevel']) => {
 };
 
 const getRiskLevel = (ale: number): { level: string; color: string; bgColor: string } => {
- if (ale < 50000) return { level: 'low', color: 'text-green-600', bgColor: 'bg-green-100' };
- if (ale < 200000) return { level: 'medium', color: 'text-amber-600', bgColor: 'bg-amber-100' };
- if (ale < 1000000) return { level: 'high', color: 'text-orange-600', bgColor: 'bg-orange-100' };
+ if (ale < ALE_LOW_THRESHOLD) return { level: 'low', color: 'text-green-600', bgColor: 'bg-green-100' };
+ if (ale < ALE_MEDIUM_THRESHOLD) return { level: 'medium', color: 'text-amber-600', bgColor: 'bg-amber-100' };
+ if (ale < ALE_HIGH_THRESHOLD) return { level: 'high', color: 'text-orange-600', bgColor: 'bg-orange-100' };
  return { level: 'critical', color: 'text-red-600', bgColor: 'bg-red-100' };
 };
 
@@ -195,7 +202,7 @@ const ConfigCard: React.FC<ConfigCardProps> = ({
  <DropdownMenuSeparator />
  <DropdownMenuItem
  className="text-red-600"
- onClick={onDelete}
+ onClick={() => confirm("Confirmer la suppression ?") && onDelete()}
  >
  <Trash2 className="h-4 w-4 mr-2" />
  {t('common.delete', 'Supprimer')}
@@ -279,6 +286,14 @@ export const FAIRConfigList: React.FC<FAIRConfigListProps> = ({
 }) => {
  const { t, i18n } = useTranslation();
  const locale = i18n.language === 'en' ? enUS : fr;
+ const deleteGuardRef = useRef(false);
+
+ const guardedDelete = useCallback((config: FAIRModelConfig) => {
+  if (deleteGuardRef.current) return;
+  deleteGuardRef.current = true;
+  onDelete(config);
+  setTimeout(() => { deleteGuardRef.current = false; }, 2000);
+ }, [onDelete]);
 
  if (loading) {
  return (
@@ -324,7 +339,7 @@ export const FAIRConfigList: React.FC<FAIRConfigListProps> = ({
  onView={() => onView(config)}
  onEdit={() => onEdit(config)}
  onDuplicate={() => onDuplicate(config)}
- onDelete={() => onDelete(config)}
+ onDelete={() => guardedDelete(config)}
  onRunSimulation={() => onRunSimulation(config)}
  locale={locale}
  />

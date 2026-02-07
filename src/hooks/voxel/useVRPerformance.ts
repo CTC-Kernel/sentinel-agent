@@ -115,7 +115,7 @@ const DEFAULT_CRITICAL_FPS = 45;
 const DEFAULT_SAMPLE_SIZE = 60;
 
 // VR refresh rates for different headsets
-export const VR_REFRESH_RATES = {
+const VR_REFRESH_RATES = {
  quest2: 72, // or 90, 120
  quest3: 72, // or 90, 120
  visionPro: 90, // or 96, 100
@@ -418,33 +418,20 @@ export function useVRPerformance(options: UseVRPerformanceOptions = {}): UseVRPe
 // Utility Functions
 // ============================================================================
 
-/**
- * Get color for performance status
- */
-export function getVRPerformanceColor(status: VRPerformanceStatus): string {
- switch (status) {
- case 'excellent':
- return '#22c55e';
- case 'good':
- return '#84cc16';
- case 'warning':
- return '#f59e0b';
- case 'critical':
- return '#ef4444';
- }
-}
+// Re-export utility (moved to utils/vrPerformanceUtils.ts to satisfy hooks naming convention)
+export { getVRPerformanceColor } from '@/utils/vrPerformanceUtils';
 
 /**
  * Format frame time for display
  */
-export function formatFrameTime(ms: number): string {
+function formatFrameTime(ms: number): string {
  return `${ms.toFixed(2)}ms`;
 }
 
 /**
  * Calculate headroom percentage (how much buffer before target)
  */
-export function calculateHeadroom(currentFPS: number, targetFPS: number): number {
+function calculateHeadroom(currentFPS: number, targetFPS: number): number {
  return Math.max(0, ((currentFPS - targetFPS) / targetFPS) * 100);
 }
 

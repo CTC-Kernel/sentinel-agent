@@ -120,7 +120,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
  cell: ({ row }) => (
  <div className="flex items-center gap-2 text-sm text-muted-foreground">
   <CalendarDays className="w-4 h-4 text-muted-foreground" />
-  <span>{row.original.dateScheduled ? new Date(row.original.dateScheduled).toLocaleDateString() : 'TBD'}</span>
+  <span>{row.original.dateScheduled ? new Date(row.original.dateScheduled).toLocaleDateString('fr-FR') : 'TBD'}</span>
  </div>
  )
  },
@@ -135,9 +135,8 @@ export const AuditsList: React.FC<AuditsListProps> = ({
 
  return (
   <div className="flex items-center gap-2">
-  <img
+  <img alt={t('audits.list.auditorAvatar', { defaultValue: 'Avatar de l\'auditeur', name: auditorName })}
   src={getUserAvatarUrl(auditorUser?.photoURL, auditorUser?.role)}
-  alt={t('audits.list.auditorAvatar', { defaultValue: 'Avatar de l\'auditeur', name: auditorName })}
   className="w-6 h-6 rounded-full border border-border/40 object-cover bg-muted"
   />
   <span className="text-sm text-foreground text-muted-foreground">{auditorName}</span>

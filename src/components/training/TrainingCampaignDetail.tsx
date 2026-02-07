@@ -251,7 +251,7 @@ export const TrainingCampaignDetail: React.FC<TrainingCampaignDetailProps> = ({
  {/* Dates */}
  <div className="flex items-center gap-2 text-muted-foreground">
   <Calendar className="w-4 h-4" />
-  <span>{startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}</span>
+  <span>{startDate.toLocaleDateString('fr-FR')} - {endDate.toLocaleDateString('fr-FR')}</span>
  </div>
 
  {/* Scope */}
@@ -340,7 +340,7 @@ export const TrainingCampaignDetail: React.FC<TrainingCampaignDetailProps> = ({
  {campaign.status === 'active' && stats.total > 0 && (
  <motion.div variants={staggerItem} className="glass-premium p-5 rounded-2xl border border-border/40">
  <div className="flex items-center justify-between mb-3">
- <h3 className="font-bold text-foreground">{t('training.campaign.overallProgress')}</h3>
+ <h2 className="font-bold text-foreground">{t('training.campaign.overallProgress')}</h2>
  <span className="text-sm text-muted-foreground">
  {stats.completed}/{stats.total} {t('training.campaign.assignmentsCompleted')}
  </span>
@@ -363,9 +363,9 @@ export const TrainingCampaignDetail: React.FC<TrainingCampaignDetailProps> = ({
 
  {/* Courses List */}
  <motion.div variants={staggerItem} className="glass-premium p-5 rounded-2xl border border-border/40">
- <h3 className="font-bold text-foreground mb-4">
+ <h2 className="font-bold text-foreground mb-4">
  {t('training.campaign.includedCourses')} ({campaignCourses.length})
- </h3>
+ </h2>
  <div className="space-y-3">
  {campaignCourses.map((course) => (
  <div

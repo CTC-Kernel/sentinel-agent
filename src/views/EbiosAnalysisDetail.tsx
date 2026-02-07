@@ -17,11 +17,7 @@ import { Workshop5Content } from '../components/ebios/workshops/Workshop5Content
 import { EbiosService } from '../services/ebiosService';
 import { ErrorLogger } from '../services/errorLogger';
 import { toast } from '@/lib/toast';
-import { db } from '../firebase';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { sanitizeData } from '../utils/dataSanitizer';
 import { hasPermission } from '../utils/permissions';
-import { RISK_ACCEPTANCE_THRESHOLD } from '../constants/RiskConstants';
 import type {
  EbiosAnalysis,
  EbiosWorkshopNumber,
@@ -307,60 +303,47 @@ export const EbiosAnalysisDetail: React.FC = () => {
 
  // Permission check before creating risk
  if (!hasPermission(user, 'Risk', 'create')) {
- toast.error(t('errors.noCreateRiskPermission') || t('ebios.errors.noCreatePermission', { defaultValue: 'Vous n\'avez pas la permission de créer un risque' }));
+ toast.error(t('errors.noCreateRiskPermission') || t('ebios.errors.noCreatePermission', { defaultValue: 'Vous n\'avez pas la permission de cr\u00e9er un risque' }));
  return null;
  }
 
  try {
- const score = riskData.probability * riskData.impact;
-
- const newRisk = sanitizeData({
- organizationId,
- threat: riskData.threat,
- scenario: riskData.scenario,
- vulnerability: t('ebios.identifiedViaEbios', { defaultValue: 'Identifié via l\'analyse EBIOS RM' }),
- probability: riskData.probability,
- impact: riskData.impact,
- score,
- strategy: score >= RISK_ACCEPTANCE_THRESHOLD ? 'Atténuer' : 'Accepter',
- status: 'Ouvert',
- source: 'ebios_rm',
- mitreTechniques: riskData.mitreTechniques,
- ebiosReference: riskData.ebiosReference,
- owner: user.uid,
- createdAt: serverTimestamp(),
- updatedAt: serverTimestamp(),
- history: [{
- date: new Date().toISOString(),
- user: user.displayName || user.email,
- action: t('ebios.history.createdFromEbios', { defaultValue: 'Créé depuis EBIOS RM' }),
- changes: t('ebios.history.createdFromScenario', { defaultValue: 'Créé depuis le scénario opérationnel {{code}}', code: riskData.ebiosReference.scenarioCode || scenarioId }),
- previousScore: 0,
- newScore: score,
- changedBy: user.uid
- }]
- });
-
- const docRef = await addDoc(collection(db, 'risks'), newRisk);
- toast.success(t('ebios.riskCreatedFromScenario') || t('ebios.riskCreatedSuccess', { defaultValue: 'Risque créé depuis le scénario EBIOS' }));
- return docRef.id;
+ const riskId = await EbiosService.createRiskFromScenario(
+  organizationId,
+  scenarioId,
+  riskData,
+  { uid: user.uid, displayName: user.displayName, email: user.email }
+ );
+ toast.success(t('ebios.riskCreatedFromScenario') || t('ebios.riskCreatedSuccess', { defaultValue: 'Risque cr\u00e9\u00e9 depuis le sc\u00e9nario EBIOS' }));
+ return riskId;
  } catch (error) {
  ErrorLogger.error(error, 'EbiosAnalysisDetail.handleCreateRisk', {
  component: 'EbiosAnalysisDetail',
  action: 'createRiskFromEbios',
  metadata: { scenarioId }
  });
- toast.error(t('ebios.errors.riskCreationFailed') || t('ebios.errors.riskCreationError', { defaultValue: 'Erreur lors de la création du risque' }));
+ toast.error(t('ebios.errors.riskCreationFailed') || t('ebios.errors.riskCreationError', { defaultValue: 'Erreur lors de la cr\u00e9ation du risque' }));
  return null;
  }
  }, [organizationId, user, t]);
 
  // Render workshop content based on current workshop
  const renderWorkshopContent = useMemo(() => {
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShow(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [setShow]);
+
  if (!analysis) return null;
 
  switch (analysis.currentWorkshop) {
  case 1:
+
  return (
  <Workshop1Content
  data={analysis.workshops[1].data}
@@ -474,7 +457,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
 
  {/* Confirmation dialog before completing the analysis */}
  {showCompleteConfirm && (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" role="dialog" aria-modal="true">
  <div className="glass-premium p-6 rounded-3xl border border-border/40 shadow-xl max-w-md w-full space-y-4">
  <h3 className="text-lg font-bold text-foreground">
  {t('ebios.confirmComplete') || t('ebios.finalizeAnalysis', { defaultValue: 'Finaliser l\'analyse' })}
@@ -485,13 +468,13 @@ export const EbiosAnalysisDetail: React.FC = () => {
  <div className="flex justify-end gap-3 pt-2">
  <button
  onClick={() => setShowCompleteConfirm(false)}
- className="px-4 py-2 rounded-2xl text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
+ className="px-4 py-2 rounded-2xl text-sm font-medium text-muted-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  {t('common.cancel')}
  </button>
  <button
  onClick={handleConfirmComplete}
- className="px-4 py-2 rounded-2xl text-sm font-bold text-white bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all"
+ className="px-4 py-2 rounded-2xl text-sm font-bold text-white bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  {t('ebios.complete') || t('ebios.finalize', { defaultValue: 'Finaliser' })}
  </button>

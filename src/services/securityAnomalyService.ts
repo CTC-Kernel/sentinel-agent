@@ -658,7 +658,7 @@ class SecurityAnomalyDetectionService {
  }
  }
 
- await setDoc(anomalyRef, sanitizeData(updateData), { merge: true });
+ await setDoc(anomalyRef, sanitizeData(updateData), { merge: true }); // SAFE: sanitizeData() strips undefined values
 
  ErrorLogger.info(`Anomaly ${anomalyId} updated to ${status}`, 'SecurityAnomalyService');
 

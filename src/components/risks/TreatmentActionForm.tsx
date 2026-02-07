@@ -53,7 +53,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
  onSave({
  id: action?.id,
  ...data,
- updatedAt: new Date().toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  completedAt: data.status === 'Terminé' ? new Date().toISOString() : action?.completedAt
  });
  clearDraft();
@@ -87,7 +87,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
   type="text"
   {...register('title')}
   placeholder={t('risks.treatment.placeholder_title')}
-  className={`w-full rounded-3xl border ${errors.title ? 'border-destructive' : 'border-border/40'} bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-primary outline-none placeholder:text-muted-foreground`}
+  className={`w-full rounded-3xl border ${errors.title ? 'border-destructive' : 'border-border/40'} bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary outline-none placeholder:text-muted-foreground`}
  />
 
  {errors.title && (
@@ -105,7 +105,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
   {...register('description')}
   rows={2}
   placeholder={t('risks.treatment.placeholder_description')}
-  className="w-full rounded-3xl border border-border/40 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-primary outline-none placeholder:text-muted-foreground resize-none"
+  className="w-full rounded-3xl border border-border/40 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary outline-none placeholder:text-muted-foreground resize-none"
  />
 
  {errors.description && (
@@ -124,7 +124,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
   <select
   id="action-owner"
   {...register('ownerId')}
-  className="w-full pl-9 pr-4 rounded-3xl border border-border/40 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-primary outline-none appearance-none"
+  className="w-full pl-9 pr-4 rounded-3xl border border-border/40 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary outline-none appearance-none"
   >
   <option value="">{t('risks.treatment.not_assigned')}</option>
   {users.map(u => (
@@ -146,7 +146,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
   id="action-deadline"
   type="date"
   {...register('deadline')}
-  className="w-full pl-9 pr-4 rounded-3xl border border-border/40 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-primary outline-none"
+  className="w-full pl-9 pr-4 rounded-3xl border border-border/40 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary outline-none"
   />
   </div>
  </div>
@@ -160,7 +160,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
   <select
   id="action-status"
   {...register('status')}
-  className="w-full rounded-3xl border border-border/40 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-primary focus:border-primary outline-none appearance-none"
+  className="w-full rounded-3xl border border-border/40 bg-white dark:bg-black/20 text-sm p-3 font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary outline-none appearance-none"
   >
   <option value="À faire">À faire</option>
   <option value="En cours">En cours</option>

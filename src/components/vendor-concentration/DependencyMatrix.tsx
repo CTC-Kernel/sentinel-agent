@@ -292,10 +292,11 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
  <input
  type="text"
+ aria-label="Rechercher"
  value={filters.searchQuery}
  onChange={(e) => setFilters(prev => ({ ...prev, searchQuery: e.target.value }))}
  placeholder={t('vendorConcentration.matrix.searchPlaceholder')}
- className="w-full pl-10 pr-4 py-2 rounded-3xl border border-border/40 bg-card text-sm focus:outline-none focus:ring-2 focus-visible:ring-primary"
+ className="w-full pl-10 pr-4 py-2 rounded-3xl border border-border/40 bg-card text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  />
  </div>
 
@@ -318,7 +319,7 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
  <select
  value={filters.dependencyLevel}
  onChange={(e) => setFilters(prev => ({ ...prev, dependencyLevel: e.target.value as DependencyLevel | 'all' }))}
- className="px-3 py-2 rounded-3xl text-sm border border-border/40 bg-card focus:outline-none focus:ring-2 focus-visible:ring-primary"
+ className="px-3 py-2 rounded-3xl text-sm border border-border/40 bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
  <option value="all">{t('vendorConcentration.matrix.allLevels')}</option>
  <option value="critical">{t('vendorConcentration.matrix.levelCritical')}</option>

@@ -244,7 +244,7 @@ const CriticalItemRow: React.FC<CriticalItemRowProps> = ({ item, onClick }) => {
 
  return (
  <button
- className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors text-left"
+ className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  onClick={onClick}
  aria-label={`View ${item.title}`}
  >
@@ -355,7 +355,7 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
  if (minutes < 60) return `${minutes}m ago`;
  const hours = Math.floor(minutes / 60);
  if (hours < 24) return `${hours}h ago`;
- return lastUpdated.toLocaleDateString();
+ return lastUpdated.toLocaleDateString('fr-FR');
  }, [lastUpdated]);
 
  if (!visible) return null;
@@ -388,7 +388,7 @@ export const VoxelExecutiveView: React.FC<VoxelExecutiveViewProps> = ({
  {onViewDetails && (
  <button
  onClick={onViewDetails}
- className="px-4 py-2 text-sm text-primary hover:text-primary/80 hover:bg-primary/10 rounded-lg transition-colors flex items-center gap-2"
+ className="px-4 py-2 text-sm text-primary hover:text-primary/80 hover:bg-primary/10 rounded-lg transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  aria-label="View detailed dashboard"
  >
  View Details

@@ -111,7 +111,7 @@ function ActionItem({
  onClick={onClick}
  className={cn(
  'w-full flex items-center justify-between rounded-2xl border transition-all',
- 'hover:shadow-sm hover:scale-[1.01] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500',
+ 'hover:shadow-sm hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500',
  colors.bg,
  colors.border,
  sizeConfig.itemPadding
@@ -353,7 +353,7 @@ export function PMActionsOverdueWidget({
  'mt-4 w-full text-center py-2 rounded-md',
  'text-sm font-medium text-red-600 dark:text-red-400',
  'hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20 transition-colors',
- 'focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2'
+ 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2'
  )}
  >
  Voir toutes les actions en retard ({count})

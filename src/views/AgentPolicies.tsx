@@ -306,9 +306,8 @@ export const AgentPolicies: React.FC<AgentPoliciesProps> = ({ agents }) => {
   title={t('agents.policies.title', { defaultValue: 'Politiques des agents' })}
   subtitle={t('agents.policies.subtitle', { defaultValue: 'Configurer les groupes et politiques pour contrôler le comportement des agents' })}
   icon={
-  <img
+  <img alt="IA"
   src="/images/IA.png"
-  alt="IA"
   className="w-full h-full object-contain"
   />
   }

@@ -7,7 +7,7 @@
  * @see Story EU-1.3: Créer le composant FrameworkSelector
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Search, Filter, Shield, CheckCircle } from 'lucide-react';
@@ -125,6 +125,16 @@ export const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ className 
 
  const isLoading = isLoadingFrameworks || isLoadingActive;
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <div className={cn('space-y-6', className)}>
  {/* Header Stats */}
@@ -150,10 +160,11 @@ export const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ className 
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
  <input
  type="text"
+ aria-label="Rechercher un framework"
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
  placeholder={t('frameworks.searchPlaceholder', 'Rechercher un framework...')}
- className="w-full pl-11 pr-4 py-3 rounded-3xl border border-border/40 bg-card/50 text-foreground placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-primary focus:border-transparent transition-all"
+ className="w-full pl-11 pr-4 py-3 rounded-3xl border border-border/40 bg-card/50 text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent transition-all"
  />
  </div>
 

@@ -150,7 +150,7 @@ export function useRbacNodeFilter(
  * @param user - User profile for permission checking
  * @returns Filtered nodes
  */
-export function filterNodesByPermission(
+function filterNodesByPermission(
  nodes: VoxelNode[],
  user: Parameters<typeof hasPermission>[0]
 ): VoxelNode[] {

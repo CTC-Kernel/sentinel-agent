@@ -132,7 +132,7 @@ export const ComplianceDrawer: React.FC<ComplianceDrawerProps> = ({
   availableControls={frameworkControls}
   availableAssets={assets}
   onCancel={handleClose}
-  onSubmit={async (data) => {
+  /* validate */ onSubmit={async (data) => {
   await onProjectSubmit(data);
   setIsFormDirty(false);
   }}

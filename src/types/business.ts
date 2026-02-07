@@ -156,6 +156,17 @@ export interface SharingPreferences {
  autoShareHighSeverity: boolean;
 }
 
+export interface CommunityActivity {
+ id: string;
+ type: 'threat_reported' | 'threat_verified' | 'sighting_confirmed';
+ threatId: string;
+ threatTitle: string;
+ actorName: string;
+ timestamp: number;
+ severity?: 'Critical' | 'High' | 'Medium' | 'Low';
+ source?: string;
+}
+
 /**
  * Parse a human-readable RTO/RPO duration string to minutes.
  * Supports formats: "4h", "30m", "1d", "24h", "2h30m".

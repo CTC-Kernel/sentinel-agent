@@ -175,7 +175,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({
  <div className="flex items-center gap-2 text-xs text-muted-foreground">
  <Calendar className="w-3 h-3" />
  <span>
- {startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}
+ {startDate.toLocaleDateString('fr-FR')} - {endDate.toLocaleDateString('fr-FR')}
  </span>
  </div>
  </div>

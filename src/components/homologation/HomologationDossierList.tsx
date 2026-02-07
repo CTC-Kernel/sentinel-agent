@@ -4,7 +4,7 @@
  * Display list of homologation dossiers with status and actions.
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format, differenceInDays } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
@@ -77,6 +77,14 @@ export const HomologationDossierList: React.FC<HomologationDossierListProps> = (
 }) => {
  const { t, i18n } = useTranslation();
  const locale = i18n.language === 'en' ? enUS : fr;
+ const deleteGuardRef = useRef(false);
+
+ const guardedDelete = useCallback((dossier: HomologationDossier) => {
+  if (deleteGuardRef.current) return;
+  deleteGuardRef.current = true;
+  onDelete(dossier);
+  setTimeout(() => { deleteGuardRef.current = false; }, 2000);
+ }, [onDelete]);
 
  const [searchTerm, setSearchTerm] = useState('');
  const [statusFilter, setStatusFilter] = useState<HomologationStatus | 'all'>('all');
@@ -196,7 +204,7 @@ export const HomologationDossierList: React.FC<HomologationDossierListProps> = (
  <DropdownMenuSeparator />
  <DropdownMenuItem
  className="text-red-600"
- onClick={() => onDelete(dossier)}
+ onClick={() => confirm("Confirmer la suppression ?") && guardedDelete(dossier)}
  >
  <Trash2 className="h-4 w-4 mr-2" />
  {t('common.delete', 'Supprimer')}

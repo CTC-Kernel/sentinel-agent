@@ -36,7 +36,7 @@ export const DocumentDetails: React.FC<DocumentDetailsProps> = ({
   {linkedControls.map(ctrl => (
   <div
   key={ctrl.id || 'unknown'}
-  className="p-3 bg-white dark:bg-white/5 border border-border/40 rounded-3xl flex items-center justify-between group hover:border-primary/30 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+  className="p-3 bg-white dark:bg-white/5 border border-border/40 rounded-3xl flex items-center justify-between group hover:border-primary/30 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
   role="button"
   tabIndex={0}
   >
@@ -65,7 +65,7 @@ export const DocumentDetails: React.FC<DocumentDetailsProps> = ({
   href={selectedDocument.externalUrl}
   target="_blank"
   rel="noopener noreferrer"
-  className="text-xs text-blue-600 dark:text-blue-400 hover:underline break-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+  className="text-xs text-blue-600 dark:text-blue-400 hover:underline break-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
   >
   {selectedDocument.externalUrl}
   </a>

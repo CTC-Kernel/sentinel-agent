@@ -187,7 +187,7 @@ export const useActivityLogs = (limitCount: number = 50) => {
  const csvContent = [
  headers.join(','),
  ...filteredLogs.map(log => {
- const date = new Date(safeTimestamp(log.timestamp)).toLocaleString();
+ const date = new Date(safeTimestamp(log.timestamp)).toLocaleString('fr-FR');
  return [
   `"${date}"`,
   `"${log.userEmail}"`,

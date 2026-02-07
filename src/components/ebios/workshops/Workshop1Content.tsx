@@ -198,7 +198,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
  onClick={() => toggleSection('missions')}
  aria-expanded={expandedSections.has('missions')}
  aria-controls="missions-section"
- className="w-full flex items-center justify-between group"
+ className="w-full flex items-center justify-between group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
 
  <div className="flex items-center gap-4">
@@ -271,7 +271,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
  {!readOnly && (
  <button
   onClick={handleAddMission}
-  className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-primary/40/50 hover:bg-primary/10/50 dark:hover:bg-primary/20 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-primary font-medium group"
+  className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-primary/40/50 hover:bg-primary/10/50 dark:hover:bg-primary/20 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-primary font-medium group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
   <div className="p-1 rounded-full bg-muted group-hover:bg-primary/20 dark:group-hover:bg-primary transition-colors">
   <Plus className="w-4 h-4" />
@@ -291,7 +291,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
  onClick={() => toggleSection('essentialAssets')}
  aria-expanded={expandedSections.has('essentialAssets')}
  aria-controls="essential-assets-section"
- className="w-full flex items-center justify-between group"
+ className="w-full flex items-center justify-between group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
 
  <div className="flex items-center gap-4">
@@ -373,7 +373,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
  {!readOnly && (
  <button
   onClick={handleAddEssentialAsset}
-  className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-violet-300/50 hover:bg-violet-50/50 dark:hover:bg-violet-900/10 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-violet-600 font-medium group"
+  className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-violet-300/50 hover:bg-violet-50/50 dark:hover:bg-violet-900/10 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-violet-600 font-medium group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
   <div className="p-1 rounded-full bg-muted group-hover:bg-violet-200 dark:group-hover:bg-violet-800 transition-colors">
   <Plus className="w-4 h-4" />
@@ -393,7 +393,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
  onClick={() => toggleSection('supportingAssets')}
  aria-expanded={expandedSections.has('supportingAssets')}
  aria-controls="supporting-assets-section"
- className="w-full flex items-center justify-between group"
+ className="w-full flex items-center justify-between group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
 
  <div className="flex items-center gap-4">
@@ -475,7 +475,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
  <div className="flex flex-col sm:flex-row gap-3">
   <button
   onClick={handleAddSupportingAsset}
-  className="flex-1 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-border/50 hover:bg-muted/50 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground font-medium group"
+  className="flex-1 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-border/50 hover:bg-muted/50 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground font-medium group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <div className="p-1 rounded-full bg-muted group-hover:bg-muted transition-colors">
   <Plus className="w-4 h-4" />
@@ -484,7 +484,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
   </button>
   <button
   onClick={() => setShowImportModal(true)}
-  className="flex-1 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-primary/40/50 hover:bg-primary/10/50 dark:hover:bg-primary/20 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-primary font-medium group"
+  className="flex-1 p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-primary/40/50 hover:bg-primary/10/50 dark:hover:bg-primary/20 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-primary font-medium group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <div className="p-1 rounded-full bg-muted group-hover:bg-primary/20 dark:group-hover:bg-primary transition-colors">
   <Download className="w-4 h-4" />
@@ -505,7 +505,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
  onClick={() => toggleSection('fearedEvents')}
  aria-expanded={expandedSections.has('fearedEvents')}
  aria-controls="feared-events-section"
- className="w-full flex items-center justify-between group"
+ className="w-full flex items-center justify-between group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
 
  <div className="flex items-center gap-4">
@@ -599,7 +599,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
  {!readOnly && (
  <button
   onClick={handleAddFearedEvent}
-  className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-error-text font-medium group"
+  className="w-full p-4 rounded-3xl border-2 border-dashed border-border/40 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-error-text font-medium group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
   <div className="p-1 rounded-full bg-muted group-hover:bg-error-bg transition-colors">
   <Plus className="w-4 h-4" />
@@ -619,7 +619,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
  onClick={() => toggleSection('securityBaseline')}
  aria-expanded={expandedSections.has('securityBaseline')}
  aria-controls="security-baseline-section"
- className="w-full flex items-center justify-between group"
+ className="w-full flex items-center justify-between group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
 
  <div className="flex items-center gap-4">

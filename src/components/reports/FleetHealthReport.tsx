@@ -34,6 +34,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 
 // ============================================================================
+// Constants
+// ============================================================================
+
+const MINUTES_PER_HOUR = 60;
+const MINUTES_PER_DAY = 1440;
+
+const CPU_WARNING_THRESHOLD = 60;
+const CPU_CRITICAL_THRESHOLD = 80;
+const MEMORY_WARNING_THRESHOLD = 70;
+const MEMORY_CRITICAL_THRESHOLD = 85;
+const DISK_WARNING_THRESHOLD = 75;
+const DISK_CRITICAL_THRESHOLD = 90;
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -292,9 +306,9 @@ interface AnomalySummaryProps {
 
 const AnomalySummary: React.FC<AnomalySummaryProps> = ({ data }) => {
  const formatTime = (minutes: number) => {
- if (minutes < 60) return `${minutes.toFixed(0)}min`;
- if (minutes < 1440) return `${(minutes / 60).toFixed(1)}h`;
- return `${(minutes / 1440).toFixed(1)}j`;
+ if (minutes < MINUTES_PER_HOUR) return `${minutes.toFixed(0)}min`;
+ if (minutes < MINUTES_PER_DAY) return `${(minutes / MINUTES_PER_HOUR).toFixed(1)}h`;
+ return `${(minutes / MINUTES_PER_DAY).toFixed(1)}j`;
  };
 
  return (
@@ -407,20 +421,20 @@ export const FleetHealthReport: React.FC<FleetHealthReportProps> = ({
 
  // Determine metric status
  const getCpuStatus = (value: number): 'good' | 'warning' | 'critical' => {
- if (value < 60) return 'good';
- if (value < 80) return 'warning';
+ if (value < CPU_WARNING_THRESHOLD) return 'good';
+ if (value < CPU_CRITICAL_THRESHOLD) return 'warning';
  return 'critical';
  };
 
  const getMemoryStatus = (value: number): 'good' | 'warning' | 'critical' => {
- if (value < 70) return 'good';
- if (value < 85) return 'warning';
+ if (value < MEMORY_WARNING_THRESHOLD) return 'good';
+ if (value < MEMORY_CRITICAL_THRESHOLD) return 'warning';
  return 'critical';
  };
 
  const getDiskStatus = (value: number): 'good' | 'warning' | 'critical' => {
- if (value < 75) return 'good';
- if (value < 90) return 'warning';
+ if (value < DISK_WARNING_THRESHOLD) return 'good';
+ if (value < DISK_CRITICAL_THRESHOLD) return 'warning';
  return 'critical';
  };
 

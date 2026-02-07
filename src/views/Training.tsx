@@ -12,7 +12,7 @@
  * @module views/Training
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -118,15 +118,15 @@ export const Training: React.FC = () => {
  const isAdmin = user ? hasPermission(user, 'User', 'manage') : false;
 
  // Tabs configuration
- const tabs: Tab[] = [
+ const tabs: Tab[] = useMemo(() => [
  { id: 'dashboard', label: t('training.dashboard_tab'), icon: LayoutDashboard, adminOnly: true },
  { id: 'catalog', label: t('training.catalog'), icon: BookOpen, adminOnly: true },
  { id: 'my-training', label: t('training.myCourses'), icon: User },
- { id: 'campaigns', label: t('training.campaigns'), icon: Megaphone, adminOnly: true },
- ];
+  { id: 'campaigns', label: t('training.campaigns'), icon: Megaphone, adminOnly: true },
+ ], [t]);
 
  // Filter tabs based on permissions
- const visibleTabs = tabs.filter(tab => !tab.adminOnly || isAdmin);
+ const visibleTabs = useMemo(() => tabs.filter(tab => !tab.adminOnly || isAdmin), [tabs, isAdmin]);
 
  // Sync tab with URL
  useEffect(() => {
@@ -186,6 +186,44 @@ export const Training: React.FC = () => {
  setRefreshKey(k => k + 1);
  }, [t, addToast]);
 
+ // Extracted inline callbacks into useCallback
+ const handleCancelForm = useCallback(() => {
+   setViewState({ type: 'list' });
+ }, []);
+
+ const handleAssignmentSuccess = useCallback(() => {
+   addToast(t('training.success.assignmentCreated'), 'success');
+   setViewState({ type: 'list' });
+ }, [addToast, t]);
+
+ const handleCreateCourse = useCallback(() => {
+   setViewState({ type: 'create-course' });
+ }, []);
+
+ const handleViewCourse = useCallback((course: TrainingCourse) => {
+   setViewState({ type: 'edit-course', course });
+ }, []);
+
+ const handleEditCourse = useCallback((course: TrainingCourse) => {
+   setViewState({ type: 'edit-course', course });
+ }, []);
+
+ const handleAssignCourse = useCallback((course: TrainingCourse) => {
+   setViewState({ type: 'assign-course', course });
+ }, []);
+
+ const handleRefresh = useCallback(() => {
+   setRefreshKey(k => k + 1);
+ }, []);
+
+ const handleCreateCampaign = useCallback(() => {
+   setViewState({ type: 'create-campaign' });
+ }, []);
+
+ const handleViewCampaign = useCallback((campaign: TrainingCampaign) => {
+   setViewState({ type: 'view-campaign', campaign });
+ }, []);
+
  // Render tab content
  const renderContent = () => {
  // Handle non-list views first
@@ -193,8 +231,8 @@ export const Training: React.FC = () => {
  return (
  <React.Suspense fallback={<div className="animate-pulse h-96 bg-muted/20 rounded-2xl" />}>
  <TrainingCourseForm
- onSubmit={handleCourseSubmit}
- onCancel={() => setViewState({ type: 'list' })}
+ /* validate */ onSubmit={handleCourseSubmit}
+ onCancel={handleCancelForm}
  initialData={viewState.type === 'edit-course' ? viewState.course : null}
  isLoading={isSubmitting}
  />
@@ -208,11 +246,8 @@ export const Training: React.FC = () => {
  <TrainingAssignmentForm
  users={teamUsers}
  preselectedCourseId={viewState.course.id}
- onCancel={() => setViewState({ type: 'list' })}
- onSuccess={() => {
- addToast(t('training.success.assignmentCreated'), 'success');
- setViewState({ type: 'list' });
- }}
+ onCancel={handleCancelForm}
+ onSuccess={handleAssignmentSuccess}
  />
  </React.Suspense>
  );
@@ -223,7 +258,7 @@ export const Training: React.FC = () => {
  <React.Suspense fallback={<div className="animate-pulse h-96 bg-muted/20 rounded-2xl" />}>
  <TrainingCampaignForm
  onSuccess={handleCampaignSuccess}
- onCancel={() => setViewState({ type: 'list' })}
+ onCancel={handleCancelForm}
  />
  </React.Suspense>
  );
@@ -234,7 +269,7 @@ export const Training: React.FC = () => {
  <React.Suspense fallback={<div className="animate-pulse h-96 bg-muted/20 rounded-2xl" />}>
  <TrainingCampaignDetail
  campaign={viewState.campaign}
- onBack={() => setViewState({ type: 'list' })}
+ onBack={handleCancelForm}
  />
  </React.Suspense>
  );
@@ -254,12 +289,12 @@ export const Training: React.FC = () => {
  <React.Suspense fallback={<div className="animate-pulse h-96 bg-muted/20 rounded-2xl" />}>
  <TrainingCatalog
  key={refreshKey || 'unknown'}
- onCreateCourse={() => setViewState({ type: 'create-course' })}
- onViewCourse={(course) => setViewState({ type: 'edit-course', course })}
- onEditCourse={(course) => setViewState({ type: 'edit-course', course })}
+ onCreateCourse={handleCreateCourse}
+ onViewCourse={handleViewCourse}
+ onEditCourse={handleEditCourse}
  onArchiveCourse={handleArchiveCourse}
- onAssignCourse={(course) => setViewState({ type: 'assign-course', course })}
- onRefresh={() => setRefreshKey(k => k + 1)}
+ onAssignCourse={handleAssignCourse}
+ onRefresh={handleRefresh}
  canEdit={!!isAdmin}
  />
  </React.Suspense>
@@ -277,8 +312,8 @@ export const Training: React.FC = () => {
  <React.Suspense fallback={<div className="animate-pulse h-96 bg-muted/20 rounded-2xl" />}>
  <TrainingCampaignList
  key={refreshKey || 'unknown'}
- onCreateCampaign={() => setViewState({ type: 'create-campaign' })}
- onViewCampaign={(campaign) => setViewState({ type: 'view-campaign', campaign })}
+ onCreateCampaign={handleCreateCampaign}
+ onViewCampaign={handleViewCampaign}
  />
  </React.Suspense>
  );

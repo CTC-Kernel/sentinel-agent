@@ -38,7 +38,7 @@ describe('NotificationContext', () => {
  message: 'Test message',
  timestamp: Date.now(),
  read: false,
- createdAt: new Date().toISOString()
+ createdAt: new Date(Date.now()).toISOString()
  };
 
  expect(notification.id).toBe('notif-1');

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo} from 'react';
 import { Risk, Control, Asset, Audit, Project, UserProfile, Supplier, BusinessProcess } from '../../../types';
 import { Badge } from '../../ui/Badge';
 import { ShieldAlert, CheckSquare, Server, ClipboardCheck, Edit } from '../../ui/Icons';
@@ -50,6 +50,57 @@ export const ProjectDependencies: React.FC<ProjectDependenciesProps> = ({
 
  if (items.length === 0) {
  const { icon: Icon, text } = getEmptyState();
+
+  // Extracted callbacks (useCallback)
+  const handleClose = useCallback(() => {
+    setSelectedRisk(null)
+  }, []);
+
+  const handleDelete = useCallback(() => {
+    { }
+  }, []);
+
+  const handleDuplicate = useCallback(() => {
+    { }
+  }, []);
+
+  const handleClose2 = useCallback(() => {
+    setSelectedAsset(null)
+  }, []);
+
+  const handleDelete2 = useCallback(() => {
+    { }
+  }, []);
+
+  const handleClose3 = useCallback(() => {
+    setSelectedAudit(null)
+  }, []);
+
+  const handleDelete3 = useCallback(() => {
+    { }
+  }, []);
+
+  const handleRefreshAudits = useCallback(() => {
+    { }
+  }, []);
+
+  const handleClick = useCallback(() => {
+    setSelectedRisk(risk)
+  }, []);
+
+  const handleClick2 = useCallback(() => {
+    setSelectedControl(control)
+  }, []);
+
+  const handleClick3 = useCallback(() => {
+    setSelectedAsset(asset)
+  }, []);
+
+  const handleClick4 = useCallback(() => {
+    setSelectedAudit(audit)
+  }, []);
+
+
  return (
  <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
  <Icon className="h-12 w-12 mb-2 opacity-60" />
@@ -69,7 +120,7 @@ export const ProjectDependencies: React.FC<ProjectDependenciesProps> = ({
   <LinkedRiskItem
   key={risk.id || 'unknown'}
   risk={risk}
-  onClick={() => setSelectedRisk(risk)}
+  onClick={handleClick}
   />
   );
   }
@@ -77,7 +128,7 @@ export const ProjectDependencies: React.FC<ProjectDependenciesProps> = ({
   case 'controls': {
   const control = item as Control;
   return (
-  <div key={control.id || 'unknown'} className="cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded" onClick={() => setSelectedControl(control)} onKeyDown={(e) => e.key === 'Enter' && setSelectedControl(control)} role="button" tabIndex={0} aria-label={`Voir le contrôle ${control.name}`}>
+  <div key={control.id || 'unknown'} className="cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded" onClick={handleClick2} onKeyDown={(e) => e.key === 'Enter' && setSelectedControl(control)} role="button" tabIndex={0} aria-label={`Voir le contrôle ${control.name}`}>
   <LinkedControlItem control={control} />
   </div>
   );
@@ -89,7 +140,7 @@ export const ProjectDependencies: React.FC<ProjectDependenciesProps> = ({
   <LinkedAssetItem
   key={asset.id || 'unknown'}
   asset={asset}
-  onClick={() => setSelectedAsset(asset)}
+  onClick={handleClick3}
   />
   );
   }
@@ -100,7 +151,7 @@ export const ProjectDependencies: React.FC<ProjectDependenciesProps> = ({
   <LinkedAuditItem
   key={audit.id || 'unknown'}
   audit={audit}
-  onClick={() => setSelectedAudit(audit)}
+  onClick={handleClick4}
   />
   );
   }
@@ -113,7 +164,7 @@ export const ProjectDependencies: React.FC<ProjectDependenciesProps> = ({
  {selectedRisk && (
  <RiskInspector
   isOpen={!!selectedRisk}
-  onClose={() => setSelectedRisk(null)}
+  onClose={handleClose}
   risk={selectedRisk}
   assets={assets}
   controls={controls}
@@ -125,15 +176,15 @@ export const ProjectDependencies: React.FC<ProjectDependenciesProps> = ({
   canEdit={canEdit}
   demoMode={false}
   onUpdate={async () => true} // Start with true/dummy
-  onDelete={() => { }}
-  onDuplicate={() => { }}
+  onDelete={handleDelete}
+  onDuplicate={handleDuplicate}
  />
  )}
 
  {selectedAsset && (
  <AssetInspector
   isOpen={!!selectedAsset}
-  onClose={() => setSelectedAsset(null)}
+  onClose={handleClose2}
   selectedAsset={selectedAsset}
   users={usersList}
   suppliers={suppliers}
@@ -141,23 +192,23 @@ export const ProjectDependencies: React.FC<ProjectDependenciesProps> = ({
   canEdit={canEdit}
   onUpdate={async () => true}
   onCreate={async () => true}
-  onDelete={() => { }}
+  onDelete={handleDelete2}
  />
  )}
 
  {selectedAudit && (
  <AuditInspector
-  onClose={() => setSelectedAudit(null)}
+  onClose={handleClose3}
   audit={selectedAudit}
   canEdit={canEdit}
   usersList={usersList}
-  onDelete={() => { }}
+  onDelete={handleDelete3}
   controls={controls}
   documents={[]} // Documents default
   assets={assets}
   risks={risks}
   projects={project ? [project] : []}
-  refreshAudits={() => { }} // Dummy refresh
+  refreshAudits={handleRefreshAudits} // Dummy refresh
  />
  )}
 
@@ -224,7 +275,7 @@ const LinkedRiskItem = React.memo(({ risk, onClick }: { risk: Risk, onClick: () 
  onKeyDown={handleKeyDown}
  role="button"
  tabIndex={0}
- className="cursor-pointer glass-premium p-4 rounded-3xl border border-border/40 flex justify-between items-center group hover:bg-muted/500 dark:hover:bg-muted/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="cursor-pointer glass-premium p-4 rounded-3xl border border-border/40 flex justify-between items-center group hover:bg-muted/500 dark:hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
  <div>
  <h4 className="font-bold text-foreground group-hover:text-primary transition-colors">{risk.threat}</h4>
@@ -254,7 +305,7 @@ const LinkedAssetItem = React.memo(({ asset, onClick }: { asset: Asset, onClick:
  onKeyDown={handleKeyDown}
  role="button"
  tabIndex={0}
- className="cursor-pointer glass-premium p-4 rounded-3xl border border-border/40 flex items-center gap-4 group hover:bg-muted/500 dark:hover:bg-muted/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="cursor-pointer glass-premium p-4 rounded-3xl border border-border/40 flex items-center gap-4 group hover:bg-muted/500 dark:hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
  <div className="h-10 w-10 rounded-lg bg-primary/15 text-primary flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
  <Server className="h-5 w-5" />
@@ -281,7 +332,7 @@ const LinkedAuditItem = React.memo(({ audit, onClick }: { audit: Audit, onClick:
  onKeyDown={handleKeyDown}
  role="button"
  tabIndex={0}
- className="cursor-pointer glass-premium p-4 rounded-3xl border border-border/40 bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-muted transition-colors group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+ className="cursor-pointer glass-premium p-4 rounded-3xl border border-border/40 bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-muted transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
  >
  <div className="flex justify-between items-start">
  <div>

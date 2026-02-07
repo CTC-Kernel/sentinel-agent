@@ -311,7 +311,7 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
   <div className="flex-1 text-left">
   <div className="flex items-center gap-2">
   <span className="font-medium">
-  {new Date(sync.startedAt).toLocaleString()}
+  {new Date(sync.startedAt).toLocaleString('fr-FR')}
   </span>
   {getStatusBadge(sync.status)}
   </div>

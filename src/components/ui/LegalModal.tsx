@@ -39,7 +39,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
   <button
   aria-label="Fermer la fenêtre"
   onClick={onClose}
-  className="p-2.5 text-muted-foreground hover:text-muted-foreground hover:bg-muted dark:hover:bg-muted rounded-3xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="p-2.5 text-muted-foreground hover:text-muted-foreground hover:bg-muted dark:hover:bg-muted rounded-3xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   <X className="h-6 w-6" />
   </button>
@@ -54,7 +54,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
   aria-selected={activeTab === tab.id}
   role="tab"
   onClick={() => setActiveTab(tab.id)}
-  className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${activeTab === tab.id
+  className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${activeTab === tab.id
   ? 'border-primary text-primary'
   : 'border-transparent text-muted-foreground hover:text-foreground'
   }`}
@@ -77,8 +77,8 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
    <p className="text-sm text-muted-foreground mt-1">EURL au capital de 10 000 €</p>
    <p className="text-sm text-muted-foreground">SIRET 919 340 794 00024 - TVA FR54 919 340 794</p>
    <p className="text-sm text-muted-foreground">Siège social : Avenue Rosa Parks, 69009 Lyon</p>
-   <p className="text-sm text-muted-foreground mt-2">Contact : <a href="mailto:contact@cyber-threat-consulting.com" className="text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1">contact@cyber-threat-consulting.com</a></p>
-   <p className="text-sm text-muted-foreground">Site web : <a href="https://cyber-threat-consulting.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1">cyber-threat-consulting.com</a></p>
+   <p className="text-sm text-muted-foreground mt-2">Contact : <a href="mailto:contact@cyber-threat-consulting.com" className="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1">contact@cyber-threat-consulting.com</a></p>
+   <p className="text-sm text-muted-foreground">Site web : <a href="https://cyber-threat-consulting.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1">cyber-threat-consulting.com</a></p>
    </div>
   </section>
 
@@ -146,7 +146,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
   <section>
    <h3 className="text-lg font-bold text-foreground mb-3">4. Vos Droits</h3>
    <p className="text-muted-foreground text-sm leading-relaxed">
-   Vous disposez d'un droit d'accès, de rectification, de portabilité et de suppression de vos données. Pour exercer ces droits, contactez notre DPO à <a href="mailto:contact@cyber-threat-consulting.com" className="text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1">contact@cyber-threat-consulting.com</a>.
+   Vous disposez d'un droit d'accès, de rectification, de portabilité et de suppression de vos données. Pour exercer ces droits, contactez notre DPO à <a href="mailto:contact@cyber-threat-consulting.com" className="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1">contact@cyber-threat-consulting.com</a>.
    </p>
   </section>
   </div>
@@ -249,7 +249,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
   <button
   aria-label="Fermer la fenêtre"
   onClick={onClose}
-  className="px-6 py-2.5 bg-foreground text-background font-bold rounded-3xl hover:scale-105 transition-transform shadow-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 "
+  className="px-6 py-2.5 bg-foreground text-background font-bold rounded-3xl hover:scale-105 transition-transform shadow-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 "
   >
   Fermer
   </button>

@@ -265,6 +265,7 @@ export const PlacementControls: React.FC<PlacementControlsProps> = ({
  </div>
  <input
  type="range"
+ aria-label="Échelle"
  min={minScale}
  max={maxScale}
  step={0.01}
@@ -282,7 +283,7 @@ export const PlacementControls: React.FC<PlacementControlsProps> = ({
  )}
 
  {/* Action buttons */}
- <div className="flex gap-2">
+ <div className="flex gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
  {!isPlaced ? (
  <button
  onClick={onPlace}
@@ -319,7 +320,7 @@ export const PlacementControls: React.FC<PlacementControlsProps> = ({
  </div>
 
  {/* Instructions */}
- <div className="text-center text-foreground/60 text-xs">
+ <div className="text-center text-foreground/60 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
  {!isPlaced
  ? 'Point your camera at a flat surface'
  : 'Pinch to scale, drag to move'

@@ -90,7 +90,7 @@ export class CertificateService {
  orderBy('validTo', 'asc')
  );
 
- return onSnapshot(
+ const unsubscribe = onSnapshot(
  q,
  (snapshot) => {
  const certificates = snapshot.docs.map((doc) => ({
@@ -103,6 +103,7 @@ export class CertificateService {
  ErrorLogger.error(error, 'CertificateService.subscribeToCertificates');
  }
  );
+ return unsubscribe;
  }
 
  /**
@@ -296,6 +297,7 @@ export class CertificateService {
  batchCount = 0;
  }
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'CertificateService');
  errors.push({
  row: i + 1,
  error: error instanceof Error ? error.message : 'Unknown error',
@@ -304,7 +306,12 @@ export class CertificateService {
  }
 
  if (batchCount > 0) {
- await batch.commit();
+  try {
+   await batch.commit();
+  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'Erreur lors de l\'enregistrement du lot de certificats');
+   throw error;
+  }
  }
 
  return { success, errors };

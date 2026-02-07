@@ -116,7 +116,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
  <button
   onClick={() => handleAction('risk')}
   disabled={loading}
-  className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${mode === 'risk' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-card text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary border border-transparent hover:border-primary/30'}`}
+  className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${mode === 'risk' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-card text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary border border-transparent hover:border-primary/30'}`}
   aria-label={t('suppliers.aiAssistant.riskAnalysisAria', { defaultValue: "Lancer l'analyse de risque par IA" })}
  >
   {loading && mode === 'risk' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5 mr-2" />}
@@ -125,7 +125,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
  <button
   onClick={() => handleAction('clauses')}
   disabled={loading}
-  className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${mode === 'clauses' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-card text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary border border-transparent hover:border-primary/30'}`}
+  className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${mode === 'clauses' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-card text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary border border-transparent hover:border-primary/30'}`}
   aria-label={t('suppliers.aiAssistant.clausesAria', { defaultValue: 'Suggérer des clauses contractuelles par IA' })}
  >
   {loading && mode === 'clauses' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <Scale className="h-3.5 w-3.5 mr-2" />}
@@ -134,7 +134,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
  <button
   onClick={() => handleAction('dora')}
   disabled={loading}
-  className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${mode === 'dora' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-card text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary border border-transparent hover:border-primary/30'}`}
+  className={`flex items-center justify-center px-3 py-2 rounded-3xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${mode === 'dora' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-card text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary border border-transparent hover:border-primary/30'}`}
   aria-label={t('suppliers.aiAssistant.doraComplianceAria', { defaultValue: 'Vérifier la conformité DORA par IA' })}
  >
   {loading && mode === 'dora' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
@@ -153,7 +153,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
   <Bot className="h-3.5 w-3.5 mr-1.5" />
   {t('suppliers.aiAssistant.aiResponse', { defaultValue: "Réponse de l'IA" })}
   </h4>
-  <button onClick={() => setResponse(null)} className="text-muted-foreground hover:text-muted-foreground focus:outline-none focus-visible:text-foreground" aria-label={t('suppliers.aiAssistant.closeAria', { defaultValue: 'Fermer la réponse IA' })}><X className="h-3.5 w-3.5" /></button>
+  <button onClick={() => setResponse(null)} className="text-muted-foreground hover:text-muted-foreground focus-visible:outline-none focus-visible:text-foreground" aria-label={t('suppliers.aiAssistant.closeAria', { defaultValue: 'Fermer la réponse IA' })}><X className="h-3.5 w-3.5" /></button>
   </div>
 
   <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">

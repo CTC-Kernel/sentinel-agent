@@ -1,4 +1,4 @@
-import { collection, query, where, getCountFromServer, getDoc, doc, setDoc, Query, DocumentData } from 'firebase/firestore';
+import { collection, query, where, getCountFromServer, getDoc, doc, setDoc, Query, DocumentData, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
@@ -218,8 +218,8 @@ export class DashboardService {
  summary,
  generatedAt,
  metricsSnapshot,
- updatedAt: new Date().toISOString()
- }), { merge: true });
+ updatedAt: serverTimestamp()
+ }), { merge: true }); // SAFE: sanitizeData() strips undefined values
  return true;
  } catch (_error) {
  ErrorLogger.error(_error, 'DashboardService.saveExecutiveSummary');

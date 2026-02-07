@@ -185,6 +185,16 @@ export const Agents: React.FC = () => {
  );
  }
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <>
  <MasterpieceBackground />
@@ -239,9 +249,8 @@ export const Agents: React.FC = () => {
   title="Sentinel Agents"
   subtitle={t('agents.subtitle', { defaultValue: 'Gestion et déploiement de la flotte d\'agents Sentinel' })}
   icon={
-   <img
+   <img alt="IA"
    src="/images/IA.png"
-   alt="IA"
    className="w-full h-full object-contain"
    />
   }

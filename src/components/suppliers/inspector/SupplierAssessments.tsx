@@ -187,7 +187,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
  </p>
  </div>
  {canEdit && (
- <Button onClick={onStartAssessment} className="rounded-3xl shadow-lg shadow-primary/20">
+ <Button onClick={onStartAssessment} className="rounded-3xl shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
  <ClipboardList className="w-4 h-4 mr-2" />
  {t('vendorAssessment.newAssessment', 'New Assessment')}
  </Button>

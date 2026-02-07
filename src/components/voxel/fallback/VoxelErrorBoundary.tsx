@@ -139,7 +139,7 @@ const VoxelErrorFallback: React.FC<VoxelErrorFallbackProps> = ({
  {!isWebGLError && (
  <button
  onClick={onRetry}
- className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:ring-offset-2 focus:ring-offset-slate-900"
+ className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
  >
  Réessayer
  </button>

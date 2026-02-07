@@ -453,9 +453,8 @@ export const Incidents: React.FC = () => {
                     title={t('incidents.title')}
                     subtitle={t('incidents.subtitle')}
                     icon={
-                        <img
+                        <img alt="OPÉRATIONS"
                             src="/images/operations.png"
-                            alt="OPÉRATIONS"
                             className="w-full h-full object-contain"
                         />
                     }
@@ -640,7 +639,7 @@ export const Incidents: React.FC = () => {
                                             <Button
                                                 aria-label={t('incidents.declare')}
                                                 onClick={handleOpenCreate}
-                                                className="flex items-center px-4 py-2 rounded-xl font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95"
+                                                className="flex items-center px-4 py-2 rounded-xl font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                                             >
                                                 <Plus className="h-5 w-5 mr-2" />
                                                 <span className="hidden sm:inline uppercase tracking-wider text-xs">{t('incidents.declare')}</span>

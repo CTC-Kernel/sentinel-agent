@@ -176,7 +176,7 @@ export const VoxelFallback2D: React.FC<VoxelFallback2DProps> = ({
  {showAlternativeLink && (
  <a
  href={alternativeUrl}
- className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:ring-offset-2 focus:ring-offset-slate-900"
+ className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
  >
  <svg
  className="w-5 h-5"

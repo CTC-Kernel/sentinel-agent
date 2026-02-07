@@ -4,7 +4,7 @@ import { Drawer } from '../ui/Drawer';
 import { AuditForm } from './AuditForm';
 import { useStore } from '../../store';
 import { Audit, Control, Asset, Risk, Project, UserProfile } from '../../types';
-import { AuditFormData } from '../../schemas/auditSchema';
+import { AuditFormData } from '../../schemas/auditSchema'; // zod schema validation
 
 interface AuditsDrawerProps {
  creationMode: boolean;

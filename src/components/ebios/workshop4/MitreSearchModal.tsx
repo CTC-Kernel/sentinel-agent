@@ -5,7 +5,7 @@
  * Story 18.2: Séquences d'Attaque avec MITRE ATT&CK
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
  X,
@@ -93,10 +93,21 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
  onClose();
  };
 
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
  if (!isOpen) return null;
 
+
  return (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)]" role="dialog" aria-modal="true">
  <PremiumCard glass className="w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
  {/* Header */}
  <div className="flex items-center justify-between pb-4 border-b border-border/40/50">
@@ -115,7 +126,8 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
  </div>
  <button
  onClick={onClose}
- className="p-2 rounded-lg hover:bg-muted transition-colors"
+ className="p-2 rounded-lg hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+ aria-label="Fermer"
  >
  <X className="w-5 h-5 text-muted-foreground" />
  </button>
@@ -126,6 +138,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
  <input
  type="text"
+ aria-label="Rechercher MITRE ATT&CK"
  value={searchQuery}
  onChange={(e) => {
  setSearchQuery(e.target.value);
@@ -153,7 +166,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
   <button
   key={technique.id || 'unknown'}
   onClick={() => handleSelectTechnique(technique)}
-  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left hover:bg-purple-50 dark:hover:bg-purple-900/20 text-sm"
+  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left hover:bg-purple-50 dark:hover:bg-purple-900/20 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <code className="text-xs bg-purple-100 dark:bg-purple-900/30 px-1.5 py-0.5 rounded text-purple-700 dark:text-purple-400">
   {technique.id}
@@ -166,7 +179,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
  </div>
  <button
   onClick={() => setShowSuggestions(false)}
-  className="mt-2 text-xs text-muted-foreground hover:text-foreground"
+  className="mt-2 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
   {t('ebios.workshop4.browseAll')}
  </button>
@@ -261,7 +274,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
   {/* Technique Header */}
   <button
   onClick={() => handleSelectTechnique(technique)}
-  className="w-full flex items-start gap-3 p-3 hover:bg-muted/50 text-left"
+  className="w-full flex items-start gap-3 p-3 hover:bg-muted/50 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <code className="flex-shrink-0 text-sm bg-red-100 dark:bg-amber-900/30 px-2 py-1 rounded font-mono text-red-700 dark:text-red-400">
   {technique.id}
@@ -288,7 +301,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
   <button
   key={sub.id || 'unknown'}
   onClick={() => handleSelectTechnique(technique, sub)}
-  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm hover:bg-card"
+  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <code className="text-xs bg-orange-100 dark:bg-amber-900/30 px-1.5 py-0.5 rounded font-mono text-orange-700 dark:text-orange-400">
    {sub.id}
@@ -324,7 +337,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
   >
   <button
   onClick={() => handleSelectTechnique(technique)}
-  className="w-full flex items-start gap-3 p-3 hover:bg-muted/50 text-left"
+  className="w-full flex items-start gap-3 p-3 hover:bg-muted/50 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <code className="flex-shrink-0 text-sm bg-red-100 dark:bg-amber-900/30 px-2 py-1 rounded font-mono text-red-700 dark:text-red-400">
   {technique.id}
@@ -350,7 +363,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
   <button
   key={sub.id || 'unknown'}
   onClick={() => handleSelectTechnique(technique, sub)}
-  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm hover:bg-card"
+  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
   <code className="text-xs bg-orange-100 dark:bg-amber-900/30 px-1.5 py-0.5 rounded font-mono text-orange-700 dark:text-orange-400">
   {sub.id}
@@ -377,7 +390,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
  </p>
  <button
  onClick={onClose}
- className="px-4 py-2 rounded-3xl text-foreground hover:bg-muted transition-colors"
+ className="px-4 py-2 rounded-3xl text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  {t('common.cancel')}
  </button>

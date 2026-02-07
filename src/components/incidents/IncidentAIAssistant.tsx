@@ -65,7 +65,7 @@ export const IncidentAIAssistant: React.FC<IncidentAIAssistantProps> = ({ incide
   <button
   onClick={handleAnalyzeIncident}
   disabled={analyzing}
-  className="px-4 py-2 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300 rounded-xl font-bold text-xs transition-all flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+  className="px-4 py-2 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300 rounded-xl font-bold text-xs transition-all flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
   >
   <RefreshCw className={`h-3.5 w-3.5 ${analyzing ? 'animate-spin' : ''}`} />
   {t('common.retry', { defaultValue: 'Réessayer' })}
@@ -76,7 +76,7 @@ export const IncidentAIAssistant: React.FC<IncidentAIAssistantProps> = ({ incide
   <button
   onClick={handleAnalyzeIncident}
   disabled={analyzing}
-  className="px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-3xl font-bold text-sm transition-all shadow-lg shadow-primary/20 flex items-center gap-2 mx-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+  className="px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-3xl font-bold text-sm transition-all shadow-lg shadow-primary/20 flex items-center gap-2 mx-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
   >
   {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
   {analyzing ? t('incidents.ai.analyzing', { defaultValue: 'Analyse en cours...' }) : t('incidents.ai.startAnalysis', { defaultValue: 'Lancer l\'analyse' })}
@@ -92,7 +92,7 @@ export const IncidentAIAssistant: React.FC<IncidentAIAssistantProps> = ({ incide
   <button
   onClick={handleAnalyzeIncident}
   disabled={analyzing}
-  className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   title={t('incidents.ai.relaunchAnalysis', { defaultValue: 'Relancer l\'analyse' })}
   >
   <Loader2 className={`h-4 w-4 ${analyzing ? 'animate-spin' : ''}`} />

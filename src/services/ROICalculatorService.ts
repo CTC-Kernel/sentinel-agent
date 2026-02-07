@@ -16,6 +16,7 @@ import {
  deleteDoc,
  query,
  orderBy,
+ limit,
  serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -23,6 +24,7 @@ import { sanitizeData } from '../utils/dataSanitizer';
 import type { SimulationResults } from '../types/fair';
 import { getLocaleConfig, type SupportedLocale } from '../config/localeConfig';
 import i18n from '../i18n';
+import { ErrorLogger } from './errorLogger';
 
 // ============================================================================
 // Types
@@ -161,17 +163,24 @@ export class ROICalculatorService {
  * Get all investments for an organization
  */
  static async getInvestments(organizationId: string): Promise<SecurityInvestment[]> {
- const q = query(
- getInvestmentCollection(organizationId),
- orderBy('updatedAt', 'desc')
- );
+    try {
+   const q = query(
+   getInvestmentCollection(organizationId),
+   orderBy('updatedAt', 'desc'),
+   limit(500)
+   );
 
- const snapshot = await getDocs(q);
- return snapshot.docs.map((doc) => ({
- id: doc.id,
- ...doc.data()
- })) as SecurityInvestment[];
- }
+   const snapshot = await getDocs(q);
+   return snapshot.docs.map((doc) => ({
+   id: doc.id,
+   ...doc.data()
+   })) as SecurityInvestment[];
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la recuperation des investissements');
+      throw error;
+    }
+  }
 
  /**
  * Get a specific investment
@@ -180,16 +189,22 @@ export class ROICalculatorService {
  organizationId: string,
  investmentId: string
  ): Promise<SecurityInvestment | null> {
- const docRef = doc(getInvestmentCollection(organizationId), investmentId);
- const docSnap = await getDoc(docRef);
+    try {
+   const docRef = doc(getInvestmentCollection(organizationId), investmentId);
+   const docSnap = await getDoc(docRef);
 
- if (!docSnap.exists()) return null;
+   if (!docSnap.exists()) return null;
 
- return {
- id: docSnap.id,
- ...docSnap.data()
- } as SecurityInvestment;
- }
+   return {
+   id: docSnap.id,
+   ...docSnap.data()
+   } as SecurityInvestment;
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la recuperation de l investissement');
+      throw error;
+    }
+  }
 
  /**
  * Create a new investment
@@ -199,17 +214,23 @@ export class ROICalculatorService {
  userId: string,
  data: Omit<SecurityInvestment, 'id' | 'organizationId' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>
  ): Promise<string> {
- const docRef = await addDoc(getInvestmentCollection(organizationId), sanitizeData({
- ...data,
- organizationId,
- createdAt: serverTimestamp(),
- createdBy: userId,
- updatedAt: serverTimestamp(),
- updatedBy: userId
- }));
+    try {
+   const docRef = await addDoc(getInvestmentCollection(organizationId), sanitizeData({
+   ...data,
+   organizationId,
+   createdAt: serverTimestamp(),
+   createdBy: userId,
+   updatedAt: serverTimestamp(),
+   updatedBy: userId
+   }));
 
- return docRef.id;
- }
+   return docRef.id;
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la creation de l investissement');
+      throw error;
+    }
+  }
 
  /**
  * Update an investment
@@ -220,13 +241,19 @@ export class ROICalculatorService {
  userId: string,
  updates: Partial<SecurityInvestment>
  ): Promise<void> {
- const docRef = doc(getInvestmentCollection(organizationId), investmentId);
- await updateDoc(docRef, sanitizeData({
- ...updates,
- updatedAt: serverTimestamp(),
- updatedBy: userId
- }));
- }
+    try {
+   const docRef = doc(getInvestmentCollection(organizationId), investmentId);
+   await updateDoc(docRef, sanitizeData({
+   ...updates,
+   updatedAt: serverTimestamp(),
+   updatedBy: userId
+   }));
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la mise a jour de l investissement');
+      throw error;
+    }
+  }
 
  /**
  * Delete an investment
@@ -235,9 +262,15 @@ export class ROICalculatorService {
  organizationId: string,
  investmentId: string
  ): Promise<void> {
- const docRef = doc(getInvestmentCollection(organizationId), investmentId);
- await deleteDoc(docRef);
- }
+    try {
+   const docRef = doc(getInvestmentCollection(organizationId), investmentId);
+   await deleteDoc(docRef);
+ 
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'Erreur lors de la suppression de l investissement');
+      throw error;
+    }
+  }
 
  // ============================================================================
  // ROI Calculation

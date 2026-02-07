@@ -138,7 +138,8 @@ export const useDashboardData = (): DashboardData => {
  const openCount = mockAudits.filter(a => a.status === 'Planifié' || a.status === 'En cours').length;
  setOpenAuditsCount(openCount);
  setManualLoading(false);
- }).catch(_err => {
+ }).catch((_err) => {
+ ErrorLogger.handleErrorWithToast(_err, 'useDashboardData');
  if (!isMounted) return;
  setManualLoading(false);
  });

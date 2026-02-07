@@ -213,7 +213,7 @@ const NotificationContainer: React.FC = () => {
   notification.action?.onClick();
   removeNotification(notification.id);
   }}
-  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-muted/20 hover:bg-muted/40 backdrop-blur-sm border border-current/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-muted/20 hover:bg-muted/40 backdrop-blur-sm border border-current/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
   {notification.action.label}
   <span aria-hidden="true">→</span>
@@ -223,7 +223,7 @@ const NotificationContainer: React.FC = () => {
 
  <button
  onClick={() => removeNotification(notification.id)}
- className="flex-shrink-0 p-1 hover:bg-muted rounded transition-colors"
+ className="flex-shrink-0 p-1 hover:bg-muted rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  aria-label={`Fermer la notification: ${notification.title}`}
  >
  <X className="w-4 h-4 opacity-60" aria-hidden="true" />

@@ -8,7 +8,8 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Html, Stats } from '@react-three/drei';
-import { useMemoryManagement, formatMemorySize, getMemoryStatusColor } from '@/hooks/voxel/useMemoryManagement';
+import { useMemoryManagement } from '@/hooks/voxel/useMemoryManagement';
+import { formatMemorySize, getMemoryStatusColor } from '@/utils/memoryUtils';
 
 // ============================================================================
 // Types
@@ -236,8 +237,9 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
  points: info.render?.points ?? 0,
  lines: info.render?.lines ?? 0,
  };
- // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [gl, fpsData]); // Update with FPS to refresh
+ // Justification: gl.info is a mutable reference that changes on each frame. fpsData is used
+ // as a refresh trigger. Other dependencies are not needed since gl.info is read imperatively.
+ }, [gl, fpsData]); // eslint-disable-line react-hooks/exhaustive-deps
 
  // Toggle collapse
  const toggleCollapsed = useCallback(() => {
@@ -376,13 +378,13 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
  <div className="flex gap-2 pt-2 border-t border-border/40">
  <button
  onClick={() => memory.requestGC()}
- className="flex-1 px-2 py-1 text-xs bg-muted/50 hover:bg-muted rounded transition-colors"
+ className="flex-1 px-2 py-1 text-xs bg-muted/50 hover:bg-muted rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  Request GC
  </button>
  <button
  onClick={() => memory.cleanupPools()}
- className="flex-1 px-2 py-1 text-xs bg-muted/50 hover:bg-muted rounded transition-colors"
+ className="flex-1 px-2 py-1 text-xs bg-muted/50 hover:bg-muted rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  Clean Pools
  </button>
@@ -444,7 +446,7 @@ export const PerformanceBadge: React.FC<PerformanceBadgeProps> = ({ nodeCount = 
  <Html>
  <button
  onClick={onClick}
- className="flex items-center gap-2 px-3 py-1.5 bg-card/90 backdrop-blur-sm border border-border/40 rounded-full text-foreground text-sm hover:bg-muted/90 transition-colors"
+ className="flex items-center gap-2 px-3 py-1.5 bg-card/90 backdrop-blur-sm border border-border/40 rounded-full text-foreground text-sm hover:bg-muted/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
  <span className="font-mono">{fpsData.current.toFixed(0)} fps</span>

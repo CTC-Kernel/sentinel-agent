@@ -308,6 +308,7 @@ export class VendorConcentrationService {
  // Get affected services and processes from the vendor data
  const supplierData = await this.getSupplierDetails(organizationId, vendor.supplierId);
 
+ const alertTimestamp = new Date().toISOString();
  alerts.push({
  id: `spof-${category.category}-${vendor.supplierId}`,
  category: category.category,
@@ -319,7 +320,7 @@ export class VendorConcentrationService {
  estimatedDowntimeRisk: this.estimateDowntimeRisk(impactLevel),
  recommendation: this.generateSPOFRecommendation(category, vendor),
  urgency: getUrgencyLevel(impactLevel),
- createdAt: new Date().toISOString(),
+ createdAt: alertTimestamp,
  });
  }
  }

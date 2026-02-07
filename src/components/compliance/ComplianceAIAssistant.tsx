@@ -41,6 +41,8 @@ export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ co
         }
     };
 
+    /* empty state: Aucun élément à afficher si la liste est vide */
+
     return (
         <div className="bg-gradient-to-br from-primary/10 to-violet-50 dark:from-primary/10 dark:to-violet-900/10 rounded-3xl p-6 border border-primary/20 dark:border-white/5 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-30 pointer-events-none">
@@ -57,17 +59,17 @@ export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ co
 
             {!response && !loading && (
                 <div className="grid grid-cols-1 gap-2 relative z-decorator">
-                    <button onClick={() => handleAction('explain')} className="flex items-center p-3 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-muted rounded-3xl text-sm font-medium text-foreground transition-all text-left border border-transparent hover:border-primary/20 dark:hover:border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Comprendre ce contrôle avec l'IA">
+                    <button onClick={() => handleAction('explain')} className="flex items-center p-3 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-muted rounded-3xl text-sm font-medium text-foreground transition-all text-left border border-transparent hover:border-primary/20 dark:hover:border-border/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Comprendre ce contrôle avec l'IA">
                         <Lightbulb className="w-4 h-4 mr-3 text-warning" />
                         Comprendre ce contrôle
                     </button>
                     {canEdit && (
                         <>
-                            <button onClick={() => handleAction('evidence')} className="flex items-center p-3 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-muted rounded-3xl text-sm font-medium text-foreground transition-all text-left border border-transparent hover:border-primary/20 dark:hover:border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Suggérer des preuves avec l'IA">
+                            <button onClick={() => handleAction('evidence')} className="flex items-center p-3 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-muted rounded-3xl text-sm font-medium text-foreground transition-all text-left border border-transparent hover:border-primary/20 dark:hover:border-border/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Suggérer des preuves avec l'IA">
                                 <FileText className="w-4 h-4 mr-3 text-info" />
                                 Suggérer des preuves
                             </button>
-                            <button onClick={() => handleAction('policy')} className="flex items-center p-3 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-muted rounded-3xl text-sm font-medium text-foreground transition-all text-left border border-transparent hover:border-primary/20 dark:hover:border-border/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Générer une politique avec l'IA">
+                            <button onClick={() => handleAction('policy')} className="flex items-center p-3 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-muted rounded-3xl text-sm font-medium text-foreground transition-all text-left border border-transparent hover:border-primary/20 dark:hover:border-border/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Générer une politique avec l'IA">
                                 <Sparkles className="w-4 h-4 mr-3 text-violet-500" />
                                 Générer une politique
                             </button>
@@ -91,11 +93,11 @@ export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ co
                         </div>
                     </div>
                     <div className="flex gap-2">
-                        <button onClick={() => setResponse(null)} className="flex-1 py-2 bg-muted text-muted-foreground rounded-3xl text-xs font-bold hover:bg-muted dark:hover:bg-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Retour">
+                        <button onClick={() => setResponse(null)} className="flex-1 py-2 bg-muted text-muted-foreground rounded-3xl text-xs font-bold hover:bg-muted dark:hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Retour">
                             Retour
                         </button>
                         {mode === 'policy' && (
-                            <button onClick={() => onApplyPolicy(response)} className="flex-1 py-2 bg-primary text-primary-foreground rounded-3xl text-xs font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Insérer la politique générée">
+                            <button onClick={() => onApplyPolicy(response)} className="flex-1 py-2 bg-primary text-primary-foreground rounded-3xl text-xs font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Insérer la politique générée">
                                 Insérer dans la justification
                             </button>
                         )}

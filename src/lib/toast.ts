@@ -1,4 +1,5 @@
 import { NotificationContextType, NotificationType } from '../contexts/NotificationContext';
+import { ErrorLogger } from '../services/errorLogger';
 
 let notificationContext: NotificationContextType | null = null;
 
@@ -111,6 +112,7 @@ export const toast = {
  const successMsg = typeof data.success === 'function' ? data.success(res) : data.success;
  context.addNotification({ type: 'success', title: 'Succès', message: successMsg });
  }).catch((err) => {
+ ErrorLogger.error(err, 'toast.promise');
  context.removeNotification(id);
  const errorMsg = typeof data.error === 'function' ? data.error(err) : data.error;
  context.addNotification({ type: 'error', title: 'Erreur', message: errorMsg });

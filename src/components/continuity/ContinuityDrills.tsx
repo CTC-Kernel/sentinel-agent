@@ -31,7 +31,7 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
  </div>
  <button
   onClick={onNewDrill}
-  className="flex items-center px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-3xl font-bold transition-all shadow-lg shadow-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+  className="flex items-center px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-3xl font-bold transition-all shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
  >
   <Zap className="h-4 w-4 mr-2" />
   <span className="font-bold">{t('continuity.drills.newDrill', { defaultValue: 'Nouvel Exercice' })}</span>

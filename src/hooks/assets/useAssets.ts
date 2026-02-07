@@ -131,6 +131,7 @@ export function useAssets(enabled = true) {
  refreshAssets();
  return { success: true, id: assetId };
  } catch (e) {
+   ErrorLogger.handleErrorWithToast(e, 'useAssets');
  // Note: Error logging should be consistent, usually services don't toast but hooks might if configured
  // here we want to return the error to the component to toast
  return { success: false, error: e };
@@ -153,6 +154,7 @@ export function useAssets(enabled = true) {
  refreshAssets();
  return { success: true };
  } catch (e) {
+   ErrorLogger.handleErrorWithToast(e, 'useAssets');
  return { success: false, error: e };
  } finally {
  setIsSubmitting(false);
@@ -178,6 +180,7 @@ export function useAssets(enabled = true) {
  refreshAssets();
  return { success: true };
  } catch (e) {
+   ErrorLogger.handleErrorWithToast(e, 'useAssets');
  return { success: false, error: e };
  }
  };
@@ -198,6 +201,7 @@ export function useAssets(enabled = true) {
  refreshAssets();
  return { success: true, count: ids.length };
  } catch (e) {
+   ErrorLogger.handleErrorWithToast(e, 'useAssets');
  return { success: false, count: 0, error: e };
  }
  };

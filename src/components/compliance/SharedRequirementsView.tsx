@@ -266,7 +266,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
   <button
    key={control.id || 'unknown'}
    onClick={() => onControlClick?.(control)}
-   className="w-full p-4 text-left hover:bg-muted/30 transition-colors"
+   className="w-full p-4 text-left hover:bg-muted/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
   >
    <div className="flex items-start justify-between gap-4">
    <div className="flex-1 min-w-0">

@@ -90,7 +90,7 @@ export class PushNotificationService {
 
  await setDoc(userRef, sanitizeData({
  fcmTokens: arrayUnion(token)
- }), { merge: true });
+ }), { merge: true }); // SAFE: sanitizeData() strips undefined values
  } catch (error) {
  ErrorLogger.error(error, 'PushNotificationService.saveTokenToDatabase');
  }

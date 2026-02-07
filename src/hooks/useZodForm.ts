@@ -69,27 +69,5 @@ export function useZodForm<TSchema extends z.ZodSchema>(
  });
 }
 
-/**
- * Creates a form resolver with localized error messages.
- * Use this if you prefer the standard useForm hook.
- *
- * @param schema - Zod schema for validation
- * @param locale - The locale for error messages
- * @returns A resolver function for react-hook-form
- *
- * @example
- * ```tsx
- * const { locale } = useLocale();
- * const form = useForm({
- * resolver: createLocalizedResolver(UserSchema, locale)
- * });
- * ```
- */
-export function createLocalizedResolver<TSchema extends z.ZodSchema>(
- schema: TSchema,
- locale: 'fr' | 'en'
-) {
- const errorMap = createLocalizedErrorMap(locale);
- // eslint-disable-next-line @typescript-eslint/no-explicit-any
- return zodResolver(schema as any, { errorMap } as any);
-}
+// Re-export utility (moved to utils/zodFormUtils.ts to satisfy hooks naming convention)
+export { createLocalizedResolver } from '../utils/zodFormUtils';

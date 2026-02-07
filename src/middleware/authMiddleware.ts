@@ -80,6 +80,7 @@ export const authenticate = (requiredRole?: string) => {
  throw _error;
  }
  } catch (_error) {
+   ErrorLogger.error(_error, 'authMiddleware');
  logger.error({ err: _error }, 'Authentication error');
  return res.status(500).json({
  error: 'Authentication Error',
@@ -114,6 +115,7 @@ export const refreshTokenMiddleware = async (
  message: 'Token refresh should be handled via Firebase Auth'
  });
  } catch (_error) {
+   ErrorLogger.error(_error, 'authMiddleware');
  logger.error({ err: _error }, 'Token refresh error');
  res.status(401).json({
  error: 'Unauthorized',

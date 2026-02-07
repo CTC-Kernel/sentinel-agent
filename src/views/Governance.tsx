@@ -104,7 +104,7 @@ const TableSkeleton: React.FC = () => (
   <div className="glass-premium rounded-2xl border border-border/40 overflow-hidden">
     <div className="p-4 space-y-3">
       {[1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="h-14 rounded-xl bg-muted/20 animate-pulse" />
+        <div key={`skeleton-${i}`} className="h-14 rounded-xl bg-muted/20 animate-pulse" />
       ))}
     </div>
   </div>
@@ -244,6 +244,7 @@ export const Governance: React.FC = () => {
             <div className="relative flex-1 w-full">
               <input
                 type="text"
+                aria-label="Rechercher"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 placeholder="Rechercher..."

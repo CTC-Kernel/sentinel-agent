@@ -238,6 +238,7 @@ export function useWebXR(options: UseWebXROptions = {}): UseWebXRReturn {
  setStatus(newStatus);
  onDetectionComplete?.(newStatus);
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'useWebXR');
  const errorMessage = error instanceof Error ? error.message : 'Unknown error during XR detection';
  const newStatus: XRSupportStatus = {
  ...INITIAL_STATUS,
@@ -286,6 +287,7 @@ export function useWebXR(options: UseWebXROptions = {}): UseWebXRReturn {
 
  return vrSession;
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'useWebXR');
  const errorMessage = error instanceof Error ? error.message : 'Failed to start VR session';
  setStatus((prev) => ({ ...prev, error: errorMessage }));
  onError?.(error instanceof Error ? error : new Error(errorMessage));
@@ -332,6 +334,7 @@ export function useWebXR(options: UseWebXROptions = {}): UseWebXRReturn {
 
  return arSession;
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'useWebXR');
  const errorMessage = error instanceof Error ? error.message : 'Failed to start AR session';
  setStatus((prev) => ({ ...prev, error: errorMessage }));
  onError?.(error instanceof Error ? error : new Error(errorMessage));

@@ -73,6 +73,16 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
  }
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <Transition.Root show={isOpen} as={React.Fragment}>
  <Dialog as="div" className="relative z-modal" onClose={onClose}>
@@ -109,7 +119,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
    </Dialog.Title>
    <p className="text-sm text-muted-foreground">{t('threatIntel.communitySettings.subtitle', { defaultValue: 'Confidentialité et Réseau de Confiance' })}</p>
    </div>
-   <button type="button" aria-label={t('threatIntel.communitySettings.closeWindow', { defaultValue: 'Fermer la fenêtre' })} onClick={onClose} className="p-2.5 hover:bg-muted/50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus-visible:ring-primary">
+   <button type="button" aria-label={t('threatIntel.communitySettings.closeWindow', { defaultValue: 'Fermer la fenêtre' })} onClick={onClose} className="p-2.5 hover:bg-muted/50 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
    <X className="h-5 w-5 text-muted-foreground" />
    </button>
   </div>
@@ -231,7 +241,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
     id="search-orgs"
     type="text"
     placeholder={t('threatIntel.communitySettings.searchPlaceholder', { defaultValue: 'Rechercher une organisation...' })}
-    className="w-full px-4 py-2 rounded-3xl border border-border/40 bg-muted text-sm focus:ring-2 focus-visible:ring-primary outline-none"
+    className="w-full px-4 py-2 rounded-3xl border border-border/40 bg-muted text-sm focus-visible:ring-2 focus-visible:ring-primary outline-none"
     aria-label={t('threatIntel.communitySettings.searchOrganization', { defaultValue: 'Rechercher une organisation' })}
     value={searchQuery}
     onChange={(e) => setSearchQuery(e.target.value)}

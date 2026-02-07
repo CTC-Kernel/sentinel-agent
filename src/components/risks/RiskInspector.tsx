@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
  ShieldAlert, CheckCircle2, LayoutDashboard, FolderKanban,
  History, MessageSquare, Network, Copy, Edit, Trash2,
@@ -175,7 +175,13 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
  const handleDuplicate = React.useCallback(() => risk && onDuplicate(risk), [onDuplicate, risk]);
  const handleEditStart = enterEditMode;
  const handleEditCancel = exitEditMode;
- const handleDeleteRisk = React.useCallback(() => risk && onDelete(risk.id, risk.threat), [onDelete, risk]);
+ const deleteGuardRef = React.useRef(false);
+ const handleDeleteRisk = React.useCallback(() => {
+  if (deleteGuardRef.current || !risk) return;
+  deleteGuardRef.current = true;
+  onDelete(risk.id, risk.threat);
+  setTimeout(() => { deleteGuardRef.current = false; }, 2000);
+ }, [onDelete, risk]);
 
  // Use imported RiskFormData or define it if import fails
  const handleRiskFormSubmit = React.useCallback((data: import('../../schemas/riskSchema').RiskFormData) => handleLocalUpdate(data as unknown as Partial<Risk>), [handleLocalUpdate]);
@@ -194,7 +200,18 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
  const handleMitreQueryChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => setMitreQuery(e.target.value), []);
 
 
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
  if (!risk) return null;
+
 
  return (
  <InspectorLayout
@@ -243,7 +260,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
   <Button
   variant="ghost"
   size="icon"
-  onClick={handleDeleteRisk}
+  onClick={() => confirm("Confirmer la suppression ?") && handleDeleteRisk()}
   className="text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-900/20"
   aria-label={t('common.delete', { defaultValue: 'Supprimer le risque' })}
   >
@@ -259,7 +276,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
  >
  {isEditing ? (
  <RiskForm
-  onSubmit={handleRiskFormSubmit}
+  /* validate */ onSubmit={handleRiskFormSubmit}
   onCancel={handleEditCancel}
   initialData={risk}
   existingRisk={risk}

@@ -6,7 +6,7 @@
  * Story 20.4: Attribution des Responsables
  */
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Milestone } from '../../types/ebios';
@@ -123,7 +123,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
   <span className="text-sm font-medium text-muted-foreground block mb-1">Échéance</span>
   <div className="flex items-center gap-2 text-foreground">
    <Calendar className="w-4 h-4 text-muted-foreground" />
-   {new Date(milestone.dueDate).toLocaleDateString()}
+   {new Date(milestone.dueDate).toLocaleDateString('fr-FR')}
   </div>
   </div>
 
@@ -219,10 +219,21 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
 
    <div className="flex flex-wrap gap-2">
    {Object.entries(MILESTONE_STATUS_CONFIG).map(([status, config]) => {
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
    if (status === 'overdue') return null; // Don't allow manual setting to 'overdue'
    const isActive = milestone.status === status;
    const ConfigIcon = config.icon;
    const style = MILESTONE_STATUS_STYLES[status as Milestone['status']];
+
    return (
    <Button
     key={status || 'unknown'}

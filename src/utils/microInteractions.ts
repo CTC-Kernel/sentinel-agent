@@ -6,6 +6,7 @@
  */
 
 import type { Variants, Transition } from 'framer-motion';
+import { ErrorLogger } from '../services/errorLogger';
 
 // ============================================================================
 // CONSTANTS
@@ -223,6 +224,7 @@ export const triggerConfetti = async (options?: {
  colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'],
  });
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'microInteractions');
  // Silently fail if confetti not available
  console.debug('Confetti not available:', error);
  }
@@ -260,6 +262,7 @@ export const triggerFireworks = async () => {
  };
  frame();
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'microInteractions');
  console.debug('Confetti not available:', error);
  }
 };

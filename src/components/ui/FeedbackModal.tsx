@@ -49,6 +49,16 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
  useEffect(() => {
  setTimeout(() => setMounted(true), 0);
+
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
  return () => setMounted(false);
  }, []);
 
@@ -94,7 +104,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
  };
 
  const modalContent = (
- <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] animate-fade-in">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] animate-fade-in" role="dialog" aria-modal="true">
  <div className="bg-card rounded-2xl w-full max-w-lg flex flex-col max-h-[90vh] shadow-2xl shadow-black/20 dark:shadow-black/50 animate-scale-in border border-border/50">
  {/* Header */}
  <div className="p-6 border-b border-border/40 flex items-center justify-between shrink-0 bg-muted/50 rounded-t-2xl">
@@ -165,7 +175,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
   id="feedback-title"
   type="text"
   placeholder={t('ui.feedback.subjectPlaceholder', { defaultValue: "Ex: Ajout d'un filtre par date..." })}
-  className="w-full px-4 py-3 bg-background border border-border/40 rounded-xl text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+  className="w-full px-4 py-3 bg-background border border-border/40 rounded-xl text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary outline-none transition-all"
   />
   <FormError message={errors.title?.message} />
   </div>
@@ -179,7 +189,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
   id="feedback-description"
   placeholder={t('ui.feedback.descriptionPlaceholder', { defaultValue: 'Dites-nous en plus...' })}
   rows={5}
-  className="w-full px-4 py-3 bg-background border border-border/40 rounded-xl text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all resize-none"
+  className="w-full px-4 py-3 bg-background border border-border/40 rounded-xl text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary outline-none transition-all resize-none"
   />
   <FormError message={errors.description?.message} />
   </div>

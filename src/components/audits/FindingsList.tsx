@@ -86,7 +86,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
   <button
   key={type || 'unknown'}
   onClick={() => setTypeFilter(typeFilter === type ? null : type)}
-  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${typeFilter === type
+  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${typeFilter === type
    ? 'bg-primary/10 border-primary/30 text-primary dark:bg-primary dark:border-primary/90 dark:text-primary/50'
    : 'bg-white border-border/40 text-muted-foreground hover:bg-muted dark:bg-white/5 dark:hover:bg-muted'
    }`}
@@ -158,7 +158,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
    <div className="flex flex-col">
    <button
     type="button"
-    className={onOpenAudit ? 'text-sm font-medium rounded text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500' : 'text-sm font-medium text-foreground'}
+    className={onOpenAudit ? 'text-sm font-medium rounded text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500' : 'text-sm font-medium text-foreground'}
     onClick={() => {
     if (onOpenAudit) {
     const audit = audits.find(a => a.id === finding.auditId);

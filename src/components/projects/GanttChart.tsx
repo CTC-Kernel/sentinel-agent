@@ -134,9 +134,8 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
  if (!assigneeName) return null;
  const user = users.find(u => u.displayName === assigneeName || u.email === assigneeName);
  return (
- <img
+ <img alt={assigneeName}
  src={getUserAvatarUrl(user?.photoURL, user?.role)}
- alt={assigneeName}
  className="w-6 h-6 rounded-full border border-border shadow-sm object-cover"
  />
  );
@@ -239,7 +238,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
   <div
   key={t.id || 'unknown'}
   style={{ height: rowHeight }}
-  className="flex items-center px-4 border-b border-border/40 hover:bg-muted/50 transition-all cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+  className="flex items-center px-4 border-b border-border/40 hover:bg-muted/50 transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
   onClick={() => handleTaskClick(t)}
   role="button"
   tabIndex={0}
@@ -258,7 +257,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
    {t.name}
    </div>
    <div className="text-xs text-muted-foreground truncate">
-   {new Date(t.start).toLocaleDateString()} - {new Date(t.end).toLocaleDateString()}
+   {new Date(t.start).toLocaleDateString('fr-FR')} - {new Date(t.end).toLocaleDateString('fr-FR')}
    </div>
   </div>
   <div className={`text-xs font-bold ${t.progress === 100 ? 'text-green-600' : 'text-muted-foreground'}`}>
@@ -289,7 +288,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
   <button
   onClick={() => setShowList(!showList)}
-  className={`px-3 py-1.5 text-xs font-bold rounded-3xl transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${showList
+  className={`px-3 py-1.5 text-xs font-bold rounded-3xl transition-all border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${showList
   ? 'bg-muted text-foreground border-border/40'
   : 'bg-transparent text-muted-foreground border-transparent hover:bg-muted/50'
   }`}
@@ -301,7 +300,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
 
   <button
   onClick={scrollToToday}
-  className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:bg-muted rounded-3xl transition-colors flex items-center gap-1.5 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+  className="px-3 py-1.5 text-xs font-bold text-muted-foreground hover:bg-muted rounded-3xl transition-colors flex items-center gap-1.5 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
   >
   <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
   Aujourd'hui
@@ -314,7 +313,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
   <button
   key={mode || 'unknown'}
   onClick={() => onViewModeChange(mode)}
-  className={`px-3 py-1 text-xs font-bold uppercase tracking-wide rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${viewMode === mode
+  className={`px-3 py-1 text-xs font-bold uppercase tracking-wide rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${viewMode === mode
    ? 'bg-card text-foreground shadow-sm scale-105'
    : 'text-muted-foreground hover:text-foreground'
    }`}

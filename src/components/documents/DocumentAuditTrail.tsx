@@ -37,6 +37,7 @@ import { VaultAuditService, AuditLogEntry, DocumentAction, AuditFilters } from '
 import { getUserAvatarUrl } from '@/utils/avatarUtils';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useLocale } from '@/hooks/useLocale';
+import { ErrorLogger } from '@/services/errorLogger';
 
 interface DocumentAuditTrailProps {
     /** Document ID to show audit trail for (null for organization-wide) */
@@ -173,6 +174,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                 setHasMore(result.pagination.hasMore);
             }
         } catch (err) {
+          ErrorLogger.handleErrorWithToast(err, 'DocumentAuditTrail');
             setError(err instanceof Error ? err.message : t('documents.auditTrail.loadError', { defaultValue: 'Erreur lors du chargement' }));
         } finally {
             setLoading(false);
@@ -218,6 +220,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                 VaultAuditService.downloadExport(result.data, format, `audit-trail-${Date.now()}.${format}`);
             }
         } catch (err) {
+          ErrorLogger.handleErrorWithToast(err, 'DocumentAuditTrail');
             setError(err instanceof Error ? err.message : t('documents.auditTrail.exportError', { defaultValue: 'Erreur lors de l\'export' }));
         } finally {
             setExporting(false);
@@ -441,9 +444,8 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                                             <div className="flex items-center justify-between gap-2">
                                                 <div className="flex items-center gap-2">
                                                     {/* User avatar */}
-                                                    <img
+                                                    <img alt={entry.userEmail}
                                                         src={getUserAvatarUrl(null, 'user')}
-                                                        alt={entry.userEmail}
                                                         className="w-6 h-6 rounded-full bg-muted"
                                                     />
                                                     <span className="font-medium text-foreground text-sm truncate">
@@ -474,7 +476,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                                                             e.stopPropagation();
                                                             toggleExpand(entry.id);
                                                         }}
-                                                        className="text-xs text-primary hover:text-primary flex items-center gap-1"
+                                                        className="text-xs text-primary hover:text-primary flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                                                     >
                                                         {isExpanded ? (
                                                             <>

@@ -392,6 +392,7 @@ export class NVDService {
  rateLimit: endTime - startTime
  };
  } catch (error) {
+   ErrorLogger.handleErrorWithToast(error, 'NVDService');
  return {
  success: false,
  message: `NVD API connection failed: ${(error as Error).message}`

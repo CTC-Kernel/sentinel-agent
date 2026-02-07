@@ -71,11 +71,11 @@ const getLODGeometryArgs = (nodeType: VoxelNode['type'], lodLevel: number, size:
 // Helper
 const safeRender = (value: unknown): React.ReactNode => {
  if (value === null || value === undefined) return null;
- if (value instanceof Date) return value.toLocaleDateString();
+ if (value instanceof Date) return value.toLocaleDateString('fr-FR');
  if (typeof value === 'object' && value !== null) {
  const val = value as { seconds?: number; nanoseconds?: number };
  if (val.seconds !== undefined && val.nanoseconds !== undefined) {
- return new Date(val.seconds * 1000).toLocaleDateString();
+ return new Date(val.seconds * 1000).toLocaleDateString('fr-FR');
  }
  return '';
  }

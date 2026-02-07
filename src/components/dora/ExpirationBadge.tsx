@@ -117,7 +117,7 @@ export const ExpirationCountBadge: React.FC<ExpirationCountBadgeProps> = ({
  className
  )}
  >
- <Icon className="w-4 h-4" />
+ <Icon className="w-4 h-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50" />
  <span className="text-sm font-medium">{labels[urgency]}</span>
  </button>
  );

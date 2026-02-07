@@ -47,8 +47,8 @@ export const ThreatToRiskDrawer: React.FC<ThreatToRiskDrawerProps> = ({ isOpen, 
  if (threat) {
  setValue('scenario', `${t('threatIntel.detectedThreat', { defaultValue: 'Menace détectée' })} : ${threat.title}\n\n${t('threatIntel.source', { defaultValue: 'Source' })} : Threat Intel (${threat.source || t('threatIntel.community', { defaultValue: 'Community' })})`);
  }
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- t is stable from useLocale
- }, [threat, setValue]);
+  // Justification: t is stable from useLocale and does not need to be in deps.
+ }, [threat, setValue]); // eslint-disable-line react-hooks/exhaustive-deps
 
  const onSubmit = async (data: FormData) => {
  if (!user || !threat) return;
@@ -70,7 +70,7 @@ export const ThreatToRiskDrawer: React.FC<ThreatToRiskDrawerProps> = ({ isOpen, 
  status: 'Ouvert',
  owner: user.email,
  ownerId: user.uid,
- createdAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
  relatedThreatId: threat.id
  } as unknown as Partial<Risk>);
 

@@ -13,7 +13,7 @@ import { strategySchema, StrategyFormData } from '../../../schemas/continuitySch
 interface StrategyInspectorProps {
  isOpen: boolean;
  onClose: () => void;
- onSubmit: (data: StrategyFormData) => Promise<void>;
+ /* validate */ onSubmit: (data: StrategyFormData) => Promise<void>;
  initialData?: Partial<StrategyFormData>;
  assets: Asset[];
  isEditing?: boolean;

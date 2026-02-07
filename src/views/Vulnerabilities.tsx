@@ -68,6 +68,9 @@ export const Vulnerabilities: React.FC = () => {
 
  const loading = authLoading || !claimsSynced || loadingData;
 
+ // RBAC: Only admin/rssi can perform sensitive vulnerability actions
+ const canManageVulnerabilities = user?.role === 'admin' || user?.role === 'rssi' || user?.role === 'super_admin';
+
  // URL Params for Deep Linking
  const deepLinkVulnId = searchParams.get('id');
 
@@ -167,9 +170,8 @@ export const Vulnerabilities: React.FC = () => {
   title={t('vulnerabilities.title')}
   subtitle={t('vulnerabilities.subtitle')}
   icon={
-  <img
+  <img alt="OPÉRATIONS"
   src="/images/operations.png"
-  alt="OPÉRATIONS"
   className="w-full h-full object-contain"
   />
   }

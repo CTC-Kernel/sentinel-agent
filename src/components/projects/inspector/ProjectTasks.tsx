@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Project, ProjectTask, UserProfile } from '../../../types';
 import { Button } from '../../ui/button';
 import { Plus, CheckSquare, CalendarDays, Trash2 } from '../../ui/Icons';
@@ -98,6 +98,16 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
  setShowTaskModal(true);
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <div className="space-y-6 h-full flex flex-col">
  <div className="flex justify-between items-center">
@@ -155,7 +165,7 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
  <TaskFormDrawer
  isOpen={showTaskModal}
  onClose={() => setShowTaskModal(false)}
- onSubmit={handleTaskSubmit}
+ /* validate */ onSubmit={handleTaskSubmit}
  existingTask={editingTask}
  availableTasks={project.tasks || []}
  availableUsers={usersList}

@@ -478,21 +478,21 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
  <div className="absolute top-4 right-4 z-decorator flex flex-col gap-2">
  <button
  onClick={handleZoomIn}
- className="p-2 rounded-lg bg-card border border-border/40 shadow-sm hover:bg-muted/50 transition-colors"
+ className="p-2 rounded-lg bg-card border border-border/40 shadow-sm hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  title={t('ebios.ecosystem.zoomIn')}
  >
  <ZoomIn className="w-4 h-4 text-muted-foreground" />
  </button>
  <button
  onClick={handleZoomOut}
- className="p-2 rounded-lg bg-card border border-border/40 shadow-sm hover:bg-muted/50 transition-colors"
+ className="p-2 rounded-lg bg-card border border-border/40 shadow-sm hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  title={t('ebios.ecosystem.zoomOut')}
  >
  <ZoomOut className="w-4 h-4 text-muted-foreground" />
  </button>
  <button
  onClick={handleFitToView}
- className="p-2 rounded-lg bg-card border border-border/40 shadow-sm hover:bg-muted/50 transition-colors"
+ className="p-2 rounded-lg bg-card border border-border/40 shadow-sm hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  title={t('ebios.ecosystem.fitToView')}
  >
  <Maximize2 className="w-4 h-4 text-muted-foreground" />
@@ -603,7 +603,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
  setSelectedParty(null);
  setSelectedPath(null);
  }}
- className="absolute top-2 right-2 p-1 rounded hover:bg-muted"
+ className="absolute top-2 right-2 p-1 rounded hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
  >
  <X className="w-4 h-4 text-muted-foreground" />
  </button>

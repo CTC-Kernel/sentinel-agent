@@ -272,9 +272,9 @@ export const AgentSetup: React.FC = () => {
   <UserPlus className="h-7 w-7 relative z-decorator" strokeWidth={2} />
   </div>
 
-  <h3 className="text-lg font-bold text-foreground mb-2">
+  <h2 className="text-lg font-bold text-foreground mb-2">
   {t('agentSetup.unauthenticated.createAccount', { defaultValue: 'Creer un compte' })}
-  </h3>
+  </h2>
   <p className="text-sm text-muted-foreground leading-relaxed mb-6">
   {t('agentSetup.unauthenticated.createAccountDesc', { defaultValue: 'Nouveau sur Sentinel ? Creez un compte gratuit pour commencer.' })}
   </p>
@@ -299,9 +299,9 @@ export const AgentSetup: React.FC = () => {
   <LogIn className="h-7 w-7 relative z-decorator" strokeWidth={2} />
   </div>
 
-  <h3 className="text-lg font-bold text-foreground mb-2">
+  <h2 className="text-lg font-bold text-foreground mb-2">
   {t('agentSetup.unauthenticated.signIn', { defaultValue: 'Se connecter' })}
-  </h3>
+  </h2>
   <p className="text-sm text-muted-foreground leading-relaxed mb-6">
   {t('agentSetup.unauthenticated.signInDesc', { defaultValue: 'Vous avez deja un compte ? Connectez-vous pour obtenir votre token.' })}
   </p>

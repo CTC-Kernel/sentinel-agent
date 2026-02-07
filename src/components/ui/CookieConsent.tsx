@@ -131,7 +131,7 @@ export const CookieConsent: React.FC = () => {
   Aucune donnée personnelle n'est vendue à des tiers.
   <button
    onClick={() => setShowLegalModal(true)}
-   className="text-primary hover:underline font-bold ml-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1"
+   className="text-primary hover:underline font-bold ml-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1"
   >
    En savoir plus
   </button>
@@ -146,7 +146,7 @@ export const CookieConsent: React.FC = () => {
   type="checkbox"
   checked
   disabled
-  className="rounded border-border text-primary focus:ring-primary cursor-not-allowed opacity-70"
+  className="rounded border-border text-primary focus-visible:ring-primary cursor-not-allowed opacity-70"
   />
   <span className="font-medium">Cookies essentiels</span>
   <span className="text-xs text-muted-foreground">(toujours actifs)</span>
@@ -156,7 +156,7 @@ export const CookieConsent: React.FC = () => {
   type="checkbox"
   checked={analyticsConsent}
   onChange={(e) => setAnalyticsConsent(e.target.checked)}
-  className="rounded border-border text-primary focus:ring-primary"
+  className="rounded border-border text-primary focus-visible:ring-primary"
   />
   <span className="font-medium">Cookies analytiques</span>
   <span className="text-xs text-muted-foreground">(mesure d'audience)</span>
@@ -166,7 +166,7 @@ export const CookieConsent: React.FC = () => {
   type="checkbox"
   checked={trackingConsent}
   onChange={(e) => setTrackingConsent(e.target.checked)}
-  className="rounded border-border text-primary focus:ring-primary"
+  className="rounded border-border text-primary focus-visible:ring-primary"
   />
   <span className="font-medium">Cookies de suivi</span>
   <span className="text-xs text-muted-foreground">(amélioration de l'expérience)</span>
@@ -176,25 +176,25 @@ export const CookieConsent: React.FC = () => {
   <div className="flex items-center justify-end gap-3 w-full">
   <button
   onClick={handleRefuse}
-  className="px-5 py-2.5 border border-border text-foreground font-semibold rounded-3xl hover:bg-muted dark:hover:bg-muted transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+  className="px-5 py-2.5 border border-border text-foreground font-semibold rounded-3xl hover:bg-muted dark:hover:bg-muted transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
   >
   Refuser
   </button>
   <button
   onClick={handleAcceptSelected}
-  className="px-5 py-2.5 border border-primary text-primary font-semibold rounded-3xl hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="px-5 py-2.5 border border-primary text-primary font-semibold rounded-3xl hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   Accepter la sélection
   </button>
   <button
   onClick={handleAcceptAll}
-  className="px-6 py-2.5 bg-foreground text-background font-bold rounded-3xl hover:scale-105 transition-transform shadow-lg whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 "
+  className="px-6 py-2.5 bg-foreground text-background font-bold rounded-3xl hover:scale-105 transition-transform shadow-lg whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 "
   >
   Accepter tout
   </button>
   <button
   onClick={handleClose}
-  className="p-3 text-muted-foreground hover:bg-muted dark:hover:bg-muted rounded-3xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+  className="p-3 text-muted-foreground hover:bg-muted dark:hover:bg-muted rounded-3xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
   aria-label="Fermer"
   >
   <X className="h-5 w-5" />

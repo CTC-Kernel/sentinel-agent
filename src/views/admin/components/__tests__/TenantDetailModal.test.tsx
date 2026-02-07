@@ -159,8 +159,8 @@ describe('TenantDetailModal', () => {
  slug: 'acme-corp',
  ownerId: 'user-123',
  isActive: true,
- createdAt: new Date().toISOString(),
- updatedAt: new Date().toISOString(),
+ createdAt: new Date(Date.now()).toISOString(),
+ updatedAt: new Date(Date.now()).toISOString(),
  subscription: {
  planId: 'professional',
  status: 'active',

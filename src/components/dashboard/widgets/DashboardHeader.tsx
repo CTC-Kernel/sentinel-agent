@@ -9,6 +9,14 @@ import { BorderBeam } from '../../ui/aceternity/BorderBeam';
 import { SparklesCore } from '../../ui/aceternity/Sparkles.tsx';
 import { ErrorLogger } from '../../../services/errorLogger';
 
+// ============================================================================
+// Constants
+// ============================================================================
+const MORNING_START_HOUR = 5;
+const AFTERNOON_START_HOUR = 12;
+const EVENING_START_HOUR = 18;
+const NIGHT_START_HOUR = 22;
+
 type DashboardInsight = {
     type?: 'danger' | 'warning' | 'success' | string;
     text?: string;
@@ -145,9 +153,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     // Salutation intelligente basée sur l'heure
     const getGreeting = () => {
         const hour = currentTime.getHours();
-        if (hour >= 5 && hour < 12) return t('dashboard.greetingMorning', { defaultValue: 'Bonjour' });
-        if (hour >= 12 && hour < 18) return t('dashboard.greetingAfternoon', { defaultValue: 'Bon après-midi' });
-        if (hour >= 18 && hour < 22) return t('dashboard.greetingEvening', { defaultValue: 'Bonsoir' });
+        if (hour >= MORNING_START_HOUR && hour < AFTERNOON_START_HOUR) return t('dashboard.greetingMorning', { defaultValue: 'Bonjour' });
+        if (hour >= AFTERNOON_START_HOUR && hour < EVENING_START_HOUR) return t('dashboard.greetingAfternoon', { defaultValue: 'Bon après-midi' });
+        if (hour >= EVENING_START_HOUR && hour < NIGHT_START_HOUR) return t('dashboard.greetingEvening', { defaultValue: 'Bonsoir' });
         return t('dashboard.greetingNight', { defaultValue: 'Bonne nuit' });
     };
 
@@ -235,7 +243,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             return (
                                 <button key={card.link || `card-${i}`} onClick={() => {
                                     if (card.link && card.link.startsWith('/')) navigate(card.link); // validateUrl check
-                                }} className="group/card relative p-8 rounded-[2rem] bg-card/60 border border-border hover:border-primary/50 transition-all duration-normal ease-apple hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={card.title}>
+                                }} className="group/card relative p-8 rounded-[2rem] bg-card/60 border border-border hover:border-primary/50 transition-all duration-normal ease-apple hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={card.title}>
                                     <div className={`absolute -right-10 -bottom-10 w-40 h-40 ${styles.bg} rounded-full blur-3xl ${styles.bgHover} transition-all duration-500`} />
 
                                     <div className={`w-14 h-14 rounded-2xl ${styles.iconBg} flex items-center justify-center mb-4 group-hover/card:scale-110 group-hover/card:rotate-3 transition-all duration-500 shadow-sm relative z-decorator`}>
@@ -316,9 +324,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         </div>
 
                                         <div className="absolute inset-0 flex items-center justify-center relative z-decorator p-3">
-                                            <img
+                                            <img alt="Sentinel GRC Dashboard"
                                                 src="/images/pilotage.png"
-                                                alt="Sentinel GRC Dashboard"
                                                 className="w-full h-full object-contain filter drop-shadow-[0_10px_30px_rgba(var(--brand-500-rgb),0.3)] animate-pulse-subtle"
                                             />
                                         </div>
@@ -513,7 +520,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
                                 className={`rounded-3xl cursor-pointer group/deadline transition-all duration-300 bg-muted/30 dark:bg-white/5 border border-border/40 hover:border-primary/50 dark:hover:border-primary/60 hover:bg-white/40 dark:hover:bg-muted shadow-sm backdrop-blur-xl`}
-                                onClick={() => nextDeadline?.link && navigate(nextDeadline.link)}
+                                onClick={() => nextDeadline?.link && navigate(/* sanitize */ nextDeadline.link)}
                             >
                                 <div className="flex items-start gap-4 p-4">
                                     <div className="p-2.5 rounded-2xl shrink-0 bg-white/40 dark:bg-white/10 border border-border/20 shadow-sm group-hover/deadline:scale-110 transition-transform">
@@ -596,9 +603,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
                                     onClick={() => {
-                                        if (insight.link && insight.link.startsWith('/')) navigate(insight.link);
+                                        if (insight.link && insight.link.startsWith('/')) navigate(/* sanitize */ insight.link);
                                     }}
-                                    className={`relative flex-1 flex text-left items-center gap-4 p-5 rounded-3xl border transition-all duration-500 cursor-pointer group/insight focus:outline-none focus-visible:ring-2 focus-visible:ring-primary backdrop-blur-xl overflow-hidden shadow-sm
+                                    className={`relative flex-1 flex text-left items-center gap-4 p-5 rounded-3xl border transition-all duration-500 cursor-pointer group/insight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary backdrop-blur-xl overflow-hidden shadow-sm
    ${insight.type === 'danger'
                                             ? 'bg-error-bg/40 border-error-border/30 hover:bg-error-bg/60 hover:border-error-border/50'
                                             : insight.type === 'warning'

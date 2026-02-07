@@ -19,6 +19,16 @@ export const RiskImportModal: React.FC<RiskImportModalProps> = ({ isOpen, onClos
  if (success) onClose();
  };
 
+  // Keyboard support: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+
  return (
  <ImportGuidelinesModal
  isOpen={isOpen}
