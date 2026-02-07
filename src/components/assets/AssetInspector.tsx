@@ -29,7 +29,7 @@ import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { useNavigate } from 'react-router-dom';
 import { LayoutDashboard, RefreshCw, Shield, Network, BrainCircuit, MessageSquare } from '../ui/Icons';
 import { Button } from '../ui/button';
-import { getUserAvatarUrl } from '../../utils/avatarUtils';
+import { getUserAvatarUrl, getDefaultAvatarFallbackUrl } from '../../utils/avatarUtils';
 
 interface AssetInspectorProps {
     isOpen: boolean;
@@ -220,7 +220,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                 className="w-4 h-4 rounded-full object-cover bg-muted/30"
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
-                                    target.src = getUserAvatarUrl(null, 'user');
+                                    target.src = getDefaultAvatarFallbackUrl('user');
                                 }}
                                 role="presentation"
                             />

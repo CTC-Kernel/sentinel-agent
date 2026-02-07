@@ -15,7 +15,7 @@ import { FeedbackModal } from '../ui/FeedbackModal';
 import { Tooltip } from '../ui/Tooltip';
 import { SyncIndicator } from '../ui/SyncIndicator';
 import { PlanIndicator } from '../ui/PlanIndicator';
-import { getDefaultAvatarUrl } from '../../utils/avatarUtils';
+import { getDefaultAvatarUrl, getDefaultAvatarFallbackUrl } from '../../utils/avatarUtils';
 
 interface TopBarProps {
     mobileOpen: boolean;

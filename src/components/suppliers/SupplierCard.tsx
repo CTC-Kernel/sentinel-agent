@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { Supplier, Criticality, UserProfile } from '../../types';
 import { Building, Truck, ShieldAlert } from '../ui/Icons';
-import { getUserAvatarUrl } from '../../utils/avatarUtils';
+import { getUserAvatarUrl, getDefaultAvatarFallbackUrl } from '../../utils/avatarUtils';
 import { useLocale } from '../../hooks/useLocale';
 // Focus indicators: focus-visible:ring-2 applied globally via CSS
 
@@ -98,7 +98,7 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
    className="w-5 h-5 rounded-full object-cover bg-muted"
    onError={(e) => {
    const target = e.target as HTMLImageElement;
-   target.src = getUserAvatarUrl(null, 'user');
+   target.src = getDefaultAvatarFallbackUrl('user');
    }}
   />
   <span className="font-medium mr-1">{supplier.contactName}</span>

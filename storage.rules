@@ -1,21 +1,21 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    
+
     // Helper functions
     function isAuthenticated() {
       return request.auth != null;
     }
-    
+
     function getUserOrg() {
       // Use custom claim for better performance and security
       return request.auth.token.organizationId;
     }
-    
+
     function belongsToOrg(orgId) {
       return isAuthenticated() && getUserOrg() == orgId;
     }
-    
+
     function isValidFileSize(maxSizeMB) {
       return request.resource.size < maxSizeMB * 1024 * 1024;
     }
@@ -23,7 +23,7 @@ service firebase.storage {
     function getUserRole() {
       return request.auth.token.role;
     }
-    
+
     function isSuperAdmin() {
       return request.auth != null && request.auth.token.superAdmin == true;
     }
@@ -31,7 +31,7 @@ service firebase.storage {
     function isAdmin() {
       return request.auth != null && (request.auth.token.role == 'admin' || request.auth.token.role == 'super_admin');
     }
-    
+
     function isRSSI() {
       return getUserRole() == 'rssi';
     }
@@ -39,84 +39,184 @@ service firebase.storage {
     function isAuditor() {
       return getUserRole() == 'auditor';
     }
-    
+
     // Write Permission Helper
     function canWriteCritical() {
       // Backups, Org Settings
       return isAdmin() || isRSSI(); // Owner usually has 'admin' claim
     }
-    
+
     function canWriteSensitive() {
       // Evidence, Documents
       return isAdmin() || isRSSI() || isAuditor();
     }
-    
+
     function canWriteStandard() {
-      return isAdmin() || isRSSI() || isAuditor() || getUserRole() == 'project_manager'; 
+      return isAdmin() || isRSSI() || isAuditor() || getUserRole() == 'project_manager';
     }
 
-    // Avatar uploads - user-specific
+    // -- File Type Validation Helpers --
+
+    function isAllowedDocumentType() {
+      // PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV
+      return request.resource.contentType.matches(
+        'application/pdf|application/msword|application/vnd\.openxmlformats-officedocument\.wordprocessingml\.document|application/vnd\.ms-excel|application/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet|application/vnd\.ms-powerpoint|application/vnd\.openxmlformats-officedocument\.presentationml\.presentation|text/plain|text/csv'
+      );
+    }
+
+    function isAllowedImageType() {
+      // PNG, JPG, JPEG, GIF, WEBP, SVG
+      return request.resource.contentType.matches(
+        'image/png|image/jpeg|image/gif|image/webp|image/svg\+xml'
+      );
+    }
+
+    function isAllowedDocumentOrImageType() {
+      return isAllowedDocumentType() || isAllowedImageType();
+    }
+
+    function isNotExecutable() {
+      // Block dangerous executable content types
+      return !request.resource.contentType.matches(
+        'application/x-msdownload|application/x-msdos-program|application/x-executable|application/x-sh|application/x-shellscript|application/javascript|text/javascript|text/html|application/x-bat|application/x-ms-dos-executable|application/octet-stream'
+      );
+    }
+
+    function isUploader() {
+      // Verify the uploader stored their UID in custom metadata
+      return request.resource.metadata.uploadedBy == request.auth.uid;
+    }
+
+    // -- Avatar uploads --
+    // SECURITY: Users can only write their own avatar.
+    // Path includes orgId for org-scoped isolation + userId for ownership.
+    match /avatars/{orgId}/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if belongsToOrg(orgId)
+        && request.auth.uid == userId
+        && isValidFileSize(5)
+        && isAllowedImageType();
+    }
+
+    // Legacy avatar path (without orgId) - kept for backward compatibility
     // SECURITY: Fixed path traversal vulnerability by using {fileName} instead of {allPaths=**}
     match /avatars/{userId}/{fileName} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && request.auth.uid == userId && isValidFileSize(5) && request.resource.contentType.matches('image/.*');
+      allow write: if isAuthenticated()
+        && request.auth.uid == userId
+        && isValidFileSize(5)
+        && isAllowedImageType();
     }
-    
-    // Documents - Restricted write
+
+    // -- Profile files --
+    // Users can only write their own profile files (e.g. profile images, settings exports)
+    match /profiles/{orgId}/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if belongsToOrg(orgId)
+        && request.auth.uid == userId
+        && isValidFileSize(10)
+        && isAllowedImageType();
+    }
+
+    // -- Documents --
+
+    // Private user documents - only the owning user can read/write
+    match /documents/{orgId}/private/{userId}/{allPaths=**} {
+      allow read: if belongsToOrg(orgId) && request.auth.uid == userId;
+      allow write: if belongsToOrg(orgId)
+        && request.auth.uid == userId
+        && isValidFileSize(50)
+        && isAllowedDocumentOrImageType()
+        && isNotExecutable()
+        && isUploader();
+    }
+
+    // Shared documents - org-level read, granular write with uploader tracking
     match /documents/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow write: if belongsToOrg(orgId) && canWriteStandard() && isValidFileSize(10) && request.resource.contentType.matches('image/.*|application/pdf|application/.*document.*|application/vnd.*|text/.*');
+      allow write: if belongsToOrg(orgId)
+        && canWriteStandard()
+        && isValidFileSize(50)
+        && isAllowedDocumentOrImageType()
+        && isNotExecutable()
+        && isUploader();
     }
-    
-    // Audit evidence - Restricted write
+
+    // -- Audit evidence --
     match /evidence/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow write: if belongsToOrg(orgId) && canWriteSensitive() && isValidFileSize(20) && request.resource.contentType.matches('image/.*|application/pdf|application/.*document.*|application/vnd.*|text/.*');
+      allow write: if belongsToOrg(orgId)
+        && canWriteSensitive()
+        && isValidFileSize(20)
+        && isAllowedDocumentOrImageType()
+        && isNotExecutable()
+        && isUploader();
     }
-    
-    // Incident attachments - Restricted write
+
+    // -- Incident attachments --
     match /incidents/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow write: if belongsToOrg(orgId) && canWriteStandard() && isValidFileSize(15) && request.resource.contentType.matches('image/.*|application/pdf|application/.*document.*|application/vnd.*|text/.*');
+      allow write: if belongsToOrg(orgId)
+        && canWriteStandard()
+        && isValidFileSize(15)
+        && isAllowedDocumentOrImageType()
+        && isNotExecutable()
+        && isUploader();
     }
-    
-    // Exports - organization-based, read-only after creation
+
+    // -- Exports --
+    // Organization-based, read-only after creation (immutable exports)
     match /exports/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow create: if belongsToOrg(orgId) && canWriteStandard() && isValidFileSize(50) && request.resource.contentType.matches('application/pdf|application/zip|application/.*document.*|application/vnd.*|text/csv|application/json');
+      allow create: if belongsToOrg(orgId)
+        && canWriteStandard()
+        && isValidFileSize(50)
+        && request.resource.contentType.matches('application/pdf|application/zip|application/vnd\.openxmlformats-officedocument\..*|application/vnd\.ms-.*|text/csv|application/json')
+        && isNotExecutable();
       allow update, delete: if false;
     }
 
-    // Backups - Highly Restricted
+    // -- Backups --
+    // Highly Restricted - admin/RSSI only
     match /backups/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId) && canWriteCritical();
-      allow write: if belongsToOrg(orgId) && canWriteCritical() && isValidFileSize(500) && request.resource.contentType.matches('application/json|application/zip|application/gzip|application/x-gzip'); // 500MB limit
+      allow write: if belongsToOrg(orgId)
+        && canWriteCritical()
+        && isValidFileSize(500)
+        && request.resource.contentType.matches('application/json|application/zip|application/gzip|application/x-gzip');
     }
 
-    // Organizations - General storage
+    // -- Organizations --
+    // General org storage - admin/RSSI only
     match /organizations/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow write: if belongsToOrg(orgId) && canWriteCritical() && isValidFileSize(50) && request.resource.contentType.matches('image/.*|application/pdf|application/.*document.*|application/vnd.*|text/.*'); // 50MB limit
+      allow write: if belongsToOrg(orgId)
+        && canWriteCritical()
+        && isValidFileSize(50)
+        && isAllowedDocumentOrImageType()
+        && isNotExecutable();
     }
 
-    // Agent Releases - Authenticated read for downloads, admin-only write
+    // -- Agent Releases --
+    // Authenticated read for downloads, superAdmin-only write
     // Note: Cloud Functions use signed URLs for secure downloads
     // INTENTIONAL: releases are shared across all orgs (not org-scoped).
     // These are platform-level binaries (agent installers, update packages) that are
     // identical for all organizations. Org isolation is not required here because
     // no tenant-specific data is stored in this path.
     match /releases/{allPaths=**} {
-      allow read: if isAuthenticated(); // Authenticated downloads via signed URLs from Cloud Function
+      allow read: if isAuthenticated();
       allow write: if isSuperAdmin()
         && request.resource.size < 500 * 1024 * 1024
         && request.resource.contentType.matches('application/.*');
     }
 
-    // Agent Downloads - Authenticated read for agent installers
+    // -- Agent Downloads --
+    // Authenticated read for agent installers
     // INTENTIONAL: agent downloads are shared across all orgs (not org-scoped).
     // Same rationale as /releases above - platform-level binaries, no tenant data.
     match /agents/downloads/{allPaths=**} {
-      allow read: if isAuthenticated(); // Authenticated downloads for agent installers
+      allow read: if isAuthenticated();
       allow write: if isSuperAdmin()
         && request.resource.size < 200 * 1024 * 1024
         && request.resource.contentType.matches('application/.*');

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Tooltip } from '../ui/Tooltip';
 import { Asset, Criticality, UserProfile } from '../../types';
-import { getUserAvatarUrl } from '../../utils/avatarUtils';
+import { getUserAvatarUrl, getDefaultAvatarFallbackUrl } from '../../utils/avatarUtils';
 import { DataTable } from '../ui/DataTable';
 import { Server, Edit, Trash2, Tag, Copy, HardDrive, Cpu, Database, Activity, Users } from '../ui/Icons';
 import { CardSkeleton } from '../ui/Skeleton';
@@ -163,7 +163,7 @@ export const AssetList = React.memo<AssetListProps>(({
   className="w-6 h-6 rounded-full border border-muted object-cover bg-muted/30"
   onError={(e) => {
   const target = e.target as HTMLImageElement;
-  target.src = getUserAvatarUrl(null, ownerUser?.role);
+  target.src = getDefaultAvatarFallbackUrl(ownerUser?.role);
   }}
   role="presentation"
   />
@@ -354,7 +354,7 @@ export const AssetList = React.memo<AssetListProps>(({
    className="w-4 h-4 rounded-full object-cover border border-border/40 bg-muted"
    onError={(e) => {
    const target = e.target as HTMLImageElement;
-   target.src = getUserAvatarUrl(null, users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.role);
+   target.src = getDefaultAvatarFallbackUrl(users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.role);
    }}
    role="presentation"
    />

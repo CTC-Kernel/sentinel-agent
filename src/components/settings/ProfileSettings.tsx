@@ -20,7 +20,7 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { hasPermission } from '../../utils/permissions';
 import { UserProfile } from '../../types';
-import { getDefaultAvatarUrl } from '../../utils/avatarUtils';
+import { getDefaultAvatarUrl, getDefaultAvatarFallbackUrl } from '../../utils/avatarUtils';
 
 export const ProfileSettings: React.FC = () => {
  const { user, setUser, addToast, t, language, setLanguage, demoMode, toggleDemoMode } = useStore();
@@ -199,7 +199,7 @@ export const ProfileSettings: React.FC = () => {
    className="w-full h-full object-cover"
    onError={(e) => {
    const target = e.target as HTMLImageElement;
-   target.src = getDefaultAvatarUrl(user?.role);
+   target.src = getDefaultAvatarFallbackUrl(user?.role);
    }}
   />
   <div

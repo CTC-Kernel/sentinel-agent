@@ -4,7 +4,7 @@ import { UserProfile } from '../../types';
 import { Edit, Trash2, Mail, Timer, Building, Clock } from '../ui/Icons';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { RoleBadge } from '../ui/RoleBadge';
-import { getDefaultAvatarUrl } from '../../utils/avatarUtils';
+import { getDefaultAvatarUrl, getDefaultAvatarFallbackUrl } from '../../utils/avatarUtils';
 
 interface UserCardProps {
  user: UserProfile;
@@ -61,7 +61,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
   className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${user.isPending ? 'opacity-60 grayscale' : ''}`}
   onError={(e) => {
   const target = e.target as HTMLImageElement;
-  const fallback = getDefaultAvatarUrl(user.role);
+  const fallback = getDefaultAvatarFallbackUrl(user.role);
   if (target.src !== fallback) {
   target.src = fallback;
   }

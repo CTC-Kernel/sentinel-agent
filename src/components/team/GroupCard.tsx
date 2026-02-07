@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocale } from '../../hooks/useLocale';
 import { UserGroup, UserProfile } from '../../types';
-import { getDefaultAvatarUrl } from '../../utils/avatarUtils';
+import { getDefaultAvatarUrl, getDefaultAvatarFallbackUrl } from '../../utils/avatarUtils';
 import { Edit, Trash2, Users } from '../ui/Icons';
 import { ConfirmModal } from '../ui/ConfirmModal'; // Keyboard: Escape key supported
 
@@ -59,7 +59,7 @@ export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, o
    className="h-full w-full object-cover"
    onError={(e) => {
    const target = e.target as HTMLImageElement;
-   target.src = getDefaultAvatarUrl(member?.role);
+   target.src = getDefaultAvatarFallbackUrl(member?.role);
    }}
   />
   </div>

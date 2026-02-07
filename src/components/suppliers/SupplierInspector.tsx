@@ -11,7 +11,7 @@ import {
 } from '../ui/Icons';
 import { ResourceHistory } from '../shared/ResourceHistory';
 import { CommentSection } from '../collaboration/CommentSection';
-import { getUserAvatarUrl } from '../../utils/avatarUtils';
+import { getUserAvatarUrl, getDefaultAvatarFallbackUrl } from '../../utils/avatarUtils';
 import { useLocale } from '../../hooks/useLocale';
 
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
@@ -91,7 +91,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
   className="w-5 h-5 rounded-full object-cover bg-muted border border-border/40"
   onError={(e) => {
   const target = e.target as HTMLImageElement;
-  target.src = getUserAvatarUrl(null, 'user');
+  target.src = getDefaultAvatarFallbackUrl('user');
   }}
   />
   <span className="font-medium text-foreground text-muted-foreground">
