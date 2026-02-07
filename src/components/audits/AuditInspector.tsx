@@ -90,7 +90,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
   onClick={() => changeAuditStatus('En cours')}
   disabled={isValidating}
   aria-label="Démarrer l'audit"
-  className={`px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl font-bold text-sm transition-colors shadow-lg shadow-blue-500/20 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isValidating ? 'opacity-75 cursor-wait' : ''}`}
+  className={`px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-3xl font-bold text-sm transition-colors shadow-lg shadow-primary/20 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isValidating ? 'opacity-75 cursor-wait' : ''}`}
   >
   {isValidating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
   <span className="hidden sm:inline">{t('audits.inspector.start', { defaultValue: 'Démarrer' })}</span>
@@ -103,7 +103,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
   onClick={() => changeAuditStatus('Terminé')}
   disabled={isValidating}
   aria-label="Terminer l'audit"
-  className={`px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-3xl font-bold text-sm transition-colors shadow-lg shadow-emerald-500/20 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isValidating ? 'opacity-75 cursor-wait' : ''}`}
+  className={`px-4 py-2 bg-success hover:bg-success/90 text-success-foreground rounded-3xl font-bold text-sm transition-colors shadow-lg shadow-success/20 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isValidating ? 'opacity-75 cursor-wait' : ''}`}
   >
   {isValidating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
   <span className="hidden sm:inline">{t('audits.inspector.finish', { defaultValue: 'Terminer' })}</span>
@@ -116,7 +116,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
   onClick={validateAudit}
   disabled={isValidating}
   aria-label={t('audits.inspector.validate')}
-  className={`px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-3xl font-bold text-sm transition-colors shadow-lg shadow-indigo-500/20 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isValidating ? 'opacity-75 cursor-wait' : ''}`}
+  className={`px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-3xl font-bold text-sm transition-colors shadow-lg shadow-primary/20 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isValidating ? 'opacity-75 cursor-wait' : ''}`}
   >
   {isValidating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCheck className="h-4 w-4" />}
   <span className="hidden sm:inline">{t('audits.inspector.validate')}</span>

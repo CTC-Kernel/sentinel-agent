@@ -835,7 +835,7 @@ export const Help: React.FC = () => {
   variant="outline"
   aria-label="Donner mon avis"
   onClick={() => setIsFeedbackOpen(true)}
-  className="w-full py-3 bg-primary/10 text-primary dark:text-white rounded-xl text-sm font-bold border border-primary/30 dark:border-primary/40 hover:bg-primary/15 dark:hover:bg-primary transition-all flex items-center justify-center gap-2"
+  className="w-full py-3 bg-primary/10 text-primary hover:bg-primary/15 rounded-xl text-sm font-bold border border-primary/30 hover:bg-primary transition-all flex items-center justify-center gap-2"
   >
   <MessageSquare className="w-4 h-4 mr-2" />
   Donner mon avis

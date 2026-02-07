@@ -201,7 +201,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
  {/* Action Button */}
  <button
  onClick={onClick}
- className="flex items-center gap-2 px-4 py-2 rounded-3xl text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+ className="flex items-center gap-2 px-4 py-2 rounded-3xl text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
  >
  <Shield className="h-4 w-4" />
  {t('vendorConcentration.spof.viewRecommendations')}

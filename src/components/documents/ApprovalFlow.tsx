@@ -86,7 +86,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
   <button
   aria-label={t('documents.approvalFlow.ariaReject', { defaultValue: 'Rejeter le document' })}
   onClick={() => setActionView(actionView === 'reject' ? 'none' : 'reject')}
-  className="flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+  className="flex items-center px-3 py-1.5 bg-error hover:bg-error/90 text-error-foreground text-xs font-bold rounded-lg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2"
   >
   <XCircle className="h-3.5 w-3.5 mr-1.5" />
   {t('approvalFlow.reject', { defaultValue: 'Rejeter' })}
@@ -100,7 +100,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
   aria-label={t('documents.approvalFlow.ariaPublish', { defaultValue: 'Publier officiellement le document' })}
   onClick={() => onPublish ? onPublish() : publishDocument(document)}
   disabled={loading}
-  className="flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+  className="flex items-center px-3 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold rounded-lg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
   >
   <Send className="h-3.5 w-3.5 mr-1.5" />
   {t('approvalFlow.publishOfficially', { defaultValue: 'Publier Officiellement' })}
@@ -143,13 +143,13 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
   <textarea
   aria-label={t('documents.approvalFlow.ariaRejectReason', { defaultValue: 'Raison du rejet' })}
   placeholder={t('documents.approvalFlow.rejectReasonPlaceholder', { defaultValue: 'Raison du rejet (obligatoire)...' })}
-  className="w-full text-sm bg-muted border border-border/40 rounded-md p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+  className="w-full text-sm bg-muted border border-border/40 rounded-md p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-error"
   value={comment}
   onChange={(e) => setComment(e.target.value)}
   />
   <div className="flex justify-end gap-2">
   <button aria-label={t('documents.approvalFlow.ariaCancelReject', { defaultValue: 'Annuler le rejet' })} onClick={() => setActionView('none')} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded">{t('common.cancel', { defaultValue: 'Annuler' })}</button>
-  <button aria-label={t('documents.approvalFlow.ariaConfirmReject', { defaultValue: 'Confirmer le rejet' })} onClick={handleReject} disabled={loading || !comment} className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 disabled:bg-muted disabled:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">{t('documents.approvalFlow.confirmRejection', { defaultValue: 'Confirmer le Rejet' })}</button>
+  <button aria-label={t('documents.approvalFlow.ariaConfirmReject', { defaultValue: 'Confirmer le rejet' })} onClick={handleReject} disabled={loading || !comment} className="px-3 py-1.5 bg-error hover:bg-error/90 text-error-foreground text-xs font-bold rounded-lg disabled:bg-muted disabled:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2">{t('documents.approvalFlow.confirmRejection', { defaultValue: 'Confirmer le Rejet' })}</button>
   </div>
   </motion.div>
  )}

@@ -94,9 +94,9 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
   )}
   <Button
    onClick={handleActivateCrisis}
-   className={`h-16 px-8 text-lg font-bold rounded-2xl transition-all ${activationStep === 0 ? 'bg-foreground text-background dark:text-black' :
-   activationStep === 1 ? 'bg-amber-500 hover:bg-amber-600 text-primary-foreground' :
-   'bg-red-600 hover:bg-red-700 text-primary-foreground shadow-xl shadow-red-500/30 animate-pulse'
+   className={`h-16 px-8 text-lg font-bold rounded-2xl transition-all ${activationStep === 0 ? 'bg-foreground text-background' :
+   activationStep === 1 ? 'bg-warning hover:bg-warning/90 text-warning-foreground' :
+   'bg-error hover:bg-error/90 text-error-foreground shadow-xl shadow-error/30 animate-pulse'
    }`}
   >
    {activationStep === 0 && <span className="flex items-center gap-2"><Megaphone className="w-5 h-5" /> {t('continuity.crisis.reportIncident', { defaultValue: 'Signaler Incident' })}</span>}

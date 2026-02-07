@@ -100,7 +100,7 @@ export const SEVERITY_COLOR_CLASSES = {
  bg: 'bg-yellow-100 dark:bg-yellow-900/30',
  text: 'text-yellow-800 dark:text-yellow-200',
  border: 'border-yellow-200 dark:border-yellow-800',
- badge: 'bg-yellow-500 text-black',
+ badge: 'bg-warning text-warning-foreground',
  },
  success: {
  bg: 'bg-green-100 dark:bg-green-900/30',

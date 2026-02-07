@@ -31,7 +31,7 @@ export const NotFound: React.FC = () => {
   404
  </h1>
 
- <h2 className="text-2xl font-bold text-foreground dark:text-white mb-4">
+ <h2 className="text-2xl font-bold text-foreground mb-4">
   {t('notFound.title')}
  </h2>
 

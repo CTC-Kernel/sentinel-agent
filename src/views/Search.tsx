@@ -98,7 +98,7 @@ export const Search: React.FC = () => {
   aria-label={t('search.search', { defaultValue: 'Search' })}
   type="text"
   placeholder={t('search.placeholder', { defaultValue: 'Search for something...' })}
-  className="flex-1 bg-transparent border-none focus:ring-0 text-lg dark:text-white py-3 font-medium placeholder:text-muted-foreground"
+  className="flex-1 bg-transparent border-none focus:ring-0 text-lg py-3 font-medium placeholder:text-muted-foreground"
   onChange={e => setQueryText(e.target.value)}
  />
  {loading && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary mr-4"></div>}

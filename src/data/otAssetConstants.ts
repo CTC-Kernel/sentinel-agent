@@ -66,10 +66,10 @@ export const OT_CRITICALITY_DESCRIPTIONS: Record<string, { fr: string; en: strin
 };
 
 export const OT_CRITICALITY_COLORS: Record<string, string> = {
- safety: '#dc2626', // red-600
- production: '#ea580c', // orange-600
- operations: '#ca8a04', // yellow-600
- monitoring: '#16a34a' // green-600
+ safety: 'hsl(var(--error))', // error - red
+ production: 'hsl(var(--warning))', // warning - orange  
+ operations: 'hsl(var(--warning))', // warning - yellow
+ monitoring: 'hsl(var(--success))' // success - green
 };
 
 // ============================================================================

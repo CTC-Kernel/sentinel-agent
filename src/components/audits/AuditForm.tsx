@@ -411,7 +411,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
   <Button
   type="submit"
   isLoading={isLoading}
-  className="px-8 py-3 text-sm font-bold text-white bg-gradient-to-r from-primary to-indigo-600 hover:from-primary hover:to-indigo-700 rounded-3xl hover:scale-105 transition-transform shadow-lg shadow-primary/20"
+  className="px-8 py-3 text-sm font-bold text-primary-foreground bg-gradient-to-r from-primary to-primary hover:from-primary hover:to-primary rounded-3xl hover:scale-105 transition-transform shadow-lg shadow-primary/20"
   >
   {existingAudit ? t('audits.form.save') : t('audits.form.plan')}
   </Button>

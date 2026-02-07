@@ -59,7 +59,7 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
   <div className="space-y-2">
   {supported.map(p => (
   <div key={p.id || 'unknown'} className="p-3 bg-muted/50 dark:bg-white/5 rounded-3xl border border-border/40 dark:border-white/5 flex justify-between items-center">
-   <span className="text-sm font-medium text-foreground dark:text-white">{p.name}</span>
+   <span className="text-sm font-medium text-foreground">{p.name}</span>
    <span className={`text-xs px-2 py-0.5 rounded-3xl font-bold ${p.priority === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-muted text-muted-foreground'}`}>{p.priority}</span>
   </div>
   ))}

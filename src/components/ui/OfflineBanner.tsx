@@ -27,7 +27,7 @@ export const OfflineBanner: React.FC = () => {
   initial={{ height: 0, opacity: 0 }}
   animate={{ height: 'auto', opacity: 1 }}
   exit={{ height: 0, opacity: 0 }}
-  className="bg-red-500 text-white overflow-hidden absolute top-0 left-0 right-0 z-sticky text-center"
+  className="bg-error text-error-foreground overflow-hidden absolute top-0 left-0 right-0 z-sticky text-center"
  >
   <div className="py-1 px-4 text-xs font-bold flex items-center justify-center gap-2">
   <WifiOff className="h-3 w-3" />

@@ -443,7 +443,7 @@ export const Suppliers: React.FC = () => {
   >
   {t('suppliers.backLabel')}
   </button>
-  <h1 className="text-2xl font-bold dark:text-white">{t('suppliers.templateEditorTitle')}</h1>
+  <h1 className="text-2xl font-bold text-foreground">{t('suppliers.templateEditorTitle')}</h1>
  </div>
  <QuestionnaireBuilder onCancel={handleTemplateModeClose} onSave={handleTemplateModeClose} />
  </div>

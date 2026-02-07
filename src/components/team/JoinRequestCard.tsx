@@ -44,7 +44,7 @@ export const JoinRequestCard = React.memo(({ req, onApprove, onReject }: JoinReq
   type="button"
   aria-label={t('team.actions.approve')}
   onClick={handleApprove}
-  className="flex-1 py-2 bg-blue-600 text-white border border-blue-500 rounded-3xl text-xs font-bold hover:bg-blue-700 hover:shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-1"
+  className="flex-1 py-2 bg-primary hover:bg-primary/90 text-primary-foreground border border-primary rounded-3xl text-xs font-bold hover:bg-primary hover:shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-1"
   >
   <Check className="h-3.5 w-3.5" /> {t('team.actions.approve')}
   </button>

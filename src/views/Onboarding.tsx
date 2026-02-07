@@ -432,7 +432,7 @@ export const Onboarding: React.FC = () => {
  <div className="glass-premium rounded-3xl p-10 md:p-12 shadow-2xl">
   {/* ... (Header and UI structure) ... */}
   <div className="text-center mb-10">
-  <div className="w-16 h-16 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-xl mb-6 ring-1 ring-black/5 mx-auto">
+  <div className="w-16 h-16 rounded-2xl bg-card text-card-foreground flex items-center justify-center shadow-xl mb-6 ring-1 ring-border/5 mx-auto">
   {mode === 'join' ? <Users className="h-8 w-8" /> : <Lock className="h-8 w-8" strokeWidth={2.5} />}
   </div>
   <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">
@@ -501,7 +501,7 @@ export const Onboarding: React.FC = () => {
    <input value={searchQuery}
    aria-label={t('onboarding.actions.search')}
    type="text"
-   className="w-full pl-12 pr-4 py-3.5 bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl focus:ring-2 focus-visible:ring-primary dark:text-white transition-all outline-none font-medium placeholder:text-muted-foreground shadow-inner"
+   className="w-full pl-12 pr-4 py-3.5 bg-card/40 border border-border rounded-2xl focus:ring-2 focus-visible:ring-primary transition-all outline-none font-medium placeholder:text-muted-foreground shadow-inner"
    placeholder={t('onboarding.actions.search') + "..."}
    onChange={e => setSearchQuery(e.target.value)}
    />
@@ -555,7 +555,7 @@ export const Onboarding: React.FC = () => {
    aria-label={t('onboarding.actions.home')}
    onClick={() => window.location.reload()}
    variant="outline"
-   className="mt-8 px-6 py-3 bg-white/40 dark:bg-white/10 text-muted-foreground dark:text-white rounded-xl font-bold text-sm hover:bg-white/40 dark:hover:bg-muted dark:hover:bg-muted transition-colors h-auto border-white/20"
+   className="mt-8 px-6 py-3 bg-card/40 text-muted-foreground hover:text-foreground rounded-xl font-bold text-sm hover:bg-card/50 transition-colors h-auto border-border"
    >
    {t('onboarding.actions.home')}
    </Button>
@@ -826,7 +826,7 @@ export const Onboarding: React.FC = () => {
     className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${standards.includes(fw.name) ? 'bg-primary/10 border-primary ring-1 ring-primary' : 'bg-muted/50 dark:bg-white/5 border-border hover:border-primary/40'}`}
    >
     <div className="flex flex-col">
-    <span className="font-bold text-foreground dark:text-white">{fw.name}</span>
+    <span className="font-bold text-foreground">{fw.name}</span>
     {fw.isMandatory && (
     <span className="text-xs font-bold text-warning uppercase tracking-wider">
     {t('common.mandatory') || 'Obligatoire'}

@@ -28,10 +28,10 @@ export const ContextualAlert: React.FC<ContextualAlertProps> = ({
     className
 }) => {
     const variantStyles = {
-        info: 'from-primary/20 to-primary/5 border-primary/20 text-primary shadow-primary/10',
-        warning: 'from-warning/20 to-warning/5 border-warning/20 text-warning shadow-warning/10',
-        destructive: 'from-destructive/20 to-destructive/5 border-destructive/20 text-destructive shadow-destructive/10',
-        success: 'from-success/20 to-success/5 border-success/20 text-success shadow-success/10'
+        info: 'from-info-bg/80 to-info-bg/40 border-info-border/40 text-info-text shadow-info/10',
+        warning: 'from-warning-bg/80 to-warning-bg/40 border-warning-border/40 text-warning-text shadow-warning/10',
+        destructive: 'from-error-bg/80 to-error-bg/40 border-error-border/40 text-error-text shadow-error/10',
+        success: 'from-success-bg/80 to-success-bg/40 border-success-border/40 text-success-text shadow-success/10'
     };
 
     return (
