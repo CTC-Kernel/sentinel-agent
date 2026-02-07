@@ -72,7 +72,7 @@ use eframe::egui;
 
 use crate::dto::{
     AgentSummary, GuiAgentStatus, GuiCheckResult, GuiLogEntry, GuiPolicySummary, GuiResourceUsage,
-    GuiSoftwarePackage, GuiVulnerabilityFinding, GuiVulnerabilitySummary,
+    GuiVulnerabilityFinding, GuiVulnerabilitySummary,
 };
 use crate::enrollment::{EnrollmentCommand, EnrollmentWizard};
 use crate::events::{AgentEvent, GuiCommand};
@@ -120,111 +120,40 @@ pub struct SyncHistoryEntry {
 }
 
 /// Shared application state consumed by all pages.
+///
+/// Fields are grouped into domain sub-structs to keep the struct manageable.
+/// See [`crate::state`] for the sub-struct definitions.
 pub struct AppState {
+    // ── Core data (cross-page) ──
     pub summary: AgentSummary,
     pub resources: GuiResourceUsage,
     pub checks: Vec<GuiCheckResult>,
     pub logs: std::collections::VecDeque<GuiLogEntry>,
     pub policy: GuiPolicySummary,
     pub vulnerability_summary: Option<GuiVulnerabilitySummary>,
-
-    // Software inventory
-    pub software_packages: Vec<GuiSoftwarePackage>,
-    pub macos_apps: Vec<crate::dto::GuiMacOsApp>,
-
-    // Vulnerability findings
     pub vulnerability_findings: Vec<GuiVulnerabilityFinding>,
 
-    // Network state
-    pub network_interfaces: u32,
-    pub network_connections: u32,
-    pub network_alerts: u32,
-    pub primary_ip: Option<String>,
-    pub primary_mac: Option<String>,
-    pub last_network_scan: Option<chrono::DateTime<chrono::Utc>>,
-    pub network_interface_list: Vec<crate::dto::GuiNetworkInterface>,
-    pub network_connection_list: Vec<crate::dto::GuiNetworkConnection>,
-    pub network_connection_search: String,
+    // ── Domain sub-states ──
+    pub network: crate::state::NetworkState,
+    pub discovery: crate::state::DiscoveryState,
+    pub cartography: crate::state::CartographyState,
+    pub terminal: crate::state::TerminalState,
+    pub sync: crate::state::SyncState,
+    pub fim: crate::state::FimState,
+    pub threats: crate::state::ThreatsState,
+    pub monitoring: crate::state::MonitoringHistory,
+    pub compliance: crate::state::ComplianceFilter,
+    pub vulnerability: crate::state::VulnerabilityFilter,
+    pub software: crate::state::SoftwareState,
+    pub settings: crate::state::SettingsState,
 
-    // Sync state
-    pub sync_in_progress: bool,
-    pub sync_error: Option<String>,
-    pub sync_history: std::collections::VecDeque<SyncHistoryEntry>,
-
-    // Terminal state
-    pub terminal_lines: std::collections::VecDeque<crate::events::TerminalLogEntry>,
-    pub terminal_auto_scroll: bool,
-    pub terminal_filter_level: crate::dto::LogLevel,
-    pub terminal_search: String,
-    pub terminal_event_count: u64,
-    pub terminal_error_count: u64,
-
-    // Discovery state
-    pub discovered_devices: Vec<crate::dto::GuiDiscoveredDevice>,
-    pub discovery_in_progress: bool,
-    pub discovery_progress: f32,
-    pub discovery_phase: String,
-    pub discovery_enabled: bool,
-
-    // Cartography state
-    pub graph_layout: Option<crate::pages::cartography::GraphLayout>,
-    pub graph_zoom: f32,
-    pub graph_pan: egui::Vec2,
-    pub graph_selected_device: Option<String>,
-
-    // Settings state
-    pub is_paused: bool,
-    pub server_url: String,
-    pub check_interval_secs: u64,
-    pub heartbeat_interval_secs: u64,
-    pub log_level: crate::dto::LogLevel,
-    pub dark_mode: bool,
-    pub update_status: crate::dto::UpdateStatus,
-
-    // Software page tab state
-    pub software_active_tab: crate::dto::SoftwareTab,
-
-    // Search/filter state per page
-    pub compliance_search: String,
-    pub compliance_status_filter: Option<crate::dto::GuiCheckStatus>,
-    pub compliance_group_by: crate::dto::ComplianceGroupBy,
-    pub vulnerability_search: String,
-    pub vulnerability_severity_filter: Option<crate::dto::Severity>,
-    pub software_search: String,
-    pub discovery_search: String,
-
-    // Notifications
+    // ── Remaining top-level fields ──
     pub notifications: Vec<crate::dto::GuiNotification>,
     pub unread_notification_count: u32,
-
-    // Compliance trending
     pub previous_compliance_score: Option<f32>,
-
-    // Monitoring history (VecDeque for O(1) removal at front)
-    pub cpu_history: std::collections::VecDeque<[f64; 2]>,
-    pub memory_history: std::collections::VecDeque<[f64; 2]>,
-    pub disk_io_history: std::collections::VecDeque<[f64; 2]>,
-    pub network_io_history: std::collections::VecDeque<[f64; 2]>,
-
-    // FIM (File Integrity Monitoring)
-    pub fim_monitored_count: u32,
-    pub fim_changes_today: u32,
-    pub fim_alerts: std::collections::VecDeque<crate::dto::GuiFimAlert>,
-    pub fim_search: String,
-    pub fim_filter: Option<String>,
-
-    // Threats / Security events
-    pub suspicious_processes: std::collections::VecDeque<crate::dto::GuiSuspiciousProcess>,
-    pub usb_events: std::collections::VecDeque<crate::dto::GuiUsbEvent>,
-    pub threats_search: String,
-    pub threats_filter: Option<String>,
     pub audit_trail_search: String,
     pub audit_trail_filter: Option<String>,
-
-    // Toast notifications
     pub toasts: Vec<crate::widgets::toast::Toast>,
-
-    // Accessibility: reduced motion preference
     pub reduced_motion: bool,
 }
 
@@ -264,67 +193,22 @@ impl Default for AppState {
                 pending: 0,
             },
             vulnerability_summary: None,
-            software_packages: Vec::new(),
-            macos_apps: Vec::new(),
             vulnerability_findings: Vec::new(),
-            network_interfaces: 0,
-            network_connections: 0,
-            network_alerts: 0,
-            primary_ip: None,
-            primary_mac: None,
-            last_network_scan: None,
-            network_interface_list: Vec::new(),
-            network_connection_list: Vec::new(),
-            network_connection_search: String::new(),
-            terminal_lines: std::collections::VecDeque::new(),
-            terminal_auto_scroll: true,
-            terminal_filter_level: crate::dto::LogLevel::Info,
-            terminal_search: String::new(),
-            terminal_event_count: 0,
-            terminal_error_count: 0,
-            sync_in_progress: false,
-            sync_error: None,
-            sync_history: std::collections::VecDeque::new(),
-            discovered_devices: Vec::new(),
-            discovery_in_progress: false,
-            discovery_progress: 0.0,
-            discovery_phase: String::new(),
-            discovery_enabled: false,
-            graph_layout: None,
-            graph_zoom: 1.0,
-            graph_pan: egui::Vec2::ZERO,
-            graph_selected_device: None,
-            is_paused: false,
-            server_url: agent_common::constants::DEFAULT_SERVER_URL.to_string(),
-            check_interval_secs: agent_common::constants::DEFAULT_CHECK_INTERVAL_SECS,
-            heartbeat_interval_secs: agent_common::constants::DEFAULT_HEARTBEAT_INTERVAL_SECS,
-            log_level: crate::dto::LogLevel::Info,
-            dark_mode: true,
-            update_status: crate::dto::UpdateStatus::Idle,
-            software_active_tab: crate::dto::SoftwareTab::default(),
-            compliance_search: String::new(),
-            compliance_status_filter: None,
-            compliance_group_by: crate::dto::ComplianceGroupBy::default(),
-            vulnerability_search: String::new(),
-            vulnerability_severity_filter: None,
-            software_search: String::new(),
-            discovery_search: String::new(),
+            network: Default::default(),
+            discovery: Default::default(),
+            cartography: Default::default(),
+            terminal: Default::default(),
+            sync: Default::default(),
+            fim: Default::default(),
+            threats: Default::default(),
+            monitoring: Default::default(),
+            compliance: Default::default(),
+            vulnerability: Default::default(),
+            software: Default::default(),
+            settings: Default::default(),
             notifications: Vec::new(),
             unread_notification_count: 0,
             previous_compliance_score: None,
-            cpu_history: std::collections::VecDeque::new(),
-            memory_history: std::collections::VecDeque::new(),
-            disk_io_history: std::collections::VecDeque::new(),
-            network_io_history: std::collections::VecDeque::new(),
-            fim_monitored_count: 0,
-            fim_changes_today: 0,
-            fim_alerts: std::collections::VecDeque::new(),
-            fim_search: String::new(),
-            fim_filter: None,
-            suspicious_processes: std::collections::VecDeque::new(),
-            usb_events: std::collections::VecDeque::new(),
-            threats_search: String::new(),
-            threats_filter: None,
             audit_trail_search: String::new(),
             audit_trail_filter: None,
             toasts: Vec::new(),
@@ -523,32 +407,32 @@ impl SentinelApp {
                 AgentEvent::ResourceUpdate { usage } => {
                     const MAX_HISTORY: usize = 300;
                     let t = self.state.resources.uptime_secs as f64;
+                    let mon = &mut self.state.monitoring;
 
                     // Only push valid data to monitoring history (ignore initial 0.0 values)
                     if usage.cpu_percent > 0.0 {
-                        self.state.cpu_history.push_back([t, usage.cpu_percent]);
-                        while self.state.cpu_history.len() > MAX_HISTORY {
-                            self.state.cpu_history.pop_front();
+                        mon.cpu_history.push_back([t, usage.cpu_percent]);
+                        while mon.cpu_history.len() > MAX_HISTORY {
+                            mon.cpu_history.pop_front();
                         }
                     }
                     if usage.memory_percent > 0.0 {
-                        self.state.memory_history.push_back([t, usage.memory_percent]);
-                        while self.state.memory_history.len() > MAX_HISTORY {
-                            self.state.memory_history.pop_front();
+                        mon.memory_history.push_back([t, usage.memory_percent]);
+                        while mon.memory_history.len() > MAX_HISTORY {
+                            mon.memory_history.pop_front();
                         }
                     }
                     if usage.disk_iops > 0 {
-                        self.state.disk_io_history.push_back([t, usage.disk_iops as f64]);
-                        while self.state.disk_io_history.len() > MAX_HISTORY {
-                            self.state.disk_io_history.pop_front();
+                        mon.disk_io_history.push_back([t, usage.disk_iops as f64]);
+                        while mon.disk_io_history.len() > MAX_HISTORY {
+                            mon.disk_io_history.pop_front();
                         }
                     }
                     if usage.network_io_bytes > 0 {
-                        self.state
-                            .network_io_history
+                        mon.network_io_history
                             .push_back([t, usage.network_io_bytes as f64 / 1024.0]);
-                        while self.state.network_io_history.len() > MAX_HISTORY {
-                            self.state.network_io_history.pop_front();
+                        while mon.network_io_history.len() > MAX_HISTORY {
+                            mon.network_io_history.pop_front();
                         }
                     }
 
@@ -572,20 +456,20 @@ impl SentinelApp {
                     last_sync_at,
                     error,
                 } => {
-                    self.state.sync_in_progress = syncing;
+                    self.state.sync.in_progress = syncing;
                     self.state.summary.pending_sync_count = pending_count;
                     if let Some(ts) = last_sync_at {
                         self.state.summary.last_sync_at = Some(ts);
-                        self.state.sync_history.push_front(SyncHistoryEntry {
+                        self.state.sync.history.push_front(SyncHistoryEntry {
                             timestamp: ts,
                             success: error.is_none(),
                             message: error.clone().unwrap_or_else(|| {
                                 "Synchronisation termin\u{00e9}e".to_string()
                             }),
                         });
-                        self.state.sync_history.truncate(50);
+                        self.state.sync.history.truncate(50);
                     }
-                    self.state.sync_error = error;
+                    self.state.sync.error = error;
                 }
                 AgentEvent::NetworkUpdate {
                     interfaces_count,
@@ -594,54 +478,54 @@ impl SentinelApp {
                     primary_ip,
                     primary_mac,
                 } => {
-                    self.state.network_interfaces = interfaces_count;
-                    self.state.network_connections = connections_count;
-                    self.state.network_alerts = alerts_count;
-                    self.state.primary_ip = primary_ip;
-                    self.state.primary_mac = primary_mac;
-                    self.state.last_network_scan = Some(chrono::Utc::now());
+                    self.state.network.interface_count = interfaces_count;
+                    self.state.network.connection_count = connections_count;
+                    self.state.network.alert_count = alerts_count;
+                    self.state.network.primary_ip = primary_ip;
+                    self.state.network.primary_mac = primary_mac;
+                    self.state.network.last_scan = Some(chrono::Utc::now());
                 }
                 AgentEvent::NetworkDetailUpdate {
                     interfaces,
                     connections,
                 } => {
-                    self.state.network_interface_list = interfaces;
-                    self.state.network_connection_list = connections;
+                    self.state.network.interfaces = interfaces;
+                    self.state.network.connections = connections;
                 }
                 AgentEvent::VulnerabilityUpdate { summary } => {
                     self.state.vulnerability_summary = Some(summary);
                 }
                 AgentEvent::SoftwareUpdate { packages } => {
-                    self.state.software_packages = packages;
+                    self.state.software.packages = packages;
                 }
                 AgentEvent::VulnerabilityFindings { findings } => {
                     self.state.vulnerability_findings = findings;
                 }
                 AgentEvent::TerminalLog { entry } => {
-                    self.state.terminal_event_count += 1;
+                    self.state.terminal.event_count += 1;
                     if entry.level == "ERROR" {
-                        self.state.terminal_error_count += 1;
+                        self.state.terminal.error_count += 1;
                     }
-                    self.state.terminal_lines.push_back(entry);
+                    self.state.terminal.lines.push_back(entry);
                     // Ring buffer: keep max 500 lines
-                    while self.state.terminal_lines.len() > 500 {
-                        self.state.terminal_lines.pop_front();
+                    while self.state.terminal.lines.len() > 500 {
+                        self.state.terminal.lines.pop_front();
                     }
                 }
                 AgentEvent::DiscoveryUpdate { devices } => {
-                    self.state.discovered_devices = devices;
-                    self.state.discovery_in_progress = false;
-                    self.state.discovery_progress = 1.0;
-                    self.state.discovery_phase = "Termin\u{00e9}".to_string();
-                    self.state.graph_layout = None; // Force graph re-layout
+                    self.state.discovery.devices = devices;
+                    self.state.discovery.in_progress = false;
+                    self.state.discovery.progress = 1.0;
+                    self.state.discovery.phase = "Termin\u{00e9}".to_string();
+                    self.state.cartography.layout = None; // Force graph re-layout
                 }
                 AgentEvent::DiscoveryProgress {
                     phase,
                     progress,
                     devices_found: _,
                 } => {
-                    self.state.discovery_phase = phase;
-                    self.state.discovery_progress = progress;
+                    self.state.discovery.phase = phase;
+                    self.state.discovery.progress = progress;
                     // Don't reset devices here, they come in DiscoveryUpdate
                 }
                 AgentEvent::EnrollmentResult {
@@ -655,29 +539,29 @@ impl SentinelApp {
                     }
                 }
                 AgentEvent::FimAlert { alert } => {
-                    self.state.fim_alerts.push_front(alert);
-                    self.state.fim_alerts.truncate(500);
+                    self.state.fim.alerts.push_front(alert);
+                    self.state.fim.alerts.truncate(500);
                 }
                 AgentEvent::UsbEvent { event } => {
-                    self.state.usb_events.push_front(event);
-                    self.state.usb_events.truncate(200);
+                    self.state.threats.usb_events.push_front(event);
+                    self.state.threats.usb_events.truncate(200);
                 }
                 AgentEvent::SuspiciousProcess { process } => {
-                    self.state.suspicious_processes.push_front(process);
-                    self.state.suspicious_processes.truncate(200);
+                    self.state.threats.suspicious_processes.push_front(process);
+                    self.state.threats.suspicious_processes.truncate(200);
                 }
                 AgentEvent::FimStats {
                     monitored_count,
                     changes_today,
                 } => {
-                    self.state.fim_monitored_count = monitored_count;
-                    self.state.fim_changes_today = changes_today;
+                    self.state.fim.monitored_count = monitored_count;
+                    self.state.fim.changes_today = changes_today;
                 }
                 AgentEvent::ShuttingDown => {
                     // Runtime is shutting down
                 }
                 AgentEvent::UpdateStatusChanged { status } => {
-                    self.state.update_status = status;
+                    self.state.settings.update_status = status;
                 }
             }
         }
@@ -824,11 +708,11 @@ impl SentinelApp {
                     ui.vertical(|ui: &mut egui::Ui| {
                         let compliance = self.state.summary.compliance_score.unwrap_or(0.0) / 100.0;
                         let threats =
-                            1.0 - (self.state.suspicious_processes.len() as f32 / 10.0).min(1.0);
+                            1.0 - (self.state.threats.suspicious_processes.len() as f32 / 10.0).min(1.0);
                         let vulns =
                             1.0 - (self.state.vulnerability_findings.len() as f32 / 20.0).min(1.0);
                         let resources = 1.0 - (self.state.resources.cpu_percent / 100.0).min(1.0);
-                        let network = 1.0 - (self.state.network_alerts as f32 / 5.0).min(1.0);
+                        let network = 1.0 - (self.state.network.alert_count as f32 / 5.0).min(1.0);
 
                         let radar = widgets::TrayRadar::new(
                             compliance,
@@ -865,7 +749,7 @@ impl SentinelApp {
                             ui.vertical(|ui: &mut egui::Ui| {
                                 ui.label(egui::RichText::new("MENACES").font(theme::font_small()));
                                 ui.add_space(4.0);
-                                let count = self.state.suspicious_processes.len();
+                                let count = self.state.threats.suspicious_processes.len();
                                 ui.label(
                                     egui::RichText::new(count.to_string())
                                         .font(theme::font_title())
@@ -901,18 +785,18 @@ impl eframe::App for SentinelApp {
         // Apply theme once on first frame, and re-apply when dark_mode toggles.
         if !self.theme_applied {
             theme::configure_fonts(ctx);
-            theme::apply_theme(ctx, self.state.dark_mode);
+            theme::apply_theme(ctx, self.state.settings.dark_mode);
             egui_extras::install_image_loaders(ctx);
             // Scan macOS native apps once
-            self.state.macos_apps = scan_macos_apps();
+            self.state.software.macos_apps = scan_macos_apps();
             // Detect OS-level reduced motion preference
             self.state.reduced_motion = theme::detect_reduced_motion();
             theme::set_reduced_motion(self.state.reduced_motion);
             self.theme_applied = true;
-            self.last_dark_mode = self.state.dark_mode;
-        } else if self.state.dark_mode != self.last_dark_mode {
-            theme::apply_theme(ctx, self.state.dark_mode);
-            self.last_dark_mode = self.state.dark_mode;
+            self.last_dark_mode = self.state.settings.dark_mode;
+        } else if self.state.settings.dark_mode != self.last_dark_mode {
+            theme::apply_theme(ctx, self.state.settings.dark_mode);
+            self.last_dark_mode = self.state.settings.dark_mode;
             // Start theme transition animation (brief fade-out/fade-in)
             if !self.state.reduced_motion {
                 self.theme_transition = 0.0;
@@ -984,7 +868,9 @@ impl eframe::App for SentinelApp {
                             }
                             _ => {}
                         }
-                        let _ = self.enrollment_tx.send(cmd);
+                        if let Err(e) = self.enrollment_tx.send(cmd) {
+                            tracing::warn!("Failed to send enrollment command: {}", e);
+                        }
                     }
                 });
             ctx.request_repaint_after(std::time::Duration::from_millis(100));
@@ -1051,10 +937,10 @@ impl eframe::App for SentinelApp {
             .show(ctx, |ui: &mut egui::Ui| {
                 let scanning = self.state.summary.status == crate::dto::GuiAgentStatus::Scanning;
                 let sync_state = widgets::sidebar::SidebarSyncState {
-                    syncing: self.state.sync_in_progress,
+                    syncing: self.state.sync.in_progress,
                     pending_count: self.state.summary.pending_sync_count,
                     last_sync_at: self.state.summary.last_sync_at,
-                    error: self.state.sync_error.clone(),
+                    error: self.state.sync.error.clone(),
                 };
                 if let Some(new_page) = widgets::Sidebar::show(
                     ui,

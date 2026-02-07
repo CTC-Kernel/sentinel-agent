@@ -6,6 +6,7 @@ use crate::app::AppState;
 use crate::dto::GuiAgentStatus;
 use crate::events::GuiCommand;
 use crate::icons;
+#[cfg(feature = "llm_simple")]
 use crate::llm_panel::LLMStatusWidget;
 use crate::theme;
 use crate::widgets;
@@ -94,9 +95,7 @@ impl DashboardPage {
                 match idx {
                     0 => {
                         if let Some(cmd) = Self::command_center(ui, state) {
-                            // Can't return from closure, store for later
-                            // This is handled by the command variable above
-                            let _ = cmd;
+                            command = Some(cmd);
                         }
                     }
                     _ => {
@@ -193,7 +192,7 @@ impl DashboardPage {
                 show_stats: false,
             };
 
-            let cpu_data: Vec<[f64; 2]> = state.cpu_history.iter().copied().collect();
+            let cpu_data: Vec<[f64; 2]> = state.monitoring.cpu_history.iter().copied().collect();
             widgets::sparkline_with_value(
                 ui,
                 "CPU",
@@ -216,7 +215,7 @@ impl DashboardPage {
                 show_stats: false,
             };
 
-            let mem_data: Vec<[f64; 2]> = state.memory_history.iter().copied().collect();
+            let mem_data: Vec<[f64; 2]> = state.monitoring.memory_history.iter().copied().collect();
             widgets::sparkline_with_value(
                 ui,
                 "MÉMOIRE",

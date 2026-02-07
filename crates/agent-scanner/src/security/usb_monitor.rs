@@ -5,9 +5,8 @@
 
 use agent_common::types::{UsbDevice, UsbDeviceClass, UsbEvent, UsbEventType, UsbPolicy};
 use chrono::Utc;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
 /// USB device monitor that tracks connected devices.
 pub struct UsbMonitor {

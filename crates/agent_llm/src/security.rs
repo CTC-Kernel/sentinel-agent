@@ -89,12 +89,11 @@ impl SecurityClassifier {
 
         let event_details = serde_json::to_string_pretty(event)?;
 
-        PromptBuilder::new(template)
+        Ok(PromptBuilder::new(template)
             .set("event_details", &event_details)
             .set("system_info", &event.system_info)
             .set("historical_context", &event.historical_context)
-            .build()
-            .map_err(|e| anyhow::anyhow!("Failed to build classification prompt: {}", e))
+            .build())
     }
 
     /// Build vulnerability analysis prompt.

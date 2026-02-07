@@ -123,7 +123,7 @@ impl LogSigner {
         Ok(signed_entry)
     }
 
-    /// Verify a signed log entry.
+    /// Verify a signed log entry using constant-time comparison.
     pub fn verify(&self, entry: &SignedLogEntry) -> SyncResult<bool> {
         // Recompute signature without the signature field
         let entry_for_verify = SignedLogEntry {
@@ -132,9 +132,7 @@ impl LogSigner {
         };
 
         let canonical = entry_for_verify.canonical_data();
-        let expected = self.compute_hmac(&canonical)?;
-
-        Ok(expected.eq_ignore_ascii_case(&entry.signature))
+        self.verify_hmac_constant_time(&canonical, &entry.signature)
     }
 
     /// Verify a chain of log entries.
@@ -184,6 +182,20 @@ impl LogSigner {
         Ok(hex::encode(result.into_bytes()))
     }
 
+    /// Verify HMAC using constant-time comparison to prevent timing side-channels.
+    fn verify_hmac_constant_time(&self, data: &str, signature: &str) -> SyncResult<bool> {
+        let mut mac = HmacSha256::new_from_slice(&self.key)
+            .map_err(|e| SyncError::Config(format!("Invalid HMAC key: {}", e)))?;
+
+        mac.update(data.as_bytes());
+
+        let sig_bytes = hex::decode(signature.to_ascii_lowercase())
+            .map_err(|e| SyncError::Config(format!("Invalid signature hex: {}", e)))?;
+
+        // verify_slice uses constant-time comparison internally (via subtle crate)
+        Ok(mac.verify_slice(&sig_bytes).is_ok())
+    }
+
     /// Get current sequence number.
     pub async fn sequence(&self) -> u64 {
         *self.sequence.read().await
@@ -197,17 +209,22 @@ impl LogSigner {
 
     /// Sign a string and return the signature (for LogEntry integration).
     ///
-    /// # Panics
-    /// Panics if HMAC computation fails due to invalid key configuration.
-    /// This should never happen in production as keys are validated at construction.
+    /// Returns an empty string if HMAC computation fails (which should never happen
+    /// since keys are validated at construction).
     pub fn sign_data(&self, data: &str) -> String {
-        self.compute_hmac(data).expect("HMAC computation failed - invalid key configuration")
+        match self.compute_hmac(data) {
+            Ok(sig) => sig,
+            Err(e) => {
+                tracing::error!("HMAC computation failed unexpectedly: {} - returning empty signature", e);
+                String::new()
+            }
+        }
     }
 
-    /// Verify a signature against data (for LogEntry integration).
+    /// Verify a signature against data using constant-time comparison.
     pub fn verify_data(&self, data: &str, signature: &str) -> bool {
-        match self.compute_hmac(data) {
-            Ok(expected) => expected.eq_ignore_ascii_case(signature),
+        match self.verify_hmac_constant_time(data, signature) {
+            Ok(valid) => valid,
             Err(_) => false,
         }
     }
@@ -270,13 +287,14 @@ impl SignatureValidator {
         }
     }
 
-    /// Create a validator that skips verification (DANGEROUS - dev only).
+    /// Create a validator that skips verification (DANGEROUS - dev/test only).
     ///
     /// # Safety
-    /// This should ONLY be used in development/testing environments.
-    /// In production, always use `new()` with proper trusted signers.
+    /// This is restricted to debug/test builds only.
+    /// In release builds, this function is not available.
+    #[cfg(any(debug_assertions, test))]
     pub fn skip_verification() -> Self {
-        warn!("SignatureValidator created with skip_verification=true - THIS IS INSECURE");
+        warn!("SignatureValidator created with skip_verification=true - THIS IS INSECURE (debug build only)");
         Self {
             trusted_signers: vec![],
             skip_verification: true,

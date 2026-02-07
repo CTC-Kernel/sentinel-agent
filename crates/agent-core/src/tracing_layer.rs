@@ -5,6 +5,7 @@
 //! bridge.  The bridge uses non-blocking access (`try_lock` / `try_send`) to
 //! avoid any impact on the agent runtime if the GUI channel is slow or full.
 
+#[cfg(feature = "gui")]
 use std::sync::{Arc, Mutex};
 
 #[cfg(feature = "gui")]
@@ -138,7 +139,9 @@ where
             message: visitor.message,
         };
 
-        // Non-blocking send (fire and forget).
+        // Non-blocking send — intentionally fire-and-forget.
+        // Cannot use tracing macros here (would cause infinite recursion in the tracing layer).
+        // Dropped log entries on a full channel are acceptable behavior.
         let _ = tx.send(AgentEvent::TerminalLog { entry });
     }
 }

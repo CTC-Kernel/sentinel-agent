@@ -81,8 +81,10 @@ impl UpdateManager {
             folder, package_name
         );
 
-        let temp_dir = std::env::temp_dir();
-        let download_path = temp_dir.join(package_name);
+        // Use a unique temporary directory to prevent TOCTOU attacks
+        let temp_dir = tempfile::tempdir()
+            .map_err(|e| CommonError::io(format!("Failed to create temp directory: {}", e)))?;
+        let download_path = temp_dir.path().join(package_name);
 
         info!("Downloading update package to {:?}", download_path);
         self.api_client

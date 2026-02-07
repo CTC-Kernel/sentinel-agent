@@ -337,11 +337,13 @@ impl<'a> CheckResultsRepository<'a> {
                 sql.push_str(" ORDER BY executed_at DESC");
 
                 if let Some(limit) = query.limit {
-                    sql.push_str(&format!(" LIMIT {}", limit));
+                    sql.push_str(" LIMIT ?");
+                    params.push(Box::new(limit));
                 }
 
                 if let Some(offset) = query.offset {
-                    sql.push_str(&format!(" OFFSET {}", offset));
+                    sql.push_str(" OFFSET ?");
+                    params.push(Box::new(offset));
                 }
 
                 let mut stmt = conn

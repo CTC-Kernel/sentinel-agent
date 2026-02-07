@@ -123,8 +123,18 @@ pub struct ProxyConfig {
     pub username: Option<String>,
 
     /// Proxy password (optional).
+    /// Zeroized from memory on drop to prevent credential leakage.
     #[serde(default)]
     pub password: Option<String>,
+}
+
+impl Drop for ProxyConfig {
+    fn drop(&mut self) {
+        // Zeroize password from memory to prevent credential leakage
+        if let Some(ref mut password) = self.password {
+            zeroize::Zeroize::zeroize(password);
+        }
+    }
 }
 
 fn default_server_url() -> String {

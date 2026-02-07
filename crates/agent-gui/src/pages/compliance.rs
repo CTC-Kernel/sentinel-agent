@@ -128,11 +128,11 @@ impl CompliancePage {
         ui.add_space(theme::SPACE_LG);
 
         // Search / filter bar (AAA Grade)
-        let pass_active = state.compliance_status_filter == Some(GuiCheckStatus::Pass);
-        let fail_active = state.compliance_status_filter == Some(GuiCheckStatus::Fail);
-        let err_active = state.compliance_status_filter == Some(GuiCheckStatus::Error);
+        let pass_active = state.compliance.status_filter == Some(GuiCheckStatus::Pass);
+        let fail_active = state.compliance.status_filter == Some(GuiCheckStatus::Fail);
+        let err_active = state.compliance.status_filter == Some(GuiCheckStatus::Error);
 
-        let search_lower = state.compliance_search.to_lowercase();
+        let search_lower = state.compliance.search.to_lowercase();
         let filtered: Vec<usize> = state
             .checks
             .iter()
@@ -149,7 +149,7 @@ impl CompliancePage {
                         return false;
                     }
                 }
-                match state.compliance_status_filter {
+                match state.compliance.status_filter {
                     Some(GuiCheckStatus::Pass) => c.status == GuiCheckStatus::Pass,
                     Some(GuiCheckStatus::Fail) => c.status == GuiCheckStatus::Fail,
                     Some(GuiCheckStatus::Error) => c.status == GuiCheckStatus::Error,
@@ -162,7 +162,7 @@ impl CompliancePage {
         let result_count = filtered.len();
 
         let toggled = widgets::SearchFilterBar::new(
-            &mut state.compliance_search,
+            &mut state.compliance.search,
             "Rechercher un contrôle, un identifiant ou une catégorie...",
         )
         .chip("CONFORME", pass_active, theme::SUCCESS)
@@ -178,10 +178,10 @@ impl CompliancePage {
                 2 => Some(GuiCheckStatus::Error),
                 _ => None,
             };
-            if state.compliance_status_filter == target {
-                state.compliance_status_filter = None;
+            if state.compliance.status_filter == target {
+                state.compliance.status_filter = None;
             } else {
-                state.compliance_status_filter = target;
+                state.compliance.status_filter = target;
             }
         }
 
@@ -202,10 +202,10 @@ impl CompliancePage {
                 (ComplianceGroupBy::Category, "PAR CATÉGORIE"),
                 (ComplianceGroupBy::Framework, "PAR RÉFÉRENTIEL"),
             ] {
-                let active = state.compliance_group_by == val;
+                let active = state.compliance.group_by == val;
 
                 if widgets::chip_button(ui, label, active, theme::ACCENT).clicked() {
-                    state.compliance_group_by = val;
+                    state.compliance.group_by = val;
                 }
             }
 
@@ -260,7 +260,7 @@ impl CompliancePage {
             ui.add_space(theme::SPACE_MD);
 
             if filtered.is_empty() {
-                if state.compliance_status_filter == Some(GuiCheckStatus::Fail) {
+                if state.compliance.status_filter == Some(GuiCheckStatus::Fail) {
                     widgets::protected_state(
                         ui,
                         icons::SHIELD_CHECK,
@@ -284,7 +284,7 @@ impl CompliancePage {
                         Some("Modifiez vos critères de recherche ou de filtrage."),
                     );
                 }
-            } else if state.compliance_group_by == ComplianceGroupBy::None {
+            } else if state.compliance.group_by == ComplianceGroupBy::None {
                 ui.push_id("compliance_table_flat", |ui: &mut egui::Ui| {
                     Self::render_check_table(ui, state, &filtered, &mut command);
                 });
@@ -342,7 +342,7 @@ impl CompliancePage {
         let mut map: BTreeMap<String, Vec<usize>> = BTreeMap::new();
         for &i in indices {
             let check = &state.checks[i];
-            let key = if state.compliance_group_by == ComplianceGroupBy::Category {
+            let key = if state.compliance.group_by == ComplianceGroupBy::Category {
                 Self::format_category(&check.category)
             } else if check.frameworks.is_empty() {
                 "NON CLASSÉ".to_string()
@@ -620,48 +620,6 @@ impl CompliancePage {
                 false
             }
         }
-    }
-
-    fn summary_card(
-        ui: &mut Ui,
-        width: f32,
-        label: &str,
-        value: &str,
-        color: egui::Color32,
-        icon: &str,
-    ) {
-        ui.vertical(|ui: &mut egui::Ui| {
-            ui.set_width(width);
-            widgets::card(ui, |ui: &mut egui::Ui| {
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    ui.vertical(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(value)
-                                .font(theme::font_card_value())
-                                .color(color)
-                                .strong(),
-                        );
-                        ui.label(
-                            egui::RichText::new(label)
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .extra_letter_spacing(0.5)
-                                .strong(),
-                        );
-                    });
-                    ui.with_layout(
-                        egui::Layout::right_to_left(egui::Align::Center),
-                        |ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(icon)
-                                    .size(28.0)
-                                    .color(color.linear_multiply(0.25)),
-                            );
-                        },
-                    );
-                });
-            });
-        });
     }
 
     fn mini_stat(ui: &mut Ui, label: &str, value: &str, color: egui::Color32, icon: &str) {

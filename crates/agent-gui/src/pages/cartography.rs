@@ -29,7 +29,7 @@ impl CartographyPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command = None;
 
-        if state.discovered_devices.is_empty() {
+        if state.discovery.devices.is_empty() {
             ui.add_space(theme::SPACE_LG);
             widgets::protected_state(
                 ui,
@@ -59,7 +59,7 @@ impl CartographyPage {
                     ui.label(
                         egui::RichText::new(format!(
                             "{} NOEUD(S) RÉSEAU",
-                            state.discovered_devices.len()
+                            state.discovery.devices.len()
                         ))
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
@@ -71,16 +71,16 @@ impl CartographyPage {
 
                     // Reset layout button
                     if widgets::secondary_button(ui, "RÉINITIALISER", true).clicked() {
-                        state.graph_layout = None;
-                        state.graph_zoom = 1.0;
-                        state.graph_pan = Vec2::ZERO;
+                        state.cartography.layout = None;
+                        state.cartography.zoom = 1.0;
+                        state.cartography.pan = Vec2::ZERO;
                     }
 
                     ui.add_space(theme::SPACE_MD);
 
                     // Zoom indicators (AAA)
                     ui.label(
-                        egui::RichText::new(format!("ZOOM: {:.0}%", state.graph_zoom * 100.0))
+                        egui::RichText::new(format!("ZOOM: {:.0}%", state.cartography.zoom * 100.0))
                             .font(theme::font_label())
                             .color(theme::text_tertiary())
                             .strong(),
@@ -130,11 +130,12 @@ impl CartographyPage {
 
         ui.add_space(theme::SPACE_MD);
 
-        // Build graph layout if needed
-        let devices = state.discovered_devices.clone();
-        let layout = state
-            .graph_layout
-            .get_or_insert_with(|| build_initial_layout(&devices));
+        // Build graph layout if needed (avoid cloning on every frame)
+        if state.cartography.layout.is_none() {
+            let layout = build_initial_layout(&state.discovery.devices);
+            state.cartography.layout = Some(layout);
+        }
+        let layout = state.cartography.layout.as_mut().unwrap();
 
         // Run force simulation
         run_force_simulation(layout);
@@ -168,17 +169,17 @@ impl CartographyPage {
 
         // Handle pan
         if response.dragged() {
-            state.graph_pan += response.drag_delta();
+            state.cartography.pan += response.drag_delta();
         }
 
         // Handle zoom via scroll
         let scroll = ui.input(|i| i.smooth_scroll_delta.y);
         if scroll != 0.0 {
-            state.graph_zoom = (state.graph_zoom + scroll * 0.002).clamp(0.3, 3.0);
+            state.cartography.zoom = (state.cartography.zoom + scroll * 0.002).clamp(0.3, 3.0);
         }
 
-        let center = rect.center().to_vec2() + state.graph_pan;
-        let zoom = state.graph_zoom;
+        let center = rect.center().to_vec2() + state.cartography.pan;
+        let zoom = state.cartography.zoom;
 
         // Draw edges (AAA grade subtlety)
         for edge in &layout.edges {
@@ -220,7 +221,7 @@ impl CartographyPage {
             );
 
             // 2. Core Glow for Gateway or Selected
-            let is_selected = state.graph_selected_device.as_ref() == Some(&node.device.ip);
+            let is_selected = state.cartography.selected_device.as_ref() == Some(&node.device.ip);
             if is_selected || node.device.is_gateway {
                 let intensity = if is_selected { 0.4 } else { 0.2 };
                 painter.circle_filled(
@@ -261,7 +262,7 @@ impl CartographyPage {
                 && interact_rect
                     .contains(ui.input(|i| i.pointer.interact_pos().unwrap_or(Pos2::ZERO)))
             {
-                state.graph_selected_device = Some(node.device.ip.clone());
+                state.cartography.selected_device = Some(node.device.ip.clone());
             }
         }
 
@@ -301,9 +302,9 @@ impl CartographyPage {
         });
 
         // Selected Object Detail Panel (AAA Grade)
-        if let Some(ref selected_ip) = state.graph_selected_device.clone()
+        if let Some(ref selected_ip) = state.cartography.selected_device.clone()
             && let Some(device) = state
-                .discovered_devices
+                .discovery.devices
                 .iter()
                 .find(|d| &d.ip == selected_ip)
         {
@@ -332,7 +333,7 @@ impl CartographyPage {
                         |ui: &mut egui::Ui| {
                             if widgets::icon_button(ui, icons::XMARK, Some("Fermer")).clicked()
                             {
-                                state.graph_selected_device = None;
+                                state.cartography.selected_device = None;
                             }
                         },
                     );
@@ -416,7 +417,7 @@ impl CartographyPage {
     fn export_csv(state: &AppState) {
         let headers = &["ip", "hostname", "mac", "vendor", "type", "passerelle"];
         let rows: Vec<Vec<String>> = state
-            .discovered_devices
+            .discovery.devices
             .iter()
             .map(|d| {
                 vec![

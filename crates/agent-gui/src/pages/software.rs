@@ -54,14 +54,14 @@ impl SoftwarePage {
         ui.add_space(theme::SPACE_MD);
 
         // Tab bar (AAA Grade)
-        let active = state.software_active_tab;
+        let active = state.software.active_tab;
         ui.horizontal(|ui: &mut egui::Ui| {
             if Self::tab_button(
                 ui,
                 &format!("{} DÉPENDANCES ET PAQUETS", icons::SOFTWARE),
                 active == SoftwareTab::Packages,
             ) {
-                state.software_active_tab = SoftwareTab::Packages;
+                state.software.active_tab = SoftwareTab::Packages;
             }
             ui.add_space(theme::SPACE_SM);
             if Self::tab_button(
@@ -69,14 +69,14 @@ impl SoftwarePage {
                 &format!("{} APPLICATIONS UTILISATEUR", icons::CUBE),
                 active == SoftwareTab::Applications,
             ) {
-                state.software_active_tab = SoftwareTab::Applications;
+                state.software.active_tab = SoftwareTab::Applications;
             }
         });
 
         ui.add_space(theme::SPACE_LG);
 
         // Search filter bar (shared for both tabs)
-        let search_upper = state.software_search.to_uppercase();
+        let search_upper = state.software.search.to_uppercase();
 
         match active {
             SoftwareTab::Packages => Self::show_packages(ui, state, &search_upper),
@@ -92,7 +92,7 @@ impl SoftwarePage {
 
     fn show_packages(ui: &mut Ui, state: &mut AppState, search_upper: &str) {
         let filtered: Vec<usize> = state
-            .software_packages
+            .software.packages
             .iter()
             .enumerate()
             .filter(|(_, p)| {
@@ -113,9 +113,9 @@ impl SoftwarePage {
         let result_count = filtered.len();
 
         // Summary cards (AAA Grade)
-        let total = state.software_packages.len() as u32;
+        let total = state.software.packages.len() as u32;
         let up_to_date = state
-            .software_packages
+            .software.packages
             .iter()
             .filter(|p| p.up_to_date)
             .count() as u32;
@@ -154,7 +154,7 @@ impl SoftwarePage {
         ui.add_space(theme::SPACE_MD);
 
         widgets::SearchFilterBar::new(
-            &mut state.software_search,
+            &mut state.software.search,
             "Rechercher un paquet, une version ou un éditeur...",
         )
         .result_count(result_count)
@@ -269,7 +269,7 @@ impl SoftwarePage {
                     })
                     .body(|body| {
                         body.rows(theme::TABLE_ROW_HEIGHT, filtered.len(), |mut row| {
-                            let pkg = &state.software_packages[filtered[row.index()]];
+                            let pkg = &state.software.packages[filtered[row.index()]];
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&pkg.name)
@@ -340,7 +340,7 @@ impl SoftwarePage {
 
     fn show_macos_apps(ui: &mut Ui, state: &mut AppState, search_upper: &str) {
         let filtered: Vec<usize> = state
-            .macos_apps
+            .software.macos_apps
             .iter()
             .enumerate()
             .filter(|(_, a)| {
@@ -359,7 +359,7 @@ impl SoftwarePage {
             .collect();
 
         let result_count = filtered.len();
-        let total = state.macos_apps.len() as u32;
+        let total = state.software.macos_apps.len() as u32;
 
         let card_grid = widgets::ResponsiveGrid::new(280.0, theme::SPACE_SM);
         let items = vec![
@@ -390,7 +390,7 @@ impl SoftwarePage {
         ui.add_space(theme::SPACE_MD);
 
         widgets::SearchFilterBar::new(
-            &mut state.software_search,
+            &mut state.software.search,
             "Rechercher une application, un bundle ou un éditeur...",
         )
         .result_count(result_count)
@@ -496,7 +496,7 @@ impl SoftwarePage {
                     })
                     .body(|body| {
                         body.rows(theme::TABLE_ROW_HEIGHT, filtered.len(), |mut row| {
-                            let app = &state.macos_apps[filtered[row.index()]];
+                            let app = &state.software.macos_apps[filtered[row.index()]];
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&app.name)
@@ -522,8 +522,9 @@ impl SoftwarePage {
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {
-                                let pub_text = if app.publisher.len() > 64 {
-                                    format!("{}...", &app.publisher[..61])
+                                let pub_text = if app.publisher.chars().count() > 64 {
+                                    let truncated: String = app.publisher.chars().take(61).collect();
+                                    format!("{}...", truncated)
                                 } else {
                                     app.publisher.clone()
                                 };
@@ -547,7 +548,7 @@ impl SoftwarePage {
         let rows: Vec<Vec<String>> = indices
             .iter()
             .map(|&i| {
-                let p = &state.software_packages[i];
+                let p = &state.software.packages[i];
                 vec![
                     p.name.clone(),
                     p.version.clone(),
@@ -572,7 +573,7 @@ impl SoftwarePage {
         let rows: Vec<Vec<String>> = indices
             .iter()
             .map(|&i| {
-                let a = &state.macos_apps[i];
+                let a = &state.software.macos_apps[i];
                 vec![
                     a.name.clone(),
                     a.version.clone(),

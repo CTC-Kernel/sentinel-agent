@@ -33,26 +33,28 @@ pub mod tray;
 use agent_common::config::AgentConfig;
 use agent_common::constants::{AGENT_VERSION, DEFAULT_HEARTBEAT_INTERVAL_SECS};
 use agent_common::error::CommonError;
-use agent_common::types::{CheckSeverity, UpdateStatus};
-use agent_network::{
-    DiscoveryConfig, NetworkDiscovery, NetworkManager, NetworkSecurityAlert, NetworkSnapshot,
+use agent_common::types::CheckSeverity;
+#[cfg(feature = "gui")]
+use agent_common::types::UpdateStatus;
+#[cfg(feature = "gui")]
+use agent_network::{DiscoveryConfig, NetworkDiscovery};
+use agent_network::{NetworkManager, NetworkSecurityAlert, NetworkSnapshot};
+use agent_scanner::{
+    CheckExecutionResult, CheckRegistry, CheckRunner, CheckScoreInput, ComplianceScore,
+    ScanSummary, ScanType, ScoreCalculator, SecurityMonitor, SecurityScanResult,
+    VulnerabilityScanResult, VulnerabilityScanner,
+    checks::{
+        AdminAccountsCheck, AntivirusCheck, AuditLoggingCheck, AutoLoginCheck, BackupCheck,
+        BluetoothCheck, BrowserSecurityCheck, CertificateValidationCheck, ContainerSecurityCheck,
+        DiskEncryptionCheck, DnsSecurityCheck, FirewallCheck, GpoAuditPolicyCheck,
+        GpoLockoutPolicyCheck, GpoPasswordPolicyCheck, GuestAccountCheck, Ipv6ConfigCheck,
+        KernelHardeningCheck, LdapSecurityCheck, LinuxHardeningCheck, LogRotationCheck,
+        MfaCheck, ObsoleteProtocolsCheck, PasswordPolicyCheck, PrivilegedGroupsCheck,
+        RemoteAccessCheck, SecureBootCheck, SessionLockCheck, SshHardeningCheck,
+        SystemUpdatesCheck, TimeSyncCheck, UpdateStatusCheck, UsbStorageCheck,
+        WindowsHardeningCheck,
+    },
 };
-//// use agent_scanner::{
-//    CheckExecutionResult, CheckRegistry, CheckRunner, CheckScoreInput, ComplianceScore,
-//    RemediationEngine, ScanSummary, ScanType, ScoreCalculator, SecurityMonitor, SecurityScanResult,
-//    VulnerabilityScanResult, VulnerabilityScanner,
-//    checks::{
-//        AdminAccountsCheck, AntivirusCheck, AuditLoggingCheck, AutoLoginCheck, BackupCheck,
-//        BluetoothCheck, BrowserSecurityCheck, CertificateValidationCheck, ContainerSecurityCheck,
-//        DiskEncryptionCheck, DnsSecurityCheck, FirewallCheck, GpoAuditPolicyCheck,
-//        GpoLockoutPolicyCheck, GpoPasswordPolicyCheck, GuestAccountCheck, Ipv6ConfigCheck,
-//        KernelHardeningCheck, LdapSecurityCheck, LinuxHardeningCheck, LogRotationCheck,
-//        MfaCheck, ObsoleteProtocolsCheck, PasswordPolicyCheck, PrivilegedGroupsCheck,
-//        RemoteAccessCheck, SecureBootCheck, SessionLockCheck, SshHardeningCheck,
-//        SystemUpdatesCheck, TimeSyncCheck, UpdateStatusCheck, UsbStorageCheck,
-//        WindowsHardeningCheck,
-//    },
-//};
 use agent_storage::{
     CheckResult as StorageCheckResult, CheckResultsRepository, CheckRule as StorageCheckRule,
     CheckRulesRepository, CheckStatus as StorageCheckStatus, Database, Severity as StorageSeverity,
@@ -61,6 +63,8 @@ use agent_sync::{
     AuditSyncService, AuthenticatedClient, CommandResultsService, ConfigSyncService,
     ResultUploader, RuleSyncService,
 };
+#[cfg(feature = "gui")]
+use agent_scanner::RemediationEngine;
 use api_client::{ApiClient, EnrollmentRequest, HeartbeatRequest};
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use resources::ResourceMonitor;
@@ -245,18 +249,24 @@ impl RuntimeHandle {
 
     /// Trigger remediation for a check.
     pub fn remediate(&self, check_id: String) {
-        let _ = self
+        if let Err(e) = self
             .state
             .remediation_tx
-            .try_send(state::RemediationRequest::Execute { check_id });
+            .try_send(state::RemediationRequest::Execute { check_id })
+        {
+            warn!("Failed to send remediation request: {}", e);
+        }
     }
 
     /// Trigger remediation preview for a check.
     pub fn remediate_preview(&self, check_id: String) {
-        let _ = self
+        if let Err(e) = self
             .state
             .remediation_tx
-            .try_send(state::RemediationRequest::Preview { check_id });
+            .try_send(state::RemediationRequest::Preview { check_id })
+        {
+            warn!("Failed to send remediation preview request: {}", e);
+        }
     }
 
     /// Get a clone of the shutdown signal.
@@ -395,7 +405,9 @@ impl AgentRuntime {
     #[cfg(feature = "gui")]
     fn emit_gui_event(&self, event: AgentEvent) {
         if let Some(ref tx) = self.gui_event_tx {
-            let _ = tx.send(event);
+            if let Err(e) = tx.send(event) {
+                warn!("Failed to emit GUI event: {}", e);
+            }
         }
     }
 
@@ -786,17 +798,15 @@ impl AgentRuntime {
 
         let response = client.enroll(request).await?;
 
+        // Store organization ID in the already-held client reference (no second lock needed)
+        client.set_organization_id(response.organization_id.clone());
+
+        // Drop the api_client write lock before acquiring heartbeat lock
+        drop(api_client);
+
         // Update heartbeat interval from server config
         let mut interval = self.heartbeat_interval_secs.write().await;
         *interval = response.config.heartbeat_interval_secs;
-
-        // Store organization ID in API client for subsequent requests
-        {
-            let mut api_client = self.api_client.write().await;
-            if let Some(client) = api_client.as_mut() {
-                client.set_organization_id(response.organization_id.clone());
-            }
-        }
 
         info!(
             "Enrolled successfully. Agent ID: {}, Organization ID: {}, Heartbeat interval: {}s",
@@ -832,11 +842,16 @@ impl AgentRuntime {
 
         // Get total network bytes since boot
         let network_bytes = {
-            let networks = self.resource_monitor.get_networks().lock().unwrap();
-            networks
-                .values()
-                .map(|data| (data.transmitted(), data.received()))
-                .fold((0, 0), |acc, (t, r)| (acc.0 + t, acc.1 + r))
+            match self.resource_monitor.get_networks().lock() {
+                Ok(networks) => networks
+                    .values()
+                    .map(|data| (data.transmitted(), data.received()))
+                    .fold((0, 0), |acc, (t, r)| (acc.0 + t, acc.1 + r)),
+                Err(e) => {
+                    warn!("Failed to lock network monitor (mutex poisoned): {}", e);
+                    (0, 0)
+                }
+            }
         };
 
         let request = HeartbeatRequest {
@@ -891,7 +906,9 @@ impl AgentRuntime {
                             "Rejecting unknown/disallowed server command type '{}' (id={})",
                             cmd.command_type, cmd.id
                         );
-                        let _ = service.report_failure(&cmd.id, "Unknown or disallowed command type".to_string()).await;
+                        if let Err(e) = service.report_failure(&cmd.id, "Unknown or disallowed command type".to_string()).await {
+                            error!("Failed to report command rejection to server: {}", e);
+                        }
                         continue;
                     }
 
@@ -2363,7 +2380,9 @@ impl AgentRuntime {
 
             // Check for force_update flag (trigger from GUI button)
             if self.state.force_update.swap(false, Ordering::AcqRel) {
-                let _ = self.run_self_update().await;
+                if let Err(e) = self.run_self_update().await {
+                    warn!("Self-update failed: {}", e);
+                }
             }
 
             // Check for force_discovery flag (GUI network discovery)
@@ -2410,11 +2429,13 @@ impl AgentRuntime {
                             }
                         });
 
-                        let _ = tx.send(AgentEvent::DiscoveryProgress {
+                        if let Err(e) = tx.send(AgentEvent::DiscoveryProgress {
                             phase: "Scan ARP en cours...".to_string(),
                             progress: 0.1,
                             devices_found: 0,
-                        });
+                        }) {
+                            warn!("Failed to send discovery progress: {}", e);
+                        }
 
                         match discovery.scan(&subnet).await {
                             Ok(result) => {
@@ -2469,15 +2490,19 @@ impl AgentRuntime {
                                     }
                                 }
 
-                                let _ = tx.send(AgentEvent::DiscoveryUpdate { devices });
+                                if let Err(e) = tx.send(AgentEvent::DiscoveryUpdate { devices }) {
+                                    warn!("Failed to send discovery update: {}", e);
+                                }
                             }
                             Err(e) => {
                                 warn!("Discovery scan failed: {}", e);
-                                let _ = tx.send(AgentEvent::DiscoveryProgress {
+                                if let Err(e2) = tx.send(AgentEvent::DiscoveryProgress {
                                     phase: format!("Erreur: {}", e),
                                     progress: 0.0,
                                     devices_found: 0,
-                                });
+                                }) {
+                                    warn!("Failed to send discovery error progress: {}", e2);
+                                }
                             }
                         }
                     });

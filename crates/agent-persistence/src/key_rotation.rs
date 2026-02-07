@@ -130,7 +130,7 @@ impl<'a> KeyRotationManager<'a> {
             .get_database_key()
             .map_err(|e| PersistenceError::KeyRotation(format!("Failed to get new key: {}", e)))?;
 
-        let new_key_hex: String = new_key.iter().map(|b| format!("{:02x}", b)).collect();
+        let mut new_key_hex: String = new_key.iter().map(|b| format!("{:02x}", b)).collect();
 
         let rekey_result = tokio::runtime::Runtime::new()
             .map_err(|e| PersistenceError::KeyRotation(format!("Failed to create runtime: {}", e)))?
@@ -142,6 +142,14 @@ impl<'a> KeyRotationManager<'a> {
                 })
                 .await
             });
+
+        // Zeroize key material from memory
+        // SAFETY: volatile write prevents compiler from optimizing away the zeroing
+        unsafe {
+            for byte in new_key_hex.as_bytes_mut() {
+                std::ptr::write_volatile(byte, 0);
+            }
+        }
 
         match rekey_result {
             Ok(()) => {

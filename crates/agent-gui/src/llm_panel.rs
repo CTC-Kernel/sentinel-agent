@@ -24,9 +24,13 @@ pub struct LLMPanel {
     last_remediation: Option<RemediationPlan>,
     #[cfg(feature = "llm_simple")]
     last_classifications: Vec<SecurityClassification>,
+    #[cfg(feature = "llm_simple")]
     show_analysis: bool,
+    #[cfg(feature = "llm_simple")]
     show_remediation: bool,
+    #[cfg(feature = "llm_simple")]
     show_classifications: bool,
+    #[cfg(feature = "llm_simple")]
     show_model_info: bool,
 }
 
@@ -43,9 +47,13 @@ impl Default for LLMPanel {
             last_remediation: None,
             #[cfg(feature = "llm_simple")]
             last_classifications: Vec::new(),
+            #[cfg(feature = "llm_simple")]
             show_analysis: false,
+            #[cfg(feature = "llm_simple")]
             show_remediation: false,
+            #[cfg(feature = "llm_simple")]
             show_classifications: false,
+            #[cfg(feature = "llm_simple")]
             show_model_info: false,
         }
     }

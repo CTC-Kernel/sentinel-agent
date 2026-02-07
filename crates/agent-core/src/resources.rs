@@ -144,7 +144,7 @@ impl ResourceMonitor {
         // Disk I/O collection using sysinfo for the current process
         let disk_iops = if let Ok(mut sys) = self.sys.lock() {
             // Refresh only current process for efficiency
-            let pid = sysinfo::get_current_pid().unwrap_or(sysinfo::Pid::from(0));
+            let pid = sysinfo::get_current_pid().unwrap_or(sysinfo::Pid::from(std::process::id() as usize));
             sys.refresh_processes_specifics(
                 sysinfo::ProcessesToUpdate::Some(&[pid]),
                 true,
@@ -184,7 +184,13 @@ impl ResourceMonitor {
     /// Get detailed process list for telemetry.
     pub fn get_processes(&self) -> Vec<crate::api_client::AgentProcess> {
         use sysinfo::{ProcessRefreshKind, ProcessesToUpdate};
-        let mut sys = self.sys.lock().unwrap();
+        let mut sys = match self.sys.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => {
+                tracing::warn!("sysinfo mutex was poisoned, recovering");
+                poisoned.into_inner()
+            }
+        };
         
         sys.refresh_processes_specifics(
             ProcessesToUpdate::All,
@@ -678,8 +684,9 @@ fn get_process_memory() -> u64 {
         if parts.len() >= 2 {
             // Second field is RSS in pages
             if let Ok(rss_pages) = parts[1].parse::<u64>() {
-                // Page size is typically 4KB
-                return rss_pages * 4096;
+                let page_size = unsafe { libc::sysconf(libc::_SC_PAGESIZE) } as u64;
+                let page_size = if page_size > 0 { page_size } else { 4096 };
+                return rss_pages * page_size;
             }
         }
     }
@@ -705,11 +712,17 @@ fn get_cpu_usage() -> f64 {
 
     // Read from /proc/self/stat for CPU time
     if let Ok(stat) = fs::read_to_string("/proc/self/stat") {
-        let parts: Vec<&str> = stat.split_whitespace().collect();
-        if parts.len() >= 15 {
-            // Fields 14 and 15 are utime and stime (in clock ticks)
-            let utime: u64 = parts[13].parse().unwrap_or(0);
-            let stime: u64 = parts[14].parse().unwrap_or(0);
+        // Parse past the comm field (which may contain spaces/parens) by finding the last ')'
+        let after_comm = match stat.rfind(')') {
+            Some(pos) => &stat[pos + 2..], // skip ") "
+            None => return 0.0,
+        };
+        let parts: Vec<&str> = after_comm.split_whitespace().collect();
+        if parts.len() >= 13 {
+            // After comm: state(0), ppid(1), pgrp(2), session(3), tty(4), tpgid(5),
+            // flags(6), minflt(7), cminflt(8), majflt(9), cmajflt(10), utime(11), stime(12)
+            let utime: u64 = parts[11].parse().unwrap_or(0);
+            let stime: u64 = parts[12].parse().unwrap_or(0);
             let cpu_time = utime + stime;
 
             // Get current wall clock time in milliseconds
@@ -816,7 +829,8 @@ fn get_system_memory() -> (u64, u64) {
 fn get_disk_usage() -> (u64, u64) {
     unsafe {
         let mut stat: libc::statvfs = std::mem::zeroed();
-        let path = std::ffi::CString::new("/").unwrap();
+        // SAFETY: "/" is always valid UTF-8 with no interior NUL bytes
+        let path = std::ffi::CString::new("/").expect("static path \"/\" is always valid");
         if libc::statvfs(path.as_ptr(), &mut stat) == 0 {
             let total = stat.f_blocks as u64 * stat.f_frsize;
             let free = stat.f_bavail as u64 * stat.f_frsize;
@@ -1188,7 +1202,8 @@ fn get_system_memory() -> (u64, u64) {
 fn get_disk_usage() -> (u64, u64) {
     unsafe {
         let mut stat: libc::statvfs = std::mem::zeroed();
-        let path = std::ffi::CString::new("/").unwrap();
+        // SAFETY: "/" is always valid UTF-8 with no interior NUL bytes
+        let path = std::ffi::CString::new("/").expect("static path \"/\" is always valid");
         if libc::statvfs(path.as_ptr(), &mut stat) == 0 {
             let total = stat.f_blocks as u64 * stat.f_frsize;
             let free = stat.f_bavail as u64 * stat.f_frsize;
@@ -1202,21 +1217,25 @@ fn get_disk_usage() -> (u64, u64) {
 
 #[cfg(target_os = "macos")]
 fn get_disk_iops() -> u32 {
-    // macOS provides disk I/O through proc_pid_rusage
-    // Note: We use the cumulative read+write bytes as a proxy for activity if IOPS is not directly accessible
-    // In many GRC contexts, throughput is as important as IOPS.
     use libc::{proc_pid_rusage, rusage_info_v4};
     use std::mem;
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    static LAST_DISK_BYTES: AtomicU64 = AtomicU64::new(0);
 
     unsafe {
         let mut info: rusage_info_v4 = mem::zeroed();
         let pid = libc::getpid();
         let res = proc_pid_rusage(pid, libc::RUSAGE_INFO_V4, &mut info as *mut _ as *mut _);
         if res == 0 {
-            // (ri_diskio_bytesread + ri_diskio_byteswritten)
-            // We return this as a u32, but it might overflow if throughput is massive.
-            // However, this is for a 1s (or heartbeat interval) snapshot usually.
-            ((info.ri_diskio_bytesread + info.ri_diskio_byteswritten) / 1024) as u32
+            let current_bytes = info.ri_diskio_bytesread + info.ri_diskio_byteswritten;
+            let last = LAST_DISK_BYTES.swap(current_bytes, Ordering::Relaxed);
+            // Return delta in KB (0 on first measurement)
+            if last > 0 {
+                (current_bytes.saturating_sub(last) / 1024) as u32
+            } else {
+                0
+            }
         } else {
             0
         }
@@ -1250,7 +1269,7 @@ fn get_system_memory() -> (u64, u64) {
         let mut ms = MEMORYSTATUSEX::default();
         ms.dwLength = std::mem::size_of::<MEMORYSTATUSEX>() as u32;
         if GlobalMemoryStatusEx(&mut ms).is_ok() {
-            return (ms.ullTotalPhys - ms.ullAvailPhys, ms.ullTotalPhys);
+            return (ms.ullTotalPhys, ms.ullTotalPhys - ms.ullAvailPhys);
         }
     }
     (0, 0)
@@ -1374,7 +1393,7 @@ fn get_cpu_usage() -> f64 {
 
             // Calculate CPU usage if we have previous measurements
             if last_time > 0 && current_time > last_time {
-                let cpu_time_delta = (kernel - last_kernel) + (user - last_user);
+                let cpu_time_delta = kernel.saturating_sub(last_kernel) + user.saturating_sub(last_user);
                 let wall_time_delta = current_time - last_time;
 
                 if wall_time_delta > 0 {
