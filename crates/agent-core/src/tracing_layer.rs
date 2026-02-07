@@ -136,6 +136,7 @@ struct MessageVisitor {
 }
 
 #[cfg(not(feature = "gui"))]
+#[allow(dead_code)] // Intentional: struct used only with "gui" feature; kept for feature parity
 struct MessageVisitor {
     message: String,
 }
@@ -150,6 +151,7 @@ impl MessageVisitor {
 }
 
 #[cfg(not(feature = "gui"))]
+#[allow(dead_code)]
 impl MessageVisitor {
     fn new() -> Self {
         Self {

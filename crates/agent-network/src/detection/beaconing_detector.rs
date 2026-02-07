@@ -31,6 +31,8 @@ pub struct BeaconingConfig {
     pub max_beacon_interval_secs: i64,
     /// Maximum number of tracked destinations to prevent unbounded memory growth.
     pub max_tracked_destinations: usize,
+    /// Maximum events stored per destination to prevent unbounded memory growth.
+    pub max_events_per_destination: usize,
 }
 
 impl Default for BeaconingConfig {
@@ -43,6 +45,7 @@ impl Default for BeaconingConfig {
             min_beacon_interval_secs: 30,
             max_beacon_interval_secs: 3600,
             max_tracked_destinations: 10_000,
+            max_events_per_destination: 1_000,
         }
     }
 }
@@ -141,10 +144,16 @@ impl BeaconingDetector {
                 }
             }
 
-            self.connection_history
+            let events = self.connection_history
                 .entry(destination)
-                .or_default()
-                .push(event);
+                .or_default();
+            events.push(event);
+
+            // Enforce max events per destination to prevent unbounded memory growth
+            if events.len() > self.config.max_events_per_destination {
+                let excess = events.len() - self.config.max_events_per_destination;
+                events.drain(..excess);
+            }
 
             // Cleanup old entries
             self.cleanup_old_events();
