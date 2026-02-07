@@ -6,6 +6,8 @@
 use crate::audit_trail::{AuditAction, LocalAuditTrail};
 use std::sync::Arc;
 
+#[cfg_attr(not(feature = "gui"), allow(dead_code))]
+
 #[cfg(feature = "gui")]
 pub use agent_gui::{
     dto::GuiNotification,
@@ -16,6 +18,18 @@ pub use agent_gui::{
 #[derive(Debug, Clone)]
 pub enum AgentEvent {
     Dummy,
+}
+
+#[cfg(not(feature = "gui"))]
+#[derive(Debug, Clone)]
+pub enum GuiCommand {
+    Dummy,
+}
+
+#[cfg(not(feature = "gui"))]
+#[derive(Debug, Clone)]
+pub struct GuiNotification {
+    pub dummy: bool,
 }
 
 /// Manages event dispatching and command processing.
