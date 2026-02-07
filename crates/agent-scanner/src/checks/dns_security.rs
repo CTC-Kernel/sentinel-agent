@@ -166,7 +166,9 @@ impl DnsSecurityCheck {
 
         if let Ok(output) = doh_output {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("DoH Registry: {}\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("DoH Registry: {}\n", result.trim()));
 
             // EnableAutoDoh: 2 = automatic, 1 = off
             if result.contains("0x2") {
@@ -178,10 +180,14 @@ impl DnsSecurityCheck {
         let dns_output = Command::new("netsh")
             .args(["interface", "ip", "show", "dns"])
             .output()
-            .map_err(|e| ScannerError::CheckExecution(format!("Failed to query DNS config: {}", e)))?;
+            .map_err(|e| {
+                ScannerError::CheckExecution(format!("Failed to query DNS config: {}", e))
+            })?;
 
         let dns_result = String::from_utf8_lossy(&dns_output.stdout).to_string();
-        status.raw_output.push_str(&format!("DNS Servers:\n{}\n", dns_result));
+        status
+            .raw_output
+            .push_str(&format!("DNS Servers:\n{}\n", dns_result));
 
         // Parse DNS servers from output
         for line in dns_result.lines() {
@@ -195,7 +201,10 @@ impl DnsSecurityCheck {
         }
 
         // Check if using secure providers
-        status.using_secure_provider = status.dns_servers.iter().any(|s| Self::is_secure_provider(s));
+        status.using_secure_provider = status
+            .dns_servers
+            .iter()
+            .any(|s| Self::is_secure_provider(s));
 
         // Check DoH templates
         let template_output = Command::new("netsh")
@@ -204,7 +213,9 @@ impl DnsSecurityCheck {
 
         if let Ok(output) = template_output {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("DoH Templates:\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("DoH Templates:\n{}\n", result));
 
             if Self::is_doh_endpoint(&result) {
                 status.doh_enabled = true;
@@ -222,11 +233,15 @@ impl DnsSecurityCheck {
         status.secure = status.doh_enabled || status.dot_enabled || status.using_secure_provider;
 
         if !status.doh_enabled && !status.dot_enabled {
-            status.issues.push("DNS-over-HTTPS/TLS not enabled".to_string());
+            status
+                .issues
+                .push("DNS-over-HTTPS/TLS not enabled".to_string());
         }
 
         if !status.using_secure_provider && status.dns_servers.is_empty() {
-            status.issues.push("No secure DNS provider configured".to_string());
+            status
+                .issues
+                .push("No secure DNS provider configured".to_string());
         }
 
         Ok(status)
@@ -253,13 +268,16 @@ impl DnsSecurityCheck {
         // Check systemd-resolved (modern Linux)
         if let Ok(output) = Command::new("resolvectl").args(["status"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("resolvectl status:\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("resolvectl status:\n{}\n", result));
             status.config_method = "systemd-resolved".to_string();
 
             // Parse DNS servers
             for line in result.lines() {
                 let line_lower = line.to_lowercase();
-                if line_lower.contains("dns servers:") || line_lower.contains("current dns server:") {
+                if line_lower.contains("dns servers:") || line_lower.contains("current dns server:")
+                {
                     if let Some(server_part) = line.split(':').last() {
                         for server in server_part.split_whitespace() {
                             if server.contains('.') || server.contains(':') {
@@ -271,19 +289,23 @@ impl DnsSecurityCheck {
 
                 // Check DNSSEC
                 if line_lower.contains("dnssec setting:") {
-                    status.dnssec_enabled = line_lower.contains("yes") || line_lower.contains("allow-downgrade");
+                    status.dnssec_enabled =
+                        line_lower.contains("yes") || line_lower.contains("allow-downgrade");
                 }
 
                 // Check DNS over TLS
                 if line_lower.contains("dns over tls:") {
-                    status.dot_enabled = line_lower.contains("yes") || line_lower.contains("opportunistic");
+                    status.dot_enabled =
+                        line_lower.contains("yes") || line_lower.contains("opportunistic");
                 }
             }
         }
 
         // Check /etc/resolv.conf for traditional configuration
         if let Ok(content) = std::fs::read_to_string("/etc/resolv.conf") {
-            status.raw_output.push_str(&format!("/etc/resolv.conf:\n{}\n", content));
+            status
+                .raw_output
+                .push_str(&format!("/etc/resolv.conf:\n{}\n", content));
 
             if status.config_method == "Unknown" {
                 status.config_method = "resolv.conf".to_string();
@@ -314,7 +336,10 @@ impl DnsSecurityCheck {
         }
 
         // Check if using secure providers
-        status.using_secure_provider = status.dns_servers.iter().any(|s| Self::is_secure_provider(s));
+        status.using_secure_provider = status
+            .dns_servers
+            .iter()
+            .any(|s| Self::is_secure_provider(s));
 
         // Determine overall security status
         status.secure = status.doh_enabled
@@ -322,15 +347,21 @@ impl DnsSecurityCheck {
             || (status.dnssec_enabled && status.using_secure_provider);
 
         if !status.doh_enabled && !status.dot_enabled {
-            status.issues.push("DNS-over-HTTPS/TLS not enabled".to_string());
+            status
+                .issues
+                .push("DNS-over-HTTPS/TLS not enabled".to_string());
         }
 
         if !status.dnssec_enabled {
-            status.issues.push("DNSSEC validation not enabled".to_string());
+            status
+                .issues
+                .push("DNSSEC validation not enabled".to_string());
         }
 
         if !status.using_secure_provider {
-            status.issues.push("No secure DNS provider configured".to_string());
+            status
+                .issues
+                .push("No secure DNS provider configured".to_string());
         }
 
         Ok(status)
@@ -358,10 +389,14 @@ impl DnsSecurityCheck {
         let output = Command::new("scutil")
             .args(["--dns"])
             .output()
-            .map_err(|e| ScannerError::CheckExecution(format!("Failed to query DNS config: {}", e)))?;
+            .map_err(|e| {
+                ScannerError::CheckExecution(format!("Failed to query DNS config: {}", e))
+            })?;
 
         let result = String::from_utf8_lossy(&output.stdout).to_string();
-        status.raw_output.push_str(&format!("scutil --dns:\n{}\n", result));
+        status
+            .raw_output
+            .push_str(&format!("scutil --dns:\n{}\n", result));
 
         // Parse DNS servers
         for line in result.lines() {
@@ -378,13 +413,13 @@ impl DnsSecurityCheck {
         }
 
         // Check for DNS configuration profiles (DoH/DoT)
-        let profiles_output = Command::new("profiles")
-            .args(["list"])
-            .output();
+        let profiles_output = Command::new("profiles").args(["list"]).output();
 
         if let Ok(output) = profiles_output {
             let profiles = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("profiles list:\n{}\n", profiles));
+            status
+                .raw_output
+                .push_str(&format!("profiles list:\n{}\n", profiles));
 
             // Check for DNS settings profiles
             if profiles.to_lowercase().contains("dns") {
@@ -394,7 +429,10 @@ impl DnsSecurityCheck {
                     .output()
                 {
                     let details = String::from_utf8_lossy(&detail_output.stdout).to_string();
-                    if details.contains("DNSSettings") || details.contains("doh") || details.contains("dot") {
+                    if details.contains("DNSSettings")
+                        || details.contains("doh")
+                        || details.contains("dot")
+                    {
                         status.doh_enabled = true;
                         status.config_method = "DNS Configuration Profile".to_string();
                     }
@@ -427,7 +465,10 @@ impl DnsSecurityCheck {
         }
 
         // Check if using secure providers
-        status.using_secure_provider = status.dns_servers.iter().any(|s| Self::is_secure_provider(s));
+        status.using_secure_provider = status
+            .dns_servers
+            .iter()
+            .any(|s| Self::is_secure_provider(s));
 
         // macOS 14+ supports native DoH
         if let Ok(output) = Command::new("sw_vers").args(["-productVersion"]).output() {
@@ -435,7 +476,9 @@ impl DnsSecurityCheck {
             if let Some(major) = version.trim().split('.').next() {
                 if let Ok(major_num) = major.parse::<u32>() {
                     if major_num >= 14 {
-                        status.raw_output.push_str("macOS 14+ detected (native DoH support)\n");
+                        status
+                            .raw_output
+                            .push_str("macOS 14+ detected (native DoH support)\n");
                     }
                 }
             }
@@ -445,11 +488,15 @@ impl DnsSecurityCheck {
         status.secure = status.doh_enabled || status.dot_enabled || status.using_secure_provider;
 
         if !status.doh_enabled && !status.dot_enabled {
-            status.issues.push("DNS-over-HTTPS/TLS not enabled".to_string());
+            status
+                .issues
+                .push("DNS-over-HTTPS/TLS not enabled".to_string());
         }
 
         if !status.using_secure_provider && !status.doh_enabled {
-            status.issues.push("No secure DNS provider configured".to_string());
+            status
+                .issues
+                .push("No secure DNS provider configured".to_string());
         }
 
         Ok(status)
@@ -516,7 +563,10 @@ impl Check for DnsSecurityCheck {
             }
 
             Ok(CheckOutput::pass(
-                format!("DNS security is properly configured: {}", details.join(", ")),
+                format!(
+                    "DNS security is properly configured: {}",
+                    details.join(", ")
+                ),
                 raw_data,
             ))
         } else {

@@ -215,7 +215,10 @@ impl LogSigner {
         match self.compute_hmac(data) {
             Ok(sig) => sig,
             Err(e) => {
-                tracing::error!("HMAC computation failed unexpectedly: {} - returning empty signature", e);
+                tracing::error!(
+                    "HMAC computation failed unexpectedly: {} - returning empty signature",
+                    e
+                );
                 String::new()
             }
         }
@@ -294,7 +297,9 @@ impl SignatureValidator {
     /// In release builds, this function is not available.
     #[cfg(any(debug_assertions, test))]
     pub fn skip_verification() -> Self {
-        warn!("SignatureValidator created with skip_verification=true - THIS IS INSECURE (debug build only)");
+        warn!(
+            "SignatureValidator created with skip_verification=true - THIS IS INSECURE (debug build only)"
+        );
         Self {
             trusted_signers: vec![],
             skip_verification: true,
@@ -373,8 +378,9 @@ impl SignatureValidator {
             status_message: Option<String>,
         }
 
-        let result: AuthenticodeResult = serde_json::from_str(&stdout)
-            .map_err(|e| SyncError::Config(format!("Failed to parse Authenticode result: {}", e)))?;
+        let result: AuthenticodeResult = serde_json::from_str(&stdout).map_err(|e| {
+            SyncError::Config(format!("Failed to parse Authenticode result: {}", e))
+        })?;
 
         let valid = result.status == "Valid";
 

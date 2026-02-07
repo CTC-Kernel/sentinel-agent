@@ -26,7 +26,11 @@ impl CefFormatter {
 
     /// Create a CEF formatter with custom vendor info.
     pub fn with_vendor(vendor: String, product: String, version: String) -> Self {
-        Self { vendor, product, version }
+        Self {
+            vendor,
+            product,
+            version,
+        }
     }
 
     /// Escape special characters in CEF fields.
@@ -76,9 +80,18 @@ impl SiemFormatter for CefFormatter {
             "rt={}",
             event.timestamp.format("%b %d %Y %H:%M:%S")
         ));
-        extensions.push(format!("cat={}", Self::escape_extension(&event.category.to_string())));
-        extensions.push(format!("msg={}", Self::escape_extension(&event.description)));
-        extensions.push(format!("shost={}", Self::escape_extension(&event.source_host)));
+        extensions.push(format!(
+            "cat={}",
+            Self::escape_extension(&event.category.to_string())
+        ));
+        extensions.push(format!(
+            "msg={}",
+            Self::escape_extension(&event.description)
+        ));
+        extensions.push(format!(
+            "shost={}",
+            Self::escape_extension(&event.source_host)
+        ));
 
         if let Some(ref src_ip) = event.source_ip {
             extensions.push(format!("src={}", Self::escape_extension(src_ip)));
@@ -108,8 +121,14 @@ impl SiemFormatter for CefFormatter {
             extensions.push(format!("filePath={}", Self::escape_extension(file_path)));
         }
 
-        extensions.push(format!("externalId={}", Self::escape_extension(&event.event_id)));
-        extensions.push(format!("cs1Label=agentVersion cs1={}", Self::escape_extension(&event.agent_version)));
+        extensions.push(format!(
+            "externalId={}",
+            Self::escape_extension(&event.event_id)
+        ));
+        extensions.push(format!(
+            "cs1Label=agentVersion cs1={}",
+            Self::escape_extension(&event.agent_version)
+        ));
 
         // Add custom fields
         if let Some(obj) = event.custom_fields.as_object() {

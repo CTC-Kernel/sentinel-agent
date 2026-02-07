@@ -150,18 +150,20 @@ impl CertificateValidationCheck {
     /// Check if signature algorithm is weak.
     fn is_weak_algorithm(algo: &str) -> bool {
         let algo_lower = algo.to_lowercase();
-        WEAK_ALGORITHMS.iter().any(|&weak| algo_lower.contains(weak))
+        WEAK_ALGORITHMS
+            .iter()
+            .any(|&weak| algo_lower.contains(weak))
     }
 
     /// Parse expiration date from various formats.
     fn parse_expiration_date(date_str: &str) -> Option<DateTime<Utc>> {
         // Try common formats
         let formats = [
-            "%b %d %H:%M:%S %Y %Z",      // "Mar 15 12:00:00 2025 GMT"
-            "%Y-%m-%d %H:%M:%S",          // "2025-03-15 12:00:00"
-            "%Y%m%d%H%M%S",               // "20250315120000"
-            "%a %b %d %H:%M:%S %Y",       // "Sat Mar 15 12:00:00 2025"
-            "%d/%m/%Y %H:%M:%S",          // European format
+            "%b %d %H:%M:%S %Y %Z", // "Mar 15 12:00:00 2025 GMT"
+            "%Y-%m-%d %H:%M:%S",    // "2025-03-15 12:00:00"
+            "%Y%m%d%H%M%S",         // "20250315120000"
+            "%a %b %d %H:%M:%S %Y", // "Sat Mar 15 12:00:00 2025"
+            "%d/%m/%Y %H:%M:%S",    // European format
         ];
 
         for format in &formats {
@@ -176,9 +178,7 @@ impl CertificateValidationCheck {
     /// Calculate days until expiration.
     fn days_until_expiry(expires: &Option<String>) -> Option<i64> {
         expires.as_ref().and_then(|date_str| {
-            Self::parse_expiration_date(date_str).map(|exp| {
-                (exp - Utc::now()).num_days()
-            })
+            Self::parse_expiration_date(date_str).map(|exp| (exp - Utc::now()).num_days())
         })
     }
 
@@ -214,7 +214,9 @@ impl CertificateValidationCheck {
                 })?;
 
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("=== {} Store ===\n{}\n", store, result));
+            status
+                .raw_output
+                .push_str(&format!("=== {} Store ===\n{}\n", store, result));
 
             // Parse certificates from output
             let mut current_subject = String::new();
@@ -294,7 +296,9 @@ impl CertificateValidationCheck {
         // Check if openssl is available
         let openssl_check = Command::new("which").args(["openssl"]).output();
         if openssl_check.is_err() || !openssl_check.unwrap().status.success() {
-            status.issues.push("OpenSSL not available for certificate verification".to_string());
+            status
+                .issues
+                .push("OpenSSL not available for certificate verification".to_string());
             return Ok(status);
         }
 
@@ -314,7 +318,9 @@ impl CertificateValidationCheck {
 
             // Use find to get all .crt and .pem files
             let output = Command::new("find")
-                .args([cert_path, "-type", "f", "-name", "*.crt", "-o", "-name", "*.pem"])
+                .args([
+                    cert_path, "-type", "f", "-name", "*.crt", "-o", "-name", "*.pem",
+                ])
                 .output();
 
             if let Ok(output) = output {
@@ -329,15 +335,8 @@ impl CertificateValidationCheck {
                     // Parse certificate with openssl
                     let cert_output = Command::new("openssl")
                         .args([
-                            "x509",
-                            "-in",
-                            cert_file,
-                            "-noout",
-                            "-subject",
-                            "-issuer",
-                            "-dates",
-                            "-serial",
-                            "-text",
+                            "x509", "-in", cert_file, "-noout", "-subject", "-issuer", "-dates",
+                            "-serial", "-text",
                         ])
                         .output();
 
@@ -355,7 +354,9 @@ impl CertificateValidationCheck {
         // Also check system trust
         if let Ok(output) = Command::new("trust").args(["list"]).output() {
             let trust_list = String::from_utf8_lossy(&output.stdout);
-            status.raw_output.push_str(&format!("=== trust list ===\n{}\n", trust_list));
+            status
+                .raw_output
+                .push_str(&format!("=== trust list ===\n{}\n", trust_list));
         }
 
         self.generate_findings(&mut status);
@@ -384,14 +385,21 @@ impl CertificateValidationCheck {
 
         // Use security command to list certificates
         let output = Command::new("security")
-            .args(["find-certificate", "-a", "-p", "/System/Library/Keychains/SystemRootCertificates.keychain"])
+            .args([
+                "find-certificate",
+                "-a",
+                "-p",
+                "/System/Library/Keychains/SystemRootCertificates.keychain",
+            ])
             .output()
             .map_err(|e| {
                 ScannerError::CheckExecution(format!("Failed to run security command: {}", e))
             })?;
 
         let certs_pem = String::from_utf8_lossy(&output.stdout).to_string();
-        status.raw_output.push_str(&format!("Certificates found: {} bytes\n", certs_pem.len()));
+        status
+            .raw_output
+            .push_str(&format!("Certificates found: {} bytes\n", certs_pem.len()));
 
         // Split into individual certificates
         let cert_blocks: Vec<&str> = certs_pem
@@ -427,13 +435,19 @@ impl CertificateValidationCheck {
 
         // Check for expired certs using verify
         let verify_output = Command::new("security")
-            .args(["verify-cert", "-c", "/System/Library/Keychains/SystemRootCertificates.keychain"])
+            .args([
+                "verify-cert",
+                "-c",
+                "/System/Library/Keychains/SystemRootCertificates.keychain",
+            ])
             .output();
 
         if let Ok(output) = verify_output {
             let stderr = String::from_utf8_lossy(&output.stderr);
             if stderr.contains("expired") {
-                status.issues.push("System root certificates contain expired entries".to_string());
+                status
+                    .issues
+                    .push("System root certificates contain expired entries".to_string());
             }
         }
 
@@ -453,9 +467,21 @@ impl CertificateValidationCheck {
         for line in cert_info.lines() {
             let line = line.trim();
             if line.starts_with("subject=") || line.starts_with("subject =") {
-                subject = line.split('=').skip(1).collect::<Vec<_>>().join("=").trim().to_string();
+                subject = line
+                    .split('=')
+                    .skip(1)
+                    .collect::<Vec<_>>()
+                    .join("=")
+                    .trim()
+                    .to_string();
             } else if line.starts_with("issuer=") || line.starts_with("issuer =") {
-                issuer = line.split('=').skip(1).collect::<Vec<_>>().join("=").trim().to_string();
+                issuer = line
+                    .split('=')
+                    .skip(1)
+                    .collect::<Vec<_>>()
+                    .join("=")
+                    .trim()
+                    .to_string();
             } else if line.starts_with("serial=") {
                 serial = line.replace("serial=", "").trim().to_string();
             } else if line.starts_with("notAfter=") {
@@ -506,12 +532,24 @@ impl CertificateValidationCheck {
             status.problematic_certs.push(CertificateInfo {
                 subject: subject.to_string(),
                 issuer: issuer.to_string(),
-                serial: if serial.is_empty() { None } else { Some(serial.to_string()) },
-                expires: if expires.is_empty() { None } else { Some(expires.to_string()) },
+                serial: if serial.is_empty() {
+                    None
+                } else {
+                    Some(serial.to_string())
+                },
+                expires: if expires.is_empty() {
+                    None
+                } else {
+                    Some(expires.to_string())
+                },
                 days_until_expiry: days,
                 is_expired,
                 expiring_soon,
-                signature_algorithm: if algo.is_empty() { None } else { Some(algo.to_string()) },
+                signature_algorithm: if algo.is_empty() {
+                    None
+                } else {
+                    Some(algo.to_string())
+                },
                 weak_algorithm,
                 is_self_signed,
                 key_size: None,
@@ -526,7 +564,9 @@ impl CertificateValidationCheck {
                 "{} expired certificate(s) found in store",
                 status.expired_count
             ));
-            status.recommendations.push("Remove or renew expired certificates".to_string());
+            status
+                .recommendations
+                .push("Remove or renew expired certificates".to_string());
         }
 
         if status.expiring_soon_count > 0 {
@@ -534,7 +574,9 @@ impl CertificateValidationCheck {
                 "{} certificate(s) expiring within {} days",
                 status.expiring_soon_count, EXPIRATION_WARNING_DAYS
             ));
-            status.recommendations.push("Renew certificates before expiration".to_string());
+            status
+                .recommendations
+                .push("Renew certificates before expiration".to_string());
         }
 
         if status.weak_algorithm_count > 0 {
@@ -542,7 +584,9 @@ impl CertificateValidationCheck {
                 "{} certificate(s) using weak signature algorithms (MD5, SHA1)",
                 status.weak_algorithm_count
             ));
-            status.recommendations.push("Replace certificates with SHA-256 or stronger".to_string());
+            status
+                .recommendations
+                .push("Replace certificates with SHA-256 or stronger".to_string());
         }
 
         status.healthy = status.expired_count == 0
@@ -607,10 +651,7 @@ impl Check for CertificateValidationCheck {
             ))
         } else {
             Ok(CheckOutput::fail(
-                format!(
-                    "Certificate issues found: {}",
-                    status.issues.join("; ")
-                ),
+                format!("Certificate issues found: {}", status.issues.join("; ")),
                 raw_data,
             ))
         }
@@ -625,7 +666,10 @@ mod tests {
     fn test_check_creation() {
         let check = CertificateValidationCheck::new();
         assert_eq!(check.definition().id, CHECK_ID);
-        assert_eq!(check.definition().category, CheckCategory::CertificateManagement);
+        assert_eq!(
+            check.definition().category,
+            CheckCategory::CertificateManagement
+        );
         assert_eq!(check.definition().severity, CheckSeverity::High);
     }
 
@@ -640,11 +684,19 @@ mod tests {
 
     #[test]
     fn test_weak_algorithm_detection() {
-        assert!(CertificateValidationCheck::is_weak_algorithm("sha1WithRSAEncryption"));
-        assert!(CertificateValidationCheck::is_weak_algorithm("md5WithRSAEncryption"));
+        assert!(CertificateValidationCheck::is_weak_algorithm(
+            "sha1WithRSAEncryption"
+        ));
+        assert!(CertificateValidationCheck::is_weak_algorithm(
+            "md5WithRSAEncryption"
+        ));
         assert!(CertificateValidationCheck::is_weak_algorithm("MD5"));
-        assert!(!CertificateValidationCheck::is_weak_algorithm("sha256WithRSAEncryption"));
-        assert!(!CertificateValidationCheck::is_weak_algorithm("sha384WithRSAEncryption"));
+        assert!(!CertificateValidationCheck::is_weak_algorithm(
+            "sha256WithRSAEncryption"
+        ));
+        assert!(!CertificateValidationCheck::is_weak_algorithm(
+            "sha384WithRSAEncryption"
+        ));
     }
 
     #[test]

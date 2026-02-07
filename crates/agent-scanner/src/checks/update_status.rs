@@ -104,7 +104,11 @@ impl UpdateStatusCheck {
             .framework("PCI_DSS")
             .framework("NIST_CSF")
             .framework("ISO_27001")
-            .platforms(vec!["windows".to_string(), "linux".to_string(), "macos".to_string()])
+            .platforms(vec![
+                "windows".to_string(),
+                "linux".to_string(),
+                "macos".to_string(),
+            ])
             .nfr_limit(10_000)
             .build();
 
@@ -555,8 +559,8 @@ impl UpdateStatusCheck {
 
     #[cfg(target_os = "linux")]
     async fn check_linux_updates(&self) -> ScannerResult<UpdateStatus> {
-        use std::process::Command;
         use std::fs;
+        use std::process::Command;
 
         let mut issues = Vec::new();
         let mut last_update: Option<DateTime<Utc>> = None;
@@ -567,8 +571,17 @@ impl UpdateStatusCheck {
             for line in content.lines().rev() {
                 if line.contains(" install ") || line.contains(" upgrade ") {
                     // Format: 2024-01-15 10:30:00 install package
-                    if let Some(date_part) = line.split_whitespace().take(2).collect::<Vec<_>>().join(" ").parse::<String>().ok() {
-                        if let Ok(date) = chrono::NaiveDateTime::parse_from_str(&date_part, "%Y-%m-%d %H:%M:%S") {
+                    if let Some(date_part) = line
+                        .split_whitespace()
+                        .take(2)
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                        .parse::<String>()
+                        .ok()
+                    {
+                        if let Ok(date) =
+                            chrono::NaiveDateTime::parse_from_str(&date_part, "%Y-%m-%d %H:%M:%S")
+                        {
                             last_update = Some(DateTime::from_naive_utc_and_offset(date, Utc));
                             break;
                         }
@@ -579,10 +592,18 @@ impl UpdateStatusCheck {
 
         // Check for pending updates
         let pending_count = Command::new("sh")
-            .args(["-c", "apt list --upgradable 2>/dev/null | grep -c upgradable || echo 0"])
+            .args([
+                "-c",
+                "apt list --upgradable 2>/dev/null | grep -c upgradable || echo 0",
+            ])
             .output()
             .ok()
-            .and_then(|o| String::from_utf8_lossy(&o.stdout).trim().parse::<usize>().ok())
+            .and_then(|o| {
+                String::from_utf8_lossy(&o.stdout)
+                    .trim()
+                    .parse::<usize>()
+                    .ok()
+            })
             .unwrap_or(0);
 
         if pending_count > MAX_TOTAL_PENDING {
@@ -631,9 +652,7 @@ impl UpdateStatusCheck {
         let mut issues = Vec::new();
 
         // Check for pending updates using softwareupdate
-        let output = Command::new("softwareupdate")
-            .args(["--list"])
-            .output();
+        let output = Command::new("softwareupdate").args(["--list"]).output();
 
         let pending_count = if let Ok(out) = output {
             let stdout = String::from_utf8_lossy(&out.stdout);
@@ -707,15 +726,9 @@ impl Check for UpdateStatusCheck {
                 raw_data,
             ))
         } else {
-            warn!(
-                "Update status check failed: {} issues",
-                status.issues.len()
-            );
+            warn!("Update status check failed: {} issues", status.issues.len());
             Ok(CheckOutput::fail(
-                format!(
-                    "Update issues: {}",
-                    status.issues.join("; ")
-                ),
+                format!("Update issues: {}", status.issues.join("; ")),
                 raw_data,
             ))
         }
@@ -731,7 +744,12 @@ mod tests {
         let check = UpdateStatusCheck::new();
         assert_eq!(check.definition().id, UPDATE_STATUS_CHECK_ID);
         assert_eq!(check.definition().category, CheckCategory::Updates);
-        assert!(check.definition().frameworks.contains(&"PCI_DSS".to_string()));
+        assert!(
+            check
+                .definition()
+                .frameworks
+                .contains(&"PCI_DSS".to_string())
+        );
     }
 
     #[test]

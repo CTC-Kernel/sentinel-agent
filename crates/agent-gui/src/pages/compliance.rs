@@ -96,13 +96,37 @@ impl CompliancePage {
                     ui.add_space(theme::SPACE_MD);
 
                     ui.horizontal(|ui| {
-                        Self::mini_stat(ui, "TOTAL", &state.policy.total_policies.to_string(), theme::text_primary(), icons::LIST);
+                        Self::mini_stat(
+                            ui,
+                            "TOTAL",
+                            &state.policy.total_policies.to_string(),
+                            theme::text_primary(),
+                            icons::LIST,
+                        );
                         ui.add_space(theme::SPACE_MD);
-                        Self::mini_stat(ui, "CONFORME", &state.policy.passing.to_string(), theme::SUCCESS, icons::CIRCLE_CHECK);
+                        Self::mini_stat(
+                            ui,
+                            "CONFORME",
+                            &state.policy.passing.to_string(),
+                            theme::SUCCESS,
+                            icons::CIRCLE_CHECK,
+                        );
                         ui.add_space(theme::SPACE_MD);
-                        Self::mini_stat(ui, "DÉFAILLANT", &state.policy.failing.to_string(), theme::ERROR, icons::CIRCLE_XMARK);
+                        Self::mini_stat(
+                            ui,
+                            "DÉFAILLANT",
+                            &state.policy.failing.to_string(),
+                            theme::ERROR,
+                            icons::CIRCLE_XMARK,
+                        );
                         ui.add_space(theme::SPACE_MD);
-                        Self::mini_stat(ui, "ERREUR", &state.policy.errors.to_string(), theme::WARNING, icons::WARNING);
+                        Self::mini_stat(
+                            ui,
+                            "ERREUR",
+                            &state.policy.errors.to_string(),
+                            theme::WARNING,
+                            icons::WARNING,
+                        );
                     });
 
                     if let Some(ref frameworks) = state.summary.active_frameworks
@@ -505,7 +529,14 @@ impl CompliancePage {
                                     {
                                         ui.add_space(theme::SPACE_MD);
                                         ui.horizontal(|ui: &mut egui::Ui| {
-                                            if widgets::chip_button(ui, &format!("{}  AUDIT VISUEL", icons::EYE), false, theme::INFO).clicked() {
+                                            if widgets::chip_button(
+                                                ui,
+                                                &format!("{}  AUDIT VISUEL", icons::EYE),
+                                                false,
+                                                theme::INFO,
+                                            )
+                                            .clicked()
+                                            {
                                                 *command = Some(GuiCommand::RemediatePreview {
                                                     check_id: check.check_id.clone(),
                                                 });
@@ -513,7 +544,14 @@ impl CompliancePage {
 
                                             ui.add_space(theme::SPACE_SM);
 
-                                            if widgets::chip_button(ui, &format!("{}  REMÉDIATION", icons::WRENCH_FA), false, theme::SUCCESS).clicked() {
+                                            if widgets::chip_button(
+                                                ui,
+                                                &format!("{}  REMÉDIATION", icons::WRENCH_FA),
+                                                false,
+                                                theme::SUCCESS,
+                                            )
+                                            .clicked()
+                                            {
                                                 *command = Some(GuiCommand::Remediate {
                                                     check_id: check.check_id.clone(),
                                                 });
@@ -690,10 +728,18 @@ fn remediation_hint(category: &str) -> &'static str {
         "antivirus" => "Vérifiez que votre solution antivirus est active et à jour.",
         "authentication" | "passwords" => "Renforcez la politique de mots de passe.",
         "session_lock" | "screen_lock" => "Configurez le verrouillage automatique de l'écran.",
-        "network_hardening" | "network" => "Vérifiez la configuration réseau et les règles de pare-feu.",
-        "directory_policy" => "Configurez les stratégies de groupe (GPO) selon les bonnes pratiques de sécurité.",
-        "privileged_access" => "Réduisez le nombre de comptes avec accès privilégié et appliquez le principe du moindre privilège.",
-        "audit_logging" => "Activez l'audit des événements critiques (connexion, gestion des comptes).",
+        "network_hardening" | "network" => {
+            "Vérifiez la configuration réseau et les règles de pare-feu."
+        }
+        "directory_policy" => {
+            "Configurez les stratégies de groupe (GPO) selon les bonnes pratiques de sécurité."
+        }
+        "privileged_access" => {
+            "Réduisez le nombre de comptes avec accès privilégié et appliquez le principe du moindre privilège."
+        }
+        "audit_logging" => {
+            "Activez l'audit des événements critiques (connexion, gestion des comptes)."
+        }
         "mfa" => "Activez l'authentification multi-facteur pour tous les utilisateurs.",
         "backup" => "Configurez des sauvegardes automatiques et chiffrées.",
         "remote_access" => "Sécurisez les accès distants avec VPN et MFA.",

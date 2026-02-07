@@ -37,7 +37,8 @@ pub fn copy_button(ui: &mut Ui, text_to_copy: &str, tooltip: Option<&str>) -> Re
         ui.ctx().copy_text(text_to_copy.to_string());
         ui.memory_mut(|mem| mem.data.insert_temp(id, now));
         // Request repaint so the check mark eventually disappears
-        ui.ctx().request_repaint_after(std::time::Duration::from_millis(1600));
+        ui.ctx()
+            .request_repaint_after(std::time::Duration::from_millis(1600));
     }
 
     // Keep requesting repaint while showing the check mark

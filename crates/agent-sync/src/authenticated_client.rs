@@ -337,7 +337,11 @@ impl AuthenticatedClient {
         }
 
         let agent_id = self.agent_id().await?;
-        debug!("Syncing {} audit entries for agent {}", entries.len(), agent_id);
+        debug!(
+            "Syncing {} audit entries for agent {}",
+            entries.len(),
+            agent_id
+        );
 
         let request = crate::types::AuditTrailSyncRequest { entries };
 

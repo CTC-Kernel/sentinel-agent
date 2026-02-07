@@ -325,13 +325,16 @@ impl SyncOrchestrator {
 
     /// Sync audit trail.
     async fn sync_audit(&self, client: &AuthenticatedClient) -> SyncResult<u32> {
-        use agent_storage::AuditTrailRepository;
         use crate::types::AuditTrailEntry;
+        use agent_storage::AuditTrailRepository;
 
         // 1. Fetch unsynced entries from local storage
         let repo = AuditTrailRepository::new(&self._db);
         let stored_entries = repo.fetch_unsynced(50).await.map_err(|e| {
-            crate::error::SyncError::Config(format!("Failed to fetch unsynced audit entries: {}", e))
+            crate::error::SyncError::Config(format!(
+                "Failed to fetch unsynced audit entries: {}",
+                e
+            ))
         })?;
 
         if stored_entries.is_empty() {
@@ -339,15 +342,16 @@ impl SyncOrchestrator {
         }
 
         let ids: Vec<i64> = stored_entries.iter().filter_map(|e| e.id).collect();
-        let api_entries: Vec<AuditTrailEntry> = stored_entries.iter().map(|e| {
-            AuditTrailEntry {
+        let api_entries: Vec<AuditTrailEntry> = stored_entries
+            .iter()
+            .map(|e| AuditTrailEntry {
                 action: e.action_type.clone(),
                 actor: e.actor.clone(),
                 details: e.details.clone(),
                 timestamp: e.timestamp,
                 metadata: serde_json::from_str(&e.action_data).unwrap_or_default(),
-            }
-        }).collect();
+            })
+            .collect();
 
         debug!("Syncing {} audit entries to SaaS", api_entries.len());
 
@@ -357,7 +361,10 @@ impl SyncOrchestrator {
 
         // 3. Mark as synced in local storage
         repo.mark_synced(&ids).await.map_err(|e| {
-            crate::error::SyncError::Config(format!("Failed to mark audit entries as synced: {}", e))
+            crate::error::SyncError::Config(format!(
+                "Failed to mark audit entries as synced: {}",
+                e
+            ))
         })?;
 
         Ok(server_count)

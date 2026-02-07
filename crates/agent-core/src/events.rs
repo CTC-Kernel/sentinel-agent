@@ -7,7 +7,6 @@ use crate::audit_trail::{AuditAction, LocalAuditTrail};
 use std::sync::Arc;
 
 #[cfg_attr(not(feature = "gui"), allow(dead_code))]
-
 #[cfg(feature = "gui")]
 pub use agent_gui::{
     dto::GuiNotification,

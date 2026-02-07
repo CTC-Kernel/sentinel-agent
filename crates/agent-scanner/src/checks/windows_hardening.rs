@@ -147,7 +147,6 @@ impl WindowsHardeningCheck {
                 description: "File and registry virtualization should be enabled",
                 remediation: "Enable virtualization via Group Policy",
             },
-
             // DEP/ASLR/SEHOP
             HardeningCheckDef {
                 name: "DEP OptOut Mode",
@@ -169,7 +168,6 @@ impl WindowsHardeningCheck {
                 description: "Structured Exception Handling Overwrite Protection",
                 remediation: "Enable SEHOP via registry or EMET",
             },
-
             // Credential Protection
             HardeningCheckDef {
                 name: "Credential Guard",
@@ -211,7 +209,6 @@ impl WindowsHardeningCheck {
                 description: "Limit cached domain credentials",
                 remediation: "Reduce CachedLogonsCount to 2 or less",
             },
-
             // SMB Security
             HardeningCheckDef {
                 name: "SMBv1 Disabled",
@@ -253,7 +250,6 @@ impl WindowsHardeningCheck {
                 description: "SMB encryption should be required",
                 remediation: "Set-SmbServerConfiguration -EncryptData $true",
             },
-
             // LDAP Security
             HardeningCheckDef {
                 name: "LDAP Signing Required",
@@ -275,7 +271,6 @@ impl WindowsHardeningCheck {
                 description: "LDAP channel binding should be enforced",
                 remediation: "Enable LDAP channel binding via Group Policy",
             },
-
             // NTLM Security
             HardeningCheckDef {
                 name: "NTLMv2 Only",
@@ -297,7 +292,6 @@ impl WindowsHardeningCheck {
                 description: "LM hash storage must be disabled",
                 remediation: "Enable 'Do not store LAN Manager hash' in Group Policy",
             },
-
             // PowerShell Security
             HardeningCheckDef {
                 name: "PowerShell Script Block Logging",
@@ -339,7 +333,6 @@ impl WindowsHardeningCheck {
                 description: "PowerShell should use Constrained Language Mode",
                 remediation: "Enable via AppLocker or WDAC policies",
             },
-
             // Cryptographic Settings
             HardeningCheckDef {
                 name: "TLS 1.0 Disabled (Server)",
@@ -391,7 +384,6 @@ impl WindowsHardeningCheck {
                 description: "3DES cipher should be disabled (SWEET32)",
                 remediation: "Disable 3DES via registry or IIS Crypto",
             },
-
             // Windows Defender / Security
             HardeningCheckDef {
                 name: "Windows Defender Enabled",
@@ -423,7 +415,6 @@ impl WindowsHardeningCheck {
                 description: "Cloud-delivered protection should be enabled",
                 remediation: "Enable cloud protection in Windows Security",
             },
-
             // Remote Desktop Security
             HardeningCheckDef {
                 name: "RDP NLA Required",
@@ -445,7 +436,6 @@ impl WindowsHardeningCheck {
                 description: "RDP encryption level should be High",
                 remediation: "Set encryption level to High via Group Policy",
             },
-
             // AutoRun/AutoPlay
             HardeningCheckDef {
                 name: "AutoRun Disabled",
@@ -457,7 +447,6 @@ impl WindowsHardeningCheck {
                 description: "AutoRun must be disabled for all drives",
                 remediation: "Disable AutoRun via Group Policy",
             },
-
             // Safe DLL Search
             HardeningCheckDef {
                 name: "Safe DLL Search Mode",
@@ -695,8 +684,14 @@ impl SecureBootCheck {
             Ok(out) if out.status.success() => {
                 let stdout = String::from_utf8_lossy(&out.stdout);
                 if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
-                    let enabled = json.get("Enabled").and_then(|v| v.as_bool()).unwrap_or(false);
-                    let uefi = json.get("UefiMode").and_then(|v| v.as_bool()).unwrap_or(false);
+                    let enabled = json
+                        .get("Enabled")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(false);
+                    let uefi = json
+                        .get("UefiMode")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(false);
 
                     return Ok(SecureBootStatus {
                         enabled,
@@ -774,7 +769,12 @@ mod tests {
         let check = WindowsHardeningCheck::new();
         assert_eq!(check.definition().id, WINDOWS_HARDENING_CHECK_ID);
         assert_eq!(check.definition().category, CheckCategory::KernelSecurity);
-        assert!(check.definition().frameworks.contains(&"CIS_V8".to_string()));
+        assert!(
+            check
+                .definition()
+                .frameworks
+                .contains(&"CIS_V8".to_string())
+        );
     }
 
     #[test]

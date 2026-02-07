@@ -266,8 +266,7 @@ impl DgaDetector {
 
         // High consonant ratio is suspicious (weight: 20%)
         if consonant_ratio > self.config.max_consonant_ratio {
-            score +=
-                20.0 * ((consonant_ratio - self.config.max_consonant_ratio) / 0.15).min(1.0);
+            score += 20.0 * ((consonant_ratio - self.config.max_consonant_ratio) / 0.15).min(1.0);
         }
 
         // Unusual n-grams are suspicious (weight: 25%)
@@ -294,10 +293,9 @@ impl DgaDetector {
 
         // Find the TLD and return the part before it
         for i in (0..parts.len()).rev() {
-            if self.known_tlds.contains(parts[i])
-                && i > 0 {
-                    return Some(parts[i - 1].to_string());
-                }
+            if self.known_tlds.contains(parts[i]) && i > 0 {
+                return Some(parts[i - 1].to_string());
+            }
         }
 
         // If no known TLD, return the first part
@@ -394,11 +392,51 @@ impl DgaDetector {
 
     fn default_dictionary() -> HashSet<String> {
         [
-            "google", "facebook", "amazon", "microsoft", "apple", "netflix", "twitter", "instagram",
-            "linkedin", "github", "youtube", "yahoo", "mail", "cloud", "server", "login", "account",
-            "secure", "update", "download", "support", "service", "online", "shop", "store", "news",
-            "blog", "forum", "game", "play", "music", "video", "photo", "image", "file", "data",
-            "backup", "sync", "connect", "network", "system", "admin", "user", "home", "work",
+            "google",
+            "facebook",
+            "amazon",
+            "microsoft",
+            "apple",
+            "netflix",
+            "twitter",
+            "instagram",
+            "linkedin",
+            "github",
+            "youtube",
+            "yahoo",
+            "mail",
+            "cloud",
+            "server",
+            "login",
+            "account",
+            "secure",
+            "update",
+            "download",
+            "support",
+            "service",
+            "online",
+            "shop",
+            "store",
+            "news",
+            "blog",
+            "forum",
+            "game",
+            "play",
+            "music",
+            "video",
+            "photo",
+            "image",
+            "file",
+            "data",
+            "backup",
+            "sync",
+            "connect",
+            "network",
+            "system",
+            "admin",
+            "user",
+            "home",
+            "work",
         ]
         .iter()
         .map(|s| s.to_string())
@@ -496,7 +534,10 @@ mod tests {
         let conn = create_test_connection("www.google.com");
 
         let alerts = detector.detect(&[conn]);
-        assert!(alerts.is_empty(), "Legitimate domain should not trigger alert");
+        assert!(
+            alerts.is_empty(),
+            "Legitimate domain should not trigger alert"
+        );
     }
 
     #[test]

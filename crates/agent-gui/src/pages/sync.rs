@@ -97,7 +97,14 @@ impl SyncPage {
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
                         // Force sync button
-                        if widgets::primary_button_loading(ui, format!("{}  SYNCHRONISER MAINTENANT", icons::SYNC), !state.sync.in_progress, state.sync.in_progress).clicked() {
+                        if widgets::primary_button_loading(
+                            ui,
+                            format!("{}  SYNCHRONISER MAINTENANT", icons::SYNC),
+                            !state.sync.in_progress,
+                            state.sync.in_progress,
+                        )
+                        .clicked()
+                        {
                             command = Some(GuiCommand::ForceSync);
                         }
                     },

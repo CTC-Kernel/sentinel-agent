@@ -26,7 +26,11 @@ impl LeefFormatter {
 
     /// Create a LEEF formatter with custom vendor info.
     pub fn with_vendor(vendor: String, product: String, version: String) -> Self {
-        Self { vendor, product, version }
+        Self {
+            vendor,
+            product,
+            version,
+        }
     }
 
     /// Escape special characters in LEEF header fields.
@@ -75,9 +79,15 @@ impl SiemFormatter for LeefFormatter {
         let mut attrs = Vec::new();
 
         // Standard LEEF attributes
-        attrs.push(format!("devTime={}", event.timestamp.format("%b %d %Y %H:%M:%S %Z")));
+        attrs.push(format!(
+            "devTime={}",
+            event.timestamp.format("%b %d %Y %H:%M:%S %Z")
+        ));
         attrs.push("devTimeFormat=MMM dd yyyy HH:mm:ss z".to_string());
-        attrs.push(format!("cat={}", Self::escape_value(&event.category.to_string())));
+        attrs.push(format!(
+            "cat={}",
+            Self::escape_value(&event.category.to_string())
+        ));
         attrs.push(format!("sev={}", Self::map_severity(event.severity)));
         attrs.push(format!("src={}", Self::escape_value(&event.source_host)));
 
@@ -111,7 +121,10 @@ impl SiemFormatter for LeefFormatter {
 
         attrs.push(format!("msg={}", Self::escape_value(&event.description)));
         attrs.push(format!("eventId={}", Self::escape_value(&event.event_id)));
-        attrs.push(format!("agentVersion={}", Self::escape_value(&event.agent_version)));
+        attrs.push(format!(
+            "agentVersion={}",
+            Self::escape_value(&event.agent_version)
+        ));
 
         // Add custom fields
         if let Some(obj) = event.custom_fields.as_object() {

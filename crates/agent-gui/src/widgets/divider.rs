@@ -195,7 +195,10 @@ impl<'a> Divider<'a> {
                     while x < rect.max.x {
                         let end_x = (x + dash_length).min(rect.max.x);
                         painter.line_segment(
-                            [egui::pos2(x, rect.center().y), egui::pos2(end_x, rect.center().y)],
+                            [
+                                egui::pos2(x, rect.center().y),
+                                egui::pos2(end_x, rect.center().y),
+                            ],
                             egui::Stroke::new(self.thickness, color),
                         );
                         x += dash_length + gap_length;
@@ -205,7 +208,10 @@ impl<'a> Divider<'a> {
                     while y < rect.max.y {
                         let end_y = (y + dash_length).min(rect.max.y);
                         painter.line_segment(
-                            [egui::pos2(rect.center().x, y), egui::pos2(rect.center().x, end_y)],
+                            [
+                                egui::pos2(rect.center().x, y),
+                                egui::pos2(rect.center().x, end_y),
+                            ],
                             egui::Stroke::new(self.thickness, color),
                         );
                         y += dash_length + gap_length;

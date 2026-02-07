@@ -43,8 +43,8 @@ pub use browser_security::BrowserSecurityCheck;
 pub use certificate_validation::CertificateValidationCheck;
 pub use container_security::ContainerSecurityCheck;
 pub use directory_policy::{
-    GpoPasswordPolicyCheck, GpoLockoutPolicyCheck, GpoAuditPolicyCheck,
-    PrivilegedGroupsCheck, LdapSecurityCheck,
+    GpoAuditPolicyCheck, GpoLockoutPolicyCheck, GpoPasswordPolicyCheck, LdapSecurityCheck,
+    PrivilegedGroupsCheck,
 };
 pub use disk_encryption::DiskEncryptionCheck;
 pub use dns_security::DnsSecurityCheck;
@@ -64,4 +64,4 @@ pub use system_updates::SystemUpdatesCheck;
 pub use time_sync::TimeSyncCheck;
 pub use update_status::UpdateStatusCheck;
 pub use usb_storage::UsbStorageCheck;
-pub use windows_hardening::{WindowsHardeningCheck, SecureBootCheck};
+pub use windows_hardening::{SecureBootCheck, WindowsHardeningCheck};

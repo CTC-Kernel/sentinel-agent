@@ -32,9 +32,15 @@ mod checks;
 mod ldap;
 mod types;
 
-pub use ad_gpo::{GpoAuditor, GpoSetting, GpoSecuritySettings, AuditPolicy, AuditSetting};
-pub use checks::{DirectoryCheck, DirectoryCheckResult, check_privileged_groups, run_policy_checks, run_ldap_checks};
-pub use ldap::{LdapAuditor, LdapSecurityConfig, TlsConfiguration, LdapPasswordPolicy, AclFinding, LdapConfigFinding};
+pub use ad_gpo::{AuditPolicy, AuditSetting, GpoAuditor, GpoSecuritySettings, GpoSetting};
+pub use checks::{
+    DirectoryCheck, DirectoryCheckResult, check_privileged_groups, run_ldap_checks,
+    run_policy_checks,
+};
+pub use ldap::{
+    AclFinding, LdapAuditor, LdapConfigFinding, LdapPasswordPolicy, LdapSecurityConfig,
+    TlsConfiguration,
+};
 pub use types::*;
 
 use crate::error::ScannerResult;
@@ -82,7 +88,10 @@ impl DirectoryAuditor {
 
     /// Audit Active Directory domain policies (requires domain membership).
     #[cfg(target_os = "windows")]
-    pub async fn audit_domain_policies(&self, domain: Option<&str>) -> ScannerResult<DirectoryAuditResult> {
+    pub async fn audit_domain_policies(
+        &self,
+        domain: Option<&str>,
+    ) -> ScannerResult<DirectoryAuditResult> {
         info!("Starting Active Directory domain policy audit");
         let mut result = DirectoryAuditResult::new(DirectoryType::ActiveDirectory);
 

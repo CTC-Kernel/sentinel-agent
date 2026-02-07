@@ -162,9 +162,10 @@ impl FrameworkRegistry {
         self.mappings
             .iter()
             .filter_map(|(check_id, mappings)| {
-                if mappings.iter().any(|m| {
-                    m.framework_id == framework_id && m.control_id == control_id
-                }) {
+                if mappings
+                    .iter()
+                    .any(|m| m.framework_id == framework_id && m.control_id == control_id)
+                {
                     Some(check_id.clone())
                 } else {
                     None

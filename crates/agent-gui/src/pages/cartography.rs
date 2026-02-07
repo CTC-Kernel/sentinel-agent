@@ -80,16 +80,21 @@ impl CartographyPage {
 
                     // Zoom indicators (AAA)
                     ui.label(
-                        egui::RichText::new(format!("ZOOM: {:.0}%", state.cartography.zoom * 100.0))
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .strong(),
+                        egui::RichText::new(format!(
+                            "ZOOM: {:.0}%",
+                            state.cartography.zoom * 100.0
+                        ))
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .strong(),
                     );
 
                     ui.add_space(theme::SPACE_LG);
 
                     // Open 3D view button
-                    if widgets::primary_button(ui, format!("VUE 3D {}", icons::EXTERNAL_LINK), true).clicked() {
+                    if widgets::primary_button(ui, format!("VUE 3D {}", icons::EXTERNAL_LINK), true)
+                        .clicked()
+                    {
                         let _ = open::that("https://app.cyber-threat-consulting.com/voxel");
                     }
 
@@ -304,7 +309,8 @@ impl CartographyPage {
         // Selected Object Detail Panel (AAA Grade)
         if let Some(ref selected_ip) = state.cartography.selected_device.clone()
             && let Some(device) = state
-                .discovery.devices
+                .discovery
+                .devices
                 .iter()
                 .find(|d| &d.ip == selected_ip)
         {
@@ -331,8 +337,7 @@ impl CartographyPage {
                     ui.with_layout(
                         egui::Layout::right_to_left(egui::Align::Center),
                         |ui: &mut egui::Ui| {
-                            if widgets::icon_button(ui, icons::XMARK, Some("Fermer")).clicked()
-                            {
+                            if widgets::icon_button(ui, icons::XMARK, Some("Fermer")).clicked() {
                                 state.cartography.selected_device = None;
                             }
                         },
@@ -417,7 +422,8 @@ impl CartographyPage {
     fn export_csv(state: &AppState) {
         let headers = &["ip", "hostname", "mac", "vendor", "type", "passerelle"];
         let rows: Vec<Vec<String>> = state
-            .discovery.devices
+            .discovery
+            .devices
             .iter()
             .map(|d| {
                 vec![

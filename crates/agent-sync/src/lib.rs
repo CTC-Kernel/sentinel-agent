@@ -35,8 +35,10 @@
 //! # }
 //! ```
 
+pub mod audit_sync;
 pub mod authenticated_client;
 pub mod client;
+pub mod command_results;
 pub mod config_sync;
 pub mod credentials;
 pub mod diagnostics;
@@ -51,8 +53,6 @@ pub mod result_upload;
 pub mod rollout;
 pub mod rules;
 pub mod security;
-pub mod audit_sync;
-pub mod command_results;
 pub mod types;
 pub mod update;
 pub mod updater;

@@ -107,9 +107,10 @@ impl<'a> TabBar<'a> {
                 };
 
                 if let Some(idx) = self.render_underline_tab(ui, tab, is_selected, tab_width)
-                    && idx == i {
-                        new_selection = Some(i);
-                    }
+                    && idx == i
+                {
+                    new_selection = Some(i);
+                }
             }
         });
 
@@ -266,9 +267,9 @@ impl<'a> TabBar<'a> {
                 }
                 text.push_str(tab.label);
 
-                let galley = ui
-                    .painter()
-                    .layout_no_wrap(text.clone(), theme::font_body(), text_color);
+                let galley =
+                    ui.painter()
+                        .layout_no_wrap(text.clone(), theme::font_body(), text_color);
 
                 let padding = egui::vec2(12.0, 6.0);
                 let size = galley.size() + padding * 2.0;
@@ -318,8 +319,7 @@ impl<'a> TabBar<'a> {
                     if let Some(count) = tab.badge {
                         let badge_text = if count > 9 { "9+" } else { &count.to_string() };
                         let badge_pos = egui::pos2(rect.max.x - 6.0, rect.min.y + 6.0);
-                        ui.painter()
-                            .circle_filled(badge_pos, 8.0, theme::ERROR);
+                        ui.painter().circle_filled(badge_pos, 8.0, theme::ERROR);
                         ui.painter().text(
                             badge_pos,
                             egui::Align2::CENTER_CENTER,

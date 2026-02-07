@@ -60,14 +60,15 @@ impl LdapAuditor {
 
     /// Probe LDAP server on Linux using ldapsearch.
     #[cfg(target_os = "linux")]
-    async fn probe_linux_ldap(&self, uri: &str, config: &mut LdapSecurityConfig) -> ScannerResult<()> {
+    async fn probe_linux_ldap(
+        &self,
+        uri: &str,
+        config: &mut LdapSecurityConfig,
+    ) -> ScannerResult<()> {
         use tokio::process::Command;
 
         // Check if ldapsearch is available
-        let which_result = Command::new("which")
-            .arg("ldapsearch")
-            .output()
-            .await;
+        let which_result = Command::new("which").arg("ldapsearch").output().await;
 
         if which_result.is_err() || !which_result.unwrap().status.success() {
             warn!("ldapsearch not available, using limited probe");
@@ -78,9 +79,12 @@ impl LdapAuditor {
         let anon_result = Command::new("ldapsearch")
             .args([
                 "-x",
-                "-H", uri,
-                "-b", "",
-                "-s", "base",
+                "-H",
+                uri,
+                "-b",
+                "",
+                "-s",
+                "base",
                 "(objectClass=*)",
                 "namingContexts",
             ])
@@ -106,16 +110,18 @@ impl LdapAuditor {
         let ppolicy_result = Command::new("ldapsearch")
             .args([
                 "-x",
-                "-H", uri,
-                "-b", "cn=config",
+                "-H",
+                uri,
+                "-b",
+                "cn=config",
                 "(objectClass=olcPpolicyConfig)",
             ])
             .output()
             .await;
 
         if let Ok(output) = ppolicy_result {
-            config.has_password_policy = output.status.success() &&
-                String::from_utf8_lossy(&output.stdout).contains("olcPpolicyConfig");
+            config.has_password_policy = output.status.success()
+                && String::from_utf8_lossy(&output.stdout).contains("olcPpolicyConfig");
         }
 
         // Probe TLS configuration
@@ -126,14 +132,22 @@ impl LdapAuditor {
 
     /// Probe LDAP server on macOS.
     #[cfg(target_os = "macos")]
-    async fn probe_macos_ldap(&self, uri: &str, config: &mut LdapSecurityConfig) -> ScannerResult<()> {
+    async fn probe_macos_ldap(
+        &self,
+        uri: &str,
+        config: &mut LdapSecurityConfig,
+    ) -> ScannerResult<()> {
         // macOS uses similar tools but may have dscl for local directory
         self.probe_with_openssl(uri, config).await
     }
 
     /// Probe LDAP server on Windows (Active Directory).
     #[cfg(target_os = "windows")]
-    async fn probe_windows_ldap(&self, uri: &str, config: &mut LdapSecurityConfig) -> ScannerResult<()> {
+    async fn probe_windows_ldap(
+        &self,
+        uri: &str,
+        config: &mut LdapSecurityConfig,
+    ) -> ScannerResult<()> {
         use tokio::process::Command;
 
         // Use PowerShell to probe LDAP/AD
@@ -169,7 +183,9 @@ impl LdapAuditor {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 if let Ok(info) = serde_json::from_str::<serde_json::Value>(&stdout) {
                     if let Some(domain) = info.get("DomainName").and_then(|v| v.as_str()) {
-                        config.naming_contexts.push(format!("DC={}", domain.replace('.', ",DC=")));
+                        config
+                            .naming_contexts
+                            .push(format!("DC={}", domain.replace('.', ",DC=")));
                     }
                 }
             }
@@ -182,7 +198,11 @@ impl LdapAuditor {
     }
 
     /// Probe TLS configuration using OpenSSL.
-    async fn probe_with_openssl(&self, uri: &str, config: &mut LdapSecurityConfig) -> ScannerResult<()> {
+    async fn probe_with_openssl(
+        &self,
+        uri: &str,
+        config: &mut LdapSecurityConfig,
+    ) -> ScannerResult<()> {
         use tokio::process::Command;
 
         // Extract host and port from URI
@@ -205,7 +225,8 @@ impl LdapAuditor {
             let tls_result = Command::new("openssl")
                 .args([
                     "s_client",
-                    "-connect", &format!("{}:{}", host, port),
+                    "-connect",
+                    &format!("{}:{}", host, port),
                     "-brief",
                 ])
                 .output()
@@ -238,11 +259,10 @@ impl LdapAuditor {
                 }
 
                 // Check for weak ciphers
-                config.tls_config.weak_ciphers_enabled =
-                    combined.contains("RC4") ||
-                    combined.contains("DES") ||
-                    combined.contains("MD5") ||
-                    combined.contains("NULL");
+                config.tls_config.weak_ciphers_enabled = combined.contains("RC4")
+                    || combined.contains("DES")
+                    || combined.contains("MD5")
+                    || combined.contains("NULL");
             }
         }
 
@@ -276,7 +296,8 @@ impl LdapAuditor {
                             expected_value: "600 or 640".to_string(),
                             is_compliant: false,
                             severity: DirectorySeverity::High,
-                            description: "LDAP config file has overly permissive permissions".to_string(),
+                            description: "LDAP config file has overly permissive permissions"
+                                .to_string(),
                         });
                     }
                 }

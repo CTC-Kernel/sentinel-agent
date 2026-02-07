@@ -443,7 +443,11 @@ pub fn chip_button(ui: &mut Ui, text: &str, active: bool, color: Color32) -> Res
     let galley = ui.painter().layout_no_wrap(
         text.to_string(),
         font.clone(),
-        if active { theme::text_on_accent() } else { color },
+        if active {
+            theme::text_on_accent()
+        } else {
+            color
+        },
     );
 
     let padding = egui::vec2(10.0, 4.0);
@@ -471,13 +475,8 @@ pub fn chip_button(ui: &mut Ui, text: &str, active: bool, color: Color32) -> Res
             )
         };
 
-        ui.painter().rect(
-            rect,
-            CornerRadius::same(12),
-            bg,
-            stroke,
-            StrokeKind::Inside,
-        );
+        ui.painter()
+            .rect(rect, CornerRadius::same(12), bg, stroke, StrokeKind::Inside);
 
         ui.painter().text(
             rect.center(),
@@ -492,11 +491,7 @@ pub fn chip_button(ui: &mut Ui, text: &str, active: bool, color: Color32) -> Res
 }
 
 /// A button group (horizontal row of connected buttons).
-pub fn button_group(
-    ui: &mut Ui,
-    options: &[&str],
-    selected: usize,
-) -> Option<usize> {
+pub fn button_group(ui: &mut Ui, options: &[&str], selected: usize) -> Option<usize> {
     let mut clicked = None;
 
     ui.horizontal(|ui| {
@@ -609,8 +604,7 @@ fn draw_spinner(ui: &Ui, rect: egui::Rect, text_size: egui::Vec2, color: Color32
 
         let p1 = spinner_rect.center()
             + egui::vec2(6.0 * segment_angle.cos(), 6.0 * segment_angle.sin());
-        let p2 = spinner_rect.center()
-            + egui::vec2(6.0 * next_angle.cos(), 6.0 * next_angle.sin());
+        let p2 = spinner_rect.center() + egui::vec2(6.0 * next_angle.cos(), 6.0 * next_angle.sin());
 
         ui.painter()
             .line_segment([p1, p2], Stroke::new(2.0, color.linear_multiply(alpha)));
@@ -622,11 +616,9 @@ fn draw_spinner(ui: &Ui, rect: egui::Rect, text_size: egui::Vec2, color: Color32
 /// Link-style button (looks like a hyperlink).
 pub fn link_button(ui: &mut Ui, text: &str) -> Response {
     let font = theme::font_body();
-    let galley = ui.painter().layout_no_wrap(
-        text.to_string(),
-        font.clone(),
-        theme::ACCENT,
-    );
+    let galley = ui
+        .painter()
+        .layout_no_wrap(text.to_string(), font.clone(), theme::ACCENT);
 
     let (rect, response) = ui.allocate_exact_size(galley.size(), Sense::click());
 
@@ -681,8 +673,7 @@ pub fn fab_button(ui: &mut Ui, icon: &str) -> Response {
         }
 
         // Circle background
-        ui.painter()
-            .circle_filled(rect.center(), size / 2.0, fill);
+        ui.painter().circle_filled(rect.center(), size / 2.0, fill);
 
         // Icon
         ui.painter().text(

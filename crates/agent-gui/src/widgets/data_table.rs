@@ -229,7 +229,9 @@ impl<'a> DataTable<'a> {
         let widths = self.calculate_widths(available_width);
 
         // Header background
-        let header_rect = ui.allocate_space(egui::vec2(available_width, self.header_height)).1;
+        let header_rect = ui
+            .allocate_space(egui::vec2(available_width, self.header_height))
+            .1;
 
         if ui.is_rect_visible(header_rect) {
             ui.painter().rect_filled(
@@ -353,13 +355,7 @@ impl<'a> DataTable<'a> {
     }
 
     /// Show a table row. Returns true if clicked.
-    pub fn show_row(
-        &self,
-        ui: &mut Ui,
-        row_index: usize,
-        selected: bool,
-        cells: &[&str],
-    ) -> bool {
+    pub fn show_row(&self, ui: &mut Ui, row_index: usize, selected: bool, cells: &[&str]) -> bool {
         let available_width = ui.available_width();
         let widths = self.calculate_widths(available_width);
 

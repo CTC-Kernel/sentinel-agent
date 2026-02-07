@@ -176,29 +176,42 @@ impl MistralEngine {
     }
 
     async fn load_model(&self) -> Result<()> {
-        let mut status = self.status.write().await;
-        *status = ModelStatus::Loading;
+        // Set status to Loading, then release the lock before expensive I/O
+        {
+            let mut status = self.status.write().await;
+            *status = ModelStatus::Loading;
+        }
 
         info!("Loading model: {}", self.config.path.display());
 
-        // Create the model loader
-        let loader = mistralrs::LoaderBuilder::new()
-            .with_source(mistralrs::Source::GGUF(
-                mistralrs::GGUFSource::new(self.config.path.clone()),
-            ))
-            .build()?;
+        // Create the model loader (expensive I/O — no locks held)
+        let load_result: Result<mistralrs::MistralRs> = (|| {
+            let loader = mistralrs::LoaderBuilder::new()
+                .with_source(mistralrs::Source::GGUF(
+                    mistralrs::GGUFSource::new(self.config.path.clone()),
+                ))
+                .build()?;
 
-        // Load the model
-        let pipeline = loader.load_model_from_gguf()?;
-        let model = mistralrs::MistralRs::new(pipeline);
+            let pipeline = loader.load_model_from_gguf()?;
+            Ok(mistralrs::MistralRs::new(pipeline))
+        })();
 
-        let mut model_guard = self.model.lock().await;
-        *model_guard = Some(model);
+        match load_result {
+            Ok(model) => {
+                let mut model_guard = self.model.lock().await;
+                *model_guard = Some(model);
 
-        *status = ModelStatus::Ready;
-        info!("Model loaded successfully");
-
-        Ok(())
+                let mut status = self.status.write().await;
+                *status = ModelStatus::Ready;
+                info!("Model loaded successfully");
+                Ok(())
+            }
+            Err(e) => {
+                let mut status = self.status.write().await;
+                *status = ModelStatus::Error(e.to_string());
+                Err(e)
+            }
+        }
     }
 }
 

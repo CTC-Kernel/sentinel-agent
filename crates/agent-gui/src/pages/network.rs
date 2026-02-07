@@ -212,7 +212,10 @@ impl NetworkPage {
                 ui.with_layout(
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
-                        if widgets::ghost_button(ui, format!("{}  EXPORT CSV", icons::DOWNLOAD)).clicked() && Self::export_interfaces_csv(state) {
+                        if widgets::ghost_button(ui, format!("{}  EXPORT CSV", icons::DOWNLOAD))
+                            .clicked()
+                            && Self::export_interfaces_csv(state)
+                        {
                             state.toasts.push(
                                 crate::widgets::toast::Toast::success(
                                     "Export CSV interfaces terminé",
@@ -352,7 +355,10 @@ impl NetworkPage {
                 ui.with_layout(
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
-                        if widgets::ghost_button(ui, format!("{}  EXPORT CSV", icons::DOWNLOAD)).clicked() && Self::export_connections_csv(state) {
+                        if widgets::ghost_button(ui, format!("{}  EXPORT CSV", icons::DOWNLOAD))
+                            .clicked()
+                            && Self::export_connections_csv(state)
+                        {
                             state.toasts.push(
                                 crate::widgets::toast::Toast::success(
                                     "Export CSV connexions terminé",
@@ -367,7 +373,8 @@ impl NetworkPage {
 
             let search_lower = state.network.search.to_lowercase();
             let filtered: Vec<usize> = state
-                .network.connections
+                .network
+                .connections
                 .iter()
                 .enumerate()
                 .filter(|(_, c)| {
@@ -562,7 +569,8 @@ impl NetworkPage {
     fn export_interfaces_csv(state: &AppState) -> bool {
         let headers = &["interface", "type", "statut", "mac", "ipv4", "ipv6"];
         let rows: Vec<Vec<String>> = state
-            .network.interfaces
+            .network
+            .interfaces
             .iter()
             .map(|iface| {
                 vec![
@@ -588,7 +596,8 @@ impl NetworkPage {
     fn export_connections_csv(state: &AppState) -> bool {
         let headers = &["protocole", "local", "distant", "statut", "processus"];
         let rows: Vec<Vec<String>> = state
-            .network.connections
+            .network
+            .connections
             .iter()
             .map(|conn| {
                 vec![

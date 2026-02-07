@@ -112,9 +112,7 @@ impl BeaconingDetector {
             return;
         }
 
-        if let (Some(remote_addr), Some(remote_port)) =
-            (&conn.remote_address, conn.remote_port)
-        {
+        if let (Some(remote_addr), Some(remote_port)) = (&conn.remote_address, conn.remote_port) {
             let destination = format!("{}:{}", remote_addr, remote_port);
 
             // Skip whitelisted destinations
@@ -144,9 +142,7 @@ impl BeaconingDetector {
                 }
             }
 
-            let events = self.connection_history
-                .entry(destination)
-                .or_default();
+            let events = self.connection_history.entry(destination).or_default();
             events.push(event);
 
             // Enforce max events per destination to prevent unbounded memory growth
@@ -173,8 +169,7 @@ impl BeaconingDetector {
                 continue;
             }
 
-            if let (Some(remote_addr), Some(remote_port)) =
-                (&conn.remote_address, conn.remote_port)
+            if let (Some(remote_addr), Some(remote_port)) = (&conn.remote_address, conn.remote_port)
             {
                 let destination = format!("{}:{}", remote_addr, remote_port);
 
@@ -189,30 +184,28 @@ impl BeaconingDetector {
                     pid: conn.pid,
                 };
 
-                temp_history
-                    .entry(destination)
-                    .or_default()
-                    .push(event);
+                temp_history.entry(destination).or_default().push(event);
             }
         }
 
         // Analyze combined history
         let mut combined_history = self.connection_history.clone();
         for (dest, events) in temp_history {
-            combined_history
-                .entry(dest)
-                .or_default()
-                .extend(events);
+            combined_history.entry(dest).or_default().extend(events);
         }
 
         for (destination, events) in &combined_history {
             if let Some(analysis) = self.analyze_destination(destination, events)
                 && analysis.is_beaconing
-                    && let Some(conn) = connections.iter().find(|c| {
-                        c.remote_address.as_ref().map(|a| destination.starts_with(a)) == Some(true)
-                    }) {
-                        alerts.push(self.create_alert(conn, &analysis));
-                    }
+                && let Some(conn) = connections.iter().find(|c| {
+                    c.remote_address
+                        .as_ref()
+                        .map(|a| destination.starts_with(a))
+                        == Some(true)
+                })
+            {
+                alerts.push(self.create_alert(conn, &analysis));
+            }
         }
 
         alerts
@@ -270,8 +263,8 @@ impl BeaconingDetector {
             &sorted_events,
         );
 
-        let is_beaconing =
-            jitter_percent <= self.config.max_jitter_percent && confidence >= self.config.min_confidence;
+        let is_beaconing = jitter_percent <= self.config.max_jitter_percent
+            && confidence >= self.config.min_confidence;
 
         Some(BeaconingAnalysis {
             destination: destination.to_string(),
@@ -319,9 +312,7 @@ impl BeaconingDetector {
         // Same process consistently = higher confidence (weight: 10%)
         if !events.is_empty() {
             let first_process = &events[0].process_name;
-            let same_process = events
-                .iter()
-                .all(|e| &e.process_name == first_process);
+            let same_process = events.iter().all(|e| &e.process_name == first_process);
             if same_process && first_process.is_some() {
                 score += 10.0;
             }
@@ -361,10 +352,7 @@ impl BeaconingDetector {
         NetworkSecurityAlert {
             alert_type: NetworkAlertType::C2Communication,
             severity,
-            title: format!(
-                "Beaconing pattern detected to {}",
-                analysis.destination
-            ),
+            title: format!("Beaconing pattern detected to {}", analysis.destination),
             description: format!(
                 "Regular callback pattern detected to '{}'{} with {}% confidence. \
                  Average interval: {}, jitter: {:.1}%. \
@@ -515,14 +503,12 @@ mod tests {
     #[test]
     fn test_analyze_destination_insufficient_data() {
         let detector = BeaconingDetector::with_config(BeaconingConfig::default());
-        let events = vec![
-            ConnectionEvent {
-                destination: "10.0.0.1:4444".to_string(),
-                timestamp: Utc::now(),
-                process_name: Some("test".to_string()),
-                pid: Some(1234),
-            },
-        ];
+        let events = vec![ConnectionEvent {
+            destination: "10.0.0.1:4444".to_string(),
+            timestamp: Utc::now(),
+            process_name: Some("test".to_string()),
+            pid: Some(1234),
+        }];
 
         let result = detector.analyze_destination("10.0.0.1:4444", &events);
         assert!(result.is_none()); // Not enough data points

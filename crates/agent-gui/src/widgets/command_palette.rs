@@ -159,11 +159,7 @@ impl<'a> CommandPalette<'a> {
                     score += 10;
                 }
 
-                if score > 0 {
-                    Some((cmd, score))
-                } else {
-                    None
-                }
+                if score > 0 { Some((cmd, score)) } else { None }
             })
             .collect();
 
@@ -197,16 +193,19 @@ impl<'a> CommandPalette<'a> {
                 state.close();
             }
             if i.key_pressed(Key::ArrowDown) {
-                state.selected_index = (state.selected_index + 1).min(filtered.len().saturating_sub(1));
+                state.selected_index =
+                    (state.selected_index + 1).min(filtered.len().saturating_sub(1));
             }
             if i.key_pressed(Key::ArrowUp) {
                 state.selected_index = state.selected_index.saturating_sub(1);
             }
-            if i.key_pressed(Key::Enter) && !filtered.is_empty()
-                && let Some(cmd) = filtered.get(state.selected_index) {
-                    result = Some(cmd.id.clone());
-                    state.close();
-                }
+            if i.key_pressed(Key::Enter)
+                && !filtered.is_empty()
+                && let Some(cmd) = filtered.get(state.selected_index)
+            {
+                result = Some(cmd.id.clone());
+                state.close();
+            }
         });
 
         // Backdrop
@@ -219,11 +218,8 @@ impl<'a> CommandPalette<'a> {
                     ui.allocate_exact_size(screen.size(), Sense::click());
 
                 if ui.is_rect_visible(backdrop_rect) {
-                    ui.painter().rect_filled(
-                        backdrop_rect,
-                        0,
-                        Color32::from_black_alpha(100),
-                    );
+                    ui.painter()
+                        .rect_filled(backdrop_rect, 0, Color32::from_black_alpha(100));
                 }
 
                 if backdrop_response.clicked() {
@@ -279,7 +275,10 @@ impl<'a> CommandPalette<'a> {
                         ui.painter().line_segment(
                             [
                                 egui::pos2(ui.min_rect().min.x, ui.min_rect().max.y),
-                                egui::pos2(ui.min_rect().min.x + palette_width, ui.min_rect().max.y),
+                                egui::pos2(
+                                    ui.min_rect().min.x + palette_width,
+                                    ui.min_rect().max.y,
+                                ),
                             ],
                             egui::Stroke::new(1.0, theme::border()),
                         );
@@ -296,19 +295,20 @@ impl<'a> CommandPalette<'a> {
                                     for (i, cmd) in filtered.iter().enumerate() {
                                         // Category header
                                         if let Some(cat) = &cmd.category
-                                            && current_category != Some(cat.as_str()) {
-                                                current_category = Some(cat.as_str());
-                                                ui.add_space(8.0);
-                                                ui.horizontal(|ui| {
-                                                    ui.add_space(16.0);
-                                                    ui.label(
-                                                        egui::RichText::new(cat.to_uppercase())
-                                                            .font(theme::font_label())
-                                                            .color(theme::text_tertiary()),
-                                                    );
-                                                });
-                                                ui.add_space(4.0);
-                                            }
+                                            && current_category != Some(cat.as_str())
+                                        {
+                                            current_category = Some(cat.as_str());
+                                            ui.add_space(8.0);
+                                            ui.horizontal(|ui| {
+                                                ui.add_space(16.0);
+                                                ui.label(
+                                                    egui::RichText::new(cat.to_uppercase())
+                                                        .font(theme::font_label())
+                                                        .color(theme::text_tertiary()),
+                                                );
+                                            });
+                                            ui.add_space(4.0);
+                                        }
 
                                         let is_selected = i == state.selected_index;
 
@@ -328,7 +328,8 @@ impl<'a> CommandPalette<'a> {
                                                     theme::hover_bg()
                                                 };
 
-                                                let inner_rect = item_rect.shrink2(egui::vec2(8.0, 2.0));
+                                                let inner_rect =
+                                                    item_rect.shrink2(egui::vec2(8.0, 2.0));
                                                 ui.painter().rect_filled(
                                                     inner_rect,
                                                     CornerRadius::same(8),
@@ -336,12 +337,16 @@ impl<'a> CommandPalette<'a> {
                                                 );
                                             }
 
-                                            let content_rect = item_rect.shrink2(egui::vec2(16.0, 0.0));
+                                            let content_rect =
+                                                item_rect.shrink2(egui::vec2(16.0, 0.0));
 
                                             // Icon
                                             if let Some(icon) = &cmd.icon {
                                                 ui.painter().text(
-                                                    egui::pos2(content_rect.min.x, content_rect.center().y),
+                                                    egui::pos2(
+                                                        content_rect.min.x,
+                                                        content_rect.center().y,
+                                                    ),
                                                     egui::Align2::LEFT_CENTER,
                                                     icon,
                                                     theme::font_body(),
@@ -353,7 +358,8 @@ impl<'a> CommandPalette<'a> {
                                                 );
                                             }
 
-                                            let text_x = content_rect.min.x + if cmd.icon.is_some() { 32.0 } else { 0.0 };
+                                            let text_x = content_rect.min.x
+                                                + if cmd.icon.is_some() { 32.0 } else { 0.0 };
 
                                             // Label
                                             ui.painter().text(
@@ -371,7 +377,10 @@ impl<'a> CommandPalette<'a> {
                                             // Description
                                             if let Some(desc) = &cmd.description {
                                                 ui.painter().text(
-                                                    egui::pos2(text_x, content_rect.center().y + 8.0),
+                                                    egui::pos2(
+                                                        text_x,
+                                                        content_rect.center().y + 8.0,
+                                                    ),
                                                     egui::Align2::LEFT_CENTER,
                                                     desc,
                                                     theme::font_small(),
@@ -388,7 +397,9 @@ impl<'a> CommandPalette<'a> {
                                                 );
                                                 let shortcut_rect = egui::Rect::from_min_size(
                                                     egui::pos2(
-                                                        content_rect.max.x - shortcut_galley.size().x - 8.0,
+                                                        content_rect.max.x
+                                                            - shortcut_galley.size().x
+                                                            - 8.0,
                                                         content_rect.center().y - 10.0,
                                                     ),
                                                     shortcut_galley.size() + egui::vec2(8.0, 4.0),
@@ -437,7 +448,10 @@ impl<'a> CommandPalette<'a> {
                         ui.painter().line_segment(
                             [
                                 egui::pos2(ui.min_rect().min.x, ui.min_rect().max.y),
-                                egui::pos2(ui.min_rect().min.x + palette_width, ui.min_rect().max.y),
+                                egui::pos2(
+                                    ui.min_rect().min.x + palette_width,
+                                    ui.min_rect().max.y,
+                                ),
                             ],
                             egui::Stroke::new(1.0, theme::border()),
                         );
@@ -496,7 +510,5 @@ impl<'a> CommandPalette<'a> {
 
 /// Check if command palette shortcut (Cmd/Ctrl+K) is pressed.
 pub fn check_palette_shortcut(ctx: &egui::Context) -> bool {
-    ctx.input(|i| {
-        i.key_pressed(Key::K) && i.modifiers.command
-    })
+    ctx.input(|i| i.key_pressed(Key::K) && i.modifiers.command)
 }

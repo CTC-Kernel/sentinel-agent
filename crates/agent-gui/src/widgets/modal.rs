@@ -99,7 +99,11 @@ impl Modal {
 
     /// Check if the modal is open.
     pub fn is_open(ctx: &egui::Context, id: impl std::hash::Hash) -> bool {
-        ctx.memory(|mem| mem.data.get_temp::<bool>(egui::Id::new(id)).unwrap_or(false))
+        ctx.memory(|mem| {
+            mem.data
+                .get_temp::<bool>(egui::Id::new(id))
+                .unwrap_or(false)
+        })
     }
 
     /// Show the modal and return the result.
@@ -202,8 +206,10 @@ impl Modal {
 
                         // Icon circle
                         let icon_size = 48.0;
-                        let (icon_rect, _) =
-                            ui.allocate_exact_size(egui::vec2(icon_size, icon_size), egui::Sense::hover());
+                        let (icon_rect, _) = ui.allocate_exact_size(
+                            egui::vec2(icon_size, icon_size),
+                            egui::Sense::hover(),
+                        );
                         ui.painter().circle_filled(
                             icon_rect.center(),
                             icon_size / 2.0,
@@ -232,15 +238,12 @@ impl Modal {
 
                         // Close button
                         if self.show_close {
-                            ui.with_layout(
-                                egui::Layout::right_to_left(egui::Align::TOP),
-                                |ui| {
-                                    ui.add_space(theme::SPACE_MD);
-                                    if button::icon_button(ui, icons::XMARK, Some("Fermer")).clicked() {
-                                        result = ModalResult::Dismiss;
-                                    }
-                                },
-                            );
+                            ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
+                                ui.add_space(theme::SPACE_MD);
+                                if button::icon_button(ui, icons::XMARK, Some("Fermer")).clicked() {
+                                    result = ModalResult::Dismiss;
+                                }
+                            });
                         }
                     });
 

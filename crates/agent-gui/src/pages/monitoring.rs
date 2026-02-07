@@ -108,7 +108,12 @@ impl MonitoringPage {
 
         // IO charts grid (Disk + Network)
         let disk_data: Vec<[f64; 2]> = state.monitoring.disk_io_history.iter().copied().collect();
-        let net_data: Vec<[f64; 2]> = state.monitoring.network_io_history.iter().copied().collect();
+        let net_data: Vec<[f64; 2]> = state
+            .monitoring
+            .network_io_history
+            .iter()
+            .copied()
+            .collect();
 
         let io_grid = widgets::ResponsiveGrid::new(450.0, theme::SPACE_LG);
         let io_items: Vec<(&str, &[[f64; 2]], egui::Color32, bool)> = vec![
@@ -219,14 +224,14 @@ impl MonitoringPage {
                 if response.hovered() {
                     let rect = ui.max_rect();
                     let line_y = rect.bottom() - 1.5;
-                    
+
                     // Main line
                     ui.painter().hline(
                         rect.left() + 10.0..=rect.right() - 10.0,
                         line_y,
                         egui::Stroke::new(2.5, color),
                     );
-                    
+
                     // Outer glow
                     ui.painter().hline(
                         rect.left() + 5.0..=rect.right() - 5.0,

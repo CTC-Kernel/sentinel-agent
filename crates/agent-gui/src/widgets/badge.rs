@@ -211,8 +211,7 @@ pub fn badge_outline(ui: &mut Ui, text: &str, variant: BadgeVariant) -> egui::Re
 /// Status dot indicator (no text).
 pub fn status_dot(ui: &mut Ui, color: Color32) -> egui::Response {
     let size = 8.0;
-    let (rect, response) =
-        ui.allocate_exact_size(egui::vec2(size, size), egui::Sense::hover());
+    let (rect, response) = ui.allocate_exact_size(egui::vec2(size, size), egui::Sense::hover());
 
     if ui.is_rect_visible(rect) {
         ui.painter().circle_filled(rect.center(), size / 2.0, color);
@@ -235,8 +234,11 @@ pub fn status_dot_animated(ui: &mut Ui, color: Color32, pulse: bool) -> egui::Re
             let alpha = ((t * 2.5).cos() * 0.5 + 0.5) as f32;
 
             // Outer glow
-            ui.painter()
-                .circle_filled(center, size / 2.0 + 2.0, color.linear_multiply(alpha * 0.3));
+            ui.painter().circle_filled(
+                center,
+                size / 2.0 + 2.0,
+                color.linear_multiply(alpha * 0.3),
+            );
             ui.ctx().request_repaint();
         }
 

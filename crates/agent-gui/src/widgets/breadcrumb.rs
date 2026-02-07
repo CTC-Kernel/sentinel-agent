@@ -194,11 +194,9 @@ impl<'a> Breadcrumb<'a> {
                 }
                 content.push_str(item.label);
 
-                let galley = ui.painter().layout_no_wrap(
-                    content.clone(),
-                    theme::font_body(),
-                    text_color,
-                );
+                let galley =
+                    ui.painter()
+                        .layout_no_wrap(content.clone(), theme::font_body(), text_color);
 
                 let padding = egui::vec2(8.0, 4.0);
                 let item_size = galley.size() + padding * 2.0;
@@ -216,11 +214,8 @@ impl<'a> Breadcrumb<'a> {
 
                     // Background on hover
                     if is_hovered {
-                        ui.painter().rect_filled(
-                            rect,
-                            CornerRadius::same(4),
-                            theme::hover_bg(),
-                        );
+                        ui.painter()
+                            .rect_filled(rect, CornerRadius::same(4), theme::hover_bg());
                     }
 
                     // Text
@@ -232,7 +227,8 @@ impl<'a> Breadcrumb<'a> {
 
                     ui.painter().galley(
                         rect.min + padding,
-                        ui.painter().layout_no_wrap(content, theme::font_body(), final_color),
+                        ui.painter()
+                            .layout_no_wrap(content, theme::font_body(), final_color),
                         final_color,
                     );
 
@@ -269,7 +265,9 @@ pub fn breadcrumb_with_separator(
     labels: &[&str],
     separator: BreadcrumbSeparator,
 ) -> Option<usize> {
-    Breadcrumb::from_labels(labels).separator(separator).show(ui)
+    Breadcrumb::from_labels(labels)
+        .separator(separator)
+        .show(ui)
 }
 
 /// Breadcrumb with home icon as first item.

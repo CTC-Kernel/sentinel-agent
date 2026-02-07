@@ -9,9 +9,9 @@
 //! - Security options
 
 use super::types::*;
-use crate::error::ScannerResult;
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
+use crate::error::ScannerResult;
 use serde::{Deserialize, Serialize};
 use tracing::info;
 #[cfg(target_os = "windows")]
@@ -50,13 +50,19 @@ impl GpoAuditor {
 
     /// Get domain Group Policy settings.
     #[cfg(target_os = "windows")]
-    pub async fn get_domain_policy(&self, _domain: Option<&str>) -> ScannerResult<GpoSecuritySettings> {
+    pub async fn get_domain_policy(
+        &self,
+        _domain: Option<&str>,
+    ) -> ScannerResult<GpoSecuritySettings> {
         info!("Retrieving domain Group Policy settings");
         self.get_windows_domain_policy().await
     }
 
     /// Get privileged group memberships.
-    pub async fn get_privileged_groups(&self, _domain: Option<&str>) -> ScannerResult<Vec<PrivilegedGroupInfo>> {
+    pub async fn get_privileged_groups(
+        &self,
+        _domain: Option<&str>,
+    ) -> ScannerResult<Vec<PrivilegedGroupInfo>> {
         info!("Enumerating privileged group memberships");
 
         #[cfg(target_os = "windows")]
@@ -139,42 +145,51 @@ impl GpoAuditor {
             let stdout = String::from_utf8_lossy(&output.stdout);
             if let Ok(policy) = serde_json::from_str::<serde_json::Value>(&stdout) {
                 settings.password_policy = PasswordPolicy {
-                    min_length: policy.get("MinimumPasswordLength")
+                    min_length: policy
+                        .get("MinimumPasswordLength")
                         .and_then(|v| v.as_i64())
                         .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
-                    max_age_days: policy.get("MaximumPasswordAge")
+                    max_age_days: policy
+                        .get("MaximumPasswordAge")
                         .and_then(|v| v.as_i64())
                         .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(42),
-                    min_age_days: policy.get("MinimumPasswordAge")
+                    min_age_days: policy
+                        .get("MinimumPasswordAge")
                         .and_then(|v| v.as_i64())
                         .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
-                    history_count: policy.get("PasswordHistorySize")
+                    history_count: policy
+                        .get("PasswordHistorySize")
                         .and_then(|v| v.as_i64())
                         .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
-                    complexity_enabled: policy.get("PasswordComplexity")
+                    complexity_enabled: policy
+                        .get("PasswordComplexity")
                         .and_then(|v| v.as_i64())
                         .map(|v| v == 1)
                         .unwrap_or(false),
-                    reversible_encryption: policy.get("ClearTextPassword")
+                    reversible_encryption: policy
+                        .get("ClearTextPassword")
                         .and_then(|v| v.as_i64())
                         .map(|v| v == 1)
                         .unwrap_or(false),
                 };
 
                 settings.lockout_policy = AccountLockoutPolicy {
-                    threshold: policy.get("LockoutThreshold")
+                    threshold: policy
+                        .get("LockoutThreshold")
                         .and_then(|v| v.as_i64())
                         .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
-                    duration_minutes: policy.get("LockoutDuration")
+                    duration_minutes: policy
+                        .get("LockoutDuration")
                         .and_then(|v| v.as_i64())
                         .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
-                    observation_window_minutes: policy.get("LockoutObservationWindow")
+                    observation_window_minutes: policy
+                        .get("LockoutObservationWindow")
                         .and_then(|v| v.as_i64())
                         .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
@@ -185,7 +200,10 @@ impl GpoAuditor {
         // Get audit policy settings
         settings.audit_policy = self.get_audit_policy().await?;
 
-        debug!("Retrieved local security policy: {:?}", settings.password_policy);
+        debug!(
+            "Retrieved local security policy: {:?}",
+            settings.password_policy
+        );
         Ok(settings)
     }
 
@@ -251,40 +269,49 @@ impl GpoAuditor {
                 let mut settings = GpoSecuritySettings::default();
 
                 settings.password_policy = PasswordPolicy {
-                    min_length: policy.get("MinPasswordLength")
+                    min_length: policy
+                        .get("MinPasswordLength")
                         .and_then(|v| v.as_i64())
                         .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
-                    max_age_days: policy.get("MaxPasswordAge")
+                    max_age_days: policy
+                        .get("MaxPasswordAge")
                         .and_then(|v| v.as_i64())
                         .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(42),
-                    min_age_days: policy.get("MinPasswordAge")
+                    min_age_days: policy
+                        .get("MinPasswordAge")
                         .and_then(|v| v.as_i64())
                         .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
-                    history_count: policy.get("PasswordHistoryCount")
+                    history_count: policy
+                        .get("PasswordHistoryCount")
                         .and_then(|v| v.as_i64())
                         .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
-                    complexity_enabled: policy.get("ComplexityEnabled")
+                    complexity_enabled: policy
+                        .get("ComplexityEnabled")
                         .and_then(|v| v.as_bool())
                         .unwrap_or(false),
-                    reversible_encryption: policy.get("ReversibleEncryptionEnabled")
+                    reversible_encryption: policy
+                        .get("ReversibleEncryptionEnabled")
                         .and_then(|v| v.as_bool())
                         .unwrap_or(false),
                 };
 
                 settings.lockout_policy = AccountLockoutPolicy {
-                    threshold: policy.get("LockoutThreshold")
+                    threshold: policy
+                        .get("LockoutThreshold")
                         .and_then(|v| v.as_i64())
                         .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
-                    duration_minutes: policy.get("LockoutDuration")
+                    duration_minutes: policy
+                        .get("LockoutDuration")
                         .and_then(|v| v.as_f64())
                         .map(|v| v.clamp(0.0, u32::MAX as f64) as u32)
                         .unwrap_or(0),
-                    observation_window_minutes: policy.get("LockoutObservationWindow")
+                    observation_window_minutes: policy
+                        .get("LockoutObservationWindow")
                         .and_then(|v| v.as_f64())
                         .map(|v| v.clamp(0.0, u32::MAX as f64) as u32)
                         .unwrap_or(0),
@@ -332,7 +359,8 @@ impl GpoAuditor {
             let stdout = String::from_utf8_lossy(&output.stdout);
             if let Ok(policy) = serde_json::from_str::<serde_json::Value>(&stdout) {
                 let get_setting = |key: &str| -> AuditSetting {
-                    policy.get(key)
+                    policy
+                        .get(key)
                         .and_then(|v| v.as_str())
                         .map(|s| match s {
                             "Success" => AuditSetting::Success,
@@ -371,12 +399,36 @@ impl GpoAuditor {
         // List of privileged groups to check
         let privileged_groups = [
             ("Administrators", "S-1-5-32-544", "Full system access"),
-            ("Domain Admins", "S-1-5-21-*-512", "Domain-wide admin access"),
-            ("Enterprise Admins", "S-1-5-21-*-519", "Forest-wide admin access"),
-            ("Schema Admins", "S-1-5-21-*-518", "AD schema modification rights"),
-            ("Account Operators", "S-1-5-32-548", "Account creation/modification"),
-            ("Backup Operators", "S-1-5-32-551", "Backup/restore any file"),
-            ("Server Operators", "S-1-5-32-549", "Server management rights"),
+            (
+                "Domain Admins",
+                "S-1-5-21-*-512",
+                "Domain-wide admin access",
+            ),
+            (
+                "Enterprise Admins",
+                "S-1-5-21-*-519",
+                "Forest-wide admin access",
+            ),
+            (
+                "Schema Admins",
+                "S-1-5-21-*-518",
+                "AD schema modification rights",
+            ),
+            (
+                "Account Operators",
+                "S-1-5-32-548",
+                "Account creation/modification",
+            ),
+            (
+                "Backup Operators",
+                "S-1-5-32-551",
+                "Backup/restore any file",
+            ),
+            (
+                "Server Operators",
+                "S-1-5-32-549",
+                "Server management rights",
+            ),
         ];
 
         for (group_name, sid_pattern, description) in privileged_groups {
@@ -406,7 +458,10 @@ impl GpoAuditor {
                     let members: Vec<String> = if members_str.is_empty() {
                         Vec::new()
                     } else {
-                        members_str.split(',').map(|s| s.trim().to_string()).collect()
+                        members_str
+                            .split(',')
+                            .map(|s| s.trim().to_string())
+                            .collect()
                     };
 
                     let risk_level = match group_name {
@@ -469,7 +524,10 @@ impl GpoAuditor {
                             } else {
                                 DirectorySeverity::High
                             },
-                            description: format!("Unix {} group with elevated privileges", group_name),
+                            description: format!(
+                                "Unix {} group with elevated privileges",
+                                group_name
+                            ),
                         });
                     }
                 }

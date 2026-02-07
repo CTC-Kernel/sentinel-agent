@@ -508,7 +508,7 @@ impl DashboardPage {
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_SM);
-                
+
                 let llm_widget = LLMStatusWidget::new(None);
                 llm_widget.show(ui);
             }

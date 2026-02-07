@@ -98,8 +98,11 @@ impl<'a> AuditTrailRepository<'a> {
         self.db
             .with_connection(move |conn| {
                 let placeholders = ids_vec.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-                let query = format!("UPDATE audit_trail SET synced = 1 WHERE id IN ({})", placeholders);
-                
+                let query = format!(
+                    "UPDATE audit_trail SET synced = 1 WHERE id IN ({})",
+                    placeholders
+                );
+
                 let mut stmt = conn.prepare(&query).map_err(|e| {
                     StorageError::Query(format!("Failed to prepare batch update: {}", e))
                 })?;

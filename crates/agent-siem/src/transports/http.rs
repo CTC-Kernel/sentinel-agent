@@ -81,13 +81,12 @@ impl HttpTransport {
     /// Note: In production, you'd use reqwest or similar.
     async fn send_http(&self, data: &str) -> SiemResult<usize> {
         // Parse URL
-        let url = url::Url::parse(&self.url).map_err(|e| {
-            SiemError::ConfigError(format!("Invalid URL: {}", e))
-        })?;
+        let url = url::Url::parse(&self.url)
+            .map_err(|e| SiemError::ConfigError(format!("Invalid URL: {}", e)))?;
 
-        let host = url.host_str().ok_or_else(|| {
-            SiemError::ConfigError("URL missing host".to_string())
-        })?;
+        let host = url
+            .host_str()
+            .ok_or_else(|| SiemError::ConfigError("URL missing host".to_string()))?;
 
         let port = url.port_or_known_default().unwrap_or(443);
         let path = url.path();
@@ -138,7 +137,9 @@ impl HttpTransport {
 
         if is_https {
             // HTTPS requires TLS — reject instead of silently faking success
-            error!("HTTPS transport is not yet implemented. Configure an HTTP endpoint or use a TLS-terminating proxy.");
+            error!(
+                "HTTPS transport is not yet implemented. Configure an HTTP endpoint or use a TLS-terminating proxy."
+            );
             self.connected.store(false, Ordering::SeqCst);
             return Err(SiemError::ConfigError(
                 "HTTPS transport not implemented. Use HTTP with a TLS proxy, or configure a plain HTTP endpoint.".to_string(),
@@ -151,18 +152,23 @@ impl HttpTransport {
                 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
                 // Send request
-                stream.write_all(request.as_bytes()).await.map_err(|e| {
-                    SiemError::SendError(format!("Failed to send: {}", e))
-                })?;
+                stream
+                    .write_all(request.as_bytes())
+                    .await
+                    .map_err(|e| SiemError::SendError(format!("Failed to send: {}", e)))?;
 
                 // Read response
                 let mut response = vec![0u8; 4096];
-                let n = stream.read(&mut response).await.map_err(|e| {
-                    SiemError::SendError(format!("Failed to read response: {}", e))
-                })?;
+                let n = stream
+                    .read(&mut response)
+                    .await
+                    .map_err(|e| SiemError::SendError(format!("Failed to read response: {}", e)))?;
 
                 let response_str = String::from_utf8_lossy(&response[..n]);
-                debug!("HTTP response: {}", response_str.lines().next().unwrap_or(""));
+                debug!(
+                    "HTTP response: {}",
+                    response_str.lines().next().unwrap_or("")
+                );
 
                 // Parse HTTP status code from response status line (e.g. "HTTP/1.1 200 OK")
                 let status_code = response_str
