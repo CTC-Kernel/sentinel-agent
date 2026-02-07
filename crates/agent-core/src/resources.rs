@@ -684,8 +684,8 @@ fn get_process_memory() -> u64 {
         if parts.len() >= 2 {
             // Second field is RSS in pages
             if let Ok(rss_pages) = parts[1].parse::<u64>() {
-                let page_size = unsafe { libc::sysconf(libc::_SC_PAGESIZE) } as u64;
-                let page_size = if page_size > 0 { page_size } else { 4096 };
+                let raw_page_size = unsafe { libc::sysconf(libc::_SC_PAGESIZE) };
+                let page_size: u64 = if raw_page_size > 0 { raw_page_size as u64 } else { 4096 };
                 return rss_pages * page_size;
             }
         }
@@ -705,10 +705,11 @@ fn get_cpu_usage() -> f64 {
     static LAST_MEASURE_TIME: AtomicU64 = AtomicU64::new(0);
 
     // Get system clock ticks per second
-    let clock_ticks = unsafe { libc::sysconf(libc::_SC_CLK_TCK) } as u64;
-    if clock_ticks == 0 {
+    let raw_clock_ticks = unsafe { libc::sysconf(libc::_SC_CLK_TCK) };
+    if raw_clock_ticks <= 0 {
         return 0.0;
     }
+    let clock_ticks = raw_clock_ticks as u64;
 
     // Read from /proc/self/stat for CPU time
     if let Ok(stat) = fs::read_to_string("/proc/self/stat") {

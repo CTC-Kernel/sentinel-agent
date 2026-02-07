@@ -57,6 +57,10 @@ blake3 = "1"
 memmap2 = "0.9"
 regex = "1"
 zeroize = { version = "1", features = ["derive"] }
+getrandom = "0.2"
+os_info = "3"
+dirs = "5"
+flate2 = "1.0"
 
 [workspace.dependencies.windows]
 version = "0.58"
