@@ -11,6 +11,8 @@ use super::types::*;
 use crate::error::ScannerResult;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info};
+#[cfg(target_os = "linux")]
+use tracing::warn;
 
 /// LDAP server security auditor.
 pub struct LdapAuditor {
