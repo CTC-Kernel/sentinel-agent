@@ -332,10 +332,10 @@ jobs:
 
       - name: Install WiX Toolset
         run: |
-          dotnet tool install --global wix
-          wix extension add -g WixToolset.UI.wixext
-          wix extension add -g WixToolset.Util.wixext
-          wix extension add -g WixToolset.Firewall.wixext
+          dotnet tool install --global wix --version 4.0.0
+          wix extension add -g WixToolset.UI.wixext --version 4.0.0
+          wix extension add -g WixToolset.Util.wixext --version 4.0.0
+          wix extension add -g WixToolset.Firewall.wixext --version 4.0.0
 
       - name: Build MSI
         run: |
@@ -354,6 +354,7 @@ jobs:
 
       - name: Sign MSI (Authenticode)
         env:
+          # GitHub Secrets - only available in CI/CD environment
           WINDOWS_CERT_P12: ${{ secrets.WINDOWS_CERT_P12 }}
           WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
         run: |
