@@ -100,13 +100,13 @@ impl FimPage {
 
         let search_lower = state.fim.search.to_lowercase();
         let filtered: Vec<usize> = state
-            .fim.alerts
+            .fim
+            .alerts
             .iter()
             .enumerate()
             .filter(|(_, a)| {
                 if !search_lower.is_empty() {
-                    let haystack =
-                        format!("{} {}", a.path.to_lowercase(), a.change_type.as_str());
+                    let haystack = format!("{} {}", a.path.to_lowercase(), a.change_type.as_str());
                     if !haystack.contains(&search_lower) {
                         return false;
                     }
@@ -155,7 +155,9 @@ impl FimPage {
             ui.with_layout(
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
-                    if widgets::ghost_button(ui, format!("{}  EXPORT CSV", icons::DOWNLOAD)).clicked() {
+                    if widgets::ghost_button(ui, format!("{}  EXPORT CSV", icons::DOWNLOAD))
+                        .clicked()
+                    {
                         let success = Self::export_events_csv(state, &filtered);
                         let time = ui.input(|i| i.time);
                         if success {
@@ -268,7 +270,14 @@ impl FimPage {
                             row.col(|ui: &mut egui::Ui| {
                                 let path = &state.fim.alerts[idx].path;
                                 let display_path = if path.chars().count() > 60 {
-                                    let suffix: String = path.chars().rev().take(57).collect::<Vec<_>>().into_iter().rev().collect();
+                                    let suffix: String = path
+                                        .chars()
+                                        .rev()
+                                        .take(57)
+                                        .collect::<Vec<_>>()
+                                        .into_iter()
+                                        .rev()
+                                        .collect();
                                     format!("...{}", suffix)
                                 } else {
                                     path.clone()
@@ -307,7 +316,14 @@ impl FimPage {
                                         .strong(),
                                     );
                                 } else {
-                                    if widgets::chip_button(ui, &format!("{}  ACQUITTER", icons::CHECK), false, theme::ACCENT).clicked() {
+                                    if widgets::chip_button(
+                                        ui,
+                                        &format!("{}  ACQUITTER", icons::CHECK),
+                                        false,
+                                        theme::ACCENT,
+                                    )
+                                    .clicked()
+                                    {
                                         let alert_id = state.fim.alerts[idx].id.clone();
                                         state.fim.alerts[idx].acknowledged = true;
                                         command =

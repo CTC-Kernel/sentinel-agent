@@ -1,5 +1,5 @@
 //! Local LLM inference for intelligent security analysis
-//! 
+//!
 //! This crate provides local LLM capabilities for security analysis,
 //! vulnerability assessment, and threat intelligence within the Sentinel agent.
 
@@ -33,7 +33,10 @@ impl SimpleLLMManager {
         Ok(Self { initialized: true })
     }
 
-    pub async fn analyze_security_event(&self, event: &str) -> Result<AnalysisResult, Box<dyn std::error::Error>> {
+    pub async fn analyze_security_event(
+        &self,
+        event: &str,
+    ) -> Result<AnalysisResult, Box<dyn std::error::Error>> {
         // Simplified analysis for now
         Ok(AnalysisResult {
             risk_level: if event.contains("error") || event.contains("failed") {

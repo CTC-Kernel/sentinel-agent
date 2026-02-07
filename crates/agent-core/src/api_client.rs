@@ -53,6 +53,27 @@ pub enum EnrollmentResult {
     },
 }
 
+/// Maximum number of items allowed in deserialized Vec fields from server responses.
+/// Prevents OOM from malicious or buggy server payloads.
+const MAX_DESERIALIZED_VEC_SIZE: usize = 10_000;
+
+/// Deserialize a Vec with a bounded size to prevent OOM attacks.
+fn deserialize_bounded_vec<'de, D, T>(deserializer: D) -> std::result::Result<Vec<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: serde::Deserialize<'de>,
+{
+    let v: Vec<T> = Vec::deserialize(deserializer)?;
+    if v.len() > MAX_DESERIALIZED_VEC_SIZE {
+        return Err(serde::de::Error::custom(format!(
+            "array too large: {} elements (max {})",
+            v.len(),
+            MAX_DESERIALIZED_VEC_SIZE
+        )));
+    }
+    Ok(v)
+}
+
 /// Agent configuration from the server.
 #[derive(Debug, Deserialize, Clone)]
 pub struct ServerAgentConfig {
@@ -62,7 +83,7 @@ pub struct ServerAgentConfig {
     pub heartbeat_interval_secs: u64,
     #[serde(default = "default_log_level")]
     pub log_level: String,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "deserialize_bounded_vec")]
     pub enabled_checks: Vec<String>,
     #[serde(default = "default_offline_days")]
     pub offline_mode_days: u32,
@@ -100,7 +121,7 @@ pub struct ServerAgentConfig {
     pub update_channel: String,
 
     /// Disabled check IDs.
-    #[serde(default)]
+    #[serde(default, deserialize_with = "deserialize_bounded_vec")]
     pub disabled_checks: Vec<String>,
 
     /// Proxy enabled flag.
@@ -187,7 +208,7 @@ pub struct AgentConnection {
 pub struct HeartbeatResponse {
     pub acknowledged: bool,
     pub server_time: String,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "deserialize_bounded_vec")]
     pub commands: Vec<AgentCommand>,
     #[serde(default)]
     pub config_changed: bool,
@@ -229,11 +250,11 @@ pub struct ConfigResponse {
     pub check_interval_secs: u64,
     pub heartbeat_interval_secs: u64,
     pub log_level: String,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "deserialize_bounded_vec")]
     pub enabled_checks: Vec<String>,
     pub offline_mode_days: u32,
     pub rules_version: u32,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "deserialize_bounded_vec")]
     pub rules: Vec<CheckRule>,
 }
 
@@ -350,7 +371,10 @@ impl ApiClient {
             client,
             base_url: config.server_url.trim_end_matches('/').to_string(),
             agent_id: config.agent_id.clone(),
-            client_certificate: config.client_certificate.as_ref().map(|s| SecretString(s.clone())),
+            client_certificate: config
+                .client_certificate
+                .as_ref()
+                .map(|s| SecretString(s.clone())),
             client_key: config.client_key.as_ref().map(|s| SecretString(s.clone())),
             organization_id: config.organization_id.clone(),
         })
@@ -869,7 +893,11 @@ mod tests {
         ];
 
         for cmd in valid_commands {
-            assert!(cmd.is_valid(), "Command {} should be valid", cmd.command_type);
+            assert!(
+                cmd.is_valid(),
+                "Command {} should be valid",
+                cmd.command_type
+            );
         }
 
         // Invalid commands (not in whitelist)
@@ -892,7 +920,11 @@ mod tests {
         ];
 
         for cmd in invalid_commands {
-            assert!(!cmd.is_valid(), "Command {} should be invalid", cmd.command_type);
+            assert!(
+                !cmd.is_valid(),
+                "Command {} should be invalid",
+                cmd.command_type
+            );
         }
     }
 
@@ -946,7 +978,10 @@ mod tests {
         assert_eq!(config.update_channel, "beta");
         assert_eq!(config.disabled_checks, vec!["usb_storage"]);
         assert!(config.proxy_enabled);
-        assert_eq!(config.proxy_url, Some("http://proxy.example.com:8080".to_string()));
+        assert_eq!(
+            config.proxy_url,
+            Some("http://proxy.example.com:8080".to_string())
+        );
     }
 
     #[test]

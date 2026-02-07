@@ -18,14 +18,14 @@ pub mod api_client;
 pub mod audit_trail;
 pub mod cleanup;
 pub mod events;
+#[cfg(feature = "llm")]
+pub mod llm_service;
 pub mod resources;
 pub mod self_protection;
 pub mod service;
 pub mod state;
 pub mod tracing_layer;
 pub mod update_manager;
-#[cfg(feature = "llm")]
-pub mod llm_service;
 
 #[cfg(feature = "tray")]
 pub mod tray;
@@ -39,6 +39,8 @@ use agent_common::types::UpdateStatus;
 #[cfg(feature = "gui")]
 use agent_network::{DiscoveryConfig, NetworkDiscovery};
 use agent_network::{NetworkManager, NetworkSecurityAlert, NetworkSnapshot};
+#[cfg(feature = "gui")]
+use agent_scanner::RemediationEngine;
 use agent_scanner::{
     CheckExecutionResult, CheckRegistry, CheckRunner, CheckScoreInput, ComplianceScore,
     ScanSummary, ScanType, ScoreCalculator, SecurityMonitor, SecurityScanResult,
@@ -48,11 +50,10 @@ use agent_scanner::{
         BluetoothCheck, BrowserSecurityCheck, CertificateValidationCheck, ContainerSecurityCheck,
         DiskEncryptionCheck, DnsSecurityCheck, FirewallCheck, GpoAuditPolicyCheck,
         GpoLockoutPolicyCheck, GpoPasswordPolicyCheck, GuestAccountCheck, Ipv6ConfigCheck,
-        KernelHardeningCheck, LdapSecurityCheck, LinuxHardeningCheck, LogRotationCheck,
-        MfaCheck, ObsoleteProtocolsCheck, PasswordPolicyCheck, PrivilegedGroupsCheck,
-        RemoteAccessCheck, SecureBootCheck, SessionLockCheck, SshHardeningCheck,
-        SystemUpdatesCheck, TimeSyncCheck, UpdateStatusCheck, UsbStorageCheck,
-        WindowsHardeningCheck,
+        KernelHardeningCheck, LdapSecurityCheck, LinuxHardeningCheck, LogRotationCheck, MfaCheck,
+        ObsoleteProtocolsCheck, PasswordPolicyCheck, PrivilegedGroupsCheck, RemoteAccessCheck,
+        SecureBootCheck, SessionLockCheck, SshHardeningCheck, SystemUpdatesCheck, TimeSyncCheck,
+        UpdateStatusCheck, UsbStorageCheck, WindowsHardeningCheck,
     },
 };
 use agent_storage::{
@@ -63,8 +64,6 @@ use agent_sync::{
     AuditSyncService, AuthenticatedClient, CommandResultsService, ConfigSyncService,
     ResultUploader, RuleSyncService,
 };
-#[cfg(feature = "gui")]
-use agent_scanner::RemediationEngine;
 use api_client::{ApiClient, EnrollmentRequest, HeartbeatRequest};
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use resources::ResourceMonitor;
@@ -74,7 +73,6 @@ use tokio::sync::RwLock;
 use tracing::{debug, error, info, warn};
 
 #[cfg_attr(not(feature = "gui"), allow(dead_code))]
-
 #[cfg(feature = "gui")]
 use agent_gui::dto::{
     AgentSummary, GuiAgentStatus, GuiCheckResult, GuiCheckStatus, GuiDiscoveredDevice,
@@ -684,7 +682,10 @@ impl AgentRuntime {
 
     /// Convert scanner Severity to GUI Severity.
     #[cfg(feature = "gui")]
-    fn scanner_severity_to_gui(&self, severity: agent_scanner::vulnerability::Severity) -> GuiSeverity {
+    fn scanner_severity_to_gui(
+        &self,
+        severity: agent_scanner::vulnerability::Severity,
+    ) -> GuiSeverity {
         match severity {
             agent_scanner::vulnerability::Severity::Critical => GuiSeverity::Critical,
             agent_scanner::vulnerability::Severity::High => GuiSeverity::High,
@@ -979,40 +980,67 @@ impl AgentRuntime {
                             "Rejecting unknown/disallowed server command type '{}' (id={})",
                             cmd.command_type, cmd.id
                         );
-                        if let Err(e) = service.report_failure(&cmd.id, "Unknown or disallowed command type".to_string()).await {
+                        if let Err(e) = service
+                            .report_failure(
+                                &cmd.id,
+                                "Unknown or disallowed command type".to_string(),
+                            )
+                            .await
+                        {
                             error!("Failed to report command rejection to server: {}", e);
                         }
                         continue;
                     }
 
-                    info!("Processing server command: {} (id={})", cmd.command_type, cmd.id);
+                    info!(
+                        "Processing server command: {} (id={})",
+                        cmd.command_type, cmd.id
+                    );
                     let result = match cmd.command_type.as_str() {
                         "force_sync" => {
                             self.state.force_sync.store(true, Ordering::Release);
-                            service.report_success(&cmd.id, Some("Sync triggered".to_string())).await
+                            service
+                                .report_success(&cmd.id, Some("Sync triggered".to_string()))
+                                .await
                         }
                         "run_checks" => {
                             self.state.force_check.store(true, Ordering::Release);
-                            service.report_success(&cmd.id, Some("Compliance scan triggered".to_string())).await
+                            service
+                                .report_success(
+                                    &cmd.id,
+                                    Some("Compliance scan triggered".to_string()),
+                                )
+                                .await
                         }
                         "revoke" => {
                             warn!("Server command: revoke agent credentials ({})", cmd.id);
                             self.request_shutdown();
-                            service.report_success(&cmd.id, Some("Shutdown initiated".to_string())).await
+                            service
+                                .report_success(&cmd.id, Some("Shutdown initiated".to_string()))
+                                .await
                         }
                         "diagnostics" => {
                             info!("Server command: diagnostics ({})", cmd.id);
                             // TODO: Collect and upload diagnostics
-                            service.report_success(&cmd.id, Some("Diagnostics collection started".to_string())).await
+                            service
+                                .report_success(
+                                    &cmd.id,
+                                    Some("Diagnostics collection started".to_string()),
+                                )
+                                .await
                         }
                         "update" => {
                             info!("Server command: update ({})", cmd.id);
                             self.state.force_update.store(true, Ordering::Release);
-                            service.report_success(&cmd.id, Some("Update triggered".to_string())).await
+                            service
+                                .report_success(&cmd.id, Some("Update triggered".to_string()))
+                                .await
                         }
                         other => {
                             warn!("Unknown server command: {} ({})", other, cmd.id);
-                            service.report_failure(&cmd.id, format!("Unknown command: {}", other)).await
+                            service
+                                .report_failure(&cmd.id, format!("Unknown command: {}", other))
+                                .await
                         }
                     };
 
@@ -1604,11 +1632,11 @@ impl AgentRuntime {
         // Initialize result uploader
         let result_uploader = ResultUploader::new(auth_client.clone(), db.clone());
         *self.result_uploader.write().await = Some(result_uploader);
-        
+
         // Initialize audit sync
         let audit_sync = AuditSyncService::new(auth_client.clone(), db.clone());
         *self.audit_sync.write().await = Some(audit_sync);
-        
+
         // Initialize command results service
         let command_results = CommandResultsService::new(auth_client.clone());
         *self.command_results.write().await = Some(command_results);

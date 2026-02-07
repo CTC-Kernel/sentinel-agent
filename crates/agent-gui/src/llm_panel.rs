@@ -2,11 +2,11 @@
 
 #[cfg(feature = "llm_simple")]
 use {
-    agent_llm::{LLMManager, AnalysisResult, RemediationPlan, SecurityClassification, ModelStats},
+    agent_llm::{AnalysisResult, LLMManager, ModelStats, RemediationPlan, SecurityClassification},
     anyhow::Result,
-    std::sync::Arc,
-    egui::{Color32, RichText, Stroke, Vec2},
     chrono::Local,
+    egui::{Color32, RichText, Stroke, Vec2},
+    std::sync::Arc,
 };
 
 #[cfg(not(feature = "llm_simple"))]
@@ -142,7 +142,7 @@ impl LLMPanel {
     fn show_model_status(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.label("Status du modèle:");
-            
+
             if let Some(stats) = &self.model_stats {
                 let status_color = match stats.status {
                     Color32::GREEN => Color32::GREEN,
@@ -180,7 +180,7 @@ impl LLMPanel {
     #[cfg(feature = "llm_simple")]
     fn show_model_info_popup(&mut self, ui: &mut egui::Ui) {
         let popup_id = egui::Id::new("llm_model_info");
-        
+
         egui::Window::new("Informations du Modèle")
             .id(popup_id)
             .collapsible(false)
@@ -191,7 +191,7 @@ impl LLMPanel {
                     ui.label(format!("Modèle: {}", stats.model_name));
                     ui.label(format!("Status: {:?}", stats.status));
                     ui.label(format!("Inférences totales: {}", stats.inference_count));
-                    
+
                     ui.separator();
                     ui.heading("Utilisation Mémoire:");
                     ui.label(format!("Allouée: {}MB", stats.memory_usage.allocated_mb));
@@ -200,30 +200,30 @@ impl LLMPanel {
                 } else {
                     ui.label("Aucune information disponible");
                 }
-                
+
                 ui.separator();
                 if ui.button("Fermer").clicked() {
                     self.show_model_info = false;
                 }
             });
-        }
+    }
 
     /// Show action buttons.
     #[cfg(feature = "llm_simple")]
     fn show_action_buttons(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.label("Actions:");
-            
+
             if ui.button("🔍 Analyser").clicked() {
                 // Trigger analysis - would send command to backend
                 tracing::info!("LLM analysis requested from GUI");
             }
-            
+
             if ui.button("🔧 Remédiation").clicked() {
                 // Trigger remediation - would send command to backend
                 tracing::info!("LLM remediation requested from GUI");
             }
-            
+
             if ui.button("🛡️ Classification").clicked() {
                 // Trigger classification - would send command to backend
                 tracing::info!("LLM classification requested from GUI");
@@ -326,16 +326,19 @@ impl LLMPanel {
         for (i, action) in plan.actions.iter().enumerate() {
             ui.collapsing(format!("{}. {}", i + 1, action.title), |ui| {
                 ui.label(&action.description);
-                
+
                 ui.horizontal(|ui| {
                     let priority_color = match action.priority {
                         "critical" => Color32::RED,
-                _ => Color32::GRAY,
+                        _ => Color32::GRAY,
                         "high" => Color32::ORANGE,
                         "medium" => Color32::YELLOW,
                         "low" => Color32::GREEN,
                     };
-                    ui.label(RichText::new(format!("Priorité: {:?}", action.priority)).color(priority_color));
+                    ui.label(
+                        RichText::new(format!("Priorité: {:?}", action.priority))
+                            .color(priority_color),
+                    );
                     ui.label(format!("Durée: {}", action.estimated_duration));
                 });
 
@@ -368,9 +371,11 @@ impl LLMPanel {
                     "medium" => Color32::YELLOW,
                     "high" => Color32::ORANGE,
                     "critical" => Color32::RED,
-                _ => Color32::GRAY,
+                    _ => Color32::GRAY,
                 };
-                ui.label(RichText::new(format!("{:?}", classification.threat_type)).color(threat_color));
+                ui.label(
+                    RichText::new(format!("{:?}", classification.threat_type)).color(threat_color),
+                );
                 ui.label(format!("Confiance: {}%", classification.confidence));
                 ui.separator();
                 ui.label(&classification.impact_assessment);
@@ -409,7 +414,7 @@ impl LLMStatusWidget {
     pub fn show(&self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.label("🤖 IA:");
-            
+
             #[cfg(feature = "llm_simple")]
             {
                 if let Some(manager) = &self.llm_manager {

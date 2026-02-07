@@ -24,16 +24,28 @@ pub struct ValidationState {
 
 impl ValidationState {
     pub fn none() -> Self {
-        Self { status: InputValidation::None, message: None }
+        Self {
+            status: InputValidation::None,
+            message: None,
+        }
     }
     pub fn valid() -> Self {
-        Self { status: InputValidation::Valid, message: None }
+        Self {
+            status: InputValidation::Valid,
+            message: None,
+        }
     }
     pub fn invalid(msg: impl Into<String>) -> Self {
-        Self { status: InputValidation::Invalid, message: Some(msg.into()) }
+        Self {
+            status: InputValidation::Invalid,
+            message: Some(msg.into()),
+        }
     }
     pub fn warning(msg: impl Into<String>) -> Self {
-        Self { status: InputValidation::Warning, message: Some(msg.into()) }
+        Self {
+            status: InputValidation::Warning,
+            message: Some(msg.into()),
+        }
     }
 }
 
@@ -167,8 +179,16 @@ pub fn text_input_with_options(
     };
 
     // Calculate space needed for icons
-    let clear_space = if clearable && !value.is_empty() { 28.0 } else { 0.0 };
-    let validation_space = if validation != InputValidation::None { 24.0 } else { 0.0 };
+    let clear_space = if clearable && !value.is_empty() {
+        28.0
+    } else {
+        0.0
+    };
+    let validation_space = if validation != InputValidation::None {
+        24.0
+    } else {
+        0.0
+    };
     let right_padding = clear_space + validation_space + 8.0;
 
     // Container frame
@@ -206,20 +226,17 @@ pub fn text_input_with_options(
         egui::vec2(desired_width - 24.0 - right_padding, input_height - 8.0),
     );
 
-    let text_response = ui.allocate_new_ui(
-        egui::UiBuilder::new().max_rect(text_rect),
-        |ui| {
-            ui.add_sized(
-                text_rect.size(),
-                egui::TextEdit::singleline(value)
-                    .hint_text(egui::RichText::new(placeholder).color(theme::text_tertiary()))
-                    .font(theme::font_body())
-                    .margin(egui::Margin::symmetric(0, 6))
-                    .frame(false)
-                    .desired_width(text_rect.width()),
-            )
-        },
-    );
+    let text_response = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
+        ui.add_sized(
+            text_rect.size(),
+            egui::TextEdit::singleline(value)
+                .hint_text(egui::RichText::new(placeholder).color(theme::text_tertiary()))
+                .font(theme::font_body())
+                .margin(egui::Margin::symmetric(0, 6))
+                .frame(false)
+                .desired_width(text_rect.width()),
+        )
+    });
 
     // Validation icon
     if let Some(color) = icon_color {
@@ -230,10 +247,7 @@ pub fn text_input_with_options(
             InputValidation::None => "",
         };
 
-        let icon_pos = egui::pos2(
-            rect.max.x - clear_space - 20.0,
-            rect.center().y,
-        );
+        let icon_pos = egui::pos2(rect.max.x - clear_space - 20.0, rect.center().y);
 
         ui.painter().text(
             icon_pos,
@@ -301,10 +315,7 @@ pub fn search_input(ui: &mut Ui, value: &mut String, placeholder: &str) -> Respo
     let desired_width = ui.available_width().min(400.0);
     let input_height = 40.0;
 
-    let (rect, _) = ui.allocate_exact_size(
-        egui::vec2(desired_width, input_height),
-        Sense::hover(),
-    );
+    let (rect, _) = ui.allocate_exact_size(egui::vec2(desired_width, input_height), Sense::hover());
 
     if ui.is_rect_visible(rect) {
         let painter = ui.painter_at(rect);
@@ -334,20 +345,17 @@ pub fn search_input(ui: &mut Ui, value: &mut String, placeholder: &str) -> Respo
         egui::vec2(desired_width - 72.0, input_height - 8.0),
     );
 
-    let text_response = ui.allocate_new_ui(
-        egui::UiBuilder::new().max_rect(text_rect),
-        |ui| {
-            ui.add_sized(
-                text_rect.size(),
-                egui::TextEdit::singleline(value)
-                    .hint_text(egui::RichText::new(placeholder).color(theme::text_tertiary()))
-                    .font(theme::font_body())
-                    .margin(egui::Margin::symmetric(0, 6))
-                    .frame(false)
-                    .desired_width(text_rect.width()),
-            )
-        },
-    );
+    let text_response = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
+        ui.add_sized(
+            text_rect.size(),
+            egui::TextEdit::singleline(value)
+                .hint_text(egui::RichText::new(placeholder).color(theme::text_tertiary()))
+                .font(theme::font_body())
+                .margin(egui::Margin::symmetric(0, 6))
+                .frame(false)
+                .desired_width(text_rect.width()),
+        )
+    });
 
     // Clear button when there's text
     if !value.is_empty() {

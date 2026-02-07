@@ -40,9 +40,15 @@ impl SettingsPage {
             ui.horizontal(|ui: &mut egui::Ui| {
                 let is_paused = state.settings.is_paused;
                 let (label, cmd) = if is_paused {
-                    (format!("{}  REPRENDRE L'AGENT", icons::PLAY), GuiCommand::Resume)
+                    (
+                        format!("{}  REPRENDRE L'AGENT", icons::PLAY),
+                        GuiCommand::Resume,
+                    )
                 } else {
-                    (format!("{}  METTRE EN PAUSE", icons::STOP), GuiCommand::Pause)
+                    (
+                        format!("{}  METTRE EN PAUSE", icons::STOP),
+                        GuiCommand::Pause,
+                    )
                 };
 
                 if widgets::button::primary_button(ui, label, true).clicked() {
@@ -59,13 +65,8 @@ impl SettingsPage {
                     format!("{}  VÉRIFIER MAINTENANT", icons::CHECK)
                 };
                 let can_check = !state.settings.is_paused && !is_scanning;
-                if widgets::button::primary_button_loading(
-                    ui,
-                    check_label,
-                    can_check,
-                    is_scanning,
-                )
-                .clicked()
+                if widgets::button::primary_button_loading(ui, check_label, can_check, is_scanning)
+                    .clicked()
                 {
                     command = Some(GuiCommand::RunCheck);
                 }
@@ -165,9 +166,12 @@ impl SettingsPage {
 
                 for &(ref level, color) in levels {
                     let active = state.settings.log_level == *level;
-                    if widgets::chip_button(ui, level.as_str(), active, color).clicked() && !active {
+                    if widgets::chip_button(ui, level.as_str(), active, color).clicked() && !active
+                    {
                         state.settings.log_level = *level;
-                        command = Some(GuiCommand::SetLogLevel { level: level.index() as u8 });
+                        command = Some(GuiCommand::SetLogLevel {
+                            level: level.index() as u8,
+                        });
                     }
                 }
             });

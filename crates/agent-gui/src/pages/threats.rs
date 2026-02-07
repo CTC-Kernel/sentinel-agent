@@ -244,7 +244,8 @@ impl ThreatsPage {
     fn compute_risk_score(processes: usize, usb: usize, fim_unack: usize) -> u32 {
         // Weighted formula: suspicious processes are highest risk,
         // then unacknowledged FIM alerts, then USB events.
-        let raw = (processes as u32).saturating_mul(25)
+        let raw = (processes as u32)
+            .saturating_mul(25)
             .saturating_add((fim_unack as u32).saturating_mul(15))
             .saturating_add((usb as u32).saturating_mul(5));
         raw.min(100)
@@ -453,7 +454,8 @@ impl ThreatsPage {
             ui.set_width(width);
             widgets::card(ui, |ui: &mut egui::Ui| {
                 ui.set_min_height(72.0);
-                let response = ui.interact(ui.max_rect(), ui.id().with(label), egui::Sense::hover());
+                let response =
+                    ui.interact(ui.max_rect(), ui.id().with(label), egui::Sense::hover());
 
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.vertical(|ui: &mut egui::Ui| {
@@ -494,14 +496,14 @@ impl ThreatsPage {
                 if response.hovered() {
                     let rect = ui.max_rect();
                     let line_y = rect.bottom() - 1.5;
-                    
+
                     // Main line
                     ui.painter().hline(
                         rect.left() + 10.0..=rect.right() - 10.0,
                         line_y,
                         egui::Stroke::new(2.5, color),
                     );
-                    
+
                     // Outer glow
                     ui.painter().hline(
                         rect.left() + 5.0..=rect.right() - 5.0,
@@ -527,7 +529,8 @@ impl ThreatsPage {
             ui.add_space(theme::SPACE_MD);
 
             let available_w = ui.available_width();
-            let (rect, _) = ui.allocate_exact_size(egui::vec2(available_w, 280.0), egui::Sense::hover());
+            let (rect, _) =
+                ui.allocate_exact_size(egui::vec2(available_w, 280.0), egui::Sense::hover());
             let painter = ui.painter_at(rect);
             let center = rect.center();
             let radius = 120.0;
@@ -544,11 +547,17 @@ impl ThreatsPage {
 
             // Crosshair
             painter.line_segment(
-                [egui::pos2(center.x - radius, center.y), egui::pos2(center.x + radius, center.y)],
+                [
+                    egui::pos2(center.x - radius, center.y),
+                    egui::pos2(center.x + radius, center.y),
+                ],
                 egui::Stroke::new(0.5, grid_color),
             );
             painter.line_segment(
-                [egui::pos2(center.x, center.y - radius), egui::pos2(center.x, center.y + radius)],
+                [
+                    egui::pos2(center.x, center.y - radius),
+                    egui::pos2(center.x, center.y + radius),
+                ],
                 egui::Stroke::new(0.5, grid_color),
             );
 
@@ -556,7 +565,7 @@ impl ThreatsPage {
             let time = ui.input(|i| i.time);
             let angle = (time * 1.5) as f32 % std::f32::consts::TAU;
             let sweep_pos = center + egui::vec2(angle.cos(), angle.sin()) * radius;
-            
+
             // Sweep trail (subtle arc)
             painter.line_segment(
                 [center, sweep_pos],
@@ -600,7 +609,7 @@ impl ThreatsPage {
                 );
                 // Core
                 painter.circle_filled(blip_pos, 3.0, color);
-                
+
                 // Label if near sweep or hovered
                 if is_near_sweep {
                     painter.text(
@@ -612,7 +621,7 @@ impl ThreatsPage {
                     );
                 }
             }
-            
+
             ui.ctx().request_repaint();
         });
     }

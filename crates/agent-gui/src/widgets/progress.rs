@@ -78,11 +78,7 @@ pub fn progress_bar_styled(
             .intersect(fill_rect);
 
             if shine_rect.width() > 0.0 {
-                painter.rect_filled(
-                    shine_rect,
-                    rounding,
-                    Color32::from_white_alpha(20),
-                );
+                painter.rect_filled(shine_rect, rounding, Color32::from_white_alpha(20));
             }
         }
     }
@@ -136,10 +132,8 @@ pub fn progress_bar_indeterminate(ui: &mut Ui) -> egui::Response {
             rect.min.x + (rect.width() - bar_width) * (2.0 - cycle)
         };
 
-        let bar_rect = egui::Rect::from_min_size(
-            egui::pos2(bar_x, rect.min.y),
-            egui::vec2(bar_width, height),
-        );
+        let bar_rect =
+            egui::Rect::from_min_size(egui::pos2(bar_x, rect.min.y), egui::vec2(bar_width, height));
 
         painter.rect_filled(bar_rect, rounding, theme::ACCENT);
 
@@ -233,7 +227,9 @@ pub fn step_indicator(ui: &mut Ui, steps: &[&str], current_step: usize) {
                 ui.horizontal(|ui| {
                     // Left connector (except for first step)
                     if i > 0 {
-                        let connector_rect = ui.allocate_space(egui::vec2(step_width / 2.0 - 12.0, 2.0)).1;
+                        let connector_rect = ui
+                            .allocate_space(egui::vec2(step_width / 2.0 - 12.0, 2.0))
+                            .1;
                         let connector_color = if is_completed || is_current {
                             theme::ACCENT
                         } else {
@@ -253,8 +249,10 @@ pub fn step_indicator(ui: &mut Ui, steps: &[&str], current_step: usize) {
 
                     // Step circle
                     let circle_size = 24.0;
-                    let (circle_rect, _) =
-                        ui.allocate_exact_size(egui::vec2(circle_size, circle_size), egui::Sense::hover());
+                    let (circle_rect, _) = ui.allocate_exact_size(
+                        egui::vec2(circle_size, circle_size),
+                        egui::Sense::hover(),
+                    );
 
                     let (circle_color, text_color, border) = if is_completed {
                         (theme::ACCENT, Color32::WHITE, None)
@@ -265,15 +263,14 @@ pub fn step_indicator(ui: &mut Ui, steps: &[&str], current_step: usize) {
                             Some(egui::Stroke::new(2.0, theme::ACCENT)),
                         )
                     } else {
-                        (
-                            theme::bg_tertiary(),
-                            theme::text_tertiary(),
-                            None,
-                        )
+                        (theme::bg_tertiary(), theme::text_tertiary(), None)
                     };
 
-                    ui.painter()
-                        .circle_filled(circle_rect.center(), circle_size / 2.0, circle_color);
+                    ui.painter().circle_filled(
+                        circle_rect.center(),
+                        circle_size / 2.0,
+                        circle_color,
+                    );
 
                     if let Some(stroke) = border {
                         ui.painter()
@@ -297,7 +294,9 @@ pub fn step_indicator(ui: &mut Ui, steps: &[&str], current_step: usize) {
 
                     // Right connector (except for last step)
                     if i < step_count - 1 {
-                        let connector_rect = ui.allocate_space(egui::vec2(step_width / 2.0 - 12.0, 2.0)).1;
+                        let connector_rect = ui
+                            .allocate_space(egui::vec2(step_width / 2.0 - 12.0, 2.0))
+                            .1;
                         let connector_color = if is_completed {
                             theme::ACCENT
                         } else {

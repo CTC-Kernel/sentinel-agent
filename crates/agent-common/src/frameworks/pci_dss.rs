@@ -34,17 +34,15 @@ impl PciDssMapping {
         // Disk Encryption -> Req 3: Protect Stored Account Data
         mappings.insert(
             "disk_encryption".to_string(),
-            vec![
-                ControlMapping {
-                    framework_id: "PCI_DSS".to_string(),
-                    control_id: "3.5.1".to_string(),
-                    control_name: "Render PAN unreadable anywhere it is stored".to_string(),
-                    category: "Protect Stored Data".to_string(),
-                    description: "Disk-level encryption to protect stored cardholder data".to_string(),
-                    weight: 0.95,
-                    is_critical: true,
-                },
-            ],
+            vec![ControlMapping {
+                framework_id: "PCI_DSS".to_string(),
+                control_id: "3.5.1".to_string(),
+                control_name: "Render PAN unreadable anywhere it is stored".to_string(),
+                category: "Protect Stored Data".to_string(),
+                description: "Disk-level encryption to protect stored cardholder data".to_string(),
+                weight: 0.95,
+                is_critical: true,
+            }],
         );
 
         // Firewall -> Req 1: Install and Maintain Network Security Controls
@@ -54,18 +52,23 @@ impl PciDssMapping {
                 ControlMapping {
                     framework_id: "PCI_DSS".to_string(),
                     control_id: "1.2.1".to_string(),
-                    control_name: "Configuration standards for network security controls".to_string(),
+                    control_name: "Configuration standards for network security controls"
+                        .to_string(),
                     category: "Network Security".to_string(),
-                    description: "Configuration standards for firewall and network security controls".to_string(),
+                    description:
+                        "Configuration standards for firewall and network security controls"
+                            .to_string(),
                     weight: 0.95,
                     is_critical: true,
                 },
                 ControlMapping {
                     framework_id: "PCI_DSS".to_string(),
                     control_id: "1.4.1".to_string(),
-                    control_name: "NSCs are implemented between trusted and untrusted networks".to_string(),
+                    control_name: "NSCs are implemented between trusted and untrusted networks"
+                        .to_string(),
                     category: "Network Security".to_string(),
-                    description: "Network security controls implemented between networks".to_string(),
+                    description: "Network security controls implemented between networks"
+                        .to_string(),
                     weight: 0.9,
                     is_critical: true,
                 },
@@ -79,18 +82,23 @@ impl PciDssMapping {
                 ControlMapping {
                     framework_id: "PCI_DSS".to_string(),
                     control_id: "5.2.1".to_string(),
-                    control_name: "Anti-malware solution deployed on all system components".to_string(),
+                    control_name: "Anti-malware solution deployed on all system components"
+                        .to_string(),
                     category: "Anti-Malware".to_string(),
-                    description: "Anti-malware solution deployed and maintained on all system components".to_string(),
+                    description:
+                        "Anti-malware solution deployed and maintained on all system components"
+                            .to_string(),
                     weight: 0.95,
                     is_critical: true,
                 },
                 ControlMapping {
                     framework_id: "PCI_DSS".to_string(),
                     control_id: "5.2.2".to_string(),
-                    control_name: "Anti-malware solution detects all known types of malware".to_string(),
+                    control_name: "Anti-malware solution detects all known types of malware"
+                        .to_string(),
                     category: "Anti-Malware".to_string(),
-                    description: "Anti-malware solution detects all known types of malware".to_string(),
+                    description: "Anti-malware solution detects all known types of malware"
+                        .to_string(),
                     weight: 0.9,
                     is_critical: true,
                 },
@@ -106,7 +114,9 @@ impl PciDssMapping {
                     control_id: "8.4.2".to_string(),
                     control_name: "MFA for all access into the CDE".to_string(),
                     category: "Authentication".to_string(),
-                    description: "MFA is implemented for all access into the cardholder data environment".to_string(),
+                    description:
+                        "MFA is implemented for all access into the cardholder data environment"
+                            .to_string(),
                     weight: 0.95,
                     is_critical: true,
                 },
@@ -131,7 +141,8 @@ impl PciDssMapping {
                     control_id: "8.3.6".to_string(),
                     control_name: "Passwords meet minimum complexity requirements".to_string(),
                     category: "Authentication".to_string(),
-                    description: "If passwords are used, minimum complexity requirements are met".to_string(),
+                    description: "If passwords are used, minimum complexity requirements are met"
+                        .to_string(),
                     weight: 0.85,
                     is_critical: true,
                 },
@@ -150,17 +161,17 @@ impl PciDssMapping {
         // System Updates -> Req 6: Develop and Maintain Secure Systems
         mappings.insert(
             "system_updates".to_string(),
-            vec![
-                ControlMapping {
-                    framework_id: "PCI_DSS".to_string(),
-                    control_id: "6.3.3".to_string(),
-                    control_name: "Security patches installed within one month".to_string(),
-                    category: "Secure Systems".to_string(),
-                    description: "Security patches for all software installed within one month of release".to_string(),
-                    weight: 0.9,
-                    is_critical: true,
-                },
-            ],
+            vec![ControlMapping {
+                framework_id: "PCI_DSS".to_string(),
+                control_id: "6.3.3".to_string(),
+                control_name: "Security patches installed within one month".to_string(),
+                category: "Secure Systems".to_string(),
+                description:
+                    "Security patches for all software installed within one month of release"
+                        .to_string(),
+                weight: 0.9,
+                is_critical: true,
+            }],
         );
 
         // Audit Logging -> Req 10: Log and Monitor All Access
@@ -196,7 +207,9 @@ impl PciDssMapping {
                 control_id: "8.2.8".to_string(),
                 control_name: "Session idle timeout".to_string(),
                 category: "Authentication".to_string(),
-                description: "If a session has been idle for more than 15 minutes, require re-authentication".to_string(),
+                description:
+                    "If a session has been idle for more than 15 minutes, require re-authentication"
+                        .to_string(),
                 weight: 0.75,
                 is_critical: false,
             }],
@@ -235,7 +248,9 @@ impl PciDssMapping {
                 control_id: "2.2.7".to_string(),
                 control_name: "All non-console administrative access is encrypted".to_string(),
                 category: "Secure Configurations".to_string(),
-                description: "All non-console administrative access is encrypted using strong cryptography".to_string(),
+                description:
+                    "All non-console administrative access is encrypted using strong cryptography"
+                        .to_string(),
                 weight: 0.9,
                 is_critical: true,
             }],
@@ -263,7 +278,9 @@ impl PciDssMapping {
                 control_id: "4.2.1".to_string(),
                 control_name: "Strong cryptography and security protocols".to_string(),
                 category: "Data Transmission".to_string(),
-                description: "Strong cryptography and security protocols are implemented to safeguard PAN".to_string(),
+                description:
+                    "Strong cryptography and security protocols are implemented to safeguard PAN"
+                        .to_string(),
                 weight: 0.9,
                 is_critical: true,
             }],
@@ -305,7 +322,9 @@ impl PciDssMapping {
                 control_id: "9.4.5".to_string(),
                 control_name: "Securely store backup media".to_string(),
                 category: "Physical Access".to_string(),
-                description: "Securely store backup media with cardholder data in a secure location".to_string(),
+                description:
+                    "Securely store backup media with cardholder data in a secure location"
+                        .to_string(),
                 weight: 0.8,
                 is_critical: true,
             }],
@@ -319,7 +338,8 @@ impl PciDssMapping {
                 control_id: "2.2.1".to_string(),
                 control_name: "Configuration standards for all system components".to_string(),
                 category: "Secure Configurations".to_string(),
-                description: "Configuration standards are developed, implemented, and maintained".to_string(),
+                description: "Configuration standards are developed, implemented, and maintained"
+                    .to_string(),
                 weight: 0.8,
                 is_critical: true,
             }],
@@ -362,7 +382,8 @@ impl PciDssMapping {
                     control_id: "2.2.1".to_string(),
                     control_name: "Configuration standards for all system components".to_string(),
                     category: "Secure Configurations".to_string(),
-                    description: "Windows configuration standards are developed and maintained".to_string(),
+                    description: "Windows configuration standards are developed and maintained"
+                        .to_string(),
                     weight: 0.9,
                     is_critical: true,
                 },
@@ -371,7 +392,8 @@ impl PciDssMapping {
                     control_id: "2.2.4".to_string(),
                     control_name: "Only necessary services, protocols enabled".to_string(),
                     category: "Secure Configurations".to_string(),
-                    description: "Only necessary services and security features are enabled".to_string(),
+                    description: "Only necessary services and security features are enabled"
+                        .to_string(),
                     weight: 0.85,
                     is_critical: true,
                 },
@@ -555,7 +577,8 @@ impl PciDssMapping {
                 ControlMapping {
                     framework_id: "PCI_DSS".to_string(),
                     control_id: "2.2.7".to_string(),
-                    control_name: "Encryption used for non-console administrative access".to_string(),
+                    control_name: "Encryption used for non-console administrative access"
+                        .to_string(),
                     category: "Secure Configurations".to_string(),
                     description: "SSH provides encrypted administrative access".to_string(),
                     weight: 0.9,
@@ -591,7 +614,8 @@ impl PciDssMapping {
                     control_id: "2.2.1".to_string(),
                     control_name: "Configuration standards for all system components".to_string(),
                     category: "Secure Configurations".to_string(),
-                    description: "Container runtime follows security configuration standards".to_string(),
+                    description: "Container runtime follows security configuration standards"
+                        .to_string(),
                     weight: 0.9,
                     is_critical: true,
                 },
@@ -625,7 +649,8 @@ impl PciDssMapping {
                     control_id: "4.2.1".to_string(),
                     control_name: "Strong cryptography and security protocols".to_string(),
                     category: "Data Transmission".to_string(),
-                    description: "Valid certificates ensure strong encryption for cardholder data".to_string(),
+                    description: "Valid certificates ensure strong encryption for cardholder data"
+                        .to_string(),
                     weight: 0.95,
                     is_critical: true,
                 },

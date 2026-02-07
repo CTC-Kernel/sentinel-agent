@@ -8,9 +8,7 @@
 //! - LDAP security (TLS, anonymous bind, password policy overlay)
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-use crate::directory::{
-    ComplianceStatus, DirectoryAuditor, DirectoryCategory, DirectoryFinding,
-};
+use crate::directory::{ComplianceStatus, DirectoryAuditor, DirectoryCategory, DirectoryFinding};
 use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
@@ -170,7 +168,12 @@ impl Check for GpoPasswordPolicyCheck {
         let issues: Vec<String> = password_findings
             .iter()
             .filter(|f| f.compliance_status == ComplianceStatus::NonCompliant)
-            .map(|f| format!("{}: {} (current: {})", f.policy_name, f.description, f.current_value))
+            .map(|f| {
+                format!(
+                    "{}: {} (current: {})",
+                    f.policy_name, f.description, f.current_value
+                )
+            })
             .collect();
 
         let status = GpoPasswordPolicyStatus {
@@ -182,7 +185,10 @@ impl Check for GpoPasswordPolicyCheck {
             history_count: history,
             max_age_days: max_age,
             min_age_days: min_age,
-            findings: password_findings.iter().map(|f| PolicyFinding::from(*f)).collect(),
+            findings: password_findings
+                .iter()
+                .map(|f| PolicyFinding::from(*f))
+                .collect(),
             issues: issues.clone(),
         };
 
@@ -320,7 +326,10 @@ impl Check for GpoLockoutPolicyCheck {
             lockout_threshold: threshold,
             lockout_duration_minutes: duration,
             observation_window_minutes: window,
-            findings: lockout_findings.iter().map(|f| PolicyFinding::from(*f)).collect(),
+            findings: lockout_findings
+                .iter()
+                .map(|f| PolicyFinding::from(*f))
+                .collect(),
             issues: issues.clone(),
         };
 
@@ -466,7 +475,10 @@ impl Check for GpoAuditPolicyCheck {
             privilege_use: priv_use,
             policy_change: pol_change,
             system_events: sys_events,
-            findings: audit_findings.iter().map(|f| PolicyFinding::from(*f)).collect(),
+            findings: audit_findings
+                .iter()
+                .map(|f| PolicyFinding::from(*f))
+                .collect(),
             issues: issues.clone(),
         };
 
@@ -739,7 +751,12 @@ impl Check for LdapSecurityCheck {
                 let ldap_findings: Vec<&DirectoryFinding> = result
                     .findings
                     .iter()
-                    .filter(|f| matches!(f.category, DirectoryCategory::LdapConfig | DirectoryCategory::TlsConfig))
+                    .filter(|f| {
+                        matches!(
+                            f.category,
+                            DirectoryCategory::LdapConfig | DirectoryCategory::TlsConfig
+                        )
+                    })
                     .collect();
 
                 let compliant_count = ldap_findings
@@ -781,7 +798,10 @@ impl Check for LdapSecurityCheck {
                     allows_anonymous_bind: anonymous,
                     has_password_policy: password_policy,
                     weak_ciphers_enabled: weak_ciphers,
-                    findings: ldap_findings.iter().map(|f| PolicyFinding::from(*f)).collect(),
+                    findings: ldap_findings
+                        .iter()
+                        .map(|f| PolicyFinding::from(*f))
+                        .collect(),
                     issues: issues.clone(),
                 };
 

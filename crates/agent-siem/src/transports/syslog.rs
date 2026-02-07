@@ -150,19 +150,16 @@ impl SyslogTransport {
         self.ensure_udp_socket().await?;
 
         let socket = self.udp_socket.read().await;
-        let socket = socket.as_ref().ok_or_else(|| {
-            SiemError::ConnectionError("UDP socket not bound".to_string())
-        })?;
+        let socket = socket
+            .as_ref()
+            .ok_or_else(|| SiemError::ConnectionError("UDP socket not bound".to_string()))?;
 
         let addr = format!("{}:{}", self.host, self.port);
         let bytes = message.as_bytes();
 
         match socket.send_to(bytes, &addr).await {
             Ok(sent) => Ok(sent),
-            Err(e) => Err(SiemError::SendError(format!(
-                "Failed to send UDP: {}",
-                e
-            ))),
+            Err(e) => Err(SiemError::SendError(format!("Failed to send UDP: {}", e))),
         }
     }
 }
@@ -197,12 +194,8 @@ mod tests {
 
     #[test]
     fn test_syslog_message_format() {
-        let transport = SyslogTransport::new(
-            "localhost".to_string(),
-            514,
-            SyslogProtocol::Tcp,
-            false,
-        );
+        let transport =
+            SyslogTransport::new("localhost".to_string(), 514, SyslogProtocol::Tcp, false);
 
         let message = transport.build_syslog_message(6, "Test message");
 
@@ -216,12 +209,8 @@ mod tests {
     fn test_syslog_priority_calculation() {
         // Priority = Facility * 8 + Severity
         // local0 (16) * 8 + informational (6) = 134
-        let transport = SyslogTransport::new(
-            "localhost".to_string(),
-            514,
-            SyslogProtocol::Tcp,
-            false,
-        );
+        let transport =
+            SyslogTransport::new("localhost".to_string(), 514, SyslogProtocol::Tcp, false);
 
         let message = transport.build_syslog_message(6, "Test");
         assert!(message.starts_with("<134>"));
@@ -229,13 +218,9 @@ mod tests {
 
     #[test]
     fn test_facility_setting() {
-        let transport = SyslogTransport::new(
-            "localhost".to_string(),
-            514,
-            SyslogProtocol::Tcp,
-            false,
-        )
-        .with_facility(1); // user-level
+        let transport =
+            SyslogTransport::new("localhost".to_string(), 514, SyslogProtocol::Tcp, false)
+                .with_facility(1); // user-level
 
         let message = transport.build_syslog_message(6, "Test");
         // user (1) * 8 + info (6) = 14

@@ -71,9 +71,17 @@ pub fn check_password_policy(policy: &PasswordPolicy) -> Vec<DirectoryFinding> {
         },
         current_value: policy.min_length.to_string(),
         expected_value: ">=14 characters (CIS), >=8 (NIST)".to_string(),
-        description: "Minimum password length controls the shortest password users can create.".to_string(),
-        remediation: "Set 'Minimum password length' to 14 or more characters via GPO or local policy.".to_string(),
-        frameworks: vec!["NIS2".to_string(), "DORA".to_string(), "CIS".to_string(), "NIST".to_string()],
+        description: "Minimum password length controls the shortest password users can create."
+            .to_string(),
+        remediation:
+            "Set 'Minimum password length' to 14 or more characters via GPO or local policy."
+                .to_string(),
+        frameworks: vec![
+            "NIS2".to_string(),
+            "DORA".to_string(),
+            "CIS".to_string(),
+            "NIST".to_string(),
+        ],
         detected_at: Utc::now(),
     });
 
@@ -92,9 +100,16 @@ pub fn check_password_policy(policy: &PasswordPolicy) -> Vec<DirectoryFinding> {
         } else {
             ComplianceStatus::NonCompliant
         },
-        current_value: if policy.complexity_enabled { "Enabled" } else { "Disabled" }.to_string(),
+        current_value: if policy.complexity_enabled {
+            "Enabled"
+        } else {
+            "Disabled"
+        }
+        .to_string(),
         expected_value: "Enabled".to_string(),
-        description: "Password complexity requires passwords to contain characters from multiple categories.".to_string(),
+        description:
+            "Password complexity requires passwords to contain characters from multiple categories."
+                .to_string(),
         remediation: "Enable 'Password must meet complexity requirements' in GPO.".to_string(),
         frameworks: vec!["NIS2".to_string(), "DORA".to_string(), "CIS".to_string()],
         detected_at: Utc::now(),
@@ -169,11 +184,24 @@ pub fn check_password_policy(policy: &PasswordPolicy) -> Vec<DirectoryFinding> {
         } else {
             ComplianceStatus::Compliant
         },
-        current_value: if policy.reversible_encryption { "Enabled" } else { "Disabled" }.to_string(),
+        current_value: if policy.reversible_encryption {
+            "Enabled"
+        } else {
+            "Disabled"
+        }
+        .to_string(),
         expected_value: "Disabled".to_string(),
-        description: "Storing passwords with reversible encryption is equivalent to storing plaintext.".to_string(),
-        remediation: "Disable 'Store passwords using reversible encryption' immediately.".to_string(),
-        frameworks: vec!["NIS2".to_string(), "DORA".to_string(), "CIS".to_string(), "PCI-DSS".to_string()],
+        description:
+            "Storing passwords with reversible encryption is equivalent to storing plaintext."
+                .to_string(),
+        remediation: "Disable 'Store passwords using reversible encryption' immediately."
+            .to_string(),
+        frameworks: vec![
+            "NIS2".to_string(),
+            "DORA".to_string(),
+            "CIS".to_string(),
+            "PCI-DSS".to_string(),
+        ],
         detected_at: Utc::now(),
     });
 
@@ -211,7 +239,12 @@ pub fn check_lockout_policy(policy: &AccountLockoutPolicy) -> Vec<DirectoryFindi
         expected_value: "3-10 invalid attempts".to_string(),
         description: "Account lockout threshold prevents brute force attacks.".to_string(),
         remediation: "Set 'Account lockout threshold' to 5 invalid logon attempts.".to_string(),
-        frameworks: vec!["NIS2".to_string(), "DORA".to_string(), "CIS".to_string(), "PCI-DSS".to_string()],
+        frameworks: vec![
+            "NIS2".to_string(),
+            "DORA".to_string(),
+            "CIS".to_string(),
+            "PCI-DSS".to_string(),
+        ],
         detected_at: Utc::now(),
     });
 
@@ -237,8 +270,11 @@ pub fn check_lockout_policy(policy: &AccountLockoutPolicy) -> Vec<DirectoryFindi
                 format!("{} minutes", policy.duration_minutes)
             },
             expected_value: ">=15 minutes or until admin unlock".to_string(),
-            description: "Lockout duration determines how long an account remains locked.".to_string(),
-            remediation: "Set 'Account lockout duration' to 15 minutes or more, or 0 for manual unlock.".to_string(),
+            description: "Lockout duration determines how long an account remains locked."
+                .to_string(),
+            remediation:
+                "Set 'Account lockout duration' to 15 minutes or more, or 0 for manual unlock."
+                    .to_string(),
             frameworks: vec!["CIS".to_string(), "PCI-DSS".to_string()],
             detected_at: Utc::now(),
         });
@@ -261,7 +297,8 @@ pub fn check_lockout_policy(policy: &AccountLockoutPolicy) -> Vec<DirectoryFindi
             current_value: format!("{} minutes", policy.observation_window_minutes),
             expected_value: ">=15 minutes".to_string(),
             description: "Time after which the bad password count resets.".to_string(),
-            remediation: "Set 'Reset account lockout counter after' to 15 minutes or more.".to_string(),
+            remediation: "Set 'Reset account lockout counter after' to 15 minutes or more."
+                .to_string(),
             frameworks: vec!["CIS".to_string()],
             detected_at: Utc::now(),
         });
@@ -275,17 +312,46 @@ pub fn check_audit_policy(policy: &AuditPolicy) -> Vec<DirectoryFinding> {
     let mut findings = Vec::new();
 
     let audit_checks = [
-        ("DIR-AUDIT-001", "Logon Events", &policy.logon_events, AuditSetting::SuccessAndFailure),
-        ("DIR-AUDIT-002", "Account Logon", &policy.account_logon, AuditSetting::SuccessAndFailure),
-        ("DIR-AUDIT-003", "Account Management", &policy.account_management, AuditSetting::SuccessAndFailure),
-        ("DIR-AUDIT-004", "Privilege Use", &policy.privilege_use, AuditSetting::SuccessAndFailure),
-        ("DIR-AUDIT-005", "Policy Change", &policy.policy_change, AuditSetting::SuccessAndFailure),
-        ("DIR-AUDIT-006", "System Events", &policy.system_events, AuditSetting::Success),
+        (
+            "DIR-AUDIT-001",
+            "Logon Events",
+            &policy.logon_events,
+            AuditSetting::SuccessAndFailure,
+        ),
+        (
+            "DIR-AUDIT-002",
+            "Account Logon",
+            &policy.account_logon,
+            AuditSetting::SuccessAndFailure,
+        ),
+        (
+            "DIR-AUDIT-003",
+            "Account Management",
+            &policy.account_management,
+            AuditSetting::SuccessAndFailure,
+        ),
+        (
+            "DIR-AUDIT-004",
+            "Privilege Use",
+            &policy.privilege_use,
+            AuditSetting::SuccessAndFailure,
+        ),
+        (
+            "DIR-AUDIT-005",
+            "Policy Change",
+            &policy.policy_change,
+            AuditSetting::SuccessAndFailure,
+        ),
+        (
+            "DIR-AUDIT-006",
+            "System Events",
+            &policy.system_events,
+            AuditSetting::Success,
+        ),
     ];
 
     for (id, name, current, expected) in audit_checks {
-        let is_compliant = *current == expected ||
-            (*current == AuditSetting::SuccessAndFailure);
+        let is_compliant = *current == expected || (*current == AuditSetting::SuccessAndFailure);
 
         findings.push(DirectoryFinding {
             id: id.to_string(),
@@ -306,9 +372,21 @@ pub fn check_audit_policy(policy: &AuditPolicy) -> Vec<DirectoryFinding> {
             current_value: format!("{:?}", current),
             expected_value: format!("{:?}", expected),
             description: format!("Audit policy for {} events.", name.to_lowercase()),
-            remediation: format!("Configure 'Audit {}' to log {} events.", name,
-                if expected == AuditSetting::SuccessAndFailure { "success and failure" } else { "success" }),
-            frameworks: vec!["NIS2".to_string(), "DORA".to_string(), "CIS".to_string(), "ISO27001".to_string()],
+            remediation: format!(
+                "Configure 'Audit {}' to log {} events.",
+                name,
+                if expected == AuditSetting::SuccessAndFailure {
+                    "success and failure"
+                } else {
+                    "success"
+                }
+            ),
+            frameworks: vec![
+                "NIS2".to_string(),
+                "DORA".to_string(),
+                "CIS".to_string(),
+                "ISO27001".to_string(),
+            ],
             detected_at: Utc::now(),
         });
     }
@@ -323,7 +401,9 @@ pub fn check_privileged_groups(groups: &[PrivilegedGroupInfo]) -> Vec<DirectoryF
     for group in groups {
         // Check for excessive membership in critical groups
         let (threshold, severity) = match group.name.as_str() {
-            "Domain Admins" | "Enterprise Admins" | "Schema Admins" => (5, DirectorySeverity::Critical),
+            "Domain Admins" | "Enterprise Admins" | "Schema Admins" => {
+                (5, DirectorySeverity::Critical)
+            }
             "Administrators" => (10, DirectorySeverity::High),
             _ => (20, DirectorySeverity::Medium),
         };
@@ -381,9 +461,15 @@ pub fn run_ldap_checks(config: &LdapSecurityConfig) -> Vec<DirectoryFinding> {
             "Unencrypted".to_string()
         },
         expected_value: "LDAPS or STARTTLS".to_string(),
-        description: "LDAP traffic should be encrypted to protect credentials and directory data.".to_string(),
+        description: "LDAP traffic should be encrypted to protect credentials and directory data."
+            .to_string(),
         remediation: "Configure LDAP server for LDAPS (port 636) or enable STARTTLS.".to_string(),
-        frameworks: vec!["NIS2".to_string(), "DORA".to_string(), "CIS".to_string(), "PCI-DSS".to_string()],
+        frameworks: vec![
+            "NIS2".to_string(),
+            "DORA".to_string(),
+            "CIS".to_string(),
+            "PCI-DSS".to_string(),
+        ],
         detected_at: Utc::now(),
     });
 
@@ -405,7 +491,10 @@ pub fn run_ldap_checks(config: &LdapSecurityConfig) -> Vec<DirectoryFinding> {
             } else {
                 ComplianceStatus::NonCompliant
             },
-            current_value: config.tls_version.clone().unwrap_or_else(|| "Unknown".to_string()),
+            current_value: config
+                .tls_version
+                .clone()
+                .unwrap_or_else(|| "Unknown".to_string()),
             expected_value: "TLSv1.2 or TLSv1.3".to_string(),
             description: "LDAP should use modern TLS versions.".to_string(),
             remediation: "Configure LDAP server to require TLS 1.2 or higher.".to_string(),
@@ -446,7 +535,12 @@ pub fn run_ldap_checks(config: &LdapSecurityConfig) -> Vec<DirectoryFinding> {
         } else {
             ComplianceStatus::Compliant
         },
-        current_value: if config.allows_anonymous_bind { "Allowed" } else { "Denied" }.to_string(),
+        current_value: if config.allows_anonymous_bind {
+            "Allowed"
+        } else {
+            "Denied"
+        }
+        .to_string(),
         expected_value: "Denied".to_string(),
         description: "Anonymous LDAP binds can expose directory information.".to_string(),
         remediation: "Disable anonymous binds in LDAP server configuration.".to_string(),
@@ -469,7 +563,12 @@ pub fn run_ldap_checks(config: &LdapSecurityConfig) -> Vec<DirectoryFinding> {
         } else {
             ComplianceStatus::NonCompliant
         },
-        current_value: if config.has_password_policy { "Configured" } else { "Not configured" }.to_string(),
+        current_value: if config.has_password_policy {
+            "Configured"
+        } else {
+            "Not configured"
+        }
+        .to_string(),
         expected_value: "Password policy overlay configured".to_string(),
         description: "LDAP server should enforce password policies.".to_string(),
         remediation: "Enable and configure ppolicy overlay in OpenLDAP.".to_string(),
@@ -504,7 +603,11 @@ mod tests {
             .filter(|f| f.compliance_status == ComplianceStatus::NonCompliant)
             .collect();
 
-        assert!(non_compliant.is_empty(), "Expected all compliant, found: {:?}", non_compliant);
+        assert!(
+            non_compliant.is_empty(),
+            "Expected all compliant, found: {:?}",
+            non_compliant
+        );
     }
 
     #[test]

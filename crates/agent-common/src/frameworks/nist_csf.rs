@@ -20,7 +20,8 @@ impl NistCsfMapping {
             id: "NIST_CSF".to_string(),
             name: "NIST Cybersecurity Framework".to_string(),
             version: "2.0".to_string(),
-            description: "Framework for improving critical infrastructure cybersecurity".to_string(),
+            description: "Framework for improving critical infrastructure cybersecurity"
+                .to_string(),
             applicability: vec![
                 "Critical Infrastructure".to_string(),
                 "Federal Agencies".to_string(),
@@ -68,7 +69,8 @@ impl NistCsfMapping {
                     control_id: "PR.AC-5".to_string(),
                     control_name: "Network integrity is protected".to_string(),
                     category: "Protect".to_string(),
-                    description: "Network integrity is protected using network segmentation".to_string(),
+                    description: "Network integrity is protected using network segmentation"
+                        .to_string(),
                     weight: 0.9,
                     is_critical: true,
                 },
@@ -77,7 +79,9 @@ impl NistCsfMapping {
                     control_id: "DE.CM-1".to_string(),
                     control_name: "Network is monitored".to_string(),
                     category: "Detect".to_string(),
-                    description: "The network is monitored to detect potential cybersecurity events".to_string(),
+                    description:
+                        "The network is monitored to detect potential cybersecurity events"
+                            .to_string(),
                     weight: 0.7,
                     is_critical: false,
                 },
@@ -102,7 +106,9 @@ impl NistCsfMapping {
                     control_id: "PR.DS-6".to_string(),
                     control_name: "Integrity checking mechanisms".to_string(),
                     category: "Protect".to_string(),
-                    description: "Integrity checking mechanisms are used to verify software integrity".to_string(),
+                    description:
+                        "Integrity checking mechanisms are used to verify software integrity"
+                            .to_string(),
                     weight: 0.6,
                     is_critical: false,
                 },
@@ -117,7 +123,9 @@ impl NistCsfMapping {
                 control_id: "PR.AC-7".to_string(),
                 control_name: "Users and devices are authenticated".to_string(),
                 category: "Protect".to_string(),
-                description: "Users, devices, and other assets are authenticated commensurate with risk".to_string(),
+                description:
+                    "Users, devices, and other assets are authenticated commensurate with risk"
+                        .to_string(),
                 weight: 0.95,
                 is_critical: true,
             }],
@@ -131,7 +139,8 @@ impl NistCsfMapping {
                 control_id: "PR.AC-1".to_string(),
                 control_name: "Identities and credentials are issued".to_string(),
                 category: "Protect".to_string(),
-                description: "Identities and credentials are issued, managed, verified, revoked".to_string(),
+                description: "Identities and credentials are issued, managed, verified, revoked"
+                    .to_string(),
                 weight: 0.8,
                 is_critical: true,
             }],
@@ -146,7 +155,8 @@ impl NistCsfMapping {
                     control_id: "PR.IP-12".to_string(),
                     control_name: "Vulnerability management plan".to_string(),
                     category: "Protect".to_string(),
-                    description: "A vulnerability management plan is developed and implemented".to_string(),
+                    description: "A vulnerability management plan is developed and implemented"
+                        .to_string(),
                     weight: 0.9,
                     is_critical: true,
                 },
@@ -180,7 +190,8 @@ impl NistCsfMapping {
                     control_id: "PR.PT-1".to_string(),
                     control_name: "Audit logs are determined".to_string(),
                     category: "Protect".to_string(),
-                    description: "Audit/log records are determined, documented, implemented".to_string(),
+                    description: "Audit/log records are determined, documented, implemented"
+                        .to_string(),
                     weight: 0.8,
                     is_critical: true,
                 },
@@ -210,7 +221,8 @@ impl NistCsfMapping {
                     control_id: "PR.IP-4".to_string(),
                     control_name: "Backups are conducted".to_string(),
                     category: "Protect".to_string(),
-                    description: "Backups of information are conducted, maintained, and tested".to_string(),
+                    description: "Backups of information are conducted, maintained, and tested"
+                        .to_string(),
                     weight: 0.85,
                     is_critical: true,
                 },
@@ -219,7 +231,9 @@ impl NistCsfMapping {
                     control_id: "RC.RP-1".to_string(),
                     control_name: "Recovery plan is executed".to_string(),
                     category: "Recover".to_string(),
-                    description: "Recovery plan is executed during or after a cybersecurity incident".to_string(),
+                    description:
+                        "Recovery plan is executed during or after a cybersecurity incident"
+                            .to_string(),
                     weight: 0.8,
                     is_critical: true,
                 },
@@ -403,7 +417,8 @@ impl NistCsfMapping {
                     control_id: "PR.IP-1".to_string(),
                     control_name: "Baseline configuration".to_string(),
                     category: "Protect".to_string(),
-                    description: "Windows security baseline configuration is maintained".to_string(),
+                    description: "Windows security baseline configuration is maintained"
+                        .to_string(),
                     weight: 0.9,
                     is_critical: true,
                 },
@@ -412,7 +427,8 @@ impl NistCsfMapping {
                     control_id: "PR.PT-3".to_string(),
                     control_name: "Least functionality principle".to_string(),
                     category: "Protect".to_string(),
-                    description: "Systems are configured with least functionality principle".to_string(),
+                    description: "Systems are configured with least functionality principle"
+                        .to_string(),
                     weight: 0.8,
                     is_critical: true,
                 },
@@ -428,7 +444,8 @@ impl NistCsfMapping {
                     control_id: "PR.IP-1".to_string(),
                     control_name: "Baseline configuration".to_string(),
                     category: "Protect".to_string(),
-                    description: "Linux kernel security baseline configuration is maintained".to_string(),
+                    description: "Linux kernel security baseline configuration is maintained"
+                        .to_string(),
                     weight: 0.9,
                     is_critical: true,
                 },
@@ -571,7 +588,8 @@ impl NistCsfMapping {
                     control_id: "PR.PT-4".to_string(),
                     control_name: "Communications and control networks are protected".to_string(),
                     category: "Protect".to_string(),
-                    description: "Secure DNS prevents DNS-based attacks and data exfiltration".to_string(),
+                    description: "Secure DNS prevents DNS-based attacks and data exfiltration"
+                        .to_string(),
                     weight: 0.8,
                     is_critical: true,
                 },
@@ -587,7 +605,8 @@ impl NistCsfMapping {
                     control_id: "PR.AC-7".to_string(),
                     control_name: "Users, devices, and other assets are authenticated".to_string(),
                     category: "Protect".to_string(),
-                    description: "SSH key-based authentication and hardened configuration".to_string(),
+                    description: "SSH key-based authentication and hardened configuration"
+                        .to_string(),
                     weight: 0.9,
                     is_critical: true,
                 },
@@ -605,7 +624,8 @@ impl NistCsfMapping {
                     control_id: "PR.AC-4".to_string(),
                     control_name: "Access permissions and authorizations are managed".to_string(),
                     category: "Protect".to_string(),
-                    description: "SSH access restricted (no root login, authorized users only)".to_string(),
+                    description: "SSH access restricted (no root login, authorized users only)"
+                        .to_string(),
                     weight: 0.85,
                     is_critical: true,
                 },
@@ -621,7 +641,8 @@ impl NistCsfMapping {
                     control_id: "PR.IP-1".to_string(),
                     control_name: "Baseline configuration is created and maintained".to_string(),
                     category: "Protect".to_string(),
-                    description: "Container runtime security baseline (rootless, seccomp, MAC)".to_string(),
+                    description: "Container runtime security baseline (rootless, seccomp, MAC)"
+                        .to_string(),
                     weight: 0.9,
                     is_critical: true,
                 },
@@ -630,7 +651,8 @@ impl NistCsfMapping {
                     control_id: "PR.PT-3".to_string(),
                     control_name: "Least functionality principle is incorporated".to_string(),
                     category: "Protect".to_string(),
-                    description: "Containers run with minimal privileges and capabilities".to_string(),
+                    description: "Containers run with minimal privileges and capabilities"
+                        .to_string(),
                     weight: 0.85,
                     is_critical: true,
                 },

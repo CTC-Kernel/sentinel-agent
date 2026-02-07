@@ -12,7 +12,6 @@ use std::sync::{Arc, Mutex};
 use std::sync::{Arc, Mutex};
 
 #[cfg_attr(not(feature = "gui"), allow(dead_code))]
-
 #[cfg(feature = "gui")]
 use agent_gui::events::{AgentEvent, TerminalLogEntry};
 

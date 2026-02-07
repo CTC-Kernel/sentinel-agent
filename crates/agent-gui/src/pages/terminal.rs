@@ -225,7 +225,8 @@ impl TerminalPage {
         };
 
         let filtered: Vec<_> = state
-            .terminal.lines
+            .terminal
+            .lines
             .iter()
             .filter(|e| {
                 let entry_level = level_index(&e.level);
@@ -356,7 +357,8 @@ impl TerminalPage {
     fn export_logs_csv(state: &AppState) {
         let headers = &["timestamp", "level", "target", "message"];
         let rows: Vec<Vec<String>> = state
-            .terminal.lines
+            .terminal
+            .lines
             .iter()
             .map(|l| {
                 vec![

@@ -2,12 +2,12 @@
 
 #[cfg(feature = "llm")]
 use {
-    agent_llm::{LLMManager, LLMConfig, create_llm_manager},
-    agent_scanner::{IntelligentCheckRunner, CheckRunner, CheckRegistry},
+    agent_llm::{LLMConfig, LLMManager, create_llm_manager},
+    agent_scanner::{CheckRegistry, CheckRunner, IntelligentCheckRunner},
     anyhow::Result,
     std::sync::Arc,
     tokio::sync::RwLock,
-    tracing::{info, warn, error},
+    tracing::{error, info, warn},
 };
 
 #[cfg(not(feature = "llm"))]
@@ -30,9 +30,8 @@ impl LLMService {
     /// Create new LLM service.
     #[cfg(feature = "llm")]
     pub async fn new(config_path: Option<std::path::PathBuf>) -> Result<Self> {
-        let config_path = config_path.unwrap_or_else(|| {
-            std::path::PathBuf::from("config/llm.json")
-        });
+        let config_path =
+            config_path.unwrap_or_else(|| std::path::PathBuf::from("config/llm.json"));
 
         info!("Initializing LLM service with config: {:?}", config_path);
 
@@ -48,7 +47,10 @@ impl LLMService {
                 warn!("Failed to initialize LLM service: {}", e);
             }
         } else {
-            info!("LLM config not found at {:?}, LLM features disabled", config_path);
+            info!(
+                "LLM config not found at {:?}, LLM features disabled",
+                config_path
+            );
         }
 
         Ok(service)
@@ -64,13 +66,13 @@ impl LLMService {
     #[cfg(feature = "llm")]
     pub async fn initialize(&self) -> Result<()> {
         let config = LLMConfig::from_file(&self.config_path)?;
-        
+
         // Validate configuration
         config.validate()?;
-        
+
         // Create LLM manager
         let llm_manager = create_llm_manager(config).await?;
-        
+
         // Store manager
         {
             let mut manager_guard = self.llm_manager.write().await;
@@ -109,11 +111,8 @@ impl LLMService {
         registry: Arc<CheckRegistry>,
     ) -> Result<IntelligentCheckRunner> {
         let llm_manager = self.get_manager().await;
-        
-        let intelligent_runner = IntelligentCheckRunner::new(
-            base_runner,
-            llm_manager,
-        ).await?;
+
+        let intelligent_runner = IntelligentCheckRunner::new(base_runner, llm_manager).await?;
 
         Ok(intelligent_runner)
     }
@@ -154,7 +153,7 @@ impl LLMService {
     #[cfg(feature = "llm")]
     pub async fn reload(&self) -> Result<()> {
         info!("Reloading LLM service configuration");
-        
+
         // Clear current manager
         {
             let mut manager_guard = self.llm_manager.write().await;
@@ -175,7 +174,7 @@ impl LLMService {
     #[cfg(feature = "llm")]
     pub async fn shutdown(&self) -> Result<()> {
         info!("Shutting down LLM service");
-        
+
         if let Some(manager) = self.get_manager().await {
             // Unload model to free memory
             manager.engine().unload().await?;

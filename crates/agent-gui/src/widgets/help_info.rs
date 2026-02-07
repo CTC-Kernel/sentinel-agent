@@ -39,14 +39,25 @@ fn render_markdown(ui: &mut Ui, text: &str) {
             continue;
         }
 
-        if line.starts_with("- ") {
+        if let Some(rest) = line.strip_prefix("- ") {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(egui::RichText::new("•").color(theme::ACCENT));
-                render_line(ui, &line[2..]);
+                render_line(ui, rest);
             });
         } else {
             render_line(ui, line);
         }
+    }
+}
+
+/// Get the substring before the given byte position, safe for UTF-8.
+/// `pos` must be a valid char boundary (as returned by `str::find`).
+fn safe_split_at(s: &str, pos: usize) -> (&str, &str) {
+    // str::find() always returns valid char boundaries, but guard anyway
+    if s.is_char_boundary(pos) {
+        s.split_at(pos)
+    } else {
+        (s, "")
     }
 }
 
@@ -58,23 +69,25 @@ fn render_line(ui: &mut Ui, line: &str) {
         while !current.is_empty() {
             if let Some(start) = current.find("**") {
                 // Text before bold
-                if start > 0 {
+                let (before, after_marker) = safe_split_at(current, start);
+                if !before.is_empty() {
                     ui.label(
-                        egui::RichText::new(&current[..start])
+                        egui::RichText::new(before)
                             .font(theme::font_body())
                             .color(theme::text_primary()),
                     );
                 }
-                let remaining = &current[start + 2..];
+                let remaining = &after_marker[2..]; // "**" is always 2 ASCII bytes
                 if let Some(end) = remaining.find("**") {
                     // Bold text
+                    let (bold_text, after_bold) = safe_split_at(remaining, end);
                     ui.label(
-                        egui::RichText::new(&remaining[..end])
+                        egui::RichText::new(bold_text)
                             .font(theme::font_body())
                             .color(theme::text_primary())
                             .strong(),
                     );
-                    current = &remaining[end + 2..];
+                    current = &after_bold[2..]; // skip closing "**"
                 } else {
                     // Unclosed bold
                     ui.label(
@@ -86,23 +99,25 @@ fn render_line(ui: &mut Ui, line: &str) {
                 }
             } else if let Some(start) = current.find('`') {
                 // Text before code
-                if start > 0 {
+                let (before, after_marker) = safe_split_at(current, start);
+                if !before.is_empty() {
                     ui.label(
-                        egui::RichText::new(&current[..start])
+                        egui::RichText::new(before)
                             .font(theme::font_body())
                             .color(theme::text_primary()),
                     );
                 }
-                let remaining = &current[start + 1..];
+                let remaining = &after_marker[1..]; // "`" is always 1 ASCII byte
                 if let Some(end) = remaining.find('`') {
                     // Code text
+                    let (code_text, after_code) = safe_split_at(remaining, end);
                     ui.add(egui::Label::new(
-                        egui::RichText::new(&remaining[..end])
+                        egui::RichText::new(code_text)
                             .font(egui::FontId::monospace(12.0))
                             .color(theme::ACCENT)
                             .background_color(theme::bg_tertiary()),
                     ));
-                    current = &remaining[end + 1..];
+                    current = &after_code[1..]; // skip closing "`"
                 } else {
                     ui.label(
                         egui::RichText::new("`")

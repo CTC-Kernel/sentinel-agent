@@ -14,9 +14,9 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
+use tracing::debug;
 #[cfg(target_os = "macos")]
 use tracing::warn;
-use tracing::debug;
 
 /// Check ID for system updates.
 pub const CHECK_ID: &str = "patches_current";

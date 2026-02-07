@@ -152,16 +152,16 @@ impl<'a> Avatar<'a> {
 
         // Use predefined pleasant colors
         let colors = [
-            Color32::from_rgb(99, 102, 241),  // Indigo
-            Color32::from_rgb(139, 92, 246),  // Violet
-            Color32::from_rgb(236, 72, 153),  // Pink
-            Color32::from_rgb(244, 63, 94),   // Rose
-            Color32::from_rgb(249, 115, 22),  // Orange
-            Color32::from_rgb(234, 179, 8),   // Yellow
-            Color32::from_rgb(34, 197, 94),   // Green
-            Color32::from_rgb(20, 184, 166),  // Teal
-            Color32::from_rgb(6, 182, 212),   // Cyan
-            Color32::from_rgb(59, 130, 246),  // Blue
+            Color32::from_rgb(99, 102, 241), // Indigo
+            Color32::from_rgb(139, 92, 246), // Violet
+            Color32::from_rgb(236, 72, 153), // Pink
+            Color32::from_rgb(244, 63, 94),  // Rose
+            Color32::from_rgb(249, 115, 22), // Orange
+            Color32::from_rgb(234, 179, 8),  // Yellow
+            Color32::from_rgb(34, 197, 94),  // Green
+            Color32::from_rgb(20, 184, 166), // Teal
+            Color32::from_rgb(6, 182, 212),  // Cyan
+            Color32::from_rgb(59, 130, 246), // Blue
         ];
 
         colors[(hash as usize) % colors.len()]
@@ -170,8 +170,7 @@ impl<'a> Avatar<'a> {
     /// Show the avatar.
     pub fn show(self, ui: &mut Ui) -> egui::Response {
         let size = self.size.pixels();
-        let (rect, response) =
-            ui.allocate_exact_size(egui::vec2(size, size), egui::Sense::click());
+        let (rect, response) = ui.allocate_exact_size(egui::vec2(size, size), egui::Sense::click());
 
         if ui.is_rect_visible(rect) {
             let painter = ui.painter();
@@ -264,7 +263,8 @@ pub fn avatar_group(ui: &mut Ui, names: &[&str], max_shown: usize) -> egui::Resp
     let shown = count.min(max_shown);
     let has_overflow = count > max_shown;
 
-    let total_width = size + (shown - 1) as f32 * (size - overlap)
+    let total_width = size
+        + (shown - 1) as f32 * (size - overlap)
         + if has_overflow { size - overlap } else { 0.0 };
 
     let (rect, response) =
@@ -274,19 +274,18 @@ pub fn avatar_group(ui: &mut Ui, names: &[&str], max_shown: usize) -> egui::Resp
         let mut x = rect.min.x;
 
         for name in names.iter().take(shown) {
-            let avatar_rect = egui::Rect::from_min_size(egui::pos2(x, rect.min.y), egui::vec2(size, size));
+            let avatar_rect =
+                egui::Rect::from_min_size(egui::pos2(x, rect.min.y), egui::vec2(size, size));
 
             // Draw avatar
             let avatar = Avatar::new(name).size(AvatarSize::Small);
             let bg_color = avatar.generate_color();
 
             // White border for overlap clarity
-            ui.painter().circle_filled(
-                avatar_rect.center(),
-                size / 2.0 + 1.5,
-                theme::bg_primary(),
-            );
-            ui.painter().circle_filled(avatar_rect.center(), size / 2.0, bg_color);
+            ui.painter()
+                .circle_filled(avatar_rect.center(), size / 2.0 + 1.5, theme::bg_primary());
+            ui.painter()
+                .circle_filled(avatar_rect.center(), size / 2.0, bg_color);
             ui.painter().text(
                 avatar_rect.center(),
                 egui::Align2::CENTER_CENTER,
@@ -301,18 +300,16 @@ pub fn avatar_group(ui: &mut Ui, names: &[&str], max_shown: usize) -> egui::Resp
         // Overflow indicator
         if has_overflow {
             let overflow_count = count - max_shown;
-            let overflow_rect = egui::Rect::from_min_size(egui::pos2(x, rect.min.y), egui::vec2(size, size));
+            let overflow_rect =
+                egui::Rect::from_min_size(egui::pos2(x, rect.min.y), egui::vec2(size, size));
 
             ui.painter().circle_filled(
                 overflow_rect.center(),
                 size / 2.0 + 1.5,
                 theme::bg_primary(),
             );
-            ui.painter().circle_filled(
-                overflow_rect.center(),
-                size / 2.0,
-                theme::bg_tertiary(),
-            );
+            ui.painter()
+                .circle_filled(overflow_rect.center(), size / 2.0, theme::bg_tertiary());
             ui.painter().text(
                 overflow_rect.center(),
                 egui::Align2::CENTER_CENTER,

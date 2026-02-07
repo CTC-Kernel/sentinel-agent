@@ -84,11 +84,7 @@ pub fn empty_state_compact(ui: &mut Ui, icon: &str, message: &str) {
         ui.add_space(theme::SPACE_MD);
 
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.label(
-                RichText::new(icon)
-                    .size(16.0)
-                    .color(theme::text_tertiary()),
-            );
+            ui.label(RichText::new(icon).size(16.0).color(theme::text_tertiary()));
             ui.add_space(theme::SPACE_XS);
             ui.label(
                 RichText::new(message)
@@ -124,12 +120,9 @@ pub fn no_results_state(ui: &mut Ui, search_term: &str) {
         ui.add_space(theme::SPACE_XS);
 
         ui.label(
-            RichText::new(format!(
-                "Aucun élément ne correspond à \"{}\"",
-                search_term
-            ))
-            .font(theme::font_small())
-            .color(theme::text_tertiary()),
+            RichText::new(format!("Aucun élément ne correspond à \"{}\"", search_term))
+                .font(theme::font_small())
+                .color(theme::text_tertiary()),
         );
 
         ui.add_space(theme::SPACE_SM);
@@ -152,8 +145,7 @@ pub fn pending_state(ui: &mut Ui, message: &str) {
         // Animated spinner
         let time = ui.input(|i| i.time) as f32;
         let size = 48.0;
-        let (rect, _) =
-            ui.allocate_exact_size(egui::vec2(size, size), egui::Sense::hover());
+        let (rect, _) = ui.allocate_exact_size(egui::vec2(size, size), egui::Sense::hover());
 
         let center = rect.center();
         let radius = size / 2.0 - 4.0;

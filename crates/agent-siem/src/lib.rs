@@ -238,17 +238,23 @@ impl SiemForwarder {
         };
 
         let transport: Box<dyn SiemTransportTrait + Send + Sync> = match &config.transport {
-            SiemTransport::Syslog { host, port, protocol, tls } => {
-                Box::new(SyslogTransport::new(host.clone(), *port, *protocol, *tls))
-            }
-            SiemTransport::Http { url, auth_token, auth_header, verify_tls } => {
-                Box::new(HttpTransport::new(
-                    url.clone(),
-                    auth_token.clone(),
-                    auth_header.clone(),
-                    *verify_tls,
-                ))
-            }
+            SiemTransport::Syslog {
+                host,
+                port,
+                protocol,
+                tls,
+            } => Box::new(SyslogTransport::new(host.clone(), *port, *protocol, *tls)),
+            SiemTransport::Http {
+                url,
+                auth_token,
+                auth_header,
+                verify_tls,
+            } => Box::new(HttpTransport::new(
+                url.clone(),
+                auth_token.clone(),
+                auth_header.clone(),
+                *verify_tls,
+            )),
         };
 
         info!(
@@ -289,7 +295,10 @@ impl SiemForwarder {
         if !self.config.include_categories.is_empty()
             && !self.config.include_categories.contains(&event.category)
         {
-            debug!("Event category {:?} not in include list, skipping", event.category);
+            debug!(
+                "Event category {:?} not in include list, skipping",
+                event.category
+            );
             return Ok(());
         }
 
@@ -364,7 +373,11 @@ impl SiemForwarder {
                 stats.bytes_sent += bytes_sent as u64;
                 stats.last_success = Some(Utc::now());
                 stats.is_connected = true;
-                info!("Flushed {} events ({} bytes) to SIEM", events.len(), bytes_sent);
+                info!(
+                    "Flushed {} events ({} bytes) to SIEM",
+                    events.len(),
+                    bytes_sent
+                );
                 Ok(())
             }
             Err(e) => {

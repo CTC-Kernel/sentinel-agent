@@ -115,7 +115,8 @@ impl LinuxHardeningCheck {
         } else if security_module.apparmor_enabled && security_module.apparmor_enforcing {
             security_bonus = 10.0;
         } else {
-            critical_issues.push("No mandatory access control (SELinux/AppArmor) enforcing".to_string());
+            critical_issues
+                .push("No mandatory access control (SELinux/AppArmor) enforcing".to_string());
         }
 
         // Check core dumps
@@ -162,7 +163,6 @@ impl LinuxHardeningCheck {
                 description: "Address Space Layout Randomization must be fully enabled",
                 remediation: "sysctl -w kernel.randomize_va_space=2",
             },
-
             // Kernel pointer hiding
             SysctlCheckDef {
                 name: "Kernel Pointer Hiding",
@@ -173,7 +173,6 @@ impl LinuxHardeningCheck {
                 description: "Kernel pointers should be hidden from unprivileged users",
                 remediation: "sysctl -w kernel.kptr_restrict=2",
             },
-
             // dmesg restriction
             SysctlCheckDef {
                 name: "dmesg Restriction",
@@ -184,7 +183,6 @@ impl LinuxHardeningCheck {
                 description: "Restrict access to kernel ring buffer",
                 remediation: "sysctl -w kernel.dmesg_restrict=1",
             },
-
             // Kernel module loading
             SysctlCheckDef {
                 name: "Module Loading Restriction",
@@ -195,7 +193,6 @@ impl LinuxHardeningCheck {
                 description: "Disable kernel module loading (after boot)",
                 remediation: "sysctl -w kernel.modules_disabled=1 (careful: permanent until reboot)",
             },
-
             // SYN cookies
             SysctlCheckDef {
                 name: "SYN Cookies",
@@ -206,7 +203,6 @@ impl LinuxHardeningCheck {
                 description: "SYN cookies protect against SYN flood attacks",
                 remediation: "sysctl -w net.ipv4.tcp_syncookies=1",
             },
-
             // IP forwarding (should be disabled unless router)
             SysctlCheckDef {
                 name: "IPv4 Forwarding Disabled",
@@ -217,7 +213,6 @@ impl LinuxHardeningCheck {
                 description: "IP forwarding should be disabled unless acting as router",
                 remediation: "sysctl -w net.ipv4.ip_forward=0",
             },
-
             // IPv6 forwarding
             SysctlCheckDef {
                 name: "IPv6 Forwarding Disabled",
@@ -228,7 +223,6 @@ impl LinuxHardeningCheck {
                 description: "IPv6 forwarding should be disabled",
                 remediation: "sysctl -w net.ipv6.conf.all.forwarding=0",
             },
-
             // ICMP redirects
             SysctlCheckDef {
                 name: "ICMP Redirects Disabled",
@@ -239,7 +233,6 @@ impl LinuxHardeningCheck {
                 description: "ICMP redirects should be ignored",
                 remediation: "sysctl -w net.ipv4.conf.all.accept_redirects=0",
             },
-
             // Secure ICMP redirects
             SysctlCheckDef {
                 name: "Secure ICMP Redirects",
@@ -250,7 +243,6 @@ impl LinuxHardeningCheck {
                 description: "Secure ICMP redirects should be disabled",
                 remediation: "sysctl -w net.ipv4.conf.all.secure_redirects=0",
             },
-
             // Send redirects
             SysctlCheckDef {
                 name: "Send Redirects Disabled",
@@ -261,7 +253,6 @@ impl LinuxHardeningCheck {
                 description: "Should not send ICMP redirects",
                 remediation: "sysctl -w net.ipv4.conf.all.send_redirects=0",
             },
-
             // Source routing
             SysctlCheckDef {
                 name: "Source Routing Disabled",
@@ -272,7 +263,6 @@ impl LinuxHardeningCheck {
                 description: "Source routing must be disabled",
                 remediation: "sysctl -w net.ipv4.conf.all.accept_source_route=0",
             },
-
             // Reverse path filtering
             SysctlCheckDef {
                 name: "Reverse Path Filtering",
@@ -283,7 +273,6 @@ impl LinuxHardeningCheck {
                 description: "Reverse path filtering prevents IP spoofing",
                 remediation: "sysctl -w net.ipv4.conf.all.rp_filter=1",
             },
-
             // Log martians
             SysctlCheckDef {
                 name: "Log Martian Packets",
@@ -294,7 +283,6 @@ impl LinuxHardeningCheck {
                 description: "Log packets with impossible addresses",
                 remediation: "sysctl -w net.ipv4.conf.all.log_martians=1",
             },
-
             // Ignore ICMP broadcasts
             SysctlCheckDef {
                 name: "Ignore ICMP Broadcasts",
@@ -305,7 +293,6 @@ impl LinuxHardeningCheck {
                 description: "Ignore ICMP broadcast requests (Smurf attack)",
                 remediation: "sysctl -w net.ipv4.icmp_echo_ignore_broadcasts=1",
             },
-
             // Bogus ICMP responses
             SysctlCheckDef {
                 name: "Ignore Bogus ICMP Errors",
@@ -316,7 +303,6 @@ impl LinuxHardeningCheck {
                 description: "Ignore bogus ICMP error responses",
                 remediation: "sysctl -w net.ipv4.icmp_ignore_bogus_error_responses=1",
             },
-
             // Protected symlinks
             SysctlCheckDef {
                 name: "Protected Symlinks",
@@ -327,7 +313,6 @@ impl LinuxHardeningCheck {
                 description: "Protect against symlink attacks in world-writable dirs",
                 remediation: "sysctl -w fs.protected_symlinks=1",
             },
-
             // Protected hardlinks
             SysctlCheckDef {
                 name: "Protected Hardlinks",
@@ -338,7 +323,6 @@ impl LinuxHardeningCheck {
                 description: "Protect against hardlink attacks",
                 remediation: "sysctl -w fs.protected_hardlinks=1",
             },
-
             // Protected FIFOs
             SysctlCheckDef {
                 name: "Protected FIFOs",
@@ -349,7 +333,6 @@ impl LinuxHardeningCheck {
                 description: "Protect against FIFO attacks in sticky directories",
                 remediation: "sysctl -w fs.protected_fifos=2",
             },
-
             // Protected regular files
             SysctlCheckDef {
                 name: "Protected Regular Files",
@@ -360,7 +343,6 @@ impl LinuxHardeningCheck {
                 description: "Protect against regular file creation in sticky dirs",
                 remediation: "sysctl -w fs.protected_regular=2",
             },
-
             // SUID dumpable
             SysctlCheckDef {
                 name: "SUID Core Dump Disabled",
@@ -371,7 +353,6 @@ impl LinuxHardeningCheck {
                 description: "SUID programs should not create core dumps",
                 remediation: "sysctl -w fs.suid_dumpable=0",
             },
-
             // Yama ptrace scope
             SysctlCheckDef {
                 name: "Ptrace Scope",
@@ -382,7 +363,6 @@ impl LinuxHardeningCheck {
                 description: "Restrict ptrace to parent-child only",
                 remediation: "sysctl -w kernel.yama.ptrace_scope=1",
             },
-
             // Perf events
             SysctlCheckDef {
                 name: "Perf Events Restriction",
@@ -393,7 +373,6 @@ impl LinuxHardeningCheck {
                 description: "Restrict perf events to privileged users",
                 remediation: "sysctl -w kernel.perf_event_paranoid=3",
             },
-
             // ExecShield (if available)
             SysctlCheckDef {
                 name: "NX/ExecShield",
@@ -404,7 +383,6 @@ impl LinuxHardeningCheck {
                 description: "NX/ExecShield prevents code execution in data pages",
                 remediation: "sysctl -w kernel.exec-shield=1 (if available)",
             },
-
             // IPv6 router advertisements
             SysctlCheckDef {
                 name: "IPv6 RA Disabled",
@@ -426,7 +404,10 @@ impl LinuxHardeningCheck {
 
         let compliant = current_value
             .as_ref()
-            .map(|v| v == check.expected || v.parse::<i32>().unwrap_or(-1) >= check.expected.parse::<i32>().unwrap_or(0))
+            .map(|v| {
+                v == check.expected
+                    || v.parse::<i32>().unwrap_or(-1) >= check.expected.parse::<i32>().unwrap_or(0)
+            })
             .unwrap_or(false);
 
         SysctlSetting {
@@ -475,7 +456,8 @@ impl LinuxHardeningCheck {
             if let Ok(policy) = fs::read_to_string("/etc/selinux/config") {
                 for line in policy.lines() {
                     if line.starts_with("SELINUXTYPE=") {
-                        status.selinux_policy = Some(line.replace("SELINUXTYPE=", "").trim().to_string());
+                        status.selinux_policy =
+                            Some(line.replace("SELINUXTYPE=", "").trim().to_string());
                     }
                 }
             }

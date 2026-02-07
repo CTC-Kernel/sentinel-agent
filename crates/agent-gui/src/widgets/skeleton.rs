@@ -89,11 +89,12 @@ impl Skeleton {
 
         // Check delay: use an ID-based start time stored in egui memory
         if let Some(delay) = self.delay_secs {
-            let delay_id = egui::Id::new("skeleton_delay").with(rect.min.x as u32).with(rect.min.y as u32);
+            let delay_id = egui::Id::new("skeleton_delay")
+                .with(rect.min.x as u32)
+                .with(rect.min.y as u32);
             let now = ui.input(|i| i.time);
-            let start_time: f64 = ui.memory(|mem| {
-                mem.data.get_temp::<f64>(delay_id).unwrap_or(now)
-            });
+            let start_time: f64 =
+                ui.memory(|mem| mem.data.get_temp::<f64>(delay_id).unwrap_or(now));
             if start_time == now {
                 ui.memory_mut(|mem| mem.data.insert_temp(delay_id, now));
             }
@@ -124,9 +125,12 @@ impl Skeleton {
 
                 // Interpolate between base and highlight
                 Color32::from_rgb(
-                    (base_color.r() as f32 + (highlight.r() as f32 - base_color.r() as f32) * pulse) as u8,
-                    (base_color.g() as f32 + (highlight.g() as f32 - base_color.g() as f32) * pulse) as u8,
-                    (base_color.b() as f32 + (highlight.b() as f32 - base_color.b() as f32) * pulse) as u8,
+                    (base_color.r() as f32 + (highlight.r() as f32 - base_color.r() as f32) * pulse)
+                        as u8,
+                    (base_color.g() as f32 + (highlight.g() as f32 - base_color.g() as f32) * pulse)
+                        as u8,
+                    (base_color.b() as f32 + (highlight.b() as f32 - base_color.b() as f32) * pulse)
+                        as u8,
                 )
             } else {
                 base_color
@@ -234,9 +238,13 @@ pub fn skeleton_content_card(ui: &mut Ui, width: f32) {
 
             // Actions
             ui.horizontal(|ui| {
-                Skeleton::new(80.0, 32.0).shape(SkeletonShape::Rounded).show(ui);
+                Skeleton::new(80.0, 32.0)
+                    .shape(SkeletonShape::Rounded)
+                    .show(ui);
                 ui.add_space(8.0);
-                Skeleton::new(80.0, 32.0).shape(SkeletonShape::Rounded).show(ui);
+                Skeleton::new(80.0, 32.0)
+                    .shape(SkeletonShape::Rounded)
+                    .show(ui);
             });
         });
 }
@@ -253,7 +261,9 @@ pub fn skeleton_stats_grid(ui: &mut Ui, count: usize) {
                     ui.set_min_width(140.0);
                     Skeleton::text(60.0).show(ui);
                     ui.add_space(8.0);
-                    Skeleton::new(80.0, 24.0).shape(SkeletonShape::Rounded).show(ui);
+                    Skeleton::new(80.0, 24.0)
+                        .shape(SkeletonShape::Rounded)
+                        .show(ui);
                     ui.add_space(4.0);
                     Skeleton::text(40.0).show(ui);
                 });

@@ -149,22 +149,20 @@ impl Pagination {
                 let start = state.start_index() + 1;
                 let end = state.end_index();
                 ui.label(
-                    egui::RichText::new(format!(
-                        "{}-{} sur {}",
-                        start, end, state.total_items
-                    ))
-                    .font(theme::font_small())
-                    .color(theme::text_secondary()),
+                    egui::RichText::new(format!("{}-{} sur {}", start, end, state.total_items))
+                        .font(theme::font_small())
+                        .color(theme::text_secondary()),
                 );
                 ui.add_space(16.0);
             }
 
             // First page button
             if self.show_first_last
-                && self.nav_button(ui, icons::CHEVRON_LEFT, true, state.current_page > 1) {
-                    state.go_to(1);
-                    changed = true;
-                }
+                && self.nav_button(ui, icons::CHEVRON_LEFT, true, state.current_page > 1)
+            {
+                state.go_to(1);
+                changed = true;
+            }
 
             // Previous button
             if self.nav_button(ui, icons::CHEVRON_LEFT, false, state.has_prev()) {
@@ -215,10 +213,11 @@ impl Pagination {
                     icons::CHEVRON_RIGHT,
                     true,
                     state.current_page < state.total_pages,
-                ) {
-                    state.go_to(state.total_pages);
-                    changed = true;
-                }
+                )
+            {
+                state.go_to(state.total_pages);
+                changed = true;
+            }
         });
 
         changed
@@ -287,8 +286,7 @@ impl Pagination {
 
             // Page indicator (dots)
             for p in 1..=state.total_pages.min(5) {
-                let is_current = p == state.current_page
-                    || (state.current_page > 5 && p == 5);
+                let is_current = p == state.current_page || (state.current_page > 5 && p == 5);
                 let size = if is_current { 8.0 } else { 6.0 };
                 let color = if is_current {
                     theme::ACCENT
@@ -296,8 +294,7 @@ impl Pagination {
                     theme::text_tertiary()
                 };
 
-                let (dot_rect, _) =
-                    ui.allocate_exact_size(egui::vec2(12.0, 12.0), Sense::hover());
+                let (dot_rect, _) = ui.allocate_exact_size(egui::vec2(12.0, 12.0), Sense::hover());
 
                 if ui.is_rect_visible(dot_rect) {
                     ui.painter()

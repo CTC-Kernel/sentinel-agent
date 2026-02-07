@@ -84,18 +84,16 @@ pub fn show_tooltip_at(
             rect.center().x - tooltip_size.x / 2.0,
             rect.min.y - tooltip_size.y - 8.0,
         ),
-        TooltipPosition::Bottom => egui::pos2(
-            rect.center().x - tooltip_size.x / 2.0,
-            rect.max.y + 8.0,
-        ),
+        TooltipPosition::Bottom => {
+            egui::pos2(rect.center().x - tooltip_size.x / 2.0, rect.max.y + 8.0)
+        }
         TooltipPosition::Left => egui::pos2(
             rect.min.x - tooltip_size.x - 8.0,
             rect.center().y - tooltip_size.y / 2.0,
         ),
-        TooltipPosition::Right => egui::pos2(
-            rect.max.x + 8.0,
-            rect.center().y - tooltip_size.y / 2.0,
-        ),
+        TooltipPosition::Right => {
+            egui::pos2(rect.max.x + 8.0, rect.center().y - tooltip_size.y / 2.0)
+        }
     };
 
     // Keep tooltip on screen
@@ -111,9 +109,8 @@ pub fn show_tooltip_at(
 
     let tooltip_rect = egui::Rect::from_min_size(tooltip_pos, tooltip_size);
 
-    ctx.layer_painter(layer_id).add(
-        theme::premium_shadow(8, 40).as_shape(tooltip_rect, CornerRadius::same(6)),
-    );
+    ctx.layer_painter(layer_id)
+        .add(theme::premium_shadow(8, 40).as_shape(tooltip_rect, CornerRadius::same(6)));
 
     ctx.layer_painter(layer_id).rect(
         tooltip_rect,
@@ -123,11 +120,8 @@ pub fn show_tooltip_at(
         egui::epaint::StrokeKind::Inside,
     );
 
-    ctx.layer_painter(layer_id).galley(
-        tooltip_pos + padding,
-        galley,
-        theme::text_primary(),
-    );
+    ctx.layer_painter(layer_id)
+        .galley(tooltip_pos + padding, galley, theme::text_primary());
 }
 
 /// Extension trait to add tooltip to responses.
@@ -142,13 +136,7 @@ pub trait ResponseTooltipExt {
 impl ResponseTooltipExt for egui::Response {
     fn premium_tooltip(self, text: &str) -> Self {
         if self.hovered() {
-            show_tooltip_at(
-                &self.ctx,
-                self.rect,
-                text,
-                TooltipPosition::Top,
-                250.0,
-            );
+            show_tooltip_at(&self.ctx, self.rect, text, TooltipPosition::Top, 250.0);
         }
         self
     }
@@ -186,7 +174,9 @@ pub fn info_tooltip(ui: &mut Ui, text: &str) {
         );
     }
 
-    Tooltip::new(text).position(TooltipPosition::Top).show(ui, &response);
+    Tooltip::new(text)
+        .position(TooltipPosition::Top)
+        .show(ui, &response);
 }
 
 /// Help icon with tooltip (question mark style).

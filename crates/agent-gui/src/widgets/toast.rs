@@ -170,36 +170,26 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
 
         // Calculate position based on ToastPosition (with slide-up entrance offset)
         let toast_center = match position {
-            ToastPosition::BottomCenter => {
-                egui::pos2(
-                    screen.center().x,
-                    screen.max.y - 24.0 - y_offset - toast_height / 2.0 + slide_offset,
-                )
-            }
-            ToastPosition::TopCenter => {
-                egui::pos2(
-                    screen.center().x,
-                    screen.min.y + 24.0 + y_offset + toast_height / 2.0 - slide_offset,
-                )
-            }
-            ToastPosition::TopRight => {
-                egui::pos2(
-                    screen.max.x - toast_width / 2.0 - 24.0,
-                    screen.min.y + 24.0 + y_offset + toast_height / 2.0 - slide_offset,
-                )
-            }
-            ToastPosition::BottomRight => {
-                egui::pos2(
-                    screen.max.x - toast_width / 2.0 - 24.0,
-                    screen.max.y - 24.0 - y_offset - toast_height / 2.0 + slide_offset,
-                )
-            }
+            ToastPosition::BottomCenter => egui::pos2(
+                screen.center().x,
+                screen.max.y - 24.0 - y_offset - toast_height / 2.0 + slide_offset,
+            ),
+            ToastPosition::TopCenter => egui::pos2(
+                screen.center().x,
+                screen.min.y + 24.0 + y_offset + toast_height / 2.0 - slide_offset,
+            ),
+            ToastPosition::TopRight => egui::pos2(
+                screen.max.x - toast_width / 2.0 - 24.0,
+                screen.min.y + 24.0 + y_offset + toast_height / 2.0 - slide_offset,
+            ),
+            ToastPosition::BottomRight => egui::pos2(
+                screen.max.x - toast_width / 2.0 - 24.0,
+                screen.max.y - 24.0 - y_offset - toast_height / 2.0 + slide_offset,
+            ),
         };
 
-        let toast_rect = egui::Rect::from_center_size(
-            toast_center,
-            egui::vec2(toast_width, toast_height),
-        );
+        let toast_rect =
+            egui::Rect::from_center_size(toast_center, egui::vec2(toast_width, toast_height));
 
         // Shadow (behind everything)
         let shadow = theme::premium_shadow(16, (50.0 * alpha) as u8);
@@ -216,10 +206,7 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
         );
 
         // Colored accent bar on left
-        let accent_rect = egui::Rect::from_min_size(
-            toast_rect.min,
-            egui::vec2(4.0, toast_height),
-        );
+        let accent_rect = egui::Rect::from_min_size(toast_rect.min, egui::vec2(4.0, toast_height));
         ui.painter().rect_filled(
             accent_rect,
             CornerRadius {
