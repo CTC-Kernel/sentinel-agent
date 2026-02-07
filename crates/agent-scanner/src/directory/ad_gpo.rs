@@ -10,8 +10,12 @@
 
 use super::types::*;
 use crate::error::ScannerResult;
+#[cfg(target_os = "windows")]
+use crate::error::ScannerError;
 use serde::{Deserialize, Serialize};
 use tracing::info;
+#[cfg(target_os = "windows")]
+use tracing::{debug, warn};
 
 /// Group Policy Object auditor.
 pub struct GpoAuditor {
@@ -278,11 +282,11 @@ impl GpoAuditor {
                         .unwrap_or(0),
                     duration_minutes: policy.get("LockoutDuration")
                         .and_then(|v| v.as_f64())
-                        .and_then(|v| u32::try_from(v).ok())
+                        .map(|v| v.clamp(0.0, u32::MAX as f64) as u32)
                         .unwrap_or(0),
                     observation_window_minutes: policy.get("LockoutObservationWindow")
                         .and_then(|v| v.as_f64())
-                        .and_then(|v| u32::try_from(v).ok())
+                        .map(|v| v.clamp(0.0, u32::MAX as f64) as u32)
                         .unwrap_or(0),
                 };
 

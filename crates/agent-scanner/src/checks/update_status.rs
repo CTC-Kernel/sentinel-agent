@@ -113,8 +113,6 @@ impl UpdateStatusCheck {
 
     #[cfg(target_os = "windows")]
     async fn check_update_status(&self) -> ScannerResult<UpdateStatus> {
-        use std::process::Command;
-
         let mut issues = Vec::new();
 
         // Get Windows Update service status
