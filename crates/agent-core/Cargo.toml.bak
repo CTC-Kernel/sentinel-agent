@@ -16,6 +16,7 @@ tray = ["dep:tray-icon", "dep:muda", "dep:image", "dep:open", "dep:tao"]
 # llm_simple = ["agent-llm"]
 
 [dependencies]
+agent_scanner = { path = "../agent_scanner" }
 serde_json.workspace = true
 agent-common = { path = "../agent-common" }
 

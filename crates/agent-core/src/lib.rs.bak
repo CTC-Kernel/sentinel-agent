@@ -37,22 +37,22 @@ use agent_common::types::{CheckSeverity, UpdateStatus};
 use agent_network::{
     DiscoveryConfig, NetworkDiscovery, NetworkManager, NetworkSecurityAlert, NetworkSnapshot,
 };
-//// use agent_scanner::{
-//    CheckExecutionResult, CheckRegistry, CheckRunner, CheckScoreInput, ComplianceScore,
-//    RemediationEngine, ScanSummary, ScanType, ScoreCalculator, SecurityMonitor, SecurityScanResult,
-//    VulnerabilityScanResult, VulnerabilityScanner,
-//    checks::{
-//        AdminAccountsCheck, AntivirusCheck, AuditLoggingCheck, AutoLoginCheck, BackupCheck,
-//        BluetoothCheck, BrowserSecurityCheck, CertificateValidationCheck, ContainerSecurityCheck,
-//        DiskEncryptionCheck, DnsSecurityCheck, FirewallCheck, GpoAuditPolicyCheck,
-//        GpoLockoutPolicyCheck, GpoPasswordPolicyCheck, GuestAccountCheck, Ipv6ConfigCheck,
-//        KernelHardeningCheck, LdapSecurityCheck, LinuxHardeningCheck, LogRotationCheck,
-//        MfaCheck, ObsoleteProtocolsCheck, PasswordPolicyCheck, PrivilegedGroupsCheck,
-//        RemoteAccessCheck, SecureBootCheck, SessionLockCheck, SshHardeningCheck,
-//        SystemUpdatesCheck, TimeSyncCheck, UpdateStatusCheck, UsbStorageCheck,
-//        WindowsHardeningCheck,
-//    },
-//};
+// use agent_scanner::{
+    CheckExecutionResult, CheckRegistry, CheckRunner, CheckScoreInput, ComplianceScore,
+    RemediationEngine, ScanSummary, ScanType, ScoreCalculator, SecurityMonitor, SecurityScanResult,
+    VulnerabilityScanResult, VulnerabilityScanner,
+    checks::{
+        AdminAccountsCheck, AntivirusCheck, AuditLoggingCheck, AutoLoginCheck, BackupCheck,
+        BluetoothCheck, BrowserSecurityCheck, CertificateValidationCheck, ContainerSecurityCheck,
+        DiskEncryptionCheck, DnsSecurityCheck, FirewallCheck, GpoAuditPolicyCheck,
+        GpoLockoutPolicyCheck, GpoPasswordPolicyCheck, GuestAccountCheck, Ipv6ConfigCheck,
+        KernelHardeningCheck, LdapSecurityCheck, LinuxHardeningCheck, LogRotationCheck,
+        MfaCheck, ObsoleteProtocolsCheck, PasswordPolicyCheck, PrivilegedGroupsCheck,
+        RemoteAccessCheck, SecureBootCheck, SessionLockCheck, SshHardeningCheck,
+        SystemUpdatesCheck, TimeSyncCheck, UpdateStatusCheck, UsbStorageCheck,
+        WindowsHardeningCheck,
+    },
+};
 use agent_storage::{
     CheckResult as StorageCheckResult, CheckResultsRepository, CheckRule as StorageCheckRule,
     CheckRulesRepository, CheckStatus as StorageCheckStatus, Database, Severity as StorageSeverity,

@@ -1,0 +1,29 @@
+[package]
+name = "agent_llm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Local LLM inference for intelligent security analysis"
+
+[lib]
+name = "agent_llm"
+path = "src/lib.rs"
+
+agent-common = { path = "../agent-common" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+
+# Text processing
+regex.workspace = true
+
+[features]
+default = []
+# simple = ["lib"]
+# local = ["lib"]
+
