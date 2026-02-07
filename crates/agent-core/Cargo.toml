@@ -82,3 +82,21 @@ libc = { workspace = true }
 assets = [
     { source = "target/release/agent-core", dest = "/usr/bin/sentinel-agent", mode = "755" }
 ]
+
+[package.metadata.deb]
+name = "sentinel-agent"
+maintainer = "Sentinel GRC Team <support@sentinel-grc.com>"
+copyright = "2025, Sentinel GRC Team"
+license-file = ["../../LICENSE", "4"]
+extended-description = """\
+Sentinel GRC endpoint compliance monitoring agent.
+Provides real-time asset scanning, risk assessment, and compliance monitoring
+for enterprise environments following ISO 27001/27005 standards."""
+depends = "libssl3, libgtk-3-0, libayatana-appindicator3-1"
+section = "admin"
+priority = "optional"
+assets = [
+    ["target/release/agent-core", "usr/bin/sentinel-agent", "755"],
+    ["../../README.md", "usr/share/doc/sentinel-agent/README.md", "644"],
+    ["../../LICENSE", "usr/share/doc/sentinel-agent/LICENSE", "644"]
+]
