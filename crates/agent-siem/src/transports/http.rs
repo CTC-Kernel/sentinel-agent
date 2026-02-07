@@ -10,7 +10,7 @@ use super::SiemTransportTrait;
 use crate::{SiemError, SiemResult};
 use async_trait::async_trait;
 use std::sync::atomic::{AtomicBool, Ordering};
-use tracing::{debug, error, warn};
+use tracing::{debug, error};
 
 /// HTTP transport for SIEM integration.
 pub struct HttpTransport {
@@ -108,12 +108,22 @@ impl HttpTransport {
             headers.push(format!("Authorization: Bearer {}", token));
         }
 
+        // Build the request using byte concatenation with Content-Length framing.
+        // Content-Length in the headers already declares the exact body size,
+        // so the receiver will only read that many bytes regardless of body content.
+        // We also strip bare \r\n sequences from the data to prevent any ambiguity.
+        let sanitized_data = data.replace("\r\n", "\n");
+
+        // Update Content-Length to match sanitized data
+        headers.retain(|h| !h.starts_with("Content-Length:"));
+        headers.push(format!("Content-Length: {}", sanitized_data.len()));
+
         let request = format!(
             "POST {}{} HTTP/1.1\r\n{}\r\n\r\n{}",
             path,
             query,
             headers.join("\r\n"),
-            data
+            sanitized_data
         );
 
         // Connect and send
@@ -123,13 +133,12 @@ impl HttpTransport {
         let is_https = url.scheme() == "https";
 
         if is_https {
-            // For HTTPS, we'd need TLS support
-            // In a real implementation, use reqwest or native-tls
-            warn!("HTTPS transport requires TLS support - using mock response for now");
-
-            // Simulate successful send for testing
-            self.connected.store(true, Ordering::SeqCst);
-            return Ok(data.len());
+            // HTTPS requires TLS — reject instead of silently faking success
+            error!("HTTPS transport is not yet implemented. Configure an HTTP endpoint or use a TLS-terminating proxy.");
+            self.connected.store(false, Ordering::SeqCst);
+            return Err(SiemError::ConfigError(
+                "HTTPS transport not implemented. Use HTTP with a TLS proxy, or configure a plain HTTP endpoint.".to_string(),
+            ));
         }
 
         // HTTP (non-TLS) connection
@@ -151,24 +160,29 @@ impl HttpTransport {
                 let response_str = String::from_utf8_lossy(&response[..n]);
                 debug!("HTTP response: {}", response_str.lines().next().unwrap_or(""));
 
-                // Check for success status
-                if response_str.contains("200 OK")
-                    || response_str.contains("201 Created")
-                    || response_str.contains("202 Accepted")
-                {
-                    self.connected.store(true, Ordering::SeqCst);
-                    Ok(data.len())
-                } else if response_str.contains("401") || response_str.contains("403") {
-                    self.connected.store(false, Ordering::SeqCst);
-                    Err(SiemError::AuthError("Authentication failed".to_string()))
-                } else if response_str.contains("429") {
-                    Err(SiemError::RateLimitExceeded)
-                } else {
-                    error!("HTTP error response: {}", response_str);
-                    Err(SiemError::SendError(format!(
-                        "HTTP error: {}",
-                        response_str.lines().next().unwrap_or("Unknown")
-                    )))
+                // Parse HTTP status code from response status line (e.g. "HTTP/1.1 200 OK")
+                let status_code = response_str
+                    .lines()
+                    .next()
+                    .and_then(|line| line.split_whitespace().nth(1))
+                    .and_then(|code| code.parse::<u16>().ok())
+                    .unwrap_or(0);
+
+                match status_code {
+                    200..=299 => {
+                        self.connected.store(true, Ordering::SeqCst);
+                        Ok(data.len())
+                    }
+                    401 | 403 => {
+                        self.connected.store(false, Ordering::SeqCst);
+                        Err(SiemError::AuthError("Authentication failed".to_string()))
+                    }
+                    429 => Err(SiemError::RateLimitExceeded),
+                    _ => {
+                        let status_line = response_str.lines().next().unwrap_or("Unknown");
+                        error!("HTTP error response: {}", status_line);
+                        Err(SiemError::SendError(format!("HTTP error: {}", status_line)))
+                    }
                 }
             }
             Err(e) => {

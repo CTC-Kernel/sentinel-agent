@@ -161,26 +161,26 @@ fn remove_directory_if_empty(path: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// Print cleanup summary to stdout.
+/// Print cleanup summary to stdout (user-facing CLI output).
 pub fn print_cleanup_summary(result: &CleanupResult) {
     if !result.removed_dirs.is_empty() {
-        println!("Removed directories:");
+        info!("Removed directories:");
         for dir in &result.removed_dirs {
-            println!("  - {}", dir);
+            info!("  - {}", dir);
         }
     }
 
     if !result.preserved_dirs.is_empty() {
-        println!("Preserved directories:");
+        info!("Preserved directories:");
         for dir in &result.preserved_dirs {
-            println!("  - {}", dir);
+            info!("  - {}", dir);
         }
     }
 
     if !result.errors.is_empty() {
         warn!("Some cleanup operations failed:");
         for err in &result.errors {
-            println!("  Warning: {}", err);
+            warn!("  Warning: {}", err);
         }
     }
 }

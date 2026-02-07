@@ -116,13 +116,15 @@ impl BackupManager {
         let backup_id = uuid::Uuid::new_v4().to_string();
         let now = Utc::now();
         let backup_filename = format!(
-            "sentinel-{}.{}",
+            "sentinel-{}-{}.{}",
             now.format("%Y%m%d-%H%M%S"),
+            &backup_id[..8],
             BACKUP_EXTENSION
         );
         let metadata_filename = format!(
-            "sentinel-{}.{}",
+            "sentinel-{}-{}.{}",
             now.format("%Y%m%d-%H%M%S"),
+            &backup_id[..8],
             METADATA_EXTENSION
         );
 
@@ -199,10 +201,11 @@ impl BackupManager {
             PersistenceError::NotFound(format!("Backup not found: {}", backup_id))
         })?;
 
-        // Find the backup file by matching the creation timestamp
+        // Find the backup file by matching the creation timestamp and UUID prefix
         let backup_filename = format!(
-            "sentinel-{}.{}",
+            "sentinel-{}-{}.{}",
             metadata.created_at.format("%Y%m%d-%H%M%S"),
+            &metadata.id[..8],
             BACKUP_EXTENSION
         );
         let backup_path = self.backup_dir.join(&backup_filename);
@@ -342,13 +345,15 @@ impl BackupManager {
         // Remove oldest backups
         for backup in backups.iter().skip(MAX_BACKUPS) {
             let backup_filename = format!(
-                "sentinel-{}.{}",
+                "sentinel-{}-{}.{}",
                 backup.created_at.format("%Y%m%d-%H%M%S"),
+                &backup.id[..8],
                 BACKUP_EXTENSION
             );
             let metadata_filename = format!(
-                "sentinel-{}.{}",
+                "sentinel-{}-{}.{}",
                 backup.created_at.format("%Y%m%d-%H%M%S"),
+                &backup.id[..8],
                 METADATA_EXTENSION
             );
 
@@ -446,8 +451,9 @@ mod tests {
 
         // Corrupt the backup file
         let backup_filename = format!(
-            "sentinel-{}.{}",
+            "sentinel-{}-{}.{}",
             metadata.created_at.format("%Y%m%d-%H%M%S"),
+            &metadata.id[..8],
             BACKUP_EXTENSION
         );
         let backup_path = backup_dir.join(&backup_filename);

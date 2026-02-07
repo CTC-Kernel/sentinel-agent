@@ -13,6 +13,7 @@ use reqwest::{Client, ClientBuilder};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use tracing::{debug, error, info, warn};
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// Enrollment request sent to the server.
 #[derive(Debug, Serialize)]
@@ -280,6 +281,16 @@ pub struct SoftwareEntry {
     pub vendor: Option<String>,
 }
 
+/// Wrapper for sensitive credential strings that are securely erased on drop.
+#[derive(Clone, Zeroize, ZeroizeOnDrop)]
+struct SecretString(String);
+
+impl std::fmt::Debug for SecretString {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("[REDACTED]")
+    }
+}
+
 /// API client for Sentinel GRC server communication.
 #[derive(Clone)]
 pub struct ApiClient {
@@ -287,9 +298,9 @@ pub struct ApiClient {
     base_url: String,
     agent_id: Option<String>,
     /// Client certificate for X-Agent-Certificate header authentication.
-    client_certificate: Option<String>,
+    client_certificate: Option<SecretString>,
     /// Client private key for HMAC signature authentication.
-    client_key: Option<String>,
+    client_key: Option<SecretString>,
     /// Organization ID for X-Organization-Id header authentication.
     organization_id: Option<String>,
 }
@@ -302,13 +313,19 @@ impl ApiClient {
             .connect_timeout(Duration::from_secs(HTTP_CONNECT_TIMEOUT_SECS))
             .user_agent(format!("SentinelAgent/{}", AGENT_VERSION));
 
-        // SECURITY: Only accept invalid certs if explicitly allowed in config.
-        // This is primarily for development and troubleshooting.
+        // SECURITY: TLS bypass only allowed in debug builds for development.
+        #[cfg(debug_assertions)]
         if !config.tls_verify {
             warn!(
-                "DANGER: Agent is configured to bypass TLS certificate verification. This is insecure!"
+                "DANGER: TLS certificate verification bypassed (debug build only). Never use in production!"
             );
             builder = builder.danger_accept_invalid_certs(true);
+        }
+        #[cfg(not(debug_assertions))]
+        if !config.tls_verify {
+            warn!(
+                "Ignoring tls_verify=false: TLS bypass is disabled in release builds for security."
+            );
         }
 
         // Configure proxy if present
@@ -333,8 +350,8 @@ impl ApiClient {
             client,
             base_url: config.server_url.trim_end_matches('/').to_string(),
             agent_id: config.agent_id.clone(),
-            client_certificate: config.client_certificate.clone(),
-            client_key: config.client_key.clone(),
+            client_certificate: config.client_certificate.as_ref().map(|s| SecretString(s.clone())),
+            client_key: config.client_key.as_ref().map(|s| SecretString(s.clone())),
             organization_id: config.organization_id.clone(),
         })
     }
@@ -350,9 +367,10 @@ impl ApiClient {
     }
 
     /// Set client credentials for authentication after enrollment.
+    /// Credentials are securely zeroed on drop.
     pub fn set_credentials(&mut self, certificate: String, key: String) {
-        self.client_certificate = Some(certificate);
-        self.client_key = Some(key);
+        self.client_certificate = Some(SecretString(certificate));
+        self.client_key = Some(SecretString(key));
     }
 
     /// Set the organization ID after enrollment.
@@ -363,7 +381,7 @@ impl ApiClient {
     /// Add authentication headers to a request builder.
     fn authenticate(&self, builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
         let mut builder = if let Some(ref cert) = self.client_certificate {
-            builder.header("X-Agent-Certificate", cert)
+            builder.header("X-Agent-Certificate", &cert.0)
         } else {
             builder
         };

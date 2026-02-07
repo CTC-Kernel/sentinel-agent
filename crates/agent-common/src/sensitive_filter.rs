@@ -87,16 +87,40 @@ fn filter_sensitive_json_value(value: &mut serde_json::Value) {
 }
 
 /// Check if a JSON key name suggests sensitive data.
+///
+/// Uses targeted matching to avoid false positives on benign keys
+/// like "keyboard", "monkey", "turkey", etc.
 fn is_sensitive_key(key: &str) -> bool {
     let key_lower = key.to_lowercase();
-    key_lower.contains("token")
-        || key_lower.contains("password")
-        || key_lower.contains("secret")
-        || key_lower.contains("key")
-        || key_lower.contains("auth")
-        || key_lower.contains("credential")
+
+    // Exact sensitive keywords that are always sensitive
+    const EXACT_SENSITIVE: &[&str] = &[
+        "token", "password", "passwd", "secret", "credential", "credentials",
+        "private_key", "privatekey", "private-key",
+        "api_key", "apikey", "api-key",
+        "access_key", "accesskey", "access-key",
+        "secret_key", "secretkey", "secret-key",
+        "auth_token", "auth_key", "authorization",
+        "passphrase", "pass_phrase",
+    ];
+
+    // Check exact match first
+    if EXACT_SENSITIVE.contains(&key_lower.as_str()) {
+        return true;
+    }
+
+    // Suffix/prefix patterns that indicate sensitivity
+    key_lower.ends_with("_token")
+        || key_lower.ends_with("_secret")
+        || key_lower.ends_with("_password")
+        || key_lower.ends_with("_key") && !key_lower.contains("keyboard") && !key_lower.contains("hotkey")
+        || key_lower.ends_with("_credential")
+        || key_lower.starts_with("auth_")
+        || key_lower.starts_with("x-api-")
         || key_lower.contains("certificate")
         || key_lower.contains("private")
+            && !key_lower.contains("private_ip")
+            && !key_lower.contains("private_address")
 }
 
 #[cfg(test)]

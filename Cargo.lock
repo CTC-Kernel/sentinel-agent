@@ -136,6 +136,7 @@ dependencies = [
  "tracing-subscriber",
  "url",
  "uuid",
+ "zeroize",
 ]
 
 [[package]]
@@ -143,8 +144,13 @@ name = "agent-core"
 version = "2.0.0"
 dependencies = [
  "agent-common",
+ "agent-network",
+ "agent-scanner",
+ "agent-storage",
+ "agent-sync",
  "anyhow",
  "async-trait",
+ "base64",
  "battery",
  "blake3",
  "chrono",
@@ -170,6 +176,7 @@ dependencies = [
  "reqwest",
  "rusqlite",
  "semver",
+ "serde",
  "serde_json",
  "sha2",
  "signal-hook",
@@ -177,6 +184,7 @@ dependencies = [
  "tao",
  "tempfile",
  "thiserror 2.0.18",
+ "tokio",
  "tokio-rusqlite",
  "tracing",
  "tracing-subscriber",
@@ -186,6 +194,7 @@ dependencies = [
  "uuid",
  "walkdir",
  "windows 0.58.0",
+ "zeroize",
 ]
 
 [[package]]
@@ -379,6 +388,17 @@ dependencies = [
 [[package]]
 name = "agent_llm"
 version = "2.0.0"
+dependencies = [
+ "agent-common",
+ "anyhow",
+ "chrono",
+ "regex",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tracing",
+ "uuid",
+]
 
 [[package]]
 name = "ahash"
@@ -7357,6 +7377,20 @@ name = "zeroize"
 version = "1.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b97154e67e32c85465826e8bcc1c59429aaaf107c1e4a9e53c8d8ccd5eff88d0"
+dependencies = [
+ "zeroize_derive",
+]
+
+[[package]]
+name = "zeroize_derive"
+version = "1.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "85a5b4158499876c763cb03bc4e49185d3cccbabb15b33c627f7884f43db852e"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.114",
+]
 
 [[package]]
 name = "zerotrie"

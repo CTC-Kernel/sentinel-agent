@@ -9,7 +9,7 @@ use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
 use tokio::net::{TcpStream, UdpSocket};
 use tokio::sync::RwLock;
-use tracing::{debug, warn};
+use tracing::debug;
 
 /// Syslog transport.
 pub struct SyslogTransport {
@@ -82,9 +82,10 @@ impl SyslogTransport {
         debug!("Connecting to syslog server: {}", addr);
 
         if self.tls {
-            // TLS connection would require additional dependencies (rustls/native-tls)
-            // For now, we'll just establish a TCP connection and note TLS is not implemented
-            warn!("TLS syslog not fully implemented, falling back to TCP");
+            // TLS syslog requires additional TLS dependencies — reject instead of silently downgrading
+            return Err(SiemError::ConfigError(
+                "TLS syslog is not yet implemented. Use plain TCP syslog or configure a TLS-terminating proxy.".to_string(),
+            ));
         }
 
         match TcpStream::connect(&addr).await {

@@ -8,9 +8,9 @@
 //! - Security-related schema
 
 use super::types::*;
-use crate::error::{ScannerError, ScannerResult};
+use crate::error::ScannerResult;
 use serde::{Deserialize, Serialize};
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
 /// LDAP server security auditor.
 pub struct LdapAuditor {

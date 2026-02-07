@@ -38,7 +38,7 @@ impl SettingsPage {
             ui.add_space(theme::SPACE_MD);
 
             ui.horizontal(|ui: &mut egui::Ui| {
-                let is_paused = state.is_paused;
+                let is_paused = state.settings.is_paused;
                 let (label, cmd) = if is_paused {
                     (format!("{}  REPRENDRE L'AGENT", icons::PLAY), GuiCommand::Resume)
                 } else {
@@ -46,7 +46,7 @@ impl SettingsPage {
                 };
 
                 if widgets::button::primary_button(ui, label, true).clicked() {
-                    state.is_paused = !is_paused;
+                    state.settings.is_paused = !is_paused;
                     command = Some(cmd);
                 }
 
@@ -58,7 +58,7 @@ impl SettingsPage {
                 } else {
                     format!("{}  VÉRIFIER MAINTENANT", icons::CHECK)
                 };
-                let can_check = !state.is_paused && !is_scanning;
+                let can_check = !state.settings.is_paused && !is_scanning;
                 if widgets::button::primary_button_loading(
                     ui,
                     check_label,
@@ -92,7 +92,7 @@ impl SettingsPage {
             );
             ui.add_space(theme::SPACE_SM);
 
-            let mut interval_min = (state.check_interval_secs / 60) as f32;
+            let mut interval_min = (state.settings.check_interval_secs / 60) as f32;
             if interval_min < 5.0 {
                 interval_min = 5.0;
             }
@@ -109,9 +109,9 @@ impl SettingsPage {
                     .clamping(egui::SliderClamping::Always);
                 let response = ui.add(slider);
                 if response.changed() {
-                    state.check_interval_secs = (interval_min as u64) * 60;
+                    state.settings.check_interval_secs = (interval_min as u64) * 60;
                     command = Some(GuiCommand::UpdateCheckInterval {
-                        interval_secs: state.check_interval_secs,
+                        interval_secs: state.settings.check_interval_secs,
                     });
                 }
                 ui.label(
@@ -125,7 +125,7 @@ impl SettingsPage {
             ui.label(
                 egui::RichText::new(format!(
                     "CONFIGURATION ACTUELLE : {} MINUTES",
-                    state.check_interval_secs / 60,
+                    state.settings.check_interval_secs / 60,
                 ))
                 .font(theme::font_label())
                 .color(theme::text_tertiary())
@@ -164,9 +164,9 @@ impl SettingsPage {
                 ];
 
                 for &(ref level, color) in levels {
-                    let active = state.log_level == *level;
+                    let active = state.settings.log_level == *level;
                     if widgets::chip_button(ui, level.as_str(), active, color).clicked() && !active {
-                        state.log_level = *level;
+                        state.settings.log_level = *level;
                         command = Some(GuiCommand::SetLogLevel { level: level.index() as u8 });
                     }
                 }
@@ -187,7 +187,7 @@ impl SettingsPage {
             ui.add_space(theme::SPACE_MD);
 
             ui.horizontal(|ui: &mut egui::Ui| {
-                let (mode_label, mode_icon) = if state.dark_mode {
+                let (mode_label, mode_icon) = if state.settings.dark_mode {
                     ("MODE SOMBRE", icons::MOON)
                 } else {
                     ("MODE CLAIR", icons::SUN)
@@ -199,7 +199,7 @@ impl SettingsPage {
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
-                widgets::toggle_switch(ui, &mut state.dark_mode);
+                widgets::toggle_switch(ui, &mut state.settings.dark_mode);
             });
             ui.add_space(theme::SPACE_XS);
             ui.label(
@@ -247,7 +247,7 @@ impl SettingsPage {
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui: &mut egui::Ui| {
                     use crate::dto::UpdateStatus;
 
-                    let (btn_text, is_busy) = match &state.update_status {
+                    let (btn_text, is_busy) = match &state.settings.update_status {
                         UpdateStatus::Idle => (format!("{}  VÉRIFIER", icons::DOWNLOAD), false),
                         UpdateStatus::Available(v) => (format!("{}  INSTALLER v{}", icons::DOWNLOAD, v), false),
                         UpdateStatus::UpToDate => (format!("{}  À JOUR", icons::CHECK), false),
@@ -258,7 +258,7 @@ impl SettingsPage {
                         UpdateStatus::Failed(_) => (format!("{}  RÉESSAYER", icons::REFRESH), false),
                     };
 
-                    let can_click = !state.is_paused && !is_busy;
+                    let can_click = !state.settings.is_paused && !is_busy;
                     if widgets::button::primary_button_loading(ui, btn_text, can_click, is_busy)
                         .clicked()
                     {
@@ -289,7 +289,7 @@ impl SettingsPage {
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
-                if ui.checkbox(&mut state.discovery_enabled, "").changed() {
+                if ui.checkbox(&mut state.discovery.enabled, "").changed() {
                     // State is already updated by checkbox
                 }
             });
@@ -398,13 +398,13 @@ impl SettingsPage {
             Self::setting_row(
                 ui,
                 "INTERVALLE SCAN",
-                &format!("{} SECONDES", state.check_interval_secs),
+                &format!("{} SECONDES", state.settings.check_interval_secs),
                 icons::ARROW_RIGHT,
             );
             Self::setting_row(
                 ui,
                 "HEARTBEAT",
-                &format!("{} SECONDES", state.heartbeat_interval_secs),
+                &format!("{} SECONDES", state.settings.heartbeat_interval_secs),
                 icons::ARROW_RIGHT,
             );
         });

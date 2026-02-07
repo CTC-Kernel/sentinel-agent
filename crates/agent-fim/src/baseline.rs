@@ -109,12 +109,19 @@ impl Default for BaselineManager {
     }
 }
 
+/// Maximum file size for in-memory hashing (64 MB). Larger files use streaming.
+const STREAMING_THRESHOLD: u64 = 64 * 1024 * 1024;
+
 /// Compute the baseline for a single file.
 pub fn compute_file_baseline(path: &Path) -> Result<FimBaseline, crate::FimError> {
     let metadata = fs::metadata(path)?;
-    let contents = fs::read(path)?;
 
-    let hash = blake3::hash(&contents).to_hex().to_string();
+    let hash = if metadata.len() > STREAMING_THRESHOLD {
+        compute_blake3_streaming(path)?
+    } else {
+        let contents = fs::read(path)?;
+        blake3::hash(&contents).to_hex().to_string()
+    };
 
     let permissions = get_permissions(&metadata);
     let modified_at = metadata
@@ -132,10 +139,31 @@ pub fn compute_file_baseline(path: &Path) -> Result<FimBaseline, crate::FimError
     })
 }
 
-/// Compute BLAKE3 hash of file contents.
+/// Compute BLAKE3 hash of file contents (streaming for large files).
 pub fn compute_blake3(path: &Path) -> Result<String, std::io::Error> {
-    let contents = fs::read(path)?;
-    Ok(blake3::hash(&contents).to_hex().to_string())
+    let metadata = fs::metadata(path)?;
+    if metadata.len() > STREAMING_THRESHOLD {
+        compute_blake3_streaming(path)
+    } else {
+        let contents = fs::read(path)?;
+        Ok(blake3::hash(&contents).to_hex().to_string())
+    }
+}
+
+/// Streaming BLAKE3 hash for large files — avoids loading entire file into memory.
+fn compute_blake3_streaming(path: &Path) -> Result<String, std::io::Error> {
+    use std::io::Read;
+    let mut file = fs::File::open(path)?;
+    let mut hasher = blake3::Hasher::new();
+    let mut buffer = [0u8; 64 * 1024]; // 64 KB read buffer
+    loop {
+        let n = file.read(&mut buffer)?;
+        if n == 0 {
+            break;
+        }
+        hasher.update(&buffer[..n]);
+    }
+    Ok(hasher.finalize().to_hex().to_string())
 }
 
 /// Compute SHA-256 hash for compliance proofs.

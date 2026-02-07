@@ -108,7 +108,7 @@ impl TerminalPage {
                 Self::stat_item(
                     ui,
                     "ÉVÉNEMENTS GÉNÉRÉS",
-                    &state.terminal_event_count.to_string(),
+                    &state.terminal.event_count.to_string(),
                     theme::text_primary(),
                 );
 
@@ -116,7 +116,7 @@ impl TerminalPage {
 
                 // Events per minute
                 let epm = if uptime_secs > 0 {
-                    (state.terminal_event_count as f64 / (uptime_secs as f64 / 60.0)) as u64
+                    (state.terminal.event_count as f64 / (uptime_secs as f64 / 60.0)) as u64
                 } else {
                     0
                 };
@@ -133,8 +133,8 @@ impl TerminalPage {
                 Self::stat_item(
                     ui,
                     "ERREURS DÉTECTÉES",
-                    &state.terminal_error_count.to_string(),
-                    if state.terminal_error_count > 0 {
+                    &state.terminal.error_count.to_string(),
+                    if state.terminal.error_count > 0 {
                         theme::ERROR
                     } else {
                         theme::SUCCESS
@@ -180,11 +180,11 @@ impl TerminalPage {
 
                 for (i, name) in LEVEL_NAMES.iter().enumerate() {
                     let level = LogLevel::from_index(i);
-                    let selected = state.terminal_filter_level == level;
+                    let selected = state.terminal.filter_level == level;
                     let color = level_color(name);
 
                     if widgets::chip_button(ui, *name, selected, color).clicked() {
-                        state.terminal_filter_level = level;
+                        state.terminal.filter_level = level;
                     }
                     ui.add_space(4.0);
                 }
@@ -200,7 +200,7 @@ impl TerminalPage {
                         .extra_letter_spacing(0.5),
                 );
                 ui.add_space(theme::SPACE_XS);
-                let search_edit = egui::TextEdit::singleline(&mut state.terminal_search)
+                let search_edit = egui::TextEdit::singleline(&mut state.terminal.search)
                     .desired_width(200.0)
                     .margin(egui::Margin::symmetric(8, 4))
                     .font(egui::FontId::monospace(11.0))
@@ -216,22 +216,28 @@ impl TerminalPage {
 
     fn terminal_viewport(ui: &mut Ui, state: &mut AppState) {
         let terminal_bg = theme::bg_deep();
-        let filter_level_index = state.terminal_filter_level.index();
-        let search_lower = state.terminal_search.to_lowercase();
+        let filter_level_index = state.terminal.filter_level.index();
+        // Cache lowercase search term once instead of per-frame allocation
+        let search_lower = if state.terminal.search.is_empty() {
+            String::new()
+        } else {
+            state.terminal.search.to_lowercase()
+        };
 
         let filtered: Vec<_> = state
-            .terminal_lines
+            .terminal.lines
             .iter()
             .filter(|e| {
                 let entry_level = level_index(&e.level);
                 if entry_level < filter_level_index {
                     return false;
                 }
-                if !search_lower.is_empty() {
-                    let hay = format!("{} {} {}", e.level, e.target, e.message).to_lowercase();
-                    if !hay.contains(&search_lower) {
-                        return false;
-                    }
+                if !search_lower.is_empty()
+                    && !e.level.to_ascii_lowercase().contains(&search_lower)
+                    && !e.target.to_ascii_lowercase().contains(&search_lower)
+                    && !e.message.to_ascii_lowercase().contains(&search_lower)
+                {
+                    return false;
                 }
                 true
             })
@@ -350,7 +356,7 @@ impl TerminalPage {
     fn export_logs_csv(state: &AppState) {
         let headers = &["timestamp", "level", "target", "message"];
         let rows: Vec<Vec<String>> = state
-            .terminal_lines
+            .terminal.lines
             .iter()
             .map(|l| {
                 vec![

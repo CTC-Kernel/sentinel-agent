@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use tokio::sync::{RwLock, mpsc};
 use tokio::time::{Instant, interval};
-use tracing::{info, warn};
+use tracing::{debug, info, warn};
 
 /// Default scan interval (4 hours).
 const DEFAULT_INTERVAL_SECS: u64 = 4 * 60 * 60;
@@ -250,7 +250,9 @@ impl Scheduler {
         }
 
         // Send stopped event
-        let _ = tx.send(SchedulerEvent::Stopped).await;
+        if let Err(e) = tx.send(SchedulerEvent::Stopped).await {
+            debug!("Failed to send scheduler stopped event (receiver dropped): {}", e);
+        }
     }
 
     /// Run a single scan.
@@ -264,11 +266,14 @@ impl Scheduler {
         {
             let s = status.read().await;
             if s.state == SchedulerState::Running {
-                let _ = tx
+                if let Err(e) = tx
                     .send(SchedulerEvent::ScanSkipped {
                         reason: "Previous scan still running".to_string(),
                     })
-                    .await;
+                    .await
+                {
+                    debug!("Failed to send scan skipped event: {}", e);
+                }
                 return;
             }
         }
@@ -281,12 +286,15 @@ impl Scheduler {
         }
 
         let started_at = Utc::now();
-        let _ = tx
+        if let Err(e) = tx
             .send(SchedulerEvent::ScanStarted {
                 started_at,
                 check_count,
             })
-            .await;
+            .await
+        {
+            debug!("Failed to send scan started event: {}", e);
+        }
 
         // Run the scan
         let start = Instant::now();
@@ -312,12 +320,15 @@ impl Scheduler {
             summary.total_checks, summary.score, summary.duration_ms
         );
 
-        let _ = tx
+        if let Err(e) = tx
             .send(SchedulerEvent::ScanCompleted {
                 summary,
                 completed_at,
             })
-            .await;
+            .await
+        {
+            debug!("Failed to send scan completed event: {}", e);
+        }
     }
 }
 

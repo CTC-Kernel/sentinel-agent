@@ -147,6 +147,16 @@ expression = "LicenseRef-Proprietary"
 license-files = []
 
 [[licenses.clarify]]
+crate = "agent-siem"
+expression = "LicenseRef-Proprietary"
+license-files = []
+
+[[licenses.clarify]]
+crate = "agent_llm"
+expression = "LicenseRef-Proprietary"
+license-files = []
+
+[[licenses.clarify]]
 crate = "xtask"
 expression = "LicenseRef-Proprietary"
 license-files = []

@@ -567,7 +567,9 @@ impl UpdateManager {
             }
             metadata.rollback_available = false;
             metadata.state = UpdateState::RolledBack.as_str().to_string();
-            let _ = self.save_metadata(&metadata).await;
+            if let Err(e) = self.save_metadata(&metadata).await {
+                warn!("Failed to save rollback metadata: {}", e);
+            }
         }
 
         info!("Rollback completed");

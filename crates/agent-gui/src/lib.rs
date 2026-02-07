@@ -15,6 +15,8 @@ pub mod events;
 #[cfg(feature = "render")]
 pub mod app;
 #[cfg(feature = "render")]
+pub mod state;
+#[cfg(feature = "render")]
 pub mod enrollment;
 #[cfg(feature = "render")]
 pub mod export;

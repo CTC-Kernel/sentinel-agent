@@ -9,9 +9,9 @@
 //! - Security options
 
 use super::types::*;
-use crate::error::{ScannerError, ScannerResult};
+use crate::error::ScannerResult;
 use serde::{Deserialize, Serialize};
-use tracing::{debug, info, warn};
+use tracing::info;
 
 /// Group Policy Object auditor.
 pub struct GpoAuditor {
@@ -137,19 +137,19 @@ impl GpoAuditor {
                 settings.password_policy = PasswordPolicy {
                     min_length: policy.get("MinimumPasswordLength")
                         .and_then(|v| v.as_i64())
-                        .map(|v| v as u32)
+                        .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
                     max_age_days: policy.get("MaximumPasswordAge")
                         .and_then(|v| v.as_i64())
-                        .map(|v| v as u32)
+                        .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(42),
                     min_age_days: policy.get("MinimumPasswordAge")
                         .and_then(|v| v.as_i64())
-                        .map(|v| v as u32)
+                        .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
                     history_count: policy.get("PasswordHistorySize")
                         .and_then(|v| v.as_i64())
-                        .map(|v| v as u32)
+                        .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
                     complexity_enabled: policy.get("PasswordComplexity")
                         .and_then(|v| v.as_i64())
@@ -164,15 +164,15 @@ impl GpoAuditor {
                 settings.lockout_policy = AccountLockoutPolicy {
                     threshold: policy.get("LockoutThreshold")
                         .and_then(|v| v.as_i64())
-                        .map(|v| v as u32)
+                        .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
                     duration_minutes: policy.get("LockoutDuration")
                         .and_then(|v| v.as_i64())
-                        .map(|v| v as u32)
+                        .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
                     observation_window_minutes: policy.get("LockoutObservationWindow")
                         .and_then(|v| v.as_i64())
-                        .map(|v| v as u32)
+                        .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
                 };
             }
@@ -249,19 +249,19 @@ impl GpoAuditor {
                 settings.password_policy = PasswordPolicy {
                     min_length: policy.get("MinPasswordLength")
                         .and_then(|v| v.as_i64())
-                        .map(|v| v as u32)
+                        .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
                     max_age_days: policy.get("MaxPasswordAge")
                         .and_then(|v| v.as_i64())
-                        .map(|v| v as u32)
+                        .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(42),
                     min_age_days: policy.get("MinPasswordAge")
                         .and_then(|v| v.as_i64())
-                        .map(|v| v as u32)
+                        .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
                     history_count: policy.get("PasswordHistoryCount")
                         .and_then(|v| v.as_i64())
-                        .map(|v| v as u32)
+                        .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
                     complexity_enabled: policy.get("ComplexityEnabled")
                         .and_then(|v| v.as_bool())
@@ -274,15 +274,15 @@ impl GpoAuditor {
                 settings.lockout_policy = AccountLockoutPolicy {
                     threshold: policy.get("LockoutThreshold")
                         .and_then(|v| v.as_i64())
-                        .map(|v| v as u32)
+                        .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
                     duration_minutes: policy.get("LockoutDuration")
                         .and_then(|v| v.as_f64())
-                        .map(|v| v as u32)
+                        .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
                     observation_window_minutes: policy.get("LockoutObservationWindow")
                         .and_then(|v| v.as_f64())
-                        .map(|v| v as u32)
+                        .and_then(|v| u32::try_from(v).ok())
                         .unwrap_or(0),
                 };
 

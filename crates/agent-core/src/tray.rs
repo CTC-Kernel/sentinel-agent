@@ -406,7 +406,9 @@ impl AgentTray {
                 self.set_status(AgentTrayStatus::Paused);
 
                 // Send command to agent
-                let _ = self.command_tx.send(TrayCommand::Pause);
+                if let Err(e) = self.command_tx.send(TrayCommand::Pause) {
+                    error!("Failed to send Pause command: {}", e);
+                }
             }
 
             menu_ids::RESUME => {
@@ -418,7 +420,9 @@ impl AgentTray {
                 self.set_status(AgentTrayStatus::Active);
 
                 // Send command to agent
-                let _ = self.command_tx.send(TrayCommand::Resume);
+                if let Err(e) = self.command_tx.send(TrayCommand::Resume) {
+                    error!("Failed to send Resume command: {}", e);
+                }
             }
 
             menu_ids::CHECK_NOW => {
@@ -426,7 +430,9 @@ impl AgentTray {
                 self.set_status(AgentTrayStatus::Checking);
 
                 // Send command to agent - the agent will call on_check_complete() when done
-                let _ = self.command_tx.send(TrayCommand::CheckNow);
+                if let Err(e) = self.command_tx.send(TrayCommand::CheckNow) {
+                    error!("Failed to send CheckNow command: {}", e);
+                }
             }
 
             menu_ids::OPEN_LOGS => {
@@ -437,10 +443,16 @@ impl AgentTray {
             menu_ids::OPEN_DASHBOARD => {
                 info!("Opening tray popup with premium radar");
                 // Launch tray popup GUI directly
-                std::process::Command::new(std::env::current_exe().unwrap())
-                    .args(["--tray-popup"])
-                    .spawn()
-                    .ok();
+                if let Ok(exe) = std::env::current_exe() {
+                    if let Err(e) = std::process::Command::new(exe)
+                        .args(["--tray-popup"])
+                        .spawn()
+                    {
+                        warn!("Failed to spawn tray popup: {}", e);
+                    }
+                } else {
+                    warn!("Failed to resolve current executable path for tray popup");
+                }
             }
 
             menu_ids::OPEN_WEBSITE => {
@@ -460,7 +472,9 @@ impl AgentTray {
 
             menu_ids::QUIT => {
                 info!("User requested quit");
-                let _ = self.command_tx.send(TrayCommand::Shutdown);
+                if let Err(e) = self.command_tx.send(TrayCommand::Shutdown) {
+                    error!("Failed to send Shutdown command: {}", e);
+                }
                 self.shutdown.store(true, Ordering::SeqCst);
             }
 

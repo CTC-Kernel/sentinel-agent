@@ -49,9 +49,9 @@ impl ThreatsPage {
         ui.add_space(theme::SPACE_LG);
 
         // ── Summary counts (AAA Grade) ──────────────────────────────────
-        let process_count = state.suspicious_processes.len();
-        let usb_count = state.usb_events.len();
-        let fim_unack_count = state.fim_alerts.iter().filter(|a| !a.acknowledged).count();
+        let process_count = state.threats.suspicious_processes.len();
+        let usb_count = state.threats.usb_events.len();
+        let fim_unack_count = state.fim.alerts.iter().filter(|a| !a.acknowledged).count();
         let risk_score = Self::compute_risk_score(process_count, usb_count, fim_unack_count);
 
         let card_gap = theme::SPACE_SM;
@@ -107,20 +107,20 @@ impl ThreatsPage {
         ui.add_space(theme::SPACE_LG);
 
         // ── Search / filter bar (AAA Grade) ─────────────────────────────
-        let proc_active = state.threats_filter.as_deref() == Some("process");
-        let usb_active = state.threats_filter.as_deref() == Some("usb");
-        let fim_active = state.threats_filter.as_deref() == Some("fim");
+        let proc_active = state.threats.filter.as_deref() == Some("process");
+        let usb_active = state.threats.filter.as_deref() == Some("usb");
+        let fim_active = state.threats.filter.as_deref() == Some("fim");
 
         // Build consolidated threat list
         let mut threats = Self::build_threat_list(state);
 
         // Apply filter
-        if let Some(ref filter) = state.threats_filter {
+        if let Some(ref filter) = state.threats.filter {
             threats.retain(|t| t.kind == filter.as_str());
         }
 
         // Apply search
-        let search_lower = state.threats_search.to_lowercase();
+        let search_lower = state.threats.search.to_lowercase();
         if !search_lower.is_empty() {
             threats.retain(|t| {
                 let haystack = format!(
@@ -139,7 +139,7 @@ impl ThreatsPage {
         let result_count = threats.len();
 
         let toggled = widgets::SearchFilterBar::new(
-            &mut state.threats_search,
+            &mut state.threats.search,
             "RECHERCHER (PROCESSUS, FICHIER, PÉRIPHÉRIQUE)...",
         )
         .chip("PROCESSUS", proc_active, theme::ERROR)
@@ -155,10 +155,10 @@ impl ThreatsPage {
                 2 => Some("fim"),
                 _ => None,
             };
-            if state.threats_filter.as_deref() == target {
-                state.threats_filter = None;
+            if state.threats.filter.as_deref() == target {
+                state.threats.filter = None;
             } else {
-                state.threats_filter = target.map(|s| s.to_string());
+                state.threats.filter = target.map(|s| s.to_string());
             }
         }
 
@@ -244,7 +244,9 @@ impl ThreatsPage {
     fn compute_risk_score(processes: usize, usb: usize, fim_unack: usize) -> u32 {
         // Weighted formula: suspicious processes are highest risk,
         // then unacknowledged FIM alerts, then USB events.
-        let raw = (processes as u32) * 25 + (fim_unack as u32) * 15 + (usb as u32) * 5;
+        let raw = (processes as u32).saturating_mul(25)
+            .saturating_add((fim_unack as u32).saturating_mul(15))
+            .saturating_add((usb as u32).saturating_mul(5));
         raw.min(100)
     }
 
@@ -266,7 +268,7 @@ impl ThreatsPage {
         let mut events = Vec::new();
 
         // Suspicious processes
-        for p in &state.suspicious_processes {
+        for p in &state.threats.suspicious_processes {
             let severity = if p.confidence >= 90 {
                 "critical"
             } else if p.confidence >= 70 {
@@ -287,7 +289,7 @@ impl ThreatsPage {
         }
 
         // USB events
-        for u in &state.usb_events {
+        for u in &state.threats.usb_events {
             let severity = match u.event_type {
                 UsbEventType::Connected => "medium",
                 UsbEventType::Disconnected => "low",
@@ -306,7 +308,7 @@ impl ThreatsPage {
         }
 
         // FIM alerts
-        for f in &state.fim_alerts {
+        for f in &state.fim.alerts {
             let severity = match f.change_type {
                 FimChangeType::Deleted | FimChangeType::PermissionChanged => "high",
                 FimChangeType::Created => "medium",
