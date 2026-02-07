@@ -408,8 +408,8 @@ impl LinuxHardeningCheck {
 
         let compliant = current_value
             .as_ref()
-            .map(|v: String| {
-                v == check.expected
+            .map(|v: &String| {
+                v == &check.expected
                     || v.parse::<i32>().unwrap_or(-1) >= check.expected.parse::<i32>().unwrap_or(0)
             })
             .unwrap_or(false);
