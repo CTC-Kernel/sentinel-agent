@@ -26,10 +26,11 @@ blake3.workspace = true
 rayon.workspace = true
 sysinfo.workspace = true
 memmap2.workspace = true
+anyhow = { workspace = true, optional = true }
 
 [features]
 default = []
-llm_simple = []
+llm_simple = ["dep:anyhow"]
 
 [dev-dependencies]
 tempfile.workspace = true
