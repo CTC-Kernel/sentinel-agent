@@ -142,7 +142,11 @@ impl DirectoryAuditResult {
             return;
         }
 
-        let total_weight: f32 = self.findings.iter().map(|f| severity_weight(f.severity)).sum();
+        let total_weight: f32 = self
+            .findings
+            .iter()
+            .map(|f| severity_weight(f.severity))
+            .sum();
         let compliant_weight: f32 = self
             .findings
             .iter()

@@ -71,16 +71,15 @@ impl<'a> Checkbox<'a> {
             Sense::click()
         };
 
-        let total_width = box_size + 8.0 + ui
-            .painter()
-            .layout_no_wrap(self.label.to_string(), font.clone(), Color32::WHITE)
-            .size()
-            .x;
+        let total_width = box_size
+            + 8.0
+            + ui.painter()
+                .layout_no_wrap(self.label.to_string(), font.clone(), Color32::WHITE)
+                .size()
+                .x;
 
-        let (rect, response) = ui.allocate_exact_size(
-            egui::vec2(total_width, box_size.max(24.0)),
-            sense,
-        );
+        let (rect, response) =
+            ui.allocate_exact_size(egui::vec2(total_width, box_size.max(24.0)), sense);
 
         if ui.is_rect_visible(rect) {
             let is_hovered = response.hovered() && !self.disabled;
@@ -211,16 +210,15 @@ impl<'a> RadioButton<'a> {
             Sense::click()
         };
 
-        let total_width = box_size + 8.0 + ui
-            .painter()
-            .layout_no_wrap(self.label.to_string(), font.clone(), Color32::WHITE)
-            .size()
-            .x;
+        let total_width = box_size
+            + 8.0
+            + ui.painter()
+                .layout_no_wrap(self.label.to_string(), font.clone(), Color32::WHITE)
+                .size()
+                .x;
 
-        let (rect, response) = ui.allocate_exact_size(
-            egui::vec2(total_width, box_size.max(24.0)),
-            sense,
-        );
+        let (rect, response) =
+            ui.allocate_exact_size(egui::vec2(total_width, box_size.max(24.0)), sense);
 
         if ui.is_rect_visible(rect) {
             let is_hovered = response.hovered() && !self.disabled;
@@ -252,7 +250,8 @@ impl<'a> RadioButton<'a> {
                 } else {
                     theme::ACCENT
                 };
-                ui.painter().circle_filled(center, radius * 0.5, inner_color);
+                ui.painter()
+                    .circle_filled(center, radius * 0.5, inner_color);
             }
 
             // Label
@@ -458,24 +457,18 @@ pub fn switch(ui: &mut Ui, label: &str, on: &mut bool) -> bool {
     let switch_height = 24.0;
     let thumb_size = 18.0;
 
-    let label_galley = ui.painter().layout_no_wrap(
-        label.to_string(),
-        theme::font_body(),
-        theme::text_primary(),
-    );
+    let label_galley =
+        ui.painter()
+            .layout_no_wrap(label.to_string(), theme::font_body(), theme::text_primary());
 
     let total_width = switch_width + 12.0 + label_galley.size().x;
-    let (rect, response) = ui.allocate_exact_size(
-        egui::vec2(total_width, switch_height),
-        Sense::click(),
-    );
+    let (rect, response) =
+        ui.allocate_exact_size(egui::vec2(total_width, switch_height), Sense::click());
 
     if ui.is_rect_visible(rect) {
         let is_hovered = response.hovered();
-        let switch_rect = egui::Rect::from_min_size(
-            rect.min,
-            egui::vec2(switch_width, switch_height),
-        );
+        let switch_rect =
+            egui::Rect::from_min_size(rect.min, egui::vec2(switch_width, switch_height));
 
         // Track
         let track_color = if *on {
@@ -507,11 +500,8 @@ pub fn switch(ui: &mut Ui, label: &str, on: &mut bool) -> bool {
         );
 
         // Thumb
-        ui.painter().circle_filled(
-            thumb_center,
-            thumb_size / 2.0,
-            Color32::WHITE,
-        );
+        ui.painter()
+            .circle_filled(thumb_center, thumb_size / 2.0, Color32::WHITE);
 
         // Hover effect
         if is_hovered {
@@ -528,7 +518,10 @@ pub fn switch(ui: &mut Ui, label: &str, on: &mut bool) -> bool {
 
         // Label
         ui.painter().galley(
-            egui::pos2(switch_rect.max.x + 12.0, rect.center().y - label_galley.size().y / 2.0),
+            egui::pos2(
+                switch_rect.max.x + 12.0,
+                rect.center().y - label_galley.size().y / 2.0,
+            ),
             label_galley,
             theme::text_primary(),
         );

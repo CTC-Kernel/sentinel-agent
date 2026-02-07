@@ -35,15 +35,16 @@ impl AuditSyncService {
         }
 
         let ids: Vec<i64> = stored_entries.iter().filter_map(|e| e.id).collect();
-        let api_entries: Vec<AuditTrailEntry> = stored_entries.iter().map(|e| {
-            AuditTrailEntry {
+        let api_entries: Vec<AuditTrailEntry> = stored_entries
+            .iter()
+            .map(|e| AuditTrailEntry {
                 action: e.action_type.clone(),
                 actor: e.actor.clone(),
                 details: e.details.clone(),
                 timestamp: e.timestamp,
                 metadata: serde_json::from_str(&e.action_data).unwrap_or_default(),
-            }
-        }).collect();
+            })
+            .collect();
 
         debug!("Syncing {} audit entries to SaaS", api_entries.len());
 
@@ -51,10 +52,10 @@ impl AuditSyncService {
         match self.client.sync_audit_trail(api_entries).await {
             Ok(server_count) => {
                 info!("Successfully synced {} audit entries to SaaS", server_count);
-                
+
                 // 3. Mark as synced in local storage
                 self.mark_as_synced(&ids).await?;
-                
+
                 Ok(server_count)
             }
             Err(e) => {
@@ -67,20 +68,26 @@ impl AuditSyncService {
     /// Fetch unsynced audit entries from local storage.
     async fn fetch_unsynced_entries(&self) -> SyncResult<Vec<agent_storage::StoredAuditEntry>> {
         use agent_storage::AuditTrailRepository;
-        
+
         let repo = AuditTrailRepository::new(&self.db);
         repo.fetch_unsynced(50).await.map_err(|e| {
-            crate::error::SyncError::Config(format!("Failed to fetch unsynced audit entries: {}", e))
+            crate::error::SyncError::Config(format!(
+                "Failed to fetch unsynced audit entries: {}",
+                e
+            ))
         })
     }
 
     /// Mark entries as synced in local storage.
     async fn mark_as_synced(&self, ids: &[i64]) -> SyncResult<()> {
         use agent_storage::AuditTrailRepository;
-        
+
         let repo = AuditTrailRepository::new(&self.db);
         repo.mark_synced(ids).await.map_err(|e| {
-            crate::error::SyncError::Config(format!("Failed to mark audit entries as synced: {}", e))
+            crate::error::SyncError::Config(format!(
+                "Failed to mark audit entries as synced: {}",
+                e
+            ))
         })
     }
 }

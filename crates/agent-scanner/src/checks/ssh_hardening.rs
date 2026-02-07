@@ -252,14 +252,16 @@ impl SshHardeningCheck {
         }
 
         // Check for weak ciphers
-        status.weak_ciphers_disabled = !status.ciphers.iter().any(|c| {
-            WEAK_CIPHERS.iter().any(|weak| c.to_lowercase() == *weak)
-        });
+        status.weak_ciphers_disabled = !status
+            .ciphers
+            .iter()
+            .any(|c| WEAK_CIPHERS.iter().any(|weak| c.to_lowercase() == *weak));
 
         // Check for weak MACs
-        status.weak_macs_disabled = !status.macs.iter().any(|m| {
-            WEAK_MACS.iter().any(|weak| m.to_lowercase() == *weak)
-        });
+        status.weak_macs_disabled = !status
+            .macs
+            .iter()
+            .any(|m| WEAK_MACS.iter().any(|weak| m.to_lowercase() == *weak));
 
         // Set defaults for unspecified values (OpenSSH defaults)
         if !status.pubkey_auth_enabled && !config.to_lowercase().contains("pubkeyauthentication") {
@@ -280,51 +282,77 @@ impl SshHardeningCheck {
         // Critical issues
         if !status.root_login_disabled {
             status.issues.push("Root login is permitted".to_string());
-            status.recommendations.push("Set PermitRootLogin no".to_string());
+            status
+                .recommendations
+                .push("Set PermitRootLogin no".to_string());
         }
 
         if !status.password_auth_disabled {
-            status.issues.push("Password authentication is enabled".to_string());
-            status.recommendations.push("Set PasswordAuthentication no and use key-based auth".to_string());
+            status
+                .issues
+                .push("Password authentication is enabled".to_string());
+            status
+                .recommendations
+                .push("Set PasswordAuthentication no and use key-based auth".to_string());
         }
 
         if !status.pubkey_auth_enabled {
-            status.issues.push("Public key authentication is disabled".to_string());
-            status.recommendations.push("Set PubkeyAuthentication yes".to_string());
+            status
+                .issues
+                .push("Public key authentication is disabled".to_string());
+            status
+                .recommendations
+                .push("Set PubkeyAuthentication yes".to_string());
         }
 
         // High severity issues
         if !status.weak_ciphers_disabled {
             status.issues.push("Weak ciphers are enabled".to_string());
-            status.recommendations.push("Remove weak ciphers: 3des-cbc, *-cbc, arcfour*".to_string());
+            status
+                .recommendations
+                .push("Remove weak ciphers: 3des-cbc, *-cbc, arcfour*".to_string());
         }
 
         if !status.weak_macs_disabled {
             status.issues.push("Weak MACs are enabled".to_string());
-            status.recommendations.push("Remove weak MACs: hmac-md5*, hmac-sha1*".to_string());
+            status
+                .recommendations
+                .push("Remove weak MACs: hmac-md5*, hmac-sha1*".to_string());
         }
 
         if let Some(tries) = status.max_auth_tries {
             if tries > 4 {
-                status.issues.push(format!("MaxAuthTries is too high: {}", tries));
-                status.recommendations.push("Set MaxAuthTries 3 or 4".to_string());
+                status
+                    .issues
+                    .push(format!("MaxAuthTries is too high: {}", tries));
+                status
+                    .recommendations
+                    .push("Set MaxAuthTries 3 or 4".to_string());
             }
         }
 
         if let Some(grace) = status.login_grace_time {
             if grace > 60 {
-                status.issues.push(format!("LoginGraceTime is too high: {}s", grace));
-                status.recommendations.push("Set LoginGraceTime 60 or lower".to_string());
+                status
+                    .issues
+                    .push(format!("LoginGraceTime is too high: {}s", grace));
+                status
+                    .recommendations
+                    .push("Set LoginGraceTime 60 or lower".to_string());
             }
         }
 
         // Medium severity issues
         if !status.x11_forwarding_disabled {
-            status.recommendations.push("Consider disabling X11Forwarding".to_string());
+            status
+                .recommendations
+                .push("Consider disabling X11Forwarding".to_string());
         }
 
         if !status.tcp_forwarding_disabled {
-            status.recommendations.push("Consider disabling AllowTcpForwarding".to_string());
+            status
+                .recommendations
+                .push("Consider disabling AllowTcpForwarding".to_string());
         }
 
         // Determine overall hardened status
@@ -368,23 +396,31 @@ impl SshHardeningCheck {
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status.ssh_server_active = result.trim() == "active";
-            status.raw_output.push_str(&format!("sshd service: {}\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("sshd service: {}\n", result.trim()));
         } else if let Ok(output) = Command::new("systemctl")
             .args(["is-active", "ssh"])
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status.ssh_server_active = result.trim() == "active";
-            status.raw_output.push_str(&format!("ssh service: {}\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("ssh service: {}\n", result.trim()));
         }
 
         // Read sshd_config
         let config_path = "/etc/ssh/sshd_config";
         if let Ok(config) = std::fs::read_to_string(config_path) {
-            status.raw_output.push_str(&format!("=== {} ===\n{}\n", config_path, config));
+            status
+                .raw_output
+                .push_str(&format!("=== {} ===\n{}\n", config_path, config));
             self.parse_sshd_config(&config, &mut status);
         } else {
-            status.issues.push("Cannot read /etc/ssh/sshd_config".to_string());
+            status
+                .issues
+                .push("Cannot read /etc/ssh/sshd_config".to_string());
         }
 
         // Check sshd_config.d for drop-in configs
@@ -445,13 +481,17 @@ impl SshHardeningCheck {
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status.ssh_server_active = result.to_lowercase().contains("on");
-            status.raw_output.push_str(&format!("Remote Login: {}\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("Remote Login: {}\n", result.trim()));
         }
 
         // Read sshd_config
         let config_path = "/etc/ssh/sshd_config";
         if let Ok(config) = std::fs::read_to_string(config_path) {
-            status.raw_output.push_str(&format!("=== {} ===\n{}\n", config_path, config));
+            status
+                .raw_output
+                .push_str(&format!("=== {} ===\n{}\n", config_path, config));
             self.parse_sshd_config(&config, &mut status);
         }
 
@@ -488,18 +528,20 @@ impl SshHardeningCheck {
         };
 
         // Check if OpenSSH server is installed and running
-        let service_output = Command::new("sc")
-            .args(["query", "sshd"])
-            .output();
+        let service_output = Command::new("sc").args(["query", "sshd"]).output();
 
         if let Ok(output) = service_output {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             status.ssh_server_active = result.contains("RUNNING");
-            status.raw_output.push_str(&format!("sshd service:\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("sshd service:\n{}\n", result));
 
             if !output.status.success() {
                 // OpenSSH not installed
-                status.issues.push("OpenSSH server not installed".to_string());
+                status
+                    .issues
+                    .push("OpenSSH server not installed".to_string());
                 return Ok(status);
             }
         }
@@ -507,13 +549,17 @@ impl SshHardeningCheck {
         // Check OpenSSH config
         let config_path = r"C:\ProgramData\ssh\sshd_config";
         if let Ok(config) = std::fs::read_to_string(config_path) {
-            status.raw_output.push_str(&format!("=== {} ===\n{}\n", config_path, config));
+            status
+                .raw_output
+                .push_str(&format!("=== {} ===\n{}\n", config_path, config));
             self.parse_sshd_config(&config, &mut status);
         } else {
             // Try alternative path
             let alt_path = r"C:\Windows\System32\OpenSSH\sshd_config_default";
             if let Ok(config) = std::fs::read_to_string(alt_path) {
-                status.raw_output.push_str(&format!("=== {} ===\n{}\n", alt_path, config));
+                status
+                    .raw_output
+                    .push_str(&format!("=== {} ===\n{}\n", alt_path, config));
                 self.parse_sshd_config(&config, &mut status);
             }
         }

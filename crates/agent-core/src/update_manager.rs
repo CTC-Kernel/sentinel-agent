@@ -4,9 +4,9 @@ use agent_common::types::UpdateInfo;
 use semver::Version;
 use std::process::Command;
 use std::sync::Arc;
-use tracing::{debug, error, info};
 #[cfg(target_os = "macos")]
 use tracing::warn;
+use tracing::{debug, error, info};
 
 /// Orchestrates the agent self-update process.
 pub struct UpdateManager {

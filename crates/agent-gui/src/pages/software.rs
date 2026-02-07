@@ -92,7 +92,8 @@ impl SoftwarePage {
 
     fn show_packages(ui: &mut Ui, state: &mut AppState, search_upper: &str) {
         let filtered: Vec<usize> = state
-            .software.packages
+            .software
+            .packages
             .iter()
             .enumerate()
             .filter(|(_, p)| {
@@ -115,7 +116,8 @@ impl SoftwarePage {
         // Summary cards (AAA Grade)
         let total = state.software.packages.len() as u32;
         let up_to_date = state
-            .software.packages
+            .software
+            .packages
             .iter()
             .filter(|p| p.up_to_date)
             .count() as u32;
@@ -340,7 +342,8 @@ impl SoftwarePage {
 
     fn show_macos_apps(ui: &mut Ui, state: &mut AppState, search_upper: &str) {
         let filtered: Vec<usize> = state
-            .software.macos_apps
+            .software
+            .macos_apps
             .iter()
             .enumerate()
             .filter(|(_, a)| {
@@ -523,7 +526,8 @@ impl SoftwarePage {
                             });
                             row.col(|ui: &mut egui::Ui| {
                                 let pub_text = if app.publisher.chars().count() > 64 {
-                                    let truncated: String = app.publisher.chars().take(61).collect();
+                                    let truncated: String =
+                                        app.publisher.chars().take(61).collect();
                                     format!("{}...", truncated)
                                 } else {
                                     app.publisher.clone()

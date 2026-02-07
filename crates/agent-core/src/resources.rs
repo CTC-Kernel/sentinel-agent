@@ -144,7 +144,8 @@ impl ResourceMonitor {
         // Disk I/O collection using sysinfo for the current process
         let disk_iops = if let Ok(mut sys) = self.sys.lock() {
             // Refresh only current process for efficiency
-            let pid = sysinfo::get_current_pid().unwrap_or(sysinfo::Pid::from(std::process::id() as usize));
+            let pid = sysinfo::get_current_pid()
+                .unwrap_or(sysinfo::Pid::from(std::process::id() as usize));
             sys.refresh_processes_specifics(
                 sysinfo::ProcessesToUpdate::Some(&[pid]),
                 true,
@@ -191,7 +192,7 @@ impl ResourceMonitor {
                 poisoned.into_inner()
             }
         };
-        
+
         sys.refresh_processes_specifics(
             ProcessesToUpdate::All,
             true,
@@ -209,20 +210,30 @@ impl ResourceMonitor {
                 name: process.name().to_string_lossy().to_string(),
                 cpu_percent: process.cpu_usage() as f64,
                 memory_bytes: process.memory(),
-                user: process.user_id().map(|u| u.to_string()).unwrap_or_else(|| "unknown".to_string()),
-                command_line: process.cmd().first().map(|c| c.to_string_lossy().to_string()),
+                user: process
+                    .user_id()
+                    .map(|u| u.to_string())
+                    .unwrap_or_else(|| "unknown".to_string()),
+                command_line: process
+                    .cmd()
+                    .first()
+                    .map(|c| c.to_string_lossy().to_string()),
             })
             .collect();
 
         // Sort by CPU usage and take top 20
-        processes.sort_by(|a, b| b.cpu_percent.partial_cmp(&a.cpu_percent).unwrap_or(std::cmp::Ordering::Equal));
+        processes.sort_by(|a, b| {
+            b.cpu_percent
+                .partial_cmp(&a.cpu_percent)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         processes.truncate(20);
         processes
     }
 
     /// Get active network connections for telemetry.
     pub fn get_connections(&self) -> Vec<crate::api_client::AgentConnection> {
-        // sysinfo doesn't provide connections. We'll return an empty list for now 
+        // sysinfo doesn't provide connections. We'll return an empty list for now
         // to satisfy the API structure, or use a platform-specific lookup if available.
         // For macOS/Linux, we'd traditionally use netstat/lsof or /proc/net/tcp.
         // For MVP, we provide the structure.
@@ -685,7 +696,11 @@ fn get_process_memory() -> u64 {
             // Second field is RSS in pages
             if let Ok(rss_pages) = parts[1].parse::<u64>() {
                 let raw_page_size = unsafe { libc::sysconf(libc::_SC_PAGESIZE) };
-                let page_size: u64 = if raw_page_size > 0 { raw_page_size as u64 } else { 4096 };
+                let page_size: u64 = if raw_page_size > 0 {
+                    raw_page_size as u64
+                } else {
+                    4096
+                };
                 return rss_pages * page_size;
             }
         }
@@ -1265,7 +1280,7 @@ fn get_process_memory() -> u64 {
 #[cfg(windows)]
 fn get_system_memory() -> (u64, u64) {
     use windows::Win32::System::SystemInformation::{GlobalMemoryStatusEx, MEMORYSTATUSEX};
-    
+
     unsafe {
         let mut ms = MEMORYSTATUSEX::default();
         ms.dwLength = std::mem::size_of::<MEMORYSTATUSEX>() as u32;
@@ -1284,14 +1299,19 @@ fn get_disk_usage() -> (u64, u64) {
         let mut free_bytes_available = 0;
         let mut total_number_of_bytes = 0;
         let mut total_number_of_free_bytes = 0;
-        
+
         if GetDiskFreeSpaceExW(
             None,
             Some(&mut free_bytes_available),
             Some(&mut total_number_of_bytes),
-            Some(&mut total_number_of_free_bytes)
-        ).is_ok() {
-            return (total_number_of_bytes - total_number_of_free_bytes, total_number_of_bytes);
+            Some(&mut total_number_of_free_bytes),
+        )
+        .is_ok()
+        {
+            return (
+                total_number_of_bytes - total_number_of_free_bytes,
+                total_number_of_bytes,
+            );
         }
     }
     (0, 0)
@@ -1300,12 +1320,13 @@ fn get_disk_usage() -> (u64, u64) {
 #[cfg(windows)]
 fn get_disk_iops() -> u32 {
     use windows::Win32::System::Threading::{GetCurrentProcess, GetProcessIoCounters, IO_COUNTERS};
-    
+
     unsafe {
         let mut io_counters = IO_COUNTERS::default();
         if GetProcessIoCounters(GetCurrentProcess(), &mut io_counters).is_ok() {
             // ReadTransferCount + WriteTransferCount
-            return ((io_counters.ReadTransferCount + io_counters.WriteTransferCount) / 1024) as u32;
+            return ((io_counters.ReadTransferCount + io_counters.WriteTransferCount) / 1024)
+                as u32;
         }
     }
     0
@@ -1313,7 +1334,7 @@ fn get_disk_iops() -> u32 {
 
 #[cfg(windows)]
 fn get_system_cpu() -> f64 {
-    // Basic implementation using sysinfo is preferred if possible, 
+    // Basic implementation using sysinfo is preferred if possible,
     // but here we align with the system-specific pattern.
     0.0 // sysinfo handles this well enough in ResourceMonitor
 }
@@ -1394,7 +1415,8 @@ fn get_cpu_usage() -> f64 {
 
             // Calculate CPU usage if we have previous measurements
             if last_time > 0 && current_time > last_time {
-                let cpu_time_delta = kernel.saturating_sub(last_kernel) + user.saturating_sub(last_user);
+                let cpu_time_delta =
+                    kernel.saturating_sub(last_kernel) + user.saturating_sub(last_user);
                 let wall_time_delta = current_time - last_time;
 
                 if wall_time_delta > 0 {

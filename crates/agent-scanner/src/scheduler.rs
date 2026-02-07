@@ -251,7 +251,10 @@ impl Scheduler {
 
         // Send stopped event
         if let Err(e) = tx.send(SchedulerEvent::Stopped).await {
-            debug!("Failed to send scheduler stopped event (receiver dropped): {}", e);
+            debug!(
+                "Failed to send scheduler stopped event (receiver dropped): {}",
+                e
+            );
         }
     }
 

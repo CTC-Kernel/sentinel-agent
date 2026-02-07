@@ -25,6 +25,8 @@ pub async fn watch_files(
     alert_tx: mpsc::Sender<FimAlert>,
     shutdown: Arc<AtomicBool>,
 ) -> Result<(), FimError> {
+    // notify's EventHandler is only implemented for std::sync::mpsc::Sender (not SyncSender).
+    // The debounce_map in the processing loop bounds effective memory usage instead.
     let (tx, rx) = std::sync::mpsc::channel();
 
     let mut watcher = RecommendedWatcher::new(tx, Config::default())?;
@@ -51,6 +53,7 @@ pub async fn watch_files(
     // Process events in a background thread (notify uses std channels)
     tokio::task::spawn_blocking(move || {
         let mut debounce_map: HashMap<PathBuf, Instant> = HashMap::new();
+        const MAX_DEBOUNCE_ENTRIES: usize = 50_000;
 
         loop {
             if shutdown.load(Ordering::Acquire) {
@@ -60,6 +63,11 @@ pub async fn watch_files(
 
             match rx.recv_timeout(Duration::from_secs(1)) {
                 Ok(Ok(event)) => {
+                    // Evict stale debounce entries to bound memory usage
+                    if debounce_map.len() > MAX_DEBOUNCE_ENTRIES {
+                        let cutoff = Instant::now() - debounce_duration;
+                        debounce_map.retain(|_, t| *t > cutoff);
+                    }
                     process_event(
                         event,
                         &baseline,

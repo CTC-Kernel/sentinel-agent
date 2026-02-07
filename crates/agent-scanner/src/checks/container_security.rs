@@ -145,7 +145,9 @@ impl ContainerSecurityCheck {
                 status.runtime = "docker".to_string();
                 status.runtime_version = Some(version.clone());
                 status.daemon_running = true;
-                status.raw_output.push_str(&format!("Docker version: {}\n", version));
+                status
+                    .raw_output
+                    .push_str(&format!("Docker version: {}\n", version));
             }
         }
 
@@ -160,11 +162,15 @@ impl ContainerSecurityCheck {
 
         if let Ok(output) = info_output {
             let info_json = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("docker info:\n{}\n", info_json));
+            status
+                .raw_output
+                .push_str(&format!("docker info:\n{}\n", info_json));
 
             if let Ok(info) = serde_json::from_str::<serde_json::Value>(&info_json) {
                 // Check security options
-                if let Some(security_options) = info.get("SecurityOptions").and_then(|v| v.as_array()) {
+                if let Some(security_options) =
+                    info.get("SecurityOptions").and_then(|v| v.as_array())
+                {
                     let options: Vec<String> = security_options
                         .iter()
                         .filter_map(|v| v.as_str().map(|s| s.to_string()))
@@ -197,7 +203,8 @@ impl ContainerSecurityCheck {
                 }
 
                 // Live restore
-                if let Some(live_restore) = info.get("LiveRestoreEnabled").and_then(|v| v.as_bool()) {
+                if let Some(live_restore) = info.get("LiveRestoreEnabled").and_then(|v| v.as_bool())
+                {
                     status.live_restore_enabled = live_restore;
                 }
 
@@ -212,7 +219,9 @@ impl ContainerSecurityCheck {
         #[cfg(target_os = "linux")]
         {
             if let Ok(daemon_config) = std::fs::read_to_string("/etc/docker/daemon.json") {
-                status.raw_output.push_str(&format!("daemon.json:\n{}\n", daemon_config));
+                status
+                    .raw_output
+                    .push_str(&format!("daemon.json:\n{}\n", daemon_config));
 
                 if let Ok(config) = serde_json::from_str::<serde_json::Value>(&daemon_config) {
                     // Check icc (inter-container communication)
@@ -263,7 +272,9 @@ impl ContainerSecurityCheck {
                     // Podman is rootless by default
                     status.rootless_mode = true;
                 }
-                status.raw_output.push_str(&format!("Podman version: {}\n", version));
+                status
+                    .raw_output
+                    .push_str(&format!("Podman version: {}\n", version));
             }
         }
 
@@ -278,7 +289,9 @@ impl ContainerSecurityCheck {
 
         if let Ok(output) = info_output {
             let info_json = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("podman info:\n{}\n", info_json));
+            status
+                .raw_output
+                .push_str(&format!("podman info:\n{}\n", info_json));
 
             if let Ok(info) = serde_json::from_str::<serde_json::Value>(&info_json) {
                 // Check host security
@@ -288,10 +301,14 @@ impl ContainerSecurityCheck {
                         if let Some(rootless) = security.get("rootless").and_then(|v| v.as_bool()) {
                             status.rootless_mode = rootless;
                         }
-                        if let Some(selinux) = security.get("selinuxEnabled").and_then(|v| v.as_bool()) {
+                        if let Some(selinux) =
+                            security.get("selinuxEnabled").and_then(|v| v.as_bool())
+                        {
                             status.selinux_enabled = selinux;
                         }
-                        if let Some(apparmor) = security.get("apparmorEnabled").and_then(|v| v.as_bool()) {
+                        if let Some(apparmor) =
+                            security.get("apparmorEnabled").and_then(|v| v.as_bool())
+                        {
                             status.apparmor_enabled = apparmor;
                         }
                     }
@@ -315,15 +332,15 @@ impl ContainerSecurityCheck {
 
     /// Check running containers for security issues.
     fn check_running_containers(&self, status: &mut ContainerSecurityStatus) -> ScannerResult<()> {
-        let runtime = if status.runtime == "podman" { "podman" } else { "docker" };
+        let runtime = if status.runtime == "podman" {
+            "podman"
+        } else {
+            "docker"
+        };
 
         // Get list of running containers with security-relevant info
         let ps_output = Command::new(runtime)
-            .args([
-                "ps",
-                "--format",
-                "{{.ID}}\t{{.Names}}\t{{.Image}}",
-            ])
+            .args(["ps", "--format", "{{.ID}}\t{{.Names}}\t{{.Image}}"])
             .output();
 
         if let Ok(output) = ps_output {
@@ -346,19 +363,33 @@ impl ContainerSecurityCheck {
                 if let Ok(output) = inspect_output {
                     let inspect_json = String::from_utf8_lossy(&output.stdout);
 
-                    if let Ok(inspects) = serde_json::from_str::<Vec<serde_json::Value>>(&inspect_json) {
+                    if let Ok(inspects) =
+                        serde_json::from_str::<Vec<serde_json::Value>>(&inspect_json)
+                    {
                         if let Some(inspect) = inspects.first() {
                             // Check if privileged
                             if let Some(host_config) = inspect.get("HostConfig") {
-                                if let Some(privileged) = host_config.get("Privileged").and_then(|v| v.as_bool()) {
+                                if let Some(privileged) =
+                                    host_config.get("Privileged").and_then(|v| v.as_bool())
+                                {
                                     if privileged {
-                                        status.privileged_containers.push(container_name.to_string());
+                                        status
+                                            .privileged_containers
+                                            .push(container_name.to_string());
                                     }
                                 }
 
                                 // Check resource limits
-                                let has_limits = host_config.get("Memory").and_then(|v| v.as_i64()).unwrap_or(0) > 0
-                                    || host_config.get("CpuPeriod").and_then(|v| v.as_i64()).unwrap_or(0) > 0;
+                                let has_limits = host_config
+                                    .get("Memory")
+                                    .and_then(|v| v.as_i64())
+                                    .unwrap_or(0)
+                                    > 0
+                                    || host_config
+                                        .get("CpuPeriod")
+                                        .and_then(|v| v.as_i64())
+                                        .unwrap_or(0)
+                                        > 0;
 
                                 if !has_limits {
                                     status.unlimited_containers.push(container_name.to_string());
@@ -391,17 +422,26 @@ impl ContainerSecurityCheck {
                 status.privileged_containers.len(),
                 status.privileged_containers.join(", ")
             ));
-            status.recommendations.push("Avoid running privileged containers; use specific capabilities instead".to_string());
+            status.recommendations.push(
+                "Avoid running privileged containers; use specific capabilities instead"
+                    .to_string(),
+            );
         }
 
         if !status.rootless_mode && !status.userns_remapped {
-            status.issues.push("Container runtime not running in rootless mode".to_string());
-            status.recommendations.push("Enable rootless mode or configure user namespace remapping".to_string());
+            status
+                .issues
+                .push("Container runtime not running in rootless mode".to_string());
+            status
+                .recommendations
+                .push("Enable rootless mode or configure user namespace remapping".to_string());
         }
 
         if !status.seccomp_enabled {
             status.issues.push("Seccomp is not enabled".to_string());
-            status.recommendations.push("Enable seccomp with default profile".to_string());
+            status
+                .recommendations
+                .push("Enable seccomp with default profile".to_string());
         }
 
         // High severity
@@ -411,7 +451,9 @@ impl ContainerSecurityCheck {
                 status.root_containers.len(),
                 status.root_containers.join(", ")
             ));
-            status.recommendations.push("Run containers with non-root user using USER directive".to_string());
+            status
+                .recommendations
+                .push("Run containers with non-root user using USER directive".to_string());
         }
 
         // Medium severity
@@ -420,15 +462,21 @@ impl ContainerSecurityCheck {
                 "{} containers without resource limits",
                 status.unlimited_containers.len()
             ));
-            status.recommendations.push("Set memory and CPU limits for all containers".to_string());
+            status
+                .recommendations
+                .push("Set memory and CPU limits for all containers".to_string());
         }
 
         if !status.live_restore_enabled && status.runtime == "docker" {
-            status.recommendations.push("Enable live-restore for zero-downtime daemon updates".to_string());
+            status
+                .recommendations
+                .push("Enable live-restore for zero-downtime daemon updates".to_string());
         }
 
         if !status.content_trust_enabled {
-            status.recommendations.push("Enable Docker Content Trust for image signing".to_string());
+            status
+                .recommendations
+                .push("Enable Docker Content Trust for image signing".to_string());
         }
 
         // Determine overall security status
@@ -467,7 +515,10 @@ impl ContainerSecurityCheck {
         };
 
         // Check content trust env var
-        if std::env::var("DOCKER_CONTENT_TRUST").map(|v| v == "1").unwrap_or(false) {
+        if std::env::var("DOCKER_CONTENT_TRUST")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+        {
             status.content_trust_enabled = true;
         }
 
@@ -506,7 +557,8 @@ impl Check for ContainerSecurityCheck {
 
         if !status.daemon_running {
             return Ok(CheckOutput::pass(
-                "No container runtime detected (Docker/Podman not installed or not running)".to_string(),
+                "No container runtime detected (Docker/Podman not installed or not running)"
+                    .to_string(),
                 raw_data,
             ));
         }
@@ -551,7 +603,10 @@ mod tests {
     fn test_check_creation() {
         let check = ContainerSecurityCheck::new();
         assert_eq!(check.definition().id, CHECK_ID);
-        assert_eq!(check.definition().category, CheckCategory::ContainerSecurity);
+        assert_eq!(
+            check.definition().category,
+            CheckCategory::ContainerSecurity
+        );
         assert_eq!(check.definition().severity, CheckSeverity::High);
     }
 

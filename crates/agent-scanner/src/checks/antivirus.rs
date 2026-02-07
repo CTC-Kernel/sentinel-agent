@@ -9,9 +9,9 @@ use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 use crate::error::{ScannerError, ScannerResult};
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
 #[cfg(target_os = "windows")]
 use chrono::Duration;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 use tracing::debug;

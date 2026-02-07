@@ -157,7 +157,9 @@ impl<'a, T> Dropdown<'a, T> {
             let mut highlight_idx: Option<usize> = ui.memory(|mem| mem.data.get_temp(highlight_id));
 
             if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
-                let next = highlight_idx.map(|h| (h + 1).min(self.options.len().saturating_sub(1))).unwrap_or(0);
+                let next = highlight_idx
+                    .map(|h| (h + 1).min(self.options.len().saturating_sub(1)))
+                    .unwrap_or(0);
                 highlight_idx = Some(next);
                 ui.memory_mut(|mem| mem.data.insert_temp(highlight_id, next));
             }
@@ -293,7 +295,9 @@ impl<'a, T> Dropdown<'a, T> {
 
                                         if option_response.clicked() {
                                             new_selection = Some(i);
-                                            ui.memory_mut(|mem| mem.data.insert_temp(self.id, false));
+                                            ui.memory_mut(|mem| {
+                                                mem.data.insert_temp(self.id, false)
+                                            });
                                         }
                                     }
                                 });

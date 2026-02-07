@@ -95,13 +95,29 @@ fn is_sensitive_key(key: &str) -> bool {
 
     // Exact sensitive keywords that are always sensitive
     const EXACT_SENSITIVE: &[&str] = &[
-        "token", "password", "passwd", "secret", "credential", "credentials",
-        "private_key", "privatekey", "private-key",
-        "api_key", "apikey", "api-key",
-        "access_key", "accesskey", "access-key",
-        "secret_key", "secretkey", "secret-key",
-        "auth_token", "auth_key", "authorization",
-        "passphrase", "pass_phrase",
+        "token",
+        "password",
+        "passwd",
+        "secret",
+        "credential",
+        "credentials",
+        "private_key",
+        "privatekey",
+        "private-key",
+        "api_key",
+        "apikey",
+        "api-key",
+        "access_key",
+        "accesskey",
+        "access-key",
+        "secret_key",
+        "secretkey",
+        "secret-key",
+        "auth_token",
+        "auth_key",
+        "authorization",
+        "passphrase",
+        "pass_phrase",
     ];
 
     // Check exact match first
@@ -113,7 +129,9 @@ fn is_sensitive_key(key: &str) -> bool {
     key_lower.ends_with("_token")
         || key_lower.ends_with("_secret")
         || key_lower.ends_with("_password")
-        || key_lower.ends_with("_key") && !key_lower.contains("keyboard") && !key_lower.contains("hotkey")
+        || key_lower.ends_with("_key")
+            && !key_lower.contains("keyboard")
+            && !key_lower.contains("hotkey")
         || key_lower.ends_with("_credential")
         || key_lower.starts_with("auth_")
         || key_lower.starts_with("x-api-")

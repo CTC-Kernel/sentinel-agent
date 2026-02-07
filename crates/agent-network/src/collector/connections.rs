@@ -470,10 +470,16 @@ impl ConnectionCollector {
     #[cfg(target_os = "windows")]
     fn parse_windows_tcp_connection(&self, conn: &serde_json::Value) -> Option<NetworkConnection> {
         let local_address = conn["LocalAddress"].as_str()?.to_string();
-        let local_port = conn["LocalPort"].as_i64().and_then(|p| u16::try_from(p).ok())?;
+        let local_port = conn["LocalPort"]
+            .as_i64()
+            .and_then(|p| u16::try_from(p).ok())?;
         let remote_address = conn["RemoteAddress"].as_str().map(String::from);
-        let remote_port = conn["RemotePort"].as_i64().and_then(|p| u16::try_from(p).ok());
-        let pid = conn["OwningProcess"].as_i64().and_then(|p| u32::try_from(p).ok());
+        let remote_port = conn["RemotePort"]
+            .as_i64()
+            .and_then(|p| u16::try_from(p).ok());
+        let pid = conn["OwningProcess"]
+            .as_i64()
+            .and_then(|p| u32::try_from(p).ok());
 
         let state = match conn["State"].as_i64() {
             Some(1) => ConnectionState::Closed,
@@ -526,8 +532,12 @@ impl ConnectionCollector {
         endpoint: &serde_json::Value,
     ) -> Option<NetworkConnection> {
         let local_address = endpoint["LocalAddress"].as_str()?.to_string();
-        let local_port = endpoint["LocalPort"].as_i64().and_then(|p| u16::try_from(p).ok())?;
-        let pid = endpoint["OwningProcess"].as_i64().and_then(|p| u32::try_from(p).ok());
+        let local_port = endpoint["LocalPort"]
+            .as_i64()
+            .and_then(|p| u16::try_from(p).ok())?;
+        let pid = endpoint["OwningProcess"]
+            .as_i64()
+            .and_then(|p| u32::try_from(p).ok());
 
         let protocol = if local_address.contains(':') {
             ConnectionProtocol::Udp6

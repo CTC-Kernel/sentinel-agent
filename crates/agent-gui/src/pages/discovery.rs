@@ -31,9 +31,17 @@ impl DiscoveryPage {
                 let is_scanning = state.discovery.in_progress;
 
                 let btn_response = if is_scanning {
-                    widgets::destructive_button(ui, format!("{}  INTERROMPRE LE SCAN", icons::TRASH), true)
+                    widgets::destructive_button(
+                        ui,
+                        format!("{}  INTERROMPRE LE SCAN", icons::TRASH),
+                        true,
+                    )
                 } else {
-                    widgets::primary_button(ui, format!("{}  LANCER LA DÉCOUVERTE", icons::PLAY), true)
+                    widgets::primary_button(
+                        ui,
+                        format!("{}  LANCER LA DÉCOUVERTE", icons::PLAY),
+                        true,
+                    )
                 };
 
                 if btn_response.clicked() {
@@ -154,7 +162,8 @@ impl DiscoveryPage {
         // Search / filter (AAA Grade)
         let search_upper = state.discovery.search.to_uppercase();
         let filtered: Vec<usize> = state
-            .discovery.devices
+            .discovery
+            .devices
             .iter()
             .enumerate()
             .filter(|(_, d)| {
@@ -353,7 +362,14 @@ impl DiscoveryPage {
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {
-                                if widgets::chip_button(ui, &format!("{}  IDENTIFIER", icons::PLUS), false, theme::ACCENT).clicked() {
+                                if widgets::chip_button(
+                                    ui,
+                                    &format!("{}  IDENTIFIER", icons::PLUS),
+                                    false,
+                                    theme::ACCENT,
+                                )
+                                .clicked()
+                                {
                                     cmd = Some(crate::events::GuiCommand::ProposeAsset {
                                         ip: device.ip.clone(),
                                         hostname: device.hostname.clone(),

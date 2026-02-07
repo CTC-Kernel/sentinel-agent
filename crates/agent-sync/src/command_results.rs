@@ -46,8 +46,11 @@ impl CommandResultsService {
 
     /// Send the command result to the SaaS.
     async fn report(&self, command_id: &str, result: CommandResultRequest) -> SyncResult<()> {
-        debug!("Reporting result for command {}: {:?}", command_id, result.status);
-        
+        debug!(
+            "Reporting result for command {}: {:?}",
+            command_id, result.status
+        );
+
         if let Err(e) = self.client.report_command_result(command_id, result).await {
             error!("Failed to report result for command {}: {}", command_id, e);
             return Err(e);

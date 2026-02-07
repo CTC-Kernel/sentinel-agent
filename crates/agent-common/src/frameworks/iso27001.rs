@@ -15,7 +15,8 @@ impl Iso27001Mapping {
             id: "ISO_27001".to_string(),
             name: "ISO/IEC 27001".to_string(),
             version: "2022".to_string(),
-            description: "International standard for information security management systems".to_string(),
+            description: "International standard for information security management systems"
+                .to_string(),
             applicability: vec![
                 "All Organizations".to_string(),
                 "Global".to_string(),
@@ -32,17 +33,17 @@ impl Iso27001Mapping {
         // Disk Encryption -> A.8.24 Use of cryptography
         mappings.insert(
             "disk_encryption".to_string(),
-            vec![
-                ControlMapping {
-                    framework_id: "ISO_27001".to_string(),
-                    control_id: "A.8.24".to_string(),
-                    control_name: "Use of cryptography".to_string(),
-                    category: "Technological Controls".to_string(),
-                    description: "Rules for the effective use of cryptography shall be defined and implemented".to_string(),
-                    weight: 0.9,
-                    is_critical: true,
-                },
-            ],
+            vec![ControlMapping {
+                framework_id: "ISO_27001".to_string(),
+                control_id: "A.8.24".to_string(),
+                control_name: "Use of cryptography".to_string(),
+                category: "Technological Controls".to_string(),
+                description:
+                    "Rules for the effective use of cryptography shall be defined and implemented"
+                        .to_string(),
+                weight: 0.9,
+                is_critical: true,
+            }],
         );
 
         // Firewall -> A.8.20 Network security
@@ -106,7 +107,9 @@ impl Iso27001Mapping {
                 control_id: "A.5.17".to_string(),
                 control_name: "Authentication information".to_string(),
                 category: "People Controls".to_string(),
-                description: "Allocation and management of authentication information shall be controlled".to_string(),
+                description:
+                    "Allocation and management of authentication information shall be controlled"
+                        .to_string(),
                 weight: 0.85,
                 is_critical: true,
             }],
@@ -349,7 +352,8 @@ impl Iso27001Mapping {
                 control_id: "A.8.5".to_string(),
                 control_name: "Secure authentication".to_string(),
                 category: "Technological Controls".to_string(),
-                description: "Automatic login shall be disabled to ensure proper authentication".to_string(),
+                description: "Automatic login shall be disabled to ensure proper authentication"
+                    .to_string(),
                 weight: 0.65,
                 is_critical: false,
             }],
@@ -378,7 +382,9 @@ impl Iso27001Mapping {
                     control_id: "A.8.9".to_string(),
                     control_name: "Configuration management".to_string(),
                     category: "Technological Controls".to_string(),
-                    description: "Windows security configurations shall be established and maintained".to_string(),
+                    description:
+                        "Windows security configurations shall be established and maintained"
+                            .to_string(),
                     weight: 0.9,
                     is_critical: true,
                 },
@@ -403,7 +409,8 @@ impl Iso27001Mapping {
                     control_id: "A.8.9".to_string(),
                     control_name: "Configuration management".to_string(),
                     category: "Technological Controls".to_string(),
-                    description: "Linux kernel security configurations shall be maintained".to_string(),
+                    description: "Linux kernel security configurations shall be maintained"
+                        .to_string(),
                     weight: 0.9,
                     is_critical: true,
                 },
@@ -428,7 +435,8 @@ impl Iso27001Mapping {
                     control_id: "A.8.8".to_string(),
                     control_name: "Management of technical vulnerabilities".to_string(),
                     category: "Technological Controls".to_string(),
-                    description: "Update status tracking ensures vulnerabilities are addressed".to_string(),
+                    description: "Update status tracking ensures vulnerabilities are addressed"
+                        .to_string(),
                     weight: 0.95,
                     is_critical: true,
                 },
@@ -466,7 +474,8 @@ impl Iso27001Mapping {
                 control_id: "A.5.17".to_string(),
                 control_name: "Authentication information".to_string(),
                 category: "People Controls".to_string(),
-                description: "Domain password policies enforce authentication information controls".to_string(),
+                description: "Domain password policies enforce authentication information controls"
+                    .to_string(),
                 weight: 0.9,
                 is_critical: true,
             }],
@@ -494,7 +503,8 @@ impl Iso27001Mapping {
                 control_id: "A.8.15".to_string(),
                 control_name: "Logging".to_string(),
                 category: "Technological Controls".to_string(),
-                description: "Domain audit policies ensure comprehensive security logging".to_string(),
+                description: "Domain audit policies ensure comprehensive security logging"
+                    .to_string(),
                 weight: 0.9,
                 is_critical: true,
             }],
@@ -509,7 +519,8 @@ impl Iso27001Mapping {
                     control_id: "A.8.2".to_string(),
                     control_name: "Privileged access rights".to_string(),
                     category: "Technological Controls".to_string(),
-                    description: "Privileged group membership shall be restricted and managed".to_string(),
+                    description: "Privileged group membership shall be restricted and managed"
+                        .to_string(),
                     weight: 0.9,
                     is_critical: true,
                 },
@@ -518,7 +529,9 @@ impl Iso27001Mapping {
                     control_id: "A.5.18".to_string(),
                     control_name: "Access rights".to_string(),
                     category: "People Controls".to_string(),
-                    description: "Access rights to privileged groups shall be provisioned and reviewed".to_string(),
+                    description:
+                        "Access rights to privileged groups shall be provisioned and reviewed"
+                            .to_string(),
                     weight: 0.85,
                     is_critical: true,
                 },
@@ -534,7 +547,8 @@ impl Iso27001Mapping {
                     control_id: "A.8.24".to_string(),
                     control_name: "Use of cryptography".to_string(),
                     category: "Technological Controls".to_string(),
-                    description: "LDAP communications shall use cryptographic protection (LDAPS)".to_string(),
+                    description: "LDAP communications shall use cryptographic protection (LDAPS)"
+                        .to_string(),
                     weight: 0.85,
                     is_critical: true,
                 },
@@ -584,7 +598,8 @@ impl Iso27001Mapping {
                     control_id: "A.8.5".to_string(),
                     control_name: "Secure authentication".to_string(),
                     category: "Technological Controls".to_string(),
-                    description: "SSH authentication shall use secure methods (key-based)".to_string(),
+                    description: "SSH authentication shall use secure methods (key-based)"
+                        .to_string(),
                     weight: 0.9,
                     is_critical: true,
                 },
@@ -593,7 +608,8 @@ impl Iso27001Mapping {
                     control_id: "A.8.20".to_string(),
                     control_name: "Networks security".to_string(),
                     category: "Technological Controls".to_string(),
-                    description: "SSH configuration shall follow security best practices".to_string(),
+                    description: "SSH configuration shall follow security best practices"
+                        .to_string(),
                     weight: 0.85,
                     is_critical: true,
                 },
@@ -618,7 +634,8 @@ impl Iso27001Mapping {
                     control_id: "A.8.9".to_string(),
                     control_name: "Configuration management".to_string(),
                     category: "Technological Controls".to_string(),
-                    description: "Container runtime configurations shall be managed securely".to_string(),
+                    description: "Container runtime configurations shall be managed securely"
+                        .to_string(),
                     weight: 0.9,
                     is_critical: true,
                 },
@@ -627,7 +644,8 @@ impl Iso27001Mapping {
                     control_id: "A.8.25".to_string(),
                     control_name: "Secure development life cycle".to_string(),
                     category: "Technological Controls".to_string(),
-                    description: "Container images shall be developed and deployed securely".to_string(),
+                    description: "Container images shall be developed and deployed securely"
+                        .to_string(),
                     weight: 0.85,
                     is_critical: true,
                 },
@@ -636,7 +654,9 @@ impl Iso27001Mapping {
                     control_id: "A.8.3".to_string(),
                     control_name: "Information access restriction".to_string(),
                     category: "Technological Controls".to_string(),
-                    description: "Containers shall run with least privilege (rootless, minimal capabilities)".to_string(),
+                    description:
+                        "Containers shall run with least privilege (rootless, minimal capabilities)"
+                            .to_string(),
                     weight: 0.85,
                     is_critical: true,
                 },
@@ -652,7 +672,9 @@ impl Iso27001Mapping {
                     control_id: "A.8.24".to_string(),
                     control_name: "Use of cryptography".to_string(),
                     category: "Technological Controls".to_string(),
-                    description: "Valid and trusted certificates shall be used for cryptographic protection".to_string(),
+                    description:
+                        "Valid and trusted certificates shall be used for cryptographic protection"
+                            .to_string(),
                     weight: 0.9,
                     is_critical: true,
                 },

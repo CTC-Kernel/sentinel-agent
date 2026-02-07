@@ -1,7 +1,7 @@
 pub mod button;
 mod card;
-pub mod copy_button;
 mod compliance_gauge;
+pub mod copy_button;
 mod empty_state;
 mod header;
 mod help_info;
@@ -94,9 +94,9 @@ pub use progress::{
 
 // Button variants exports
 pub use button::{
-    ButtonSize, chip_button, destructive_button, destructive_button_loading, fab_button,
-    ghost_button, icon_button, icon_button_with_color, link_button, button_group,
-    primary_button, primary_button_loading, secondary_button, secondary_button_loading,
+    ButtonSize, button_group, chip_button, destructive_button, destructive_button_loading,
+    fab_button, ghost_button, icon_button, icon_button_with_color, link_button, primary_button,
+    primary_button_loading, secondary_button, secondary_button_loading,
 };
 
 // Navigation & selection exports
@@ -109,8 +109,8 @@ pub use tooltip::{
 
 // Visual components exports
 pub use avatar::{
-    Avatar, AvatarShape, AvatarSize, AvatarStatus, avatar, avatar_group, avatar_icon,
-    avatar_large, avatar_small, avatar_with_status,
+    Avatar, AvatarShape, AvatarSize, AvatarStatus, avatar, avatar_group, avatar_icon, avatar_large,
+    avatar_small, avatar_with_status,
 };
 pub use badge::{
     Badge, BadgeSize as BadgeSizeNew, BadgeVariant, badge, badge_count, badge_error, badge_info,

@@ -255,7 +255,12 @@ impl HeartbeatService {
         HeartbeatRequest {
             timestamp: Utc::now(),
             agent_version: AGENT_VERSION.to_string(),
-            status: if self.is_offline() { "degraded" } else { "active" }.to_string(),
+            status: if self.is_offline() {
+                "degraded"
+            } else {
+                "active"
+            }
+            .to_string(),
             hostname,
             os_info,
             cpu_percent,

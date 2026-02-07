@@ -249,7 +249,10 @@ impl KeyManager {
             }
 
             // Additional safety: ensure cbData doesn't exceed what we'll copy
-            debug_assert!(decrypted_len <= KEY_LENGTH, "bounds check should have caught this");
+            debug_assert!(
+                decrypted_len <= KEY_LENGTH,
+                "bounds check should have caught this"
+            );
 
             let mut key = [0u8; KEY_LENGTH];
             std::ptr::copy_nonoverlapping(data_out.pbData, key.as_mut_ptr(), KEY_LENGTH);

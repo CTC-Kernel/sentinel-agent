@@ -11,9 +11,9 @@ use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
+use tracing::debug;
 #[cfg(target_os = "macos")]
 use tracing::warn;
-use tracing::debug;
 
 /// Check ID for disk encryption.
 pub const CHECK_ID: &str = "disk_encryption";
@@ -176,7 +176,9 @@ impl DiskEncryptionCheck {
         for vol in volumes {
             let mount_point = vol["MountPoint"].as_str().unwrap_or("").to_string();
             let volume_status = vol["VolumeStatus"].as_str().unwrap_or("");
-            let encryption_pct = vol["EncryptionPercentage"].as_u64().map(|p| p.min(100) as u8);
+            let encryption_pct = vol["EncryptionPercentage"]
+                .as_u64()
+                .map(|p| p.min(100) as u8);
             let protection = vol["ProtectionStatus"].as_str().map(|s| s.to_string());
 
             let encrypted = volume_status == "FullyEncrypted"

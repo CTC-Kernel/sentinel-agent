@@ -463,9 +463,9 @@ impl SentinelApp {
                         self.state.sync.history.push_front(SyncHistoryEntry {
                             timestamp: ts,
                             success: error.is_none(),
-                            message: error.clone().unwrap_or_else(|| {
-                                "Synchronisation termin\u{00e9}e".to_string()
-                            }),
+                            message: error
+                                .clone()
+                                .unwrap_or_else(|| "Synchronisation termin\u{00e9}e".to_string()),
                         });
                         self.state.sync.history.truncate(50);
                     }
@@ -707,8 +707,9 @@ impl SentinelApp {
                     // Radar Chart Section
                     ui.vertical(|ui: &mut egui::Ui| {
                         let compliance = self.state.summary.compliance_score.unwrap_or(0.0) / 100.0;
-                        let threats =
-                            1.0 - (self.state.threats.suspicious_processes.len() as f32 / 10.0).min(1.0);
+                        let threats = 1.0
+                            - (self.state.threats.suspicious_processes.len() as f32 / 10.0)
+                                .min(1.0);
                         let vulns =
                             1.0 - (self.state.vulnerability_findings.len() as f32 / 20.0).min(1.0);
                         let resources = 1.0 - (self.state.resources.cpu_percent / 100.0).min(1.0);
@@ -979,7 +980,11 @@ impl eframe::App for SentinelApp {
             )
             .show(ctx, |ui: &mut egui::Ui| {
                 // Apply page transition and theme transition fade-in
-                let page_alpha = if self.state.reduced_motion { 1.0 } else { self.page_transition };
+                let page_alpha = if self.state.reduced_motion {
+                    1.0
+                } else {
+                    self.page_transition
+                };
                 let theme_alpha = self.theme_transition;
                 let combined_alpha = page_alpha * theme_alpha;
                 if combined_alpha < 1.0 {

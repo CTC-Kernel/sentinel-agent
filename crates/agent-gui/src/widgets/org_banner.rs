@@ -119,7 +119,8 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
 
                     // Truncate server URL for display
                     let server_display = state
-                        .settings.server_url
+                        .settings
+                        .server_url
                         .replace("https://", "")
                         .replace("http://", "");
                     let server_short = if server_display.chars().count() > 30 {

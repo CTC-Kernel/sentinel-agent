@@ -20,7 +20,7 @@ llm_simple = []
 serde = { workspace = true }
 serde_json.workspace = true
 tokio = { workspace = true }
-base64 = "0.22"
+base64.workspace = true
 agent-common = { path = "../agent-common" }
 agent-storage = { path = "../agent-storage" }
 agent-sync = { path = "../agent-sync" }

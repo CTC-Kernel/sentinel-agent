@@ -109,10 +109,8 @@ impl Slider {
 
         ui.horizontal(|ui| {
             // Slider track area
-            let (rect, response) = ui.allocate_exact_size(
-                egui::vec2(width, total_height),
-                Sense::click_and_drag(),
-            );
+            let (rect, response) =
+                ui.allocate_exact_size(egui::vec2(width, total_height), Sense::click_and_drag());
 
             let track_rect = egui::Rect::from_center_size(
                 egui::pos2(rect.center().x, rect.min.y + thumb_radius),
@@ -121,22 +119,23 @@ impl Slider {
 
             // Handle interaction
             if (response.dragged() || response.clicked())
-                && let Some(pos) = response.interact_pointer_pos() {
-                    let t = ((pos.x - track_rect.min.x) / track_rect.width()).clamp(0.0, 1.0);
-                    let mut new_value = self.min + t * (self.max - self.min);
+                && let Some(pos) = response.interact_pointer_pos()
+            {
+                let t = ((pos.x - track_rect.min.x) / track_rect.width()).clamp(0.0, 1.0);
+                let mut new_value = self.min + t * (self.max - self.min);
 
-                    // Apply step
-                    if let Some(step) = self.step {
-                        new_value = (new_value / step).round() * step;
-                    }
-
-                    new_value = new_value.clamp(self.min, self.max);
-
-                    if (*value - new_value).abs() > f32::EPSILON {
-                        *value = new_value;
-                        changed = true;
-                    }
+                // Apply step
+                if let Some(step) = self.step {
+                    new_value = (new_value / step).round() * step;
                 }
+
+                new_value = new_value.clamp(self.min, self.max);
+
+                if (*value - new_value).abs() > f32::EPSILON {
+                    *value = new_value;
+                    changed = true;
+                }
+            }
 
             if ui.is_rect_visible(rect) {
                 let painter = ui.painter();
@@ -152,10 +151,8 @@ impl Slider {
                 );
 
                 // Filled portion
-                let filled_rect = egui::Rect::from_min_max(
-                    track_rect.min,
-                    egui::pos2(thumb_x, track_rect.max.y),
-                );
+                let filled_rect =
+                    egui::Rect::from_min_max(track_rect.min, egui::pos2(thumb_x, track_rect.max.y));
                 painter.rect_filled(
                     filled_rect,
                     CornerRadius::same((track_height / 2.0) as u8),
@@ -164,24 +161,25 @@ impl Slider {
 
                 // Tick marks
                 if self.show_ticks
-                    && let Some(step) = self.step {
-                        let tick_count = ((self.max - self.min) / step) as usize;
-                        for i in 0..=tick_count {
-                            let tick_t = i as f32 / tick_count as f32;
-                            let tick_x = track_rect.min.x + tick_t * track_rect.width();
-                            let tick_y = track_rect.max.y + 8.0;
+                    && let Some(step) = self.step
+                {
+                    let tick_count = ((self.max - self.min) / step) as usize;
+                    for i in 0..=tick_count {
+                        let tick_t = i as f32 / tick_count as f32;
+                        let tick_x = track_rect.min.x + tick_t * track_rect.width();
+                        let tick_y = track_rect.max.y + 8.0;
 
-                            painter.circle_filled(
-                                egui::pos2(tick_x, tick_y),
-                                2.0,
-                                if tick_t <= t {
-                                    accent.linear_multiply(0.6)
-                                } else {
-                                    theme::text_tertiary()
-                                },
-                            );
-                        }
+                        painter.circle_filled(
+                            egui::pos2(tick_x, tick_y),
+                            2.0,
+                            if tick_t <= t {
+                                accent.linear_multiply(0.6)
+                            } else {
+                                theme::text_tertiary()
+                            },
+                        );
                     }
+                }
 
                 // Thumb shadow
                 if matches!(self.style, SliderStyle::Default | SliderStyle::Stepped) {
@@ -256,7 +254,10 @@ pub fn slider_percentage(ui: &mut Ui, value: &mut f32) -> bool {
 
 /// Slider with step.
 pub fn slider_stepped(ui: &mut Ui, value: &mut f32, min: f32, max: f32, step: f32) -> bool {
-    Slider::new(min, max).step(step).show_ticks().show(ui, value)
+    Slider::new(min, max)
+        .step(step)
+        .show_ticks()
+        .show(ui, value)
 }
 
 /// Minimal style slider.
