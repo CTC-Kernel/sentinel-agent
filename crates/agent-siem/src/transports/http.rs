@@ -102,10 +102,14 @@ impl HttpTransport {
         ];
 
         // Add authorization header
+        // Sanitize auth values to prevent HTTP header injection (\r\n sequences)
         if let (Some(token), Some(header_type)) = (&self.auth_token, &self.auth_header) {
-            headers.push(format!("Authorization: {} {}", header_type, token));
+            let clean_type = header_type.replace(['\r', '\n'], "");
+            let clean_token = token.replace(['\r', '\n'], "");
+            headers.push(format!("Authorization: {} {}", clean_type, clean_token));
         } else if let Some(ref token) = self.auth_token {
-            headers.push(format!("Authorization: Bearer {}", token));
+            let clean_token = token.replace(['\r', '\n'], "");
+            headers.push(format!("Authorization: Bearer {}", clean_token));
         }
 
         // Build the request using byte concatenation with Content-Length framing.

@@ -196,13 +196,12 @@ impl LogBuffer {
 
     /// Verify integrity of all entries in the chain.
     pub async fn verify_chain(&self) -> bool {
-        if self.signer.is_none() {
-            return true; // No signer means no verification needed
-        }
+        let signer = match &self.signer {
+            Some(s) => s,
+            None => return true, // No signer means no verification needed
+        };
 
         let entries = self.entries.read().await;
-        let signer = self.signer.as_ref().unwrap();
-
         for entry in entries.iter() {
             if !entry.verify_signature(signer) {
                 return false;
