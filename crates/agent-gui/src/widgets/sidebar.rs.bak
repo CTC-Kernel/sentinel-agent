@@ -197,7 +197,7 @@ impl Sidebar {
                                 "Int\u{00e9}grit\u{00e9} fichiers",
                             ),
                             (Page::Threats, icons::SKULL, "Menaces"),
-                            #[cfg(feature = "llm_simple")]
+                            #[cfg(feature = "llm")]
                             (Page::AI, "🤖", "Intelligence IA"),
                             (Page::Notifications, icons::BELL, "Notifications"),
                         ];

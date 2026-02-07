@@ -1,11 +1,13 @@
 [workspace]
+[workspace.features]
+[workspace.features]\nllm_simple = ["agent_llm"]
+llm_simple = ["agent_llm"]
+llm_simple = ["agent_llm"]
 resolver = "3"
 members = [
-     "crates/*",
-     "xtask",
+    "crates/*",
+    "xtask",
 ]
-
-llm_simple = ["agent_llm"]
 
 [workspace.package]
 version = "2.0.0"
@@ -53,7 +55,7 @@ egui_plot = "0.31"
 notify = { version = "7", features = ["macos_fsevent"] }
 rayon = "1.10"
 battery = "0.7"
-usb_enumeration = "0.2"
+usb-enumeration = "0.2"
 walkdir = "2"
 blake3 = "1"
 memmap2 = "0.9"

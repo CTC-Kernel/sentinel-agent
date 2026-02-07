@@ -21,6 +21,8 @@ pub mod export;
 #[cfg(feature = "render")]
 pub mod icons;
 #[cfg(feature = "render")]
+pub mod llm_panel;
+#[cfg(feature = "render")]
 pub mod pages;
 #[cfg(feature = "render")]
 pub mod theme;

@@ -53,7 +53,7 @@ egui_plot = "0.31"
 notify = { version = "7", features = ["macos_fsevent"] }
 rayon = "1.10"
 battery = "0.7"
-usb_enumeration = "0.2"
+usb-enumeration = "0.2"
 walkdir = "2"
 blake3 = "1"
 memmap2 = "0.9"
