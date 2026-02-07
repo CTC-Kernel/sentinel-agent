@@ -356,7 +356,8 @@ fn handle_status() -> ExitCode {
 }
 
 /// Run in foreground mode.
-fn handle_run(config_path: Option<String>, no_tray: bool, _log_level: &str) -> ExitCode {
+#[allow(unused_variables)] // log_level used only with "gui" feature
+fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> ExitCode {
     use agent_storage::{Database, DatabaseConfig, KeyManager};
     use agent_sync::EnrollmentManager;
 
