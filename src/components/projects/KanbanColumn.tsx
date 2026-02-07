@@ -44,7 +44,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
  return (
  // eslint-disable-next-line jsx-a11y/no-static-element-interactions
  <div
- className={`flex-1 glass-premium rounded-[1.5rem] p-4 border border-border/40 flex flex-col min-h-[400px] transition-colors ${draggedTaskId ? 'border-dashed border-primary/40 dark:border-primary/80 bg-primary/10' : 'bg-muted/50/30/20'}`}
+ className={`flex-1 glass-premium rounded-[1.5rem] p-4 border border-border/40 flex flex-col min-h-[400px] transition-colors ${draggedTaskId ? 'border-dashed border-primary/40 dark:border-primary/80 bg-primary/10' : 'bg-muted/50'}`}
  onDragOver={onDragOver}
  onDrop={(e) => onDrop(e, status)}
  >

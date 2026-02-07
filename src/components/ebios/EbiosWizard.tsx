@@ -98,7 +98,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
  }, [hasUnsavedChanges, navigate, onSave]);
 
  return (
- <div className="min-h-screen relative flex flex-col bg-muted/50/50">
+ <div className="min-h-screen relative flex flex-col bg-muted/50">
  <MasterpieceBackground />
  {/* Header */}
  <header className="sticky top-0 z-header glass-premium border-b border-border/40 shadow-sm backdrop-blur-xl">

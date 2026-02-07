@@ -62,8 +62,8 @@ export const KioskPage: React.FC = () => {
  {/* Header */}
  <header className="relative z-decorator px-6 py-6 flex items-center justify-between">
  <div className="flex items-center gap-3">
-  <div className="w-10 h-10 bg-card dark:bg-white rounded-3xl flex items-center justify-center shadow-lg">
-  <ShieldCheck className="h-6 w-6 text-white " />
+  <div className="w-10 h-10 bg-primary rounded-3xl flex items-center justify-center shadow-lg">
+  <ShieldCheck className="h-6 w-6 text-primary-foreground" />
   </div>
   <div>
   <h1 className="text-xl font-bold text-foreground leading-none">Sentinel GRC</h1>

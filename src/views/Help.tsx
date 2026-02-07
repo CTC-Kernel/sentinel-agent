@@ -785,7 +785,7 @@ export const Help: React.FC = () => {
 
  {/* Sidebar Navigation */}
  <div className={`
-  absolute inset-y-0 left-0 z-40 w-80 bg-muted/50/95/95 backdrop-blur-xl border-r border-border transform transition-transform duration-300 ease-out
+  absolute inset-y-0 left-0 z-40 w-80 bg-muted/50 backdrop-blur-xl border-r border-border transform transition-transform duration-300 ease-out
   md:relative md:translate-x-0
   ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
  `}>

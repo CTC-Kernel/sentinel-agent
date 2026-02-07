@@ -191,7 +191,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
  className={cn(
  "w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300",
  "border backdrop-blur-md",
- locked && "opacity-70 cursor-not-allowed bg-muted/50/50 border-transparent",
+ locked && "opacity-70 cursor-not-allowed bg-muted/50 border-transparent",
  !locked && "cursor-pointer active:scale-[0.98]",
  isActive
   ? "border-primary/40 bg-primary/15 dark:bg-primary shadow-lg shadow-primary"

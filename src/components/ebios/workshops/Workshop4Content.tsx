@@ -483,7 +483,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                         {/* Operational Scenarios List */}
                                         <div className="mt-6 space-y-4">
                                             {relatedOps.length === 0 ? (
-                                                <div className="text-center py-10 px-4 rounded-2xl border-2 border-dashed border-border/40 bg-muted/50/20">
+                                                <div className="text-center py-10 px-4 rounded-2xl border-2 border-dashed border-border/40 bg-muted/50">
                                                     <p className="text-muted-foreground font-medium mb-1">
                                                         {t('ebios.workshop4.noOperationalYet')}
                                                     </p>
@@ -612,7 +612,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                             {/* Expanded Content - Attack Sequence */}
                                                             {isExpanded && (
                                                                 <div className="px-5 pb-5 pt-0 animate-accordion-down">
-                                                                    <div className="p-5 rounded-2xl bg-muted/50/40 border border-border/40">
+                                                                    <div className="p-5 rounded-2xl bg-muted/50 border border-border/40">
                                                                         <div className="flex items-center justify-between mb-5">
                                                                             <h4 className="font-bold text-foreground flex items-center gap-2">
                                                                                 <div className="p-1.5 rounded-lg bg-primary/15 dark:bg-primary text-primary">

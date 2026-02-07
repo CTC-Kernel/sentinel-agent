@@ -155,7 +155,7 @@ export function ConfigurableDashboard({
  className={cn(
  'group inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold shadow-sm transition-all duration-200',
  'text-white bg-card hover:bg-muted hover:scale-[1.02] active:scale-95',
- 'dark:bg-white dark:hover:bg-muted',
+ 'dark:bg-card dark:hover:bg-muted',
  'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
  )}
  >

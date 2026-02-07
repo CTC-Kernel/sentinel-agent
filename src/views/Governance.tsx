@@ -13,7 +13,7 @@ import { SmartSummary, SmartInsight } from '../components/ui/SmartSummary';
 import { EmptyState } from '../components/common/EmptyState';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { useGovernance } from '../hooks/useGovernance';
-import { useStore } from '../store';
+
 import { usePersistedState } from '../hooks/usePersistedState';
 import { Committee, Meeting, Decision, ActionItem } from '../types/governance';
 
@@ -112,7 +112,6 @@ const TableSkeleton: React.FC = () => (
 
 // --- Main Component ---
 export const Governance: React.FC = () => {
-  const _store = useStore();
   const {
     committees, meetings, decisions, stats, loading
   } = useGovernance();

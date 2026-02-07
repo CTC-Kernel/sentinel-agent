@@ -52,9 +52,8 @@ function handleMetric(metric: Metric): void {
  * Dynamically imports web-vitals to avoid blocking the critical rendering path.
  */
 export function reportWebVitals(): void {
-  void import('web-vitals').then(({ onCLS, onFID, onLCP, onTTFB, onINP }) => {
+  void import('web-vitals').then(({ onCLS, onLCP, onTTFB, onINP }) => {
     onCLS(handleMetric);
-    onFID(handleMetric);
     onLCP(handleMetric);
     onTTFB(handleMetric);
     onINP(handleMetric);

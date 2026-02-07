@@ -182,7 +182,7 @@ export const Search: React.FC = () => {
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
   <button
    onClick={() => navigate('/risks')}
-   className="flex items-center gap-3 p-4 rounded-2xl border border-border/40 glass-premium hover:bg-muted/50/60 hover:border-primary/30 dark:hover:border-primary transition-all group text-left"
+   className="flex items-center gap-3 p-4 rounded-2xl border border-border/40 glass-premium hover:bg-muted/50 hover:border-primary/30 dark:hover:border-primary transition-all group text-left"
   >
    <div className="p-2.5 rounded-xl bg-orange-50 dark:bg-orange-900/20 group-hover:scale-110 transition-transform">
    <AlertTriangle className="h-5 w-5 text-warning" />
@@ -195,7 +195,7 @@ export const Search: React.FC = () => {
   </button>
   <button
    onClick={() => navigate('/assets')}
-   className="flex items-center gap-3 p-4 rounded-2xl border border-border/40 glass-premium hover:bg-muted/50/60 hover:border-primary/30 dark:hover:border-primary transition-all group text-left"
+   className="flex items-center gap-3 p-4 rounded-2xl border border-border/40 glass-premium hover:bg-muted/50 hover:border-primary/30 dark:hover:border-primary transition-all group text-left"
   >
    <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20 group-hover:scale-110 transition-transform">
    <ShieldCheck className="h-5 w-5 text-info-text" />
@@ -208,7 +208,7 @@ export const Search: React.FC = () => {
   </button>
   <button
    onClick={() => navigate('/compliance')}
-   className="flex items-center gap-3 p-4 rounded-2xl border border-border/40 glass-premium hover:bg-muted/50/60 hover:border-primary/30 dark:hover:border-primary transition-all group text-left"
+   className="flex items-center gap-3 p-4 rounded-2xl border border-border/40 glass-premium hover:bg-muted/50 hover:border-primary/30 dark:hover:border-primary transition-all group text-left"
   >
    <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 group-hover:scale-110 transition-transform">
    <FileText className="h-5 w-5 text-success" />

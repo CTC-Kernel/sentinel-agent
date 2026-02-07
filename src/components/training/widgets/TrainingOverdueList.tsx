@@ -167,7 +167,7 @@ export const TrainingOverdueList: React.FC<TrainingOverdueListProps> = ({
   animate={{ opacity: 1, x: 0 }}
   exit={{ opacity: 0, x: 10 }}
   transition={{ delay: index * 0.05 }}
-  className="group flex items-center gap-4 p-4 rounded-2xl bg-muted/50/30 border border-border/40 dark:border-white/5 hover:border-red-500/30 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-900 transition-all duration-300"
+  className="group flex items-center gap-4 p-4 rounded-2xl bg-muted/50 border border-border/40 dark:border-white/5 hover:border-red-500/30 hover:bg-red-50 dark:hover:bg-red-900/30 dark:hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-900 transition-all duration-300"
  >
   {/* User Avatar Placeholder */}
   <div className="w-10 h-10 rounded-3xl bg-card shadow-sm flex items-center justify-center border border-border/40 dark:border-white/5 group-hover:scale-110 transition-transform duration-300">

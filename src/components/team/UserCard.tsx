@@ -21,7 +21,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
  }, [onDelete, user]);
 
  return (
- <div className={`glass-premium rounded-3xl p-6 flex flex-col items-center text-center card-hover group relative border border-border/40 ${user.isPending ? 'border-dashed border-border/40 bg-muted/50/30/20' : ''}`}>
+ <div className={`glass-premium rounded-3xl p-6 flex flex-col items-center text-center card-hover group relative border border-border/40 ${user.isPending ? 'border-dashed border-border/40 bg-muted/50' : ''}`}>
  {canAdmin && (
  <div className="absolute top-4 right-4 flex gap-2 opacity-70 md:opacity-0 md:group-hover:opacity-70 transition-opacity">
   {!user.isPending && (

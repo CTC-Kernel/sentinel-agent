@@ -90,7 +90,7 @@ export function ComplianceCalendar() {
     <div className="space-y-6 sm:space-y-8 lg:space-y-10 pb-24">
       <PageHeader
         title="Calendrier de Conformite"
-        description="Suivi des echeances reglementaires, audits et evenements de conformite"
+        subtitle="Suivi des echeances reglementaires, audits et evenements de conformite"
         icon={<Calendar className="h-6 w-6" />}
       />
 

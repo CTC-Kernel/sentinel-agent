@@ -342,7 +342,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   ? 'border-blue-500/30 bg-blue-500'
   : index < currentStep
   ? 'border-green-500/30 bg-green-500'
-  : 'border-border/40 bg-muted/50/30'
+  : 'border-border/40 bg-muted/50'
   }`}
  >
   <div className="flex items-start justify-between">

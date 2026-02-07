@@ -635,7 +635,7 @@ const strategyStyles = getStrategyStyles(strategy.color);
    "relative p-4 rounded-3xl border-2 transition-all text-left overflow-hidden group/card",
    isSelected
    ? cardStyles.containerSelected
-   : "border-border/40 bg-muted/50/50 hover:bg-muted/30/50"
+   : "border-border/40 bg-muted/50 hover:bg-muted/30/50"
    )}
    >
    {isSelected && (

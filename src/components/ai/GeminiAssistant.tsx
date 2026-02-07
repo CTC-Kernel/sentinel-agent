@@ -267,7 +267,7 @@ export const GeminiAssistant: React.FC = () => {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar scroll-smooth bg-muted/50/30 dark:bg-black/20">
+            <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar scroll-smooth bg-muted/50 dark:bg-black/20">
                 {messages.map((msg) => (
                     <ChatMessage
                         key={msg.id || 'unknown'}

@@ -67,7 +67,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
   onClick={checkCVEs}
   disabled={scanning}
   aria-label={t('common.inspector.security.checkCVEsTooltip')}
-  className="flex-1 py-3 bg-muted dark:bg-white/10 text-foreground rounded-3xl text-sm font-bold shadow-sm hover:bg-muted dark:hover:bg-muted transition-colors flex items-center justify-center disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+  className="flex-1 py-3 bg-muted dark:bg-muted text-foreground rounded-3xl text-sm font-bold shadow-sm hover:bg-muted dark:hover:bg-muted transition-colors flex items-center justify-center disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
   {scanning ? <span className="animate-spin mr-2">⏳</span> : <ShieldAlert className="w-4 h-4 mr-2" />}
   {t('common.inspector.security.checkCVEs')}
@@ -142,7 +142,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
   <div key={risk.id || 'unknown'} className="p-5 glass-premium rounded-3xl border border-border/40 shadow-sm hover:shadow-md transition-all">
   <div className="flex justify-between items-start mb-2">
    <span className="text-sm font-bold text-foreground">{risk.threat}</span>
-   <span className={`text-xs px-2 py-1 rounded-3xl font-bold ${risk.score >= RISK_THRESHOLDS.CRITICAL ? 'bg-red-500 text-white' : 'bg-muted dark:bg-white/10 text-muted-foreground'}`}>Score {risk.score}</span>
+   <span className={`text-xs px-2 py-1 rounded-3xl font-bold ${risk.score >= RISK_THRESHOLDS.CRITICAL ? 'bg-red-500 text-white' : 'bg-muted dark:bg-muted text-muted-foreground'}`}>Score {risk.score}</span>
   </div>
   <p className="text-xs text-text-description mb-3">{risk.vulnerability}</p>
   {risk.score >= RISK_THRESHOLDS.CRITICAL && <div className="flex items-center text-xs text-red-600 dark:text-red-400 font-black uppercase tracking-wider bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-full w-fit border border-red-100 dark:border-red-900/30 shadow-sm"><Flame className="h-3 w-3 mr-2" /> {t('common.inspector.security.criticalRisk')}</div>}

@@ -10,8 +10,7 @@ import { Drawer } from '../components/ui/Drawer';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { staggerContainerVariants, slideUpVariants } from '../components/ui/animationVariants';
 import { cn } from '@/lib/utils';
-import { useStore } from '../store';
-import { useAuth } from '../hooks/useAuth';
+
 import { usePersistedState } from '../hooks/usePersistedState';
 import { useCertifications } from '../hooks/useCertifications';
 import { CertificationService } from '../services/certificationService';
@@ -732,9 +731,6 @@ const CertificationForm: React.FC<{
 // ============================================================================
 
 export const Certifications: React.FC = () => {
-  const _auth = useAuth();
-  const _store = useStore();
-
   const {
     certifications,
     filteredCertifications,
