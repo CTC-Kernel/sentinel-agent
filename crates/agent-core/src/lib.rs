@@ -73,6 +73,8 @@ use std::sync::{Arc, Mutex};
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, warn};
 
+#[cfg_attr(not(feature = "gui"), allow(dead_code))]
+
 #[cfg(feature = "gui")]
 use agent_gui::dto::{
     AgentSummary, GuiAgentStatus, GuiCheckResult, GuiCheckStatus, GuiDiscoveredDevice,
@@ -81,6 +83,77 @@ use agent_gui::dto::{
 };
 #[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;
+
+#[cfg(not(feature = "gui"))]
+pub struct AgentSummary {
+    pub dummy: bool,
+}
+
+#[cfg(not(feature = "gui"))]
+pub struct GuiAgentStatus {
+    pub dummy: bool,
+}
+
+#[cfg(not(feature = "gui"))]
+pub struct GuiCheckResult {
+    pub dummy: bool,
+}
+
+#[cfg(not(feature = "gui"))]
+pub struct GuiCheckStatus {
+    pub dummy: bool,
+}
+
+#[cfg(not(feature = "gui"))]
+pub struct GuiDiscoveredDevice {
+    pub dummy: bool,
+}
+
+#[cfg(not(feature = "gui"))]
+pub struct GuiNetworkConnection {
+    pub dummy: bool,
+}
+
+#[cfg(not(feature = "gui"))]
+pub struct GuiNetworkInterface {
+    pub dummy: bool,
+}
+
+#[cfg(not(feature = "gui"))]
+pub struct GuiNotification {
+    pub dummy: bool,
+}
+
+#[cfg(not(feature = "gui"))]
+pub struct GuiResourceUsage {
+    pub dummy: bool,
+}
+
+#[cfg(not(feature = "gui"))]
+pub struct GuiSoftwarePackage {
+    pub dummy: bool,
+}
+
+#[cfg(not(feature = "gui"))]
+pub struct GuiVulnerabilityFinding {
+    pub dummy: bool,
+}
+
+#[cfg(not(feature = "gui"))]
+pub struct GuiVulnerabilitySummary {
+    pub dummy: bool,
+}
+
+#[cfg(not(feature = "gui"))]
+pub struct GuiSeverity {
+    pub dummy: bool,
+}
+
+#[cfg(not(feature = "gui"))]
+#[derive(Debug, Clone)]
+pub struct AgentEvent {
+    pub dummy: bool,
+}
 
 /// Default vulnerability scan interval (6 hours).
 const DEFAULT_VULN_SCAN_INTERVAL_SECS: u64 = 6 * 60 * 60;
