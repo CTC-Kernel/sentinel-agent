@@ -115,12 +115,13 @@ where
         _ctx: tracing_subscriber::layer::Context<'_, S>,
     ) {
         // Non-blocking: skip if we can't acquire the lock immediately.
-        let guard = match self.sender.try_lock() {
-            Ok(g) => g,
-            Err(_) => return,
-        };
+        let guard: std::sync::MutexGuard<Option<std::sync::mpsc::Sender<AgentEvent>>> =
+            match self.sender.try_lock() {
+                Ok(g) => g,
+                Err(_) => return,
+            };
 
-        let tx = match guard.as_ref() {
+        let tx: &std::sync::mpsc::Sender<AgentEvent> = match guard.as_ref() {
             Some(tx) => tx,
             None => return,
         };
