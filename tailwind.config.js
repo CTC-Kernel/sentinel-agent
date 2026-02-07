@@ -167,6 +167,22 @@ export default {
           900: '#1e3a8a',  // Darkest
           950: '#172554',  // Near black
           DEFAULT: '#3b82f6',
+          // Semantic variants for assets/categories
+          purple: {
+            text: "hsl(var(--brand-purple-text))",
+            bg: "hsl(var(--brand-purple-bg))",
+            border: "hsl(var(--brand-purple-border))",
+          },
+          indigo: {
+            text: "hsl(var(--brand-indigo-text))",
+            bg: "hsl(var(--brand-indigo-bg))",
+            border: "hsl(var(--brand-indigo-border))",
+          },
+          teal: {
+            text: "hsl(var(--brand-teal-text))",
+            bg: "hsl(var(--brand-teal-bg))",
+            border: "hsl(var(--brand-teal-border))",
+          },
         },
         slate: {
           50: '#fafafa',
