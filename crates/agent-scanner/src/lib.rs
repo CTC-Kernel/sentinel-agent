@@ -65,6 +65,9 @@ pub mod score;
 pub mod security;
 pub mod vulnerability;
 
+#[cfg(feature = "llm_simple")]
+pub mod llm_integration;
+
 // Re-export commonly used types
 pub use check::{Check, CheckDefinitionBuilder, CheckOutput, CheckRegistry};
 pub use error::{ScannerError, ScannerResult};
@@ -93,5 +96,8 @@ pub use directory::{
 };
 
 pub mod remediation;
+
+#[cfg(feature = "llm_simple")]
+pub use llm_integration::{LLMIntegration, IntelligentCheckRunner, IntelligentScanResult, ScanMetadata};
 
 pub use remediation::RemediationEngine;

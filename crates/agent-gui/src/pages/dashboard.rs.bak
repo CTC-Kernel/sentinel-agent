@@ -510,7 +510,7 @@ impl DashboardPage {
                 );
                 ui.add_space(theme::SPACE_SM);
                 
-                let llm_widget = LLMStatusWidget::new(None);
+                let llm_widget = LLMStatusWidget::new();
                 llm_widget.show(ui);
             }
         });
