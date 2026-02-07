@@ -11,7 +11,9 @@ use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
-use tracing::{debug, warn};
+#[cfg(target_os = "macos")]
+use tracing::warn;
+use tracing::debug;
 
 /// Check ID for disk encryption.
 pub const CHECK_ID: &str = "disk_encryption";

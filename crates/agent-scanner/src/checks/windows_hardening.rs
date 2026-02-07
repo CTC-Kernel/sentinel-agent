@@ -80,8 +80,6 @@ impl WindowsHardeningCheck {
 
     #[cfg(target_os = "windows")]
     async fn check_hardening(&self) -> ScannerResult<WindowsHardeningStatus> {
-        use std::process::Command;
-
         let mut settings = Vec::new();
         let mut critical_issues = Vec::new();
 

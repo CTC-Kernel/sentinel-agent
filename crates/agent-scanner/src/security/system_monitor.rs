@@ -1,6 +1,8 @@
 //! System monitoring for security configuration changes.
 
-use super::{IncidentSeverity, IncidentType, SecurityIncident};
+#[cfg(target_os = "macos")]
+use super::IncidentType;
+use super::{IncidentSeverity, SecurityIncident};
 use crate::error::ScannerResult;
 use tracing::{debug, info, warn};
 
