@@ -13,6 +13,10 @@ use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+#[cfg(target_os = "linux")]
+use std::fs;
+#[cfg(target_os = "linux")]
+use std::path::Path;
 use tracing::{debug, info, warn};
 
 /// Check ID for Linux hardening.
@@ -400,11 +404,11 @@ impl LinuxHardeningCheck {
     fn check_sysctl_value(&self, check: &SysctlCheckDef) -> SysctlSetting {
         let current_value = fs::read_to_string(check.path)
             .ok()
-            .map(|s| s.trim().to_string());
+            .map(|s: String| s.trim().to_string());
 
         let compliant = current_value
             .as_ref()
-            .map(|v| {
+            .map(|v: String| {
                 v == check.expected
                     || v.parse::<i32>().unwrap_or(-1) >= check.expected.parse::<i32>().unwrap_or(0)
             })
@@ -455,6 +459,7 @@ impl LinuxHardeningCheck {
             }
             if let Ok(policy) = fs::read_to_string("/etc/selinux/config") {
                 for line in policy.lines() {
+                    let line: &str = line;
                     if line.starts_with("SELINUXTYPE=") {
                         status.selinux_policy =
                             Some(line.replace("SELINUXTYPE=", "").trim().to_string());
@@ -470,7 +475,7 @@ impl LinuxHardeningCheck {
     fn check_core_dumps_disabled(&self) -> bool {
         // Check /proc/sys/kernel/core_pattern
         if let Ok(pattern) = fs::read_to_string("/proc/sys/kernel/core_pattern") {
-            let pattern = pattern.trim();
+            let pattern: &str = pattern.trim();
             // If pattern starts with |, it's piped to a program (might be for systemd-coredump)
             // If it's empty or /dev/null, core dumps are disabled
             if pattern.is_empty() || pattern == "/dev/null" {
@@ -481,6 +486,7 @@ impl LinuxHardeningCheck {
         // Check ulimit via /proc/self/limits
         if let Ok(limits) = fs::read_to_string("/proc/self/limits") {
             for line in limits.lines() {
+                let line: &str = line;
                 if line.contains("core file size") && line.contains("0") {
                     return true;
                 }
@@ -493,7 +499,8 @@ impl LinuxHardeningCheck {
     #[cfg(target_os = "linux")]
     fn check_ptrace_restricted(&self) -> bool {
         if let Ok(val) = fs::read_to_string("/proc/sys/kernel/yama/ptrace_scope") {
-            val.trim().parse::<i32>().unwrap_or(0) >= 1
+            let val: &str = val.trim();
+            val.parse::<i32>().unwrap_or(0) >= 1
         } else {
             false
         }
