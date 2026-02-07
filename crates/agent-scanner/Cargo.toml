@@ -27,5 +27,9 @@ rayon.workspace = true
 sysinfo.workspace = true
 memmap2.workspace = true
 
+[features]
+default = []
+llm_simple = []
+
 [dev-dependencies]
 tempfile.workspace = true

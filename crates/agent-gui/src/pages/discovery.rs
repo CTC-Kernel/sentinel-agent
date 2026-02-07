@@ -28,7 +28,7 @@ impl DiscoveryPage {
         // Control bar (AAA Grade)
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.horizontal(|ui: &mut egui::Ui| {
-                let is_scanning = state.discovery_in_progress;
+                let is_scanning = state.discovery.in_progress;
 
                 let btn_response = if is_scanning {
                     widgets::destructive_button(ui, format!("{}  INTERROMPRE LE SCAN", icons::TRASH), true)
@@ -50,7 +50,7 @@ impl DiscoveryPage {
                 if is_scanning {
                     ui.vertical(|ui: &mut egui::Ui| {
                         ui.add_space(6.0);
-                        let progress = state.discovery_progress;
+                        let progress = state.discovery.progress;
                         let bar_width = 300.0;
                         let bar_height = 4.0;
                         let (bar_rect, _) = ui.allocate_exact_size(
@@ -111,7 +111,7 @@ impl DiscoveryPage {
 
                         ui.horizontal(|ui: &mut egui::Ui| {
                             ui.label(
-                                egui::RichText::new(state.discovery_phase.to_uppercase())
+                                egui::RichText::new(state.discovery.phase.to_uppercase())
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .extra_letter_spacing(0.5)
@@ -131,7 +131,7 @@ impl DiscoveryPage {
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
                         ui.label(
-                            egui::RichText::new(format!("{}", state.discovered_devices.len()))
+                            egui::RichText::new(format!("{}", state.discovery.devices.len()))
                                 .font(theme::font_stat())
                                 .color(theme::text_primary())
                                 .strong(),
@@ -152,9 +152,9 @@ impl DiscoveryPage {
         ui.add_space(theme::SPACE_MD);
 
         // Search / filter (AAA Grade)
-        let search_upper = state.discovery_search.to_uppercase();
+        let search_upper = state.discovery.search.to_uppercase();
         let filtered: Vec<usize> = state
-            .discovered_devices
+            .discovery.devices
             .iter()
             .enumerate()
             .filter(|(_, d)| {
@@ -175,7 +175,7 @@ impl DiscoveryPage {
         let result_count = filtered.len();
 
         widgets::SearchFilterBar::new(
-            &mut state.discovery_search,
+            &mut state.discovery.search,
             "Filtrer par adresse IP, nom d'hôte ou constructeur...",
         )
         .result_count(result_count)
@@ -198,7 +198,7 @@ impl DiscoveryPage {
         ui.add_space(theme::SPACE_SM);
 
         // Device table (AAA Grade)
-        if filtered.is_empty() && !state.discovery_in_progress {
+        if filtered.is_empty() && !state.discovery.in_progress {
             widgets::card(ui, |ui: &mut egui::Ui| {
                 ui.vertical_centered(|ui: &mut egui::Ui| {
                     ui.add_space(theme::SPACE_XL);
@@ -293,7 +293,7 @@ impl DiscoveryPage {
                     })
                     .body(|body| {
                         body.rows(48.0, filtered.len(), |mut row| {
-                            let device = &state.discovered_devices[filtered[row.index()]];
+                            let device = &state.discovery.devices[filtered[row.index()]];
 
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
@@ -376,7 +376,7 @@ impl DiscoveryPage {
         let rows: Vec<Vec<String>> = indices
             .iter()
             .map(|&i| {
-                let d = &state.discovered_devices[i];
+                let d = &state.discovery.devices[i];
                 vec![
                     d.ip.clone(),
                     d.hostname.clone().unwrap_or_default(),

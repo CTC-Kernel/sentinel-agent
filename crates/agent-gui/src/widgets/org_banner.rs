@@ -119,11 +119,12 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
 
                     // Truncate server URL for display
                     let server_display = state
-                        .server_url
+                        .settings.server_url
                         .replace("https://", "")
                         .replace("http://", "");
-                    let server_short = if server_display.len() > 30 {
-                        format!("{}...", &server_display[..27])
+                    let server_short = if server_display.chars().count() > 30 {
+                        let truncated: String = server_display.chars().take(27).collect();
+                        format!("{}...", truncated)
                     } else {
                         server_display
                     };
@@ -229,8 +230,9 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                                 .color(theme::text_tertiary()),
                         );
                         ui.add_space(4.0);
+                        let id_display: String = agent_id.chars().take(12).collect();
                         ui.label(
-                            RichText::new(&agent_id[..agent_id.len().min(12)])
+                            RichText::new(id_display)
                                 .font(egui::FontId::monospace(9.0))
                                 .color(theme::ACCENT_LIGHT),
                         );
@@ -249,7 +251,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                     .clicked()
                     {
                         // Open browser to console URL
-                        let console_url = format!("{}/dashboard", state.server_url);
+                        let console_url = format!("{}/dashboard", state.settings.server_url);
                         let _ = open::that(&console_url);
                     }
 

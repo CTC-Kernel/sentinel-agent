@@ -186,15 +186,12 @@ pub fn uninstall_service() -> ServiceResult<()> {
 
     loop {
         match get_service_state() {
-            Ok(ServiceState::Stopped) | Ok(ServiceState::Running) => {
-                // Stopped or was never running
-                if matches!(get_service_state(), Ok(ServiceState::Stopped)) {
-                    info!("Service stopped successfully");
-                    break;
-                }
+            Ok(ServiceState::Stopped) => {
+                info!("Service stopped successfully");
+                break;
             }
-            Ok(ServiceState::Stopping) => {
-                // Still stopping, wait more
+            Ok(ServiceState::Running) | Ok(ServiceState::Stopping) => {
+                // Still running or stopping, wait more
             }
             Err(_) | Ok(_) => {
                 // Service might be gone or in unknown state, proceed

@@ -31,6 +31,10 @@ impl EventManager {
     ) -> (Self, tokio::sync::broadcast::Receiver<AgentEvent>) {
         let (gui_event_tx, gui_event_rx) = tokio::sync::broadcast::channel(100);
 
+        // gui_event_tx only stored when gui feature is enabled
+        #[cfg(not(feature = "gui"))]
+        let _ = gui_event_tx;
+
         (
             Self {
                 #[cfg(feature = "gui")]

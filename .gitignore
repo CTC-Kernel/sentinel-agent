@@ -90,3 +90,15 @@ playwright-report/
 # Secrets / credentials (NEVER commit these)
 GITHUB_SECRETS*.txt
 *_SECRETS*.txt
+*.secrets
+
+# Backup files (development artifacts)
+*.bak
+*.bak2
+
+# Logs
+*.log
+agent.log
+
+# LLM local models
+*.gguf

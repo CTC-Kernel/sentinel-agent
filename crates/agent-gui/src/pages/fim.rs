@@ -52,9 +52,9 @@ impl FimPage {
         ui.add_space(theme::SPACE_MD);
 
         // Summary row (AAA Grade)
-        let monitored = state.fim_monitored_count;
-        let changes_today = state.fim_changes_today;
-        let active_alerts = state.fim_alerts.iter().filter(|a| !a.acknowledged).count();
+        let monitored = state.fim.monitored_count;
+        let changes_today = state.fim.changes_today;
+        let active_alerts = state.fim.alerts.iter().filter(|a| !a.acknowledged).count();
 
         let card_grid = widgets::ResponsiveGrid::new(280.0, theme::SPACE_SM);
         let items = vec![
@@ -93,14 +93,14 @@ impl FimPage {
         ui.add_space(theme::SPACE_LG);
 
         // Search / filter bar (AAA Grade)
-        let created_active = state.fim_filter.as_deref() == Some("created");
-        let modified_active = state.fim_filter.as_deref() == Some("modified");
-        let deleted_active = state.fim_filter.as_deref() == Some("deleted");
-        let perm_active = state.fim_filter.as_deref() == Some("permission_changed");
+        let created_active = state.fim.filter.as_deref() == Some("created");
+        let modified_active = state.fim.filter.as_deref() == Some("modified");
+        let deleted_active = state.fim.filter.as_deref() == Some("deleted");
+        let perm_active = state.fim.filter.as_deref() == Some("permission_changed");
 
-        let search_lower = state.fim_search.to_lowercase();
+        let search_lower = state.fim.search.to_lowercase();
         let filtered: Vec<usize> = state
-            .fim_alerts
+            .fim.alerts
             .iter()
             .enumerate()
             .filter(|(_, a)| {
@@ -111,7 +111,7 @@ impl FimPage {
                         return false;
                     }
                 }
-                if let Some(ref filter) = state.fim_filter {
+                if let Some(ref filter) = state.fim.filter {
                     a.change_type.as_str() == filter.as_str()
                 } else {
                     true
@@ -123,7 +123,7 @@ impl FimPage {
         let result_count = filtered.len();
 
         let toggled = widgets::SearchFilterBar::new(
-            &mut state.fim_search,
+            &mut state.fim.search,
             "RECHERCHER (CHEMIN, TYPE DE MODIFICATION)...",
         )
         .chip("CRÉÉ", created_active, theme::SUCCESS)
@@ -141,10 +141,10 @@ impl FimPage {
                 3 => Some("permission_changed"),
                 _ => None,
             };
-            if state.fim_filter.as_deref() == target {
-                state.fim_filter = None;
+            if state.fim.filter.as_deref() == target {
+                state.fim.filter = None;
             } else {
-                state.fim_filter = target.map(|s| s.to_string());
+                state.fim.filter = target.map(|s| s.to_string());
             }
         }
 
@@ -187,7 +187,7 @@ impl FimPage {
             );
             ui.add_space(theme::SPACE_MD);
 
-            if state.fim_alerts.is_empty() {
+            if state.fim.alerts.is_empty() {
                 widgets::protected_state(
                     ui,
                     icons::FILE_SHIELD,
@@ -253,7 +253,7 @@ impl FimPage {
                             let idx = filtered[row.index()];
 
                             row.col(|ui: &mut egui::Ui| {
-                                let ts = state.fim_alerts[idx]
+                                let ts = state.fim.alerts[idx]
                                     .timestamp
                                     .format("%d/%m/%Y %H:%M:%S")
                                     .to_string();
@@ -266,9 +266,10 @@ impl FimPage {
                             });
 
                             row.col(|ui: &mut egui::Ui| {
-                                let path = &state.fim_alerts[idx].path;
-                                let display_path = if path.len() > 60 {
-                                    format!("...{}", &path[path.len() - 57..])
+                                let path = &state.fim.alerts[idx].path;
+                                let display_path = if path.chars().count() > 60 {
+                                    let suffix: String = path.chars().rev().take(57).collect::<Vec<_>>().into_iter().rev().collect();
+                                    format!("...{}", suffix)
                                 } else {
                                     path.clone()
                                 };
@@ -289,12 +290,12 @@ impl FimPage {
 
                             row.col(|ui: &mut egui::Ui| {
                                 let (label, color) =
-                                    Self::change_type_display(&state.fim_alerts[idx].change_type);
+                                    Self::change_type_display(&state.fim.alerts[idx].change_type);
                                 widgets::status_badge(ui, label, color);
                             });
 
                             row.col(|ui: &mut egui::Ui| {
-                                let alert = &state.fim_alerts[idx];
+                                let alert = &state.fim.alerts[idx];
                                 if alert.acknowledged {
                                     ui.label(
                                         egui::RichText::new(format!(
@@ -307,8 +308,8 @@ impl FimPage {
                                     );
                                 } else {
                                     if widgets::chip_button(ui, &format!("{}  ACQUITTER", icons::CHECK), false, theme::ACCENT).clicked() {
-                                        let alert_id = state.fim_alerts[idx].id.clone();
-                                        state.fim_alerts[idx].acknowledged = true;
+                                        let alert_id = state.fim.alerts[idx].id.clone();
+                                        state.fim.alerts[idx].acknowledged = true;
                                         command =
                                             Some(GuiCommand::AcknowledgeFimAlert { alert_id });
                                     }
@@ -383,7 +384,7 @@ impl FimPage {
         let rows: Vec<Vec<String>> = indices
             .iter()
             .map(|&i| {
-                let e = &state.fim_alerts[i];
+                let e = &state.fim.alerts[i];
                 vec![
                     e.path.clone(),
                     e.change_type.to_string(),

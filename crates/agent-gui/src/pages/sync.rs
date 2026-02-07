@@ -40,7 +40,7 @@ impl SyncPage {
                 ui.with_layout(
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
-                        if state.sync_in_progress {
+                        if state.sync.in_progress {
                             widgets::status_badge(
                                 ui,
                                 &format!("{} SYNCHRONISATION...", icons::SYNC),
@@ -97,14 +97,14 @@ impl SyncPage {
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
                         // Force sync button
-                        if widgets::primary_button_loading(ui, format!("{}  SYNCHRONISER MAINTENANT", icons::SYNC), !state.sync_in_progress, state.sync_in_progress).clicked() {
+                        if widgets::primary_button_loading(ui, format!("{}  SYNCHRONISER MAINTENANT", icons::SYNC), !state.sync.in_progress, state.sync.in_progress).clicked() {
                             command = Some(GuiCommand::ForceSync);
                         }
                     },
                 );
             });
 
-            if let Some(ref err) = state.sync_error {
+            if let Some(ref err) = state.sync.error {
                 ui.add_space(theme::SPACE_MD);
                 egui::Frame::new()
                     .fill(theme::ERROR.linear_multiply(0.1))
@@ -132,7 +132,7 @@ impl SyncPage {
             );
             ui.add_space(theme::SPACE_MD);
 
-            if state.sync_history.is_empty() {
+            if state.sync.history.is_empty() {
                 ui.vertical_centered(|ui: &mut egui::Ui| {
                     ui.add_space(theme::SPACE_LG);
                     ui.label(
@@ -165,8 +165,8 @@ impl SyncPage {
                         });
                     })
                     .body(|body| {
-                        body.rows(32.0, state.sync_history.len(), |mut row| {
-                            let entry = &state.sync_history[row.index()];
+                        body.rows(32.0, state.sync.history.len(), |mut row| {
+                            let entry = &state.sync.history[row.index()];
 
                             row.col(|ui: &mut egui::Ui| {
                                 let (icon, color) = if entry.success {

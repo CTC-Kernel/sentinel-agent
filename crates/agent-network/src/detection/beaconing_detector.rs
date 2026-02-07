@@ -29,6 +29,8 @@ pub struct BeaconingConfig {
     pub min_beacon_interval_secs: i64,
     /// Maximum interval between beacons in seconds.
     pub max_beacon_interval_secs: i64,
+    /// Maximum number of tracked destinations to prevent unbounded memory growth.
+    pub max_tracked_destinations: usize,
 }
 
 impl Default for BeaconingConfig {
@@ -40,6 +42,7 @@ impl Default for BeaconingConfig {
             analysis_window_secs: 3600, // 1 hour
             min_beacon_interval_secs: 30,
             max_beacon_interval_secs: 3600,
+            max_tracked_destinations: 10_000,
         }
     }
 }
@@ -122,6 +125,21 @@ impl BeaconingDetector {
                 process_name: conn.process_name.clone(),
                 pid: conn.pid,
             };
+
+            // Enforce maximum tracked destinations to prevent unbounded memory growth
+            if !self.connection_history.contains_key(&destination)
+                && self.connection_history.len() >= self.config.max_tracked_destinations
+            {
+                // Evict the destination with the fewest events
+                if let Some(evict_key) = self
+                    .connection_history
+                    .iter()
+                    .min_by_key(|(_, v)| v.len())
+                    .map(|(k, _)| k.clone())
+                {
+                    self.connection_history.remove(&evict_key);
+                }
+            }
 
             self.connection_history
                 .entry(destination)

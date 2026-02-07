@@ -56,7 +56,7 @@ impl VulnerabilitiesPage {
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
                     if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
-                        let search_lower = state.vulnerability_search.to_lowercase();
+                        let search_lower = state.vulnerability.search.to_lowercase();
                         let filtered_indices: Vec<usize> = state
                             .vulnerability_findings
                             .iter()
@@ -73,7 +73,7 @@ impl VulnerabilitiesPage {
                                         return false;
                                     }
                                 }
-                                if let Some(ref sev) = state.vulnerability_severity_filter {
+                                if let Some(ref sev) = state.vulnerability.severity_filter {
                                     f.severity == *sev
                                 } else {
                                     true
@@ -159,15 +159,15 @@ impl VulnerabilitiesPage {
         ui.add_space(theme::SPACE_LG);
 
         // Search / filter bar (AAA Grade)
-        let crit_active = state.vulnerability_severity_filter == Some(Severity::Critical);
-        let high_active = state.vulnerability_severity_filter == Some(Severity::High);
-        let med_active = state.vulnerability_severity_filter == Some(Severity::Medium);
-        let low_active = state.vulnerability_severity_filter == Some(Severity::Low);
+        let crit_active = state.vulnerability.severity_filter == Some(Severity::Critical);
+        let high_active = state.vulnerability.severity_filter == Some(Severity::High);
+        let med_active = state.vulnerability.severity_filter == Some(Severity::Medium);
+        let low_active = state.vulnerability.severity_filter == Some(Severity::Low);
 
-        let search_lower = state.vulnerability_search.to_lowercase();
+        let search_lower = state.vulnerability.search.to_lowercase();
 
         let toggled = widgets::SearchFilterBar::new(
-            &mut state.vulnerability_search,
+            &mut state.vulnerability.search,
             "RECHERCHER (CVE, LOGICIEL, DESCRIPTION)...",
         )
         .chip("CRITIQUE", crit_active, theme::ERROR)
@@ -184,10 +184,10 @@ impl VulnerabilitiesPage {
                 3 => Some(Severity::Low),
                 _ => None,
             };
-            if state.vulnerability_severity_filter == target {
-                state.vulnerability_severity_filter = None;
+            if state.vulnerability.severity_filter == target {
+                state.vulnerability.severity_filter = None;
             } else {
-                state.vulnerability_severity_filter = target;
+                state.vulnerability.severity_filter = target;
             }
         }
 
@@ -230,7 +230,7 @@ impl VulnerabilitiesPage {
                         return false;
                     }
                 }
-                if let Some(ref sev) = state.vulnerability_severity_filter {
+                if let Some(ref sev) = state.vulnerability.severity_filter {
                     f.severity == *sev
                 } else {
                     true

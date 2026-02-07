@@ -27,7 +27,7 @@ impl NetworkPage {
         );
         ui.add_space(theme::SPACE_LG);
 
-        if state.network_interface_list.is_empty() && state.network_connection_list.is_empty() {
+        if state.network.interfaces.is_empty() && state.network.connections.is_empty() {
             ui.add_space(theme::SPACE_LG);
             widgets::protected_state(
                 ui,
@@ -87,15 +87,15 @@ impl NetworkPage {
         ui.add_space(theme::SPACE_MD);
 
         // Summary row (AAA Grade)
-        let iface_count = if state.network_interface_list.is_empty() {
-            state.network_interfaces
+        let iface_count = if state.network.interfaces.is_empty() {
+            state.network.interface_count
         } else {
-            state.network_interface_list.len() as u32
+            state.network.interfaces.len() as u32
         };
-        let conn_count = if state.network_connection_list.is_empty() {
-            state.network_connections
+        let conn_count = if state.network.connections.is_empty() {
+            state.network.connection_count
         } else {
-            state.network_connection_list.len() as u32
+            state.network.connections.len() as u32
         };
 
         let card_grid = widgets::ResponsiveGrid::new(280.0, theme::SPACE_SM);
@@ -114,13 +114,13 @@ impl NetworkPage {
             ),
             (
                 "ALERTES FLUX",
-                state.network_alerts.to_string(),
-                if state.network_alerts > 0 {
+                state.network.alert_count.to_string(),
+                if state.network.alert_count > 0 {
                     theme::ERROR
                 } else {
                     theme::SUCCESS
                 },
-                if state.network_alerts > 0 {
+                if state.network.alert_count > 0 {
                     icons::WARNING
                 } else {
                     icons::CIRCLE_CHECK
@@ -160,7 +160,7 @@ impl NetworkPage {
             ui.add_space(theme::SPACE_MD);
 
             ui.vertical_centered(|ui: &mut egui::Ui| {
-                if state.network_alerts == 0 {
+                if state.network.alert_count == 0 {
                     widgets::protected_state(
                         ui,
                         icons::SHIELD_CHECK,
@@ -178,7 +178,7 @@ impl NetworkPage {
                     ui.label(
                         egui::RichText::new(format!(
                             "{} ALERTE(S) DÉTECTÉE(S)",
-                            state.network_alerts
+                            state.network.alert_count
                         ))
                         .font(theme::font_body())
                         .color(theme::ERROR)
@@ -225,7 +225,7 @@ impl NetworkPage {
             });
             ui.add_space(theme::SPACE_MD);
 
-            if state.network_interface_list.is_empty() {
+            if state.network.interfaces.is_empty() {
                 widgets::empty_state(ui, icons::WIFI, "AUCUNE INTERFACE DÉTECTÉE", None);
             } else {
                 use egui_extras::{Column, TableBuilder};
@@ -286,9 +286,9 @@ impl NetworkPage {
                     .body(|body| {
                         body.rows(
                             theme::TABLE_ROW_HEIGHT,
-                            state.network_interface_list.len(),
+                            state.network.interfaces.len(),
                             |mut row| {
-                                let iface = &state.network_interface_list[row.index()];
+                                let iface = &state.network.interfaces[row.index()];
                                 row.col(|ui: &mut egui::Ui| {
                                     ui.label(
                                         egui::RichText::new(&iface.name)
@@ -365,9 +365,9 @@ impl NetworkPage {
             });
             ui.add_space(theme::SPACE_MD);
 
-            let search_lower = state.network_connection_search.to_lowercase();
+            let search_lower = state.network.search.to_lowercase();
             let filtered: Vec<usize> = state
-                .network_connection_list
+                .network.connections
                 .iter()
                 .enumerate()
                 .filter(|(_, c)| {
@@ -387,7 +387,7 @@ impl NetworkPage {
                 .map(|(i, _)| i)
                 .collect();
 
-            widgets::SearchFilterBar::new(&mut state.network_connection_search, "Rechercher...")
+            widgets::SearchFilterBar::new(&mut state.network.search, "Rechercher...")
                 .result_count(filtered.len())
                 .show(ui);
 
@@ -453,7 +453,7 @@ impl NetworkPage {
                     })
                     .body(|body| {
                         body.rows(theme::TABLE_ROW_HEIGHT, filtered.len(), |mut row| {
-                            let conn = &state.network_connection_list[filtered[row.index()]];
+                            let conn = &state.network.connections[filtered[row.index()]];
                             row.col(|ui: &mut egui::Ui| {
                                 widgets::status_badge(
                                     ui,
@@ -562,7 +562,7 @@ impl NetworkPage {
     fn export_interfaces_csv(state: &AppState) -> bool {
         let headers = &["interface", "type", "statut", "mac", "ipv4", "ipv6"];
         let rows: Vec<Vec<String>> = state
-            .network_interface_list
+            .network.interfaces
             .iter()
             .map(|iface| {
                 vec![
@@ -588,7 +588,7 @@ impl NetworkPage {
     fn export_connections_csv(state: &AppState) -> bool {
         let headers = &["protocole", "local", "distant", "statut", "processus"];
         let rows: Vec<Vec<String>> = state
-            .network_connection_list
+            .network.connections
             .iter()
             .map(|conn| {
                 vec![

@@ -141,7 +141,7 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
 
 fn determine_security_state(state: &AppState) -> SecurityState {
     // 1. Check for active threats (Critical)
-    if !state.suspicious_processes.is_empty() || !state.usb_events.is_empty() {
+    if !state.threats.suspicious_processes.is_empty() || !state.threats.usb_events.is_empty() {
         return SecurityState::Critical;
     }
 
@@ -194,10 +194,10 @@ fn get_security_summary(state: &AppState, status: SecurityState) -> String {
             }
         }
         SecurityState::Critical => {
-            if !state.suspicious_processes.is_empty() {
+            if !state.threats.suspicious_processes.is_empty() {
                 return format!(
                     "{} processus suspects détectés !",
-                    state.suspicious_processes.len()
+                    state.threats.suspicious_processes.len()
                 );
             }
             if let Some(ref vuln) = state.vulnerability_summary

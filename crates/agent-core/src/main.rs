@@ -108,12 +108,7 @@ fn main() -> ExitCode {
 
     // Determine if we'll launch the GUI (feature enabled + not headless).
     // GUI mode defers logging init to use the terminal-aware tracing subscriber.
-    let gui_mode = cfg!(feature = "gui")
-        && match &cli.command {
-            None => true,
-            Some(Commands::Run { no_tray }) => !no_tray,
-            _ => false,
-        };
+    let gui_mode = false; // GUI feature not yet enabled
 
     if !gui_mode {
         init_logging(&cli.log_level);
@@ -361,7 +356,7 @@ fn handle_status() -> ExitCode {
 }
 
 /// Run in foreground mode.
-fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> ExitCode {
+fn handle_run(config_path: Option<String>, no_tray: bool, _log_level: &str) -> ExitCode {
     use agent_storage::{Database, DatabaseConfig, KeyManager};
     use agent_sync::EnrollmentManager;
 
@@ -685,25 +680,29 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     config.agent_id = Some(enrollment.agent_id.clone());
                                     config.client_certificate = Some(enrollment.client_certificate);
                                     config.client_key = Some(enrollment.client_key);
-                                    let _ = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                                    if let Err(e) = bg_event_tx.send(AgentEvent::EnrollmentResult {
                                         success: true,
                                         message: format!(
                                             "Agent enrôlé avec succès.\nID: {}",
                                             enrollment.agent_id
                                         ),
                                         agent_id: Some(enrollment.agent_id),
-                                    });
+                                    }) {
+                                        error!("Failed to send enrollment success event: {}", e);
+                                    }
                                     // Wait for Finish before starting runtime
                                     wait_for_finish(&enrollment_rx).await;
                                     break;
                                 }
                                 Err(e) => {
                                     warn!("GUI enrollment failed: {}", e);
-                                    let _ = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                                    if let Err(e2) = bg_event_tx.send(AgentEvent::EnrollmentResult {
                                         success: false,
                                         message: format!("Échec: {}", e),
                                         agent_id: None,
-                                    });
+                                    }) {
+                                        error!("Failed to send enrollment failure event: {}", e2);
+                                    }
                                     // Continue loop -- user can retry
                                 }
                             }
@@ -736,23 +735,27 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     config.agent_id = Some(enrollment.agent_id.clone());
                                     config.client_certificate = Some(enrollment.client_certificate);
                                     config.client_key = Some(enrollment.client_key);
-                                    let _ = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                                    if let Err(e) = bg_event_tx.send(AgentEvent::EnrollmentResult {
                                         success: true,
                                         message: format!(
                                             "Agent enrôlé avec succès.\nID: {}",
                                             enrollment.agent_id
                                         ),
                                         agent_id: Some(enrollment.agent_id),
-                                    });
+                                    }) {
+                                        error!("Failed to send QR enrollment success event: {}", e);
+                                    }
                                     wait_for_finish(&enrollment_rx).await;
                                     break;
                                 }
                                 Err(e) => {
-                                    let _ = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                                    if let Err(e2) = bg_event_tx.send(AgentEvent::EnrollmentResult {
                                         success: false,
                                         message: format!("Échec: {}", e),
                                         agent_id: None,
-                                    });
+                                    }) {
+                                        error!("Failed to send QR enrollment failure event: {}", e2);
+                                    }
                                 }
                             }
                         }
@@ -853,7 +856,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 handle.remediate(check_id);
                             } else {
                                 warn!("[AUDIT] GUI user requested remediation but lacks admin privileges: {}", check_id);
-                                let _ = bg_event_tx.send(AgentEvent::Notification {
+                                if let Err(e) = bg_event_tx.send(AgentEvent::Notification {
                                     notification: GuiNotification {
                                         id: uuid::Uuid::new_v4(),
                                         title: "Privilèges insuffisants".to_string(),
@@ -863,7 +866,9 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                         read: false,
                                         action: None,
                                     },
-                                });
+                                }) {
+                                    error!("Failed to send notification event: {}", e);
+                                }
                             }
                         }
                         Ok(GuiCommand::RemediatePreview { check_id }) => {

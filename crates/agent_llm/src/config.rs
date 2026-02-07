@@ -245,7 +245,7 @@ impl LLMConfig {
 
     /// Validate configuration.
     pub fn validate(&self) -> Result<()> {
-        if self.model.path.exists() {
+        if !self.model.path.exists() {
             return Err(anyhow::anyhow!("Model file does not exist: {:?}", self.model.path));
         }
 

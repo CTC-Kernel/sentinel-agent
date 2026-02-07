@@ -76,12 +76,16 @@ impl MigrationManager {
         let source_machine_id = get_machine_id();
         let now = Utc::now();
 
-        // Build identity data (without hash) for hashing
+        // Build identity data (without hash) for hashing — includes all critical fields
+        let fingerprints_str = server_fingerprints.join(",");
         let identity_data = format!(
-            "{}:{}:{}:{}",
+            "{}:{}:{}:{}:{}:{}:{}",
             agent_id,
             organization_id,
             client_certificate,
+            client_private_key,
+            certificate_expires_at.to_rfc3339(),
+            fingerprints_str,
             now.to_rfc3339()
         );
 
@@ -145,12 +149,16 @@ impl MigrationManager {
             )));
         }
 
-        // Verify hash integrity
+        // Verify hash integrity — must match all fields used during export
+        let fingerprints_str = export.server_fingerprints.join(",");
         let identity_data = format!(
-            "{}:{}:{}:{}",
+            "{}:{}:{}:{}:{}:{}:{}",
             export.agent_id,
             export.organization_id,
             export.client_certificate,
+            export.client_private_key,
+            export.certificate_expires_at.to_rfc3339(),
+            fingerprints_str,
             export.exported_at.to_rfc3339()
         );
 

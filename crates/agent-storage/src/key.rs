@@ -11,7 +11,7 @@ use agent_common::config::AgentConfig;
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::{Path, PathBuf};
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
 /// Length of the encryption key in bytes (256 bits for AES-256).
 const KEY_LENGTH: usize = 32;
@@ -142,17 +142,23 @@ impl KeyManager {
     }
 
     /// Generate a new random encryption key using a CSPRNG.
+    ///
+    /// Returns an error if the platform CSPRNG is unavailable.
+    /// This function MUST NOT fall back to a weak key.
     fn generate_key() -> [u8; KEY_LENGTH] {
         use getrandom::getrandom;
 
         let mut key = [0u8; KEY_LENGTH];
 
         if let Err(e) = getrandom(&mut key) {
-            // getrandom should never fail on supported platforms.
-            // If it does, we must NOT fall back to a weak key — fail loudly.
+            // getrandom should never fail on supported platforms (Linux/macOS/Windows).
+            // If it does, the system's entropy source is broken — the agent cannot
+            // operate securely without cryptographic key material.
+            // We panic here rather than return Result because ALL callers require a key,
+            // and there is no safe degraded mode without encryption.
             panic!(
                 "CRITICAL: Failed to generate cryptographic key via getrandom: {}. \
-                 Cannot start agent without secure key generation.",
+                 The system's CSPRNG is unavailable. Cannot start agent without secure key generation.",
                 e
             );
         }
@@ -207,6 +213,9 @@ impl KeyManager {
 
         let mut data_out = CRYPT_INTEGER_BLOB::default();
 
+        // SAFETY: CryptUnprotectData is a Windows API that allocates output via LocalAlloc.
+        // We must check for null pointers AND validate cbData before any copy,
+        // then free the buffer with LocalFree regardless of success/failure.
         unsafe {
             CryptUnprotectData(
                 &mut data_in,
@@ -226,21 +235,26 @@ impl KeyManager {
                 ));
             }
 
-            if data_out.cbData as usize != KEY_LENGTH {
-                // Free the allocated memory
+            // Bounds check: verify DPAPI returned exactly KEY_LENGTH bytes
+            let decrypted_len = data_out.cbData as usize;
+            if decrypted_len != KEY_LENGTH {
+                // Free the allocated memory before returning error
                 windows::Win32::Foundation::LocalFree(windows::Win32::Foundation::HLOCAL(
                     data_out.pbData as *mut _,
                 ));
                 return Err(StorageError::KeyManagement(format!(
-                    "Invalid decrypted key size: expected {} bytes, got {}",
-                    KEY_LENGTH, data_out.cbData
+                    "Invalid decrypted key size: expected {} bytes, got {}. Key file may be corrupted.",
+                    KEY_LENGTH, decrypted_len
                 )));
             }
+
+            // Additional safety: ensure cbData doesn't exceed what we'll copy
+            debug_assert!(decrypted_len <= KEY_LENGTH, "bounds check should have caught this");
 
             let mut key = [0u8; KEY_LENGTH];
             std::ptr::copy_nonoverlapping(data_out.pbData, key.as_mut_ptr(), KEY_LENGTH);
 
-            // Free the allocated memory
+            // Free the DPAPI-allocated memory
             windows::Win32::Foundation::LocalFree(windows::Win32::Foundation::HLOCAL(
                 data_out.pbData as *mut _,
             ));
@@ -378,15 +392,11 @@ impl Default for KeyManager {
         match Self::new() {
             Ok(km) => km,
             Err(e) => {
-                // If initializing the real key manager fails, we MUST NOT return a default
-                // weak key in production. However, Default trait usually doesn't allow errors.
-                // We'll log a critical error and use a dummy key to prevent catastrophic failure,
-                // but any actual database access using this will fail.
-                warn!(
-                    "CRITICAL: Failed to initialize KeyManager: {}. Using volatile session-only key.",
+                panic!(
+                    "CRITICAL: Failed to initialize KeyManager: {}. \
+                     Cannot start agent without secure encryption key.",
                     e
                 );
-                Self::new_with_test_key()
             }
         }
     }
