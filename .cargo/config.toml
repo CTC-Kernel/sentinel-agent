@@ -15,8 +15,6 @@ ar = "x86_64-w64-mingw32-ar"
 [target.x86_64-unknown-linux-gnu]
 rustflags = ["-C", "link-args=-Wl,-z,relro,-z,now,-z,noexecstack"]
 
-[target.x86_64-unknown-linux-musl.env]
-
 # Security hardening: ASLR + DEP (Windows MSVC)
 [target.x86_64-pc-windows-msvc]
 rustflags = ["-C", "link-args=/DYNAMICBASE /NXCOMPAT /HIGHENTROPYVA"]
