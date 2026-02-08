@@ -108,7 +108,14 @@ fn main() -> ExitCode {
 
     // Determine if we'll launch the GUI (feature enabled + not headless).
     // GUI mode defers logging init to use the terminal-aware tracing subscriber.
-    let gui_mode = false; // GUI feature not yet enabled
+    #[cfg(feature = "gui")]
+    let gui_mode = match &cli.command {
+        Some(Commands::Run { no_tray }) => !no_tray,
+        None => true, // default mode = run with tray/GUI
+        _ => false,   // enroll, install, etc. don't use GUI
+    };
+    #[cfg(not(feature = "gui"))]
+    let gui_mode = false;
 
     if !gui_mode {
         init_logging(&cli.log_level);
