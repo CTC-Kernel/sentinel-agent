@@ -19,6 +19,8 @@ agent_llm = { path = "../agent_llm", optional = true }
 serde.workspace = true
 serde_json.workspace = true
 chrono.workspace = true
+regex.workspace = true
+once_cell.workspace = true
 uuid.workspace = true
 eframe = { workspace = true, optional = true }
 egui = { workspace = true, optional = true }
@@ -33,6 +35,7 @@ tracing = { workspace = true, optional = true }
 tokio = { workspace = true, optional = true }
 directories = { workspace = true, optional = true }
 hostname = { workspace = true, optional = true }
+sha2.workspace = true
 
 [dev-dependencies]
 serde_json.workspace = true
