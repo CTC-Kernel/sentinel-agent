@@ -21,7 +21,7 @@
   <Package
     Name="Sentinel Agent"
     Manufacturer="Cyber Threat Consulting"
-    Version="!(bind.FileVersion.SentinelAgentExe)"
+    Version="$(var.Version)"
     UpgradeCode="E8F3C2A1-4B5D-4E6F-8A9B-0C1D2E3F4A5B"
     Scope="perMachine">
 
