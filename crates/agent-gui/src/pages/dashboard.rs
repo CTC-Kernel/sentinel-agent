@@ -192,6 +192,7 @@ impl DashboardPage {
                 show_stats: false,
             };
 
+            // PERF: VecDeque→Vec copy every frame; cost is minimal (~300 * 16 = 4.8KB).
             let cpu_data: Vec<[f64; 2]> = state.monitoring.cpu_history.iter().copied().collect();
             widgets::sparkline_with_value(
                 ui,
@@ -215,6 +216,7 @@ impl DashboardPage {
                 show_stats: false,
             };
 
+            // PERF: VecDeque→Vec copy every frame; cost is minimal (~300 * 16 = 4.8KB).
             let mem_data: Vec<[f64; 2]> = state.monitoring.memory_history.iter().copied().collect();
             widgets::sparkline_with_value(
                 ui,
@@ -554,7 +556,7 @@ impl DashboardPage {
             );
             ui.label(
                 egui::RichText::new(label)
-                    .font(egui::FontId::proportional(8.0))
+                    .font(theme::font_caption())
                     .color(theme::text_tertiary()),
             );
         });

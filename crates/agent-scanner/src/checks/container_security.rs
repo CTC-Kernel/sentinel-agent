@@ -210,7 +210,7 @@ impl ContainerSecurityCheck {
 
                 // Running containers count
                 if let Some(running) = info.get("ContainersRunning").and_then(|v| v.as_u64()) {
-                    status.running_containers = running as u32;
+                    status.running_containers = u32::try_from(running).unwrap_or(u32::MAX);
                 }
             }
         }
@@ -483,7 +483,7 @@ impl ContainerSecurityCheck {
         status.secure = (status.rootless_mode || status.userns_remapped)
             && status.seccomp_enabled
             && status.privileged_containers.is_empty()
-            && (status.apparmor_enabled || status.selinux_enabled || cfg!(target_os = "macos"));
+            && (status.apparmor_enabled || status.selinux_enabled || std::env::consts::OS == "macos");
     }
 
     /// Main check logic.

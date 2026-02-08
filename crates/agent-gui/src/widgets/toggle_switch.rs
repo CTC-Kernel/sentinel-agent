@@ -34,14 +34,14 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
 
         // Track
         let track_rect = rect;
-        let rounding = CornerRadius::same((rect.height() / 2.0) as u8);
+        let rounding = CornerRadius::same((rect.height() / 2.0).min(255.0) as u8);
 
         // Track shadow/glow when on
         if anim_progress > 0.5 {
             let glow_alpha = (anim_progress - 0.5) * 2.0 * 0.15;
             ui.painter().rect_filled(
                 track_rect.expand(2.0),
-                CornerRadius::same((rect.height() / 2.0 + 2.0) as u8),
+                CornerRadius::same((rect.height() / 2.0 + 2.0).min(255.0) as u8),
                 bg_on.linear_multiply(glow_alpha),
             );
         }
@@ -54,7 +54,7 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
         ui.painter().rect_stroke(
             track_rect,
             rounding,
-            Stroke::new(0.5, Color32::from_white_alpha((border_alpha * 255.0) as u8)),
+            Stroke::new(0.5, Color32::from_white_alpha((border_alpha * 255.0_f32).clamp(0.0, 255.0) as u8)),
             egui::StrokeKind::Inside,
         );
 
@@ -90,12 +90,14 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
             knob_radius - 1.0,
             Stroke::new(
                 1.0,
-                Color32::from_white_alpha((50.0 * highlight_pulse) as u8),
+                Color32::from_white_alpha((50.0 * highlight_pulse).clamp(0.0, 255.0) as u8),
             ),
         );
 
-        // Request repaint for smooth animation
-        ui.ctx().request_repaint();
+        // Only request repaint while animation is still transitioning
+        if anim_progress > 0.0 && anim_progress < 1.0 {
+            ui.ctx().request_repaint();
+        }
     }
 
     response.on_hover_cursor(egui::CursorIcon::PointingHand)
@@ -105,9 +107,9 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
 fn lerp_color(a: Color32, b: Color32, t: f32) -> Color32 {
     let t = t.clamp(0.0, 1.0);
     Color32::from_rgba_unmultiplied(
-        ((a.r() as f32) * (1.0 - t) + (b.r() as f32) * t) as u8,
-        ((a.g() as f32) * (1.0 - t) + (b.g() as f32) * t) as u8,
-        ((a.b() as f32) * (1.0 - t) + (b.b() as f32) * t) as u8,
-        ((a.a() as f32) * (1.0 - t) + (b.a() as f32) * t) as u8,
+        ((a.r() as f32) * (1.0 - t) + (b.r() as f32) * t).clamp(0.0, 255.0) as u8,
+        ((a.g() as f32) * (1.0 - t) + (b.g() as f32) * t).clamp(0.0, 255.0) as u8,
+        ((a.b() as f32) * (1.0 - t) + (b.b() as f32) * t).clamp(0.0, 255.0) as u8,
+        ((a.a() as f32) * (1.0 - t) + (b.a() as f32) * t).clamp(0.0, 255.0) as u8,
     )
 }

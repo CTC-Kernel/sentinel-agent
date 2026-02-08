@@ -15,9 +15,9 @@ pub fn loading_skeleton(ui: &mut Ui, rows: usize) {
         let phase = (time * 1.5 + i as f32 * 0.15).sin() * 0.5 + 0.5;
         let base_alpha = 0.06 + phase * 0.04;
         let fill = if theme::is_dark_mode() {
-            Color32::from_white_alpha((base_alpha * 255.0) as u8)
+            Color32::from_white_alpha((base_alpha * 255.0).clamp(0.0, 255.0) as u8)
         } else {
-            Color32::from_black_alpha((base_alpha * 255.0) as u8)
+            Color32::from_black_alpha((base_alpha * 255.0).clamp(0.0, 255.0) as u8)
         };
 
         ui.painter()
@@ -33,9 +33,9 @@ pub fn loading_skeleton(ui: &mut Ui, rows: usize) {
             );
             let col_alpha = base_alpha * 1.5;
             let col_fill = if theme::is_dark_mode() {
-                Color32::from_white_alpha((col_alpha * 255.0) as u8)
+                Color32::from_white_alpha((col_alpha * 255.0).clamp(0.0, 255.0) as u8)
             } else {
-                Color32::from_black_alpha((col_alpha * 255.0) as u8)
+                Color32::from_black_alpha((col_alpha * 255.0).clamp(0.0, 255.0) as u8)
             };
             ui.painter()
                 .rect_filled(col_rect, CornerRadius::same(4), col_fill);

@@ -185,11 +185,11 @@ impl SystemUpdatesCheck {
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw_output) {
             // Pending updates
             if let Some(count) = json.get("PendingUpdatesCount").and_then(|v| v.as_u64()) {
-                status.pending_updates_count = count as u32;
+                status.pending_updates_count = u32::try_from(count).unwrap_or(u32::MAX);
             }
 
             if let Some(count) = json.get("PendingSecurityUpdates").and_then(|v| v.as_u64()) {
-                status.pending_security_updates = count as u32;
+                status.pending_security_updates = u32::try_from(count).unwrap_or(u32::MAX);
             }
 
             // Last install date
@@ -307,7 +307,7 @@ impl SystemUpdatesCheck {
 
             // Count upgradable packages (exclude header line)
             let upgradable: u32 =
-                result.lines().filter(|l| l.contains("upgradable")).count() as u32;
+                result.lines().filter(|l| l.contains("upgradable")).count().min(u32::MAX as usize) as u32;
             status.upgradable_packages = upgradable;
             status.pending_updates_count = upgradable;
 
@@ -315,7 +315,7 @@ impl SystemUpdatesCheck {
             let security: u32 = result
                 .lines()
                 .filter(|l| l.to_lowercase().contains("security"))
-                .count() as u32;
+                .count().min(u32::MAX as usize) as u32;
             status.pending_security_updates = security;
         }
 
@@ -352,7 +352,7 @@ impl SystemUpdatesCheck {
                 .push_str(&format!("=== dnf check-update ===\n{}\n", result));
 
             // Count lines (each non-empty line is an update)
-            let updates: u32 = result.lines().filter(|l| !l.trim().is_empty()).count() as u32;
+            let updates: u32 = result.lines().filter(|l| !l.trim().is_empty()).count().min(u32::MAX as usize) as u32;
             status.pending_updates_count = updates;
             status.upgradable_packages = updates;
         }
@@ -367,7 +367,7 @@ impl SystemUpdatesCheck {
                 .raw_output
                 .push_str(&format!("=== dnf security updates ===\n{}\n", result));
 
-            let security: u32 = result.lines().filter(|l| !l.trim().is_empty()).count() as u32;
+            let security: u32 = result.lines().filter(|l| !l.trim().is_empty()).count().min(u32::MAX as usize) as u32;
             status.pending_security_updates = security;
         }
 
@@ -403,7 +403,7 @@ impl SystemUpdatesCheck {
             let updates: u32 = result
                 .lines()
                 .filter(|l| !l.trim().is_empty() && !l.starts_with("Obsoleting"))
-                .count() as u32;
+                .count().min(u32::MAX as usize) as u32;
             status.pending_updates_count = updates;
             status.upgradable_packages = updates;
         }
@@ -418,7 +418,7 @@ impl SystemUpdatesCheck {
                 .raw_output
                 .push_str(&format!("=== yum security updates ===\n{}\n", result));
 
-            let security: u32 = result.lines().filter(|l| !l.trim().is_empty()).count() as u32;
+            let security: u32 = result.lines().filter(|l| !l.trim().is_empty()).count().min(u32::MAX as usize) as u32;
             status.pending_security_updates = security;
         }
 
@@ -469,7 +469,7 @@ impl SystemUpdatesCheck {
                 let updates: u32 = combined
                     .lines()
                     .filter(|l| l.trim().starts_with('*') || l.contains("Label:"))
-                    .count() as u32;
+                    .count().min(u32::MAX as usize) as u32;
                 status.pending_updates_count = updates;
                 status.upgradable_packages = updates;
 
@@ -477,7 +477,7 @@ impl SystemUpdatesCheck {
                 let security: u32 = combined
                     .lines()
                     .filter(|l| l.to_lowercase().contains("security"))
-                    .count() as u32;
+                    .count().min(u32::MAX as usize) as u32;
                 status.pending_security_updates = security;
 
                 // Check if "No new software available" message

@@ -106,9 +106,7 @@ impl<'a> TabBar<'a> {
                     0.0 // Auto-size
                 };
 
-                if let Some(idx) = self.render_underline_tab(ui, tab, is_selected, tab_width)
-                    && idx == i
-                {
+                if self.render_underline_tab(ui, tab, is_selected, tab_width).is_some() {
                     new_selection = Some(i);
                 }
             }
@@ -244,7 +242,7 @@ impl<'a> TabBar<'a> {
         }
 
         if response.clicked() && !tab.disabled {
-            Some(0) // Signal that this tab was clicked
+            Some(self.selected) // Return the currently selected index to signal a click
         } else {
             None
         }

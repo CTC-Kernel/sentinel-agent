@@ -391,8 +391,8 @@ impl InterfaceCollector {
             let value: f64 = parts[0].parse().ok()?;
             let unit = parts[1].to_lowercase();
             match unit.as_str() {
-                "gbps" => Some((value * 1000.0) as u32),
-                "mbps" => Some(value as u32),
+                "gbps" => Some((value * 1000.0).min(u32::MAX as f64) as u32),
+                "mbps" => Some(value.min(u32::MAX as f64) as u32),
                 _ => None,
             }
         } else {

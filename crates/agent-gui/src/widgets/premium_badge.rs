@@ -63,7 +63,7 @@ impl PremiumBadge {
         let (rect, response) = ui.allocate_exact_size(desired_size, Sense::hover());
 
         if ui.is_rect_visible(rect) {
-            let rounding = CornerRadius::same((rect.height() / 2.0) as u8);
+            let rounding = CornerRadius::same((rect.height() / 2.0).min(255.0) as u8);
 
             // Subtle shadow for depth (premium elevation)
             let shadow_color = self.color.linear_multiply(0.08);

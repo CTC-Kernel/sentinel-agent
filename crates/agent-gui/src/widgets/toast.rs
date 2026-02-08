@@ -192,7 +192,7 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
             egui::Rect::from_center_size(toast_center, egui::vec2(toast_width, toast_height));
 
         // Shadow (behind everything)
-        let shadow = theme::premium_shadow(16, (50.0 * alpha) as u8);
+        let shadow = theme::premium_shadow(16, (50.0 * alpha).clamp(0.0, 255.0) as u8);
         ui.painter()
             .add(shadow.as_shape(toast_rect, CornerRadius::same(12)));
 

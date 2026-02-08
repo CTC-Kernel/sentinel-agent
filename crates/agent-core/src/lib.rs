@@ -1719,6 +1719,7 @@ impl AgentRuntime {
                             .get_config::<u64>(agent_sync::config_keys::HEARTBEAT_INTERVAL_SECS)
                             .await
                         {
+                            let interval = interval.clamp(15, 3600);
                             let mut current = self.heartbeat_interval_secs.write().await;
                             if *current != interval {
                                 info!("Heartbeat interval updated: {}s → {}s", *current, interval);

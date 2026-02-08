@@ -481,8 +481,8 @@ impl UpdateService {
     /// Verify downloaded package integrity.
     pub async fn verify_package(&self, path: &Path, expected_hash: &str) -> SyncResult<bool> {
         if expected_hash.is_empty() {
-            warn!("No expected hash provided, skipping verification");
-            return Ok(true);
+            error!("No expected hash provided, rejecting unverifiable package");
+            return Ok(false);
         }
 
         info!("Verifying package integrity: {:?}", path);
@@ -496,7 +496,12 @@ impl UpdateService {
         let hash = hasher.finalize();
         let computed_hash = hex::encode(hash);
 
-        let valid = computed_hash.eq_ignore_ascii_case(expected_hash);
+        // Use constant-time comparison to prevent timing side-channel attacks
+        let valid = {
+            let a = computed_hash.to_lowercase();
+            let b = expected_hash.to_lowercase();
+            a.len() == b.len() && a.as_bytes().iter().zip(b.as_bytes()).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
+        };
 
         if valid {
             info!("Package integrity verified (SHA-256: {})", computed_hash);

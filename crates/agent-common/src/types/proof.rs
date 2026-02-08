@@ -69,11 +69,17 @@ impl Proof {
         }
     }
 
-    /// Verify the integrity of the proof data.
+    /// Verify the integrity of the proof data using constant-time comparison.
     pub fn verify_integrity(&self) -> bool {
         let data_json = serde_json::to_string(&self.data).unwrap_or_default();
         let computed_hash = compute_sha256(&data_json);
-        computed_hash == self.data_hash
+        computed_hash.len() == self.data_hash.len()
+            && computed_hash
+                .as_bytes()
+                .iter()
+                .zip(self.data_hash.as_bytes())
+                .fold(0u8, |acc, (a, b)| acc | (a ^ b))
+                == 0
     }
 
     /// Set the signature for tamper detection.

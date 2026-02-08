@@ -506,7 +506,7 @@ impl WindowsHardeningCheck {
     fn parse_reg_output(&self, output: &str, value_name: &str) -> Option<String> {
         for line in output.lines() {
             let line = line.trim();
-            if line.contains(value_name) {
+            if line.split_whitespace().any(|part| part == value_name) {
                 // Format: "ValueName    REG_TYPE    Data"
                 let parts: Vec<&str> = line.split_whitespace().collect();
                 if parts.len() >= 3 {
@@ -514,7 +514,7 @@ impl WindowsHardeningCheck {
                     let value = parts.last().unwrap_or(&"");
                     // Convert hex to decimal if needed
                     if value.starts_with("0x") {
-                        if let Ok(num) = u32::from_str_radix(&value[2..], 16) {
+                        if let Ok(num) = u32::from_str_radix(value.strip_prefix("0x").unwrap_or(value), 16) {
                             return Some(num.to_string());
                         }
                     }
@@ -532,7 +532,7 @@ impl WindowsHardeningCheck {
             return curr_num == exp_num;
         }
         // String comparison
-        current.eq_ignore_ascii_case(expected)
+        current == expected
     }
 
     #[cfg(not(target_os = "windows"))]

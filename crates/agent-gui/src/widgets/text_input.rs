@@ -289,10 +289,11 @@ pub fn text_input_with_options(
 
     // Character count if max_chars is set
     if let Some(max) = max_chars {
-        let count_text = format!("{}/{}", value.len(), max);
-        let count_color = if value.len() > max {
+        let char_count = value.chars().count();
+        let count_text = format!("{}/{}", char_count, max);
+        let count_color = if char_count > max {
             theme::ERROR
-        } else if value.len() > max * 9 / 10 {
+        } else if char_count > max * 9 / 10 {
             theme::WARNING
         } else {
             theme::text_tertiary()

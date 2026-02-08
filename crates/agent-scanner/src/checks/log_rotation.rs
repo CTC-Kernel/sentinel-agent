@@ -216,7 +216,7 @@ impl LogRotationCheck {
                 let count = entries
                     .filter_map(|e| e.ok())
                     .filter(|e| e.path().is_file())
-                    .count() as u32;
+                    .count().min(u32::MAX as usize) as u32;
                 status.config_file_count = Some(count);
                 status.raw_output.push_str(&format!(
                     "/etc/logrotate.d/ contains {} config files\n",
@@ -276,7 +276,7 @@ impl LogRotationCheck {
                         let trimmed = l.trim();
                         !trimmed.is_empty() && !trimmed.starts_with('#')
                     })
-                    .count() as u32;
+                    .count().min(u32::MAX as usize) as u32;
 
                 status.config_file_count = Some(active_entries);
                 status.configured = active_entries > 0;
@@ -306,7 +306,7 @@ impl LogRotationCheck {
                 let count = entries
                     .filter_map(|e| e.ok())
                     .filter(|e| e.path().is_file())
-                    .count() as u32;
+                    .count().min(u32::MAX as usize) as u32;
                 status.raw_output.push_str(&format!(
                     "/etc/newsyslog.d/ contains {} config files\n",
                     count

@@ -1,6 +1,6 @@
 //! Card container widget (elevated panel).
 
-use egui::{CornerRadius, Frame, Margin, Stroke, Ui, epaint::StrokeKind};
+use egui::{CornerRadius, Frame, Margin, Ui};
 
 use crate::theme;
 
