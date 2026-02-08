@@ -224,83 +224,99 @@ impl<'a, T> Dropdown<'a, T> {
                             let search_lower = search_text.to_lowercase();
                             let max_height = 200.0;
 
+                            // Filter options
+                            let filtered_options: Vec<(usize, &T)> = self
+                                .options
+                                .iter()
+                                .enumerate()
+                                .filter(|(_, option)| {
+                                    if !self.searchable || search_lower.is_empty() {
+                                        return true;
+                                    }
+                                    let text = (self.display_fn)(option);
+                                    text.to_lowercase().contains(&search_lower)
+                                })
+                                .collect();
+
+                            let row_height = 32.0;
                             egui::ScrollArea::vertical()
                                 .max_height(max_height)
-                                .show(ui, |ui| {
-                                    for (i, option) in self.options.iter().enumerate() {
-                                        let text = (self.display_fn)(option);
+                                .show_rows(
+                                    ui,
+                                    row_height,
+                                    filtered_options.len(),
+                                    |ui, row_range| {
+                                        for idx in row_range {
+                                            if idx >= filtered_options.len() {
+                                                continue;
+                                            }
+                                            let (i, option) = filtered_options[idx];
+                                            let text = (self.display_fn)(option);
 
-                                        // Filter by search
-                                        if self.searchable
-                                            && !search_lower.is_empty()
-                                            && !text.to_lowercase().contains(&search_lower)
-                                        {
-                                            continue;
-                                        }
-
-                                        let is_selected = i == self.selected;
-                                        let is_highlighted = highlight_idx == Some(i);
-                                        let option_response = ui.allocate_response(
-                                            egui::vec2(width - 16.0, 32.0),
-                                            Sense::click(),
-                                        );
-
-                                        if ui.is_rect_visible(option_response.rect) {
-                                            let is_hovered = option_response.hovered();
-
-                                            let bg = if is_selected {
-                                                theme::selected_bg()
-                                            } else if is_highlighted || is_hovered {
-                                                theme::hover_bg()
-                                            } else {
-                                                Color32::TRANSPARENT
-                                            };
-
-                                            ui.painter().rect_filled(
-                                                option_response.rect,
-                                                CornerRadius::same(4),
-                                                bg,
+                                            let is_selected = i == self.selected;
+                                            let is_highlighted = highlight_idx == Some(i);
+                                            let option_response = ui.allocate_response(
+                                                egui::vec2(width - 16.0, row_height),
+                                                Sense::click(),
                                             );
 
-                                            // Check mark for selected
-                                            if is_selected {
+                                            if ui.is_rect_visible(option_response.rect) {
+                                                let is_hovered = option_response.hovered();
+
+                                                let bg = if is_selected {
+                                                    theme::selected_bg()
+                                                } else if is_highlighted || is_hovered {
+                                                    theme::hover_bg()
+                                                } else {
+                                                    Color32::TRANSPARENT
+                                                };
+
+                                                ui.painter().rect_filled(
+                                                    option_response.rect,
+                                                    CornerRadius::same(4),
+                                                    bg,
+                                                );
+
+                                                // Check mark for selected
+                                                if is_selected {
+                                                    ui.painter().text(
+                                                        egui::pos2(
+                                                            option_response.rect.min.x + 8.0,
+                                                            option_response.rect.center().y,
+                                                        ),
+                                                        egui::Align2::LEFT_CENTER,
+                                                        icons::CHECK,
+                                                        theme::font_small(),
+                                                        theme::ACCENT,
+                                                    );
+                                                }
+
                                                 ui.painter().text(
                                                     egui::pos2(
-                                                        option_response.rect.min.x + 8.0,
+                                                        option_response.rect.min.x
+                                                            + if is_selected { 28.0 } else { 8.0 },
                                                         option_response.rect.center().y,
                                                     ),
                                                     egui::Align2::LEFT_CENTER,
-                                                    icons::CHECK,
-                                                    theme::font_small(),
-                                                    theme::ACCENT,
+                                                    &text,
+                                                    theme::font_body(),
+                                                    if is_selected {
+                                                        theme::ACCENT
+                                                    } else {
+                                                        theme::text_primary()
+                                                    },
                                                 );
                                             }
 
-                                            ui.painter().text(
-                                                egui::pos2(
-                                                    option_response.rect.min.x
-                                                        + if is_selected { 28.0 } else { 8.0 },
-                                                    option_response.rect.center().y,
-                                                ),
-                                                egui::Align2::LEFT_CENTER,
-                                                &text,
-                                                theme::font_body(),
-                                                if is_selected {
-                                                    theme::ACCENT
-                                                } else {
-                                                    theme::text_primary()
-                                                },
-                                            );
+                                            if option_response.clicked() {
+                                                new_selection = Some(i);
+                                                ui.memory_mut(|mem| {
+                                                    mem.data.insert_temp(self.id, false)
+                                                });
+                                            }
                                         }
-
-                                        if option_response.clicked() {
-                                            new_selection = Some(i);
-                                            ui.memory_mut(|mem| {
-                                                mem.data.insert_temp(self.id, false)
-                                            });
-                                        }
-                                    }
-                                });
+                                    },
+                                );
                         });
                 });
 

@@ -160,7 +160,7 @@ impl<'a> SyncQueueRepository<'a> {
         let entity_id = entry.entity_id;
         let payload = entry.payload.clone();
         let priority = entry.priority;
-        let max_attempts = entry.max_attempts as i32;
+        let max_attempts = entry.max_attempts.min(i32::MAX as u32) as i32;
 
         self.db
             .with_connection(|conn| {

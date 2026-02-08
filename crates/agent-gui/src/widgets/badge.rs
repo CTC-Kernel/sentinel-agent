@@ -111,7 +111,7 @@ impl<'a> Badge<'a> {
             ui.allocate_exact_size(egui::vec2(badge_w, badge_h), egui::Sense::hover());
 
         if ui.is_rect_visible(rect) {
-            let rounding = CornerRadius::same((badge_h / 2.0) as u8);
+            let rounding = CornerRadius::same((badge_h / 2.0).min(255.0) as u8);
 
             if self.outline {
                 // Outline: transparent bg, colored border

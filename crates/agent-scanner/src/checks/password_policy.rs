@@ -318,9 +318,8 @@ impl PasswordPolicyCheck {
                         status.complexity_required = Some(true);
 
                         // Parse inline minlen
-                        if let Some(pos) = line.find("minlen=") {
-                            let val_str = &line[pos + 7..];
-                            if let Some(val) = val_str.split_whitespace().next() {
+                        if let Some((_, rest)) = line.split_once("minlen=") {
+                            if let Some(val) = rest.split_whitespace().next() {
                                 if let Ok(v) = val.parse() {
                                     status.min_length = Some(v);
                                 }
@@ -335,9 +334,8 @@ impl PasswordPolicyCheck {
                         }
                         status.complexity_required = Some(true);
                     } else if line.contains("pam_unix.so") && line.contains("remember=") {
-                        if let Some(pos) = line.find("remember=") {
-                            let val_str = &line[pos + 9..];
-                            if let Some(val) = val_str.split_whitespace().next() {
+                        if let Some((_, rest)) = line.split_once("remember=") {
+                            if let Some(val) = rest.split_whitespace().next() {
                                 if let Ok(v) = val.parse() {
                                     status.history_count = Some(v);
                                 }
@@ -347,9 +345,8 @@ impl PasswordPolicyCheck {
 
                     // Check for faillock/pam_tally2
                     if line.contains("pam_faillock.so") || line.contains("pam_tally2.so") {
-                        if let Some(pos) = line.find("deny=") {
-                            let val_str = &line[pos + 5..];
-                            if let Some(val) = val_str.split_whitespace().next() {
+                        if let Some((_, rest)) = line.split_once("deny=") {
+                            if let Some(val) = rest.split_whitespace().next() {
                                 if let Ok(v) = val.parse() {
                                     status.lockout_threshold = Some(v);
                                 }
@@ -568,7 +565,7 @@ impl PasswordPolicyCheck {
         if line.contains("<integer>") {
             let start = line.find("<integer>")? + 9;
             let end = line.find("</integer>")?;
-            return line[start..end].parse().ok();
+            return line.get(start..end)?.parse().ok();
         }
 
         // Handle key=value format

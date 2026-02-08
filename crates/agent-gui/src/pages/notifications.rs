@@ -52,6 +52,11 @@ impl NotificationsPage {
                                 n.read = true;
                             }
                             state.unread_notification_count = 0;
+                            // TODO: Send a GuiCommand to notify the runtime that all
+                            // notifications were marked as read. Currently only
+                            // GuiCommand::MarkNotificationRead { notification_id }
+                            // exists (singular). A bulk MarkAllNotificationsRead
+                            // variant should be added to GuiCommand.
                         }
 
                         ui.add_space(theme::SPACE_SM);

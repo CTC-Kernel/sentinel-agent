@@ -55,9 +55,10 @@ impl SelfProtection {
         let startup_config_hash = compute_file_hash(&config_path).ok();
 
         if let Some(ref hash) = startup_binary_hash {
+            let hash_preview: String = hash.chars().take(16).collect();
             info!(
                 "Self-protection initialized. Binary hash: {}...",
-                &hash[..16]
+                hash_preview
             );
         }
 
@@ -79,10 +80,12 @@ impl SelfProtection {
         match compute_file_hash(&self.binary_path) {
             Ok(current) => {
                 if &current != expected {
+                    let expected_preview: String = expected.chars().take(16).collect();
+                    let current_preview: String = current.chars().take(16).collect();
                     error!(
                         "TAMPER DETECTED: Binary hash mismatch! Expected: {}..., Got: {}...",
-                        &expected[..16],
-                        &current[..16]
+                        expected_preview,
+                        current_preview
                     );
                     self.tampered.store(true, Ordering::Release);
                     false

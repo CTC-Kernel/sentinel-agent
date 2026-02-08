@@ -94,9 +94,17 @@ impl Proof {
     /// Verify the integrity of this proof by recomputing the hash.
     ///
     /// Returns true if the stored hash matches the computed hash.
+    /// Verify integrity using constant-time comparison.
     pub fn verify_integrity(&self) -> bool {
         let computed_hash = Self::compute_hash(self.check_result_id, &self.data, &self.created_at);
-        self.hash == computed_hash
+        self.hash.len() == computed_hash.len()
+            && self
+                .hash
+                .as_bytes()
+                .iter()
+                .zip(computed_hash.as_bytes())
+                .fold(0u8, |acc, (a, b)| acc | (a ^ b))
+                == 0
     }
 
     /// Get the hash as bytes (for binary comparisons).
@@ -187,7 +195,8 @@ impl<'a> ProofsRepository<'a> {
                 .map_err(|e| StorageError::Query(format!("Failed to insert proof: {}", e)))?;
 
                 let id = conn.last_insert_rowid();
-                debug!("Inserted proof with ID: {} (hash: {}...)", id, &hash[..16]);
+                let hash_preview = if hash.len() >= 16 { &hash[..16] } else { &hash };
+                debug!("Inserted proof with ID: {} (hash: {}...)", id, hash_preview);
                 Ok(id)
             })
             .await

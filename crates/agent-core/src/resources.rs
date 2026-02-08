@@ -264,7 +264,7 @@ impl ResourceMonitor {
         let usage = self.get_usage();
 
         // Improved activity detection: check if agent is actually performing work
-        let is_actively_working = self.is_actively_working();
+        let is_actively_working = self.is_actively_working_with(&usage);
         let should_use_active_limits = is_active && is_actively_working;
 
         let (cpu_limit, state_name) = if should_use_active_limits {
@@ -319,11 +319,11 @@ impl ResourceMonitor {
         within_limits
     }
 
-    /// Check if agent is actively working (scans, network activity, etc.)
-    fn is_actively_working(&self) -> bool {
+    /// Check if agent is actively working, using pre-obtained usage data.
+    /// Avoids a redundant `get_usage()` call when the caller already has usage.
+    fn is_actively_working_with(&self, usage: &ResourceUsage) -> bool {
         // Simple heuristic: if CPU > 15%, agent is likely doing work
         // This prevents false positives during normal system activity
-        let usage = self.get_usage();
         usage.cpu_percent > 15.0
     }
 
@@ -1133,6 +1133,14 @@ fn get_system_cpu() -> f64 {
         );
 
         if kr != libc::KERN_SUCCESS || info_array.is_null() {
+            return 0.0;
+        }
+
+        // Validate buffer bounds: info_count must cover num_cpus * CPU_STATE_MAX entries
+        let expected_count = (num_cpus as usize) * CPU_STATE_MAX;
+        if (info_count as usize) < expected_count {
+            let alloc_size = (info_count as usize) * std::mem::size_of::<integer_t>();
+            vm_deallocate(mach_task_self(), info_array as usize, alloc_size);
             return 0.0;
         }
 

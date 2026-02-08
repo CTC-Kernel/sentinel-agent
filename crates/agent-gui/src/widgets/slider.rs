@@ -146,7 +146,7 @@ impl Slider {
                 // Track background
                 painter.rect_filled(
                     track_rect,
-                    CornerRadius::same((track_height / 2.0) as u8),
+                    CornerRadius::same((track_height / 2.0).min(255.0) as u8),
                     theme::bg_tertiary(),
                 );
 
@@ -155,7 +155,7 @@ impl Slider {
                     egui::Rect::from_min_max(track_rect.min, egui::pos2(thumb_x, track_rect.max.y));
                 painter.rect_filled(
                     filled_rect,
-                    CornerRadius::same((track_height / 2.0) as u8),
+                    CornerRadius::same((track_height / 2.0).min(255.0) as u8),
                     accent,
                 );
 

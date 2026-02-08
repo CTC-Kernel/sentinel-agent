@@ -111,7 +111,14 @@ impl ProofGenerator {
         mac.update(data_json.as_bytes());
 
         let expected = hex::encode(mac.finalize().into_bytes());
-        signature == expected
+        // Constant-time comparison to prevent timing side-channel attacks
+        signature.len() == expected.len()
+            && signature
+                .as_bytes()
+                .iter()
+                .zip(expected.as_bytes())
+                .fold(0u8, |acc, (a, b)| acc | (a ^ b))
+                == 0
     }
 }
 
@@ -122,15 +129,25 @@ impl Default for ProofGenerator {
 }
 
 /// Compute SHA-256 hash of a string.
+///
+/// Returns raw hex-encoded hash (no prefix), consistent with
+/// agent-common and agent-storage implementations.
 pub fn compute_sha256(data: &str) -> String {
     let hash = Sha256::digest(data.as_bytes());
-    format!("sha256:{}", hex::encode(hash))
+    hex::encode(hash)
 }
 
-/// Verify a SHA-256 hash.
+/// Verify a SHA-256 hash using constant-time comparison.
 pub fn verify_sha256(data: &str, expected_hash: &str) -> bool {
-    let computed = compute_sha256(data);
-    computed.to_lowercase() == expected_hash.to_lowercase()
+    let computed = compute_sha256(data).to_lowercase();
+    let expected = expected_hash.to_lowercase();
+    computed.len() == expected.len()
+        && computed
+            .as_bytes()
+            .iter()
+            .zip(expected.as_bytes())
+            .fold(0u8, |acc, (a, b)| acc | (a ^ b))
+            == 0
 }
 
 #[cfg(test)]
@@ -171,7 +188,7 @@ mod tests {
 
         assert_eq!(proof.check_result_id, result_id);
         assert_eq!(proof.check_id, "disk_encryption");
-        assert!(proof.data_hash.starts_with("sha256:"));
+        assert_eq!(proof.data_hash.len(), 64); // raw hex SHA-256
         assert!(!proof.synced);
         assert!(proof.expires_at.is_some());
     }
@@ -238,8 +255,8 @@ mod tests {
     #[test]
     fn test_compute_sha256() {
         let hash = compute_sha256("test data");
-        assert!(hash.starts_with("sha256:"));
-        assert_eq!(hash.len(), 7 + 64); // "sha256:" + 64 hex chars
+        assert!(!hash.contains(':')); // raw hex, no prefix
+        assert_eq!(hash.len(), 64); // SHA-256 produces 64 hex chars
     }
 
     #[test]

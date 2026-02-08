@@ -150,7 +150,24 @@ impl LdapAuditor {
         uri: &str,
         config: &mut LdapSecurityConfig,
     ) -> ScannerResult<()> {
+        use crate::error::ScannerError;
         use tokio::process::Command;
+
+        // Reject URIs containing PowerShell metacharacters to prevent command injection
+        if uri.contains('$')
+            || uri.contains('`')
+            || uri.contains('"')
+            || uri.contains('\'')
+            || uri.contains(';')
+            || uri.contains('|')
+            || uri.contains('&')
+            || uri.contains('\n')
+            || uri.contains('\r')
+        {
+            return Err(ScannerError::CheckExecution(
+                "LDAP URI contains invalid characters".to_string(),
+            ));
+        }
 
         // Use PowerShell to probe LDAP/AD
         let output = Command::new("powershell")
@@ -214,8 +231,8 @@ impl LdapAuditor {
         }
 
         let host_port = uri_parts[1].trim_end_matches('/');
-        let (host, port) = if let Some(colon_pos) = host_port.rfind(':') {
-            (&host_port[..colon_pos], &host_port[colon_pos + 1..])
+        let (host, port) = if let Some((h, p)) = host_port.rsplit_once(':') {
+            (h, p)
         } else if uri.starts_with("ldaps://") {
             (host_port, "636")
         } else {

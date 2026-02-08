@@ -76,7 +76,7 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
                 center + Vec2::new(0.0, 16.0),
                 egui::Align2::CENTER_CENTER,
                 "CONFORMITÉ",
-                egui::FontId::proportional(8.0),
+                theme::font_caption(),
                 theme::text_tertiary(),
             );
         }

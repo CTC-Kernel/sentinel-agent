@@ -11,6 +11,11 @@ use egui::Ui;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
+use once_cell::sync::Lazy;
+use regex::Regex;
+
+static TOKEN_REGEX: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"^[a-zA-Z0-9]{5}(?:-[a-zA-Z0-9]{5}){2,}$").unwrap());
 
 // ============================================================================
 // State
@@ -428,6 +433,8 @@ impl EnrollmentWizard {
                                             .hint_text("xxxxx-xxxxx-xxxxx"),
                                     );
 
+
+
                                     // Toggle visibility button (FA icons instead of emoji)
                                     let vis_icon = if self.show_token {
                                         icons::EYE_SLASH
@@ -449,18 +456,30 @@ impl EnrollmentWizard {
                                     }
                                 });
                             });
+                        
+                        // Validation feedback
+                        let token = self.token_input.trim();
+                        if !token.is_empty() && !TOKEN_REGEX.is_match(token) {
+                            ui.add_space(4.0);
+                            ui.label(
+                                egui::RichText::new("Format invalide (attendu: xxxxx-xxxxx-xxxxx)")
+                                    .font(theme::font_min())
+                                    .color(theme::ERROR),
+                            );
+                        }
                     }
 
                     ui.add_space(theme::SPACE_LG);
 
                     // ACTIONS
-                    let has_input = if self.use_qr {
+                    let is_valid = if self.use_qr {
                         !self.qr_input.trim().is_empty()
                     } else {
-                        !self.token_input.trim().is_empty()
+                        let token = self.token_input.trim();
+                        !token.is_empty() && TOKEN_REGEX.is_match(token)
                     };
 
-                    ui.add_enabled_ui(has_input, |ui: &mut egui::Ui| {
+                    ui.add_enabled_ui(is_valid, |ui: &mut egui::Ui| {
                         let btn_txt = egui::RichText::new("ENRÔLER L'AGENT").size(14.0).strong();
                         // Custom Hero Button Loop
                         // Use corner_radius instead of rounding which is deprecated

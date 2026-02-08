@@ -111,8 +111,12 @@ impl IntegrityChecker {
             }
         };
 
-        // Compare hashes
-        let passed = current_hash.to_lowercase() == expected_hash.to_lowercase();
+        // Compare hashes using constant-time comparison to prevent timing side-channel
+        let passed = {
+            let a = current_hash.to_lowercase();
+            let b = expected_hash.to_lowercase();
+            a.len() == b.len() && a.as_bytes().iter().zip(b.as_bytes()).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
+        };
 
         let duration = start.elapsed();
         self.log_timing(duration.as_millis());
@@ -266,8 +270,9 @@ impl IntegrityChecker {
 
     /// Get a preview of a hash for logging (security: don't log full hash).
     fn hash_preview(hash: &str) -> String {
-        if hash.len() > 21 {
-            format!("{}...", &hash[..21])
+        if hash.chars().count() > 21 {
+            let s: String = hash.chars().take(21).collect();
+            format!("{}...", s)
         } else {
             hash.to_string()
         }

@@ -34,8 +34,8 @@ pub fn empty_state_with_action<F: FnOnce()>(
                 .color(theme::text_tertiary().linear_multiply(icon_alpha)),
         );
 
-        // Request repaint for smooth animation
-        ui.ctx().request_repaint();
+        // Limit breathing animation to ~10fps
+        ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
 
         ui.add_space(theme::SPACE_MD);
 

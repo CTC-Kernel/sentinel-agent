@@ -250,11 +250,11 @@ fn get_machine_id() -> Option<String> {
                 if line.contains("IOPlatformUUID")
                     && let Some(start) = line.find('"')
                 {
-                    let rest = &line[start + 1..];
+                    let rest = line.get(start + 1..).unwrap_or("");
                     if let Some(end) = rest.rfind('"') {
-                        let inner = &rest[..end];
+                        let inner = rest.get(..end).unwrap_or("");
                         if let Some(uuid_start) = inner.rfind('"') {
-                            return Some(inner[uuid_start + 1..].to_string());
+                            return inner.get(uuid_start + 1..).map(|s| s.to_string());
                         }
                     }
                 }

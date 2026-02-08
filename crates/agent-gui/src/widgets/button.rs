@@ -471,7 +471,7 @@ pub fn chip_button(ui: &mut Ui, text: &str, active: bool, color: Color32) -> Res
             )
         };
 
-        let rounding = CornerRadius::same((rect.height() / 2.0) as u8);
+        let rounding = CornerRadius::same((rect.height() / 2.0).min(255.0) as u8);
         ui.painter()
             .rect(rect, rounding, bg, stroke, StrokeKind::Inside);
 

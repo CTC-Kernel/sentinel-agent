@@ -73,8 +73,8 @@ impl TrayRadar {
         // 4. Labelling
         self.draw_labels(painter, center, radius);
 
-        // Request continuous repaint for animation
-        ui.ctx().request_repaint();
+        // Limit animation repaint to ~10fps
+        ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
     }
 
     fn draw_grid(&self, painter: &Painter, center: Pos2, radius: f32, steps: usize) {

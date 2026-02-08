@@ -639,10 +639,10 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
 }
 
 /// Helper for a premium deep shadow.
-pub fn premium_shadow(blur: u32, alpha: u8) -> Shadow {
+pub fn premium_shadow(blur: u8, alpha: u8) -> Shadow {
     Shadow {
         offset: [0, 4], // Slight vertical offset
-        blur: blur as u8,
+        blur,
         spread: 0,
         color: Color32::from_black_alpha(alpha),
     }

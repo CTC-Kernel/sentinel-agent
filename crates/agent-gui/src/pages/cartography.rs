@@ -95,7 +95,9 @@ impl CartographyPage {
                     if widgets::primary_button(ui, format!("VUE 3D {}", icons::EXTERNAL_LINK), true)
                         .clicked()
                     {
-                        let _ = open::that("https://app.cyber-threat-consulting.com/voxel");
+                        if let Err(e) = open::that(&state.settings.architecture_url) {
+                            tracing::warn!("Failed to open URL: {}", e);
+                        }
                     }
 
                     ui.add_space(theme::SPACE_MD);
@@ -140,10 +142,12 @@ impl CartographyPage {
             let layout = build_initial_layout(&state.discovery.devices);
             state.cartography.layout = Some(layout);
         }
-        let layout = state.cartography.layout.as_mut().unwrap();
+        let layout = state.cartography.layout.as_mut().expect("layout was just initialized above");
 
-        // Run force simulation
-        run_force_simulation(layout);
+        // Run force simulation only if not yet converged
+        if !layout.converged {
+            run_force_simulation(layout);
+        }
 
         // Graph viewport (AAA Grade)
         let canvas_size = egui::Vec2::new(ui.available_width(), 500.0);
@@ -415,7 +419,10 @@ impl CartographyPage {
         }
 
         ui.add_space(theme::SPACE_XL);
-        ui.ctx().request_repaint();
+        // Only request repaint while the force simulation is still converging
+        if !layout.converged {
+            ui.ctx().request_repaint();
+        }
         command
     }
 
@@ -447,6 +454,8 @@ impl CartographyPage {
 pub struct GraphLayout {
     nodes: Vec<GraphNode>,
     edges: Vec<GraphEdge>,
+    /// Whether the force simulation has converged (kinetic energy below threshold).
+    converged: bool,
 }
 
 fn device_type_color(device_type: &str) -> Color32 {
@@ -506,7 +515,7 @@ fn build_initial_layout(devices: &[GuiDiscoveredDevice]) -> GraphLayout {
         }
     }
 
-    GraphLayout { nodes, edges }
+    GraphLayout { nodes, edges, converged: false }
 }
 
 fn run_force_simulation(layout: &mut GraphLayout) {
@@ -587,4 +596,8 @@ fn run_force_simulation(layout: &mut GraphLayout) {
             }
         }
     }
+
+    // Check convergence: sum of velocity magnitudes
+    let total_kinetic: f32 = layout.nodes.iter().map(|n| n.vel.length()).sum();
+    layout.converged = total_kinetic < 0.1;
 }

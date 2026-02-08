@@ -53,7 +53,7 @@ pub fn sparkline(ui: &mut Ui, data: &[[f64; 2]], size: Vec2, config: &SparklineC
         return;
     }
 
-    let id = egui::Id::new(format!("sparkline_{:p}", data.as_ptr()));
+    let id = ui.id().with("sparkline");
 
     let plot = Plot::new(id)
         .height(size.y)

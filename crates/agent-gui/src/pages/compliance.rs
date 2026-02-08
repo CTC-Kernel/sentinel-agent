@@ -156,32 +156,40 @@ impl CompliancePage {
         let fail_active = state.compliance.status_filter == Some(GuiCheckStatus::Fail);
         let err_active = state.compliance.status_filter == Some(GuiCheckStatus::Error);
 
+        // PERF: skip filtering entirely when no search text and no status filter active,
+        // avoiding format!()/to_lowercase() allocations per check per frame.
         let search_lower = state.compliance.search.to_lowercase();
-        let filtered: Vec<usize> = state
-            .checks
-            .iter()
-            .enumerate()
-            .filter(|(_, c)| {
-                if !search_lower.is_empty() {
-                    let haystack = format!(
-                        "{} {} {}",
-                        c.name.to_lowercase(),
-                        c.category.to_lowercase(),
-                        c.check_id.to_lowercase()
-                    );
-                    if !haystack.contains(&search_lower) {
-                        return false;
+        let filtered: Vec<usize> = if search_lower.is_empty()
+            && state.compliance.status_filter.is_none()
+        {
+            (0..state.checks.len()).collect()
+        } else {
+            state
+                .checks
+                .iter()
+                .enumerate()
+                .filter(|(_, c)| {
+                    if !search_lower.is_empty() {
+                        let haystack = format!(
+                            "{} {} {}",
+                            c.name.to_lowercase(),
+                            c.category.to_lowercase(),
+                            c.check_id.to_lowercase()
+                        );
+                        if !haystack.contains(&search_lower) {
+                            return false;
+                        }
                     }
-                }
-                match state.compliance.status_filter {
-                    Some(GuiCheckStatus::Pass) => c.status == GuiCheckStatus::Pass,
-                    Some(GuiCheckStatus::Fail) => c.status == GuiCheckStatus::Fail,
-                    Some(GuiCheckStatus::Error) => c.status == GuiCheckStatus::Error,
-                    _ => true,
-                }
-            })
-            .map(|(i, _)| i)
-            .collect();
+                    match state.compliance.status_filter {
+                        Some(GuiCheckStatus::Pass) => c.status == GuiCheckStatus::Pass,
+                        Some(GuiCheckStatus::Fail) => c.status == GuiCheckStatus::Fail,
+                        Some(GuiCheckStatus::Error) => c.status == GuiCheckStatus::Error,
+                        _ => true,
+                    }
+                })
+                .map(|(i, _)| i)
+                .collect()
+        };
 
         let result_count = filtered.len();
 
@@ -237,19 +245,8 @@ impl CompliancePage {
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
                     if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
-                        let success = Self::export_csv(state, &filtered);
-                        let time = ui.input(|i| i.time);
-                        if success {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::success("Export CSV réussi")
-                                    .with_time(time),
-                            );
-                        } else {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::error("Échec de l'export CSV")
-                                    .with_time(time),
-                            );
-                        }
+                        Self::export_csv(state, &filtered);
+                        state.push_toast(crate::widgets::toast::Toast::info("Export CSV en cours..."), ui.ctx());
                     }
                 },
             );
@@ -624,16 +621,7 @@ impl CompliancePage {
             });
     }
 
-    fn export_csv(state: &AppState, indices: &[usize]) -> bool {
-        let headers = &[
-            "check_id",
-            "nom",
-            "categorie",
-            "statut",
-            "severite",
-            "score",
-            "frameworks",
-        ];
+    fn export_csv(state: &AppState, indices: &[usize]) {
         let rows: Vec<Vec<String>> = indices
             .iter()
             .map(|&i| {
@@ -650,13 +638,34 @@ impl CompliancePage {
                 ]
             })
             .collect();
-        let path = crate::export::default_export_path("conformite.csv");
-        match crate::export::export_csv(headers, &rows, &path) {
-            Ok(_) => true,
-            Err(e) => {
-                tracing::warn!("Export CSV failed: {}", e);
-                false
-            }
+
+        if let Some(tx) = state.async_task_tx.clone() {
+            std::thread::spawn(move || {
+                let headers = &[
+                    "check_id",
+                    "nom",
+                    "categorie",
+                    "statut",
+                    "severite",
+                    "score",
+                    "frameworks",
+                ];
+                let path = crate::export::default_export_path("conformite.csv");
+                match crate::export::export_csv(headers, &rows, &path) {
+                    Ok(_) => {
+                        if let Err(e) = tx.send(crate::app::AsyncTaskResult::CsvExport(true, "Export CSV réussi".to_string())) {
+                            tracing::warn!("Failed to send CSV export success: {}", e);
+                        }
+                    }
+                    Err(e) => {
+                        if let Err(send_err) = tx.send(crate::app::AsyncTaskResult::CsvExport(false, format!("Échec export: {}", e))) {
+                            tracing::warn!("Failed to send CSV export error: {}", send_err);
+                        }
+                    }
+                }
+            });
+        } else {
+            tracing::error!("Dysfonctionnement interne: Canal async non disponible");
         }
     }
 

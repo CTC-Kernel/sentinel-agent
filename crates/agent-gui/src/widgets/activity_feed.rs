@@ -85,14 +85,15 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
                             .color(theme::SUCCESS.linear_multiply(0.7)),
                     );
 
-                    ui.ctx().request_repaint();
+                    // Limit LIVE indicator animation to ~10fps
+                    ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
                 },
             );
         });
 
         ui.add_space(theme::SPACE_SM);
 
-        // Build events from state
+        // PERF: events rebuilt every frame — consider caching with dirty tracking
         let events = build_events_from_state(state);
 
         if events.is_empty() {

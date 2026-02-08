@@ -29,8 +29,6 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-const DnDCalendar = withDragAndDrop<CalendarEvent>(Calendar);
-
 const messages = {
   allDay: 'Journée',
   previous: 'Précédent',
@@ -179,6 +177,8 @@ const CustomToolbar = (toolbar: ToolbarProps<CalendarEvent>, { view, setView, se
 };
 
 export const CalendarDashboard: React.FC = () => {
+  // Create DnDCalendar inside the component to avoid TDZ errors in code-split chunks
+  const DnDCalendar = withDragAndDrop<CalendarEvent>(Calendar);
   const { user, t } = useStore();
   const { dateFnsLocale } = useLocale();
   const [events, setEvents] = useState<CalendarEvent[]>([]);

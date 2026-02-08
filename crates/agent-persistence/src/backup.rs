@@ -118,13 +118,13 @@ impl BackupManager {
         let backup_filename = format!(
             "sentinel-{}-{}.{}",
             now.format("%Y%m%d-%H%M%S"),
-            &backup_id[..8],
+            &backup_id.chars().take(8).collect::<String>(),
             BACKUP_EXTENSION
         );
         let metadata_filename = format!(
             "sentinel-{}-{}.{}",
             now.format("%Y%m%d-%H%M%S"),
-            &backup_id[..8],
+            &backup_id.chars().take(8).collect::<String>(),
             METADATA_EXTENSION
         );
 
@@ -205,7 +205,7 @@ impl BackupManager {
         let backup_filename = format!(
             "sentinel-{}-{}.{}",
             metadata.created_at.format("%Y%m%d-%H%M%S"),
-            &metadata.id[..8],
+            &metadata.id.chars().take(8).collect::<String>(),
             BACKUP_EXTENSION
         );
         let backup_path = self.backup_dir.join(&backup_filename);
@@ -347,13 +347,13 @@ impl BackupManager {
             let backup_filename = format!(
                 "sentinel-{}-{}.{}",
                 backup.created_at.format("%Y%m%d-%H%M%S"),
-                &backup.id[..8],
+                &backup.id.chars().take(8).collect::<String>(),
                 BACKUP_EXTENSION
             );
             let metadata_filename = format!(
                 "sentinel-{}-{}.{}",
                 backup.created_at.format("%Y%m%d-%H%M%S"),
-                &backup.id[..8],
+                &backup.id.chars().take(8).collect::<String>(),
                 METADATA_EXTENSION
             );
 
@@ -453,7 +453,7 @@ mod tests {
         let backup_filename = format!(
             "sentinel-{}-{}.{}",
             metadata.created_at.format("%Y%m%d-%H%M%S"),
-            &metadata.id[..8],
+            &metadata.id.chars().take(8).collect::<String>(),
             BACKUP_EXTENSION
         );
         let backup_path = backup_dir.join(&backup_filename);

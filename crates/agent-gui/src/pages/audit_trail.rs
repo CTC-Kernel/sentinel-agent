@@ -28,7 +28,27 @@ impl AuditTrailPage {
         ui.add_space(theme::SPACE_LG);
 
         // Filters (AAA Grade)
-        let n_items = state.logs.len();
+        // Count filtered results (matching the same logic as render_table)
+        let n_items = state
+            .logs
+            .iter()
+            .filter(|log| {
+                if let Some(ref filter) = state.audit_trail_filter {
+                    if log.level.to_lowercase() != filter.to_lowercase() {
+                        return false;
+                    }
+                }
+                if !state.audit_trail_search.is_empty() {
+                    let search = state.audit_trail_search.to_lowercase();
+                    return log.message.to_lowercase().contains(&search)
+                        || log
+                            .source
+                            .as_ref()
+                            .is_some_and(|s| s.to_lowercase().contains(&search));
+                }
+                true
+            })
+            .count();
         let toggled = widgets::SearchFilterBar::new(
             &mut state.audit_trail_search,
             "RECHERCHER UN ÉVÉNEMENT...",
