@@ -108,11 +108,9 @@ fn draw_premium_button(
                 Color32::TRANSPARENT
             };
 
-            // Border logic
+            // Border logic: simplified, no emphasis on hover
             let stroke = if !enabled {
                 Stroke::new(1.0, theme::border().linear_multiply(0.5))
-            } else if is_secondary_outline_visible(ui, is_hovered) {
-                Stroke::new(1.0, theme::text_tertiary())
             } else {
                 Stroke::new(1.0, theme::border())
             };
@@ -219,10 +217,6 @@ fn draw_premium_button(
     }
 }
 
-/// Helper to determine if secondary border should be emphasized
-fn is_secondary_outline_visible(_ui: &Ui, hovered: bool) -> bool {
-    hovered || theme::is_dark_mode() // Always show outline in dark mode for contrast? Or just subtle.
-}
 
 // ============================================================================
 // NEW BUTTON VARIANTS
