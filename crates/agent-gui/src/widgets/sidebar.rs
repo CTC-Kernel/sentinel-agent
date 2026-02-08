@@ -348,11 +348,7 @@ impl Sidebar {
                     rect_shrunk,
                     CornerRadius::same(theme::BUTTON_ROUNDING),
                     fill,
-                    if is_current {
-                        egui::Stroke::new(1.0, theme::border().linear_multiply(1.5))
-                    } else {
-                        egui::Stroke::NONE
-                    },
+                    egui::Stroke::NONE,
                     egui::epaint::StrokeKind::Inside,
                 );
             }
