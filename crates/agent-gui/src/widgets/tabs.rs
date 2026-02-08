@@ -205,7 +205,7 @@ impl<'a> TabBar<'a> {
                 text_color,
             );
 
-            // Badge
+            // Badge (unified design system)
             if let Some(count) = tab.badge {
                 let badge_text = if count > 99 {
                     "99+".to_string()
@@ -216,13 +216,20 @@ impl<'a> TabBar<'a> {
                     egui::pos2(rect.max.x - padding.x - 10.0, rect.center().y),
                     egui::vec2(20.0, 18.0),
                 );
-                painter.rect_filled(badge_rect, CornerRadius::same(9), theme::ERROR);
+                let rounding = CornerRadius::same(9);
+                painter.rect_filled(badge_rect, rounding, theme::badge_bg(theme::ERROR));
+                painter.rect_stroke(
+                    badge_rect,
+                    rounding,
+                    egui::Stroke::new(0.5, theme::badge_border(theme::ERROR)),
+                    egui::StrokeKind::Inside,
+                );
                 painter.text(
                     badge_rect.center(),
                     egui::Align2::CENTER_CENTER,
                     badge_text,
                     theme::font_label(),
-                    Color32::WHITE,
+                    theme::badge_text(theme::ERROR),
                 );
             }
 
