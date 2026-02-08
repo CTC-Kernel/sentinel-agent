@@ -138,7 +138,7 @@ impl Skeleton {
 
             let rounding = match self.shape {
                 SkeletonShape::Rectangle => CornerRadius::same(4),
-                SkeletonShape::Circle => CornerRadius::same((self.width / 2.0) as u8),
+                SkeletonShape::Circle => CornerRadius::same((self.width / 2.0).min(255.0) as u8),
                 SkeletonShape::Rounded => CornerRadius::same(8),
             };
 

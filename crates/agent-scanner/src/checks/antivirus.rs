@@ -218,7 +218,9 @@ impl AntivirusCheck {
             .first()
             .cloned()
             .unwrap_or_else(|| "Unknown".to_string());
-        av_names.remove(0);
+        if !av_names.is_empty() {
+            av_names.remove(0);
+        }
 
         // productState bit flags: bit 12 = enabled, bit 4 = up to date
         let enabled = products

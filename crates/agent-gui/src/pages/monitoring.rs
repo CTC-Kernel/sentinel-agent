@@ -417,7 +417,8 @@ impl MonitoringPage {
             }
         });
 
-        ui.ctx().request_repaint();
+        // Charts update every second; no need for max-FPS repainting
+        ui.ctx().request_repaint_after(std::time::Duration::from_millis(1000));
     }
 
     fn export_metrics_csv(state: &AppState) {

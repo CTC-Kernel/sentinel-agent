@@ -570,7 +570,9 @@ impl BackupCheck {
         if trimmed.len() >= 10 {
             // Look for YYYY-MM-DD pattern anywhere in the string
             for i in 0..=(trimmed.len() - 10) {
-                let slice = &trimmed[i..i + 10];
+                let Some(slice) = trimmed.get(i..i + 10) else {
+                    continue;
+                };
                 if let Ok(d) = chrono::NaiveDate::parse_from_str(slice, "%Y-%m-%d") {
                     return Some(DateTime::from_naive_utc_and_offset(
                         d.and_hms_opt(0, 0, 0).unwrap(),
@@ -688,12 +690,11 @@ impl BackupCheck {
         if let Some(last) = parts.last() {
             // Format: 2024-01-15-120000
             if last.len() >= 10 {
-                let date_part = &last[..10];
-                let time_part = if last.len() > 10 {
-                    &last[11..]
-                } else {
-                    "000000"
+                let date_part = match last.get(..10) {
+                    Some(s) => s,
+                    None => return None,
                 };
+                let time_part = last.get(11..).unwrap_or("000000");
 
                 let datetime_str = format!("{} {}", date_part, time_part);
                 if let Ok(dt) =

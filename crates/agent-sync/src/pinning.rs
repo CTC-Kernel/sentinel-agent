@@ -133,8 +133,9 @@ impl CertificatePinning {
 
         // Log first few characters of each pin for debugging (not full pin for security)
         for (i, pin) in pins.iter().enumerate() {
-            let preview = if pin.len() > 20 {
-                format!("{}...", &pin[..20])
+            let preview = if pin.chars().count() > 20 {
+                let s: String = pin.chars().take(20).collect();
+                format!("{}...", s)
             } else {
                 pin.clone()
             };
@@ -241,8 +242,9 @@ impl CertificatePinning {
 
     /// Get a preview of a fingerprint for logging (partial, for security).
     fn fingerprint_preview(fingerprint: &str) -> String {
-        if fingerprint.len() > 24 {
-            format!("{}...", &fingerprint[..24])
+        if fingerprint.chars().count() > 24 {
+            let s: String = fingerprint.chars().take(24).collect();
+            format!("{}...", s)
         } else {
             fingerprint.to_string()
         }

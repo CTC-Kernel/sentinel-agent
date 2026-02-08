@@ -344,9 +344,22 @@ impl OfflineTracker {
         self.queued_count.fetch_add(1, Ordering::Relaxed);
     }
 
-    /// Decrement queued item count.
+    /// Decrement queued item count (saturating to prevent underflow).
     pub fn decrement_queued(&self) {
-        self.queued_count.fetch_sub(1, Ordering::Relaxed);
+        // Use compare-exchange loop to saturate at 0 instead of wrapping
+        loop {
+            let current = self.queued_count.load(Ordering::Relaxed);
+            if current == 0 {
+                return;
+            }
+            if self
+                .queued_count
+                .compare_exchange_weak(current, current - 1, Ordering::Relaxed, Ordering::Relaxed)
+                .is_ok()
+            {
+                return;
+            }
+        }
     }
 }
 

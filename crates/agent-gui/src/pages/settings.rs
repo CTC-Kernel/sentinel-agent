@@ -1,6 +1,7 @@
 //! Settings page.
 
 use egui::Ui;
+use sha2::{Digest, Sha256};
 
 use crate::app::AppState;
 use crate::dto::GuiAgentStatus;
@@ -8,6 +9,21 @@ use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
+
+/// Verify an admin password attempt against a stored SHA-256 hash.
+/// Uses constant-time comparison to prevent timing side-channel attacks.
+fn verify_admin_password(attempt: &str, expected_hash: &str) -> bool {
+    let mut hasher = Sha256::new();
+    hasher.update(attempt.as_bytes());
+    let computed = format!("{:x}", hasher.finalize());
+    computed.len() == expected_hash.len()
+        && computed
+            .as_bytes()
+            .iter()
+            .zip(expected_hash.as_bytes())
+            .fold(0u8, |acc, (a, b)| acc | (a ^ b))
+            == 0
+}
 
 pub struct SettingsPage;
 
@@ -307,6 +323,44 @@ impl SettingsPage {
 
         ui.add_space(theme::SPACE);
 
+        // Architecture URL Config (AAA Grade)
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("CONFIGURATION ARCHITECTURE")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(0.5)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            ui.label(
+                egui::RichText::new("URL de la vue d'architecture 3D / Voxel")
+                    .font(theme::font_min())
+                    .color(theme::text_secondary()),
+            );
+            ui.add_space(theme::SPACE_SM);
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.add(
+                    egui::TextEdit::singleline(&mut state.settings.architecture_url)
+                        .hint_text("https://...")
+                        .desired_width(ui.available_width() - 30.0),
+                );
+                if !state.settings.architecture_url.is_empty() {
+                    ui.label(egui::RichText::new(icons::CHECK).color(theme::SUCCESS));
+                }
+            });
+            ui.add_space(theme::SPACE_XS);
+            ui.label(
+                egui::RichText::new("Lien vers la visualisation externe ou le jumeau numérique.")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary()),
+            );
+        });
+
+        ui.add_space(theme::SPACE);
+
         // Bottom cards section with responsive layout
         Self::show_bottom_cards(ui, state, &mut command);
 
@@ -343,7 +397,7 @@ impl SettingsPage {
                     ui.set_width(col_w);
                     Self::cloud_access_card(ui, state, command);
                     ui.add_space(theme::SPACE);
-                    Self::danger_zone_card(ui, command);
+                    Self::danger_zone_card(ui, state, command);
                 });
             });
         } else {
@@ -357,7 +411,7 @@ impl SettingsPage {
                     ui.add_space(theme::SPACE);
                     Self::cloud_access_card(ui, state, command);
                     ui.add_space(theme::SPACE);
-                    Self::danger_zone_card(ui, command);
+                    Self::danger_zone_card(ui, state, command);
                 });
         }
     }
@@ -455,8 +509,86 @@ impl SettingsPage {
         });
     }
 
-    fn danger_zone_card(ui: &mut Ui, command: &mut Option<GuiCommand>) {
+    fn danger_zone_card(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
         let confirm_id = ui.make_persistent_id("quit_confirm");
+        // Modal state: (is_open, password_input, error_msg)
+        let unlock_modal_id = ui.make_persistent_id("admin_unlock_modal");
+        let mut modal_state: (bool, String, Option<String>) = ui.memory(|mem| 
+            mem.data.get_temp(unlock_modal_id).unwrap_or((false, String::new(), None))
+        );
+
+        if modal_state.0 {
+            let ctx = ui.ctx().clone();
+            egui::Window::new("DÉVERROUILLAGE ADMIN")
+                .collapsible(false)
+                .resizable(false)
+                .anchor(egui::Align2::CENTER_CENTER, egui::Vec2::ZERO)
+                .show(&ctx, |ui| {
+                    ui.set_min_width(320.0);
+                    ui.vertical_centered(|ui| {
+                        ui.add_space(theme::SPACE_MD);
+                        ui.label(egui::RichText::new(icons::LOCK).size(32.0).color(theme::ACCENT));
+                        ui.add_space(theme::SPACE_MD);
+                        ui.label(egui::RichText::new("Authentification Requise").font(theme::font_heading()).strong());
+                        ui.add_space(theme::SPACE_XS);
+                        ui.label("Saisissez le mot de passe administrateur pour accéder à cette zone.");
+                        ui.add_space(theme::SPACE_MD);
+                        
+                        let resp = ui.add(egui::TextEdit::singleline(&mut modal_state.1)
+                            .password(true)
+                            .hint_text("Mot de passe")
+                            .desired_width(200.0)
+                        );
+                        
+                        // Autofocus
+                        resp.request_focus();
+
+                        if resp.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+                            // Validate
+                            // Validate password against SHA-256 hash (not plaintext)
+                            if verify_admin_password(&modal_state.1, &state.settings.admin_password_sha256) {
+                                state.security.admin_unlocked = true;
+                                state.security.last_unlock = Some(chrono::Utc::now());
+                                modal_state.0 = false;
+                                modal_state.1.clear();
+                                modal_state.2 = None;
+                            } else {
+                                modal_state.2 = Some("Mot de passe incorrect".to_string());
+                            }
+                        }
+
+                        if let Some(err) = &modal_state.2 {
+                            ui.add_space(theme::SPACE_XS);
+                            ui.label(egui::RichText::new(err).color(theme::ERROR).font(theme::font_small()));
+                        }
+
+                        ui.add_space(theme::SPACE_LG);
+                        ui.horizontal(|ui| {
+                            if widgets::secondary_button(ui, "ANNULER", true).clicked() {
+                                modal_state.0 = false;
+                                modal_state.1.clear();
+                                modal_state.2 = None;
+                            }
+                            ui.add_space(theme::SPACE_SM);
+                            if widgets::primary_button(ui, "DÉVERROUILLER", true).clicked() {
+                                if verify_admin_password(&modal_state.1, &state.settings.admin_password_sha256) {
+                                    state.security.admin_unlocked = true;
+                                    state.security.last_unlock = Some(chrono::Utc::now());
+                                    modal_state.0 = false;
+                                    modal_state.1.clear();
+                                    modal_state.2 = None;
+                                } else {
+                                    modal_state.2 = Some("Mot de passe incorrect".to_string());
+                                }
+                            }
+                        });
+                    });
+                });
+            
+            // Save state back
+            ui.memory_mut(|mem| mem.data.insert_temp(unlock_modal_id, modal_state));
+        }
+
         let confirming = ui.memory(|mem| mem.data.get_temp::<bool>(confirm_id).unwrap_or(false));
 
         widgets::card(ui, |ui: &mut egui::Ui| {
@@ -469,50 +601,74 @@ impl SettingsPage {
             );
             ui.add_space(theme::SPACE_MD);
 
-            if confirming {
-                // Confirmation state
-                ui.label(
-                    egui::RichText::new("ÊTES-VOUS SÛR DE VOULOIR QUITTER L'AGENT ?")
-                        .font(theme::font_min())
-                        .color(theme::ERROR)
-                        .strong(),
-                );
+            if !state.security.admin_unlocked {
+                // Locked State
+                ui.horizontal(|ui| {
+                    ui.label(
+                        egui::RichText::new(format!("{}  MODE VERROUILLÉ", icons::LOCK))
+                            .font(theme::font_body())
+                            .color(theme::text_secondary())
+                    );
+                    
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        if widgets::button::secondary_button(ui, "DÉVERROUILLER (ADMIN)", true).clicked() {
+                             ui.memory_mut(|mem| mem.data.insert_temp(unlock_modal_id, (true, String::new(), None::<String>)));
+                        }
+                    });
+                });
                 ui.add_space(theme::SPACE_XS);
                 ui.label(
-                    egui::RichText::new("L'agent cessera de protéger ce poste de travail.")
-                        .font(theme::font_label())
-                        .color(theme::text_secondary()),
+                     egui::RichText::new("L'accès aux paramétres critiques nécessite une authentification administrateur.")
+                        .font(theme::font_small())
+                        .color(theme::text_tertiary())
                 );
-                ui.add_space(theme::SPACE_MD);
+            } else {
+                // Unlocked State (Existing Content)
+                if confirming {
+                    // Confirmation state
+                    ui.label(
+                        egui::RichText::new("ÊTES-VOUS SÛR DE VOULOIR QUITTER L'AGENT ?")
+                            .font(theme::font_min())
+                            .color(theme::ERROR)
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE_XS);
+                    ui.label(
+                        egui::RichText::new("L'agent cessera de protéger ce poste de travail.")
+                            .font(theme::font_label())
+                            .color(theme::text_secondary()),
+                    );
+                    ui.add_space(theme::SPACE_MD);
 
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    if widgets::secondary_button(ui, "ANNULER", true).clicked() {
-                        ui.memory_mut(|mem| mem.data.insert_temp(confirm_id, false));
-                    }
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        if widgets::secondary_button(ui, "ANNULER", true).clicked() {
+                            ui.memory_mut(|mem| mem.data.insert_temp(confirm_id, false));
+                        }
 
-                    ui.add_space(theme::SPACE_SM);
+                        ui.add_space(theme::SPACE_SM);
 
+                        if widgets::destructive_button(
+                            ui,
+                            format!("{}  CONFIRMER L'ARRÊT", icons::POWER_OFF),
+                            true,
+                        )
+                        .clicked()
+                        {
+                            ui.memory_mut(|mem| mem.data.insert_temp(confirm_id, false));
+                            *command = Some(GuiCommand::Shutdown);
+                        }
+                    });
+                } else {
+                    // Normal state
                     if widgets::destructive_button(
                         ui,
-                        format!("{}  CONFIRMER L'ARRÊT", icons::POWER_OFF),
+                        format!("{}  QUITTER L'AGENT SENTINEL", icons::POWER_OFF),
                         true,
                     )
                     .clicked()
                     {
-                        ui.memory_mut(|mem| mem.data.insert_temp(confirm_id, false));
-                        *command = Some(GuiCommand::Shutdown);
+                        ui.memory_mut(|mem| mem.data.insert_temp(confirm_id, true));
                     }
-                });
-            } else {
-                // Normal state
-                if widgets::destructive_button(
-                    ui,
-                    format!("{}  QUITTER L'AGENT SENTINEL", icons::POWER_OFF),
-                    true,
-                )
-                .clicked()
-                {
-                    ui.memory_mut(|mem| mem.data.insert_temp(confirm_id, true));
                 }
             }
         });

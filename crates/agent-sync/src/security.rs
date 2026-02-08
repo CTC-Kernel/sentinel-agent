@@ -147,8 +147,8 @@ impl LogSigner {
             // Check sequence
             if entry.sequence != expected_seq {
                 errors.push(format!(
-                    "Sequence mismatch at {}: expected {}, got {}",
-                    entry.sequence, expected_seq, entry.sequence
+                    "Sequence mismatch: expected {}, got {}",
+                    expected_seq, entry.sequence
                 ));
             }
 
@@ -572,11 +572,11 @@ impl SignatureValidator {
         Ok(())
     }
 
-    /// Check if a signer is trusted.
+    /// Check if a signer is trusted (exact match only, case-insensitive).
     pub fn is_trusted_signer(&self, signer: &str) -> bool {
         self.trusted_signers
             .iter()
-            .any(|s| s.eq_ignore_ascii_case(signer) || signer.contains(s))
+            .any(|s| s.eq_ignore_ascii_case(signer))
     }
 }
 

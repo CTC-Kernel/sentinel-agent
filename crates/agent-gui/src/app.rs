@@ -82,6 +82,11 @@ use crate::theme;
 use crate::tray_bridge::{TrayAction, TrayBridge};
 use crate::widgets;
 
+/// Results from background async tasks initiated by the UI.
+pub enum AsyncTaskResult {
+    CsvExport(bool, String),
+}
+
 // ============================================================================
 // Router
 // ============================================================================
@@ -133,6 +138,9 @@ pub struct AppState {
     pub vulnerability_summary: Option<GuiVulnerabilitySummary>,
     pub vulnerability_findings: Vec<GuiVulnerabilityFinding>,
 
+    // Channel to send async task results back to the main thread
+    pub async_task_tx: Option<std::sync::mpsc::Sender<AsyncTaskResult>>,
+
     // ── Domain sub-states ──
     pub network: crate::state::NetworkState,
     pub discovery: crate::state::DiscoveryState,
@@ -146,6 +154,7 @@ pub struct AppState {
     pub vulnerability: crate::state::VulnerabilityFilter,
     pub software: crate::state::SoftwareState,
     pub settings: crate::state::SettingsState,
+    pub security: crate::state::SecurityState,
 
     // ── Remaining top-level fields ──
     pub notifications: Vec<crate::dto::GuiNotification>,
@@ -194,6 +203,7 @@ impl Default for AppState {
             },
             vulnerability_summary: None,
             vulnerability_findings: Vec::new(),
+            async_task_tx: None,
             network: Default::default(),
             discovery: Default::default(),
             cartography: Default::default(),
@@ -206,6 +216,7 @@ impl Default for AppState {
             vulnerability: Default::default(),
             software: Default::default(),
             settings: Default::default(),
+            security: Default::default(),
             notifications: Vec::new(),
             unread_notification_count: 0,
             previous_compliance_score: None,
@@ -256,6 +267,9 @@ pub struct SentinelApp {
 
     // Enrollment channel (sent back to runtime).
     enrollment_tx: mpsc::Sender<EnrollmentCommand>,
+
+    // Async task results channel (internal UI tasks).
+    async_results_rx: mpsc::Receiver<AsyncTaskResult>,
 
     // Tray bridge (optional -- only on desktop).
     _tray: Option<TrayBridge>,
@@ -314,9 +328,14 @@ impl SentinelApp {
             tracing::warn!("System tray not available");
         }
 
+        // Create channel for internal async UI tasks
+        let (async_tx, async_rx) = mpsc::channel();
+        let mut state = AppState::default();
+        state.async_task_tx = Some(async_tx);
+
         Self {
             page: Page::Dashboard,
-            state: AppState::default(),
+            state,
             enrolled,
             enrollment_wizard: EnrollmentWizard::default(),
             theme_applied: false,
@@ -324,6 +343,7 @@ impl SentinelApp {
             event_rx,
             command_tx,
             enrollment_tx,
+            async_results_rx: async_rx,
             _tray: tray,
             visible: true,
             quit_requested: false,
@@ -614,24 +634,15 @@ impl SentinelApp {
     fn recompute_policy(&mut self) {
         use crate::dto::GuiCheckStatus;
         let total = self.state.checks.len() as u32;
-        let passing = self
-            .state
-            .checks
-            .iter()
-            .filter(|c| c.status == GuiCheckStatus::Pass)
-            .count() as u32;
-        let failing = self
-            .state
-            .checks
-            .iter()
-            .filter(|c| c.status == GuiCheckStatus::Fail)
-            .count() as u32;
-        let errors = self
-            .state
-            .checks
-            .iter()
-            .filter(|c| c.status == GuiCheckStatus::Error)
-            .count() as u32;
+        let (mut passing, mut failing, mut errors) = (0u32, 0u32, 0u32);
+        for c in &self.state.checks {
+            match c.status {
+                GuiCheckStatus::Pass => passing += 1,
+                GuiCheckStatus::Fail => failing += 1,
+                GuiCheckStatus::Error => errors += 1,
+                _ => {}
+            }
+        }
         let pending = total - passing - failing - errors;
 
         self.state.policy = GuiPolicySummary {
@@ -814,6 +825,30 @@ impl eframe::App for SentinelApp {
         // Process incoming events.
         self.process_events();
         self.process_tray_actions(ctx);
+
+        // Auto-lock admin mode after 5 minutes of inactivity.
+        if self.state.security.admin_unlocked {
+            if let Some(last_unlock) = self.state.security.last_unlock {
+                if chrono::Utc::now() - last_unlock > chrono::Duration::minutes(5) {
+                    self.state.security.admin_unlocked = false;
+                    tracing::info!("Admin mode auto-locked after 5 minutes");
+                }
+            }
+        }
+
+        // Process async task results from background threads
+        while let Ok(result) = self.async_results_rx.try_recv() {
+             match result {
+                 AsyncTaskResult::CsvExport(success, message) => {
+                     let time = ctx.input(|i| i.time);
+                     if success {
+                         self.state.toasts.push(crate::widgets::toast::Toast::success(message).with_time(time));
+                     } else {
+                         self.state.toasts.push(crate::widgets::toast::Toast::error(message).with_time(time));
+                     }
+                 }
+             }
+        }
 
         // ── Splash screen (first ~2.5 seconds) ──
         if !self.splash_done && !self.show_tray_satellite {

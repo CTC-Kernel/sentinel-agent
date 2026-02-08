@@ -86,7 +86,7 @@ pub fn protected_state(ui: &mut Ui, icon: &str, title: &str, subtitle: &str) {
 
         ui.add_space(theme::SPACE_XL);
 
-        // Force repaint for animation
-        ui.ctx().request_repaint();
+        // Limit pulse/ripple animation to ~10fps
+        ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
     });
 }

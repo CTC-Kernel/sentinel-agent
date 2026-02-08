@@ -166,11 +166,22 @@ fn compute_blake3_streaming(path: &Path) -> Result<String, std::io::Error> {
     Ok(hasher.finalize().to_hex().to_string())
 }
 
-/// Compute SHA-256 hash for compliance proofs.
+/// Compute SHA-256 hash for compliance proofs (streaming to avoid loading entire file into memory).
 pub fn compute_sha256_proof(path: &Path) -> Result<String, std::io::Error> {
     use sha2::{Digest, Sha256};
-    let contents = fs::read(path)?;
-    let hash = Sha256::digest(&contents);
+    use std::io::{BufReader, Read};
+    let file = std::fs::File::open(path)?;
+    let mut reader = BufReader::new(file);
+    let mut hasher = Sha256::new();
+    let mut buffer = [0u8; 65536];
+    loop {
+        let n = reader.read(&mut buffer)?;
+        if n == 0 {
+            break;
+        }
+        hasher.update(&buffer[..n]);
+    }
+    let hash = hasher.finalize();
     Ok(hex::encode(hash))
 }
 

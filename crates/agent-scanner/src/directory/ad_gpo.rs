@@ -432,6 +432,17 @@ impl GpoAuditor {
         ];
 
         for (group_name, sid_pattern, description) in privileged_groups {
+            // Safety: group_name values are hardcoded above — no user input reaches format!().
+            debug_assert!(
+                !group_name.contains('$')
+                    && !group_name.contains('`')
+                    && !group_name.contains('"')
+                    && !group_name.contains('\'')
+                    && !group_name.contains(';')
+                    && !group_name.contains('|')
+                    && !group_name.contains('&'),
+                "group_name must not contain PowerShell metacharacters"
+            );
             let output = Command::new("powershell")
                 .args([
                     "-NoProfile",

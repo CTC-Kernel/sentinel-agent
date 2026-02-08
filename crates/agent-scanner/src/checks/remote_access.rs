@@ -197,7 +197,7 @@ impl RemoteAccessCheck {
             let rdp_port = json
                 .get("RdpPort")
                 .and_then(|v| v.as_u64())
-                .map(|p| p as u16);
+                .map(|p| u16::try_from(p).unwrap_or(3389));
             let enc_level = json.get("EncryptionLevel").and_then(|v| v.as_u64());
 
             if rdp_enabled {

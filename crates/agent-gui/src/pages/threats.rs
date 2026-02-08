@@ -111,7 +111,7 @@ impl ThreatsPage {
         let usb_active = state.threats.filter.as_deref() == Some("usb");
         let fim_active = state.threats.filter.as_deref() == Some("fim");
 
-        // Build consolidated threat list
+        // PERF: threat list rebuilt every frame — consider caching with dirty tracking
         let mut threats = Self::build_threat_list(state);
 
         // Apply filter

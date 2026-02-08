@@ -479,7 +479,7 @@ pub fn switch(ui: &mut Ui, label: &str, on: &mut bool) -> bool {
 
         ui.painter().rect_filled(
             switch_rect,
-            CornerRadius::same((switch_height / 2.0) as u8),
+            CornerRadius::same((switch_height / 2.0).min(255.0) as u8),
             track_color,
         );
 

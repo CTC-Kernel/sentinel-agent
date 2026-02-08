@@ -179,8 +179,8 @@ impl<'a> Avatar<'a> {
 
             // Draw background shape
             let rounding = match self.shape {
-                AvatarShape::Circle => CornerRadius::same((size / 2.0) as u8),
-                AvatarShape::Rounded => CornerRadius::same((size * 0.2) as u8),
+                AvatarShape::Circle => CornerRadius::same((size / 2.0).min(255.0) as u8),
+                AvatarShape::Rounded => CornerRadius::same((size * 0.2).min(255.0) as u8),
                 AvatarShape::Square => CornerRadius::same(0),
             };
 
@@ -257,6 +257,11 @@ pub fn avatar_icon(ui: &mut Ui, icon: &str) -> egui::Response {
 
 /// Avatar group showing multiple avatars with overlap.
 pub fn avatar_group(ui: &mut Ui, names: &[&str], max_shown: usize) -> egui::Response {
+    if names.is_empty() {
+        let (_, response) = ui.allocate_exact_size(egui::vec2(0.0, 0.0), egui::Sense::hover());
+        return response;
+    }
+
     let size = AvatarSize::Small.pixels();
     let overlap = size * 0.3;
     let count = names.len();
@@ -264,7 +269,7 @@ pub fn avatar_group(ui: &mut Ui, names: &[&str], max_shown: usize) -> egui::Resp
     let has_overflow = count > max_shown;
 
     let total_width = size
-        + (shown - 1) as f32 * (size - overlap)
+        + shown.saturating_sub(1) as f32 * (size - overlap)
         + if has_overflow { size - overlap } else { 0.0 };
 
     let (rect, response) =

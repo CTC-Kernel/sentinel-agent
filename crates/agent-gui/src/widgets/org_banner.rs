@@ -213,7 +213,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                                 .color(theme::text_secondary()),
                         );
 
-                        ui.ctx().request_repaint();
+                        ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
                     });
 
                     ui.add_space(theme::SPACE_SM);
@@ -276,8 +276,8 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
         });
     });
 
-    // Request repaint for animations
-    ui.ctx().request_repaint();
+    // Limit animation repaint to ~10fps
+    ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
 
     command
 }

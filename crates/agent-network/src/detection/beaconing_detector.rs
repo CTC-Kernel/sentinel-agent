@@ -188,13 +188,35 @@ impl BeaconingDetector {
             }
         }
 
-        // Analyze combined history
-        let mut combined_history = self.connection_history.clone();
-        for (dest, events) in temp_history {
-            combined_history.entry(dest).or_default().extend(events);
+        // Analyze combined history without cloning — iterate by reference and merge only overlapping keys
+        for (destination, history_events) in &self.connection_history {
+            let events_to_analyze: std::borrow::Cow<'_, [ConnectionEvent]> =
+                if let Some(temp_events) = temp_history.get(destination) {
+                    let mut merged = history_events.clone();
+                    merged.extend(temp_events.iter().cloned());
+                    std::borrow::Cow::Owned(merged)
+                } else {
+                    std::borrow::Cow::Borrowed(history_events.as_slice())
+                };
+
+            if let Some(analysis) = self.analyze_destination(destination, &events_to_analyze)
+                && analysis.is_beaconing
+                && let Some(conn) = connections.iter().find(|c| {
+                    c.remote_address
+                        .as_ref()
+                        .map(|a| destination.starts_with(a))
+                        == Some(true)
+                })
+            {
+                alerts.push(self.create_alert(conn, &analysis));
+            }
         }
 
-        for (destination, events) in &combined_history {
+        // Analyze destinations only in temp_history (not already in connection_history)
+        for (destination, events) in &temp_history {
+            if self.connection_history.contains_key(destination) {
+                continue; // Already analyzed above
+            }
             if let Some(analysis) = self.analyze_destination(destination, events)
                 && analysis.is_beaconing
                 && let Some(conn) = connections.iter().find(|c| {

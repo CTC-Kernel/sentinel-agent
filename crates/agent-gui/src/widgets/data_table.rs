@@ -357,6 +357,7 @@ impl<'a> DataTable<'a> {
     /// Show a table row. Returns true if clicked.
     pub fn show_row(&self, ui: &mut Ui, row_index: usize, selected: bool, cells: &[&str]) -> bool {
         let available_width = ui.available_width();
+        // TODO: cache column widths instead of recalculating per row
         let widths = self.calculate_widths(available_width);
 
         let sense = if self.selectable {

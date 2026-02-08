@@ -409,8 +409,17 @@ impl LinuxHardeningCheck {
         let compliant = current_value
             .as_ref()
             .map(|v: &String| {
-                v == &check.expected
-                    || v.parse::<i32>().unwrap_or(-1) >= check.expected.parse::<i32>().unwrap_or(0)
+                if v == &check.expected {
+                    return true;
+                }
+                // Only use >= comparison when expected > 0 (higher-is-better settings).
+                // When expected is 0, only exact match is compliant (e.g. ip_forward=0).
+                let expected_int = check.expected.parse::<i32>().unwrap_or(0);
+                if expected_int > 0 {
+                    v.parse::<i32>().unwrap_or(-1) >= expected_int
+                } else {
+                    false
+                }
             })
             .unwrap_or(false);
 
