@@ -298,15 +298,6 @@ pub fn badge_border(color: Color32) -> Color32 {
     }
 }
 
-/// Count badge (notification) background — slightly more prominent.
-#[inline]
-pub fn count_badge_bg() -> Color32 {
-    if is_dark_mode() {
-        Color32::from_rgb(220, 50, 47) // Warm red, not neon
-    } else {
-        Color32::from_rgb(235, 55, 50)
-    }
-}
 
 // ============================================================================
 // Semantic font sizes (use these instead of inline FontId::proportional())

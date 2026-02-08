@@ -184,21 +184,18 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                         let time = ui.input(|i| i.time);
                         let pulse = ((time * 1.5).sin() * 0.3 + 0.7) as f32;
 
-                        let badge_color = theme::INFO.linear_multiply(pulse);
                         let badge_text = format!("{}", state.summary.pending_sync_count);
 
                         let badge_rect =
                             egui::Rect::from_min_size(ui.cursor().min, Vec2::new(24.0, 18.0));
 
-                        ui.painter().rect_filled(
-                            badge_rect,
-                            CornerRadius::same(9),
-                            badge_color.linear_multiply(0.2),
-                        );
+                        let rounding = CornerRadius::same(9);
+                        let bg = theme::badge_bg(theme::INFO).linear_multiply(0.7 + 0.3 * pulse);
+                        ui.painter().rect_filled(badge_rect, rounding, bg);
                         ui.painter().rect_stroke(
                             badge_rect,
-                            CornerRadius::same(9),
-                            egui::Stroke::new(1.0, badge_color.linear_multiply(0.5)),
+                            rounding,
+                            egui::Stroke::new(0.5, theme::badge_border(theme::INFO)),
                             egui::StrokeKind::Inside,
                         );
                         ui.painter().text(
@@ -206,7 +203,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                             egui::Align2::CENTER_CENTER,
                             &badge_text,
                             theme::font_label(),
-                            badge_color,
+                            theme::badge_text(theme::INFO),
                         );
 
                         ui.add_space(28.0);
