@@ -61,12 +61,21 @@ impl<'a> SearchFilterBar<'a> {
 
             ui.add_space(theme::SPACE_SM);
 
-            // Chips
+            // Chips — unified with badge design system
             for (idx, (label, active, color)) in self.chips.iter().enumerate() {
                 let (bg, fg) = if *active {
-                    (*color, theme::text_on_accent())
+                    (theme::badge_bg(*color), theme::badge_text(*color))
                 } else {
-                    (color.linear_multiply(0.12), *color)
+                    (
+                        egui::Color32::TRANSPARENT,
+                        theme::badge_text(*color),
+                    )
+                };
+
+                let border_color = if *active {
+                    theme::badge_border(*color)
+                } else {
+                    theme::badge_border(*color).linear_multiply(0.5)
                 };
 
                 let btn = egui::Button::new(
@@ -76,20 +85,20 @@ impl<'a> SearchFilterBar<'a> {
                         .strong(),
                 )
                 .fill(bg)
-                .stroke(egui::Stroke::new(0.5, color.linear_multiply(0.3)))
+                .stroke(egui::Stroke::new(0.5, border_color))
                 .corner_radius(CornerRadius::same(theme::BADGE_ROUNDING))
                 .min_size(Vec2::new(0.0, 24.0));
 
                 let response = ui.add(btn);
 
-                // Subtle glow on hover
-                if response.hovered() {
-                    let rect = response.rect.expand(1.0);
+                // Subtle border emphasis on hover
+                if response.hovered() && !*active {
+                    let rect = response.rect;
                     ui.painter().rect_stroke(
                         rect,
-                        CornerRadius::same(theme::BADGE_ROUNDING + 1),
-                        egui::Stroke::new(1.0, color.linear_multiply(0.4)),
-                        egui::StrokeKind::Outside,
+                        CornerRadius::same(theme::BADGE_ROUNDING),
+                        egui::Stroke::new(0.5, theme::badge_border(*color)),
+                        egui::StrokeKind::Inside,
                     );
                 }
 

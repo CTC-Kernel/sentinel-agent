@@ -113,9 +113,8 @@ pub use avatar::{
     avatar_small, avatar_with_status,
 };
 pub use badge::{
-    Badge, BadgeSize as BadgeSizeNew, BadgeVariant, badge, badge_count, badge_error, badge_info,
-    badge_outline, badge_pill, badge_success, badge_variant, badge_warning, status_dot,
-    status_dot_animated,
+    Badge, BadgeVariant, badge, badge_count, badge_error, badge_info, badge_outline, badge_pill,
+    badge_success, badge_variant, badge_warning, status_dot, status_dot_animated,
 };
 pub use divider::{
     Divider, DividerOrientation, DividerStyle, divider, divider_dashed, divider_gradient,
