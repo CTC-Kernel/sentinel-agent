@@ -55,7 +55,7 @@ impl ThreatsPage {
         let risk_score = Self::compute_risk_score(process_count, usb_count, fim_unack_count);
 
         let card_gap = theme::SPACE_SM;
-        let card_w = (ui.available_width() - card_gap * 3.0) / 4.0;
+        let card_w = ((ui.available_width() - card_gap * 3.0) / 4.0).max(0.0);
         ui.horizontal(|ui: &mut egui::Ui| {
             ui.spacing_mut().item_spacing.x = card_gap;
             Self::summary_card(

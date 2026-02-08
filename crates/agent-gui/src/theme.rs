@@ -253,8 +253,60 @@ pub const SIDEBAR_WIDTH: f32 = 250.0;
 pub const CARD_ROUNDING: u8 = 16;
 /// Button rounding radius.
 pub const BUTTON_ROUNDING: u8 = 8;
-/// Badge rounding radius.
-pub const BADGE_ROUNDING: u8 = 6;
+/// Badge rounding radius (pill-shaped).
+pub const BADGE_ROUNDING: u8 = 100;
+
+// ============================================================================
+// Badge color helpers — Apple-inspired soft tinted badges
+// ============================================================================
+
+/// Badge background: soft tinted wash of the semantic color.
+#[inline]
+pub fn badge_bg(color: Color32) -> Color32 {
+    if is_dark_mode() {
+        color.linear_multiply(0.15)
+    } else {
+        color.linear_multiply(0.10)
+    }
+}
+
+/// Badge text: readable color with strong contrast on `badge_bg()`.
+///
+/// Dark mode: use the semantic color directly (bright on dark bg).
+/// Light mode: darken the semantic color for WCAG-friendly contrast.
+#[inline]
+pub fn badge_text(color: Color32) -> Color32 {
+    if is_dark_mode() {
+        color
+    } else {
+        // Darken: blend toward black for readability on light tinted bg
+        Color32::from_rgb(
+            (color.r() as f32 * 0.65) as u8,
+            (color.g() as f32 * 0.65) as u8,
+            (color.b() as f32 * 0.65) as u8,
+        )
+    }
+}
+
+/// Badge border: subtle definition line.
+#[inline]
+pub fn badge_border(color: Color32) -> Color32 {
+    if is_dark_mode() {
+        color.linear_multiply(0.25)
+    } else {
+        color.linear_multiply(0.20)
+    }
+}
+
+/// Count badge (notification) background — slightly more prominent.
+#[inline]
+pub fn count_badge_bg() -> Color32 {
+    if is_dark_mode() {
+        Color32::from_rgb(220, 50, 47) // Warm red, not neon
+    } else {
+        Color32::from_rgb(235, 55, 50)
+    }
+}
 
 // ============================================================================
 // Semantic font sizes (use these instead of inline FontId::proportional())

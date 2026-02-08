@@ -149,17 +149,24 @@ impl Sidebar {
                                     bell_response.rect.right_top() + egui::vec2(-4.0, -4.0),
                                     egui::vec2(16.0, 16.0),
                                 );
+                                let rounding = CornerRadius::same(8);
                                 ui.painter().rect_filled(
                                     badge_rect,
-                                    CornerRadius::same(8),
-                                    theme::ERROR,
+                                    rounding,
+                                    theme::badge_bg(theme::ERROR),
+                                );
+                                ui.painter().rect_stroke(
+                                    badge_rect,
+                                    rounding,
+                                    egui::Stroke::new(0.5, theme::badge_border(theme::ERROR)),
+                                    egui::StrokeKind::Inside,
                                 );
                                 ui.painter().text(
                                     badge_rect.center(),
                                     egui::Align2::CENTER_CENTER,
                                     &badge_text,
                                     theme::font_label(),
-                                    theme::text_on_accent(),
+                                    theme::badge_text(theme::ERROR),
                                 );
                             });
                         }
@@ -375,7 +382,7 @@ impl Sidebar {
                 text_color,
             );
 
-            // Badge
+            // Badge (soft tinted pill)
             if let Some(count) = badge
                 && count > 0
             {
@@ -385,15 +392,22 @@ impl Sidebar {
                     count.to_string()
                 };
                 let badge_center = rect.right_center() + Vec2::new(-24.0, 0.0);
-                let badge_rect = egui::Rect::from_center_size(badge_center, Vec2::new(20.0, 16.0));
+                let badge_rect = egui::Rect::from_center_size(badge_center, Vec2::new(22.0, 16.0));
+                let rounding = CornerRadius::same(8);
                 ui.painter()
-                    .rect_filled(badge_rect, CornerRadius::same(8), theme::ERROR);
+                    .rect_filled(badge_rect, rounding, theme::badge_bg(theme::ERROR));
+                ui.painter().rect_stroke(
+                    badge_rect,
+                    rounding,
+                    egui::Stroke::new(0.5, theme::badge_border(theme::ERROR)),
+                    egui::StrokeKind::Inside,
+                );
                 ui.painter().text(
                     badge_center,
                     egui::Align2::CENTER_CENTER,
                     &badge_text,
                     theme::font_label(),
-                    theme::text_on_accent(),
+                    theme::badge_text(theme::ERROR),
                 );
             }
         }

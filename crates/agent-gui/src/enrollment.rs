@@ -421,7 +421,7 @@ impl EnrollmentWizard {
                                 ui.horizontal(|ui: &mut egui::Ui| {
                                     ui.add(
                                         egui::TextEdit::singleline(&mut self.token_input)
-                                            .desired_width(ui.available_width() - 40.0) // Space for toggle button
+                                            .desired_width((ui.available_width() - 40.0).max(0.0)) // Space for toggle button
                                             .frame(false)
                                             .font(egui::TextStyle::Monospace)
                                             .password(!self.show_token) // Built-in password masking

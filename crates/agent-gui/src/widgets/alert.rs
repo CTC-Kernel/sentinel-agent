@@ -231,7 +231,7 @@ impl<'a> Alert<'a> {
                     });
 
                     // Spacer
-                    ui.add_space(ui.available_width() - 24.0);
+                    ui.add_space((ui.available_width() - 24.0).max(0.0));
 
                     // Dismiss button
                     if self.dismissible {

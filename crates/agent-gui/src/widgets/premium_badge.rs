@@ -1,14 +1,16 @@
-//! Premium badge widgets with animations and effects similar to the hero badge.
+//! Premium badge widgets — elevated variants with subtle depth.
+//!
+//! Uses the same `theme::badge_*()` system as all other badges,
+//! but adds a subtle shadow for visual elevation.
 
 use crate::theme;
-use egui::{Color32, CornerRadius, Response, RichText, Sense, Stroke, Ui, Vec2};
+use egui::{Color32, CornerRadius, Response, Sense, Stroke, Ui, Vec2};
 
-/// A premium animated badge with glow effects, similar to the hero badge.
+/// A premium badge with subtle shadow for visual elevation.
 pub struct PremiumBadge {
     text: String,
     color: Color32,
     size: BadgeSize,
-    animated: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -24,7 +26,6 @@ impl PremiumBadge {
             text: text.into(),
             color: theme::ACCENT,
             size: BadgeSize::Medium,
-            animated: true,
         }
     }
 
@@ -38,89 +39,68 @@ impl PremiumBadge {
         self
     }
 
-    pub fn animated(mut self, animated: bool) -> Self {
-        self.animated = animated;
-        self
-    }
-
     pub fn ui(self, ui: &mut Ui) -> Response {
-        let (text_size, padding, corner_radius) = match self.size {
-            BadgeSize::Small => (10.0, Vec2::new(8.0, 4.0), 8.0),
-            BadgeSize::Medium => (12.0, Vec2::new(12.0, 6.0), 10.0),
-            BadgeSize::Large => (14.0, Vec2::new(16.0, 8.0), 12.0),
+        let (font, h_pad, v_pad) = match self.size {
+            BadgeSize::Small => (theme::font_label(), 8.0_f32, 3.0_f32),
+            BadgeSize::Medium => (theme::font_small(), 10.0, 4.0),
+            BadgeSize::Large => (theme::font_body(), 12.0, 5.0),
         };
 
-        let _text = RichText::new(&self.text)
-            .size(text_size)
-            .color(theme::text_on_accent())
-            .strong();
+        let text_color = theme::badge_text(self.color);
+        let bg_color = theme::badge_bg(self.color);
+        let border_color = theme::badge_border(self.color);
 
-        let desired_size = ui
+        let galley = ui
             .painter()
-            .layout_no_wrap(
-                self.text.clone(),
-                theme::font_body(),
-                theme::text_on_accent(),
-            )
-            .size()
-            + padding * 2.0;
+            .layout_no_wrap(self.text.clone(), font, text_color);
+
+        let text_size = galley.size();
+        let desired_size = Vec2::new(
+            text_size.x + h_pad * 2.0,
+            (text_size.y + v_pad * 2.0).max(18.0),
+        );
 
         let (rect, response) = ui.allocate_exact_size(desired_size, Sense::hover());
 
-        // Background with premium gradient effect
-        let bg_color = if response.hovered() {
-            self.color.linear_multiply(1.05) // Subtle brighten on hover
-        } else {
-            self.color
-        };
+        if ui.is_rect_visible(rect) {
+            let rounding = CornerRadius::same((rect.height() / 2.0) as u8);
 
-        // Premium shadow for depth
-        ui.painter().rect_filled(
-            rect.expand(0.5),
-            CornerRadius::same((corner_radius + 1.0) as u8),
-            self.color.linear_multiply(0.1),
-        );
+            // Subtle shadow for depth (premium elevation)
+            let shadow_color = self.color.linear_multiply(0.08);
+            ui.painter()
+                .rect_filled(rect.expand(1.0), rounding, shadow_color);
 
-        // Main background
-        ui.painter()
-            .rect_filled(rect, CornerRadius::same(corner_radius as u8), bg_color);
+            // Soft tinted background
+            let fill = if response.hovered() {
+                // Slightly more prominent on hover
+                self.color.linear_multiply(if theme::is_dark_mode() {
+                    0.22
+                } else {
+                    0.15
+                })
+            } else {
+                bg_color
+            };
+            ui.painter().rect_filled(rect, rounding, fill);
 
-        // Premium animated glow effect
-        if self.animated {
-            let time = ui.input(|i| i.time);
-            let pulse = (time * 1.5).sin() * 0.2 + 0.8; // Slower, more subtle pulse
-
-            // Outer glow
+            // Subtle border
             ui.painter().rect_stroke(
-                rect.expand(2.0),
-                CornerRadius::same((corner_radius + 2.0) as u8),
-                Stroke::new(1.0, self.color.linear_multiply(0.4 * pulse as f32)),
-                egui::StrokeKind::Outside,
+                rect,
+                rounding,
+                Stroke::new(0.5, border_color),
+                egui::StrokeKind::Inside,
             );
+
+            // Centered text
+            let text_pos = ui.layout().align_size_within_rect(text_size, rect).min;
+            ui.painter().galley(text_pos, galley, text_color);
         }
-
-        // Premium inner border for definition
-        ui.painter().rect_stroke(
-            rect.shrink(0.5),
-            CornerRadius::same(corner_radius as u8),
-            Stroke::new(0.5, theme::text_on_accent().linear_multiply(0.3)),
-            egui::StrokeKind::Inside,
-        );
-
-        // Text
-        ui.painter().text(
-            rect.center(),
-            egui::Align2::CENTER_CENTER,
-            self.text,
-            theme::font_body(),
-            theme::text_on_accent(),
-        );
 
         response
     }
 }
 
-/// A status badge with premium styling and contextual colors.
+/// A status badge with contextual colors.
 pub struct StatusBadge {
     status: String,
     level: StatusLevel,
@@ -149,18 +129,17 @@ impl StatusBadge {
             StatusLevel::Warning => theme::WARNING,
             StatusLevel::Error => theme::ERROR,
             StatusLevel::Info => theme::INFO,
-            StatusLevel::Neutral => theme::ACCENT,
+            StatusLevel::Neutral => theme::text_tertiary(),
         };
 
         PremiumBadge::new(self.status)
             .color(color)
             .size(BadgeSize::Small)
-            .animated(true) // Always animated for premium feel
             .ui(ui)
     }
 }
 
-/// A compliance score badge with premium styling and color coding.
+/// A compliance score badge with color-coded severity.
 pub struct ComplianceBadge {
     score: f32,
 }
@@ -182,7 +161,6 @@ impl ComplianceBadge {
         PremiumBadge::new(text)
             .color(color)
             .size(BadgeSize::Medium)
-            .animated(true) // Always animated for premium compliance display
             .ui(ui)
     }
 }

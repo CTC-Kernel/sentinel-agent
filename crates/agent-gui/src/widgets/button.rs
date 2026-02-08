@@ -202,7 +202,7 @@ fn draw_premium_button(
         // ─── Text Paint ───
         let text_pos = if loading {
             ui.layout()
-                .align_size_within_rect(text_galley.size(), rect.shrink(20.0))
+                .align_size_within_rect(text_galley.size(), rect.shrink2(egui::vec2(20.0, 0.0)))
                 .min
         } else {
             ui.layout()
@@ -308,7 +308,7 @@ fn draw_destructive_button(
         // Text
         let text_pos = if loading {
             ui.layout()
-                .align_size_within_rect(text_galley.size(), rect.shrink(20.0))
+                .align_size_within_rect(text_galley.size(), rect.shrink2(egui::vec2(20.0, 0.0)))
                 .min
         } else {
             ui.layout()
@@ -438,17 +438,15 @@ pub fn icon_button_with_color(
 }
 
 /// A small pill/chip button (for tags, filters).
+///
+/// Uses the unified badge color system for consistent appearance.
 pub fn chip_button(ui: &mut Ui, text: &str, active: bool, color: Color32) -> Response {
     let font = theme::font_label();
-    let galley = ui.painter().layout_no_wrap(
-        text.to_string(),
-        font.clone(),
-        if active {
-            theme::text_on_accent()
-        } else {
-            color
-        },
-    );
+    let text_col = theme::badge_text(color);
+
+    let galley = ui
+        .painter()
+        .layout_no_wrap(text.to_string(), font.clone(), text_col);
 
     let padding = egui::vec2(10.0, 4.0);
     let size = galley.size() + padding * 2.0;
@@ -459,32 +457,32 @@ pub fn chip_button(ui: &mut Ui, text: &str, active: bool, color: Color32) -> Res
     if ui.is_rect_visible(rect) {
         let is_hovered = response.hovered();
 
-        let (bg, stroke, text_col) = if active {
-            (color, Stroke::NONE, theme::text_on_accent())
+        let (bg, stroke, fg) = if active {
+            (
+                theme::badge_bg(color),
+                Stroke::new(0.5, theme::badge_border(color)),
+                text_col,
+            )
         } else if is_hovered {
             (
-                color.linear_multiply(0.15),
-                Stroke::new(1.0, color.linear_multiply(0.5)),
-                color,
+                theme::badge_bg(color),
+                Stroke::new(0.5, theme::badge_border(color).linear_multiply(0.6)),
+                text_col,
             )
         } else {
             (
                 Color32::TRANSPARENT,
-                Stroke::new(1.0, color.linear_multiply(0.3)),
-                color.linear_multiply(0.8),
+                Stroke::new(0.5, theme::badge_border(color).linear_multiply(0.4)),
+                text_col.linear_multiply(0.7),
             )
         };
 
+        let rounding = CornerRadius::same((rect.height() / 2.0) as u8);
         ui.painter()
-            .rect(rect, CornerRadius::same(12), bg, stroke, StrokeKind::Inside);
+            .rect(rect, rounding, bg, stroke, StrokeKind::Inside);
 
-        ui.painter().text(
-            rect.center(),
-            egui::Align2::CENTER_CENTER,
-            text,
-            font,
-            text_col,
-        );
+        ui.painter()
+            .text(rect.center(), egui::Align2::CENTER_CENTER, text, font, fg);
     }
 
     response.on_hover_cursor(egui::CursorIcon::PointingHand)
