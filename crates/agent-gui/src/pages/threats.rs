@@ -593,7 +593,7 @@ impl ThreatsPage {
 
                 // Interaction: sweep proximity
                 let diff_angle = (angle - t_angle).abs();
-                let is_near_sweep = diff_angle < 0.2 || diff_angle > (std::f32::consts::TAU - 0.2);
+                let is_near_sweep = !(0.2..=(std::f32::consts::TAU - 0.2)).contains(&diff_angle);
 
                 let pulse = if is_near_sweep {
                     1.0

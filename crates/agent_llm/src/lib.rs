@@ -70,7 +70,7 @@ impl SimpleLLMManager {
 
 impl Default for SimpleLLMManager {
     fn default() -> Self {
-        Self::new().unwrap_or_else(|_| Self { initialized: false })
+        Self::new().unwrap_or(Self { initialized: false })
     }
 }
 

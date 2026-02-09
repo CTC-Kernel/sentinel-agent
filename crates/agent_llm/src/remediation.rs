@@ -98,12 +98,11 @@ impl RemediationAdvisor {
         // Format compliance requirements
         let compliance_reqs = request.compliance_requirements.join("\n");
 
-        PromptBuilder::new(template)
+        Ok(PromptBuilder::new(template)
             .set("issues", &issues_text)
             .set("system_context", &system_context)
             .set("compliance_requirements", &compliance_reqs)
-            .build()
-            .map_err(|e| anyhow::anyhow!("Failed to build remediation prompt: {}", e))
+            .build())
     }
 
     /// Build issue-specific remediation prompt.

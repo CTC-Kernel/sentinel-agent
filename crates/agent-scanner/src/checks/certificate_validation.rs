@@ -424,12 +424,11 @@ impl CertificateValidationCheck {
                     let _ = stdin.write_all(cert_pem.as_bytes());
                 }
 
-                if let Ok(output) = child.wait_with_output() {
-                    if output.status.success() {
+                if let Ok(output) = child.wait_with_output()
+                    && output.status.success() {
                         let cert_info = String::from_utf8_lossy(&output.stdout);
                         self.parse_openssl_cert(&cert_info, &mut status);
                     }
-                }
             }
         }
 

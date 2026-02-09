@@ -257,10 +257,14 @@ impl ModelEngine for MistralEngine {
         // Update inference count
         self.inference_count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
+        let text = response.choices.first()
+            .map(|c| c.message.content.clone())
+            .ok_or_else(|| anyhow::anyhow!("LLM returned empty choices"))?;
+
         Ok(InferenceResponse {
-            text: response.choices[0].message.content.clone(),
+            text,
             tokens_generated: response.usage.as_ref()
-                .map(|u| u.completion_tokens as u32)
+                .map(|u| u32::try_from(u.completion_tokens).unwrap_or(u32::MAX))
                 .unwrap_or(0),
             duration_ms: duration.as_millis() as u64,
             metadata: std::collections::HashMap::new(),

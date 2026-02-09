@@ -224,11 +224,10 @@ impl SshHardeningCheck {
             }
 
             // Max auth tries
-            if let Some(value) = Self::parse_config_value(line, "MaxAuthTries") {
-                if let Ok(v) = value.parse::<u32>() {
+            if let Some(value) = Self::parse_config_value(line, "MaxAuthTries")
+                && let Ok(v) = value.parse::<u32>() {
                     status.max_auth_tries = Some(v);
                 }
-            }
 
             // Login grace time
             if let Some(value) = Self::parse_config_value(line, "LoginGraceTime") {
@@ -320,8 +319,8 @@ impl SshHardeningCheck {
                 .push("Remove weak MACs: hmac-md5*, hmac-sha1*".to_string());
         }
 
-        if let Some(tries) = status.max_auth_tries {
-            if tries > 4 {
+        if let Some(tries) = status.max_auth_tries
+            && tries > 4 {
                 status
                     .issues
                     .push(format!("MaxAuthTries is too high: {}", tries));
@@ -329,10 +328,9 @@ impl SshHardeningCheck {
                     .recommendations
                     .push("Set MaxAuthTries 3 or 4".to_string());
             }
-        }
 
-        if let Some(grace) = status.login_grace_time {
-            if grace > 60 {
+        if let Some(grace) = status.login_grace_time
+            && grace > 60 {
                 status
                     .issues
                     .push(format!("LoginGraceTime is too high: {}s", grace));
@@ -340,7 +338,6 @@ impl SshHardeningCheck {
                     .recommendations
                     .push("Set LoginGraceTime 60 or lower".to_string());
             }
-        }
 
         // Medium severity issues
         if !status.x11_forwarding_disabled {

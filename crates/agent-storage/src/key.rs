@@ -51,7 +51,7 @@ impl KeyManager {
     }
 
     /// Create a key manager with a specific key (for testing only).
-    #[cfg(test)]
+    #[cfg(any(test, feature = "test-utils"))]
     pub fn new_with_test_key() -> Self {
         Self {
             // Exactly 32 bytes for AES-256

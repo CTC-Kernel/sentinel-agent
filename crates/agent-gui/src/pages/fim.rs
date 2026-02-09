@@ -315,20 +315,18 @@ impl FimPage {
                                         .color(theme::text_tertiary())
                                         .strong(),
                                     );
-                                } else {
-                                    if widgets::chip_button(
-                                        ui,
-                                        &format!("{}  ACQUITTER", icons::CHECK),
-                                        false,
-                                        theme::ACCENT,
-                                    )
-                                    .clicked()
-                                    {
-                                        let alert_id = state.fim.alerts[idx].id.clone();
-                                        state.fim.alerts[idx].acknowledged = true;
-                                        command =
-                                            Some(GuiCommand::AcknowledgeFimAlert { alert_id });
-                                    }
+                                } else if widgets::chip_button(
+                                    ui,
+                                    &format!("{}  ACQUITTER", icons::CHECK),
+                                    false,
+                                    theme::ACCENT,
+                                )
+                                .clicked()
+                                {
+                                    let alert_id = state.fim.alerts[idx].id.clone();
+                                    state.fim.alerts[idx].acknowledged = true;
+                                    command =
+                                        Some(GuiCommand::AcknowledgeFimAlert { alert_id });
                                 }
                             });
                         });

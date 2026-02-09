@@ -321,8 +321,8 @@ impl KernelHardeningCheck {
                 .raw_output
                 .push_str(&format!("IP forwarding: {}\n", result.trim()));
 
-            if let Some(value_str) = result.split(':').last() {
-                if let Ok(value) = value_str.trim().parse::<u32>() {
+            if let Some(value_str) = result.split(':').next_back()
+                && let Ok(value) = value_str.trim().parse::<u32>() {
                     status.ip_forward_disabled = value == 0;
                     if value != 0 {
                         status.hardened = false;
@@ -332,7 +332,6 @@ impl KernelHardeningCheck {
                         );
                     }
                 }
-            }
         }
 
         Ok(status)

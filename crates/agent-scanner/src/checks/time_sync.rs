@@ -297,7 +297,7 @@ impl TimeSyncCheck {
                 .push_str(&format!("NTP Server: {}\n", result.trim()));
 
             // Parse "Network Time Server: time.apple.com"
-            if let Some(server) = result.split(':').last() {
+            if let Some(server) = result.split(':').next_back() {
                 let server = server.trim().to_string();
                 if !server.is_empty() {
                     status.ntp_source = Some(server);

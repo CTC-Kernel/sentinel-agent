@@ -285,8 +285,8 @@ impl LogRotationCheck {
 
         // Also check for ASL (Apple System Log) configuration
         let asl_conf = std::path::Path::new("/etc/asl.conf");
-        if asl_conf.exists() {
-            if let Ok(content) = std::fs::read_to_string(asl_conf) {
+        if asl_conf.exists()
+            && let Ok(content) = std::fs::read_to_string(asl_conf) {
                 status
                     .raw_output
                     .push_str(&format!("\n=== /etc/asl.conf ===\n{}\n", content));
@@ -297,12 +297,11 @@ impl LogRotationCheck {
                     status.rotation_type = "ASL".to_string();
                 }
             }
-        }
 
         // Check /etc/newsyslog.d/ for additional configs
         let newsyslog_d = std::path::Path::new("/etc/newsyslog.d/");
-        if newsyslog_d.exists() && newsyslog_d.is_dir() {
-            if let Ok(entries) = std::fs::read_dir(newsyslog_d) {
+        if newsyslog_d.exists() && newsyslog_d.is_dir()
+            && let Ok(entries) = std::fs::read_dir(newsyslog_d) {
                 let count = entries
                     .filter_map(|e| e.ok())
                     .filter(|e| e.path().is_file())
@@ -312,7 +311,6 @@ impl LogRotationCheck {
                     count
                 ));
             }
-        }
 
         if !status.configured {
             status.issues.push(

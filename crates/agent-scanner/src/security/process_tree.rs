@@ -157,8 +157,8 @@ impl ProcessTreeAnalyzer {
             }
 
             // Check for Office app spawning shells
-            if let Some(parent_pid) = node.parent_pid {
-                if let Some(parent) = nodes.iter().find(|n| n.pid == parent_pid) {
+            if let Some(parent_pid) = node.parent_pid
+                && let Some(parent) = nodes.iter().find(|n| n.pid == parent_pid) {
                     let parent_name_lower = parent.name.to_lowercase();
                     let child_name_lower = node.name.to_lowercase();
 
@@ -184,7 +184,6 @@ impl ProcessTreeAnalyzer {
                         });
                     }
                 }
-            }
         }
 
         events
@@ -218,11 +217,10 @@ impl ProcessTreeAnalyzer {
         // Build children lists
         let pids: Vec<(u32, Option<u32>)> = nodes.iter().map(|n| (n.pid, n.parent_pid)).collect();
         for (pid, parent_pid) in &pids {
-            if let Some(ppid) = parent_pid {
-                if let Some(parent) = nodes.iter_mut().find(|n| n.pid == *ppid) {
+            if let Some(ppid) = parent_pid
+                && let Some(parent) = nodes.iter_mut().find(|n| n.pid == *ppid) {
                     parent.children.push(*pid);
                 }
-            }
         }
 
         nodes

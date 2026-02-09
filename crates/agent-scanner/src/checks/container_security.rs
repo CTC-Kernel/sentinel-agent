@@ -139,8 +139,8 @@ impl ContainerSecurityCheck {
             .args(["version", "--format", "{{.Server.Version}}"])
             .output();
 
-        if let Ok(output) = version_output {
-            if output.status.success() {
+        if let Ok(output) = version_output
+            && output.status.success() {
                 let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
                 status.runtime = "docker".to_string();
                 status.runtime_version = Some(version.clone());
@@ -149,7 +149,6 @@ impl ContainerSecurityCheck {
                     .raw_output
                     .push_str(&format!("Docker version: {}\n", version));
             }
-        }
 
         if !status.daemon_running {
             return Ok(());
@@ -184,11 +183,10 @@ impl ContainerSecurityCheck {
 
                     // Get seccomp profile
                     for opt in &options {
-                        if opt.contains("seccomp") {
-                            if let Some(profile) = opt.split('=').last() {
+                        if opt.contains("seccomp")
+                            && let Some(profile) = opt.split('=').next_back() {
                                 status.seccomp_profile = Some(profile.to_string());
                             }
-                        }
                     }
                 }
 
@@ -262,8 +260,8 @@ impl ContainerSecurityCheck {
             .args(["version", "--format", "{{.Version}}"])
             .output();
 
-        if let Ok(output) = version_output {
-            if output.status.success() {
+        if let Ok(output) = version_output
+            && output.status.success() {
                 let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
                 if status.runtime.is_empty() || status.runtime == "none" {
                     status.runtime = "podman".to_string();
@@ -276,7 +274,6 @@ impl ContainerSecurityCheck {
                     .raw_output
                     .push_str(&format!("Podman version: {}\n", version));
             }
-        }
 
         if status.runtime != "podman" {
             return Ok(());
@@ -315,11 +312,10 @@ impl ContainerSecurityCheck {
                 }
 
                 // Storage info
-                if let Some(store) = info.get("store") {
-                    if let Some(driver) = store.get("graphDriverName").and_then(|v| v.as_str()) {
+                if let Some(store) = info.get("store")
+                    && let Some(driver) = store.get("graphDriverName").and_then(|v| v.as_str()) {
                         status.storage_driver = Some(driver.to_string());
                     }
-                }
             }
         }
 
@@ -365,19 +361,16 @@ impl ContainerSecurityCheck {
 
                     if let Ok(inspects) =
                         serde_json::from_str::<Vec<serde_json::Value>>(&inspect_json)
-                    {
-                        if let Some(inspect) = inspects.first() {
+                        && let Some(inspect) = inspects.first() {
                             // Check if privileged
                             if let Some(host_config) = inspect.get("HostConfig") {
                                 if let Some(privileged) =
                                     host_config.get("Privileged").and_then(|v| v.as_bool())
-                                {
-                                    if privileged {
+                                    && privileged {
                                         status
                                             .privileged_containers
                                             .push(container_name.to_string());
                                     }
-                                }
 
                                 // Check resource limits
                                 let has_limits = host_config
@@ -397,15 +390,12 @@ impl ContainerSecurityCheck {
                             }
 
                             // Check if running as root
-                            if let Some(config) = inspect.get("Config") {
-                                if let Some(user) = config.get("User").and_then(|v| v.as_str()) {
-                                    if user.is_empty() || user == "0" || user == "root" {
+                            if let Some(config) = inspect.get("Config")
+                                && let Some(user) = config.get("User").and_then(|v| v.as_str())
+                                    && (user.is_empty() || user == "0" || user == "root") {
                                         status.root_containers.push(container_name.to_string());
                                     }
-                                }
-                            }
                         }
-                    }
                 }
             }
         }

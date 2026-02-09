@@ -225,14 +225,13 @@ impl Ipv6ConfigCheck {
         };
 
         // Parse "net.inet6.ip6.accept_rtadv: N"
-        if let Some(value_str) = raw_output.split(':').last() {
-            if let Ok(value) = value_str.trim().parse::<u32>() {
+        if let Some(value_str) = raw_output.split(':').next_back()
+            && let Ok(value) = value_str.trim().parse::<u32>() {
                 status.accept_rtadv_value = Some(value);
                 // 0 = disabled (hardened), 1 = enabled
                 status.ra_disabled = value == 0;
                 status.hardened = value == 0;
             }
-        }
 
         if !status.hardened {
             status.issues.push(format!(
