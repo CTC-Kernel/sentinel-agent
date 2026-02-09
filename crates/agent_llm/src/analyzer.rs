@@ -3,9 +3,9 @@
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use anyhow::Result;
-use tracing::{debug, info};
+use tracing::info;
 
-use super::engine::{ModelEngine, InferenceRequest, InferenceResponse};
+use super::engine::{ModelEngine, InferenceRequest};
 use super::config::LLMConfig;
 use super::prompts::{PromptTemplates, SecurityPromptBuilder, SecurityContext, ScanResults, ThreatLevel};
 
@@ -243,7 +243,7 @@ impl LLMAnalyzer {
             .ok_or_else(|| anyhow::anyhow!("Security analysis template not found"))?;
 
         // Convert scan results to string format
-        let scan_results_str = self.format_scan_results(&context.scan_results)?;
+        let _scan_results_str = self.format_scan_results(&context.scan_results)?;
         
         // Identify failed checks
         let failed_checks: Vec<_> = context.scan_results.iter()
@@ -272,11 +272,10 @@ impl LLMAnalyzer {
             compliance_score: self.calculate_compliance_score(&context.scan_results),
         };
 
-        SecurityPromptBuilder::new(template)
+        Ok(SecurityPromptBuilder::new(template)
             .security_context(&security_context)
             .scan_results(&scan_results_obj)
-            .build()
-            .map_err(|e| anyhow::anyhow!("Failed to build prompt: {}", e))
+            .build())
     }
 
     /// Format scan results for prompt.
@@ -339,7 +338,7 @@ impl LLMAnalyzer {
     }
 
     /// Parse analysis response from LLM.
-    fn parse_analysis_response(&self, response: &str, context: &AnalysisContext, duration: std::time::Duration) -> Result<AnalysisResult> {
+    fn parse_analysis_response(&self, _response: &str, context: &AnalysisContext, duration: std::time::Duration) -> Result<AnalysisResult> {
         // This is a simplified parser - in production, you'd want more robust parsing
         // possibly using structured output formats or JSON mode
         
@@ -406,7 +405,7 @@ impl LLMAnalyzer {
     }
 
     /// Parse security analysis response.
-    fn parse_security_analysis(&self, response: &str, event: &SecurityEvent) -> Result<SecurityAnalysis> {
+    fn parse_security_analysis(&self, _response: &str, event: &SecurityEvent) -> Result<SecurityAnalysis> {
         // Simplified parsing - would implement proper structured parsing
         Ok(SecurityAnalysis {
             event_id: event.id.clone(),

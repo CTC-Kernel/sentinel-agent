@@ -3,9 +3,9 @@
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use anyhow::Result;
-use tracing::{debug, info, warn};
+use tracing::info;
 
-use super::engine::{ModelEngine, InferenceRequest, InferenceResponse};
+use super::engine::{ModelEngine, InferenceRequest};
 use super::config::LLMConfig;
 use super::prompts::{PromptTemplates, PromptBuilder};
 
@@ -192,7 +192,7 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
     }
 
     /// Parse classification response.
-    fn parse_classification_response(&self, response: &str, event: &SecurityEvent, duration: std::time::Duration) -> Result<SecurityClassification> {
+    fn parse_classification_response(&self, _response: &str, event: &SecurityEvent, duration: std::time::Duration) -> Result<SecurityClassification> {
         // Simplified parsing - implement structured parsing in production
         Ok(SecurityClassification {
             event_id: event.id.clone(),
@@ -214,7 +214,7 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
     }
 
     /// Parse vulnerability analysis response.
-    fn parse_vulnerability_analysis(&self, response: &str, vuln: &Vulnerability) -> Result<VulnerabilityAnalysis> {
+    fn parse_vulnerability_analysis(&self, _response: &str, vuln: &Vulnerability) -> Result<VulnerabilityAnalysis> {
         Ok(VulnerabilityAnalysis {
             vulnerability_id: vuln.id.clone(),
             exploitability: Exploitability::High,
@@ -254,7 +254,7 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
     }
 
     /// Parse attack pattern analysis response.
-    fn parse_attack_pattern_analysis(&self, response: &str) -> Result<AttackPatternAnalysis> {
+    fn parse_attack_pattern_analysis(&self, _response: &str) -> Result<AttackPatternAnalysis> {
         Ok(AttackPatternAnalysis {
             identified_ttps: vec![
                 TTP {

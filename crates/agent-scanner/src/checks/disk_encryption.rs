@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use std::process::Command;
 use tracing::debug;
 #[cfg(target_os = "macos")]
-use tracing::warn;
+
 
 /// Check ID for disk encryption.
 pub const CHECK_ID: &str = "disk_encryption";
@@ -315,12 +315,14 @@ impl DiskEncryptionCheck {
             .output()
             .map_err(|e| ScannerError::CheckExecution(format!("Failed to run fdesetup: {}", e)))?;
 
-        let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
+        let mut raw_output = String::from_utf8_lossy(&output.stdout).to_string();
         let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
-        // fdesetup may require root, check for permission error
-        if !stderr.is_empty() && stderr.contains("root") {
-            warn!("FileVault check may require root privileges");
+        // fdesetup may require root, check for permission error or empty output
+        if !output.status.success() || (raw_output.trim().is_empty() && stderr.contains("root")) {
+             if let Ok(elevated) = agent_common::macos::run_with_elevation("fdesetup status") {
+                 raw_output = elevated;
+             }
         }
 
         let is_enabled = raw_output.contains("FileVault is On");

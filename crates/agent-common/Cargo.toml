@@ -22,6 +22,7 @@ blake3.workspace = true
 regex.workspace = true
 once_cell.workspace = true
 zeroize.workspace = true
+libc = "0.2"
 
 [dev-dependencies]
 serde_json.workspace = true

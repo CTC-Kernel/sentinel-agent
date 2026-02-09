@@ -3,76 +3,76 @@
 //! This crate provides local LLM capabilities for security analysis,
 //! vulnerability assessment, and threat intelligence within the Sentinel agent.
 
-/// LLM analysis result
-#[derive(Debug, Clone)]
-pub struct AnalysisResult {
-    pub risk_level: String,
-    pub confidence: f64,
-    pub recommendations: Vec<String>,
-    pub evidence: Vec<String>,
+pub mod analyzer;
+pub mod config;
+pub mod engine;
+pub mod models;
+pub mod prompts;
+pub mod remediation;
+pub mod security;
+
+// Re-export main components
+pub use analyzer::{AnalysisResult, LLMAnalyzer, SecurityAnalysis, AnalysisContext, ScanResult};
+pub use config::LLMConfig;
+pub use engine::{ModelEngine, MistralEngine, create_engine, ModelStatus, MemoryUsage};
+pub use models::{ModelRegistry, ModelInfo};
+pub use remediation::RemediationAdvisor;
+pub use security::SecurityClassifier;
+
+use std::sync::Arc;
+use anyhow::Result;
+
+/// Model statistics.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ModelStats {
+    pub model_name: String,
+    pub inference_count: u64,
+    pub memory_usage: MemoryUsage,
 }
 
-impl Default for AnalysisResult {
-    fn default() -> Self {
+/// LLM Manager to coordinate engine and analyzer.
+pub struct LLMManager {
+    engine: Arc<dyn ModelEngine>,
+    analyzer: Arc<LLMAnalyzer>,
+}
+
+impl LLMManager {
+    pub fn new(engine: Arc<dyn ModelEngine>, analyzer: Arc<LLMAnalyzer>) -> Self {
         Self {
-            risk_level: "unknown".to_string(),
-            confidence: 0.0,
-            recommendations: vec![],
-            evidence: vec![],
+            engine,
+            analyzer,
         }
     }
-}
 
-/// Simple LLM manager for basic operations
-pub struct SimpleLLMManager {
-    initialized: bool,
-}
-
-impl SimpleLLMManager {
-    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
-        Ok(Self { initialized: true })
+    pub fn engine(&self) -> &Arc<dyn ModelEngine> {
+        &self.engine
     }
 
-    pub async fn analyze_security_event(
-        &self,
-        event: &str,
-    ) -> Result<AnalysisResult, Box<dyn std::error::Error>> {
-        // Simplified analysis for now
-        Ok(AnalysisResult {
-            risk_level: if event.contains("error") || event.contains("failed") {
-                "high".to_string()
-            } else if event.contains("warning") {
-                "medium".to_string()
-            } else {
-                "low".to_string()
-            },
-            confidence: 0.8,
-            recommendations: vec![
-                "Review event logs".to_string(),
-                "Check system status".to_string(),
-            ],
-            evidence: vec![event.to_string()],
+    pub fn analyzer(&self) -> &Arc<LLMAnalyzer> {
+        &self.analyzer
+    }
+
+    pub async fn get_stats(&self) -> Result<ModelStats> {
+        let memory = self.engine.memory_usage().await;
+        let count = self.engine.inference_count().await;
+        
+        // TODO: Get real model name from config or engine
+        Ok(ModelStats {
+            model_name: "mistral-local".to_string(), 
+            inference_count: count,
+            memory_usage: memory,
         })
     }
-
-    pub fn is_available(&self) -> bool {
-        self.initialized
-    }
-
-    pub fn status(&self) -> String {
-        if self.initialized {
-            "LLM Manager Ready".to_string()
-        } else {
-            "LLM Manager Not Available".to_string()
-        }
-    }
 }
 
-impl Default for SimpleLLMManager {
-    fn default() -> Self {
-        Self::new().unwrap_or(Self { initialized: false })
-    }
+/// Create a new LLM manager with default configuration.
+pub async fn create_llm_manager(config: LLMConfig) -> Result<LLMManager> {
+    let engine = engine::create_engine(&config.model)?;
+    // LLMAnalyzer::new takes Arc<dyn ModelEngine>
+    let analyzer = LLMAnalyzer::new(engine.clone(), &config);
+    
+    Ok(LLMManager {
+        engine,
+        analyzer: Arc::new(analyzer),
+    })
 }
-
-/// Re-export main components
-pub use SimpleLLMManager as LLMManager;
