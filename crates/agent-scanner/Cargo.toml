@@ -8,6 +8,7 @@ publish = false
 [dependencies]
 agent-common = { path = "../agent-common" }
 agent-system = { path = "../agent-system" }
+agent_llm = { path = "../agent_llm", optional = true }
 async-trait.workspace = true
 chrono.workspace = true
 dirs.workspace = true
@@ -31,6 +32,7 @@ anyhow = { workspace = true, optional = true }
 [features]
 default = []
 llm_simple = ["dep:anyhow"]
+llm = ["dep:agent_llm", "dep:anyhow"]
 
 [dev-dependencies]
 tempfile.workspace = true

@@ -106,15 +106,15 @@ impl RemediationEngine {
             };
         }
 
-        let start = Instant::now();
+    let start = Instant::now();
 
-        info!(
-            "Executing remediation for check '{}': {}",
-            action.check_id, action.description
-        );
+    info!(
+        "Executing remediation for check '{}': {}",
+        action.check_id, action.description
+    );
 
-        let result = execute_script(&action.script, &action.platform);
-        let duration_ms = start.elapsed().as_millis() as u64;
+    let result = execute_script(&action.script, &action.platform, action.requires_admin);
+    let duration_ms = start.elapsed().as_millis() as u64;
 
         match result {
             Ok(output) => {
@@ -167,7 +167,7 @@ impl RemediationEngine {
 
         info!("Rolling back remediation for '{}'", action.check_id);
 
-        let result = execute_script(rollback_script, &action.platform);
+        let result = execute_script(rollback_script, &action.platform, action.requires_admin);
         let duration_ms = start.elapsed().as_millis() as u64;
 
         Some(match result {
@@ -423,7 +423,15 @@ impl Default for RemediationEngine {
 }
 
 /// Execute a script on the current platform.
-fn execute_script(script: &str, platform: &str) -> Result<String, String> {
+fn execute_script(script: &str, platform: &str, requires_admin: bool) -> Result<String, String> {
+    #[cfg(target_os = "macos")]
+    {
+        if platform == "macos" && requires_admin && !agent_common::macos::is_admin() {
+            return agent_common::macos::run_with_elevation(script)
+                .map_err(|e| e.to_string());
+        }
+    }
+
     let output = if platform == "windows" || cfg!(target_os = "windows") {
         Command::new("cmd").args(["/C", script]).output()
     } else {

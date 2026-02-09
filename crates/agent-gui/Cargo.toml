@@ -12,6 +12,7 @@ default = ["render"]
 render = ["dep:eframe", "dep:egui", "dep:egui_extras", "dep:egui_plot", "dep:image", "dep:open", "dep:tray-icon", "dep:muda", "dep:tao", "dep:tracing", "dep:tokio", "dep:directories", "dep:hostname"]
 # Enable LLM integration in GUI
 llm_simple = ["dep:agent_llm"]
+llm = ["dep:agent_llm"]
 
 [dependencies]
 agent-common = { path = "../agent-common" }

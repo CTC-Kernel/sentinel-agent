@@ -5,7 +5,6 @@ use semver::Version;
 use std::process::Command;
 use std::sync::Arc;
 #[cfg(target_os = "macos")]
-use tracing::warn;
 use tracing::{debug, error, info};
 
 /// Orchestrates the agent self-update process.
@@ -195,87 +194,23 @@ impl UpdateManager {
 
         #[cfg(target_os = "macos")]
         {
-            info!("Executing: /usr/sbin/installer -pkg {} -target /", path_str);
+            if agent_common::macos::is_admin() {
+                info!("Running as root, executing: /usr/sbin/installer -pkg {} -target /", path_str);
+                let output = Command::new("/usr/sbin/installer")
+                    .args(["-pkg", path_str, "-target", "/"])
+                    .output()
+                    .map_err(|e| CommonError::system(format!("Failed to launch installer: {}", e)))?;
 
-            // First try without sudo
-            let output = Command::new("/usr/sbin/installer")
-                .args(["-pkg", path_str, "-target", "/"])
-                .output()
-                .map_err(|e| CommonError::system(format!("Failed to launch installer: {}", e)))?;
-
-            let status = output.status;
-            if !status.success() {
-                // Enhanced error logging for macOS installer
-                let stderr = String::from_utf8_lossy(&output.stderr);
-                let stdout = String::from_utf8_lossy(&output.stdout);
-
-                error!(
-                    "macOS installer failed with exit status {}: stderr: {}, stdout: {}",
-                    status, stderr, stdout
-                );
-
-                // Check if it's a permission issue and try with sudo
-                if stderr.contains("Must be run as root") || status.code() == Some(1) {
-                    warn!("Installer requires root privileges. Attempting with sudo...");
-
-                    // Try with sudo
-                    let sudo_output = Command::new("sudo")
-                        .args(["/usr/sbin/installer", "-pkg", path_str, "-target", "/"])
-                        .output()
-                        .map_err(|e| {
-                            CommonError::system(format!(
-                                "Failed to launch installer with sudo: {}",
-                                e
-                            ))
-                        })?;
-
-                    let sudo_status = sudo_output.status;
-                    if sudo_status.success() {
-                        info!("macOS installer completed successfully with sudo");
-                        return Ok(());
-                    } else {
-                        let sudo_stderr = String::from_utf8_lossy(&sudo_output.stderr);
-                        let sudo_stdout = String::from_utf8_lossy(&sudo_output.stdout);
-
-                        error!(
-                            "macOS installer with sudo failed with exit status {}: stderr: {}, stdout: {}",
-                            sudo_status, sudo_stderr, sudo_stdout
-                        );
-
-                        return Err(CommonError::system(format!(
-                            "macOS installer failed even with sudo: exit code={:?}, stderr: {}",
-                            sudo_status.code(),
-                            sudo_stderr
-                        )));
-                    }
-                }
-
-                // Common installer issues and suggestions
-                match status.code() {
-                    Some(1) => {
-                        warn!(
-                            "Installer exit code 1: Possible causes - insufficient permissions, corrupted package, or target directory conflicts"
-                        );
-                        return Err(CommonError::system("macOS installer failed: Permission denied or package corruption. Try running with sudo or check disk space.".to_string()));
-                    }
-                    Some(64) => {
-                        warn!("Installer exit code 64: Package validation failed");
-                        return Err(CommonError::system(
-                            "Package validation failed. The downloaded package may be corrupted."
-                                .to_string(),
-                        ));
-                    }
-                    _ => {
-                        return Err(CommonError::system(format!(
-                            "Installer exited with error: exit code={:?}, stderr: {}",
-                            status.code(),
-                            stderr
-                        )));
-                    }
+                if !output.status.success() {
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    return Err(CommonError::system(format!("Installer failed: {}", stderr)));
                 }
             } else {
-                info!("macOS installer completed successfully");
+                info!("Not running as root, requesting elevation for installer");
+                let script = format!("/usr/sbin/installer -pkg {} -target /", path_str);
+                agent_common::macos::run_with_elevation(&script)?;
             }
+            info!("macOS installer completed successfully");
         }
 
         #[cfg(target_os = "windows")]
