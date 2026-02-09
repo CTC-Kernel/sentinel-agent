@@ -72,7 +72,7 @@ pub struct DiskEncryptionCheck {
 impl DiskEncryptionCheck {
     /// Create a new disk encryption check.
     pub fn new() -> Self {
-        let definition = CheckDefinitionBuilder::new(CHECK_ID)
+        let definition = CheckDefinitionBuilder::new(crate::checks::disk_encryption::CHECK_ID)
             .name("Disk Encryption")
             .description("Verify disk encryption is enabled (BitLocker/LUKS/FileVault)")
             .category(CheckCategory::Encryption)
