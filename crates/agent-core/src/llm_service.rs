@@ -17,7 +17,7 @@ use agent_scanner::CheckRunner;
 #[cfg(feature = "llm")]
 pub struct LLMService {
     llm_manager: Arc<RwLock<Option<Arc<LLMManager>>>>,
-    intelligent_runner: Option<Arc<RwLock<Option<IntelligentCheckRunner>>>>,
+    _intelligent_runner: Option<Arc<RwLock<Option<IntelligentCheckRunner>>>>,
     config_path: std::path::PathBuf,
 }
 
@@ -37,7 +37,7 @@ impl LLMService {
 
         let service = Self {
             llm_manager: Arc::new(RwLock::new(None)),
-            intelligent_runner: None,
+            _intelligent_runner: None,
             config_path,
         };
 
@@ -108,7 +108,7 @@ impl LLMService {
     pub async fn create_intelligent_runner(
         &self,
         base_runner: CheckRunner,
-        registry: Arc<CheckRegistry>,
+        _registry: Arc<CheckRegistry>,
     ) -> Result<IntelligentCheckRunner> {
         let llm_manager = self.get_manager().await;
 

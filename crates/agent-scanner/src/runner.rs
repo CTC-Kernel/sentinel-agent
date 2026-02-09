@@ -76,6 +76,11 @@ impl CheckRunner {
         Self::new(registry, RunnerConfig::default())
     }
 
+    /// Get the check registry.
+    pub fn registry(&self) -> Arc<CheckRegistry> {
+        self.registry.clone()
+    }
+
     /// Run a single check by ID.
     pub async fn run_check(&self, check_id: &str) -> ScannerResult<CheckExecutionResult> {
         let check = self

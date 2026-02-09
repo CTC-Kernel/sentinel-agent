@@ -3,9 +3,9 @@
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use anyhow::Result;
-use tracing::{debug, info};
+use tracing::info;
 
-use super::engine::{ModelEngine, InferenceRequest, InferenceResponse};
+use super::engine::{ModelEngine, InferenceRequest};
 use super::config::LLMConfig;
 use super::prompts::{PromptTemplates, PromptBuilder};
 
@@ -170,7 +170,7 @@ Provide validation status and any concerns."#,
     }
 
     /// Parse remediation response from LLM.
-    fn parse_remediation_response(&self, response: &str, request: &RemediationRequest, duration: std::time::Duration) -> Result<RemediationPlan> {
+    fn parse_remediation_response(&self, _response: &str, request: &RemediationRequest, duration: std::time::Duration) -> Result<RemediationPlan> {
         // Simplified parsing - in production, use structured output
         let plan = RemediationPlan {
             id: uuid::Uuid::new_v4().to_string(),
@@ -203,7 +203,7 @@ Provide validation status and any concerns."#,
     }
 
     /// Parse issue-specific remediation response.
-    fn parse_issue_remediation(&self, response: &str, issue: &SecurityIssue) -> Result<IssueRemediation> {
+    fn parse_issue_remediation(&self, _response: &str, issue: &SecurityIssue) -> Result<IssueRemediation> {
         Ok(IssueRemediation {
             issue_id: issue.id.clone(),
             immediate_actions: vec!["Isolate affected system".to_string()],
@@ -221,7 +221,7 @@ Provide validation status and any concerns."#,
     }
 
     /// Parse validation response.
-    fn parse_validation_response(&self, response: &str, plan: &RemediationPlan) -> Result<RemediationValidation> {
+    fn parse_validation_response(&self, _response: &str, plan: &RemediationPlan) -> Result<RemediationValidation> {
         Ok(RemediationValidation {
             plan_id: plan.id.clone(),
             is_valid: true,
@@ -310,12 +310,19 @@ pub enum ActionType {
 }
 
 /// Priority level for actions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Priority {
     Critical,
     High,
     Medium,
     Low,
+    Info,
+}
+
+impl std::fmt::Display for Priority {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 /// Risk level assessment.

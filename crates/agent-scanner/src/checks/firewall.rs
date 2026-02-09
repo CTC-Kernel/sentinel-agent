@@ -362,32 +362,46 @@ impl FirewallCheck {
     async fn check_macos(&self) -> ScannerResult<FirewallStatus> {
         debug!("Checking macOS Application Firewall status");
 
-        // Check Application Firewall (ALF)
-        let output = Command::new("/usr/libexec/ApplicationFirewall/socketfilterfw")
-            .args(["--getglobalstate"])
-            .output()
+        let get_output = |args: &[&str]| -> Result<std::process::Output, std::io::Error> {
+            Command::new("/usr/libexec/ApplicationFirewall/socketfilterfw")
+                .args(args)
+                .output()
+        };
+
+        // Try getting global state
+        let output = get_output(&["--getglobalstate"])
             .map_err(|e| ScannerError::CheckExecution(format!("Failed to check ALF: {}", e)))?;
 
-        let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
+        let mut raw_output = String::from_utf8_lossy(&output.stdout).to_string();
+        
+        // If it failed or output is empty, try with elevation
+        if !output.status.success() || raw_output.trim().is_empty() {
+             if let Ok(elevated) = agent_common::macos::run_with_elevation("/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate") {
+                 raw_output = elevated;
+             }
+        }
+
         let enabled = raw_output.contains("enabled");
 
         // Check stealth mode
-        let stealth_output = Command::new("/usr/libexec/ApplicationFirewall/socketfilterfw")
-            .args(["--getstealthmode"])
-            .output()
+        let mut stealth_output = get_output(&["--getstealthmode"])
             .ok()
             .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
             .unwrap_or_default();
-
-        let _stealth_enabled = stealth_output.contains("enabled");
+            
+        if stealth_output.trim().is_empty() {
+            stealth_output = agent_common::macos::run_with_elevation("/usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode").unwrap_or_default();
+        }
 
         // Check block all incoming
-        let block_output = Command::new("/usr/libexec/ApplicationFirewall/socketfilterfw")
-            .args(["--getblockall"])
-            .output()
+        let mut block_output = get_output(&["--getblockall"])
             .ok()
             .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
             .unwrap_or_default();
+            
+        if block_output.trim().is_empty() {
+            block_output = agent_common::macos::run_with_elevation("/usr/libexec/ApplicationFirewall/socketfilterfw --getblockall").unwrap_or_default();
+        }
 
         let block_all = block_output.contains("enabled");
 

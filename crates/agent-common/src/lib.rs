@@ -25,6 +25,8 @@ pub mod config;
 pub mod constants;
 pub mod error;
 pub mod frameworks;
+#[cfg(target_os = "macos")]
+pub mod macos;
 pub mod sensitive_filter;
 pub mod types;
 

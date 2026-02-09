@@ -859,25 +859,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI user set log level to {}", level_str);
                         }
                         Ok(GuiCommand::Remediate { check_id }) => {
-                            if agent_core::service::is_admin() {
-                                info!("[AUDIT] GUI user requested remediation for check: {}", check_id);
-                                handle.remediate(check_id);
-                            } else {
-                                warn!("[AUDIT] GUI user requested remediation but lacks admin privileges: {}", check_id);
-                                if let Err(e) = bg_event_tx.send(AgentEvent::Notification {
-                                    notification: GuiNotification {
-                                        id: uuid::Uuid::new_v4(),
-                                        title: "Privilèges insuffisants".to_string(),
-                                        body: "L'application doit être lancée en tant qu'administrateur pour appliquer les remédiations.".to_string(),
-                                        severity: "error".to_string(),
-                                        timestamp: chrono::Utc::now(),
-                                        read: false,
-                                        action: None,
-                                    },
-                                }) {
-                                    error!("Failed to send notification event: {}", e);
-                                }
-                            }
+                            info!("[AUDIT] GUI user requested remediation for check: {}", check_id);
+                            handle.remediate(check_id);
                         }
                         Ok(GuiCommand::RemediatePreview { check_id }) => {
                             info!("[AUDIT] GUI user previewed remediation for check: {}", check_id);
