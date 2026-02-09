@@ -12,8 +12,6 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 use tracing::debug;
-#[cfg(target_os = "macos")]
-
 
 /// Check ID for disk encryption.
 pub const CHECK_ID: &str = "disk_encryption";
@@ -72,7 +70,7 @@ pub struct DiskEncryptionCheck {
 impl DiskEncryptionCheck {
     /// Create a new disk encryption check.
     pub fn new() -> Self {
-        let definition = CheckDefinitionBuilder::new(crate::checks::disk_encryption::CHECK_ID)
+        let definition = CheckDefinitionBuilder::new(CHECK_ID)
             .name("Disk Encryption")
             .description("Verify disk encryption is enabled (BitLocker/LUKS/FileVault)")
             .category(CheckCategory::Encryption)
