@@ -622,7 +622,7 @@ impl ThreatsPage {
                 }
             }
 
-            ui.ctx().request_repaint();
+            ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
         });
     }
 

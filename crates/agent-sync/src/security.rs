@@ -55,8 +55,8 @@ impl SignedLogEntry {
 
 /// Log signer for HMAC-SHA256 log signing (NFR-S8).
 pub struct LogSigner {
-    /// HMAC key.
-    key: Vec<u8>,
+    /// HMAC key (zeroized on drop to prevent key leakage).
+    key: zeroize::Zeroizing<Vec<u8>>,
     /// Current sequence number.
     sequence: RwLock<u64>,
     /// Previous entry hash for chaining.
@@ -67,7 +67,7 @@ impl LogSigner {
     /// Create a new log signer with the given key.
     pub fn new(key: &[u8]) -> Self {
         Self {
-            key: key.to_vec(),
+            key: zeroize::Zeroizing::new(key.to_vec()),
             sequence: RwLock::new(0),
             previous_hash: RwLock::new("genesis".to_string()),
         }
@@ -859,7 +859,7 @@ mod tests {
 
         assert!(validator.is_trusted_signer("Sentinel GRC"));
         assert!(validator.is_trusted_signer("sentinel grc")); // Case insensitive
-        assert!(validator.is_trusted_signer("Signed by Sentinel GRC Inc.")); // Contains
+        assert!(!validator.is_trusted_signer("Signed by Sentinel GRC Inc.")); // Exact match, not substring
         assert!(!validator.is_trusted_signer("Unknown Signer"));
     }
 

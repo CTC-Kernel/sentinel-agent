@@ -195,7 +195,7 @@ impl<'a> ProofsRepository<'a> {
                 .map_err(|e| StorageError::Query(format!("Failed to insert proof: {}", e)))?;
 
                 let id = conn.last_insert_rowid();
-                let hash_preview = if hash.len() >= 16 { &hash[..16] } else { &hash };
+                let hash_preview: String = hash.chars().take(16).collect();
                 debug!("Inserted proof with ID: {} (hash: {}...)", id, hash_preview);
                 Ok(id)
             })

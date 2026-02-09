@@ -139,7 +139,8 @@ impl Slider {
 
             if ui.is_rect_visible(rect) {
                 let painter = ui.painter();
-                let t = (*value - self.min) / (self.max - self.min);
+                let range = self.max - self.min;
+                let t = if range.abs() > f32::EPSILON { (*value - self.min) / range } else { 0.0 };
                 let thumb_x = track_rect.min.x + t * track_rect.width();
                 let thumb_center = egui::pos2(thumb_x, track_rect.center().y);
 
@@ -164,20 +165,22 @@ impl Slider {
                     && let Some(step) = self.step
                 {
                     let tick_count = ((self.max - self.min) / step) as usize;
-                    for i in 0..=tick_count {
-                        let tick_t = i as f32 / tick_count as f32;
-                        let tick_x = track_rect.min.x + tick_t * track_rect.width();
-                        let tick_y = track_rect.max.y + 8.0;
+                    if tick_count > 0 {
+                        for i in 0..=tick_count {
+                            let tick_t = i as f32 / tick_count as f32;
+                            let tick_x = track_rect.min.x + tick_t * track_rect.width();
+                            let tick_y = track_rect.max.y + 8.0;
 
-                        painter.circle_filled(
-                            egui::pos2(tick_x, tick_y),
-                            2.0,
-                            if tick_t <= t {
-                                accent.linear_multiply(0.6)
-                            } else {
-                                theme::text_tertiary()
-                            },
-                        );
+                            painter.circle_filled(
+                                egui::pos2(tick_x, tick_y),
+                                2.0,
+                                if tick_t <= t {
+                                    accent.linear_multiply(0.6)
+                                } else {
+                                    theme::text_tertiary()
+                                },
+                            );
+                        }
                     }
                 }
 

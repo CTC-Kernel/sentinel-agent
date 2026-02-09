@@ -42,14 +42,14 @@ impl LLMService {
         };
 
         // Try to initialize LLM manager if config exists
-        if config_path.exists() {
+        if service.config_path.exists() {
             if let Err(e) = service.initialize().await {
                 warn!("Failed to initialize LLM service: {}", e);
             }
         } else {
             info!(
                 "LLM config not found at {:?}, LLM features disabled",
-                config_path
+                service.config_path
             );
         }
 

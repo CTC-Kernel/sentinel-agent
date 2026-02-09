@@ -496,7 +496,9 @@ impl SettingsPage {
                 )
                 .clicked()
                 {
-                    let _ = open::that(&url);
+                    if let Err(e) = open::that(&url) {
+                        tracing::warn!("Failed to open portal URL: {}", e);
+                    }
                 }
             } else {
                 ui.label(

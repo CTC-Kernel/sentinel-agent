@@ -31,7 +31,7 @@ pub fn status_badge(ui: &mut Ui, text: &str, color: egui::Color32) {
     let (rect, _) = ui.allocate_exact_size(desired_size, egui::Sense::hover());
 
     if ui.is_rect_visible(rect) {
-        let radius = (rect.height() / 2.0).round() as u8;
+        let radius = (rect.height() / 2.0).round().min(255.0) as u8;
 
         // Soft tinted background
         ui.painter()

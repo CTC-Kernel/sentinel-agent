@@ -26,8 +26,12 @@ impl ProofGenerator {
     }
 
     /// Create a proof generator with custom retention period.
+    ///
+    /// `retention_days` must be positive; values <= 0 are clamped to 1.
     pub fn with_retention(retention_days: i64) -> Self {
-        Self { retention_days }
+        Self {
+            retention_days: retention_days.max(1),
+        }
     }
 
     /// Generate a proof from check output.
