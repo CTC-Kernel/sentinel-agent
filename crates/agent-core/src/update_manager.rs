@@ -4,7 +4,6 @@ use agent_common::types::UpdateInfo;
 use semver::Version;
 use std::process::Command;
 use std::sync::Arc;
-#[cfg(target_os = "macos")]
 use tracing::{debug, error, info};
 
 /// Orchestrates the agent self-update process.
