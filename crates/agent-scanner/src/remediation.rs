@@ -423,10 +423,10 @@ impl Default for RemediationEngine {
 }
 
 /// Execute a script on the current platform.
-fn execute_script(script: &str, platform: &str, requires_admin: bool) -> Result<String, String> {
+fn execute_script(script: &str, platform: &str, _requires_admin: bool) -> Result<String, String> {
     #[cfg(target_os = "macos")]
     {
-        if platform == "macos" && requires_admin && !agent_common::macos::is_admin() {
+        if platform == "macos" && _requires_admin && !agent_common::macos::is_admin() {
             return agent_common::macos::run_with_elevation(script)
                 .map_err(|e| e.to_string());
         }
