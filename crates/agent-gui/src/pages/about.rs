@@ -207,11 +207,9 @@ impl AboutPage {
                                 .strong(),
                         )
                         .clicked()
-                    {
-                        if let Err(e) = open::that(url) {
+                        && let Err(e) = open::that(url) {
                             tracing::warn!("Failed to open URL {}: {}", url, e);
                         }
-                    }
                 },
             );
         });

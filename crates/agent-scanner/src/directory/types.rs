@@ -300,9 +300,11 @@ mod tests {
 
     #[test]
     fn test_compliance_summary() {
-        let mut summary = DirectoryComplianceSummary::default();
-        summary.local_policy_score = Some(80.0);
-        summary.domain_policy_score = Some(90.0);
+        let summary = DirectoryComplianceSummary {
+            local_policy_score: Some(80.0),
+            domain_policy_score: Some(90.0),
+            ..Default::default()
+        };
 
         assert!((summary.overall_score() - 85.0).abs() < 0.1);
     }

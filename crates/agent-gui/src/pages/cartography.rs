@@ -94,11 +94,9 @@ impl CartographyPage {
                     // Open 3D view button
                     if widgets::primary_button(ui, format!("VUE 3D {}", icons::EXTERNAL_LINK), true)
                         .clicked()
-                    {
-                        if let Err(e) = open::that(&state.settings.architecture_url) {
+                        && let Err(e) = open::that(&state.settings.architecture_url) {
                             tracing::warn!("Failed to open URL: {}", e);
                         }
-                    }
 
                     ui.add_space(theme::SPACE_MD);
 

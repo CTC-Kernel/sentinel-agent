@@ -690,10 +690,7 @@ impl BackupCheck {
         if let Some(last) = parts.last() {
             // Format: 2024-01-15-120000
             if last.len() >= 10 {
-                let date_part = match last.get(..10) {
-                    Some(s) => s,
-                    None => return None,
-                };
+                let date_part = last.get(..10)?;
                 let time_part = last.get(11..).unwrap_or("000000");
 
                 let datetime_str = format!("{} {}", date_part, time_part);
