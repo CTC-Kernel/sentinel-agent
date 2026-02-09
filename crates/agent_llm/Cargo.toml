@@ -12,14 +12,21 @@ path = "src/lib.rs"
 
 [dependencies]
 agent-common = { path = "../agent-common" }
-serde.workspace = true
+serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true
 anyhow.workspace = true
 tracing.workspace = true
-uuid.workspace = true
-chrono.workspace = true
+uuid = { workspace = true, features = ["v4", "serde"] }
+chrono = { workspace = true, features = ["serde"] }
 regex.workspace = true
+async-trait = "0.1"
+num_cpus = "1.0"
+mistralrs = { version = "0.7.0", features = ["accelerate"] }
+tokio = { workspace = true, features = ["sync", "rt", "macros"] }
 
 [features]
 default = []
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros"] }
