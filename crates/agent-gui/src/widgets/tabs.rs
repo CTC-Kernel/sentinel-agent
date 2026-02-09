@@ -377,8 +377,11 @@ impl<'a> TabBar<'a> {
                 ui.horizontal(|ui| {
                     ui.spacing_mut().item_spacing.x = 4.0;
 
-                    let tab_width =
-                        (available_width - 8.0 - (tab_count - 1) as f32 * 4.0) / tab_count as f32;
+                    let tab_width = if tab_count > 0 {
+                        (available_width - 8.0 - tab_count.saturating_sub(1) as f32 * 4.0) / tab_count as f32
+                    } else {
+                        0.0
+                    };
 
                     for (i, tab) in self.tabs.iter().enumerate() {
                         let is_selected = i == self.selected;

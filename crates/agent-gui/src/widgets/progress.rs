@@ -137,7 +137,7 @@ pub fn progress_bar_indeterminate(ui: &mut Ui) -> egui::Response {
 
         painter.rect_filled(bar_rect, rounding, theme::ACCENT);
 
-        ui.ctx().request_repaint();
+        ui.ctx().request_repaint_after(std::time::Duration::from_millis(50));
     }
 
     response
@@ -184,8 +184,8 @@ pub fn circular_progress_styled(
                 let t0 = i as f32 / segments as f32;
                 let t1 = (i + 1) as f32 / segments as f32;
 
-                let angle0 = start_angle + t0 * std::f32::consts::TAU * progress / progress;
-                let angle1 = start_angle + t1 * std::f32::consts::TAU * progress / progress;
+                let angle0 = start_angle + t0 * std::f32::consts::TAU;
+                let angle1 = start_angle + t1 * std::f32::consts::TAU;
 
                 let p0 = center + egui::vec2(radius * angle0.cos(), radius * angle0.sin());
                 let p1 = center + egui::vec2(radius * angle1.cos(), radius * angle1.sin());

@@ -249,7 +249,7 @@ impl FirewallCheck {
         let rule_count = raw_output
             .lines()
             .filter(|l| l.contains("ALLOW") || l.contains("DENY") || l.contains("REJECT"))
-            .count() as u32;
+            .count().min(u32::MAX as usize) as u32;
 
         Ok(FirewallStatus {
             enabled,
@@ -281,7 +281,7 @@ impl FirewallCheck {
         let rule_count = raw_output
             .lines()
             .filter(|l| l.trim().starts_with("rule") || l.contains("accept") || l.contains("drop"))
-            .count() as u32;
+            .count().min(u32::MAX as usize) as u32;
 
         Ok(FirewallStatus {
             enabled,
@@ -342,7 +342,7 @@ impl FirewallCheck {
         let rule_count = raw_output
             .lines()
             .filter(|l| !l.starts_with("Chain") && !l.starts_with("target") && !l.trim().is_empty())
-            .count() as u32;
+            .count().min(u32::MAX as usize) as u32;
 
         Ok(FirewallStatus {
             enabled: has_rules

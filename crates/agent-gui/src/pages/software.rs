@@ -121,7 +121,7 @@ impl SoftwarePage {
             .iter()
             .filter(|p| p.up_to_date)
             .count() as u32;
-        let outdated = total - up_to_date;
+        let outdated = total.saturating_sub(up_to_date);
 
         let card_grid = widgets::ResponsiveGrid::new(280.0, theme::SPACE_SM);
         let items = vec![
