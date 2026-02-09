@@ -33,11 +33,10 @@ impl AuditTrailPage {
             .logs
             .iter()
             .filter(|log| {
-                if let Some(ref filter) = state.audit_trail_filter {
-                    if log.level.to_lowercase() != filter.to_lowercase() {
+                if let Some(ref filter) = state.audit_trail_filter
+                    && log.level.to_lowercase() != filter.to_lowercase() {
                         return false;
                     }
-                }
                 if !state.audit_trail_search.is_empty() {
                     let search = state.audit_trail_search.to_lowercase();
                     return log.message.to_lowercase().contains(&search)
@@ -105,11 +104,10 @@ impl AuditTrailPage {
             .logs
             .iter()
             .filter(|log| {
-                if let Some(ref filter) = state.audit_trail_filter {
-                    if log.level.to_lowercase() != filter.to_lowercase() {
+                if let Some(ref filter) = state.audit_trail_filter
+                    && log.level.to_lowercase() != filter.to_lowercase() {
                         return false;
                     }
-                }
                 if !state.audit_trail_search.is_empty() {
                     let search = state.audit_trail_search.to_lowercase();
                     return log.message.to_lowercase().contains(&search)

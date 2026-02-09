@@ -2481,11 +2481,10 @@ impl AgentRuntime {
             }
 
             // Check for force_update flag (trigger from GUI button)
-            if self.state.force_update.swap(false, Ordering::AcqRel) {
-                if let Err(e) = self.run_self_update().await {
+            if self.state.force_update.swap(false, Ordering::AcqRel)
+                && let Err(e) = self.run_self_update().await {
                     warn!("Self-update failed: {}", e);
                 }
-            }
 
             // Check for force_discovery flag (GUI network discovery)
             #[cfg(feature = "gui")]

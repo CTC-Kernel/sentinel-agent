@@ -401,15 +401,14 @@ impl DnsSecurityCheck {
         // Parse DNS servers
         for line in result.lines() {
             let trimmed = line.trim();
-            if trimmed.starts_with("nameserver") {
-                if let Some(addr_part) = trimmed.split_whitespace().last() {
+            if trimmed.starts_with("nameserver")
+                && let Some(addr_part) = trimmed.split_whitespace().last() {
                     // Extract just the IP address (remove brackets if present)
                     let server = addr_part.trim_matches(|c| c == '[' || c == ']');
                     if !status.dns_servers.contains(&server.to_string()) {
                         status.dns_servers.push(server.to_string());
                     }
                 }
-            }
         }
 
         // Check for DNS configuration profiles (DoH/DoT)
@@ -441,8 +440,8 @@ impl DnsSecurityCheck {
         }
 
         // Check for DoH/DoT in /etc/resolver
-        if std::path::Path::new("/etc/resolver").exists() {
-            if let Ok(entries) = std::fs::read_dir("/etc/resolver") {
+        if std::path::Path::new("/etc/resolver").exists()
+            && let Ok(entries) = std::fs::read_dir("/etc/resolver") {
                 for entry in entries.filter_map(|e| e.ok()) {
                     if let Ok(content) = std::fs::read_to_string(entry.path()) {
                         status.raw_output.push_str(&format!(
@@ -453,7 +452,6 @@ impl DnsSecurityCheck {
                     }
                 }
             }
-        }
 
         // Check for dnscrypt-proxy (Homebrew)
         if std::path::Path::new("/usr/local/etc/dnscrypt-proxy.toml").exists()
@@ -473,15 +471,13 @@ impl DnsSecurityCheck {
         // macOS 14+ supports native DoH
         if let Ok(output) = Command::new("sw_vers").args(["-productVersion"]).output() {
             let version = String::from_utf8_lossy(&output.stdout).to_string();
-            if let Some(major) = version.trim().split('.').next() {
-                if let Ok(major_num) = major.parse::<u32>() {
-                    if major_num >= 14 {
+            if let Some(major) = version.trim().split('.').next()
+                && let Ok(major_num) = major.parse::<u32>()
+                    && major_num >= 14 {
                         status
                             .raw_output
                             .push_str("macOS 14+ detected (native DoH support)\n");
                     }
-                }
-            }
         }
 
         // Determine overall security status

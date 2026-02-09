@@ -13,6 +13,7 @@ use {
 use egui::{Color32, RichText};
 
 /// LLM management panel for the GUI.
+#[derive(Default)]
 pub struct LLMPanel {
     #[cfg(feature = "llm_simple")]
     llm_manager: Option<Arc<LLMManager>>,
@@ -34,30 +35,6 @@ pub struct LLMPanel {
     show_model_info: bool,
 }
 
-impl Default for LLMPanel {
-    fn default() -> Self {
-        Self {
-            #[cfg(feature = "llm_simple")]
-            llm_manager: None,
-            #[cfg(feature = "llm_simple")]
-            model_stats: None,
-            #[cfg(feature = "llm_simple")]
-            last_analysis: None,
-            #[cfg(feature = "llm_simple")]
-            last_remediation: None,
-            #[cfg(feature = "llm_simple")]
-            last_classifications: Vec::new(),
-            #[cfg(feature = "llm_simple")]
-            show_analysis: false,
-            #[cfg(feature = "llm_simple")]
-            show_remediation: false,
-            #[cfg(feature = "llm_simple")]
-            show_classifications: false,
-            #[cfg(feature = "llm_simple")]
-            show_model_info: false,
-        }
-    }
-}
 
 impl LLMPanel {
     /// Create new LLM panel.
@@ -385,19 +362,12 @@ impl LLMPanel {
 }
 
 /// LLM status widget for the main dashboard.
+#[derive(Default)]
 pub struct LLMStatusWidget {
     #[cfg(feature = "llm_simple")]
     llm_manager: Option<Arc<LLMManager>>,
 }
 
-impl Default for LLMStatusWidget {
-    fn default() -> Self {
-        Self {
-            #[cfg(feature = "llm_simple")]
-            llm_manager: None,
-        }
-    }
-}
 
 impl LLMStatusWidget {
     #[cfg(feature = "llm_simple")]

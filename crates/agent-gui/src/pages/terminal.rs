@@ -183,7 +183,7 @@ impl TerminalPage {
                     let selected = state.terminal.filter_level == level;
                     let color = level_color(name);
 
-                    if widgets::chip_button(ui, *name, selected, color).clicked() {
+                    if widgets::chip_button(ui, name, selected, color).clicked() {
                         state.terminal.filter_level = level;
                     }
                     ui.add_space(4.0);

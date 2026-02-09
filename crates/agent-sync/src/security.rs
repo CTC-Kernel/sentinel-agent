@@ -226,10 +226,7 @@ impl LogSigner {
 
     /// Verify a signature against data using constant-time comparison.
     pub fn verify_data(&self, data: &str, signature: &str) -> bool {
-        match self.verify_hmac_constant_time(data, signature) {
-            Ok(valid) => valid,
-            Err(_) => false,
-        }
+        self.verify_hmac_constant_time(data, signature).unwrap_or_default()
     }
 }
 

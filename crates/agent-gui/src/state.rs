@@ -186,21 +186,13 @@ impl Default for MonitoringHistory {
 // ---------------------------------------------------------------------------
 
 /// Compliance page filter/search state.
+#[derive(Default)]
 pub struct ComplianceFilter {
     pub search: String,
     pub status_filter: Option<crate::dto::GuiCheckStatus>,
     pub group_by: crate::dto::ComplianceGroupBy,
 }
 
-impl Default for ComplianceFilter {
-    fn default() -> Self {
-        Self {
-            search: String::new(),
-            status_filter: None,
-            group_by: crate::dto::ComplianceGroupBy::default(),
-        }
-    }
-}
 
 // ---------------------------------------------------------------------------
 // Vulnerability filter
@@ -218,6 +210,7 @@ pub struct VulnerabilityFilter {
 // ---------------------------------------------------------------------------
 
 /// Software inventory state.
+#[derive(Default)]
 pub struct SoftwareState {
     pub packages: Vec<crate::dto::GuiSoftwarePackage>,
     pub macos_apps: Vec<crate::dto::GuiMacOsApp>,
@@ -225,16 +218,6 @@ pub struct SoftwareState {
     pub search: String,
 }
 
-impl Default for SoftwareState {
-    fn default() -> Self {
-        Self {
-            packages: Vec::new(),
-            macos_apps: Vec::new(),
-            active_tab: crate::dto::SoftwareTab::default(),
-            search: String::new(),
-        }
-    }
-}
 
 // ---------------------------------------------------------------------------
 // Settings

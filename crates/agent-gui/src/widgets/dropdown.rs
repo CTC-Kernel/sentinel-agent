@@ -168,12 +168,11 @@ impl<'a, T> Dropdown<'a, T> {
                 highlight_idx = Some(prev);
                 ui.memory_mut(|mem| mem.data.insert_temp(highlight_id, prev));
             }
-            if ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-                if let Some(h) = highlight_idx {
+            if ui.input(|i| i.key_pressed(egui::Key::Enter))
+                && let Some(h) = highlight_idx {
                     new_selection = Some(h);
                     ui.memory_mut(|mem| mem.data.insert_temp(self.id, false));
                 }
-            }
 
             egui::Area::new(popup_id)
                 .order(egui::Order::Foreground)

@@ -512,8 +512,8 @@ impl GpoAuditor {
                 .output()
                 .await;
 
-            if let Ok(output) = output {
-                if output.status.success() {
+            if let Ok(output) = output
+                && output.status.success() {
                     let line = String::from_utf8_lossy(&output.stdout);
                     let parts: Vec<&str> = line.trim().split(':').collect();
 
@@ -542,7 +542,6 @@ impl GpoAuditor {
                         });
                     }
                 }
-            }
         }
 
         Ok(groups)

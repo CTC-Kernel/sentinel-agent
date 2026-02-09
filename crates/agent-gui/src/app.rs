@@ -330,8 +330,10 @@ impl SentinelApp {
 
         // Create channel for internal async UI tasks
         let (async_tx, async_rx) = mpsc::channel();
-        let mut state = AppState::default();
-        state.async_task_tx = Some(async_tx);
+        let state = AppState {
+            async_task_tx: Some(async_tx),
+            ..Default::default()
+        };
 
         Self {
             page: Page::Dashboard,
@@ -827,14 +829,12 @@ impl eframe::App for SentinelApp {
         self.process_tray_actions(ctx);
 
         // Auto-lock admin mode after 5 minutes of inactivity.
-        if self.state.security.admin_unlocked {
-            if let Some(last_unlock) = self.state.security.last_unlock {
-                if chrono::Utc::now() - last_unlock > chrono::Duration::minutes(5) {
+        if self.state.security.admin_unlocked
+            && let Some(last_unlock) = self.state.security.last_unlock
+                && chrono::Utc::now() - last_unlock > chrono::Duration::minutes(5) {
                     self.state.security.admin_unlocked = false;
                     tracing::info!("Admin mode auto-locked after 5 minutes");
                 }
-            }
-        }
 
         // Process async task results from background threads
         while let Ok(result) = self.async_results_rx.try_recv() {

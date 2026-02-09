@@ -576,7 +576,7 @@ mod tests {
                 process_name: Some("random".to_string()),
                 pid: Some(1234),
             });
-            current_time = current_time + Duration::seconds(*interval);
+            current_time += Duration::seconds(*interval);
         }
 
         let result = detector.analyze_destination("10.0.0.1:4444", &events);
