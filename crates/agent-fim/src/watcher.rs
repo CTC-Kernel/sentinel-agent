@@ -194,8 +194,7 @@ fn is_ignored_path(path: &Path, patterns: &[String]) -> bool {
             if path_str.ends_with(suffix) {
                 return true;
             }
-        } else if pattern.ends_with("/**") {
-            let prefix = &pattern[..pattern.len() - 3];
+        } else if let Some(prefix) = pattern.strip_suffix("/**") {
             if path_str.contains(prefix) {
                 return true;
             }

@@ -43,7 +43,7 @@ pub fn loading_skeleton(ui: &mut Ui, rows: usize) {
         }
     }
 
-    ui.ctx().request_repaint();
+    ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
 }
 
 /// Render an error state with icon, message, and optional retry button.

@@ -160,7 +160,7 @@ pub fn pending_state(ui: &mut Ui, message: &str) {
             painter.circle_filled(pos, 4.0, theme::ACCENT.linear_multiply(alpha));
         }
 
-        ui.ctx().request_repaint();
+        ui.ctx().request_repaint_after(std::time::Duration::from_millis(50));
 
         ui.add_space(theme::SPACE_MD);
 

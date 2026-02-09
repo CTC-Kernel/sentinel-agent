@@ -161,7 +161,9 @@ impl BackupManager {
         {
             use std::os::unix::fs::PermissionsExt;
             let permissions = fs::Permissions::from_mode(0o600);
-            let _ = fs::set_permissions(&backup_path, permissions);
+            if let Err(e) = fs::set_permissions(&backup_path, permissions) {
+                tracing::warn!("Failed to set backup file permissions to 0600: {}", e);
+            }
         }
 
         let metadata = BackupMetadata {

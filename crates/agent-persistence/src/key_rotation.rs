@@ -126,9 +126,11 @@ impl<'a> KeyRotationManager<'a> {
         })?;
 
         // Step 3: Rekey the database
-        let new_key = new_key_manager
-            .get_database_key()
-            .map_err(|e| PersistenceError::KeyRotation(format!("Failed to get new key: {}", e)))?;
+        let new_key = zeroize::Zeroizing::new(
+            new_key_manager
+                .get_database_key()
+                .map_err(|e| PersistenceError::KeyRotation(format!("Failed to get new key: {}", e)))?,
+        );
 
         let mut new_key_hex: String = new_key.iter().map(|b| format!("{:02x}", b)).collect();
 

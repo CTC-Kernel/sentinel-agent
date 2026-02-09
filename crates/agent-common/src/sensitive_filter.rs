@@ -126,19 +126,20 @@ fn is_sensitive_key(key: &str) -> bool {
     }
 
     // Suffix/prefix patterns that indicate sensitivity
+    // Explicit parentheses to clarify && vs || precedence
     key_lower.ends_with("_token")
         || key_lower.ends_with("_secret")
         || key_lower.ends_with("_password")
-        || key_lower.ends_with("_key")
+        || (key_lower.ends_with("_key")
             && !key_lower.contains("keyboard")
-            && !key_lower.contains("hotkey")
+            && !key_lower.contains("hotkey"))
         || key_lower.ends_with("_credential")
         || key_lower.starts_with("auth_")
         || key_lower.starts_with("x-api-")
         || key_lower.contains("certificate")
-        || key_lower.contains("private")
+        || (key_lower.contains("private")
             && !key_lower.contains("private_ip")
-            && !key_lower.contains("private_address")
+            && !key_lower.contains("private_address"))
 }
 
 #[cfg(test)]

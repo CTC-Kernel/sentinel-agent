@@ -457,7 +457,7 @@ impl ConnectionTracker {
         let connected_at = *self.connected_at.read().await;
 
         // Calculate uptime
-        let uptime_secs = connected_at.map(|t| (Utc::now() - t).num_seconds() as u64);
+        let uptime_secs = connected_at.map(|t| (Utc::now() - t).num_seconds().max(0) as u64);
 
         // Calculate p95 latency using select_nth_unstable for O(n) instead of O(n log n)
         let latency_p95 = {

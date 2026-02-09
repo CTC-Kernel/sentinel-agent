@@ -187,7 +187,7 @@ impl SyncOrchestrator {
             SyncKind::Full | SyncKind::Manual => self.sync_full(client).await,
         };
 
-        let duration_ms = (Utc::now() - started_at).num_milliseconds() as u64;
+        let duration_ms = (Utc::now() - started_at).num_milliseconds().max(0) as u64;
 
         match result {
             Ok(items_synced) => {

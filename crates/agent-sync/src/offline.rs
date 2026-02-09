@@ -94,7 +94,7 @@ impl SyncQueueItem {
     /// Calculate next retry delay using exponential backoff.
     pub fn calculate_next_retry(&self) -> DateTime<Utc> {
         let delay_secs = std::cmp::min(
-            INITIAL_RETRY_DELAY_SECS * (2u64.pow(self.attempts)),
+            INITIAL_RETRY_DELAY_SECS.saturating_mul(2u64.saturating_pow(self.attempts)),
             MAX_RETRY_DELAY_SECS,
         );
         Utc::now() + Duration::seconds(delay_secs as i64)
@@ -173,7 +173,7 @@ impl CircuitBreaker {
                 // Check if we should transition to half-open
                 let opened_at = self.opened_at.read().await;
                 if let Some(opened) = *opened_at {
-                    let elapsed = (Utc::now() - opened).num_seconds() as u64;
+                    let elapsed = (Utc::now() - opened).num_seconds().max(0) as u64;
                     if elapsed >= CIRCUIT_BREAKER_OPEN_SECS {
                         // Transition to half-open
                         drop(opened_at);
@@ -325,7 +325,7 @@ impl OfflineTracker {
             is_offline,
             offline_since,
             last_connected,
-            offline_duration_hours: duration.map(|d| d.num_hours() as u32),
+            offline_duration_hours: duration.map(|d| d.num_hours().max(0) as u32),
             queued_item_count: queued_count,
             // Use hours for consistent boundary behavior (7 days = 168 hours)
             within_autonomy_period: duration

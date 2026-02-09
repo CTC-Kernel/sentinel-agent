@@ -104,7 +104,7 @@ pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>, help_text: 
             ui.painter().add(mesh);
 
             if !theme::is_reduced_motion() {
-                ui.ctx().request_repaint();
+                ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
             }
         }
     });

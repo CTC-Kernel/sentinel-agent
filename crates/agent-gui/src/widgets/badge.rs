@@ -93,11 +93,7 @@ impl<'a> Badge<'a> {
         let (h_pad, v_pad, font) = self.size.dimensions();
         let base = self.variant.base_color();
 
-        let text_color = if self.outline {
-            theme::badge_text(base)
-        } else {
-            theme::badge_text(base)
-        };
+        let text_color = theme::badge_text(base);
 
         let galley =
             ui.painter()
@@ -235,7 +231,7 @@ pub fn status_dot_animated(ui: &mut Ui, color: Color32, pulse: bool) -> egui::Re
                 size / 2.0 + 2.0,
                 color.linear_multiply(alpha * 0.2),
             );
-            ui.ctx().request_repaint();
+            ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
         }
 
         ui.painter().circle_filled(center, size / 2.0, color);

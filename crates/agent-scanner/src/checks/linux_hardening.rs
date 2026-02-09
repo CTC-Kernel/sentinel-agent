@@ -493,11 +493,17 @@ impl LinuxHardeningCheck {
         }
 
         // Check ulimit via /proc/self/limits
+        // Format: "Max core file size  0  unlimited  bytes"
+        // Fields are: description, soft limit, hard limit, units
         if let Ok(limits) = fs::read_to_string("/proc/self/limits") {
             for line in limits.lines() {
-                let line: &str = line;
-                if line.contains("core file size") && line.contains("0") {
-                    return true;
+                if line.contains("core file size") {
+                    // Extract the soft limit (first number-like token after the description)
+                    let parts: Vec<&str> = line.split_whitespace().collect();
+                    // "Max core file size" = 4 words, then soft limit is at index 4
+                    if parts.len() > 4 && parts[4] == "0" {
+                        return true;
+                    }
                 }
             }
         }

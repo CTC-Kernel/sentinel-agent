@@ -472,6 +472,13 @@ fn device_type_color(device_type: &str) -> Color32 {
 
 fn build_initial_layout(devices: &[GuiDiscoveredDevice]) -> GraphLayout {
     let n = devices.len();
+    if n == 0 {
+        return GraphLayout {
+            nodes: vec![],
+            edges: vec![],
+            converged: true,
+        };
+    }
     let mut nodes = Vec::with_capacity(n);
 
     // Circular initial layout
