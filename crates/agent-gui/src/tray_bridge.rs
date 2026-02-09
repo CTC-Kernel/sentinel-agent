@@ -7,7 +7,11 @@ use muda::{Menu, MenuEvent, MenuItem, PredefinedMenuItem};
 use tracing::{debug, info};
 use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 
-/// Embedded 32x32 tray icon PNG.
+/// Embedded tray icon PNG.
+/// On macOS, we use a 22x22 template image for the status bar.
+#[cfg(target_os = "macos")]
+static TRAY_ICON_PNG: &[u8] = include_bytes!("../../../assets/icons/png/tray_22.png");
+#[cfg(not(target_os = "macos"))]
 static TRAY_ICON_PNG: &[u8] = include_bytes!("../../../assets/icons/png/icon_32x32.png");
 
 /// Commands from the tray menu.
@@ -76,12 +80,17 @@ impl TrayBridge {
 
         let icon = Self::load_icon()?;
 
-        let tray_icon = TrayIconBuilder::new()
+        let mut builder = TrayIconBuilder::new()
             .with_menu(Box::new(menu))
             .with_tooltip("Sentinel Agent")
-            .with_icon(icon)
-            .build()
-            .map_err(|e| format!("tray build: {}", e))?;
+            .with_icon(icon);
+
+        #[cfg(target_os = "macos")]
+        {
+            builder = builder.with_icon_as_template(true);
+        }
+
+        let tray_icon = builder.build().map_err(|e| format!("tray build: {}", e))?;
 
         info!("System tray icon created");
         Ok(Self {
