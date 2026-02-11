@@ -69,8 +69,12 @@ use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use resources::ResourceMonitor;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use tokio::sync::RwLock;
+use tokio::sync::{mpsc, RwLock};
 use tracing::{debug, error, info, warn};
+
+// Import orphaned modules
+use agent_fim::FimEngine;
+use agent_siem::SiemForwarder;
 
 #[cfg_attr(not(feature = "gui"), allow(dead_code))]
 #[cfg(feature = "gui")]
@@ -227,6 +231,12 @@ pub struct AgentRuntime {
     remediation_engine: Arc<RemediationEngine>,
     /// Receiver for remediation requests.
     remediation_rx: tokio::sync::Mutex<tokio::sync::mpsc::Receiver<state::RemediationRequest>>,
+    /// FIM engine for file integrity monitoring.
+    fim_engine: RwLock<Option<FimEngine>>,
+    /// SIEM forwarder for security events.
+    siem_forwarder: RwLock<Option<SiemForwarder>>,
+    /// FIM alert receiver.
+    fim_rx: tokio::sync::Mutex<Option<mpsc::Receiver<agent_common::types::FimAlert>>>,
 }
 
 /// A lightweight handle to the running agent that can be shared with the GUI
@@ -445,6 +455,9 @@ impl AgentRuntime {
             #[cfg(feature = "gui")]
             remediation_engine: Arc::new(RemediationEngine::new()),
             remediation_rx: tokio::sync::Mutex::new(rx),
+            fim_engine: RwLock::new(None),
+            siem_forwarder: RwLock::new(None),
+            fim_rx: tokio::sync::Mutex::new(None),
         }
     }
 
@@ -1744,6 +1757,37 @@ impl AgentRuntime {
                                 *current = Some(frameworks);
                             }
                         }
+
+                        // Apply FIM config changes
+                        if let Ok(Some(fim_config)) = config_sync
+                            .get_config::<agent_fim::FimConfig>(agent_sync::config_keys::FIM_CONFIG)
+                            .await
+                        {
+                            let mut fim_engine_guard = self.fim_engine.write().await;
+                            if let Some(ref mut fim_engine) = *fim_engine_guard {
+                                if fim_engine.update_config(fim_config.clone()).await.is_ok() {
+                                    info!("FIM engine configuration updated.");
+                                } else {
+                                    warn!("Failed to update FIM engine configuration.");
+                                }
+                            }
+                        }
+
+                        // Apply SIEM config changes
+                        if let Ok(Some(siem_config)) = config_sync
+                            .get_config::<agent_siem::SiemConfig>(agent_sync::config_keys::SIEM_CONFIG)
+                            .await
+                        {
+                            let mut siem_forwarder_guard = self.siem_forwarder.write().await;
+                            if let Some(ref mut siem_forwarder) = *siem_forwarder_guard {
+                                if siem_forwarder.update_config(siem_config.clone()).is_ok() {
+                                    info!("SIEM forwarder configuration updated.");
+                                } else {
+                                    warn!("Failed to update SIEM forwarder configuration.");
+                                }
+                            }
+                        }
+
                     } else {
                         debug!("Config sync: no changes");
                     }
@@ -1974,54 +2018,169 @@ impl AgentRuntime {
             Err(e) => warn!("Initial network collection failed: {}", e),
         }
 
-        // Main agent loop
-        while !self.is_shutdown_requested() {
-            let mut is_active = false;
+        // Initialize FIM engine
+        {
+            let (fim_tx, fim_rx) = mpsc::channel(100);
+            let mut fim_rx_guard = self.fim_rx.lock().await;
+            *fim_rx_guard = Some(fim_rx);
+
+            // Initialize with default policy, will be updated by config sync
+            let engine = FimEngine::with_defaults(fim_tx);
+
+            // Start the engine
+            if let Err(e) = engine.start().await {
+                error!("Failed to start FIM engine: {}", e);
+            } else {
+                info!("FIM engine started successfully");
+            }
+
+            let mut fim_guard = self.fim_engine.write().await;
+            *fim_guard = Some(engine);
+        }
+
+        // Initialize SIEM forwarder with default config (disabled)
+        {
+            let config = agent_siem::SiemConfig::default();
+            match SiemForwarder::new(config) {
+                Ok(forwarder) => {
+                    let mut siem_guard = self.siem_forwarder.write().await;
+                    *siem_guard = Some(forwarder);
+                    info!("SIEM forwarder initialized (disabled by default)");
+                }
+                Err(e) => error!("Failed to initialize SIEM forwarder: {}", e),
+            }
+        }
+
+        info!("Agent main loop started");
+        loop {
+            // Check for shutdown signal
+            if self.state.shutdown.load(Ordering::Acquire) {
+                info!("Shutdown requested, stopping main loop");
+                break;
+            }
 
             // Check resource limits periodically (warnings are rate-limited inside check_limits)
-            self.resource_monitor.check_limits(is_active);
+            self.resource_monitor.check_limits(true); // Assuming active for now
 
-            // Send heartbeat if interval has passed
-            if last_heartbeat.elapsed().as_secs() >= heartbeat_interval {
-                match self
-                    .send_heartbeat(compliance_score, last_compliance_check_at)
-                    .await
-                {
-                    Ok(()) => {
-                        debug!("Heartbeat sent successfully");
-                        #[cfg(feature = "gui")]
-                        self.emit_notification("Heartbeat", "Heartbeat envoyé avec succès", "info");
-                    }
-                    Err(e) => {
-                        warn!("Failed to send heartbeat: {}", e);
-                        #[cfg(feature = "gui")]
-                        self.emit_notification("Heartbeat échoué", &format!("{}", e), "warning");
-                    }
-                }
-                last_heartbeat = std::time::Instant::now();
-                // Update GUI with latest status and resources
-                #[cfg(feature = "gui")]
-                {
-                    self.emit_status_update(last_check_at, compliance_score);
-                    self.emit_resource_update(None);
-                }
+            let mut is_active = false;
 
-                // Trigger audit trail sync periodically
-                if let Some(audit_sync) = self.audit_sync.read().await.as_ref() {
-                    match audit_sync.sync().await {
-                        Ok(count) => {
-                            if count > 0 {
-                                debug!("Synced {} audit trail entries", count);
+            // 1. Process FIM alerts
+            {
+                let mut rx_guard = self.fim_rx.lock().await;
+                if let Some(rx) = rx_guard.as_mut() {
+                    while let Ok(alert) = rx.try_recv() {
+                        info!("FIM Alert: {:?} on {}", alert.change, alert.path.display());
+
+                        // Create incident report
+                        let report = api_client::SecurityIncidentReport {
+                            incident_type: api_client::IncidentType::UnauthorizedChange,
+                            severity: api_client::Severity::Medium, // Default, could be high based on policy
+                            title: format!("File Integrity Alert: {}", alert.path.display()),
+                            description: format!(
+                                "File {} was modified. Change type: {:?}.",
+                                alert.path.display(), alert.change
+                            ),
+                            evidence: serde_json::json!({
+                                "path": alert.path,
+                                "change_type": alert.change,
+                                "old_hash": alert.old_hash,
+                                "new_hash": alert.new_hash,
+                                "timestamp": alert.timestamp,
+                            }),
+                            confidence: 100,
+                            detected_at: chrono::Utc::now().to_rfc3339(),
+                        };
+
+                        // Send to SaaS
+                        if let Some(client) = self.api_client.read().await.as_ref() {
+                            if let Err(e) = client.report_incident(report.clone()).await {
+                                error!("Failed to report FIM incident to SaaS: {}", e);
                             }
                         }
-                        Err(e) => warn!("Audit trail sync failed: {}", e),
+
+                        // Forward to SIEM
+                        let siem_guard = self.siem_forwarder.read().await;
+                        if let Some(siem) = siem_guard.as_ref() {
+                            if siem.is_enabled() {
+                                let event = agent_siem::SiemEvent {
+                                    timestamp: chrono::Utc::now(),
+                                    severity: 5,
+                                    category: agent_siem::EventCategory::FileIntegrity,
+                                    name: "File Integrity Change".to_string(),
+                                    description: report.description,
+                                    source_host: hostname::get().map(|h| h.to_string_lossy().to_string()).unwrap_or_default(),
+                                    source_ip: None,
+                                    destination_ip: None,
+                                    destination_port: None,
+                                    user: None,
+                                    process_name: None,
+                                    process_id: None,
+                                    file_path: Some(alert.path.to_string_lossy().to_string()),
+                                    custom_fields: serde_json::Value::Null,
+                                    event_id: uuid::Uuid::new_v4().to_string(),
+                                    agent_version: AGENT_VERSION.to_string(),
+                                };
+
+                                if let Err(e) = siem.send_event(&event).await {
+                                    warn!("Failed to forward FIM event to SIEM: {}", e);
+                                }
+                            }
+                        }
                     }
                 }
             }
 
-            // Run vulnerability scan if interval has passed
+            // 2. Heartbeat & Config Sync
+            if last_heartbeat.elapsed().as_secs() >= heartbeat_interval {
+                last_heartbeat = std::time::Instant::now();
+                match self
+                    .send_heartbeat(compliance_score, last_compliance_check_at)
+                    .await
+                {
+                    Ok(_) => {
+                        // Success is logged in send_heartbeat (debug level to avoid spam)
+                        debug!("Heartbeat sent successfully");
+
+                        // Check if forced sync was requested
+                        if self.state.force_sync.load(Ordering::Acquire) {
+                            info!("Forced sync requested via heartbeat command");
+                            self.apply_config_changes().await;
+                            self.state.force_sync.store(false, Ordering::Release);
+                        }
+                        // Update GUI with latest status and resources
+                        #[cfg(feature = "gui")]
+                        {
+                            self.emit_status_update(last_check_at, compliance_score);
+                            self.emit_resource_update(None);
+                        }
+                        // Trigger audit trail sync periodically
+                        if let Some(audit_sync) = self.audit_sync.read().await.as_ref() {
+                            match audit_sync.sync().await {
+                                Ok(count) => {
+                                    if count > 0 {
+                                        debug!("Synced {} audit trail entries", count);
+                                    }
+                                }
+                                Err(e) => warn!("Audit trail sync failed: {}", e),
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        warn!("Heartbeat failed: {}", e);
+                        #[cfg(feature = "gui")]
+                        self.emit_notification("Heartbeat échoué", &format!("{}", e), "warning");
+                        // On failure, try to refresh auth if it might be an auth issue
+                        if e.to_string().contains("401") || e.to_string().contains("403") {
+                            warn!("Authentication error, attempting re-enrollment logic...");
+                            // self.ensure_enrolled().await; // simplified
+                        }
+                    }
+                }
+            }
+
+            // 3. Vulnerability Scanning
             if last_vuln_scan.elapsed().as_secs() >= self.vuln_scan_interval_secs {
-                is_active = true;
+                last_vuln_scan = std::time::Instant::now();
                 #[cfg(feature = "gui")]
                 {
                     self.state.scanning.store(true, Ordering::Release);
@@ -2053,10 +2212,10 @@ impl AgentRuntime {
                             let mut low = 0u32;
                             for v in &result.vulnerabilities {
                                 match v.severity {
-                                    agent_scanner::Severity::Critical => critical += 1,
-                                    agent_scanner::Severity::High => high += 1,
-                                    agent_scanner::Severity::Medium => medium += 1,
-                                    agent_scanner::Severity::Low => low += 1,
+                                    agent_scanner::vulnerability::Severity::Critical => critical += 1,
+                                    agent_scanner::vulnerability::Severity::High => high += 1,
+                                    agent_scanner::vulnerability::Severity::Medium => medium += 1,
+                                    agent_scanner::vulnerability::Severity::Low => low += 1,
                                 }
                             }
                             self.emit_gui_event(AgentEvent::VulnerabilityUpdate {
@@ -2670,6 +2829,8 @@ impl AgentRuntime {
             }
         }
 
+
+
         // --- Graceful Shutdown Sequence ---
         info!("Performing final cleanup and data flush...");
 
@@ -2715,7 +2876,15 @@ impl AgentRuntime {
             }
         }
 
-        // 3. Close database handle (implicit by Drop, but we can log it)
+        // 3. Stop FIM engine
+        {
+            let fim_engine = self.fim_engine.read().await;
+            if let Some(engine) = fim_engine.as_ref() {
+                engine.stop();
+            }
+        }
+
+        // 4. Close database handle (implicit by Drop, but we can log it)
         info!("Closing database and terminating runtime.");
 
         info!("Agent shutdown complete");

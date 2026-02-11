@@ -255,6 +255,10 @@ pub mod config_keys {
     pub const SYNC_RETRY_INTERVAL_SECS: &str = "sync_retry_interval_secs";
     /// Maximum sync queue size.
     pub const MAX_SYNC_QUEUE_SIZE: &str = "max_sync_queue_size";
+    /// FIM configuration key.
+    pub const FIM_CONFIG: &str = "fim_config";
+    /// SIEM configuration key.
+    pub const SIEM_CONFIG: &str = "siem_config";
 }
 
 #[cfg(test)]
