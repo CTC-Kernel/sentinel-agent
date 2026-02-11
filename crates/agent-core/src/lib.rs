@@ -941,6 +941,24 @@ impl AgentRuntime {
             }
         };
 
+        // Check module status for self_check_result
+        let fim_status = if let Some(engine) = self.fim_engine.read().await.as_ref() {
+            if engine.is_running() { "active" } else { "inactive" }
+        } else {
+            "not_configured"
+        };
+
+        let siem_status = if let Some(forwarder) = self.siem_forwarder.read().await.as_ref() {
+            if forwarder.is_enabled() { "active" } else { "inactive" }
+        } else {
+            "not_configured"
+        };
+
+        let self_check_result = Some(serde_json::json!({
+            "fim_engine": { "status": fim_status },
+            "siem_forwarder": { "status": siem_status }
+        }));
+
         let request = HeartbeatRequest {
             timestamp: chrono::Utc::now().to_rfc3339(),
             agent_version: AGENT_VERSION.to_string(),
@@ -961,7 +979,7 @@ impl AgentRuntime {
             last_check_at: last_compliance_check.map(|dt| dt.to_rfc3339()),
             compliance_score,
             pending_sync_count,
-            self_check_result: None,
+            self_check_result,
             processes,
             connections,
         };
