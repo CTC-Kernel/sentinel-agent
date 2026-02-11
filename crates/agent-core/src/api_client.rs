@@ -235,6 +235,56 @@ pub struct AgentCommand {
     pub payload: serde_json::Value,
 }
 
+// =============================================================================
+// Incident Reporting
+// =============================================================================
+
+/// Types of security incidents.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum IncidentType {
+    Malware,
+    SuspiciousProcess,
+    UnauthorizedChange,
+    DataExfiltration,
+    CryptoMiner,
+    ReverseShell,
+    CredentialTheft,
+    PrivilegeEscalation,
+    FirewallDisabled,
+    AntivirusDisabled,
+}
+
+/// Severity levels for incident/vulnerability.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum Severity {
+    Critical,
+    High,
+    #[default]
+    Medium,
+    Low,
+}
+
+/// Security incident to report to the server.
+#[derive(Debug, Clone, Serialize)]
+pub struct SecurityIncidentReport {
+    pub incident_type: IncidentType,
+    pub severity: Severity,
+    pub title: String,
+    pub description: String,
+    pub evidence: serde_json::Value,
+    pub confidence: u8,
+    pub detected_at: String,
+}
+
+/// Incident report response.
+#[derive(Debug, Deserialize)]
+pub struct IncidentReportResponse {
+    pub incident_id: String,
+    pub acknowledged: bool,
+}
+
 impl AgentCommand {
     /// Validate that this command is an allowed type.
     /// Returns true if the command_type is in the whitelist, false otherwise.
@@ -751,6 +801,45 @@ impl ApiClient {
             .map_err(|e| CommonError::network(format!("Failed to read response body: {}", e)))?;
 
         Ok(text.trim().to_string())
+    }
+
+    /// Report a security incident to the server.
+    pub async fn report_incident(
+        &self,
+        report: SecurityIncidentReport,
+    ) -> Result<IncidentReportResponse> {
+        let agent_id = self
+            .agent_id
+            .as_ref()
+            .ok_or_else(|| CommonError::validation("Agent ID not set"))?;
+
+        let url = format!("{}/v1/agents/{}/incidents", self.base_url, agent_id);
+        info!("Reporting incident to {}", url);
+
+        let builder = self.authenticate(self.client.post(&url).json(&report));
+
+        let response = builder
+            .send()
+            .await
+            .map_err(|e| CommonError::network(format!("Incident report failed: {}", e)))?;
+
+        let status = response.status();
+        if !status.is_success() {
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            return Err(CommonError::network(format!(
+                "Incident report failed: {} - {}",
+                status, error_text
+            )));
+        }
+
+        let result: IncidentReportResponse = response.json().await.map_err(|e| {
+            CommonError::network(format!("Failed to parse incident response: {}", e))
+        })?;
+
+        Ok(result)
     }
 }
 

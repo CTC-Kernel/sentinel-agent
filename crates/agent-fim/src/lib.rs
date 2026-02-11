@@ -23,6 +23,9 @@ pub mod watcher;
 
 use agent_common::types::{FimAlert, FimPolicy};
 use std::sync::Arc;
+
+/// Re-export FimPolicy as FimConfig for compatibility
+pub type FimConfig = FimPolicy;
 use tokio::sync::{RwLock, mpsc};
 use tracing::{info, warn};
 
@@ -108,11 +111,12 @@ impl FimEngine {
         info!("FIM engine stopped");
     }
 
-    /// Update the FIM policy.
-    pub async fn update_policy(&self, policy: FimPolicy) {
+    /// Update the FIM configuration.
+    pub async fn update_config(&self, policy: FimPolicy) -> Result<(), FimError> {
         let mut current = self.policy.write().await;
         *current = policy;
-        info!("FIM policy updated");
+        info!("FIM configuration updated");
+        Ok(())
     }
 
     /// Get the current baseline file count.
