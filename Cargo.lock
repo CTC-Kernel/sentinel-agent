@@ -161,9 +161,11 @@ name = "agent-core"
 version = "2.0.0"
 dependencies = [
  "agent-common",
+ "agent-fim",
  "agent-gui",
  "agent-network",
  "agent-scanner",
+ "agent-siem",
  "agent-storage",
  "agent-sync",
  "agent_llm",

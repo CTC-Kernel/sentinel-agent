@@ -762,7 +762,8 @@ fn get_cpu_usage() -> f64 {
                 // Convert clock ticks to milliseconds and calculate percentage
                 let cpu_ms = (cpu_delta * 1000) / clock_ticks;
                 if time_delta_ms > 0 {
-                    return (cpu_ms as f64 / time_delta_ms as f64) * 100.0;
+                    let raw_usage = (cpu_ms as f64 / time_delta_ms as f64) * 100.0;
+                    return raw_usage / get_logical_cores() as f64;
                 }
             }
         }
@@ -1098,7 +1099,8 @@ fn get_cpu_usage() -> f64 {
                 let time_delta = now_us - last_time;
 
                 if time_delta > 0 {
-                    return (cpu_delta as f64 / time_delta as f64) * 100.0;
+                    let raw_usage = (cpu_delta as f64 / time_delta as f64) * 100.0;
+                    return raw_usage / get_logical_cores() as f64;
                 }
             }
         }
@@ -1428,7 +1430,8 @@ fn get_cpu_usage() -> f64 {
                 let wall_time_delta = current_time - last_time;
 
                 if wall_time_delta > 0 {
-                    return (cpu_time_delta as f64 / wall_time_delta as f64) * 100.0;
+                    let raw_usage = (cpu_time_delta as f64 / wall_time_delta as f64) * 100.0;
+                    return raw_usage / get_logical_cores() as f64;
                 }
             }
         }
@@ -1436,6 +1439,31 @@ fn get_cpu_usage() -> f64 {
 
     // Return 0 for first measurement (no delta yet)
     0.0
+}
+
+/// Helper function to get the number of logical cores.
+fn get_logical_cores() -> u32 {
+    #[cfg(target_os = "macos")]
+    {
+        unsafe { libc::sysconf(libc::_SC_NPROCESSORS_ONLN) as u32 }
+    }
+    #[cfg(target_os = "linux")]
+    {
+        unsafe { libc::sysconf(libc::_SC_NPROCESSORS_ONLN) as u32 }
+    }
+    #[cfg(windows)]
+    {
+        use windows::Win32::System::SystemInformation::{GetSystemInfo, SYSTEM_INFO};
+        unsafe {
+            let mut si = SYSTEM_INFO::default();
+            GetSystemInfo(&mut si);
+            si.dwNumberOfProcessors
+        }
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "linux", windows)))]
+    {
+        1
+    }
 }
 
 /// System-level resource information (CPU, memory total, disk usage).
@@ -1570,5 +1598,12 @@ mod tests {
     fn test_cpu_throttler_creation() {
         let throttler = CpuThrottler::new(5.0);
         assert!((throttler.target_cpu - 5.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_get_logical_cores() {
+        let cores = get_logical_cores();
+        assert!(cores > 0, "Logical cores should be greater than 0");
+        info!("Detected logical cores: {}", cores);
     }
 }

@@ -27,6 +27,8 @@ agent-storage = { path = "../agent-storage" }
 agent-sync = { path = "../agent-sync" }
 agent-scanner = { path = "../agent-scanner" }
 agent-network = { path = "../agent-network" }
+agent-fim = { path = "../agent-fim" }
+agent-siem = { path = "../agent-siem" }
 agent-gui = { path = "../agent-gui", optional = true }
 agent_llm = { path = "../agent_llm", optional = true }
 

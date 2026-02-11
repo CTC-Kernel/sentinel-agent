@@ -400,6 +400,53 @@ impl SiemForwarder {
     pub fn is_enabled(&self) -> bool {
         self.config.enabled
     }
+
+    /// Update the SIEM configuration.
+    pub fn update_config(&mut self, config: SiemConfig) -> SiemResult<()> {
+        // If transport changed, we need to re-initialize it
+        // For simplicity, we'll re-initialize everything if config changed
+        let formatter: Box<dyn SiemFormatter + Send + Sync> = match config.format {
+            SiemFormat::Cef => Box::new(CefFormatter::new()),
+            SiemFormat::Leef => Box::new(LeefFormatter::new()),
+            SiemFormat::Json => Box::new(JsonFormatter::new()),
+        };
+
+        let transport: Box<dyn SiemTransportTrait + Send + Sync> = match &config.transport {
+            SiemTransport::Syslog {
+                host,
+                port,
+                protocol,
+                tls,
+            } => Box::new(SyslogTransport::new(host.clone(), *port, *protocol, *tls)),
+            SiemTransport::Http {
+                url,
+                auth_token,
+                auth_header,
+                verify_tls,
+            } => Box::new(HttpTransport::new(
+                url.clone(),
+                auth_token.clone(),
+                auth_header.clone(),
+                *verify_tls,
+            )),
+        };
+
+        info!(
+            "SIEM forwarder configuration updated: format={:?}, transport={:?}",
+            config.format,
+            match &config.transport {
+                SiemTransport::Syslog { host, port, .. } => format!("syslog://{}:{}", host, port),
+                SiemTransport::Http { url, .. } => url.clone(),
+            }
+        );
+
+        self.config = config;
+        self.formatter = formatter;
+        self.transport = transport; // Replaces the old transport
+        // Note: Buffer and stats are preserved
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
