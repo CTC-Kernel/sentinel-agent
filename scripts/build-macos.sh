@@ -102,6 +102,16 @@ DMG_PATH="$BUILD_DIR/SentinelAgent-$VERSION.dmg"
 DMG_LATEST_PATH="$BUILD_DIR/SentinelAgent-latest.dmg"
 rm -f "$DMG_PATH" "$DMG_LATEST_PATH"
 
+# Cleanup any existing hdiutil resources that might cause "Resource busy" error
+echo "   Cleaning up existing hdiutil resources..."
+# Unmount any mounted volumes with similar names
+hdiutil detach /Volumes/"$APP_NAME" 2>/dev/null || true
+hdiutil detach /Volumes/"Sentinel Agent"* 2>/dev/null || true
+# Kill any hanging hdiutil processes
+pkill -f hdiutil 2>/dev/null || true
+# Wait a moment for cleanup to complete
+sleep 2
+
 # Create temporary folder for DMG contents
 DMG_TEMP="$BUILD_DIR/dmg-temp"
 rm -rf "$DMG_TEMP"
