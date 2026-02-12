@@ -1,6 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /settings
-Disallow: /admin_management
-
-Sitemap: https://app.cyber-threat-consulting.com/sitemap.xml
