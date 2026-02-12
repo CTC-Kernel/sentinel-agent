@@ -206,7 +206,7 @@ impl UpdateManager {
                 }
             } else {
                 info!("Not running as root, requesting elevation for installer");
-                let script = format!("/usr/sbin/installer -pkg {} -target /", path_str);
+                let script = format!("/usr/sbin/installer -pkg \"{}\" -target /", path_str);
                 agent_common::macos::run_with_elevation(&script)?;
             }
             info!("macOS installer completed successfully");
