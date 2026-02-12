@@ -28,7 +28,7 @@ if [[ "$OSTYPE" != "darwin"* ]]; then
 fi
 
 # Navigate to sentinel-agent directory
-cd "$(dirname "$0')"
+cd "$(dirname "$0")"
 
 # Clean previous builds
 echo -e "${YELLOW}Cleaning previous builds...${NC}"
