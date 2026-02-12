@@ -57,7 +57,7 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
     ui.vertical(|ui: &mut egui::Ui| {
         // Header
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.label(RichText::new(icons::STREAM).size(12.0).color(theme::ACCENT));
+            ui.label(RichText::new(icons::STREAM).size(theme::ICON_XS).color(theme::ACCENT));
             ui.add_space(theme::SPACE_XS);
             ui.label(
                 RichText::new("ACTIVITÉ EN DIRECT")
@@ -71,22 +71,27 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
             ui.with_layout(
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
-                    let time = ui.input(|i| i.time);
-                    let pulse = ((time * 2.0).sin() * 0.5 + 0.5) as f32;
+                    let pulse = if theme::is_reduced_motion() {
+                        1.0
+                    } else {
+                        let time = ui.input(|i| i.time);
+                        ((time * 2.0).sin() * 0.5 + 0.5) as f32
+                    };
 
                     ui.label(
                         RichText::new("●")
-                            .size(8.0)
-                            .color(theme::SUCCESS.linear_multiply(0.5 + 0.5 * pulse)),
+                            .size(theme::STATUS_DOT_SIZE)
+                            .color(theme::SUCCESS.linear_multiply(theme::OPACITY_MEDIUM + theme::OPACITY_MEDIUM * pulse)),
                     );
                     ui.label(
                         RichText::new("LIVE")
                             .font(theme::font_label())
-                            .color(theme::SUCCESS.linear_multiply(0.7)),
+                            .color(theme::SUCCESS.linear_multiply(theme::OPACITY_PRESSED)),
                     );
 
-                    // Limit LIVE indicator animation to ~10fps
-                    ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+                    if !theme::is_reduced_motion() {
+                        ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+                    }
                 },
             );
         });
@@ -102,8 +107,8 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
                 ui.add_space(theme::SPACE_MD);
                 ui.label(
                     RichText::new(icons::STREAM)
-                        .size(24.0)
-                        .color(theme::text_tertiary().linear_multiply(0.5)),
+                        .size(theme::ICON_LG)
+                        .color(theme::text_tertiary().linear_multiply(theme::OPACITY_MEDIUM)),
                 );
                 ui.add_space(theme::SPACE_XS);
                 ui.label(
@@ -145,13 +150,13 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
             painter.rect_filled(
                 rect,
                 CornerRadius::same(4),
-                theme::bg_elevated().linear_multiply(0.5),
+                theme::bg_elevated().linear_multiply(theme::OPACITY_MEDIUM),
             );
         }
 
         // Left color indicator bar
         let bar_rect = egui::Rect::from_min_size(rect.left_top(), Vec2::new(3.0, rect.height()));
-        painter.rect_filled(bar_rect, CornerRadius::same(2), color.linear_multiply(0.8));
+        painter.rect_filled(bar_rect, CornerRadius::same(2), color.linear_multiply(theme::OPACITY_STRONG));
 
         // Icon
         let icon_pos = egui::pos2(rect.left() + 16.0, rect.center().y);

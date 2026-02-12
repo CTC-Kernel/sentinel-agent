@@ -19,23 +19,23 @@ impl AlertLevel {
         // Returns (background, border, text/icon color)
         match self {
             AlertLevel::Info => (
-                theme::INFO.linear_multiply(0.1),
-                theme::INFO.linear_multiply(0.3),
+                theme::INFO.linear_multiply(theme::OPACITY_SUBTLE),
+                theme::INFO.linear_multiply(theme::OPACITY_MUTED),
                 theme::INFO,
             ),
             AlertLevel::Success => (
-                theme::SUCCESS.linear_multiply(0.1),
-                theme::SUCCESS.linear_multiply(0.3),
+                theme::SUCCESS.linear_multiply(theme::OPACITY_SUBTLE),
+                theme::SUCCESS.linear_multiply(theme::OPACITY_MUTED),
                 theme::SUCCESS,
             ),
             AlertLevel::Warning => (
-                theme::WARNING.linear_multiply(0.1),
-                theme::WARNING.linear_multiply(0.3),
+                theme::WARNING.linear_multiply(theme::OPACITY_SUBTLE),
+                theme::WARNING.linear_multiply(theme::OPACITY_MUTED),
                 theme::WARNING,
             ),
             AlertLevel::Error => (
-                theme::ERROR.linear_multiply(0.1),
-                theme::ERROR.linear_multiply(0.3),
+                theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE),
+                theme::ERROR.linear_multiply(theme::OPACITY_MUTED),
                 theme::ERROR,
             ),
         }
@@ -118,13 +118,13 @@ impl<'a> Alert<'a> {
         let (bg_color, border_color, accent_color) = self.level.colors();
         let icon = self.icon.unwrap_or_else(|| self.level.icon());
 
-        let padding = if self.compact { 12.0 } else { 16.0 };
+        let padding = if self.compact { theme::SPACE_MD } else { theme::SPACE };
         let available_width = ui.available_width();
 
         egui::Frame::new()
             .fill(bg_color)
-            .corner_radius(CornerRadius::same(8))
-            .stroke(egui::Stroke::new(1.0, border_color))
+            .corner_radius(CornerRadius::same(theme::BUTTON_ROUNDING))
+            .stroke(egui::Stroke::new(theme::BORDER_THIN, border_color))
             .inner_margin(egui::Margin::same(padding as i8))
             .show(ui, |ui| {
                 ui.set_width(available_width - padding * 2.0);
@@ -141,7 +141,7 @@ impl<'a> Alert<'a> {
                             .color(accent_color),
                     );
 
-                    ui.add_space(12.0);
+                    ui.add_space(theme::SPACE_MD);
 
                     // Content
                     ui.vertical(|ui| {
@@ -153,7 +153,7 @@ impl<'a> Alert<'a> {
                                     .color(theme::text_primary())
                                     .strong(),
                             );
-                            ui.add_space(4.0);
+                            ui.add_space(theme::SPACE_XS);
                         }
 
                         // Message
@@ -169,7 +169,7 @@ impl<'a> Alert<'a> {
 
                         // Action button
                         if let Some((label, primary)) = self.action {
-                            ui.add_space(12.0);
+                            ui.add_space(theme::SPACE_MD);
 
                             let button_bg = if primary {
                                 accent_color
@@ -177,7 +177,7 @@ impl<'a> Alert<'a> {
                                 Color32::TRANSPARENT
                             };
                             let button_text = if primary {
-                                Color32::WHITE
+                                theme::text_on_accent()
                             } else {
                                 accent_color
                             };
@@ -188,7 +188,7 @@ impl<'a> Alert<'a> {
                                 button_text,
                             );
 
-                            let button_size = galley.size() + egui::vec2(24.0, 12.0);
+                            let button_size = galley.size() + egui::vec2(theme::SPACE_LG, theme::SPACE_MD);
                             let (button_rect, button_response) =
                                 ui.allocate_exact_size(button_size, Sense::click());
 
@@ -197,9 +197,9 @@ impl<'a> Alert<'a> {
 
                                 let bg = if is_hovered {
                                     if primary {
-                                        accent_color.linear_multiply(0.9)
+                                        accent_color.linear_multiply(theme::OPACITY_HOVER)
                                     } else {
-                                        accent_color.linear_multiply(0.1)
+                                        accent_color.linear_multiply(theme::OPACITY_SUBTLE)
                                     }
                                 } else {
                                     button_bg
@@ -207,21 +207,34 @@ impl<'a> Alert<'a> {
 
                                 ui.painter().rect(
                                     button_rect,
-                                    CornerRadius::same(4),
+                                    CornerRadius::same(theme::SPACE_XS as u8),
                                     bg,
                                     if primary {
                                         egui::Stroke::NONE
                                     } else {
-                                        egui::Stroke::new(1.0, accent_color)
+                                        egui::Stroke::new(theme::BORDER_THIN, accent_color)
                                     },
                                     egui::epaint::StrokeKind::Inside,
                                 );
 
                                 ui.painter().galley(
-                                    button_rect.min + egui::vec2(12.0, 6.0),
+                                    button_rect.min + egui::vec2(theme::SPACE_MD, theme::SPACE_XS + 2.0),
                                     galley,
                                     button_text,
                                 );
+                            }
+
+                            if button_response.has_focus() {
+                                ui.painter().rect_stroke(
+                                    button_rect.expand(2.0),
+                                    egui::CornerRadius::same(theme::SPACE_XS as u8 + 2),
+                                    theme::focus_ring(),
+                                    egui::epaint::StrokeKind::Outside,
+                                );
+                            }
+
+                            if button_response.hovered() {
+                                ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                             }
 
                             if button_response.clicked() {
@@ -231,12 +244,12 @@ impl<'a> Alert<'a> {
                     });
 
                     // Spacer
-                    ui.add_space((ui.available_width() - 24.0).max(0.0));
+                    ui.add_space((ui.available_width() - theme::SPACE_LG).max(0.0));
 
-                    // Dismiss button
+                    // Dismiss button (meets MIN_TOUCH_TARGET)
                     if self.dismissible {
                         let (close_rect, close_response) =
-                            ui.allocate_exact_size(egui::vec2(24.0, 24.0), Sense::click());
+                            ui.allocate_exact_size(egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET), Sense::click());
 
                         if ui.is_rect_visible(close_rect) {
                             let is_hovered = close_response.hovered();
@@ -249,8 +262,18 @@ impl<'a> Alert<'a> {
                             if is_hovered {
                                 ui.painter().rect_filled(
                                     close_rect,
-                                    CornerRadius::same(4),
+                                    CornerRadius::same(theme::SPACE_XS as u8),
                                     theme::hover_bg(),
+                                );
+                            }
+
+                            // Focus Ring (WCAG 2.4.7)
+                            if close_response.has_focus() {
+                                ui.painter().rect_stroke(
+                                    close_rect.expand(2.0),
+                                    CornerRadius::same(theme::SPACE_XS as u8 + 2),
+                                    theme::focus_ring(),
+                                    egui::epaint::StrokeKind::Outside,
                                 );
                             }
 
@@ -261,6 +284,10 @@ impl<'a> Alert<'a> {
                                 theme::font_small(),
                                 close_color,
                             );
+                        }
+
+                        if close_response.hovered() {
+                            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                         }
 
                         if close_response.clicked() {

@@ -24,18 +24,21 @@ pub fn empty_state_with_action<F: FnOnce()>(
         ui.add_space(theme::SPACE_XL);
 
         // Icon with animated subtle breathing effect
-        let time = ui.input(|i| i.time);
-        let pulse = ((time * 1.2).sin() * 0.5 + 0.5) as f32;
-        let icon_alpha = 0.4 + pulse * 0.2;
+        let icon_alpha = if theme::is_reduced_motion() {
+            theme::OPACITY_DISABLED + theme::OPACITY_TINT
+        } else {
+            let time = ui.input(|i| i.time);
+            let pulse = ((time * theme::ANIM_PULSE_SPEED as f64).sin() * 0.5 + 0.5) as f32;
+            // Limit breathing animation to ~10fps
+            ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+            theme::OPACITY_DISABLED + pulse * theme::OPACITY_TINT
+        };
 
         ui.label(
             RichText::new(icon)
-                .size(64.0)
+                .size(theme::EMPTY_STATE_ICON)
                 .color(theme::text_tertiary().linear_multiply(icon_alpha)),
         );
-
-        // Limit breathing animation to ~10fps
-        ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
 
         ui.add_space(theme::SPACE_MD);
 
@@ -84,7 +87,7 @@ pub fn empty_state_compact(ui: &mut Ui, icon: &str, message: &str) {
         ui.add_space(theme::SPACE_MD);
 
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.label(RichText::new(icon).size(16.0).color(theme::text_tertiary()));
+            ui.label(RichText::new(icon).size(theme::ICON_SM).color(theme::text_tertiary()));
             ui.add_space(theme::SPACE_XS);
             ui.label(
                 RichText::new(message)
@@ -104,8 +107,8 @@ pub fn no_results_state(ui: &mut Ui, search_term: &str) {
 
         ui.label(
             RichText::new(crate::icons::SEARCH)
-                .size(48.0)
-                .color(theme::text_tertiary().linear_multiply(0.5)),
+                .size(theme::PENDING_SPINNER_SIZE)
+                .color(theme::text_tertiary().linear_multiply(theme::OPACITY_MEDIUM)),
         );
 
         ui.add_space(theme::SPACE_MD);
@@ -143,24 +146,34 @@ pub fn pending_state(ui: &mut Ui, message: &str) {
         ui.add_space(theme::SPACE_XL);
 
         // Animated spinner
-        let time = ui.input(|i| i.time) as f32;
-        let size = 48.0;
+        let size = theme::PENDING_SPINNER_SIZE;
         let (rect, _) = ui.allocate_exact_size(egui::vec2(size, size), egui::Sense::hover());
 
         let center = rect.center();
-        let radius = size / 2.0 - 4.0;
+        let radius = size / 2.0 - theme::SPACE_XS;
 
-        // Draw spinning arc
-        let painter = ui.painter_at(rect);
-        let num_dots = 8;
-        for i in 0..num_dots {
-            let angle = time * 2.0 + (i as f32 / num_dots as f32) * std::f32::consts::TAU;
-            let alpha = 0.2 + (i as f32 / num_dots as f32) * 0.8;
-            let pos = center + egui::vec2(radius * angle.cos(), radius * angle.sin());
-            painter.circle_filled(pos, 4.0, theme::ACCENT.linear_multiply(alpha));
+        if theme::is_reduced_motion() {
+            // Static spinner: just show all dots at full opacity
+            let painter = ui.painter_at(rect);
+            let num_dots: usize = 8;
+            for i in 0..num_dots {
+                let angle = (i as f32 / num_dots as f32) * std::f32::consts::TAU;
+                let pos = center + egui::vec2(radius * angle.cos(), radius * angle.sin());
+                painter.circle_filled(pos, theme::SPACE_XS, theme::ACCENT);
+            }
+        } else {
+            // Draw spinning arc
+            let time = ui.input(|i| i.time) as f32;
+            let painter = ui.painter_at(rect);
+            let num_dots: usize = 8;
+            for i in 0..num_dots {
+                let angle = time * theme::ANIM_SPINNER_SPEED as f32 + (i as f32 / num_dots as f32) * std::f32::consts::TAU;
+                let alpha = theme::OPACITY_TINT + (i as f32 / num_dots as f32) * theme::OPACITY_STRONG;
+                let pos = center + egui::vec2(radius * angle.cos(), radius * angle.sin());
+                painter.circle_filled(pos, theme::SPACE_XS, theme::ACCENT.linear_multiply(alpha));
+            }
+            ui.ctx().request_repaint_after(std::time::Duration::from_millis(50));
         }
-
-        ui.ctx().request_repaint_after(std::time::Duration::from_millis(50));
 
         ui.add_space(theme::SPACE_MD);
 

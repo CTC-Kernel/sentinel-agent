@@ -41,7 +41,7 @@ pub fn status_badge(ui: &mut Ui, text: &str, color: egui::Color32) {
         ui.painter().rect_stroke(
             rect,
             CornerRadius::same(radius),
-            egui::Stroke::new(0.5, border_color),
+            egui::Stroke::new(theme::BORDER_HAIRLINE, border_color),
             egui::StrokeKind::Inside,
         );
 

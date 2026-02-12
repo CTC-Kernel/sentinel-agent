@@ -82,7 +82,7 @@ pub fn form_field(
 
         // Validation error message
         if let Some(ref msg) = validation.message {
-            ui.add_space(2.0);
+            ui.add_space(theme::BORDER_THICK);
             let (icon, color) = match validation.status {
                 InputValidation::Invalid => (crate::icons::CIRCLE_XMARK, theme::ERROR),
                 InputValidation::Warning => (crate::icons::WARNING, theme::WARNING),
@@ -96,7 +96,7 @@ pub fn form_field(
                             .font(theme::font_label())
                             .color(color),
                     );
-                    ui.add_space(2.0);
+                    ui.add_space(theme::BORDER_THICK);
                 }
                 ui.label(
                     egui::RichText::new(msg.as_str())
@@ -108,7 +108,7 @@ pub fn form_field(
 
         // Help text
         if let Some(help_text) = help {
-            ui.add_space(2.0);
+            ui.add_space(theme::BORDER_THICK);
             ui.label(
                 egui::RichText::new(help_text)
                     .font(theme::font_label())
@@ -167,8 +167,8 @@ pub fn text_input_with_options(
     clearable: bool,
     max_chars: Option<usize>,
 ) -> Response {
-    let desired_width = ui.available_width().min(400.0);
-    let input_height = 40.0;
+    let desired_width = ui.available_width().min(theme::MODAL_WIDTH);
+    let input_height = theme::INPUT_HEIGHT;
 
     // Determine border color based on validation
     let (border_color, icon_color) = match &validation {
@@ -180,16 +180,16 @@ pub fn text_input_with_options(
 
     // Calculate space needed for icons
     let clear_space = if clearable && !value.is_empty() {
-        28.0
+        theme::TAB_BADGE_WIDTH
     } else {
         0.0
     };
     let validation_space = if validation != InputValidation::None {
-        24.0
+        theme::ICON_LG
     } else {
         0.0
     };
-    let right_padding = clear_space + validation_space + 8.0;
+    let right_padding = clear_space + validation_space + theme::SPACE_SM;
 
     // Container frame
     let (rect, response) = ui.allocate_exact_size(
@@ -205,7 +205,7 @@ pub fn text_input_with_options(
             rect,
             egui::CornerRadius::same(theme::BUTTON_ROUNDING),
             theme::bg_secondary(),
-            egui::Stroke::new(1.5, border_color),
+            egui::Stroke::new(theme::BORDER_MEDIUM, border_color),
             egui::epaint::StrokeKind::Inside,
         );
 
@@ -214,7 +214,7 @@ pub fn text_input_with_options(
             painter.rect_stroke(
                 rect.expand(2.0),
                 egui::CornerRadius::same(theme::BUTTON_ROUNDING + 2),
-                egui::Stroke::new(2.0, theme::ACCENT.linear_multiply(0.5)),
+                theme::focus_ring(),
                 egui::epaint::StrokeKind::Outside,
             );
         }
@@ -222,8 +222,8 @@ pub fn text_input_with_options(
 
     // Text edit area (slightly inset)
     let text_rect = egui::Rect::from_min_size(
-        rect.min + egui::vec2(12.0, 4.0),
-        egui::vec2(desired_width - 24.0 - right_padding, input_height - 8.0),
+        rect.min + egui::vec2(theme::SPACE_MD, theme::SPACE_XS),
+        egui::vec2(desired_width - theme::SPACE_LG - right_padding, input_height - theme::SPACE_SM),
     );
 
     let text_response = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
@@ -232,7 +232,7 @@ pub fn text_input_with_options(
             egui::TextEdit::singleline(value)
                 .hint_text(egui::RichText::new(placeholder).color(theme::text_tertiary()))
                 .font(theme::font_body())
-                .margin(egui::Margin::symmetric(0, 6))
+                .margin(egui::Margin::symmetric(0, theme::SPACE_XS as i8 + 2))
                 .frame(false)
                 .desired_width(text_rect.width()),
         )
@@ -247,7 +247,7 @@ pub fn text_input_with_options(
             InputValidation::None => "",
         };
 
-        let icon_pos = egui::pos2(rect.max.x - clear_space - 20.0, rect.center().y);
+        let icon_pos = egui::pos2(rect.max.x - clear_space - theme::ICON_MD, rect.center().y);
 
         ui.painter().text(
             icon_pos,
@@ -261,8 +261,8 @@ pub fn text_input_with_options(
     // Clear button
     if clearable && !value.is_empty() {
         let clear_rect = egui::Rect::from_center_size(
-            egui::pos2(rect.max.x - 16.0, rect.center().y),
-            egui::vec2(20.0, 20.0),
+            egui::pos2(rect.max.x - theme::SPACE, rect.center().y),
+            egui::vec2(theme::ICON_MD, theme::ICON_MD),
         );
 
         let clear_response = ui.allocate_rect(clear_rect, Sense::click());
@@ -300,7 +300,7 @@ pub fn text_input_with_options(
         };
 
         ui.painter().text(
-            egui::pos2(rect.max.x - 8.0, rect.max.y + 4.0),
+            egui::pos2(rect.max.x - theme::SPACE_SM, rect.max.y + theme::SPACE_XS),
             egui::Align2::RIGHT_TOP,
             count_text,
             theme::font_label(),
@@ -313,8 +313,8 @@ pub fn text_input_with_options(
 
 /// Search input with icon.
 pub fn search_input(ui: &mut Ui, value: &mut String, placeholder: &str) -> Response {
-    let desired_width = ui.available_width().min(400.0);
-    let input_height = 40.0;
+    let desired_width = ui.available_width().min(theme::MODAL_WIDTH);
+    let input_height = theme::INPUT_HEIGHT;
 
     let (rect, _) = ui.allocate_exact_size(egui::vec2(desired_width, input_height), Sense::hover());
 
@@ -326,13 +326,13 @@ pub fn search_input(ui: &mut Ui, value: &mut String, placeholder: &str) -> Respo
             rect,
             egui::CornerRadius::same(theme::BUTTON_ROUNDING),
             theme::bg_secondary(),
-            egui::Stroke::new(1.0, theme::border()),
+            egui::Stroke::new(theme::BORDER_THIN, theme::border()),
             egui::epaint::StrokeKind::Inside,
         );
 
         // Search icon
         painter.text(
-            egui::pos2(rect.min.x + 14.0, rect.center().y),
+            egui::pos2(rect.min.x + theme::SPACE_MD + 2.0, rect.center().y),
             egui::Align2::LEFT_CENTER,
             icons::SEARCH,
             theme::font_body(),
@@ -341,9 +341,10 @@ pub fn search_input(ui: &mut Ui, value: &mut String, placeholder: &str) -> Respo
     }
 
     // Text edit area (after search icon)
+    let search_icon_offset = theme::TABLE_ROW_HEIGHT;
     let text_rect = egui::Rect::from_min_size(
-        rect.min + egui::vec2(36.0, 4.0),
-        egui::vec2(desired_width - 72.0, input_height - 8.0),
+        rect.min + egui::vec2(search_icon_offset, theme::SPACE_XS),
+        egui::vec2(desired_width - search_icon_offset * 2.0, input_height - theme::SPACE_SM),
     );
 
     let text_response = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
@@ -352,7 +353,7 @@ pub fn search_input(ui: &mut Ui, value: &mut String, placeholder: &str) -> Respo
             egui::TextEdit::singleline(value)
                 .hint_text(egui::RichText::new(placeholder).color(theme::text_tertiary()))
                 .font(theme::font_body())
-                .margin(egui::Margin::symmetric(0, 6))
+                .margin(egui::Margin::symmetric(0, theme::SPACE_XS as i8 + 2))
                 .frame(false)
                 .desired_width(text_rect.width()),
         )
@@ -361,8 +362,8 @@ pub fn search_input(ui: &mut Ui, value: &mut String, placeholder: &str) -> Respo
     // Clear button when there's text
     if !value.is_empty() {
         let clear_rect = egui::Rect::from_center_size(
-            egui::pos2(rect.max.x - 16.0, rect.center().y),
-            egui::vec2(20.0, 20.0),
+            egui::pos2(rect.max.x - theme::SPACE, rect.center().y),
+            egui::vec2(theme::ICON_MD, theme::ICON_MD),
         );
 
         let clear_response = ui.allocate_rect(clear_rect, Sense::click());

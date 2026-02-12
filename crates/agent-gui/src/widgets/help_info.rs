@@ -7,13 +7,13 @@ use egui::Ui;
 /// Draw a small help icon with a tooltip.
 pub fn help_button(ui: &mut Ui, help_text: &str) {
     let text = egui::RichText::new(icons::INFO_CIRCLE)
-        .size(14.0)
+        .font(theme::font_body())
         .color(theme::text_tertiary());
 
     let response = ui.add(egui::Label::new(text).sense(egui::Sense::hover()));
 
     response.on_hover_ui(|ui: &mut egui::Ui| {
-        ui.set_max_width(320.0);
+        ui.set_max_width(theme::TOOLTIP_MAX_WIDTH);
         ui.add_space(theme::SPACE_XS);
         ui.label(
             egui::RichText::new("AIDE CONTEXTUELLE")
@@ -113,7 +113,7 @@ fn render_line(ui: &mut Ui, line: &str) {
                     let (code_text, after_code) = safe_split_at(remaining, end);
                     ui.add(egui::Label::new(
                         egui::RichText::new(code_text)
-                            .font(egui::FontId::monospace(12.0))
+                            .font(theme::font_mono())
                             .color(theme::ACCENT)
                             .background_color(theme::bg_tertiary()),
                     ));

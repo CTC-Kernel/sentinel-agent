@@ -75,7 +75,7 @@ impl<'a> SearchFilterBar<'a> {
                 let border_color = if *active {
                     theme::badge_border(*color)
                 } else {
-                    theme::badge_border(*color).linear_multiply(0.5)
+                    theme::badge_border(*color).linear_multiply(theme::OPACITY_MEDIUM)
                 };
 
                 let btn = egui::Button::new(
@@ -85,9 +85,9 @@ impl<'a> SearchFilterBar<'a> {
                         .strong(),
                 )
                 .fill(bg)
-                .stroke(egui::Stroke::new(0.5, border_color))
+                .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, border_color))
                 .corner_radius(CornerRadius::same(theme::BADGE_ROUNDING))
-                .min_size(Vec2::new(0.0, 24.0));
+                .min_size(Vec2::new(0.0, theme::MIN_TOUCH_TARGET));
 
                 let response = ui.add(btn);
 
@@ -97,7 +97,7 @@ impl<'a> SearchFilterBar<'a> {
                     ui.painter().rect_stroke(
                         rect,
                         CornerRadius::same(theme::BADGE_ROUNDING),
-                        egui::Stroke::new(0.5, theme::badge_border(*color)),
+                        egui::Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(*color)),
                         egui::StrokeKind::Inside,
                     );
                 }

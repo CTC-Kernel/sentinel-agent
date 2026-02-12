@@ -35,10 +35,10 @@ pub fn sparkline(ui: &mut Ui, data: &[[f64; 2]], size: Vec2, config: &SparklineC
         let (rect, _) = ui.allocate_exact_size(size, egui::Sense::hover());
         if ui.is_rect_visible(rect) {
             let painter = ui.painter_at(rect);
-            painter.rect_filled(rect, 4.0, theme::bg_tertiary().linear_multiply(0.2));
+            painter.rect_filled(rect, theme::PROGRESS_BAR_ROUNDING, theme::bg_tertiary().linear_multiply(theme::OPACITY_TINT));
 
             // Subtle grid lines
-            let grid_color = theme::border().linear_multiply(0.2);
+            let grid_color = theme::border().linear_multiply(theme::OPACITY_TINT);
             for i in 1..3 {
                 let y = rect.min.y + (rect.height() * i as f32 / 3.0);
                 painter.line_segment(
@@ -46,7 +46,7 @@ pub fn sparkline(ui: &mut Ui, data: &[[f64; 2]], size: Vec2, config: &SparklineC
                         egui::pos2(rect.min.x + 4.0, y),
                         egui::pos2(rect.max.x - 4.0, y),
                     ],
-                    egui::Stroke::new(0.5, grid_color),
+                    egui::Stroke::new(theme::BORDER_HAIRLINE, grid_color),
                 );
             }
         }
@@ -74,7 +74,7 @@ pub fn sparkline(ui: &mut Ui, data: &[[f64; 2]], size: Vec2, config: &SparklineC
         if config.fill {
             plot_ui.line(
                 Line::new(PlotPoints::new(data.to_vec()))
-                    .color(config.color.linear_multiply(0.1))
+                    .color(config.color.linear_multiply(theme::OPACITY_SUBTLE))
                     .fill(0.0),
             );
         }
@@ -82,7 +82,7 @@ pub fn sparkline(ui: &mut Ui, data: &[[f64; 2]], size: Vec2, config: &SparklineC
         // Soft glow layer (single, subtle)
         plot_ui.line(
             Line::new(PlotPoints::new(data.to_vec()))
-                .color(config.color.linear_multiply(0.25))
+                .color(config.color.linear_multiply(theme::OPACITY_MUTED))
                 .width(3.0),
         );
 
@@ -97,7 +97,7 @@ pub fn sparkline(ui: &mut Ui, data: &[[f64; 2]], size: Vec2, config: &SparklineC
         if let Some(&latest) = data.last() {
             plot_ui.points(
                 egui_plot::Points::new(PlotPoints::new(vec![latest]))
-                    .color(config.color.linear_multiply(0.3))
+                    .color(config.color.linear_multiply(theme::OPACITY_MODERATE))
                     .radius(5.0),
             );
             plot_ui.points(

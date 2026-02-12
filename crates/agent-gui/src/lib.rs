@@ -27,6 +27,8 @@ pub mod pages;
 #[cfg(feature = "render")]
 pub mod state;
 #[cfg(feature = "render")]
+pub mod animation;
+#[cfg(feature = "render")]
 pub mod theme;
 #[cfg(feature = "render")]
 pub mod tray_bridge;

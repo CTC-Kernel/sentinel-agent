@@ -219,7 +219,7 @@ impl<'a> CommandPalette<'a> {
 
                 if ui.is_rect_visible(backdrop_rect) {
                     ui.painter()
-                        .rect_filled(backdrop_rect, 0, Color32::from_black_alpha(100));
+                        .rect_filled(backdrop_rect, 0, Color32::from_black_alpha(theme::BACKDROP_ALPHA / 2));
                 }
 
                 if backdrop_response.clicked() {
@@ -228,7 +228,7 @@ impl<'a> CommandPalette<'a> {
             });
 
         // Palette window
-        let palette_width = 560.0;
+        let palette_width = theme::COMMAND_PALETTE_WIDTH;
         let screen = ctx.screen_rect();
         let palette_x = (screen.width() - palette_width) / 2.0;
         let palette_y = screen.height() * 0.2;
@@ -239,16 +239,16 @@ impl<'a> CommandPalette<'a> {
             .show(ctx, |ui| {
                 egui::Frame::new()
                     .fill(theme::bg_secondary())
-                    .corner_radius(CornerRadius::same(12))
-                    .shadow(theme::premium_shadow(24, 80))
-                    .stroke(egui::Stroke::new(1.0, theme::border()))
+                    .corner_radius(CornerRadius::same(theme::SPACE_MD as u8))
+                    .shadow(theme::shadow_xl())
+                    .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border()))
                     .inner_margin(egui::Margin::same(0))
                     .show(ui, |ui| {
                         ui.set_width(palette_width);
 
                         // Search input
                         egui::Frame::new()
-                            .inner_margin(egui::Margin::same(16))
+                            .inner_margin(egui::Margin::same(theme::SPACE as i8))
                             .show(ui, |ui| {
                                 ui.horizontal(|ui| {
                                     ui.label(
@@ -256,14 +256,14 @@ impl<'a> CommandPalette<'a> {
                                             .font(theme::font_heading())
                                             .color(theme::text_tertiary()),
                                     );
-                                    ui.add_space(12.0);
+                                    ui.add_space(theme::SPACE_MD);
 
                                     let response = ui.add(
                                         egui::TextEdit::singleline(&mut state.query)
                                             .hint_text(&self.placeholder)
                                             .frame(false)
                                             .font(theme::font_heading())
-                                            .desired_width(palette_width - 80.0),
+                                            .desired_width(palette_width - theme::SPACE * 5.0),
                                     );
 
                                     // Auto-focus
@@ -280,15 +280,15 @@ impl<'a> CommandPalette<'a> {
                                     ui.min_rect().max.y,
                                 ),
                             ],
-                            egui::Stroke::new(1.0, theme::border()),
+                            egui::Stroke::new(theme::BORDER_THIN, theme::border()),
                         );
 
                         // Results
                         if !filtered.is_empty() {
                             egui::ScrollArea::vertical()
-                                .max_height(400.0)
+                                .max_height(theme::COMMAND_PALETTE_MAX_HEIGHT)
                                 .show(ui, |ui| {
-                                    ui.add_space(8.0);
+                                    ui.add_space(theme::SPACE_SM);
 
                                     let mut current_category: Option<&str> = None;
 
@@ -298,22 +298,22 @@ impl<'a> CommandPalette<'a> {
                                             && current_category != Some(cat.as_str())
                                         {
                                             current_category = Some(cat.as_str());
-                                            ui.add_space(8.0);
+                                            ui.add_space(theme::SPACE_SM);
                                             ui.horizontal(|ui| {
-                                                ui.add_space(16.0);
+                                                ui.add_space(theme::SPACE);
                                                 ui.label(
                                                     egui::RichText::new(cat.to_uppercase())
                                                         .font(theme::font_label())
                                                         .color(theme::text_tertiary()),
                                                 );
                                             });
-                                            ui.add_space(4.0);
+                                            ui.add_space(theme::SPACE_XS);
                                         }
 
                                         let is_selected = i == state.selected_index;
 
                                         let (item_rect, item_response) = ui.allocate_exact_size(
-                                            egui::vec2(palette_width, 48.0),
+                                            egui::vec2(palette_width, theme::COMMAND_PALETTE_ROW_HEIGHT),
                                             Sense::click(),
                                         );
 
@@ -323,22 +323,22 @@ impl<'a> CommandPalette<'a> {
                                             // Background
                                             if is_selected || is_hovered {
                                                 let bg = if is_selected {
-                                                    theme::ACCENT.linear_multiply(0.15)
+                                                    theme::ACCENT.linear_multiply(theme::OPACITY_TINT)
                                                 } else {
                                                     theme::hover_bg()
                                                 };
 
                                                 let inner_rect =
-                                                    item_rect.shrink2(egui::vec2(8.0, 2.0));
+                                                    item_rect.shrink2(egui::vec2(theme::SPACE_SM, 2.0));
                                                 ui.painter().rect_filled(
                                                     inner_rect,
-                                                    CornerRadius::same(8),
+                                                    CornerRadius::same(theme::SPACE_SM as u8),
                                                     bg,
                                                 );
                                             }
 
                                             let content_rect =
-                                                item_rect.shrink2(egui::vec2(16.0, 0.0));
+                                                item_rect.shrink2(egui::vec2(theme::SPACE, 0.0));
 
                                             // Icon
                                             if let Some(icon) = &cmd.icon {
@@ -359,11 +359,11 @@ impl<'a> CommandPalette<'a> {
                                             }
 
                                             let text_x = content_rect.min.x
-                                                + if cmd.icon.is_some() { 32.0 } else { 0.0 };
+                                                + if cmd.icon.is_some() { theme::MIN_TOUCH_TARGET } else { 0.0 };
 
                                             // Label
                                             ui.painter().text(
-                                                egui::pos2(text_x, content_rect.center().y - 8.0),
+                                                egui::pos2(text_x, content_rect.center().y - theme::SPACE_SM),
                                                 egui::Align2::LEFT_CENTER,
                                                 &cmd.label,
                                                 theme::font_body(),
@@ -379,7 +379,7 @@ impl<'a> CommandPalette<'a> {
                                                 ui.painter().text(
                                                     egui::pos2(
                                                         text_x,
-                                                        content_rect.center().y + 8.0,
+                                                        content_rect.center().y + theme::SPACE_SM,
                                                     ),
                                                     egui::Align2::LEFT_CENTER,
                                                     desc,
@@ -399,22 +399,26 @@ impl<'a> CommandPalette<'a> {
                                                     egui::pos2(
                                                         content_rect.max.x
                                                             - shortcut_galley.size().x
-                                                            - 8.0,
+                                                            - theme::SPACE_SM,
                                                         content_rect.center().y - 10.0,
                                                     ),
-                                                    shortcut_galley.size() + egui::vec2(8.0, 4.0),
+                                                    shortcut_galley.size() + egui::vec2(theme::SPACE_SM, theme::SPACE_XS),
                                                 );
                                                 ui.painter().rect_filled(
                                                     shortcut_rect,
-                                                    CornerRadius::same(4),
+                                                    CornerRadius::same(theme::SPACE_XS as u8),
                                                     theme::bg_tertiary(),
                                                 );
                                                 ui.painter().galley(
-                                                    shortcut_rect.min + egui::vec2(4.0, 2.0),
+                                                    shortcut_rect.min + egui::vec2(theme::SPACE_XS, 2.0),
                                                     shortcut_galley,
                                                     theme::text_tertiary(),
                                                 );
                                             }
+                                        }
+
+                                        if item_response.hovered() {
+                                            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                                         }
 
                                         if item_response.clicked() {
@@ -427,12 +431,12 @@ impl<'a> CommandPalette<'a> {
                                         }
                                     }
 
-                                    ui.add_space(8.0);
+                                    ui.add_space(theme::SPACE_SM);
                                 });
                         } else {
                             // No results
                             egui::Frame::new()
-                                .inner_margin(egui::Margin::same(32))
+                                .inner_margin(egui::Margin::same(theme::SPACE_LG as i8 * 2))
                                 .show(ui, |ui| {
                                     ui.vertical_centered(|ui| {
                                         ui.label(
@@ -453,11 +457,11 @@ impl<'a> CommandPalette<'a> {
                                     ui.min_rect().max.y,
                                 ),
                             ],
-                            egui::Stroke::new(1.0, theme::border()),
+                            egui::Stroke::new(theme::BORDER_THIN, theme::border()),
                         );
 
                         egui::Frame::new()
-                            .inner_margin(egui::Margin::same(12))
+                            .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
                             .show(ui, |ui| {
                                 ui.horizontal(|ui| {
                                     // Navigation hint
@@ -472,7 +476,7 @@ impl<'a> CommandPalette<'a> {
                                             .color(theme::text_tertiary()),
                                     );
 
-                                    ui.add_space(16.0);
+                                    ui.add_space(theme::SPACE);
 
                                     // Select hint
                                     ui.label(
@@ -486,7 +490,7 @@ impl<'a> CommandPalette<'a> {
                                             .color(theme::text_tertiary()),
                                     );
 
-                                    ui.add_space(16.0);
+                                    ui.add_space(theme::SPACE);
 
                                     // Close hint
                                     ui.label(

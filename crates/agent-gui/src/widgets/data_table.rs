@@ -133,8 +133,8 @@ impl<'a> DataTable<'a> {
         Self {
             id: egui::Id::new(id),
             columns,
-            row_height: 48.0,
-            header_height: 44.0,
+            row_height: theme::TABLE_DATA_ROW_HEIGHT,
+            header_height: theme::TABLE_HEADER_HEIGHT,
             striped: true,
             hoverable: true,
             selectable: false,
@@ -237,8 +237,8 @@ impl<'a> DataTable<'a> {
             ui.painter().rect_filled(
                 header_rect,
                 CornerRadius {
-                    nw: 8,
-                    ne: 8,
+                    nw: theme::SPACE_SM as u8,
+                    ne: theme::SPACE_SM as u8,
                     ..Default::default()
                 },
                 theme::bg_tertiary(),
@@ -269,7 +269,7 @@ impl<'a> DataTable<'a> {
                             ui.painter().rect_filled(
                                 cell_rect,
                                 0,
-                                theme::hover_bg().linear_multiply(0.5),
+                                theme::hover_bg().linear_multiply(theme::OPACITY_MEDIUM),
                             );
                         }
 
@@ -287,9 +287,9 @@ impl<'a> DataTable<'a> {
                         };
 
                         let text_x = match col.align {
-                            ColumnAlign::Left => cell_rect.min.x + 12.0,
+                            ColumnAlign::Left => cell_rect.min.x + theme::SPACE_MD,
                             ColumnAlign::Center => cell_rect.center().x,
-                            ColumnAlign::Right => cell_rect.max.x - 12.0,
+                            ColumnAlign::Right => cell_rect.max.x - theme::SPACE_MD,
                         };
 
                         ui.painter().text(
@@ -311,9 +311,9 @@ impl<'a> DataTable<'a> {
                             };
 
                             if let Some(icon) = sort_icon {
-                                let icon_alpha = if is_sorted { 1.0 } else { 0.5 };
+                                let icon_alpha = if is_sorted { 1.0 } else { theme::OPACITY_MEDIUM };
                                 ui.painter().text(
-                                    egui::pos2(cell_rect.max.x - 20.0, cell_rect.center().y),
+                                    egui::pos2(cell_rect.max.x - theme::ICON_MD, cell_rect.center().y),
                                     egui::Align2::CENTER_CENTER,
                                     icon,
                                     theme::font_label(),
@@ -326,12 +326,16 @@ impl<'a> DataTable<'a> {
                         if self.bordered && i < self.columns.len() - 1 {
                             ui.painter().line_segment(
                                 [
-                                    egui::pos2(cell_rect.max.x, cell_rect.min.y + 8.0),
-                                    egui::pos2(cell_rect.max.x, cell_rect.max.y - 8.0),
+                                    egui::pos2(cell_rect.max.x, cell_rect.min.y + theme::SPACE_SM),
+                                    egui::pos2(cell_rect.max.x, cell_rect.max.y - theme::SPACE_SM),
                                 ],
-                                egui::Stroke::new(1.0, theme::border()),
+                                egui::Stroke::new(theme::BORDER_THIN, theme::border()),
                             );
                         }
+                    }
+
+                    if col.sortable && response.hovered() {
+                        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                     }
 
                     // Handle sort click
@@ -381,7 +385,7 @@ impl<'a> DataTable<'a> {
             } else if is_hovered && self.hoverable {
                 theme::hover_bg()
             } else if self.striped && is_odd {
-                theme::bg_tertiary().linear_multiply(0.5)
+                theme::bg_tertiary().linear_multiply(theme::OPACITY_MEDIUM)
             } else {
                 Color32::TRANSPARENT
             };
@@ -430,7 +434,7 @@ impl<'a> DataTable<'a> {
                             egui::pos2(cell_rect.max.x, cell_rect.min.y),
                             egui::pos2(cell_rect.max.x, cell_rect.max.y),
                         ],
-                        egui::Stroke::new(1.0, theme::border().linear_multiply(0.5)),
+                        egui::Stroke::new(theme::BORDER_THIN, theme::border().linear_multiply(theme::OPACITY_MEDIUM)),
                     );
                 }
 
@@ -443,8 +447,12 @@ impl<'a> DataTable<'a> {
                     egui::pos2(row_rect.min.x, row_rect.max.y),
                     egui::pos2(row_rect.max.x, row_rect.max.y),
                 ],
-                egui::Stroke::new(0.5, theme::border().linear_multiply(0.5)),
+                egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border().linear_multiply(theme::OPACITY_MEDIUM)),
             );
+        }
+
+        if self.selectable && response.hovered() {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
         }
 
         if response.clicked() {
@@ -457,7 +465,7 @@ impl<'a> DataTable<'a> {
     /// Show an empty state when no data.
     pub fn show_empty(&self, ui: &mut Ui, message: &str) {
         let available_width = ui.available_width();
-        let height = 120.0;
+        let height = theme::TABLE_EMPTY_HEIGHT;
 
         let (rect, _) = ui.allocate_exact_size(egui::vec2(available_width, height), Sense::hover());
 
@@ -465,8 +473,8 @@ impl<'a> DataTable<'a> {
             ui.painter().rect_filled(
                 rect,
                 CornerRadius {
-                    sw: 8,
-                    se: 8,
+                    sw: theme::SPACE_SM as u8,
+                    se: theme::SPACE_SM as u8,
                     ..Default::default()
                 },
                 theme::bg_secondary(),

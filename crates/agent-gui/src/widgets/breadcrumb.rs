@@ -126,7 +126,7 @@ impl<'a> Breadcrumb<'a> {
             };
 
         ui.horizontal(|ui| {
-            ui.spacing_mut().item_spacing.x = 4.0;
+            ui.spacing_mut().item_spacing.x = theme::SPACE_XS;
 
             let mut first = true;
             let mut shown_ellipsis = false;
@@ -144,9 +144,9 @@ impl<'a> Breadcrumb<'a> {
 
                 // Show ellipsis after first item if needed
                 if show_ellipsis && original_idx > 0 && !shown_ellipsis {
-                    // Ellipsis button (could be dropdown in future)
+                    // Ellipsis button (meets MIN_TOUCH_TARGET)
                     let (rect, response) =
-                        ui.allocate_exact_size(egui::vec2(24.0, 24.0), Sense::click());
+                        ui.allocate_exact_size(egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET), Sense::click());
 
                     if ui.is_rect_visible(rect) {
                         let is_hovered = response.hovered();
@@ -154,8 +154,18 @@ impl<'a> Breadcrumb<'a> {
                         if is_hovered {
                             ui.painter().rect_filled(
                                 rect,
-                                CornerRadius::same(4),
+                                CornerRadius::same(theme::SPACE_XS as u8),
                                 theme::hover_bg(),
+                            );
+                        }
+
+                        // Focus Ring (WCAG 2.4.7)
+                        if response.has_focus() {
+                            ui.painter().rect_stroke(
+                                rect.expand(2.0),
+                                CornerRadius::same(theme::SPACE_XS as u8 + 2),
+                                theme::focus_ring(),
+                                egui::epaint::StrokeKind::Outside,
                             );
                         }
 
@@ -167,6 +177,8 @@ impl<'a> Breadcrumb<'a> {
                             theme::text_tertiary(),
                         );
                     }
+
+                    response.on_hover_cursor(egui::CursorIcon::PointingHand);
 
                     // Separator after ellipsis
                     ui.label(
@@ -198,7 +210,7 @@ impl<'a> Breadcrumb<'a> {
                     ui.painter()
                         .layout_no_wrap(content.clone(), theme::font_body(), text_color);
 
-                let padding = egui::vec2(8.0, 4.0);
+                let padding = egui::vec2(theme::SPACE_SM, theme::SPACE_XS);
                 let item_size = galley.size() + padding * 2.0;
 
                 let sense = if item.clickable {
@@ -215,7 +227,7 @@ impl<'a> Breadcrumb<'a> {
                     // Background on hover
                     if is_hovered {
                         ui.painter()
-                            .rect_filled(rect, CornerRadius::same(4), theme::hover_bg());
+                            .rect_filled(rect, CornerRadius::same(theme::SPACE_XS as u8), theme::hover_bg());
                     }
 
                     // Text
@@ -239,9 +251,23 @@ impl<'a> Breadcrumb<'a> {
                                 egui::pos2(rect.min.x + padding.x, rect.max.y - 2.0),
                                 egui::pos2(rect.max.x - padding.x, rect.max.y - 2.0),
                             ],
-                            egui::Stroke::new(2.0, theme::ACCENT),
+                            egui::Stroke::new(theme::BORDER_THICK, theme::ACCENT),
                         );
                     }
+
+                    // Focus Ring (WCAG 2.4.7)
+                    if response.has_focus() && item.clickable {
+                        ui.painter().rect_stroke(
+                            rect.expand(2.0),
+                            CornerRadius::same(theme::SPACE_XS as u8 + 2),
+                            theme::focus_ring(),
+                            egui::epaint::StrokeKind::Outside,
+                        );
+                    }
+                }
+
+                if item.clickable && response.hovered() {
+                    ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                 }
 
                 if response.clicked() && item.clickable {

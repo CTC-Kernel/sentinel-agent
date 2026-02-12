@@ -116,7 +116,7 @@ pub fn show_tooltip_at(
         tooltip_rect,
         CornerRadius::same(6),
         theme::bg_elevated(),
-        egui::Stroke::new(0.5, theme::border()),
+        egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()),
         egui::epaint::StrokeKind::Inside,
     );
 
@@ -191,7 +191,7 @@ pub fn help_tooltip(ui: &mut Ui, text: &str) {
             rect.center(),
             8.0,
             if is_hovered {
-                theme::ACCENT.linear_multiply(0.15)
+                theme::ACCENT.linear_multiply(theme::OPACITY_TINT)
             } else {
                 egui::Color32::TRANSPARENT
             },

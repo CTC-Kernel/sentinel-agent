@@ -188,7 +188,7 @@ impl MonitoringPage {
                         let value_color = if response.hovered() {
                             color
                         } else {
-                            color.linear_multiply(0.85)
+                            color.linear_multiply(theme::OPACITY_STRONG)
                         };
 
                         ui.label(
@@ -236,7 +236,7 @@ impl MonitoringPage {
                     ui.painter().hline(
                         rect.left() + 5.0..=rect.right() - 5.0,
                         line_y,
-                        egui::Stroke::new(4.0, color.linear_multiply(0.15)),
+                        egui::Stroke::new(4.0, color.linear_multiply(theme::OPACITY_TINT)),
                     );
 
                     ui.ctx().request_repaint();
@@ -304,12 +304,12 @@ impl MonitoringPage {
             let painter = ui.painter_at(rect);
 
             // Subtle grid lines
-            let grid_color = theme::border().linear_multiply(0.3);
+            let grid_color = theme::border().linear_multiply(theme::OPACITY_MODERATE);
             for i in 1..4 {
                 let y = rect.min.y + (rect.height() * i as f32 / 4.0);
                 painter.line_segment(
                     [egui::pos2(rect.min.x, y), egui::pos2(rect.max.x, y)],
-                    egui::Stroke::new(0.5, grid_color),
+                    egui::Stroke::new(theme::BORDER_HAIRLINE, grid_color),
                 );
             }
 
@@ -385,7 +385,7 @@ impl MonitoringPage {
             if fill {
                 plot_ui.line(
                     Line::new(PlotPoints::new(history.to_vec()))
-                        .color(line_color.linear_multiply(0.08))
+                        .color(line_color.linear_multiply(theme::OPACITY_SUBTLE))
                         .fill(0.0),
                 );
             }

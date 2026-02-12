@@ -23,7 +23,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.label(
                         RichText::new(icons::BUILDING)
-                            .size(20.0)
+                            .size(theme::ICON_MD)
                             .color(theme::ACCENT),
                     );
                     ui.add_space(theme::SPACE_SM);
@@ -53,8 +53,12 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                             | GuiAgentStatus::Syncing
                     );
 
-                    let time = ui.input(|i| i.time);
-                    let pulse = ((time * 2.5).sin() * 0.5 + 0.5) as f32;
+                    let pulse = if theme::is_reduced_motion() {
+                        1.0
+                    } else {
+                        let time = ui.input(|i| i.time);
+                        ((time * 2.5).sin() * 0.5 + 0.5) as f32
+                    };
 
                     let status_color = if is_connected {
                         theme::SUCCESS
@@ -76,14 +80,14 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                             ui.painter().circle_filled(
                                 dot_center,
                                 dot_size * (0.8 + 0.4 * pulse),
-                                status_color.linear_multiply(0.15 * pulse),
+                                status_color.linear_multiply(theme::OPACITY_TINT * pulse),
                             );
                         }
                         // Main dot
                         ui.painter().circle_filled(
                             dot_center,
                             dot_size * 0.5,
-                            status_color.linear_multiply(0.8 + 0.2 * pulse),
+                            status_color.linear_multiply(theme::OPACITY_STRONG + theme::OPACITY_TINT * pulse),
                         );
                     }
 
@@ -115,7 +119,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                             .size(11.0)
                             .color(theme::text_tertiary()),
                     );
-                    ui.add_space(4.0);
+                    ui.add_space(theme::SPACE_XS);
 
                     // Truncate server URL for display
                     let server_display = state
@@ -146,7 +150,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                                 .size(11.0)
                                 .color(theme::text_tertiary()),
                         );
-                        ui.add_space(4.0);
+                        ui.add_space(theme::SPACE_XS);
 
                         let elapsed = chrono::Utc::now().signed_duration_since(last_sync);
                         let elapsed_text = if elapsed.num_minutes() < 1 {
@@ -171,7 +175,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
             ui.painter().vline(
                 sep_rect.left(),
                 sep_rect.top()..=sep_rect.bottom(),
-                egui::Stroke::new(1.0, theme::border()),
+                egui::Stroke::new(theme::BORDER_THIN, theme::border()),
             );
 
             ui.add_space(theme::SPACE_MD);
@@ -181,8 +185,12 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                 // Pending sync count with badge
                 if state.summary.pending_sync_count > 0 {
                     ui.horizontal(|ui: &mut egui::Ui| {
-                        let time = ui.input(|i| i.time);
-                        let pulse = ((time * 1.5).sin() * 0.3 + 0.7) as f32;
+                        let pulse = if theme::is_reduced_motion() {
+                            1.0
+                        } else {
+                            let time = ui.input(|i| i.time);
+                            ((time * 1.5).sin() * theme::OPACITY_MODERATE as f64 + theme::OPACITY_PRESSED as f64) as f32
+                        };
 
                         let badge_text = format!("{}", state.summary.pending_sync_count);
 
@@ -190,12 +198,12 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                             egui::Rect::from_min_size(ui.cursor().min, Vec2::new(24.0, 18.0));
 
                         let rounding = CornerRadius::same(9);
-                        let bg = theme::badge_bg(theme::INFO).linear_multiply(0.7 + 0.3 * pulse);
+                        let bg = theme::badge_bg(theme::INFO).linear_multiply(theme::OPACITY_PRESSED + theme::OPACITY_MODERATE * pulse);
                         ui.painter().rect_filled(badge_rect, rounding, bg);
                         ui.painter().rect_stroke(
                             badge_rect,
                             rounding,
-                            egui::Stroke::new(0.5, theme::badge_border(theme::INFO)),
+                            egui::Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(theme::INFO)),
                             egui::StrokeKind::Inside,
                         );
                         ui.painter().text(
@@ -227,11 +235,11 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary()),
                         );
-                        ui.add_space(4.0);
+                        ui.add_space(theme::SPACE_XS);
                         let id_display: String = agent_id.chars().take(12).collect();
                         ui.label(
                             RichText::new(id_display)
-                                .font(egui::FontId::monospace(9.0))
+                                .font(theme::font_mono())
                                 .color(theme::ACCENT_LIGHT),
                         );
                     });
@@ -276,8 +284,9 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
         });
     });
 
-    // Limit animation repaint to ~10fps
-    ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+    if !theme::is_reduced_motion() {
+        ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+    }
 
     command
 }

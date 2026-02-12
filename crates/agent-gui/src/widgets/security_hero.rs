@@ -57,13 +57,13 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
             let painter = ui.painter_at(rect);
 
             // Clean background circle (no fake glow)
-            painter.circle_filled(center, icon_size * 0.9, base_color.linear_multiply(0.1));
+            painter.circle_filled(center, icon_size * 0.9, base_color.linear_multiply(theme::OPACITY_SUBTLE));
 
             // Subtle border ring
             painter.circle_stroke(
                 center,
                 icon_size * 0.9,
-                egui::Stroke::new(1.5, base_color.linear_multiply(0.25)),
+                egui::Stroke::new(theme::BORDER_MEDIUM, base_color.linear_multiply(theme::OPACITY_MUTED)),
             );
 
             // Icon with subtle shadow
@@ -72,7 +72,7 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
                 egui::Align2::CENTER_CENTER,
                 security_state.icon(),
                 egui::FontId::proportional(icon_size),
-                Color32::BLACK.linear_multiply(0.15),
+                Color32::BLACK.linear_multiply(theme::OPACITY_TINT),
             );
             painter.text(
                 center,
