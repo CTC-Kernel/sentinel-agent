@@ -89,8 +89,8 @@
     <Property Id="AUTOSTART" Value="1" />
 
     <!-- Prerequisite checks -->
-    <Launch Condition="VersionNT64 &gt;= 1000"
-            Message="Sentinel Agent requiert Windows 10 ou Windows Server 2016 (ou ulterieur)." />
+    <Launch Condition="VersionNT64 &gt;= 603"
+            Message="Sentinel Agent requiert Windows 8.1 ou Windows Server 2012 R2 (ou ulterieur)." />
     <Launch Condition="Privileged"
             Message="Droits administrateur requis. Relancez l'installation en tant qu'administrateur." />
 
