@@ -22,11 +22,12 @@ pub fn is_admin() -> bool {
 pub fn run_with_elevation(script: &str) -> Result<String> {
     info!("Requesting privilege elevation for command: {}", script);
 
-    // Escape single quotes for AppleScript
-    let escaped_script = script.replace('\'', "'\\''");
+    // Escape double quotes and backslashes for AppleScript strings
+    let escaped_script = script.replace('\\', "\\\\").replace('"', "\\\"");
     
     // AppleScript command: do shell script "..." with administrator privileges
-    let applescript = format!("do shell script '{}' with administrator privileges", escaped_script);
+    // Note: AppleScript strings MUST use double quotes. Single quotes are not valid string delimiters.
+    let applescript = format!("do shell script \"{}\" with administrator privileges", escaped_script);
 
     let output = Command::new("osascript")
         .args(["-e", &applescript])
