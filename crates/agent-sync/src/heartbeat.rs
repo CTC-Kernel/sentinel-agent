@@ -17,7 +17,7 @@ use chrono::{DateTime, Utc};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::time::Duration;
-use sysinfo::{Disks, System};
+use sysinfo::{Disks, System, UpdateKind};
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info, warn};
@@ -290,11 +290,17 @@ impl HeartbeatService {
 
     /// Collect running processes.
     async fn collect_processes(&self) -> Vec<crate::types::AgentProcess> {
-        use sysinfo::ProcessRefreshKind;
+        use sysinfo::{ProcessRefreshKind, ProcessesToUpdate};
         let mut sys = self.sys.write().await;
         
         // Refresh processes
-        sys.refresh_processes_specifics(ProcessRefreshKind::new().with_cpu().with_memory());
+        sys.refresh_processes_specifics(
+            ProcessesToUpdate::All,
+            true,
+            ProcessRefreshKind::nothing()
+                .with_cpu(UpdateKind::Always)
+                .with_memory(UpdateKind::Always),
+        );
         
         let mut processes = Vec::new();
         // Limit to top 20 processes by CPU to avoid huge payload
