@@ -17,7 +17,7 @@ use chrono::{DateTime, Utc};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::time::Duration;
-use sysinfo::{Disks, System, UpdateKind};
+use sysinfo::{Disks, System};
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info, warn};
@@ -298,8 +298,8 @@ impl HeartbeatService {
             ProcessesToUpdate::All,
             true,
             ProcessRefreshKind::nothing()
-                .with_cpu(UpdateKind::Always)
-                .with_memory(UpdateKind::Always),
+                .with_cpu()
+                .with_memory(),
         );
         
         let mut processes = Vec::new();
