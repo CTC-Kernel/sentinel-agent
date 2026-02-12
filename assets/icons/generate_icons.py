@@ -14,54 +14,44 @@ MACOS_SIZES = [16, 32, 64, 128, 256, 512, 1024]
 WINDOWS_SIZES = [16, 24, 32, 48, 64, 128, 256]
 
 def create_base_icon_svg():
-    """Create the base SVG icon for Sentinel Agent."""
+    """Create the base SVG icon for Sentinel Agent — Abstract S monogram."""
     svg = '''<?xml version="1.0" encoding="UTF-8"?>
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="shield-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#4f46e5;stop-opacity:1" />
+    <!-- Background gradient: deep black to dark navy -->
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0f;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#10132a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d1025;stop-opacity:1" />
     </linearGradient>
-    <linearGradient id="check-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#22c55e;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#16a34a;stop-opacity:1" />
+
+    <!-- Subtle sheen on the S -->
+    <linearGradient id="s-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c0c8e8;stop-opacity:1" />
     </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="8" stdDeviation="20" flood-color="#000" flood-opacity="0.25"/>
+
+    <!-- Drop shadow for depth -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#6366f1" flood-opacity="0.15"/>
     </filter>
   </defs>
 
-  <!-- Background circle -->
-  <circle cx="512" cy="512" r="480" fill="white" filter="url(#shadow)"/>
+  <!-- iOS-style Squircle Background -->
+  <rect width="1024" height="1024" rx="224" ry="224" fill="url(#bg-gradient)"/>
 
-  <!-- Shield shape -->
-  <path d="M512 100 L820 220 L820 500 Q820 750 512 920 Q204 750 204 500 L204 220 Z"
-        fill="url(#shield-gradient)"
-        stroke="none"/>
-
-  <!-- Inner shield highlight -->
-  <path d="M512 150 L780 255 L780 490 Q780 710 512 860 Q244 710 244 490 L244 255 Z"
-        fill="none"
-        stroke="rgba(255,255,255,0.3)"
-        stroke-width="4"/>
-
-  <!-- Checkmark -->
-  <path d="M380 520 L480 620 L680 380"
-        fill="none"
-        stroke="url(#check-gradient)"
-        stroke-width="60"
-        stroke-linecap="round"
-        stroke-linejoin="round"/>
-
-  <!-- Small "S" letter -->
-  <text x="512" y="280"
-        font-family="SF Pro Display, -apple-system, Helvetica Neue, Arial, sans-serif"
-        font-size="100"
-        font-weight="700"
-        fill="rgba(255,255,255,0.9)"
-        text-anchor="middle">S</text>
+  <!-- Abstract interlocking S — built from two flowing curves -->
+  <g transform="translate(512, 512)" filter="url(#shadow)">
+    <!-- Upper S curve -->
+    <path d="M-40,-280 C200,-280 260,-220 260,-100 C260,0 180,60 40,60 C-60,60 -160,40 -200,20"
+          fill="none" stroke="url(#s-gradient)" stroke-width="72" stroke-linecap="round"/>
+    <!-- Lower S curve -->
+    <path d="M40,280 C-200,280 -260,220 -260,100 C-260,0 -180,-60 -40,-60 C60,-60 160,-40 200,-20"
+          fill="none" stroke="url(#s-gradient)" stroke-width="72" stroke-linecap="round"/>
+  </g>
 </svg>'''
     return svg
+
 
 def main():
     script_dir = Path(__file__).parent
