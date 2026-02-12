@@ -416,7 +416,7 @@ jobs:
           
           # Create self-signed certificate
           Write-Host "🔐 Creating self-signed certificate..."
-          $cert = New-SelfSignedCertificate -DnsName 'Cyber Threat Consulting' -CertStoreLocation 'Cert:\LocalMachine\My' -KeySpec 'CodeSigning' -KeyExportPolicy 'Exportable' -NotAfter (Get-Date).AddYears(5) -FriendlyName 'Sentinel GRC Agent'
+          $cert = New-SelfSignedCertificate -DnsName 'Cyber Threat Consulting' -CertStoreLocation 'Cert:\LocalMachine\My' -KeySpec 'Signature' -KeyExportPolicy 'Exportable' -NotAfter (Get-Date).AddYears(5) -FriendlyName 'Sentinel GRC Agent'
           
           # Export certificate
           $password = ConvertTo-SecureString -String '***REMOVED***_CERT_PASSWORD' -Force -AsPlainText
