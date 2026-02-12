@@ -243,6 +243,26 @@ sudo apt-get remove sentinel-agent
 - **Community**: https://community.sentinel-grc.com
 - **Support**: support@sentinel-grc.com
 
+## 🔐 Production Code Signing (Windows)
+To avoid "Microsoft Defender SmartScreen" warnings and establish a verified publisher identity, both the agent executable and the MSI installer should be signed with a trusted certificate.
+
+### Prerequisites
+1.  **Windows SDK**: Ensure `signtool.exe` is in your PATH.
+2.  **Code Signing Certificate**: A `.pfx` or `.p12` file (Standard or EV).
+
+### Build with Signing
+Set the following environment variables before running `create-windows-installer.sh`:
+
+```bash
+export WINDOWS_CERT_PATH="C:\\path\\to\\your\\cert.p12"
+export WINDOWS_CERT_PASSWORD="your_password"
+# Optional: Set a custom timestamp server
+# export TIMESTAMP_URL="http://timestamp.digicert.com"
+```
+
+### 💡 Recommendation: EV Certificates
+For security products like Sentinel GRC, we strongly recommend an **EV (Extended Validation) Code Signing Certificate**. Unlike standard certificates, EV certificates provide immediate reputation with Microsoft SmartScreen, eliminating "unrecognized app" warnings from the first installation.
+
 ---
 
 **© 2024-2026 Cyber Threat Consulting. All rights reserved.**

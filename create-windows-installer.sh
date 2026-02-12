@@ -13,6 +13,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
 MSI_DIR="$SCRIPT_DIR/dist"
 
+# Code Signing Configuration
+# Set these environment variables for production builds
+CERT_PATH="${WINDOWS_CERT_PATH:-}"
+CERT_PASSWORD="${WINDOWS_CERT_PASSWORD:-}"
+TIMESTAMP_URL="${TIMESTAMP_URL:-http://timestamp.digicert.com}"
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -39,12 +45,36 @@ if ! command -v light &> /dev/null; then
     exit 1
 fi
 
+# Check for signtool (optional but recommended for production)
+if ! command -v signtool &> /dev/null; then
+    echo -e "${YELLOW}⚠️  signtool (Windows SDK) not found. Build will skip code signing.${NC}"
+else
+    echo -e "${GREEN}✅ signtool found${NC}"
+fi
+
 # Check for Windows build environment
 if [[ "$OSTYPE" != "msys" ]] && [[ "$OSTYPE" != "cygwin" ]] && [[ "$OSTYPE" != "win32" ]]; then
     echo -e "${YELLOW}⚠️  Not building on Windows. Cross-compilation not supported.${NC}"
     echo "Please run this script on Windows with WiX Toolset installed."
     exit 1
 fi
+
+# Helper function for code signing
+sign_file() {
+    local file_path=$1
+    if [[ -n "$CERT_PATH" ]] && [[ -f "$CERT_PATH" ]] && command -v signtool &> /dev/null; then
+        echo -e "${YELLOW}Signing $file_path...${NC}"
+        signtool sign /f "$CERT_PATH" /p "$CERT_PASSWORD" /tr "$TIMESTAMP_URL" /td sha256 /fd sha256 "$file_path"
+        if [[ $? -eq 0 ]]; then
+            echo -e "${GREEN}✅ Successfully signed $file_path${NC}"
+        else
+            echo -e "${RED}❌ Failed to sign $file_path${NC}"
+            return 1
+        fi
+    else
+        echo -e "${YELLOW}⚠️  Skipping signing for $file_path (Cert path not provided or signtool missing)${NC}"
+    fi
+}
 
 # Clean previous builds
 echo -e "${YELLOW}Cleaning previous builds...${NC}"
@@ -56,6 +86,9 @@ echo -e "${YELLOW}Preparing Windows binary...${NC}"
 if [[ -f "$SCRIPT_DIR/target/x86_64-pc-windows-gnu/release/agent-core.exe" ]]; then
     cp "$SCRIPT_DIR/target/x86_64-pc-windows-gnu/release/agent-core.exe" "$BUILD_DIR/sentinel-agent.exe"
     echo -e "${GREEN}✅ Windows binary copied${NC}"
+    
+    # Sign the executable
+    sign_file "$BUILD_DIR/sentinel-agent.exe"
 else
     echo -e "${RED}❌ Windows binary not found. Please build with: cargo build --release --target x86_64-pc-windows-gnu${NC}"
     exit 1
@@ -316,6 +349,9 @@ if [[ $? -ne 0 ]]; then
     echo -e "${RED}❌ MSI linking failed${NC}"
     exit 1
 fi
+
+# Sign the MSI
+sign_file "$MSI_DIR/SentinelAgent-$VERSION.msi"
 
 # Verify MSI
 echo -e "${YELLOW}Verifying MSI...${NC}"
