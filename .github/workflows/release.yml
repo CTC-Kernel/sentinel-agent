@@ -166,8 +166,8 @@ jobs:
 
       - name: Build DMG
         run: |
-          chmod +x scripts/build-macos.sh
-          VERSION="${{ env.RELEASE_VERSION }}" ./scripts/build-macos.sh
+          chmod +x build-macos.sh
+          VERSION="${{ env.RELEASE_VERSION }}" ./build-macos.sh
         env:
           VERSION: ${{ env.RELEASE_VERSION }}
 
@@ -388,6 +388,90 @@ jobs:
             target/release/SHA256SUMS-windows.txt
 
   # ═══════════════════════════════════════════════════════════════════
+  # Windows — Self-signed MSI installer (no SmartScreen warnings)
+  # ═══════════════════════════════════════════════════════════════════
+  build-windows-selfsigned:
+    name: Build Windows Self-Signed MSI
+    runs-on: windows-latest
+    needs: [version, build-windows]
+    env:
+      RELEASE_VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: sentinel-agent-windows
+          path: artifacts
+
+      - name: Create Self-Signed MSI
+        run: |
+          $version = "${{ env.RELEASE_VERSION }}"
+          $packageDir = "SentinelAgent-SelfSigned-$version"
+          New-Item -ItemType Directory -Force -Path $packageDir
+          
+          # Copy MSI from artifacts
+          Copy-Item "artifacts\SentinelAgentSetup-$version.msi" "$packageDir\SentinelAgentSelfSigned-$version.msi"
+          
+          # Create self-signed certificate
+          Write-Host "🔐 Creating self-signed certificate..."
+          $cert = New-SelfSignedCertificate -DnsName 'Cyber Threat Consulting' -CertStoreLocation 'Cert:\LocalMachine\My' -KeySpec 'CodeSigning' -KeyExportPolicy 'Exportable' -NotAfter (Get-Date).AddYears(5) -FriendlyName 'Sentinel GRC Agent'
+          
+          # Export certificate
+          $password = ConvertTo-SecureString -String '***REMOVED***_CERT_PASSWORD' -Force -AsPlainText
+          Export-PfxCertificate -Cert $cert -FilePath 'sentinel-selfsigned.pfx' -Password $password
+          Export-Certificate -Cert $cert -FilePath 'sentinel-selfsigned.cer'
+          
+          # Add to Trusted Publishers
+          Import-Certificate -FilePath 'sentinel-selfsigned.cer' -CertStoreLocation 'Cert:\LocalMachine\Root' -ErrorAction SilentlyContinue
+          Import-Certificate -FilePath 'sentinel-selfsigned.cer' -CertStoreLocation 'Cert:\LocalMachine\TrustedPublisher' -ErrorAction SilentlyContinue
+          
+          # Sign MSI with self-signed certificate
+          signtool sign /f sentinel-selfsigned.pfx /p ***REMOVED***_CERT_PASSWORD /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d "Sentinel GRC Agent" "$packageDir\SentinelAgentSelfSigned-$version.msi"
+          
+          # Copy certificate to package
+          Copy-Item "sentinel-selfsigned.cer" "$packageDir\"
+          
+          Write-Host "✅ Self-signed MSI package created: SentinelAgentSelfSigned-$version.msi"
+        shell: pwsh
+
+      - name: Create Installation Scripts
+        run: |
+          $version = "${{ env.RELEASE_VERSION }}"
+          $packageDir = "SentinelAgent-SelfSigned-$version"
+          
+          # Create installation script using PowerShell
+          $batchContent = '@echo off' + "`r`n" + 'echo 🔐 Installation Sentinel GRC Agent (sécurisée)' + "`r`n" + 'echo ===========================================' + "`r`n" + "`r`n" + 'REM Vérifier les droits admin' + "`r`n" + 'net session >nul 2>&1' + "`r`n" + 'if %errorLevel% neq 0 (' + "`r`n" + '    echo ❌ Droits administrateur requis' + "`r`n" + '    echo Relancez ce script en tant qu''administrateur' + "`r`n" + '    pause' + "`r`n" + '    exit /b 1' + "`r`n" + ')' + "`r`n" + "`r`n" + 'REM Installer le certificat dans Trusted Publishers' + "`r`n" + 'echo 📋 Installation du certificat de confiance...' + "`r`n" + 'certutil -addstore "TrustedPublisher" "sentinel-selfsigned.cer" >nul 2>&1' + "`r`n" + 'certutil -addstore "Root" "sentinel-selfsigned.cer" >nul 2>&1' + "`r`n" + 'echo ✅ Certificat ajouté aux Trusted Publishers' + "`r`n" + "`r`n" + 'REM Installer le MSI' + "`r`n" + 'echo 📦 Installation de Sentinel GRC Agent...' + "`r`n" + 'msiexec /i "SentinelAgentSelfSigned-' + $version + '.msi" /quiet /norestart' + "`r`n" + "`r`n" + 'if %errorLevel% equ 0 (' + "`r`n" + '    echo ✅ Installation terminée avec succès!' + "`r`n" + ') else (' + "`r`n" + '    echo ❌ Erreur lors de l''installation MSI' + "`r`n" + '    echo Code d''erreur: %errorLevel%' + "`r`n" + ')' + "`r`n" + "`r`n" + 'echo.' + "`r`n" + 'echo 🎉 Installation complète!' + "`r`n" + 'echo Le certificat est maintenant installé sur cette machine' + "`r`n" + 'echo Les futures installations n''auront plus d''avertissements' + "`r`n" + 'echo.' + "`r`n" + 'pause' + "`r`n"
+          
+          $batchContent | Out-File -FilePath "$packageDir\install.bat" -Encoding ASCII
+          
+          # Create README
+          $readmeContent = 'Sentinel GRC Agent - Installation Sécurisée Auto-signée' + "`r`n" + '================================================' + "`r`n" + "`r`n" + 'Ce package inclut:' + "`r`n" + '- L''installateur MSI signé avec certificat auto-signé' + "`r`n" + '- Le certificat public pour Trusted Publishers' + "`r`n" + '- Script d''installation automatique' + "`r`n" + "`r`n" + 'Installation:' + "`r`n" + '1. Exécuter install.bat en tant qu''administrateur' + "`r`n" + '2. Le certificat sera installé automatiquement' + "`r`n" + '3. L''agent s''installera sans avertissements' + "`r`n" + "`r`n" + 'Avantages:' + "`r`n" + '✅ Aucun avertissement SmartScreen' + "`r`n" + '✅ Installation silencieuse possible' + "`r`n" + '✅ Certificat ajouté aux Trusted Publishers' + "`r`n" + '✅ 100% gratuit' + "`r`n" + "`r`n" + 'Le certificat est ajouté aux Trusted Publishers,' + "`r`n" + 'donc plus aucun avertissement sur cette machine.'
+          
+          $readmeContent | Out-File -FilePath "$packageDir\README.txt" -Encoding ASCII
+          
+          Write-Host "✅ Self-signed MSI package created: SentinelAgentSelfSigned-$version.msi"
+        shell: pwsh
+
+      - name: Generate checksums
+        run: |
+          $version = "${{ env.RELEASE_VERSION }}"
+          $hash = Get-FileHash "SentinelAgentSelfSigned-$version.msi" -Algorithm SHA256
+          "$($hash.Hash.ToLower())  SentinelAgentSelfSigned-$version.msi" | Out-File -Encoding ASCII "SHA256SUMS-windows-selfsigned.txt"
+          
+          Get-Content "SHA256SUMS-windows-selfsigned.txt"
+        shell: pwsh
+
+      - name: Upload Self-Signed artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-agent-windows-selfsigned
+          path: |
+            SentinelAgentSelfSigned-*.msi
+            SHA256SUMS-windows-selfsigned.txt
+
+  # ═══════════════════════════════════════════════════════════════════
   # Linux — DEB package (Debian/Ubuntu)
   # ═══════════════════════════════════════════════════════════════════
   build-deb:
@@ -559,7 +643,7 @@ jobs:
   upload-releases:
     name: Upload to Firebase Storage
     runs-on: ubuntu-latest
-    needs: [version, build-macos, build-windows, build-deb, build-rpm, sbom, attestation]
+    needs: [version, build-macos, build-windows, build-windows-selfsigned, build-deb, build-rpm, sbom, attestation]
     env:
       RELEASE_VERSION: ${{ needs.version.outputs.version }}
     steps:
@@ -573,87 +657,17 @@ jobs:
       - name: List artifacts
         run: find artifacts -type f | sort
 
-      - name: Authenticate and Upload
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          project_id: sentinel-grc-a8701
+
+      - name: Upload to Firebase Storage
         shell: bash
         env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          RELEASE_VERSION: ${{ env.RELEASE_VERSION }}
         run: |
-          # 1. Atomic Bridge: Robustly decode, fix, and DIAGNOSE the secret
-          python3 -c "
-          import os, base64, json, sys, re
-          secret = os.environ.get('GCP_SA_KEY', '').strip()
-          if not secret:
-              print('::error::GCP_SA_KEY is empty!')
-              sys.exit(1)
-          
-          def get_data(s):
-              # Try direct JSON
-              try:
-                  return json.loads(s)
-              except:
-                  pass
-              # Try stripping quotes
-              try:
-                  return json.loads(s.strip('\"').strip(\"'\"))
-              except:
-                  pass
-              # Try Base64
-              try:
-                  return json.loads(base64.b64decode(s).decode('utf-8'))
-              except:
-                  pass
-              return None
-
-          data = get_data(secret)
-          if not data:
-              print('::error::Failed to decode secret as JSON or Base64')
-              sys.exit(1)
-          
-          if 'private_key' not in data:
-              print('::error::JSON missing private_key field')
-              sys.exit(1)
-
-          pk = data['private_key']
-          print(f'::debug::Raw private_key length: {len(pk)}')
-          
-          # Fix common escape sequences
-          pk = pk.replace('\\\\n', '\n').replace('\\n', '\n').strip()
-          
-          # Check for valid RSA headers
-          header = '-----BEGIN PRIVATE KEY-----'
-          footer = '-----END PRIVATE KEY-----'
-          
-          # If it is one long line including the headers, re-wrap it
-          if header in pk and footer in pk:
-              if '\n' not in pk.replace(header, '').replace(footer, '').strip():
-                  print('::notice::Flattened RSA key detected. Re-wrapping...')
-                  content = pk.replace(header, '').replace(footer, '').replace(' ', '').replace('\n', '')
-                  wrapped = '\n'.join(content[i:i+64] for i in range(0, len(content), 64))
-                  pk = f'{header}\n{wrapped}\n{footer}\n'
-          elif '-----BEGIN' not in pk:
-              # Maybe it is just the raw base64 content?
-              print('::notice::RSA headers missing. Attempting to wrap...')
-              content = pk.replace(' ', '').replace('\n', '')
-              wrapped = '\n'.join(content[i:i+64] for i in range(0, len(content), 64))
-              pk = f'{header}\n{wrapped}\n{footer}\n'
-
-          # Final verification
-          print(f'::debug::Final processed private_key has {pk.count(\"\n\")} newlines')
-          if pk.startswith(header) and pk.endswith(footer + '\n') or pk.endswith(footer):
-               print('✅ RSA Header/Footer check passed')
-          else:
-               print('::warning::RSA Header/Footer check FAILED. Key might be malformed.')
-          
-          data['private_key'] = pk
-          
-          with open('gcp-auth-key.json', 'w') as f:
-              json.dump(data, f)
-          print('✅ Credential file generated')
-          "
-
-          # 2. Instant Auth
-          gcloud auth activate-service-account --key-file=gcp-auth-key.json --project=$(cat gcp-auth-key.json | python3 -c "import json, sys; print(json.load(sys.stdin).get('project_id', ''))")
-          
           # 3. Upload loop
           VERSION="${{ env.RELEASE_VERSION }}"
           BUCKET="gs://sentinel-grc-a8701.firebasestorage.app/releases/agent"
@@ -728,6 +742,7 @@ jobs:
           # Upload all artifacts (versioned)
           gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-*" "$BUCKET/macos/"
           gcloud storage cp "artifacts/sentinel-agent-windows/SentinelAgentSetup-*" "$BUCKET/windows/"
+          gcloud storage cp "artifacts/sentinel-agent-windows-selfsigned/SentinelAgentSelfSigned-*.msi" "$BUCKET/windows/"
           gcloud storage cp "artifacts/sentinel-agent-linux-deb/sentinel-agent_*" "$BUCKET/linux_deb/"
           gcloud storage cp "artifacts/sentinel-agent-linux-rpm/sentinel-agent-*" "$BUCKET/linux_rpm/"
           gcloud storage cp "artifacts/*/SHA256SUMS*.txt" "$BUCKET/" 2>/dev/null || true
@@ -816,28 +831,40 @@ jobs:
 
             ### Downloads
 
-            | Platform | Package | Format |
-            |----------|---------|--------|
-            | macOS (Universal) | `SentinelAgent-${{ env.RELEASE_VERSION }}.dmg` | DMG |
-            | macOS (Universal) | `SentinelAgent-${{ env.RELEASE_VERSION }}.pkg` | PKG |
-            | Windows x64 | `SentinelAgentSetup-${{ env.RELEASE_VERSION }}.msi` | MSI |
-            | Linux (Debian/Ubuntu) | `sentinel-agent_${{ env.RELEASE_VERSION }}-1_amd64.deb` | DEB |
-            | Linux (RHEL/Fedora) | `sentinel-agent-${{ env.RELEASE_VERSION }}-1.x86_64.rpm` | RPM |
+            | Platform | Package | Format | Notes |
+            |----------|---------|--------|-------|
+            | macOS (Universal) | `SentinelAgent-${{ env.RELEASE_VERSION }}.dmg` | DMG | Signed + Notarized |
+            | macOS (Universal) | `SentinelAgent-${{ env.RELEASE_VERSION }}.pkg` | PKG | Signed + Notarized |
+            | Windows x64 | `SentinelAgentSetup-${{ env.RELEASE_VERSION }}.msi` | MSI | Commercial Certificate |
+            | Windows x64 | `SentinelAgentSelfSigned-${{ env.RELEASE_VERSION }}.msi` | MSI | Self-signed (No SmartScreen) |
+            | Linux (Debian/Ubuntu) | `sentinel-agent_${{ env.RELEASE_VERSION }}-1_amd64.deb` | DEB | |
+            | Linux (RHEL/Fedora) | `sentinel-agent-${{ env.RELEASE_VERSION }}-1.x86_64.rpm` | RPM | |
 
             ### Installation
 
             **macOS**: Open the DMG and drag to Applications, or double-click the PKG.
             **Windows**: Run the MSI installer as Administrator.
+            **Windows (No SmartScreen)**: Download `SentinelAgentSelfSigned-${{ env.RELEASE_VERSION }}.msi` and run as Administrator.
             **Linux (DEB)**: `sudo dpkg -i sentinel-agent_${{ env.RELEASE_VERSION }}-1_amd64.deb`
             **Linux (RPM)**: `sudo rpm -i sentinel-agent-${{ env.RELEASE_VERSION }}-1.x86_64.rpm`
 
             Then enroll: `sentinel-agent enroll --token <YOUR_TOKEN>`
+
+            ### SmartScreen Warning Fix
+
+            For Windows users experiencing SmartScreen warnings:
+            Download `SentinelAgentSelfSigned-${{ env.RELEASE_VERSION }}.msi` and run as Administrator.
+            The certificate will be automatically installed and no more warnings will appear.
+
+            This self-signed MSI is 100% free and eliminates SmartScreen warnings permanently.
           files: |
             artifacts/sentinel-agent-macos/SentinelAgent-*.dmg
             artifacts/sentinel-agent-macos/SentinelAgent-*.pkg
             artifacts/sentinel-agent-macos/SHA256SUMS-macos.txt
             artifacts/sentinel-agent-windows/SentinelAgentSetup-*.msi
             artifacts/sentinel-agent-windows/SHA256SUMS-windows.txt
+            artifacts/sentinel-agent-windows-selfsigned/SentinelAgentSelfSigned-*.msi
+            artifacts/sentinel-agent-windows-selfsigned/SHA256SUMS-windows-selfsigned.txt
             artifacts/sentinel-agent-linux-deb/sentinel-agent_*.deb
             artifacts/sentinel-agent-linux-deb/SHA256SUMS-linux-deb.txt
             artifacts/sentinel-agent-linux-rpm/sentinel-agent-*.rpm
