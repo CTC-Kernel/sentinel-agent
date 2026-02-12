@@ -2,7 +2,7 @@
 
 use crate::icons;
 use crate::theme;
-use egui::{Color32, CornerRadius, Sense, Ui};
+use egui::{Color32, Sense, Ui};
 
 /// Pagination style variants.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
