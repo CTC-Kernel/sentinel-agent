@@ -172,7 +172,7 @@ impl NetworkPage {
                     ui.label(
                         egui::RichText::new(icons::WARNING)
                             .size(48.0)
-                            .color(theme::ERROR.linear_multiply(0.4)),
+                            .color(theme::ERROR.linear_multiply(theme::OPACITY_DISABLED)),
                     );
                     ui.add_space(theme::SPACE_SM);
                     ui.label(
@@ -557,7 +557,7 @@ impl NetworkPage {
                             ui.label(
                                 egui::RichText::new(icon)
                                     .size(28.0)
-                                    .color(color.linear_multiply(0.25)),
+                                    .color(color.linear_multiply(theme::OPACITY_MUTED)),
                             );
                         },
                     );

@@ -59,13 +59,20 @@ impl TrayRadar {
         let center = rect.center();
         let radius = size * 0.4;
         let painter = ui.painter();
-        let time = ui.input(|i| i.time) as f32;
+        let reduced = crate::theme::is_reduced_motion();
+        let time = if reduced {
+            0.0
+        } else {
+            ui.input(|i| i.time) as f32
+        };
 
         // 1. Background Grid (Web)
         self.draw_grid(painter, center, radius, 5);
 
-        // 2. Animated Glow Layer
-        self.draw_glow_poly(painter, center, radius, time);
+        // 2. Animated Glow Layer (skip when reduced motion)
+        if !reduced {
+            self.draw_glow_poly(painter, center, radius, time);
+        }
 
         // 3. Data Polygon
         self.draw_data_poly(painter, center, radius, time);
@@ -73,8 +80,9 @@ impl TrayRadar {
         // 4. Labelling
         self.draw_labels(painter, center, radius);
 
-        // Limit animation repaint to ~10fps
-        ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+        if !reduced {
+            ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+        }
     }
 
     fn draw_grid(&self, painter: &Painter, center: Pos2, radius: f32, steps: usize) {
@@ -92,7 +100,7 @@ impl TrayRadar {
             pts.push(pts[0]);
             painter.add(egui::Shape::line(
                 pts,
-                Stroke::new(0.5, theme::border().linear_multiply(0.3)),
+                Stroke::new(theme::BORDER_HAIRLINE, theme::border().linear_multiply(theme::OPACITY_MODERATE)),
             ));
         }
 
@@ -102,7 +110,7 @@ impl TrayRadar {
             let end = center + Vec2::new(angle.cos() * radius, angle.sin() * radius);
             painter.line_segment(
                 [center, end],
-                Stroke::new(0.5, theme::border().linear_multiply(0.5)),
+                Stroke::new(theme::BORDER_HAIRLINE, theme::border().linear_multiply(theme::OPACITY_MEDIUM)),
             );
         }
     }
@@ -123,8 +131,8 @@ impl TrayRadar {
         // Fill with gradient-like transparency
         painter.add(egui::Shape::convex_polygon(
             pts.clone(),
-            theme::ACCENT.linear_multiply(0.2),
-            Stroke::new(2.0, theme::ACCENT),
+            theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
+            Stroke::new(theme::BORDER_THICK, theme::ACCENT),
         ));
 
         // 3. Multi-layered diffuse dots at vertices
@@ -150,7 +158,7 @@ impl TrayRadar {
 
         painter.line_segment(
             [center, scan_end],
-            Stroke::new(1.5, theme::ACCENT.linear_multiply(0.4)),
+            Stroke::new(theme::BORDER_MEDIUM, theme::ACCENT.linear_multiply(theme::OPACITY_DISABLED)),
         );
     }
 

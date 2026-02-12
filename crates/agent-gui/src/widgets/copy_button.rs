@@ -57,7 +57,7 @@ pub fn copyable_value(ui: &mut Ui, value: &str) -> bool {
     ui.horizontal(|ui: &mut egui::Ui| {
         ui.label(
             egui::RichText::new(value)
-                .font(egui::FontId::monospace(11.0))
+                .font(theme::font_mono())
                 .color(theme::text_primary()),
         );
         if copy_button(ui, value, None).clicked() {

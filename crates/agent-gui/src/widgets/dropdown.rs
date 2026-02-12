@@ -62,7 +62,7 @@ impl<'a, T> Dropdown<'a, T> {
         let is_open = ui.memory(|mem| mem.data.get_temp::<bool>(self.id).unwrap_or(false));
         let search_id = self.id.with("search");
 
-        let width = self.width.unwrap_or(ui.available_width().min(250.0));
+        let width = self.width.unwrap_or(ui.available_width().min(theme::DROPDOWN_MAX_HEIGHT + 50.0));
         let height = theme::INPUT_HEIGHT;
 
         // Main button
@@ -86,7 +86,7 @@ impl<'a, T> Dropdown<'a, T> {
                 CornerRadius::same(theme::BUTTON_ROUNDING),
                 bg_color,
                 egui::Stroke::new(
-                    1.0,
+                    theme::BORDER_THIN,
                     if is_open {
                         theme::ACCENT
                     } else {
@@ -95,6 +95,16 @@ impl<'a, T> Dropdown<'a, T> {
                 ),
                 egui::epaint::StrokeKind::Inside,
             );
+
+            // Focus ring for keyboard navigation
+            if response.has_focus() {
+                painter.rect_stroke(
+                    rect,
+                    CornerRadius::same(theme::BUTTON_ROUNDING),
+                    theme::focus_ring(),
+                    egui::StrokeKind::Outside,
+                );
+            }
 
             // Selected text or placeholder
             let display_text = if self.selected < self.options.len() {
@@ -110,7 +120,7 @@ impl<'a, T> Dropdown<'a, T> {
             };
 
             painter.text(
-                egui::pos2(rect.min.x + 12.0, rect.center().y),
+                egui::pos2(rect.min.x + theme::SPACE_MD, rect.center().y),
                 egui::Align2::LEFT_CENTER,
                 display_text,
                 theme::font_body(),
@@ -125,12 +135,16 @@ impl<'a, T> Dropdown<'a, T> {
             };
 
             painter.text(
-                egui::pos2(rect.max.x - 16.0, rect.center().y),
+                egui::pos2(rect.max.x - theme::SPACE, rect.center().y),
                 egui::Align2::CENTER_CENTER,
                 chevron,
                 theme::font_small(),
                 theme::text_tertiary(),
             );
+        }
+
+        if response.hovered() {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
         }
 
         // Toggle on click
@@ -177,19 +191,19 @@ impl<'a, T> Dropdown<'a, T> {
             egui::Area::new(popup_id)
                 .order(egui::Order::Foreground)
                 .fixed_pos(if above {
-                    egui::pos2(rect.min.x, rect.min.y - 4.0)
+                    egui::pos2(rect.min.x, rect.min.y - theme::SPACE_XS)
                 } else {
-                    egui::pos2(rect.min.x, rect.max.y + 4.0)
+                    egui::pos2(rect.min.x, rect.max.y + theme::SPACE_XS)
                 })
                 .show(ui.ctx(), |ui| {
                     egui::Frame::new()
                         .fill(theme::bg_secondary())
                         .corner_radius(CornerRadius::same(theme::BUTTON_ROUNDING))
                         .shadow(theme::premium_shadow(16, 60))
-                        .stroke(egui::Stroke::new(1.0, theme::border()))
-                        .inner_margin(egui::Margin::same(4))
+                        .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border()))
+                        .inner_margin(egui::Margin::same(theme::SPACE_XS as i8))
                         .show(ui, |ui| {
-                            ui.set_width(width - 8.0);
+                            ui.set_width(width - theme::SPACE_SM);
 
                             let mut search_text = ui
                                 .memory(|mem| mem.data.get_temp::<String>(search_id))
@@ -198,7 +212,7 @@ impl<'a, T> Dropdown<'a, T> {
                             // Search box if searchable
                             if self.searchable {
                                 ui.horizontal(|ui| {
-                                    ui.add_space(4.0);
+                                    ui.add_space(theme::SPACE_XS);
                                     ui.label(
                                         egui::RichText::new(icons::SEARCH)
                                             .color(theme::text_tertiary()),
@@ -207,7 +221,7 @@ impl<'a, T> Dropdown<'a, T> {
                                         egui::TextEdit::singleline(&mut search_text)
                                             .hint_text("Rechercher...")
                                             .frame(false)
-                                            .desired_width(width - 40.0),
+                                            .desired_width(width - theme::INPUT_HEIGHT),
                                     );
                                     if response.changed() {
                                         ui.memory_mut(|mem| {
@@ -215,13 +229,13 @@ impl<'a, T> Dropdown<'a, T> {
                                         });
                                     }
                                 });
-                                ui.add_space(4.0);
+                                ui.add_space(theme::SPACE_XS);
                                 ui.separator();
                             }
 
                             // Options
                             let search_lower = search_text.to_lowercase();
-                            let max_height = 200.0;
+                            let max_height = theme::DROPDOWN_MAX_HEIGHT;
 
                             // Filter options
                             let filtered_options: Vec<(usize, &T)> = self
@@ -237,7 +251,7 @@ impl<'a, T> Dropdown<'a, T> {
                                 })
                                 .collect();
 
-                            let row_height = 32.0;
+                            let row_height = theme::DROPDOWN_ROW_HEIGHT;
                             egui::ScrollArea::vertical()
                                 .max_height(max_height)
                                 .show_rows(
@@ -255,7 +269,7 @@ impl<'a, T> Dropdown<'a, T> {
                                             let is_selected = i == self.selected;
                                             let is_highlighted = highlight_idx == Some(i);
                                             let option_response = ui.allocate_response(
-                                                egui::vec2(width - 16.0, row_height),
+                                                egui::vec2(width - theme::SPACE, row_height),
                                                 Sense::click(),
                                             );
 
@@ -272,7 +286,7 @@ impl<'a, T> Dropdown<'a, T> {
 
                                                 ui.painter().rect_filled(
                                                     option_response.rect,
-                                                    CornerRadius::same(4),
+                                                    CornerRadius::same(theme::SPACE_XS as u8),
                                                     bg,
                                                 );
 
@@ -280,7 +294,7 @@ impl<'a, T> Dropdown<'a, T> {
                                                 if is_selected {
                                                     ui.painter().text(
                                                         egui::pos2(
-                                                            option_response.rect.min.x + 8.0,
+                                                            option_response.rect.min.x + theme::SPACE_SM,
                                                             option_response.rect.center().y,
                                                         ),
                                                         egui::Align2::LEFT_CENTER,
@@ -293,7 +307,7 @@ impl<'a, T> Dropdown<'a, T> {
                                                 ui.painter().text(
                                                     egui::pos2(
                                                         option_response.rect.min.x
-                                                            + if is_selected { 28.0 } else { 8.0 },
+                                                            + if is_selected { theme::TAB_BADGE_WIDTH } else { theme::SPACE_SM },
                                                         option_response.rect.center().y,
                                                     ),
                                                     egui::Align2::LEFT_CENTER,
@@ -305,6 +319,10 @@ impl<'a, T> Dropdown<'a, T> {
                                                         theme::text_primary()
                                                     },
                                                 );
+                                            }
+
+                                            if option_response.hovered() {
+                                                ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                                             }
 
                                             if option_response.clicked() {
@@ -326,11 +344,11 @@ impl<'a, T> Dropdown<'a, T> {
                 if let Some(pos) = click_pos {
                     let popup_rect = egui::Rect::from_min_size(
                         if above {
-                            egui::pos2(rect.min.x, rect.min.y - 250.0)
+                            egui::pos2(rect.min.x, rect.min.y - theme::DROPDOWN_MAX_HEIGHT - 50.0)
                         } else {
                             egui::pos2(rect.min.x, rect.max.y)
                         },
-                        egui::vec2(width, 250.0),
+                        egui::vec2(width, theme::DROPDOWN_MAX_HEIGHT + 50.0),
                     );
                     if !popup_rect.contains(pos) && !rect.contains(pos) {
                         ui.memory_mut(|mem| mem.data.insert_temp(self.id, false));

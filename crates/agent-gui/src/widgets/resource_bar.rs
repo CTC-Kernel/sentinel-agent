@@ -37,12 +37,12 @@ pub fn resource_bar(ui: &mut Ui, label: &str, value: &str, fraction: f32) {
 
     // Track.
     // Track.
-    let track_color = theme::bg_secondary().linear_multiply(0.5);
+    let track_color = theme::bg_secondary().linear_multiply(theme::OPACITY_MEDIUM);
     painter.rect_filled(rect, rounding, track_color);
     painter.rect_stroke(
         rect,
         rounding,
-        egui::Stroke::new(1.0, theme::border()),
+        egui::Stroke::new(theme::BORDER_THIN, theme::border()),
         egui::StrokeKind::Inside,
     );
 
@@ -75,7 +75,7 @@ pub fn resource_bar(ui: &mut Ui, label: &str, value: &str, fraction: f32) {
                 sw: 0,
                 se: 0,
             },
-            base_color.linear_multiply(1.3),
+            base_color.linear_multiply(1.0 + theme::OPACITY_MODERATE),
         );
         painter.rect_filled(
             bot_half,

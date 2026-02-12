@@ -153,7 +153,7 @@ impl Pagination {
                         .font(theme::font_small())
                         .color(theme::text_secondary()),
                 );
-                ui.add_space(16.0);
+                ui.add_space(theme::SPACE);
             }
 
             // First page button
@@ -375,6 +375,16 @@ impl Pagination {
             );
         }
 
+        // Focus ring for keyboard navigation
+        if response.has_focus() {
+            ui.painter().rect_stroke(
+                rect,
+                CornerRadius::same(6),
+                theme::focus_ring(),
+                egui::StrokeKind::Outside,
+            );
+        }
+
         response.clicked() && enabled
     }
 
@@ -413,6 +423,16 @@ impl Pagination {
                 page.to_string(),
                 theme::font_body(),
                 color,
+            );
+        }
+
+        // Focus ring for keyboard navigation
+        if response.has_focus() {
+            ui.painter().rect_stroke(
+                rect,
+                CornerRadius::same(6),
+                theme::focus_ring(),
+                egui::StrokeKind::Outside,
             );
         }
 

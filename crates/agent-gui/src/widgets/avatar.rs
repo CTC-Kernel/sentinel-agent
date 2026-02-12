@@ -150,21 +150,7 @@ impl<'a> Avatar<'a> {
             hash = hash.wrapping_mul(31).wrapping_add(c as u32);
         }
 
-        // Use predefined pleasant colors
-        let colors = [
-            Color32::from_rgb(99, 102, 241), // Indigo
-            Color32::from_rgb(139, 92, 246), // Violet
-            Color32::from_rgb(236, 72, 153), // Pink
-            Color32::from_rgb(244, 63, 94),  // Rose
-            Color32::from_rgb(249, 115, 22), // Orange
-            Color32::from_rgb(234, 179, 8),  // Yellow
-            Color32::from_rgb(34, 197, 94),  // Green
-            Color32::from_rgb(20, 184, 166), // Teal
-            Color32::from_rgb(6, 182, 212),  // Cyan
-            Color32::from_rgb(59, 130, 246), // Blue
-        ];
-
-        colors[(hash as usize) % colors.len()]
+        theme::AVATAR_COLORS[(hash as usize) % theme::AVATAR_COLORS.len()]
     }
 
     /// Show the avatar.
@@ -175,7 +161,7 @@ impl<'a> Avatar<'a> {
         if ui.is_rect_visible(rect) {
             let painter = ui.painter();
             let bg_color = self.generate_color();
-            let text_color = Color32::WHITE;
+            let text_color = theme::text_on_accent();
 
             // Draw background shape
             let rounding = match self.shape {
@@ -219,14 +205,35 @@ impl<'a> Avatar<'a> {
                 painter.rect(
                     rect,
                     rounding,
-                    Color32::WHITE.linear_multiply(0.1),
+                    Color32::WHITE.linear_multiply(theme::OPACITY_SUBTLE),
                     egui::Stroke::NONE,
                     egui::epaint::StrokeKind::Inside,
                 );
             }
+
+            // Focus Ring (WCAG 2.4.7)
+            if response.has_focus() {
+                match self.shape {
+                    AvatarShape::Circle => {
+                        painter.circle_stroke(
+                            rect.center(),
+                            size / 2.0 + 3.0,
+                            theme::focus_ring(),
+                        );
+                    }
+                    _ => {
+                        painter.rect_stroke(
+                            rect.expand(2.0),
+                            rounding,
+                            theme::focus_ring(),
+                            egui::epaint::StrokeKind::Outside,
+                        );
+                    }
+                }
+            }
         }
 
-        response
+        response.on_hover_cursor(egui::CursorIcon::PointingHand)
     }
 }
 
@@ -296,7 +303,7 @@ pub fn avatar_group(ui: &mut Ui, names: &[&str], max_shown: usize) -> egui::Resp
                 egui::Align2::CENTER_CENTER,
                 avatar.initials(),
                 AvatarSize::Small.font(),
-                Color32::WHITE,
+                theme::text_on_accent(),
             );
 
             x += size - overlap;

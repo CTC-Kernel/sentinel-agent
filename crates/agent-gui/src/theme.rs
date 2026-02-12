@@ -189,13 +189,13 @@ pub fn text_secondary() -> Color32 {
 }
 
 /// Tertiary / disabled text.
-/// Note: Light mode uses darker gray for WCAG AA contrast (4.5:1 ratio on white).
+/// Light mode: RGB(88,88,92) gives ~6.1:1 contrast on white (WCAG AAA).
 #[inline]
 pub fn text_tertiary() -> Color32 {
     if is_dark_mode() {
         Color32::from_rgb(99, 99, 102) // System Gray 2
     } else {
-        Color32::from_rgb(115, 115, 120) // Darker gray for WCAG AA contrast (~4.5:1 on white)
+        Color32::from_rgb(88, 88, 92) // WCAG AAA contrast (~6.1:1 on white)
     }
 }
 
@@ -345,12 +345,76 @@ pub const TRACKING_WIDE: f32 = 1.0;
 
 /// Extremely subtle (borders, dividers).
 pub const OPACITY_SUBTLE: f32 = 0.08;
+/// Badge/tinted backgrounds.
+pub const OPACITY_TINT: f32 = 0.15;
 /// Muted (disabled elements, backgrounds).
 pub const OPACITY_MUTED: f32 = 0.25;
-/// Medium (hover states, secondary elements).
+/// Moderate (overlay effects, grid lines, secondary fills).
+pub const OPACITY_MODERATE: f32 = 0.3;
+/// Disabled interactive elements.
+pub const OPACITY_DISABLED: f32 = 0.4;
+/// Medium (secondary hover, inactive chip text).
 pub const OPACITY_MEDIUM: f32 = 0.5;
+/// Hover multiplier for inactive chip borders.
+pub const OPACITY_HOVER_SOFT: f32 = 0.6;
+/// Pressed/active states on colored buttons.
+pub const OPACITY_PRESSED: f32 = 0.7;
+/// Hover state on colored backgrounds (destructive, etc.).
+pub const OPACITY_HOVER: f32 = 0.9;
 /// Strong (active states, emphasis).
 pub const OPACITY_STRONG: f32 = 0.85;
+
+// ============================================================================
+// Border width constants
+// ============================================================================
+
+/// Hairline border (subtle separators, button groups).
+pub const BORDER_HAIRLINE: f32 = 0.5;
+/// Standard thin border.
+pub const BORDER_THIN: f32 = 1.0;
+/// Medium border (focus rings, emphasis).
+pub const BORDER_MEDIUM: f32 = 1.5;
+/// Thick border (strong focus indicators).
+pub const BORDER_THICK: f32 = 2.0;
+
+// ============================================================================
+// Icon size constants
+// ============================================================================
+
+/// Extra-small icon (inline badges, status dots).
+pub const ICON_XS: f32 = 12.0;
+/// Small icon (list items, compact buttons).
+pub const ICON_SM: f32 = 16.0;
+/// Medium icon (standard buttons, navigation).
+pub const ICON_MD: f32 = 20.0;
+/// Large icon (FAB buttons, headers, modal icons).
+pub const ICON_LG: f32 = 24.0;
+/// Extra-large icon (hero sections, empty states).
+pub const ICON_XL: f32 = 32.0;
+
+// ============================================================================
+// Window / layout constants
+// ============================================================================
+
+/// Default window width.
+pub const WINDOW_WIDTH: f32 = 1280.0;
+/// Default window height.
+pub const WINDOW_HEIGHT: f32 = 750.0;
+/// Minimum window width.
+pub const WINDOW_MIN_WIDTH: f32 = 800.0;
+/// Minimum window height.
+pub const WINDOW_MIN_HEIGHT: f32 = 600.0;
+/// Tray popup width (satellite mode).
+pub const TRAY_WIDTH: f32 = 320.0;
+/// Tray popup height (satellite mode).
+pub const TRAY_HEIGHT: f32 = 480.0;
+
+// ============================================================================
+// Backdrop / overlay constants
+// ============================================================================
+
+/// Modal backdrop alpha (0-255).
+pub const BACKDROP_ALPHA: u8 = 180;
 
 // ============================================================================
 // Table constants
@@ -358,6 +422,12 @@ pub const OPACITY_STRONG: f32 = 0.85;
 
 /// Minimum table row height for readability and touch targets.
 pub const TABLE_ROW_HEIGHT: f32 = 36.0;
+/// Data table row height (generous padding for premium feel).
+pub const TABLE_DATA_ROW_HEIGHT: f32 = 48.0;
+/// Data table header height.
+pub const TABLE_HEADER_HEIGHT: f32 = 44.0;
+/// Data table empty state height.
+pub const TABLE_EMPTY_HEIGHT: f32 = 120.0;
 /// Alternating row tint alpha (increased for better visibility).
 pub const TABLE_ALT_ROW_ALPHA: u8 = 12;
 
@@ -648,9 +718,58 @@ pub fn premium_shadow(blur: u8, alpha: u8) -> Shadow {
     }
 }
 
+// ============================================================================
+// Elevation shadow system (5 levels — Apple/Material-inspired)
+// ============================================================================
+
+/// Level 1: Subtle hover feedback, small interactive elements.
+pub fn shadow_sm() -> Shadow {
+    if is_dark_mode() {
+        premium_shadow(4, 12)
+    } else {
+        premium_shadow(4, 8)
+    }
+}
+
+/// Level 2: Cards, raised panels, hover on cards.
+pub fn shadow_md() -> Shadow {
+    if is_dark_mode() {
+        premium_shadow(8, 24)
+    } else {
+        premium_shadow(8, 16)
+    }
+}
+
+/// Level 3: Elevated cards, floating buttons, dropdown menus.
+pub fn shadow_lg() -> Shadow {
+    if is_dark_mode() {
+        premium_shadow(16, 48)
+    } else {
+        premium_shadow(12, 32)
+    }
+}
+
+/// Level 4: Modals, dialog windows.
+pub fn shadow_xl() -> Shadow {
+    if is_dark_mode() {
+        premium_shadow(24, 80)
+    } else {
+        premium_shadow(20, 48)
+    }
+}
+
+/// Level 5: Top-level windows, full-screen overlays.
+pub fn shadow_2xl() -> Shadow {
+    if is_dark_mode() {
+        premium_shadow(40, 96)
+    } else {
+        premium_shadow(32, 64)
+    }
+}
+
 /// Helper for a subtle glow effect around a rect.
 pub fn glow_stroke(color: Color32) -> Stroke {
-    Stroke::new(1.0, color.linear_multiply(0.5))
+    Stroke::new(BORDER_THIN, color.linear_multiply(OPACITY_MEDIUM))
 }
 
 /// Color for a compliance score value.
@@ -725,12 +844,9 @@ pub fn focus_ring_light() -> egui::Stroke {
     egui::Stroke::new(2.0, ACCENT_LIGHT)
 }
 
-/// Disabled element opacity multiplier.
-pub const DISABLED_OPACITY: f32 = 0.4;
-
 /// Get a disabled version of a color.
 pub fn disabled_color(color: Color32) -> Color32 {
-    color.linear_multiply(DISABLED_OPACITY)
+    color.linear_multiply(OPACITY_DISABLED)
 }
 
 /// Hover background for interactive elements.
@@ -777,6 +893,182 @@ pub const BUTTON_HEIGHT_SM: f32 = 28.0;
 
 /// Input field height.
 pub const INPUT_HEIGHT: f32 = 40.0;
+
+/// Minimum button width for consistent look.
+pub const BUTTON_MIN_WIDTH: f32 = 120.0;
+
+// ============================================================================
+// Widget-specific sizing constants
+// ============================================================================
+
+/// Toggle switch width (iOS-style).
+pub const SWITCH_WIDTH: f32 = 44.0;
+/// Toggle switch height (iOS-style).
+pub const SWITCH_HEIGHT: f32 = 24.0;
+/// Toggle switch thumb diameter.
+pub const SWITCH_THUMB_SIZE: f32 = 18.0;
+
+/// Floating action button diameter.
+pub const FAB_SIZE: f32 = 56.0;
+
+/// Progress bar height (default).
+pub const PROGRESS_BAR_HEIGHT: f32 = 8.0;
+/// Progress bar height (thin / indeterminate).
+pub const PROGRESS_BAR_HEIGHT_THIN: f32 = 4.0;
+/// Progress bar corner radius.
+pub const PROGRESS_BAR_ROUNDING: u8 = 4;
+
+/// Compliance gauge stroke width.
+pub const GAUGE_STROKE: f32 = 8.0;
+/// Circular progress indicator stroke width.
+pub const CIRCULAR_PROGRESS_STROKE: f32 = 6.0;
+
+/// Loading spinner diameter.
+pub const SPINNER_SIZE: f32 = 12.0;
+/// Loading spinner radius.
+pub const SPINNER_RADIUS: f32 = 6.0;
+
+/// Status dot diameter.
+pub const STATUS_DOT_SIZE: f32 = 8.0;
+
+/// Step indicator circle diameter.
+pub const STEP_CIRCLE_SIZE: f32 = 24.0;
+
+/// Tab bar row height.
+pub const TAB_HEIGHT: f32 = 40.0;
+/// Tab icon column width (icon + spacing).
+pub const TAB_ICON_WIDTH: f32 = 20.0;
+/// Tab badge pill width (underline style).
+pub const TAB_BADGE_WIDTH: f32 = 28.0;
+
+/// Dropdown option row height.
+pub const DROPDOWN_ROW_HEIGHT: f32 = 32.0;
+/// Dropdown popup max height before scrolling.
+pub const DROPDOWN_MAX_HEIGHT: f32 = 200.0;
+
+/// Modal default width.
+pub const MODAL_WIDTH: f32 = 400.0;
+/// Modal icon circle diameter.
+pub const MODAL_ICON_SIZE: f32 = 48.0;
+/// Modal header accent bar height.
+pub const MODAL_HEADER_BAR: f32 = 4.0;
+
+/// Empty-state hero icon size.
+pub const EMPTY_STATE_ICON: f32 = 64.0;
+/// Pending-state spinner size.
+pub const PENDING_SPINNER_SIZE: f32 = 48.0;
+
+/// Skeleton content card inner rounding.
+pub const SKELETON_CARD_ROUNDING: u8 = 12;
+
+// ── Toggle switch colors ──
+
+/// Toggle switch off-state background (dark mode).
+pub const SWITCH_OFF_DARK: Color32 = Color32::from_rgb(60, 60, 67);
+/// Toggle switch off-state background (light mode).
+pub const SWITCH_OFF_LIGHT: Color32 = Color32::from_rgb(200, 200, 206);
+
+// ── Skeleton placeholder colors ──
+
+/// Skeleton placeholder base color (dark mode).
+pub const SKELETON_BASE_DARK: Color32 = Color32::from_rgb(45, 45, 50);
+/// Skeleton placeholder base color (light mode).
+pub const SKELETON_BASE_LIGHT: Color32 = Color32::from_rgb(230, 230, 235);
+/// Skeleton placeholder highlight color (dark mode).
+pub const SKELETON_HIGHLIGHT_DARK: Color32 = Color32::from_rgb(60, 60, 65);
+/// Skeleton placeholder highlight color (light mode).
+pub const SKELETON_HIGHLIGHT_LIGHT: Color32 = Color32::from_rgb(245, 245, 250);
+
+// ── Avatar color palette ──
+
+/// Avatar auto-generated color palette (10 pleasant hues).
+pub const AVATAR_COLORS: [Color32; 10] = [
+    Color32::from_rgb(99, 102, 241),  // Indigo
+    Color32::from_rgb(139, 92, 246),  // Violet
+    Color32::from_rgb(236, 72, 153),  // Pink
+    Color32::from_rgb(244, 63, 94),   // Rose
+    Color32::from_rgb(249, 115, 22),  // Orange
+    Color32::from_rgb(234, 179, 8),   // Yellow
+    Color32::from_rgb(34, 197, 94),   // Green
+    Color32::from_rgb(20, 184, 166),  // Teal
+    Color32::from_rgb(6, 182, 212),   // Cyan
+    Color32::from_rgb(59, 130, 246),  // Blue
+];
+
+/// Tooltip max width.
+pub const TOOLTIP_MAX_WIDTH: f32 = 320.0;
+
+/// Sidebar navigation item height.
+pub const NAV_ITEM_HEIGHT: f32 = 42.0;
+
+/// Command palette popup width.
+pub const COMMAND_PALETTE_WIDTH: f32 = 560.0;
+/// Command palette item row height.
+pub const COMMAND_PALETTE_ROW_HEIGHT: f32 = 48.0;
+/// Command palette max results height before scrolling.
+pub const COMMAND_PALETTE_MAX_HEIGHT: f32 = 400.0;
+
+/// Toast notification corner radius.
+pub const TOAST_ROUNDING: u8 = 12;
+/// Toast notification height.
+pub const TOAST_HEIGHT: f32 = 44.0;
+/// Toast left accent bar width.
+pub const TOAST_ACCENT_BAR: f32 = 4.0;
+
+/// Disabled text on accent-colored surfaces (white @ ~59% opacity).
+pub const DISABLED_ON_ACCENT_ALPHA: u8 = 150;
+/// Subtle highlight/bevel alpha (white @ ~12% opacity).
+pub const SUBTLE_HIGHLIGHT_ALPHA: u8 = 30;
+/// Knob/thumb highlight base intensity for hover pulse.
+pub const KNOB_HIGHLIGHT_BASE: f32 = 50.0;
+
+/// Indeterminate progress bar animation speed (cycles per second).
+pub const ANIM_INDETERMINATE_SPEED: f32 = 0.8;
+/// Indeterminate progress bar fill ratio.
+pub const INDETERMINATE_BAR_RATIO: f32 = 0.3;
+
+/// Enrollment gradient background colors (center, outer).
+#[inline]
+pub fn enrollment_gradient() -> (Color32, Color32) {
+    if is_dark_mode() {
+        (
+            Color32::from_rgb(20, 25, 35),  // Slight blueish center
+            Color32::from_rgb(5, 5, 5),     // Deep outer
+        )
+    } else {
+        (
+            Color32::from_rgb(250, 250, 255),
+            Color32::from_rgb(240, 240, 245),
+        )
+    }
+}
+
+/// Enrollment card/content max width.
+pub const ENROLLMENT_CARD_WIDTH: f32 = 480.0;
+/// Enrollment input card max width.
+pub const ENROLLMENT_INPUT_WIDTH: f32 = 420.0;
+/// Enrollment hero icon font size.
+pub const ENROLLMENT_HERO_ICON: f32 = 48.0;
+/// Enrollment logo max width.
+pub const ENROLLMENT_LOGO_WIDTH: f32 = 120.0;
+/// Enrollment logo glow radius.
+pub const ENROLLMENT_GLOW_RADIUS: f32 = 80.0;
+
+/// Sidebar gradient colors (returns top, bottom).
+#[inline]
+pub fn sidebar_gradient() -> (Color32, Color32) {
+    if is_dark_mode() {
+        (
+            Color32::from_rgb(25, 25, 30),  // Lighter top (Spotlight)
+            Color32::from_rgb(5, 5, 8),     // Deep bottom
+        )
+    } else {
+        (
+            Color32::from_rgb(245, 245, 250),
+            Color32::from_rgb(230, 230, 235),
+        )
+    }
+}
 
 // ============================================================================
 // Z-index / layer ordering

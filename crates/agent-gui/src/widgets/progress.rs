@@ -31,7 +31,7 @@ pub fn progress_bar_styled(
     style: ProgressStyle,
     label: Option<&str>,
 ) -> egui::Response {
-    let height = 8.0;
+    let height = theme::PROGRESS_BAR_HEIGHT;
     let width = ui.available_width();
     let progress = progress.clamp(0.0, 1.0);
 
@@ -39,7 +39,7 @@ pub fn progress_bar_styled(
 
     if ui.is_rect_visible(rect) {
         let painter = ui.painter_at(rect);
-        let rounding = CornerRadius::same(4);
+        let rounding = CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
 
         // Track background
         painter.rect_filled(rect, rounding, theme::bg_tertiary());
@@ -57,28 +57,31 @@ pub fn progress_bar_styled(
                 ProgressStyle::Gradient => {
                     // Gradient from warning to success based on progress
                     let r = (theme::WARNING.r() as f32 * (1.0 - progress)
-                        + theme::SUCCESS.r() as f32 * progress) as u8;
+                        + theme::SUCCESS.r() as f32 * progress).clamp(0.0, 255.0) as u8;
                     let g = (theme::WARNING.g() as f32 * (1.0 - progress)
-                        + theme::SUCCESS.g() as f32 * progress) as u8;
+                        + theme::SUCCESS.g() as f32 * progress).clamp(0.0, 255.0) as u8;
                     let b = (theme::WARNING.b() as f32 * (1.0 - progress)
-                        + theme::SUCCESS.b() as f32 * progress) as u8;
+                        + theme::SUCCESS.b() as f32 * progress).clamp(0.0, 255.0) as u8;
                     Color32::from_rgb(r, g, b)
                 }
             };
 
             painter.rect_filled(fill_rect, rounding, fill_color);
 
-            // Animated shine effect
-            let time = ui.input(|i| i.time) as f32;
-            let shine_pos = ((time * 0.5) % 1.0) * rect.width();
-            let shine_rect = egui::Rect::from_min_size(
-                egui::pos2(rect.min.x + shine_pos - 20.0, rect.min.y),
-                egui::vec2(40.0, height),
-            )
-            .intersect(fill_rect);
+            // Animated shine effect (skipped when reduced motion)
+            if !theme::is_reduced_motion() {
+                let time = ui.input(|i| i.time) as f32;
+                let shine_pos = ((time * theme::ANIM_SKELETON_SPEED) % 1.0) * rect.width();
+                let shine_width = theme::SPACE_XL + theme::SPACE_SM;
+                let shine_rect = egui::Rect::from_min_size(
+                    egui::pos2(rect.min.x + shine_pos - shine_width / 2.0, rect.min.y),
+                    egui::vec2(shine_width, height),
+                )
+                .intersect(fill_rect);
 
-            if shine_rect.width() > 0.0 {
-                painter.rect_filled(shine_rect, rounding, Color32::from_white_alpha(20));
+                if shine_rect.width() > 0.0 {
+                    painter.rect_filled(shine_rect, rounding, Color32::from_white_alpha((theme::OPACITY_SUBTLE * 255.0) as u8));
+                }
             }
         }
     }
@@ -107,37 +110,41 @@ pub fn progress_bar_styled(
 
 /// An indeterminate progress bar (animated).
 pub fn progress_bar_indeterminate(ui: &mut Ui) -> egui::Response {
-    let height = 4.0;
+    let height = theme::PROGRESS_BAR_HEIGHT_THIN;
     let width = ui.available_width();
 
     let (rect, response) = ui.allocate_exact_size(egui::vec2(width, height), egui::Sense::hover());
 
     if ui.is_rect_visible(rect) {
         let painter = ui.painter_at(rect);
-        let rounding = CornerRadius::same(2);
+        let rounding = CornerRadius::same(theme::PROGRESS_BAR_HEIGHT_THIN as u8 / 2);
 
         // Track background
         painter.rect_filled(rect, rounding, theme::bg_tertiary());
 
-        // Animated fill
-        let time = ui.input(|i| i.time) as f32;
-        let cycle = (time * 0.8) % 2.0;
-
-        let bar_width = rect.width() * 0.3;
-        let bar_x = if cycle < 1.0 {
-            // Moving right
-            rect.min.x + (rect.width() - bar_width) * cycle
+        if theme::is_reduced_motion() {
+            // Static centered bar when reduced motion
+            let bar_width = rect.width() * theme::INDETERMINATE_BAR_RATIO;
+            let bar_x = rect.min.x + (rect.width() - bar_width) / 2.0;
+            let bar_rect = egui::Rect::from_min_size(egui::pos2(bar_x, rect.min.y), egui::vec2(bar_width, height));
+            painter.rect_filled(bar_rect, rounding, theme::ACCENT);
         } else {
-            // Moving left
-            rect.min.x + (rect.width() - bar_width) * (2.0 - cycle)
-        };
+            // Animated fill
+            let time = ui.input(|i| i.time) as f32;
+            let cycle = (time * theme::ANIM_INDETERMINATE_SPEED) % 2.0;
 
-        let bar_rect =
-            egui::Rect::from_min_size(egui::pos2(bar_x, rect.min.y), egui::vec2(bar_width, height));
+            let bar_width = rect.width() * theme::INDETERMINATE_BAR_RATIO;
+            let bar_x = if cycle < 1.0 {
+                rect.min.x + (rect.width() - bar_width) * cycle
+            } else {
+                rect.min.x + (rect.width() - bar_width) * (2.0 - cycle)
+            };
 
-        painter.rect_filled(bar_rect, rounding, theme::ACCENT);
+            let bar_rect = egui::Rect::from_min_size(egui::pos2(bar_x, rect.min.y), egui::vec2(bar_width, height));
+            painter.rect_filled(bar_rect, rounding, theme::ACCENT);
 
-        ui.ctx().request_repaint_after(std::time::Duration::from_millis(50));
+            ui.ctx().request_repaint_after(std::time::Duration::from_millis(50));
+        }
     }
 
     response
@@ -162,8 +169,8 @@ pub fn circular_progress_styled(
     if ui.is_rect_visible(rect) {
         let painter = ui.painter_at(rect);
         let center = rect.center();
-        let radius = size / 2.0 - 4.0;
-        let stroke_width = 6.0;
+        let radius = size / 2.0 - theme::SPACE_XS;
+        let stroke_width = theme::CIRCULAR_PROGRESS_STROKE;
 
         // Background circle
         painter.circle_stroke(
@@ -248,7 +255,7 @@ pub fn step_indicator(ui: &mut Ui, steps: &[&str], current_step: usize) {
                     }
 
                     // Step circle
-                    let circle_size = 24.0;
+                    let circle_size = theme::STEP_CIRCLE_SIZE;
                     let (circle_rect, _) = ui.allocate_exact_size(
                         egui::vec2(circle_size, circle_size),
                         egui::Sense::hover(),
@@ -258,9 +265,9 @@ pub fn step_indicator(ui: &mut Ui, steps: &[&str], current_step: usize) {
                         (theme::ACCENT, Color32::WHITE, None)
                     } else if is_current {
                         (
-                            theme::ACCENT.linear_multiply(0.15),
+                            theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
                             theme::ACCENT,
-                            Some(egui::Stroke::new(2.0, theme::ACCENT)),
+                            Some(egui::Stroke::new(theme::BORDER_THICK, theme::ACCENT)),
                         )
                     } else {
                         (theme::bg_tertiary(), theme::text_tertiary(), None)

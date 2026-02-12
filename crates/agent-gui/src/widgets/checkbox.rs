@@ -72,14 +72,14 @@ impl<'a> Checkbox<'a> {
         };
 
         let total_width = box_size
-            + 8.0
+            + theme::SPACE_SM
             + ui.painter()
                 .layout_no_wrap(self.label.to_string(), font.clone(), Color32::WHITE)
                 .size()
                 .x;
 
         let (rect, response) =
-            ui.allocate_exact_size(egui::vec2(total_width, box_size.max(24.0)), sense);
+            ui.allocate_exact_size(egui::vec2(total_width, box_size.max(theme::MIN_TOUCH_TARGET)), sense);
 
         if ui.is_rect_visible(rect) {
             let is_hovered = response.hovered() && !self.disabled;
@@ -103,7 +103,7 @@ impl<'a> Checkbox<'a> {
                 box_rect,
                 CornerRadius::same(4),
                 bg_color,
-                egui::Stroke::new(1.5, border_color),
+                egui::Stroke::new(theme::BORDER_MEDIUM, border_color),
                 egui::epaint::StrokeKind::Inside,
             );
 
@@ -111,7 +111,7 @@ impl<'a> Checkbox<'a> {
             let icon_color = if self.disabled {
                 theme::text_tertiary()
             } else {
-                Color32::WHITE
+                theme::text_on_accent()
             };
 
             if self.indeterminate {
@@ -123,7 +123,7 @@ impl<'a> Checkbox<'a> {
                         egui::pos2(box_rect.min.x + padding, line_y),
                         egui::pos2(box_rect.max.x - padding, line_y),
                     ],
-                    egui::Stroke::new(2.0, icon_color),
+                    egui::Stroke::new(theme::BORDER_THICK, icon_color),
                 );
             } else if *checked {
                 ui.painter().text(
@@ -143,7 +143,7 @@ impl<'a> Checkbox<'a> {
             };
 
             ui.painter().text(
-                egui::pos2(box_rect.max.x + 8.0, rect.center().y),
+                egui::pos2(box_rect.max.x + theme::SPACE_SM, rect.center().y),
                 egui::Align2::LEFT_CENTER,
                 self.label,
                 font,
@@ -155,10 +155,14 @@ impl<'a> Checkbox<'a> {
                 ui.painter().rect_stroke(
                     box_rect.expand(2.0),
                     CornerRadius::same(6),
-                    egui::Stroke::new(2.0, theme::ACCENT.linear_multiply(0.5)),
+                    egui::Stroke::new(theme::BORDER_THICK, theme::ACCENT.linear_multiply(theme::OPACITY_MEDIUM)),
                     egui::epaint::StrokeKind::Outside,
                 );
             }
+        }
+
+        if !self.disabled && response.hovered() {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
         }
 
         if response.clicked() && !self.disabled {
@@ -211,14 +215,14 @@ impl<'a> RadioButton<'a> {
         };
 
         let total_width = box_size
-            + 8.0
+            + theme::SPACE_SM
             + ui.painter()
                 .layout_no_wrap(self.label.to_string(), font.clone(), Color32::WHITE)
                 .size()
                 .x;
 
         let (rect, response) =
-            ui.allocate_exact_size(egui::vec2(total_width, box_size.max(24.0)), sense);
+            ui.allocate_exact_size(egui::vec2(total_width, box_size.max(theme::MIN_TOUCH_TARGET)), sense);
 
         if ui.is_rect_visible(rect) {
             let is_hovered = response.hovered() && !self.disabled;
@@ -229,7 +233,7 @@ impl<'a> RadioButton<'a> {
             let (bg_color, border_color) = if self.disabled {
                 (theme::bg_tertiary(), theme::border())
             } else if selected {
-                (theme::ACCENT.linear_multiply(0.1), theme::ACCENT)
+                (theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE), theme::ACCENT)
             } else if is_hovered {
                 (theme::hover_bg(), theme::ACCENT)
             } else {
@@ -240,7 +244,7 @@ impl<'a> RadioButton<'a> {
                 center,
                 radius,
                 bg_color,
-                egui::Stroke::new(1.5, border_color),
+                egui::Stroke::new(theme::BORDER_MEDIUM, border_color),
             );
 
             // Inner dot when selected
@@ -262,7 +266,7 @@ impl<'a> RadioButton<'a> {
             };
 
             ui.painter().text(
-                egui::pos2(rect.min.x + box_size + 8.0, rect.center().y),
+                egui::pos2(rect.min.x + box_size + theme::SPACE_SM, rect.center().y),
                 egui::Align2::LEFT_CENTER,
                 self.label,
                 font,
@@ -274,9 +278,13 @@ impl<'a> RadioButton<'a> {
                 ui.painter().circle_stroke(
                     center,
                     radius + 3.0,
-                    egui::Stroke::new(2.0, theme::ACCENT.linear_multiply(0.5)),
+                    egui::Stroke::new(theme::BORDER_THICK, theme::ACCENT.linear_multiply(theme::OPACITY_MEDIUM)),
                 );
             }
+        }
+
+        if !self.disabled && response.hovered() {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
         }
 
         if response.clicked() && !self.disabled {
@@ -324,7 +332,7 @@ impl<'a> RadioGroup<'a> {
 
         if self.horizontal {
             ui.horizontal(|ui| {
-                ui.spacing_mut().item_spacing.x = 16.0;
+                ui.spacing_mut().item_spacing.x = theme::SPACE;
                 for (i, label) in self.options.iter().enumerate() {
                     let mut radio = RadioButton::new(label);
                     if disabled {
@@ -338,7 +346,7 @@ impl<'a> RadioGroup<'a> {
             });
         } else {
             ui.vertical(|ui| {
-                ui.spacing_mut().item_spacing.y = 8.0;
+                ui.spacing_mut().item_spacing.y = theme::SPACE_SM;
                 for (i, label) in self.options.iter().enumerate() {
                     let mut radio = RadioButton::new(label);
                     if disabled {
@@ -395,7 +403,7 @@ impl<'a> CheckboxGroup<'a> {
 
         if self.horizontal {
             ui.horizontal(|ui| {
-                ui.spacing_mut().item_spacing.x = 16.0;
+                ui.spacing_mut().item_spacing.x = theme::SPACE;
                 for (i, label) in self.options.iter().enumerate() {
                     let mut cb = Checkbox::new(label);
                     if disabled {
@@ -408,7 +416,7 @@ impl<'a> CheckboxGroup<'a> {
             });
         } else {
             ui.vertical(|ui| {
-                ui.spacing_mut().item_spacing.y = 8.0;
+                ui.spacing_mut().item_spacing.y = theme::SPACE_SM;
                 for (i, label) in self.options.iter().enumerate() {
                     let mut cb = Checkbox::new(label);
                     if disabled {
@@ -453,15 +461,15 @@ pub fn checkbox_group(ui: &mut Ui, options: &[&str], selected: &mut Vec<bool>) -
 /// Switch/toggle styled checkbox.
 pub fn switch(ui: &mut Ui, label: &str, on: &mut bool) -> bool {
     let mut changed = false;
-    let switch_width = 44.0;
-    let switch_height = 24.0;
-    let thumb_size = 18.0;
+    let switch_width = theme::SWITCH_WIDTH;
+    let switch_height = theme::SWITCH_HEIGHT;
+    let thumb_size = theme::SWITCH_THUMB_SIZE;
 
     let label_galley =
         ui.painter()
             .layout_no_wrap(label.to_string(), theme::font_body(), theme::text_primary());
 
-    let total_width = switch_width + 12.0 + label_galley.size().x;
+    let total_width = switch_width + theme::SPACE_MD + label_galley.size().x;
     let (rect, response) =
         ui.allocate_exact_size(egui::vec2(total_width, switch_height), Sense::click());
 
@@ -496,7 +504,7 @@ pub fn switch(ui: &mut Ui, label: &str, on: &mut bool) -> bool {
         ui.painter().circle_filled(
             thumb_center + egui::vec2(0.0, 1.0),
             thumb_size / 2.0,
-            Color32::from_black_alpha(20),
+            Color32::from_black_alpha((theme::OPACITY_SUBTLE * 255.0) as u8),
         );
 
         // Thumb
@@ -509,9 +517,9 @@ pub fn switch(ui: &mut Ui, label: &str, on: &mut bool) -> bool {
                 thumb_center,
                 thumb_size / 2.0 + 4.0,
                 if *on {
-                    theme::ACCENT.linear_multiply(0.2)
+                    theme::ACCENT.linear_multiply(theme::OPACITY_TINT)
                 } else {
-                    theme::text_tertiary().linear_multiply(0.2)
+                    theme::text_tertiary().linear_multiply(theme::OPACITY_TINT)
                 },
             );
         }
@@ -519,12 +527,26 @@ pub fn switch(ui: &mut Ui, label: &str, on: &mut bool) -> bool {
         // Label
         ui.painter().galley(
             egui::pos2(
-                switch_rect.max.x + 12.0,
+                switch_rect.max.x + theme::SPACE_MD,
                 rect.center().y - label_galley.size().y / 2.0,
             ),
             label_galley,
             theme::text_primary(),
         );
+
+        // Focus Ring (WCAG 2.4.7)
+        if response.has_focus() {
+            ui.painter().rect_stroke(
+                switch_rect.expand(2.0),
+                egui::CornerRadius::same((switch_height / 2.0 + 2.0).min(255.0) as u8),
+                theme::focus_ring(),
+                egui::epaint::StrokeKind::Outside,
+            );
+        }
+    }
+
+    if response.hovered() {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
     }
 
     if response.clicked() {

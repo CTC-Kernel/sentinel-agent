@@ -1,7 +1,7 @@
 //! Navigation sidebar widget.
 
 use chrono::{DateTime, Utc};
-use egui::{Color32, CornerRadius, Margin, Ui, Vec2};
+use egui::{CornerRadius, Margin, Ui, Vec2};
 
 use crate::app::Page;
 use crate::icons;
@@ -41,23 +41,11 @@ impl Sidebar {
 
             // Paint gradient background
             let rect = ui.max_rect();
-            let is_dark = theme::is_dark_mode();
-
             if ui.is_rect_visible(rect) {
                 use egui::epaint::{Mesh, Vertex};
                 let mut mesh = Mesh::default();
 
-                let (top_col, bot_col) = if is_dark {
-                    (
-                        Color32::from_rgb(25, 25, 30), // Lighter top (Spotlight)
-                        Color32::from_rgb(5, 5, 8),    // Deep bottom
-                    )
-                } else {
-                    (
-                        Color32::from_rgb(245, 245, 250),
-                        Color32::from_rgb(230, 230, 235),
-                    )
-                };
+                let (top_col, bot_col) = theme::sidebar_gradient();
 
                 // Tricky: we need correct indices for 2 triangles forming the rect
                 let idx = mesh.vertices.len() as u32;
@@ -113,11 +101,15 @@ impl Sidebar {
                                     .strong(),
                             );
                             if scanning {
-                                let t = ui.input(|i| i.time);
-                                let alpha = ((t * 2.5).cos() * 0.5 + 0.5) as f32;
+                                let alpha = if theme::is_reduced_motion() {
+                                    1.0
+                                } else {
+                                    let t = ui.input(|i| i.time);
+                                    ((t * 2.5).cos() * 0.5 + 0.5) as f32
+                                };
                                 ui.label(
                                     egui::RichText::new(icons::CIRCLE)
-                                        .size(10.0)
+                                        .size(theme::STATUS_DOT_SIZE + 2.0)
                                         .color(theme::ACCENT.linear_multiply(alpha)),
                                 );
                             }
@@ -136,7 +128,7 @@ impl Sidebar {
                                 ui.add_space(theme::SIDEBAR_WIDTH / 2.0 - 30.0);
                                 let bell_response = ui.label(
                                     egui::RichText::new(icons::BELL)
-                                        .size(16.0)
+                                        .size(theme::ICON_SM)
                                         .color(theme::WARNING),
                                 );
                                 // Draw count badge
@@ -158,7 +150,7 @@ impl Sidebar {
                                 ui.painter().rect_stroke(
                                     badge_rect,
                                     rounding,
-                                    egui::Stroke::new(0.5, theme::badge_border(theme::ERROR)),
+                                    egui::Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(theme::ERROR)),
                                     egui::StrokeKind::Inside,
                                 );
                                 ui.painter().text(
@@ -241,7 +233,7 @@ impl Sidebar {
                         // Flexible spacer: push bottom items down when space allows,
                         // but never overlap -- ScrollArea handles overflow.
                         let bottom_height =
-                            42.0 * 2.0 + theme::SPACE_SM * 2.0 + theme::SPACE_XL + 2.0;
+                            theme::NAV_ITEM_HEIGHT * 2.0 + theme::SPACE_SM * 2.0 + theme::SPACE_XL + 2.0;
                         let remaining = ui.available_height() - bottom_height;
                         if remaining > 0.0 {
                             ui.add_space(remaining);
@@ -325,13 +317,13 @@ impl Sidebar {
         };
 
         let bg_fill = if is_current {
-            theme::ACCENT.linear_multiply(0.12)
+            theme::ACCENT.linear_multiply(theme::OPACITY_TINT)
         } else {
             egui::Color32::TRANSPARENT
         };
 
         let (rect, response) =
-            ui.allocate_exact_size(Vec2::new(theme::SIDEBAR_WIDTH, 42.0), egui::Sense::click());
+            ui.allocate_exact_size(Vec2::new(theme::SIDEBAR_WIDTH, theme::NAV_ITEM_HEIGHT), egui::Sense::click());
 
         if ui.is_rect_visible(rect) {
             // Background tint on hover or active
@@ -339,7 +331,7 @@ impl Sidebar {
                 let fill = if is_current {
                     bg_fill
                 } else {
-                    theme::bg_elevated().linear_multiply(0.5)
+                    theme::bg_elevated().linear_multiply(theme::OPACITY_MEDIUM)
                 };
 
                 let rect_shrunk = rect.shrink2(Vec2::new(8.0, 2.0));
@@ -395,7 +387,7 @@ impl Sidebar {
                 ui.painter().rect_stroke(
                     badge_rect,
                     rounding,
-                    egui::Stroke::new(0.5, theme::badge_border(theme::ERROR)),
+                    egui::Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(theme::ERROR)),
                     egui::StrokeKind::Inside,
                 );
                 ui.painter().text(
@@ -445,8 +437,8 @@ impl Sidebar {
             )
         };
 
-        // Pulse animation (cosine ease)
-        let alpha = if pulse_speed > 0.0 {
+        // Pulse animation (cosine ease) — respects reduced motion
+        let alpha = if pulse_speed > 0.0 && !theme::is_reduced_motion() {
             0.5 + 0.5 * (t * pulse_speed * std::f64::consts::TAU).cos() as f32
         } else {
             1.0
@@ -464,7 +456,7 @@ impl Sidebar {
                 ui.painter().circle_filled(
                     dot_rect.center(),
                     6.0,
-                    dot_color.linear_multiply(alpha * 0.15),
+                    dot_color.linear_multiply(alpha * theme::OPACITY_TINT),
                 );
             }
             ui.add_space(theme::SPACE_XS);

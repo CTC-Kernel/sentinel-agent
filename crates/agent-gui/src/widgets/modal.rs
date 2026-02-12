@@ -47,7 +47,7 @@ impl Modal {
             confirm_text: "Confirmer".to_string(),
             cancel_text: Some("Annuler".to_string()),
             show_close: true,
-            width: 400.0,
+            width: theme::MODAL_WIDTH,
         }
     }
 
@@ -136,7 +136,7 @@ impl Modal {
                 ui.painter().rect_filled(
                     screen,
                     CornerRadius::ZERO,
-                    Color32::from_black_alpha(180),
+                    Color32::from_black_alpha(theme::BACKDROP_ALPHA),
                 );
 
                 // Close on backdrop click
@@ -177,9 +177,9 @@ impl Modal {
         // Modal frame
         egui::Frame::new()
             .fill(theme::bg_secondary())
-            .corner_radius(CornerRadius::same(16))
-            .shadow(theme::premium_shadow(24, 80))
-            .stroke(egui::Stroke::new(1.0, theme::border()))
+            .corner_radius(CornerRadius::same(theme::CARD_ROUNDING))
+            .shadow(theme::shadow_xl())
+            .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border()))
             .inner_margin(egui::Margin::same(0))
             .show(ui, |ui| {
                 ui.set_width(self.width);
@@ -187,12 +187,12 @@ impl Modal {
                 // Header with icon and title
                 ui.vertical(|ui| {
                     // Top colored bar
-                    let header_rect = ui.allocate_space(egui::vec2(self.width, 4.0)).1;
+                    let header_rect = ui.allocate_space(egui::vec2(self.width, theme::MODAL_HEADER_BAR)).1;
                     ui.painter().rect_filled(
                         header_rect,
                         CornerRadius {
-                            nw: 16,
-                            ne: 16,
+                            nw: theme::CARD_ROUNDING,
+                            ne: theme::CARD_ROUNDING,
                             ..Default::default()
                         },
                         color,
@@ -205,7 +205,7 @@ impl Modal {
                         ui.add_space(theme::SPACE_LG);
 
                         // Icon circle
-                        let icon_size = 48.0;
+                        let icon_size = theme::MODAL_ICON_SIZE;
                         let (icon_rect, _) = ui.allocate_exact_size(
                             egui::vec2(icon_size, icon_size),
                             egui::Sense::hover(),
@@ -213,13 +213,13 @@ impl Modal {
                         ui.painter().circle_filled(
                             icon_rect.center(),
                             icon_size / 2.0,
-                            color.linear_multiply(0.15),
+                            color.linear_multiply(theme::OPACITY_TINT),
                         );
                         ui.painter().text(
                             icon_rect.center(),
                             egui::Align2::CENTER_CENTER,
                             icon,
-                            egui::FontId::proportional(24.0),
+                            egui::FontId::proportional(theme::ICON_LG),
                             color,
                         );
 
@@ -227,7 +227,7 @@ impl Modal {
 
                         // Title
                         ui.vertical(|ui| {
-                            ui.add_space(4.0);
+                            ui.add_space(theme::SPACE_XS);
                             ui.label(
                                 egui::RichText::new(&self.title)
                                     .font(theme::font_heading())

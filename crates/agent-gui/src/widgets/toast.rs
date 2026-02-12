@@ -133,20 +133,27 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
         let mut toast_clone = toast.clone();
 
         // Fade + slide-up entrance, fade-out exit
-        let entrance_duration = 0.25;
-        let exit_start = duration - 0.5;
-        let alpha = if age < entrance_duration {
-            (age / entrance_duration) as f32
-        } else if age > exit_start {
-            ((duration - age) / 0.5) as f32
+        let entrance_duration = theme::ANIM_NORMAL as f64;
+        let exit_duration = 0.5;
+        let exit_start = duration - exit_duration;
+        let (alpha, slide_offset) = if theme::is_reduced_motion() {
+            // Instant show/hide with reduced motion
+            (1.0_f32, 0.0_f32)
         } else {
-            1.0
-        };
-        // Slide-up offset during entrance (slides from 12px below to 0)
-        let slide_offset = if age < entrance_duration {
-            12.0 * (1.0 - (age / entrance_duration) as f32)
-        } else {
-            0.0
+            let a = if age < entrance_duration {
+                (age / entrance_duration) as f32
+            } else if age > exit_start {
+                ((duration - age) / exit_duration) as f32
+            } else {
+                1.0
+            };
+            // Slide-up offset during entrance (slides from 12px below to 0)
+            let s = if age < entrance_duration {
+                theme::SPACE_MD * (1.0 - (age / entrance_duration) as f32)
+            } else {
+                0.0
+            };
+            (a, s)
         };
 
         let (icon, color) = match toast.level {
@@ -164,9 +171,9 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
         );
 
         // Add space for close button if dismissible
-        let close_width = if toast.dismissible { 28.0 } else { 0.0 };
-        let toast_width = galley.size().x + 32.0 + close_width;
-        let toast_height = 44.0;
+        let close_width = if toast.dismissible { theme::MIN_TOUCH_TARGET } else { 0.0 };
+        let toast_width = galley.size().x + theme::SPACE_XL + close_width;
+        let toast_height = theme::TOAST_HEIGHT;
 
         // Calculate position based on ToastPosition (with slide-up entrance offset)
         let toast_center = match position {
@@ -193,25 +200,26 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
 
         // Shadow (behind everything)
         let shadow = theme::premium_shadow(16, (50.0 * alpha).clamp(0.0, 255.0) as u8);
+        let toast_rounding = CornerRadius::same(theme::TOAST_ROUNDING);
         ui.painter()
-            .add(shadow.as_shape(toast_rect, CornerRadius::same(12)));
+            .add(shadow.as_shape(toast_rect, toast_rounding));
 
         // Background with colored left accent
         ui.painter().rect(
             toast_rect,
-            CornerRadius::same(12),
+            toast_rounding,
             theme::bg_secondary().linear_multiply(alpha * 0.98),
-            Stroke::new(1.0, color.linear_multiply(alpha * 0.4)),
+            Stroke::new(theme::BORDER_THIN, color.linear_multiply(alpha * theme::OPACITY_DISABLED)),
             StrokeKind::Inside,
         );
 
         // Colored accent bar on left
-        let accent_rect = egui::Rect::from_min_size(toast_rect.min, egui::vec2(4.0, toast_height));
+        let accent_rect = egui::Rect::from_min_size(toast_rect.min, egui::vec2(theme::TOAST_ACCENT_BAR, toast_height));
         ui.painter().rect_filled(
             accent_rect,
             CornerRadius {
-                nw: 12,
-                sw: 12,
+                nw: theme::TOAST_ROUNDING,
+                sw: theme::TOAST_ROUNDING,
                 ..Default::default()
             },
             color.linear_multiply(alpha),
@@ -228,11 +236,11 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
             theme::text_primary().linear_multiply(alpha),
         );
 
-        // Close button if dismissible
+        // Close button if dismissible (MIN_TOUCH_TARGET for accessibility)
         if toast.dismissible {
             let close_rect = egui::Rect::from_center_size(
                 egui::pos2(toast_rect.max.x - 18.0, toast_rect.center().y),
-                egui::vec2(20.0, 20.0),
+                egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET),
             );
 
             // Check for click on close button
@@ -243,7 +251,7 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
             let close_color = if close_hovered {
                 theme::text_primary().linear_multiply(alpha)
             } else {
-                theme::text_tertiary().linear_multiply(alpha * 0.7)
+                theme::text_tertiary().linear_multiply(alpha * theme::OPACITY_PRESSED)
             };
 
             ui.painter().text(
