@@ -57,11 +57,21 @@ fi
 
 # Import certificate to Trusted Publishers (avoids SmartScreen)
 echo -e "${YELLOW}Adding certificate to Trusted Publishers...${NC}"
-powershell -Command "
+CERT_THUMBPRINT=$(powershell -Command "
     \$cert = Import-Certificate -FilePath '$SCRIPT_DIR/sentinel-selfsigned.cer' -CertStoreLocation 'Cert:\LocalMachine\Root' -ErrorAction SilentlyContinue
     Import-Certificate -FilePath '$SCRIPT_DIR/sentinel-selfsigned.cer' -CertStoreLocation 'Cert:\LocalMachine\TrustedPublisher' -ErrorAction SilentlyContinue
+    if (\$cert) {
+        Write-Output \$cert.Thumbprint
+    }
     Write-Host '✅ Certificate added to trusted stores'
-"
+" | tr -d '\r')
+
+if [[ -z "$CERT_THUMBPRINT" ]]; then
+    echo -e "${RED}❌ Failed to get certificate thumbprint${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✅ Certificate thumbprint: $CERT_THUMBPRINT${NC}"
 
 # Clean previous builds
 echo -e "${YELLOW}Cleaning previous builds...${NC}"
@@ -80,9 +90,31 @@ fi
 
 # Sign the executable
 echo -e "${YELLOW}Signing executable...${NC}"
-signtool sign /f "$SCRIPT_DIR/sentinel-selfsigned.pfx" /p "Sentinel2024!" /t "http://timestamp.digicert.com" "$BUILD_DIR/sentinel-agent.exe" || {
-    echo -e "${YELLOW}⚠️  Executable signing failed, continuing...${NC}"
-}
+# Try signing with PFX file first
+if [[ -f "$SCRIPT_DIR/sentinel-selfsigned.pfx" ]]; then
+    echo "Using PFX file for signing..."
+    signtool sign /f "$SCRIPT_DIR/sentinel-selfsigned.pfx" /p "Sentinel2024!" /fd SHA256 /tr "http://timestamp.digicert.com" /td SHA256 "$BUILD_DIR/sentinel-agent.exe" || {
+        echo -e "${YELLOW}⚠️  PFX signing failed, trying with thumbprint...${NC}"
+        # Try with thumbprint
+        signtool sign /sha1 "$CERT_THUMBPRINT" /fd SHA256 /tr "http://timestamp.digicert.com" /td SHA256 "$BUILD_DIR/sentinel-agent.exe" || {
+            echo -e "${YELLOW}⚠️  Thumbprint signing failed, trying with certificate store...${NC}"
+            # Fallback: use certificate from store
+            signtool sign /a /s My /n "Cyber Threat Consulting" /fd SHA256 /tr "http://timestamp.digicert.com" /td SHA256 "$BUILD_DIR/sentinel-agent.exe" || {
+                echo -e "${YELLOW}⚠️  Executable signing failed, continuing...${NC}"
+            }
+        }
+    }
+else
+    echo "PFX file not found, using certificate store..."
+    # Try with thumbprint
+    signtool sign /sha1 "$CERT_THUMBPRINT" /fd SHA256 /tr "http://timestamp.digicert.com" /td SHA256 "$BUILD_DIR/sentinel-agent.exe" || {
+        echo -e "${YELLOW}⚠️  Thumbprint signing failed, trying with certificate store...${NC}"
+        # Fallback: use certificate from store
+        signtool sign /a /s My /n "Cyber Threat Consulting" /fd SHA256 /tr "http://timestamp.digicert.com" /td SHA256 "$BUILD_DIR/sentinel-agent.exe" || {
+            echo -e "${YELLOW}⚠️  Executable signing failed, continuing...${NC}"
+        }
+    }
+fi
 
 # Create configuration file
 echo -e "${YELLOW}Creating configuration...${NC}"
@@ -313,9 +345,31 @@ fi
 
 # Sign the MSI
 echo -e "${YELLOW}Signing MSI...${NC}"
-signtool sign /f "$SCRIPT_DIR/sentinel-selfsigned.pfx" /p "Sentinel2024!" /t "http://timestamp.digicert.com" "$MSI_DIR/SentinelAgent-$VERSION.msi" || {
-    echo -e "${YELLOW}⚠️  MSI signing failed, continuing...${NC}"
-}
+# Try signing with PFX file first
+if [[ -f "$SCRIPT_DIR/sentinel-selfsigned.pfx" ]]; then
+    echo "Using PFX file for MSI signing..."
+    signtool sign /f "$SCRIPT_DIR/sentinel-selfsigned.pfx" /p "Sentinel2024!" /fd SHA256 /tr "http://timestamp.digicert.com" /td SHA256 "$MSI_DIR/SentinelAgent-$VERSION.msi" || {
+        echo -e "${YELLOW}⚠️  PFX MSI signing failed, trying with thumbprint...${NC}"
+        # Try with thumbprint
+        signtool sign /sha1 "$CERT_THUMBPRINT" /fd SHA256 /tr "http://timestamp.digicert.com" /td SHA256 "$MSI_DIR/SentinelAgent-$VERSION.msi" || {
+            echo -e "${YELLOW}⚠️  Thumbprint MSI signing failed, trying with certificate store...${NC}"
+            # Fallback: use certificate from store
+            signtool sign /a /s My /n "Cyber Threat Consulting" /fd SHA256 /tr "http://timestamp.digicert.com" /td SHA256 "$MSI_DIR/SentinelAgent-$VERSION.msi" || {
+                echo -e "${YELLOW}⚠️  MSI signing failed, continuing...${NC}"
+            }
+        }
+    }
+else
+    echo "PFX file not found, using certificate store for MSI..."
+    # Try with thumbprint
+    signtool sign /sha1 "$CERT_THUMBPRINT" /fd SHA256 /tr "http://timestamp.digicert.com" /td SHA256 "$MSI_DIR/SentinelAgent-$VERSION.msi" || {
+        echo -e "${YELLOW}⚠️  Thumbprint MSI signing failed, trying with certificate store...${NC}"
+        # Fallback: use certificate from store
+        signtool sign /a /s My /n "Cyber Threat Consulting" /fd SHA256 /tr "http://timestamp.digicert.com" /td SHA256 "$MSI_DIR/SentinelAgent-$VERSION.msi" || {
+            echo -e "${YELLOW}⚠️  MSI signing failed, continuing...${NC}"
+        }
+    }
+fi
 
 # Create installation package with certificate
 echo -e "${YELLOW}Creating installation package...${NC}"
