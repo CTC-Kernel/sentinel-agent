@@ -187,6 +187,7 @@ pub struct AgentProcess {
     pub name: String,
     pub cpu_percent: f64,
     pub memory_bytes: u64,
+    pub memory_percent: f64,
     pub user: String,
     pub command_line: Option<String>,
 }
@@ -195,8 +196,8 @@ pub struct AgentProcess {
 pub struct AgentConnection {
     pub local_address: String,
     pub local_port: u16,
-    pub remote_address: String,
-    pub remote_port: u16,
+    pub remote_address: Option<String>,
+    pub remote_port: Option<u16>,
     pub protocol: String,
     pub state: String,
     pub process_name: Option<String>,
@@ -214,6 +215,8 @@ pub struct HeartbeatResponse {
     pub config_changed: bool,
     #[serde(default)]
     pub rules_changed: bool,
+    #[serde(default)]
+    pub organization_name: Option<String>,
 }
 
 /// Allowed server command types. Any command not in this list will be rejected.
