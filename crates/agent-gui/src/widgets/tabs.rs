@@ -270,7 +270,7 @@ impl<'a> TabBar<'a> {
                 let (bg, text_color) = if tab.disabled {
                     (Color32::TRANSPARENT, theme::text_tertiary())
                 } else if is_selected {
-                    (theme::ACCENT, Color32::WHITE)
+                    (theme::ACCENT, theme::text_on_accent())
                 } else {
                     (Color32::TRANSPARENT, theme::text_secondary())
                 };

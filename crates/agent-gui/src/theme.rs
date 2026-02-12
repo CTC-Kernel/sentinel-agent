@@ -253,6 +253,10 @@ pub const SIDEBAR_WIDTH: f32 = 250.0;
 pub const CARD_ROUNDING: u8 = 16;
 /// Button rounding radius.
 pub const BUTTON_ROUNDING: u8 = 8;
+/// Small element rounding (checkboxes, inline tags, hover backgrounds).
+pub const ROUNDING_SM: u8 = 4;
+/// Medium element rounding (tooltips, pagination buttons, focus rings).
+pub const ROUNDING_MD: u8 = 6;
 /// Badge rounding radius (pill-shaped).
 pub const BADGE_ROUNDING: u8 = 100;
 
