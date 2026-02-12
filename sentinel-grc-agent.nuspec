@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>sentinel-grc-agent</id>
+    <version>2.0.0</version>
+    <packageSourceUrl>https://github.com/sentinel-grc/agent</packageSourceUrl>
+    <owners>Cyber Threat Consulting</owners>
+    <title>Sentinel GRC Agent</title>
+    <authors>Cyber Threat Consulting</authors>
+    <projectUrl>https://sentinel-grc-v2-prod.web.app</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/sentinel-grc/agent/main/assets/icon.png</iconUrl>
+    <copyright>2024-2026 Cyber Threat Consulting</copyright>
+    <licenseUrl>https://sentinel-grc-v2-prod.web.app/license</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/sentinel-grc/agent</projectSourceUrl>
+    <docsUrl>https://docs.sentinel-grc.com</docsUrl>
+    <bugTrackerUrl>https://github.com/sentinel-grc/agent/issues</bugTrackerUrl>
+    <tags>grc compliance security agent monitoring</tags>
+    <summary>Agent de conformité endpoint pour la plateforme Sentinel GRC</summary>
+    <description>
+Sentinel GRC Agent est un agent léger de surveillance de la conformité des endpoints.
+Il collecte les informations système, vérifie les configurations de sécurité,
+et remonte les alertes à la plateforme centrale Sentinel GRC.
+
+Caractéristiques principales:
+- Surveillance en temps réel de la conformité
+- Détection des vulnérabilités système
+- Monitoring des configurations de sécurité
+- Interface de gestion locale
+- Compatible Windows 8.1+
+    </description>
+  </metadata>
+  <files>
+    <file src="target\x86_64-pc-windows-gnu\release\agent-core.exe" target="tools\sentinel-agent.exe" />
+    <file src="install-sentinel-agent-free.ps1" target="tools\chocolateyinstall.ps1" />
+  </files>
+</package>
