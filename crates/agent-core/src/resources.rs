@@ -193,14 +193,7 @@ impl ResourceMonitor {
             }
         };
 
-        sys.refresh_processes_specifics(
-            ProcessesToUpdate::All,
-            true,
-            ProcessRefreshKind::nothing()
-                .with_cpu()
-                .with_memory()
-                .with_user(sysinfo::UpdateKind::Always),
-        );
+        let total_memory = sys.total_memory();
 
         let mut processes: Vec<crate::api_client::AgentProcess> = sys
             .processes()
@@ -210,6 +203,11 @@ impl ResourceMonitor {
                 name: process.name().to_string_lossy().to_string(),
                 cpu_percent: process.cpu_usage() as f64,
                 memory_bytes: process.memory(),
+                memory_percent: if total_memory > 0 {
+                    (process.memory() as f64 / total_memory as f64) * 100.0
+                } else {
+                    0.0
+                },
                 user: process
                     .user_id()
                     .map(|u| u.to_string())
@@ -233,11 +231,107 @@ impl ResourceMonitor {
 
     /// Get active network connections for telemetry.
     pub fn get_connections(&self) -> Vec<crate::api_client::AgentConnection> {
-        // sysinfo doesn't provide connections. We'll return an empty list for now
-        // to satisfy the API structure, or use a platform-specific lookup if available.
-        // For macOS/Linux, we'd traditionally use netstat/lsof or /proc/net/tcp.
-        // For MVP, we provide the structure.
-        Vec::new()
+        let mut connections = Vec::new();
+
+        #[cfg(target_os = "macos")]
+        {
+            if let Ok(output) = std::process::Command::new("lsof")
+                .args(["-i", "-n", "-P"])
+                .output()
+            {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                for line in stdout.lines().skip(1) {
+                    if let Some(conn) = self.parse_lsof_line(line) {
+                        connections.push(conn);
+                    }
+                }
+            }
+        }
+
+        #[cfg(target_os = "linux")]
+        {
+            // Simple /proc/net/tcp parser for Linux if needed
+            // For now, we rely on macOS being the primary dev/demo environment
+        }
+
+        connections
+    }
+
+    #[cfg(target_os = "macos")]
+    fn parse_lsof_line(&self, line: &str) -> Option<crate::api_client::AgentConnection> {
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        if parts.len() < 9 {
+            return None;
+        }
+
+        let process_name = Some(parts[0].to_string());
+        let pid = parts[1].parse().ok();
+        let type_col = parts[4];
+        let name_col = parts.last()?;
+
+        let protocol = if type_col == "IPv4" {
+            if name_col.contains("TCP") { "TCP" } else { "UDP" }
+        } else if type_col == "IPv6" {
+            if name_col.contains("TCP") { "TCP6" } else { "UDP6" }
+        } else {
+            return None;
+        };
+
+        let name_str = parts[8..].join(" ");
+        let name_parts: Vec<&str> = name_str.split("->").collect();
+
+        let local_str = name_parts.first()?.replace("TCP ", "").replace("UDP ", "");
+        let (local_address, local_port) = self.parse_lsof_address(&local_str)?;
+
+        let (remote_address, remote_port) = if name_parts.len() > 1 {
+            let remote = name_parts[1].split_whitespace().next()?;
+            let (addr, port) = self.parse_lsof_address(remote)?;
+            (Some(addr), Some(port))
+        } else {
+            (None, None)
+        };
+
+        let state = if let Some(state_start) = line.rfind('(') {
+            line[state_start + 1..line.len() - 1].to_string()
+        } else {
+            "LISTEN".to_string()
+        };
+
+        Some(crate::api_client::AgentConnection {
+            protocol: protocol.to_string(),
+            local_address,
+            local_port,
+            remote_address,
+            remote_port,
+            state,
+            process_name,
+            pid,
+        })
+    }
+
+    #[cfg(target_os = "macos")]
+    fn parse_lsof_address(&self, addr_str: &str) -> Option<(String, u16)> {
+        let addr_str = addr_str.trim();
+
+        if addr_str.starts_with('[') {
+            let end_bracket = addr_str.find(']')?;
+            let addr = addr_str[1..end_bracket].to_string();
+            let port_str = addr_str.get(end_bracket + 2..)?;
+            let port = port_str.parse().ok()?;
+            Some((addr, port))
+        } else {
+            let parts: Vec<&str> = addr_str.rsplitn(2, ':').collect();
+            if parts.len() != 2 {
+                return None;
+            }
+            let port = parts[0].parse().ok()?;
+            let addr = if parts[1] == "*" {
+                "0.0.0.0".to_string()
+            } else {
+                parts[1].to_string()
+            };
+            Some((addr, port))
+        }
     }
 
     /// Get total network bytes since boot.

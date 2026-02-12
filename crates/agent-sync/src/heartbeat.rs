@@ -51,6 +51,8 @@ pub struct HeartbeatService {
 impl HeartbeatService {
     /// Create a new heartbeat service.
     pub fn new(client: Arc<AuthenticatedClient>) -> Self {
+        let mut sys = System::new_all();
+        sys.refresh_all();
         Self {
             client,
             interval_secs: RwLock::new(DEFAULT_HEARTBEAT_INTERVAL_SECS),
@@ -61,7 +63,7 @@ impl HeartbeatService {
             compliance_score: RwLock::new(None),
             pending_sync_count: AtomicU32::new(0),
             self_check_result: RwLock::new(None),
-            sys: RwLock::new(System::new_all()),
+            sys: RwLock::new(sys),
         }
     }
 
@@ -252,6 +254,9 @@ impl HeartbeatService {
         let last_check_at = *self.last_check_at.read().await;
         let compliance_score = *self.compliance_score.read().await;
 
+        let processes = self.collect_processes().await;
+        let connections = self.collect_connections().await;
+
         HeartbeatRequest {
             timestamp: Utc::now(),
             agent_version: AGENT_VERSION.to_string(),
@@ -278,9 +283,55 @@ impl HeartbeatService {
             ip_address,
             network_bytes_sent: Some(total_sent),
             network_bytes_recv: Some(total_recv),
-            processes: Vec::new(),
-            connections: Vec::new(),
+            processes,
+            connections,
         }
+    }
+
+    /// Collect running processes.
+    async fn collect_processes(&self) -> Vec<crate::types::AgentProcess> {
+        use sysinfo::ProcessRefreshKind;
+        let mut sys = self.sys.write().await;
+        
+        // Refresh processes
+        sys.refresh_processes_specifics(ProcessRefreshKind::new().with_cpu().with_memory());
+        
+        let mut processes = Vec::new();
+        // Limit to top 20 processes by CPU to avoid huge payload
+        let mut process_list: Vec<_> = sys.processes().values().collect();
+        process_list.sort_by(|a, b| b.cpu_usage().partial_cmp(&a.cpu_usage()).unwrap_or(std::cmp::Ordering::Equal));
+        
+        // Use total memory for percentage calculation
+        let total_mem = sys.total_memory() as f64;
+        
+        for p in process_list.into_iter().take(20) {
+            let mem_bytes = p.memory();
+            let mem_percent = if total_mem > 0.0 {
+                (mem_bytes as f64 / total_mem) * 100.0
+            } else {
+                0.0
+            };
+            
+            processes.push(crate::types::AgentProcess {
+                pid: p.pid().as_u32(),
+                name: p.name().to_string_lossy().to_string(),
+                cpu_percent: p.cpu_usage() as f64,
+                memory_bytes: mem_bytes,
+                memory_percent: mem_percent,
+                user: p.user_id().map(|u| u.to_string()).unwrap_or_else(|| "unknown".to_string()),
+                command_line: Some(p.cmd().iter().map(|s| s.to_string_lossy()).collect::<Vec<_>>().join(" ")),
+            });
+        }
+        
+        processes
+    }
+
+    /// Collect network connections.
+    /// Note: sysinfo doesn't support connections directly yet, so we return empty for now
+    /// to avoid complicating with OS-specific lsof/netstat calls in this step.
+    /// Future improvement: use netstat2 crate.
+    async fn collect_connections(&self) -> Vec<crate::types::AgentConnection> {
+        Vec::new()
     }
 
     /// Handle successful heartbeat.

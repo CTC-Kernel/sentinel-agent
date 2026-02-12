@@ -293,6 +293,8 @@ pub struct AgentProcess {
     pub cpu_percent: f64,
     /// Memory usage in bytes.
     pub memory_bytes: u64,
+    /// Memory usage percentage.
+    pub memory_percent: f64,
     /// User running the process.
     pub user: String,
     /// Full command line (optional).
@@ -359,6 +361,10 @@ pub struct HeartbeatResponse {
     /// Whether rules have changed.
     #[serde(default)]
     pub rules_changed: bool,
+
+    /// Organization name (for sync).
+    #[serde(default)]
+    pub organization_name: Option<String>,
 }
 
 /// Command sent to the agent via heartbeat response.

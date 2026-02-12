@@ -220,6 +220,8 @@ pub struct AgentRuntime {
     last_update_check: RwLock<Option<std::time::Instant>>,
     /// Last successful sync timestamp.
     last_sync_at: RwLock<Option<chrono::DateTime<chrono::Utc>>>,
+    /// Organization name retrieved from server.
+    organization_name: RwLock<Option<String>>,
     /// Local audit trail for persistent logging.
     audit_trail: Option<Arc<audit_trail::LocalAuditTrail>>,
     /// Event and notification manager.
@@ -458,6 +460,7 @@ impl AgentRuntime {
             fim_engine: RwLock::new(None),
             siem_forwarder: RwLock::new(None),
             fim_rx: tokio::sync::Mutex::new(None),
+            organization_name: RwLock::new(None),
         }
     }
 
@@ -524,7 +527,7 @@ impl AgentRuntime {
             version: AGENT_VERSION.to_string(),
             hostname,
             agent_id: self.config.agent_id.clone(),
-            organization: None,
+            organization: self.organization_name.try_read().ok().and_then(|g| g.clone()),
             compliance_score: compliance_score.map(|s| s as f32),
             last_check_at,
             last_sync_at,
@@ -986,11 +989,49 @@ impl AgentRuntime {
 
         let response = client.send_heartbeat(request).await?;
 
+        // Update organization name if returned
+        if let Some(ref org_name) = response.organization_name {
+            let mut current_org = self.organization_name.write().await;
+            if current_org.as_ref() != Some(org_name) {
+                info!("Organization name updated: {:?}", org_name);
+                *current_org = Some(org_name.clone());
+            }
+        }
+
         // Update last sync timestamp
         {
             let mut last_sync = self.last_sync_at.write().await;
             let now = chrono::Utc::now();
             *last_sync = Some(now);
+
+            #[cfg(feature = "gui")]
+            self.emit_gui_event(AgentEvent::StatusChanged { 
+                summary: AgentSummary {
+                    status: if self.is_paused() {
+                        GuiAgentStatus::Paused
+                    } else if self.state.scanning.load(Ordering::Acquire) {
+                        GuiAgentStatus::Scanning
+                    } else {
+                        GuiAgentStatus::Connected
+                    },
+                    version: AGENT_VERSION.to_string(),
+                    hostname: hostname::get()
+                        .map(|h| h.to_string_lossy().to_string())
+                        .unwrap_or_else(|_| "unknown".to_string()),
+                    agent_id: self.config.agent_id.clone(),
+                    organization: self.organization_name.try_read().ok().and_then(|g| g.clone()),
+                    compliance_score: compliance_score.map(|s| s as f32),
+                    last_check_at: last_compliance_check,
+                    last_sync_at: Some(now),
+                    pending_sync_count,
+                    uptime_secs: usage.uptime_ms / 1000,
+                    active_frameworks: self
+                        .active_frameworks
+                        .read()
+                        .unwrap_or_else(|e| e.into_inner())
+                        .clone(),
+                }
+            });
 
             #[cfg(feature = "gui")]
             self.emit_gui_event(AgentEvent::SyncStatus {
