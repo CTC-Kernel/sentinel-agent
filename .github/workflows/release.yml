@@ -427,8 +427,21 @@ jobs:
           Import-Certificate -FilePath 'sentinel-selfsigned.cer' -CertStoreLocation 'Cert:\LocalMachine\Root' -ErrorAction SilentlyContinue
           Import-Certificate -FilePath 'sentinel-selfsigned.cer' -CertStoreLocation 'Cert:\LocalMachine\TrustedPublisher' -ErrorAction SilentlyContinue
           
-          # Sign MSI with self-signed certificate
-          signtool sign /f sentinel-selfsigned.pfx /p REDACTED_CERT_PASSWORD /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d "Sentinel GRC Agent" "$packageDir\SentinelAgentSelfSigned-$version.msi"
+          # Sign MSI
+          Write-Host "📝 Signing MSI..."
+          $signtoolPath = "${env:ProgramFiles(x86)}\Windows Kits\10\bin\10.0.22000.0\x64\signtool.exe"
+          if (-not (Test-Path $signtoolPath)) {
+            $signtoolPath = "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" | Get-ChildItem -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          }
+          if (-not (Test-Path $signtoolPath)) {
+            $signtoolPath = "${env:ProgramFiles}\Microsoft SDKs\Windows\v7.1A\Bin\signtool.exe"
+          }
+          if (-not (Test-Path $signtoolPath)) {
+            Write-Host "❌ signtool not found, skipping signing"
+            exit 1
+          }
+          
+          & $signtoolPath sign /f sentinel-selfsigned.pfx /p REDACTED_CERT_PASSWORD /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /d "Sentinel GRC Agent" "$packageDir\SentinelAgentSelfSigned-$version.msi"
           
           # Copy certificate to package
           Copy-Item "sentinel-selfsigned.cer" "$packageDir\"
