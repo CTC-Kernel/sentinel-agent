@@ -339,7 +339,7 @@ impl TerminalPage {
                                 ui.label(
                                     egui::RichText::new(target_short)
                                         .font(egui::FontId::monospace(11.0))
-                                        .color(theme::ACCENT_LIGHT.linear_multiply(0.7)),
+                                        .color(theme::ACCENT_LIGHT.linear_multiply(theme::OPACITY_PRESSED)),
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {

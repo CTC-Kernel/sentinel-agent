@@ -9,13 +9,13 @@ use crate::theme;
 ///
 /// `score` is expected in range 0..=100.
 pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
-    let desired_size = Vec2::splat(radius * 2.0 + 16.0);
+    let desired_size = Vec2::splat(radius * 2.0 + theme::SPACE);
     let (rect, _response) = ui.allocate_exact_size(desired_size, egui::Sense::hover());
     let center = rect.center();
     let painter = ui.painter_at(rect);
 
     let track_color = theme::bg_tertiary();
-    let stroke_width = 8.0;
+    let stroke_width = theme::GAUGE_STROKE;
 
     // Background track
     painter.circle_stroke(center, radius, egui::Stroke::new(stroke_width, track_color));
@@ -44,7 +44,7 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
                 // Single subtle glow layer
                 painter.add(egui::Shape::line(
                     points.clone(),
-                    egui::Stroke::new(stroke_width + 4.0, color.linear_multiply(0.15)),
+                    egui::Stroke::new(stroke_width + theme::SPACE_XS, color.linear_multiply(theme::OPACITY_TINT)),
                 ));
 
                 // Main arc
@@ -59,21 +59,21 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
                     painter.circle_filled(
                         last_point,
                         stroke_width * 0.25,
-                        egui::Color32::WHITE.linear_multiply(0.8),
+                        egui::Color32::WHITE.linear_multiply(theme::OPACITY_STRONG),
                     );
                 }
             }
 
             // Score text
             painter.text(
-                center + Vec2::new(0.0, -4.0),
+                center + Vec2::new(0.0, -theme::SPACE_XS),
                 egui::Align2::CENTER_CENTER,
                 format!("{:.0}%", clamped),
-                egui::FontId::proportional(28.0),
+                theme::font_card_value(),
                 color,
             );
             painter.text(
-                center + Vec2::new(0.0, 16.0),
+                center + Vec2::new(0.0, theme::SPACE),
                 egui::Align2::CENTER_CENTER,
                 "CONFORMITÉ",
                 theme::font_caption(),
@@ -85,7 +85,7 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
                 center,
                 egui::Align2::CENTER_CENTER,
                 "--",
-                egui::FontId::proportional(28.0),
+                theme::font_card_value(),
                 theme::text_tertiary(),
             );
         }

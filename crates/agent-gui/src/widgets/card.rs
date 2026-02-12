@@ -10,16 +10,16 @@ pub fn card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) {
 
     // Base shadow: stronger in light mode to lift off white background
     let shadow = if is_dark {
-        theme::premium_shadow(12, 40)
+        theme::shadow_md()
     } else {
-        theme::premium_shadow(8, 20)
+        theme::shadow_sm()
     };
 
     let frame_resp = Frame::new()
         .fill(theme::bg_secondary())
         .corner_radius(CornerRadius::same(theme::CARD_ROUNDING))
-        .inner_margin(Margin::same(24)) // Balanced padding
-        .stroke(egui::Stroke::new(0.5, theme::border()))
+        .inner_margin(Margin::same(theme::SPACE_LG as i8))
+        .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
         .shadow(shadow)
         .show(ui, |ui: &mut egui::Ui| {
             add_contents(ui);
@@ -32,7 +32,7 @@ pub fn card(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui)) {
         
         let r = f32::from(theme::CARD_ROUNDING);
         let color = theme::glass_border_top();
-        let stroke = egui::Stroke::new(1.0, color);
+        let stroke = egui::Stroke::new(theme::BORDER_THIN, color);
         
         // Build a path for the top-inner highlight (inner lip)
         // It starts at the beginning of the top-left curve and ends at the end of the top-right curve

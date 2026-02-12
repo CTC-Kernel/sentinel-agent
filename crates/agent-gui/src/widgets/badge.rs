@@ -101,7 +101,7 @@ impl<'a> Badge<'a> {
 
         let text_size = galley.size();
         let badge_w = text_size.x + h_pad * 2.0;
-        let badge_h = (text_size.y + v_pad * 2.0).max(18.0);
+        let badge_h = (text_size.y + v_pad * 2.0).max(theme::ICON_SM + 2.0);
 
         let (rect, response) =
             ui.allocate_exact_size(egui::vec2(badge_w, badge_h), egui::Sense::hover());
@@ -115,7 +115,7 @@ impl<'a> Badge<'a> {
                     rect,
                     rounding,
                     Color32::TRANSPARENT,
-                    egui::Stroke::new(1.0, theme::badge_border(base)),
+                    egui::Stroke::new(theme::BORDER_THIN, theme::badge_border(base)),
                     egui::epaint::StrokeKind::Inside,
                 );
             } else {
@@ -125,7 +125,7 @@ impl<'a> Badge<'a> {
                 ui.painter().rect_stroke(
                     rect,
                     rounding,
-                    egui::Stroke::new(0.5, theme::badge_border(base)),
+                    egui::Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(base)),
                     egui::epaint::StrokeKind::Inside,
                 );
             }
@@ -200,9 +200,9 @@ pub fn badge_outline(ui: &mut Ui, text: &str, variant: BadgeVariant) -> egui::Re
 // Status dots
 // ============================================================================
 
-/// Status dot indicator (no text, 8px).
+/// Status dot indicator (no text).
 pub fn status_dot(ui: &mut Ui, color: Color32) -> egui::Response {
-    let size = 8.0;
+    let size = theme::STATUS_DOT_SIZE;
     let (rect, response) = ui.allocate_exact_size(egui::vec2(size, size), egui::Sense::hover());
 
     if ui.is_rect_visible(rect) {
@@ -214,22 +214,22 @@ pub fn status_dot(ui: &mut Ui, color: Color32) -> egui::Response {
 
 /// Animated status dot with subtle pulse.
 pub fn status_dot_animated(ui: &mut Ui, color: Color32, pulse: bool) -> egui::Response {
-    let size = 8.0;
+    let size = theme::STATUS_DOT_SIZE;
     let (rect, response) =
-        ui.allocate_exact_size(egui::vec2(size + 4.0, size + 4.0), egui::Sense::hover());
+        ui.allocate_exact_size(egui::vec2(size + theme::SPACE_XS, size + theme::SPACE_XS), egui::Sense::hover());
 
     if ui.is_rect_visible(rect) {
         let center = rect.center();
 
-        if pulse {
+        if pulse && !theme::is_reduced_motion() {
             let t = ui.input(|i| i.time);
-            let alpha = ((t * 2.0).cos() * 0.4 + 0.6) as f32;
+            let alpha = ((t * theme::ANIM_PULSE_SPEED as f64).cos() * 0.4 + 0.6) as f32;
 
             // Subtle outer glow ring
             ui.painter().circle_filled(
                 center,
-                size / 2.0 + 2.0,
-                color.linear_multiply(alpha * 0.2),
+                size / 2.0 + theme::BORDER_THICK,
+                color.linear_multiply(alpha * theme::OPACITY_TINT),
             );
             ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
         }

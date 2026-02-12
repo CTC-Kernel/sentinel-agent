@@ -65,12 +65,12 @@ pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>, help_text: 
                 0.5
             } else {
                 let time = ui.input(|i| i.time);
-                ((time * 1.5).sin() * 0.5 + 0.5) as f32
+                ((time * theme::ANIM_SKELETON_SPEED as f64).sin() * 0.5 + 0.5) as f32
             };
 
             // Gradient from accent to transparent
-            let left_color = theme::ACCENT.linear_multiply(0.8 + shimmer * 0.2);
-            let right_color = theme::ACCENT.linear_multiply(0.1);
+            let left_color = theme::ACCENT.linear_multiply(theme::OPACITY_STRONG + shimmer * theme::OPACITY_TINT);
+            let right_color = theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE);
 
             // Draw gradient line using mesh
             use egui::epaint::{Mesh, Vertex};

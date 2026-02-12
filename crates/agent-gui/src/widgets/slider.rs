@@ -105,7 +105,7 @@ impl Slider {
             SliderStyle::Stepped => 12.0,
         };
 
-        let total_height = thumb_radius * 2.0 + if self.show_ticks { 16.0 } else { 0.0 };
+        let total_height = thumb_radius * 2.0 + if self.show_ticks { theme::SPACE } else { 0.0 };
 
         ui.horizontal(|ui| {
             // Slider track area
@@ -169,13 +169,13 @@ impl Slider {
                         for i in 0..=tick_count {
                             let tick_t = i as f32 / tick_count as f32;
                             let tick_x = track_rect.min.x + tick_t * track_rect.width();
-                            let tick_y = track_rect.max.y + 8.0;
+                            let tick_y = track_rect.max.y + theme::SPACE_SM;
 
                             painter.circle_filled(
                                 egui::pos2(tick_x, tick_y),
-                                2.0,
+                                theme::BORDER_THICK,
                                 if tick_t <= t {
-                                    accent.linear_multiply(0.6)
+                                    accent.linear_multiply(theme::OPACITY_HOVER_SOFT)
                                 } else {
                                     theme::text_tertiary()
                                 },
@@ -189,7 +189,7 @@ impl Slider {
                     painter.circle_filled(
                         thumb_center + egui::vec2(0.0, 1.0),
                         thumb_radius + 1.0,
-                        Color32::from_black_alpha(30),
+                        Color32::from_black_alpha((theme::OPACITY_SUBTLE * 255.0) as u8),
                     );
                 }
 
@@ -198,7 +198,7 @@ impl Slider {
                 let is_dragging = response.dragged();
 
                 let thumb_color = if is_dragging {
-                    accent.linear_multiply(0.9)
+                    accent.linear_multiply(theme::OPACITY_HOVER)
                 } else {
                     accent
                 };
@@ -207,22 +207,22 @@ impl Slider {
 
                 // Inner dot for default style
                 if matches!(self.style, SliderStyle::Default) {
-                    painter.circle_filled(thumb_center, 4.0, Color32::WHITE);
+                    painter.circle_filled(thumb_center, theme::SPACE_XS, Color32::WHITE);
                 }
 
                 // Hover ring
                 if is_hovered || is_dragging {
                     painter.circle_stroke(
                         thumb_center,
-                        thumb_radius + 4.0,
-                        egui::Stroke::new(2.0, accent.linear_multiply(0.3)),
+                        thumb_radius + theme::SPACE_XS,
+                        egui::Stroke::new(theme::BORDER_THICK, accent.linear_multiply(theme::OPACITY_MUTED)),
                     );
                 }
             }
 
             // Value display
             if self.show_value {
-                ui.add_space(12.0);
+                ui.add_space(theme::SPACE_MD);
                 let value_text = if self.step.map(|s| s >= 1.0).unwrap_or(false) {
                     format!("{:.0}", *value)
                 } else {

@@ -362,8 +362,8 @@ impl SentinelApp {
         eframe::NativeOptions {
             viewport: egui::ViewportBuilder::default()
                 .with_title("Sentinel Agent")
-                .with_inner_size([1280.0, 750.0])
-                .with_min_inner_size([800.0, 600.0])
+                .with_inner_size([theme::WINDOW_WIDTH, theme::WINDOW_HEIGHT])
+                .with_min_inner_size([theme::WINDOW_MIN_WIDTH, theme::WINDOW_MIN_HEIGHT])
                 .with_icon(Self::load_app_icon()),
             ..Default::default()
         }
@@ -609,12 +609,12 @@ impl SentinelApp {
                         // Borderless satellite style
                         ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(false));
                         ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(
-                            320.0, 480.0,
+                            theme::TRAY_WIDTH, theme::TRAY_HEIGHT,
                         )));
                     } else {
                         ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(true));
                         ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(
-                            1280.0, 750.0,
+                            theme::WINDOW_WIDTH, theme::WINDOW_HEIGHT,
                         )));
                     }
                 }
@@ -697,7 +697,7 @@ impl SentinelApp {
                                             true,
                                         ));
                                         ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(
-                                            egui::vec2(1280.0, 750.0),
+                                            egui::vec2(theme::WINDOW_WIDTH, theme::WINDOW_HEIGHT),
                                         ));
                                     }
                                     if ui.button(icons::EXTERNAL_LINK).clicked() {
@@ -707,7 +707,7 @@ impl SentinelApp {
                                             true,
                                         ));
                                         ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(
-                                            egui::vec2(1280.0, 750.0),
+                                            egui::vec2(theme::WINDOW_WIDTH, theme::WINDOW_HEIGHT),
                                         ));
                                     }
                                 },
@@ -968,7 +968,7 @@ impl eframe::App for SentinelApp {
             .frame(
                 egui::Frame::new()
                     .fill(theme::bg_sidebar())
-                    .stroke(egui::Stroke::new(0.5, theme::border())),
+                    .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border())),
             )
             .show(ctx, |ui: &mut egui::Ui| {
                 let scanning = self.state.summary.status == crate::dto::GuiAgentStatus::Scanning;
@@ -1166,13 +1166,19 @@ impl eframe::App for SentinelApp {
 impl SentinelApp {
     /// Render the splash screen.
     fn show_splash(&self, ctx: &egui::Context, elapsed: f32) {
-        // Fade in over 0.6s, hold, then fade out last 0.4s.
-        let alpha = if elapsed < 0.6 {
-            elapsed / 0.6
-        } else if elapsed > 2.1 {
-            1.0 - ((elapsed - 2.1) / 0.4).min(1.0)
+        // Respect reduced-motion: skip fade animations, show static splash.
+        let (alpha, progress) = if theme::is_reduced_motion() {
+            (1.0_f32, (elapsed / 2.5).min(1.0))
         } else {
-            1.0
+            // Fade in over 0.6s, hold, then fade out last 0.4s.
+            let a = if elapsed < 0.6 {
+                elapsed / 0.6
+            } else if elapsed > 2.1 {
+                1.0 - ((elapsed - 2.1) / 0.4).min(1.0)
+            } else {
+                1.0
+            };
+            (a, (elapsed / 2.5).min(1.0))
         };
         let a = (alpha * 255.0) as u8;
 
@@ -1222,7 +1228,7 @@ impl SentinelApp {
 
                             ui.add_space(theme::SPACE_XL);
 
-                            // Progress bar (animated)
+                            // Progress bar (animated, or static under reduced motion)
                             let bar_w = 200.0;
                             let bar_h = 3.0;
                             let (bar_rect, _) = ui.allocate_exact_size(
@@ -1235,7 +1241,6 @@ impl SentinelApp {
                                 egui::CornerRadius::same(2),
                                 egui::Color32::from_white_alpha(15),
                             );
-                            let progress = (elapsed / 2.5).min(1.0);
                             let fill_rect = egui::Rect::from_min_size(
                                 bar_rect.min,
                                 egui::vec2(bar_w * progress, bar_h),

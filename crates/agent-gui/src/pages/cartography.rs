@@ -160,17 +160,17 @@ impl CartographyPage {
         );
 
         // Background grid simulation (Subtle institutional lines)
-        let grid_color = theme::border().linear_multiply(0.1);
+        let grid_color = theme::border().linear_multiply(theme::OPACITY_SUBTLE);
         for i in 1..8 {
             let x = rect.min.x + (rect.width() * i as f32 / 8.0);
             painter.line_segment(
                 [egui::pos2(x, rect.min.y), egui::pos2(x, rect.max.y)],
-                egui::Stroke::new(0.5, grid_color),
+                egui::Stroke::new(theme::BORDER_HAIRLINE, grid_color),
             );
             let y = rect.min.y + (rect.height() * i as f32 / 8.0);
             painter.line_segment(
                 [egui::pos2(rect.min.x, y), egui::pos2(rect.max.x, y)],
-                egui::Stroke::new(0.5, grid_color),
+                egui::Stroke::new(theme::BORDER_HAIRLINE, grid_color),
             );
         }
 
@@ -201,7 +201,7 @@ impl CartographyPage {
                 );
                 painter.line_segment(
                     [p1, p2],
-                    egui::Stroke::new(1.0, theme::border().linear_multiply(0.2)),
+                    egui::Stroke::new(theme::BORDER_THIN, theme::border().linear_multiply(theme::OPACITY_TINT)),
                 );
             }
         }
@@ -243,7 +243,7 @@ impl CartographyPage {
             painter.circle_stroke(
                 screen_pos,
                 base_radius,
-                egui::Stroke::new(1.0, egui::Color32::from_white_alpha(100)),
+                egui::Stroke::new(theme::BORDER_THIN, egui::Color32::from_white_alpha(100)),
             );
 
             // 4. Label (Institutional AAA)

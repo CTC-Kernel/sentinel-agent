@@ -164,10 +164,10 @@ jobs:
           rm -f "$RUNNER_TEMP/password_app.txt"
           rm -f "$RUNNER_TEMP/password_inst.txt"
 
-      - name: Build DMG
+      - name: Build PKG
         run: |
-          chmod +x build-macos.sh
-          VERSION="${{ env.RELEASE_VERSION }}" ./build-macos.sh
+          chmod +x create-macos-installer.sh
+          VERSION="${{ env.RELEASE_VERSION }}" ./create-macos-installer.sh
         env:
           VERSION: ${{ env.RELEASE_VERSION }}
 
@@ -214,7 +214,7 @@ jobs:
           # Move the output to target/release for artifact upload
           mv "dist/SentinelAgent-${VERSION}.pkg" "target/release/"
 
-      - name: Notarize DMG
+      - name: Notarize PKG
         continue-on-error: true
         timeout-minutes: 35
         env:
@@ -223,22 +223,22 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           VERSION="${{ env.RELEASE_VERSION }}"
-          DMG_PATH="target/release/SentinelAgent-${VERSION}.dmg"
+          PKG_PATH="target/release/SentinelAgent-${VERSION}.pkg"
           
-          if [ ! -f "$DMG_PATH" ]; then
-            echo "::warning::DMG not found at $DMG_PATH"
+          if [ ! -f "$PKG_PATH" ]; then
+            echo "::warning::PKG not found at $PKG_PATH"
           else
-            echo "Notarizing $DMG_PATH..."
-            if xcrun notarytool submit "$DMG_PATH" \
+            echo "Notarizing $PKG_PATH..."
+            if xcrun notarytool submit "$PKG_PATH" \
               --apple-id "$APPLE_ID" \
               --password "$APPLE_APP_PASSWORD" \
               --team-id "$APPLE_TEAM_ID" \
               --verbose \
               --wait --timeout 30m; then
-              xcrun stapler staple "$DMG_PATH"
-              echo "DMG notarization complete!"
+              xcrun stapler staple "$PKG_PATH"
+              echo "PKG notarization complete!"
             else
-              echo "::warning::DMG notarization timed out."
+              echo "::warning::PKG notarization timed out."
             fi
           fi
 
@@ -251,19 +251,8 @@ jobs:
           if [ -f "SentinelAgent-${VERSION}.pkg" ]; then
             echo "Creating SentinelAgent-latest.pkg..."
             cp "SentinelAgent-${VERSION}.pkg" "SentinelAgent-latest.pkg"
-            # Explicitly staple both files
-            echo "Stapling versioned PKG..."
-            xcrun stapler staple "SentinelAgent-${VERSION}.pkg" || echo "Staple failed for versioned PKG"
             echo "Stapling latest PKG..."
             xcrun stapler staple "SentinelAgent-latest.pkg" || echo "Staple failed for latest PKG"
-          fi
-          
-          # DMG
-          if [ -f "SentinelAgent-${VERSION}.dmg" ]; then
-            echo "Creating SentinelAgent-latest.dmg..."
-            cp "SentinelAgent-${VERSION}.dmg" "SentinelAgent-latest.dmg"
-            echo "Stapling latest DMG..."
-            xcrun stapler staple "SentinelAgent-latest.dmg" || echo "Staple failed for latest DMG"
           fi
 
       - name: Verify Gatekeeper Compliance
@@ -282,9 +271,8 @@ jobs:
         run: |
           VERSION="${{ env.RELEASE_VERSION }}"
           cd target/release
-          shasum -a 256 "SentinelAgent-${VERSION}.dmg" "SentinelAgent-${VERSION}.pkg" > SHA256SUMS-macos.txt
+          shasum -a 256 "SentinelAgent-${VERSION}.pkg" > SHA256SUMS-macos.txt
           # Also generate for latest (Standard shasum on macOS)
-          [ -f "SentinelAgent-latest.dmg" ] && shasum -a 256 "SentinelAgent-latest.dmg" | cut -d' ' -f1 > "SentinelAgent-latest.dmg.sha256"
           [ -f "SentinelAgent-latest.pkg" ] && shasum -a 256 "SentinelAgent-latest.pkg" | cut -d' ' -f1 > "SentinelAgent-latest.pkg.sha256"
           cat SHA256SUMS-macos.txt
 
@@ -293,7 +281,6 @@ jobs:
         with:
           name: sentinel-agent-macos
           path: |
-            target/release/SentinelAgent-*.dmg
             target/release/SentinelAgent-*.pkg
             target/release/SentinelAgent-*.sha256
             target/release/SHA256SUMS-macos.txt
@@ -722,7 +709,6 @@ jobs:
           }
 
           create_latest "SentinelAgent-*.pkg" "sentinel-agent-macos" "SentinelAgent-latest.pkg"
-          create_latest "SentinelAgent-*.dmg" "sentinel-agent-macos" "SentinelAgent-latest.dmg"
           create_latest "SentinelAgentSetup-*.msi" "sentinel-agent-windows" "SentinelAgentSetup-latest.msi"
           create_latest "sentinel-agent_*.deb" "sentinel-agent-linux-deb" "sentinel-agent-latest-amd64.deb"
           create_latest "sentinel-agent-*.rpm" "sentinel-agent-linux-rpm" "sentinel-agent-latest.x86_64.rpm"
@@ -733,12 +719,7 @@ jobs:
             ls -R artifacts/sentinel-agent-macos/
             [ -f "artifacts/sentinel-agent-macos/SentinelAgent-latest.pkg" ] && \
               gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.pkg" "$BUCKET/macos/"
-            [ -f "artifacts/sentinel-agent-macos/SentinelAgent-latest.pkg.sha256" ] && \
-              gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.pkg.sha256" "$BUCKET/macos/"
-            [ -f "artifacts/sentinel-agent-macos/SentinelAgent-latest.dmg" ] && \
-              gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.dmg" "$BUCKET/macos/"
-            [ -f "artifacts/sentinel-agent-macos/SentinelAgent-latest.dmg.sha256" ] && \
-              gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.dmg.sha256" "$BUCKET/macos/"
+            gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-latest.pkg.sha256" "$BUCKET/macos/"
           fi
 
           # Generate release-info.json
@@ -761,7 +742,6 @@ jobs:
           gcloud storage cp "artifacts/*/SHA256SUMS*.txt" "$BUCKET/" 2>/dev/null || true
 
           echo "=== Setting content types ==="
-          gcloud storage objects update "$BUCKET/macos/*.dmg" --content-type="application/x-apple-diskimage" 2>/dev/null || true
           gcloud storage objects update "$BUCKET/macos/*.pkg" --content-type="application/vnd.apple.installer+xml" 2>/dev/null || true
           gcloud storage objects update "$BUCKET/windows/*.msi" --content-type="application/x-msi" 2>/dev/null || true
           gcloud storage objects update "$BUCKET/linux_deb/*.deb" --content-type="application/vnd.debian.binary-package" 2>/dev/null || true
@@ -846,7 +826,6 @@ jobs:
 
             | Platform | Package | Format | Notes |
             |----------|---------|--------|-------|
-            | macOS (Universal) | `SentinelAgent-${{ env.RELEASE_VERSION }}.dmg` | DMG | Signed + Notarized |
             | macOS (Universal) | `SentinelAgent-${{ env.RELEASE_VERSION }}.pkg` | PKG | Signed + Notarized |
             | Windows x64 | `SentinelAgentSetup-${{ env.RELEASE_VERSION }}.msi` | MSI | Commercial Certificate |
             | Windows x64 | `SentinelAgentSelfSigned-${{ env.RELEASE_VERSION }}.msi` | MSI | Self-signed (No SmartScreen) |
@@ -855,7 +834,7 @@ jobs:
 
             ### Installation
 
-            **macOS**: Open the DMG and drag to Applications, or double-click the PKG.
+            **macOS**: Open PKG and follow installer prompts, or double-click PKG.
             **Windows**: Run the MSI installer as Administrator.
             **Windows (No SmartScreen)**: Download `SentinelAgentSelfSigned-${{ env.RELEASE_VERSION }}.msi` and run as Administrator.
             **Linux (DEB)**: `sudo dpkg -i sentinel-agent_${{ env.RELEASE_VERSION }}-1_amd64.deb`

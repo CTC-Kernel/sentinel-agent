@@ -673,7 +673,7 @@ impl CompliancePage {
         ui.horizontal(|ui| {
             ui.label(
                 egui::RichText::new(icon)
-                    .color(color.linear_multiply(0.8))
+                    .color(color.linear_multiply(theme::OPACITY_STRONG))
                     .size(14.0),
             );
             ui.add_space(-4.0);

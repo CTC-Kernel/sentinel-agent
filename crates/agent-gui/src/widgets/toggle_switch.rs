@@ -2,13 +2,15 @@
 
 use egui::{Color32, CornerRadius, Response, Sense, Stroke, Ui, Vec2};
 
+use crate::animation;
 use crate::theme;
 
 /// Draw a premium iOS-style toggle switch.
 ///
 /// Returns the [`Response`] for the toggle interaction.
 pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
-    let desired_size = Vec2::new(44.0, 24.0);
+    // Allocate MIN_TOUCH_TARGET height for accessibility, but draw at SWITCH_HEIGHT
+    let desired_size = Vec2::new(theme::SWITCH_WIDTH, theme::MIN_TOUCH_TARGET);
     let (rect, response) = ui.allocate_exact_size(desired_size, Sense::click());
 
     if response.clicked() {
@@ -25,23 +27,26 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
 
         // Colors
         let bg_off = if theme::is_dark_mode() {
-            Color32::from_rgb(60, 60, 67)
+            theme::SWITCH_OFF_DARK
         } else {
-            Color32::from_rgb(200, 200, 206)
+            theme::SWITCH_OFF_LIGHT
         };
         let bg_on = theme::SUCCESS;
-        let bg_color = lerp_color(bg_off, bg_on, anim_progress);
+        let bg_color = animation::lerp_color(bg_off, bg_on, anim_progress);
 
-        // Track
-        let track_rect = rect;
-        let rounding = CornerRadius::same((rect.height() / 2.0).min(255.0) as u8);
+        // Track (centered vertically within the touch target)
+        let track_rect = egui::Rect::from_center_size(
+            rect.center(),
+            Vec2::new(theme::SWITCH_WIDTH, theme::SWITCH_HEIGHT),
+        );
+        let rounding = CornerRadius::same((track_rect.height() / 2.0).min(255.0) as u8);
 
         // Track shadow/glow when on
         if anim_progress > 0.5 {
-            let glow_alpha = (anim_progress - 0.5) * 2.0 * 0.15;
+            let glow_alpha = (anim_progress - 0.5) * 2.0 * theme::OPACITY_TINT;
             ui.painter().rect_filled(
-                track_rect.expand(2.0),
-                CornerRadius::same((rect.height() / 2.0 + 2.0).min(255.0) as u8),
+                track_rect.expand(theme::BORDER_THICK),
+                CornerRadius::same((track_rect.height() / 2.0 + theme::BORDER_THICK).min(255.0) as u8),
                 bg_on.linear_multiply(glow_alpha),
             );
         }
@@ -50,27 +55,27 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
         ui.painter().rect_filled(track_rect, rounding, bg_color);
 
         // Track border (subtle)
-        let border_alpha = if is_hovered { 0.3 } else { 0.15 };
+        let border_alpha = if is_hovered { theme::OPACITY_MUTED } else { theme::OPACITY_TINT };
         ui.painter().rect_stroke(
             track_rect,
             rounding,
-            Stroke::new(0.5, Color32::from_white_alpha((border_alpha * 255.0_f32).clamp(0.0, 255.0) as u8)),
+            Stroke::new(theme::BORDER_HAIRLINE, Color32::from_white_alpha((border_alpha * 255.0_f32).clamp(0.0, 255.0) as u8)),
             egui::StrokeKind::Inside,
         );
 
         // Knob
-        let knob_radius = (rect.height() / 2.0) - 2.0;
+        let knob_radius = (track_rect.height() / 2.0) - theme::BORDER_THICK;
         let knob_x = egui::lerp(
-            rect.left() + knob_radius + 2.0..=rect.right() - knob_radius - 2.0,
+            track_rect.left() + knob_radius + theme::BORDER_THICK..=track_rect.right() - knob_radius - theme::BORDER_THICK,
             anim_progress,
         );
-        let knob_center = egui::pos2(knob_x, rect.center().y);
+        let knob_center = egui::pos2(knob_x, track_rect.center().y);
 
         // Knob shadow
         ui.painter().circle_filled(
             knob_center + Vec2::new(0.0, 1.0),
             knob_radius,
-            Color32::from_black_alpha(30),
+            Color32::from_black_alpha(theme::SUBTLE_HIGHLIGHT_ALPHA),
         );
 
         // Knob main
@@ -80,19 +85,28 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
 
         // Knob highlight (top arc effect)
         let highlight_pulse = if is_hovered {
-            let pulse = (time * 2.0).sin() * 0.1 + 0.9;
-            pulse as f32
+            animation::pulse(time, theme::ANIM_PULSE_SPEED, 0.8, 1.0)
         } else {
             1.0
         };
         ui.painter().circle_stroke(
             knob_center,
-            knob_radius - 1.0,
+            knob_radius - theme::BORDER_THIN,
             Stroke::new(
-                1.0,
-                Color32::from_white_alpha((50.0 * highlight_pulse).clamp(0.0, 255.0) as u8),
+                theme::BORDER_THIN,
+                Color32::from_white_alpha((theme::KNOB_HIGHLIGHT_BASE * highlight_pulse).clamp(0.0, 255.0) as u8),
             ),
         );
+
+        // Focus ring for keyboard navigation
+        if response.has_focus() {
+            ui.painter().rect_stroke(
+                track_rect,
+                rounding,
+                theme::focus_ring(),
+                egui::StrokeKind::Outside,
+            );
+        }
 
         // Only request repaint while animation is still transitioning
         if anim_progress > 0.0 && anim_progress < 1.0 {
@@ -103,13 +117,3 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
     response.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
-/// Linearly interpolate between two colors.
-fn lerp_color(a: Color32, b: Color32, t: f32) -> Color32 {
-    let t = t.clamp(0.0, 1.0);
-    Color32::from_rgba_unmultiplied(
-        ((a.r() as f32) * (1.0 - t) + (b.r() as f32) * t).clamp(0.0, 255.0) as u8,
-        ((a.g() as f32) * (1.0 - t) + (b.g() as f32) * t).clamp(0.0, 255.0) as u8,
-        ((a.b() as f32) * (1.0 - t) + (b.b() as f32) * t).clamp(0.0, 255.0) as u8,
-        ((a.a() as f32) * (1.0 - t) + (b.a() as f32) * t).clamp(0.0, 255.0) as u8,
-    )
-}

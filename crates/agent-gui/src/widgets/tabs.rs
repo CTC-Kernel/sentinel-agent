@@ -119,7 +119,7 @@ impl<'a> TabBar<'a> {
                 egui::pos2(rect.min.x, rect.max.y),
                 egui::pos2(rect.max.x, rect.max.y),
             ],
-            egui::Stroke::new(1.0, theme::border()),
+            egui::Stroke::new(theme::BORDER_THIN, theme::border()),
         );
 
         new_selection
@@ -137,7 +137,7 @@ impl<'a> TabBar<'a> {
 
         // Calculate content width
         if let Some(_icon) = tab.icon {
-            content_width += 20.0; // Icon width + spacing
+            content_width += theme::TAB_ICON_WIDTH;
         }
         content_width += ui
             .painter()
@@ -145,16 +145,16 @@ impl<'a> TabBar<'a> {
             .size()
             .x;
         if tab.badge.is_some() {
-            content_width += 28.0; // Badge width + spacing
+            content_width += theme::TAB_BADGE_WIDTH;
         }
 
-        let padding = egui::vec2(16.0, 12.0);
+        let padding = egui::vec2(theme::SPACE, theme::SPACE_MD);
         let tab_width = if fixed_width > 0.0 {
             fixed_width
         } else {
             content_width + padding.x * 2.0
         };
-        let tab_height = 40.0;
+        let tab_height = theme::TAB_HEIGHT;
 
         let (rect, response) = ui.allocate_exact_size(
             egui::vec2(tab_width, tab_height),
@@ -191,7 +191,7 @@ impl<'a> TabBar<'a> {
                     theme::font_body(),
                     text_color,
                 );
-                x += 20.0;
+                x += theme::TAB_ICON_WIDTH;
             }
 
             // Label
@@ -211,15 +211,15 @@ impl<'a> TabBar<'a> {
                     count.to_string()
                 };
                 let badge_rect = egui::Rect::from_center_size(
-                    egui::pos2(rect.max.x - padding.x - 10.0, rect.center().y),
-                    egui::vec2(20.0, 18.0),
+                    egui::pos2(rect.max.x - padding.x - theme::SPACE_SM - 2.0, rect.center().y),
+                    egui::vec2(theme::ICON_MD, theme::ICON_SM + 2.0),
                 );
-                let rounding = CornerRadius::same(9);
+                let rounding = CornerRadius::same((theme::ICON_SM + 2.0) as u8 / 2);
                 painter.rect_filled(badge_rect, rounding, theme::badge_bg(theme::ERROR));
                 painter.rect_stroke(
                     badge_rect,
                     rounding,
-                    egui::Stroke::new(0.5, theme::badge_border(theme::ERROR)),
+                    egui::Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(theme::ERROR)),
                     egui::StrokeKind::Inside,
                 );
                 painter.text(
@@ -231,11 +231,21 @@ impl<'a> TabBar<'a> {
                 );
             }
 
+            // Focus ring for keyboard navigation
+            if response.has_focus() {
+                painter.rect_stroke(
+                    rect,
+                    CornerRadius::same(theme::SPACE_XS as u8),
+                    theme::focus_ring(),
+                    egui::StrokeKind::Outside,
+                );
+            }
+
             // Selected underline
             if is_selected {
                 let underline_rect = egui::Rect::from_min_size(
-                    egui::pos2(rect.min.x, rect.max.y - 2.0),
-                    egui::vec2(rect.width(), 2.0),
+                    egui::pos2(rect.min.x, rect.max.y - theme::BORDER_THICK),
+                    egui::vec2(rect.width(), theme::BORDER_THICK),
                 );
                 painter.rect_filled(underline_rect, CornerRadius::ZERO, theme::ACCENT);
             }
@@ -276,7 +286,7 @@ impl<'a> TabBar<'a> {
                     ui.painter()
                         .layout_no_wrap(text.clone(), theme::font_body(), text_color);
 
-                let padding = egui::vec2(12.0, 6.0);
+                let padding = egui::vec2(theme::SPACE_MD, theme::SPACE_XS + 2.0);
                 let size = galley.size() + padding * 2.0;
                 let (rect, response) = ui.allocate_exact_size(
                     size,
@@ -303,7 +313,7 @@ impl<'a> TabBar<'a> {
                         if is_selected || tab.disabled {
                             egui::Stroke::NONE
                         } else {
-                            egui::Stroke::new(1.0, theme::border())
+                            egui::Stroke::new(theme::BORDER_THIN, theme::border())
                         },
                         egui::epaint::StrokeKind::Inside,
                     );
@@ -327,12 +337,12 @@ impl<'a> TabBar<'a> {
                         } else {
                             count.to_string()
                         };
-                        let badge_center = egui::pos2(rect.max.x - 6.0, rect.min.y + 6.0);
+                        let badge_center = egui::pos2(rect.max.x - theme::SPACE_XS - 2.0, rect.min.y + theme::SPACE_XS + 2.0);
                         let badge_rect = egui::Rect::from_center_size(
                             badge_center,
-                            egui::vec2(16.0, 14.0),
+                            egui::vec2(theme::SPACE, theme::SPACE_MD + 2.0),
                         );
-                        let rounding = egui::CornerRadius::same(7);
+                        let rounding = egui::CornerRadius::same((theme::SPACE_MD + 2.0) as u8 / 2);
                         ui.painter().rect_filled(
                             badge_rect,
                             rounding,
@@ -341,7 +351,7 @@ impl<'a> TabBar<'a> {
                         ui.painter().rect_stroke(
                             badge_rect,
                             rounding,
-                            egui::Stroke::new(0.5, theme::badge_border(theme::ERROR)),
+                            egui::Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(theme::ERROR)),
                             egui::StrokeKind::Inside,
                         );
                         ui.painter().text(
@@ -350,6 +360,16 @@ impl<'a> TabBar<'a> {
                             &badge_text,
                             theme::font_label(),
                             theme::badge_text(theme::ERROR),
+                        );
+                    }
+
+                    // Focus ring for keyboard navigation
+                    if response.has_focus() {
+                        ui.painter().rect_stroke(
+                            rect,
+                            CornerRadius::same(theme::BUTTON_ROUNDING),
+                            theme::focus_ring(),
+                            egui::StrokeKind::Outside,
                         );
                     }
                 }
@@ -372,13 +392,13 @@ impl<'a> TabBar<'a> {
         egui::Frame::new()
             .fill(theme::bg_tertiary())
             .corner_radius(CornerRadius::same(theme::BUTTON_ROUNDING))
-            .inner_margin(egui::Margin::same(4))
+            .inner_margin(egui::Margin::same(theme::SPACE_XS as i8))
             .show(ui, |ui| {
                 ui.horizontal(|ui| {
-                    ui.spacing_mut().item_spacing.x = 4.0;
+                    ui.spacing_mut().item_spacing.x = theme::SPACE_XS;
 
                     let tab_width = if tab_count > 0 {
-                        (available_width - 8.0 - tab_count.saturating_sub(1) as f32 * 4.0) / tab_count as f32
+                        (available_width - theme::SPACE_SM - tab_count.saturating_sub(1) as f32 * theme::SPACE_XS) / tab_count as f32
                     } else {
                         0.0
                     };
@@ -387,7 +407,7 @@ impl<'a> TabBar<'a> {
                         let is_selected = i == self.selected;
 
                         let (rect, response) = ui.allocate_exact_size(
-                            egui::vec2(tab_width, 32.0),
+                            egui::vec2(tab_width, theme::MIN_TOUCH_TARGET),
                             if tab.disabled {
                                 Sense::hover()
                             } else {
@@ -423,7 +443,7 @@ impl<'a> TabBar<'a> {
                                     CornerRadius::same(theme::BUTTON_ROUNDING - 2),
                                     bg,
                                     if is_selected {
-                                        egui::Stroke::new(0.5, theme::border())
+                                        egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border())
                                     } else {
                                         egui::Stroke::NONE
                                     },
@@ -455,6 +475,16 @@ impl<'a> TabBar<'a> {
                                 theme::font_body(),
                                 text_color,
                             );
+
+                            // Focus ring for keyboard navigation
+                            if response.has_focus() {
+                                ui.painter().rect_stroke(
+                                    rect,
+                                    CornerRadius::same(theme::BUTTON_ROUNDING - 2),
+                                    theme::focus_ring(),
+                                    egui::StrokeKind::Outside,
+                                );
+                            }
                         }
 
                         if response.clicked() && !tab.disabled {

@@ -66,7 +66,7 @@ impl PremiumBadge {
             let rounding = CornerRadius::same((rect.height() / 2.0).min(255.0) as u8);
 
             // Subtle shadow for depth (premium elevation)
-            let shadow_color = self.color.linear_multiply(0.08);
+            let shadow_color = self.color.linear_multiply(theme::OPACITY_SUBTLE);
             ui.painter()
                 .rect_filled(rect.expand(1.0), rounding, shadow_color);
 
@@ -87,7 +87,7 @@ impl PremiumBadge {
             ui.painter().rect_stroke(
                 rect,
                 rounding,
-                Stroke::new(0.5, border_color),
+                Stroke::new(theme::BORDER_HAIRLINE, border_color),
                 egui::StrokeKind::Inside,
             );
 

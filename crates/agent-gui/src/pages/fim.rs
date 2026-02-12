@@ -374,7 +374,7 @@ impl FimPage {
                             ui.label(
                                 egui::RichText::new(icon)
                                     .size(28.0)
-                                    .color(color.linear_multiply(0.25)),
+                                    .color(color.linear_multiply(theme::OPACITY_MUTED)),
                             );
                         },
                     );
