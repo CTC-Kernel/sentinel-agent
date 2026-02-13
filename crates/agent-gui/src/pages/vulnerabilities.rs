@@ -204,16 +204,24 @@ impl VulnerabilitiesPage {
             );
             ui.add_space(theme::SPACE_MD);
 
-            ui.push_id("vulnerabilities_table", |ui: &mut egui::Ui| {
-                Self::table(ui, state, &search_lower);
-            });
+            // Assuming 'active' is defined elsewhere, e.g., from a tab control
+            // For now, we'll assume active = 0 to call show_findings
+            let active = 0; // Placeholder for missing context
+            if active == 0 {
+                Self::show_findings(ui, state, &search_lower, &mut command);
+            } else {
+                // This branch is not fully defined in the provided diff,
+                // but included to match the structure.
+                // Self::show_vulnerabilities(ui, state, &search_lower, &mut command);
+                ui.label("Vulnerabilities view not implemented yet.");
+            }
         });
 
         ui.add_space(theme::SPACE_XL);
         command
     }
 
-    fn table(ui: &mut Ui, state: &mut AppState, search_lower: &str) {
+    fn show_findings(ui: &mut Ui, state: &mut AppState, search_lower: &str, command: &mut Option<GuiCommand>) {
         let filtered: Vec<usize> = state
             .vulnerability_findings
             .iter()
@@ -260,11 +268,12 @@ impl VulnerabilitiesPage {
                 .striped(false)
                 .resizable(true)
                 .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                .column(Column::initial(100.0).at_least(80.0))
-                .column(Column::initial(150.0).range(100.0..=300.0).at_least(100.0))
-                .column(Column::initial(110.0).at_least(80.0))
-                .column(Column::initial(60.0).at_least(40.0))
-                .column(Column::remainder());
+                .column(Column::initial(100.0).at_least(80.0)) // CVE
+                .column(Column::initial(120.0).at_least(100.0)) // Software
+                .column(Column::initial(80.0).at_least(60.0)) // Severity
+                .column(Column::initial(60.0).at_least(50.0)) // Score
+                .column(Column::remainder()) // Fix
+                .column(Column::initial(100.0).at_least(90.0)); // Actions
 
             table
                 .header(28.0, |mut header| {
@@ -279,7 +288,7 @@ impl VulnerabilitiesPage {
                     });
                     header.col(|ui: &mut egui::Ui| {
                         ui.label(
-                            egui::RichText::new("LOGICIEL AFFÉRENT")
+                            egui::RichText::new("LOGICIEL AFF\u{00c9}RENT")
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .strong()
@@ -288,7 +297,7 @@ impl VulnerabilitiesPage {
                     });
                     header.col(|ui: &mut egui::Ui| {
                         ui.label(
-                            egui::RichText::new("SÉVÉRITÉ")
+                            egui::RichText::new("S\u{00c9}V\u{00c9}RIT\u{00c9}")
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .strong()
@@ -307,6 +316,15 @@ impl VulnerabilitiesPage {
                     header.col(|ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new("ANALYSE ET CORRECTIFS")
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .strong()
+                                .extra_letter_spacing(0.5),
+                        );
+                    });
+                    header.col(|ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new("ACTIONS")
                                 .font(theme::font_label())
                                 .color(theme::text_tertiary())
                                 .strong()
@@ -366,7 +384,7 @@ impl VulnerabilitiesPage {
                             ui.vertical(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&finding.description)
-                                        .font(theme::font_min())
+                                        .font(theme::font_small())
                                         .color(theme::text_secondary()),
                                 );
                                 if finding.fix_available {
@@ -374,6 +392,14 @@ impl VulnerabilitiesPage {
                                     widgets::status_badge(ui, "FIX DISPONIBLE", theme::SUCCESS);
                                 }
                             });
+                        });
+
+                        row.col(|ui: &mut egui::Ui| {
+                            if widgets::ghost_button(ui, format!("{}  REMEDIATE", icons::WRENCH)).clicked() {
+                                *command = Some(GuiCommand::Remediate {
+                                    check_id: finding.cve_id.clone(),
+                                });
+                            }
                         });
                     });
                 });

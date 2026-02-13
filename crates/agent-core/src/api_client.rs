@@ -551,7 +551,20 @@ impl ApiClient {
         let response = builder
             .send()
             .await
-            .map_err(|e| CommonError::network(format!("Heartbeat request failed: {}", e)))?;
+            .map_err(|e| {
+                let err_type = if e.is_timeout() {
+                    "timeout"
+                } else if e.is_connect() {
+                    "connection_failure"
+                } else if e.is_request() {
+                    "request_error"
+                } else if e.is_decode() {
+                    "decode_error"
+                } else {
+                    "unknown_network_error"
+                };
+                CommonError::network(format!("Heartbeat request failed ({}): {}", err_type, e))
+            })?;
 
         let status = response.status();
         if !status.is_success() {
@@ -709,7 +722,16 @@ impl ApiClient {
         let response = builder
             .send()
             .await
-            .map_err(|e| CommonError::network(format!("POST request failed: {}", e)))?;
+            .map_err(|e| {
+                let err_type = if e.is_timeout() {
+                    "timeout"
+                } else if e.is_connect() {
+                    "connection_failure"
+                } else {
+                    "network_error"
+                };
+                CommonError::network(format!("POST {} failed ({}): {}", path, err_type, e))
+            })?;
 
         let status = response.status();
         if !status.is_success() {

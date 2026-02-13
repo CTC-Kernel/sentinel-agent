@@ -23,8 +23,8 @@ pub struct ResourceLimits {
     pub max_cpu_active: f64,
     /// Maximum memory usage in bytes.
     pub max_memory_bytes: u64,
-    /// Maximum disk I/O operations per second.
-    pub max_disk_iops: u32,
+    /// Maximum disk I/O throughput in KB/s.
+    pub max_disk_kbps: u32,
     /// Maximum startup time in milliseconds.
     pub max_startup_ms: u64,
 }
@@ -36,7 +36,7 @@ impl Default for ResourceLimits {
             max_cpu_idle: 20.0, // 20% idle (increased from 15% for macOS headroom)
             max_cpu_active: 35.0, // 35% during active scans (increased for I/O heavy checks)
             max_memory_bytes: 350 * 1024 * 1024, // 350 MB (egui+OpenGL context needs ~200MB)
-            max_disk_iops: 100,
+            max_disk_kbps: 10000, // 10 MB/s
             max_startup_ms: 15000, // 15 seconds
         }
     }
@@ -49,8 +49,8 @@ pub struct ResourceUsage {
     pub cpu_percent: f64,
     /// Current memory usage in bytes.
     pub memory_bytes: u64,
-    /// Current disk I/O operations per second.
-    pub disk_iops: u32,
+    /// Current disk I/O throughput in KB/s.
+    pub disk_kbps: u32,
     /// Network I/O throughput (bytes per second).
     pub network_io_bytes: u64,
     /// Time since agent start in milliseconds.
@@ -62,14 +62,14 @@ impl ResourceUsage {
     pub fn is_within_idle_limits(&self, limits: &ResourceLimits) -> bool {
         self.cpu_percent <= limits.max_cpu_idle
             && self.memory_bytes <= limits.max_memory_bytes
-            && self.disk_iops <= limits.max_disk_iops
+            && self.disk_kbps <= limits.max_disk_kbps
     }
 
     /// Check if resource usage is within limits for active state.
     pub fn is_within_active_limits(&self, limits: &ResourceLimits) -> bool {
         self.cpu_percent <= limits.max_cpu_active
             && self.memory_bytes <= limits.max_memory_bytes
-            && self.disk_iops <= limits.max_disk_iops
+            && self.disk_kbps <= limits.max_disk_kbps
     }
 }
 
@@ -142,7 +142,7 @@ impl ResourceMonitor {
         };
 
         // Disk I/O collection using sysinfo for the current process
-        let disk_iops = if let Ok(mut sys) = self.sys.lock() {
+        let disk_kbps = if let Ok(mut sys) = self.sys.lock() {
             // Refresh only current process for efficiency
             let pid = sysinfo::get_current_pid()
                 .unwrap_or(sysinfo::Pid::from(std::process::id() as usize));
@@ -153,18 +153,20 @@ impl ResourceMonitor {
             );
             if let Some(process) = sys.process(pid) {
                 let usage = process.disk_usage();
-                (usage.read_bytes + usage.written_bytes) as u32
+                // sysinfo process.disk_usage() usually returns delta in bytes since last refresh
+                // Convert to KB for consistency
+                ((usage.read_bytes + usage.written_bytes) / 1024) as u32
             } else {
-                get_disk_iops()
+                get_disk_kbps()
             }
         } else {
-            get_disk_iops()
+            get_disk_kbps()
         };
 
         let usage = ResourceUsage {
             cpu_percent,
             memory_bytes,
-            disk_iops,
+            disk_kbps,
             network_io_bytes,
             uptime_ms,
         };
@@ -174,7 +176,7 @@ impl ResourceMonitor {
                 "Resource Usage: CPU={:.1}%, RAM={}MB, DiskIO={}, NetIO={}",
                 usage.cpu_percent,
                 usage.memory_bytes / 1024 / 1024,
-                usage.disk_iops,
+                usage.disk_kbps,
                 usage.network_io_bytes
             );
         }
@@ -395,7 +397,7 @@ impl ResourceMonitor {
 
         let cpu_over = usage.cpu_percent > cpu_limit;
         let memory_over = usage.memory_bytes > self.limits.max_memory_bytes;
-        let disk_over = usage.disk_iops > self.limits.max_disk_iops;
+        let disk_over = usage.disk_kbps > self.limits.max_disk_kbps;
 
         let within_limits = !cpu_over && !memory_over && !disk_over;
 
@@ -423,8 +425,8 @@ impl ResourceMonitor {
                 }
                 if disk_over {
                     breaches.push(format!(
-                        "DiskIO={} (limit: {})",
-                        usage.disk_iops, self.limits.max_disk_iops
+                        "DiskIO={}KB/s (limit: {}KB/s)",
+                        usage.disk_kbps, self.limits.max_disk_kbps
                     ));
                 }
 
@@ -458,7 +460,7 @@ impl ResourceMonitor {
 
         let cpu_over = usage.cpu_percent > cpu_limit;
         let memory_over = usage.memory_bytes > self.limits.max_memory_bytes;
-        let disk_over = usage.disk_iops > self.limits.max_disk_iops;
+        let disk_over = usage.disk_kbps > self.limits.max_disk_kbps;
 
         let within_limits = !cpu_over && !memory_over && !disk_over;
 
@@ -486,8 +488,8 @@ impl ResourceMonitor {
                 }
                 if disk_over {
                     breaches.push(format!(
-                        "DiskIO={} (limit: {})",
-                        usage.disk_iops, self.limits.max_disk_iops
+                        "DiskIO={}KB/s (limit: {}KB/s)",
+                        usage.disk_kbps, self.limits.max_disk_kbps
                     ));
                 }
 
@@ -981,7 +983,7 @@ fn get_disk_usage() -> (u64, u64) {
 }
 
 #[cfg(target_os = "linux")]
-fn get_disk_iops() -> u32 {
+fn get_disk_kbps() -> u32 {
     use std::fs;
     use std::sync::atomic::{AtomicU64, Ordering};
 
@@ -1369,7 +1371,7 @@ fn get_disk_usage() -> (u64, u64) {
 }
 
 #[cfg(target_os = "macos")]
-fn get_disk_iops() -> u32 {
+fn get_disk_kbps() -> u32 {
     use libc::{proc_pid_rusage, rusage_info_v4};
     use std::mem;
     use std::sync::atomic::{AtomicU64, Ordering};
@@ -1455,7 +1457,7 @@ fn get_disk_usage() -> (u64, u64) {
 }
 
 #[cfg(windows)]
-fn get_disk_iops() -> u32 {
+fn get_disk_kbps() -> u32 {
     use windows::Win32::System::Threading::{GetCurrentProcess, GetProcessIoCounters, IO_COUNTERS};
 
     unsafe {
@@ -1477,7 +1479,7 @@ fn get_system_cpu() -> f64 {
 }
 
 #[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
-fn get_disk_iops() -> u32 {
+fn get_disk_kbps() -> u32 {
     0
 }
 
@@ -1647,7 +1649,7 @@ mod tests {
         assert!((limits.max_cpu_idle - 20.0).abs() < f64::EPSILON);
         assert!((limits.max_cpu_active - 35.0).abs() < f64::EPSILON);
         assert_eq!(limits.max_memory_bytes, 350 * 1024 * 1024);
-        assert_eq!(limits.max_disk_iops, 100);
+        assert_eq!(limits.max_disk_kbps, 10000);
         assert_eq!(limits.max_startup_ms, 15000);
     }
 
@@ -1655,9 +1657,9 @@ mod tests {
     fn test_resource_usage_within_idle_limits() {
         let limits = ResourceLimits::default();
         let usage = ResourceUsage {
-            cpu_percent: 0.3,
-            memory_bytes: 50 * 1024 * 1024,
-            disk_iops: 5,
+            cpu_percent: 4.0,
+            memory_bytes: 80 * 1024 * 1024,
+            disk_kbps: 5,
             network_io_bytes: 0,
             uptime_ms: 1000,
         };
@@ -1683,7 +1685,7 @@ mod tests {
         let usage = ResourceUsage {
             cpu_percent: 4.0,
             memory_bytes: 80 * 1024 * 1024,
-            disk_iops: 8,
+            disk_kbps: 8,
             network_io_bytes: 0,
             uptime_ms: 1000,
         };

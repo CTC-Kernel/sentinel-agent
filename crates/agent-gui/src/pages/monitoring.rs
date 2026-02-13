@@ -1,7 +1,7 @@
 //! Monitoring page -- real-time system resource charts.
 //! Premium clean design - Apple-inspired, no fake glow effects.
 
-use egui::Ui;
+use egui::{RichText, Ui};
 use egui_plot::{Line, Plot, PlotPoints};
 use tracing::info;
 
@@ -117,8 +117,8 @@ impl MonitoringPage {
 
         let io_grid = widgets::ResponsiveGrid::new(450.0, theme::SPACE_LG);
         let io_items: Vec<(&str, &[[f64; 2]], egui::Color32, bool)> = vec![
-            ("E/S DISQUE", &disk_data, theme::WARNING, true),
-            ("RÉSEAU", &net_data, theme::INFO, true),
+            ("FLUX DISQUE (kB/s)", &disk_data, theme::WARNING, true),
+            ("FLUX RÉSEAU", &net_data, theme::INFO, true),
         ];
 
         io_grid.show(
@@ -289,7 +289,7 @@ impl MonitoringPage {
             if history.is_empty() {
                 Self::empty_chart_state(ui, height);
             } else {
-                Self::render_chart_with_stats(ui, history, line_color, fill, height, auto_y);
+                Self::render_chart_with_stats(ui, title, history, line_color, fill, height, auto_y);
             }
         });
     }
@@ -325,6 +325,7 @@ impl MonitoringPage {
 
     fn render_chart_with_stats(
         ui: &mut Ui,
+        title: &str,
         history: &[[f64; 2]],
         line_color: egui::Color32,
         fill: bool,
@@ -344,11 +345,19 @@ impl MonitoringPage {
                         .strong(),
                 );
                 ui.label(
-                    egui::RichText::new("ACTUEL")
+                    RichText::new("ACTUEL")
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
                         .strong(),
                 );
+                if title.contains("DISQUE") || title.contains("R\u{00c9}SEAU") {
+                    ui.label(
+                        RichText::new("kB/s")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .strong(),
+                    );
+                }
             });
         });
 

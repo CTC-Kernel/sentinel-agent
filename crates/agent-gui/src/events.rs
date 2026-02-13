@@ -217,8 +217,12 @@ pub enum GuiCommand {
         /// Alert ID.
         alert_id: String,
     },
-    /// Trigger a check for self-update.
+    /// Trigger a check for updates.
     CheckUpdate,
+    /// Mark all notifications as read.
+    MarkAllNotificationsRead,
+    /// Export audit trail to CSV.
+    ExportCsvAuditTrail,
 }
 
 #[cfg(test)]
