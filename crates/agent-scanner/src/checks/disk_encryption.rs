@@ -317,10 +317,10 @@ impl DiskEncryptionCheck {
         let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
         // fdesetup may require root, check for permission error or empty output
-        if !output.status.success() || (raw_output.trim().is_empty() && stderr.contains("root")) {
-             if let Ok(elevated) = agent_common::macos::run_with_elevation("fdesetup status") {
-                 raw_output = elevated;
-             }
+        if (!output.status.success() || (raw_output.trim().is_empty() && stderr.contains("root")))
+            && let Ok(elevated) = agent_common::macos::run_with_elevation("fdesetup status")
+        {
+            raw_output = elevated;
         }
 
         let is_enabled = raw_output.contains("FileVault is On");

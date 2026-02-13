@@ -289,15 +289,27 @@ impl<'a> NotificationsRepository<'a> {
     /// Convert a database row to a Notification.
     fn row_to_notification(row: &rusqlite::Row<'_>) -> rusqlite::Result<Notification> {
         let severity_str: String = row.get(3)?;
-        let severity =
-            NotificationSeverity::parse_str(&severity_str).unwrap_or(NotificationSeverity::Info);
+        let severity = NotificationSeverity::parse_str(&severity_str).unwrap_or_else(|| {
+            tracing::warn!(
+                "Unknown notification severity '{}' in database, falling back to Info",
+                severity_str
+            );
+            NotificationSeverity::Info
+        });
 
         let read_int: i32 = row.get(4)?;
 
         let created_at_str: String = row.get(6)?;
         let created_at = DateTime::parse_from_rfc3339(&created_at_str)
             .map(|dt| dt.with_timezone(&Utc))
-            .unwrap_or_else(|_| Utc::now());
+            .unwrap_or_else(|e| {
+                tracing::warn!(
+                    "Malformed timestamp '{}' in notifications: {}, using current time",
+                    created_at_str,
+                    e
+                );
+                Utc::now()
+            });
 
         let read_at_str: Option<String> = row.get(7)?;
         let read_at = read_at_str.and_then(|s| {

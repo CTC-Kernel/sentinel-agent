@@ -325,7 +325,9 @@ impl HeartbeatService {
                 memory_bytes: mem_bytes,
                 memory_percent: mem_percent,
                 user: p.user_id().map(|u| u.to_string()).unwrap_or_else(|| "unknown".to_string()),
-                command_line: Some(p.cmd().iter().map(|s| s.to_string_lossy()).collect::<Vec<_>>().join(" ")),
+                // RH-3: Only send the process name (first element of cmd()),
+                // NOT the full argument list which may contain secrets/tokens.
+                command_line: p.cmd().first().map(|s| s.to_string_lossy().to_string()),
             });
         }
         
@@ -625,6 +627,7 @@ mod tests {
             ],
             config_changed: true,
             rules_changed: false,
+            organization_name: None,
         };
 
         let commands = service.process_commands(&response).await;

@@ -141,7 +141,7 @@ impl Sidebar {
                                     bell_response.rect.right_top() + egui::vec2(-4.0, -4.0),
                                     egui::vec2(16.0, 16.0),
                                 );
-                                let rounding = CornerRadius::same(8);
+                                let rounding = CornerRadius::same(theme::BUTTON_ROUNDING);
                                 ui.painter().rect_filled(
                                     badge_rect,
                                     rounding,
@@ -381,7 +381,7 @@ impl Sidebar {
                 };
                 let badge_center = rect.right_center() + Vec2::new(-24.0, 0.0);
                 let badge_rect = egui::Rect::from_center_size(badge_center, Vec2::new(22.0, 16.0));
-                let rounding = CornerRadius::same(8);
+                let rounding = CornerRadius::same(theme::BUTTON_ROUNDING);
                 ui.painter()
                     .rect_filled(badge_rect, rounding, theme::badge_bg(theme::ERROR));
                 ui.painter().rect_stroke(

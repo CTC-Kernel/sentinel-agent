@@ -154,10 +154,22 @@ impl<'a> DiscoveredDevicesRepository<'a> {
             open_ports,
             first_seen: DateTime::parse_from_rfc3339(&first_seen_str)
                 .map(|dt| dt.with_timezone(&Utc))
-                .unwrap_or_else(|_| Utc::now()),
+                .unwrap_or_else(|e| {
+                    tracing::warn!(
+                        "Failed to parse device first_seen timestamp '{}': {}, using current time",
+                        first_seen_str, e
+                    );
+                    Utc::now()
+                }),
             last_seen: DateTime::parse_from_rfc3339(&last_seen_str)
                 .map(|dt| dt.with_timezone(&Utc))
-                .unwrap_or_else(|_| Utc::now()),
+                .unwrap_or_else(|e| {
+                    tracing::warn!(
+                        "Failed to parse device last_seen timestamp '{}': {}, using current time",
+                        last_seen_str, e
+                    );
+                    Utc::now()
+                }),
             is_gateway: row.get::<_, i32>(8)? != 0,
             subnet: row.get(9)?,
         })

@@ -110,11 +110,11 @@ pub fn show_tooltip_at(
     let tooltip_rect = egui::Rect::from_min_size(tooltip_pos, tooltip_size);
 
     ctx.layer_painter(layer_id)
-        .add(theme::premium_shadow(8, 40).as_shape(tooltip_rect, CornerRadius::same(6)));
+        .add(theme::premium_shadow(8, 40).as_shape(tooltip_rect, CornerRadius::same(theme::ROUNDING_MD)));
 
     ctx.layer_painter(layer_id).rect(
         tooltip_rect,
-        CornerRadius::same(6),
+        CornerRadius::same(theme::ROUNDING_MD),
         theme::bg_elevated(),
         egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()),
         egui::epaint::StrokeKind::Inside,

@@ -304,17 +304,21 @@ impl Default for IntegrityChecker {
     }
 }
 
-/// Perform integrity check and exit if failed.
+/// Perform integrity check and panic if failed.
 ///
 /// This is a convenience function for use at startup.
-/// If integrity check fails, logs critical error and exits with code 1.
+/// If integrity check fails, logs critical error and panics so the panic
+/// handler in main.rs can perform graceful cleanup (including key zeroization)
+/// instead of skipping destructors via `process::exit`.
 pub async fn verify_or_exit(db: &Database) -> SelfCheckResult {
     let checker = match IntegrityChecker::new() {
         Ok(c) => c,
         Err(e) => {
             error!("Failed to create integrity checker: {}", e);
-            error!("Agent cannot verify its integrity - exiting for safety");
-            std::process::exit(1);
+            error!("Agent cannot verify its integrity - aborting for safety");
+            // RH-5: Use panic! instead of process::exit(1) so destructors
+            // (including key zeroization) run via the panic hook in main.rs.
+            panic!("integrity check failed: cannot create integrity checker: {}", e);
         }
     };
 
@@ -323,8 +327,10 @@ pub async fn verify_or_exit(db: &Database) -> SelfCheckResult {
     if !result.passed {
         error!("CRITICAL: Agent binary integrity check FAILED");
         error!("The agent may have been tampered with.");
-        error!("Exiting for security reasons.");
-        std::process::exit(1);
+        error!("Aborting for security reasons.");
+        // RH-5: Use panic! instead of process::exit(1) so destructors
+        // (including key zeroization) run via the panic hook in main.rs.
+        panic!("integrity check failed: binary tampered");
     }
 
     result

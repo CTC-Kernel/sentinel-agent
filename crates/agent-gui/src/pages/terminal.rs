@@ -186,7 +186,7 @@ impl TerminalPage {
                     if widgets::chip_button(ui, name, selected, color).clicked() {
                         state.terminal.filter_level = level;
                     }
-                    ui.add_space(4.0);
+                    ui.add_space(theme::SPACE_XS);
                 }
 
                 ui.add_space(theme::SPACE_LG);
@@ -202,7 +202,7 @@ impl TerminalPage {
                 ui.add_space(theme::SPACE_XS);
                 let search_edit = egui::TextEdit::singleline(&mut state.terminal.search)
                     .desired_width(200.0)
-                    .margin(egui::Margin::symmetric(8, 4))
+                    .margin(egui::Margin::symmetric(theme::SPACE_SM as i8, theme::SPACE_XS as i8))
                     .font(egui::FontId::monospace(11.0))
                     .hint_text("rechercher...");
                 ui.add(search_edit);
@@ -247,7 +247,7 @@ impl TerminalPage {
         egui::Frame::new()
             .fill(terminal_bg)
             .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
-            .inner_margin(egui::Margin::same(12))
+            .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
             .show(ui, |ui: &mut egui::Ui| {
                 ui.set_min_height(400.0);
 

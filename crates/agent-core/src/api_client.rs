@@ -9,11 +9,16 @@
 use agent_common::config::AgentConfig;
 use agent_common::constants::{AGENT_VERSION, HTTP_CONNECT_TIMEOUT_SECS, HTTP_TIMEOUT_SECS};
 use agent_common::error::{CommonError, Result};
+use futures_util::StreamExt;
 use reqwest::{Client, ClientBuilder};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
+use tokio::io::AsyncWriteExt;
 use tracing::{debug, error, info, warn};
 use zeroize::{Zeroize, ZeroizeOnDrop};
+
+/// Maximum download size in bytes (500 MB).
+const MAX_DOWNLOAD_SIZE: u64 = 500 * 1024 * 1024;
 
 /// Enrollment request sent to the server.
 #[derive(Debug, Serialize)]
@@ -752,6 +757,10 @@ impl ApiClient {
     }
 
     /// Download a file from a URL to the specified path.
+    ///
+    /// Streams the response directly to disk using `tokio::fs::File` to avoid
+    /// buffering the entire payload in memory (P-HIGH-02). Enforces a maximum
+    /// download size of [`MAX_DOWNLOAD_SIZE`] bytes (RC-2).
     pub async fn download_file(&self, url: &str, destination: &std::path::Path) -> Result<()> {
         debug!("Downloading {} to {:?}", url, destination);
 
@@ -769,13 +778,49 @@ impl ApiClient {
             )));
         }
 
-        let content = response
-            .bytes()
-            .await
-            .map_err(|e| CommonError::network(format!("Failed to read download body: {}", e)))?;
+        // RC-2: Check Content-Length header before downloading
+        if let Some(content_length) = response.content_length()
+            && content_length > MAX_DOWNLOAD_SIZE
+        {
+            return Err(CommonError::network(format!(
+                "Download too large: {} bytes (max {} bytes)",
+                content_length, MAX_DOWNLOAD_SIZE
+            )));
+        }
 
-        std::fs::write(destination, content)
-            .map_err(|e| CommonError::io(format!("Failed to save download: {}", e)))?;
+        // P-HIGH-02: Stream response chunks directly to disk
+        let mut file = tokio::fs::File::create(destination)
+            .await
+            .map_err(|e| CommonError::io(format!("Failed to create download file: {}", e)))?;
+
+        let mut stream = response.bytes_stream();
+        let mut total_bytes: u64 = 0;
+
+        while let Some(chunk_result) = stream.next().await {
+            let chunk = chunk_result
+                .map_err(|e| CommonError::network(format!("Failed to read download chunk: {}", e)))?;
+            total_bytes += chunk.len() as u64;
+            if total_bytes > MAX_DOWNLOAD_SIZE {
+                // Clean up partial file
+                drop(file);
+                if let Err(e) = tokio::fs::remove_file(destination).await {
+                    tracing::warn!("Failed to clean up partial download file: {}", e);
+                }
+                return Err(CommonError::network(format!(
+                    "Download exceeded size limit: read {} bytes (max {} bytes)",
+                    total_bytes, MAX_DOWNLOAD_SIZE
+                )));
+            }
+            file.write_all(&chunk)
+                .await
+                .map_err(|e| CommonError::io(format!("Failed to write download chunk: {}", e)))?;
+        }
+
+        file.flush()
+            .await
+            .map_err(|e| CommonError::io(format!("Failed to flush download file: {}", e)))?;
+
+        debug!("Downloaded {} bytes to {:?}", total_bytes, destination);
 
         Ok(())
     }

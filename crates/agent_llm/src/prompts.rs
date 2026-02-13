@@ -125,7 +125,7 @@ impl SecurityPromptBuilder {
     pub fn security_context(mut self, context: &SecurityContext) -> Self {
         self.builder = self.builder
             .set("system_info", &context.system_info)
-            .set("threat_level", &context.threat_level.to_string())
+            .set("threat_level", context.threat_level.to_string())
             .set("compliance_framework", &context.compliance_framework)
             .set("asset_type", &context.asset_type);
         self
@@ -137,7 +137,7 @@ impl SecurityPromptBuilder {
             .set("scan_summary", &results.summary)
             .set("failed_checks", &results.failed_checks)
             .set("security_findings", &results.security_findings)
-            .set("compliance_score", &results.compliance_score.to_string());
+            .set("compliance_score", results.compliance_score.to_string());
         self
     }
 
