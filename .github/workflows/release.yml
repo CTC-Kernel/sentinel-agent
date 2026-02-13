@@ -433,7 +433,10 @@ jobs:
           # Copy certificate to package
           Copy-Item "sentinel-selfsigned.cer" "$packageDir\"
           
-          Write-Host "✅ Self-signed MSI package created: SentinelAgentSelfSigned-$version.msi"
+          # Copy MSI to root for checksums and artifact upload consistency
+          Copy-Item "$packageDir\SentinelAgentSelfSigned-$version.msi" "."
+          
+          Write-Host "✅ Self-signed MSI package created and copied to root: SentinelAgentSelfSigned-$version.msi"
         shell: pwsh
 
       - name: Create Installation Scripts
@@ -451,7 +454,15 @@ jobs:
           
           $readmeContent | Out-File -FilePath "$packageDir\README.txt" -Encoding ASCII
           
-          Write-Host "✅ Self-signed MSI package created: SentinelAgentSelfSigned-$version.msi"
+          Write-Host "✅ Installation scripts and README created in $packageDir"
+        shell: pwsh
+
+      - name: Create ZIP Package
+        run: |
+          $version = "${{ env.RELEASE_VERSION }}"
+          $packageDir = "SentinelAgent-SelfSigned-$version"
+          Compress-Archive -Path "$packageDir\*" -DestinationPath "SentinelAgent-SelfSigned-$version.zip" -Force
+          Write-Host "✅ ZIP package created: SentinelAgent-SelfSigned-$version.zip"
         shell: pwsh
 
       - name: Generate checksums
@@ -469,6 +480,7 @@ jobs:
           name: sentinel-agent-windows-selfsigned
           path: |
             SentinelAgentSelfSigned-*.msi
+            SentinelAgent-SelfSigned-*.zip
             SHA256SUMS-windows-selfsigned.txt
 
   # ═══════════════════════════════════════════════════════════════════
@@ -737,6 +749,7 @@ jobs:
           gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-*" "$BUCKET/macos/"
           gcloud storage cp "artifacts/sentinel-agent-windows/SentinelAgentSetup-*" "$BUCKET/windows/"
           gcloud storage cp "artifacts/sentinel-agent-windows-selfsigned/SentinelAgentSelfSigned-*.msi" "$BUCKET/windows/"
+          gcloud storage cp "artifacts/sentinel-agent-windows-selfsigned/SentinelAgent-SelfSigned-*.zip" "$BUCKET/windows/"
           gcloud storage cp "artifacts/sentinel-agent-linux-deb/sentinel-agent_*" "$BUCKET/linux_deb/"
           gcloud storage cp "artifacts/sentinel-agent-linux-rpm/sentinel-agent-*" "$BUCKET/linux_rpm/"
           gcloud storage cp "artifacts/*/SHA256SUMS*.txt" "$BUCKET/" 2>/dev/null || true
