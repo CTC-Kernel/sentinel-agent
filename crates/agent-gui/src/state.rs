@@ -5,7 +5,6 @@
 
 use std::collections::VecDeque;
 use eframe::egui;
-use crate::dto::{GuiCheckStatus, GuiLogEntry, GuiNotification, GuiPolicySummary};
 
 // ---------------------------------------------------------------------------
 // Network
@@ -364,65 +363,30 @@ impl AppState {
     }
 
     /// Process an event from the agent runtime.
+    /// 
+    /// This method centralizes all state updates and ensures reactive computation
+    /// of summary statistics. Each event handler updates the appropriate sub-state
+    /// and triggers necessary recomputations.
     pub fn apply_event(&mut self, event: crate::events::AgentEvent) {
         use crate::events::AgentEvent;
 
         match event {
             AgentEvent::StatusChanged { summary } => {
                 self.summary = summary;
+                self.recompute_summary_stats();
             }
             AgentEvent::CheckCompleted { result } => {
-                if let Some(existing) = self
-                    .checks
-                    .iter_mut()
-                    .find(|c| c.check_id == result.check_id)
-                {
-                    *existing = result;
-                } else {
-                    self.checks.push(result);
-                }
+                self.update_check_result(result);
                 self.recompute_policy();
+                self.recompute_summary_stats();
             }
             AgentEvent::ResourceUpdate { usage } => {
-                const MAX_HISTORY: usize = 300;
-                let t = self.resources.uptime_secs as f64;
-
-                if usage.cpu_percent > 0.0 {
-                    self.monitoring.cpu_history.push_back([t, usage.cpu_percent]);
-                    while self.monitoring.cpu_history.len() > MAX_HISTORY {
-                        self.monitoring.cpu_history.pop_front();
-                    }
-                }
-                if usage.memory_percent > 0.0 {
-                    self.monitoring.memory_history.push_back([t, usage.memory_percent]);
-                    while self.monitoring.memory_history.len() > MAX_HISTORY {
-                        self.monitoring.memory_history.pop_front();
-                    }
-                }
-                if usage.disk_kbps > 0 {
-                    self.monitoring.disk_io_history.push_back([t, usage.disk_kbps as f64]);
-                    while self.monitoring.disk_io_history.len() > MAX_HISTORY {
-                        self.monitoring.disk_io_history.pop_front();
-                    }
-                }
-                if usage.network_io_bytes > 0 {
-                    self.monitoring.network_io_history.push_back([t, usage.network_io_bytes as f64 / 1024.0]);
-                    while self.monitoring.network_io_history.len() > MAX_HISTORY {
-                        self.monitoring.network_io_history.pop_front();
-                    }
-                }
-
-                self.resources = usage;
+                self.update_resource_usage(usage);
+                self.recompute_summary_stats();
             }
             AgentEvent::Notification { notification } => {
-                self.logs.push_front(crate::dto::GuiLogEntry {
-                    id: notification.id,
-                    timestamp: notification.timestamp,
-                    level: notification.severity.clone(),
-                    message: notification.title.clone(),
-                    source: None,
-                });
-                self.logs.truncate(200);
+                self.add_notification(notification);
+                self.recompute_summary_stats();
             }
             AgentEvent::SyncStatus {
                 syncing,
@@ -430,20 +394,8 @@ impl AppState {
                 last_sync_at,
                 error,
             } => {
-                self.sync.in_progress = syncing;
-                self.summary.pending_sync_count = pending_count;
-                if let Some(ts) = last_sync_at {
-                    self.summary.last_sync_at = Some(ts);
-                    self.sync.history.push_front(SyncHistoryEntry {
-                        timestamp: ts,
-                        success: error.is_none(),
-                        message: error
-                            .clone()
-                            .unwrap_or_else(|| "Synchronisation terminée".to_string()),
-                    });
-                    self.sync.history.truncate(50);
-                }
-                self.sync.error = error;
+                self.update_sync_status(syncing, pending_count, last_sync_at, error);
+                self.recompute_summary_stats();
             }
             AgentEvent::NetworkUpdate {
                 interfaces_count,
@@ -452,12 +404,8 @@ impl AppState {
                 primary_ip,
                 primary_mac,
             } => {
-                self.network.interface_count = interfaces_count;
-                self.network.connection_count = connections_count;
-                self.network.alert_count = alerts_count;
-                self.network.primary_ip = primary_ip;
-                self.network.primary_mac = primary_mac;
-                self.network.last_scan = Some(chrono::Utc::now());
+                self.update_network_summary(interfaces_count, connections_count, alerts_count, primary_ip, primary_mac);
+                self.recompute_summary_stats();
             }
             AgentEvent::NetworkDetailUpdate {
                 interfaces,
@@ -468,29 +416,26 @@ impl AppState {
             }
             AgentEvent::VulnerabilityUpdate { summary } => {
                 self.vulnerability_summary = Some(summary);
+                self.recompute_summary_stats();
             }
             AgentEvent::SoftwareUpdate { packages } => {
                 self.software.packages = packages;
+                self.recompute_summary_stats();
             }
             AgentEvent::VulnerabilityFindings { findings } => {
                 self.vulnerability_findings = findings;
+                self.recompute_summary_stats();
             }
             AgentEvent::TerminalLog { entry } => {
-                self.terminal.event_count += 1;
-                if entry.level == "ERROR" {
-                    self.terminal.error_count += 1;
-                }
-                self.terminal.lines.push_back(entry);
-                while self.terminal.lines.len() > 500 {
-                    self.terminal.lines.pop_front();
-                }
+                self.add_terminal_log(entry);
             }
             AgentEvent::DiscoveryUpdate { devices } => {
                 self.discovery.devices = devices;
                 self.discovery.in_progress = false;
                 self.discovery.progress = 1.0;
                 self.discovery.phase = "Terminée".to_string();
-                self.cartography.layout = None; 
+                self.cartography.layout = None;
+                self.recompute_summary_stats();
             }
             AgentEvent::DiscoveryProgress {
                 phase,
@@ -507,19 +452,23 @@ impl AppState {
             } => {
                 if success && let Some(id) = agent_id {
                     self.summary.agent_id = Some(id);
+                    self.recompute_summary_stats();
                 }
             }
             AgentEvent::FimAlert { alert } => {
                 self.fim.alerts.push_front(alert);
                 self.fim.alerts.truncate(500);
+                self.recompute_summary_stats();
             }
             AgentEvent::UsbEvent { event } => {
                 self.threats.usb_events.push_front(event);
                 self.threats.usb_events.truncate(200);
+                self.recompute_summary_stats();
             }
             AgentEvent::SuspiciousProcess { process } => {
                 self.threats.suspicious_processes.push_front(process);
                 self.threats.suspicious_processes.truncate(200);
+                self.recompute_summary_stats();
             }
             AgentEvent::FimStats {
                 monitored_count,
@@ -527,12 +476,148 @@ impl AppState {
             } => {
                 self.fim.monitored_count = monitored_count;
                 self.fim.changes_today = changes_today;
+                self.recompute_summary_stats();
             }
             AgentEvent::ShuttingDown => {}
             AgentEvent::UpdateStatusChanged { status } => {
                 self.settings.update_status = status;
             }
         }
+    }
+
+    /// Update check results and maintain history
+    fn update_check_result(&mut self, result: crate::dto::GuiCheckResult) {
+        if let Some(existing) = self
+            .checks
+            .iter_mut()
+            .find(|c| c.check_id == result.check_id)
+        {
+            *existing = result;
+        } else {
+            self.checks.push(result);
+        }
+    }
+
+    /// Update resource usage with history management
+    fn update_resource_usage(&mut self, usage: crate::dto::GuiResourceUsage) {
+        const MAX_HISTORY: usize = 300;
+        let t = self.resources.uptime_secs as f64;
+
+        if usage.cpu_percent > 0.0 {
+            self.monitoring.cpu_history.push_back([t, usage.cpu_percent]);
+            while self.monitoring.cpu_history.len() > MAX_HISTORY {
+                self.monitoring.cpu_history.pop_front();
+            }
+        }
+        if usage.memory_percent > 0.0 {
+            self.monitoring.memory_history.push_back([t, usage.memory_percent]);
+            while self.monitoring.memory_history.len() > MAX_HISTORY {
+                self.monitoring.memory_history.pop_front();
+            }
+        }
+        if usage.disk_kbps > 0 {
+            self.monitoring.disk_io_history.push_back([t, usage.disk_kbps as f64]);
+            while self.monitoring.disk_io_history.len() > MAX_HISTORY {
+                self.monitoring.disk_io_history.pop_front();
+            }
+        }
+        if usage.network_io_bytes > 0 {
+            self.monitoring.network_io_history.push_back([t, usage.network_io_bytes as f64 / 1024.0]);
+            while self.monitoring.network_io_history.len() > MAX_HISTORY {
+                self.monitoring.network_io_history.pop_front();
+            }
+        }
+
+        self.resources = usage;
+    }
+
+    /// Add notification and maintain log history
+    fn add_notification(&mut self, notification: crate::dto::GuiNotification) {
+        self.logs.push_front(crate::dto::GuiLogEntry {
+            id: notification.id,
+            timestamp: notification.timestamp,
+            level: notification.severity.clone(),
+            message: notification.title.clone(),
+            source: None,
+        });
+        self.logs.truncate(200);
+        
+        self.notifications.push(notification);
+        self.notifications.truncate(100);
+    }
+
+    /// Update synchronization status with history
+    fn update_sync_status(
+        &mut self,
+        syncing: bool,
+        pending_count: u32,
+        last_sync_at: Option<chrono::DateTime<chrono::Utc>>,
+        error: Option<String>,
+    ) {
+        self.sync.in_progress = syncing;
+        self.summary.pending_sync_count = pending_count;
+        
+        if let Some(ts) = last_sync_at {
+            self.summary.last_sync_at = Some(ts);
+            self.sync.history.push_front(SyncHistoryEntry {
+                timestamp: ts,
+                success: error.is_none(),
+                message: error
+                    .clone()
+                    .unwrap_or_else(|| "Synchronisation terminée".to_string()),
+            });
+            self.sync.history.truncate(50);
+        }
+        self.sync.error = error;
+    }
+
+    /// Update network summary information
+    fn update_network_summary(
+        &mut self,
+        interfaces_count: u32,
+        connections_count: u32,
+        alerts_count: u32,
+        primary_ip: Option<String>,
+        primary_mac: Option<String>,
+    ) {
+        self.network.interface_count = interfaces_count;
+        self.network.connection_count = connections_count;
+        self.network.alert_count = alerts_count;
+        self.network.primary_ip = primary_ip;
+        self.network.primary_mac = primary_mac;
+        self.network.last_scan = Some(chrono::Utc::now());
+    }
+
+    /// Add terminal log entry with statistics
+    fn add_terminal_log(&mut self, entry: crate::events::TerminalLogEntry) {
+        self.terminal.event_count += 1;
+        if entry.level == "ERROR" {
+            self.terminal.error_count += 1;
+        }
+        self.terminal.lines.push_back(entry);
+        while self.terminal.lines.len() > 500 {
+            self.terminal.lines.pop_front();
+        }
+    }
+
+    /// Recompute summary statistics reactively
+    fn recompute_summary_stats(&mut self) {
+        // Update compliance score from policy
+        if let Some(policy_summary) = &self.summary.policy_summary {
+            self.summary.compliance_score = if policy_summary.total_policies > 0 {
+                Some((policy_summary.passing as f32 / policy_summary.total_policies as f32) * 100.0)
+            } else {
+                None
+            };
+        }
+
+        // Update counts that exist in AgentSummary
+        // Note: Some fields like vulnerability_count, software_count, etc.
+        // may need to be added to the AgentSummary struct in the future
+        // For now, we'll skip the non-existent fields
+
+        // Update notification count
+        self.unread_notification_count = self.notifications.len() as u32;
     }
 
     fn recompute_policy(&mut self) {
