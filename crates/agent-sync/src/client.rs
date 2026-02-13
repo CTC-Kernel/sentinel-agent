@@ -8,9 +8,25 @@ use agent_common::config::AgentConfig;
 use agent_common::constants::{
     AGENT_NAME, AGENT_VERSION, HTTP_CONNECT_TIMEOUT_SECS, HTTP_TIMEOUT_SECS,
 };
+use futures_util::StreamExt;
 use reqwest::{Client, ClientBuilder, header, tls};
 use std::time::Duration;
 use tracing::debug;
+
+/// Maximum download size in bytes (500 MB).
+const MAX_DOWNLOAD_SIZE: u64 = 500 * 1024 * 1024;
+
+/// Maximum length of response body text shown in logs.
+const MAX_LOG_BODY_LEN: usize = 200;
+
+/// Truncate a string for safe logging, appending "[truncated]" if it exceeds the limit.
+fn truncate_for_log(s: &str, max_len: usize) -> String {
+    if s.len() > max_len {
+        format!("{}... [truncated, total {} bytes]", &s[..max_len], s.len())
+    } else {
+        s.to_string()
+    }
+}
 
 /// Minimum TLS version for all connections (NFR-S1).
 const MIN_TLS_VERSION: tls::Version = tls::Version::TLS_1_3;
@@ -405,7 +421,7 @@ impl HttpClient {
         } else {
             // Try to parse error response
             let error_text = response.text().await.unwrap_or_default();
-            debug!("Error response body: {}", error_text);
+            debug!("Error response body: {}", truncate_for_log(&error_text, MAX_LOG_BODY_LEN));
 
             if let Ok(api_error) =
                 serde_json::from_str::<crate::types::ApiErrorResponse>(&error_text)
@@ -420,6 +436,8 @@ impl HttpClient {
     /// Download binary data from a URL.
     ///
     /// This is used for downloading update packages.
+    /// Enforces a maximum download size of [`MAX_DOWNLOAD_SIZE`] bytes
+    /// and streams the response to avoid buffering the entire payload in memory.
     pub async fn download(&self, url: &str) -> SyncResult<Vec<u8>> {
         // Use the URL directly if it's an absolute URL, otherwise build from base
         let full_url = if url.starts_with("http://") || url.starts_with("https://") {
@@ -449,14 +467,37 @@ impl HttpClient {
             ));
         }
 
-        let bytes = response
-            .bytes()
-            .await
-            .map_err(|e| SyncError::Config(format!("Failed to read download response: {}", e)))?;
+        // RC-2: Check Content-Length header before downloading
+        if let Some(content_length) = response.content_length()
+            && content_length > MAX_DOWNLOAD_SIZE
+        {
+            return Err(SyncError::Config(format!(
+                "Download too large: {} bytes (max {} bytes)",
+                content_length, MAX_DOWNLOAD_SIZE
+            )));
+        }
 
-        debug!("Downloaded {} bytes", bytes.len());
+        // P-HIGH-01: Stream the response with a running byte counter
+        let mut stream = response.bytes_stream();
+        let mut buffer = Vec::new();
+        let mut total_bytes: u64 = 0;
 
-        Ok(bytes.to_vec())
+        while let Some(chunk_result) = stream.next().await {
+            let chunk = chunk_result
+                .map_err(|e| SyncError::Config(format!("Failed to read download chunk: {}", e)))?;
+            total_bytes += chunk.len() as u64;
+            if total_bytes > MAX_DOWNLOAD_SIZE {
+                return Err(SyncError::Config(format!(
+                    "Download exceeded size limit: read {} bytes (max {} bytes)",
+                    total_bytes, MAX_DOWNLOAD_SIZE
+                )));
+            }
+            buffer.extend_from_slice(&chunk);
+        }
+
+        debug!("Downloaded {} bytes", total_bytes);
+
+        Ok(buffer)
     }
 
     /// Handle an HTTP response, extracting the body or error.
@@ -469,13 +510,13 @@ impl HttpClient {
 
         if status.is_success() {
             let body_text = response.text().await.map_err(SyncError::Http)?;
-            debug!("Response body: {}", body_text);
+            debug!("Response body: {}", truncate_for_log(&body_text, MAX_LOG_BODY_LEN));
 
             let body = serde_json::from_str::<R>(&body_text).map_err(|e| {
                 tracing::error!(
                     "Failed to decode response body: {}. Body was: {}",
                     e,
-                    body_text
+                    truncate_for_log(&body_text, MAX_LOG_BODY_LEN)
                 );
                 SyncError::Serialization(e)
             })?;
@@ -483,7 +524,7 @@ impl HttpClient {
         } else {
             // Try to parse error response
             let error_text = response.text().await.unwrap_or_default();
-            debug!("Error response body: {}", error_text);
+            debug!("Error response body: {}", truncate_for_log(&error_text, MAX_LOG_BODY_LEN));
 
             // Try to parse as API error
             if let Ok(api_error) =

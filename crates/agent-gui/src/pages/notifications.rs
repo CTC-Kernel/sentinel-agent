@@ -93,7 +93,7 @@ impl NotificationsPage {
                 egui::Frame::new()
                     .fill(bg)
                     .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
-                    .inner_margin(egui::Margin::same(16))
+                    .inner_margin(egui::Margin::same(theme::SPACE as i8))
                     .stroke(egui::Stroke::new(
                         if notif.read { 0.5 } else { 1.0 },
                         if notif.read {
@@ -116,7 +116,7 @@ impl NotificationsPage {
                                     4.0,
                                     theme::ACCENT,
                                 );
-                                ui.add_space(12.0);
+                                ui.add_space(theme::SPACE_MD);
                             }
 
                             ui.vertical(|ui: &mut egui::Ui| {

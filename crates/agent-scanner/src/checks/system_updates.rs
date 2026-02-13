@@ -267,9 +267,10 @@ impl SystemUpdatesCheck {
     #[cfg(target_os = "linux")]
     fn check_apt(&self, status: &mut SystemUpdatesStatus) -> bool {
         // Check if apt is available
-        let apt_check = Command::new("which").args(["apt"]).output();
-
-        if apt_check.is_err() || !apt_check.unwrap().status.success() {
+        let Ok(apt_output) = Command::new("which").args(["apt"]).output() else {
+            return false;
+        };
+        if !apt_output.status.success() {
             return false;
         }
 
@@ -336,9 +337,10 @@ impl SystemUpdatesCheck {
 
     #[cfg(target_os = "linux")]
     fn check_dnf(&self, status: &mut SystemUpdatesStatus) -> bool {
-        let dnf_check = Command::new("which").args(["dnf"]).output();
-
-        if dnf_check.is_err() || !dnf_check.unwrap().status.success() {
+        let Ok(dnf_output) = Command::new("which").args(["dnf"]).output() else {
+            return false;
+        };
+        if !dnf_output.status.success() {
             return false;
         }
 
@@ -385,9 +387,10 @@ impl SystemUpdatesCheck {
 
     #[cfg(target_os = "linux")]
     fn check_yum(&self, status: &mut SystemUpdatesStatus) -> bool {
-        let yum_check = Command::new("which").args(["yum"]).output();
-
-        if yum_check.is_err() || !yum_check.unwrap().status.success() {
+        let Ok(yum_output) = Command::new("which").args(["yum"]).output() else {
+            return false;
+        };
+        if !yum_output.status.success() {
             return false;
         }
 

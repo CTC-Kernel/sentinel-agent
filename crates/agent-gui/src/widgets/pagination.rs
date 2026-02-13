@@ -170,7 +170,7 @@ impl Pagination {
                 changed = true;
             }
 
-            ui.add_space(4.0);
+            ui.add_space(theme::SPACE_XS);
 
             // Page numbers
             let visible_pages = self.calculate_visible_pages(state);
@@ -198,7 +198,7 @@ impl Pagination {
                 }
             }
 
-            ui.add_space(4.0);
+            ui.add_space(theme::SPACE_XS);
 
             // Next button
             if self.nav_button(ui, icons::CHEVRON_RIGHT, false, state.has_next()) {
@@ -346,7 +346,7 @@ impl Pagination {
             // Background
             if is_hovered {
                 ui.painter()
-                    .rect_filled(rect, CornerRadius::same(6), theme::hover_bg());
+                    .rect_filled(rect, CornerRadius::same(theme::ROUNDING_MD), theme::hover_bg());
             }
 
             // Icon
@@ -379,7 +379,7 @@ impl Pagination {
         if response.has_focus() {
             ui.painter().rect_stroke(
                 rect,
-                CornerRadius::same(6),
+                CornerRadius::same(theme::ROUNDING_MD),
                 theme::focus_ring(),
                 egui::StrokeKind::Outside,
             );
@@ -405,12 +405,12 @@ impl Pagination {
             };
 
             if bg != Color32::TRANSPARENT {
-                ui.painter().rect_filled(rect, CornerRadius::same(6), bg);
+                ui.painter().rect_filled(rect, CornerRadius::same(theme::ROUNDING_MD), bg);
             }
 
             // Text
             let color = if is_current {
-                Color32::WHITE
+                theme::text_on_accent()
             } else if is_hovered {
                 theme::text_primary()
             } else {
@@ -430,7 +430,7 @@ impl Pagination {
         if response.has_focus() {
             ui.painter().rect_stroke(
                 rect,
-                CornerRadius::same(6),
+                CornerRadius::same(theme::ROUNDING_MD),
                 theme::focus_ring(),
                 egui::StrokeKind::Outside,
             );

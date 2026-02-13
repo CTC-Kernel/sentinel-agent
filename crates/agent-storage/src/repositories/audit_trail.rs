@@ -171,7 +171,13 @@ impl<'a> AuditTrailRepository<'a> {
         let timestamp_str: String = row.get(1)?;
         let timestamp = DateTime::parse_from_rfc3339(&timestamp_str)
             .map(|dt| dt.with_timezone(&Utc))
-            .unwrap_or_else(|_| Utc::now());
+            .unwrap_or_else(|e| {
+                tracing::warn!(
+                    "Failed to parse audit trail timestamp '{}': {}, using current time",
+                    timestamp_str, e
+                );
+                Utc::now()
+            });
 
         Ok(StoredAuditEntry {
             id: Some(row.get(0)?),

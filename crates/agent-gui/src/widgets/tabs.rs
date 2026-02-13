@@ -322,7 +322,7 @@ impl<'a> TabBar<'a> {
                         rect.min + padding,
                         galley,
                         if is_selected {
-                            Color32::WHITE
+                            theme::text_on_accent()
                         } else if is_hovered {
                             theme::text_primary()
                         } else {

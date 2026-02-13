@@ -746,7 +746,7 @@ impl SentinelApp {
                             ui.set_width(135.0);
                             ui.vertical(|ui: &mut egui::Ui| {
                                 ui.label(egui::RichText::new("SCORE").font(theme::font_small()));
-                                ui.add_space(4.0);
+                                ui.add_space(theme::SPACE_XS);
                                 ui.label(
                                     egui::RichText::new(format!(
                                         "{:.0}%",
@@ -762,7 +762,7 @@ impl SentinelApp {
                             ui.set_width(135.0);
                             ui.vertical(|ui: &mut egui::Ui| {
                                 ui.label(egui::RichText::new("MENACES").font(theme::font_small()));
-                                ui.add_space(4.0);
+                                ui.add_space(theme::SPACE_XS);
                                 let count = self.state.threats.suspicious_processes.len();
                                 ui.label(
                                     egui::RichText::new(count.to_string())

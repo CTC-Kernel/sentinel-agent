@@ -682,7 +682,7 @@ impl SettingsPage {
                     .color(theme::text_tertiary())
                     .strong(),
             );
-            ui.add_space(4.0);
+            ui.add_space(theme::SPACE_XS);
             ui.label(
                 egui::RichText::new(label)
                     .font(theme::font_min())
@@ -694,7 +694,7 @@ impl SettingsPage {
                 |ui: &mut egui::Ui| {
                     // Copy button for easy clipboard access
                     widgets::copy_button(ui, value, Some("Copier la valeur"));
-                    ui.add_space(4.0);
+                    ui.add_space(theme::SPACE_XS);
                     ui.label(
                         egui::RichText::new(value)
                             .font(egui::FontId::monospace(11.0))

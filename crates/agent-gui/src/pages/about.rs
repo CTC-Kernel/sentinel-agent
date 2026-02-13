@@ -162,7 +162,7 @@ impl AboutPage {
                     .color(theme::text_tertiary())
                     .strong(),
             );
-            ui.add_space(4.0);
+            ui.add_space(theme::SPACE_XS);
             ui.label(
                 egui::RichText::new(label)
                     .font(theme::font_body())
@@ -190,7 +190,7 @@ impl AboutPage {
                     .color(theme::text_tertiary())
                     .strong(),
             );
-            ui.add_space(4.0);
+            ui.add_space(theme::SPACE_XS);
             ui.label(
                 egui::RichText::new(label)
                     .font(theme::font_body())

@@ -2151,38 +2151,38 @@ impl AgentRuntime {
                         };
 
                         // Send to SaaS
-                        if let Some(client) = self.api_client.read().await.as_ref() {
-                            if let Err(e) = client.report_incident(report.clone()).await {
-                                error!("Failed to report FIM incident to SaaS: {}", e);
-                            }
+                        if let Some(client) = self.api_client.read().await.as_ref()
+                            && let Err(e) = client.report_incident(report.clone()).await
+                        {
+                            error!("Failed to report FIM incident to SaaS: {}", e);
                         }
 
                         // Forward to SIEM
                         let siem_guard = self.siem_forwarder.read().await;
-                        if let Some(siem) = siem_guard.as_ref() {
-                            if siem.is_enabled() {
-                                let event = agent_siem::SiemEvent {
-                                    timestamp: chrono::Utc::now(),
-                                    severity: 5,
-                                    category: agent_siem::EventCategory::FileIntegrity,
-                                    name: "File Integrity Change".to_string(),
-                                    description: report.description,
-                                    source_host: hostname::get().map(|h| h.to_string_lossy().to_string()).unwrap_or_default(),
-                                    source_ip: None,
-                                    destination_ip: None,
-                                    destination_port: None,
-                                    user: None,
-                                    process_name: None,
-                                    process_id: None,
-                                    file_path: Some(alert.path.to_string_lossy().to_string()),
-                                    custom_fields: serde_json::Value::Null,
-                                    event_id: uuid::Uuid::new_v4().to_string(),
-                                    agent_version: AGENT_VERSION.to_string(),
-                                };
+                        if let Some(siem) = siem_guard.as_ref()
+                            && siem.is_enabled()
+                        {
+                            let event = agent_siem::SiemEvent {
+                                timestamp: chrono::Utc::now(),
+                                severity: 5,
+                                category: agent_siem::EventCategory::FileIntegrity,
+                                name: "File Integrity Change".to_string(),
+                                description: report.description,
+                                source_host: hostname::get().map(|h| h.to_string_lossy().to_string()).unwrap_or_default(),
+                                source_ip: None,
+                                destination_ip: None,
+                                destination_port: None,
+                                user: None,
+                                process_name: None,
+                                process_id: None,
+                                file_path: Some(alert.path.to_string_lossy().to_string()),
+                                custom_fields: serde_json::Value::Null,
+                                event_id: uuid::Uuid::new_v4().to_string(),
+                                agent_version: AGENT_VERSION.to_string(),
+                            };
 
-                                if let Err(e) = siem.send_event(&event).await {
-                                    warn!("Failed to forward FIM event to SIEM: {}", e);
-                                }
+                            if let Err(e) = siem.send_event(&event).await {
+                                warn!("Failed to forward FIM event to SIEM: {}", e);
                             }
                         }
                     }
@@ -2239,7 +2239,6 @@ impl AgentRuntime {
 
             // 3. Vulnerability Scanning
             if last_vuln_scan.elapsed().as_secs() >= self.vuln_scan_interval_secs {
-                last_vuln_scan = std::time::Instant::now();
                 #[cfg(feature = "gui")]
                 {
                     self.state.scanning.store(true, Ordering::Release);
@@ -2271,10 +2270,10 @@ impl AgentRuntime {
                             let mut low = 0u32;
                             for v in &result.vulnerabilities {
                                 match v.severity {
-                                    agent_scanner::vulnerability::Severity::Critical => critical += 1,
-                                    agent_scanner::vulnerability::Severity::High => high += 1,
-                                    agent_scanner::vulnerability::Severity::Medium => medium += 1,
-                                    agent_scanner::vulnerability::Severity::Low => low += 1,
+                                    agent_scanner::vulnerability::Severity::Critical => critical = critical.saturating_add(1),
+                                    agent_scanner::vulnerability::Severity::High => high = high.saturating_add(1),
+                                    agent_scanner::vulnerability::Severity::Medium => medium = medium.saturating_add(1),
+                                    agent_scanner::vulnerability::Severity::Low => low = low.saturating_add(1),
                                 }
                             }
                             self.emit_gui_event(AgentEvent::VulnerabilityUpdate {
@@ -2349,8 +2348,8 @@ impl AgentRuntime {
                         #[cfg(feature = "gui")]
                         {
                             self.emit_gui_event(AgentEvent::NetworkUpdate {
-                                interfaces_count: snapshot.interfaces.len() as u32,
-                                connections_count: snapshot.connections.len() as u32,
+                                interfaces_count: u32::try_from(snapshot.interfaces.len()).unwrap_or(u32::MAX),
+                                connections_count: u32::try_from(snapshot.connections.len()).unwrap_or(u32::MAX),
                                 alerts_count: 0,
                                 primary_ip: snapshot.primary_ip.clone(),
                                 primary_mac: snapshot.primary_mac.clone(),
@@ -2391,8 +2390,8 @@ impl AgentRuntime {
                         #[cfg(feature = "gui")]
                         {
                             self.emit_gui_event(AgentEvent::NetworkUpdate {
-                                interfaces_count: snapshot.interfaces.len() as u32,
-                                connections_count: snapshot.connections.len() as u32,
+                                interfaces_count: u32::try_from(snapshot.interfaces.len()).unwrap_or(u32::MAX),
+                                connections_count: u32::try_from(snapshot.connections.len()).unwrap_or(u32::MAX),
                                 alerts_count: 0,
                                 primary_ip: snapshot.primary_ip.clone(),
                                 primary_mac: snapshot.primary_mac.clone(),
@@ -2436,7 +2435,7 @@ impl AgentRuntime {
                             Ok(alerts) => {
                                 #[cfg(feature = "gui")]
                                 {
-                                    alert_count = alerts.len() as u32;
+                                    alert_count = u32::try_from(alerts.len()).unwrap_or(u32::MAX);
                                 }
                                 for alert in alerts {
                                     if let Err(e) = self.upload_network_alert(&alert).await {
@@ -2451,8 +2450,8 @@ impl AgentRuntime {
                         #[cfg(feature = "gui")]
                         {
                             self.emit_gui_event(AgentEvent::NetworkUpdate {
-                                interfaces_count: snapshot.interfaces.len() as u32,
-                                connections_count: snapshot.connections.len() as u32,
+                                interfaces_count: u32::try_from(snapshot.interfaces.len()).unwrap_or(u32::MAX),
+                                connections_count: u32::try_from(snapshot.connections.len()).unwrap_or(u32::MAX),
                                 alerts_count: alert_count,
                                 primary_ip: snapshot.primary_ip.clone(),
                                 primary_mac: snapshot.primary_mac.clone(),

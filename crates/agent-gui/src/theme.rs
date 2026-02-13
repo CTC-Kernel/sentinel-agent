@@ -257,6 +257,8 @@ pub const BUTTON_ROUNDING: u8 = 8;
 pub const ROUNDING_SM: u8 = 4;
 /// Medium element rounding (tooltips, pagination buttons, focus rings).
 pub const ROUNDING_MD: u8 = 6;
+/// Large element rounding (enrollment logo, hero buttons).
+pub const ROUNDING_LG: u8 = 10;
 /// Badge rounding radius (pill-shaped).
 pub const BADGE_ROUNDING: u8 = 100;
 

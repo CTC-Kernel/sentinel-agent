@@ -101,7 +101,7 @@ impl<'a> Checkbox<'a> {
 
             ui.painter().rect(
                 box_rect,
-                CornerRadius::same(4),
+                CornerRadius::same(theme::ROUNDING_SM),
                 bg_color,
                 egui::Stroke::new(theme::BORDER_MEDIUM, border_color),
                 egui::epaint::StrokeKind::Inside,
@@ -154,7 +154,7 @@ impl<'a> Checkbox<'a> {
             if response.has_focus() {
                 ui.painter().rect_stroke(
                     box_rect.expand(2.0),
-                    CornerRadius::same(6),
+                    CornerRadius::same(theme::ROUNDING_MD),
                     egui::Stroke::new(theme::BORDER_THICK, theme::ACCENT.linear_multiply(theme::OPACITY_MEDIUM)),
                     egui::epaint::StrokeKind::Outside,
                 );

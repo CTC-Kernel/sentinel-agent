@@ -309,8 +309,8 @@ impl SiemForwarder {
         match self.transport.send(&formatted).await {
             Ok(bytes_sent) => {
                 let mut stats = self.stats.write().await;
-                stats.events_sent += 1;
-                stats.bytes_sent += bytes_sent as u64;
+                stats.events_sent = stats.events_sent.saturating_add(1);
+                stats.bytes_sent = stats.bytes_sent.saturating_add(bytes_sent as u64);
                 stats.last_success = Some(Utc::now());
                 stats.is_connected = true;
                 stats.last_error = None;
@@ -319,7 +319,7 @@ impl SiemForwarder {
             }
             Err(e) => {
                 let mut stats = self.stats.write().await;
-                stats.events_dropped += 1;
+                stats.events_dropped = stats.events_dropped.saturating_add(1);
                 stats.is_connected = false;
                 stats.last_error = Some(e.to_string());
                 error!("Failed to send event: {}", e);
@@ -369,8 +369,9 @@ impl SiemForwarder {
         match self.transport.send(&batch).await {
             Ok(bytes_sent) => {
                 let mut stats = self.stats.write().await;
-                stats.events_sent += events.len() as u64;
-                stats.bytes_sent += bytes_sent as u64;
+                let event_count = u64::try_from(events.len()).unwrap_or(u64::MAX);
+                stats.events_sent = stats.events_sent.saturating_add(event_count);
+                stats.bytes_sent = stats.bytes_sent.saturating_add(bytes_sent as u64);
                 stats.last_success = Some(Utc::now());
                 stats.is_connected = true;
                 info!(
@@ -382,7 +383,8 @@ impl SiemForwarder {
             }
             Err(e) => {
                 let mut stats = self.stats.write().await;
-                stats.events_dropped += events.len() as u64;
+                let event_count = u64::try_from(events.len()).unwrap_or(u64::MAX);
+                stats.events_dropped = stats.events_dropped.saturating_add(event_count);
                 stats.is_connected = false;
                 stats.last_error = Some(e.to_string());
                 error!("Failed to flush events: {}", e);
