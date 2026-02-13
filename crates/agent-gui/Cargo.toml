@@ -17,6 +17,7 @@ llm = ["dep:agent_llm"]
 [dependencies]
 agent-common = { path = "../agent-common" }
 agent_llm = { path = "../agent_llm", optional = true }
+anyhow.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 chrono.workspace = true

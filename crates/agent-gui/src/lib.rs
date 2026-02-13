@@ -11,6 +11,8 @@
 
 pub mod dto;
 pub mod events;
+pub mod os;
+pub mod state;
 
 #[cfg(feature = "render")]
 pub mod app;
@@ -24,8 +26,6 @@ pub mod icons;
 pub mod llm_panel;
 #[cfg(feature = "render")]
 pub mod pages;
-#[cfg(feature = "render")]
-pub mod state;
 #[cfg(feature = "render")]
 pub mod animation;
 #[cfg(feature = "render")]
