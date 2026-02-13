@@ -432,7 +432,7 @@ impl DashboardPage {
                 )
                 .clicked()
                 {
-                    // TODO: Export dashboard summary
+                    Self::export_dashboard_csv(state);
                 }
             });
 
@@ -583,5 +583,26 @@ impl DashboardPage {
             );
         });
         ui.add_space(theme::SPACE_XS);
+    }
+
+    fn export_dashboard_csv(state: &AppState) {
+        let headers = &["metrique", "valeur", "unite"];
+        let mut rows = vec![
+            vec!["Conformité".to_string(), state.summary.compliance_score.map(|s| format!("{:.1}", s)).unwrap_or_default(), "%".to_string()],
+            vec!["CPU".to_string(), format!("{:.1}", state.resources.cpu_percent), "%".to_string()],
+            vec!["Mémoire".to_string(), format!("{:.1}", state.resources.memory_percent), "%".to_string()],
+            vec!["Politiques totales".to_string(), state.policy.total_policies.to_string(), "".to_string()],
+            vec!["Politiques conformes".to_string(), state.policy.passing.to_string(), "".to_string()],
+        ];
+
+        if let Some(ref vuln) = state.vulnerability_summary {
+            rows.push(vec!["Vulnérabilités Critiques".to_string(), vuln.critical.to_string(), "".to_string()]);
+            rows.push(vec!["Vulnérabilités Élevées".to_string(), vuln.high.to_string(), "".to_string()]);
+        }
+
+        let path = crate::export::default_export_path("dashboard_summary.csv");
+        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
+            tracing::warn!("Export CSV failed: {}", e);
+        }
     }
 }

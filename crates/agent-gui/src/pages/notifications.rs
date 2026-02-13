@@ -12,7 +12,7 @@ pub struct NotificationsPage;
 
 impl NotificationsPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
-        let command = None;
+        let mut command = None;
 
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
@@ -52,11 +52,7 @@ impl NotificationsPage {
                                 n.read = true;
                             }
                             state.unread_notification_count = 0;
-                            // TODO: Send a GuiCommand to notify the runtime that all
-                            // notifications were marked as read. Currently only
-                            // GuiCommand::MarkNotificationRead { notification_id }
-                            // exists (singular). A bulk MarkAllNotificationsRead
-                            // variant should be added to GuiCommand.
+                            command = Some(GuiCommand::MarkAllNotificationsRead);
                         }
 
                         ui.add_space(theme::SPACE_SM);
