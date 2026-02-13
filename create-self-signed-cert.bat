@@ -7,7 +7,7 @@ echo ========================================================
 
 REM 1. Créer le certificat auto-signé
 powershell -Command "
-New-SelfSignedCertificate -DnsName 'Cyber Threat Consulting' -CertStoreLocation 'cert:\LocalMachine\My' -KeySpec 'CodeSigning' -KeyUsage 'DigitalSignature' -KeyExportPolicy 'Exportable' -NotAfter (Get-Date).AddYears(5) -FriendlyName 'Sentinel GRC Agent'
+New-SelfSignedCertificate -Type CodeSigningCert -DnsName 'Cyber Threat Consulting' -CertStoreLocation 'cert:\LocalMachine\My' -KeyUsage 'DigitalSignature' -KeyExportPolicy 'Exportable' -NotAfter (Get-Date).AddYears(5) -FriendlyName 'Sentinel GRC Agent'
 "
 
 echo ✅ Certificat créé dans LocalMachine\My

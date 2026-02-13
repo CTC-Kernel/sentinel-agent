@@ -46,7 +46,7 @@ if [[ ! -f "$SCRIPT_DIR/sentinel-selfsigned.pfx" ]]; then
         echo -e "${YELLOW}⚠️  pvk2pfx failed, trying alternative method...${NC}"
         # Alternative using PowerShell
         powershell -Command "
-            \$cert = New-SelfSignedCertificate -DnsName 'Cyber Threat Consulting' -CertStoreLocation 'Cert:\LocalMachine\My' -KeySpec 'CodeSigning' -KeyExportPolicy 'Exportable' -NotAfter (Get-Date).AddYears(5)
+            \$cert = New-SelfSignedCertificate -Type CodeSigningCert -DnsName 'Cyber Threat Consulting' -CertStoreLocation 'Cert:\LocalMachine\My' -KeyExportPolicy 'Exportable' -NotAfter (Get-Date).AddYears(5)
             \$password = ConvertTo-SecureString -String 'Sentinel2024!' -Force -AsPlainText
             Export-PfxCertificate -Cert \$cert -FilePath '$SCRIPT_DIR/sentinel-selfsigned.pfx' -Password \$password
         "
