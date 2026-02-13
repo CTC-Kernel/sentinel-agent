@@ -9,7 +9,7 @@ use std::sync::mpsc;
 // macOS: toggle Dock icon visibility when hiding/showing the window.
 // ---------------------------------------------------------------------------
 #[cfg(target_os = "macos")]
-use crate::os::macos as macos_utils;
+// use crate::os::macos as macos_utils; // Deprecated - use new module structure
 
 use eframe::egui;
 pub use crate::state::{AppState, SyncHistoryEntry};
@@ -235,7 +235,7 @@ impl SentinelApp {
                 TrayAction::ShowWindow => {
                     self.show_tray_satellite = false;
                     #[cfg(target_os = "macos")]
-                    macos_utils::show_dock_icon();
+                    crate::os::macos::dock::show_icon();
                     self.visible = true;
                     ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
                     ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
@@ -417,7 +417,15 @@ impl eframe::App for SentinelApp {
             // Scan macOS native apps once
             #[cfg(target_os = "macos")]
             {
-                self.state.software.macos_apps = crate::os::macos::scan_macos_apps();
+                match crate::os::macos::software::scan_installed_apps() {
+                    Ok(apps) => {
+                        self.state.software.macos_apps = apps;
+                    }
+                    Err(e) => {
+                        eprintln!("Failed to scan macOS apps: {}", e);
+                        // Continue with empty apps list - non-critical error
+                    }
+                }
             }
             // Detect OS-level reduced motion preference
             self.state.reduced_motion = theme::detect_reduced_motion();
@@ -483,7 +491,7 @@ impl eframe::App for SentinelApp {
             ctx.send_viewport_cmd(egui::ViewportCommand::Visible(false));
             self.visible = false;
             #[cfg(target_os = "macos")]
-            macos_utils::hide_dock_icon();
+            crate::os::macos::dock::hide_icon();
         }
 
         if !self.visible {

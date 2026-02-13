@@ -30,25 +30,48 @@ impl CompliancePage {
         // Action bar (AAA Grade)
         ui.horizontal(|ui: &mut egui::Ui| {
             let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
-            if widgets::button::primary_button_loading(
-                ui,
-                format!(
-                    "{}  {}",
-                    if is_scanning {
-                        "SCAN EN COURS"
-                    } else {
-                        "LANCER L'AUDIT"
-                    },
-                    icons::PLAY
-                ),
-                !is_scanning,
-                is_scanning,
-            )
-            .clicked()
-            {
-                command = Some(GuiCommand::RunCheck);
+            
+            // Audit button - Admin only
+            if state.security.admin_unlocked {
+                if widgets::button::primary_button_loading(
+                    ui,
+                    format!(
+                        "{}  {}",
+                        if is_scanning {
+                            "SCAN EN COURS"
+                        } else {
+                            "LANCER L'AUDIT"
+                        },
+                        icons::PLAY
+                    ),
+                    !is_scanning,
+                    is_scanning,
+                )
+                .clicked()
+                {
+                    command = Some(GuiCommand::RunCheck);
+                }
+            } else {
+                // Disabled button for non-admin users
+                widgets::button::primary_button_loading(
+                    ui,
+                    format!("{}  {}", "LANCER L'AUDIT", icons::LOCK),
+                    false,
+                    false,
+                );
             }
         });
+        
+        // Last audit timestamp - using last_sync_at as proxy for now
+        if let Some(last_sync) = state.summary.last_sync_at {
+            ui.horizontal(|ui| {
+                ui.label(
+                    egui::RichText::new(format!("Dernier audit : {}", last_sync.format("%d/%m/%Y %H:%M")))
+                        .font(theme::font_small())
+                        .color(theme::text_tertiary())
+                );
+            });
+        }
         ui.add_space(theme::SPACE_MD);
 
         // Active Frameworks indicator (AAA)
@@ -541,17 +564,28 @@ impl CompliancePage {
 
                                             ui.add_space(theme::SPACE_SM);
 
-                                            if widgets::chip_button(
-                                                ui,
-                                                &format!("{}  REMÉDIATION", icons::WRENCH_FA),
-                                                false,
-                                                theme::SUCCESS,
-                                            )
-                                            .clicked()
-                                            {
-                                                *command = Some(GuiCommand::Remediate {
-                                                    check_id: check.check_id.clone(),
-                                                });
+                                            // Remediation button - Admin only
+                                            if state.security.admin_unlocked {
+                                                if widgets::chip_button(
+                                                    ui,
+                                                    &format!("{}  REMÉDIATION", icons::WRENCH_FA),
+                                                    false,
+                                                    theme::SUCCESS,
+                                                )
+                                                .clicked()
+                                                {
+                                                    *command = Some(GuiCommand::Remediate {
+                                                        check_id: check.check_id.clone(),
+                                                    });
+                                                }
+                                            } else {
+                                                // Disabled button for non-admin users
+                                                widgets::chip_button(
+                                                    ui,
+                                                    &format!("{}  REMÉDIATION", icons::LOCK),
+                                                    false,
+                                                    theme::text_tertiary(),
+                                                );
                                             }
                                         });
                                     }

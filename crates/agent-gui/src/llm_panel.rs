@@ -3,9 +3,7 @@
 #[cfg(feature = "llm_simple")]
 use {
     agent_llm::{AnalysisResult, LLMManager, ModelStats, RemediationPlan, SecurityClassification},
-    anyhow::Result,
-    chrono::Local,
-    egui::{Color32, RichText, Stroke, Vec2},
+    egui::{Color32, RichText, Vec2},
     std::sync::Arc,
 };
 
@@ -13,7 +11,7 @@ use {
 use egui::{Color32, RichText};
 
 /// LLM management panel for the GUI.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct LLMPanel {
     #[cfg(feature = "llm_simple")]
     llm_manager: Option<Arc<LLMManager>>,
@@ -40,11 +38,14 @@ impl LLMPanel {
     /// Create new LLM panel.
     #[cfg(feature = "llm_simple")]
     pub fn new(llm_manager: Option<Arc<LLMManager>>) -> Self {
-        let mut panel = Self {
+        let panel = Self {
             llm_manager,
             ..Default::default()
         };
-        panel.refresh_model_stats();
+        let mut p2 = panel.clone();
+        tokio::spawn(async move {
+            let _ = p2.refresh_model_stats().await;
+        });
         panel
     }
 
@@ -58,7 +59,10 @@ impl LLMPanel {
     #[cfg(feature = "llm_simple")]
     pub fn set_llm_manager(&mut self, llm_manager: Option<Arc<LLMManager>>) {
         self.llm_manager = llm_manager;
-        self.refresh_model_stats();
+        let mut s2 = self.clone();
+        tokio::spawn(async move {
+            let _ = s2.refresh_model_stats().await;
+        });
     }
 
     /// Update analysis results.
@@ -385,7 +389,7 @@ impl LLMStatusWidget {
 
             #[cfg(feature = "llm_simple")]
             {
-                if let Some(manager) = &self.llm_manager {
+                if let Some(_manager) = &self.llm_manager {
                     // In real implementation, would check status asynchronously
                     ui.label(RichText::new("Prêt").color(Color32::GREEN));
                 } else {

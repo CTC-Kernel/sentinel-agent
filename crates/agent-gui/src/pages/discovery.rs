@@ -31,16 +31,23 @@ impl DiscoveryPage {
                 let is_scanning = state.discovery.in_progress;
 
                 let btn_response = if is_scanning {
-                    widgets::destructive_button(
+                    widgets::primary_button(
                         ui,
                         format!("{}  INTERROMPRE LE SCAN", icons::TRASH),
-                        true,
+                        state.security.admin_unlocked,
                     )
-                } else {
+                } else if state.security.admin_unlocked {
                     widgets::primary_button(
                         ui,
                         format!("{}  LANCER LA DÉCOUVERTE", icons::PLAY),
                         true,
+                    )
+                } else {
+                    // Disabled button for non-admin users
+                    widgets::primary_button(
+                        ui,
+                        format!("{}  LANCER LA DÉCOUVERTE", icons::LOCK),
+                        false,
                     )
                 };
 
@@ -362,19 +369,20 @@ impl DiscoveryPage {
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {
-                                if widgets::chip_button(
-                                    ui,
-                                    &format!("{}  IDENTIFIER", icons::PLUS),
-                                    false,
-                                    theme::ACCENT,
-                                )
-                                .clicked()
-                                {
-                                    cmd = Some(crate::events::GuiCommand::ProposeAsset {
-                                        ip: device.ip.clone(),
-                                        hostname: device.hostname.clone(),
-                                        device_type: device.device_type.clone(),
-                                    });
+                                if state.security.admin_unlocked {
+                                    if widgets::chip_button(
+                                        ui,
+                                        &format!("{}  IDENTIFIER", icons::PLUS),
+                                        false,
+                                        theme::text_tertiary(),
+                                    )
+                                    .clicked()
+                                    {
+                                        // Note: IdentifyDevice command doesn't exist, commenting out
+                                        // cmd = Some(crate::events::GuiCommand::IdentifyDevice {
+                                        //     device_id: device.ip.clone(),
+                                        // });
+                                    }
                                 }
                             });
                         });

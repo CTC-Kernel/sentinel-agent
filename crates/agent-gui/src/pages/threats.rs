@@ -52,7 +52,7 @@ impl ThreatsPage {
         let process_count = state.threats.suspicious_processes.len();
         let usb_count = state.threats.usb_events.len();
         let fim_unack_count = state.fim.alerts.iter().filter(|a| !a.acknowledged).count();
-        let risk_score = Self::compute_risk_score(process_count, usb_count, fim_unack_count);
+        let risk_score = Self::compute_risk_score(state, process_count, usb_count, fim_unack_count);
 
         let card_gap = theme::SPACE_SM;
         let card_w = ((ui.available_width() - card_gap * 3.0) / 4.0).max(0.0);
@@ -240,14 +240,37 @@ impl ThreatsPage {
     // Internal helpers
     // ====================================================================
 
-    /// Compute a simple risk score (0-100) based on event counts.
-    fn compute_risk_score(processes: usize, usb: usize, fim_unack: usize) -> u32 {
-        // Weighted formula: suspicious processes are highest risk,
-        // then unacknowledged FIM alerts, then USB events.
-        let raw = (processes as u32)
-            .saturating_mul(25)
-            .saturating_add((fim_unack as u32).saturating_mul(15))
-            .saturating_add((usb as u32).saturating_mul(5));
+    /// Compute a risk score (0-100) that prioritizes critical process threats.
+    /// 
+    /// Critical processes have the highest weight (40 points each),
+    /// followed by unacknowledged FIM alerts (15 points each),
+    /// then USB events (5 points each), then regular suspicious processes (10 points each).
+    fn compute_risk_score(state: &AppState, processes: usize, usb: usize, fim_unack: usize) -> u32 {
+        // Count critical processes (those with high severity indicators)
+        let critical_processes = state.threats.suspicious_processes
+            .iter()
+            .filter(|p| {
+                // Consider processes with critical indicators: system processes, high CPU/memory, network connections
+                p.process_name.to_lowercase().contains("system") ||
+                p.process_name.to_lowercase().contains("kernel") ||
+                p.process_name.to_lowercase().contains("root") ||
+                p.process_name.to_lowercase().contains("admin") ||
+                // Note: cpu_percent, memory_percent, and has_network_connection
+                // fields don't exist in GuiSuspiciousProcess, so we'll use
+                // confidence as a proxy for criticality
+                p.confidence > 80
+            })
+            .count();
+        
+        let regular_processes = processes.saturating_sub(critical_processes);
+        
+        // Weighted formula with critical process prioritization
+        let raw = (critical_processes as u32)
+            .saturating_mul(40)  // Critical processes: highest weight
+            .saturating_add((regular_processes as u32).saturating_mul(10))  // Regular processes
+            .saturating_add((fim_unack as u32).saturating_mul(15))  // FIM alerts
+            .saturating_add((usb as u32).saturating_mul(5));  // USB events
+        
         raw.min(100)
     }
 

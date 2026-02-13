@@ -80,17 +80,22 @@ impl TrayBridge {
 
         let icon = Self::load_icon()?;
 
-        let mut builder = TrayIconBuilder::new()
-            .with_menu(Box::new(menu))
-            .with_tooltip("Sentinel Agent")
-            .with_icon(icon);
-
-        #[cfg(target_os = "macos")]
-        {
-            builder = builder.with_icon_as_template(true);
-        }
-
-        let tray_icon = builder.build().map_err(|e| format!("tray build: {}", e))?;
+        let tray_icon = if cfg!(target_os = "macos") {
+            TrayIconBuilder::new()
+                .with_menu(Box::new(menu))
+                .with_tooltip("Sentinel Agent")
+                .with_icon(icon)
+                .with_icon_as_template(true)
+                .build()
+                .map_err(|e| format!("tray build: {}", e))?
+        } else {
+            TrayIconBuilder::new()
+                .with_menu(Box::new(menu))
+                .with_tooltip("Sentinel Agent")
+                .with_icon(icon)
+                .build()
+                .map_err(|e| format!("tray build: {}", e))?
+        };
 
         info!("System tray icon created");
         Ok(Self {
