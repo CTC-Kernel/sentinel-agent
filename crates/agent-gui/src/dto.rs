@@ -321,8 +321,8 @@ pub struct GuiResourceUsage {
     pub memory_used_mb: u64,
     /// Total memory available in megabytes.
     pub memory_total_mb: u64,
-    /// Disk I/O operations per second.
-    pub disk_iops: u32,
+    /// Disk I/O throughput (kilobytes per second).
+    pub disk_kbps: u32,
     /// Uptime in seconds.
     pub uptime_secs: u64,
     /// Disk usage percentage (0-100).

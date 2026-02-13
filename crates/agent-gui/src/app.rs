@@ -187,7 +187,7 @@ impl Default for AppState {
                 memory_percent: 0.0,
                 memory_used_mb: 0,
                 memory_total_mb: 0,
-                disk_iops: 0,
+                disk_kbps: 0,
                 uptime_secs: 0,
                 disk_percent: 0.0,
                 network_io_bytes: 0,
@@ -444,8 +444,8 @@ impl SentinelApp {
                             mon.memory_history.pop_front();
                         }
                     }
-                    if usage.disk_iops > 0 {
-                        mon.disk_io_history.push_back([t, usage.disk_iops as f64]);
+                    if usage.disk_kbps > 0 {
+                        mon.disk_io_history.push_back([t, usage.disk_kbps as f64]);
                         while mon.disk_io_history.len() > MAX_HISTORY {
                             mon.disk_io_history.pop_front();
                         }

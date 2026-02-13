@@ -25,7 +25,20 @@ impl AuditTrailPage {
                 "Consultez l'historique détaillé des actions de l'agent, des détections de menaces et des changements de configuration.",
             ),
         );
-        ui.add_space(theme::SPACE_LG);
+        ui.add_space(theme::SPACE_MD);
+
+        // Action bar with Export
+        ui.horizontal(|ui: &mut egui::Ui| {
+            if widgets::ghost_button(ui, format!("{}  EXPORTER CSV", crate::icons::DOWNLOAD)).clicked() {
+                Self::export_audit_trail_csv(state);
+                let time = ui.input(|i| i.time);
+                state.toasts.push(
+                    crate::widgets::toast::Toast::success("Journal d'audit exporté avec succès")
+                        .with_time(time),
+                );
+            }
+        });
+        ui.add_space(theme::SPACE_MD);
 
         // Filters (AAA Grade)
         // Count filtered results (matching the same logic as render_table)
@@ -93,8 +106,26 @@ impl AuditTrailPage {
         });
 
         ui.add_space(theme::SPACE_XL);
-
         command
+    }
+
+    fn export_audit_trail_csv(state: &AppState) {
+        let headers = &["date", "niveau", "message"];
+        let rows: Vec<Vec<String>> = state
+            .logs
+            .iter()
+            .map(|l| {
+                vec![
+                    l.timestamp.to_rfc3339(),
+                    l.level.clone(),
+                    l.message.clone(),
+                ]
+            })
+            .collect();
+        let path = crate::export::default_export_path("audit_trail.csv");
+        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
+            tracing::warn!("Export CSV failed: {}", e);
+        }
     }
 
     fn render_table(ui: &mut Ui, state: &AppState) {

@@ -286,10 +286,11 @@ pub fn badge_text(color: Color32) -> Color32 {
         color
     } else {
         // Darken: blend toward black for readability on light tinted bg
+        // Using 0.45 instead of 0.65 for deeper professional contrast (COMEX-ready)
         Color32::from_rgb(
-            (color.r() as f32 * 0.65) as u8,
-            (color.g() as f32 * 0.65) as u8,
-            (color.b() as f32 * 0.65) as u8,
+            (color.r() as f32 * 0.45) as u8,
+            (color.g() as f32 * 0.45) as u8,
+            (color.b() as f32 * 0.45) as u8,
         )
     }
 }

@@ -79,18 +79,17 @@ impl SoftwarePage {
         let search_upper = state.software.search.to_uppercase();
 
         match active {
-            SoftwareTab::Packages => Self::show_packages(ui, state, &search_upper),
-            SoftwareTab::Applications => Self::show_macos_apps(ui, state, &search_upper),
+            SoftwareTab::Packages => Self::show_packages(ui, state, &search_upper, &mut command),
+            SoftwareTab::Applications => Self::show_macos_apps(ui, state, &search_upper, &mut command),
         }
 
         ui.add_space(theme::SPACE_XL);
-
         command
     }
 
     // -- Tab: Paquets (Homebrew) --
 
-    fn show_packages(ui: &mut Ui, state: &mut AppState, search_upper: &str) {
+    fn show_packages(ui: &mut Ui, state: &mut AppState, search_upper: &str, command: &mut Option<GuiCommand>) {
         let filtered: Vec<usize> = state
             .software
             .packages
@@ -215,11 +214,12 @@ impl SoftwarePage {
                     .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(220.0).at_least(150.0))
-                    .column(Column::initial(110.0).at_least(80.0))
-                    .column(Column::initial(180.0).at_least(120.0))
-                    .column(Column::initial(110.0).at_least(90.0))
-                    .column(Column::remainder());
+                    .column(Column::initial(200.0).at_least(150.0)) // Designation
+                    .column(Column::initial(100.0).at_least(80.0)) // Version
+                    .column(Column::initial(150.0).at_least(120.0)) // Publisher
+                    .column(Column::initial(100.0).at_least(80.0)) // Status
+                    .column(Column::initial(100.0).at_least(90.0)) // Actions
+                    .column(Column::remainder()); // Latest
 
                 table
                     .header(30.0, |mut header| {
@@ -253,6 +253,15 @@ impl SoftwarePage {
                         header.col(|ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new("ÉTAT")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
+                        });
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new("ACTIONS")
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
@@ -305,6 +314,17 @@ impl SoftwarePage {
                                 }
                             });
                             row.col(|ui: &mut egui::Ui| {
+                                if !pkg.up_to_date {
+                                    if widgets::ghost_button(ui, format!("{}  UPDATE", icons::SYNC)).clicked() {
+                                        *command = Some(GuiCommand::CheckUpdate);
+                                    }
+                                } else {
+                                    ui.label(
+                                        egui::RichText::new("--").color(theme::text_tertiary()),
+                                    );
+                                }
+                            });
+                            row.col(|ui: &mut egui::Ui| {
                                 if let Some(latest) = &pkg.latest_version {
                                     if !pkg.up_to_date {
                                         ui.horizontal(|ui: &mut egui::Ui| {
@@ -340,7 +360,7 @@ impl SoftwarePage {
 
     // -- Tab: Applications (macOS native) --
 
-    fn show_macos_apps(ui: &mut Ui, state: &mut AppState, search_upper: &str) {
+    fn show_macos_apps(ui: &mut Ui, state: &mut AppState, search_upper: &str, command: &mut Option<GuiCommand>) {
         let filtered: Vec<usize> = state
             .software
             .macos_apps
@@ -453,10 +473,11 @@ impl SoftwarePage {
                     .striped(false)
                     .resizable(true)
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(220.0).range(140.0..=500.0)) // Application
-                    .column(Column::initial(100.0).at_least(80.0)) // Version
-                    .column(Column::initial(250.0).at_least(160.0)) // Bundle ID
-                    .column(Column::remainder()); // Publisher
+                    .column(Column::initial(200.0).range(140.0..=500.0)) // Application
+                    .column(Column::initial(90.0).at_least(80.0)) // Version
+                    .column(Column::initial(200.0).at_least(160.0)) // Bundle ID
+                    .column(Column::remainder()) // Publisher
+                    .column(Column::initial(100.0).at_least(90.0)); // Actions
 
                 table
                     .header(30.0, |mut header| {
@@ -538,6 +559,12 @@ impl SoftwarePage {
                                         .color(theme::text_tertiary())
                                         .strong(),
                                 );
+                            });
+
+                            row.col(|ui: &mut egui::Ui| {
+                                if widgets::ghost_button(ui, format!("{}  UPDATE", icons::SYNC)).clicked() {
+                                    *command = Some(GuiCommand::CheckUpdate);
+                                }
                             });
                         });
                     });
