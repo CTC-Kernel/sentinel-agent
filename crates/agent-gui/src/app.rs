@@ -9,78 +9,14 @@ use std::sync::mpsc;
 // macOS: toggle Dock icon visibility when hiding/showing the window.
 // ---------------------------------------------------------------------------
 #[cfg(target_os = "macos")]
-mod macos_dock {
-    //! Toggle macOS Dock icon by changing NSApplication activation policy.
-    //!
-    //! objc_msgSend must NOT be declared variadic on ARM64 -- the ABI puts
-    //! variadic args on the stack, but the ObjC runtime expects registers.
-    //! We use typed function-pointer transmutes instead.
-
-    use std::ffi::c_void;
-
-    #[link(name = "AppKit", kind = "framework")]
-    unsafe extern "C" {}
-
-    unsafe extern "C" {
-        fn objc_getClass(name: *const u8) -> *mut c_void;
-        fn sel_registerName(name: *const u8) -> *mut c_void;
-        // Declared without args -- we transmute to the right signature.
-        fn objc_msgSend();
-    }
-
-    type MsgSend0 = unsafe extern "C" fn(*mut c_void, *mut c_void) -> *mut c_void;
-    type MsgSend1 = unsafe extern "C" fn(*mut c_void, *mut c_void, isize) -> *mut c_void;
-
-    fn send0() -> MsgSend0 {
-        unsafe { std::mem::transmute(objc_msgSend as *const ()) }
-    }
-    fn send1() -> MsgSend1 {
-        unsafe { std::mem::transmute(objc_msgSend as *const ()) }
-    }
-
-    unsafe fn set_activation_policy(policy: isize) {
-        unsafe {
-            let cls = objc_getClass(c"NSApplication".as_ptr() as *const _);
-            let sel = sel_registerName(c"sharedApplication".as_ptr() as *const _);
-            let app = send0()(cls, sel);
-            let sel = sel_registerName(c"setActivationPolicy:".as_ptr() as *const _);
-            send1()(app, sel, policy);
-        }
-    }
-
-    /// Hide the app from the macOS Dock (Accessory policy).
-    pub fn hide_dock_icon() {
-        unsafe {
-            set_activation_policy(1);
-        }
-    }
-
-    /// Show the app in the macOS Dock (Regular policy) and activate it.
-    pub fn show_dock_icon() {
-        unsafe {
-            set_activation_policy(0);
-            let cls = objc_getClass(c"NSApplication".as_ptr() as *const _);
-            let sel = sel_registerName(c"sharedApplication".as_ptr() as *const _);
-            let app = send0()(cls, sel);
-            let sel = sel_registerName(c"activateIgnoringOtherApps:".as_ptr() as *const _);
-            send1()(app, sel, 1);
-        }
-    }
-}
+use crate::os::macos as macos_utils;
 
 use eframe::egui;
-
-use crate::dto::{
-    AgentSummary, GuiAgentStatus, GuiCheckResult, GuiLogEntry, GuiPolicySummary, GuiResourceUsage,
-    GuiVulnerabilityFinding, GuiVulnerabilitySummary,
-};
+pub use crate::state::{AppState, SyncHistoryEntry};
 use crate::enrollment::{EnrollmentCommand, EnrollmentWizard};
 use crate::events::{AgentEvent, GuiCommand};
-use crate::icons;
-use crate::pages;
-use crate::theme;
+use crate::{icons, pages, theme, widgets};
 use crate::tray_bridge::{TrayAction, TrayBridge};
-use crate::widgets;
 
 /// Results from background async tasks initiated by the UI.
 pub enum AsyncTaskResult {
@@ -109,6 +45,7 @@ pub enum Page {
     Cartography,
     Notifications,
     Settings,
+    AI,
     About,
 }
 
@@ -116,135 +53,7 @@ pub enum Page {
 // App state
 // ============================================================================
 
-/// Sync history entry for the sync page.
-#[derive(Debug, Clone)]
-pub struct SyncHistoryEntry {
-    pub timestamp: chrono::DateTime<chrono::Utc>,
-    pub success: bool,
-    pub message: String,
-}
-
-/// Shared application state consumed by all pages.
-///
-/// Fields are grouped into domain sub-structs to keep the struct manageable.
-/// See [`crate::state`] for the sub-struct definitions.
-pub struct AppState {
-    // ── Core data (cross-page) ──
-    pub summary: AgentSummary,
-    pub resources: GuiResourceUsage,
-    pub checks: Vec<GuiCheckResult>,
-    pub logs: std::collections::VecDeque<GuiLogEntry>,
-    pub policy: GuiPolicySummary,
-    pub vulnerability_summary: Option<GuiVulnerabilitySummary>,
-    pub vulnerability_findings: Vec<GuiVulnerabilityFinding>,
-
-    // Channel to send async task results back to the main thread
-    pub async_task_tx: Option<std::sync::mpsc::Sender<AsyncTaskResult>>,
-
-    // ── Domain sub-states ──
-    pub network: crate::state::NetworkState,
-    pub discovery: crate::state::DiscoveryState,
-    pub cartography: crate::state::CartographyState,
-    pub terminal: crate::state::TerminalState,
-    pub sync: crate::state::SyncState,
-    pub fim: crate::state::FimState,
-    pub threats: crate::state::ThreatsState,
-    pub monitoring: crate::state::MonitoringHistory,
-    pub compliance: crate::state::ComplianceFilter,
-    pub vulnerability: crate::state::VulnerabilityFilter,
-    pub software: crate::state::SoftwareState,
-    pub settings: crate::state::SettingsState,
-    pub security: crate::state::SecurityState,
-
-    // ── Remaining top-level fields ──
-    pub notifications: Vec<crate::dto::GuiNotification>,
-    pub unread_notification_count: u32,
-    pub previous_compliance_score: Option<f32>,
-    pub audit_trail_search: String,
-    pub audit_trail_filter: Option<String>,
-    pub toasts: Vec<crate::widgets::toast::Toast>,
-    pub reduced_motion: bool,
-}
-
-impl Default for AppState {
-    fn default() -> Self {
-        Self {
-            summary: AgentSummary {
-                status: GuiAgentStatus::Starting,
-                version: agent_common::constants::AGENT_VERSION.to_string(),
-                hostname: hostname_or_unknown(),
-                agent_id: None,
-                organization: None,
-                compliance_score: None,
-                last_check_at: None,
-                last_sync_at: None,
-                pending_sync_count: 0,
-                uptime_secs: 0,
-                active_frameworks: None,
-            },
-            resources: GuiResourceUsage {
-                cpu_percent: 0.0,
-                memory_percent: 0.0,
-                memory_used_mb: 0,
-                memory_total_mb: 0,
-                disk_kbps: 0,
-                uptime_secs: 0,
-                disk_percent: 0.0,
-                network_io_bytes: 0,
-            },
-            checks: Vec::new(),
-            logs: std::collections::VecDeque::new(),
-            policy: GuiPolicySummary {
-                total_policies: 0,
-                passing: 0,
-                failing: 0,
-                errors: 0,
-                pending: 0,
-            },
-            vulnerability_summary: None,
-            vulnerability_findings: Vec::new(),
-            async_task_tx: None,
-            network: Default::default(),
-            discovery: Default::default(),
-            cartography: Default::default(),
-            terminal: Default::default(),
-            sync: Default::default(),
-            fim: Default::default(),
-            threats: Default::default(),
-            monitoring: Default::default(),
-            compliance: Default::default(),
-            vulnerability: Default::default(),
-            software: Default::default(),
-            settings: Default::default(),
-            security: Default::default(),
-            notifications: Vec::new(),
-            unread_notification_count: 0,
-            previous_compliance_score: None,
-            audit_trail_search: String::new(),
-            audit_trail_filter: None,
-            toasts: Vec::new(),
-            reduced_motion: false,
-        }
-    }
-}
-
-impl AppState {
-    /// Push a toast notification with the current egui time.
-    pub fn push_toast(&mut self, toast: crate::widgets::toast::Toast, ctx: &egui::Context) {
-        let time = ctx.input(|i| i.time);
-        self.toasts.push(toast.with_time(time));
-        // Keep at most 5 toasts visible (remove oldest first)
-        while self.toasts.len() > 5 {
-            self.toasts.remove(0);
-        }
-    }
-}
-
-fn hostname_or_unknown() -> String {
-    hostname::get()
-        .map(|h: std::ffi::OsString| h.to_string_lossy().to_string())
-        .unwrap_or_else(|_| "inconnu".to_string())
-}
+// AppState and SyncHistoryEntry moved to state.rs
 
 // ============================================================================
 // SentinelApp
@@ -257,6 +66,7 @@ pub struct SentinelApp {
     enrolled: bool,
     enrollment_wizard: EnrollmentWizard,
     theme_applied: bool,
+    llm_panel: crate::llm_panel::LLMPanel,
 
     /// Track previous dark_mode to detect toggles.
     last_dark_mode: bool,
@@ -335,9 +145,12 @@ impl SentinelApp {
             ..Default::default()
         };
 
+        let llm_panel = crate::llm_panel::LLMPanel::default();
+
         Self {
             page: Page::Dashboard,
             state,
+            llm_panel,
             enrolled,
             enrollment_wizard: EnrollmentWizard::default(),
             theme_applied: false,
@@ -404,188 +217,14 @@ impl SentinelApp {
     // Internal helpers
     // ------------------------------------------------------------------
 
-    /// Drain incoming events from the agent runtime.
     fn process_events(&mut self) {
         while let Ok(event) = self.event_rx.try_recv() {
-            match event {
-                AgentEvent::StatusChanged { summary } => {
-                    self.state.summary = summary;
-                }
-                AgentEvent::CheckCompleted { result } => {
-                    // Update or insert check result
-                    if let Some(existing) = self
-                        .state
-                        .checks
-                        .iter_mut()
-                        .find(|c| c.check_id == result.check_id)
-                    {
-                        *existing = result;
-                    } else {
-                        self.state.checks.push(result);
-                    }
-                    // Recompute policy summary
-                    self.recompute_policy();
-                }
-                AgentEvent::ResourceUpdate { usage } => {
-                    const MAX_HISTORY: usize = 300;
-                    let t = self.state.resources.uptime_secs as f64;
-                    let mon = &mut self.state.monitoring;
-
-                    // Only push valid data to monitoring history (ignore initial 0.0 values)
-                    if usage.cpu_percent > 0.0 {
-                        mon.cpu_history.push_back([t, usage.cpu_percent]);
-                        while mon.cpu_history.len() > MAX_HISTORY {
-                            mon.cpu_history.pop_front();
-                        }
-                    }
-                    if usage.memory_percent > 0.0 {
-                        mon.memory_history.push_back([t, usage.memory_percent]);
-                        while mon.memory_history.len() > MAX_HISTORY {
-                            mon.memory_history.pop_front();
-                        }
-                    }
-                    if usage.disk_kbps > 0 {
-                        mon.disk_io_history.push_back([t, usage.disk_kbps as f64]);
-                        while mon.disk_io_history.len() > MAX_HISTORY {
-                            mon.disk_io_history.pop_front();
-                        }
-                    }
-                    if usage.network_io_bytes > 0 {
-                        mon.network_io_history
-                            .push_back([t, usage.network_io_bytes as f64 / 1024.0]);
-                        while mon.network_io_history.len() > MAX_HISTORY {
-                            mon.network_io_history.pop_front();
-                        }
-                    }
-
-                    self.state.resources = usage;
-                }
-                AgentEvent::Notification { notification } => {
-                    // Add as log entry for now (O(1) push_front with VecDeque)
-                    self.state.logs.push_front(GuiLogEntry {
-                        id: notification.id,
-                        timestamp: notification.timestamp,
-                        level: notification.severity.clone(),
-                        message: notification.title.clone(),
-                        source: None,
-                    });
-                    // Keep max 200 log entries
-                    self.state.logs.truncate(200);
-                }
-                AgentEvent::SyncStatus {
-                    syncing,
-                    pending_count,
-                    last_sync_at,
-                    error,
-                } => {
-                    self.state.sync.in_progress = syncing;
-                    self.state.summary.pending_sync_count = pending_count;
-                    if let Some(ts) = last_sync_at {
-                        self.state.summary.last_sync_at = Some(ts);
-                        self.state.sync.history.push_front(SyncHistoryEntry {
-                            timestamp: ts,
-                            success: error.is_none(),
-                            message: error
-                                .clone()
-                                .unwrap_or_else(|| "Synchronisation termin\u{00e9}e".to_string()),
-                        });
-                        self.state.sync.history.truncate(50);
-                    }
-                    self.state.sync.error = error;
-                }
-                AgentEvent::NetworkUpdate {
-                    interfaces_count,
-                    connections_count,
-                    alerts_count,
-                    primary_ip,
-                    primary_mac,
-                } => {
-                    self.state.network.interface_count = interfaces_count;
-                    self.state.network.connection_count = connections_count;
-                    self.state.network.alert_count = alerts_count;
-                    self.state.network.primary_ip = primary_ip;
-                    self.state.network.primary_mac = primary_mac;
-                    self.state.network.last_scan = Some(chrono::Utc::now());
-                }
-                AgentEvent::NetworkDetailUpdate {
-                    interfaces,
-                    connections,
-                } => {
-                    self.state.network.interfaces = interfaces;
-                    self.state.network.connections = connections;
-                }
-                AgentEvent::VulnerabilityUpdate { summary } => {
-                    self.state.vulnerability_summary = Some(summary);
-                }
-                AgentEvent::SoftwareUpdate { packages } => {
-                    self.state.software.packages = packages;
-                }
-                AgentEvent::VulnerabilityFindings { findings } => {
-                    self.state.vulnerability_findings = findings;
-                }
-                AgentEvent::TerminalLog { entry } => {
-                    self.state.terminal.event_count += 1;
-                    if entry.level == "ERROR" {
-                        self.state.terminal.error_count += 1;
-                    }
-                    self.state.terminal.lines.push_back(entry);
-                    // Ring buffer: keep max 500 lines
-                    while self.state.terminal.lines.len() > 500 {
-                        self.state.terminal.lines.pop_front();
-                    }
-                }
-                AgentEvent::DiscoveryUpdate { devices } => {
-                    self.state.discovery.devices = devices;
-                    self.state.discovery.in_progress = false;
-                    self.state.discovery.progress = 1.0;
-                    self.state.discovery.phase = "Termin\u{00e9}".to_string();
-                    self.state.cartography.layout = None; // Force graph re-layout
-                }
-                AgentEvent::DiscoveryProgress {
-                    phase,
-                    progress,
-                    devices_found: _,
-                } => {
-                    self.state.discovery.phase = phase;
-                    self.state.discovery.progress = progress;
-                    // Don't reset devices here, they come in DiscoveryUpdate
-                }
-                AgentEvent::EnrollmentResult {
-                    success,
-                    message,
-                    agent_id,
-                } => {
-                    self.enrollment_wizard.set_result(success, message);
-                    if success && let Some(id) = agent_id {
-                        self.state.summary.agent_id = Some(id);
-                    }
-                }
-                AgentEvent::FimAlert { alert } => {
-                    self.state.fim.alerts.push_front(alert);
-                    self.state.fim.alerts.truncate(500);
-                }
-                AgentEvent::UsbEvent { event } => {
-                    self.state.threats.usb_events.push_front(event);
-                    self.state.threats.usb_events.truncate(200);
-                }
-                AgentEvent::SuspiciousProcess { process } => {
-                    self.state.threats.suspicious_processes.push_front(process);
-                    self.state.threats.suspicious_processes.truncate(200);
-                }
-                AgentEvent::FimStats {
-                    monitored_count,
-                    changes_today,
-                } => {
-                    self.state.fim.monitored_count = monitored_count;
-                    self.state.fim.changes_today = changes_today;
-                }
-                AgentEvent::ShuttingDown => {
-                    // Runtime is shutting down
-                }
-                AgentEvent::UpdateStatusChanged { status } => {
-                    self.state.settings.update_status = status;
-                }
+            // Special handling for enrollment result in app shell
+            if let crate::events::AgentEvent::EnrollmentResult { success, ref message, .. } = event {
+                self.enrollment_wizard.set_result(success, message.clone());
             }
+
+            self.state.apply_event(event);
         }
     }
 
@@ -596,7 +235,7 @@ impl SentinelApp {
                 TrayAction::ShowWindow => {
                     self.show_tray_satellite = false;
                     #[cfg(target_os = "macos")]
-                    macos_dock::show_dock_icon();
+                    macos_utils::show_dock_icon();
                     self.visible = true;
                     ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
                     ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
@@ -633,33 +272,7 @@ impl SentinelApp {
         }
     }
 
-    fn recompute_policy(&mut self) {
-        use crate::dto::GuiCheckStatus;
-        let total = self.state.checks.len() as u32;
-        let (mut passing, mut failing, mut errors) = (0u32, 0u32, 0u32);
-        for c in &self.state.checks {
-            match c.status {
-                GuiCheckStatus::Pass => passing += 1,
-                GuiCheckStatus::Fail => failing += 1,
-                GuiCheckStatus::Error => errors += 1,
-                _ => {}
-            }
-        }
-        let pending = total - passing - failing - errors;
-
-        self.state.policy = GuiPolicySummary {
-            total_policies: total,
-            passing,
-            failing,
-            errors,
-            pending,
-        };
-
-        // Update compliance score
-        if total > 0 {
-            self.state.summary.compliance_score = Some((passing as f32 / total as f32) * 100.0);
-        }
-    }
+    // recompute_policy moved to state.rs
 
     fn send_command(&self, cmd: GuiCommand) {
         if let Err(e) = self.command_tx.send(cmd) {
@@ -802,7 +415,10 @@ impl eframe::App for SentinelApp {
             theme::apply_theme(ctx, self.state.settings.dark_mode);
             egui_extras::install_image_loaders(ctx);
             // Scan macOS native apps once
-            self.state.software.macos_apps = scan_macos_apps();
+            #[cfg(target_os = "macos")]
+            {
+                self.state.software.macos_apps = crate::os::macos::scan_macos_apps();
+            }
             // Detect OS-level reduced motion preference
             self.state.reduced_motion = theme::detect_reduced_motion();
             theme::set_reduced_motion(self.state.reduced_motion);
@@ -867,7 +483,7 @@ impl eframe::App for SentinelApp {
             ctx.send_viewport_cmd(egui::ViewportCommand::Visible(false));
             self.visible = false;
             #[cfg(target_os = "macos")]
-            macos_dock::hide_dock_icon();
+            macos_utils::hide_dock_icon();
         }
 
         if !self.visible {
@@ -1142,6 +758,9 @@ impl eframe::App for SentinelApp {
                                         self.send_command(cmd);
                                     }
                                 }
+                                Page::AI => {
+                                    self.llm_panel.show(ui);
+                                }
                             });
                     });
             });
@@ -1270,113 +889,4 @@ impl SentinelApp {
                 );
             });
     }
-}
-
-// ============================================================================
-// macOS native application scanner
-// ============================================================================
-
-/// Scan /Applications for .app bundles and extract metadata from Info.plist.
-fn scan_macos_apps() -> Vec<crate::dto::GuiMacOsApp> {
-    let mut apps = Vec::new();
-
-    #[cfg(target_os = "macos")]
-    {
-        use std::path::Path;
-
-        let apps_dir = Path::new("/Applications");
-        if let Ok(entries) = std::fs::read_dir(apps_dir) {
-            for entry in entries.flatten() {
-                let path = entry.path();
-                if path.extension().and_then(|e| e.to_str()) != Some("app") {
-                    continue;
-                }
-                let plist_path = path.join("Contents/Info.plist");
-                if !plist_path.exists() {
-                    continue;
-                }
-
-                // Parse Info.plist (XML plist)
-                let name = path
-                    .file_stem()
-                    .and_then(|s| s.to_str())
-                    .unwrap_or("Unknown")
-                    .to_string();
-
-                let (version, bundle_id, publisher) =
-                    parse_info_plist(&plist_path).unwrap_or_default();
-
-                apps.push(crate::dto::GuiMacOsApp {
-                    name,
-                    version: if version.is_empty() {
-                        "--".to_string()
-                    } else {
-                        version
-                    },
-                    bundle_id: if bundle_id.is_empty() {
-                        "--".to_string()
-                    } else {
-                        bundle_id
-                    },
-                    publisher: if publisher.is_empty() {
-                        "--".to_string()
-                    } else {
-                        publisher
-                    },
-                    path: path.to_string_lossy().to_string(),
-                });
-            }
-        }
-    }
-
-    apps.sort_by(|a: &crate::dto::GuiMacOsApp, b: &crate::dto::GuiMacOsApp| {
-        a.name.to_lowercase().cmp(&b.name.to_lowercase())
-    });
-    apps
-}
-
-/// Parse an Info.plist file to extract version, bundle ID, and publisher.
-#[cfg(target_os = "macos")]
-fn parse_info_plist(path: &std::path::Path) -> Option<(String, String, String)> {
-    // Use /usr/bin/plutil to convert binary plist to XML, then parse.
-    let output = std::process::Command::new("/usr/bin/plutil")
-        .args(["-convert", "xml1", "-o", "-"])
-        .arg(path)
-        .output()
-        .ok()?;
-
-    if !output.status.success() {
-        return None;
-    }
-
-    let xml = String::from_utf8_lossy(&output.stdout);
-
-    fn extract_key(xml: &str, key: &str) -> String {
-        let needle = format!("<key>{}</key>", key);
-        if let Some(pos) = xml.find(&needle) {
-            let after = &xml[pos + needle.len()..];
-            // Skip whitespace and find the <string> tag
-            if let Some(start) = after.find("<string>") {
-                let val_start = start + "<string>".len();
-                if let Some(end) = after[val_start..].find("</string>") {
-                    return after[val_start..val_start + end].to_string();
-                }
-            }
-        }
-        String::new()
-    }
-
-    let version = extract_key(&xml, "CFBundleShortVersionString");
-    let bundle_id = extract_key(&xml, "CFBundleIdentifier");
-    // Try human-readable name first, fall back to copyright
-    let publisher = {
-        let name = extract_key(&xml, "CFBundleGetInfoString");
-        if name.is_empty() {
-            extract_key(&xml, "NSHumanReadableCopyright")
-        } else {
-            name
-        }
-    };
-
-    Some((version, bundle_id, publisher))
 }

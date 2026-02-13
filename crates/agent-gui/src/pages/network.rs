@@ -128,7 +128,8 @@ impl NetworkPage {
             ),
         ];
 
-        card_grid.show(ui, &items, |ui, width, (label, value, color, icon)| {
+        card_grid.show(ui, &items, |ui, width, item| {
+            let (label, value, color, icon) = item;
             Self::summary_card(ui, width, label, value, *color, icon);
         });
 

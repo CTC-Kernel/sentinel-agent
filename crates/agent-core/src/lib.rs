@@ -538,6 +538,7 @@ impl AgentRuntime {
                 .read()
                 .unwrap_or_else(|e| e.into_inner())
                 .clone(),
+            policy_summary: None,
         };
 
         self.emit_gui_event(AgentEvent::StatusChanged { summary });
@@ -554,7 +555,7 @@ impl AgentRuntime {
                 memory_percent: sys.memory_percent,
                 memory_used_mb: sys.memory_used_bytes / (1024 * 1024),
                 memory_total_mb: sys.memory_total_bytes / (1024 * 1024),
-                disk_iops: usage.disk_iops,
+                disk_kbps: usage.disk_kbps,
                 uptime_secs: usage.uptime_ms / 1000,
                 disk_percent: sys.disk_percent,
                 network_io_bytes: usage.network_io_bytes,
@@ -1030,6 +1031,7 @@ impl AgentRuntime {
                         .read()
                         .unwrap_or_else(|e| e.into_inner())
                         .clone(),
+                    policy_summary: None,
                 }
             });
 
