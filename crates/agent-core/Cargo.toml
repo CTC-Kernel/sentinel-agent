@@ -74,6 +74,7 @@ blake3.workspace = true
 memmap2.workspace = true
 regex.workspace = true
 zeroize = { workspace = true }
+futures-util.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 windows = { workspace = true }
