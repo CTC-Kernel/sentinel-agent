@@ -119,7 +119,7 @@ impl EnrollmentWizard {
 
         egui::Frame::new()
             .fill(egui::Color32::TRANSPARENT)
-            .inner_margin(egui::Margin::same(32))
+            .inner_margin(egui::Margin::same(theme::SPACE_XL as i8))
             .show(ui, |ui: &mut egui::Ui| {
                 ui.vertical_centered(|ui: &mut egui::Ui| {
                     ui.add_space(theme::SPACE_XL);
@@ -131,7 +131,7 @@ impl EnrollmentWizard {
                         include_bytes!("../assets/IA.png"),
                     )
                     .max_width(theme::ENROLLMENT_LOGO_WIDTH)
-                    .corner_radius(egui::CornerRadius::same(10));
+                    .corner_radius(egui::CornerRadius::same(theme::ROUNDING_LG));
 
                     let image_response = ui.add(image);
 
@@ -239,9 +239,9 @@ impl EnrollmentWizard {
 
             egui::Frame::new()
                 .fill(card_bg)
-                .corner_radius(egui::CornerRadius::same(16))
+                .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
                 .stroke(card_stroke)
-                .inner_margin(egui::Margin::same(32))
+                .inner_margin(egui::Margin::same(theme::SPACE_XL as i8))
                 .show(ui, |ui: &mut egui::Ui| {
                     // Header
                     ui.label(
@@ -385,7 +385,7 @@ impl EnrollmentWizard {
                             .fill(input_bg)
                             .corner_radius(egui::CornerRadius::same(input_rounding))
                             .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border().linear_multiply(theme::OPACITY_MODERATE)))
-                            .inner_margin(egui::Margin::same(12))
+                            .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
                             .show(ui, |ui: &mut egui::Ui| {
                                 ui.add(
                                     egui::TextEdit::multiline(&mut self.qr_input)
@@ -411,7 +411,7 @@ impl EnrollmentWizard {
                             .fill(input_bg)
                             .corner_radius(egui::CornerRadius::same(input_rounding))
                             .stroke(egui::Stroke::new(theme::BORDER_THIN, theme::border().linear_multiply(theme::OPACITY_MODERATE)))
-                            .inner_margin(egui::Margin::same(12))
+                            .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
                             .show(ui, |ui: &mut egui::Ui| {
                                 ui.horizontal(|ui: &mut egui::Ui| {
                                     ui.add(
@@ -477,7 +477,7 @@ impl EnrollmentWizard {
                             egui::Vec2::new(ui.available_width(), theme::BUTTON_HEIGHT_LG),
                             egui::Button::new(btn_txt)
                                 .fill(theme::ACCENT)
-                                .corner_radius(egui::CornerRadius::same(10)),
+                                .corner_radius(egui::CornerRadius::same(theme::ROUNDING_LG)),
                         );
 
                         if btn.clicked() {

@@ -227,12 +227,25 @@ impl<'a> EventsRepository<'a> {
     fn row_to_event(row: &rusqlite::Row<'_>) -> rusqlite::Result<AgentEvent> {
         let id: i64 = row.get(0)?;
         let severity_str: String = row.get(2)?;
-        let severity = EventSeverity::parse_str(&severity_str).unwrap_or(EventSeverity::Info);
+        let severity = EventSeverity::parse_str(&severity_str).unwrap_or_else(|| {
+            tracing::warn!(
+                "Unknown event severity '{}' in database, falling back to Info",
+                severity_str
+            );
+            EventSeverity::Info
+        });
 
         let created_at_str: String = row.get(6)?;
         let created_at = DateTime::parse_from_rfc3339(&created_at_str)
             .map(|dt| dt.with_timezone(&Utc))
-            .unwrap_or_else(|_| Utc::now());
+            .unwrap_or_else(|e| {
+                tracing::warn!(
+                    "Malformed timestamp '{}' in agent_events: {}, using current time",
+                    created_at_str,
+                    e
+                );
+                Utc::now()
+            });
 
         Ok(AgentEvent {
             id: Some(id),

@@ -184,8 +184,7 @@ impl ResourceMonitor {
 
     /// Get detailed process list for telemetry.
     pub fn get_processes(&self) -> Vec<crate::api_client::AgentProcess> {
-        use sysinfo::{ProcessRefreshKind, ProcessesToUpdate};
-        let mut sys = match self.sys.lock() {
+        let sys = match self.sys.lock() {
             Ok(guard) => guard,
             Err(poisoned) => {
                 tracing::warn!("sysinfo mutex was poisoned, recovering");
@@ -235,14 +234,41 @@ impl ResourceMonitor {
 
         #[cfg(target_os = "macos")]
         {
-            if let Ok(output) = std::process::Command::new("lsof")
+            use std::process::Stdio;
+            let child = std::process::Command::new("lsof")
                 .args(["-i", "-n", "-P"])
-                .output()
-            {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                for line in stdout.lines().skip(1) {
-                    if let Some(conn) = self.parse_lsof_line(line) {
-                        connections.push(conn);
+                .stdout(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn();
+
+            if let Ok(mut child) = child {
+                // Poll with 5-second timeout to prevent hanging
+                let timeout = std::time::Duration::from_secs(5);
+                let start = std::time::Instant::now();
+                let timed_out = loop {
+                    match child.try_wait() {
+                        Ok(Some(_)) => break false,
+                        Ok(None) if start.elapsed() >= timeout => {
+                            tracing::warn!("lsof timed out after 5s, killing process");
+                            let _ = child.kill();
+                            let _ = child.wait();
+                            break true;
+                        }
+                        Ok(None) => {
+                            std::thread::sleep(std::time::Duration::from_millis(50));
+                        }
+                        Err(_) => break true,
+                    }
+                };
+
+                if !timed_out
+                    && let Ok(output) = child.wait_with_output()
+                {
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    for line in stdout.lines().skip(1) {
+                        if let Some(conn) = self.parse_lsof_line(line) {
+                            connections.push(conn);
+                        }
                     }
                 }
             }
@@ -793,6 +819,7 @@ fn get_process_memory() -> u64 {
                 let page_size: u64 = if raw_page_size > 0 {
                     raw_page_size as u64
                 } else {
+                    tracing::warn!("sysconf(_SC_PAGESIZE) returned {raw_page_size}, falling back to 4096");
                     4096
                 };
                 return rss_pages * page_size;
@@ -943,8 +970,8 @@ fn get_disk_usage() -> (u64, u64) {
         // SAFETY: "/" is always valid UTF-8 with no interior NUL bytes
         let path = std::ffi::CString::new("/").expect("static path \"/\" is always valid");
         if libc::statvfs(path.as_ptr(), &mut stat) == 0 {
-            let total = stat.f_blocks as u64 * stat.f_frsize;
-            let free = stat.f_bavail as u64 * stat.f_frsize;
+            let total = (stat.f_blocks as u64).saturating_mul(stat.f_frsize as u64);
+            let free = (stat.f_bavail as u64).saturating_mul(stat.f_frsize as u64);
             let used = total.saturating_sub(free);
             (total, used)
         } else {
@@ -1236,7 +1263,10 @@ fn get_system_cpu() -> f64 {
         let expected_count = (num_cpus as usize) * CPU_STATE_MAX;
         if (info_count as usize) < expected_count {
             let alloc_size = (info_count as usize) * std::mem::size_of::<integer_t>();
-            vm_deallocate(mach_task_self(), info_array as usize, alloc_size);
+            let kr_dealloc = vm_deallocate(mach_task_self(), info_array as usize, alloc_size);
+            if kr_dealloc != libc::KERN_SUCCESS {
+                tracing::debug!("vm_deallocate failed with code {kr_dealloc}");
+            }
             return 0.0;
         }
 
@@ -1256,7 +1286,10 @@ fn get_system_cpu() -> f64 {
 
         // Free the Mach-allocated buffer
         let alloc_size = (info_count as usize) * std::mem::size_of::<integer_t>();
-        vm_deallocate(mach_task_self(), info_array as usize, alloc_size);
+        let kr_dealloc = vm_deallocate(mach_task_self(), info_array as usize, alloc_size);
+        if kr_dealloc != libc::KERN_SUCCESS {
+            tracing::debug!("vm_deallocate failed with code {kr_dealloc}");
+        }
 
         // Delta calculation
         let prev_total = LAST_TOTAL_TICKS.swap(total_ticks, Ordering::Relaxed);
@@ -1325,8 +1358,8 @@ fn get_disk_usage() -> (u64, u64) {
         // SAFETY: "/" is always valid UTF-8 with no interior NUL bytes
         let path = std::ffi::CString::new("/").expect("static path \"/\" is always valid");
         if libc::statvfs(path.as_ptr(), &mut stat) == 0 {
-            let total = stat.f_blocks as u64 * stat.f_frsize;
-            let free = stat.f_bavail as u64 * stat.f_frsize;
+            let total = (stat.f_blocks as u64).saturating_mul(stat.f_frsize);
+            let free = (stat.f_bavail as u64).saturating_mul(stat.f_frsize);
             let used = total.saturating_sub(free);
             (total, used)
         } else {
@@ -1539,11 +1572,13 @@ fn get_cpu_usage() -> f64 {
 fn get_logical_cores() -> u32 {
     #[cfg(target_os = "macos")]
     {
-        unsafe { libc::sysconf(libc::_SC_NPROCESSORS_ONLN) as u32 }
+        let raw = unsafe { libc::sysconf(libc::_SC_NPROCESSORS_ONLN) };
+        if raw > 0 { raw as u32 } else { 1 }
     }
     #[cfg(target_os = "linux")]
     {
-        unsafe { libc::sysconf(libc::_SC_NPROCESSORS_ONLN) as u32 }
+        let raw = unsafe { libc::sysconf(libc::_SC_NPROCESSORS_ONLN) };
+        if raw > 0 { raw as u32 } else { 1 }
     }
     #[cfg(windows)]
     {

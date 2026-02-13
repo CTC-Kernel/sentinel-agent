@@ -377,7 +377,7 @@ impl ThreatsPage {
         egui::Frame::new()
             .fill(theme::bg_elevated().linear_multiply(theme::OPACITY_MEDIUM)) // Glassy feel
             .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
-            .inner_margin(egui::Margin::same(12))
+            .inner_margin(egui::Margin::same(theme::SPACE_MD as i8))
             .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
             .show(ui, |ui: &mut egui::Ui| {
                 ui.horizontal(|ui: &mut egui::Ui| {

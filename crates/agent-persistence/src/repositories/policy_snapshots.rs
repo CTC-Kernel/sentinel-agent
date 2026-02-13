@@ -274,13 +274,25 @@ impl<'a> PolicySnapshotsRepository<'a> {
     fn row_to_snapshot(row: &rusqlite::Row<'_>) -> rusqlite::Result<PolicySnapshot> {
         let id: i64 = row.get(0)?;
         let snapshot_type_str: String = row.get(1)?;
-        let snapshot_type =
-            SnapshotType::parse_str(&snapshot_type_str).unwrap_or(SnapshotType::Periodic);
+        let snapshot_type = SnapshotType::parse_str(&snapshot_type_str).unwrap_or_else(|| {
+            tracing::warn!(
+                "Unknown snapshot type '{}' in database, falling back to Periodic",
+                snapshot_type_str
+            );
+            SnapshotType::Periodic
+        });
 
         let created_at_str: String = row.get(9)?;
         let created_at = DateTime::parse_from_rfc3339(&created_at_str)
             .map(|dt| dt.with_timezone(&Utc))
-            .unwrap_or_else(|_| Utc::now());
+            .unwrap_or_else(|e| {
+                tracing::warn!(
+                    "Malformed timestamp '{}' in policy_snapshots: {}, using current time",
+                    created_at_str,
+                    e
+                );
+                Utc::now()
+            });
 
         Ok(PolicySnapshot {
             id: Some(id),

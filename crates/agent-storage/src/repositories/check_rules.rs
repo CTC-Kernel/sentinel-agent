@@ -672,7 +672,13 @@ impl<'a> CheckRulesRepository<'a> {
     /// Convert a database row to a CheckRule.
     fn row_to_check_rule(row: &rusqlite::Row<'_>) -> rusqlite::Result<CheckRule> {
         let severity_str: String = row.get(4)?;
-        let severity = Severity::parse_str(&severity_str).unwrap_or(Severity::Medium);
+        let severity = Severity::parse_str(&severity_str).unwrap_or_else(|| {
+            tracing::warn!(
+                "Unknown check rule severity '{}' in database, falling back to Medium",
+                severity_str
+            );
+            Severity::Medium
+        });
 
         let enabled_int: i32 = row.get(5)?;
 
@@ -687,12 +693,24 @@ impl<'a> CheckRulesRepository<'a> {
         let created_at_str: String = row.get(10)?;
         let created_at = DateTime::parse_from_rfc3339(&created_at_str)
             .map(|dt| dt.with_timezone(&Utc))
-            .unwrap_or_else(|_| Utc::now());
+            .unwrap_or_else(|e| {
+                tracing::warn!(
+                    "Failed to parse created_at timestamp '{}': {}, using current time",
+                    created_at_str, e
+                );
+                Utc::now()
+            });
 
         let updated_at_str: String = row.get(11)?;
         let updated_at = DateTime::parse_from_rfc3339(&updated_at_str)
             .map(|dt| dt.with_timezone(&Utc))
-            .unwrap_or_else(|_| Utc::now());
+            .unwrap_or_else(|e| {
+                tracing::warn!(
+                    "Failed to parse updated_at timestamp '{}': {}, using current time",
+                    updated_at_str, e
+                );
+                Utc::now()
+            });
 
         let platforms_str: Option<String> = row.get(15)?;
         let platforms = platforms_str.and_then(|s| serde_json::from_str(&s).ok());

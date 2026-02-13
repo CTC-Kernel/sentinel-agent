@@ -104,9 +104,55 @@ pub fn run_as_service() -> ServiceResult<()> {
 /// Creates the systemd unit file and enables the service.
 /// Requires root privileges.
 pub fn install_service(executable_path: &str) -> ServiceResult<()> {
-    // Check if already installed
-    if Path::new(SYSTEMD_UNIT_PATH).exists() {
-        return Err(ServiceError::AlreadyInstalled);
+    // Validate executable path to prevent systemd unit file injection
+    // Must be absolute path with no shell special characters or injection vectors
+    if !executable_path.starts_with('/')
+        || executable_path.contains('\n')
+        || executable_path.contains('\r')
+        || executable_path.contains('$')
+        || executable_path.contains('`')
+        || executable_path.contains(';')
+        || executable_path.contains('&')
+        || executable_path.contains('|')
+        || executable_path.contains('>')
+        || executable_path.contains('<')
+        || executable_path.contains('"')
+        || executable_path.contains('\'')
+        || executable_path.contains('\\')
+        || executable_path.contains("..")
+        || executable_path.contains("//")
+        || executable_path.len() > 4096  // Reasonable path length limit
+    {
+        return Err(ServiceError::System(
+            "Invalid executable path: must be absolute, contain no shell special characters, and be under 4096 characters".to_string(),
+        ));
+    }
+
+    // Additional validation: ensure path exists and is executable
+    if !Path::new(executable_path).exists() {
+        return Err(ServiceError::System(
+            "Executable path does not exist".to_string(),
+        ));
+    }
+
+    // Check if file is executable by owner
+    match std::fs::metadata(executable_path) {
+        Ok(metadata) => {
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                if metadata.permissions().mode() & 0o111 == 0 {
+                    return Err(ServiceError::System(
+                        "Executable file is not executable".to_string(),
+                    ));
+                }
+            }
+        }
+        Err(_) => {
+            return Err(ServiceError::System(
+                "Cannot read executable file metadata".to_string(),
+            ));
+        }
     }
 
     // Check for root privileges
@@ -119,8 +165,17 @@ pub fn install_service(executable_path: &str) -> ServiceResult<()> {
     // Generate unit file content
     let unit_content = SYSTEMD_UNIT_TEMPLATE.replace("{executable_path}", executable_path);
 
-    // Write unit file
-    fs::write(SYSTEMD_UNIT_PATH, unit_content)
+    // Atomic create — fails if file already exists (prevents TOCTOU race)
+    use std::io::Write;
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(SYSTEMD_UNIT_PATH)
+        .map_err(|e| match e.kind() {
+            std::io::ErrorKind::AlreadyExists => ServiceError::AlreadyInstalled,
+            _ => ServiceError::System(format!("Failed to write unit file: {}", e)),
+        })?;
+    file.write_all(unit_content.as_bytes())
         .map_err(|e| ServiceError::System(format!("Failed to write unit file: {}", e)))?;
 
     // Reload systemd daemon

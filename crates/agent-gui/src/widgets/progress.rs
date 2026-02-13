@@ -262,7 +262,7 @@ pub fn step_indicator(ui: &mut Ui, steps: &[&str], current_step: usize) {
                     );
 
                     let (circle_color, text_color, border) = if is_completed {
-                        (theme::ACCENT, Color32::WHITE, None)
+                        (theme::ACCENT, theme::text_on_accent(), None)
                     } else if is_current {
                         (
                             theme::ACCENT.linear_multiply(theme::OPACITY_TINT),

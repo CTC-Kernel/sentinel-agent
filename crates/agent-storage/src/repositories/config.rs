@@ -376,7 +376,13 @@ impl<'a> ConfigRepository<'a> {
         let updated_at_str: String = row.get(2)?;
         let updated_at = DateTime::parse_from_rfc3339(&updated_at_str)
             .map(|dt| dt.with_timezone(&Utc))
-            .unwrap_or_else(|_| Utc::now());
+            .unwrap_or_else(|e| {
+                tracing::warn!(
+                    "Failed to parse config updated_at timestamp '{}': {}, using current time",
+                    updated_at_str, e
+                );
+                Utc::now()
+            });
 
         let synced_at_str: Option<String> = row.get(3)?;
         let synced_at = synced_at_str

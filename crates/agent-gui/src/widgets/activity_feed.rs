@@ -149,7 +149,7 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
         if response.hovered() {
             painter.rect_filled(
                 rect,
-                CornerRadius::same(4),
+                CornerRadius::same(theme::ROUNDING_SM),
                 theme::bg_elevated().linear_multiply(theme::OPACITY_MEDIUM),
             );
         }

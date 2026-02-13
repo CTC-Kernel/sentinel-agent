@@ -9,7 +9,7 @@ use agent_storage::{Database, DatabaseConfig, KeyManager, StorageError};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 /// Result of a key rotation operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -20,8 +20,6 @@ pub struct KeyRotationResult {
     pub rotated_at: DateTime<Utc>,
     /// Detail message.
     pub detail: String,
-    /// Whether a backup was created before rotation.
-    pub backup_created: bool,
 }
 
 /// Key rotation schedule configuration.
@@ -81,7 +79,7 @@ impl<'a> KeyRotationManager<'a> {
     /// Rotate the database encryption key.
     ///
     /// This process:
-    /// 1. Creates a backup of the current database
+    /// 1. Creates a mandatory backup of the current database (failure aborts rotation)
     /// 2. Opens the database with the old key
     /// 3. Rekeys the database to the new key
     /// 4. Verifies the new key works
@@ -92,25 +90,24 @@ impl<'a> KeyRotationManager<'a> {
     ) -> PersistenceResult<KeyRotationResult> {
         info!("Starting database key rotation");
 
-        // Step 1: Create a backup before rotation
-        let backup_created = match BackupManager::new(self.db_path) {
-            Ok(backup_manager) => {
-                match backup_manager.create_backup(BackupReason::PreKeyRotation) {
-                    Ok(metadata) => {
-                        info!("Pre-rotation backup created: {}", metadata.id);
-                        true
-                    }
-                    Err(e) => {
-                        warn!("Failed to create pre-rotation backup: {}", e);
-                        false
-                    }
-                }
-            }
-            Err(e) => {
-                warn!("Failed to initialize backup manager: {}", e);
-                false
-            }
-        };
+        // Step 1: Create a mandatory backup before rotation - failure is fatal
+        let backup_manager = BackupManager::new(self.db_path).map_err(|e| {
+            PersistenceError::KeyRotation(format!(
+                "Cannot initialize backup manager before key rotation: {}",
+                e
+            ))
+        })?;
+        
+        let backup_metadata = backup_manager
+            .create_backup(BackupReason::PreKeyRotation)
+            .map_err(|e| {
+                PersistenceError::KeyRotation(format!(
+                    "CRITICAL: Pre-rotation backup failed - aborting key rotation to prevent data loss: {}",
+                    e
+                ))
+            })?;
+        
+        info!("Pre-rotation backup created successfully: {}", backup_metadata.id);
 
         // Step 2: Open database with old key
         let config = DatabaseConfig {
@@ -132,26 +129,22 @@ impl<'a> KeyRotationManager<'a> {
                 .map_err(|e| PersistenceError::KeyRotation(format!("Failed to get new key: {}", e)))?,
         );
 
-        let mut new_key_hex: String = new_key.iter().map(|b| format!("{:02x}", b)).collect();
+        let new_key_hex = zeroize::Zeroizing::new(
+            new_key.iter().map(|b| format!("{:02x}", b)).collect::<String>(),
+        );
 
         let rekey_result = tokio::runtime::Runtime::new()
             .map_err(|e| PersistenceError::KeyRotation(format!("Failed to create runtime: {}", e)))?
             .block_on(async {
                 db.with_connection(|conn| {
-                    conn.execute_batch(&format!("PRAGMA rekey = \"x'{}'\"", new_key_hex))
+                    conn.execute_batch(&format!("PRAGMA rekey = \"x'{}'\"", *new_key_hex))
                         .map_err(|e| StorageError::Encryption(format!("Rekey failed: {}", e)))?;
                     Ok(())
                 })
                 .await
             });
 
-        // Zeroize key material from memory
-        // SAFETY: volatile write prevents compiler from optimizing away the zeroing
-        unsafe {
-            for byte in new_key_hex.as_bytes_mut() {
-                std::ptr::write_volatile(byte, 0);
-            }
-        }
+        // new_key_hex is Zeroizing<String> -- automatically zeroed on drop
 
         match rekey_result {
             Ok(()) => {
@@ -170,27 +163,26 @@ impl<'a> KeyRotationManager<'a> {
                         Ok(KeyRotationResult {
                             success: true,
                             rotated_at: Utc::now(),
-                            detail: "Key rotation completed successfully".to_string(),
-                            backup_created,
+                            detail: "Key rotation completed successfully with verified backup".to_string(),
                         })
                     }
                     Err(e) => {
                         error!(
-                            "Key rotation verification failed: {}. Database may need recovery.",
-                            e
+                            "CRITICAL: Key rotation verification failed: {}. Database may need recovery from backup {}.",
+                            e, backup_metadata.id
                         );
                         Err(PersistenceError::KeyRotation(format!(
-                            "Verification after rotation failed: {}",
-                            e
+                            "Verification after rotation failed: {}. Database backup available: {}",
+                            e, backup_metadata.id
                         )))
                     }
                 }
             }
             Err(e) => {
-                error!("Key rotation failed: {}", e);
+                error!("CRITICAL: Key rotation failed: {}. Database backup available: {}", e, backup_metadata.id);
                 Err(PersistenceError::KeyRotation(format!(
-                    "Rekey operation failed: {}",
-                    e
+                    "Rekey operation failed: {}. Database backup available: {}",
+                    e, backup_metadata.id
                 )))
             }
         }

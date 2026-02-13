@@ -5,23 +5,12 @@ use std::path::PathBuf;
 use anyhow::Result;
 
 /// Main LLM configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct LLMConfig {
     pub model: ModelConfig,
     pub inference: InferenceConfig,
     pub cache: CacheConfig,
     pub security: SecurityConfig,
-}
-
-impl Default for LLMConfig {
-    fn default() -> Self {
-        Self {
-            model: ModelConfig::default(),
-            inference: InferenceConfig::default(),
-            cache: CacheConfig::default(),
-            security: SecurityConfig::default(),
-        }
-    }
 }
 
 /// Model configuration.

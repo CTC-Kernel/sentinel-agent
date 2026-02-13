@@ -93,7 +93,7 @@ fn draw_premium_button(
                 fill,
                 Stroke::NONE,
                 if enabled {
-                    Color32::WHITE
+                    theme::text_on_accent()
                 } else {
                     Color32::from_white_alpha(theme::DISABLED_ON_ACCENT_ALPHA)
                 },
@@ -291,7 +291,7 @@ fn draw_destructive_button(
         };
 
         let text_color = if enabled {
-            Color32::WHITE
+            theme::text_on_accent()
         } else {
             Color32::from_white_alpha(theme::DISABLED_ON_ACCENT_ALPHA)
         };
@@ -446,7 +446,7 @@ pub fn icon_button_with_color(
         if response.has_focus() {
             ui.painter().rect_stroke(
                 rect.expand(2.0),
-                CornerRadius::same(8),
+                CornerRadius::same(theme::BUTTON_ROUNDING),
                 theme::focus_ring(),
                 StrokeKind::Outside,
             );

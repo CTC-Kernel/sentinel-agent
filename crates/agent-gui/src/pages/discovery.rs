@@ -88,7 +88,7 @@ impl DiscoveryPage {
                                     let alpha = 0.12 / (i as f32);
                                     ui.painter().rect_filled(
                                         fill_rect.expand(expansion),
-                                        egui::CornerRadius::same(4),
+                                        egui::CornerRadius::same(theme::ROUNDING_SM),
                                         theme::ACCENT.linear_multiply(alpha * (0.8 + pulse * 0.2)),
                                     );
                                 }

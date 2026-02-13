@@ -25,6 +25,7 @@ flate2.workspace = true
 semver.workspace = true
 hmac.workspace = true
 zeroize.workspace = true
+futures-util.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

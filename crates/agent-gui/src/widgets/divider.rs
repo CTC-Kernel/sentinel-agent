@@ -116,13 +116,13 @@ impl<'a> Divider<'a> {
                 self.draw_line(ui, line_width, true, color);
 
                 // Label
-                ui.add_space(8.0);
+                ui.add_space(theme::SPACE_SM);
                 ui.label(
                     egui::RichText::new(label_text)
                         .font(theme::font_small())
                         .color(theme::text_tertiary()),
                 );
-                ui.add_space(8.0);
+                ui.add_space(theme::SPACE_SM);
 
                 // Right line
                 self.draw_line(ui, line_width, true, color);

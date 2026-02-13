@@ -83,7 +83,13 @@ fn default_enabled() -> bool {
 
 impl From<ApiCheckRule> for CheckRule {
     fn from(api: ApiCheckRule) -> Self {
-        let severity = Severity::parse_str(&api.severity).unwrap_or(Severity::Medium);
+        let severity = Severity::parse_str(&api.severity).unwrap_or_else(|| {
+            tracing::warn!(
+                "Unknown API check rule severity '{}', falling back to Medium",
+                api.severity
+            );
+            Severity::Medium
+        });
 
         CheckRule {
             id: api.id,

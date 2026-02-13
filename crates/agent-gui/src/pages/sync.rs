@@ -115,8 +115,8 @@ impl SyncPage {
                 ui.add_space(theme::SPACE_MD);
                 egui::Frame::new()
                     .fill(theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE))
-                    .corner_radius(egui::CornerRadius::same(4))
-                    .inner_margin(egui::Margin::symmetric(8, 4))
+                    .corner_radius(egui::CornerRadius::same(theme::ROUNDING_SM))
+                    .inner_margin(egui::Margin::symmetric(theme::SPACE_SM as i8, theme::SPACE_XS as i8))
                     .show(ui, |ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(format!("{} ERREUR : {}", icons::WARNING, err))

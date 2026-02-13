@@ -54,7 +54,98 @@ pub struct RecoveryManager<'a> {
     key_manager: &'a KeyManager,
 }
 
+/// Result of post-VACUUM verification.
+#[derive(Debug)]
+struct PostVacuumVerification {
+    /// Whether all checks passed.
+    pub all_passed: bool,
+    /// List of failed check names.
+    pub failed_checks: Vec<String>,
+}
+
 impl<'a> RecoveryManager<'a> {
+    /// Perform comprehensive verification after VACUUM operation.
+    fn perform_post_vacuum_verification(&self) -> PersistenceResult<PostVacuumVerification> {
+        let mut failed_checks = Vec::new();
+        
+        // Re-run full integrity check
+        match self.check_integrity() {
+            Ok(report) => {
+                if !report.passed {
+                    failed_checks.push("integrity_check".to_string());
+                    for check in &report.checks {
+                        if !check.passed {
+                            failed_checks.push(format!("integrity_{}", check.name));
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                failed_checks.push(format!("integrity_check_error: {}", e));
+            }
+        }
+
+        // Additional VACUUM-specific checks
+        let config = DatabaseConfig {
+            path: self.db_path.to_path_buf(),
+            create_if_missing: false,
+        };
+
+        let db = Database::open(config, self.key_manager).map_err(|e| {
+            PersistenceError::Recovery(format!("Cannot open database for post-VACUUM verification: {}", e))
+        })?;
+
+        // Check database can perform basic operations
+        let basic_ops_ok = tokio::runtime::Runtime::new()
+            .map_err(|e| PersistenceError::Recovery(format!("Failed to create runtime: {}", e)))?
+            .block_on(async {
+                db.with_connection(|conn| {
+                    // Test basic query
+                    let _: Option<i32> = conn
+                        .query_row("SELECT 1", [], |row| row.get(0))
+                        .map_err(|e| {
+                            agent_storage::StorageError::Query(format!("Basic query failed: {}", e))
+                        })?;
+                    
+                    // Test schema access
+                    let _: Option<i32> = conn
+                        .query_row(
+                            "SELECT COUNT(*) FROM sqlite_master WHERE type='table'",
+                            [],
+                            |row| row.get(0),
+                        )
+                        .map_err(|e| {
+                            agent_storage::StorageError::Query(format!("Schema query failed: {}", e))
+                        })?;
+                    
+                    Ok(())
+                })
+                .await
+            });
+
+        if basic_ops_ok.is_err() {
+            failed_checks.push("basic_operations".to_string());
+        }
+
+        // Check database file size is reasonable (not truncated)
+        match std::fs::metadata(self.db_path) {
+            Ok(metadata) => {
+                if metadata.len() == 0 {
+                    failed_checks.push("empty_database".to_string());
+                }
+            }
+            Err(_) => {
+                failed_checks.push("file_metadata".to_string());
+            }
+        }
+
+        let all_passed = failed_checks.is_empty();
+        
+        Ok(PostVacuumVerification {
+            all_passed,
+            failed_checks,
+        })
+    }
     /// Create a new recovery manager.
     pub fn new(db_path: &'a Path, key_manager: &'a KeyManager) -> Self {
         Self {
@@ -236,8 +327,21 @@ impl<'a> RecoveryManager<'a> {
 
         match result {
             Ok(()) => {
-                info!("Database repair (VACUUM) completed successfully");
-                Ok(true)
+                info!("VACUUM completed, performing comprehensive post-repair verification");
+                
+                // Perform comprehensive post-VACUUM verification
+                let post_vacuum_checks = self.perform_post_vacuum_verification()?;
+                
+                if post_vacuum_checks.all_passed {
+                    info!("Database repair (VACUUM) completed and verified successfully");
+                    Ok(true)
+                } else {
+                    error!(
+                        "Database repair (VACUUM) completed but post-repair verification failed: {:?}",
+                        post_vacuum_checks.failed_checks
+                    );
+                    Ok(false)
+                }
             }
             Err(e) => {
                 error!("Database repair failed: {}", e);

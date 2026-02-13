@@ -375,10 +375,10 @@ impl FirewallCheck {
         let mut raw_output = String::from_utf8_lossy(&output.stdout).to_string();
         
         // If it failed or output is empty, try with elevation
-        if !output.status.success() || raw_output.trim().is_empty() {
-             if let Ok(elevated) = agent_common::macos::run_with_elevation("/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate") {
-                 raw_output = elevated;
-             }
+        if (!output.status.success() || raw_output.trim().is_empty())
+            && let Ok(elevated) = agent_common::macos::run_with_elevation("/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate")
+        {
+            raw_output = elevated;
         }
 
         let enabled = raw_output.contains("enabled");
