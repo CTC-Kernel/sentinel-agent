@@ -217,8 +217,17 @@ impl std::fmt::Display for UsbEventType {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
+pub struct GuiPolicySummary {
+    pub total_policies: u32,
+    pub passing: u32,
+    pub failing: u32,
+    pub errors: u32,
+    pub pending: u32,
+}
+
 /// Overall agent status displayed in the GUI dashboard.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum GuiAgentStatus {
     /// Agent is running and connected to the server.
@@ -234,11 +243,12 @@ pub enum GuiAgentStatus {
     /// Agent encountered an error.
     Error,
     /// Agent is starting up.
+    #[default]
     Starting,
 }
 
 /// Summary view of the agent state for the GUI main panel.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 #[serde(rename_all = "snake_case")]
 pub struct AgentSummary {
     /// Current agent status.
@@ -263,6 +273,8 @@ pub struct AgentSummary {
     pub uptime_secs: u64,
     /// Active compliance frameworks.
     pub active_frameworks: Option<Vec<String>>,
+    /// Summary of compliance policy status.
+    pub policy_summary: Option<GuiPolicySummary>,
 }
 
 /// A single compliance check result for GUI display.
@@ -310,7 +322,7 @@ pub enum GuiCheckStatus {
 }
 
 /// Resource usage snapshot for GUI display.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 #[serde(rename_all = "snake_case")]
 pub struct GuiResourceUsage {
     /// CPU usage percentage.
@@ -411,21 +423,6 @@ impl GuiNotification {
     }
 }
 
-/// Policy summary for GUI display.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
-pub struct GuiPolicySummary {
-    /// Total number of active policies.
-    pub total_policies: u32,
-    /// Number of policies passing.
-    pub passing: u32,
-    /// Number of policies failing.
-    pub failing: u32,
-    /// Number of policies with errors.
-    pub errors: u32,
-    /// Number of policies not yet evaluated.
-    pub pending: u32,
-}
 
 /// A software package entry for GUI display.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -614,6 +611,7 @@ mod tests {
             pending_sync_count: 3,
             uptime_secs: 3600,
             active_frameworks: None,
+            policy_summary: None,
         };
 
         let json = serde_json::to_string(&summary).unwrap();

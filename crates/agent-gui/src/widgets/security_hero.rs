@@ -108,7 +108,7 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
 
                     // Trend indicator
                     if let Some(prev) = state.previous_compliance_score {
-                        let diff = score - prev;
+                        let diff: f32 = score - prev;
                         if diff.abs() > 0.5 {
                             let (arrow, arrow_color) = if diff > 0.0 {
                                 ("▲", theme::SUCCESS)

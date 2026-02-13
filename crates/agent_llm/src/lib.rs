@@ -16,8 +16,8 @@ pub use analyzer::{AnalysisResult, LLMAnalyzer, SecurityAnalysis, AnalysisContex
 pub use config::LLMConfig;
 pub use engine::{ModelEngine, MistralEngine, create_engine, ModelStatus, MemoryUsage};
 pub use models::{ModelRegistry, ModelInfo};
-pub use remediation::RemediationAdvisor;
-pub use security::SecurityClassifier;
+pub use remediation::{RemediationAdvisor, RemediationPlan, RemediationAction, ActionType};
+pub use security::{SecurityClassifier, SecurityClassification, ThreatType, ThreatLevel};
 
 use std::sync::Arc;
 use anyhow::Result;
@@ -26,6 +26,7 @@ use anyhow::Result;
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ModelStats {
     pub model_name: String,
+    pub status: ModelStatus,
     pub inference_count: u64,
     pub memory_usage: MemoryUsage,
 }
@@ -56,9 +57,11 @@ impl LLMManager {
         let memory = self.engine.memory_usage().await;
         let count = self.engine.inference_count().await;
         
-        // TODO: Get real model name from config or engine
+        let status = self.engine.status().await;
+        
         Ok(ModelStats {
             model_name: "mistral-local".to_string(), 
+            status,
             inference_count: count,
             memory_usage: memory,
         })

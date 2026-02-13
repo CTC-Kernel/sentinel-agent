@@ -1672,7 +1672,7 @@ mod tests {
         let usage = ResourceUsage {
             cpu_percent: 25.0, // Exceeds 20% idle limit
             memory_bytes: 50 * 1024 * 1024,
-            disk_iops: 5,
+            disk_kbps: 5,
             network_io_bytes: 0,
             uptime_ms: 1000,
         };

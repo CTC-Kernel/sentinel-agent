@@ -122,10 +122,10 @@ impl LLMPanel {
 
             if let Some(stats) = &self.model_stats {
                 let status_color = match stats.status {
-                    Color32::GREEN => Color32::GREEN,
-                    Color32::YELLOW => Color32::YELLOW,
-                    Color32::RED => Color32::RED,
-                    _ => Color32::GRAY,
+                    agent_llm::ModelStatus::Ready => Color32::GREEN,
+                    agent_llm::ModelStatus::Loading => Color32::YELLOW,
+                    agent_llm::ModelStatus::Error(_) => Color32::RED,
+                    agent_llm::ModelStatus::Unloaded | agent_llm::ModelStatus::Busy => Color32::GRAY,
                 };
 
                 ui.label(RichText::new(format!("{:?}", stats.status)).color(status_color));
@@ -238,21 +238,20 @@ impl LLMPanel {
     fn show_analysis_results(&self, ui: &mut egui::Ui, analysis: &AnalysisResult) {
         ui.horizontal(|ui| {
             ui.label("Niveau de Risque:");
-            let risk_color = match analysis.risk_level.as_str() {
-                "low" => Color32::GREEN,
-                "medium" => Color32::YELLOW,
-                "high" => Color32::ORANGE,
-                "critical" => Color32::RED,
-                _ => Color32::GRAY,
+            let risk_color = match analysis.risk_assessment.risk_level {
+                agent_llm::analyzer::RiskLevel::Low => Color32::GREEN,
+                agent_llm::analyzer::RiskLevel::Medium => Color32::YELLOW,
+                agent_llm::analyzer::RiskLevel::High => Color32::ORANGE,
+                agent_llm::analyzer::RiskLevel::Critical => Color32::RED,
             };
-            ui.label(RichText::new(format!("{:?}", analysis.risk_level)).color(risk_color));
+            ui.label(RichText::new(format!("{:?}", analysis.risk_assessment.risk_level)).color(risk_color));
             ui.separator();
-            ui.label(format!("Score: {}/100", analysis.confidence * 100.0));
+            ui.label(format!("Confidence: {}%", analysis.metadata.confidence_score));
         });
 
         ui.separator();
         ui.label("Description:");
-        ui.label(&analysis.evidence.join(" "));
+        ui.label(&analysis.risk_assessment.description);
 
         if !analysis.recommendations.is_empty() {
             ui.separator();
@@ -267,10 +266,10 @@ impl LLMPanel {
                         _ => Color32::GRAY,
                     };
                     ui.label(RichText::new("medium").color(severity_color));
-                    ui.label(issue.clone());
+                    ui.label(&issue.title);
                 });
                 ui.indent(1, |ui| {
-                    ui.label(issue.clone());
+                    ui.label(&issue.description);
                     ui.label(format!("Impact: {}", "high"));
                 });
             }
@@ -281,11 +280,11 @@ impl LLMPanel {
             ui.heading("Recommandations:");
             for rec in &analysis.recommendations {
                 ui.horizontal(|ui| {
-                    ui.label(format!("• {}", rec));
-                    ui.label(format!("({})", "high"));
+                    ui.label(format!("• {}", rec.title));
+                    ui.label(format!("({})", rec.priority));
                 });
                 ui.indent(1, |ui| {
-                    ui.label(rec);
+                    ui.label(&rec.description);
                 });
             }
         }
@@ -306,11 +305,11 @@ impl LLMPanel {
 
                 ui.horizontal(|ui| {
                     let priority_color = match action.priority {
-                        "critical" => Color32::RED,
-                        _ => Color32::GRAY,
-                        "high" => Color32::ORANGE,
-                        "medium" => Color32::YELLOW,
-                        "low" => Color32::GREEN,
+                        agent_llm::remediation::Priority::Critical => Color32::RED,
+                        agent_llm::remediation::Priority::High => Color32::ORANGE,
+                        agent_llm::remediation::Priority::Medium => Color32::YELLOW,
+                        agent_llm::remediation::Priority::Low => Color32::GREEN,
+                        agent_llm::remediation::Priority::Info => Color32::GRAY,
                     };
                     ui.label(
                         RichText::new(format!("Priorité: {:?}", action.priority))
@@ -344,11 +343,10 @@ impl LLMPanel {
         for classification in &self.last_classifications {
             ui.horizontal(|ui| {
                 let threat_color = match classification.threat_level {
-                    "low" => Color32::GREEN,
-                    "medium" => Color32::YELLOW,
-                    "high" => Color32::ORANGE,
-                    "critical" => Color32::RED,
-                    _ => Color32::GRAY,
+                    agent_llm::security::ThreatLevel::Low => Color32::GREEN,
+                    agent_llm::security::ThreatLevel::Medium => Color32::YELLOW,
+                    agent_llm::security::ThreatLevel::High => Color32::ORANGE,
+                    agent_llm::security::ThreatLevel::Critical => Color32::RED,
                 };
                 ui.label(
                     RichText::new(format!("{:?}", classification.threat_type)).color(threat_color),
