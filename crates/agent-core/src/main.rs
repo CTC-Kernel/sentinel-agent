@@ -9,7 +9,6 @@
 
 use agent_common::config::AgentConfig;
 #[cfg(feature = "gui")]
-use agent_core::events::GuiNotification;
 #[cfg(feature = "tray")]
 use agent_core::tray;
 use agent_core::{AgentRuntime, init_logging, service};
