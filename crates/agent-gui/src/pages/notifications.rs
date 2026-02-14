@@ -40,7 +40,15 @@ impl NotificationsPage {
             ui.with_layout(
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
+                    if !state.notifications.is_empty()
+                        && widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked()
+                    {
+                        Self::export_notifications_csv(state);
+                    }
+
                     if unread > 0 {
+                        ui.add_space(theme::SPACE_SM);
+
                         if widgets::primary_button(
                             ui,
                             format!("{}  Tout marquer comme lu", icons::CHECK),
@@ -53,13 +61,6 @@ impl NotificationsPage {
                             }
                             state.unread_notification_count = 0;
                             command = Some(GuiCommand::MarkAllNotificationsRead);
-                        }
-
-                        ui.add_space(theme::SPACE_SM);
-
-                        if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked()
-                        {
-                            Self::export_notifications_csv(state);
                         }
                     }
                 },

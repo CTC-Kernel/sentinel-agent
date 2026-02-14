@@ -79,9 +79,10 @@ use agent_siem::SiemForwarder;
 #[cfg_attr(not(feature = "gui"), allow(dead_code))]
 #[cfg(feature = "gui")]
 use agent_gui::dto::{
-    AgentSummary, GuiAgentStatus, GuiCheckResult, GuiCheckStatus, GuiDiscoveredDevice,
-    GuiNetworkConnection, GuiNetworkInterface, GuiNotification, GuiResourceUsage,
-    GuiSoftwarePackage, GuiVulnerabilityFinding, GuiVulnerabilitySummary, Severity as GuiSeverity,
+    AgentSummary, FimChangeType as GuiFimChangeType, GuiAgentStatus, GuiCheckResult,
+    GuiCheckStatus, GuiDiscoveredDevice, GuiFimAlert, GuiNetworkConnection, GuiNetworkInterface,
+    GuiNotification, GuiResourceUsage, GuiSoftwarePackage, GuiVulnerabilityFinding,
+    GuiVulnerabilitySummary, Severity as GuiSeverity,
 };
 #[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;
@@ -2008,6 +2009,10 @@ impl AgentRuntime {
         let mut last_check_at: Option<chrono::DateTime<chrono::Utc>> = None;
         #[cfg(feature = "gui")]
         let mut last_gui_resource_update = std::time::Instant::now();
+        #[cfg(feature = "gui")]
+        let mut fim_changes_today: u32 = 0;
+        #[cfg(feature = "gui")]
+        let mut fim_last_day: u32 = chrono::Utc::now().timestamp() as u32 / 86400;
 
         let heartbeat_interval = *self.heartbeat_interval_secs.read().await;
 
@@ -2041,6 +2046,8 @@ impl AgentRuntime {
         let mut current_network_static_interval = network_static_interval;
         let mut current_network_connection_interval = network_connection_interval;
         let mut current_network_security_interval = network_security_interval;
+        #[cfg(feature = "gui")]
+        let mut last_network_alert_count: u32 = 0;
 
         // Run initial network collection
         info!("Running initial network collection...");
@@ -2153,6 +2160,37 @@ impl AgentRuntime {
                         };
 
                         // Send to SaaS
+                        // Forward to GUI
+                        #[cfg(feature = "gui")]
+                        {
+                            let gui_change_type = match alert.change {
+                                agent_common::types::FimChangeType::Created => GuiFimChangeType::Created,
+                                agent_common::types::FimChangeType::Modified => GuiFimChangeType::Modified,
+                                agent_common::types::FimChangeType::Deleted => GuiFimChangeType::Deleted,
+                                agent_common::types::FimChangeType::PermissionChanged => GuiFimChangeType::PermissionChanged,
+                                agent_common::types::FimChangeType::Renamed => GuiFimChangeType::Renamed,
+                            };
+                            self.emit_gui_event(AgentEvent::FimAlert {
+                                alert: GuiFimAlert {
+                                    id: uuid::Uuid::new_v4().to_string(),
+                                    path: alert.path.to_string_lossy().to_string(),
+                                    change_type: gui_change_type,
+                                    old_hash: alert.old_hash.clone(),
+                                    new_hash: alert.new_hash.clone(),
+                                    timestamp: alert.timestamp,
+                                    acknowledged: false,
+                                },
+                            });
+                            // Track daily change count
+                            let today = chrono::Utc::now().timestamp() as u32 / 86400;
+                            if today != fim_last_day {
+                                fim_changes_today = 0;
+                                fim_last_day = today;
+                            }
+                            fim_changes_today = fim_changes_today.saturating_add(1);
+                        }
+
+                        // Send to SaaS
                         if let Some(client) = self.api_client.read().await.as_ref()
                             && let Err(e) = client.report_incident(report.clone()).await
                         {
@@ -2188,6 +2226,24 @@ impl AgentRuntime {
                             }
                         }
                     }
+                }
+            }
+
+            // 1b. Emit FIM stats to GUI periodically
+            #[cfg(feature = "gui")]
+            {
+                let fim_engine = self.fim_engine.read().await;
+                if let Some(engine) = fim_engine.as_ref() {
+                    // Reset daily counter if day changed
+                    let today = chrono::Utc::now().timestamp() as u32 / 86400;
+                    if today != fim_last_day {
+                        fim_changes_today = 0;
+                        fim_last_day = today;
+                    }
+                    self.emit_gui_event(AgentEvent::FimStats {
+                        monitored_count: u32::try_from(engine.baseline_count()).unwrap_or(u32::MAX),
+                        changes_today: fim_changes_today,
+                    });
                 }
             }
 
@@ -2352,7 +2408,7 @@ impl AgentRuntime {
                             self.emit_gui_event(AgentEvent::NetworkUpdate {
                                 interfaces_count: u32::try_from(snapshot.interfaces.len()).unwrap_or(u32::MAX),
                                 connections_count: u32::try_from(snapshot.connections.len()).unwrap_or(u32::MAX),
-                                alerts_count: 0,
+                                alerts_count: last_network_alert_count,
                                 primary_ip: snapshot.primary_ip.clone(),
                                 primary_mac: snapshot.primary_mac.clone(),
                             });
@@ -2394,7 +2450,7 @@ impl AgentRuntime {
                             self.emit_gui_event(AgentEvent::NetworkUpdate {
                                 interfaces_count: u32::try_from(snapshot.interfaces.len()).unwrap_or(u32::MAX),
                                 connections_count: u32::try_from(snapshot.connections.len()).unwrap_or(u32::MAX),
-                                alerts_count: 0,
+                                alerts_count: last_network_alert_count,
                                 primary_ip: snapshot.primary_ip.clone(),
                                 primary_mac: snapshot.primary_mac.clone(),
                             });
@@ -2451,6 +2507,7 @@ impl AgentRuntime {
                         }
                         #[cfg(feature = "gui")]
                         {
+                            last_network_alert_count = alert_count;
                             self.emit_gui_event(AgentEvent::NetworkUpdate {
                                 interfaces_count: u32::try_from(snapshot.interfaces.len()).unwrap_or(u32::MAX),
                                 connections_count: u32::try_from(snapshot.connections.len()).unwrap_or(u32::MAX),

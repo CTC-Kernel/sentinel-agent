@@ -229,7 +229,7 @@ impl AgentTray {
 
         // === Resources Section ===
         let open_dashboard_item =
-            MenuItem::with_id(menu_ids::OPEN_DASHBOARD, "�️  Radar Sécurité", true, None);
+            MenuItem::with_id(menu_ids::OPEN_DASHBOARD, "🛡️  Radar Sécurité", true, None);
         let open_logs_item =
             MenuItem::with_id(menu_ids::OPEN_LOGS, "📁  Ouvrir les logs", true, None);
 
