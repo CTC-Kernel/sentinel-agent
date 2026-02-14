@@ -102,7 +102,8 @@ impl FimPage {
                             if widgets::chip_button(ui, "EXPORT CSV", false, theme::INFO)
                                 .clicked()
                             {
-                                Self::export_events_csv(state, &[]);
+                                let all_indices: Vec<usize> = (0..state.fim.alerts.len()).collect();
+                                Self::export_events_csv(state, &all_indices);
                             }
                         },
                     );
@@ -110,109 +111,129 @@ impl FimPage {
 
                 ui.add_space(theme::SPACE_MD);
 
-                // Table header
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    ui.set_width(120.0);
-                    ui.label(
-                        egui::RichText::new("TYPE")
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    );
-                    ui.set_width(ui.available_width() - 400.0);
-                    ui.label(
-                        egui::RichText::new("CHEMIN")
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    );
-                    ui.set_width(140.0);
-                    ui.label(
-                        egui::RichText::new("DATE")
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    );
-                    ui.set_width(120.0);
-                    ui.label(
-                        egui::RichText::new("STATUT")
-                            .font(theme::font_small())
-                            .color(theme::text_tertiary())
-                            .strong(),
-                    );
-                });
-
-                ui.add_space(theme::SPACE_XS);
-
-                // Table rows
+                // Collect ack commands before the table (borrow-safe)
+                let alert_ids: Vec<String> = state.fim.alerts.iter().map(|a| a.id.clone()).collect();
+                let alert_acked: Vec<bool> = state.fim.alerts.iter().map(|a| a.acknowledged).collect();
+                let admin_unlocked = state.security.admin_unlocked;
                 let mut ack_command = None;
-                for (idx, alert) in state.fim.alerts.iter().enumerate() {
-                    if idx > 0 {
-                        ui.separator();
-                    }
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        ui.set_width(120.0);
-                        let (label, color) = Self::change_type_display(&alert.change_type);
-                        widgets::status_badge(ui, label, color);
 
-                        ui.set_width(ui.available_width() - 400.0);
-                        ui.label(
-                            egui::RichText::new(&alert.path)
-                                .font(theme::font_mono())
-                                .size(12.0)
-                                .color(theme::text_primary()),
-                        );
+                use egui_extras::{Column, TableBuilder};
 
-                        ui.set_width(140.0);
-                        ui.label(
-                            egui::RichText::new(alert.timestamp.format("%H:%M:%S").to_string())
-                                .font(theme::font_mono())
-                                .size(11.0)
-                                .color(theme::text_tertiary()),
-                        );
+                let table = TableBuilder::new(ui)
+                    .striped(false)
+                    .resizable(true)
+                    .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
+                    .column(Column::initial(110.0).at_least(80.0))  // Type
+                    .column(Column::remainder())                     // Path
+                    .column(Column::initial(140.0).at_least(100.0)) // Date
+                    .column(Column::initial(140.0).at_least(120.0)); // Status/Action
 
-                        ui.set_width(120.0);
-                        if alert.acknowledged {
+                table
+                    .header(28.0, |mut header| {
+                        header.col(|ui: &mut egui::Ui| {
                             ui.label(
-                                egui::RichText::new(format!(
-                                    "{}  ACQUITTÉ",
-                                    icons::CIRCLE_CHECK
-                                ))
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .strong(),
+                                egui::RichText::new("TYPE")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
                             );
-                        } else if state.security.admin_unlocked && widgets::chip_button(
-                            ui,
-                            &format!("{}  ACQUITTER", icons::CHECK),
-                            false,
-                            theme::ACCENT,
-                        )
-                        .clicked()
-                        {
-                            ack_command = Some(GuiCommand::AcknowledgeFimAlert {
-                                alert_id: state.fim.alerts[idx].id.clone(),
+                        });
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new("CHEMIN")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
+                        });
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new("DATE")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
+                        });
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new("STATUT")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
+                        });
+                    })
+                    .body(|body| {
+                        body.rows(theme::TABLE_ROW_HEIGHT, state.fim.alerts.len(), |mut row| {
+                            let idx = row.index();
+                            let alert = &state.fim.alerts[idx];
+
+                            row.col(|ui: &mut egui::Ui| {
+                                let (label, color) = Self::change_type_display(&alert.change_type);
+                                widgets::status_badge(ui, label, color);
                             });
-                        } else if !state.security.admin_unlocked {
-                            // Disabled button for non-admin users
-                            widgets::chip_button(
-                                ui,
-                                &format!("{}  ACQUITTER", icons::LOCK),
-                                false,
-                                theme::text_tertiary(),
-                            );
-                        }
+
+                            row.col(|ui: &mut egui::Ui| {
+                                ui.label(
+                                    egui::RichText::new(&alert.path)
+                                        .font(theme::font_mono())
+                                        .size(12.0)
+                                        .color(theme::text_primary()),
+                                );
+                            });
+
+                            row.col(|ui: &mut egui::Ui| {
+                                ui.label(
+                                    egui::RichText::new(alert.timestamp.format("%d/%m %H:%M:%S").to_string())
+                                        .font(theme::font_mono())
+                                        .size(11.0)
+                                        .color(theme::text_tertiary()),
+                                );
+                            });
+
+                            row.col(|ui: &mut egui::Ui| {
+                                if alert_acked[idx] {
+                                    ui.label(
+                                        egui::RichText::new(format!(
+                                            "{}  ACQUITTÉ",
+                                            icons::CIRCLE_CHECK
+                                        ))
+                                        .font(theme::font_label())
+                                        .color(theme::text_tertiary())
+                                        .strong(),
+                                    );
+                                } else if admin_unlocked {
+                                    if widgets::chip_button(
+                                        ui,
+                                        &format!("{}  ACQUITTER", icons::CHECK),
+                                        false,
+                                        theme::ACCENT,
+                                    )
+                                    .clicked()
+                                    {
+                                        ack_command = Some(idx);
+                                    }
+                                } else {
+                                    widgets::chip_button(
+                                        ui,
+                                        &format!("{}  ACQUITTER", icons::LOCK),
+                                        false,
+                                        theme::text_tertiary(),
+                                    );
+                                }
+                            });
+                        });
                     });
-                }
-                
-                // Apply acknowledgment after the loop
-                if let Some(cmd) = ack_command {
-                    if let GuiCommand::AcknowledgeFimAlert { ref alert_id } = cmd {
-                        if let Some(idx) = state.fim.alerts.iter().position(|a| a.id == *alert_id) {
-                            state.fim.alerts[idx].acknowledged = true;
-                            command = Some(cmd);
-                        }
-                    }
+
+                // Apply acknowledgment after the table
+                if let Some(idx) = ack_command {
+                    let alert_id = alert_ids[idx].clone();
+                    state.fim.alerts[idx].acknowledged = true;
+                    command = Some(GuiCommand::AcknowledgeFimAlert { alert_id });
                 }
             });
         }
@@ -228,7 +249,7 @@ impl FimPage {
         ui: &mut Ui,
         width: f32,
         label: &str,
-        _value: &str,
+        value: &str,
         color: egui::Color32,
         icon: &str,
     ) {
@@ -236,24 +257,32 @@ impl FimPage {
             ui.set_width(width);
             widgets::card(ui, |ui: &mut egui::Ui| {
                 ui.horizontal(|ui: &mut egui::Ui| {
-                    ui.label(
-                        egui::RichText::new(label)
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .extra_letter_spacing(0.5)
-                            .strong(),
+                    ui.vertical(|ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new(value)
+                                .font(theme::font_card_value())
+                                .color(color)
+                                .strong(),
+                        );
+                        ui.label(
+                            egui::RichText::new(label)
+                                .font(theme::font_label())
+                                .color(theme::text_tertiary())
+                                .extra_letter_spacing(0.5)
+                                .strong(),
+                        );
+                    });
+                    ui.with_layout(
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new(icon)
+                                    .size(28.0)
+                                    .color(color.linear_multiply(theme::OPACITY_MUTED)),
+                            );
+                        },
                     );
                 });
-                ui.with_layout(
-                    egui::Layout::right_to_left(egui::Align::Center),
-                    |ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(icon)
-                                .size(28.0)
-                                .color(color.linear_multiply(theme::OPACITY_MUTED)),
-                        );
-                    },
-                );
             });
         });
     }
@@ -269,8 +298,8 @@ impl FimPage {
     }
 
     fn export_events_csv(state: &AppState, indices: &[usize]) -> bool {
-        let _headers = &["chemin", "modification", "date", "statut"];
-        let _rows: Vec<Vec<String>> = indices
+        let headers = &["chemin", "modification", "date", "statut"];
+        let rows: Vec<Vec<String>> = indices
             .iter()
             .map(|&i| {
                 let e = &state.fim.alerts[i];
@@ -283,8 +312,13 @@ impl FimPage {
             })
             .collect();
 
-        // Note: export_to_csv function doesn't exist in widgets, using placeholder
-        // widgets::export_to_csv("fim_alerts", headers, &rows)
-        false
+        let path = crate::export::default_export_path("fim_alertes.csv");
+        match crate::export::export_csv(headers, &rows, &path) {
+            Ok(_) => true,
+            Err(e) => {
+                tracing::warn!("Export CSV FIM failed: {}", e);
+                false
+            }
+        }
     }
 }

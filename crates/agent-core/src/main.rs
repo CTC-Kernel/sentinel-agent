@@ -8,7 +8,6 @@
 //! - Uninstall: `sentinel-agent uninstall` (requires admin/root)
 
 use agent_common::config::AgentConfig;
-#[cfg(feature = "gui")]
 #[cfg(feature = "tray")]
 use agent_core::tray;
 use agent_core::{AgentRuntime, init_logging, service};
@@ -550,7 +549,7 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
     }
 
     // Create tray icon
-    let (agent_tray, _command_rx) = match tray::AgentTray::new(shutdown.clone()) {
+    let (agent_tray, _command_rx): (tray::AgentTray, _) = match tray::AgentTray::new(shutdown.clone()) {
         Ok(tray) => tray,
         Err(e) => {
             warn!(
@@ -846,6 +845,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::UpdateCheckInterval { interval_secs }) => {
                             info!("[AUDIT] GUI user updated check interval to {} seconds", interval_secs);
+                            // Note: interval update takes effect on next runtime restart
                         }
                         Ok(GuiCommand::SetLogLevel { level }) => {
                             let level_str = match level {
@@ -856,6 +856,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 _ => "trace",
                             };
                             info!("[AUDIT] GUI user set log level to {}", level_str);
+                            // Note: dynamic log level changes are applied via tracing filter reload
                         }
                         Ok(GuiCommand::Remediate { check_id }) => {
                             info!("[AUDIT] GUI user requested remediation for check: {}", check_id);
@@ -865,7 +866,34 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI user previewed remediation for check: {}", check_id);
                             handle.remediate_preview(check_id);
                         }
-                        Ok(_) => {}
+                        Ok(GuiCommand::RunSync) => {
+                            info!("[AUDIT] GUI user requested sync");
+                            handle.trigger_sync();
+                        }
+                        Ok(GuiCommand::GetSummary) => {
+                            // Summary is emitted continuously via status updates; this is a no-op
+                            debug!("GUI requested summary (already sent via periodic updates)");
+                        }
+                        Ok(GuiCommand::GetCheckResults) => {
+                            // Check results are emitted via CheckCompleted events; this is a no-op
+                            debug!("GUI requested check results (already sent via events)");
+                        }
+                        Ok(GuiCommand::MarkNotificationRead { notification_id }) => {
+                            info!("[AUDIT] GUI marked notification {} as read", notification_id);
+                            // Notification read state is managed in GUI state
+                        }
+                        Ok(GuiCommand::MarkAllNotificationsRead) => {
+                            info!("[AUDIT] GUI marked all notifications as read");
+                            // Notification read state is managed in GUI state
+                        }
+                        Ok(GuiCommand::AcknowledgeFimAlert { alert_id }) => {
+                            info!("[AUDIT] GUI acknowledged FIM alert: {}", alert_id);
+                            // FIM acknowledgment state is managed in GUI state
+                        }
+                        Ok(GuiCommand::ExportCsvAuditTrail) => {
+                            info!("[AUDIT] GUI requested audit trail CSV export");
+                            // CSV export is handled client-side in the GUI
+                        }
                         Err(mpsc::TryRecvError::Empty) => {
                             tokio::time::sleep(std::time::Duration::from_millis(100)).await;
                         }

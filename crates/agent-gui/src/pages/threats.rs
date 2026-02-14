@@ -192,7 +192,19 @@ impl ThreatsPage {
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
                     if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
-                        Self::export_threats_csv(&threats);
+                        let success = Self::export_threats_csv(&threats);
+                        let time = ui.input(|i| i.time);
+                        if success {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success("Export CSV menaces terminé")
+                                    .with_time(time),
+                            );
+                        } else {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::error("Échec de l'export CSV")
+                                    .with_time(time),
+                            );
+                        }
                     }
                 },
             );
@@ -649,7 +661,7 @@ impl ThreatsPage {
         });
     }
 
-    fn export_threats_csv(threats: &[ThreatEvent]) {
+    fn export_threats_csv(threats: &[ThreatEvent]) -> bool {
         let headers = &[
             "kind",
             "severity",
@@ -672,8 +684,12 @@ impl ThreatsPage {
             })
             .collect();
         let path = crate::export::default_export_path("menaces_export.csv");
-        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
-            tracing::warn!("Export CSV failed: {}", e);
+        match crate::export::export_csv(headers, &rows, &path) {
+            Ok(_) => true,
+            Err(e) => {
+                tracing::warn!("Export CSV failed: {}", e);
+                false
+            }
         }
     }
 }

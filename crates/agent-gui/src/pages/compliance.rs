@@ -644,7 +644,7 @@ impl CompliancePage {
                                     widgets::status_badge(
                                         ui,
                                         fw,
-                                        theme::bg_elevated().linear_multiply(2.0),
+                                        theme::text_tertiary(),
                                     );
                                     ui.add_space(theme::SPACE_XS);
                                 }

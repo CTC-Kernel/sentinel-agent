@@ -205,7 +205,19 @@ impl DiscoveryPage {
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
                     if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
-                        Self::export_csv(state, &filtered);
+                        let success = Self::export_csv(state, &filtered);
+                        let time = ui.input(|i| i.time);
+                        if success {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success("Export CSV découverte terminé")
+                                    .with_time(time),
+                            );
+                        } else {
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::error("Échec de l'export CSV")
+                                    .with_time(time),
+                            );
+                        }
                     }
                 },
             );
@@ -369,20 +381,15 @@ impl DiscoveryPage {
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {
-                                if state.security.admin_unlocked {
-                                    if widgets::chip_button(
-                                        ui,
-                                        &format!("{}  IDENTIFIER", icons::PLUS),
-                                        false,
-                                        theme::text_tertiary(),
-                                    )
-                                    .clicked()
-                                    {
-                                        // Note: IdentifyDevice command doesn't exist, commenting out
-                                        // cmd = Some(crate::events::GuiCommand::IdentifyDevice {
-                                        //     device_id: device.ip.clone(),
-                                        // });
-                                    }
+                                if widgets::chip_button(
+                                    ui,
+                                    &format!("{}  COPIER IP", icons::COPY),
+                                    false,
+                                    theme::ACCENT,
+                                )
+                                .clicked()
+                                {
+                                    ui.ctx().copy_text(device.ip.clone());
                                 }
                             });
                         });
@@ -395,7 +402,7 @@ impl DiscoveryPage {
         cmd
     }
 
-    fn export_csv(state: &AppState, indices: &[usize]) {
+    fn export_csv(state: &AppState, indices: &[usize]) -> bool {
         let headers = &["ip", "hostname", "mac", "vendor", "type", "ports"];
         let rows: Vec<Vec<String>> = indices
             .iter()
@@ -416,8 +423,12 @@ impl DiscoveryPage {
             })
             .collect();
         let path = crate::export::default_export_path("decouverte.csv");
-        if let Err(e) = crate::export::export_csv(headers, &rows, &path) {
-            tracing::warn!("Export CSV failed: {}", e);
+        match crate::export::export_csv(headers, &rows, &path) {
+            Ok(_) => true,
+            Err(e) => {
+                tracing::warn!("Export CSV failed: {}", e);
+                false
+            }
         }
     }
 }

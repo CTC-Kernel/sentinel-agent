@@ -466,7 +466,7 @@ impl NetworkPage {
                                 widgets::status_badge(
                                     ui,
                                     &conn.protocol,
-                                    theme::bg_elevated().linear_multiply(2.0),
+                                    theme::text_tertiary(),
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {
