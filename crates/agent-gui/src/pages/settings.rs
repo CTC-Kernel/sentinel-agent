@@ -345,7 +345,8 @@ impl SettingsPage {
                 ui.add(
                     egui::TextEdit::singleline(&mut state.settings.architecture_url)
                         .hint_text("https://...")
-                        .desired_width(ui.available_width() - 30.0),
+                        .desired_width(ui.available_width() - 30.0)
+                        .char_limit(2048),
                 );
                 if !state.settings.architecture_url.is_empty() {
                     ui.label(egui::RichText::new(icons::CHECK).color(theme::SUCCESS));
@@ -544,17 +545,17 @@ impl SettingsPage {
                         resp.request_focus();
 
                         if resp.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-                            // Validate
                             // Validate password against SHA-256 hash (not plaintext)
                             if verify_admin_password(&modal_state.1, &state.settings.admin_password_sha256) {
                                 state.security.admin_unlocked = true;
                                 state.security.last_unlock = Some(chrono::Utc::now());
                                 modal_state.0 = false;
-                                modal_state.1.clear();
                                 modal_state.2 = None;
                             } else {
                                 modal_state.2 = Some("Mot de passe incorrect".to_string());
                             }
+                            // Always clear password from memory after validation attempt
+                            modal_state.1.clear();
                         }
 
                         if let Some(err) = &modal_state.2 {
@@ -575,11 +576,12 @@ impl SettingsPage {
                                     state.security.admin_unlocked = true;
                                     state.security.last_unlock = Some(chrono::Utc::now());
                                     modal_state.0 = false;
-                                    modal_state.1.clear();
                                     modal_state.2 = None;
                                 } else {
                                     modal_state.2 = Some("Mot de passe incorrect".to_string());
                                 }
+                                // Always clear password from memory after validation attempt
+                                modal_state.1.clear();
                             }
                         });
                     });

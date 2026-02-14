@@ -64,8 +64,21 @@ pub struct LogSigner {
 }
 
 impl LogSigner {
+    /// Minimum HMAC key length in bytes (256 bits).
+    const MIN_KEY_LENGTH: usize = 32;
+
     /// Create a new log signer with the given key.
+    ///
+    /// # Panics
+    /// Panics if the key is shorter than 32 bytes (256 bits), which is the
+    /// minimum recommended length for HMAC-SHA256.
     pub fn new(key: &[u8]) -> Self {
+        assert!(
+            key.len() >= Self::MIN_KEY_LENGTH,
+            "HMAC key must be at least {} bytes, got {}",
+            Self::MIN_KEY_LENGTH,
+            key.len()
+        );
         Self {
             key: zeroize::Zeroizing::new(key.to_vec()),
             sequence: RwLock::new(0),
@@ -77,6 +90,13 @@ impl LogSigner {
     pub fn from_hex_key(hex_key: &str) -> SyncResult<Self> {
         let key = hex::decode(hex_key)
             .map_err(|e| SyncError::Config(format!("Invalid HMAC key: {}", e)))?;
+        if key.len() < Self::MIN_KEY_LENGTH {
+            return Err(SyncError::Config(format!(
+                "HMAC key must be at least {} bytes, got {}",
+                Self::MIN_KEY_LENGTH,
+                key.len()
+            )));
+        }
         Ok(Self::new(&key))
     }
 
@@ -838,6 +858,20 @@ mod tests {
     fn test_log_signer_invalid_hex_key() {
         let signer = LogSigner::from_hex_key("invalid");
         assert!(signer.is_err());
+    }
+
+    #[test]
+    fn test_log_signer_rejects_short_hex_key() {
+        // 16 bytes (32 hex chars) is too short -- minimum is 32 bytes (64 hex chars)
+        let signer = LogSigner::from_hex_key("0123456789abcdef0123456789abcdef");
+        assert!(signer.is_err());
+    }
+
+    #[test]
+    #[should_panic(expected = "HMAC key must be at least 32 bytes")]
+    fn test_log_signer_new_rejects_short_key() {
+        let short_key = vec![0u8; 16];
+        let _signer = LogSigner::new(&short_key);
     }
 
     #[test]

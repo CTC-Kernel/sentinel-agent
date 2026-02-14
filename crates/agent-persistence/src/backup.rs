@@ -236,19 +236,27 @@ impl BackupManager {
             )));
         }
 
-        // Decompress with size limit to prevent OOM from malformed backups
+        // Decompress with streaming size limit to prevent decompression bombs
         const MAX_DECOMPRESSED_SIZE: usize = 10 * 1024 * 1024 * 1024; // 10 GB
-        let mut decoder = GzDecoder::new(&compressed[..]);
         let mut db_data = Vec::new();
-        decoder.read_to_end(&mut db_data).map_err(|e| {
-            PersistenceError::Restore(format!("Failed to decompress backup: {}", e))
-        })?;
-        if db_data.len() > MAX_DECOMPRESSED_SIZE {
-            return Err(PersistenceError::Restore(format!(
-                "Decompressed backup size ({} bytes) exceeds maximum ({} bytes)",
-                db_data.len(),
-                MAX_DECOMPRESSED_SIZE
-            )));
+        let mut decoder = GzDecoder::new(&compressed[..]);
+        let mut total_read = 0usize;
+        let mut buf = [0u8; 65536]; // 64KB buffer
+        loop {
+            let n = decoder.read(&mut buf).map_err(|e| {
+                PersistenceError::Restore(format!("Failed to decompress backup: {}", e))
+            })?;
+            if n == 0 {
+                break;
+            }
+            total_read += n;
+            if total_read > MAX_DECOMPRESSED_SIZE {
+                return Err(PersistenceError::Restore(format!(
+                    "Decompressed backup exceeds maximum size of {} bytes",
+                    MAX_DECOMPRESSED_SIZE
+                )));
+            }
+            db_data.extend_from_slice(&buf[..n]);
         }
 
         // Create a backup of the current database before restoring

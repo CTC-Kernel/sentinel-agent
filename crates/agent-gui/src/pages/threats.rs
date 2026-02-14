@@ -15,6 +15,7 @@ use crate::widgets;
 // ============================================================================
 
 /// A unified representation of any security threat, regardless of source.
+#[derive(Clone)]
 struct ThreatEvent {
     /// Source type: "process", "usb", or "fim".
     kind: &'static str,
@@ -111,30 +112,52 @@ impl ThreatsPage {
         let usb_active = state.threats.filter.as_deref() == Some("usb");
         let fim_active = state.threats.filter.as_deref() == Some("fim");
 
-        // PERF: threat list rebuilt every frame — consider caching with dirty tracking
-        let mut threats = Self::build_threat_list(state);
+        // Dirty-tracking: only rebuild + sort threat list when source data changes
+        let cache_id = ui.make_persistent_id("threats_cache");
+        let fingerprint = (
+            state.threats.suspicious_processes.len(),
+            state.threats.usb_events.len(),
+            state.fim.alerts.len(),
+            state.threats.filter.clone(),
+            state.threats.search.clone(),
+        );
+        let prev_fingerprint: Option<(usize, usize, usize, Option<String>, String)> =
+            ui.memory(|mem| mem.data.get_temp(cache_id));
+        let cached_threats_id = ui.make_persistent_id("threats_cached_list");
 
-        // Apply filter
-        if let Some(ref filter) = state.threats.filter {
-            threats.retain(|t| t.kind == filter.as_str());
-        }
+        let threats: Vec<ThreatEvent> = if prev_fingerprint.as_ref() == Some(&fingerprint) {
+            // Use cached list if available
+            ui.memory(|mem| mem.data.get_temp(cached_threats_id)).unwrap_or_default()
+        } else {
+            // Rebuild, filter, search, and sort
+            let mut list = Self::build_threat_list(state);
 
-        // Apply search
-        let search_lower = state.threats.search.to_lowercase();
-        if !search_lower.is_empty() {
-            threats.retain(|t| {
-                let haystack = format!(
-                    "{} {} {}",
-                    t.title.to_lowercase(),
-                    t.description.to_lowercase(),
-                    t.kind,
-                );
-                haystack.contains(&search_lower)
+            if let Some(ref filter) = state.threats.filter {
+                list.retain(|t| t.kind == filter.as_str());
+            }
+
+            let search_lower = state.threats.search.to_lowercase();
+            if !search_lower.is_empty() {
+                list.retain(|t| {
+                    let haystack = format!(
+                        "{} {} {}",
+                        t.title.to_lowercase(),
+                        t.description.to_lowercase(),
+                        t.kind,
+                    );
+                    haystack.contains(&search_lower)
+                });
+            }
+
+            list.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+
+            // Cache the result
+            ui.memory_mut(|mem| {
+                mem.data.insert_temp(cache_id, fingerprint);
+                mem.data.insert_temp(cached_threats_id, list.clone());
             });
-        }
-
-        // Sort by timestamp (most recent first)
-        threats.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+            list
+        };
 
         let result_count = threats.len();
 

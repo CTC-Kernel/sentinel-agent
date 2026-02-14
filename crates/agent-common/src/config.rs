@@ -361,11 +361,28 @@ impl AgentConfig {
                 "check_interval_secs must be greater than 0",
             ));
         }
+        if self.check_interval_secs > 86400 * 30 {
+            return Err(crate::error::CommonError::validation(
+                "check_interval_secs must not exceed 30 days (2592000)",
+            ));
+        }
+
+        // Validate heartbeat_interval_secs
+        if self.heartbeat_interval_secs == 0 {
+            return Err(crate::error::CommonError::validation(
+                "heartbeat_interval_secs must be greater than 0",
+            ));
+        }
 
         // Validate offline_mode_days
         if self.offline_mode_days == 0 {
             return Err(crate::error::CommonError::validation(
                 "offline_mode_days must be greater than 0",
+            ));
+        }
+        if self.offline_mode_days > 365 {
+            return Err(crate::error::CommonError::validation(
+                "offline_mode_days must not exceed 365",
             ));
         }
 

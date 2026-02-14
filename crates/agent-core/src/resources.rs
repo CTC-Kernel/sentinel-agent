@@ -292,9 +292,9 @@ impl ResourceMonitor {
             return None;
         }
 
-        let process_name = Some(parts[0].to_string());
-        let pid = parts[1].parse().ok();
-        let type_col = parts[4];
+        let process_name = Some(parts.first()?.to_string());
+        let pid = parts.get(1)?.parse().ok();
+        let type_col = *parts.get(4)?;
         let name_col = parts.last()?;
 
         let protocol = if type_col == "IPv4" {
@@ -305,14 +305,14 @@ impl ResourceMonitor {
             return None;
         };
 
-        let name_str = parts[8..].join(" ");
+        let name_str = parts.get(8..)?.join(" ");
         let name_parts: Vec<&str> = name_str.split("->").collect();
 
         let local_str = name_parts.first()?.replace("TCP ", "").replace("UDP ", "");
         let (local_address, local_port) = self.parse_lsof_address(&local_str)?;
 
         let (remote_address, remote_port) = if name_parts.len() > 1 {
-            let remote = name_parts[1].split_whitespace().next()?;
+            let remote = name_parts.get(1)?.split_whitespace().next()?;
             let (addr, port) = self.parse_lsof_address(remote)?;
             (Some(addr), Some(port))
         } else {
@@ -320,7 +320,13 @@ impl ResourceMonitor {
         };
 
         let state = if let Some(state_start) = line.rfind('(') {
-            line[state_start + 1..line.len() - 1].to_string()
+            let after_paren = state_start.checked_add(1)?;
+            let before_end = line.len().checked_sub(1)?;
+            if after_paren <= before_end && line.is_char_boundary(after_paren) && line.is_char_boundary(before_end) {
+                line[after_paren..before_end].to_string()
+            } else {
+                "LISTEN".to_string()
+            }
         } else {
             "LISTEN".to_string()
         };

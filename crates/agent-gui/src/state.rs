@@ -295,7 +295,7 @@ pub struct AppState {
     pub unread_notification_count: u32,
 
     // Channel to send async task results back to the main thread
-    pub async_task_tx: Option<std::sync::mpsc::Sender<super::app::AsyncTaskResult>>,
+    pub async_task_tx: Option<std::sync::mpsc::SyncSender<super::app::AsyncTaskResult>>,
 
     pub monitoring: MonitoringHistory,
     pub network: NetworkState,
@@ -375,21 +375,17 @@ impl AppState {
                 // Preserve previous score for dashboard trend indicators
                 self.previous_compliance_score = self.summary.compliance_score;
                 self.summary = summary;
-                self.recompute_summary_stats();
             }
             AgentEvent::CheckCompleted { result } => {
                 self.update_check_result(result);
                 self.recompute_policy();
                 self.summary.last_check_at = Some(chrono::Utc::now());
-                self.recompute_summary_stats();
             }
             AgentEvent::ResourceUpdate { usage } => {
                 self.update_resource_usage(usage);
-                self.recompute_summary_stats();
             }
             AgentEvent::Notification { notification } => {
                 self.add_notification(notification);
-                self.recompute_summary_stats();
             }
             AgentEvent::SyncStatus {
                 syncing,
@@ -398,7 +394,6 @@ impl AppState {
                 error,
             } => {
                 self.update_sync_status(syncing, pending_count, last_sync_at, error);
-                self.recompute_summary_stats();
             }
             AgentEvent::NetworkUpdate {
                 interfaces_count,
@@ -408,7 +403,6 @@ impl AppState {
                 primary_mac,
             } => {
                 self.update_network_summary(interfaces_count, connections_count, alerts_count, primary_ip, primary_mac);
-                self.recompute_summary_stats();
             }
             AgentEvent::NetworkDetailUpdate {
                 interfaces,
@@ -419,15 +413,12 @@ impl AppState {
             }
             AgentEvent::VulnerabilityUpdate { summary } => {
                 self.vulnerability_summary = Some(summary);
-                self.recompute_summary_stats();
             }
             AgentEvent::SoftwareUpdate { packages } => {
                 self.software.packages = packages;
-                self.recompute_summary_stats();
             }
             AgentEvent::VulnerabilityFindings { findings } => {
                 self.vulnerability_findings = findings;
-                self.recompute_summary_stats();
             }
             AgentEvent::TerminalLog { entry } => {
                 self.add_terminal_log(entry);
@@ -438,7 +429,6 @@ impl AppState {
                 self.discovery.progress = 1.0;
                 self.discovery.phase = "Terminée".to_string();
                 self.cartography.layout = None;
-                self.recompute_summary_stats();
             }
             AgentEvent::DiscoveryProgress {
                 phase,
@@ -455,23 +445,19 @@ impl AppState {
             } => {
                 if success && let Some(id) = agent_id {
                     self.summary.agent_id = Some(id);
-                    self.recompute_summary_stats();
                 }
             }
             AgentEvent::FimAlert { alert } => {
                 self.fim.alerts.push_front(alert);
                 self.fim.alerts.truncate(500);
-                self.recompute_summary_stats();
             }
             AgentEvent::UsbEvent { event } => {
                 self.threats.usb_events.push_front(event);
                 self.threats.usb_events.truncate(200);
-                self.recompute_summary_stats();
             }
             AgentEvent::SuspiciousProcess { process } => {
                 self.threats.suspicious_processes.push_front(process);
                 self.threats.suspicious_processes.truncate(200);
-                self.recompute_summary_stats();
             }
             AgentEvent::FimStats {
                 monitored_count,
@@ -479,13 +465,15 @@ impl AppState {
             } => {
                 self.fim.monitored_count = monitored_count;
                 self.fim.changes_today = changes_today;
-                self.recompute_summary_stats();
             }
             AgentEvent::ShuttingDown => {}
             AgentEvent::UpdateStatusChanged { status } => {
                 self.settings.update_status = status;
             }
         }
+
+        // Single recompute at end of every event
+        self.recompute_summary_stats();
     }
 
     /// Update check results and maintain history
@@ -619,8 +607,8 @@ impl AppState {
         // may need to be added to the AgentSummary struct in the future
         // For now, we'll skip the non-existent fields
 
-        // Update notification count
-        self.unread_notification_count = self.notifications.len() as u32;
+        // Update notification count (count only unread notifications)
+        self.unread_notification_count = self.notifications.iter().filter(|n| !n.read).count() as u32;
     }
 
     fn recompute_policy(&mut self) {

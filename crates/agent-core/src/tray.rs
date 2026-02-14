@@ -171,7 +171,7 @@ pub struct AgentTray {
     paused: Arc<AtomicBool>,
     shutdown: ShutdownSignal,
     menu_items: TrayMenuItems,
-    command_tx: mpsc::Sender<TrayCommand>,
+    command_tx: mpsc::SyncSender<TrayCommand>,
     last_update: Arc<AtomicU64>,
 }
 
@@ -190,7 +190,7 @@ struct TrayMenuItems {
 impl AgentTray {
     /// Create a new system tray icon with menu.
     pub fn new(shutdown: ShutdownSignal) -> Result<(Self, mpsc::Receiver<TrayCommand>), TrayError> {
-        let (command_tx, command_rx) = mpsc::channel();
+        let (command_tx, command_rx) = mpsc::sync_channel(32);
 
         // === Header Section ===
         let header_item = MenuItem::with_id(

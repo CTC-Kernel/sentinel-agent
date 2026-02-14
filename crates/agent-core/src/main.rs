@@ -137,14 +137,13 @@ fn handle_enroll(token: &str) -> ExitCode {
     use agent_storage::{Database, DatabaseConfig, KeyManager};
     use agent_sync::EnrollmentManager;
 
-    println!("🔐 Enrolling Sentinel Agent...");
+    info!("Enrolling Sentinel Agent...");
 
     // Create runtime for async operations
     let rt = match tokio::runtime::Runtime::new() {
         Ok(rt) => rt,
         Err(e) => {
             error!("Failed to create runtime: {}", e);
-            println!("Error: Failed to initialize runtime");
             return ExitCode::FAILURE;
         }
     };
@@ -166,7 +165,6 @@ fn handle_enroll(token: &str) -> ExitCode {
         Ok(km) => km,
         Err(e) => {
             error!("Failed to initialize key manager: {}", e);
-            println!("Error: Failed to initialize secure storage");
             return ExitCode::FAILURE;
         }
     };
@@ -175,7 +173,6 @@ fn handle_enroll(token: &str) -> ExitCode {
         Ok(db) => db,
         Err(e) => {
             error!("Failed to open database: {}", e);
-            println!("Error: Failed to open database");
             return ExitCode::FAILURE;
         }
     };
@@ -185,21 +182,15 @@ fn handle_enroll(token: &str) -> ExitCode {
 
     match rt.block_on(enrollment_manager.ensure_enrolled()) {
         Ok(credentials) => {
-            println!("✅ Enrollment successful!");
-            println!("   Agent ID: {}", credentials.agent_id);
-            println!("   Organization: {}", credentials.organization_id);
-            println!();
-            println!("You can now start the agent with: sentinel-agent");
+            info!(
+                "Enrollment successful! Agent ID: {}, Organization: {}",
+                credentials.agent_id, credentials.organization_id
+            );
+            info!("You can now start the agent with: sentinel-agent");
             ExitCode::SUCCESS
         }
         Err(e) => {
-            error!("Enrollment failed: {}", e);
-            println!("❌ Enrollment failed: {}", e);
-            println!();
-            println!("Please check:");
-            println!("  • The token is valid and not expired");
-            println!("  • You have network connectivity");
-            println!("  • The token hasn't reached its usage limit");
+            error!("Enrollment failed: {}. Please check: the token is valid and not expired, you have network connectivity, the token hasn't reached its usage limit", e);
             ExitCode::FAILURE
         }
     }
@@ -231,23 +222,19 @@ fn handle_install() -> ExitCode {
 
     match service::install_service(&executable) {
         Ok(()) => {
-            info!("Service installed successfully");
-            println!("Service installed successfully.");
-            println!("Use 'sentinel-agent start' to start the service.");
+            info!("Service installed successfully. Use 'sentinel-agent start' to start the service.");
             ExitCode::SUCCESS
         }
         Err(service::ServiceError::AlreadyInstalled) => {
-            println!("Service is already installed.");
+            info!("Service is already installed.");
             ExitCode::SUCCESS
         }
         Err(service::ServiceError::PermissionDenied(msg)) => {
-            error!("Permission denied: {}", msg);
-            println!("Error: Permission denied. Run as Administrator/root.");
+            error!("Permission denied: {}. Run as Administrator/root.", msg);
             ExitCode::FAILURE
         }
         Err(e) => {
             error!("Failed to install service: {}", e);
-            println!("Error: {}", e);
             ExitCode::FAILURE
         }
     }
@@ -261,19 +248,16 @@ fn handle_uninstall(purge: bool, keep_logs: bool) -> ExitCode {
     match service::uninstall_service() {
         Ok(()) => {
             info!("Service uninstalled successfully");
-            println!("Service uninstalled successfully.");
         }
         Err(service::ServiceError::NotInstalled) => {
-            println!("Service is not installed.");
+            info!("Service is not installed.");
         }
         Err(service::ServiceError::PermissionDenied(msg)) => {
-            error!("Permission denied: {}", msg);
-            println!("Error: Permission denied. Run as Administrator/root.");
+            error!("Permission denied: {}. Run as Administrator/root.", msg);
             return ExitCode::FAILURE;
         }
         Err(e) => {
             error!("Failed to uninstall service: {}", e);
-            println!("Error: {}", e);
             return ExitCode::FAILURE;
         }
     }
@@ -284,12 +268,11 @@ fn handle_uninstall(purge: bool, keep_logs: bool) -> ExitCode {
     print_cleanup_summary(&result);
 
     if !result.errors.is_empty() {
-        println!("\nUninstallation completed with some warnings.");
+        warn!("Uninstallation completed with some warnings.");
     } else if purge {
-        println!("\nAgent completely removed.");
+        info!("Agent completely removed.");
     } else {
-        println!("\nAgent service removed. Configuration and data preserved.");
-        println!("Use '--purge' to remove all data.");
+        info!("Agent service removed. Configuration and data preserved. Use '--purge' to remove all data.");
     }
 
     ExitCode::SUCCESS
@@ -299,20 +282,19 @@ fn handle_uninstall(purge: bool, keep_logs: bool) -> ExitCode {
 fn handle_start() -> ExitCode {
     match service::start_service() {
         Ok(()) => {
-            println!("Service started.");
+            info!("Service started.");
             ExitCode::SUCCESS
         }
         Err(service::ServiceError::AlreadyRunning) => {
-            println!("Service is already running.");
+            info!("Service is already running.");
             ExitCode::SUCCESS
         }
         Err(service::ServiceError::NotInstalled) => {
-            println!("Service is not installed. Run 'sentinel-agent install' first.");
+            warn!("Service is not installed. Run 'sentinel-agent install' first.");
             ExitCode::FAILURE
         }
         Err(e) => {
             error!("Failed to start service: {}", e);
-            println!("Error: {}", e);
             ExitCode::FAILURE
         }
     }
@@ -322,20 +304,19 @@ fn handle_start() -> ExitCode {
 fn handle_stop() -> ExitCode {
     match service::stop_service() {
         Ok(()) => {
-            println!("Service stopped.");
+            info!("Service stopped.");
             ExitCode::SUCCESS
         }
         Err(service::ServiceError::NotRunning) => {
-            println!("Service is not running.");
+            info!("Service is not running.");
             ExitCode::SUCCESS
         }
         Err(service::ServiceError::NotInstalled) => {
-            println!("Service is not installed.");
+            info!("Service is not installed.");
             ExitCode::FAILURE
         }
         Err(e) => {
             error!("Failed to stop service: {}", e);
-            println!("Error: {}", e);
             ExitCode::FAILURE
         }
     }
@@ -345,16 +326,15 @@ fn handle_stop() -> ExitCode {
 fn handle_status() -> ExitCode {
     match service::get_service_state() {
         Ok(state) => {
-            println!("Service status: {}", state);
+            info!("Service status: {}", state);
             ExitCode::SUCCESS
         }
         Err(service::ServiceError::NotInstalled) => {
-            println!("Service is not installed.");
+            info!("Service is not installed.");
             ExitCode::SUCCESS
         }
         Err(e) => {
             error!("Failed to get service status: {}", e);
-            println!("Error: {}", e);
             ExitCode::FAILURE
         }
     }
@@ -383,7 +363,6 @@ fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> Ex
         Ok(km) => km,
         Err(e) => {
             error!("Failed to initialize key manager: {}", e);
-            println!("Error: Failed to initialize secure storage: {}", e);
             return ExitCode::FAILURE;
         }
     };
@@ -392,7 +371,6 @@ fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> Ex
         Ok(db) => db,
         Err(e) => {
             error!("Failed to open database: {}", e);
-            println!("Error: Failed to open database: {}", e);
             return ExitCode::FAILURE;
         }
     };
@@ -441,8 +419,7 @@ fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> Ex
         // Try to get token from config or prompt user
         let token = config.enrollment_token.clone().or_else(|| {
             if no_tray {
-                println!("Agent is not enrolled.");
-                println!("Run 'sentinel-agent enroll --token <TOKEN>' first.");
+                warn!("Agent is not enrolled. Run 'sentinel-agent enroll --token <TOKEN>' first.");
                 None
             } else {
                 show_enrollment_dialog()
@@ -454,11 +431,11 @@ fn handle_run(config_path: Option<String>, no_tray: bool, log_level: &str) -> Ex
                 config.enrollment_token = Some(token.clone());
                 let enrollment_manager = EnrollmentManager::new(&config, &db);
 
-                println!("Enrolling agent...");
+                info!("Enrolling agent...");
                 match rt.block_on(enrollment_manager.ensure_enrolled()) {
                     Ok(creds) => {
                         config.agent_id = Some(creds.agent_id.to_string());
-                        println!("Enrollment successful! Agent ID: {}", creds.agent_id);
+                        info!("Enrollment successful! Agent ID: {}", creds.agent_id);
                     }
                     Err(e) => {
                         error!("Enrollment failed: {}", e);
@@ -591,9 +568,7 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
     // Subscribe to menu events
     let menu_channel = MenuEvent::receiver();
 
-    info!("Agent running. Use tray icon to control.");
-    println!("Sentinel GRC Agent is running.");
-    println!("Look for the icon in your system tray to pause, resume, or quit.");
+    info!("Sentinel GRC Agent is running. Use tray icon to pause, resume, or quit.");
 
     // Run the tao event loop (required for tray to work on macOS)
     // Note: event_loop.run() never returns - it exits the process directly
@@ -727,7 +702,12 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     if let Some(url) =
                                         payload.get("server_url").and_then(|v| v.as_str())
                                     {
-                                        config.server_url = url.to_string();
+                                        // Validate server URL to prevent phishing via malicious QR codes
+                                        if url.starts_with("https://") && !url.contains('@') && !url.contains(' ') {
+                                            config.server_url = url.to_string();
+                                        } else {
+                                            warn!("Rejected invalid server_url from QR code: must be HTTPS without credentials");
+                                        }
                                     }
                                 }
                             } else {

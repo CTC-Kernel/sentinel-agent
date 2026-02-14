@@ -185,6 +185,9 @@ impl HeartbeatService {
             None
         };
 
+        // Drop the read lock before calling collect_processes() which needs a write lock
+        drop(sys);
+
         // Calculate disk usage (root/main disk)
         let (disk_percent, disk_used, disk_total) = {
             let disks = Disks::new_with_refreshed_list();

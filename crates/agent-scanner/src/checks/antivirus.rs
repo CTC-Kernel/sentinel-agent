@@ -333,7 +333,15 @@ impl AntivirusCheck {
             real_time_protection: service_running,
             definition_date: None, // Would need to parse from version string
             definition_version,
-            definitions_current: true, // Assume current if freshclam is running
+            definitions_current: {
+                let db_path = std::path::Path::new("/var/lib/clamav/daily.cld");
+                let alt_db_path = std::path::Path::new("/var/lib/clamav/daily.cvd");
+                let path = if db_path.exists() { db_path } else { alt_db_path };
+                path.metadata()
+                    .and_then(|m| m.modified())
+                    .map(|t| t.elapsed().unwrap_or_default().as_secs() < 7 * 86400)
+                    .unwrap_or(false)
+            },
             last_scan_date: None,
             service_running,
             additional_products: vec![],
@@ -450,7 +458,18 @@ impl AntivirusCheck {
             real_time_protection: true,
             definition_date: None,
             definition_version: None,
-            definitions_current: true, // XProtect updates automatically
+            definitions_current: {
+                // Check XProtect last update by file modification time
+                let xprotect_path = std::path::Path::new("/Library/Apple/System/Library/CoreServices/XProtect.bundle");
+                if xprotect_path.exists() {
+                    xprotect_path.metadata()
+                        .and_then(|m| m.modified())
+                        .map(|t| t.elapsed().unwrap_or_default().as_secs() < 7 * 86400)
+                        .unwrap_or(false)
+                } else {
+                    false
+                }
+            },
             last_scan_date: None,
             service_running: true,
             additional_products: additional,

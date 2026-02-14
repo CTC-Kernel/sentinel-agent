@@ -172,7 +172,15 @@ impl UpdateManager {
             .unwrap_or(expected)
             .to_lowercase();
 
-        if hash != expected_hash {
+        // Use constant-time comparison to prevent timing attacks
+        let ct_equal = hash.len() == expected_hash.len()
+            && hash
+                .as_bytes()
+                .iter()
+                .zip(expected_hash.as_bytes())
+                .fold(0u8, |acc, (a, b)| acc | (a ^ b))
+                == 0;
+        if !ct_equal {
             error!(
                 "Checksum mismatch! Expected {}, got {}",
                 expected_hash, hash
