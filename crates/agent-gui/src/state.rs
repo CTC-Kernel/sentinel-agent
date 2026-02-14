@@ -372,12 +372,15 @@ impl AppState {
 
         match event {
             AgentEvent::StatusChanged { summary } => {
+                // Preserve previous score for dashboard trend indicators
+                self.previous_compliance_score = self.summary.compliance_score;
                 self.summary = summary;
                 self.recompute_summary_stats();
             }
             AgentEvent::CheckCompleted { result } => {
                 self.update_check_result(result);
                 self.recompute_policy();
+                self.summary.last_check_at = Some(chrono::Utc::now());
                 self.recompute_summary_stats();
             }
             AgentEvent::ResourceUpdate { usage } => {

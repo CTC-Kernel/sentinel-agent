@@ -845,18 +845,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::UpdateCheckInterval { interval_secs }) => {
                             info!("[AUDIT] GUI user updated check interval to {} seconds", interval_secs);
-                            // Note: interval update takes effect on next runtime restart
+                            handle.set_check_interval(interval_secs);
                         }
                         Ok(GuiCommand::SetLogLevel { level }) => {
-                            let level_str = match level {
-                                0 => "error",
-                                1 => "warn",
-                                2 => "info",
-                                3 => "debug",
-                                _ => "trace",
-                            };
-                            info!("[AUDIT] GUI user set log level to {}", level_str);
-                            // Note: dynamic log level changes are applied via tracing filter reload
+                            handle.set_log_level(level as u8);
                         }
                         Ok(GuiCommand::Remediate { check_id }) => {
                             info!("[AUDIT] GUI user requested remediation for check: {}", check_id);
