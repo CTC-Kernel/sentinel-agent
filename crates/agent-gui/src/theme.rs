@@ -14,17 +14,11 @@ use egui::{
 /// Extension trait to restore chaining methods for FontId.
 pub trait FontIdExt {
     fn size(self, size: f32) -> Self;
-    fn strong(self) -> Self;
 }
 
 impl FontIdExt for FontId {
     fn size(mut self, size: f32) -> Self {
         self.size = size;
-        self
-    }
-    fn strong(self) -> Self {
-        // Note: egui doesn't support font weights directly, so strong() just returns self.
-        // Actual bold styling should be done via RichText::strong()
         self
     }
 }
@@ -383,6 +377,19 @@ pub const BORDER_THIN: f32 = 1.0;
 pub const BORDER_MEDIUM: f32 = 1.5;
 /// Thick border (strong focus indicators).
 pub const BORDER_THICK: f32 = 2.0;
+
+// ============================================================================
+// Card hover glow constants
+// ============================================================================
+
+/// Glow line inset from card edges (main line).
+pub const CARD_GLOW_INSET: f32 = 10.0;
+/// Glow outer line inset from card edges (softer outer glow).
+pub const CARD_GLOW_OUTER_INSET: f32 = 5.0;
+/// Glow main line stroke width.
+pub const CARD_GLOW_STROKE: f32 = 2.5;
+/// Glow outer line stroke width.
+pub const CARD_GLOW_OUTER_STROKE: f32 = 4.0;
 
 // ============================================================================
 // Icon size constants

@@ -345,7 +345,7 @@ impl SettingsPage {
                 ui.add(
                     egui::TextEdit::singleline(&mut state.settings.architecture_url)
                         .hint_text("https://...")
-                        .desired_width(ui.available_width() - 30.0)
+                        .desired_width(ui.available_width() - theme::SPACE_XL)
                         .char_limit(2048),
                 );
                 if !state.settings.architecture_url.is_empty() {
@@ -560,7 +560,7 @@ impl SettingsPage {
 
                         if let Some(err) = &modal_state.2 {
                             ui.add_space(theme::SPACE_XS);
-                            ui.label(egui::RichText::new(err).color(theme::ERROR).font(theme::font_small()));
+                            ui.label(egui::RichText::new(err).color(theme::ERROR).font(theme::font_body()));
                         }
 
                         ui.add_space(theme::SPACE_LG);

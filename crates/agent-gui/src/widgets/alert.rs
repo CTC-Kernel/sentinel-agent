@@ -207,7 +207,7 @@ impl<'a> Alert<'a> {
 
                                 ui.painter().rect(
                                     button_rect,
-                                    CornerRadius::same(theme::SPACE_XS as u8),
+                                    CornerRadius::same(theme::BUTTON_ROUNDING),
                                     bg,
                                     if primary {
                                         egui::Stroke::NONE
@@ -227,7 +227,7 @@ impl<'a> Alert<'a> {
                             if button_response.has_focus() {
                                 ui.painter().rect_stroke(
                                     button_rect.expand(2.0),
-                                    egui::CornerRadius::same(theme::SPACE_XS as u8 + 2),
+                                    egui::CornerRadius::same(theme::BUTTON_ROUNDING + 2),
                                     theme::focus_ring(),
                                     egui::epaint::StrokeKind::Outside,
                                 );

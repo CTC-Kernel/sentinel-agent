@@ -176,7 +176,7 @@ impl TrayRadar {
                 &p.label,
                 {
                     use crate::theme::FontIdExt;
-                    theme::font_small().size(9.0).strong()
+                    theme::font_small().size(9.0)
                 },
                 theme::text_tertiary(),
             );
