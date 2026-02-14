@@ -123,10 +123,10 @@ pub mod software {
         let apps_dir = Path::new("/Applications");
         
         let entries = std::fs::read_dir(apps_dir)
-            .map_err(|e| MacOsError::ApplicationsDirError(e))?;
+            .map_err(MacOsError::ApplicationsDirError)?;
 
         for entry in entries {
-            let entry = entry.map_err(|e| MacOsError::ApplicationsDirError(e))?;
+            let entry = entry.map_err(MacOsError::ApplicationsDirError)?;
             let path = entry.path();
             
             if !is_app_bundle(&path) {
@@ -160,7 +160,7 @@ pub mod software {
             .to_string();
 
         let (version, bundle_id, publisher) = parse_info_plist(plist_path)
-            .map_err(|e| MacOsError::PlistParseError(e))?;
+            .map_err(MacOsError::PlistParseError)?;
 
         Ok(GuiMacOsApp {
             name,

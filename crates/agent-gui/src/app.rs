@@ -8,8 +8,6 @@ use std::sync::mpsc;
 // ---------------------------------------------------------------------------
 // macOS: toggle Dock icon visibility when hiding/showing the window.
 // ---------------------------------------------------------------------------
-#[cfg(target_os = "macos")]
-// use crate::os::macos as macos_utils; // Deprecated - use new module structure
 
 use eframe::egui;
 pub use crate::state::{AppState, SyncHistoryEntry};

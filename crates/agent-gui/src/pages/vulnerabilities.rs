@@ -205,17 +205,7 @@ impl VulnerabilitiesPage {
             );
             ui.add_space(theme::SPACE_MD);
 
-            // Assuming 'active' is defined elsewhere, e.g., from a tab control
-            // For now, we'll assume active = 0 to call show_findings
-            let active = 0; // Placeholder for missing context
-            if active == 0 {
-                Self::show_findings(ui, state, &search_lower, &mut command);
-            } else {
-                // This branch is not fully defined in the provided diff,
-                // but included to match the structure.
-                // Self::show_vulnerabilities(ui, state, &search_lower, &mut command);
-                ui.label("Vulnerabilities view not implemented yet.");
-            }
+            Self::show_findings(ui, state, &search_lower, &mut command);
         });
 
         ui.add_space(theme::SPACE_XL);
@@ -453,9 +443,9 @@ impl VulnerabilitiesPage {
     fn severity_display(severity: &Severity) -> (&'static str, egui::Color32) {
         match severity {
             Severity::Critical => ("CRITIQUE", theme::ERROR),
-            Severity::High => ("ÉLEVÉE", theme::WARNING),
-            Severity::Medium => ("MOYENNE", theme::INFO),
-            Severity::Low => ("FAIBLE", theme::text_tertiary()),
+            Severity::High => ("\u{00c9}LEV\u{00c9}E", theme::SEVERITY_HIGH),
+            Severity::Medium => ("MOYENNE", theme::SEVERITY_MEDIUM),
+            Severity::Low => ("FAIBLE", theme::INFO),
             Severity::Info => ("INFO", theme::text_tertiary()),
         }
     }
