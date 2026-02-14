@@ -166,7 +166,7 @@ impl AuditTrailPage {
         }
 
         TableBuilder::new(ui)
-            .striped(true)
+            .striped(false)
             .resizable(true)
             .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
             .column(Column::auto().at_least(180.0)) // Timestamp

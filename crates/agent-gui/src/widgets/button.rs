@@ -375,7 +375,7 @@ pub fn ghost_button(ui: &mut Ui, text: impl Into<WidgetText>) -> Response {
         if is_hovered {
             ui.painter().rect_filled(
                 rect,
-                CornerRadius::same(theme::SPACE_XS as u8),
+                CornerRadius::same(theme::BUTTON_ROUNDING),
                 theme::bg_elevated().linear_multiply(theme::OPACITY_MEDIUM),
             );
         }
@@ -519,7 +519,7 @@ pub fn chip_button(ui: &mut Ui, text: &str, active: bool, color: Color32) -> Res
             )
         };
 
-        let rounding = CornerRadius::same((rect.height() / 2.0).min(255.0) as u8);
+        let rounding = CornerRadius::same(theme::BADGE_ROUNDING);
         ui.painter()
             .rect(rect, rounding, bg, stroke, StrokeKind::Inside);
 
@@ -528,7 +528,7 @@ pub fn chip_button(ui: &mut Ui, text: &str, active: bool, color: Color32) -> Res
 
         // Focus ring for keyboard navigation
         if response.has_focus() {
-            let rounding = CornerRadius::same((rect.height() / 2.0).min(255.0) as u8);
+            let rounding = CornerRadius::same(theme::BADGE_ROUNDING);
             ui.painter().rect_stroke(
                 rect,
                 rounding,
@@ -685,52 +685,6 @@ fn draw_spinner(ui: &Ui, rect: egui::Rect, text_size: egui::Vec2, color: Color32
 
         ui.ctx().request_repaint();
     }
-}
-
-/// Link-style button (looks like a hyperlink).
-#[allow(dead_code)]
-pub fn link_button(ui: &mut Ui, text: &str) -> Response {
-    let font = theme::font_body();
-    let galley = ui
-        .painter()
-        .layout_no_wrap(text.to_string(), font.clone(), theme::ACCENT);
-
-    let (rect, response) = ui.allocate_exact_size(galley.size(), Sense::click());
-
-    if ui.is_rect_visible(rect) {
-        let is_hovered = response.hovered();
-
-        let color = if is_hovered {
-            theme::ACCENT_HOVER
-        } else {
-            theme::ACCENT
-        };
-
-        ui.painter().galley(rect.min, galley, color);
-
-        // Underline on hover
-        if is_hovered {
-            ui.painter().line_segment(
-                [
-                    egui::pos2(rect.min.x, rect.max.y),
-                    egui::pos2(rect.max.x, rect.max.y),
-                ],
-                Stroke::new(theme::BORDER_THIN, color),
-            );
-        }
-
-        // Focus Ring (WCAG 2.4.7)
-        if response.has_focus() {
-            ui.painter().rect_stroke(
-                rect.expand(2.0),
-                CornerRadius::same(2),
-                theme::focus_ring(),
-                StrokeKind::Outside,
-            );
-        }
-    }
-
-    response.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
 /// Floating action button (FAB) - large circular button.

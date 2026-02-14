@@ -62,7 +62,7 @@ pub fn error_state(ui: &mut Ui, message: &str) -> bool {
 
         // Error icon
         ui.label(
-            egui::RichText::new("\u{f06a}") // fa-circle-exclamation
+            egui::RichText::new(crate::icons::ERROR)
                 .font(egui::FontId::proportional(theme::SPACE_XL + theme::SPACE_SM))
                 .color(theme::ERROR.linear_multiply(theme::OPACITY_PRESSED)),
         );

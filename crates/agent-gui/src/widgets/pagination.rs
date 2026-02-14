@@ -337,7 +337,7 @@ impl Pagination {
     }
 
     fn nav_button(&self, ui: &mut Ui, icon: &str, double: bool, enabled: bool) -> bool {
-        let size = 32.0;
+        let size = theme::MIN_TOUCH_TARGET;
         let (rect, response) = ui.allocate_exact_size(egui::vec2(size, size), Sense::click());
 
         if ui.is_rect_visible(rect) {
@@ -389,7 +389,7 @@ impl Pagination {
     }
 
     fn page_button(&self, ui: &mut Ui, page: usize, is_current: bool) -> bool {
-        let size = 32.0;
+        let size = theme::MIN_TOUCH_TARGET;
         let (rect, response) = ui.allocate_exact_size(egui::vec2(size, size), Sense::click());
 
         if ui.is_rect_visible(rect) {
