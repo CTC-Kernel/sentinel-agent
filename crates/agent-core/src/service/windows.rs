@@ -85,10 +85,80 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
 
     info!("Sentinel GRC Agent service started");
 
-    // Main service loop
-    while !SERVICE_SHUTDOWN.load(Ordering::SeqCst) {
-        // TODO: Run actual agent work here
-        std::thread::sleep(Duration::from_secs(1));
+    // Initialize and run the agent
+    {
+        use agent_common::config::AgentConfig;
+        use agent_storage::{Database, DatabaseConfig, KeyManager};
+
+        let mut config = AgentConfig::load(None).unwrap_or_else(|e| {
+            warn!("No config found, using defaults: {}", e);
+            AgentConfig::default()
+        });
+
+        let key_manager = match KeyManager::new() {
+            Ok(km) => km,
+            Err(e) => {
+                error!("Failed to initialize key manager: {}", e);
+                SERVICE_SHUTDOWN.store(true, Ordering::SeqCst);
+                return Ok(());
+            }
+        };
+
+        let db = match Database::open(DatabaseConfig::default(), &key_manager) {
+            Ok(db) => db,
+            Err(e) => {
+                error!("Failed to open database: {}", e);
+                SERVICE_SHUTDOWN.store(true, Ordering::SeqCst);
+                return Ok(());
+            }
+        };
+
+        let rt = match tokio::runtime::Runtime::new() {
+            Ok(rt) => rt,
+            Err(e) => {
+                error!("Failed to create Tokio runtime: {}", e);
+                SERVICE_SHUTDOWN.store(true, Ordering::SeqCst);
+                return Ok(());
+            }
+        };
+
+        // Load credentials if enrolled
+        rt.block_on(async {
+            use agent_sync::{CredentialsRepository, EnrollmentManager};
+
+            let enrollment_manager = EnrollmentManager::new(&config, &db);
+            if enrollment_manager.is_enrolled().await.unwrap_or(false) {
+                let creds_repo = CredentialsRepository::new(&db);
+                if let Ok(Some(creds)) = creds_repo.load().await {
+                    config.agent_id = Some(creds.agent_id.to_string());
+                    config.organization_id = Some(creds.organization_id.to_string());
+                    config.client_certificate = Some(creds.client_certificate.clone());
+                    config.client_key = Some(creds.client_private_key.clone());
+                    info!("Loaded credentials for agent {}", creds.agent_id);
+                }
+            } else {
+                warn!("Agent not enrolled. Service will run in offline mode.");
+            }
+        });
+
+        let db = std::sync::Arc::new(db);
+        let runtime = crate::AgentRuntime::new(config).with_database(db);
+
+        // Link SERVICE_SHUTDOWN to runtime shutdown
+        let shutdown_signal = runtime.shutdown_signal();
+        std::thread::spawn(move || {
+            while !SERVICE_SHUTDOWN.load(Ordering::SeqCst) {
+                std::thread::sleep(Duration::from_secs(1));
+            }
+            shutdown_signal.store(true, Ordering::SeqCst);
+        });
+
+        info!("Agent runtime initialized, starting main loop");
+        rt.block_on(async {
+            if let Err(e) = runtime.run().await {
+                error!("Agent runtime error: {}", e);
+            }
+        });
     }
 
     // Report that we're stopping

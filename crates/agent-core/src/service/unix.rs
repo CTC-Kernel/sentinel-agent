@@ -8,7 +8,7 @@ use super::{ServiceError, ServiceResult, ServiceState};
 use std::fs;
 use std::path::Path;
 use std::process::Command;
-use tracing::{info, warn};
+use tracing::{error, info, warn};
 
 /// systemd service name (matches SERVICE_NAME pattern but lowercase for Linux conventions).
 pub const SYSTEMD_SERVICE_NAME: &str = "sentinel-agent";
@@ -82,20 +82,67 @@ LimitNOFILE=4096
 WantedBy=multi-user.target
 "#;
 
-/// Run as a foreground process (not as a daemon).
+/// Run as a foreground process managed by systemd.
 ///
-/// On Linux, the actual daemonization is handled by systemd.
-/// This function runs the agent in foreground mode, suitable for
-/// being managed by systemd.
+/// Loads configuration, opens the database, creates the AgentRuntime,
+/// and runs the main agent loop. systemd handles the service lifecycle
+/// (restart, watchdog, shutdown signals).
 pub fn run_as_service() -> ServiceResult<()> {
-    // On Unix, we just run the main loop directly
-    // systemd handles the service lifecycle
+    use agent_common::config::AgentConfig;
+    use agent_storage::{Database, DatabaseConfig, KeyManager};
+
     info!("Running as systemd service");
 
-    // The actual agent loop would be run here
-    // For now, this is a placeholder that will be integrated
-    // with the AgentRuntime in the main binary
+    // Load configuration
+    let mut config = AgentConfig::load(None).unwrap_or_else(|e| {
+        warn!("No config found, using defaults: {}", e);
+        AgentConfig::default()
+    });
 
+    // Initialize encrypted database
+    let key_manager = KeyManager::new().map_err(|e| {
+        ServiceError::System(format!("Failed to initialize key manager: {}", e))
+    })?;
+    let db = Database::open(DatabaseConfig::default(), &key_manager).map_err(|e| {
+        ServiceError::System(format!("Failed to open database: {}", e))
+    })?;
+
+    // Create tokio runtime for async operations
+    let rt = tokio::runtime::Runtime::new().map_err(|e| {
+        ServiceError::System(format!("Failed to create Tokio runtime: {}", e))
+    })?;
+
+    // Load credentials if enrolled
+    rt.block_on(async {
+        use agent_sync::{CredentialsRepository, EnrollmentManager};
+
+        let enrollment_manager = EnrollmentManager::new(&config, &db);
+        if enrollment_manager.is_enrolled().await.unwrap_or(false) {
+            let creds_repo = CredentialsRepository::new(&db);
+            if let Ok(Some(creds)) = creds_repo.load().await {
+                config.agent_id = Some(creds.agent_id.to_string());
+                config.organization_id = Some(creds.organization_id.to_string());
+                config.client_certificate = Some(creds.client_certificate.clone());
+                config.client_key = Some(creds.client_private_key.clone());
+                info!("Loaded credentials for agent {}", creds.agent_id);
+            }
+        } else {
+            warn!("Agent not enrolled. Service will run in offline mode.");
+        }
+    });
+
+    // Create and run the agent
+    let db = std::sync::Arc::new(db);
+    let runtime = crate::AgentRuntime::new(config).with_database(db);
+
+    info!("Agent runtime initialized, starting main loop");
+    rt.block_on(async {
+        if let Err(e) = runtime.run().await {
+            error!("Agent runtime error: {}", e);
+        }
+    });
+
+    info!("Agent service stopped");
     Ok(())
 }
 
