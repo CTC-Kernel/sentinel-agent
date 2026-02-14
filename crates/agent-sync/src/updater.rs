@@ -270,7 +270,9 @@ impl UpdateManager {
                 Ok(false) => {
                     *self.state.write().await = UpdateState::Failed;
                     // Clean up staging file
-                    let _ = fs::remove_file(&staging_path).await;
+                    if let Err(e) = fs::remove_file(&staging_path).await {
+                        warn!("Failed to cleanup staging file {}: {}", staging_path.display(), e);
+                    }
                     // Mark version as failed for investigation (M1)
                     self.mark_version_failed(&to_version, "SHA-256 hash mismatch")
                         .await;
@@ -286,7 +288,9 @@ impl UpdateManager {
                 }
                 Err(e) => {
                     *self.state.write().await = UpdateState::Failed;
-                    let _ = fs::remove_file(&staging_path).await;
+                    if let Err(e) = fs::remove_file(&staging_path).await {
+                        warn!("Failed to cleanup staging file {}: {}", staging_path.display(), e);
+                    }
                     // Mark version as failed for investigation (M1)
                     self.mark_version_failed(&to_version, &format!("Verification error: {}", e))
                         .await;
@@ -312,7 +316,9 @@ impl UpdateManager {
                 }
                 Err(e) => {
                     *self.state.write().await = UpdateState::Failed;
-                    let _ = fs::remove_file(&staging_path).await;
+                    if let Err(e) = fs::remove_file(&staging_path).await {
+                        warn!("Failed to cleanup staging file {}: {}", staging_path.display(), e);
+                    }
                     // Mark version as failed for investigation (M1)
                     self.mark_version_failed(
                         &to_version,
@@ -340,7 +346,9 @@ impl UpdateManager {
         // Create shadow copy of current binary
         if let Err(e) = self.create_shadow_copy().await {
             *self.state.write().await = UpdateState::Failed;
-            let _ = fs::remove_file(&staging_path).await;
+            if let Err(e) = fs::remove_file(&staging_path).await {
+                warn!("Failed to cleanup staging file {}: {}", staging_path.display(), e);
+            }
             return Ok(UpdateResult {
                 success: false,
                 from_version,
@@ -385,7 +393,9 @@ impl UpdateManager {
         }
 
         // Clean up staging file
-        let _ = fs::remove_file(&staging_path).await;
+        if let Err(e) = fs::remove_file(&staging_path).await {
+            warn!("Failed to cleanup staging file {}: {}", staging_path.display(), e);
+        }
 
         // Save metadata
         let metadata = UpdateMetadata {

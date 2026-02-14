@@ -21,8 +21,8 @@ static TOKEN_PATTERNS: Lazy<Vec<Regex>> = Lazy::new(|| {
         Regex::new(r"(?i)(secret|password|passphrase|private[_-]?key)\s*[:=]\s*[^\s]{8,}").unwrap(),
         // Certificate content
         Regex::new(r"(?i)-----BEGIN\s+(?:RSA\s+)?PRIVATE\s+KEY-----").unwrap(),
-        // Base64 encoded secrets (long strings)
-        Regex::new(r"[A-Za-z0-9+/]{40,}={0,2}").unwrap(),
+        // Base64 encoded secrets (long strings, requires key-like prefix to avoid false positives)
+        Regex::new(r"(?i)(?:key|token|secret|password|credential|auth)\s*[:=]\s*[A-Za-z0-9+/]{40,}={0,2}").unwrap(),
     ]
 });
 

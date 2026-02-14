@@ -258,7 +258,9 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                     {
                         // Open browser to console URL
                         let console_url = format!("{}/dashboard", state.settings.server_url);
-                        let _ = open::that(&console_url);
+                        if let Err(e) = open::that(&console_url) {
+                            tracing::warn!("Failed to open URL {}: {}", console_url, e);
+                        }
                     }
 
                     ui.add_space(theme::SPACE_SM);

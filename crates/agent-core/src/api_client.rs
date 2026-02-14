@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use tokio::io::AsyncWriteExt;
 use tracing::{debug, error, info, warn};
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
 /// Maximum download size in bytes (500 MB).
 const MAX_DOWNLOAD_SIZE: u64 = 500 * 1024 * 1024;
@@ -415,7 +415,8 @@ impl ApiClient {
             if let (Some(username), Some(password)) =
                 (&proxy_config.username, &proxy_config.password)
             {
-                proxy = proxy.basic_auth(username, password);
+                let secure_pass = Zeroizing::new(password.clone());
+                proxy = proxy.basic_auth(username, &secure_pass);
             }
 
             builder = builder.proxy(proxy);

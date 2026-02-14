@@ -189,7 +189,7 @@ impl CircuitBreaker {
 
     /// Record a successful operation.
     pub async fn record_success(&self) {
-        self.failure_count.store(0, Ordering::Relaxed);
+        self.failure_count.store(0, Ordering::SeqCst);
         *self.state.write().await = CircuitState::Closed;
         *self.opened_at.write().await = None;
         debug!("Circuit breaker: success recorded, state = Closed");
@@ -197,13 +197,15 @@ impl CircuitBreaker {
 
     /// Record a failed operation.
     pub async fn record_failure(&self) {
-        let failures = self.failure_count.fetch_add(1, Ordering::Relaxed) + 1;
+        let failures = self.failure_count.fetch_add(1, Ordering::SeqCst) + 1;
 
         if failures >= CIRCUIT_BREAKER_THRESHOLD {
+            let now = Utc::now();
             let mut state = self.state.write().await;
             if *state != CircuitState::Open {
                 *state = CircuitState::Open;
-                *self.opened_at.write().await = Some(Utc::now());
+                drop(state); // Drop first lock before acquiring second
+                *self.opened_at.write().await = Some(now);
                 warn!(
                     "Circuit breaker: opened after {} consecutive failures",
                     failures
@@ -219,7 +221,7 @@ impl CircuitBreaker {
 
     /// Get failure count.
     pub fn failure_count(&self) -> u32 {
-        self.failure_count.load(Ordering::Relaxed)
+        self.failure_count.load(Ordering::SeqCst)
     }
 }
 
@@ -254,7 +256,7 @@ impl OfflineTracker {
 
     /// Mark as offline.
     pub async fn enter_offline_mode(&self) {
-        if !self.is_offline.swap(true, Ordering::Relaxed) {
+        if !self.is_offline.swap(true, Ordering::Release) {
             let now = Utc::now();
             *self.offline_since.write().await = Some(now);
             info!("Entered offline mode at {}", now);
@@ -263,7 +265,7 @@ impl OfflineTracker {
 
     /// Mark as online.
     pub async fn exit_offline_mode(&self) {
-        if self.is_offline.swap(false, Ordering::Relaxed) {
+        if self.is_offline.swap(false, Ordering::Release) {
             let offline_since = self.offline_since.write().await.take();
             let now = Utc::now();
             *self.last_connected.write().await = Some(now);
@@ -281,7 +283,7 @@ impl OfflineTracker {
 
     /// Check if currently offline.
     pub fn is_offline(&self) -> bool {
-        self.is_offline.load(Ordering::Relaxed)
+        self.is_offline.load(Ordering::Acquire)
     }
 
     /// Get offline duration.
@@ -313,7 +315,7 @@ impl OfflineTracker {
         let is_offline = self.is_offline();
         let offline_since = *self.offline_since.read().await;
         let last_connected = *self.last_connected.read().await;
-        let queued_count = self.queued_count.load(Ordering::Relaxed);
+        let queued_count = self.queued_count.load(Ordering::Acquire);
 
         let duration = if is_offline {
             offline_since.map(|s| Utc::now() - s)
@@ -336,25 +338,25 @@ impl OfflineTracker {
 
     /// Update queued item count.
     pub fn set_queued_count(&self, count: u32) {
-        self.queued_count.store(count, Ordering::Relaxed);
+        self.queued_count.store(count, Ordering::Release);
     }
 
     /// Increment queued item count.
     pub fn increment_queued(&self) {
-        self.queued_count.fetch_add(1, Ordering::Relaxed);
+        self.queued_count.fetch_add(1, Ordering::AcqRel);
     }
 
     /// Decrement queued item count (saturating to prevent underflow).
     pub fn decrement_queued(&self) {
         // Use compare-exchange loop to saturate at 0 instead of wrapping
         loop {
-            let current = self.queued_count.load(Ordering::Relaxed);
+            let current = self.queued_count.load(Ordering::Acquire);
             if current == 0 {
                 return;
             }
             if self
                 .queued_count
-                .compare_exchange_weak(current, current - 1, Ordering::Relaxed, Ordering::Relaxed)
+                .compare_exchange_weak(current, current - 1, Ordering::AcqRel, Ordering::Relaxed)
                 .is_ok()
             {
                 return;
@@ -703,12 +705,12 @@ mod tests {
         let tracker = OfflineTracker::new();
 
         tracker.set_queued_count(10);
-        assert_eq!(tracker.queued_count.load(Ordering::Relaxed), 10);
+        assert_eq!(tracker.queued_count.load(Ordering::Acquire), 10);
 
         tracker.increment_queued();
-        assert_eq!(tracker.queued_count.load(Ordering::Relaxed), 11);
+        assert_eq!(tracker.queued_count.load(Ordering::Acquire), 11);
 
         tracker.decrement_queued();
-        assert_eq!(tracker.queued_count.load(Ordering::Relaxed), 10);
+        assert_eq!(tracker.queued_count.load(Ordering::Acquire), 10);
     }
 }

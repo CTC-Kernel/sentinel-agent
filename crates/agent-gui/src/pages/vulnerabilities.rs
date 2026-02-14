@@ -386,7 +386,7 @@ impl VulnerabilitiesPage {
                         });
 
                         row.col(|ui: &mut egui::Ui| {
-                            if widgets::ghost_button(ui, format!("{}  REMEDIATE", icons::WRENCH)).clicked() {
+                            if widgets::ghost_button(ui, format!("{}  CORRIGER", icons::WRENCH)).clicked() {
                                 *command = Some(GuiCommand::Remediate {
                                     check_id: finding.cve_id.clone(),
                                 });

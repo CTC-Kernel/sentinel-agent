@@ -19,6 +19,8 @@ use crate::tray_bridge::{TrayAction, TrayBridge};
 /// Results from background async tasks initiated by the UI.
 pub enum AsyncTaskResult {
     CsvExport(bool, String),
+    #[cfg(target_os = "macos")]
+    MacOsApps(Vec<crate::dto::GuiMacOsApp>),
 }
 
 // ============================================================================
@@ -131,13 +133,16 @@ impl SentinelApp {
         enrollment_tx: std::sync::mpsc::Sender<crate::enrollment::EnrollmentCommand>,
         is_tray_popup: bool,
     ) -> Self {
-        let tray = TrayBridge::new().ok();
-        if tray.is_none() {
-            tracing::warn!("System tray not available");
-        }
+        let tray = match TrayBridge::new() {
+            Ok(t) => Some(t),
+            Err(e) => {
+                tracing::warn!("System tray not available: {}", e);
+                None
+            }
+        };
 
         // Create channel for internal async UI tasks
-        let (async_tx, async_rx) = mpsc::channel();
+        let (async_tx, async_rx) = mpsc::sync_channel(1000);
         let state = AppState {
             async_task_tx: Some(async_tx),
             ..Default::default()
@@ -412,17 +417,22 @@ impl eframe::App for SentinelApp {
             theme::configure_fonts(ctx);
             theme::apply_theme(ctx, self.state.settings.dark_mode);
             egui_extras::install_image_loaders(ctx);
-            // Scan macOS native apps once
+            // Scan macOS native apps in background thread to avoid blocking first frame
             #[cfg(target_os = "macos")]
             {
-                match crate::os::macos::software::scan_installed_apps() {
-                    Ok(apps) => {
-                        self.state.software.macos_apps = apps;
-                    }
-                    Err(e) => {
-                        eprintln!("Failed to scan macOS apps: {}", e);
-                        // Continue with empty apps list - non-critical error
-                    }
+                if let Some(tx) = self.state.async_task_tx.clone() {
+                    std::thread::spawn(move || {
+                        match crate::os::macos::software::scan_installed_apps() {
+                            Ok(apps) => {
+                                if let Err(e) = tx.send(AsyncTaskResult::MacOsApps(apps)) {
+                                    tracing::warn!("Failed to send macOS apps result: {}", e);
+                                }
+                            }
+                            Err(e) => {
+                                tracing::warn!("Failed to scan macOS apps: {}", e);
+                            }
+                        }
+                    });
                 }
             }
             // Detect OS-level reduced motion preference
@@ -468,6 +478,10 @@ impl eframe::App for SentinelApp {
                      } else {
                          self.state.toasts.push(crate::widgets::toast::Toast::error(message).with_time(time));
                      }
+                 }
+                 #[cfg(target_os = "macos")]
+                 AsyncTaskResult::MacOsApps(apps) => {
+                     self.state.software.macos_apps = apps;
                  }
              }
         }
