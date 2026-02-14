@@ -81,8 +81,9 @@ use agent_siem::SiemForwarder;
 use agent_gui::dto::{
     AgentSummary, FimChangeType as GuiFimChangeType, GuiAgentStatus, GuiCheckResult,
     GuiCheckStatus, GuiDiscoveredDevice, GuiFimAlert, GuiNetworkConnection, GuiNetworkInterface,
-    GuiNotification, GuiResourceUsage, GuiSoftwarePackage, GuiVulnerabilityFinding,
-    GuiVulnerabilitySummary, Severity as GuiSeverity,
+    GuiNotification, GuiPolicySummary, GuiResourceUsage, GuiSoftwarePackage,
+    GuiSuspiciousProcess, GuiVulnerabilityFinding, GuiVulnerabilitySummary,
+    Severity as GuiSeverity,
 };
 #[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;
@@ -204,6 +205,8 @@ pub struct AgentRuntime {
     /// Compliance check registry with all 11 checks.
     check_registry: Arc<CheckRegistry>,
     /// Compliance check execution interval in seconds.
+    /// Static initial value — runtime reads from `state.check_interval_secs` instead.
+    #[allow(dead_code)]
     compliance_check_interval_secs: u64,
     /// Active compliance frameworks (dynamic).
     active_frameworks: std::sync::RwLock<Option<Vec<String>>>,
@@ -331,6 +334,26 @@ impl RuntimeHandle {
         }
     }
 
+    /// Set the dynamic compliance check interval.
+    pub fn set_check_interval(&self, secs: u64) {
+        info!("Check interval updated to {} seconds via handle", secs);
+        self.state.set_check_interval(secs);
+    }
+
+    /// Set the dynamic log level (0=error, 1=warn, 2=info, 3=debug, 4=trace).
+    pub fn set_log_level(&self, level: u8) {
+        self.state.set_log_level(level);
+        let level_str = match level {
+            0 => "error",
+            1 => "warn",
+            2 => "info",
+            3 => "debug",
+            _ => "trace",
+        };
+        info!("Log level updated to {} via handle", level_str);
+        set_tracing_level(level_str);
+    }
+
     /// Trigger remediation for a check.
     pub fn remediate(&self, check_id: String) {
         if let Err(e) = self
@@ -368,6 +391,7 @@ impl AgentRuntime {
         let network_manager = NetworkManager::new();
 
         let (state, rx) = state::RuntimeState::new();
+        state.set_check_interval(config.check_interval_secs);
         let state = Arc::new(state);
         let (events_mgr, _rx) = events::EventManager::new(None);
         let events = Arc::new(events_mgr);
@@ -505,6 +529,8 @@ impl AgentRuntime {
         &self,
         last_check_at: Option<chrono::DateTime<chrono::Utc>>,
         compliance_score: Option<f64>,
+        pending_sync_count: u32,
+        policy_summary: Option<GuiPolicySummary>,
     ) {
         let usage = self.resource_monitor.get_usage();
         let hostname = hostname::get()
@@ -532,14 +558,14 @@ impl AgentRuntime {
             compliance_score: compliance_score.map(|s| s as f32),
             last_check_at,
             last_sync_at,
-            pending_sync_count: 0,
+            pending_sync_count,
             uptime_secs: usage.uptime_ms / 1000,
             active_frameworks: self
                 .active_frameworks
                 .read()
                 .unwrap_or_else(|e| e.into_inner())
                 .clone(),
-            policy_summary: None,
+            policy_summary,
         };
 
         self.emit_gui_event(AgentEvent::StatusChanged { summary });
@@ -1096,11 +1122,45 @@ impl AgentRuntime {
                         }
                         "diagnostics" => {
                             info!("Server command: diagnostics ({})", cmd.id);
-                            // TODO: Collect and upload diagnostics
+                            let usage = self.resource_monitor.get_usage();
+                            let sys = resources::get_system_resources();
+                            let fim_status = if let Some(engine) = self.fim_engine.read().await.as_ref() {
+                                if engine.is_running() { "active" } else { "inactive" }
+                            } else {
+                                "not_configured"
+                            };
+                            let siem_status = if let Some(fwd) = self.siem_forwarder.read().await.as_ref() {
+                                if fwd.is_enabled() { "active" } else { "inactive" }
+                            } else {
+                                "not_configured"
+                            };
+                            let diagnostics = serde_json::json!({
+                                "system": {
+                                    "hostname": hostname::get().map(|h| h.to_string_lossy().to_string()).unwrap_or_default(),
+                                    "os": format!("{} {}", std::env::consts::OS, get_os_version()),
+                                    "arch": std::env::consts::ARCH,
+                                    "cpu_percent": sys.cpu_percent,
+                                    "memory_percent": sys.memory_percent,
+                                    "memory_total_mb": sys.memory_total_bytes / (1024 * 1024),
+                                    "disk_percent": sys.disk_percent,
+                                },
+                                "agent": {
+                                    "version": AGENT_VERSION,
+                                    "uptime_secs": usage.uptime_ms / 1000,
+                                    "paused": self.is_paused(),
+                                    "scanning": self.state.scanning.load(Ordering::Acquire),
+                                    "check_interval_secs": self.state.get_check_interval(),
+                                },
+                                "modules": {
+                                    "fim": fim_status,
+                                    "siem": siem_status,
+                                    "enrolled": self.authenticated_client.is_some(),
+                                },
+                            });
                             service
                                 .report_success(
                                     &cmd.id,
-                                    Some("Diagnostics collection started".to_string()),
+                                    Some(diagnostics.to_string()),
                                 )
                                 .await
                         }
@@ -1984,10 +2044,16 @@ impl AgentRuntime {
         let mut compliance_score: Option<f64> = None;
         let mut last_compliance_check_at: Option<chrono::DateTime<chrono::Utc>> = None;
 
+        // Cached values for GUI status updates (updated after each heartbeat / compliance check)
+        #[cfg(feature = "gui")]
+        let mut cached_pending_sync: u32 = 0;
+        #[cfg(feature = "gui")]
+        let mut cached_policy_summary: Option<GuiPolicySummary> = None;
+
         // Emit initial GUI state
         #[cfg(feature = "gui")]
         {
-            self.emit_status_update(None, None);
+            self.emit_status_update(None, None, 0, None);
             self.emit_resource_update(None);
         }
 
@@ -1999,7 +2065,7 @@ impl AgentRuntime {
         // Compliance check timer: trigger immediately on first loop
         let mut last_compliance_check_time = std::time::Instant::now()
             .checked_sub(std::time::Duration::from_secs(
-                self.compliance_check_interval_secs,
+                self.state.get_check_interval(),
             ))
             .unwrap_or_else(std::time::Instant::now);
         // Certificate renewal timer (daily)
@@ -2255,8 +2321,13 @@ impl AgentRuntime {
                     .await
                 {
                     Ok(_) => {
-                        // Success is logged in send_heartbeat (debug level to avoid spam)
                         debug!("Heartbeat sent successfully");
+
+                        // Refresh cached pending sync count for GUI
+                        #[cfg(feature = "gui")]
+                        {
+                            cached_pending_sync = self.get_pending_sync_count().await as u32;
+                        }
 
                         // Check if forced sync was requested
                         if self.state.force_sync.load(Ordering::Acquire) {
@@ -2267,7 +2338,7 @@ impl AgentRuntime {
                         // Update GUI with latest status and resources
                         #[cfg(feature = "gui")]
                         {
-                            self.emit_status_update(last_check_at, compliance_score);
+                            self.emit_status_update(last_check_at, compliance_score, cached_pending_sync, cached_policy_summary);
                             self.emit_resource_update(None);
                         }
                         // Trigger audit trail sync periodically
@@ -2300,7 +2371,7 @@ impl AgentRuntime {
                 #[cfg(feature = "gui")]
                 {
                     self.state.scanning.store(true, Ordering::Release);
-                    self.emit_status_update(last_check_at, compliance_score);
+                    self.emit_status_update(last_check_at, compliance_score, cached_pending_sync, cached_policy_summary);
                 }
                 match self.run_vulnerability_scan().await {
                     Ok(result) => {
@@ -2377,11 +2448,37 @@ impl AgentRuntime {
                         if count > 0 {
                             warn!("Security scan detected {} incident(s)!", count);
                             #[cfg(feature = "gui")]
-                            self.emit_notification(
-                                "Incidents de sécurité détectés",
-                                &format!("{} incident(s) détecté(s)", count),
-                                "error",
-                            );
+                            {
+                                self.emit_notification(
+                                    "Incidents de sécurité détectés",
+                                    &format!("{} incident(s) détecté(s)", count),
+                                    "error",
+                                );
+                                // Forward suspicious process incidents to GUI
+                                for incident in &result.incidents {
+                                    if incident.incident_type == agent_scanner::IncidentType::SuspiciousProcess
+                                        || incident.incident_type == agent_scanner::IncidentType::CryptoMiner
+                                    {
+                                        let process_name = incident.evidence.get("process_name")
+                                            .and_then(|v| v.as_str())
+                                            .unwrap_or("unknown")
+                                            .to_string();
+                                        let command_line = incident.evidence.get("path")
+                                            .and_then(|v| v.as_str())
+                                            .unwrap_or("")
+                                            .to_string();
+                                        self.emit_gui_event(AgentEvent::SuspiciousProcess {
+                                            process: GuiSuspiciousProcess {
+                                                process_name,
+                                                command_line,
+                                                reason: incident.description.clone(),
+                                                confidence: incident.confidence,
+                                                detected_at: incident.detected_at,
+                                            },
+                                        });
+                                    }
+                                }
+                            }
                         } else {
                             #[cfg(feature = "gui")]
                             self.emit_notification(
@@ -2532,14 +2629,14 @@ impl AgentRuntime {
                 current_network_security_interval = network_manager.next_security_interval();
             }
 
-            // Run compliance checks if interval has passed
-            if last_compliance_check_time.elapsed().as_secs() >= self.compliance_check_interval_secs
+            // Run compliance checks if interval has passed (dynamic from GUI settings)
+            if last_compliance_check_time.elapsed().as_secs() >= self.state.get_check_interval()
             {
                 is_active = true;
                 #[cfg(feature = "gui")]
                 {
                     self.state.scanning.store(true, Ordering::Release);
-                    self.emit_status_update(last_check_at, compliance_score);
+                    self.emit_status_update(last_check_at, compliance_score, cached_pending_sync, cached_policy_summary);
                 }
 
                 let (check_results, score) = self.run_compliance_checks().await;
@@ -2552,6 +2649,20 @@ impl AgentRuntime {
 
                 #[cfg(feature = "gui")]
                 {
+                    // Update cached policy summary from compliance score
+                    let total = u32::try_from(score.total_count).unwrap_or(u32::MAX);
+                    cached_policy_summary = Some(GuiPolicySummary {
+                        total_policies: total,
+                        passing: u32::try_from(score.passed_count).unwrap_or(0),
+                        failing: u32::try_from(score.failed_count).unwrap_or(0),
+                        errors: u32::try_from(score.error_count).unwrap_or(0),
+                        pending: total.saturating_sub(
+                            u32::try_from(score.passed_count).unwrap_or(0)
+                            + u32::try_from(score.failed_count).unwrap_or(0)
+                            + u32::try_from(score.error_count).unwrap_or(0)
+                        ),
+                    });
+
                     // Emit individual check results to GUI
                     for exec_result in &check_results {
                         let gui_result = self.execution_result_to_gui(exec_result);
@@ -2571,7 +2682,7 @@ impl AgentRuntime {
                             "warning"
                         },
                     );
-                    self.emit_status_update(last_check_at, compliance_score);
+                    self.emit_status_update(last_check_at, compliance_score, cached_pending_sync, cached_policy_summary);
                 }
 
                 last_compliance_check_time = std::time::Instant::now();
@@ -2597,7 +2708,7 @@ impl AgentRuntime {
                 #[cfg(feature = "gui")]
                 {
                     self.state.scanning.store(true, Ordering::Release);
-                    self.emit_status_update(last_check_at, compliance_score);
+                    self.emit_status_update(last_check_at, compliance_score, cached_pending_sync, cached_policy_summary);
                 }
 
                 // Run vulnerability scan
@@ -2670,6 +2781,20 @@ impl AgentRuntime {
 
                 #[cfg(feature = "gui")]
                 {
+                    // Update cached policy summary
+                    let total = u32::try_from(score.total_count).unwrap_or(u32::MAX);
+                    cached_policy_summary = Some(GuiPolicySummary {
+                        total_policies: total,
+                        passing: u32::try_from(score.passed_count).unwrap_or(0),
+                        failing: u32::try_from(score.failed_count).unwrap_or(0),
+                        errors: u32::try_from(score.error_count).unwrap_or(0),
+                        pending: total.saturating_sub(
+                            u32::try_from(score.passed_count).unwrap_or(0)
+                            + u32::try_from(score.failed_count).unwrap_or(0)
+                            + u32::try_from(score.error_count).unwrap_or(0)
+                        ),
+                    });
+
                     // Emit individual check results to GUI
                     for exec_result in &check_results {
                         let gui_result = self.execution_result_to_gui(exec_result);
@@ -2689,7 +2814,7 @@ impl AgentRuntime {
                         },
                     );
                     self.state.scanning.store(false, Ordering::Release);
-                    self.emit_status_update(last_check_at, compliance_score);
+                    self.emit_status_update(last_check_at, compliance_score, cached_pending_sync, cached_policy_summary);
                 }
                 last_vuln_scan = std::time::Instant::now();
                 last_compliance_check_time = std::time::Instant::now();
@@ -2751,7 +2876,7 @@ impl AgentRuntime {
                 last_heartbeat = std::time::Instant::now();
                 #[cfg(feature = "gui")]
                 {
-                    self.emit_status_update(last_check_at, compliance_score);
+                    self.emit_status_update(last_check_at, compliance_score, cached_pending_sync, cached_policy_summary);
                     self.emit_resource_update(None);
                 }
             }
@@ -3170,7 +3295,20 @@ fn get_os_version() -> String {
 
     #[cfg(target_os = "windows")]
     {
-        "10".to_string() // TODO: Get actual Windows version
+        // Read ProductName from the registry via `reg query`
+        std::process::Command::new("cmd")
+            .args(["/C", "reg query \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\" /v ProductName"])
+            .output()
+            .ok()
+            .and_then(|o| String::from_utf8(o.stdout).ok())
+            .and_then(|s| {
+                // Output contains "ProductName    REG_SZ    Windows 11 Pro"
+                s.lines()
+                    .find(|l| l.contains("ProductName"))
+                    .and_then(|l| l.split("REG_SZ").nth(1))
+                    .map(|v| v.trim().to_string())
+            })
+            .unwrap_or_else(|| "unknown".to_string())
     }
 
     #[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
@@ -3237,15 +3375,46 @@ fn generate_fallback_machine_id() -> String {
 }
 
 /// Initialize logging based on configuration.
+/// Type-erased reload callback for the tracing filter.
+///
+/// We store a boxed closure instead of the concrete `reload::Handle` because the
+/// handle's type parameter includes all subscriber layers, which differs between
+/// `init_logging` and `init_logging_with_terminal`.
+static TRACING_RELOAD_FN: std::sync::OnceLock<
+    Box<dyn Fn(&str) -> Result<(), String> + Send + Sync>,
+> = std::sync::OnceLock::new();
+
+/// Dynamically change the tracing log level at runtime.
+///
+/// Accepts standard level strings: "error", "warn", "info", "debug", "trace".
+/// Falls back silently if the tracing subscriber was not initialized with a
+/// reload handle (e.g. non-GUI mode).
+pub fn set_tracing_level(level: &str) {
+    if let Some(reload_fn) = TRACING_RELOAD_FN.get() {
+        if let Err(e) = reload_fn(level) {
+            eprintln!("Failed to reload tracing filter: {}", e);
+        }
+    }
+}
+
 pub fn init_logging(log_level: &str) {
     use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(log_level));
+    let (filter_layer, reload_handle) = tracing_subscriber::reload::Layer::new(filter);
 
     tracing_subscriber::registry()
         .with(fmt::layer())
-        .with(filter)
+        .with(filter_layer)
         .init();
+
+    let _ = TRACING_RELOAD_FN.set(Box::new(move |level: &str| {
+        let new_filter = EnvFilter::try_new(level)
+            .map_err(|e| format!("Invalid tracing level '{}': {}", level, e))?;
+        reload_handle
+            .reload(new_filter)
+            .map_err(|e| format!("{}", e))
+    }));
 }
 
 /// Initialize logging with the GUI terminal bridge.
@@ -3260,12 +3429,21 @@ pub fn init_logging_with_terminal(log_level: &str) -> tracing_layer::GuiTracingB
     let gui_layer = tracing_layer::GuiTracingLayer::new(&bridge);
 
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(log_level));
+    let (filter_layer, reload_handle) = tracing_subscriber::reload::Layer::new(filter);
 
     tracing_subscriber::registry()
         .with(fmt::layer())
         .with(gui_layer)
-        .with(filter)
+        .with(filter_layer)
         .init();
+
+    let _ = TRACING_RELOAD_FN.set(Box::new(move |level: &str| {
+        let new_filter = EnvFilter::try_new(level)
+            .map_err(|e| format!("Invalid tracing level '{}': {}", level, e))?;
+        reload_handle
+            .reload(new_filter)
+            .map_err(|e| format!("{}", e))
+    }));
 
     bridge
 }
