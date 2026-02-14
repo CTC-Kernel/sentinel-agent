@@ -60,7 +60,8 @@ impl<'a> EnrollmentManager<'a> {
                     "Certificate expired at {}",
                     credentials.certificate_expires_at
                 );
-                // Certificate renewal will be handled separately
+                warn!("Certificate has expired. Agent needs re-enrollment.");
+                return Err(SyncError::Certificate("Agent certificate has expired. Re-enrollment required.".to_string()));
             } else if credentials.certificate_expires_within(30) {
                 warn!(
                     "Certificate expires soon ({}), renewal recommended",

@@ -285,6 +285,10 @@ impl DgaDetector {
 
     /// Extract the second-level domain from a full domain name.
     fn extract_sld(&self, domain: &str) -> Option<String> {
+        // Prevent DoS from extremely long domain strings (RFC 1035: max 253 chars)
+        if domain.len() > 253 {
+            return None;
+        }
         let parts: Vec<&str> = domain.split('.').collect();
 
         if parts.len() < 2 {

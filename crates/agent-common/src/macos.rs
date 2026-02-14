@@ -23,7 +23,12 @@ pub fn run_with_elevation(script: &str) -> Result<String> {
     info!("Requesting privilege elevation for command: {}", script);
 
     // Escape double quotes and backslashes for AppleScript strings
-    let escaped_script = script.replace('\\', "\\\\").replace('"', "\\\"");
+    let escaped_script = script
+        .replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('$', "\\$")
+        .replace('`', "\\`")
+        .replace('!', "\\!");
     
     // AppleScript command: do shell script "..." with administrator privileges
     // Note: AppleScript strings MUST use double quotes. Single quotes are not valid string delimiters.

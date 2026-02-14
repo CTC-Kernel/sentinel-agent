@@ -315,7 +315,7 @@ impl SoftwarePage {
                             });
                             row.col(|ui: &mut egui::Ui| {
                                 if !pkg.up_to_date {
-                                    if widgets::ghost_button(ui, format!("{}  UPDATE", icons::SYNC)).clicked() {
+                                    if widgets::ghost_button(ui, format!("{}  METTRE À JOUR", icons::SYNC)).clicked() {
                                         *command = Some(GuiCommand::CheckUpdate);
                                     }
                                 } else {
@@ -562,7 +562,7 @@ impl SoftwarePage {
                             });
 
                             row.col(|ui: &mut egui::Ui| {
-                                if widgets::ghost_button(ui, format!("{}  UPDATE", icons::SYNC)).clicked() {
+                                if widgets::ghost_button(ui, format!("{}  METTRE À JOUR", icons::SYNC)).clicked() {
                                     *command = Some(GuiCommand::CheckUpdate);
                                 }
                             });

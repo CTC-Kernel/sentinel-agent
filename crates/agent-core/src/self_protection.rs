@@ -235,26 +235,26 @@ mod tests {
 
     #[test]
     fn test_compute_file_hash() {
-        let mut tmp = NamedTempFile::new().unwrap();
-        tmp.write_all(b"test content").unwrap();
-        tmp.flush().unwrap();
+        let mut tmp = NamedTempFile::new().expect("create temp file");
+        tmp.write_all(b"test content").expect("write temp file");
+        tmp.flush().expect("flush temp file");
 
-        let hash = compute_file_hash(tmp.path()).unwrap();
+        let hash = compute_file_hash(tmp.path()).expect("compute hash");
         assert_eq!(hash.len(), 64);
     }
 
     #[test]
     fn test_self_protection_init() {
-        let tmp = NamedTempFile::new().unwrap();
+        let tmp = NamedTempFile::new().expect("create temp file");
         let protection = SelfProtection::new(tmp.path().to_path_buf());
         assert!(!protection.is_tampered());
     }
 
     #[test]
     fn test_verify_config_unchanged() {
-        let mut tmp = NamedTempFile::new().unwrap();
-        tmp.write_all(b"{\"test\": true}").unwrap();
-        tmp.flush().unwrap();
+        let mut tmp = NamedTempFile::new().expect("create temp file");
+        tmp.write_all(b"{\"test\": true}").expect("write temp file");
+        tmp.flush().expect("flush temp file");
 
         let protection = SelfProtection::new(tmp.path().to_path_buf());
         assert!(protection.verify_config());
@@ -262,7 +262,7 @@ mod tests {
 
     #[test]
     fn test_check_debugger() {
-        let tmp = NamedTempFile::new().unwrap();
+        let tmp = NamedTempFile::new().expect("create temp file");
         let protection = SelfProtection::new(tmp.path().to_path_buf());
         // In test environment, debugger should not be attached (usually)
         let _attached = protection.check_debugger();
@@ -270,7 +270,7 @@ mod tests {
 
     #[test]
     fn test_tamper_status() {
-        let tmp = NamedTempFile::new().unwrap();
+        let tmp = NamedTempFile::new().expect("create temp file");
         let protection = SelfProtection::new(tmp.path().to_path_buf());
         let status = protection.check_all();
         assert!(status.config_intact);

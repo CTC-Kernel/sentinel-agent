@@ -1885,13 +1885,19 @@ impl AgentRuntime {
                             .get_config::<agent_fim::FimConfig>(agent_sync::config_keys::FIM_CONFIG)
                             .await
                         {
-                            let mut fim_engine_guard = self.fim_engine.write().await;
-                            if let Some(ref mut fim_engine) = *fim_engine_guard {
+                            // Take engine out to avoid holding write lock across .await
+                            let engine_opt = {
+                                let mut guard = self.fim_engine.write().await;
+                                guard.take()
+                            };
+                            if let Some(fim_engine) = engine_opt {
                                 if fim_engine.update_config(fim_config.clone()).await.is_ok() {
                                     info!("FIM engine configuration updated.");
                                 } else {
                                     warn!("Failed to update FIM engine configuration.");
                                 }
+                                // Put engine back
+                                *self.fim_engine.write().await = Some(fim_engine);
                             }
                         }
 
@@ -2079,8 +2085,6 @@ impl AgentRuntime {
         let mut fim_changes_today: u32 = 0;
         #[cfg(feature = "gui")]
         let mut fim_last_day: u32 = chrono::Utc::now().timestamp() as u32 / 86400;
-
-        let heartbeat_interval = *self.heartbeat_interval_secs.read().await;
 
         // Run initial security scan on startup (quick check)
         info!("Running initial security scan...");
@@ -2314,7 +2318,7 @@ impl AgentRuntime {
             }
 
             // 2. Heartbeat & Config Sync
-            if last_heartbeat.elapsed().as_secs() >= heartbeat_interval {
+            if last_heartbeat.elapsed().as_secs() >= *self.heartbeat_interval_secs.read().await {
                 last_heartbeat = std::time::Instant::now();
                 match self
                     .send_heartbeat(compliance_score, last_compliance_check_at)
@@ -2529,6 +2533,13 @@ impl AgentRuntime {
                     }
                     Err(e) => {
                         warn!("Network static collection failed: {}", e);
+                        #[cfg(feature = "gui")]
+                        self.emit_gui_event(AgentEvent::SyncStatus {
+                            syncing: false,
+                            pending_count: 0,
+                            last_sync_at: None,
+                            error: Some(format!("Network static collection error: {}", e)),
+                        });
                     }
                 }
                 last_network_static = std::time::Instant::now();
@@ -2572,6 +2583,13 @@ impl AgentRuntime {
                     }
                     Err(e) => {
                         warn!("Network connection collection failed: {}", e);
+                        #[cfg(feature = "gui")]
+                        self.emit_gui_event(AgentEvent::SyncStatus {
+                            syncing: false,
+                            pending_count: 0,
+                            last_sync_at: None,
+                            error: Some(format!("Network connection collection error: {}", e)),
+                        });
                     }
                 }
                 last_network_connections = std::time::Instant::now();
@@ -2622,6 +2640,13 @@ impl AgentRuntime {
                     }
                     Err(e) => {
                         warn!("Network collection for security scan failed: {}", e);
+                        #[cfg(feature = "gui")]
+                        self.emit_gui_event(AgentEvent::SyncStatus {
+                            syncing: false,
+                            pending_count: 0,
+                            last_sync_at: None,
+                            error: Some(format!("Network security scan collection error: {}", e)),
+                        });
                     }
                 }
                 last_network_security = std::time::Instant::now();
@@ -2653,14 +2678,15 @@ impl AgentRuntime {
                     let total = u32::try_from(score.total_count).unwrap_or(u32::MAX);
                     cached_policy_summary = Some(GuiPolicySummary {
                         total_policies: total,
-                        passing: u32::try_from(score.passed_count).unwrap_or(0),
-                        failing: u32::try_from(score.failed_count).unwrap_or(0),
-                        errors: u32::try_from(score.error_count).unwrap_or(0),
-                        pending: total.saturating_sub(
-                            u32::try_from(score.passed_count).unwrap_or(0)
-                            + u32::try_from(score.failed_count).unwrap_or(0)
-                            + u32::try_from(score.error_count).unwrap_or(0)
-                        ),
+                        passing: u32::try_from(score.passed_count).unwrap_or(u32::MAX),
+                        failing: u32::try_from(score.failed_count).unwrap_or(u32::MAX),
+                        errors: u32::try_from(score.error_count).unwrap_or(u32::MAX),
+                        pending: {
+                            let passed = u32::try_from(score.passed_count).unwrap_or(u32::MAX);
+                            let failed = u32::try_from(score.failed_count).unwrap_or(u32::MAX);
+                            let errored = u32::try_from(score.error_count).unwrap_or(u32::MAX);
+                            total.saturating_sub(passed.saturating_add(failed).saturating_add(errored))
+                        },
                     });
 
                     // Emit individual check results to GUI
@@ -2702,7 +2728,7 @@ impl AgentRuntime {
             }
 
             // Check for force_check flag (GUI "Vérifier maintenant" button)
-            if self.state.force_check.swap(false, Ordering::AcqRel) {
+            if self.state.force_check.load(Ordering::Acquire) {
                 info!("Force check triggered");
                 is_active = true;
                 #[cfg(feature = "gui")]
@@ -2785,14 +2811,15 @@ impl AgentRuntime {
                     let total = u32::try_from(score.total_count).unwrap_or(u32::MAX);
                     cached_policy_summary = Some(GuiPolicySummary {
                         total_policies: total,
-                        passing: u32::try_from(score.passed_count).unwrap_or(0),
-                        failing: u32::try_from(score.failed_count).unwrap_or(0),
-                        errors: u32::try_from(score.error_count).unwrap_or(0),
-                        pending: total.saturating_sub(
-                            u32::try_from(score.passed_count).unwrap_or(0)
-                            + u32::try_from(score.failed_count).unwrap_or(0)
-                            + u32::try_from(score.error_count).unwrap_or(0)
-                        ),
+                        passing: u32::try_from(score.passed_count).unwrap_or(u32::MAX),
+                        failing: u32::try_from(score.failed_count).unwrap_or(u32::MAX),
+                        errors: u32::try_from(score.error_count).unwrap_or(u32::MAX),
+                        pending: {
+                            let passed = u32::try_from(score.passed_count).unwrap_or(u32::MAX);
+                            let failed = u32::try_from(score.failed_count).unwrap_or(u32::MAX);
+                            let errored = u32::try_from(score.error_count).unwrap_or(u32::MAX);
+                            total.saturating_sub(passed.saturating_add(failed).saturating_add(errored))
+                        },
                     });
 
                     // Emit individual check results to GUI
@@ -2818,10 +2845,12 @@ impl AgentRuntime {
                 }
                 last_vuln_scan = std::time::Instant::now();
                 last_compliance_check_time = std::time::Instant::now();
+                // Clear force flag only after successful execution
+                self.state.force_check.store(false, Ordering::Release);
             }
 
             // Check for force_sync flag (GUI "Forcer la synchronisation" button)
-            if self.state.force_sync.swap(false, Ordering::AcqRel) {
+            if self.state.force_sync.load(Ordering::Acquire) {
                 info!("Force sync triggered");
                 #[cfg(feature = "gui")]
                 self.emit_gui_event(AgentEvent::SyncStatus {
@@ -2879,6 +2908,8 @@ impl AgentRuntime {
                     self.emit_status_update(last_check_at, compliance_score, cached_pending_sync, cached_policy_summary);
                     self.emit_resource_update(None);
                 }
+                // Clear force flag only after successful execution
+                self.state.force_sync.store(false, Ordering::Release);
             }
 
             // Check for force_update flag (trigger from GUI button)
@@ -3380,9 +3411,8 @@ fn generate_fallback_machine_id() -> String {
 /// We store a boxed closure instead of the concrete `reload::Handle` because the
 /// handle's type parameter includes all subscriber layers, which differs between
 /// `init_logging` and `init_logging_with_terminal`.
-static TRACING_RELOAD_FN: std::sync::OnceLock<
-    Box<dyn Fn(&str) -> Result<(), String> + Send + Sync>,
-> = std::sync::OnceLock::new();
+type TracingReloadFn = Box<dyn Fn(&str) -> Result<(), String> + Send + Sync>;
+static TRACING_RELOAD_FN: std::sync::OnceLock<TracingReloadFn> = std::sync::OnceLock::new();
 
 /// Dynamically change the tracing log level at runtime.
 ///
@@ -3390,10 +3420,10 @@ static TRACING_RELOAD_FN: std::sync::OnceLock<
 /// Falls back silently if the tracing subscriber was not initialized with a
 /// reload handle (e.g. non-GUI mode).
 pub fn set_tracing_level(level: &str) {
-    if let Some(reload_fn) = TRACING_RELOAD_FN.get() {
-        if let Err(e) = reload_fn(level) {
-            eprintln!("Failed to reload tracing filter: {}", e);
-        }
+    if let Some(reload_fn) = TRACING_RELOAD_FN.get()
+        && let Err(e) = reload_fn(level)
+    {
+        eprintln!("Failed to reload tracing filter: {}", e);
     }
 }
 
