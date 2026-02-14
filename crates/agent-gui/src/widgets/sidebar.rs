@@ -345,13 +345,12 @@ impl Sidebar {
                 );
             }
 
-            // Icon and label - centered vertically
-            // Removed vertical bar for cleaner macOS look
-
-            let icon_pos = rect.left_center() + Vec2::new(20.0, -8.0); // Adjust Y to center icon
+            // Icon and label - centered vertically with proper alignment
+            let icon_x = rect.left() + theme::SPACE_LG;
+            let icon_center_y = rect.center().y;
             ui.painter().text(
-                icon_pos,
-                egui::Align2::LEFT_TOP,
+                egui::pos2(icon_x, icon_center_y),
+                egui::Align2::LEFT_CENTER,
                 icon,
                 theme::font_heading(),
                 if is_current {
@@ -361,14 +360,25 @@ impl Sidebar {
                 },
             );
 
-            let label_pos = rect.left_center() + Vec2::new(20.0 + 16.0 + 10.0, -6.5); // Adjust Y to center text
+            let label_x = icon_x + theme::ICON_MD + theme::SPACE_SM;
             ui.painter().text(
-                label_pos,
-                egui::Align2::LEFT_TOP,
+                egui::pos2(label_x, icon_center_y),
+                egui::Align2::LEFT_CENTER,
                 label,
                 theme::font_body(),
                 text_color,
             );
+
+            // Focus ring for keyboard navigation
+            if response.has_focus() {
+                let rect_shrunk = rect.shrink2(Vec2::new(8.0, 2.0));
+                ui.painter().rect_stroke(
+                    rect_shrunk.expand(1.0),
+                    egui::CornerRadius::same(theme::BUTTON_ROUNDING),
+                    theme::focus_ring(),
+                    egui::epaint::StrokeKind::Outside,
+                );
+            }
 
             // Badge (soft tinted pill)
             if let Some(count) = badge
@@ -398,6 +408,10 @@ impl Sidebar {
                     theme::badge_text(theme::ERROR),
                 );
             }
+        }
+
+        if response.hovered() {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
         }
 
         response.clicked()

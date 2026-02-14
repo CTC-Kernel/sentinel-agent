@@ -95,7 +95,7 @@ pub use progress::{
 // Button variants exports
 pub use button::{
     ButtonSize, button_group, chip_button, destructive_button, destructive_button_loading,
-    fab_button, ghost_button, icon_button, icon_button_with_color, link_button, primary_button,
+    fab_button, ghost_button, icon_button, icon_button_with_color, primary_button,
     primary_button_loading, secondary_button, secondary_button_loading,
 };
 

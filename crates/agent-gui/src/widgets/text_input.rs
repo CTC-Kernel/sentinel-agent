@@ -205,7 +205,7 @@ pub fn text_input_with_options(
             rect,
             egui::CornerRadius::same(theme::BUTTON_ROUNDING),
             theme::bg_secondary(),
-            egui::Stroke::new(theme::BORDER_MEDIUM, border_color),
+            egui::Stroke::new(theme::BORDER_THIN, border_color),
             egui::epaint::StrokeKind::Inside,
         );
 

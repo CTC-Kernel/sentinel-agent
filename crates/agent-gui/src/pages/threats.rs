@@ -557,16 +557,16 @@ impl ThreatsPage {
 
                     // Main line
                     ui.painter().hline(
-                        rect.left() + 10.0..=rect.right() - 10.0,
+                        rect.left() + theme::CARD_GLOW_INSET..=rect.right() - theme::CARD_GLOW_INSET,
                         line_y,
-                        egui::Stroke::new(2.5, color),
+                        egui::Stroke::new(theme::CARD_GLOW_STROKE, color),
                     );
 
                     // Outer glow
                     ui.painter().hline(
-                        rect.left() + 5.0..=rect.right() - 5.0,
+                        rect.left() + theme::CARD_GLOW_OUTER_INSET..=rect.right() - theme::CARD_GLOW_OUTER_INSET,
                         line_y,
-                        egui::Stroke::new(4.0, color.linear_multiply(theme::OPACITY_TINT)),
+                        egui::Stroke::new(theme::CARD_GLOW_OUTER_STROKE, color.linear_multiply(theme::OPACITY_TINT)),
                     );
 
                     ui.ctx().request_repaint();

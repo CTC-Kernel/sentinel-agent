@@ -150,12 +150,12 @@ impl<'a> Checkbox<'a> {
                 label_color,
             );
 
-            // Focus ring
+            // Focus ring (WCAG 2.4.7 — full contrast)
             if response.has_focus() {
                 ui.painter().rect_stroke(
                     box_rect.expand(2.0),
                     CornerRadius::same(theme::ROUNDING_MD),
-                    egui::Stroke::new(theme::BORDER_THICK, theme::ACCENT.linear_multiply(theme::OPACITY_MEDIUM)),
+                    egui::Stroke::new(theme::BORDER_THICK, theme::ACCENT),
                     egui::epaint::StrokeKind::Outside,
                 );
             }

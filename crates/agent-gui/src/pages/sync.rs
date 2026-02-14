@@ -140,14 +140,11 @@ impl SyncPage {
             ui.add_space(theme::SPACE_MD);
 
             if state.sync.history.is_empty() {
-                ui.vertical_centered(|ui: &mut egui::Ui| {
-                    ui.add_space(theme::SPACE_LG);
-                    ui.label(
-                        egui::RichText::new("Aucun historique disponible")
-                            .color(theme::text_tertiary()),
-                    );
-                    ui.add_space(theme::SPACE_LG);
-                });
+                crate::widgets::empty_state_compact(
+                    ui,
+                    icons::CLOUD_ARROW_UP,
+                    "Aucun historique disponible",
+                );
             } else {
                 use egui_extras::{Column, TableBuilder};
 

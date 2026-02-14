@@ -252,15 +252,12 @@ impl TerminalPage {
                 ui.set_min_height(400.0);
 
                 if filtered.is_empty() {
-                    ui.vertical_centered(|ui: &mut egui::Ui| {
-                        ui.add_space(160.0);
-                        ui.label(
-                            egui::RichText::new("AUCUN ÉVÉNEMENT DÉTECTÉ DANS CE FLUX")
-                                .font(theme::font_min())
-                                .color(theme::text_tertiary())
-                                .strong(),
-                        );
-                    });
+                    crate::widgets::empty_state(
+                        ui,
+                        icons::TERMINAL,
+                        "AUCUN ÉVÉNEMENT DÉTECTÉ",
+                        Some("Les événements système apparaîtront ici."),
+                    );
                     return;
                 }
 
