@@ -19,18 +19,6 @@ use tracing::{debug, info, warn};
 /// Check ID for update status.
 pub const UPDATE_STATUS_CHECK_ID: &str = "update_status";
 
-/// Maximum days since last update for compliance.
-#[allow(dead_code)] // Used in Windows-specific code
-const MAX_DAYS_SINCE_UPDATE: i64 = 30;
-
-/// Maximum critical updates pending.
-#[allow(dead_code)] // Used in Windows-specific code
-const MAX_CRITICAL_PENDING: usize = 0;
-
-/// Maximum total updates pending.
-#[allow(dead_code)] // Used in Windows-specific code
-const MAX_TOTAL_PENDING: usize = 10;
-
 /// Pending update information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PendingUpdate {

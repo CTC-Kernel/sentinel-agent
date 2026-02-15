@@ -251,8 +251,7 @@ mod tests {
     #[tokio::test]
     async fn test_llm_service_availability() {
         let service = LLMService::new(None).await.unwrap();
-        let available = service.is_available().await;
-        // Availability depends on feature flags and config
-        println!("LLM service available: {}", available);
+        // Availability depends on feature flags and config — just verify it doesn't panic
+        let _available = service.is_available().await;
     }
 }

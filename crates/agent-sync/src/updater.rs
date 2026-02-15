@@ -24,10 +24,6 @@ use tracing::{error, info, warn};
 /// Maximum time to wait for health check after update (seconds).
 const HEALTH_CHECK_TIMEOUT_SECS: u64 = 60;
 
-/// Maximum rollback time in seconds (NFR-R5: < 2 minutes).
-#[allow(dead_code)] // Reserved for future rollback timing validation
-const MAX_ROLLBACK_SECS: u64 = 120;
-
 /// Shadow copy suffix for backup files.
 const SHADOW_COPY_SUFFIX: &str = ".shadow";
 
@@ -927,13 +923,6 @@ mod tests {
     #[test]
     fn test_health_check_timeout() {
         assert_eq!(HEALTH_CHECK_TIMEOUT_SECS, 60);
-    }
-
-    #[test]
-    #[allow(clippy::assertions_on_constants)]
-    fn test_max_rollback_time() {
-        // NFR-R5: Rollback < 2 minutes
-        assert!(MAX_ROLLBACK_SECS <= 120);
     }
 
     #[test]

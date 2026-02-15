@@ -30,7 +30,6 @@ pub struct AuditEntry {
 }
 
 pub struct LocalAuditTrail {
-    #[allow(dead_code)]
     db: Arc<Database>,
 }
 

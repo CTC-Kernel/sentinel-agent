@@ -1144,7 +1144,7 @@ mod ctrlc {
                 ]) {
                     Ok(s) => s,
                     Err(e) => {
-                        eprintln!(
+                        tracing::warn!(
                             "Failed to create signal iterator: {}. Signal handling disabled.",
                             e
                         );
@@ -1155,16 +1155,16 @@ mod ctrlc {
                 if let Some(sig) = signals.forever().next() {
                     match sig {
                         signal_hook::consts::SIGINT => {
-                            eprintln!("Received SIGINT (Ctrl+C), initiating graceful shutdown...");
+                            tracing::info!("Received SIGINT (Ctrl+C), initiating graceful shutdown...");
                         }
                         signal_hook::consts::SIGTERM => {
-                            eprintln!("Received SIGTERM, initiating graceful shutdown...");
+                            tracing::info!("Received SIGTERM, initiating graceful shutdown...");
                         }
                         signal_hook::consts::SIGHUP => {
-                            eprintln!("Received SIGHUP, initiating graceful shutdown...");
+                            tracing::info!("Received SIGHUP, initiating graceful shutdown...");
                         }
                         _ => {
-                            eprintln!("Received signal {}, initiating graceful shutdown...", sig);
+                            tracing::info!("Received signal {}, initiating graceful shutdown...", sig);
                         }
                     }
                     handler();
@@ -1200,7 +1200,7 @@ mod ctrlc {
 
             unsafe {
                 if SetConsoleCtrlHandler(Some(console_handler), true).is_err() {
-                    eprintln!("Failed to set Windows console control handler.");
+                    tracing::warn!("Failed to set Windows console control handler.");
                 }
             }
         }
