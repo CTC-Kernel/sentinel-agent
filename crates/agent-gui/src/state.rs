@@ -177,6 +177,7 @@ impl Default for FimState {
 pub struct ThreatsState {
     pub suspicious_processes: VecDeque<crate::dto::GuiSuspiciousProcess>,
     pub usb_events: VecDeque<crate::dto::GuiUsbEvent>,
+    pub system_incidents: VecDeque<crate::dto::GuiSystemIncident>,
     pub search: String,
     pub filter: Option<String>,
     pub selected_threat: Option<usize>,
@@ -188,6 +189,7 @@ impl Default for ThreatsState {
         Self {
             suspicious_processes: VecDeque::with_capacity(200),
             usb_events: VecDeque::with_capacity(200),
+            system_incidents: VecDeque::with_capacity(200),
             search: String::new(),
             filter: None,
             selected_threat: None,
@@ -541,6 +543,10 @@ impl AppState {
             AgentEvent::SuspiciousProcess { process } => {
                 self.threats.suspicious_processes.push_front(process);
                 self.threats.suspicious_processes.truncate(200);
+            }
+            AgentEvent::SystemIncident { incident } => {
+                self.threats.system_incidents.push_front(incident);
+                self.threats.system_incidents.truncate(200);
             }
             AgentEvent::FimStats {
                 monitored_count,

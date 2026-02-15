@@ -577,6 +577,24 @@ pub struct GuiSuspiciousProcess {
     pub detected_at: DateTime<Utc>,
 }
 
+/// A system security incident for GUI display (firewall, AV, privilege escalation, etc.).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiSystemIncident {
+    /// Incident type (e.g. "firewall_disabled", "antivirus_disabled", "privilege_escalation").
+    pub incident_type: String,
+    /// Severity level (typed).
+    pub severity: Severity,
+    /// Incident title.
+    pub title: String,
+    /// Detailed description.
+    pub description: String,
+    /// Confidence score (0-100).
+    pub confidence: u8,
+    /// When detected.
+    pub detected_at: DateTime<Utc>,
+}
+
 /// A USB device event for GUI display.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]

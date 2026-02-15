@@ -21,7 +21,7 @@ use crate::widgets;
 /// A unified representation of any security threat, regardless of source.
 #[derive(Clone)]
 struct ThreatEvent {
-    /// Source type: "process", "usb", or "fim".
+    /// Source type: "process", "usb", "fim", "network", "system", or "vulnerability".
     kind: &'static str,
     /// Severity level: "critical", "high", "medium", or "low".
     severity: &'static str,
@@ -52,7 +52,7 @@ impl ThreatsPage {
             "Menaces Détectées",
             Some("ANALYSE DES ÉVÉNEMENTS SUSPECTS ET CORRÉLATION IA"),
             Some(
-                "Consultez le flux consolidé des événements suspects (processus anormaux, clés USB non autorisées, modifications FIM). Le score de confiance IA aide à distinguer les faux positifs des menaces réelles.",
+                "Consultez le flux consolid\u{00e9} des \u{00e9}v\u{00e9}nements suspects (processus anormaux, cl\u{00e9}s USB non autoris\u{00e9}es, modifications FIM, alertes r\u{00e9}seau, incidents syst\u{00e8}me, vuln\u{00e9}rabilit\u{00e9}s). Le score de confiance IA aide \u{00e0} distinguer les faux positifs des menaces r\u{00e9}elles.",
             ),
         );
         ui.add_space(theme::SPACE_LG);
@@ -62,12 +62,16 @@ impl ThreatsPage {
         let usb_count = state.threats.usb_events.len();
         let fim_unack_count = state.fim.alerts.iter().filter(|a| !a.acknowledged).count();
         let network_alert_count = state.network.alerts.len();
+        let system_count = state.threats.system_incidents.len();
+        let vuln_count = state.vulnerability_findings.len();
         let risk_score = Self::compute_risk_score(
             state,
             process_count,
             usb_count,
             fim_unack_count,
             network_alert_count,
+            system_count,
+            vuln_count,
         );
 
         let summary_items = vec![
@@ -94,6 +98,18 @@ impl ThreatsPage {
                 fim_unack_count.to_string(),
                 if fim_unack_count > 0 { theme::WARNING } else { theme::text_tertiary() },
                 icons::EYE,
+            ),
+            (
+                "INCIDENTS SYST\u{00c8}ME",
+                system_count.to_string(),
+                if system_count > 0 { theme::SEVERITY_HIGH } else { theme::text_tertiary() },
+                icons::SHIELD,
+            ),
+            (
+                "VULN\u{00c9}RABILIT\u{00c9}S",
+                vuln_count.to_string(),
+                if vuln_count > 0 { theme::ERROR } else { theme::text_tertiary() },
+                icons::SHIELD_VIRUS,
             ),
             (
                 "SCORE DE RISQUE",
@@ -218,23 +234,26 @@ impl ThreatsPage {
                 let has_fim = state.fim.monitored_count > 0;
                 let has_network = !state.network.connections.is_empty()
                     || state.network.interface_count > 0;
+                let has_system = true; // System monitoring always active
+                let has_vuln = state.vulnerability_summary.is_some();
 
-                let active_sources = [has_process, has_usb, has_fim, has_network]
-                    .iter()
-                    .filter(|&&v| v)
-                    .count();
+                let active_sources =
+                    [has_process, has_usb, has_fim, has_network, has_system, has_vuln]
+                        .iter()
+                        .filter(|&&v| v)
+                        .count();
 
                 ui.horizontal(|ui: &mut egui::Ui| {
-                    let coverage_color = if active_sources == 4 {
+                    let coverage_color = if active_sources == 6 {
                         theme::SUCCESS
-                    } else if active_sources >= 2 {
+                    } else if active_sources >= 4 {
                         theme::WARNING
                     } else {
                         theme::ERROR
                     };
                     ui.label(
                         egui::RichText::new(format!(
-                            "{}/4 sources actives",
+                            "{}/6 sources actives",
                             active_sources,
                         ))
                         .font(theme::font_body())
@@ -248,6 +267,8 @@ impl ThreatsPage {
                         ("USB", icons::PLUG, has_usb),
                         ("FIM", icons::FILE_SHIELD, has_fim),
                         ("R\u{00e9}seau", icons::NETWORK, has_network),
+                        ("Syst\u{00e8}me", icons::SHIELD, has_system),
+                        ("Vuln\u{00e9}rabilit\u{00e9}s", icons::SHIELD_VIRUS, has_vuln),
                     ];
                     for (label, icon, active) in sources {
                         let color = if *active {
@@ -278,13 +299,17 @@ impl ThreatsPage {
         let net_active = state.threats.filter.as_deref() == Some("network");
         let usb_active = state.threats.filter.as_deref() == Some("usb");
         let fim_active = state.threats.filter.as_deref() == Some("fim");
+        let sys_active = state.threats.filter.as_deref() == Some("system");
+        let vuln_active = state.threats.filter.as_deref() == Some("vulnerability");
 
         let cache_id = ui.make_persistent_id("threats_cache");
         let mut fp_hasher = DefaultHasher::new();
         state.threats.suspicious_processes.len().hash(&mut fp_hasher);
         state.threats.usb_events.len().hash(&mut fp_hasher);
+        state.threats.system_incidents.len().hash(&mut fp_hasher);
         state.fim.alerts.len().hash(&mut fp_hasher);
         state.network.alerts.len().hash(&mut fp_hasher);
+        state.vulnerability_findings.len().hash(&mut fp_hasher);
         state.threats.filter.hash(&mut fp_hasher);
         state.threats.search.hash(&mut fp_hasher);
         let fingerprint: u64 = fp_hasher.finish();
@@ -330,12 +355,14 @@ impl ThreatsPage {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.threats.search,
-            "RECHERCHER (PROCESSUS, RÉSEAU, USB, FICHIER)...",
+            "RECHERCHER (PROCESSUS, R\u{00c9}SEAU, USB, FIM, SYST\u{00c8}ME, VULN\u{00c9}RA.)...",
         )
         .chip("PROCESSUS", proc_active, theme::ERROR)
-        .chip("RÉSEAU", net_active, theme::SEVERITY_HIGH)
+        .chip("R\u{00c9}SEAU", net_active, theme::SEVERITY_HIGH)
         .chip("USB", usb_active, theme::WARNING)
         .chip("FIM", fim_active, theme::INFO)
+        .chip("SYST\u{00c8}ME", sys_active, theme::SEVERITY_HIGH)
+        .chip("VULN\u{00c9}RA.", vuln_active, theme::ERROR)
         .result_count(result_count)
         .show(ui);
 
@@ -345,6 +372,8 @@ impl ThreatsPage {
                 1 => Some("network"),
                 2 => Some("usb"),
                 3 => Some("fim"),
+                4 => Some("system"),
+                5 => Some("vulnerability"),
                 _ => None,
             };
             if state.threats.filter.as_deref() == target {
@@ -517,6 +546,94 @@ impl ThreatsPage {
                             }, &actions);
                     }
                 }
+                "system" => {
+                    if threat.source_index < state.threats.system_incidents.len() {
+                        let inc = state.threats.system_incidents[threat.source_index].clone();
+                        let sev_color = match inc.severity {
+                            Severity::Critical => theme::ERROR,
+                            Severity::High => theme::SEVERITY_HIGH,
+                            Severity::Medium => theme::WARNING,
+                            _ => theme::INFO,
+                        };
+                        let actions = [
+                            widgets::DetailAction::secondary("Acquitter", icons::CHECK),
+                            widgets::DetailAction::primary("Signaler", icons::FLAG),
+                        ];
+                        widgets::DetailDrawer::new("threat_detail", &inc.title, icons::SHIELD)
+                            .accent(sev_color)
+                            .subtitle("Incident syst\u{00e8}me")
+                            .show(&ctx, &mut state.threats.detail_open, |ui| {
+                                widgets::detail_section(ui, "INCIDENT SYST\u{00c8}ME");
+                                widgets::detail_field(
+                                    ui,
+                                    "Type",
+                                    Self::system_incident_type_label(&inc.incident_type),
+                                );
+                                widgets::detail_text(ui, "Description", &inc.description);
+                                widgets::detail_field_colored(
+                                    ui,
+                                    "Confiance",
+                                    &format!("{}%", inc.confidence),
+                                    sev_color,
+                                );
+                                widgets::detail_field_badge(
+                                    ui,
+                                    "S\u{00e9}v\u{00e9}rit\u{00e9}",
+                                    inc.severity.label(),
+                                    sev_color,
+                                );
+                                widgets::detail_field(
+                                    ui,
+                                    "Date de d\u{00e9}tection",
+                                    &inc.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
+                                );
+                            }, &actions);
+                    }
+                }
+                "vulnerability" => {
+                    if threat.source_index < state.vulnerability_findings.len() {
+                        let v = state.vulnerability_findings[threat.source_index].clone();
+                        let sev_color = match v.severity {
+                            Severity::Critical => theme::ERROR,
+                            Severity::High => theme::SEVERITY_HIGH,
+                            Severity::Medium => theme::WARNING,
+                            _ => theme::INFO,
+                        };
+                        let actions = [
+                            widgets::DetailAction::primary("Voir d\u{00e9}tails", icons::EYE),
+                        ];
+                        let drawer_title = format!("{} \u{2014} {}", v.cve_id, v.affected_software);
+                        widgets::DetailDrawer::new("threat_detail", &drawer_title, icons::SHIELD_VIRUS)
+                            .accent(sev_color)
+                            .subtitle("Vuln\u{00e9}rabilit\u{00e9}")
+                            .show(&ctx, &mut state.threats.detail_open, |ui| {
+                                widgets::detail_section(ui, "VULN\u{00c9}RABILIT\u{00c9}");
+                                widgets::detail_field(ui, "CVE", &v.cve_id);
+                                widgets::detail_field(ui, "Logiciel", &v.affected_software);
+                                widgets::detail_field(ui, "Version", &v.affected_version);
+                                if let Some(cvss) = v.cvss_score {
+                                    widgets::detail_field_colored(
+                                        ui,
+                                        "Score CVSS",
+                                        &format!("{:.1}", cvss),
+                                        sev_color,
+                                    );
+                                }
+                                widgets::detail_field_badge(
+                                    ui,
+                                    "S\u{00e9}v\u{00e9}rit\u{00e9}",
+                                    v.severity.label(),
+                                    sev_color,
+                                );
+                                widgets::detail_field(
+                                    ui,
+                                    "Correctif disponible",
+                                    if v.fix_available { "Oui" } else { "Non" },
+                                );
+                                widgets::detail_text(ui, "Description", &v.description);
+                            }, &actions);
+                    }
+                }
                 _ => {
                     state.threats.detail_open = false;
                     state.threats.selected_threat = None;
@@ -531,17 +648,15 @@ impl ThreatsPage {
     // Internal helpers
     // ====================================================================
 
-    /// Compute a risk score (0-100) that prioritizes critical process threats.
-    /// 
-    /// Critical processes have the highest weight (40 points each),
-    /// followed by unacknowledged FIM alerts (15 points each),
-    /// then USB events (5 points each), then regular suspicious processes (10 points each).
+    /// Compute a risk score (0-100) that prioritizes critical threats across all 6 sources.
     fn compute_risk_score(
         state: &AppState,
         processes: usize,
         usb: usize,
         fim_unack: usize,
         network_alerts: usize,
+        system_incidents: usize,
+        vuln_count: usize,
     ) -> u32 {
         // Count critical processes (confidence > 80)
         let critical_processes = state
@@ -562,12 +677,38 @@ impl ThreatsPage {
             .count();
         let regular_net = network_alerts.saturating_sub(critical_net);
 
+        // Count critical system incidents
+        let critical_sys = state
+            .threats
+            .system_incidents
+            .iter()
+            .filter(|i| matches!(i.severity, Severity::Critical))
+            .count();
+        let regular_sys = system_incidents.saturating_sub(critical_sys);
+
+        // Count critical vulnerabilities
+        let critical_vulns = state
+            .vulnerability_findings
+            .iter()
+            .filter(|v| matches!(v.severity, Severity::Critical))
+            .count();
+        let high_vulns = state
+            .vulnerability_findings
+            .iter()
+            .filter(|v| matches!(v.severity, Severity::High))
+            .count();
+        let _regular_vulns = vuln_count.saturating_sub(critical_vulns).saturating_sub(high_vulns);
+
         // Weighted formula with critical event prioritization
         let raw = (critical_processes as u32)
             .saturating_mul(40) // Critical processes: highest weight
             .saturating_add((critical_net as u32).saturating_mul(35)) // Critical network alerts
+            .saturating_add((critical_sys as u32).saturating_mul(30)) // Critical system incidents
+            .saturating_add((critical_vulns as u32).saturating_mul(25)) // Critical vulnerabilities
+            .saturating_add((high_vulns as u32).saturating_mul(10)) // High vulnerabilities
             .saturating_add((regular_processes as u32).saturating_mul(10)) // Regular processes
             .saturating_add((regular_net as u32).saturating_mul(12)) // Regular network alerts
+            .saturating_add((regular_sys as u32).saturating_mul(8)) // Regular system incidents
             .saturating_add((fim_unack as u32).saturating_mul(15)) // FIM alerts
             .saturating_add((usb as u32).saturating_mul(5)); // USB events
 
@@ -690,6 +831,34 @@ impl ThreatsPage {
             });
         }
 
+        // System security incidents
+        for (i, inc) in state.threats.system_incidents.iter().enumerate() {
+            events.push(ThreatEvent {
+                kind: "system",
+                severity: inc.severity.as_str(),
+                title: inc.title.clone(),
+                description: inc.description.clone(),
+                timestamp: inc.detected_at,
+                confidence: Some(inc.confidence),
+                command_line: None,
+                source_index: i,
+            });
+        }
+
+        // Vulnerability findings
+        for (i, v) in state.vulnerability_findings.iter().enumerate() {
+            events.push(ThreatEvent {
+                kind: "vulnerability",
+                severity: v.severity.as_str(),
+                title: format!("{} \u{2014} {}", v.cve_id, v.affected_software),
+                description: v.description.clone(),
+                timestamp: v.discovered_at.unwrap_or_else(Utc::now),
+                confidence: v.cvss_score.map(|s| (s * 10.0).min(100.0) as u8),
+                command_line: None,
+                source_index: i,
+            });
+        }
+
         events
     }
 
@@ -722,6 +891,8 @@ impl ThreatsPage {
             "network" => ("R\u{00c9}SEAU", theme::SEVERITY_HIGH),
             "usb" => ("USB", theme::WARNING),
             "fim" => ("FIM", theme::INFO),
+            "system" => ("SYST\u{00c8}ME", theme::SEVERITY_HIGH),
+            "vulnerability" => ("VULN\u{00c9}RA.", theme::ERROR),
             _ => ("AUTRE", theme::WARNING),
         }
     }
@@ -738,6 +909,23 @@ impl ThreatsPage {
             "suspicious_port" => "Port suspect".to_string(),
             "dns_tunneling" => "Tunnel DNS d\u{00e9}tect\u{00e9}".to_string(),
             other => other.replace('_', " ").to_uppercase(),
+        }
+    }
+
+    /// French label for a system incident type.
+    fn system_incident_type_label(incident_type: &str) -> &'static str {
+        match incident_type {
+            "firewall_disabled" => "Pare-feu d\u{00e9}sactiv\u{00e9}",
+            "antivirus_disabled" => "Antivirus d\u{00e9}sactiv\u{00e9}",
+            "privilege_escalation" => "Escalade de privil\u{00e8}ges",
+            "reverse_shell" => "Reverse shell d\u{00e9}tect\u{00e9}",
+            "credential_theft" => "Vol d\u{2019}identifiants",
+            "unauthorized_change" => "Changement non autoris\u{00e9}",
+            "malware" => "Malware d\u{00e9}tect\u{00e9}",
+            "crypto_miner" => "Crypto-mineur d\u{00e9}tect\u{00e9}",
+            "data_exfiltration" => "Exfiltration de donn\u{00e9}es",
+            "suspicious_process" => "Processus suspect",
+            _ => "Incident syst\u{00e8}me",
         }
     }
 
@@ -1053,11 +1241,13 @@ impl ThreatsPage {
             }
 
             // ─ Sector labels (cardinal directions) ─
-            let sectors: [(&str, f32, egui::Align2); 4] = [
+            let sectors: [(&str, f32, egui::Align2); 6] = [
                 ("PROCESSUS", -TAU / 4.0, egui::Align2::CENTER_BOTTOM),
-                ("USB", 0.0, egui::Align2::LEFT_CENTER),
+                ("SYST\u{00c8}ME", -TAU / 12.0, egui::Align2::LEFT_BOTTOM),
+                ("USB", TAU / 12.0, egui::Align2::LEFT_TOP),
                 ("FIM", TAU / 4.0, egui::Align2::CENTER_TOP),
-                ("R\u{00c9}SEAU", TAU / 2.0, egui::Align2::RIGHT_CENTER),
+                ("VULN\u{00c9}RA.", 5.0 * TAU / 12.0, egui::Align2::RIGHT_TOP),
+                ("R\u{00c9}SEAU", -5.0 * TAU / 12.0, egui::Align2::RIGHT_BOTTOM),
             ];
             let sector_offset = radius + theme::SPACE_LG;
             for (label, angle, align) in sectors {
@@ -1111,9 +1301,11 @@ impl ThreatsPage {
                 // Sector base angle: PROCESSUS=N(-90°), USB=E(0°), FIM=S(90°), RÉSEAU=W(180°)
                 let sector_base = match threat.kind {
                     "process" => -TAU / 4.0,
-                    "usb" => 0.0,
+                    "system" => -TAU / 12.0,
+                    "usb" => TAU / 12.0,
                     "fim" => TAU / 4.0,
-                    "network" => TAU / 2.0,
+                    "vulnerability" => 5.0 * TAU / 12.0,
+                    "network" => -5.0 * TAU / 12.0,
                     _ => 0.0,
                 };
                 // Scatter within ±40° of sector center
