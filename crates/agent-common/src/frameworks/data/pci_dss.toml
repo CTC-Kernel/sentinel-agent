@@ -1,0 +1,461 @@
+[framework]
+id = "PCI_DSS"
+name = "PCI DSS"
+version = "4.0"
+description = "Payment Card Industry Data Security Standard"
+applicability = ["Payment Processing", "Financial Services", "Retail", "E-commerce"]
+reference_url = "https://www.pcisecuritystandards.org/"
+
+# Disk Encryption -> Req 3: Protect Stored Account Data
+[[controls]]
+check_id = "disk_encryption"
+control_id = "3.5.1"
+control_name = "Render PAN unreadable anywhere it is stored"
+category = "Protect Stored Data"
+description = "Disk-level encryption to protect stored cardholder data"
+weight = 0.95
+is_critical = true
+
+# Firewall -> Req 1: Install and Maintain Network Security Controls
+[[controls]]
+check_id = "firewall"
+control_id = "1.2.1"
+control_name = "Configuration standards for network security controls"
+category = "Network Security"
+description = "Configuration standards for firewall and network security controls"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "firewall"
+control_id = "1.4.1"
+control_name = "NSCs are implemented between trusted and untrusted networks"
+category = "Network Security"
+description = "Network security controls implemented between networks"
+weight = 0.9
+is_critical = true
+
+# Antivirus -> Req 5: Protect All Systems Against Malware
+[[controls]]
+check_id = "antivirus"
+control_id = "5.2.1"
+control_name = "Anti-malware solution deployed on all system components"
+category = "Anti-Malware"
+description = "Anti-malware solution deployed and maintained on all system components"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "antivirus"
+control_id = "5.2.2"
+control_name = "Anti-malware solution detects all known types of malware"
+category = "Anti-Malware"
+description = "Anti-malware solution detects all known types of malware"
+weight = 0.9
+is_critical = true
+
+# MFA -> Req 8: Identify Users and Authenticate Access
+[[controls]]
+check_id = "mfa"
+control_id = "8.4.2"
+control_name = "MFA for all access into the CDE"
+category = "Authentication"
+description = "MFA is implemented for all access into the cardholder data environment"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "mfa"
+control_id = "8.4.3"
+control_name = "MFA for all remote network access"
+category = "Authentication"
+description = "MFA is implemented for all remote network access"
+weight = 0.95
+is_critical = true
+
+# Password Policy -> Req 8: Identify Users and Authenticate Access
+[[controls]]
+check_id = "password_policy"
+control_id = "8.3.6"
+control_name = "Passwords meet minimum complexity requirements"
+category = "Authentication"
+description = "If passwords are used, minimum complexity requirements are met"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "password_policy"
+control_id = "8.3.7"
+control_name = "Password change requirements"
+category = "Authentication"
+description = "Passwords are changed at least once every 90 days"
+weight = 0.75
+is_critical = false
+
+# System Updates -> Req 6: Develop and Maintain Secure Systems
+[[controls]]
+check_id = "system_updates"
+control_id = "6.3.3"
+control_name = "Security patches installed within one month"
+category = "Secure Systems"
+description = "Security patches for all software installed within one month of release"
+weight = 0.9
+is_critical = true
+
+# Audit Logging -> Req 10: Log and Monitor All Access
+[[controls]]
+check_id = "audit_logging"
+control_id = "10.2.1"
+control_name = "Audit logs are enabled and active"
+category = "Logging and Monitoring"
+description = "Audit logs are enabled and active for all system components"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "audit_logging"
+control_id = "10.3.1"
+control_name = "Read access to audit logs"
+category = "Logging and Monitoring"
+description = "Read access to time-sensitive audit log data is provided only to those with job need"
+weight = 0.8
+is_critical = true
+
+# Session Lock -> Req 8: Identify Users and Authenticate Access
+[[controls]]
+check_id = "session_lock"
+control_id = "8.2.8"
+control_name = "Session idle timeout"
+category = "Authentication"
+description = "If a session has been idle for more than 15 minutes, require re-authentication"
+weight = 0.75
+is_critical = false
+
+# Admin Accounts -> Req 7: Restrict Access to System Components
+[[controls]]
+check_id = "admin_accounts"
+control_id = "7.2.1"
+control_name = "Access control system restricts access"
+category = "Access Control"
+description = "An access control system is implemented that restricts access based on job classification"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "admin_accounts"
+control_id = "7.2.2"
+control_name = "Privileges assigned to individuals based on job classification"
+category = "Access Control"
+description = "Access is assigned to users, including privileged users, based on job classification"
+weight = 0.8
+is_critical = true
+
+# Remote Access -> Req 2: Apply Secure Configurations
+[[controls]]
+check_id = "remote_access"
+control_id = "2.2.7"
+control_name = "All non-console administrative access is encrypted"
+category = "Secure Configurations"
+description = "All non-console administrative access is encrypted using strong cryptography"
+weight = 0.9
+is_critical = true
+
+# Time Sync -> Req 10: Log and Monitor All Access
+[[controls]]
+check_id = "time_sync"
+control_id = "10.6.1"
+control_name = "System clocks are synchronized"
+category = "Logging and Monitoring"
+description = "System clocks and time on all systems are synchronized using time-synchronization technology"
+weight = 0.7
+is_critical = false
+
+# Obsolete Protocols -> Req 4: Protect Cardholder Data
+[[controls]]
+check_id = "obsolete_protocols"
+control_id = "4.2.1"
+control_name = "Strong cryptography and security protocols"
+category = "Data Transmission"
+description = "Strong cryptography and security protocols are implemented to safeguard PAN"
+weight = 0.9
+is_critical = true
+
+# Log Rotation -> Req 10: Log and Monitor All Access
+[[controls]]
+check_id = "log_rotation"
+control_id = "10.5.1"
+control_name = "Retain audit log history for at least 12 months"
+category = "Logging and Monitoring"
+description = "Retain audit log history for at least 12 months, with 3 months immediately available"
+weight = 0.8
+is_critical = true
+
+# USB Storage -> Req 3: Protect Stored Account Data
+[[controls]]
+check_id = "usb_storage"
+control_id = "3.3.2"
+control_name = "Encrypt stored data or render unreadable"
+category = "Data Storage"
+description = "SAD is not stored after authorization, even if encrypted"
+weight = 0.7
+is_critical = false
+
+# Backup -> Req 9: Restrict Physical Access
+[[controls]]
+check_id = "backup"
+control_id = "9.4.5"
+control_name = "Securely store backup media"
+category = "Physical Access"
+description = "Securely store backup media with cardholder data in a secure location"
+weight = 0.8
+is_critical = true
+
+# Kernel Hardening -> Req 2: Apply Secure Configurations
+[[controls]]
+check_id = "kernel_hardening"
+control_id = "2.2.1"
+control_name = "Configuration standards for all system components"
+category = "Secure Configurations"
+description = "Configuration standards are developed, implemented, and maintained"
+weight = 0.8
+is_critical = true
+
+# Guest Account -> Req 8: Identify Users and Authenticate Access
+[[controls]]
+check_id = "guest_account"
+control_id = "8.2.2"
+control_name = "Group, shared, or generic accounts are not used"
+category = "Authentication"
+description = "Group, shared, or generic accounts, or other shared authentication credentials are only used when necessary"
+weight = 0.7
+is_critical = false
+
+# Auto Login -> Req 8: Identify Users and Authenticate Access
+[[controls]]
+check_id = "auto_login"
+control_id = "8.2.1"
+control_name = "Unique IDs assigned to each user"
+category = "Authentication"
+description = "All users are assigned a unique ID before access to system components is allowed"
+weight = 0.75
+is_critical = false
+
+# Windows Hardening -> Req 2: Apply Secure Configurations
+[[controls]]
+check_id = "windows_hardening"
+control_id = "2.2.1"
+control_name = "Configuration standards for all system components"
+category = "Secure Configurations"
+description = "Windows configuration standards are developed and maintained"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "windows_hardening"
+control_id = "2.2.4"
+control_name = "Only necessary services, protocols enabled"
+category = "Secure Configurations"
+description = "Only necessary services and security features are enabled"
+weight = 0.85
+is_critical = true
+
+# Linux Hardening -> Req 2: Apply Secure Configurations
+[[controls]]
+check_id = "linux_hardening"
+control_id = "2.2.1"
+control_name = "Configuration standards for all system components"
+category = "Secure Configurations"
+description = "Linux kernel configuration standards are maintained"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "linux_hardening"
+control_id = "2.2.5"
+control_name = "All insecure services and protocols removed"
+category = "Secure Configurations"
+description = "Insecure kernel parameters are disabled"
+weight = 0.85
+is_critical = true
+
+# Update Status -> Req 6: Develop and Maintain Secure Systems
+[[controls]]
+check_id = "update_status"
+control_id = "6.3.3"
+control_name = "Security patches installed within one month"
+category = "Secure Systems"
+description = "Security patches are tracked and installed promptly"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "update_status"
+control_id = "6.3.1"
+control_name = "Identify security vulnerabilities"
+category = "Secure Systems"
+description = "Pending security updates are identified and tracked"
+weight = 0.9
+is_critical = true
+
+# Secure Boot -> Req 2: Apply Secure Configurations
+[[controls]]
+check_id = "secure_boot"
+control_id = "2.2.1"
+control_name = "Configuration standards for all system components"
+category = "Secure Configurations"
+description = "UEFI Secure Boot ensures trusted boot process"
+weight = 0.8
+is_critical = true
+
+# GPO Password Policy -> Req 8: Identify Users and Authenticate Access
+[[controls]]
+check_id = "gpo_password_policy"
+control_id = "8.3.6"
+control_name = "Passwords meet minimum complexity requirements"
+category = "Authentication"
+description = "Domain password policies enforce complexity requirements"
+weight = 0.9
+is_critical = true
+
+# GPO Lockout Policy -> Req 8: Identify Users and Authenticate Access
+[[controls]]
+check_id = "gpo_lockout_policy"
+control_id = "8.3.4"
+control_name = "Invalid authentication attempts are limited"
+category = "Authentication"
+description = "Account lockout limits invalid authentication attempts"
+weight = 0.85
+is_critical = true
+
+# GPO Audit Policy -> Req 10: Log and Monitor All Access
+[[controls]]
+check_id = "gpo_audit_policy"
+control_id = "10.2.1"
+control_name = "Audit logs are enabled and active"
+category = "Logging and Monitoring"
+description = "Domain audit policies enable comprehensive logging"
+weight = 0.9
+is_critical = true
+
+# Privileged Groups -> Req 7: Restrict Access to System Components
+[[controls]]
+check_id = "privileged_groups"
+control_id = "7.2.1"
+control_name = "Access control system restricts access"
+category = "Access Control"
+description = "Privileged group membership is controlled"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "privileged_groups"
+control_id = "7.2.3"
+control_name = "Privileges are set to least privilege"
+category = "Access Control"
+description = "Privileged access follows least privilege principle"
+weight = 0.85
+is_critical = true
+
+# LDAP Security -> Req 4: Protect Cardholder Data
+[[controls]]
+check_id = "ldap_security"
+control_id = "4.2.1"
+control_name = "Strong cryptography and security protocols"
+category = "Data Transmission"
+description = "LDAP communications use strong encryption (LDAPS)"
+weight = 0.85
+is_critical = true
+
+# DNS Security -> Req 1: Firewall and Network Security, Req 4: Protect Data
+[[controls]]
+check_id = "dns_security"
+control_id = "1.3.2"
+control_name = "Network connections are restricted"
+category = "Network Security"
+description = "Secure DNS prevents unauthorized network access"
+weight = 0.8
+is_critical = true
+
+[[controls]]
+check_id = "dns_security"
+control_id = "4.2.1"
+control_name = "Strong cryptography and security protocols"
+category = "Data Transmission"
+description = "DNS queries encrypted with DoH/DoT"
+weight = 0.85
+is_critical = true
+
+# SSH Hardening -> Req 2: Secure Configurations, Req 8: Authentication
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "2.2.7"
+control_name = "Encryption used for non-console administrative access"
+category = "Secure Configurations"
+description = "SSH provides encrypted administrative access"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "8.3.1"
+control_name = "Strong authentication for all users"
+category = "Authentication"
+description = "SSH key-based authentication instead of passwords"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "4.2.1"
+control_name = "Strong cryptography and security protocols"
+category = "Data Transmission"
+description = "SSH uses strong ciphers and protocols"
+weight = 0.85
+is_critical = true
+
+# Container Security -> Req 2: Secure Configurations, Req 6: Secure Systems
+[[controls]]
+check_id = "container_security"
+control_id = "2.2.1"
+control_name = "Configuration standards for all system components"
+category = "Secure Configurations"
+description = "Container runtime follows security configuration standards"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "container_security"
+control_id = "6.3.2"
+control_name = "Custom software is developed securely"
+category = "Secure Systems"
+description = "Containers are hardened with minimal privileges"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "container_security"
+control_id = "2.2.4"
+control_name = "Only necessary services enabled"
+category = "Secure Configurations"
+description = "Containers run with minimal capabilities"
+weight = 0.85
+is_critical = true
+
+# Certificate Validation -> Req 4: Protect Cardholder Data
+[[controls]]
+check_id = "certificate_validation"
+control_id = "4.2.1"
+control_name = "Strong cryptography and security protocols"
+category = "Data Transmission"
+description = "Valid certificates ensure strong encryption for cardholder data"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "certificate_validation"
+control_id = "4.2.2"
+control_name = "Trusted keys and certificates"
+category = "Data Transmission"
+description = "Only trusted and non-expired certificates are used"
+weight = 0.9
+is_critical = true
