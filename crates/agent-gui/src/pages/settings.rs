@@ -748,7 +748,7 @@ impl SettingsPage {
                             ui.label(
                                 egui::RichText::new(format!("{}  INACTIF", icons::WARNING))
                                     .font(theme::font_label())
-                                    .color(theme::WARNING)
+                                    .color(theme::readable_color(theme::WARNING))
                                     .strong(),
                             );
                         }

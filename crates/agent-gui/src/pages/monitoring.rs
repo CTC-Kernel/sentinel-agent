@@ -230,14 +230,15 @@ impl MonitoringPage {
                 let response =
                     ui.interact(ui.max_rect(), ui.id().with(label), egui::Sense::hover());
 
+                let safe_color = theme::readable_color(color);
                 ui.horizontal(|ui: &mut egui::Ui| {
                     // Left: Value and label
                     ui.vertical(|ui: &mut egui::Ui| {
                         // Value with accent color
                         let value_color = if response.hovered() {
-                            color
+                            safe_color
                         } else {
-                            color.linear_multiply(theme::OPACITY_STRONG)
+                            safe_color.linear_multiply(theme::OPACITY_STRONG)
                         };
 
                         ui.label(
@@ -263,7 +264,7 @@ impl MonitoringPage {
                             ui.label(
                                 egui::RichText::new(icon)
                                     .size(theme::ICON_XL)
-                                    .color(color.linear_multiply(icon_alpha)),
+                                    .color(safe_color.linear_multiply(icon_alpha)),
                             );
                         },
                     );

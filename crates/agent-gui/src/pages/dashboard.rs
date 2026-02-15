@@ -746,7 +746,7 @@ impl DashboardPage {
                 ui.label(
                     egui::RichText::new(format!("{} mise(s) à jour requise(s)", outdated))
                         .font(theme::font_label())
-                        .color(theme::WARNING),
+                        .color(theme::readable_color(theme::WARNING)),
                 );
             } else {
                 ui.label(

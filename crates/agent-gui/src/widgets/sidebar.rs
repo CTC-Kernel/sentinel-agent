@@ -316,7 +316,7 @@ impl Sidebar {
         };
 
         let bg_fill = if is_current {
-            theme::ACCENT.linear_multiply(theme::OPACITY_TINT)
+            theme::ACCENT.linear_multiply(theme::OPACITY_MUTED)
         } else {
             egui::Color32::TRANSPARENT
         };
@@ -330,7 +330,7 @@ impl Sidebar {
                 let fill = if is_current {
                     bg_fill
                 } else {
-                    theme::bg_elevated().linear_multiply(theme::OPACITY_MEDIUM)
+                    theme::hover_bg()
                 };
 
                 let rect_shrunk = rect.shrink2(Vec2::new(8.0, 2.0));

@@ -151,7 +151,7 @@ impl<'a> DetailDrawer<'a> {
                 // Left border with accent
                 ui.painter().line_segment(
                     [drawer_rect.left_top(), drawer_rect.left_bottom()],
-                    egui::Stroke::new(theme::BORDER_MEDIUM, self.accent_color.linear_multiply(theme::OPACITY_MODERATE)),
+                    egui::Stroke::new(theme::BORDER_MEDIUM, self.accent_color.linear_multiply(theme::OPACITY_MEDIUM)),
                 );
 
                 // Shadow on the left edge
@@ -250,7 +250,7 @@ impl<'a> DetailDrawer<'a> {
                             ui.painter().rect_filled(
                                 divider_rect,
                                 CornerRadius::same(1),
-                                self.accent_color.linear_multiply(theme::OPACITY_MUTED),
+                                self.accent_color.linear_multiply(theme::OPACITY_MEDIUM),
                             );
                         }
 
@@ -288,7 +288,7 @@ impl<'a> DetailDrawer<'a> {
                                 ui.label(
                                     egui::RichText::new("ACTIONS")
                                         .font(theme::font_label())
-                                        .color(theme::text_tertiary())
+                                        .color(theme::text_secondary())
                                         .extra_letter_spacing(0.5)
                                         .strong(),
                                 );
@@ -339,7 +339,7 @@ pub fn detail_section(ui: &mut Ui, title: &str) {
     ui.label(
         egui::RichText::new(title)
             .font(theme::font_label())
-            .color(theme::text_tertiary())
+            .color(theme::text_secondary())
             .extra_letter_spacing(0.5)
             .strong(),
     );
@@ -420,7 +420,7 @@ pub fn detail_text(ui: &mut Ui, label: &str, text: &str) {
                 egui::Label::new(
                     egui::RichText::new(text)
                         .font(theme::font_body())
-                        .color(theme::text_secondary()),
+                        .color(theme::text_primary()),
                 )
                 .wrap_mode(egui::TextWrapMode::Wrap),
             );

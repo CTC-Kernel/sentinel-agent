@@ -17,28 +17,18 @@ pub enum AlertLevel {
 impl AlertLevel {
     fn colors(&self) -> (Color32, Color32, Color32) {
         // Returns (background, border, text/icon color)
-        match self {
-            AlertLevel::Info => (
-                theme::INFO.linear_multiply(theme::OPACITY_SUBTLE),
-                theme::INFO.linear_multiply(theme::OPACITY_MUTED),
-                theme::INFO,
-            ),
-            AlertLevel::Success => (
-                theme::SUCCESS.linear_multiply(theme::OPACITY_SUBTLE),
-                theme::SUCCESS.linear_multiply(theme::OPACITY_MUTED),
-                theme::SUCCESS,
-            ),
-            AlertLevel::Warning => (
-                theme::WARNING.linear_multiply(theme::OPACITY_SUBTLE),
-                theme::WARNING.linear_multiply(theme::OPACITY_MUTED),
-                theme::WARNING,
-            ),
-            AlertLevel::Error => (
-                theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE),
-                theme::ERROR.linear_multiply(theme::OPACITY_MUTED),
-                theme::ERROR,
-            ),
-        }
+        // Uses badge_bg/badge_border for opaque, readable tinted backgrounds.
+        let semantic = match self {
+            AlertLevel::Info => theme::INFO,
+            AlertLevel::Success => theme::SUCCESS,
+            AlertLevel::Warning => theme::WARNING,
+            AlertLevel::Error => theme::ERROR,
+        };
+        (
+            theme::badge_bg(semantic),
+            theme::badge_border(semantic),
+            theme::badge_text(semantic),
+        )
     }
 
     fn icon(&self) -> &'static str {
