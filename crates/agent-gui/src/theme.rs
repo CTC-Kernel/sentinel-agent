@@ -217,7 +217,7 @@ pub fn border() -> Color32 {
 #[inline]
 pub fn separator() -> Color32 {
     if is_dark_mode() {
-        Color32::from_rgba_premultiplied(255, 255, 255, 30)
+        Color32::from_rgba_premultiplied(255, 255, 255, 45)
     } else {
         Color32::from_rgba_premultiplied(0, 0, 0, 30)
     }
@@ -279,12 +279,10 @@ pub fn badge_text(color: Color32) -> Color32 {
     if is_dark_mode() {
         color
     } else {
-        // Darken: blend toward black for readability on light tinted bg
-        // Using 0.45 instead of 0.65 for deeper professional contrast (COMEX-ready)
         Color32::from_rgb(
-            (color.r() as f32 * 0.45) as u8,
-            (color.g() as f32 * 0.45) as u8,
-            (color.b() as f32 * 0.45) as u8,
+            (color.r() as f32 * 0.35) as u8,
+            (color.g() as f32 * 0.35) as u8,
+            (color.b() as f32 * 0.35) as u8,
         )
     }
 }
@@ -324,9 +322,9 @@ pub fn font_min() -> FontId {
     FontId::new(11.0, egui::FontFamily::Proportional)
 }
 
-/// Caption font (10px - use sparingly, only for decorative/non-essential text).
+/// Caption font (11px - WCAG AA minimum readable text).
 pub fn font_caption() -> FontId {
-    FontId::new(10.0, egui::FontFamily::Proportional)
+    FontId::new(11.0, egui::FontFamily::Proportional)
 }
 
 // ============================================================================
@@ -443,7 +441,7 @@ pub const TABLE_HEADER_HEIGHT: f32 = 44.0;
 /// Data table empty state height.
 pub const TABLE_EMPTY_HEIGHT: f32 = 120.0;
 /// Alternating row tint alpha (increased for better visibility).
-pub const TABLE_ALT_ROW_ALPHA: u8 = 12;
+pub const TABLE_ALT_ROW_ALPHA: u8 = 18;
 
 /// Get alternating row background color.
 pub fn table_row_bg(row_index: usize) -> Color32 {
@@ -903,7 +901,7 @@ pub const BUTTON_HEIGHT: f32 = 36.0;
 pub const BUTTON_HEIGHT_LG: f32 = 44.0;
 
 /// Small button height.
-pub const BUTTON_HEIGHT_SM: f32 = 28.0;
+pub const BUTTON_HEIGHT_SM: f32 = 32.0;
 
 /// Input field height.
 pub const INPUT_HEIGHT: f32 = 40.0;

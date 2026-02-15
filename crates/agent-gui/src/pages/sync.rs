@@ -17,7 +17,7 @@ impl SyncPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
-            &["Sys & Network", "Synchronisation"],
+            &["Pilotage", "Synchronisation"],
             "Synchronisation",
             Some(
                 "Gestion de la connectivit\u{00e9} et transfert de donn\u{00e9}es avec le serveur",

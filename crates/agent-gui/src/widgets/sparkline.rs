@@ -29,7 +29,7 @@ impl Default for SparklineConfig {
 }
 
 /// Renders a clean sparkline chart using egui_plot.
-pub fn sparkline(ui: &mut Ui, data: &[[f64; 2]], size: Vec2, config: &SparklineConfig) {
+pub fn sparkline(ui: &mut Ui, id_salt: &str, data: &[[f64; 2]], size: Vec2, config: &SparklineConfig) {
     if data.is_empty() {
         // Empty state
         let (rect, _) = ui.allocate_exact_size(size, egui::Sense::hover());
@@ -53,7 +53,7 @@ pub fn sparkline(ui: &mut Ui, data: &[[f64; 2]], size: Vec2, config: &SparklineC
         return;
     }
 
-    let id = ui.id().with("sparkline");
+    let id = ui.id().with(id_salt);
 
     let plot = Plot::new(id)
         .height(size.y)
@@ -170,7 +170,7 @@ pub fn sparkline_with_value(
 
         // Sparkline chart
         let available_width = ui.available_width();
-        sparkline(ui, data, Vec2::new(available_width, 32.0), config);
+        sparkline(ui, label, data, Vec2::new(available_width, 32.0), config);
 
         // Stats row (optional)
         if config.show_stats && !data.is_empty() {
