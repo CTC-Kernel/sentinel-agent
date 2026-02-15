@@ -66,7 +66,7 @@ impl LdapAuditor {
         // Check if ldapsearch is available
         let which_result = Command::new("which").arg("ldapsearch").output().await;
 
-        if which_result.is_err() || !which_result.unwrap().status.success() {
+        if !which_result.is_ok_and(|o| o.status.success()) {
             warn!("ldapsearch not available, using limited probe");
             return self.probe_with_openssl(uri, config).await;
         }

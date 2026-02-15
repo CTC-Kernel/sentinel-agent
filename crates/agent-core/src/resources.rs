@@ -151,7 +151,7 @@ impl ResourceMonitor {
                 let usage = process.disk_usage();
                 // sysinfo process.disk_usage() usually returns delta in bytes since last refresh
                 // Convert to KB for consistency
-                ((usage.read_bytes + usage.written_bytes) / 1024) as u32
+                ((usage.read_bytes + usage.written_bytes) / 1024).min(u32::MAX as u64) as u32
             } else {
                 get_disk_kbps()
             }
@@ -1032,7 +1032,7 @@ fn get_disk_kbps() -> u32 {
             let ops_delta = total_ops.saturating_sub(last_ops);
             let time_delta_s = (now_ms - last_time) as f64 / 1000.0;
             if time_delta_s > 0.0 {
-                return (ops_delta as f64 / time_delta_s) as u32;
+                return (ops_delta as f64 / time_delta_s).clamp(0.0, u32::MAX as f64) as u32;
             }
         }
     }
@@ -1389,7 +1389,7 @@ fn get_disk_kbps() -> u32 {
             let last = LAST_DISK_BYTES.swap(current_bytes, Ordering::Relaxed);
             // Return delta in KB (0 on first measurement)
             if last > 0 {
-                (current_bytes.saturating_sub(last) / 1024) as u32
+                (current_bytes.saturating_sub(last) / 1024).min(u32::MAX as u64) as u32
             } else {
                 0
             }

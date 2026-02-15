@@ -127,7 +127,10 @@ impl CheckRunner {
         let mut handles = Vec::new();
 
         for check in checks {
-            let permit = semaphore.clone().acquire_owned().await.unwrap();
+            let permit = match semaphore.clone().acquire_owned().await {
+                Ok(p) => p,
+                Err(_) => break, // Semaphore closed during shutdown
+            };
             let runner_clone = self.clone_for_task();
 
             let handle = tokio::spawn(async move {

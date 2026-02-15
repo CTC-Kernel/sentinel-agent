@@ -335,7 +335,7 @@ impl AntivirusCheck {
                 let path = if db_path.exists() { db_path } else { alt_db_path };
                 path.metadata()
                     .and_then(|m| m.modified())
-                    .map(|t| t.elapsed().unwrap_or_default().as_secs() < 7 * 86400)
+                    .map(|t| t.elapsed().unwrap_or_default().as_secs() < 7 * agent_common::constants::SECS_PER_DAY)
                     .unwrap_or(false)
             },
             last_scan_date: None,
@@ -460,7 +460,7 @@ impl AntivirusCheck {
                 if xprotect_path.exists() {
                     xprotect_path.metadata()
                         .and_then(|m| m.modified())
-                        .map(|t| t.elapsed().unwrap_or_default().as_secs() < 7 * 86400)
+                        .map(|t| t.elapsed().unwrap_or_default().as_secs() < 7 * agent_common::constants::SECS_PER_DAY)
                         .unwrap_or(false)
                 } else {
                     false
