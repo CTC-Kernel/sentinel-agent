@@ -18,18 +18,12 @@ use tracing::info;
 use tracing::{debug, warn};
 
 /// Group Policy Object auditor.
-pub struct GpoAuditor {
-    /// Cache of retrieved settings.
-    #[allow(dead_code)] // Reserved for caching in future
-    cached_settings: Option<GpoSecuritySettings>,
-}
+pub struct GpoAuditor;
 
 impl GpoAuditor {
     /// Create a new GPO auditor.
     pub fn new() -> Self {
-        Self {
-            cached_settings: None,
-        }
+        Self
     }
 
     /// Get local security policy settings.
@@ -685,8 +679,7 @@ mod tests {
 
     #[test]
     fn test_gpo_auditor_creation() {
-        let auditor = GpoAuditor::new();
-        assert!(auditor.cached_settings.is_none());
+        let _auditor = GpoAuditor::new();
     }
 
     #[test]

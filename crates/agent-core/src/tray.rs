@@ -36,9 +36,6 @@ pub mod branding {
     pub const WEBSITE: &str = "https://cyber-threat-consulting.com";
     /// User guide URL.
     pub const GUIDE: &str = "https://cyber-threat-consulting.com/docs";
-    /// Dashboard URL (currently unused, kept for reference).
-    #[allow(dead_code)]
-    pub const DASHBOARD: &str = "https://app.cyber-threatconsulting.com/settings?tab=agents";
 
     /// Product name (re-exported from company_info).
     pub const PRODUCT_NAME: &str = company_info::PRODUCT_NAME;
@@ -176,11 +173,9 @@ pub struct AgentTray {
 }
 
 struct TrayMenuItems {
-    #[allow(dead_code)]
-    header_item: MenuItem,
+    _header_item: MenuItem,
     status_item: MenuItem,
-    #[allow(dead_code)]
-    version_item: MenuItem,
+    _version_item: MenuItem,
     resources_item: MenuItem,
     pause_item: MenuItem,
     resume_item: MenuItem,
@@ -314,9 +309,9 @@ impl AgentTray {
         let last_update = Arc::new(AtomicU64::new(0));
 
         let menu_items = TrayMenuItems {
-            header_item,
+            _header_item: header_item,
             status_item,
-            version_item,
+            _version_item: version_item,
             resources_item,
             pause_item,
             resume_item,
@@ -776,7 +771,6 @@ mod tests {
     #[test]
     fn test_branding_urls() {
         assert!(branding::WEBSITE.starts_with("https://"));
-        assert!(branding::DASHBOARD.starts_with("https://"));
         assert!(branding::GUIDE.starts_with("https://"));
         assert!(branding::EMAIL.contains("@"));
     }

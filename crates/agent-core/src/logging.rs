@@ -17,7 +17,7 @@ pub fn set_tracing_level(level: &str) {
     if let Some(reload_fn) = TRACING_RELOAD_FN.get()
         && let Err(e) = reload_fn(level)
     {
-        eprintln!("Failed to reload tracing filter: {}", e);
+        tracing::warn!("Failed to reload tracing filter: {}", e);
     }
 }
 

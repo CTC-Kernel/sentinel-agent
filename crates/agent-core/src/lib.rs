@@ -212,9 +212,6 @@ pub struct AgentRuntime {
     authenticated_client: Option<Arc<AuthenticatedClient>>,
     /// Compliance check registry with all 34 checks.
     check_registry: Arc<CheckRegistry>,
-    /// Compliance check execution interval in seconds.
-    #[allow(dead_code)]
-    compliance_check_interval_secs: u64,
     /// Active compliance frameworks (dynamic).
     active_frameworks: std::sync::RwLock<Option<Vec<String>>>,
     /// Config sync service for downloading server configuration.
@@ -452,7 +449,6 @@ impl AgentRuntime {
         );
         info!("Initialized network manager with smart scheduling");
 
-        let compliance_check_interval_secs = config.check_interval_secs;
         let active_frameworks = config.active_frameworks.clone();
 
         Self {
@@ -472,7 +468,6 @@ impl AgentRuntime {
             db: None,
             authenticated_client: None,
             check_registry,
-            compliance_check_interval_secs,
             config_sync: RwLock::new(None),
             rule_sync: RwLock::new(None),
             result_uploader: RwLock::new(None),

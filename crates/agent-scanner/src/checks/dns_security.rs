@@ -50,16 +50,6 @@ const SECURE_DNS_PROVIDERS: &[&str] = &[
     "185.228.169.168",
 ];
 
-/// DoH endpoints for verification.
-#[allow(dead_code)] // Used in Windows-specific code
-const DOH_ENDPOINTS: &[&str] = &[
-    "cloudflare-dns.com",
-    "dns.google",
-    "dns.quad9.net",
-    "doh.opendns.com",
-    "dns.nextdns.io",
-];
-
 /// DNS security status details.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DnsSecurityStatus {
@@ -128,12 +118,6 @@ impl DnsSecurityCheck {
     /// Check if a DNS server is a known secure provider.
     fn is_secure_provider(server: &str) -> bool {
         SECURE_DNS_PROVIDERS.iter().any(|&s| server.contains(s))
-    }
-
-    /// Check if a DoH endpoint is configured.
-    #[allow(dead_code)] // Used in Windows-specific code
-    fn is_doh_endpoint(endpoint: &str) -> bool {
-        DOH_ENDPOINTS.iter().any(|&e| endpoint.contains(e))
     }
 
     /// Check DNS security on Windows.
@@ -601,13 +585,6 @@ mod tests {
         assert!(DnsSecurityCheck::is_secure_provider("8.8.8.8"));
         assert!(DnsSecurityCheck::is_secure_provider("9.9.9.9"));
         assert!(!DnsSecurityCheck::is_secure_provider("192.168.1.1"));
-    }
-
-    #[test]
-    fn test_doh_endpoint_detection() {
-        assert!(DnsSecurityCheck::is_doh_endpoint("cloudflare-dns.com"));
-        assert!(DnsSecurityCheck::is_doh_endpoint("dns.google"));
-        assert!(!DnsSecurityCheck::is_doh_endpoint("example.com"));
     }
 
     #[test]

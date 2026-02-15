@@ -760,33 +760,3 @@ impl CompliancePage {
     }
 }
 
-#[allow(dead_code)]
-fn remediation_hint(category: &str) -> &'static str {
-    match category {
-        "encryption" => {
-            "Activez le chiffrement du disque (FileVault/BitLocker) dans les paramètres système."
-        }
-        "firewall" => "Activez le pare-feu dans les paramètres de sécurité.",
-        "updates" => "Installez les mises à jour en attente.",
-        "antivirus" => "Vérifiez que votre solution antivirus est active et à jour.",
-        "authentication" | "passwords" => "Renforcez la politique de mots de passe.",
-        "session_lock" | "screen_lock" => "Configurez le verrouillage automatique de l'écran.",
-        "network_hardening" | "network" => {
-            "Vérifiez la configuration réseau et les règles de pare-feu."
-        }
-        "directory_policy" => {
-            "Configurez les stratégies de groupe (GPO) selon les bonnes pratiques de sécurité."
-        }
-        "privileged_access" => {
-            "Réduisez le nombre de comptes avec accès privilégié et appliquez le principe du moindre privilège."
-        }
-        "audit_logging" => {
-            "Activez l'audit des événements critiques (connexion, gestion des comptes)."
-        }
-        "mfa" => "Activez l'authentification multi-facteur pour tous les utilisateurs.",
-        "backup" => "Configurez des sauvegardes automatiques et chiffrées.",
-        "remote_access" => "Sécurisez les accès distants avec VPN et MFA.",
-        "device_control" => "Contrôlez l'utilisation des périphériques USB et Bluetooth.",
-        _ => "",
-    }
-}

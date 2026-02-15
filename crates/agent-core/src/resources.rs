@@ -78,9 +78,6 @@ impl ResourceUsage {
 pub struct ResourceMonitor {
     limits: ResourceLimits,
     start_time: Instant,
-    /// Reserved for future delta-based CPU calculation.
-    #[allow(dead_code)]
-    last_cpu_time: AtomicU64,
     sample_count: AtomicU64,
     /// Last time a warning was logged (for rate limiting).
     last_warning_time: AtomicU64,
@@ -103,7 +100,6 @@ impl ResourceMonitor {
         Self {
             limits,
             start_time: Instant::now(),
-            last_cpu_time: AtomicU64::new(0),
             sample_count: AtomicU64::new(0),
             last_warning_time: AtomicU64::new(0),
             last_network_bytes: AtomicU64::new(0),

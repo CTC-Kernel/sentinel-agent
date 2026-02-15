@@ -116,8 +116,6 @@ impl TableSort {
 
 /// Data table widget.
 pub struct DataTable<'a> {
-    #[allow(dead_code)]
-    id: egui::Id,
     columns: Vec<TableColumn<'a>>,
     row_height: f32,
     header_height: f32,
@@ -129,9 +127,8 @@ pub struct DataTable<'a> {
 
 impl<'a> DataTable<'a> {
     /// Create a new data table.
-    pub fn new(id: impl std::hash::Hash, columns: Vec<TableColumn<'a>>) -> Self {
+    pub fn new(_id: impl std::hash::Hash, columns: Vec<TableColumn<'a>>) -> Self {
         Self {
-            id: egui::Id::new(id),
             columns,
             row_height: theme::TABLE_DATA_ROW_HEIGHT,
             header_height: theme::TABLE_HEADER_HEIGHT,

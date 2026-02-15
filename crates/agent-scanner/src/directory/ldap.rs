@@ -15,18 +15,12 @@ use tracing::{debug, info};
 use tracing::warn;
 
 /// LDAP server security auditor.
-pub struct LdapAuditor {
-    /// Cached configuration.
-    #[allow(dead_code)] // Reserved for caching in future
-    cached_config: Option<LdapSecurityConfig>,
-}
+pub struct LdapAuditor;
 
 impl LdapAuditor {
     /// Create a new LDAP auditor.
     pub fn new() -> Self {
-        Self {
-            cached_config: None,
-        }
+        Self
     }
 
     /// Get security configuration from an LDAP server.
@@ -428,8 +422,7 @@ mod tests {
 
     #[test]
     fn test_ldap_auditor_creation() {
-        let auditor = LdapAuditor::new();
-        assert!(auditor.cached_config.is_none());
+        let _auditor = LdapAuditor::new();
     }
 
     #[test]
