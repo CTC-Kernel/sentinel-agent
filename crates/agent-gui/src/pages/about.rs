@@ -92,8 +92,8 @@ impl AboutPage {
                         &format!("{} {}", std::env::consts::OS, std::env::consts::ARCH),
                         icons::ARROW_RIGHT,
                     );
-                    Self::info_row(ui, "Runtime", "Rust v1.80+", icons::ARROW_RIGHT);
-                    Self::info_row(ui, "Package", env!("CARGO_PKG_VERSION"), icons::ARROW_RIGHT);
+                    Self::info_row(ui, "Moteur", "Rust v1.80+", icons::ARROW_RIGHT);
+                    Self::info_row(ui, "Version", env!("CARGO_PKG_VERSION"), icons::ARROW_RIGHT);
                 });
             }); // end left vertical
 
