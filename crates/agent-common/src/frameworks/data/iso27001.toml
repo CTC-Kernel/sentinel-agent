@@ -1,0 +1,497 @@
+[framework]
+id = "ISO_27001"
+name = "ISO/IEC 27001"
+version = "2022"
+description = "International standard for information security management systems"
+applicability = ["All Organizations", "Global", "Certification"]
+reference_url = "https://www.iso.org/standard/27001"
+
+# Disk Encryption -> A.8.24 Use of cryptography
+[[controls]]
+check_id = "disk_encryption"
+control_id = "A.8.24"
+control_name = "Use of cryptography"
+category = "Technological Controls"
+description = "Rules for the effective use of cryptography shall be defined and implemented"
+weight = 0.9
+is_critical = true
+
+# Firewall -> A.8.20 Network security
+[[controls]]
+check_id = "firewall"
+control_id = "A.8.20"
+control_name = "Network security"
+category = "Technological Controls"
+description = "Networks and network devices shall be secured, managed and controlled"
+weight = 0.9
+is_critical = true
+
+# Firewall -> A.8.21 Security of network services
+[[controls]]
+check_id = "firewall"
+control_id = "A.8.21"
+control_name = "Security of network services"
+category = "Technological Controls"
+description = "Security mechanisms, service levels and service requirements of network services shall be identified"
+weight = 0.8
+is_critical = false
+
+# Antivirus -> A.8.7 Protection against malware
+[[controls]]
+check_id = "antivirus"
+control_id = "A.8.7"
+control_name = "Protection against malware"
+category = "Technological Controls"
+description = "Protection against malware shall be implemented and supported by appropriate user awareness"
+weight = 0.95
+is_critical = true
+
+# MFA -> A.8.5 Secure authentication
+[[controls]]
+check_id = "mfa"
+control_id = "A.8.5"
+control_name = "Secure authentication"
+category = "Technological Controls"
+description = "Secure authentication technologies and procedures shall be implemented based on information access restrictions"
+weight = 0.95
+is_critical = true
+
+# Password Policy -> A.5.17 Authentication information
+[[controls]]
+check_id = "password_policy"
+control_id = "A.5.17"
+control_name = "Authentication information"
+category = "People Controls"
+description = "Allocation and management of authentication information shall be controlled"
+weight = 0.85
+is_critical = true
+
+# System Updates -> A.8.8 Management of technical vulnerabilities
+[[controls]]
+check_id = "system_updates"
+control_id = "A.8.8"
+control_name = "Management of technical vulnerabilities"
+category = "Technological Controls"
+description = "Information about technical vulnerabilities of information systems in use shall be obtained"
+weight = 0.9
+is_critical = true
+
+# System Updates -> A.8.19 Installation of software on operational systems
+[[controls]]
+check_id = "system_updates"
+control_id = "A.8.19"
+control_name = "Installation of software on operational systems"
+category = "Technological Controls"
+description = "Procedures and measures shall be implemented to securely manage software installation"
+weight = 0.75
+is_critical = false
+
+# Audit Logging -> A.8.15 Logging
+[[controls]]
+check_id = "audit_logging"
+control_id = "A.8.15"
+control_name = "Logging"
+category = "Technological Controls"
+description = "Logs that record activities, exceptions, faults and other relevant events shall be produced"
+weight = 0.9
+is_critical = true
+
+# Audit Logging -> A.8.16 Monitoring activities
+[[controls]]
+check_id = "audit_logging"
+control_id = "A.8.16"
+control_name = "Monitoring activities"
+category = "Technological Controls"
+description = "Networks, systems and applications shall be monitored for anomalous behaviour"
+weight = 0.85
+is_critical = true
+
+# Session Lock -> A.8.1 User endpoint devices
+[[controls]]
+check_id = "session_lock"
+control_id = "A.8.1"
+control_name = "User endpoint devices"
+category = "Technological Controls"
+description = "Information stored on, processed by or accessible via user endpoint devices shall be protected"
+weight = 0.7
+is_critical = false
+
+# Backup -> A.8.13 Information backup
+[[controls]]
+check_id = "backup"
+control_id = "A.8.13"
+control_name = "Information backup"
+category = "Technological Controls"
+description = "Backup copies of information, software and systems shall be maintained and regularly tested"
+weight = 0.9
+is_critical = true
+
+# Admin Accounts -> A.5.18 Access rights
+[[controls]]
+check_id = "admin_accounts"
+control_id = "A.5.18"
+control_name = "Access rights"
+category = "People Controls"
+description = "Access rights to information and other associated assets shall be provisioned, reviewed, modified and removed"
+weight = 0.85
+is_critical = true
+
+# Admin Accounts -> A.8.2 Privileged access rights
+[[controls]]
+check_id = "admin_accounts"
+control_id = "A.8.2"
+control_name = "Privileged access rights"
+category = "Technological Controls"
+description = "The allocation and use of privileged access rights shall be restricted and managed"
+weight = 0.9
+is_critical = true
+
+# Remote Access -> A.8.22 Segregation of networks
+[[controls]]
+check_id = "remote_access"
+control_id = "A.8.22"
+control_name = "Segregation of networks"
+category = "Technological Controls"
+description = "Groups of information services, users and information systems shall be segregated in networks"
+weight = 0.8
+is_critical = true
+
+# Kernel Hardening -> A.8.9 Configuration management
+[[controls]]
+check_id = "kernel_hardening"
+control_id = "A.8.9"
+control_name = "Configuration management"
+category = "Technological Controls"
+description = "Configurations, including security configurations, of hardware, software, services and networks shall be established"
+weight = 0.8
+is_critical = true
+
+# Time Sync -> A.8.17 Clock synchronization
+[[controls]]
+check_id = "time_sync"
+control_id = "A.8.17"
+control_name = "Clock synchronization"
+category = "Technological Controls"
+description = "The clocks of information processing systems used by the organization shall be synchronized"
+weight = 0.6
+is_critical = false
+
+# Obsolete Protocols -> A.8.24 Use of cryptography
+[[controls]]
+check_id = "obsolete_protocols"
+control_id = "A.8.24"
+control_name = "Use of cryptography"
+category = "Technological Controls"
+description = "Rules for the effective use of cryptography, including secure protocols, shall be defined"
+weight = 0.8
+is_critical = false
+
+# USB Storage -> A.8.12 Data leakage prevention
+[[controls]]
+check_id = "usb_storage"
+control_id = "A.8.12"
+control_name = "Data leakage prevention"
+category = "Technological Controls"
+description = "Data leakage prevention measures shall be applied to systems, networks and any other devices"
+weight = 0.7
+is_critical = false
+
+# Bluetooth -> A.8.20 Network security
+[[controls]]
+check_id = "bluetooth"
+control_id = "A.8.20"
+control_name = "Network security"
+category = "Technological Controls"
+description = "Wireless network security measures shall be implemented"
+weight = 0.5
+is_critical = false
+
+# Browser Security -> A.8.23 Web filtering
+[[controls]]
+check_id = "browser_security"
+control_id = "A.8.23"
+control_name = "Web filtering"
+category = "Technological Controls"
+description = "Access to external websites shall be managed to reduce exposure to malicious content"
+weight = 0.7
+is_critical = false
+
+# Log Rotation -> A.8.15 Logging
+[[controls]]
+check_id = "log_rotation"
+control_id = "A.8.15"
+control_name = "Logging"
+category = "Technological Controls"
+description = "Log facilities and log information shall be protected against tampering and unauthorized access"
+weight = 0.6
+is_critical = false
+
+# Guest Account -> A.5.16 Identity management
+[[controls]]
+check_id = "guest_account"
+control_id = "A.5.16"
+control_name = "Identity management"
+category = "People Controls"
+description = "The full life cycle of identities shall be managed"
+weight = 0.6
+is_critical = false
+
+# Auto Login -> A.8.5 Secure authentication
+[[controls]]
+check_id = "auto_login"
+control_id = "A.8.5"
+control_name = "Secure authentication"
+category = "Technological Controls"
+description = "Automatic login shall be disabled to ensure proper authentication"
+weight = 0.65
+is_critical = false
+
+# IPv6 Config -> A.8.20 Network security
+[[controls]]
+check_id = "ipv6_config"
+control_id = "A.8.20"
+control_name = "Network security"
+category = "Technological Controls"
+description = "Network protocols shall be properly configured"
+weight = 0.5
+is_critical = false
+
+# Windows Hardening -> A.8.9 Configuration management
+[[controls]]
+check_id = "windows_hardening"
+control_id = "A.8.9"
+control_name = "Configuration management"
+category = "Technological Controls"
+description = "Windows security configurations shall be established and maintained"
+weight = 0.9
+is_critical = true
+
+# Windows Hardening -> A.8.8 Management of technical vulnerabilities
+[[controls]]
+check_id = "windows_hardening"
+control_id = "A.8.8"
+control_name = "Management of technical vulnerabilities"
+category = "Technological Controls"
+description = "Windows hardening reduces technical vulnerabilities"
+weight = 0.85
+is_critical = true
+
+# Linux Hardening -> A.8.9 Configuration management
+[[controls]]
+check_id = "linux_hardening"
+control_id = "A.8.9"
+control_name = "Configuration management"
+category = "Technological Controls"
+description = "Linux kernel security configurations shall be maintained"
+weight = 0.9
+is_critical = true
+
+# Linux Hardening -> A.8.8 Management of technical vulnerabilities
+[[controls]]
+check_id = "linux_hardening"
+control_id = "A.8.8"
+control_name = "Management of technical vulnerabilities"
+category = "Technological Controls"
+description = "Kernel hardening mitigates technical vulnerabilities"
+weight = 0.85
+is_critical = true
+
+# Update Status -> A.8.8 Management of technical vulnerabilities
+[[controls]]
+check_id = "update_status"
+control_id = "A.8.8"
+control_name = "Management of technical vulnerabilities"
+category = "Technological Controls"
+description = "Update status tracking ensures vulnerabilities are addressed"
+weight = 0.95
+is_critical = true
+
+# Update Status -> A.8.19 Installation of software on operational systems
+[[controls]]
+check_id = "update_status"
+control_id = "A.8.19"
+control_name = "Installation of software on operational systems"
+category = "Technological Controls"
+description = "Software updates are tracked and managed"
+weight = 0.8
+is_critical = true
+
+# Secure Boot -> A.8.9 Configuration management
+[[controls]]
+check_id = "secure_boot"
+control_id = "A.8.9"
+control_name = "Configuration management"
+category = "Technological Controls"
+description = "UEFI Secure Boot ensures system integrity at boot time"
+weight = 0.8
+is_critical = true
+
+# GPO Password Policy -> A.5.17 Authentication information
+[[controls]]
+check_id = "gpo_password_policy"
+control_id = "A.5.17"
+control_name = "Authentication information"
+category = "People Controls"
+description = "Domain password policies enforce authentication information controls"
+weight = 0.9
+is_critical = true
+
+# GPO Lockout Policy -> A.8.5 Secure authentication
+[[controls]]
+check_id = "gpo_lockout_policy"
+control_id = "A.8.5"
+control_name = "Secure authentication"
+category = "Technological Controls"
+description = "Account lockout policies prevent authentication attacks"
+weight = 0.85
+is_critical = true
+
+# GPO Audit Policy -> A.8.15 Logging
+[[controls]]
+check_id = "gpo_audit_policy"
+control_id = "A.8.15"
+control_name = "Logging"
+category = "Technological Controls"
+description = "Domain audit policies ensure comprehensive security logging"
+weight = 0.9
+is_critical = true
+
+# Privileged Groups -> A.8.2 Privileged access rights
+[[controls]]
+check_id = "privileged_groups"
+control_id = "A.8.2"
+control_name = "Privileged access rights"
+category = "Technological Controls"
+description = "Privileged group membership shall be restricted and managed"
+weight = 0.9
+is_critical = true
+
+# Privileged Groups -> A.5.18 Access rights
+[[controls]]
+check_id = "privileged_groups"
+control_id = "A.5.18"
+control_name = "Access rights"
+category = "People Controls"
+description = "Access rights to privileged groups shall be provisioned and reviewed"
+weight = 0.85
+is_critical = true
+
+# LDAP Security -> A.8.24 Use of cryptography
+[[controls]]
+check_id = "ldap_security"
+control_id = "A.8.24"
+control_name = "Use of cryptography"
+category = "Technological Controls"
+description = "LDAP communications shall use cryptographic protection (LDAPS)"
+weight = 0.85
+is_critical = true
+
+# LDAP Security -> A.5.15 Access control
+[[controls]]
+check_id = "ldap_security"
+control_id = "A.5.15"
+control_name = "Access control"
+category = "Organizational Controls"
+description = "Directory services access shall be controlled"
+weight = 0.8
+is_critical = true
+
+# DNS Security -> A.8.20 Networks security
+[[controls]]
+check_id = "dns_security"
+control_id = "A.8.20"
+control_name = "Networks security"
+category = "Technological Controls"
+description = "DNS infrastructure shall be secured against attacks"
+weight = 0.85
+is_critical = true
+
+# DNS Security -> A.8.24 Use of cryptography
+[[controls]]
+check_id = "dns_security"
+control_id = "A.8.24"
+control_name = "Use of cryptography"
+category = "Technological Controls"
+description = "DNS queries shall be encrypted using DoH/DoT"
+weight = 0.8
+is_critical = true
+
+# SSH Hardening -> A.8.5 Secure authentication
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "A.8.5"
+control_name = "Secure authentication"
+category = "Technological Controls"
+description = "SSH authentication shall use secure methods (key-based)"
+weight = 0.9
+is_critical = true
+
+# SSH Hardening -> A.8.20 Networks security
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "A.8.20"
+control_name = "Networks security"
+category = "Technological Controls"
+description = "SSH configuration shall follow security best practices"
+weight = 0.85
+is_critical = true
+
+# SSH Hardening -> A.8.24 Use of cryptography
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "A.8.24"
+control_name = "Use of cryptography"
+category = "Technological Controls"
+description = "SSH shall use strong cryptographic algorithms"
+weight = 0.8
+is_critical = true
+
+# Container Security -> A.8.9 Configuration management
+[[controls]]
+check_id = "container_security"
+control_id = "A.8.9"
+control_name = "Configuration management"
+category = "Technological Controls"
+description = "Container runtime configurations shall be managed securely"
+weight = 0.9
+is_critical = true
+
+# Container Security -> A.8.25 Secure development life cycle
+[[controls]]
+check_id = "container_security"
+control_id = "A.8.25"
+control_name = "Secure development life cycle"
+category = "Technological Controls"
+description = "Container images shall be developed and deployed securely"
+weight = 0.85
+is_critical = true
+
+# Container Security -> A.8.3 Information access restriction
+[[controls]]
+check_id = "container_security"
+control_id = "A.8.3"
+control_name = "Information access restriction"
+category = "Technological Controls"
+description = "Containers shall run with least privilege (rootless, minimal capabilities)"
+weight = 0.85
+is_critical = true
+
+# Certificate Validation -> A.8.24 Use of cryptography
+[[controls]]
+check_id = "certificate_validation"
+control_id = "A.8.24"
+control_name = "Use of cryptography"
+category = "Technological Controls"
+description = "Valid and trusted certificates shall be used for cryptographic protection"
+weight = 0.9
+is_critical = true
+
+# Certificate Validation -> A.5.14 Information transfer
+[[controls]]
+check_id = "certificate_validation"
+control_id = "A.5.14"
+control_name = "Information transfer"
+category = "Organizational Controls"
+description = "Certificate-based security for information transfer"
+weight = 0.85
+is_critical = true
