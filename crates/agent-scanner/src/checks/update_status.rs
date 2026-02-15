@@ -19,6 +19,18 @@ use tracing::{debug, info, warn};
 /// Check ID for update status.
 pub const UPDATE_STATUS_CHECK_ID: &str = "update_status";
 
+/// Maximum days since last system update before flagging non-compliance.
+#[cfg(any(target_os = "windows", target_os = "linux"))]
+const MAX_DAYS_SINCE_UPDATE: i64 = 30;
+
+/// Maximum total pending updates before flagging non-compliance.
+#[cfg(any(target_os = "windows", target_os = "linux"))]
+const MAX_TOTAL_PENDING: usize = 10;
+
+/// Maximum critical pending updates before flagging non-compliance.
+#[cfg(target_os = "windows")]
+const MAX_CRITICAL_PENDING: usize = 0;
+
 /// Pending update information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PendingUpdate {

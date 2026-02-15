@@ -6,10 +6,13 @@
 //! - macOS: loginwindow autoLoginUser preference
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-use crate::error::{ScannerError, ScannerResult};
+#[cfg(any(target_os = "windows", target_os = "macos"))]
+use crate::error::ScannerError;
+use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+#[cfg(any(target_os = "windows", target_os = "macos"))]
 use std::process::Command;
 use tracing::debug;
 
