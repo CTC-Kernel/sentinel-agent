@@ -122,6 +122,12 @@ impl DnsSecurityCheck {
         SECURE_DNS_PROVIDERS.iter().any(|&s| server.contains(s))
     }
 
+    /// Check if netsh DoH template output indicates an active DoH endpoint.
+    #[cfg(target_os = "windows")]
+    fn is_doh_endpoint(output: &str) -> bool {
+        output.contains("https://") || output.contains("DNS-over-HTTPS")
+    }
+
     /// Check DNS security on Windows.
     #[cfg(target_os = "windows")]
     async fn check_windows(&self) -> ScannerResult<DnsSecurityStatus> {
