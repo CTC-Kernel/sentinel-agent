@@ -8,8 +8,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::dto::{
     AgentSummary, GuiCheckResult, GuiNetworkAlert, GuiNetworkConnection, GuiNetworkInterface,
-    GuiNotification, GuiResourceUsage, GuiSoftwarePackage, GuiVulnerabilityFinding,
-    GuiVulnerabilitySummary, UpdateStatus,
+    GuiNotification, GuiResourceUsage, GuiSoftwarePackage, GuiSystemIncident,
+    GuiVulnerabilityFinding, GuiVulnerabilitySummary, UpdateStatus,
 };
 
 /// A single terminal log entry captured from the tracing subsystem.
@@ -142,6 +142,11 @@ pub enum AgentEvent {
     SuspiciousProcess {
         /// The suspicious process event.
         process: crate::dto::GuiSuspiciousProcess,
+    },
+    /// Security incident detected by the system monitor.
+    SystemIncident {
+        /// The system incident.
+        incident: GuiSystemIncident,
     },
     /// FIM statistics update.
     FimStats {
