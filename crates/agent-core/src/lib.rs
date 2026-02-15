@@ -52,8 +52,6 @@ use agent_common::config::AgentConfig;
 use agent_common::constants::{AGENT_VERSION, DEFAULT_HEARTBEAT_INTERVAL_SECS};
 use agent_common::error::CommonError;
 #[cfg(feature = "gui")]
-use agent_common::types::UpdateStatus;
-#[cfg(feature = "gui")]
 use agent_network::{DiscoveryConfig, NetworkDiscovery};
 use agent_network::NetworkManager;
 #[cfg(feature = "gui")]
@@ -84,14 +82,10 @@ use tracing::{debug, error, info, warn};
 use agent_fim::FimEngine;
 use agent_siem::SiemForwarder;
 
-#[cfg_attr(not(feature = "gui"), allow(dead_code))]
 #[cfg(feature = "gui")]
 use agent_gui::dto::{
-    AgentSummary, FimChangeType as GuiFimChangeType, GuiAgentStatus, GuiCheckResult,
-    GuiCheckStatus, GuiDiscoveredDevice, GuiFimAlert, GuiNetworkConnection, GuiNetworkInterface,
-    GuiNotification, GuiPolicySummary, GuiResourceUsage, GuiSoftwarePackage,
-    GuiSuspiciousProcess, GuiVulnerabilityFinding, GuiVulnerabilitySummary,
-    Severity as GuiSeverity,
+    FimChangeType as GuiFimChangeType, GuiDiscoveredDevice, GuiFimAlert, GuiPolicySummary,
+    GuiSuspiciousProcess, GuiVulnerabilitySummary,
 };
 #[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;

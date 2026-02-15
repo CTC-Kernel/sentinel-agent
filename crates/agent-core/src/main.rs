@@ -19,6 +19,8 @@ use std::process::ExitCode;
 use std::sync::atomic::Ordering;
 #[cfg(feature = "tray")]
 use tao::event_loop::{ControlFlow, EventLoopBuilder};
+#[cfg(feature = "gui")]
+use tracing::debug;
 use tracing::{error, info, warn};
 
 #[derive(Parser)]
@@ -828,7 +830,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             handle.set_check_interval(interval_secs);
                         }
                         Ok(GuiCommand::SetLogLevel { level }) => {
-                            handle.set_log_level(level as u8);
+                            handle.set_log_level(level);
                         }
                         Ok(GuiCommand::Remediate { check_id }) => {
                             info!("[AUDIT] GUI user requested remediation for check: {}", check_id);
