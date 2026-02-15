@@ -11,10 +11,8 @@ name = "agent_llm"
 path = "src/lib.rs"
 
 [dependencies]
-agent-common = { path = "../agent-common" }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
-thiserror.workspace = true
 anyhow.workspace = true
 tracing.workspace = true
 uuid = { workspace = true, features = ["v4", "serde"] }
