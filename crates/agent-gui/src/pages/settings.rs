@@ -496,9 +496,15 @@ impl SettingsPage {
                     true,
                 )
                 .clicked()
-                    && let Err(e) = open::that(&url) {
-                        tracing::warn!("Failed to open portal URL: {}", e);
+                {
+                    if url.starts_with("https://") {
+                        if let Err(e) = open::that(&url) {
+                            tracing::warn!("Failed to open portal URL: {}", e);
+                        }
+                    } else {
+                        tracing::warn!("Refused to open non-HTTPS URL: {}", url);
                     }
+                }
             } else {
                 ui.label(
                     egui::RichText::new("AGENT NON ENREGISTRÉ")

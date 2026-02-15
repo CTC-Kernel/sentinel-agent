@@ -634,7 +634,7 @@ impl AgentRuntime {
         #[cfg(feature = "gui")]
         let mut fim_changes_today: u32 = 0;
         #[cfg(feature = "gui")]
-        let mut fim_last_day: u32 = chrono::Utc::now().timestamp().max(0) as u32 / agent_common::constants::SECS_PER_DAY as u32;
+        let mut fim_last_day: u64 = chrono::Utc::now().timestamp().max(0) as u64 / agent_common::constants::SECS_PER_DAY;
 
         // Run initial security scan on startup (quick check)
         info!("Running initial security scan...");
@@ -795,7 +795,7 @@ impl AgentRuntime {
                                     acknowledged: false,
                                 },
                             });
-                            let today = chrono::Utc::now().timestamp().max(0) as u32 / agent_common::constants::SECS_PER_DAY as u32;
+                            let today = chrono::Utc::now().timestamp().max(0) as u64 / agent_common::constants::SECS_PER_DAY;
                             if today != fim_last_day {
                                 fim_changes_today = 0;
                                 fim_last_day = today;
@@ -847,7 +847,7 @@ impl AgentRuntime {
             {
                 let fim_engine = self.fim_engine.read().await;
                 if let Some(engine) = fim_engine.as_ref() {
-                    let today = chrono::Utc::now().timestamp().max(0) as u32 / agent_common::constants::SECS_PER_DAY as u32;
+                    let today = chrono::Utc::now().timestamp().max(0) as u64 / agent_common::constants::SECS_PER_DAY;
                     if today != fim_last_day {
                         fim_changes_today = 0;
                         fim_last_day = today;

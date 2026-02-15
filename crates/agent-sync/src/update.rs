@@ -380,7 +380,7 @@ impl UpdateService {
             new_version: new_version.clone(),
             mandatory: response.mandatory,
             release_notes: response.release_notes,
-            sha256: response.sha256.unwrap_or_default(),
+            sha256: response.sha256.unwrap_or_default(), // Empty SHA-256 will be rejected by updater
             download_url: response.download_url.unwrap_or_default(),
             package_size: response.package_size.unwrap_or(0),
             rollout_group: response

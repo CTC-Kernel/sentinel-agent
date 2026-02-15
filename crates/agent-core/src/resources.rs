@@ -1342,7 +1342,8 @@ fn get_system_memory() -> (u64, u64) {
             &mut count,
         );
         if kr == libc::KERN_SUCCESS {
-            let page_size = libc::sysconf(libc::_SC_PAGESIZE) as u64;
+            let raw_page_size = libc::sysconf(libc::_SC_PAGESIZE);
+            let page_size: u64 = if raw_page_size > 0 { raw_page_size as u64 } else { 4096 };
             // "Used" = active + wired + compressor (excludes inactive, free, speculative)
             let used = (vm_info.active_count as u64
                 + vm_info.wire_count as u64
@@ -1574,12 +1575,7 @@ fn get_cpu_usage() -> f64 {
 
 /// Helper function to get the number of logical cores.
 fn get_logical_cores() -> u32 {
-    #[cfg(target_os = "macos")]
-    {
-        let raw = unsafe { libc::sysconf(libc::_SC_NPROCESSORS_ONLN) };
-        if raw > 0 { raw as u32 } else { 1 }
-    }
-    #[cfg(target_os = "linux")]
+    #[cfg(unix)]
     {
         let raw = unsafe { libc::sysconf(libc::_SC_NPROCESSORS_ONLN) };
         if raw > 0 { raw as u32 } else { 1 }

@@ -380,7 +380,7 @@ impl VulnerabilitiesPage {
                                 );
                                 if finding.fix_available {
                                     ui.add_space(2.0);
-                                    widgets::status_badge(ui, "FIX DISPONIBLE", theme::SUCCESS);
+                                    widgets::status_badge(ui, "CORRECTIF DISPONIBLE", theme::SUCCESS);
                                 }
                             });
                         });

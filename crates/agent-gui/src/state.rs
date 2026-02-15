@@ -362,6 +362,17 @@ impl AppState {
         self.toasts.push(toast.with_time(time));
     }
 
+    /// Compute radar chart scores (compliance, threats, vulns, resources, network).
+    /// Each score is normalized to 0.0..=1.0 where 1.0 is best.
+    pub fn radar_scores(&self) -> (f32, f32, f32, f32, f32) {
+        let compliance = self.summary.compliance_score.unwrap_or(0.0) / 100.0;
+        let threats = 1.0 - (self.threats.suspicious_processes.len() as f32 / 10.0).min(1.0);
+        let vulns = 1.0 - (self.vulnerability_findings.len() as f32 / 20.0).min(1.0);
+        let resources = 1.0 - (self.resources.cpu_percent as f32 / 100.0).min(1.0);
+        let network = 1.0 - (self.network.alert_count as f32 / 5.0).min(1.0);
+        (compliance, threats, vulns, resources, network)
+    }
+
     /// Process an event from the agent runtime.
     /// 
     /// This method centralizes all state updates and ensures reactive computation

@@ -84,7 +84,7 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
                             .color(theme::SUCCESS.linear_multiply(theme::OPACITY_MEDIUM + theme::OPACITY_MEDIUM * pulse)),
                     );
                     ui.label(
-                        RichText::new("LIVE")
+                        RichText::new("EN DIRECT")
                             .font(theme::font_label())
                             .color(theme::SUCCESS.linear_multiply(theme::OPACITY_PRESSED)),
                     );
