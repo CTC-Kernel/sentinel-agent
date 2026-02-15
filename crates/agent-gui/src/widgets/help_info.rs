@@ -111,10 +111,15 @@ fn render_line(ui: &mut Ui, line: &str) {
                 if let Some(end) = remaining.find('`') {
                     // Code text
                     let (code_text, after_code) = safe_split_at(remaining, end);
+                    let code_color = if theme::is_dark_mode() {
+                        theme::ACCENT_LIGHT
+                    } else {
+                        theme::ACCENT_HOVER
+                    };
                     ui.add(egui::Label::new(
                         egui::RichText::new(code_text)
                             .font(theme::font_mono())
-                            .color(theme::ACCENT)
+                            .color(code_color)
                             .background_color(theme::bg_tertiary()),
                     ));
                     current = &after_code[1..]; // skip closing "`"

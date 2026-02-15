@@ -455,6 +455,7 @@ impl FimPage {
         color: egui::Color32,
         icon: &str,
     ) {
+        let safe_color = theme::readable_color(color);
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
             widgets::card(ui, |ui: &mut egui::Ui| {
@@ -463,7 +464,7 @@ impl FimPage {
                         ui.label(
                             egui::RichText::new(value)
                                 .font(theme::font_card_value())
-                                .color(color)
+                                .color(safe_color)
                                 .strong(),
                         );
                         ui.label(
@@ -480,7 +481,7 @@ impl FimPage {
                             ui.label(
                                 egui::RichText::new(icon)
                                     .size(theme::ICON_XL)
-                                    .color(color.linear_multiply(theme::OPACITY_DISABLED)),
+                                    .color(safe_color.linear_multiply(theme::OPACITY_DISABLED)),
                             );
                         },
                     );

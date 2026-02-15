@@ -120,7 +120,7 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
                 ui.label(
                     RichText::new(icons::STREAM)
                         .size(theme::ICON_LG)
-                        .color(theme::text_tertiary().linear_multiply(theme::OPACITY_MEDIUM)),
+                        .color(theme::text_tertiary()),
                 );
                 ui.add_space(theme::SPACE_XS);
                 ui.label(
@@ -162,7 +162,7 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
             painter.rect_filled(
                 rect,
                 CornerRadius::same(theme::ROUNDING_SM),
-                theme::bg_elevated().linear_multiply(theme::OPACITY_MEDIUM),
+                theme::hover_bg(),
             );
         }
 

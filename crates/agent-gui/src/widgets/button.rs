@@ -112,13 +112,13 @@ fn draw_premium_button(
 
             // Border logic: simplified, no emphasis on hover
             let stroke = if !enabled {
-                Stroke::new(theme::BORDER_THIN, theme::border().linear_multiply(theme::OPACITY_MEDIUM))
+                Stroke::new(theme::BORDER_THIN, theme::separator())
             } else {
                 Stroke::new(theme::BORDER_THIN, theme::border())
             };
 
             let text = if !enabled {
-                theme::text_tertiary().linear_multiply(theme::OPACITY_MEDIUM)
+                theme::text_tertiary()
             } else if is_clicked || is_hovered {
                 theme::text_primary()
             } else {
@@ -376,7 +376,7 @@ pub fn ghost_button(ui: &mut Ui, text: impl Into<WidgetText>) -> Response {
             ui.painter().rect_filled(
                 rect,
                 CornerRadius::same(theme::BUTTON_ROUNDING),
-                theme::bg_elevated().linear_multiply(theme::OPACITY_MEDIUM),
+                theme::hover_bg(),
             );
         }
 
@@ -388,7 +388,7 @@ pub fn ghost_button(ui: &mut Ui, text: impl Into<WidgetText>) -> Response {
                     egui::pos2(rect.min.x + padding.x, underline_y),
                     egui::pos2(rect.max.x - padding.x, underline_y),
                 ],
-                Stroke::new(theme::BORDER_THIN, text_color.linear_multiply(theme::OPACITY_MEDIUM)),
+                Stroke::new(theme::BORDER_THIN, text_color.linear_multiply(theme::OPACITY_PRESSED)),
             );
         }
 

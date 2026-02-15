@@ -109,7 +109,7 @@ impl NetworkPage {
             (
                 "CONNEXIONS ACTIVES",
                 conn_count.to_string(),
-                theme::ACCENT_LIGHT,
+                if theme::is_dark_mode() { theme::ACCENT_LIGHT } else { theme::ACCENT },
                 icons::NETWORK,
             ),
             (
@@ -786,6 +786,7 @@ impl NetworkPage {
         color: egui::Color32,
         icon: &str,
     ) {
+        let safe_color = theme::readable_color(color);
         ui.vertical(|ui: &mut egui::Ui| {
             ui.set_width(width);
             widgets::card(ui, |ui: &mut egui::Ui| {
@@ -794,7 +795,7 @@ impl NetworkPage {
                         ui.label(
                             egui::RichText::new(value)
                                 .font(theme::font_card_value())
-                                .color(color)
+                                .color(safe_color)
                                 .strong(),
                         );
                         ui.label(
@@ -811,7 +812,7 @@ impl NetworkPage {
                             ui.label(
                                 egui::RichText::new(icon)
                                     .size(theme::ICON_XL)
-                                    .color(color.linear_multiply(theme::OPACITY_DISABLED)),
+                                    .color(safe_color.linear_multiply(theme::OPACITY_DISABLED)),
                             );
                         },
                     );

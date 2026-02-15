@@ -294,7 +294,7 @@ pub fn text_input_with_options(
         let count_color = if char_count > max {
             theme::ERROR
         } else if char_count > max * 9 / 10 {
-            theme::WARNING
+            theme::badge_text(theme::WARNING)
         } else {
             theme::text_tertiary()
         };

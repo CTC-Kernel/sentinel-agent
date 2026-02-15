@@ -412,7 +412,7 @@ impl<'a> CommandPalette<'a> {
                                                 ui.painter().galley(
                                                     shortcut_rect.min + egui::vec2(theme::SPACE_XS, 2.0),
                                                     shortcut_galley,
-                                                    theme::text_tertiary(),
+                                                    theme::text_secondary(),
                                                 );
                                             }
                                         }

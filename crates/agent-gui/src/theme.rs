@@ -288,15 +288,22 @@ pub fn badge_bg(color: Color32) -> Color32 {
 ///
 /// Dark mode: use the semantic color directly (bright on dark bg).
 /// Light mode: darken the semantic color for WCAG-friendly contrast.
+/// Uses adaptive darkening — light colors (yellow/green) darken more,
+/// dark colors (blue/red) darken less, ensuring readable text on pastel wash.
 #[inline]
 pub fn badge_text(color: Color32) -> Color32 {
     if is_dark_mode() {
         color
     } else {
+        // Perceived luminance (ITU-R BT.601) determines darkening factor:
+        // bright colors (yellow, green) need stronger darkening for contrast.
+        let lum = 0.299 * color.r() as f32 + 0.587 * color.g() as f32 + 0.114 * color.b() as f32;
+        // factor: 0.30 for darkest (blue/red, lum≈80) → 0.55 for brightest (yellow, lum≈225)
+        let factor = 0.30 + 0.25 * ((lum - 80.0) / 145.0).clamp(0.0, 1.0);
         Color32::from_rgb(
-            (color.r() as f32 * 0.35) as u8,
-            (color.g() as f32 * 0.35) as u8,
-            (color.b() as f32 * 0.35) as u8,
+            (color.r() as f32 * factor) as u8,
+            (color.g() as f32 * factor) as u8,
+            (color.b() as f32 * factor) as u8,
         )
     }
 }
@@ -798,6 +805,31 @@ pub fn glow_stroke(color: Color32) -> Stroke {
     Stroke::new(BORDER_THIN, color.linear_multiply(OPACITY_MEDIUM))
 }
 
+/// Make a semantic color readable as text on the current theme's card surface.
+///
+/// In dark mode, bright colors are already readable on dark backgrounds.
+/// In light mode, colors with high luminance (yellow, orange) are darkened
+/// using the same adaptive formula as `badge_text()`.
+#[inline]
+pub fn readable_color(color: Color32) -> Color32 {
+    if is_dark_mode() {
+        color
+    } else {
+        let lum = 0.299 * color.r() as f32 + 0.587 * color.g() as f32 + 0.114 * color.b() as f32;
+        // Only darken if luminance is high enough to cause contrast issues (> 160)
+        if lum > 160.0 {
+            let factor = 0.30 + 0.25 * ((lum - 80.0) / 145.0).clamp(0.0, 1.0);
+            Color32::from_rgb(
+                (color.r() as f32 * factor) as u8,
+                (color.g() as f32 * factor) as u8,
+                (color.b() as f32 * factor) as u8,
+            )
+        } else {
+            color
+        }
+    }
+}
+
 /// Color for a compliance score value.
 pub fn score_color(score: f32) -> Color32 {
     if score >= 85.0 {
@@ -879,9 +911,9 @@ pub fn disabled_color(color: Color32) -> Color32 {
 #[inline]
 pub fn hover_bg() -> Color32 {
     if is_dark_mode() {
-        Color32::from_white_alpha(10)
+        Color32::from_white_alpha(22)
     } else {
-        Color32::from_black_alpha(8)
+        Color32::from_black_alpha(12)
     }
 }
 
