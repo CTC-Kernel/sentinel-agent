@@ -221,7 +221,9 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                                 .color(theme::text_secondary()),
                         );
 
-                        ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+                        if !theme::is_reduced_motion() {
+                            ui.ctx().request_repaint_after(std::time::Duration::from_millis(100));
+                        }
                     });
 
                     ui.add_space(theme::SPACE_SM);

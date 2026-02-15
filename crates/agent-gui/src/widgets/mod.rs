@@ -47,6 +47,7 @@ pub mod slider;
 
 // Premium dashboard widgets
 mod activity_feed;
+pub mod detail_drawer;
 mod org_banner;
 mod sparkline;
 
@@ -70,6 +71,10 @@ pub use tray_radar::TrayRadar;
 
 // Premium dashboard exports
 pub use activity_feed::{ActivityEvent, ActivityEventType, activity_feed};
+pub use detail_drawer::{
+    ActionStyle, DetailAction, DetailDrawer, detail_field, detail_field_badge,
+    detail_field_colored, detail_mono, detail_progress, detail_section, detail_text,
+};
 pub use org_banner::org_banner;
 pub use sparkline::{SparklineConfig, mini_gauge, sparkline, sparkline_with_value};
 

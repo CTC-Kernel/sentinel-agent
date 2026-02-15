@@ -35,6 +35,8 @@ struct ThreatEvent {
     confidence: Option<u8>,
     /// Full command line (only relevant for suspicious process events).
     command_line: Option<String>,
+    /// Index into the original source collection.
+    source_index: usize,
 }
 
 pub struct ThreatsPage;
@@ -46,7 +48,7 @@ impl ThreatsPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
-            &["Pilotage", "Menaces"],
+            &["Sys & Network", "Menaces"],
             "Menaces Détectées",
             Some("ANALYSE DES ÉVÉNEMENTS SUSPECTS ET CORRÉLATION IA"),
             Some(
@@ -108,23 +110,185 @@ impl ThreatsPage {
 
         ui.add_space(theme::SPACE_LG);
 
+        // ── Severity distribution bar + Detection coverage ──────────────
+        {
+            // Build the unfiltered threat list for severity counts
+            let all_threats = Self::build_threat_list(state);
+            let mut critical_count: usize = 0;
+            let mut high_count: usize = 0;
+            let mut medium_count: usize = 0;
+            let mut low_count: usize = 0;
+            for t in &all_threats {
+                match t.severity {
+                    "critical" => critical_count += 1,
+                    "high" => high_count += 1,
+                    "medium" => medium_count += 1,
+                    _ => low_count += 1,
+                }
+            }
+            let total = all_threats.len();
+
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                // ── A. Severity distribution horizontal bar ──
+                ui.label(
+                    egui::RichText::new("DISTRIBUTION PAR SÉVÉRITÉ")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(0.5)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_SM);
+
+                if total == 0 {
+                    ui.label(
+                        egui::RichText::new("Aucun événement")
+                            .font(theme::font_body())
+                            .color(theme::text_tertiary()),
+                    );
+                } else {
+                    // Stacked horizontal bar
+                    let bar_height = theme::PROGRESS_BAR_HEIGHT + 4.0;
+                    let bar_width = ui.available_width();
+                    let (rect, _) = ui.allocate_exact_size(
+                        egui::vec2(bar_width, bar_height),
+                        egui::Sense::hover(),
+                    );
+                    if ui.is_rect_visible(rect) {
+                        let painter = ui.painter_at(rect);
+                        let rounding =
+                            egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING);
+                        painter.rect_filled(rect, rounding, theme::bg_tertiary());
+
+                        let segments: &[(usize, egui::Color32)] = &[
+                            (critical_count, theme::ERROR),
+                            (high_count, theme::SEVERITY_HIGH),
+                            (medium_count, theme::WARNING),
+                            (low_count, theme::INFO),
+                        ];
+                        let mut x = rect.min.x;
+                        for (count, color) in segments {
+                            if *count > 0 {
+                                let w = (*count as f32 / total as f32) * bar_width;
+                                let seg_rect = egui::Rect::from_min_size(
+                                    egui::pos2(x, rect.min.y),
+                                    egui::vec2(w, bar_height),
+                                );
+                                painter.rect_filled(seg_rect, rounding, *color);
+                                x += w;
+                            }
+                        }
+                    }
+
+                    ui.add_space(theme::SPACE_SM);
+
+                    // Legend row with counts
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        let items: &[(&str, usize, egui::Color32)] = &[
+                            ("Critique", critical_count, theme::ERROR),
+                            ("\u{00c9}lev\u{00e9}", high_count, theme::SEVERITY_HIGH),
+                            ("Moyen", medium_count, theme::WARNING),
+                            ("Faible", low_count, theme::INFO),
+                        ];
+                        for (label, count, color) in items {
+                            widgets::status_badge(
+                                ui,
+                                &format!("{}: {}", label, count),
+                                *color,
+                            );
+                            ui.add_space(theme::SPACE_SM);
+                        }
+                    });
+                }
+
+                ui.add_space(theme::SPACE_MD);
+
+                // ── B. Detection coverage indicator ──
+                ui.label(
+                    egui::RichText::new("COUVERTURE DE DÉTECTION")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(0.5)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_SM);
+
+                let has_process = !state.threats.suspicious_processes.is_empty()
+                    || process_count == 0;
+                let has_usb = true; // USB monitoring always active
+                let has_fim = state.fim.monitored_count > 0;
+                let has_network = !state.network.connections.is_empty()
+                    || state.network.interface_count > 0;
+
+                let active_sources = [has_process, has_usb, has_fim, has_network]
+                    .iter()
+                    .filter(|&&v| v)
+                    .count();
+
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    let coverage_color = if active_sources == 4 {
+                        theme::SUCCESS
+                    } else if active_sources >= 2 {
+                        theme::WARNING
+                    } else {
+                        theme::ERROR
+                    };
+                    ui.label(
+                        egui::RichText::new(format!(
+                            "{}/4 sources actives",
+                            active_sources,
+                        ))
+                        .font(theme::font_body())
+                        .color(coverage_color)
+                        .strong(),
+                    );
+                    ui.add_space(theme::SPACE_MD);
+
+                    let sources: &[(&str, &str, bool)] = &[
+                        ("Processus", icons::BUG, has_process),
+                        ("USB", icons::PLUG, has_usb),
+                        ("FIM", icons::FILE_SHIELD, has_fim),
+                        ("R\u{00e9}seau", icons::NETWORK, has_network),
+                    ];
+                    for (label, icon, active) in sources {
+                        let color = if *active {
+                            theme::SUCCESS
+                        } else {
+                            theme::text_tertiary()
+                        };
+                        ui.label(
+                            egui::RichText::new(*icon)
+                                .size(theme::ICON_SM)
+                                .color(color),
+                        );
+                        ui.label(
+                            egui::RichText::new(*label)
+                                .font(theme::font_label())
+                                .color(color),
+                        );
+                        ui.add_space(theme::SPACE_SM);
+                    }
+                });
+            });
+        }
+
+        ui.add_space(theme::SPACE_LG);
+
         // ── Search / filter bar (AAA Grade) ─────────────────────────────
         let proc_active = state.threats.filter.as_deref() == Some("process");
         let net_active = state.threats.filter.as_deref() == Some("network");
         let usb_active = state.threats.filter.as_deref() == Some("usb");
         let fim_active = state.threats.filter.as_deref() == Some("fim");
 
-        // Dirty-tracking: only rebuild + sort threat list when source data changes
         let cache_id = ui.make_persistent_id("threats_cache");
-        let fingerprint = (
-            state.threats.suspicious_processes.len(),
-            state.threats.usb_events.len(),
-            state.fim.alerts.len(),
-            state.network.alerts.len(),
-            state.threats.filter.clone(),
-            state.threats.search.clone(),
-        );
-        let prev_fingerprint: Option<(usize, usize, usize, usize, Option<String>, String)> =
+        let mut fp_hasher = DefaultHasher::new();
+        state.threats.suspicious_processes.len().hash(&mut fp_hasher);
+        state.threats.usb_events.len().hash(&mut fp_hasher);
+        state.fim.alerts.len().hash(&mut fp_hasher);
+        state.network.alerts.len().hash(&mut fp_hasher);
+        state.threats.filter.hash(&mut fp_hasher);
+        state.threats.search.hash(&mut fp_hasher);
+        let fingerprint: u64 = fp_hasher.finish();
+        let prev_fingerprint: Option<u64> =
             ui.memory(|mem| mem.data.get_temp(cache_id));
         let cached_threats_id = ui.make_persistent_id("threats_cached_list");
 
@@ -139,7 +303,7 @@ impl ThreatsPage {
                 list.retain(|t| t.kind == filter.as_str());
             }
 
-            let search_lower = state.threats.search.to_lowercase();
+            let search_lower = state.threats.search.to_ascii_lowercase();
             if !search_lower.is_empty() {
                 list.retain(|t| {
                     let haystack = format!(
@@ -264,14 +428,101 @@ impl ThreatsPage {
                     "Le système ne présente aucun événement de sécurité suspect à ce jour.",
                 );
             } else {
-                for threat in &threats {
-                    Self::threat_row(ui, threat);
+                for (idx, threat) in threats.iter().enumerate() {
+                    if Self::threat_row(ui, threat, idx) {
+                        state.threats.selected_threat = Some(idx);
+                        state.threats.detail_open = true;
+                    }
                     ui.add_space(theme::SPACE_XS);
                 }
             }
         });
 
         ui.add_space(theme::SPACE_XL);
+
+        let ctx = ui.ctx().clone();
+        if let Some(sel) = state.threats.selected_threat
+            && sel < threats.len()
+        {
+            let threat = &threats[sel];
+            match threat.kind {
+                "process" => {
+                    if threat.source_index < state.threats.suspicious_processes.len() {
+                        let p = state.threats.suspicious_processes[threat.source_index].clone();
+                        let conf_color = if p.confidence >= 90 {
+                            theme::ERROR
+                        } else if p.confidence >= 70 {
+                            theme::SEVERITY_HIGH
+                        } else if p.confidence >= 40 {
+                            theme::WARNING
+                        } else {
+                            theme::INFO
+                        };
+                        let actions = [
+                            widgets::DetailAction::secondary("Ignorer", icons::EYE_SLASH),
+                            widgets::DetailAction::primary("Signaler", icons::FLAG),
+                        ];
+                        widgets::DetailDrawer::new("threat_detail", &p.process_name, icons::BUG)
+                            .accent(conf_color)
+                            .subtitle("Processus suspect")
+                            .show(&ctx, &mut state.threats.detail_open, |ui| {
+                                widgets::detail_section(ui, "INFORMATIONS DU PROCESSUS");
+                                widgets::detail_field(ui, "Nom", &p.process_name);
+                                widgets::detail_mono(ui, "Ligne de commande", &p.command_line);
+                                widgets::detail_text(ui, "Raison de d\u{00e9}tection", &p.reason);
+                                widgets::detail_field_colored(
+                                    ui,
+                                    "Confiance",
+                                    &format!("{}%", p.confidence),
+                                    conf_color,
+                                );
+                                widgets::detail_field(
+                                    ui,
+                                    "Date de d\u{00e9}tection",
+                                    &p.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
+                                );
+                            }, &actions);
+                    }
+                }
+                "usb" => {
+                    if threat.source_index < state.threats.usb_events.len() {
+                        let u = state.threats.usb_events[threat.source_index].clone();
+                        let ev_color = match u.event_type {
+                            UsbEventType::Connected => theme::WARNING,
+                            UsbEventType::Disconnected => theme::INFO,
+                        };
+                        let actions = [
+                            widgets::DetailAction::primary("Autoriser", icons::CHECK),
+                            widgets::DetailAction::danger("Bloquer", icons::LOCK),
+                        ];
+                        widgets::DetailDrawer::new("threat_detail", &u.device_name, icons::USB)
+                            .accent(ev_color)
+                            .subtitle("\u{00c9}v\u{00e9}nement USB")
+                            .show(&ctx, &mut state.threats.detail_open, |ui| {
+                                widgets::detail_section(ui, "\u{00c9}V\u{00c9}NEMENT USB");
+                                widgets::detail_field(ui, "P\u{00e9}riph\u{00e9}rique", &u.device_name);
+                                widgets::detail_field(ui, "Vendor ID", &format!("0x{:04X}", u.vendor_id));
+                                widgets::detail_field(ui, "Product ID", &format!("0x{:04X}", u.product_id));
+                                widgets::detail_field_badge(
+                                    ui,
+                                    "Type d'\u{00e9}v\u{00e9}nement",
+                                    u.event_type.label(),
+                                    ev_color,
+                                );
+                                widgets::detail_field(
+                                    ui,
+                                    "Date",
+                                    &u.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
+                                );
+                            }, &actions);
+                    }
+                }
+                _ => {
+                    state.threats.detail_open = false;
+                    state.threats.selected_threat = None;
+                }
+            }
+        }
 
         command
     }
@@ -341,7 +592,7 @@ impl ThreatsPage {
         let mut events = Vec::new();
 
         // Suspicious processes
-        for p in &state.threats.suspicious_processes {
+        for (i, p) in state.threats.suspicious_processes.iter().enumerate() {
             let severity = if p.confidence >= 90 {
                 "critical"
             } else if p.confidence >= 70 {
@@ -359,11 +610,12 @@ impl ThreatsPage {
                 timestamp: p.detected_at,
                 confidence: Some(p.confidence),
                 command_line: Some(p.command_line.clone()),
+                source_index: i,
             });
         }
 
         // USB events
-        for u in &state.threats.usb_events {
+        for (i, u) in state.threats.usb_events.iter().enumerate() {
             let severity = match u.event_type {
                 UsbEventType::Connected => "medium",
                 UsbEventType::Disconnected => "low",
@@ -379,11 +631,12 @@ impl ThreatsPage {
                 timestamp: u.timestamp,
                 confidence: None,
                 command_line: None,
+                source_index: i,
             });
         }
 
         // FIM alerts
-        for f in &state.fim.alerts {
+        for (i, f) in state.fim.alerts.iter().enumerate() {
             let severity = match f.change_type {
                 FimChangeType::Deleted | FimChangeType::PermissionChanged => "high",
                 FimChangeType::Created => "medium",
@@ -406,11 +659,12 @@ impl ThreatsPage {
                 timestamp: f.timestamp,
                 confidence: None,
                 command_line: None,
+                source_index: i,
             });
         }
 
         // Network security alerts
-        for alert in &state.network.alerts {
+        for (i, alert) in state.network.alerts.iter().enumerate() {
             let severity = alert.severity.as_str();
             let title = Self::network_alert_type_label(&alert.alert_type);
             let mut desc_parts = vec![alert.description.clone()];
@@ -432,6 +686,7 @@ impl ThreatsPage {
                 timestamp: alert.detected_at,
                 confidence: Some(alert.confidence),
                 command_line: None,
+                source_index: i,
             });
         }
 
@@ -486,8 +741,7 @@ impl ThreatsPage {
         }
     }
 
-    /// Render a single threat row with left severity accent bar.
-    fn threat_row(ui: &mut Ui, threat: &ThreatEvent) {
+    fn threat_row(ui: &mut Ui, threat: &ThreatEvent, idx: usize) -> bool {
         let (sev_icon, sev_color) = Self::severity_display(threat.severity);
         let (kind_label, kind_color) = Self::kind_badge(threat.kind);
 
@@ -504,7 +758,6 @@ impl ThreatsPage {
             .stroke(egui::Stroke::new(theme::BORDER_HAIRLINE, theme::border()))
             .show(ui, |ui: &mut egui::Ui| {
                 ui.horizontal(|ui: &mut egui::Ui| {
-                    // Severity icon
                     ui.label(
                         egui::RichText::new(sev_icon)
                             .size(theme::ICON_MD)
@@ -513,12 +766,10 @@ impl ThreatsPage {
 
                     ui.add_space(theme::SPACE_SM);
 
-                    // Event type badge
                     widgets::status_badge(ui, kind_label, kind_color);
 
                     ui.add_space(theme::SPACE_SM);
 
-                    // Title + description + command line
                     ui.vertical(|ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(&threat.title)
@@ -542,11 +793,9 @@ impl ThreatsPage {
                         }
                     });
 
-                    // Right side: timestamp + optional confidence
                     ui.with_layout(
                         egui::Layout::right_to_left(egui::Align::Center),
                         |ui: &mut egui::Ui| {
-                            // Timestamp
                             ui.label(
                                 egui::RichText::new(format!(
                                     "{}  {}",
@@ -557,7 +806,6 @@ impl ThreatsPage {
                                 .color(theme::text_tertiary()),
                             );
 
-                            // Confidence badge (process events only)
                             if let Some(conf) = threat.confidence {
                                 ui.add_space(theme::SPACE_SM);
                                 let conf_color = if conf >= 90 {
@@ -576,8 +824,11 @@ impl ThreatsPage {
                 });
             });
 
-        // Paint severity accent bar on the left edge
         let rect = frame_resp.response.rect;
+        let clicked = ui
+            .interact(rect, ui.id().with(("threat_click", idx)), egui::Sense::click())
+            .clicked();
+
         let bar_rect = egui::Rect::from_min_size(
             rect.left_top(),
             egui::vec2(accent_bar_width, rect.height()),
@@ -591,6 +842,8 @@ impl ThreatsPage {
             },
             sev_color,
         );
+
+        clicked
     }
 
     /// Draw a summary card (AAA Grade)

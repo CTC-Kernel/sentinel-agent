@@ -22,6 +22,9 @@ pub struct NetworkState {
     pub connections: Vec<crate::dto::GuiNetworkConnection>,
     pub alerts: VecDeque<crate::dto::GuiNetworkAlert>,
     pub search: String,
+    pub selected_connection: Option<usize>,
+    pub selected_alert: Option<usize>,
+    pub detail_open: bool,
 }
 
 impl Default for NetworkState {
@@ -37,6 +40,9 @@ impl Default for NetworkState {
             connections: Vec::new(),
             alerts: VecDeque::with_capacity(200),
             search: String::new(),
+            selected_connection: None,
+            selected_alert: None,
+            detail_open: false,
         }
     }
 }
@@ -54,6 +60,8 @@ pub struct DiscoveryState {
     pub phase: String,
     pub enabled: bool,
     pub search: String,
+    pub selected_device: Option<usize>,
+    pub detail_open: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -91,6 +99,8 @@ pub struct TerminalState {
     pub search: String,
     pub event_count: u64,
     pub error_count: u64,
+    pub selected_log: Option<usize>,
+    pub detail_open: bool,
 }
 
 impl Default for TerminalState {
@@ -102,6 +112,8 @@ impl Default for TerminalState {
             search: String::new(),
             event_count: 0,
             error_count: 0,
+            selected_log: None,
+            detail_open: false,
         }
     }
 }
@@ -139,6 +151,8 @@ pub struct FimState {
     pub alerts: VecDeque<crate::dto::GuiFimAlert>,
     pub search: String,
     pub filter: Option<String>,
+    pub selected_alert: Option<usize>,
+    pub detail_open: bool,
 }
 
 impl Default for FimState {
@@ -149,6 +163,8 @@ impl Default for FimState {
             alerts: VecDeque::with_capacity(500),
             search: String::new(),
             filter: None,
+            selected_alert: None,
+            detail_open: false,
         }
     }
 }
@@ -163,6 +179,8 @@ pub struct ThreatsState {
     pub usb_events: VecDeque<crate::dto::GuiUsbEvent>,
     pub search: String,
     pub filter: Option<String>,
+    pub selected_threat: Option<usize>,
+    pub detail_open: bool,
 }
 
 impl Default for ThreatsState {
@@ -172,6 +190,8 @@ impl Default for ThreatsState {
             usb_events: VecDeque::with_capacity(200),
             search: String::new(),
             filter: None,
+            selected_threat: None,
+            detail_open: false,
         }
     }
 }
@@ -209,6 +229,8 @@ pub struct ComplianceFilter {
     pub search: String,
     pub status_filter: Option<crate::dto::GuiCheckStatus>,
     pub group_by: crate::dto::ComplianceGroupBy,
+    pub selected_check: Option<usize>,
+    pub detail_open: bool,
 }
 
 
@@ -221,6 +243,8 @@ pub struct ComplianceFilter {
 pub struct VulnerabilityFilter {
     pub search: String,
     pub severity_filter: Option<crate::dto::Severity>,
+    pub selected_vuln: Option<usize>,
+    pub detail_open: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -234,6 +258,8 @@ pub struct SoftwareState {
     pub macos_apps: Vec<crate::dto::GuiMacOsApp>,
     pub active_tab: crate::dto::SoftwareTab,
     pub search: String,
+    pub selected_package: Option<usize>,
+    pub detail_open: bool,
 }
 
 
@@ -341,9 +367,13 @@ pub struct AppState {
     pub vulnerability: VulnerabilityFilter,
 
     pub notifications: Vec<crate::dto::GuiNotification>,
+    pub selected_notification: Option<usize>,
+    pub notification_detail_open: bool,
     pub previous_compliance_score: Option<f32>,
     pub audit_trail_search: String,
     pub audit_trail_filter: Option<String>,
+    pub selected_audit_entry: Option<usize>,
+    pub audit_detail_open: bool,
     pub reduced_motion: bool,
 }
 
@@ -376,9 +406,13 @@ impl Default for AppState {
             vulnerability: VulnerabilityFilter::default(),
 
             notifications: Vec::new(),
+            selected_notification: None,
+            notification_detail_open: false,
             previous_compliance_score: None,
             audit_trail_search: String::new(),
             audit_trail_filter: None,
+            selected_audit_entry: None,
+            audit_detail_open: false,
             reduced_motion: false,
         }
     }

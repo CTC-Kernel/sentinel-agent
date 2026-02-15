@@ -57,7 +57,7 @@ use agent_network::NetworkManager;
 #[cfg(feature = "gui")]
 use agent_scanner::RemediationEngine;
 use agent_scanner::{
-    CheckRegistry, SecurityMonitor, VulnerabilityScanner,
+    CheckRegistry, SecurityMonitor, UsbMonitor, VulnerabilityScanner,
     checks::{
         AdminAccountsCheck, AntivirusCheck, AuditLoggingCheck, AutoLoginCheck, BackupCheck,
         BluetoothCheck, BrowserSecurityCheck, CertificateValidationCheck, ContainerSecurityCheck,
@@ -85,7 +85,8 @@ use agent_siem::SiemForwarder;
 #[cfg(feature = "gui")]
 use agent_gui::dto::{
     FimChangeType as GuiFimChangeType, GuiDiscoveredDevice, GuiFimAlert, GuiPolicySummary,
-    GuiSuspiciousProcess, GuiVulnerabilitySummary,
+    GuiSuspiciousProcess, GuiUsbEvent, GuiVulnerabilitySummary,
+    UsbEventType as GuiUsbEventType,
 };
 #[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;
@@ -189,6 +190,8 @@ pub struct AgentRuntime {
     vulnerability_scanner: VulnerabilityScanner,
     /// Security monitor for incident detection.
     security_monitor: SecurityMonitor,
+    /// USB device monitor for tracking connections/disconnections.
+    usb_monitor: std::sync::Mutex<UsbMonitor>,
     /// Network manager for network collection and detection.
     network_manager: RwLock<NetworkManager>,
     /// Vulnerability scan interval in seconds.
@@ -383,6 +386,7 @@ impl AgentRuntime {
         let resource_monitor = ResourceMonitor::new();
         let vulnerability_scanner = VulnerabilityScanner::new();
         let security_monitor = SecurityMonitor::new();
+        let usb_monitor = UsbMonitor::new();
         let network_manager = NetworkManager::new();
 
         let (state, rx) = state::RuntimeState::new();
@@ -453,6 +457,7 @@ impl AgentRuntime {
             heartbeat_interval_secs: RwLock::new(DEFAULT_HEARTBEAT_INTERVAL_SECS),
             vulnerability_scanner,
             security_monitor,
+            usb_monitor: std::sync::Mutex::new(usb_monitor),
             network_manager: RwLock::new(network_manager),
             vuln_scan_interval_secs: DEFAULT_VULN_SCAN_INTERVAL_SECS,
             security_scan_interval_secs: DEFAULT_SECURITY_SCAN_INTERVAL_SECS,
@@ -605,6 +610,42 @@ impl AgentRuntime {
         {
             self.emit_status_update(None, None, 0, None);
             self.emit_resource_update(None);
+        }
+
+        // Load cached discovery results from database
+        #[cfg(feature = "gui")]
+        if let Some(ref db) = self.db {
+            let repo = agent_storage::repositories::DiscoveredDevicesRepository::new(db);
+            match repo.get_all().await {
+                Ok(stored) if !stored.is_empty() => {
+                    let devices: Vec<GuiDiscoveredDevice> = stored
+                        .into_iter()
+                        .map(|d| GuiDiscoveredDevice {
+                            ip: d.ip,
+                            mac: d.mac,
+                            hostname: d.hostname,
+                            vendor: d.vendor,
+                            device_type: d.device_type,
+                            open_ports: d.open_ports,
+                            first_seen: d.first_seen,
+                            last_seen: d.last_seen,
+                            is_gateway: d.is_gateway,
+                            subnet: d.subnet,
+                        })
+                        .collect();
+                    info!(
+                        "Loaded {} cached discovered devices from database",
+                        devices.len()
+                    );
+                    self.emit_gui_event(AgentEvent::DiscoveryUpdate { devices });
+                }
+                Ok(_) => {
+                    debug!("No cached discovery results in database");
+                }
+                Err(e) => {
+                    warn!("Failed to load cached discovery results: {}", e);
+                }
+            }
         }
 
         // Track last operation times
@@ -1054,6 +1095,36 @@ impl AgentRuntime {
                         warn!("Security scan failed: {}", e);
                     }
                 }
+                // Run USB device scan alongside security scan
+                if let Ok(mut usb) = self.usb_monitor.lock() {
+                    let usb_events = usb.scan();
+                    for event in &usb_events {
+                        debug!(
+                            "USB event: {} ({:04X}:{:04X}) - {:?}",
+                            event.device.description,
+                            event.device.vendor_id,
+                            event.device.product_id,
+                            event.event_type
+                        );
+                    }
+                    #[cfg(feature = "gui")]
+                    for event in usb_events {
+                        let gui_event_type = match event.event_type {
+                            agent_common::types::UsbEventType::Connected => GuiUsbEventType::Connected,
+                            agent_common::types::UsbEventType::Disconnected => GuiUsbEventType::Disconnected,
+                        };
+                        self.emit_gui_event(AgentEvent::UsbEvent {
+                            event: GuiUsbEvent {
+                                device_name: event.device.description,
+                                vendor_id: event.device.vendor_id,
+                                product_id: event.device.product_id,
+                                event_type: gui_event_type,
+                                timestamp: event.timestamp,
+                            },
+                        });
+                    }
+                }
+
                 last_security_scan = std::time::Instant::now();
             }
 

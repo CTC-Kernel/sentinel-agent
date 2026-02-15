@@ -32,8 +32,9 @@ impl SettingsPage {
         let mut command = None;
 
         ui.add_space(theme::SPACE_MD);
-        widgets::page_header(
+        let _ = widgets::page_header_nav(
             ui,
+            &["Configuration"],
             "Configuration",
             Some("GESTION ANALYTIQUE DES PARAMÈTRES ET CONTRÔLE DES SERVICES SENTINEL"),
             Some(

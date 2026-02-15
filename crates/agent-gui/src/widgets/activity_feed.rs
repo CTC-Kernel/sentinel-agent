@@ -98,8 +98,20 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
 
         ui.add_space(theme::SPACE_SM);
 
-        // PERF: events rebuilt every frame — consider caching with dirty tracking
-        let events = build_events_from_state(state);
+        let fingerprint = (state.logs.len(), state.sync.history.len());
+        let cache_id = ui.id().with("activity_feed_cache");
+        let fp_id = ui.id().with("activity_feed_fp");
+        let prev_fp: Option<(usize, usize)> = ui.memory(|mem| mem.data.get_temp(fp_id));
+        let events: Vec<ActivityEvent> = if prev_fp.as_ref() == Some(&fingerprint) {
+            ui.memory(|mem| mem.data.get_temp(cache_id)).unwrap_or_default()
+        } else {
+            let built = build_events_from_state(state);
+            ui.memory_mut(|mem| {
+                mem.data.insert_temp(fp_id, fingerprint);
+                mem.data.insert_temp(cache_id, built.clone());
+            });
+            built
+        };
 
         if events.is_empty() {
             // Empty state

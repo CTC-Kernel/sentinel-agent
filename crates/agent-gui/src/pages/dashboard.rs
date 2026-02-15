@@ -41,22 +41,24 @@ impl DashboardPage {
         // ══════════════════════════════════════════════════════════════════
         // SECURITY HERO + COMPLIANCE SCORE (Side by side on large screens)
         // ══════════════════════════════════════════════════════════════════
-        let hero_grid = widgets::ResponsiveGrid::new(400.0, theme::SPACE);
-        let hero_items = vec![0, 1];
+        ui.push_id("hero_grid", |ui| {
+            let hero_grid = widgets::ResponsiveGrid::new(400.0, theme::SPACE);
+            let hero_items = vec![0, 1];
 
-        hero_grid.show(ui, &hero_items, |ui, width, &idx| {
-            ui.vertical(|ui: &mut egui::Ui| {
-                ui.set_width(width);
-                match idx {
-                    0 => {
-                        // Enhanced Security Hero
-                        widgets::security_hero(ui, state);
+            hero_grid.show(ui, &hero_items, |ui, width, &idx| {
+                ui.vertical(|ui: &mut egui::Ui| {
+                    ui.set_width(width);
+                    match idx {
+                        0 => {
+                            // Enhanced Security Hero
+                            widgets::security_hero(ui, state);
+                        }
+                        _ => {
+                            // Compliance Score Card with Trend
+                            Self::compliance_score_card(ui, state);
+                        }
                     }
-                    _ => {
-                        // Compliance Score Card with Trend
-                        Self::compliance_score_card(ui, state);
-                    }
-                }
+                });
             });
         });
 
@@ -65,18 +67,42 @@ impl DashboardPage {
         // ══════════════════════════════════════════════════════════════════
         // SPARKLINE METRICS ROW (4 cards)
         // ══════════════════════════════════════════════════════════════════
-        let metrics_grid = widgets::ResponsiveGrid::new(200.0, theme::SPACE_SM);
-        let metric_items = vec![0, 1, 2, 3];
+        ui.push_id("metrics_grid", |ui| {
+            let metrics_grid = widgets::ResponsiveGrid::new(200.0, theme::SPACE_SM);
+            let metric_items = vec![0, 1, 2, 3];
 
-        metrics_grid.show(ui, &metric_items, |ui, width, &idx| {
-            ui.vertical(|ui: &mut egui::Ui| {
-                ui.set_width(width);
-                match idx {
-                    0 => Self::cpu_sparkline_card(ui, state),
-                    1 => Self::memory_sparkline_card(ui, state),
-                    2 => Self::checks_summary_card(ui, state),
-                    _ => Self::vulnerabilities_summary_card(ui, state),
-                }
+            metrics_grid.show(ui, &metric_items, |ui, width, &idx| {
+                ui.vertical(|ui: &mut egui::Ui| {
+                    ui.set_width(width);
+                    match idx {
+                        0 => Self::cpu_sparkline_card(ui, state),
+                        1 => Self::memory_sparkline_card(ui, state),
+                        2 => Self::checks_summary_card(ui, state),
+                        _ => Self::vulnerabilities_summary_card(ui, state),
+                    }
+                });
+            });
+        });
+
+        ui.add_space(theme::SPACE_LG);
+
+        // ══════════════════════════════════════════════════════════════════
+        // SECURITY COVERAGE ROW (4 cards)
+        // ══════════════════════════════════════════════════════════════════
+        ui.push_id("security_grid", |ui| {
+            let security_grid = widgets::ResponsiveGrid::new(200.0, theme::SPACE_SM);
+            let security_items = vec![0, 1, 2, 3];
+
+            security_grid.show(ui, &security_items, |ui, width, &idx| {
+                ui.vertical(|ui: &mut egui::Ui| {
+                    ui.set_width(width);
+                    match idx {
+                        0 => Self::threats_indicator_card(ui, state),
+                        1 => Self::fim_indicator_card(ui, state),
+                        2 => Self::network_health_card(ui, state),
+                        _ => Self::software_coverage_card(ui, state),
+                    }
+                });
             });
         });
 
@@ -85,24 +111,26 @@ impl DashboardPage {
         // ══════════════════════════════════════════════════════════════════
         // COMMAND CENTER + ACTIVITY FEED (Side by side)
         // ══════════════════════════════════════════════════════════════════
-        let bottom_grid = widgets::ResponsiveGrid::new(400.0, theme::SPACE);
-        let bottom_items = vec![0, 1];
+        ui.push_id("bottom_grid", |ui| {
+            let bottom_grid = widgets::ResponsiveGrid::new(400.0, theme::SPACE);
+            let bottom_items = vec![0, 1];
 
-        bottom_grid.show(ui, &bottom_items, |ui, width, &idx| {
-            ui.vertical(|ui: &mut egui::Ui| {
-                ui.set_width(width);
-                match idx {
-                    0 => {
-                        if let Some(cmd) = Self::command_center(ui, state) {
-                            command = Some(cmd);
+            bottom_grid.show(ui, &bottom_items, |ui, width, &idx| {
+                ui.vertical(|ui: &mut egui::Ui| {
+                    ui.set_width(width);
+                    match idx {
+                        0 => {
+                            if let Some(cmd) = Self::command_center(ui, state) {
+                                command = Some(cmd);
+                            }
+                        }
+                        _ => {
+                            widgets::card(ui, |ui: &mut egui::Ui| {
+                                widgets::activity_feed(ui, state, 5);
+                            });
                         }
                     }
-                    _ => {
-                        widgets::card(ui, |ui: &mut egui::Ui| {
-                            widgets::activity_feed(ui, state, 5);
-                        });
-                    }
-                }
+                });
             });
         });
 
@@ -513,6 +541,221 @@ impl DashboardPage {
         });
 
         command
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // THREATS INDICATOR CARD
+    // ──────────────────────────────────────────────────────────────────────
+    fn threats_indicator_card(ui: &mut Ui, state: &AppState) {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("MENACES")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_SM);
+
+            let proc_count = state.threats.suspicious_processes.len();
+            let usb_count = state.threats.usb_events.len();
+            let net_alerts = state.network.alerts.len();
+            let fim_unacked = state.fim.alerts.iter().filter(|a| !a.acknowledged).count();
+            let total = proc_count + usb_count + net_alerts + fim_unacked;
+
+            let (color, label) = if total == 0 {
+                (theme::SUCCESS, "Aucune menace")
+            } else if total <= 3 {
+                (theme::WARNING, "Attention requise")
+            } else {
+                (theme::ERROR, "Alerte critique")
+            };
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(format!("{}", total))
+                        .font(theme::font_card_value())
+                        .color(color)
+                        .strong(),
+                );
+                ui.label(
+                    egui::RichText::new("actives")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary()),
+                );
+            });
+
+            ui.add_space(theme::SPACE_XS);
+            ui.label(
+                egui::RichText::new(label)
+                    .font(theme::font_label())
+                    .color(color),
+            );
+        });
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // FIM INDICATOR CARD
+    // ──────────────────────────────────────────────────────────────────────
+    fn fim_indicator_card(ui: &mut Ui, state: &AppState) {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("INTÉGRITÉ FICHIERS")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_SM);
+
+            let changes = state.fim.changes_today;
+            let color = if changes == 0 {
+                theme::SUCCESS
+            } else if changes <= 5 {
+                theme::WARNING
+            } else {
+                theme::ERROR
+            };
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(format!("{}", state.fim.monitored_count))
+                        .font(theme::font_card_value())
+                        .color(theme::ACCENT)
+                        .strong(),
+                );
+                ui.label(
+                    egui::RichText::new("surveillés")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary()),
+                );
+            });
+
+            ui.add_space(theme::SPACE_XS);
+            ui.label(
+                egui::RichText::new(format!("{} modification(s) aujourd'hui", changes))
+                    .font(theme::font_label())
+                    .color(color),
+            );
+        });
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // NETWORK HEALTH CARD
+    // ──────────────────────────────────────────────────────────────────────
+    fn network_health_card(ui: &mut Ui, state: &AppState) {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("RÉSEAU")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_SM);
+
+            let alerts = state.network.alert_count;
+            let color = if alerts == 0 {
+                theme::SUCCESS
+            } else if alerts <= 2 {
+                theme::WARNING
+            } else {
+                theme::ERROR
+            };
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(format!("{}", alerts))
+                        .font(theme::font_card_value())
+                        .color(color)
+                        .strong(),
+                );
+                ui.label(
+                    egui::RichText::new("alerte(s)")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary()),
+                );
+            });
+
+            ui.add_space(theme::SPACE_XS);
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                Self::mini_stat(
+                    ui,
+                    &state.network.interface_count.to_string(),
+                    "interfaces",
+                    theme::text_secondary(),
+                );
+                ui.add_space(theme::SPACE_SM);
+                Self::mini_stat(
+                    ui,
+                    &state.network.connection_count.to_string(),
+                    "connexions",
+                    theme::text_secondary(),
+                );
+            });
+        });
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // SOFTWARE COVERAGE CARD
+    // ──────────────────────────────────────────────────────────────────────
+    fn software_coverage_card(ui: &mut Ui, state: &AppState) {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("LOGICIELS")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_SM);
+
+            let total = state.software.packages.len();
+            let up_to_date = state.software.packages.iter().filter(|p| p.up_to_date).count();
+            let coverage = if total > 0 {
+                (up_to_date as f32 / total as f32) * 100.0
+            } else {
+                100.0
+            };
+
+            let color = if coverage >= 90.0 {
+                theme::SUCCESS
+            } else if coverage >= 70.0 {
+                theme::WARNING
+            } else {
+                theme::ERROR
+            };
+
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(format!("{:.0}%", coverage))
+                        .font(theme::font_card_value())
+                        .color(color)
+                        .strong(),
+                );
+                ui.label(
+                    egui::RichText::new("à jour")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary()),
+                );
+            });
+
+            ui.add_space(theme::SPACE_XS);
+            Self::mini_progress_bar(ui, coverage / 100.0, color);
+
+            ui.add_space(theme::SPACE_XS);
+            let outdated = total - up_to_date;
+            if outdated > 0 {
+                ui.label(
+                    egui::RichText::new(format!("{} mise(s) à jour requise(s)", outdated))
+                        .font(theme::font_label())
+                        .color(theme::WARNING),
+                );
+            } else {
+                ui.label(
+                    egui::RichText::new("Tous les composants conformes")
+                        .font(theme::font_label())
+                        .color(theme::SUCCESS),
+                );
+            }
+        });
     }
 
     // ──────────────────────────────────────────────────────────────────────

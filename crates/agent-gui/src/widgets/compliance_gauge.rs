@@ -41,27 +41,24 @@ pub fn compliance_gauge(ui: &mut Ui, score: Option<f32>, radius: f32) {
                 .collect();
 
             if points.len() >= 2 {
-                // Single subtle glow layer
+                let points_glow = points.clone();
                 painter.add(egui::Shape::line(
-                    points.clone(),
+                    points_glow,
                     egui::Stroke::new(stroke_width + theme::SPACE_XS, color.linear_multiply(theme::OPACITY_TINT)),
                 ));
 
-                // Main arc
+                let last_point = *points.last().unwrap();
                 painter.add(egui::Shape::line(
-                    points.clone(),
+                    points,
                     egui::Stroke::new(stroke_width, color),
                 ));
 
-                // Endpoint dot
-                if let Some(&last_point) = points.last() {
-                    painter.circle_filled(last_point, stroke_width * 0.5, color);
-                    painter.circle_filled(
-                        last_point,
-                        stroke_width * 0.25,
-                        egui::Color32::WHITE.linear_multiply(theme::OPACITY_STRONG),
-                    );
-                }
+                painter.circle_filled(last_point, stroke_width * 0.5, color);
+                painter.circle_filled(
+                    last_point,
+                    stroke_width * 0.25,
+                    egui::Color32::WHITE.linear_multiply(theme::OPACITY_STRONG),
+                );
             }
 
             // Score text

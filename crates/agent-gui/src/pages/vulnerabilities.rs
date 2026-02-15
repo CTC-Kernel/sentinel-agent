@@ -157,6 +157,137 @@ impl VulnerabilitiesPage {
             Self::summary_card(ui, width, label, value, *color, icon);
         });
 
+        ui.add_space(theme::SPACE_MD);
+
+        // Coverage and distribution indicators (AAA Grade)
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("INDICATEURS DE COUVERTURE")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(0.5)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            let total_findings = state.vulnerability_findings.len();
+            let fix_available_count = state
+                .vulnerability_findings
+                .iter()
+                .filter(|v| v.fix_available)
+                .count();
+
+            // A. Fix availability ratio
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(icons::WRENCH)
+                        .color(theme::ACCENT.linear_multiply(theme::OPACITY_STRONG))
+                        .size(14.0),
+                );
+                ui.add_space(theme::SPACE_XS);
+                let fix_pct = if total_findings > 0 {
+                    (fix_available_count as f32 / total_findings as f32) * 100.0
+                } else {
+                    0.0
+                };
+                ui.label(
+                    egui::RichText::new(format!(
+                        "Correctifs disponibles : {}/{} ({:.0}%)",
+                        fix_available_count, total_findings, fix_pct
+                    ))
+                    .font(theme::font_body())
+                    .color(theme::text_primary())
+                    .strong(),
+                );
+            });
+            ui.add_space(theme::SPACE_XS);
+            let fix_ratio = if total_findings > 0 {
+                fix_available_count as f32 / total_findings as f32
+            } else {
+                0.0
+            };
+            let fix_style = if fix_ratio >= 0.8 {
+                widgets::ProgressStyle::Success
+            } else if fix_ratio >= 0.5 {
+                widgets::ProgressStyle::Warning
+            } else {
+                widgets::ProgressStyle::Error
+            };
+            widgets::progress_bar_styled(ui, fix_ratio, fix_style, None);
+
+            ui.add_space(theme::SPACE_MD);
+
+            // B. Remediation coverage
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(icons::SHIELD_CHECK)
+                        .color(theme::SUCCESS.linear_multiply(theme::OPACITY_STRONG))
+                        .size(14.0),
+                );
+                ui.add_space(theme::SPACE_XS);
+                let remediation_pct = if total_findings > 0 {
+                    (fix_available_count as f32 / total_findings as f32) * 100.0
+                } else {
+                    100.0
+                };
+                ui.label(
+                    egui::RichText::new(format!(
+                        "Couverture de rem\u{00e9}diation : {:.0}%",
+                        remediation_pct
+                    ))
+                    .font(theme::font_body())
+                    .color(theme::text_primary())
+                    .strong(),
+                );
+            });
+            ui.add_space(theme::SPACE_XS);
+            let remediation_ratio = if total_findings > 0 {
+                fix_available_count as f32 / total_findings as f32
+            } else {
+                1.0
+            };
+            widgets::progress_bar_styled(ui, remediation_ratio, widgets::ProgressStyle::Gradient, None);
+
+            ui.add_space(theme::SPACE_MD);
+
+            // C. Average CVSS score
+            let (cvss_sum, cvss_count) = state
+                .vulnerability_findings
+                .iter()
+                .fold((0.0_f32, 0_u32), |(sum, count), v| {
+                    if let Some(score) = v.cvss_score {
+                        (sum + score, count + 1)
+                    } else {
+                        (sum, count)
+                    }
+                });
+            let avg_cvss = if cvss_count > 0 {
+                cvss_sum / cvss_count as f32
+            } else {
+                0.0
+            };
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(icons::GAUGE_HIGH)
+                        .color(theme::score_color(100.0 - avg_cvss * 10.0).linear_multiply(theme::OPACITY_STRONG))
+                        .size(14.0),
+                );
+                ui.add_space(theme::SPACE_XS);
+                ui.label(
+                    egui::RichText::new(format!("Score CVSS moyen : {:.1}", avg_cvss))
+                        .font(theme::font_body())
+                        .color(theme::text_primary())
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_SM);
+                ui.label(
+                    egui::RichText::new(format!("({} CVE avec score)", cvss_count))
+                        .font(theme::font_small())
+                        .color(theme::text_tertiary()),
+                );
+            });
+        });
+
         ui.add_space(theme::SPACE_LG);
 
         // Search / filter bar (AAA Grade)
@@ -165,7 +296,16 @@ impl VulnerabilitiesPage {
         let med_active = state.vulnerability.severity_filter == Some(Severity::Medium);
         let low_active = state.vulnerability.severity_filter == Some(Severity::Low);
 
-        let search_lower = state.vulnerability.search.to_lowercase();
+        let search_id = ui.id().with("vuln_search_cache");
+        let search_lower: String = ui.memory(|mem| {
+            mem.data.get_temp::<(String, String)>(search_id)
+                .filter(|(orig, _)| orig == &state.vulnerability.search)
+                .map(|(_, lower)| lower)
+        }).unwrap_or_else(|| {
+            let lower = state.vulnerability.search.to_ascii_lowercase();
+            ui.memory_mut(|mem| mem.data.insert_temp(search_id, (state.vulnerability.search.clone(), lower.clone())));
+            lower
+        });
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.vulnerability.search,
@@ -209,10 +349,79 @@ impl VulnerabilitiesPage {
         });
 
         ui.add_space(theme::SPACE_XL);
+
+        if let Some(sel_idx) = state.vulnerability.selected_vuln
+            && sel_idx < state.vulnerability_findings.len()
+        {
+                let finding = state.vulnerability_findings[sel_idx].clone();
+                let (sev_label, sev_color) = Self::severity_display(&finding.severity);
+                let cvss_color = if let Some(s) = finding.cvss_score {
+                    if s > 7.0 { theme::ERROR } else if s > 4.0 { theme::WARNING } else { theme::SUCCESS }
+                } else {
+                    theme::text_tertiary()
+                };
+
+                let actions = vec![
+                    widgets::DetailAction::primary("Appliquer le correctif", icons::WRENCH)
+                        .enabled(finding.fix_available),
+                    widgets::DetailAction::secondary("Ignorer", icons::XMARK),
+                    widgets::DetailAction::secondary("Exporter", icons::DOWNLOAD),
+                ];
+
+                let drawer_action = widgets::DetailDrawer::new("vuln_detail", &finding.cve_id, icons::VULNERABILITIES)
+                    .accent(sev_color)
+                    .subtitle(&finding.affected_software)
+                    .show(ui.ctx(), &mut state.vulnerability.detail_open, |ui| {
+                        widgets::detail_section(ui, "VULN\u{00c9}RABILIT\u{00c9}");
+                        widgets::detail_mono(ui, "CVE ID", &finding.cve_id);
+                        widgets::detail_field(ui, "Logiciel affect\u{00e9}", &finding.affected_software);
+                        widgets::detail_field(ui, "Version affect\u{00e9}e", &finding.affected_version);
+                        widgets::detail_field_badge(ui, "S\u{00e9}v\u{00e9}rit\u{00e9}", sev_label, sev_color);
+                        if let Some(s) = finding.cvss_score {
+                            widgets::detail_field_colored(ui, "Score CVSS", &format!("{:.1}", s), cvss_color);
+                        }
+                        widgets::detail_text(ui, "Description", &finding.description);
+
+                        widgets::detail_section(ui, "REM\u{00c9}DIATION");
+                        if finding.fix_available {
+                            widgets::detail_field_badge(ui, "Fix disponible", "OUI", theme::SUCCESS);
+                        } else {
+                            widgets::detail_field_badge(ui, "Fix disponible", "NON", theme::ERROR);
+                        }
+                        if let Some(dt) = finding.discovered_at {
+                            widgets::detail_field(ui, "Date de d\u{00e9}couverte", &dt.format("%d/%m/%Y %H:%M").to_string());
+                        }
+                    }, &actions);
+
+                if let Some(action_idx) = drawer_action {
+                    match action_idx {
+                        0 => {
+                            command = Some(GuiCommand::Remediate {
+                                check_id: finding.cve_id.clone(),
+                            });
+                        }
+                        1 => {
+                            state.vulnerability.detail_open = false;
+                        }
+                        2 => {
+                            let success = Self::export_csv(state, &[sel_idx]);
+                            let time = ui.input(|i| i.time);
+                            if success {
+                                state.toasts.push(
+                                    crate::widgets::toast::Toast::success("Export CSV r\u{00e9}ussi")
+                                        .with_time(time),
+                                );
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+
         command
     }
 
-    fn show_findings(ui: &mut Ui, state: &mut AppState, search_lower: &str, command: &mut Option<GuiCommand>) {
+    fn show_findings(ui: &mut Ui, state: &mut AppState, search_lower: &str, _command: &mut Option<GuiCommand>) {
         let filtered: Vec<usize> = state
             .vulnerability_findings
             .iter()
@@ -243,28 +452,30 @@ impl VulnerabilitiesPage {
                 ui,
                 icons::SHIELD_CHECK,
                 "AUCUNE VULNÉRABILITÉ DÉTECTÉE",
-                "Le système est à jour et ne présente aucune faille connue à ce jour.",
+                "Le syst\u{00e8}me est \u{00e0} jour et ne pr\u{00e9}sente aucune faille connue \u{00e0} ce jour.",
             );
         } else if filtered.is_empty() {
             widgets::empty_state(
                 ui,
                 icons::VULNERABILITIES,
-                "AUCUN RÉSULTAT",
-                Some("Ajustez vos filtres de recherche pour voir les vulnérabilités."),
+                "AUCUN R\u{00c9}SULTAT",
+                Some("Ajustez vos filtres de recherche pour voir les vuln\u{00e9}rabilit\u{00e9}s."),
             );
         } else {
             use egui_extras::{Column, TableBuilder};
+
+            let mut clicked_idx: Option<usize> = None;
 
             let table = TableBuilder::new(ui)
                 .striped(false)
                 .resizable(true)
                 .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                .column(Column::initial(100.0).at_least(80.0)) // CVE
-                .column(Column::initial(120.0).at_least(100.0)) // Software
-                .column(Column::initial(80.0).at_least(60.0)) // Severity
-                .column(Column::initial(60.0).at_least(50.0)) // Score
-                .column(Column::remainder()) // Fix
-                .column(Column::initial(100.0).at_least(90.0)); // Actions
+                .column(Column::initial(100.0).at_least(80.0))
+                .column(Column::initial(120.0).at_least(100.0))
+                .column(Column::initial(80.0).at_least(60.0))
+                .column(Column::initial(60.0).at_least(50.0))
+                .column(Column::remainder())
+                .column(Column::initial(100.0).at_least(90.0));
 
             table
                 .header(28.0, |mut header| {
@@ -325,15 +536,22 @@ impl VulnerabilitiesPage {
                 })
                 .body(|body| {
                     body.rows(theme::TABLE_ROW_HEIGHT + 16.0, filtered.len(), |mut row| {
-                        let finding = &state.vulnerability_findings[filtered[row.index()]];
+                        let real_idx = filtered[row.index()];
+                        let finding = &state.vulnerability_findings[real_idx];
 
                         row.col(|ui: &mut egui::Ui| {
-                            ui.label(
+                            let response = ui.label(
                                 egui::RichText::new(&finding.cve_id)
                                     .font(egui::FontId::monospace(12.0))
                                     .color(theme::ACCENT_LIGHT)
                                     .strong(),
-                            );
+                            ).interact(egui::Sense::click());
+                            if response.clicked() {
+                                clicked_idx = Some(real_idx);
+                            }
+                            if response.hovered() {
+                                ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+                            }
                         });
 
                         row.col(|ui: &mut egui::Ui| {
@@ -398,14 +616,17 @@ impl VulnerabilitiesPage {
                         });
 
                         row.col(|ui: &mut egui::Ui| {
-                            if widgets::ghost_button(ui, format!("{}  CORRIGER", icons::WRENCH)).clicked() {
-                                *command = Some(GuiCommand::Remediate {
-                                    check_id: finding.cve_id.clone(),
-                                });
+                            if widgets::ghost_button(ui, format!("{}  D\u{00c9}TAILS", icons::EYE)).clicked() {
+                                clicked_idx = Some(real_idx);
                             }
                         });
                     });
                 });
+
+            if let Some(idx) = clicked_idx {
+                state.vulnerability.selected_vuln = Some(idx);
+                state.vulnerability.detail_open = true;
+            }
         }
     }
 
