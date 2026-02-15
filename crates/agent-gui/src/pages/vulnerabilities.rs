@@ -174,7 +174,7 @@ impl VulnerabilitiesPage {
         .chip("CRITIQUE", crit_active, theme::ERROR)
         .chip("ÉLEVÉE", high_active, theme::SEVERITY_HIGH)
         .chip("MOYENNE", med_active, theme::SEVERITY_MEDIUM)
-        .chip("FAIBLE", low_active, theme::text_tertiary())
+        .chip("FAIBLE", low_active, theme::INFO)
         .show(ui);
 
         if let Some(idx) = toggled {
@@ -382,6 +382,18 @@ impl VulnerabilitiesPage {
                                     ui.add_space(2.0);
                                     widgets::status_badge(ui, "CORRECTIF DISPONIBLE", theme::SUCCESS);
                                 }
+                                if let Some(dt) = finding.discovered_at {
+                                    ui.add_space(2.0);
+                                    ui.label(
+                                        egui::RichText::new(format!(
+                                            "{} {}",
+                                            icons::CLOCK,
+                                            dt.format("%d/%m/%Y %H:%M")
+                                        ))
+                                        .font(theme::font_min())
+                                        .color(theme::text_tertiary()),
+                                    );
+                                }
                             });
                         });
 
@@ -430,8 +442,8 @@ impl VulnerabilitiesPage {
                         |ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new(icon)
-                                    .size(28.0)
-                                    .color(color.linear_multiply(theme::OPACITY_MUTED)),
+                                    .size(theme::ICON_XL)
+                                    .color(color.linear_multiply(theme::OPACITY_DISABLED)),
                             );
                         },
                     );

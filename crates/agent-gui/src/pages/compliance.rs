@@ -639,14 +639,25 @@ impl CompliancePage {
                         });
 
                         row.col(|ui: &mut egui::Ui| {
-                            ui.horizontal_wrapped(|ui: &mut egui::Ui| {
-                                for fw in &check.frameworks {
-                                    widgets::status_badge(
-                                        ui,
-                                        fw,
-                                        theme::text_tertiary(),
+                            ui.vertical(|ui: &mut egui::Ui| {
+                                ui.horizontal_wrapped(|ui: &mut egui::Ui| {
+                                    for fw in &check.frameworks {
+                                        widgets::status_badge(
+                                            ui,
+                                            fw,
+                                            theme::INFO,
+                                        );
+                                        ui.add_space(theme::SPACE_XS);
+                                    }
+                                });
+                                if let Some(dt) = check.executed_at {
+                                    ui.label(
+                                        egui::RichText::new(
+                                            dt.format("%d/%m %H:%M").to_string(),
+                                        )
+                                        .font(theme::font_min())
+                                        .color(theme::text_tertiary()),
                                     );
-                                    ui.add_space(theme::SPACE_XS);
                                 }
                             });
                         });
@@ -755,6 +766,12 @@ impl CompliancePage {
             "directory_policy" => "STRATÉGIES GPO".to_string(),
             "privileged_access" => "ACCÈS PRIVILÉGIÉS".to_string(),
             "general" => "GÉNÉRAL".to_string(),
+            "network_security" => "SÉCURITÉ RÉSEAU".to_string(),
+            "access_control" => "CONTRÔLE D'ACCÈS".to_string(),
+            "container_security" => "CONTENEURS".to_string(),
+            "certificate_management" => "CERTIFICATS".to_string(),
+            "data_protection" => "PROTECTION DONNÉES".to_string(),
+            "cloud_security" => "SÉCURITÉ CLOUD".to_string(),
             _ => category.to_uppercase().replace('_', " "),
         }
     }

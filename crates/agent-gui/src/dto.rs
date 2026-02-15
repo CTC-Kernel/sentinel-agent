@@ -593,6 +593,28 @@ pub struct GuiUsbEvent {
     pub timestamp: DateTime<Utc>,
 }
 
+/// A network security alert for GUI display.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiNetworkAlert {
+    /// Alert type (c2, mining, exfiltration, dga, beaconing, port_scan, suspicious_port, dns_tunneling).
+    pub alert_type: String,
+    /// Severity level.
+    pub severity: Severity,
+    /// Human-readable description.
+    pub description: String,
+    /// Source IP address.
+    pub source_ip: Option<String>,
+    /// Destination IP address.
+    pub destination_ip: Option<String>,
+    /// Destination port.
+    pub destination_port: Option<u16>,
+    /// Confidence score (0-100).
+    pub confidence: u8,
+    /// When detected.
+    pub detected_at: DateTime<Utc>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

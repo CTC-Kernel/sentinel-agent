@@ -84,7 +84,7 @@ impl NotificationsPage {
                 let bg = if notif.read {
                     theme::bg_secondary()
                 } else {
-                    theme::bg_elevated()
+                    border_color.linear_multiply(theme::OPACITY_SUBTLE)
                 };
 
                 egui::Frame::new()
@@ -92,12 +92,18 @@ impl NotificationsPage {
                     .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
                     .inner_margin(egui::Margin::same(theme::SPACE as i8))
                     .stroke(egui::Stroke::new(
-                        if notif.read { 0.5 } else { 1.0 },
                         if notif.read {
-                            theme::border()
+                            theme::BORDER_HAIRLINE
                         } else {
-                            border_color
+                            theme::BORDER_THIN
                         },
+                        border_color.linear_multiply(
+                            if notif.read {
+                                theme::OPACITY_MODERATE
+                            } else {
+                                1.0
+                            },
+                        ),
                     ))
                     .show(ui, |ui: &mut egui::Ui| {
                         ui.horizontal(|ui: &mut egui::Ui| {

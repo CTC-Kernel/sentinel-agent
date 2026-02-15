@@ -1,5 +1,6 @@
 //! Progress indicators (bars, steps, circular).
 
+use crate::icons;
 use crate::theme;
 use egui::{Color32, CornerRadius, Ui};
 
@@ -286,7 +287,7 @@ pub fn step_indicator(ui: &mut Ui, steps: &[&str], current_step: usize) {
 
                     // Step number or check mark
                     let step_text = if is_completed {
-                        "✓".to_string()
+                        icons::CHECK.to_string()
                     } else {
                         (i + 1).to_string()
                     };

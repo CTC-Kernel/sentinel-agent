@@ -8,7 +8,7 @@ use egui::Ui;
 pub fn help_button(ui: &mut Ui, help_text: &str) {
     let text = egui::RichText::new(icons::INFO_CIRCLE)
         .font(theme::font_body())
-        .color(theme::text_tertiary());
+        .color(theme::INFO);
 
     let response = ui.add(egui::Label::new(text).sense(egui::Sense::hover()));
 

@@ -810,15 +810,15 @@ pub fn status_color(status: &str) -> Color32 {
 }
 
 /// Color for a severity string - follows visual hierarchy:
-/// critical (red) > high (amber) > medium (orange) > low (blue) > info (gray)
+/// critical (red) > high (amber) > medium (orange) > low (blue) > info (blue)
 pub fn severity_color(severity: &str) -> Color32 {
     match severity {
         "critical" => ERROR,         // #FF3B30 Red
         "high" => SEVERITY_HIGH,     // #FFCC00 Amber
         "medium" => SEVERITY_MEDIUM, // #FF9F0A Orange
         "low" => INFO,               // #007AFF Blue
-        "info" => text_secondary(),
-        _ => text_secondary(),
+        "info" => INFO,
+        _ => WARNING,
     }
 }
 
@@ -829,7 +829,7 @@ pub fn severity_color_typed(severity: &crate::dto::Severity) -> Color32 {
         crate::dto::Severity::High => SEVERITY_HIGH,
         crate::dto::Severity::Medium => SEVERITY_MEDIUM,
         crate::dto::Severity::Low => INFO,
-        crate::dto::Severity::Info => text_secondary(),
+        crate::dto::Severity::Info => INFO,
     }
 }
 

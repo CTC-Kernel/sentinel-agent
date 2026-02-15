@@ -53,7 +53,7 @@ impl FimPage {
                 Self::summary_card(
                     ui,
                     card_w,
-                    "ALERTEs ACTIVES",
+                    "ALERTES ACTIVES",
                     &state.fim.alerts.len().to_string(),
                     theme::ERROR,
                     icons::WARNING,
@@ -178,12 +178,34 @@ impl FimPage {
                             });
 
                             row.col(|ui: &mut egui::Ui| {
-                                ui.label(
-                                    egui::RichText::new(&alert.path)
-                                        .font(theme::font_mono())
-                                        .size(12.0)
-                                        .color(theme::text_primary()),
-                                );
+                                ui.vertical(|ui: &mut egui::Ui| {
+                                    ui.label(
+                                        egui::RichText::new(&alert.path)
+                                            .font(theme::font_mono())
+                                            .size(12.0)
+                                            .color(theme::text_primary()),
+                                    );
+                                    let hash_text = match (&alert.old_hash, &alert.new_hash) {
+                                        (Some(old), Some(new)) => {
+                                            Some(format!("HASH : {} \u{2192} {}", old, new))
+                                        }
+                                        (Some(old), None) => {
+                                            Some(format!("HASH : {}", old))
+                                        }
+                                        (None, Some(new)) => {
+                                            Some(format!("HASH : {}", new))
+                                        }
+                                        (None, None) => None,
+                                    };
+                                    if let Some(ref text) = hash_text {
+                                        ui.label(
+                                            egui::RichText::new(text)
+                                                .font(theme::font_mono())
+                                                .size(10.0)
+                                                .color(theme::text_tertiary()),
+                                        );
+                                    }
+                                });
                             });
 
                             row.col(|ui: &mut egui::Ui| {
@@ -277,8 +299,8 @@ impl FimPage {
                         |ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new(icon)
-                                    .size(28.0)
-                                    .color(color.linear_multiply(theme::OPACITY_MUTED)),
+                                    .size(theme::ICON_XL)
+                                    .color(color.linear_multiply(theme::OPACITY_DISABLED)),
                             );
                         },
                     );

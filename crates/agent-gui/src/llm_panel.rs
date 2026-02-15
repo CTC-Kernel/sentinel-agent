@@ -1,406 +1,144 @@
-//! LLM integration panel for the GUI.
+//! LLM / AI integration panel for the GUI.
+//!
+//! When the LLM engine is not connected, a premium empty state is shown
+//! describing the upcoming feature. The panel is always compiled regardless
+//! of feature flags.
 
-#[cfg(feature = "llm_simple")]
-use {
-    agent_llm::{AnalysisResult, LLMManager, ModelStats, RemediationPlan, SecurityClassification},
-    egui::{Color32, RichText, Vec2},
-    std::sync::Arc,
-};
-
-#[cfg(not(feature = "llm_simple"))]
-use egui::{Color32, RichText};
+use crate::icons;
+use crate::theme;
+use crate::widgets;
 
 /// LLM management panel for the GUI.
 #[derive(Default, Clone)]
-pub struct LLMPanel {
-    #[cfg(feature = "llm_simple")]
-    llm_manager: Option<Arc<LLMManager>>,
-    #[cfg(feature = "llm_simple")]
-    model_stats: Option<ModelStats>,
-    #[cfg(feature = "llm_simple")]
-    last_analysis: Option<AnalysisResult>,
-    #[cfg(feature = "llm_simple")]
-    last_remediation: Option<RemediationPlan>,
-    #[cfg(feature = "llm_simple")]
-    last_classifications: Vec<SecurityClassification>,
-    #[cfg(feature = "llm_simple")]
-    show_analysis: bool,
-    #[cfg(feature = "llm_simple")]
-    show_remediation: bool,
-    #[cfg(feature = "llm_simple")]
-    show_classifications: bool,
-    #[cfg(feature = "llm_simple")]
-    show_model_info: bool,
-}
-
+pub struct LLMPanel;
 
 impl LLMPanel {
-    /// Create new LLM panel.
-    #[cfg(feature = "llm_simple")]
-    pub fn new(llm_manager: Option<Arc<LLMManager>>) -> Self {
-        let panel = Self {
-            llm_manager,
-            ..Default::default()
-        };
-        let mut p2 = panel.clone();
-        tokio::spawn(async move {
-            let _ = p2.refresh_model_stats().await;
-        });
-        panel
-    }
-
-    /// Create new LLM panel without LLM support.
-    #[cfg(not(feature = "llm_simple"))]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Set LLM manager.
-    #[cfg(feature = "llm_simple")]
-    pub fn set_llm_manager(&mut self, llm_manager: Option<Arc<LLMManager>>) {
-        self.llm_manager = llm_manager;
-        let mut s2 = self.clone();
-        tokio::spawn(async move {
-            let _ = s2.refresh_model_stats().await;
-        });
-    }
-
-    /// Update analysis results.
-    #[cfg(feature = "llm_simple")]
-    pub fn update_analysis(&mut self, analysis: AnalysisResult) {
-        self.last_analysis = Some(analysis);
-        self.show_analysis = true;
-    }
-
-    /// Update remediation plan.
-    #[cfg(feature = "llm_simple")]
-    pub fn update_remediation(&mut self, plan: RemediationPlan) {
-        self.last_remediation = Some(plan);
-        self.show_remediation = true;
-    }
-
-    /// Update security classifications.
-    #[cfg(feature = "llm_simple")]
-    pub fn update_classifications(&mut self, classifications: Vec<SecurityClassification>) {
-        self.last_classifications = classifications;
-        self.show_classifications = !self.last_classifications.is_empty();
-    }
-
-    /// Refresh model statistics.
-    #[cfg(feature = "llm_simple")]
-    pub async fn refresh_model_stats(&mut self) {
-        if let Some(manager) = &self.llm_manager {
-            match manager.get_stats().await {
-                Ok(stats) => self.model_stats = Some(stats),
-                Err(e) => tracing::warn!("Failed to get LLM stats: {}", e),
-            }
-        }
-    }
-
-    /// Show the LLM panel.
+    /// Show the LLM / AI panel.
     pub fn show(&mut self, ui: &mut egui::Ui) {
-        ui.heading("🤖 Intelligence Artificielle");
+        ui.add_space(theme::SPACE_MD);
+
+        widgets::page_header(
+            ui,
+            "Intelligence Artificielle",
+            Some("MODULE D'ANALYSE IA ET RECOMMANDATIONS AUTOMATIQUES"),
+            None,
+        );
+
+        ui.add_space(theme::SPACE_MD);
         ui.separator();
+        ui.add_space(theme::SPACE_LG);
 
-        #[cfg(feature = "llm_simple")]
-        {
-            self.show_model_status(ui);
-            ui.separator();
-            self.show_action_buttons(ui);
-            ui.separator();
-            self.show_results_panels(ui);
-        }
-
-        #[cfg(not(feature = "llm_simple"))]
-        {
-            ui.label(RichText::new("⚠️ LLM non disponible").color(Color32::YELLOW));
-            ui.label("Compilez avec --features llm pour activer les fonctionnalités IA.");
-        }
+        // Currently no LLM engine is connected -- show premium empty state.
+        self.show_empty_state(ui);
     }
 
-    /// Show model status and statistics.
-    #[cfg(feature = "llm_simple")]
-    fn show_model_status(&mut self, ui: &mut egui::Ui) {
-        ui.horizontal(|ui| {
-            ui.label("Status du modèle:");
+    /// Render the premium empty state when the AI engine is not available.
+    fn show_empty_state(&self, ui: &mut egui::Ui) {
+        widgets::empty_state(
+            ui,
+            icons::BRAIN,
+            "Module IA en cours de d\u{00e9}ploiement",
+            Some(
+                "L'assistant IA analysera automatiquement vos r\u{00e9}sultats de conformit\u{00e9} \
+                 et proposera des rem\u{00e9}diations intelligentes.",
+            ),
+        );
 
-            if let Some(stats) = &self.model_stats {
-                let status_color = match stats.status {
-                    agent_llm::ModelStatus::Ready => Color32::GREEN,
-                    agent_llm::ModelStatus::Loading => Color32::YELLOW,
-                    agent_llm::ModelStatus::Error(_) => Color32::RED,
-                    agent_llm::ModelStatus::Unloaded | agent_llm::ModelStatus::Busy => Color32::GRAY,
-                };
+        // Feature preview cards
+        ui.add_space(theme::SPACE_LG);
 
-                ui.label(RichText::new(format!("{:?}", stats.status)).color(status_color));
-                ui.separator();
-                ui.label(format!("Inférences: {}", stats.inference_count));
-                ui.separator();
-                ui.label(format!("Mémoire: {}MB", stats.memory_usage.allocated_mb));
-            } else {
-                ui.label(RichText::new("Non initialisé").color(Color32::GRAY));
-            }
+        ui.vertical_centered(|ui: &mut egui::Ui| {
+            ui.set_max_width(600.0);
 
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if ui.button("🔄").on_hover_text("Rafraîchir").clicked() {
-                    // Trigger async refresh - in real implementation would use proper async handling
-                }
-                if ui.button("ℹ️").on_hover_text("Informations").clicked() {
-                    self.show_model_info = !self.show_model_info;
-                }
-            });
-        });
+            ui.label(
+                egui::RichText::new("FONCTIONNALIT\u{00c9}S \u{00c0} VENIR")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .strong(),
+            );
 
-        // Show model info popup
-        if self.show_model_info {
-            self.show_model_info_popup(ui);
-        }
-    }
+            ui.add_space(theme::SPACE_MD);
 
-    /// Show model information popup.
-    #[cfg(feature = "llm_simple")]
-    fn show_model_info_popup(&mut self, ui: &mut egui::Ui) {
-        let popup_id = egui::Id::new("llm_model_info");
+            Self::feature_card(
+                ui,
+                icons::SEARCH,
+                "Analyse de s\u{00e9}curit\u{00e9}",
+                "\u{00c9}valuation automatique du niveau de risque et identification des vuln\u{00e9}rabilit\u{00e9}s prioritaires.",
+            );
 
-        egui::Window::new("Informations du Modèle")
-            .id(popup_id)
-            .collapsible(false)
-            .resizable(false)
-            .default_size(Vec2::new(400.0, 300.0))
-            .show(ui.ctx(), |ui| {
-                if let Some(stats) = &self.model_stats {
-                    ui.label(format!("Modèle: {}", stats.model_name));
-                    ui.label(format!("Status: {:?}", stats.status));
-                    ui.label(format!("Inférences totales: {}", stats.inference_count));
+            ui.add_space(theme::SPACE_SM);
 
-                    ui.separator();
-                    ui.heading("Utilisation Mémoire:");
-                    ui.label(format!("Allouée: {}MB", stats.memory_usage.allocated_mb));
-                    ui.label(format!("Pic: {}MB", stats.memory_usage.peak_mb));
-                    ui.label(format!("Disponible: {}MB", stats.memory_usage.available_mb));
-                } else {
-                    ui.label("Aucune information disponible");
-                }
+            Self::feature_card(
+                ui,
+                icons::WRENCH_FA,
+                "Plans de rem\u{00e9}diation",
+                "G\u{00e9}n\u{00e9}ration de plans d'action d\u{00e9}taill\u{00e9}s avec commandes et \u{00e9}tapes de v\u{00e9}rification.",
+            );
 
-                ui.separator();
-                if ui.button("Fermer").clicked() {
-                    self.show_model_info = false;
-                }
-            });
-    }
+            ui.add_space(theme::SPACE_SM);
 
-    /// Show action buttons.
-    #[cfg(feature = "llm_simple")]
-    fn show_action_buttons(&mut self, ui: &mut egui::Ui) {
-        ui.horizontal(|ui| {
-            ui.label("Actions:");
-
-            if ui.button("🔍 Analyser").clicked() {
-                // Trigger analysis - would send command to backend
-                tracing::info!("LLM analysis requested from GUI");
-            }
-
-            if ui.button("🔧 Remédiation").clicked() {
-                // Trigger remediation - would send command to backend
-                tracing::info!("LLM remediation requested from GUI");
-            }
-
-            if ui.button("🛡️ Classification").clicked() {
-                // Trigger classification - would send command to backend
-                tracing::info!("LLM classification requested from GUI");
-            }
+            Self::feature_card(
+                ui,
+                icons::SHIELD,
+                "Classification de menaces",
+                "Cat\u{00e9}gorisation intelligente des \u{00e9}v\u{00e9}nements de s\u{00e9}curit\u{00e9} par niveau de criticit\u{00e9}.",
+            );
         });
     }
 
-    /// Show results panels.
-    #[cfg(feature = "llm_simple")]
-    fn show_results_panels(&mut self, ui: &mut egui::Ui) {
-        // Analysis results
-        if let Some(analysis) = &self.last_analysis {
-            ui.collapsing("📊 Analyse de Sécurité", |ui| {
-                self.show_analysis_results(ui, analysis);
-            });
-        }
-
-        // Remediation plan
-        if let Some(plan) = &self.last_remediation {
-            ui.collapsing("🔧 Plan de Remédiation", |ui| {
-                self.show_remediation_plan(ui, plan);
-            });
-        }
-
-        // Security classifications
-        if !self.last_classifications.is_empty() {
-            ui.collapsing("🛡️ Classifications de Sécurité", |ui| {
-                self.show_security_classifications(ui);
-            });
-        }
-    }
-
-    /// Show analysis results.
-    #[cfg(feature = "llm_simple")]
-    fn show_analysis_results(&self, ui: &mut egui::Ui, analysis: &AnalysisResult) {
-        ui.horizontal(|ui| {
-            ui.label("Niveau de Risque:");
-            let risk_color = match analysis.risk_assessment.risk_level {
-                agent_llm::analyzer::RiskLevel::Low => Color32::GREEN,
-                agent_llm::analyzer::RiskLevel::Medium => Color32::YELLOW,
-                agent_llm::analyzer::RiskLevel::High => Color32::ORANGE,
-                agent_llm::analyzer::RiskLevel::Critical => Color32::RED,
-            };
-            ui.label(RichText::new(format!("{:?}", analysis.risk_assessment.risk_level)).color(risk_color));
-            ui.separator();
-            ui.label(format!("Confidence: {}%", analysis.metadata.confidence_score));
-        });
-
-        ui.separator();
-        ui.label("Description:");
-        ui.label(&analysis.risk_assessment.description);
-
-        if !analysis.recommendations.is_empty() {
-            ui.separator();
-            ui.heading("Issues Prioritaires:");
-            for issue in &analysis.recommendations {
-                ui.horizontal(|ui| {
-                    let severity_color = match "medium" {
-                        "Low" => Color32::GREEN,
-                        "Medium" => Color32::YELLOW,
-                        "High" => Color32::ORANGE,
-                        "Critical" => Color32::RED,
-                        _ => Color32::GRAY,
-                    };
-                    ui.label(RichText::new("medium").color(severity_color));
-                    ui.label(&issue.title);
-                });
-                ui.indent(1, |ui| {
-                    ui.label(&issue.description);
-                    ui.label(format!("Impact: {}", "high"));
-                });
-            }
-        }
-
-        if !analysis.recommendations.is_empty() {
-            ui.separator();
-            ui.heading("Recommandations:");
-            for rec in &analysis.recommendations {
-                ui.horizontal(|ui| {
-                    ui.label(format!("• {}", rec.title));
-                    ui.label(format!("({})", rec.priority));
-                });
-                ui.indent(1, |ui| {
-                    ui.label(&rec.description);
-                });
-            }
-        }
-    }
-
-    /// Show remediation plan.
-    #[cfg(feature = "llm_simple")]
-    fn show_remediation_plan(&self, ui: &mut egui::Ui, plan: &RemediationPlan) {
-        ui.label(&plan.description);
-        ui.horizontal(|ui| {
-            ui.label(format!("Actions: {}", plan.actions.len()));
-            ui.label(format!("Durée estimée: {}", plan.estimated_total_duration));
-        });
-
-        for (i, action) in plan.actions.iter().enumerate() {
-            ui.collapsing(format!("{}. {}", i + 1, action.title), |ui| {
-                ui.label(&action.description);
-
-                ui.horizontal(|ui| {
-                    let priority_color = match action.priority {
-                        agent_llm::remediation::Priority::Critical => Color32::RED,
-                        agent_llm::remediation::Priority::High => Color32::ORANGE,
-                        agent_llm::remediation::Priority::Medium => Color32::YELLOW,
-                        agent_llm::remediation::Priority::Low => Color32::GREEN,
-                        agent_llm::remediation::Priority::Info => Color32::GRAY,
-                    };
-                    ui.label(
-                        RichText::new(format!("Priorité: {:?}", action.priority))
-                            .color(priority_color),
-                    );
-                    ui.label(format!("Durée: {}", action.estimated_duration));
-                });
-
-                if !action.commands.is_empty() {
-                    ui.collapsing("Commandes", |ui| {
-                        for cmd in &action.commands {
-                            ui.monospace(cmd);
-                        }
-                    });
-                }
-
-                if !action.verification_steps.is_empty() {
-                    ui.collapsing("Vérification", |ui| {
-                        for (i, step) in action.verification_steps.iter().enumerate() {
-                            ui.label(format!("{}. {}", i + 1, step));
-                        }
-                    });
-                }
-            });
-        }
-    }
-
-    /// Show security classifications.
-    #[cfg(feature = "llm_simple")]
-    fn show_security_classifications(&self, ui: &mut egui::Ui) {
-        for classification in &self.last_classifications {
-            ui.horizontal(|ui| {
-                let threat_color = match classification.threat_level {
-                    agent_llm::security::ThreatLevel::Low => Color32::GREEN,
-                    agent_llm::security::ThreatLevel::Medium => Color32::YELLOW,
-                    agent_llm::security::ThreatLevel::High => Color32::ORANGE,
-                    agent_llm::security::ThreatLevel::Critical => Color32::RED,
-                };
+    /// Render a single feature preview card.
+    fn feature_card(ui: &mut egui::Ui, icon: &str, title: &str, description: &str) {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
-                    RichText::new(format!("{:?}", classification.threat_type)).color(threat_color),
+                    egui::RichText::new(icon)
+                        .size(theme::ICON_MD)
+                        .color(theme::ACCENT.linear_multiply(theme::OPACITY_MEDIUM)),
                 );
-                ui.label(format!("Confiance: {}%", classification.confidence));
-                ui.separator();
-                ui.label(&classification.impact_assessment);
+                ui.add_space(theme::SPACE_SM);
+                ui.vertical(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new(title)
+                            .font(theme::font_body())
+                            .color(theme::text_primary())
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE_XS);
+                    ui.label(
+                        egui::RichText::new(description)
+                            .font(theme::font_small())
+                            .color(theme::text_tertiary()),
+                    );
+                });
             });
-        }
+        });
     }
 }
 
 /// LLM status widget for the main dashboard.
 #[derive(Default)]
-pub struct LLMStatusWidget {
-    #[cfg(feature = "llm_simple")]
-    llm_manager: Option<Arc<LLMManager>>,
-}
-
+pub struct LLMStatusWidget;
 
 impl LLMStatusWidget {
-    #[cfg(feature = "llm_simple")]
-    pub fn new(llm_manager: Option<Arc<LLMManager>>) -> Self {
-        Self { llm_manager }
-    }
-
-    #[cfg(not(feature = "llm_simple"))]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Show compact LLM status.
+    /// Show compact LLM status on the dashboard.
     pub fn show(&self, ui: &mut egui::Ui) {
-        ui.horizontal(|ui| {
-            ui.label("🤖 IA:");
-
-            #[cfg(feature = "llm_simple")]
-            {
-                if let Some(_manager) = &self.llm_manager {
-                    // In real implementation, would check status asynchronously
-                    ui.label(RichText::new("Prêt").color(Color32::GREEN));
-                } else {
-                    ui.label(RichText::new("Non configuré").color(Color32::GRAY));
-                }
-            }
-
-            #[cfg(not(feature = "llm_simple"))]
-            {
-                ui.label(RichText::new("Désactivé").color(Color32::GRAY));
-            }
+        ui.horizontal(|ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new(icons::BRAIN)
+                    .size(theme::ICON_SM)
+                    .color(theme::text_tertiary()),
+            );
+            ui.add_space(theme::SPACE_XS);
+            ui.label(
+                egui::RichText::new("IA:")
+                    .font(theme::font_small())
+                    .color(theme::text_secondary()),
+            );
+            ui.label(
+                egui::RichText::new("En attente")
+                    .font(theme::font_small())
+                    .color(theme::text_tertiary()),
+            );
         });
     }
 }
@@ -411,13 +149,11 @@ mod tests {
 
     #[test]
     fn test_llm_panel_creation() {
-        let _panel = LLMPanel::default();
-        // Fields show_analysis/show_remediation/show_classifications only exist with llm_simple feature
+        let _panel = LLMPanel;
     }
 
     #[test]
     fn test_llm_status_widget() {
-        let _widget = LLMStatusWidget::default();
-        // Widget creation test - actual rendering would need egui context
+        let _widget = LLMStatusWidget;
     }
 }

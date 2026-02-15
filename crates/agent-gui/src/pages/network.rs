@@ -150,49 +150,8 @@ impl NetworkPage {
         ui.add_space(theme::SPACE_LG);
 
         // Security section (AAA Grade)
-        widgets::card(ui, |ui: &mut egui::Ui| {
-            ui.label(
-                egui::RichText::new("ANALYSE DE SÉCURITÉ RÉSEAU")
-                    .font(theme::font_label())
-                    .color(theme::text_tertiary())
-                    .extra_letter_spacing(0.5)
-                    .strong(),
-            );
-            ui.add_space(theme::SPACE_MD);
-
-            ui.vertical_centered(|ui: &mut egui::Ui| {
-                if state.network.alert_count == 0 {
-                    widgets::protected_state(
-                        ui,
-                        icons::SHIELD_CHECK,
-                        "RÉSEAU SÉCURISÉ",
-                        "Le trafic est analysé en temps réel. Aucun flux malveillant détecté.",
-                    );
-                } else {
-                    ui.add_space(theme::SPACE_SM);
-                    ui.label(
-                        egui::RichText::new(icons::WARNING)
-                            .size(48.0)
-                            .color(theme::ERROR.linear_multiply(theme::OPACITY_DISABLED)),
-                    );
-                    ui.add_space(theme::SPACE_SM);
-                    ui.label(
-                        egui::RichText::new(format!(
-                            "{} ALERTE(S) DÉTECTÉE(S)",
-                            state.network.alert_count
-                        ))
-                        .font(theme::font_body())
-                        .color(theme::ERROR)
-                        .strong(),
-                    );
-                    ui.label(
-                        egui::RichText::new("ACTIONS DE MITIGATION REQUISES IMMÉDIATEMENT")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .extra_letter_spacing(0.5),
-                    );
-                }
-            });
+        ui.push_id("security_alerts_section", |ui: &mut egui::Ui| {
+            Self::security_alerts_section(ui, state);
         });
 
         ui.add_space(theme::SPACE_XL);
@@ -312,7 +271,7 @@ impl NetworkPage {
                                     let (label, color) = if iface.status == "up" {
                                         ("OPÉRATIONNEL", theme::SUCCESS)
                                     } else {
-                                        ("HORS-LIGNE", theme::text_tertiary())
+                                        ("HORS-LIGNE", theme::WARNING)
                                     };
                                     widgets::status_badge(ui, label, color);
                                 });
@@ -466,7 +425,7 @@ impl NetworkPage {
                                 widgets::status_badge(
                                     ui,
                                     &conn.protocol,
-                                    theme::text_tertiary(),
+                                    theme::INFO,
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {
@@ -500,7 +459,7 @@ impl NetworkPage {
                                     "ESTABLISHED" => ("ESTABLISHED", theme::SUCCESS),
                                     "LISTEN" => ("LISTEN", theme::INFO),
                                     "CLOSE_WAIT" | "TIME_WAIT" => ("CLOSED", theme::WARNING),
-                                    _ => (conn.state.as_str(), theme::text_tertiary()),
+                                    _ => (conn.state.as_str(), theme::WARNING),
                                 };
                                 widgets::status_badge(ui, label, color);
                             });
@@ -508,7 +467,7 @@ impl NetworkPage {
                                 ui.horizontal(|ui: &mut egui::Ui| {
                                     ui.label(
                                         egui::RichText::new(icons::CUBE)
-                                            .color(theme::text_tertiary()),
+                                            .color(theme::INFO),
                                     );
                                     let proc_name = conn.process_name.as_deref().unwrap_or("--");
                                     ui.label(
@@ -557,8 +516,8 @@ impl NetworkPage {
                         |ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new(icon)
-                                    .size(28.0)
-                                    .color(color.linear_multiply(theme::OPACITY_MUTED)),
+                                    .size(theme::ICON_XL)
+                                    .color(color.linear_multiply(theme::OPACITY_DISABLED)),
                             );
                         },
                     );
@@ -567,8 +526,163 @@ impl NetworkPage {
         });
     }
 
+    fn security_alerts_section(ui: &mut Ui, state: &AppState) {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("ANALYSE DE SÉCURITÉ RÉSEAU")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(0.5)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            if state.network.alerts.is_empty() && state.network.alert_count == 0 {
+                ui.vertical_centered(|ui: &mut egui::Ui| {
+                    widgets::protected_state(
+                        ui,
+                        icons::SHIELD_CHECK,
+                        "RÉSEAU SÉCURISÉ",
+                        "Le trafic est analysé en temps réel. Aucun flux malveillant détecté.",
+                    );
+                });
+            } else if state.network.alerts.is_empty() {
+                // Alerts count known but no details yet
+                ui.vertical_centered(|ui: &mut egui::Ui| {
+                    ui.add_space(theme::SPACE_SM);
+                    ui.label(
+                        egui::RichText::new(icons::WARNING)
+                            .size(48.0)
+                            .color(theme::ERROR.linear_multiply(theme::OPACITY_MEDIUM)),
+                    );
+                    ui.add_space(theme::SPACE_SM);
+                    ui.label(
+                        egui::RichText::new(format!(
+                            "{} ALERTE(S) DÉTECTÉE(S)",
+                            state.network.alert_count
+                        ))
+                        .font(theme::font_body())
+                        .color(theme::ERROR)
+                        .strong(),
+                    );
+                    ui.label(
+                        egui::RichText::new("ACTIONS DE MITIGATION REQUISES IMMÉDIATEMENT")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .extra_letter_spacing(0.5),
+                    );
+                });
+            } else {
+                // Show detailed alert rows
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new(icons::WARNING)
+                            .color(theme::ERROR),
+                    );
+                    ui.label(
+                        egui::RichText::new(format!(
+                            "{} ALERTE(S) DÉTECTÉE(S)",
+                            state.network.alerts.len()
+                        ))
+                        .font(theme::font_body())
+                        .color(theme::ERROR)
+                        .strong(),
+                    );
+                });
+                ui.add_space(theme::SPACE_SM);
+
+                for alert in state.network.alerts.iter() {
+                    Self::alert_row(ui, alert);
+                    ui.add_space(theme::SPACE_XS);
+                }
+            }
+        });
+    }
+
+    fn alert_type_label_color(alert_type: &str) -> (String, egui::Color32) {
+        match alert_type {
+            "c2" => ("C2 COMMAND".to_string(), theme::ERROR),
+            "mining" => ("CRYPTO MINING".to_string(), theme::ERROR),
+            "exfiltration" => ("EXFILTRATION".to_string(), theme::ERROR),
+            "dga" => ("DGA DÉTECTÉ".to_string(), theme::SEVERITY_HIGH),
+            "beaconing" => ("BALISE C2".to_string(), theme::SEVERITY_HIGH),
+            "port_scan" => ("SCAN PORTS".to_string(), theme::WARNING),
+            "suspicious_port" => ("PORT SUSPECT".to_string(), theme::WARNING),
+            "dns_tunneling" => ("TUNNEL DNS".to_string(), theme::SEVERITY_HIGH),
+            other => (other.to_uppercase(), theme::INFO),
+        }
+    }
+
+    fn alert_row(ui: &mut Ui, alert: &crate::dto::GuiNetworkAlert) {
+        let (type_label, type_color) = Self::alert_type_label_color(&alert.alert_type);
+
+        egui::Frame::NONE
+            .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
+            .corner_radius(egui::CornerRadius::same(theme::SPACE_XS as u8))
+            .fill(type_color.linear_multiply(theme::OPACITY_SUBTLE))
+            .stroke(egui::Stroke::new(
+                theme::BORDER_HAIRLINE,
+                type_color.linear_multiply(theme::OPACITY_MUTED),
+            ))
+            .show(ui, |ui: &mut egui::Ui| {
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    // Alert type badge
+                    widgets::status_badge(ui, &type_label, type_color);
+
+                    ui.add_space(theme::SPACE_SM);
+
+                    // Description
+                    ui.vertical(|ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new(&alert.description)
+                                .font(theme::font_body())
+                                .color(theme::text_primary()),
+                        );
+
+                        ui.horizontal(|ui: &mut egui::Ui| {
+                            // Source IP
+                            if let Some(src) = &alert.source_ip {
+                                ui.label(
+                                    egui::RichText::new(format!("SRC: {}", src))
+                                        .font(theme::font_mono())
+                                        .color(theme::text_secondary()),
+                                );
+                            }
+                            // Destination IP
+                            if let Some(dst) = &alert.destination_ip {
+                                let dst_str = if let Some(port) = alert.destination_port {
+                                    format!("DST: {}:{}", dst, port)
+                                } else {
+                                    format!("DST: {}", dst)
+                                };
+                                ui.label(
+                                    egui::RichText::new(dst_str)
+                                        .font(theme::font_mono())
+                                        .color(theme::text_secondary()),
+                                );
+                            }
+                            // Confidence
+                            ui.label(
+                                egui::RichText::new(format!("Confiance: {}%", alert.confidence))
+                                    .font(theme::font_min())
+                                    .color(theme::text_tertiary()),
+                            );
+                            // Timestamp
+                            ui.label(
+                                egui::RichText::new(
+                                    alert.detected_at.format("%H:%M:%S").to_string(),
+                                )
+                                .font(theme::font_min())
+                                .color(theme::text_tertiary()),
+                            );
+                        });
+                    });
+                });
+            });
+    }
+
     fn export_interfaces_csv(state: &AppState) -> bool {
-        let headers = &["interface", "type", "statut", "mac", "ipv4", "ipv6"];
+        let headers = &["interface", "type", "statut", "mac", "ipv4"];
         let rows: Vec<Vec<String>> = state
             .network
             .interfaces
@@ -580,7 +694,6 @@ impl NetworkPage {
                     iface.status.clone(),
                     iface.mac_address.as_deref().unwrap_or("--").to_string(),
                     iface.ipv4_addresses.join(", "),
-                    ["--".to_string()].join(", "), // IPv6 not explicitly in dto iface but can be added if needed
                 ]
             })
             .collect();

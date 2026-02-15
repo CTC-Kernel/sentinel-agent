@@ -8,7 +8,7 @@ use chrono::{DateTime, Utc};
 use egui::Ui;
 
 use crate::app::AppState;
-use crate::dto::{FimChangeType, GuiAgentStatus, UsbEventType};
+use crate::dto::{FimChangeType, GuiAgentStatus, Severity, UsbEventType};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
@@ -33,6 +33,8 @@ struct ThreatEvent {
     timestamp: DateTime<Utc>,
     /// Confidence score (only relevant for suspicious process events).
     confidence: Option<u8>,
+    /// Full command line (only relevant for suspicious process events).
+    command_line: Option<String>,
 }
 
 pub struct ThreatsPage;
@@ -57,62 +59,58 @@ impl ThreatsPage {
         let process_count = state.threats.suspicious_processes.len();
         let usb_count = state.threats.usb_events.len();
         let fim_unack_count = state.fim.alerts.iter().filter(|a| !a.acknowledged).count();
-        let risk_score = Self::compute_risk_score(state, process_count, usb_count, fim_unack_count);
+        let network_alert_count = state.network.alerts.len();
+        let risk_score = Self::compute_risk_score(
+            state,
+            process_count,
+            usb_count,
+            fim_unack_count,
+            network_alert_count,
+        );
 
-        let card_gap = theme::SPACE_SM;
-        let card_w = ((ui.available_width() - card_gap * 3.0) / 4.0).max(0.0);
-        ui.horizontal(|ui: &mut egui::Ui| {
-            ui.spacing_mut().item_spacing.x = card_gap;
-            Self::summary_card(
-                ui,
-                card_w,
+        let summary_items = vec![
+            (
                 "PROCESSUS SUSPECTS",
-                &process_count.to_string(),
-                if process_count > 0 {
-                    theme::ERROR
-                } else {
-                    theme::text_tertiary()
-                },
+                process_count.to_string(),
+                if process_count > 0 { theme::ERROR } else { theme::text_tertiary() },
                 icons::BUG,
-            );
-            Self::summary_card(
-                ui,
-                card_w,
+            ),
+            (
+                "ALERTES RÉSEAU",
+                network_alert_count.to_string(),
+                if network_alert_count > 0 { theme::SEVERITY_HIGH } else { theme::text_tertiary() },
+                icons::NETWORK,
+            ),
+            (
                 "ÉVÉNEMENTS USB",
-                &usb_count.to_string(),
-                if usb_count > 0 {
-                    theme::WARNING
-                } else {
-                    theme::text_tertiary()
-                },
+                usb_count.to_string(),
+                if usb_count > 0 { theme::WARNING } else { theme::text_tertiary() },
                 icons::PLUG,
-            );
-            Self::summary_card(
-                ui,
-                card_w,
+            ),
+            (
                 "ALERTES FIM",
-                &fim_unack_count.to_string(),
-                if fim_unack_count > 0 {
-                    theme::WARNING
-                } else {
-                    theme::text_tertiary()
-                },
+                fim_unack_count.to_string(),
+                if fim_unack_count > 0 { theme::WARNING } else { theme::text_tertiary() },
                 icons::EYE,
-            );
-            Self::summary_card(
-                ui,
-                card_w,
+            ),
+            (
                 "SCORE DE RISQUE",
-                &risk_score.to_string(),
+                risk_score.to_string(),
                 Self::risk_score_color(risk_score),
                 icons::BOLT,
-            );
+            ),
+        ];
+
+        let summary_grid = widgets::ResponsiveGrid::new(180.0, theme::SPACE_SM);
+        summary_grid.show(ui, &summary_items, |ui, width, (label, value, color, icon)| {
+            Self::summary_card(ui, width, label, value, *color, icon);
         });
 
         ui.add_space(theme::SPACE_LG);
 
         // ── Search / filter bar (AAA Grade) ─────────────────────────────
         let proc_active = state.threats.filter.as_deref() == Some("process");
+        let net_active = state.threats.filter.as_deref() == Some("network");
         let usb_active = state.threats.filter.as_deref() == Some("usb");
         let fim_active = state.threats.filter.as_deref() == Some("fim");
 
@@ -122,10 +120,11 @@ impl ThreatsPage {
             state.threats.suspicious_processes.len(),
             state.threats.usb_events.len(),
             state.fim.alerts.len(),
+            state.network.alerts.len(),
             state.threats.filter.clone(),
             state.threats.search.clone(),
         );
-        let prev_fingerprint: Option<(usize, usize, usize, Option<String>, String)> =
+        let prev_fingerprint: Option<(usize, usize, usize, usize, Option<String>, String)> =
             ui.memory(|mem| mem.data.get_temp(cache_id));
         let cached_threats_id = ui.make_persistent_id("threats_cached_list");
 
@@ -167,9 +166,10 @@ impl ThreatsPage {
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.threats.search,
-            "RECHERCHER (PROCESSUS, FICHIER, PÉRIPHÉRIQUE)...",
+            "RECHERCHER (PROCESSUS, RÉSEAU, USB, FICHIER)...",
         )
         .chip("PROCESSUS", proc_active, theme::ERROR)
+        .chip("RÉSEAU", net_active, theme::SEVERITY_HIGH)
         .chip("USB", usb_active, theme::WARNING)
         .chip("FIM", fim_active, theme::INFO)
         .result_count(result_count)
@@ -178,8 +178,9 @@ impl ThreatsPage {
         if let Some(idx) = toggled {
             let target = match idx {
                 0 => Some("process"),
-                1 => Some("usb"),
-                2 => Some("fim"),
+                1 => Some("network"),
+                2 => Some("usb"),
+                3 => Some("fim"),
                 _ => None,
             };
             if state.threats.filter.as_deref() == target {
@@ -284,32 +285,41 @@ impl ThreatsPage {
     /// Critical processes have the highest weight (40 points each),
     /// followed by unacknowledged FIM alerts (15 points each),
     /// then USB events (5 points each), then regular suspicious processes (10 points each).
-    fn compute_risk_score(state: &AppState, processes: usize, usb: usize, fim_unack: usize) -> u32 {
-        // Count critical processes (those with high severity indicators)
-        let critical_processes = state.threats.suspicious_processes
+    fn compute_risk_score(
+        state: &AppState,
+        processes: usize,
+        usb: usize,
+        fim_unack: usize,
+        network_alerts: usize,
+    ) -> u32 {
+        // Count critical processes (confidence > 80)
+        let critical_processes = state
+            .threats
+            .suspicious_processes
             .iter()
-            .filter(|p| {
-                // Consider processes with critical indicators: system processes, high CPU/memory, network connections
-                p.process_name.to_lowercase().contains("system") ||
-                p.process_name.to_lowercase().contains("kernel") ||
-                p.process_name.to_lowercase().contains("root") ||
-                p.process_name.to_lowercase().contains("admin") ||
-                // Note: cpu_percent, memory_percent, and has_network_connection
-                // fields don't exist in GuiSuspiciousProcess, so we'll use
-                // confidence as a proxy for criticality
-                p.confidence > 80
-            })
+            .filter(|p| p.confidence > 80)
             .count();
-        
+
         let regular_processes = processes.saturating_sub(critical_processes);
-        
-        // Weighted formula with critical process prioritization
+
+        // Count critical network alerts (C2, exfiltration, mining)
+        let critical_net = state
+            .network
+            .alerts
+            .iter()
+            .filter(|a| matches!(a.severity, Severity::Critical))
+            .count();
+        let regular_net = network_alerts.saturating_sub(critical_net);
+
+        // Weighted formula with critical event prioritization
         let raw = (critical_processes as u32)
-            .saturating_mul(40)  // Critical processes: highest weight
-            .saturating_add((regular_processes as u32).saturating_mul(10))  // Regular processes
-            .saturating_add((fim_unack as u32).saturating_mul(15))  // FIM alerts
-            .saturating_add((usb as u32).saturating_mul(5));  // USB events
-        
+            .saturating_mul(40) // Critical processes: highest weight
+            .saturating_add((critical_net as u32).saturating_mul(35)) // Critical network alerts
+            .saturating_add((regular_processes as u32).saturating_mul(10)) // Regular processes
+            .saturating_add((regular_net as u32).saturating_mul(12)) // Regular network alerts
+            .saturating_add((fim_unack as u32).saturating_mul(15)) // FIM alerts
+            .saturating_add((usb as u32).saturating_mul(5)); // USB events
+
         raw.min(100)
     }
 
@@ -348,6 +358,7 @@ impl ThreatsPage {
                 description: p.reason.clone(),
                 timestamp: p.detected_at,
                 confidence: Some(p.confidence),
+                command_line: Some(p.command_line.clone()),
             });
         }
 
@@ -367,6 +378,7 @@ impl ThreatsPage {
                 ),
                 timestamp: u.timestamp,
                 confidence: None,
+                command_line: None,
             });
         }
 
@@ -393,6 +405,33 @@ impl ThreatsPage {
                 ),
                 timestamp: f.timestamp,
                 confidence: None,
+                command_line: None,
+            });
+        }
+
+        // Network security alerts
+        for alert in &state.network.alerts {
+            let severity = alert.severity.as_str();
+            let title = Self::network_alert_type_label(&alert.alert_type);
+            let mut desc_parts = vec![alert.description.clone()];
+            if let Some(ref src) = alert.source_ip {
+                desc_parts.push(format!("SRC: {}", src));
+            }
+            if let Some(ref dst) = alert.destination_ip {
+                if let Some(port) = alert.destination_port {
+                    desc_parts.push(format!("DST: {}:{}", dst, port));
+                } else {
+                    desc_parts.push(format!("DST: {}", dst));
+                }
+            }
+            events.push(ThreatEvent {
+                kind: "network",
+                severity,
+                title,
+                description: desc_parts.join(" \u{2014} "),
+                timestamp: alert.detected_at,
+                confidence: Some(alert.confidence),
+                command_line: None,
             });
         }
 
@@ -417,7 +456,7 @@ impl ThreatsPage {
             "high" => (icons::SEVERITY_HIGH, theme::SEVERITY_HIGH),
             "medium" => (icons::SEVERITY_MEDIUM, theme::WARNING),
             "low" => (icons::SEVERITY_LOW, theme::INFO),
-            _ => (icons::SEVERITY_LOW, theme::text_tertiary()),
+            _ => (icons::SEVERITY_LOW, theme::WARNING),
         }
     }
 
@@ -425,9 +464,25 @@ impl ThreatsPage {
     fn kind_badge(kind: &str) -> (&'static str, egui::Color32) {
         match kind {
             "process" => ("PROCESSUS", theme::ERROR),
+            "network" => ("R\u{00c9}SEAU", theme::SEVERITY_HIGH),
             "usb" => ("USB", theme::WARNING),
             "fim" => ("FIM", theme::INFO),
-            _ => ("AUTRE", theme::text_tertiary()),
+            _ => ("AUTRE", theme::WARNING),
+        }
+    }
+
+    /// French label for a network alert type.
+    fn network_alert_type_label(alert_type: &str) -> String {
+        match alert_type {
+            "c2" => "Commande & Contr\u{00f4}le (C2)".to_string(),
+            "mining" => "Crypto-minage d\u{00e9}tect\u{00e9}".to_string(),
+            "exfiltration" => "Exfiltration de donn\u{00e9}es".to_string(),
+            "dga" => "Domaine DGA d\u{00e9}tect\u{00e9}".to_string(),
+            "beaconing" => "Balise C2 d\u{00e9}tect\u{00e9}e".to_string(),
+            "port_scan" => "Scan de ports".to_string(),
+            "suspicious_port" => "Port suspect".to_string(),
+            "dns_tunneling" => "Tunnel DNS d\u{00e9}tect\u{00e9}".to_string(),
+            other => other.replace('_', " ").to_uppercase(),
         }
     }
 
@@ -463,7 +518,7 @@ impl ThreatsPage {
 
                     ui.add_space(theme::SPACE_SM);
 
-                    // Title + description
+                    // Title + description + command line
                     ui.vertical(|ui: &mut egui::Ui| {
                         ui.label(
                             egui::RichText::new(&threat.title)
@@ -476,6 +531,15 @@ impl ThreatsPage {
                                 .font(theme::font_min())
                                 .color(theme::text_secondary()),
                         );
+                        if let Some(ref cmd) = threat.command_line
+                            && !cmd.is_empty()
+                        {
+                            ui.label(
+                                egui::RichText::new(cmd)
+                                    .font(theme::font_mono())
+                                    .color(theme::text_tertiary()),
+                            );
+                        }
                     });
 
                     // Right side: timestamp + optional confidence
@@ -573,7 +637,7 @@ impl ThreatsPage {
                             let icon_alpha = if response.hovered() {
                                 theme::OPACITY_MEDIUM
                             } else {
-                                theme::OPACITY_MUTED
+                                theme::OPACITY_DISABLED
                             };
                             ui.label(
                                 egui::RichText::new(icon)
@@ -791,7 +855,18 @@ impl ThreatsPage {
                 threat.title.hash(&mut hasher);
                 let seed = hasher.finish();
 
-                let t_angle = (seed % 360) as f32 * (std::f32::consts::PI / 180.0);
+                // Sector base angle: PROCESSUS=N(-90°), USB=E(0°), FIM=S(90°), RÉSEAU=W(180°)
+                let sector_base = match threat.kind {
+                    "process" => -TAU / 4.0,
+                    "usb" => 0.0,
+                    "fim" => TAU / 4.0,
+                    "network" => TAU / 2.0,
+                    _ => 0.0,
+                };
+                // Scatter within ±40° of sector center
+                let scatter =
+                    ((seed % 1000) as f32 / 1000.0 - 0.5) * (TAU / 4.5);
+                let t_angle = sector_base + scatter;
 
                 // Severity → distance from center (critical = near center = danger zone)
                 let (dist_min, dist_max) = match threat.severity {
