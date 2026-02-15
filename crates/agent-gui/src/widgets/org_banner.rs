@@ -198,7 +198,12 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                             egui::Rect::from_min_size(ui.cursor().min, Vec2::new(24.0, 18.0));
 
                         let rounding = CornerRadius::same(9);
-                        let bg = theme::badge_bg(theme::INFO).linear_multiply(theme::OPACITY_PRESSED + theme::OPACITY_MODERATE * pulse);
+                        let base_bg = theme::badge_bg(theme::INFO);
+                        let fade = theme::OPACITY_PRESSED + theme::OPACITY_MODERATE * pulse;
+                        let bg = egui::Color32::from_rgba_unmultiplied(
+                            base_bg.r(), base_bg.g(), base_bg.b(),
+                            (255.0 * fade).clamp(0.0, 255.0) as u8,
+                        );
                         ui.painter().rect_filled(badge_rect, rounding, bg);
                         ui.painter().rect_stroke(
                             badge_rect,

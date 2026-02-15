@@ -499,23 +499,17 @@ pub fn chip_button(ui: &mut Ui, text: &str, active: bool, color: Color32) -> Res
     if ui.is_rect_visible(rect) {
         let is_hovered = response.hovered();
 
-        let (bg, stroke, fg) = if active {
+        let (bg, stroke, fg) = if active || is_hovered {
             (
                 theme::badge_bg(color),
                 Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(color)),
                 text_col,
             )
-        } else if is_hovered {
-            (
-                theme::badge_bg(color),
-                Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(color).linear_multiply(theme::OPACITY_HOVER_SOFT)),
-                text_col,
-            )
         } else {
             (
                 Color32::TRANSPARENT,
-                Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(color).linear_multiply(theme::OPACITY_DISABLED)),
-                text_col.linear_multiply(theme::OPACITY_PRESSED),
+                Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(color)),
+                theme::text_tertiary(),
             )
         };
 

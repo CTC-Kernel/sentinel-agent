@@ -72,11 +72,7 @@ impl<'a> SearchFilterBar<'a> {
                     )
                 };
 
-                let border_color = if *active {
-                    theme::badge_border(*color)
-                } else {
-                    theme::badge_border(*color).linear_multiply(theme::OPACITY_MEDIUM)
-                };
+                let border_color = theme::badge_border(*color);
 
                 let btn = egui::Button::new(
                     egui::RichText::new(*label)

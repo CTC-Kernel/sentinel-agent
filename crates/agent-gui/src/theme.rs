@@ -260,13 +260,27 @@ pub const BADGE_ROUNDING: u8 = 100;
 // Badge color helpers — Apple-inspired soft tinted badges
 // ============================================================================
 
-/// Badge background: soft tinted wash of the semantic color.
+/// Blend a semantic color into a base at a given ratio (opaque result).
+#[inline]
+fn color_blend(base: Color32, tint: Color32, ratio: f32) -> Color32 {
+    let inv = 1.0 - ratio;
+    Color32::from_rgb(
+        (base.r() as f32 * inv + tint.r() as f32 * ratio) as u8,
+        (base.g() as f32 * inv + tint.g() as f32 * ratio) as u8,
+        (base.b() as f32 * inv + tint.b() as f32 * ratio) as u8,
+    )
+}
+
+/// Badge background: opaque soft tinted wash of the semantic color.
+///
+/// Dark mode: tint blended into dark surface (visible but muted).
+/// Light mode: tint blended into white surface (pastel wash).
 #[inline]
 pub fn badge_bg(color: Color32) -> Color32 {
     if is_dark_mode() {
-        color.linear_multiply(0.15)
+        color_blend(bg_tertiary(), color, 0.18)
     } else {
-        color.linear_multiply(0.10)
+        color_blend(Color32::WHITE, color, 0.12)
     }
 }
 
@@ -287,13 +301,13 @@ pub fn badge_text(color: Color32) -> Color32 {
     }
 }
 
-/// Badge border: subtle definition line.
+/// Badge border: subtle opaque definition line.
 #[inline]
 pub fn badge_border(color: Color32) -> Color32 {
     if is_dark_mode() {
-        color.linear_multiply(0.25)
+        color_blend(bg_tertiary(), color, 0.30)
     } else {
-        color.linear_multiply(0.20)
+        color_blend(Color32::WHITE, color, 0.25)
     }
 }
 
