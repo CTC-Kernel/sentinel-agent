@@ -65,7 +65,7 @@ impl VulnerabilitiesPage {
                                 if !search_lower.is_empty() {
                                     let haystack = format!(
                                         "{} {} {}",
-                                        f.cve_id.to_lowercase(),
+                                        f.cve_id.as_deref().unwrap_or("").to_lowercase(),
                                         f.affected_software.to_lowercase(),
                                         f.description.to_lowercase()
                                     );
@@ -368,12 +368,13 @@ impl VulnerabilitiesPage {
                     widgets::DetailAction::secondary("Exporter", icons::DOWNLOAD),
                 ];
 
-                let drawer_action = widgets::DetailDrawer::new("vuln_detail", &finding.cve_id, icons::VULNERABILITIES)
+                let cve_display = finding.cve_id.as_deref().unwrap_or("Non référencé");
+                let drawer_action = widgets::DetailDrawer::new("vuln_detail", cve_display, icons::VULNERABILITIES)
                     .accent(sev_color)
                     .subtitle(&finding.affected_software)
                     .show(ui.ctx(), &mut state.vulnerability.detail_open, |ui| {
                         widgets::detail_section(ui, "VULN\u{00c9}RABILIT\u{00c9}");
-                        widgets::detail_mono(ui, "CVE ID", &finding.cve_id);
+                        widgets::detail_mono(ui, "CVE ID", cve_display);
                         widgets::detail_field(ui, "Logiciel affect\u{00e9}", &finding.affected_software);
                         widgets::detail_field(ui, "Version affect\u{00e9}e", &finding.affected_version);
                         widgets::detail_field_badge(ui, "S\u{00e9}v\u{00e9}rit\u{00e9}", sev_label, sev_color);
@@ -397,7 +398,7 @@ impl VulnerabilitiesPage {
                     match action_idx {
                         0 => {
                             command = Some(GuiCommand::Remediate {
-                                check_id: finding.cve_id.clone(),
+                                check_id: finding.cve_id.clone().unwrap_or_default(),
                             });
                         }
                         1 => {
@@ -430,7 +431,7 @@ impl VulnerabilitiesPage {
                 if !search_lower.is_empty() {
                     let haystack = format!(
                         "{} {} {}",
-                        f.cve_id.to_lowercase(),
+                        f.cve_id.as_deref().unwrap_or("").to_lowercase(),
                         f.affected_software.to_lowercase(),
                         f.description.to_lowercase()
                     );
@@ -540,8 +541,9 @@ impl VulnerabilitiesPage {
                         let finding = &state.vulnerability_findings[real_idx];
 
                         row.col(|ui: &mut egui::Ui| {
+                            let cve_label = finding.cve_id.as_deref().unwrap_or("Non référencé");
                             let response = ui.label(
-                                egui::RichText::new(&finding.cve_id)
+                                egui::RichText::new(cve_label)
                                     .font(egui::FontId::monospace(12.0))
                                     .color(theme::ACCENT_LIGHT)
                                     .strong(),
@@ -698,7 +700,7 @@ impl VulnerabilitiesPage {
             .map(|&i| {
                 let f = &state.vulnerability_findings[i];
                 vec![
-                    f.cve_id.clone(),
+                    f.cve_id.clone().unwrap_or_default(),
                     f.affected_software.clone(),
                     f.affected_version.clone(),
                     f.severity.to_string(),

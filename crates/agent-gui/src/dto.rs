@@ -461,8 +461,8 @@ pub struct GuiMacOsApp {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub struct GuiVulnerabilityFinding {
-    /// CVE identifier.
-    pub cve_id: String,
+    /// CVE identifier (None if no CVE is associated).
+    pub cve_id: Option<String>,
     /// Affected software name.
     pub affected_software: String,
     /// Affected version.
