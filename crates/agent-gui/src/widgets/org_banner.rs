@@ -256,10 +256,14 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                     )
                     .clicked()
                     {
-                        // Open browser to console URL
+                        // Open browser to console URL (only https)
                         let console_url = format!("{}/dashboard", state.settings.server_url);
-                        if let Err(e) = open::that(&console_url) {
-                            tracing::warn!("Failed to open URL {}: {}", console_url, e);
+                        if console_url.starts_with("https://") {
+                            if let Err(e) = open::that(&console_url) {
+                                tracing::warn!("Failed to open URL {}: {}", console_url, e);
+                            }
+                        } else {
+                            tracing::warn!("Refused to open non-HTTPS URL: {}", console_url);
                         }
                     }
 

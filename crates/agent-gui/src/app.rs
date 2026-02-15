@@ -335,20 +335,13 @@ impl SentinelApp {
 
                     // Radar Chart Section
                     ui.vertical(|ui: &mut egui::Ui| {
-                        let compliance = self.state.summary.compliance_score.unwrap_or(0.0) / 100.0;
-                        let threats = 1.0
-                            - (self.state.threats.suspicious_processes.len() as f32 / 10.0)
-                                .min(1.0);
-                        let vulns =
-                            1.0 - (self.state.vulnerability_findings.len() as f32 / 20.0).min(1.0);
-                        let resources = 1.0 - (self.state.resources.cpu_percent / 100.0).min(1.0);
-                        let network = 1.0 - (self.state.network.alert_count as f32 / 5.0).min(1.0);
+                        let (compliance, threats, vulns, resources, network) = self.state.radar_scores();
 
                         let radar = widgets::TrayRadar::new(
                             compliance,
                             threats,
                             vulns,
-                            resources as f32,
+                            resources,
                             network,
                         );
                         radar.show(ui, 240.0);
