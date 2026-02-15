@@ -362,6 +362,11 @@ impl SettingsPage {
 
         ui.add_space(theme::SPACE);
 
+        // SIEM Forwarding status (AAA Grade)
+        Self::siem_card(ui, state);
+
+        ui.add_space(theme::SPACE);
+
         // Bottom cards section with responsive layout
         Self::show_bottom_cards(ui, state, &mut command);
 
@@ -431,7 +436,7 @@ impl SettingsPage {
             Self::setting_row(
                 ui,
                 "ENDPOINT",
-                "https://app.cyber-threat-consulting.com/agentApi",
+                &state.settings.server_url,
                 icons::ARROW_RIGHT,
             );
             if let Some(ref id) = state.summary.agent_id {
@@ -711,6 +716,75 @@ impl SettingsPage {
                     );
                 },
             );
+        });
+    }
+
+    fn siem_card(ui: &mut Ui, state: &AppState) {
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            ui.horizontal(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new(format!(
+                        "{}  INTEGRATION SIEM",
+                        icons::SHARE_NODES
+                    ))
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(0.5)
+                    .strong(),
+                );
+
+                ui.with_layout(
+                    egui::Layout::right_to_left(egui::Align::Center),
+                    |ui: &mut egui::Ui| {
+                        if state.settings.siem_enabled {
+                            ui.label(
+                                egui::RichText::new(format!("{}  ACTIF", icons::CIRCLE_CHECK))
+                                    .font(theme::font_label())
+                                    .color(theme::SUCCESS)
+                                    .strong(),
+                            );
+                        } else {
+                            ui.label(
+                                egui::RichText::new(format!("{}  INACTIF", icons::WARNING))
+                                    .font(theme::font_label())
+                                    .color(theme::WARNING)
+                                    .strong(),
+                            );
+                        }
+                    },
+                );
+            });
+
+            ui.add_space(theme::SPACE_MD);
+
+            if state.settings.siem_enabled {
+                Self::setting_row(
+                    ui,
+                    "FORMAT",
+                    &state.settings.siem_format,
+                    icons::ARROW_RIGHT,
+                );
+                Self::setting_row(
+                    ui,
+                    "TRANSPORT",
+                    &state.settings.siem_transport,
+                    icons::ARROW_RIGHT,
+                );
+                Self::setting_row(
+                    ui,
+                    "DESTINATION",
+                    &state.settings.siem_destination,
+                    icons::ARROW_RIGHT,
+                );
+            } else {
+                ui.label(
+                    egui::RichText::new(
+                        "Le transfert SIEM n'est pas configur\u{00e9}. Configurez-le dans le fichier de configuration de l'agent.",
+                    )
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary()),
+                );
+            }
         });
     }
 }

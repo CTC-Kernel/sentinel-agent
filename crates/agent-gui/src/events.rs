@@ -7,9 +7,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::dto::{
-    AgentSummary, GuiCheckResult, GuiNetworkConnection, GuiNetworkInterface, GuiNotification,
-    GuiResourceUsage, GuiSoftwarePackage, GuiVulnerabilityFinding, GuiVulnerabilitySummary,
-    UpdateStatus,
+    AgentSummary, GuiCheckResult, GuiNetworkAlert, GuiNetworkConnection, GuiNetworkInterface,
+    GuiNotification, GuiResourceUsage, GuiSoftwarePackage, GuiVulnerabilityFinding,
+    GuiVulnerabilitySummary, UpdateStatus,
 };
 
 /// A single terminal log entry captured from the tracing subsystem.
@@ -79,6 +79,11 @@ pub enum AgentEvent {
         interfaces: Vec<GuiNetworkInterface>,
         /// Active network connections.
         connections: Vec<GuiNetworkConnection>,
+    },
+    /// Network security alert detected.
+    NetworkSecurityAlert {
+        /// The alert.
+        alert: GuiNetworkAlert,
     },
     /// Enrollment completed (success or failure).
     EnrollmentResult {
@@ -151,6 +156,17 @@ pub enum AgentEvent {
     UpdateStatusChanged {
         /// Updated update status.
         status: UpdateStatus,
+    },
+    /// SIEM configuration status.
+    SiemConfigUpdate {
+        /// Whether the SIEM forwarder is enabled.
+        enabled: bool,
+        /// Output format (CEF, LEEF, JSON).
+        format: String,
+        /// Transport protocol (Syslog, HTTP).
+        transport: String,
+        /// Destination address (host:port or URL).
+        destination: String,
     },
 }
 

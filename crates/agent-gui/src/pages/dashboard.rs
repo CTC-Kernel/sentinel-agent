@@ -6,7 +6,6 @@ use crate::app::AppState;
 use crate::dto::GuiAgentStatus;
 use crate::events::GuiCommand;
 use crate::icons;
-#[cfg(feature = "llm_simple")]
 use crate::llm_panel::LLMStatusWidget;
 use crate::theme;
 use crate::widgets;
@@ -500,20 +499,17 @@ impl DashboardPage {
             );
 
             // LLM Status
-            #[cfg(feature = "llm_simple")]
-            {
-                ui.add_space(theme::SPACE_SM);
-                ui.label(
-                    egui::RichText::new("INTELLIGENCE IA")
-                        .font(theme::font_label())
-                        .color(theme::text_tertiary())
-                        .strong(),
-                );
-                ui.add_space(theme::SPACE_SM);
+            ui.add_space(theme::SPACE_SM);
+            ui.label(
+                egui::RichText::new("INTELLIGENCE IA")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_SM);
 
-                let llm_widget = LLMStatusWidget::new(None);
-                llm_widget.show(ui);
-            }
+            let llm_widget = LLMStatusWidget;
+            llm_widget.show(ui);
         });
 
         command

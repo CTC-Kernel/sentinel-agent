@@ -687,8 +687,10 @@ impl AgentRuntime {
                 // Run initial network security detection
                 match self.run_network_security_detection(&snapshot).await {
                     Ok(alerts) => {
-                        for alert in alerts {
-                            if let Err(e) = self.upload_network_alert(&alert).await {
+                        for alert in &alerts {
+                            #[cfg(feature = "gui")]
+                            self.emit_network_security_alert_to_gui(alert);
+                            if let Err(e) = self.upload_network_alert(alert).await {
                                 warn!("Failed to upload network alert: {}", e);
                             }
                         }
@@ -720,8 +722,38 @@ impl AgentRuntime {
         // Initialize SIEM forwarder with default config (disabled)
         {
             let config = agent_siem::SiemConfig::default();
+
+            // Extract GUI-relevant fields before config is moved
+            #[cfg(feature = "gui")]
+            let siem_gui_info = {
+                let format_str = match config.format {
+                    agent_siem::SiemFormat::Cef => "CEF",
+                    agent_siem::SiemFormat::Leef => "LEEF",
+                    agent_siem::SiemFormat::Json => "JSON",
+                };
+                let (transport_str, destination_str) = match &config.transport {
+                    agent_siem::SiemTransport::Syslog { host, port, .. } => {
+                        ("Syslog".to_string(), format!("{}:{}", host, port))
+                    }
+                    agent_siem::SiemTransport::Http { url, .. } => {
+                        ("HTTP".to_string(), url.clone())
+                    }
+                };
+                (config.enabled, format_str.to_string(), transport_str, destination_str)
+            };
+
             match SiemForwarder::new(config) {
                 Ok(forwarder) => {
+                    #[cfg(feature = "gui")]
+                    {
+                        let (enabled, format, transport, destination) = siem_gui_info;
+                        self.emit_gui_event(agent_gui::events::AgentEvent::SiemConfigUpdate {
+                            enabled,
+                            format,
+                            transport,
+                            destination,
+                        });
+                    }
                     let mut siem_guard = self.siem_forwarder.write().await;
                     *siem_guard = Some(forwarder);
                     info!("SIEM forwarder initialized (disabled by default)");
@@ -1134,8 +1166,10 @@ impl AgentRuntime {
                                 {
                                     alert_count = u32::try_from(alerts.len()).unwrap_or(u32::MAX);
                                 }
-                                for alert in alerts {
-                                    if let Err(e) = self.upload_network_alert(&alert).await {
+                                for alert in &alerts {
+                                    #[cfg(feature = "gui")]
+                                    self.emit_network_security_alert_to_gui(alert);
+                                    if let Err(e) = self.upload_network_alert(alert).await {
                                         warn!("Failed to upload network alert: {}", e);
                                     }
                                 }

@@ -10,9 +10,9 @@ use agent_common::constants::AGENT_VERSION;
 use agent_common::types::CheckSeverity;
 #[cfg(feature = "gui")]
 use agent_gui::dto::{
-    AgentSummary, GuiAgentStatus, GuiCheckResult, GuiCheckStatus, GuiNetworkConnection,
-    GuiNetworkInterface, GuiNotification, GuiPolicySummary, GuiResourceUsage, GuiSoftwarePackage,
-    GuiVulnerabilityFinding, Severity as GuiSeverity,
+    AgentSummary, GuiAgentStatus, GuiCheckResult, GuiCheckStatus, GuiNetworkAlert,
+    GuiNetworkConnection, GuiNetworkInterface, GuiNotification, GuiPolicySummary,
+    GuiResourceUsage, GuiSoftwarePackage, GuiVulnerabilityFinding, Severity as GuiSeverity,
 };
 #[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;
@@ -308,5 +308,60 @@ impl AgentRuntime {
             .collect();
 
         (interfaces, connections)
+    }
+
+    /// Emit a GUI alert from a `NetworkSecurityAlert`.
+    pub(crate) fn emit_network_security_alert_to_gui(
+        &self,
+        alert: &agent_network::NetworkSecurityAlert,
+    ) {
+        use agent_network::types::{AlertSeverity, NetworkAlertType};
+
+        let alert_type = match alert.alert_type {
+            NetworkAlertType::C2Communication => "c2",
+            NetworkAlertType::CryptoMining => "mining",
+            NetworkAlertType::DataExfiltration => "exfiltration",
+            NetworkAlertType::SuspiciousPort => "suspicious_port",
+            NetworkAlertType::MaliciousDestination => "c2",
+            NetworkAlertType::DnsTunneling => "dns_tunneling",
+            NetworkAlertType::AnonymizationNetwork => "suspicious_port",
+            NetworkAlertType::ConnectionAnomaly => "beaconing",
+        };
+
+        let severity = match alert.severity {
+            AlertSeverity::Critical => "critical",
+            AlertSeverity::High => "high",
+            AlertSeverity::Medium => "medium",
+            AlertSeverity::Low => "low",
+        };
+
+        let (source_ip, destination_ip, destination_port) =
+            if let Some(conn) = &alert.connection {
+                (
+                    Some(conn.local_address.clone()),
+                    conn.remote_address.clone(),
+                    conn.remote_port,
+                )
+            } else {
+                (None, None, None)
+            };
+
+        self.emit_gui_event(AgentEvent::NetworkSecurityAlert {
+            alert: GuiNetworkAlert {
+                alert_type: alert_type.to_string(),
+                severity: match severity {
+                    "critical" => GuiSeverity::Critical,
+                    "high" => GuiSeverity::High,
+                    "medium" => GuiSeverity::Medium,
+                    _ => GuiSeverity::Low,
+                },
+                description: alert.description.clone(),
+                source_ip,
+                destination_ip,
+                destination_port,
+                confidence: alert.confidence,
+                detected_at: chrono::Utc::now(),
+            },
+        });
     }
 }

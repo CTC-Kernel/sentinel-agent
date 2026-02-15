@@ -273,6 +273,7 @@ impl DiscoveryPage {
                     .column(Column::initial(140.0).at_least(100.0)) // Vendor
                     .column(Column::initial(100.0).at_least(80.0)) // Type
                     .column(Column::initial(120.0).at_least(80.0)) // Ports
+                    .column(Column::initial(110.0).at_least(90.0)) // Last seen
                     .column(Column::remainder()); // Actions
 
                 table
@@ -325,6 +326,15 @@ impl DiscoveryPage {
                         header.col(|ui: &mut egui::Ui| {
                             ui.label(
                                 egui::RichText::new("SERVICES")
+                                    .font(theme::font_label())
+                                    .color(theme::text_tertiary())
+                                    .strong()
+                                    .extra_letter_spacing(0.5),
+                            );
+                        });
+                        header.col(|ui: &mut egui::Ui| {
+                            ui.label(
+                                egui::RichText::new("DERNIÈRE VUE")
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary())
                                     .strong()
@@ -403,6 +413,28 @@ impl DiscoveryPage {
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {
+                                let ago = chrono::Utc::now()
+                                    .signed_duration_since(device.last_seen);
+                                let text = if ago.num_hours() < 1 {
+                                    format!("il y a {}m", ago.num_minutes().max(1))
+                                } else if ago.num_hours() < 24 {
+                                    format!("il y a {}h", ago.num_hours())
+                                } else {
+                                    device.last_seen.format("%d/%m %H:%M").to_string()
+                                };
+                                ui.label(
+                                    egui::RichText::new(text)
+                                        .font(theme::font_small())
+                                        .color(if ago.num_hours() < 1 {
+                                            theme::SUCCESS
+                                        } else if ago.num_hours() < 24 {
+                                            theme::WARNING
+                                        } else {
+                                            theme::text_secondary()
+                                        }),
+                                );
+                            });
+                            row.col(|ui: &mut egui::Ui| {
                                 if widgets::chip_button(
                                     ui,
                                     &format!("{}  COPIER IP", icons::COPY),
@@ -459,11 +491,11 @@ fn device_type_badge(device_type: &str) -> (&str, egui::Color32) {
     match device_type {
         "router" => ("ROUTEUR", theme::ACCENT),
         "server" => ("SERVEUR", theme::SUCCESS),
-        "workstation" => ("POSTE", theme::text_primary()),
-        "printer" => ("IMPRIMANTE", theme::text_tertiary()),
+        "workstation" => ("POSTE", theme::INFO),
+        "printer" => ("IMPRIMANTE", theme::INFO),
         "iot" => ("IOT", theme::WARNING),
         "phone" => ("TÉLÉPHONE", theme::ACCENT_LIGHT),
         "switch" => ("SWITCH", theme::INFO),
-        _ => ("INCONNU", theme::text_secondary()),
+        _ => ("INCONNU", theme::WARNING),
     }
 }

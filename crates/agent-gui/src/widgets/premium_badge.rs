@@ -129,7 +129,7 @@ impl StatusBadge {
             StatusLevel::Warning => theme::WARNING,
             StatusLevel::Error => theme::ERROR,
             StatusLevel::Info => theme::INFO,
-            StatusLevel::Neutral => theme::text_tertiary(),
+            StatusLevel::Neutral => theme::INFO,
         };
 
         PremiumBadge::new(self.status)

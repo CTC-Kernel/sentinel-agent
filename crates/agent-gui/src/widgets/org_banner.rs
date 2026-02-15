@@ -65,7 +65,7 @@ pub fn org_banner(ui: &mut Ui, state: &AppState) -> Option<GuiCommand> {
                     } else if state.summary.status == GuiAgentStatus::Disconnected {
                         theme::WARNING
                     } else {
-                        theme::text_tertiary()
+                        theme::INFO
                     };
 
                     // Animated status dot
