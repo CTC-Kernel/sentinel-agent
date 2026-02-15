@@ -21,6 +21,10 @@ use tracing::debug;
 /// Check ID for antivirus status.
 pub const CHECK_ID: &str = "antivirus_active";
 
+/// Maximum age in days for antivirus definitions to be considered current.
+#[cfg(target_os = "windows")]
+const MAX_DEFINITION_AGE_DAYS: i64 = 7;
+
 /// Antivirus status details.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AntivirusStatus {
