@@ -188,8 +188,16 @@ impl DiscoveryPage {
 
         ui.add_space(theme::SPACE_MD);
 
-        // Search / filter (AAA Grade)
-        let search_upper = state.discovery.search.to_uppercase();
+        let search_id = ui.id().with("discovery_search_cache");
+        let search_upper: String = ui.memory(|mem| {
+            mem.data.get_temp::<(String, String)>(search_id)
+                .filter(|(orig, _)| orig == &state.discovery.search)
+                .map(|(_, upper)| upper)
+        }).unwrap_or_else(|| {
+            let upper = state.discovery.search.to_uppercase();
+            ui.memory_mut(|mem| mem.data.insert_temp(search_id, (state.discovery.search.clone(), upper.clone())));
+            upper
+        });
         let filtered: Vec<usize> = state
             .discovery
             .devices
@@ -353,7 +361,11 @@ impl DiscoveryPage {
                     })
                     .body(|body| {
                         body.rows(48.0, filtered.len(), |mut row| {
-                            let device = &state.discovery.devices[filtered[row.index()]];
+                            let row_idx = row.index();
+                            let dev_idx = filtered[row_idx];
+                            let device = &state.discovery.devices[dev_idx];
+
+                            row.set_selected(state.discovery.selected_device == Some(dev_idx));
 
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
@@ -446,6 +458,11 @@ impl DiscoveryPage {
                                     ui.ctx().copy_text(device.ip.clone());
                                 }
                             });
+
+                            if row.response().clicked() {
+                                state.discovery.selected_device = Some(dev_idx);
+                                state.discovery.detail_open = true;
+                            }
                         });
                     });
             });
@@ -453,7 +470,74 @@ impl DiscoveryPage {
 
         ui.add_space(theme::SPACE_XL);
 
+        Self::detail_drawer(ui, state);
+
         cmd
+    }
+
+    fn detail_drawer(ui: &mut Ui, state: &mut AppState) {
+        let selected = match state.discovery.selected_device {
+            Some(idx) if idx < state.discovery.devices.len() => idx,
+            _ => return,
+        };
+
+        let device = &state.discovery.devices[selected];
+        let ip = device.ip.clone();
+        let mac = device.mac.clone();
+        let hostname = device.hostname.clone();
+        let vendor = device.vendor.clone();
+        let device_type = device.device_type.clone();
+        let subnet = device.subnet.clone();
+        let is_gateway = device.is_gateway;
+        let open_ports = device.open_ports.clone();
+        let first_seen = device.first_seen.format("%d/%m/%Y %H:%M").to_string();
+        let last_seen = device.last_seen.format("%d/%m/%Y %H:%M").to_string();
+        let (type_label, type_color) = device_type_badge(&device_type);
+
+        let actions = [
+            widgets::DetailAction::primary("Scanner les ports", icons::SEARCH),
+            widgets::DetailAction::danger("Bloquer", icons::LOCK),
+        ];
+
+        let _action = widgets::DetailDrawer::new("discovery_detail", "Appareil", icons::NETWORK)
+            .accent(type_color)
+            .subtitle(&ip)
+            .show(ui.ctx(), &mut state.discovery.detail_open, |ui| {
+                widgets::detail_section(ui, "APPAREIL DÉCOUVERT");
+                widgets::detail_mono(ui, "Adresse IP", &ip);
+                if let Some(ref m) = mac {
+                    widgets::detail_mono(ui, "Adresse MAC", m);
+                }
+                if let Some(ref h) = hostname {
+                    widgets::detail_field(ui, "Nom d'hôte", h);
+                }
+                if let Some(ref v) = vendor {
+                    widgets::detail_field(ui, "Fournisseur", v);
+                }
+                widgets::detail_field_badge(ui, "Type d'appareil", type_label, type_color);
+                widgets::detail_mono(ui, "Sous-réseau", &subnet);
+
+                widgets::detail_section(ui, "RÉSEAU");
+                if is_gateway {
+                    widgets::detail_field_badge(ui, "Passerelle", "OUI", theme::ACCENT);
+                } else {
+                    widgets::detail_field_badge(ui, "Passerelle", "NON", theme::text_tertiary());
+                }
+                if open_ports.is_empty() {
+                    widgets::detail_field(ui, "Ports ouverts", "Aucun");
+                } else {
+                    let ports_str = open_ports
+                        .iter()
+                        .map(|p| p.to_string())
+                        .collect::<Vec<_>>()
+                        .join(", ");
+                    widgets::detail_mono(ui, "Ports ouverts", &ports_str);
+                }
+
+                widgets::detail_section(ui, "TEMPORALITÉ");
+                widgets::detail_field(ui, "Première détection", &first_seen);
+                widgets::detail_field(ui, "Dernière détection", &last_seen);
+            }, &actions);
     }
 
     fn export_csv(state: &AppState, indices: &[usize]) -> bool {

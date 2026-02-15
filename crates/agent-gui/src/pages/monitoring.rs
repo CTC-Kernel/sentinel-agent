@@ -91,9 +91,32 @@ impl MonitoringPage {
 
         ui.add_space(theme::SPACE_LG);
 
-        // Main charts grid (CPU + Memory)
-        let cpu_data: Vec<[f64; 2]> = state.monitoring.cpu_history.iter().copied().collect();
-        let mem_data: Vec<[f64; 2]> = state.monitoring.memory_history.iter().copied().collect();
+        let cpu_cache_id = ui.id().with("mon_cpu_cache");
+        let cpu_fp_id = ui.id().with("mon_cpu_fp");
+        let cpu_fp = state.monitoring.cpu_history.len();
+        let cpu_data: Vec<[f64; 2]> = {
+            let prev: Option<usize> = ui.memory(|mem| mem.data.get_temp(cpu_fp_id));
+            if prev == Some(cpu_fp) {
+                ui.memory(|mem| mem.data.get_temp(cpu_cache_id)).unwrap_or_default()
+            } else {
+                let v: Vec<[f64; 2]> = state.monitoring.cpu_history.iter().copied().collect();
+                ui.memory_mut(|mem| { mem.data.insert_temp(cpu_fp_id, cpu_fp); mem.data.insert_temp(cpu_cache_id, v.clone()); });
+                v
+            }
+        };
+        let mem_cache_id = ui.id().with("mon_mem_cache");
+        let mem_fp_id = ui.id().with("mon_mem_fp");
+        let mem_fp = state.monitoring.memory_history.len();
+        let mem_data: Vec<[f64; 2]> = {
+            let prev: Option<usize> = ui.memory(|mem| mem.data.get_temp(mem_fp_id));
+            if prev == Some(mem_fp) {
+                ui.memory(|mem| mem.data.get_temp(mem_cache_id)).unwrap_or_default()
+            } else {
+                let v: Vec<[f64; 2]> = state.monitoring.memory_history.iter().copied().collect();
+                ui.memory_mut(|mem| { mem.data.insert_temp(mem_fp_id, mem_fp); mem.data.insert_temp(mem_cache_id, v.clone()); });
+                v
+            }
+        };
 
         let main_charts_grid = widgets::ResponsiveGrid::new(450.0, theme::SPACE_LG);
         let main_items: Vec<(&str, &[[f64; 2]], egui::Color32, bool)> = vec![
@@ -114,14 +137,32 @@ impl MonitoringPage {
 
         ui.add_space(theme::SPACE_LG);
 
-        // IO charts grid (Disk + Network)
-        let disk_data: Vec<[f64; 2]> = state.monitoring.disk_io_history.iter().copied().collect();
-        let net_data: Vec<[f64; 2]> = state
-            .monitoring
-            .network_io_history
-            .iter()
-            .copied()
-            .collect();
+        let disk_cache_id = ui.id().with("mon_disk_cache");
+        let disk_fp_id = ui.id().with("mon_disk_fp");
+        let disk_fp = state.monitoring.disk_io_history.len();
+        let disk_data: Vec<[f64; 2]> = {
+            let prev: Option<usize> = ui.memory(|mem| mem.data.get_temp(disk_fp_id));
+            if prev == Some(disk_fp) {
+                ui.memory(|mem| mem.data.get_temp(disk_cache_id)).unwrap_or_default()
+            } else {
+                let v: Vec<[f64; 2]> = state.monitoring.disk_io_history.iter().copied().collect();
+                ui.memory_mut(|mem| { mem.data.insert_temp(disk_fp_id, disk_fp); mem.data.insert_temp(disk_cache_id, v.clone()); });
+                v
+            }
+        };
+        let net_cache_id = ui.id().with("mon_net_cache");
+        let net_fp_id = ui.id().with("mon_net_fp");
+        let net_fp = state.monitoring.network_io_history.len();
+        let net_data: Vec<[f64; 2]> = {
+            let prev: Option<usize> = ui.memory(|mem| mem.data.get_temp(net_fp_id));
+            if prev == Some(net_fp) {
+                ui.memory(|mem| mem.data.get_temp(net_cache_id)).unwrap_or_default()
+            } else {
+                let v: Vec<[f64; 2]> = state.monitoring.network_io_history.iter().copied().collect();
+                ui.memory_mut(|mem| { mem.data.insert_temp(net_fp_id, net_fp); mem.data.insert_temp(net_cache_id, v.clone()); });
+                v
+            }
+        };
 
         let io_grid = widgets::ResponsiveGrid::new(450.0, theme::SPACE_LG);
         let io_items: Vec<(&str, &[[f64; 2]], egui::Color32, bool)> = vec![

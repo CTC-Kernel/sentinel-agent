@@ -75,7 +75,119 @@ impl FimPage {
             });
         });
 
-        ui.add_space(theme::SPACE_XL);
+        ui.add_space(theme::SPACE_LG);
+
+        // ── Change type distribution + Acknowledgment rate ──────────────
+        if !state.fim.alerts.is_empty() {
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                // ── A. Change type distribution ──
+                ui.label(
+                    egui::RichText::new("DISTRIBUTION PAR TYPE DE MODIFICATION")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(0.5)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_SM);
+
+                let mut created: usize = 0;
+                let mut modified: usize = 0;
+                let mut deleted: usize = 0;
+                let mut permissions: usize = 0;
+                let mut renamed: usize = 0;
+
+                for alert in &state.fim.alerts {
+                    match alert.change_type {
+                        FimChangeType::Created => created += 1,
+                        FimChangeType::Modified => modified += 1,
+                        FimChangeType::Deleted => deleted += 1,
+                        FimChangeType::PermissionChanged => permissions += 1,
+                        FimChangeType::Renamed => renamed += 1,
+                    }
+                }
+
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    let types: &[(&str, usize, egui::Color32)] = &[
+                        ("CR\u{00c9}\u{00c9}", created, theme::SUCCESS),
+                        ("MODIFI\u{00c9}", modified, theme::WARNING),
+                        ("SUPPRIM\u{00c9}", deleted, theme::ERROR),
+                        ("PERMISSIONS", permissions, theme::INFO),
+                        ("RENOMM\u{00c9}", renamed, theme::WARNING),
+                    ];
+                    for (label, count, color) in types {
+                        if *count > 0 {
+                            widgets::status_badge(
+                                ui,
+                                &format!("{}: {}", label, count),
+                                *color,
+                            );
+                            ui.add_space(theme::SPACE_SM);
+                        }
+                    }
+                });
+
+                ui.add_space(theme::SPACE_MD);
+
+                // ── B. Acknowledgment rate ──
+                let total_alerts = state.fim.alerts.len();
+                let acked_count = state.fim.alerts.iter().filter(|a| a.acknowledged).count();
+                let ack_pct = if total_alerts > 0 {
+                    (acked_count as f32 / total_alerts as f32) * 100.0
+                } else {
+                    0.0
+                };
+
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new("TAUX D'ACQUITTEMENT")
+                            .font(theme::font_label())
+                            .color(theme::text_tertiary())
+                            .extra_letter_spacing(0.5)
+                            .strong(),
+                    );
+                    ui.add_space(theme::SPACE_SM);
+                    let pct_color = if ack_pct >= 80.0 {
+                        theme::SUCCESS
+                    } else if ack_pct >= 50.0 {
+                        theme::WARNING
+                    } else {
+                        theme::ERROR
+                    };
+                    ui.label(
+                        egui::RichText::new(format!("{:.0}%", ack_pct))
+                            .font(theme::font_body())
+                            .color(pct_color)
+                            .strong(),
+                    );
+                    ui.label(
+                        egui::RichText::new(format!(
+                            "({}/{})",
+                            acked_count, total_alerts,
+                        ))
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary()),
+                    );
+                });
+
+                ui.add_space(theme::SPACE_XS);
+
+                let ack_progress = if total_alerts > 0 {
+                    acked_count as f32 / total_alerts as f32
+                } else {
+                    0.0
+                };
+                let ack_style = if ack_pct >= 80.0 {
+                    widgets::progress::ProgressStyle::Success
+                } else if ack_pct >= 50.0 {
+                    widgets::progress::ProgressStyle::Warning
+                } else {
+                    widgets::progress::ProgressStyle::Error
+                };
+                widgets::progress_bar_styled(ui, ack_progress, ack_style, None);
+            });
+        }
+
+        ui.add_space(theme::SPACE_LG);
 
         // ── Alerts table (AAA Grade) ─────────────────────────────────────
         if state.fim.alerts.is_empty() {
@@ -122,11 +234,14 @@ impl FimPage {
                 let table = TableBuilder::new(ui)
                     .striped(false)
                     .resizable(true)
+                    .sense(egui::Sense::click())
                     .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(Column::initial(110.0).at_least(80.0))  // Type
-                    .column(Column::remainder())                     // Path
-                    .column(Column::initial(140.0).at_least(100.0)) // Date
-                    .column(Column::initial(140.0).at_least(120.0)); // Status/Action
+                    .column(Column::initial(110.0).at_least(80.0))
+                    .column(Column::remainder())
+                    .column(Column::initial(140.0).at_least(100.0))
+                    .column(Column::initial(140.0).at_least(120.0));
+
+                let mut clicked_row: Option<usize> = None;
 
                 table
                     .header(28.0, |mut header| {
@@ -221,7 +336,7 @@ impl FimPage {
                                 if alert_acked[idx] {
                                     ui.label(
                                         egui::RichText::new(format!(
-                                            "{}  ACQUITTÉ",
+                                            "{}  ACQUITT\u{00c9}",
                                             icons::CIRCLE_CHECK
                                         ))
                                         .font(theme::font_label())
@@ -248,8 +363,17 @@ impl FimPage {
                                     );
                                 }
                             });
+
+                            if row.response().clicked() {
+                                clicked_row = Some(idx);
+                            }
                         });
                     });
+
+                if let Some(idx) = clicked_row {
+                    state.fim.selected_alert = Some(idx);
+                    state.fim.detail_open = true;
+                }
 
                 // Apply acknowledgment after the table
                 if let Some(idx) = ack_command {
@@ -261,6 +385,62 @@ impl FimPage {
         }
 
         ui.add_space(theme::SPACE_XL);
+
+        let ctx = ui.ctx().clone();
+        if let Some(sel) = state.fim.selected_alert
+            && sel < state.fim.alerts.len()
+        {
+            let alert = state.fim.alerts[sel].clone();
+            let (type_label, type_color) = Self::change_type_display(&alert.change_type);
+            let mut actions = Vec::new();
+            if !alert.acknowledged {
+                actions.push(widgets::DetailAction::primary("Acquitter", icons::CHECK));
+            }
+            actions.push(widgets::DetailAction::secondary("Exporter", icons::DOWNLOAD));
+
+            let action = widgets::DetailDrawer::new("fim_detail", &alert.path, icons::FILE_SHIELD)
+                .accent(type_color)
+                .subtitle("Alerte FIM")
+                .show(&ctx, &mut state.fim.detail_open, |ui| {
+                    widgets::detail_section(ui, "D\u{00c9}TAILS DE L'ALERTE");
+                    widgets::detail_mono(ui, "ID", &alert.id);
+                    widgets::detail_mono(ui, "Chemin du fichier", &alert.path);
+                    widgets::detail_field_badge(
+                        ui,
+                        "Type de modification",
+                        type_label,
+                        type_color,
+                    );
+                    widgets::detail_field(
+                        ui,
+                        "Date de d\u{00e9}tection",
+                        &alert.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
+                    );
+
+                    widgets::detail_section(ui, "HACHAGES");
+                    if let Some(ref old) = alert.old_hash {
+                        widgets::detail_mono(ui, "Hash pr\u{00e9}c\u{00e9}dent", old);
+                    }
+                    if let Some(ref new) = alert.new_hash {
+                        widgets::detail_mono(ui, "Hash actuel", new);
+                    }
+
+                    widgets::detail_section(ui, "STATUT");
+                    if alert.acknowledged {
+                        widgets::detail_field_badge(ui, "Acquitt\u{00e9}e", "OUI", theme::SUCCESS);
+                    } else {
+                        widgets::detail_field_badge(ui, "Acquitt\u{00e9}e", "NON", theme::WARNING);
+                    }
+                }, &actions);
+
+            if let Some(action_idx) = action
+                && !alert.acknowledged && action_idx == 0
+            {
+                let alert_id = state.fim.alerts[sel].id.clone();
+                state.fim.alerts[sel].acknowledged = true;
+                command = Some(GuiCommand::AcknowledgeFimAlert { alert_id });
+            }
+        }
 
         command
     }

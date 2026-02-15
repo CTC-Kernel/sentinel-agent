@@ -172,46 +172,148 @@ impl CompliancePage {
             });
         });
 
-        ui.add_space(theme::SPACE_LG);
+        ui.add_space(theme::SPACE_MD);
+
+        // Per-framework score breakdown (AAA Grade)
+        if let Some(ref frameworks) = state.summary.active_frameworks
+            && !frameworks.is_empty()
+            && !state.checks.is_empty()
+        {
+            widgets::card(ui, |ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new("SCORE PAR R\u{00c9}F\u{00c9}RENTIEL")
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(0.5)
+                        .strong(),
+                );
+                ui.add_space(theme::SPACE_MD);
+
+                for fw in frameworks {
+                    let fw_checks: Vec<&crate::dto::GuiCheckResult> = state
+                        .checks
+                        .iter()
+                        .filter(|c| c.frameworks.iter().any(|f| f == fw))
+                        .collect();
+
+                    if fw_checks.is_empty() {
+                        continue;
+                    }
+
+                    let total_count = fw_checks.len();
+                    let pass_count = fw_checks
+                        .iter()
+                        .filter(|c| c.status == GuiCheckStatus::Pass)
+                        .count();
+                    let pct = (pass_count as f32 / total_count as f32) * 100.0;
+                    let ratio = pass_count as f32 / total_count as f32;
+
+                    let bar_color = if pct >= 80.0 {
+                        theme::SUCCESS
+                    } else if pct >= 60.0 {
+                        theme::WARNING
+                    } else {
+                        theme::ERROR
+                    };
+
+                    let bar_style = if pct >= 80.0 {
+                        widgets::ProgressStyle::Success
+                    } else if pct >= 60.0 {
+                        widgets::ProgressStyle::Warning
+                    } else {
+                        widgets::ProgressStyle::Error
+                    };
+
+                    ui.horizontal(|ui: &mut egui::Ui| {
+                        ui.label(
+                            egui::RichText::new(fw.to_uppercase())
+                                .font(theme::font_label())
+                                .color(theme::text_primary())
+                                .extra_letter_spacing(0.5)
+                                .strong(),
+                        );
+                        ui.with_layout(
+                            egui::Layout::right_to_left(egui::Align::Center),
+                            |ui: &mut egui::Ui| {
+                                ui.label(
+                                    egui::RichText::new(format!(
+                                        "{:.0}% ({}/{})",
+                                        pct, pass_count, total_count
+                                    ))
+                                    .font(theme::font_body())
+                                    .color(bar_color)
+                                    .strong(),
+                                );
+                            },
+                        );
+                    });
+                    ui.add_space(theme::SPACE_XS);
+                    widgets::progress_bar_styled(ui, ratio, bar_style, None);
+                    ui.add_space(theme::SPACE_SM);
+                }
+            });
+            ui.add_space(theme::SPACE_MD);
+        }
 
         // Search / filter bar (AAA Grade)
         let pass_active = state.compliance.status_filter == Some(GuiCheckStatus::Pass);
         let fail_active = state.compliance.status_filter == Some(GuiCheckStatus::Fail);
         let err_active = state.compliance.status_filter == Some(GuiCheckStatus::Error);
 
-        // PERF: skip filtering entirely when no search text and no status filter active,
-        // avoiding format!()/to_lowercase() allocations per check per frame.
-        let search_lower = state.compliance.search.to_lowercase();
-        let filtered: Vec<usize> = if search_lower.is_empty()
-            && state.compliance.status_filter.is_none()
-        {
-            (0..state.checks.len()).collect()
+        let search_id = ui.id().with("compliance_search_cache");
+        let search_lower: String = ui.memory(|mem| {
+            mem.data.get_temp::<(String, String)>(search_id)
+                .filter(|(orig, _)| orig == &state.compliance.search)
+                .map(|(_, lower)| lower)
+        }).unwrap_or_else(|| {
+            let lower = state.compliance.search.to_ascii_lowercase();
+            ui.memory_mut(|mem| mem.data.insert_temp(search_id, (state.compliance.search.clone(), lower.clone())));
+            lower
+        });
+
+        let filter_fp = (state.checks.len(), search_lower.clone(), state.compliance.status_filter, state.compliance.group_by.index());
+        let filter_fp_id = ui.id().with("compliance_filter_fp");
+        let filter_cache_id = ui.id().with("compliance_filter_cache");
+        let prev_fp: Option<(usize, String, Option<GuiCheckStatus>, u8)> = ui.memory(|mem| mem.data.get_temp(filter_fp_id));
+        let filtered: Vec<usize> = if prev_fp.as_ref() == Some(&filter_fp) {
+            ui.memory(|mem| mem.data.get_temp(filter_cache_id)).unwrap_or_default()
         } else {
-            state
-                .checks
-                .iter()
-                .enumerate()
-                .filter(|(_, c)| {
-                    if !search_lower.is_empty() {
-                        let haystack = format!(
-                            "{} {} {}",
-                            c.name.to_lowercase(),
-                            c.category.to_lowercase(),
-                            c.check_id.to_lowercase()
-                        );
-                        if !haystack.contains(&search_lower) {
-                            return false;
+            let result: Vec<usize> = if search_lower.is_empty()
+                && state.compliance.status_filter.is_none()
+            {
+                (0..state.checks.len()).collect()
+            } else {
+                state
+                    .checks
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, c)| {
+                        if !search_lower.is_empty() {
+                            let haystack = format!(
+                                "{} {} {}",
+                                c.name.to_ascii_lowercase(),
+                                c.category.to_ascii_lowercase(),
+                                c.check_id.to_ascii_lowercase()
+                            );
+                            if !haystack.contains(&search_lower) {
+                                return false;
+                            }
                         }
-                    }
-                    match state.compliance.status_filter {
-                        Some(GuiCheckStatus::Pass) => c.status == GuiCheckStatus::Pass,
-                        Some(GuiCheckStatus::Fail) => c.status == GuiCheckStatus::Fail,
-                        Some(GuiCheckStatus::Error) => c.status == GuiCheckStatus::Error,
-                        _ => true,
-                    }
-                })
-                .map(|(i, _)| i)
-                .collect()
+                        match state.compliance.status_filter {
+                            Some(GuiCheckStatus::Pass) => c.status == GuiCheckStatus::Pass,
+                            Some(GuiCheckStatus::Fail) => c.status == GuiCheckStatus::Fail,
+                            Some(GuiCheckStatus::Error) => c.status == GuiCheckStatus::Error,
+                            _ => true,
+                        }
+                    })
+                    .map(|(i, _)| i)
+                    .collect()
+            };
+            ui.memory_mut(|mem| {
+                mem.data.insert_temp(filter_fp_id, filter_fp);
+                mem.data.insert_temp(filter_cache_id, result.clone());
+            });
+            result
         };
 
         let result_count = filtered.len();
@@ -378,6 +480,72 @@ impl CompliancePage {
 
         ui.add_space(theme::SPACE_XL);
 
+        if let Some(sel_idx) = state.compliance.selected_check
+            && sel_idx < state.checks.len()
+        {
+                let check = state.checks[sel_idx].clone();
+                let (status_label, status_color) = Self::status_display(&check.status);
+                let sev_color = theme::severity_color_typed(&check.severity);
+                let accent = match check.status {
+                    GuiCheckStatus::Pass => theme::SUCCESS,
+                    GuiCheckStatus::Fail => theme::ERROR,
+                    GuiCheckStatus::Error => theme::WARNING,
+                    _ => theme::ACCENT,
+                };
+
+                let actions = vec![
+                    widgets::DetailAction::primary("Relancer le contr\u{00f4}le", icons::PLAY),
+                    widgets::DetailAction::secondary("Exporter", icons::DOWNLOAD),
+                ];
+
+                let drawer_action = widgets::DetailDrawer::new("compliance_detail", &check.name, icons::COMPLIANCE)
+                    .accent(accent)
+                    .subtitle(&check.check_id)
+                    .show(ui.ctx(), &mut state.compliance.detail_open, |ui| {
+                        widgets::detail_section(ui, "CONTR\u{00d4}LE DE CONFORMIT\u{00c9}");
+                        widgets::detail_mono(ui, "ID", &check.check_id);
+                        widgets::detail_field(ui, "Nom", &check.name);
+                        widgets::detail_field(ui, "Cat\u{00e9}gorie", &Self::format_category(&check.category));
+                        widgets::detail_field_badge(ui, "Statut", status_label, status_color);
+                        widgets::detail_field_badge(ui, "S\u{00e9}v\u{00e9}rit\u{00e9}", check.severity.label(), sev_color);
+                        if let Some(score) = check.score {
+                            let sc = score as f32;
+                            widgets::detail_field_colored(ui, "Score", &format!("{score}%"), theme::score_color(sc));
+                        }
+
+                        widgets::detail_section(ui, "R\u{00c9}F\u{00c9}RENTIELS");
+                        for fw in &check.frameworks {
+                            widgets::detail_field_badge(ui, "", &fw.to_uppercase(), theme::INFO);
+                        }
+                        if check.frameworks.is_empty() {
+                            widgets::detail_field(ui, "", "Aucun r\u{00e9}f\u{00e9}rentiel");
+                        }
+
+                        widgets::detail_section(ui, "R\u{00c9}SULTAT");
+                        if let Some(ref msg) = check.message {
+                            widgets::detail_text(ui, "Message", msg);
+                        }
+                        if let Some(ref details) = check.details {
+                            let json_str = serde_json::to_string_pretty(details).unwrap_or_default();
+                            widgets::detail_mono(ui, "D\u{00e9}tails", &json_str);
+                        }
+                        if let Some(dt) = check.executed_at {
+                            widgets::detail_field(ui, "Ex\u{00e9}cut\u{00e9} le", &dt.format("%d/%m/%Y %H:%M").to_string());
+                        }
+                    }, &actions);
+
+                if let Some(action_idx) = drawer_action {
+                    match action_idx {
+                        0 => command = Some(GuiCommand::RunCheck),
+                        1 => {
+                            Self::export_csv(state, &[sel_idx]);
+                            state.push_toast(crate::widgets::toast::Toast::info("Export CSV en cours..."), ui.ctx());
+                        }
+                        _ => {}
+                    }
+                }
+            }
+
         command
     }
 
@@ -400,21 +568,13 @@ impl CompliancePage {
 
     fn render_check_table(
         ui: &mut Ui,
-        state: &AppState,
+        state: &mut AppState,
         indices: &[usize],
-        command: &mut Option<GuiCommand>,
+        _command: &mut Option<GuiCommand>,
     ) {
         use egui_extras::{Column, TableBuilder};
 
-        let expanded_states: std::collections::HashMap<String, bool> = indices
-            .iter()
-            .map(|&i| {
-                let check = &state.checks[i];
-                let id = ui.make_persistent_id(&check.check_id);
-                let expanded = ui.memory(|mem| mem.data.get_temp::<bool>(id).unwrap_or(false));
-                (check.check_id.clone(), expanded)
-            })
-            .collect();
+        let mut clicked_idx: Option<usize> = None;
 
         let table = TableBuilder::new(ui)
             .striped(false)
@@ -487,110 +647,21 @@ impl CompliancePage {
             .body(|mut body| {
                 for &idx in indices {
                     let check = &state.checks[idx];
-                    let expanded = *expanded_states.get(&check.check_id).unwrap_or(&false);
-                    let row_height = if expanded {
-                        160.0
-                    } else {
-                        theme::TABLE_ROW_HEIGHT
-                    };
 
-                    body.row(row_height, |mut row| {
+                    body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
                         row.col(|ui: &mut egui::Ui| {
-                            ui.vertical(|ui: &mut egui::Ui| {
-                                ui.add_space(theme::SPACE_XS);
-                                let response = ui
-                                    .label(
-                                        egui::RichText::new(&check.name)
-                                            .font(theme::font_body())
-                                            .color(theme::text_primary())
-                                            .strong(),
-                                    )
-                                    .interact(egui::Sense::click());
-
-                                if response.clicked() {
-                                    let id = ui.make_persistent_id(&check.check_id);
-                                    ui.memory_mut(|mem| mem.data.insert_temp(id, !expanded));
-                                }
-
-                                if expanded {
-                                    ui.add_space(theme::SPACE_XS);
-                                    if let Some(msg) = &check.message {
-                                        ui.label(
-                                            egui::RichText::new(msg)
-                                                .font(theme::font_min())
-                                                .color(theme::text_secondary()),
-                                        );
-                                    }
-
-                                    if let Some(details) = &check.details
-                                        && let Some(issues) =
-                                            details.get("issues").and_then(|i| i.as_array())
-                                    {
-                                        for issue in issues.iter() {
-                                            ui.horizontal(|ui: &mut egui::Ui| {
-                                                ui.label(
-                                                    egui::RichText::new("•").color(theme::ERROR),
-                                                );
-                                                ui.label(
-                                                    egui::RichText::new(
-                                                        issue
-                                                            .as_str()
-                                                            .unwrap_or("Problème détecté"),
-                                                    )
-                                                    .font(theme::font_label())
-                                                    .color(theme::text_tertiary()),
-                                                );
-                                            });
-                                        }
-                                    }
-
-                                    if check.status == GuiCheckStatus::Fail
-                                        || check.status == GuiCheckStatus::Error
-                                    {
-                                        ui.add_space(theme::SPACE_MD);
-                                        ui.horizontal(|ui: &mut egui::Ui| {
-                                            if widgets::chip_button(
-                                                ui,
-                                                &format!("{}  AUDIT VISUEL", icons::EYE),
-                                                false,
-                                                theme::INFO,
-                                            )
-                                            .clicked()
-                                            {
-                                                *command = Some(GuiCommand::RemediatePreview {
-                                                    check_id: check.check_id.clone(),
-                                                });
-                                            }
-
-                                            ui.add_space(theme::SPACE_SM);
-
-                                            // Remediation button - Admin only
-                                            if state.security.admin_unlocked {
-                                                if widgets::chip_button(
-                                                    ui,
-                                                    &format!("{}  REMÉDIATION", icons::WRENCH_FA),
-                                                    false,
-                                                    theme::SUCCESS,
-                                                )
-                                                .clicked()
-                                                {
-                                                    *command = Some(GuiCommand::Remediate {
-                                                        check_id: check.check_id.clone(),
-                                                    });
-                                                }
-                                            } else {
-                                                // Disabled button for non-admin users
-                                                widgets::chip_button(
-                                                    ui,
-                                                    &format!("{}  REMÉDIATION", icons::LOCK),
-                                                    false,
-                                                    theme::text_tertiary(),
-                                                );
-                                            }
-                                        });
-                                    }
-                                }
-                            });
+                            let response = ui.label(
+                                egui::RichText::new(&check.name)
+                                    .font(theme::font_body())
+                                    .color(theme::text_primary())
+                                    .strong(),
+                            ).interact(egui::Sense::click());
+                            if response.clicked() {
+                                clicked_idx = Some(idx);
+                            }
+                            if response.hovered() {
+                                ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+                            }
                         });
 
                         row.col(|ui: &mut egui::Ui| {
@@ -664,6 +735,11 @@ impl CompliancePage {
                     });
                 }
             });
+
+        if let Some(idx) = clicked_idx {
+            state.compliance.selected_check = Some(idx);
+            state.compliance.detail_open = true;
+        }
     }
 
     fn export_csv(state: &AppState, indices: &[usize]) {

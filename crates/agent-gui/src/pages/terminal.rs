@@ -45,7 +45,7 @@ impl TerminalPage {
         ui.add_space(theme::SPACE_MD);
         widgets::page_header_nav(
             ui,
-            &["Sys & Network", "Terminal"],
+            &["Pilotage", "Terminal"],
             "Terminal Analytique",
             Some("FLUX EN TEMPS RÉEL DES ÉVÉNEMENTS ET DE L'ACTIVITÉ DE L'AGENT"),
             Some(
@@ -79,6 +79,8 @@ impl TerminalPage {
         Self::terminal_viewport(ui, state);
 
         ui.add_space(theme::SPACE_XL);
+
+        Self::detail_drawer(ui, state);
 
         command
     }
@@ -217,12 +219,20 @@ impl TerminalPage {
     fn terminal_viewport(ui: &mut Ui, state: &mut AppState) {
         let terminal_bg = theme::bg_deep();
         let filter_level_index = state.terminal.filter_level.index();
-        // Cache lowercase search term once instead of per-frame allocation
-        let search_lower = if state.terminal.search.is_empty() {
-            String::new()
-        } else {
-            state.terminal.search.to_lowercase()
-        };
+        let search_id = ui.id().with("terminal_search_cache");
+        let search_lower: String = ui.memory(|mem| {
+            mem.data.get_temp::<(String, String)>(search_id)
+                .filter(|(orig, _)| orig == &state.terminal.search)
+                .map(|(_, lower)| lower)
+        }).unwrap_or_else(|| {
+            let lower = if state.terminal.search.is_empty() {
+                String::new()
+            } else {
+                state.terminal.search.to_ascii_lowercase()
+            };
+            ui.memory_mut(|mem| mem.data.insert_temp(search_id, (state.terminal.search.clone(), lower.clone())));
+            lower
+        });
 
         let filtered: Vec<_> = state
             .terminal
@@ -312,10 +322,13 @@ impl TerminalPage {
                     })
                     .body(|body| {
                         body.rows(22.0, filtered.len(), |mut row| {
-                            let entry = filtered[row.index()];
+                            let idx = row.index();
+                            let entry = filtered[idx];
                             let ts = entry.timestamp.format("%H:%M:%S%.3f").to_string();
                             let color = level_color(&entry.level);
                             let target_short = shorten_target(&entry.target);
+
+                            row.set_selected(state.terminal.selected_log == Some(idx));
 
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
@@ -346,9 +359,57 @@ impl TerminalPage {
                                         .color(theme::text_primary()),
                                 );
                             });
+
+                            if row.response().clicked() {
+                                state.terminal.selected_log = Some(idx);
+                                state.terminal.detail_open = true;
+                            }
                         });
                     });
             });
+    }
+
+    fn detail_drawer(ui: &mut Ui, state: &mut AppState) {
+        let selected = match state.terminal.selected_log {
+            Some(idx) if idx < state.terminal.lines.len() => idx,
+            _ => return,
+        };
+
+        let entry = &state.terminal.lines[selected];
+        let ts = entry.timestamp.format("%d/%m/%Y %H:%M:%S%.3f").to_string();
+        let level = entry.level.clone();
+        let target = entry.target.clone();
+        let message = entry.message.clone();
+        let level_clr = level_color(&level);
+
+        let actions = [
+            widgets::DetailAction::secondary("Copier", icons::COPY),
+            widgets::DetailAction::secondary("Filtrer par source", icons::SEARCH),
+        ];
+
+        let action = widgets::DetailDrawer::new("terminal_detail", "Entrée de log", icons::TERMINAL)
+            .accent(level_clr)
+            .subtitle(&level)
+            .show(ui.ctx(), &mut state.terminal.detail_open, |ui| {
+                widgets::detail_section(ui, "ENTRÉE DE LOG");
+                widgets::detail_field(ui, "Horodatage", &ts);
+                widgets::detail_field_badge(ui, "Niveau", &level, level_clr);
+                widgets::detail_mono(ui, "Source", &target);
+
+                widgets::detail_section(ui, "MESSAGE");
+                widgets::detail_text(ui, "Contenu", &message);
+            }, &actions);
+
+        match action {
+            Some(0) => {
+                let text = format!("[{}] {} {} {}", ts, level, target, message);
+                ui.ctx().copy_text(text);
+            }
+            Some(1) => {
+                state.terminal.search = shorten_target(&target).to_string();
+            }
+            _ => {}
+        }
     }
 
     fn export_logs_csv(state: &AppState) {

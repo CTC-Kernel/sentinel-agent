@@ -6,6 +6,7 @@ use egui_extras::{Column, TableBuilder};
 
 use crate::app::AppState;
 use crate::events::GuiCommand;
+use crate::icons;
 use crate::theme;
 use crate::widgets;
 
@@ -106,7 +107,80 @@ impl AuditTrailPage {
         });
 
         ui.add_space(theme::SPACE_XL);
+
+        Self::detail_drawer(ui, state);
+
         command
+    }
+
+    fn detail_drawer(ui: &mut Ui, state: &mut AppState) {
+        let filtered_logs: Vec<_> = state
+            .logs
+            .iter()
+            .filter(|log| {
+                if let Some(ref filter) = state.audit_trail_filter
+                    && log.level.to_lowercase() != filter.to_lowercase() {
+                        return false;
+                    }
+                if !state.audit_trail_search.is_empty() {
+                    let search = state.audit_trail_search.to_lowercase();
+                    return log.message.to_lowercase().contains(&search)
+                        || log
+                            .source
+                            .as_ref()
+                            .is_some_and(|s| s.to_lowercase().contains(&search));
+                }
+                true
+            })
+            .collect();
+
+        let selected = match state.selected_audit_entry {
+            Some(idx) if idx < filtered_logs.len() => idx,
+            _ => return,
+        };
+
+        let log = &filtered_logs[selected];
+        let id_str = log.id.to_string();
+        let ts = log.timestamp.format("%d/%m/%Y %H:%M:%S").to_string();
+        let level = log.level.clone();
+        let message = log.message.clone();
+        let source = log.source.clone();
+        let level_color = match level.to_lowercase().as_str() {
+            "error" | "critical" => theme::ERROR,
+            "warn" | "warning" => theme::WARNING,
+            _ => theme::INFO,
+        };
+
+        let actions = [
+            widgets::DetailAction::secondary("Copier l'ID", icons::COPY),
+            widgets::DetailAction::secondary("Exporter", icons::DOWNLOAD),
+        ];
+
+        let action = widgets::DetailDrawer::new("audit_detail", "Événement d'audit", icons::LIST)
+            .accent(level_color)
+            .subtitle(&ts)
+            .show(ui.ctx(), &mut state.audit_detail_open, |ui| {
+                widgets::detail_section(ui, "ÉVÉNEMENT D'AUDIT");
+                widgets::detail_mono(ui, "ID", &id_str);
+                widgets::detail_field(ui, "Horodatage", &ts);
+                widgets::detail_field_badge(ui, "Niveau", &level.to_uppercase(), level_color);
+                if let Some(ref s) = source {
+                    widgets::detail_mono(ui, "Source", s);
+                }
+
+                widgets::detail_section(ui, "DÉTAILS");
+                widgets::detail_text(ui, "Message", &message);
+            }, &actions);
+
+        match action {
+            Some(0) => {
+                ui.ctx().copy_text(id_str);
+            }
+            Some(1) => {
+                Self::export_audit_trail_csv(state);
+            }
+            _ => {}
+        }
     }
 
     fn export_audit_trail_csv(state: &AppState) {
@@ -128,7 +202,7 @@ impl AuditTrailPage {
         }
     }
 
-    fn render_table(ui: &mut Ui, state: &AppState) {
+    fn render_table(ui: &mut Ui, state: &mut AppState) {
         let text_height = 18.0; // Estimate for better row spacing
 
         let filtered_logs: Vec<_> = state
@@ -185,7 +259,10 @@ impl AuditTrailPage {
             })
             .body(|body| {
                 body.rows(text_height + 12.0, filtered_logs.len(), |mut row| {
-                    let log = filtered_logs[row.index()];
+                    let idx = row.index();
+                    let log = filtered_logs[idx];
+
+                    row.set_selected(state.selected_audit_entry == Some(idx));
 
                     row.col(|ui| {
                         ui.label(
@@ -213,6 +290,11 @@ impl AuditTrailPage {
                                 .color(theme::text_primary()),
                         );
                     });
+
+                    if row.response().clicked() {
+                        state.selected_audit_entry = Some(idx);
+                        state.audit_detail_open = true;
+                    }
                 });
             });
     }

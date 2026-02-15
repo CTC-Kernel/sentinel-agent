@@ -79,7 +79,7 @@ impl NotificationsPage {
                 );
             });
         } else {
-            for notif in &state.notifications {
+            for (idx, notif) in state.notifications.iter().enumerate() {
                 let border_color = theme::severity_color(&notif.severity);
                 let bg = if notif.read {
                     theme::bg_secondary()
@@ -87,7 +87,7 @@ impl NotificationsPage {
                     border_color.linear_multiply(theme::OPACITY_SUBTLE)
                 };
 
-                egui::Frame::new()
+                let resp = egui::Frame::new()
                     .fill(bg)
                     .corner_radius(egui::CornerRadius::same(theme::CARD_ROUNDING))
                     .inner_margin(egui::Margin::same(theme::SPACE as i8))
@@ -107,12 +107,10 @@ impl NotificationsPage {
                     ))
                     .show(ui, |ui: &mut egui::Ui| {
                         ui.horizontal(|ui: &mut egui::Ui| {
-                            // Severity badge
                             widgets::status_badge(ui, &notif.severity.to_uppercase(), border_color);
 
                             ui.add_space(theme::SPACE_SM);
 
-                            // Unread indicator
                             if !notif.read {
                                 ui.painter().circle_filled(
                                     ui.available_rect_before_wrap().min + egui::vec2(0.0, 8.0),
@@ -153,13 +151,81 @@ impl NotificationsPage {
                         });
                     });
 
+                if resp.response.interact(egui::Sense::click()).clicked() {
+                    state.selected_notification = Some(idx);
+                    state.notification_detail_open = true;
+                }
+
                 ui.add_space(theme::SPACE_SM);
             }
         }
 
         ui.add_space(theme::SPACE_XL);
 
+        Self::detail_drawer(ui, state, &mut command);
+
         command
+    }
+
+    fn detail_drawer(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
+        let selected = match state.selected_notification {
+            Some(idx) if idx < state.notifications.len() => idx,
+            _ => return,
+        };
+
+        let notif = &state.notifications[selected];
+        let title = notif.title.clone();
+        let body = notif.body.clone();
+        let severity = notif.severity.clone();
+        let ts = notif.timestamp.format("%d/%m/%Y %H:%M").to_string();
+        let read = notif.read;
+        let action_url = notif.action.clone();
+        let notif_id = notif.id.to_string();
+        let sev_color = theme::severity_color(&severity);
+
+        let (read_label, read_color) = if read {
+            ("OUI", theme::SUCCESS)
+        } else {
+            ("NON", theme::WARNING)
+        };
+
+        let mut actions = Vec::new();
+        if !read {
+            actions.push(widgets::DetailAction::primary("Marquer comme lue", icons::CHECK));
+        }
+        actions.push(widgets::DetailAction::danger("Supprimer", icons::TRASH));
+
+        let action = widgets::DetailDrawer::new("notification_detail", "Notification", icons::BELL)
+            .accent(sev_color)
+            .subtitle(&title)
+            .show(ui.ctx(), &mut state.notification_detail_open, |ui| {
+                widgets::detail_section(ui, "NOTIFICATION");
+                widgets::detail_field(ui, "Titre", &title);
+                widgets::detail_field_badge(ui, "Sévérité", &severity.to_uppercase(), sev_color);
+                widgets::detail_field(ui, "Date", &ts);
+                widgets::detail_field_badge(ui, "Lue", read_label, read_color);
+
+                widgets::detail_section(ui, "CONTENU");
+                widgets::detail_text(ui, "Message", &body);
+
+                if let Some(ref act) = action_url {
+                    widgets::detail_field(ui, "Action associée", act);
+                }
+            }, &actions);
+
+        if let Some(idx) = action {
+            if !read && idx == 0 {
+                if let Some(n) = state.notifications.get_mut(selected) {
+                    n.read = true;
+                }
+                state.unread_notification_count = state.unread_notification_count.saturating_sub(1);
+                *command = Some(GuiCommand::MarkNotificationRead { notification_id: notif_id });
+            } else if (read && idx == 0) || (!read && idx == 1) {
+                state.notifications.remove(selected);
+                state.notification_detail_open = false;
+                state.selected_notification = None;
+            }
+        }
     }
 
     fn export_notifications_csv(state: &AppState) {
