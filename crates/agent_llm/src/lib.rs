@@ -35,13 +35,15 @@ pub struct ModelStats {
 pub struct LLMManager {
     engine: Arc<dyn ModelEngine>,
     analyzer: Arc<LLMAnalyzer>,
+    config: LLMConfig,
 }
 
 impl LLMManager {
-    pub fn new(engine: Arc<dyn ModelEngine>, analyzer: Arc<LLMAnalyzer>) -> Self {
+    pub fn new(engine: Arc<dyn ModelEngine>, analyzer: Arc<LLMAnalyzer>, config: LLMConfig) -> Self {
         Self {
             engine,
             analyzer,
+            config,
         }
     }
 
@@ -56,11 +58,11 @@ impl LLMManager {
     pub async fn get_stats(&self) -> Result<ModelStats> {
         let memory = self.engine.memory_usage().await;
         let count = self.engine.inference_count().await;
-        
+
         let status = self.engine.status().await;
-        
+
         Ok(ModelStats {
-            model_name: "mistral-local".to_string(), 
+            model_name: self.config.model.name.clone(),
             status,
             inference_count: count,
             memory_usage: memory,
@@ -77,5 +79,6 @@ pub async fn create_llm_manager(config: LLMConfig) -> Result<LLMManager> {
     Ok(LLMManager {
         engine,
         analyzer: Arc::new(analyzer),
+        config,
     })
 }
