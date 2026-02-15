@@ -3,6 +3,8 @@
 //! All methods are gated behind `#[cfg(feature = "gui")]`.
 
 #[cfg(feature = "gui")]
+use crate::AgentRuntime;
+#[cfg(feature = "gui")]
 use agent_common::constants::AGENT_VERSION;
 #[cfg(feature = "gui")]
 use agent_common::types::CheckSeverity;
@@ -25,10 +27,10 @@ use tracing::warn;
 impl AgentRuntime {
     /// Emit a GUI event (no-op if no sender set).
     pub(crate) fn emit_gui_event(&self, event: AgentEvent) {
-        if let Some(ref tx) = self.gui_event_tx {
-            if let Err(e) = tx.send(event) {
-                warn!("Failed to emit GUI event: {}", e);
-            }
+        if let Some(ref tx) = self.gui_event_tx
+            && let Err(e) = tx.send(event)
+        {
+            warn!("Failed to emit GUI event: {}", e);
         }
     }
 

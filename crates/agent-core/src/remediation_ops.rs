@@ -1,6 +1,8 @@
 //! Automated remediation operations (GUI-only).
 
 #[cfg(feature = "gui")]
+use crate::AgentRuntime;
+#[cfg(feature = "gui")]
 use tracing::{info, warn};
 
 #[cfg(feature = "gui")]
