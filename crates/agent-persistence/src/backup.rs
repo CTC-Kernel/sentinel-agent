@@ -378,11 +378,15 @@ impl BackupManager {
             let backup_path = self.backup_dir.join(&backup_filename);
             let metadata_path = self.backup_dir.join(&metadata_filename);
 
-            if backup_path.exists() {
-                let _ = fs::remove_file(&backup_path);
+            if let Err(e) = fs::remove_file(&backup_path)
+                && e.kind() != std::io::ErrorKind::NotFound
+            {
+                warn!("Failed to remove old backup {}: {}", backup_path.display(), e);
             }
-            if metadata_path.exists() {
-                let _ = fs::remove_file(&metadata_path);
+            if let Err(e) = fs::remove_file(&metadata_path)
+                && e.kind() != std::io::ErrorKind::NotFound
+            {
+                warn!("Failed to remove old backup metadata {}: {}", metadata_path.display(), e);
             }
 
             debug!("Removed old backup: {}", backup.id);

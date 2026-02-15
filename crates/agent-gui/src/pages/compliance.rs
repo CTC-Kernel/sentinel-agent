@@ -62,11 +62,11 @@ impl CompliancePage {
             }
         });
         
-        // Last audit timestamp - using last_sync_at as proxy for now
-        if let Some(last_sync) = state.summary.last_sync_at {
+        // Last audit timestamp
+        if let Some(last_check) = state.summary.last_check_at {
             ui.horizontal(|ui| {
                 ui.label(
-                    egui::RichText::new(format!("Dernier audit : {}", last_sync.format("%d/%m/%Y %H:%M")))
+                    egui::RichText::new(format!("Dernier audit : {}", last_check.format("%d/%m/%Y %H:%M")))
                         .font(theme::font_small())
                         .color(theme::text_tertiary())
                 );
@@ -554,14 +554,16 @@ impl CompliancePage {
         let mut map: BTreeMap<String, Vec<usize>> = BTreeMap::new();
         for &i in indices {
             let check = &state.checks[i];
-            let key = if state.compliance.group_by == ComplianceGroupBy::Category {
-                Self::format_category(&check.category)
+            if state.compliance.group_by == ComplianceGroupBy::Category {
+                let key = Self::format_category(&check.category);
+                map.entry(key).or_default().push(i);
             } else if check.frameworks.is_empty() {
-                "NON CLASSÉ".to_string()
+                map.entry("NON CLASSÉ".to_string()).or_default().push(i);
             } else {
-                check.frameworks.first().cloned().unwrap_or_default()
-            };
-            map.entry(key).or_default().push(i);
+                for fw in &check.frameworks {
+                    map.entry(fw.clone()).or_default().push(i);
+                }
+            }
         }
         map.into_iter().collect()
     }
@@ -575,10 +577,12 @@ impl CompliancePage {
         use egui_extras::{Column, TableBuilder};
 
         let mut clicked_idx: Option<usize> = None;
+        let ctx = ui.ctx().clone();
 
         let table = TableBuilder::new(ui)
             .striped(false)
             .resizable(true)
+            .sense(egui::Sense::click())
             .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
             .column(Column::initial(250.0).range(120.0..=600.0).at_least(150.0))
             .column(Column::initial(120.0).at_least(80.0))
@@ -647,21 +651,18 @@ impl CompliancePage {
             .body(|mut body| {
                 for &idx in indices {
                     let check = &state.checks[idx];
+                    let is_selected = state.compliance.selected_check == Some(idx);
 
                     body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
+                        row.set_selected(is_selected);
+
                         row.col(|ui: &mut egui::Ui| {
-                            let response = ui.label(
+                            ui.label(
                                 egui::RichText::new(&check.name)
                                     .font(theme::font_body())
-                                    .color(theme::text_primary())
+                                    .color(theme::accent_text())
                                     .strong(),
-                            ).interact(egui::Sense::click());
-                            if response.clicked() {
-                                clicked_idx = Some(idx);
-                            }
-                            if response.hovered() {
-                                ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-                            }
+                            );
                         });
 
                         row.col(|ui: &mut egui::Ui| {
@@ -732,6 +733,13 @@ impl CompliancePage {
                                 }
                             });
                         });
+
+                        if row.response().clicked() {
+                            clicked_idx = Some(idx);
+                        }
+                        if row.response().hovered() {
+                            ctx.set_cursor_icon(egui::CursorIcon::PointingHand);
+                        }
                     });
                 }
             });
@@ -795,7 +803,7 @@ impl CompliancePage {
             ui.label(
                 egui::RichText::new(icon)
                     .color(color.linear_multiply(theme::OPACITY_STRONG))
-                    .size(14.0),
+                    .size(theme::ICON_INLINE),
             );
             ui.add_space(-4.0);
             ui.label(egui::RichText::new(value).color(color).strong());

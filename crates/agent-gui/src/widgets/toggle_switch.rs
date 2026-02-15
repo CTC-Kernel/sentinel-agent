@@ -59,7 +59,7 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
         ui.painter().rect_stroke(
             track_rect,
             rounding,
-            Stroke::new(theme::BORDER_HAIRLINE, Color32::from_white_alpha((border_alpha * 255.0_f32).clamp(0.0, 255.0) as u8)),
+            Stroke::new(theme::BORDER_HAIRLINE, theme::overlay_color().linear_multiply(border_alpha)),
             egui::StrokeKind::Inside,
         );
 
@@ -79,7 +79,7 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
         );
 
         // Knob main
-        let knob_color = Color32::WHITE;
+        let knob_color = theme::text_on_accent();
         ui.painter()
             .circle_filled(knob_center, knob_radius, knob_color);
 
@@ -94,7 +94,7 @@ pub fn toggle_switch(ui: &mut Ui, on: &mut bool) -> Response {
             knob_radius - theme::BORDER_THIN,
             Stroke::new(
                 theme::BORDER_THIN,
-                Color32::from_white_alpha((theme::KNOB_HIGHLIGHT_BASE * highlight_pulse).clamp(0.0, 255.0) as u8),
+                theme::overlay_color().linear_multiply((theme::KNOB_HIGHLIGHT_BASE * highlight_pulse / 255.0).clamp(0.0, 1.0)),
             ),
         );
 

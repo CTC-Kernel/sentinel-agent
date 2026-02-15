@@ -51,7 +51,7 @@ impl<'a> SearchFilterBar<'a> {
             // Search input
             let search_width = 220.0_f32.min(ui.available_width() * 0.35);
             ui.add_sized(
-                Vec2::new(search_width, 28.0),
+                Vec2::new(search_width, theme::SEARCH_INPUT_HEIGHT),
                 egui::TextEdit::singleline(self.search)
                     .hint_text(self.placeholder)
                     .font(theme::font_small())

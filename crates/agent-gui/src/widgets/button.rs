@@ -95,7 +95,7 @@ fn draw_premium_button(
                 if enabled {
                     theme::text_on_accent()
                 } else {
-                    Color32::from_white_alpha(theme::DISABLED_ON_ACCENT_ALPHA)
+                    theme::text_on_accent().linear_multiply(theme::OPACITY_MEDIUM)
                 },
             )
         } else {
@@ -156,7 +156,7 @@ fn draw_premium_button(
 
         // ─── Inner Bevel / Highlight (Primary Only) ───
         if is_primary && enabled && !loading {
-            let stroke_color = Color32::from_white_alpha(theme::SUBTLE_HIGHLIGHT_ALPHA);
+            let stroke_color = theme::overlay_color().linear_multiply(theme::SUBTLE_HIGHLIGHT_ALPHA as f32 / 255.0);
             ui.painter().rect_stroke(
                 rect.shrink(theme::BORDER_THIN),
                 CornerRadius::same(theme::BUTTON_ROUNDING),
@@ -293,7 +293,7 @@ fn draw_destructive_button(
         let text_color = if enabled {
             theme::text_on_accent()
         } else {
-            Color32::from_white_alpha(theme::DISABLED_ON_ACCENT_ALPHA)
+            theme::text_on_accent().linear_multiply(theme::OPACITY_MEDIUM)
         };
 
         // Shadow
@@ -364,7 +364,7 @@ pub fn ghost_button(ui: &mut Ui, text: impl Into<WidgetText>) -> Response {
         let is_clicked = response.is_pointer_button_down_on();
 
         let text_color = if is_clicked {
-            theme::ACCENT
+            theme::accent_text()
         } else if is_hovered {
             theme::text_primary()
         } else {
@@ -396,7 +396,7 @@ pub fn ghost_button(ui: &mut Ui, text: impl Into<WidgetText>) -> Response {
         if response.has_focus() {
             ui.painter().rect_stroke(
                 rect.expand(2.0),
-                CornerRadius::same(theme::SPACE_XS as u8 + 2),
+                CornerRadius::same(theme::ROUNDING_LG),
                 theme::focus_ring(),
                 StrokeKind::Outside,
             );
@@ -454,7 +454,7 @@ pub fn icon_button_with_color(
 
         // Icon
         let icon_color = if is_clicked {
-            theme::ACCENT
+            theme::accent_text()
         } else if is_hovered {
             theme::text_primary()
         } else {
@@ -490,7 +490,7 @@ pub fn chip_button(ui: &mut Ui, text: &str, active: bool, color: Color32) -> Res
         .painter()
         .layout_no_wrap(text.to_string(), font.clone(), text_col);
 
-    let padding = egui::vec2(theme::SPACE_SM + 2.0, theme::SPACE_XS);
+    let padding = egui::vec2(theme::SPACE_SM + theme::BORDER_THICK, theme::SPACE_XS);
     let size = galley.size() + padding * 2.0;
     let size = egui::vec2(size.x, size.y.max(theme::ICON_LG));
 

@@ -207,7 +207,7 @@ impl Slider {
 
                 // Inner dot for default style
                 if matches!(self.style, SliderStyle::Default) {
-                    painter.circle_filled(thumb_center, theme::SPACE_XS, Color32::WHITE);
+                    painter.circle_filled(thumb_center, theme::SPACE_XS, theme::text_on_accent());
                 }
 
                 // Hover ring
@@ -215,7 +215,7 @@ impl Slider {
                     painter.circle_stroke(
                         thumb_center,
                         thumb_radius + theme::SPACE_XS,
-                        egui::Stroke::new(theme::BORDER_THICK, accent.linear_multiply(theme::OPACITY_MUTED)),
+                        egui::Stroke::new(theme::BORDER_THICK, accent.linear_multiply(theme::OPACITY_MEDIUM)),
                     );
                 }
             }

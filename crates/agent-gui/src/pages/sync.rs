@@ -178,7 +178,7 @@ impl SyncPage {
                                 } else {
                                     (icons::CIRCLE_XMARK, theme::ERROR)
                                 };
-                                ui.label(egui::RichText::new(icon).size(18.0).color(color));
+                                ui.label(egui::RichText::new(icon).size(theme::ICON_SM + theme::BORDER_THICK).color(color));
                             });
 
                             row.col(|ui: &mut egui::Ui| {

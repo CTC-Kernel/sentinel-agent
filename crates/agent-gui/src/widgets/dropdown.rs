@@ -62,7 +62,7 @@ impl<'a, T> Dropdown<'a, T> {
         let is_open = ui.memory(|mem| mem.data.get_temp::<bool>(self.id).unwrap_or(false));
         let search_id = self.id.with("search");
 
-        let width = self.width.unwrap_or(ui.available_width().min(theme::DROPDOWN_MAX_HEIGHT + 50.0));
+        let width = self.width.unwrap_or(ui.available_width().min(theme::DROPDOWN_MAX_HEIGHT + theme::DROPDOWN_POPUP_MARGIN));
         let height = theme::INPUT_HEIGHT;
 
         // Main button
@@ -344,11 +344,11 @@ impl<'a, T> Dropdown<'a, T> {
                 if let Some(pos) = click_pos {
                     let popup_rect = egui::Rect::from_min_size(
                         if above {
-                            egui::pos2(rect.min.x, rect.min.y - theme::DROPDOWN_MAX_HEIGHT - 50.0)
+                            egui::pos2(rect.min.x, rect.min.y - theme::DROPDOWN_MAX_HEIGHT - theme::DROPDOWN_POPUP_MARGIN)
                         } else {
                             egui::pos2(rect.min.x, rect.max.y)
                         },
-                        egui::vec2(width, theme::DROPDOWN_MAX_HEIGHT + 50.0),
+                        egui::vec2(width, theme::DROPDOWN_MAX_HEIGHT + theme::DROPDOWN_POPUP_MARGIN),
                     );
                     if !popup_rect.contains(pos) && !rect.contains(pos) {
                         ui.memory_mut(|mem| mem.data.insert_temp(self.id, false));

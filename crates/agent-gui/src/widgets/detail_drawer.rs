@@ -160,11 +160,11 @@ impl<'a> DetailDrawer<'a> {
                     egui::vec2(20.0, screen.height()),
                 );
                 for i in 0..10 {
-                    let alpha = (10 - i) as u8 * 3;
+                    let alpha = (10 - i) as f32 * 3.0 / 255.0;
                     let x = shadow_rect.min.x + i as f32 * 2.0;
                     ui.painter().line_segment(
                         [egui::pos2(x, screen.min.y), egui::pos2(x, screen.max.y)],
-                        egui::Stroke::new(1.0, Color32::from_black_alpha(alpha)),
+                        egui::Stroke::new(theme::BORDER_THIN, Color32::from_black_alpha((alpha * 255.0) as u8)),
                     );
                 }
 
@@ -188,7 +188,7 @@ impl<'a> DetailDrawer<'a> {
                             ui.add_space(theme::SPACE_LG);
 
                             // Icon circle
-                            let icon_size = 40.0;
+                            let icon_size = theme::ICON_XL + theme::SPACE_SM;
                             let (icon_rect, _) = ui.allocate_exact_size(
                                 egui::vec2(icon_size, icon_size),
                                 egui::Sense::hover(),

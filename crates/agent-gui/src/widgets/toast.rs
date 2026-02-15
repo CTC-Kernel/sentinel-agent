@@ -179,19 +179,19 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
         let toast_center = match position {
             ToastPosition::BottomCenter => egui::pos2(
                 screen.center().x,
-                screen.max.y - 24.0 - y_offset - toast_height / 2.0 + slide_offset,
+                screen.max.y - theme::SPACE_LG - y_offset - toast_height / 2.0 + slide_offset,
             ),
             ToastPosition::TopCenter => egui::pos2(
                 screen.center().x,
-                screen.min.y + 24.0 + y_offset + toast_height / 2.0 - slide_offset,
+                screen.min.y + theme::SPACE_LG + y_offset + toast_height / 2.0 - slide_offset,
             ),
             ToastPosition::TopRight => egui::pos2(
-                screen.max.x - toast_width / 2.0 - 24.0,
-                screen.min.y + 24.0 + y_offset + toast_height / 2.0 - slide_offset,
+                screen.max.x - toast_width / 2.0 - theme::SPACE_LG,
+                screen.min.y + theme::SPACE_LG + y_offset + toast_height / 2.0 - slide_offset,
             ),
             ToastPosition::BottomRight => egui::pos2(
-                screen.max.x - toast_width / 2.0 - 24.0,
-                screen.max.y - 24.0 - y_offset - toast_height / 2.0 + slide_offset,
+                screen.max.x - toast_width / 2.0 - theme::SPACE_LG,
+                screen.max.y - theme::SPACE_LG - y_offset - toast_height / 2.0 + slide_offset,
             ),
         };
 
@@ -227,7 +227,7 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
 
         // Text (shifted right to account for accent bar)
         let text_pos = egui::pos2(
-            toast_rect.min.x + 16.0,
+            toast_rect.min.x + theme::TOAST_TEXT_INSET,
             toast_rect.center().y - galley.size().y / 2.0,
         );
         ui.painter().galley(
@@ -239,7 +239,7 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
         // Close button if dismissible (MIN_TOUCH_TARGET for accessibility)
         if toast.dismissible {
             let close_rect = egui::Rect::from_center_size(
-                egui::pos2(toast_rect.max.x - 18.0, toast_rect.center().y),
+                egui::pos2(toast_rect.max.x - theme::TOAST_CLOSE_INSET, toast_rect.center().y),
                 egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET),
             );
 

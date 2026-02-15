@@ -1450,10 +1450,8 @@ fn get_disk_usage() -> (u64, u64) {
         )
         .is_ok()
         {
-            return (
-                total_number_of_bytes - total_number_of_free_bytes,
-                total_number_of_bytes,
-            );
+            let used = total_number_of_bytes.saturating_sub(total_number_of_free_bytes);
+            return (total_number_of_bytes, used);
         }
     }
     (0, 0)

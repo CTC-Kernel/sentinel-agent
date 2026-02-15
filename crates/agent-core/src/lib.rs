@@ -815,8 +815,9 @@ impl AgentRuntime {
             self.resource_monitor.check_limits(true);
 
             let mut is_active = false;
+            let is_paused = self.is_paused();
 
-            // 1. Process FIM alerts
+            // 1. Process FIM alerts (always — security-critical even when paused)
             {
                 let mut rx_guard = self.fim_rx.lock().await;
                 if let Some(rx) = rx_guard.as_mut() {
@@ -973,8 +974,8 @@ impl AgentRuntime {
                 }
             }
 
-            // 3. Vulnerability Scanning
-            if last_vuln_scan.elapsed().as_secs() >= self.vuln_scan_interval_secs {
+            // 3. Vulnerability Scanning (skip when paused)
+            if !is_paused && last_vuln_scan.elapsed().as_secs() >= self.vuln_scan_interval_secs {
                 #[cfg(feature = "gui")]
                 {
                     self.state.scanning.store(true, Ordering::Release);
@@ -1043,8 +1044,8 @@ impl AgentRuntime {
                 last_vuln_scan = std::time::Instant::now();
             }
 
-            // Run security scan if interval has passed
-            if last_security_scan.elapsed().as_secs() >= self.security_scan_interval_secs {
+            // Run security scan if interval has passed (skip when paused)
+            if !is_paused && last_security_scan.elapsed().as_secs() >= self.security_scan_interval_secs {
                 is_active = true;
                 match self.run_security_scan().await {
                     Ok(result) => {
@@ -1128,8 +1129,8 @@ impl AgentRuntime {
                 last_security_scan = std::time::Instant::now();
             }
 
-            // Run network static info collection if interval has passed
-            if last_network_static.elapsed() >= current_network_static_interval {
+            // Run network static info collection if interval has passed (skip when paused)
+            if !is_paused && last_network_static.elapsed() >= current_network_static_interval {
                 is_active = true;
                 match self.run_network_collection().await {
                     Ok(snapshot) => {
@@ -1176,8 +1177,8 @@ impl AgentRuntime {
                 current_network_static_interval = network_manager.next_static_interval();
             }
 
-            // Run network connection scan if interval has passed
-            if last_network_connections.elapsed() >= current_network_connection_interval {
+            // Run network connection scan if interval has passed (skip when paused)
+            if !is_paused && last_network_connections.elapsed() >= current_network_connection_interval {
                 is_active = true;
                 match self.run_network_collection().await {
                     Ok(snapshot) => {
@@ -1224,8 +1225,8 @@ impl AgentRuntime {
                 current_network_connection_interval = network_manager.next_connection_interval();
             }
 
-            // Run network security detection if interval has passed
-            if last_network_security.elapsed() >= current_network_security_interval {
+            // Run network security detection if interval has passed (skip when paused)
+            if !is_paused && last_network_security.elapsed() >= current_network_security_interval {
                 is_active = true;
                 match self.run_network_collection().await {
                     Ok(snapshot) => {
@@ -1283,8 +1284,8 @@ impl AgentRuntime {
                 current_network_security_interval = network_manager.next_security_interval();
             }
 
-            // Run compliance checks if interval has passed (dynamic from GUI settings)
-            if last_compliance_check_time.elapsed().as_secs() >= self.state.get_check_interval()
+            // Run compliance checks if interval has passed (skip when paused)
+            if !is_paused && last_compliance_check_time.elapsed().as_secs() >= self.state.get_check_interval()
             {
                 is_active = true;
                 #[cfg(feature = "gui")]
@@ -1567,8 +1568,13 @@ impl AgentRuntime {
 
                         let disc_cancel = discovery.cancel_handle();
                         let cancel_watcher = cancel.clone();
+                        let done = Arc::new(AtomicBool::new(false));
+                        let done_watcher = done.clone();
                         tokio::spawn(async move {
                             loop {
+                                if done_watcher.load(Ordering::Relaxed) {
+                                    break;
+                                }
                                 if cancel_watcher.load(Ordering::Relaxed) {
                                     disc_cancel.store(true, Ordering::Relaxed);
                                     break;
@@ -1585,7 +1591,9 @@ impl AgentRuntime {
                             warn!("Failed to send discovery progress: {}", e);
                         }
 
-                        match discovery.scan(&subnet).await {
+                        let scan_result = discovery.scan(&subnet).await;
+                        done.store(true, Ordering::Relaxed);
+                        match scan_result {
                             Ok(result) => {
                                 let devices: Vec<GuiDiscoveredDevice> = result
                                     .devices

@@ -252,7 +252,7 @@ impl SoftwarePage {
                 ui.label(
                     egui::RichText::new(icons::SHIELD_CHECK)
                         .color(coverage_color.linear_multiply(theme::OPACITY_STRONG))
-                        .size(14.0),
+                        .size(theme::ICON_INLINE),
                 );
                 ui.add_space(theme::SPACE_XS);
                 ui.label(
@@ -436,8 +436,7 @@ impl SoftwarePage {
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&pkg.version)
-                                        .font(theme::font_mono())
-                                        .size(11.0)
+                                        .font(theme::font_mono_sm())
                                         .color(theme::text_secondary()),
                                 );
                             });
@@ -473,8 +472,7 @@ impl SoftwarePage {
                                             );
                                             ui.label(
                                                 egui::RichText::new(latest)
-                                                    .font(theme::font_mono())
-                                                    .size(11.0)
+                                                    .font(theme::font_mono_sm())
                                                     .color(theme::accent_text())
                                                     .strong(),
                                             );
@@ -684,8 +682,7 @@ impl SoftwarePage {
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&app.version)
-                                        .font(theme::font_mono())
-                                        .size(11.0)
+                                        .font(theme::font_mono_sm())
                                         .color(theme::text_secondary()),
                                 );
                             });

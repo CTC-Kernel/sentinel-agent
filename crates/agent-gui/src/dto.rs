@@ -45,6 +45,18 @@ impl Severity {
             Severity::Info => "INFO",
         }
     }
+
+    /// Severity weight for compliance score calculation.
+    /// Matches `ScoreCalculator` weights in agent-scanner/src/score.rs.
+    pub fn weight(&self) -> f32 {
+        match self {
+            Severity::Critical => 4.0,
+            Severity::High => 3.0,
+            Severity::Medium => 2.0,
+            Severity::Low => 1.0,
+            Severity::Info => 0.5,
+        }
+    }
 }
 
 impl std::fmt::Display for Severity {

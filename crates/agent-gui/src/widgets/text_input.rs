@@ -212,8 +212,8 @@ pub fn text_input_with_options(
         // Focus ring when active
         if response.has_focus() {
             painter.rect_stroke(
-                rect.expand(2.0),
-                egui::CornerRadius::same(theme::BUTTON_ROUNDING + 2),
+                rect.expand(theme::BORDER_THICK),
+                egui::CornerRadius::same(theme::ROUNDING_LG),
                 theme::focus_ring(),
                 egui::epaint::StrokeKind::Outside,
             );
@@ -232,7 +232,7 @@ pub fn text_input_with_options(
             egui::TextEdit::singleline(value)
                 .hint_text(egui::RichText::new(placeholder).color(theme::text_tertiary()))
                 .font(theme::font_body())
-                .margin(egui::Margin::symmetric(0, theme::SPACE_XS as i8 + 2))
+                .margin(egui::Margin::symmetric(0, (theme::SPACE_XS + theme::BORDER_THICK) as i8))
                 .frame(false)
                 .desired_width(text_rect.width()),
         )
@@ -332,7 +332,7 @@ pub fn search_input(ui: &mut Ui, value: &mut String, placeholder: &str) -> Respo
 
         // Search icon
         painter.text(
-            egui::pos2(rect.min.x + theme::SPACE_MD + 2.0, rect.center().y),
+            egui::pos2(rect.min.x + theme::SPACE_MD + theme::BORDER_THICK, rect.center().y),
             egui::Align2::LEFT_CENTER,
             icons::SEARCH,
             theme::font_body(),
@@ -353,7 +353,7 @@ pub fn search_input(ui: &mut Ui, value: &mut String, placeholder: &str) -> Respo
             egui::TextEdit::singleline(value)
                 .hint_text(egui::RichText::new(placeholder).color(theme::text_tertiary()))
                 .font(theme::font_body())
-                .margin(egui::Margin::symmetric(0, theme::SPACE_XS as i8 + 2))
+                .margin(egui::Margin::symmetric(0, (theme::SPACE_XS + theme::BORDER_THICK) as i8))
                 .frame(false)
                 .desired_width(text_rect.width()),
         )

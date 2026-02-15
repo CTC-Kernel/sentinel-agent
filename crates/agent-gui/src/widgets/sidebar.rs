@@ -138,8 +138,8 @@ impl Sidebar {
                                     unread_notifications.to_string()
                                 };
                                 let badge_rect = egui::Rect::from_min_size(
-                                    bell_response.rect.right_top() + egui::vec2(-4.0, -4.0),
-                                    egui::vec2(16.0, 16.0),
+                                    bell_response.rect.right_top() + egui::vec2(-theme::BADGE_INDICATOR_OFFSET, -theme::BADGE_INDICATOR_OFFSET),
+                                    egui::vec2(theme::ICON_SM, theme::ICON_SM),
                                 );
                                 let rounding = CornerRadius::same(theme::BUTTON_ROUNDING);
                                 ui.painter().rect_filled(
@@ -333,7 +333,7 @@ impl Sidebar {
                     theme::hover_bg()
                 };
 
-                let rect_shrunk = rect.shrink2(Vec2::new(8.0, 2.0));
+                let rect_shrunk = rect.shrink2(Vec2::new(theme::NAV_ITEM_INSET_H, theme::NAV_ITEM_INSET_V));
 
                 ui.painter().rect(
                     rect_shrunk,
@@ -353,9 +353,9 @@ impl Sidebar {
                 icon,
                 theme::font_heading(),
                 if is_current {
-                    theme::ACCENT
+                    theme::accent_text()
                 } else {
-                    theme::text_tertiary()
+                    theme::text_secondary()
                 },
             );
 
@@ -370,7 +370,7 @@ impl Sidebar {
 
             // Focus ring for keyboard navigation
             if response.has_focus() {
-                let rect_shrunk = rect.shrink2(Vec2::new(8.0, 2.0));
+                let rect_shrunk = rect.shrink2(Vec2::new(theme::NAV_ITEM_INSET_H, theme::NAV_ITEM_INSET_V));
                 ui.painter().rect_stroke(
                     rect_shrunk.expand(1.0),
                     egui::CornerRadius::same(theme::BUTTON_ROUNDING),
@@ -388,8 +388,8 @@ impl Sidebar {
                 } else {
                     count.to_string()
                 };
-                let badge_center = rect.right_center() + Vec2::new(-24.0, 0.0);
-                let badge_rect = egui::Rect::from_center_size(badge_center, Vec2::new(22.0, 16.0));
+                let badge_center = rect.right_center() + Vec2::new(-theme::NAV_BADGE_OFFSET, 0.0);
+                let badge_rect = egui::Rect::from_center_size(badge_center, Vec2::new(theme::NAV_BADGE_WIDTH, theme::NAV_BADGE_HEIGHT));
                 let rounding = CornerRadius::same(theme::BUTTON_ROUNDING);
                 ui.painter()
                     .rect_filled(badge_rect, rounding, theme::badge_bg(theme::ERROR));
@@ -459,11 +459,11 @@ impl Sidebar {
 
         // Row 1: dot + label
         let row_response = ui.horizontal(|ui: &mut egui::Ui| {
-            ui.add_space(theme::SPACE_MD + 8.0);
+            ui.add_space(theme::SPACE_MD + theme::SPACE_SM);
             // Animated dot
-            let (dot_rect, _) = ui.allocate_exact_size(Vec2::new(8.0, 8.0), egui::Sense::empty());
+            let (dot_rect, _) = ui.allocate_exact_size(Vec2::splat(theme::STATUS_DOT_SIZE), egui::Sense::empty());
             ui.painter()
-                .circle_filled(dot_rect.center(), 4.0, dot_color.linear_multiply(alpha));
+                .circle_filled(dot_rect.center(), theme::STATUS_DOT_SIZE / 2.0, dot_color.linear_multiply(alpha));
             // Subtle glow on synced/syncing
             if pulse_speed > 0.0 {
                 ui.painter().circle_filled(
@@ -488,7 +488,7 @@ impl Sidebar {
         // Row 2: relative timestamp
         if let Some(last) = state.last_sync_at {
             ui.horizontal(|ui: &mut egui::Ui| {
-                ui.add_space(theme::SPACE_MD + 8.0 + 8.0 + theme::SPACE_XS);
+                ui.add_space(theme::SPACE_MD + theme::SPACE_SM + theme::STATUS_DOT_SIZE + theme::SPACE_XS);
                 ui.label(
                     egui::RichText::new(Self::relative_time_fr(now, last))
                         .font(theme::font_small())
