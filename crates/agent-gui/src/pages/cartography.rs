@@ -253,11 +253,7 @@ impl CartographyPage {
             painter.circle_stroke(
                 screen_pos,
                 base_radius,
-                egui::Stroke::new(theme::BORDER_THIN, if theme::is_dark_mode() {
-                    egui::Color32::from_white_alpha(100)
-                } else {
-                    egui::Color32::from_black_alpha(60)
-                }),
+                egui::Stroke::new(theme::BORDER_THIN, theme::overlay_color().linear_multiply(theme::OPACITY_MODERATE)),
             );
 
             // 4. Label (Institutional AAA)
@@ -309,8 +305,8 @@ impl CartographyPage {
                 ];
                 for (label, color) in legend_items {
                     let (dot_rect, _) =
-                        ui.allocate_exact_size(egui::vec2(8.0, 8.0), egui::Sense::hover());
-                    ui.painter().circle_filled(dot_rect.center(), 4.0, color);
+                        ui.allocate_exact_size(egui::Vec2::splat(theme::STATUS_DOT_SIZE), egui::Sense::hover());
+                    ui.painter().circle_filled(dot_rect.center(), theme::STATUS_DOT_SIZE / 2.0, color);
                     ui.label(
                         egui::RichText::new(label)
                             .font(theme::font_label())
@@ -376,7 +372,7 @@ impl CartographyPage {
                         );
                         ui.label(
                             egui::RichText::new(device.mac.as_deref().unwrap_or("--"))
-                                .font(egui::FontId::monospace(11.0)),
+                                .font(theme::font_mono_sm()),
                         );
                         ui.end_row();
 

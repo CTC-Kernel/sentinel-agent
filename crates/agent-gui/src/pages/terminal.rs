@@ -205,7 +205,7 @@ impl TerminalPage {
                 let search_edit = egui::TextEdit::singleline(&mut state.terminal.search)
                     .desired_width(200.0)
                     .margin(egui::Margin::symmetric(theme::SPACE_SM as i8, theme::SPACE_XS as i8))
-                    .font(egui::FontId::monospace(11.0))
+                    .font(theme::font_mono_sm())
                     .hint_text("rechercher...");
                 ui.add(search_edit);
             });
@@ -333,14 +333,14 @@ impl TerminalPage {
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&ts)
-                                        .font(egui::FontId::monospace(11.0))
+                                        .font(theme::font_mono_sm())
                                         .color(theme::text_tertiary()),
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&entry.level)
-                                        .font(egui::FontId::monospace(10.0))
+                                        .font(theme::font_mono_sm())
                                         .color(color)
                                         .strong(),
                                 );
@@ -348,14 +348,14 @@ impl TerminalPage {
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(target_short)
-                                        .font(egui::FontId::monospace(11.0))
+                                        .font(theme::font_mono_sm())
                                         .color(theme::accent_text()),
                                 );
                             });
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(&entry.message)
-                                        .font(egui::FontId::monospace(11.0))
+                                        .font(theme::font_mono_sm())
                                         .color(theme::text_primary()),
                                 );
                             });

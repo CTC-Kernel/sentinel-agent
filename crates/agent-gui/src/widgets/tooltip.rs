@@ -75,24 +75,24 @@ pub fn show_tooltip_at(
         )
     });
 
-    let padding = egui::vec2(10.0, 6.0);
+    let padding = egui::vec2(theme::TOOLTIP_PADDING_H, theme::TOOLTIP_PADDING_V);
     let tooltip_size = galley.size() + padding * 2.0;
 
     // Calculate position
     let tooltip_pos = match position {
         TooltipPosition::Top => egui::pos2(
             rect.center().x - tooltip_size.x / 2.0,
-            rect.min.y - tooltip_size.y - 8.0,
+            rect.min.y - tooltip_size.y - theme::TOOLTIP_OFFSET,
         ),
         TooltipPosition::Bottom => {
-            egui::pos2(rect.center().x - tooltip_size.x / 2.0, rect.max.y + 8.0)
+            egui::pos2(rect.center().x - tooltip_size.x / 2.0, rect.max.y + theme::TOOLTIP_OFFSET)
         }
         TooltipPosition::Left => egui::pos2(
-            rect.min.x - tooltip_size.x - 8.0,
+            rect.min.x - tooltip_size.x - theme::TOOLTIP_OFFSET,
             rect.center().y - tooltip_size.y / 2.0,
         ),
         TooltipPosition::Right => {
-            egui::pos2(rect.max.x + 8.0, rect.center().y - tooltip_size.y / 2.0)
+            egui::pos2(rect.max.x + theme::TOOLTIP_OFFSET, rect.center().y - tooltip_size.y / 2.0)
         }
     };
 
@@ -101,10 +101,10 @@ pub fn show_tooltip_at(
     let tooltip_pos = egui::pos2(
         tooltip_pos
             .x
-            .clamp(screen.min.x + 4.0, screen.max.x - tooltip_size.x - 4.0),
+            .clamp(screen.min.x + theme::TOOLTIP_SCREEN_MARGIN, screen.max.x - tooltip_size.x - theme::TOOLTIP_SCREEN_MARGIN),
         tooltip_pos
             .y
-            .clamp(screen.min.y + 4.0, screen.max.y - tooltip_size.y - 4.0),
+            .clamp(screen.min.y + theme::TOOLTIP_SCREEN_MARGIN, screen.max.y - tooltip_size.y - theme::TOOLTIP_SCREEN_MARGIN),
     );
 
     let tooltip_rect = egui::Rect::from_min_size(tooltip_pos, tooltip_size);
@@ -156,7 +156,7 @@ pub fn tooltip(ui: &Ui, response: &egui::Response, text: &str) {
 
 /// Info icon with tooltip.
 pub fn info_tooltip(ui: &mut Ui, text: &str) {
-    let (rect, response) = ui.allocate_exact_size(egui::vec2(16.0, 16.0), egui::Sense::hover());
+    let (rect, response) = ui.allocate_exact_size(egui::vec2(theme::ICON_SM, theme::ICON_SM), egui::Sense::hover());
 
     if ui.is_rect_visible(rect) {
         let color = if response.hovered() {
@@ -181,7 +181,8 @@ pub fn info_tooltip(ui: &mut Ui, text: &str) {
 
 /// Help icon with tooltip (question mark style).
 pub fn help_tooltip(ui: &mut Ui, text: &str) {
-    let (rect, response) = ui.allocate_exact_size(egui::vec2(18.0, 18.0), egui::Sense::hover());
+    let help_size = theme::ICON_SM + theme::BORDER_THICK;
+    let (rect, response) = ui.allocate_exact_size(egui::vec2(help_size, help_size), egui::Sense::hover());
 
     if ui.is_rect_visible(rect) {
         let is_hovered = response.hovered();
@@ -189,14 +190,14 @@ pub fn help_tooltip(ui: &mut Ui, text: &str) {
         // Circle background
         ui.painter().circle(
             rect.center(),
-            8.0,
+            help_size / 2.0,
             if is_hovered {
                 theme::ACCENT.linear_multiply(theme::OPACITY_TINT)
             } else {
                 egui::Color32::TRANSPARENT
             },
             egui::Stroke::new(
-                1.0,
+                theme::BORDER_THIN,
                 if is_hovered {
                     theme::ACCENT
                 } else {

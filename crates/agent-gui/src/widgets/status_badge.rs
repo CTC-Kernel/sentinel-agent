@@ -11,8 +11,8 @@ use crate::theme;
 /// `text` is the badge label.
 /// `color` is the semantic color (SUCCESS, WARNING, ERROR, INFO, ACCENT, etc.).
 pub fn status_badge(ui: &mut Ui, text: &str, color: egui::Color32) {
-    let h_pad = 8.0;
-    let v_pad = 3.0;
+    let h_pad = theme::SPACE_SM;
+    let v_pad = theme::ACCENT_BAR_WIDTH;
 
     let bg_color = theme::badge_bg(color);
     let border_color = theme::badge_border(color);
@@ -25,7 +25,7 @@ pub fn status_badge(ui: &mut Ui, text: &str, color: egui::Color32) {
     let text_size = galley.size();
     let desired_size = Vec2::new(
         text_size.x + h_pad * 2.0,
-        (text_size.y + v_pad * 2.0).max(18.0),
+        (text_size.y + v_pad * 2.0).max(theme::BADGE_MIN_HEIGHT),
     );
 
     let (rect, _) = ui.allocate_exact_size(desired_size, egui::Sense::hover());

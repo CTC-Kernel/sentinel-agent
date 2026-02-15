@@ -141,7 +141,7 @@ impl<'a> TabBar<'a> {
         }
         content_width += ui
             .painter()
-            .layout_no_wrap(tab.label.to_string(), font.clone(), Color32::WHITE)
+            .layout_no_wrap(tab.label.to_string(), font.clone(), theme::text_primary())
             .size()
             .x;
         if tab.badge.is_some() {
@@ -173,7 +173,7 @@ impl<'a> TabBar<'a> {
             let text_color = if tab.disabled {
                 theme::text_tertiary()
             } else if is_selected {
-                theme::ACCENT
+                theme::accent_text()
             } else if is_hovered {
                 theme::text_primary()
             } else {

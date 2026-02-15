@@ -103,7 +103,7 @@ impl NetworkPage {
             (
                 "INTERFACES RÉSEAU",
                 iface_count.to_string(),
-                theme::ACCENT,
+                theme::accent_text(),
                 icons::WIFI,
             ),
             (
@@ -847,7 +847,7 @@ impl NetworkPage {
                     ui.add_space(theme::SPACE_SM);
                     ui.label(
                         egui::RichText::new(icons::WARNING)
-                            .size(48.0)
+                            .size(theme::ICON_2XL)
                             .color(theme::ERROR.linear_multiply(theme::OPACITY_MEDIUM)),
                     );
                     ui.add_space(theme::SPACE_SM);

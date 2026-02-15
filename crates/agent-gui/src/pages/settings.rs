@@ -540,7 +540,7 @@ impl SettingsPage {
                     ui.set_min_width(320.0);
                     ui.vertical_centered(|ui| {
                         ui.add_space(theme::SPACE_MD);
-                        ui.label(egui::RichText::new(icons::LOCK).size(32.0).color(theme::accent_text()));
+                        ui.label(egui::RichText::new(icons::LOCK).size(theme::ICON_XL).color(theme::accent_text()));
                         ui.add_space(theme::SPACE_MD);
                         ui.label(egui::RichText::new("Authentification Requise").font(theme::font_heading()).strong());
                         ui.add_space(theme::SPACE_XS);
@@ -711,7 +711,7 @@ impl SettingsPage {
                     ui.add_space(theme::SPACE_XS);
                     ui.label(
                         egui::RichText::new(value)
-                            .font(egui::FontId::monospace(11.0))
+                            .font(theme::font_mono_sm())
                             .color(theme::text_primary())
                             .strong(),
                     );

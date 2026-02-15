@@ -308,7 +308,13 @@ impl ProcessMonitor {
         }
 
         let stdout = String::from_utf8_lossy(&output.stdout);
-        let processes: Vec<WinProcess> = serde_json::from_str(&stdout).unwrap_or_default();
+        let processes: Vec<WinProcess> = match serde_json::from_str(&stdout) {
+            Ok(p) => p,
+            Err(e) => {
+                tracing::warn!("Failed to parse PowerShell process list: {}", e);
+                Vec::new()
+            }
+        };
 
         Ok(processes
             .into_iter()
@@ -444,7 +450,7 @@ impl ProcessMonitor {
     /// Scan all running processes for suspicious activity.
     pub async fn scan_processes(&self) -> ScannerResult<(Vec<SecurityIncident>, u32)> {
         let processes = self.get_processes()?;
-        let count = processes.len() as u32;
+        let count = u32::try_from(processes.len()).unwrap_or(u32::MAX);
         let mut incidents = Vec::new();
 
         debug!("Scanning {} processes", count);

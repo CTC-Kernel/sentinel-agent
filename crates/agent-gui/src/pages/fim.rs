@@ -297,7 +297,6 @@ impl FimPage {
                                     ui.label(
                                         egui::RichText::new(&alert.path)
                                             .font(theme::font_mono())
-                                            .size(12.0)
                                             .color(theme::text_primary()),
                                     );
                                     let hash_text = match (&alert.old_hash, &alert.new_hash) {
@@ -326,8 +325,7 @@ impl FimPage {
                             row.col(|ui: &mut egui::Ui| {
                                 ui.label(
                                     egui::RichText::new(alert.timestamp.format("%d/%m %H:%M:%S").to_string())
-                                        .font(theme::font_mono())
-                                        .size(11.0)
+                                        .font(theme::font_mono_sm())
                                         .color(theme::text_tertiary()),
                                 );
                             });

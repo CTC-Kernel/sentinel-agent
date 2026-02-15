@@ -27,7 +27,7 @@ is_critical = false
 
 # Firewall
 [[controls]]
-check_id = "firewall"
+check_id = "firewall_active"
 control_id = "PR.AC-5"
 control_name = "Network integrity is protected"
 category = "Protect"
@@ -36,7 +36,7 @@ weight = 0.9
 is_critical = true
 
 [[controls]]
-check_id = "firewall"
+check_id = "firewall_active"
 control_id = "DE.CM-1"
 control_name = "Network is monitored"
 category = "Detect"
@@ -46,7 +46,7 @@ is_critical = false
 
 # Antivirus
 [[controls]]
-check_id = "antivirus"
+check_id = "antivirus_active"
 control_id = "DE.CM-4"
 control_name = "Malicious code is detected"
 category = "Detect"
@@ -55,7 +55,7 @@ weight = 0.9
 is_critical = true
 
 [[controls]]
-check_id = "antivirus"
+check_id = "antivirus_active"
 control_id = "PR.DS-6"
 control_name = "Integrity checking mechanisms"
 category = "Protect"
@@ -65,7 +65,7 @@ is_critical = false
 
 # MFA
 [[controls]]
-check_id = "mfa"
+check_id = "mfa_enabled"
 control_id = "PR.AC-7"
 control_name = "Users and devices are authenticated"
 category = "Protect"
@@ -85,7 +85,7 @@ is_critical = true
 
 # System Updates
 [[controls]]
-check_id = "system_updates"
+check_id = "patches_current"
 control_id = "PR.IP-12"
 control_name = "Vulnerability management plan"
 category = "Protect"
@@ -94,7 +94,7 @@ weight = 0.9
 is_critical = true
 
 [[controls]]
-check_id = "system_updates"
+check_id = "patches_current"
 control_id = "ID.RA-1"
 control_name = "Asset vulnerabilities identified"
 category = "Identify"
@@ -123,7 +123,7 @@ is_critical = true
 
 # Session Lock
 [[controls]]
-check_id = "session_lock"
+check_id = "screen_lock"
 control_id = "PR.AC-4"
 control_name = "Access permissions managed"
 category = "Protect"
@@ -133,7 +133,7 @@ is_critical = false
 
 # Backup
 [[controls]]
-check_id = "backup"
+check_id = "backup_configured"
 control_id = "PR.IP-4"
 control_name = "Backups are conducted"
 category = "Protect"
@@ -142,7 +142,7 @@ weight = 0.85
 is_critical = true
 
 [[controls]]
-check_id = "backup"
+check_id = "backup_configured"
 control_id = "RC.RP-1"
 control_name = "Recovery plan is executed"
 category = "Recover"
@@ -162,7 +162,7 @@ is_critical = true
 
 # Remote Access
 [[controls]]
-check_id = "remote_access"
+check_id = "remote_access_secure"
 control_id = "PR.AC-3"
 control_name = "Remote access is managed"
 category = "Protect"
@@ -202,7 +202,7 @@ is_critical = false
 
 # USB Storage
 [[controls]]
-check_id = "usb_storage"
+check_id = "usb_storage_disabled"
 control_id = "PR.PT-2"
 control_name = "Removable media is protected"
 category = "Protect"
@@ -212,7 +212,7 @@ is_critical = false
 
 # Bluetooth
 [[controls]]
-check_id = "bluetooth"
+check_id = "bluetooth_disabled"
 control_id = "PR.AC-5"
 control_name = "Network integrity is protected"
 category = "Protect"
@@ -232,7 +232,7 @@ is_critical = false
 
 # Guest Account
 [[controls]]
-check_id = "guest_account"
+check_id = "guest_account_disabled"
 control_id = "PR.AC-1"
 control_name = "Identities and credentials are issued"
 category = "Protect"
@@ -242,7 +242,7 @@ is_critical = false
 
 # Auto Login
 [[controls]]
-check_id = "auto_login"
+check_id = "auto_login_disabled"
 control_id = "PR.AC-7"
 control_name = "Users are authenticated"
 category = "Protect"
@@ -262,7 +262,7 @@ is_critical = false
 
 # IPv6 Config
 [[controls]]
-check_id = "ipv6_config"
+check_id = "ipv6_hardening"
 control_id = "PR.AC-5"
 control_name = "Network integrity"
 category = "Protect"
@@ -349,7 +349,7 @@ is_critical = true
 
 # GPO Lockout Policy
 [[controls]]
-check_id = "gpo_lockout_policy"
+check_id = "gpo_account_lockout"
 control_id = "PR.AC-7"
 control_name = "Users are authenticated"
 category = "Protect"

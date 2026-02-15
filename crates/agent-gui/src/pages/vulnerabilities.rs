@@ -181,8 +181,8 @@ impl VulnerabilitiesPage {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new(icons::WRENCH)
-                        .color(theme::ACCENT.linear_multiply(theme::OPACITY_STRONG))
-                        .size(14.0),
+                        .color(theme::accent_text().linear_multiply(theme::OPACITY_STRONG))
+                        .size(theme::ICON_INLINE),
                 );
                 ui.add_space(theme::SPACE_XS);
                 let fix_pct = if total_findings > 0 {
@@ -222,7 +222,7 @@ impl VulnerabilitiesPage {
                 ui.label(
                     egui::RichText::new(icons::SHIELD_CHECK)
                         .color(theme::readable_color(theme::SUCCESS))
-                        .size(14.0),
+                        .size(theme::ICON_INLINE),
                 );
                 ui.add_space(theme::SPACE_XS);
                 let remediation_pct = if total_findings > 0 {
@@ -270,7 +270,7 @@ impl VulnerabilitiesPage {
                 ui.label(
                     egui::RichText::new(icons::GAUGE_HIGH)
                         .color(theme::readable_color(theme::score_color(100.0 - avg_cvss * 10.0)))
-                        .size(14.0),
+                        .size(theme::ICON_INLINE),
                 );
                 ui.add_space(theme::SPACE_XS);
                 ui.label(
@@ -544,7 +544,7 @@ impl VulnerabilitiesPage {
                             let cve_label = &finding.cve_id;
                             let response = ui.label(
                                 egui::RichText::new(cve_label)
-                                    .font(egui::FontId::monospace(12.0))
+                                    .font(theme::font_mono())
                                     .color(theme::accent_text())
                                     .strong(),
                             ).interact(egui::Sense::click());

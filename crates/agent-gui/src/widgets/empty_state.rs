@@ -37,7 +37,7 @@ pub fn empty_state_with_action<F: FnOnce()>(
         ui.label(
             RichText::new(icon)
                 .size(theme::EMPTY_STATE_ICON)
-                .color(theme::ACCENT.linear_multiply(icon_alpha)),
+                .color(theme::accent_text().linear_multiply(icon_alpha)),
         );
 
         ui.add_space(theme::SPACE_MD);

@@ -213,7 +213,7 @@ impl DashboardPage {
     fn cpu_sparkline_card(ui: &mut Ui, state: &AppState) {
         widgets::card(ui, |ui: &mut egui::Ui| {
             let config = widgets::SparklineConfig {
-                color: theme::ACCENT,
+                color: theme::accent_text(),
                 fill: true,
                 show_trend: true,
                 show_stats: false,
@@ -367,7 +367,7 @@ impl DashboardPage {
                 ui.vertical_centered(|ui: &mut egui::Ui| {
                     ui.label(
                         egui::RichText::new(icons::SHIELD_CHECK)
-                            .size(20.0)
+                            .size(theme::ICON_MD)
                             .color(theme::text_tertiary()),
                     );
                     ui.label(
@@ -390,7 +390,7 @@ impl DashboardPage {
             ui.horizontal(|ui: &mut egui::Ui| {
                 ui.label(
                     egui::RichText::new(icons::BOLT)
-                        .size(12.0)
+                        .size(theme::ICON_XS)
                         .color(theme::accent_text()),
                 );
                 ui.add_space(theme::SPACE_XS);
@@ -770,7 +770,7 @@ impl DashboardPage {
 
         if ui.is_rect_visible(rect) {
             let painter = ui.painter_at(rect);
-            let rounding = egui::CornerRadius::same(2);
+            let rounding = egui::CornerRadius::same(theme::ROUNDING_XS);
 
             // Track
             painter.rect_filled(rect, rounding, theme::bg_tertiary());
@@ -802,8 +802,9 @@ impl DashboardPage {
     }
 
     fn status_item(ui: &mut Ui, icon: &str, label: &str, value: &str, color: egui::Color32) {
+        let safe_color = theme::readable_color(color);
         ui.horizontal(|ui: &mut egui::Ui| {
-            ui.label(egui::RichText::new(icon).size(10.0).color(color));
+            ui.label(egui::RichText::new(icon).size(10.0).color(safe_color));
             ui.add_space(theme::SPACE_XS);
             ui.label(
                 egui::RichText::new(label)
@@ -816,7 +817,7 @@ impl DashboardPage {
                     ui.label(
                         egui::RichText::new(value)
                             .font(theme::font_label())
-                            .color(color),
+                            .color(safe_color),
                     );
                 },
             );

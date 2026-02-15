@@ -28,8 +28,7 @@ impl TrayDashboard {
                             ui.add_space(theme::SPACE_XS);
                             ui.label(
                                 egui::RichText::new("RAPPORT CYBER RAPIDE")
-                                    .font(theme::font_title())
-                                    .size(11.0)
+                                    .font(theme::font_small())
                                     .strong(),
                             );
                             ui.with_layout(

@@ -236,8 +236,10 @@ impl CleanupManager {
         // Remove WAL files
         for ext in &["db-wal", "db-shm", "db-journal"] {
             let wal_path = self.data_dir.join(format!("agent.{}", ext));
-            if wal_path.exists() {
-                let _ = fs::remove_file(&wal_path);
+            if let Err(e) = fs::remove_file(&wal_path)
+                && e.kind() != std::io::ErrorKind::NotFound
+            {
+                warn!("Failed to remove WAL file {}: {}", wal_path.display(), e);
             }
         }
 

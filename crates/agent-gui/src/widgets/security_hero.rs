@@ -66,13 +66,13 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
                 egui::Stroke::new(theme::BORDER_MEDIUM, base_color.linear_multiply(theme::OPACITY_MUTED)),
             );
 
-            // Icon with subtle shadow
+            // Icon with subtle shadow (theme-aware)
             painter.text(
                 center + Vec2::new(1.0, 1.5),
                 egui::Align2::CENTER_CENTER,
                 security_state.icon(),
                 egui::FontId::proportional(icon_size),
-                Color32::BLACK.linear_multiply(theme::OPACITY_TINT),
+                theme::overlay_color().linear_multiply(theme::OPACITY_TINT),
             );
             painter.text(
                 center,
@@ -97,7 +97,7 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
             if let Some(score) = state.summary.compliance_score {
                 ui.add_space(theme::SPACE_XS);
 
-                let score_color = theme::score_color(score);
+                let score_color = theme::readable_color(theme::score_color(score));
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.label(
                         RichText::new(format!("{}%", score as i32))
@@ -111,9 +111,9 @@ pub fn security_hero(ui: &mut Ui, state: &AppState) {
                         let diff: f32 = score - prev;
                         if diff.abs() > 0.5 {
                             let (arrow, arrow_color) = if diff > 0.0 {
-                                ("▲", theme::SUCCESS)
+                                ("▲", theme::readable_color(theme::SUCCESS))
                             } else {
-                                ("▼", theme::ERROR)
+                                ("▼", theme::readable_color(theme::ERROR))
                             };
                             ui.label(
                                 RichText::new(format!("{}{:.1}", arrow, diff.abs()))

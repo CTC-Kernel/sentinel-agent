@@ -693,14 +693,8 @@ impl AppState {
 
     /// Recompute summary statistics reactively
     fn recompute_summary_stats(&mut self) {
-        // Update compliance score from policy
-        if let Some(policy_summary) = &self.summary.policy_summary {
-            self.summary.compliance_score = if policy_summary.total_policies > 0 {
-                Some((policy_summary.passing as f32 / policy_summary.total_policies as f32) * 100.0)
-            } else {
-                None
-            };
-        }
+        // Note: compliance_score is already computed with severity weights
+        // by recompute_policy(). Do NOT overwrite it with an unweighted ratio.
 
         // Update counts that exist in AgentSummary
         // Note: Some fields like vulnerability_count, software_count, etc.
@@ -715,18 +709,32 @@ impl AppState {
         use crate::dto::{GuiCheckStatus, GuiPolicySummary};
         let total = self.checks.len() as u32;
         let (mut passing, mut failing, mut errors) = (0u32, 0u32, 0u32);
+        let mut weighted_pass = 0.0_f32;
+        let mut weighted_total = 0.0_f32;
         for c in &self.checks {
+            let w = c.severity.weight();
             match c.status {
-                GuiCheckStatus::Pass => passing += 1,
-                GuiCheckStatus::Fail => failing += 1,
-                GuiCheckStatus::Error => errors += 1,
-                _ => {}
+                GuiCheckStatus::Pass => {
+                    passing += 1;
+                    weighted_pass += w;
+                    weighted_total += w;
+                }
+                GuiCheckStatus::Fail => {
+                    failing += 1;
+                    weighted_total += w;
+                }
+                GuiCheckStatus::Error => {
+                    errors += 1;
+                    weighted_pass += w * 0.5;
+                    weighted_total += w;
+                }
+                _ => {} // Skipped/Pending excluded from score
             }
         }
         let pending = total - passing - failing - errors;
 
-        self.summary.compliance_score = if total > 0 {
-            Some((passing as f32 / total as f32) * 100.0)
+        self.summary.compliance_score = if weighted_total > 0.0 {
+            Some((weighted_pass / weighted_total) * 100.0)
         } else {
             None
         };

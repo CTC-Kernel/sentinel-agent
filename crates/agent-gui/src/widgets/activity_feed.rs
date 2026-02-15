@@ -147,7 +147,7 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
     let icon = event.event_type.icon();
 
     // Row background with subtle hover
-    let desired_height = 36.0;
+    let desired_height = theme::TABLE_ROW_HEIGHT;
     let available_width = ui.available_width();
     let (rect, response) = ui.allocate_exact_size(
         Vec2::new(available_width, desired_height),
@@ -167,11 +167,11 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
         }
 
         // Left color indicator bar
-        let bar_rect = egui::Rect::from_min_size(rect.left_top(), Vec2::new(3.0, rect.height()));
-        painter.rect_filled(bar_rect, CornerRadius::same(2), color.linear_multiply(theme::OPACITY_STRONG));
+        let bar_rect = egui::Rect::from_min_size(rect.left_top(), Vec2::new(theme::ACCENT_BAR_WIDTH, rect.height()));
+        painter.rect_filled(bar_rect, CornerRadius::same(theme::ROUNDING_XS), color.linear_multiply(theme::OPACITY_STRONG));
 
         // Icon
-        let icon_pos = egui::pos2(rect.left() + 16.0, rect.center().y);
+        let icon_pos = egui::pos2(rect.left() + theme::SPACE, rect.center().y);
         painter.text(
             icon_pos,
             egui::Align2::CENTER_CENTER,
@@ -181,7 +181,7 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
         );
 
         // Title
-        let title_pos = egui::pos2(rect.left() + 32.0, rect.center().y - 6.0);
+        let title_pos = egui::pos2(rect.left() + theme::SPACE_XL, rect.center().y - 6.0);
         painter.text(
             title_pos,
             egui::Align2::LEFT_CENTER,
@@ -192,7 +192,7 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
 
         // Detail (if any)
         if let Some(ref detail) = event.detail {
-            let detail_pos = egui::pos2(rect.left() + 32.0, rect.center().y + 8.0);
+            let detail_pos = egui::pos2(rect.left() + theme::SPACE_XL, rect.center().y + theme::SPACE_SM);
             painter.text(
                 detail_pos,
                 egui::Align2::LEFT_CENTER,
@@ -212,7 +212,7 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
             format!("{}h", elapsed.num_hours())
         };
 
-        let time_pos = egui::pos2(rect.right() - 8.0, rect.center().y);
+        let time_pos = egui::pos2(rect.right() - theme::SPACE_SM, rect.center().y);
         painter.text(
             time_pos,
             egui::Align2::RIGHT_CENTER,

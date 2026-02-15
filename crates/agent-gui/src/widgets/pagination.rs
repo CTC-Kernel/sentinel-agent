@@ -194,7 +194,7 @@ impl Pagination {
                 }
 
                 if i < visible_pages.len() - 1 {
-                    ui.add_space(2.0);
+                    ui.add_space(theme::BORDER_THICK);
                 }
             }
 
@@ -257,7 +257,7 @@ impl Pagination {
             // Previous
             let prev_enabled = state.has_prev();
             let (prev_rect, prev_response) =
-                ui.allocate_exact_size(egui::vec2(32.0, 32.0), Sense::click());
+                ui.allocate_exact_size(egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET), Sense::click());
 
             if ui.is_rect_visible(prev_rect) {
                 let color = if prev_enabled {
@@ -287,14 +287,14 @@ impl Pagination {
             // Page indicator (dots)
             for p in 1..=state.total_pages.min(5) {
                 let is_current = p == state.current_page || (state.current_page > 5 && p == 5);
-                let size = if is_current { 8.0 } else { 6.0 };
+                let size = if is_current { theme::PAGINATION_DOT_ACTIVE } else { theme::PAGINATION_DOT_INACTIVE };
                 let color = if is_current {
                     theme::ACCENT
                 } else {
                     theme::text_tertiary()
                 };
 
-                let (dot_rect, _) = ui.allocate_exact_size(egui::vec2(12.0, 12.0), Sense::hover());
+                let (dot_rect, _) = ui.allocate_exact_size(egui::vec2(theme::PAGINATION_DOT_TOUCH, theme::PAGINATION_DOT_TOUCH), Sense::hover());
 
                 if ui.is_rect_visible(dot_rect) {
                     ui.painter()
@@ -305,7 +305,7 @@ impl Pagination {
             // Next
             let next_enabled = state.has_next();
             let (next_rect, next_response) =
-                ui.allocate_exact_size(egui::vec2(32.0, 32.0), Sense::click());
+                ui.allocate_exact_size(egui::vec2(theme::MIN_TOUCH_TARGET, theme::MIN_TOUCH_TARGET), Sense::click());
 
             if ui.is_rect_visible(next_rect) {
                 let color = if next_enabled {

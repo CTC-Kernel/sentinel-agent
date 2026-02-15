@@ -272,7 +272,7 @@ impl<'a> DataTable<'a> {
 
                         // Label
                         let text_color = if is_sorted {
-                            theme::ACCENT
+                            theme::accent_text()
                         } else {
                             theme::text_secondary()
                         };
@@ -411,9 +411,9 @@ impl<'a> DataTable<'a> {
                 };
 
                 let text_x = match col.align {
-                    ColumnAlign::Left => cell_rect.min.x + 12.0,
+                    ColumnAlign::Left => cell_rect.min.x + theme::SPACE_MD,
                     ColumnAlign::Center => cell_rect.center().x,
-                    ColumnAlign::Right => cell_rect.max.x - 12.0,
+                    ColumnAlign::Right => cell_rect.max.x - theme::SPACE_MD,
                 };
 
                 ui.painter().text(

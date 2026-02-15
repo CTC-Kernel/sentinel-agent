@@ -81,7 +81,7 @@ pub fn progress_bar_styled(
                 .intersect(fill_rect);
 
                 if shine_rect.width() > 0.0 {
-                    painter.rect_filled(shine_rect, rounding, Color32::from_white_alpha((theme::OPACITY_SUBTLE * 255.0) as u8));
+                    painter.rect_filled(shine_rect, rounding, theme::overlay_color().linear_multiply(theme::OPACITY_SUBTLE));
                 }
             }
         }
