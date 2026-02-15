@@ -506,10 +506,10 @@ impl Sidebar {
             "\u{00e0} l'instant".into()
         } else if secs < 3600 {
             format!("il y a {} min", secs / 60)
-        } else if secs < 86400 {
+        } else if secs < agent_common::constants::SECS_PER_DAY as i64 {
             format!("il y a {} h", secs / 3600)
         } else {
-            format!("il y a {} j", secs / 86400)
+            format!("il y a {} j", secs / agent_common::constants::SECS_PER_DAY as i64)
         }
     }
 }

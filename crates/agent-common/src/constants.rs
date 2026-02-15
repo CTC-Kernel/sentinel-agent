@@ -61,6 +61,9 @@ pub const HTTP_TIMEOUT_SECS: u64 = 30;
 /// HTTP connection timeout in seconds.
 pub const HTTP_CONNECT_TIMEOUT_SECS: u64 = 10;
 
+/// Seconds per day (86 400).
+pub const SECS_PER_DAY: u64 = 86_400;
+
 #[cfg(windows)]
 /// Default installation directory on Windows.
 pub const DEFAULT_INSTALL_DIR: &str = "C:\\Program Files\\Sentinel";

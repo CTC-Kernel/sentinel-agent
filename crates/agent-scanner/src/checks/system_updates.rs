@@ -280,7 +280,7 @@ impl SystemUpdatesCheck {
         if let Ok(metadata) = std::fs::metadata("/var/lib/apt/periodic/update-stamp") {
             if let Ok(modified) = metadata.modified() {
                 if let Ok(duration) = modified.elapsed() {
-                    let days = duration.as_secs() / 86400;
+                    let days = duration.as_secs() / agent_common::constants::SECS_PER_DAY;
                     status.days_since_check = Some(days as i64);
                 }
             }
@@ -293,7 +293,7 @@ impl SystemUpdatesCheck {
                     .flatten();
 
                 if let Ok(duration) = modified.elapsed() {
-                    let days = duration.as_secs() / 86400;
+                    let days = duration.as_secs() / agent_common::constants::SECS_PER_DAY;
                     status.days_since_check = Some(days as i64);
                 }
             }

@@ -361,7 +361,7 @@ impl AgentConfig {
                 "check_interval_secs must be greater than 0",
             ));
         }
-        if self.check_interval_secs > 86400 * 30 {
+        if self.check_interval_secs > crate::constants::SECS_PER_DAY * 30 {
             return Err(crate::error::CommonError::validation(
                 "check_interval_secs must not exceed 30 days (2592000)",
             ));

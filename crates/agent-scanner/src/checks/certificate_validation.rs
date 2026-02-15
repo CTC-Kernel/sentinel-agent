@@ -294,8 +294,8 @@ impl CertificateValidationCheck {
         };
 
         // Check if openssl is available
-        let openssl_check = Command::new("which").args(["openssl"]).output();
-        if openssl_check.is_err() || !openssl_check.unwrap().status.success() {
+        let openssl_available = Command::new("which").args(["openssl"]).output().is_ok_and(|o| o.status.success());
+        if !openssl_available {
             status
                 .issues
                 .push("OpenSSL not available for certificate verification".to_string());
@@ -420,8 +420,10 @@ impl CertificateValidationCheck {
 
             if let Ok(mut child) = parse_output {
                 use std::io::Write;
-                if let Some(ref mut stdin) = child.stdin {
-                    let _ = stdin.write_all(cert_pem.as_bytes());
+                if let Some(ref mut stdin) = child.stdin
+                    && let Err(e) = stdin.write_all(cert_pem.as_bytes())
+                {
+                    tracing::warn!("Failed to write certificate to openssl stdin: {}", e);
                 }
 
                 if let Ok(output) = child.wait_with_output()

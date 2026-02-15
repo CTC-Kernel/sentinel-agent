@@ -152,8 +152,8 @@ impl MonitoringPage {
     }
 
     fn format_uptime(secs: u64) -> String {
-        let days = secs / 86400;
-        let hours = (secs % 86400) / 3600;
+        let days = secs / agent_common::constants::SECS_PER_DAY;
+        let hours = (secs % agent_common::constants::SECS_PER_DAY) / 3600;
         let minutes = (secs % 3600) / 60;
         if days > 0 {
             format!("{}j {}h {}m", days, hours, minutes)
@@ -271,14 +271,22 @@ impl MonitoringPage {
                     |ui: &mut egui::Ui| {
                         if !history.is_empty() {
                             // Simple live dot
-                            let time = ui.input(|i| i.time);
-                            let pulse = ((time * 1.5).sin() * 0.5 + 0.5) as f32;
+                            if theme::is_reduced_motion() {
+                                ui.label(
+                                    egui::RichText::new("●")
+                                        .size(6.0)
+                                        .color(theme::SUCCESS.linear_multiply(0.7)),
+                                );
+                            } else {
+                                let time = ui.input(|i| i.time);
+                                let pulse = ((time * 1.5).sin() * 0.5 + 0.5) as f32;
 
-                            ui.label(
-                                egui::RichText::new("●")
-                                    .size(6.0)
-                                    .color(theme::SUCCESS.linear_multiply(0.4 + pulse * 0.3)),
-                            );
+                                ui.label(
+                                    egui::RichText::new("●")
+                                        .size(6.0)
+                                        .color(theme::SUCCESS.linear_multiply(0.4 + pulse * 0.3)),
+                                );
+                            }
                         }
                     },
                 );

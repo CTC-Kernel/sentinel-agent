@@ -454,7 +454,7 @@ fn configure_service_recovery() -> ServiceResult<()> {
         ];
 
         let failure_actions = SERVICE_FAILURE_ACTIONSW {
-            dwResetPeriod: 86400, // Reset failure count after 1 day (in seconds)
+            dwResetPeriod: agent_common::constants::SECS_PER_DAY as u32, // Reset failure count after 1 day
             lpRebootMsg: PWSTR::null(),
             lpCommand: PWSTR::null(),
             cActions: actions.len() as u32,

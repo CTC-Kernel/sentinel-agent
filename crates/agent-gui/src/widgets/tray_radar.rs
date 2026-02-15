@@ -41,12 +41,12 @@ impl TrayRadar {
                     color: theme::WARNING,
                 },
                 RadarPoint {
-                    label: "RESOURCES".to_string(),
+                    label: "RESSOURCES".to_string(),
                     value: resources,
                     color: theme::SUCCESS,
                 },
                 RadarPoint {
-                    label: "NETWORK".to_string(),
+                    label: "RÉSEAU".to_string(),
                     value: network,
                     color: theme::INFO,
                 },

@@ -69,11 +69,13 @@ pub fn sparkline(ui: &mut Ui, data: &[[f64; 2]], size: Vec2, config: &SparklineC
         .include_y(0.0)
         .auto_bounds(egui::Vec2b::new(true, true));
 
+    let data_vec = data.to_vec();
+
     plot.show(ui, |plot_ui| {
         // Fill under the line
         if config.fill {
             plot_ui.line(
-                Line::new(PlotPoints::new(data.to_vec()))
+                Line::new(PlotPoints::new(data_vec.clone()))
                     .color(config.color.linear_multiply(theme::OPACITY_SUBTLE))
                     .fill(0.0),
             );
@@ -81,14 +83,14 @@ pub fn sparkline(ui: &mut Ui, data: &[[f64; 2]], size: Vec2, config: &SparklineC
 
         // Soft glow layer (single, subtle)
         plot_ui.line(
-            Line::new(PlotPoints::new(data.to_vec()))
+            Line::new(PlotPoints::new(data_vec.clone()))
                 .color(config.color.linear_multiply(theme::OPACITY_MUTED))
                 .width(3.0),
         );
 
         // Main line
         plot_ui.line(
-            Line::new(PlotPoints::new(data.to_vec()))
+            Line::new(PlotPoints::new(data_vec))
                 .color(config.color)
                 .width(1.5),
         );
