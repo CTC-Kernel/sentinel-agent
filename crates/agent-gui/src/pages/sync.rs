@@ -121,7 +121,7 @@ impl SyncPage {
                         ui.label(
                             egui::RichText::new(format!("{} ERREUR : {}", icons::WARNING, err))
                                 .font(theme::font_small())
-                                .color(theme::ERROR),
+                                .color(theme::readable_color(theme::ERROR)),
                         );
                     });
             }

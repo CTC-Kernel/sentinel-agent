@@ -136,7 +136,11 @@ impl DiscoveryPage {
                                         ui.painter().rect_filled(
                                             visible_shimmer,
                                             egui::CornerRadius::same(2),
-                                            egui::Color32::from_white_alpha(40),
+                                            if theme::is_dark_mode() {
+                                                egui::Color32::from_white_alpha(40)
+                                            } else {
+                                                egui::Color32::from_black_alpha(20)
+                                            },
                                         );
                                     }
                                 }
@@ -157,7 +161,7 @@ impl DiscoveryPage {
                             ui.label(
                                 egui::RichText::new(format!("{:.0}% COMPLET", progress * 100.0))
                                     .font(theme::font_label())
-                                    .color(theme::ACCENT)
+                                    .color(theme::accent_text())
                                     .strong(),
                             );
                         });
@@ -578,7 +582,7 @@ fn device_type_badge(device_type: &str) -> (&str, egui::Color32) {
         "workstation" => ("POSTE", theme::INFO),
         "printer" => ("IMPRIMANTE", theme::INFO),
         "iot" => ("IOT", theme::WARNING),
-        "phone" => ("TÉLÉPHONE", theme::ACCENT_LIGHT),
+        "phone" => ("TÉLÉPHONE", theme::accent_text()),
         "switch" => ("SWITCH", theme::INFO),
         _ => ("INCONNU", theme::WARNING),
     }

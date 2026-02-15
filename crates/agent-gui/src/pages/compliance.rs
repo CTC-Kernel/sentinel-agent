@@ -701,7 +701,7 @@ impl CompliancePage {
                                 ui.label(
                                     egui::RichText::new(format!("{:.0}%", s))
                                         .font(theme::font_body())
-                                        .color(theme::score_color(s as f32))
+                                        .color(theme::readable_color(theme::score_color(s as f32)))
                                         .strong(),
                                 );
                             } else {
