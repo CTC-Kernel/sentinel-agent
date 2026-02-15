@@ -74,8 +74,7 @@ impl DiscoveryPage {
                         );
 
                         if ui.is_rect_visible(bar_rect) {
-                            let time = ui.input(|i| i.time);
-                            let pulse = (((time * 2.0).sin() * 0.5 + 0.5) as f32).powi(2);
+                            let reduced = theme::is_reduced_motion();
 
                             ui.painter().rect_filled(
                                 bar_rect,
@@ -90,38 +89,61 @@ impl DiscoveryPage {
                                     egui::Vec2::new(fill_width, bar_height),
                                 );
 
-                                for i in 1..4 {
-                                    let expansion = i as f32 * 2.0;
-                                    let alpha = 0.12 / (i as f32);
-                                    ui.painter().rect_filled(
-                                        fill_rect.expand(expansion),
-                                        egui::CornerRadius::same(theme::ROUNDING_SM),
-                                        theme::ACCENT.linear_multiply(alpha * (0.8 + pulse * 0.2)),
-                                    );
+                                if reduced {
+                                    // Static glow — no pulse animation
+                                    for i in 1..4 {
+                                        let expansion = i as f32 * 2.0;
+                                        let alpha = 0.12 / (i as f32);
+                                        ui.painter().rect_filled(
+                                            fill_rect.expand(expansion),
+                                            egui::CornerRadius::same(theme::ROUNDING_SM),
+                                            theme::ACCENT.linear_multiply(alpha),
+                                        );
+                                    }
+                                } else {
+                                    let time = ui.input(|i| i.time);
+                                    let pulse = (((time * 2.0).sin() * 0.5 + 0.5) as f32).powi(2);
+
+                                    for i in 1..4 {
+                                        let expansion = i as f32 * 2.0;
+                                        let alpha = 0.12 / (i as f32);
+                                        ui.painter().rect_filled(
+                                            fill_rect.expand(expansion),
+                                            egui::CornerRadius::same(theme::ROUNDING_SM),
+                                            theme::ACCENT.linear_multiply(alpha * (0.8 + pulse * 0.2)),
+                                        );
+                                    }
                                 }
 
+                                // Solid fill
                                 ui.painter().rect_filled(
                                     fill_rect,
                                     egui::CornerRadius::same(2),
                                     theme::ACCENT,
                                 );
 
-                                let shimmer_x =
-                                    (time * 0.4).fract() as f32 * (fill_width + 40.0) - 20.0;
-                                let shimmer_rect = egui::Rect::from_min_size(
-                                    bar_rect.min + egui::vec2(shimmer_x, 0.0),
-                                    egui::vec2(20.0, bar_height),
-                                );
-                                let visible_shimmer = shimmer_rect.intersect(fill_rect);
-                                if visible_shimmer.is_positive() {
-                                    ui.painter().rect_filled(
-                                        visible_shimmer,
-                                        egui::CornerRadius::same(2),
-                                        egui::Color32::from_white_alpha(40),
+                                // Shimmer — skip when reduced motion
+                                if !reduced {
+                                    let time = ui.input(|i| i.time);
+                                    let shimmer_x =
+                                        (time * 0.4).fract() as f32 * (fill_width + 40.0) - 20.0;
+                                    let shimmer_rect = egui::Rect::from_min_size(
+                                        bar_rect.min + egui::vec2(shimmer_x, 0.0),
+                                        egui::vec2(20.0, bar_height),
                                     );
+                                    let visible_shimmer = shimmer_rect.intersect(fill_rect);
+                                    if visible_shimmer.is_positive() {
+                                        ui.painter().rect_filled(
+                                            visible_shimmer,
+                                            egui::CornerRadius::same(2),
+                                            egui::Color32::from_white_alpha(40),
+                                        );
+                                    }
                                 }
                             }
-                            ui.ctx().request_repaint();
+                            if !reduced {
+                                ui.ctx().request_repaint();
+                            }
                         }
 
                         ui.horizontal(|ui: &mut egui::Ui| {

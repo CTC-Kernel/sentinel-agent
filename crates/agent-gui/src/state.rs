@@ -364,12 +364,17 @@ impl AppState {
 
     /// Compute radar chart scores (compliance, threats, vulns, resources, network).
     /// Each score is normalized to 0.0..=1.0 where 1.0 is best.
+    /// Maximum thresholds for radar score normalization.
+    const RADAR_MAX_THREATS: f32 = 10.0;
+    const RADAR_MAX_VULNS: f32 = 20.0;
+    const RADAR_MAX_ALERTS: f32 = 5.0;
+
     pub fn radar_scores(&self) -> (f32, f32, f32, f32, f32) {
         let compliance = self.summary.compliance_score.unwrap_or(0.0) / 100.0;
-        let threats = 1.0 - (self.threats.suspicious_processes.len() as f32 / 10.0).min(1.0);
-        let vulns = 1.0 - (self.vulnerability_findings.len() as f32 / 20.0).min(1.0);
+        let threats = 1.0 - (self.threats.suspicious_processes.len() as f32 / Self::RADAR_MAX_THREATS).min(1.0);
+        let vulns = 1.0 - (self.vulnerability_findings.len() as f32 / Self::RADAR_MAX_VULNS).min(1.0);
         let resources = 1.0 - (self.resources.cpu_percent as f32 / 100.0).min(1.0);
-        let network = 1.0 - (self.network.alert_count as f32 / 5.0).min(1.0);
+        let network = 1.0 - (self.network.alert_count as f32 / Self::RADAR_MAX_ALERTS).min(1.0);
         (compliance, threats, vulns, resources, network)
     }
 

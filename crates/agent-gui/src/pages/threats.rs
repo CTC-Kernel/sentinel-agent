@@ -621,14 +621,19 @@ impl ThreatsPage {
 
             // Sweeping line animation
             let time = ui.input(|i| i.time);
+            let reduced = theme::is_reduced_motion();
             let angle = (time * 1.5) as f32 % std::f32::consts::TAU;
-            let sweep_pos = center + egui::vec2(angle.cos(), angle.sin()) * radius;
 
-            // Sweep trail (subtle arc)
-            painter.line_segment(
-                [center, sweep_pos],
-                egui::Stroke::new(theme::BORDER_MEDIUM, theme::SUCCESS.linear_multiply(theme::OPACITY_HOVER_SOFT)),
-            );
+            // Skip sweep line entirely when reduced motion is enabled
+            if !reduced {
+                let sweep_pos = center + egui::vec2(angle.cos(), angle.sin()) * radius;
+
+                // Sweep trail (subtle arc)
+                painter.line_segment(
+                    [center, sweep_pos],
+                    egui::Stroke::new(theme::BORDER_MEDIUM, theme::SUCCESS.linear_multiply(theme::OPACITY_HOVER_SOFT)),
+                );
+            }
 
             // Draw threats as blips
             for (i, threat) in threats.iter().enumerate() {
@@ -649,14 +654,19 @@ impl ThreatsPage {
                     _ => theme::INFO,
                 };
 
-                // Interaction: sweep proximity
-                let diff_angle = (angle - t_angle).abs();
-                let is_near_sweep = !(0.2..=(std::f32::consts::TAU - 0.2)).contains(&diff_angle);
-
-                let pulse = if is_near_sweep {
-                    1.0
+                let pulse = if reduced {
+                    // Static blip size — no pulse animation
+                    0.5
                 } else {
-                    ((time * 2.0 + (i as f64 * 0.5)).sin() * 0.5 + 0.5) as f32
+                    // Interaction: sweep proximity
+                    let diff_angle = (angle - t_angle).abs();
+                    let is_near_sweep = !(0.2..=(std::f32::consts::TAU - 0.2)).contains(&diff_angle);
+
+                    if is_near_sweep {
+                        1.0
+                    } else {
+                        ((time * 2.0 + (i as f64 * 0.5)).sin() * 0.5 + 0.5) as f32
+                    }
                 };
 
                 // Glow
@@ -668,15 +678,19 @@ impl ThreatsPage {
                 // Core
                 painter.circle_filled(blip_pos, 3.0, color);
 
-                // Label if near sweep or hovered
-                if is_near_sweep {
-                    painter.text(
-                        blip_pos + egui::vec2(8.0, -8.0),
-                        egui::Align2::LEFT_BOTTOM,
-                        &threat.title,
-                        theme::font_min(),
-                        theme::text_primary(),
-                    );
+                // Label if near sweep or hovered (skip when reduced — no sweep to trigger proximity)
+                if !reduced {
+                    let diff_angle = (angle - t_angle).abs();
+                    let is_near_sweep = !(0.2..=(std::f32::consts::TAU - 0.2)).contains(&diff_angle);
+                    if is_near_sweep {
+                        painter.text(
+                            blip_pos + egui::vec2(8.0, -8.0),
+                            egui::Align2::LEFT_BOTTOM,
+                            &threat.title,
+                            theme::font_min(),
+                            theme::text_primary(),
+                        );
+                    }
                 }
             }
 

@@ -242,9 +242,6 @@ impl LLMAnalyzer {
         let template = PromptTemplates::get("security_analysis")
             .ok_or_else(|| anyhow::anyhow!("Security analysis template not found"))?;
 
-        // Convert scan results to string format
-        let _scan_results_str = self.format_scan_results(&context.scan_results)?;
-        
         // Identify failed checks
         let failed_checks: Vec<_> = context.scan_results.iter()
             .filter(|r| !r.passed)
@@ -279,6 +276,7 @@ impl LLMAnalyzer {
     }
 
     /// Format scan results for prompt.
+    #[allow(dead_code)] // Will be used when LLM response parsing is implemented
     fn format_scan_results(&self, results: &[ScanResult]) -> Result<String> {
         let formatted: Vec<String> = results.iter()
             .map(|r| {
@@ -339,13 +337,11 @@ impl LLMAnalyzer {
 
     /// Parse analysis response from LLM.
     fn parse_analysis_response(&self, _response: &str, context: &AnalysisContext, duration: std::time::Duration) -> Result<AnalysisResult> {
-        // This is a simplified parser - in production, you'd want more robust parsing
-        // possibly using structured output formats or JSON mode
-        
+        // TODO(llm): parse structured JSON response from LLM
         let result = AnalysisResult {
             id: uuid::Uuid::new_v4().to_string(),
             risk_assessment: RiskAssessment {
-                risk_level: RiskLevel::Medium, // Would parse from response
+                risk_level: RiskLevel::Medium,
                 risk_categories: vec!["Access Control".to_string(), "Encryption".to_string()],
                 risk_score: 65,
                 description: "Moderate security risks identified requiring attention".to_string(),
@@ -384,7 +380,7 @@ impl LLMAnalyzer {
                 model_name: self.config.model.name.clone(),
                 confidence_score: 85,
                 processing_time_ms: duration.as_millis() as u64,
-                tokens_processed: 512, // Would get from response
+                tokens_processed: 512,
             },
         };
 
@@ -406,7 +402,7 @@ impl LLMAnalyzer {
 
     /// Parse security analysis response.
     fn parse_security_analysis(&self, _response: &str, event: &SecurityEvent) -> Result<SecurityAnalysis> {
-        // Simplified parsing - would implement proper structured parsing
+        // TODO(llm): parse structured JSON response from LLM
         Ok(SecurityAnalysis {
             event_id: event.id.clone(),
             threat_type: "Malware".to_string(),

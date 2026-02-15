@@ -8,6 +8,7 @@ use tracing::info;
 use super::engine::{ModelEngine, InferenceRequest};
 use super::config::LLMConfig;
 use super::prompts::{PromptTemplates, PromptBuilder};
+pub use crate::prompts::ThreatLevel;
 
 /// Security classifier for threat assessment and categorization.
 pub struct SecurityClassifier {
@@ -193,7 +194,7 @@ Provide structured analysis with specific MITRE ATT&CK references."#,
 
     /// Parse classification response.
     fn parse_classification_response(&self, _response: &str, event: &SecurityEvent, duration: std::time::Duration) -> Result<SecurityClassification> {
-        // Simplified parsing - implement structured parsing in production
+        // TODO(llm): parse structured JSON response from LLM
         Ok(SecurityClassification {
             event_id: event.id.clone(),
             threat_type: ThreatType::Malware,
@@ -323,15 +324,6 @@ pub enum ThreatType {
     Unknown,
 }
 
-/// Threat levels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ThreatLevel {
-    Low,
-    Medium,
-    High,
-    Critical,
-}
-
 /// Attack vectors.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AttackVector {
@@ -428,29 +420,6 @@ pub struct TTP {
     pub technique: String,
     pub technique_id: String,
     pub confidence: u8,
-}
-
-/// Security insight from analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SecurityInsight {
-    pub id: String,
-    pub insight_type: InsightType,
-    pub title: String,
-    pub description: String,
-    pub severity: String,
-    pub confidence: u8,
-    pub recommendations: Vec<String>,
-    pub generated_at: chrono::DateTime<chrono::Utc>,
-}
-
-/// Types of security insights.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum InsightType {
-    Threat,
-    Vulnerability,
-    Compliance,
-    Configuration,
-    Anomaly,
 }
 
 #[cfg(test)]
