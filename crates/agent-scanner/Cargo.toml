@@ -7,7 +7,6 @@ publish = false
 
 [dependencies]
 agent-common = { path = "../agent-common" }
-agent-system = { path = "../agent-system" }
 agent_llm = { path = "../agent_llm", optional = true }
 async-trait.workspace = true
 chrono.workspace = true
